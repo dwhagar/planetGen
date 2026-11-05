@@ -2,6 +2,21 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3224] - 2026-11-05
+
+**Headline:** The generator can now work out how bright any star would look from another system, with the dust of the galaxy in the way.
+
+### Changed
+
+- `physics/sky_photometry.py` (VIEW.20, the photometry of the system sky on arrays): `apparent_magnitude` and `absolute_visual_magnitude` for arrays of luminosity, temperature and distance; `bolometric_correction` for any temperature (Flower's fit from 4,100 K to 50,000 K, the main-sequence table of Pecaut and Mamajek under 4,100 K, which answers what VIEW.9 left open for a star cooler than 3,500 K, and the blackbody tail over 50,000 K); and `galactic_extinction_av`, the dust of the smooth disc of Drimmel and Spergel integrated along a line of sight. The Sun comes out at -26.75 at 1 au and Sirius A, Alpha Centauri A and Procyon A within 0.03 mag of their catalogue values. Nothing reads it yet: the sky catalogue (VIEW.23) and the glow band (VIEW.27) do. Four stand-ins are registered (6.171, SKP1 to SKP4). generation-output: unchanged
+
+## [8.0.3223] - 2026-11-05
+
+**Headline:** The light-travel law now runs on arrays, so the sky of a system can place tens of thousands of stars where their light left them.
+
+### Changed
+- **VIEW.21: sky vectors on arrays with light-travel time.** `physics/light_travel.py` gains `retarded_offsets` (every star advanced to the sky's time by its own epoch, the observer's motion taken out, and the apparent offset solved by passes until none changes, two at least), `seen_age` (the age a star had when its light left it, a flag for stars too young to be seen yet and for stars whose phase ended within the light time), `remnant_seen` (an explosion younger than its light time has not been seen) and `curvature_bound_m` (a straight line is exact enough: 0.003 pc, 0.07 arcsecond, for a star 10 kpc away; the research plan's 7e-8 radians was an arithmetic slip, corrected here). Tests: a star at rest 1 ly away, a receding and an approaching one, a 1,000 km/s star (11.5 arcminutes), the agreement with the one-body function, the age and remnant rules and the bound. The module's wiring entry now points at the sky catalogue (VIEW.23), its first reader. Nothing generated or stored changes.
+
 ## [8.0.3222] - 2026-11-05
 
 **Headline:** A new browser module works out how one star of the sky behind a system is drawn, ready for the system page's backdrop.
