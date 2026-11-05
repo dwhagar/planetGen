@@ -18334,16 +18334,6 @@ clears each one.
   after TEST.587. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.586, TEST.587.
 
-- [ ] **TEST.589 test_no_todo_codes_shown is red on plain main: nebula_composition.py shows item codes (GEN.1269, GEN.1270, GEN.1271) in strings a person reads (bug)**
-  Planets 1 (as the lane reported, 12:32 AM EST on 2026-11-05) found
-  test_no_todo_codes_shown red on plain main, from the strings in
-  physics/nebula_composition.py (and its neighbours from GEN.1269,
-  GEN.1270, GEN.1271). Do: reword every shown string so it names the
-  thing, not the item code (codes stay in comments and docs). Done: the
-  test passes on plain main under the narrow gate. Lock-free, no output
-  change. Version 8.1. Owner: Aux 7. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1271, TEST.586.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

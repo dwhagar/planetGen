@@ -3935,7 +3935,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.586 | test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug) | none | open |
 | TEST.587 | Two more tests red on plain main: the bright-stars backfill block-path order test and the galaxy generation duplicate-address test (bug) | none | open |
 | TEST.588 | Five test_fuzz_web_routes cases are red on plain main: the nebula volume route and the /systems page numbers (bug) | none | open |
-| TEST.589 | test_no_todo_codes_shown is red on plain main: nebula_composition.py shows item codes (GEN.1269, GEN.1270, GEN.1271) in strings a person reads (bug) | none | open |
+| TEST.589 | test_no_todo_codes_shown is red on plain main: nebula_composition.py shows item codes (GEN.1269, GEN.1270, GEN.1271) in strings a person reads (bug) | none | done, PR #5045 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

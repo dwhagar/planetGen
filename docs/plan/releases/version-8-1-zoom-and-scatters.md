@@ -600,7 +600,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DOC.99 | Test lock: a citation written outside the registry and references.md fails the gate | DOC.98 | Boss, citations only in the registry. |
 | DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment |  | Boss, citations only in the registry. |
 | DOC.97 | Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information |  | Boss, citation links. |
-| TEST.589 | test_no_todo_codes_shown is red on plain main: nebula_composition.py shows item codes (GEN.1269, GEN.1270, GEN.1271) in strings a person reads (bug) |  |  |
 | TEST.588 | Five test_fuzz_web_routes cases are red on plain main: the nebula volume route and the /systems page numbers (bug) |  |  |
 | TEST.587 | Two more tests red on plain main: the bright-stars backfill block-path order test and the galaxy generation duplicate-address test (bug) |  |  |
 | TEST.586 | test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug) |  |  |
