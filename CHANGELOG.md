@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3253] - 2026-11-05
+
+**Headline:** The wiring register no longer names VIEW.23 as the item that wires the sky photometry and light-time modules; VIEW.31 (the sky route) does.
+
+### Changed
+
+- `docs/design/research/wiring-register.md` (VIEW.23): the lines for `planetgen.physics.light_travel`, `planetgen.physics.sky_photometry` and rows SKP1 to SKP4 of 6.171 point to VIEW.31, which is where the sky catalogue they feed is read by product code. generation-output: unchanged
+
 ## [8.0.3252] - 2026-11-05
 
 **Headline:** The NAV page draws the route as a course diagram: a line of stops with a glyph for each kind, the length and course of every hop, and the hops through unknown space in red, dashed and glowing.
