@@ -35,7 +35,7 @@ def test_earth_has_twelve_hours_of_day_a_polar_day_of_about_half_a_year_and_cold
     assert equator.day_hours == pytest.approx(12.0, abs=0.15) and equator.night_hours == pytest.approx(12.0, abs=0.15)
     assert equator.longest_day_days == pytest.approx(0.5, abs=0.05) and equator.longest_night_days == pytest.approx(0.5, abs=0.05) and equator.state == lb.CYCLE      # half a solar day
     assert pole.longest_day_days == pytest.approx(184.0, abs=3.0)       # 186 with refraction, which the model leaves out
-    assert pole.longest_night_days == pytest.approx(181.0, abs=3.0)       # the star's disc keeps the day the longer; 179 for a point star
+    assert pole.longest_night_days == pytest.approx(181.0, abs=3.0)       # the star's disk keeps the day the longer; 179 for a point star
     assert pole.state == lb.POLAR
     assert pole.mean_k < bands["north_middle"].mean_k < bands["north_tropic"].mean_k < equator.mean_k
     assert equator.mean_k - pole.mean_k == pytest.approx(50.0, abs=15.0)
