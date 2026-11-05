@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3232] - 2026-11-05
+
+**Headline:** The generator can now list the stars a system sees in its sky, each with its direction, brightness, colour and the place where its light left it.
+
+### Changed
+
+- `galaxy/sky.py` (VIEW.23, the sky catalogue from stored stars): `sky_from_stars` takes the stored stars as arrays and an observer and returns the stars brighter than a limiting magnitude (7.5 by default), brightest first, each with a unit direction, apparent magnitude (through the dust of the galaxy), blackbody colour, distance and light time. Each star is moved from its own epoch to the sky's time and seen where it was when its light left it, a star that had not formed yet is left out, and the observer's own system (companions too) is never in its own sky. A report says what each tier (charted, bright star, phenomenon, cluster) contributed and what was dropped and why. A star with no stored velocity gets the galaxy's circular speed at its place plus a seeded velocity dispersion, the same every time; a star with no stored epoch holds at the sky's time. `sky_from` asks a source for the stored stars in shells of distance, each above the luminosity a star needs there to reach the limit, and `sphere_source` and `stars_from_sphere` fit the sphere query of VIEW.22 to it. A sky of 30,000 stars takes about a second. Nothing reads it yet: the sky route (VIEW.31) does. Two stand-ins are registered (6.175, SKC1 and SKC2). generation-output: unchanged
+
 ## [8.0.3231] - 2026-11-05
 
 **Headline:** The Galaxy Map has an optional side strip that shows height above and below the galactic plane, linked to the map by selection.
