@@ -235,6 +235,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [course-routing.md](orbits/course-routing.md) | Course routing and nearby search | partly built |
 | [course-avoidance.md](orbits/course-avoidance.md) | Keep-out radii and path bending | research |
 | [sky-view.md](orbits/sky-view.md) | The view from a planet | research |
+| [sky-system-view.md](orbits/sky-system-view.md) | The sky behind a system in the System View: light-time, stars, glow, picking, stand-ins | built (stored stars; tiers open) |
 | [gravity-map.md](orbits/gravity-map.md) | The field of a sector as a heat map | plan (the 9.1 headline) |
 
 ## Maps and the web interface

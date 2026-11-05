@@ -25545,6 +25545,16 @@
       "kind": "paper",
       "label": "Kirchschlager et al. 2019",
       "title": "Dust survival rates in clumps passing through the Cas A reverse shock – I. Results for a range of clump densities"
+    },
+    "R5112": {
+      "kind": "web",
+      "label": "NAIF SPICE: aberration corrections",
+      "title": "NAIF SPICE: aberration corrections"
+    },
+    "R5113": {
+      "kind": "web",
+      "label": "Gaia Sky: level-of-detail catalogs",
+      "title": "Gaia Sky: level-of-detail catalogs"
     }
   }
 }
