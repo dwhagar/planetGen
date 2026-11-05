@@ -18,6 +18,9 @@ Map's nodes to the disk cache (`web/lib/tilecache.py`).
 the `/galaxy` page asks for exactly them. `planetgen warm` runs it all.
 """
 
+import contextlib
+import hashlib
+import json
 import time
 
 from planetgen.admin import activity_log
@@ -325,6 +328,8 @@ class _Visitor:
         self.client = app.test_client()
         self.pages = 0
         self.failed = []
+        self.skipped_answers = 0
+        """int: Answers of the slices `_warm_objects` found current and did not visit (PERF.239); they count as already cached."""
         self._hits, self._misses = apiclient.cache_stats["hits"], apiclient.cache_stats["misses"]
 
     def visit(self, path):
@@ -336,7 +341,7 @@ class _Visitor:
 
     @property
     def cached(self):
-        return apiclient.cache_stats["hits"] - self._hits
+        return apiclient.cache_stats["hits"] - self._hits + self.skipped_answers
 
     @property
     def built(self):
@@ -411,15 +416,28 @@ def _warm_lists(visitor, cap):
 def _warm_objects(visitor, cap, fetch, pages, noun, window=None):
     """Warms the pages of a listing's objects, up to `cap`. With a `window` (`{"offset", "count", "left_out"}`, PERF.180) it warms
     that slice of the listing alone, one unit of the family's stage, and `left_out` is the share of the cap's leaving-out that
-    unit reports."""
-    warmed = 0
+    unit reports.
+
+    A slice whose pages were all warmed before, with every answer still in the cache and every tag it read still at the
+    counter it had (`pagecache.ResponseCache.slice_is_current`, PERF.239), is not visited again: an unchanged warm-up costs a
+    few round trips to Redis a slice, not two requests through the app for every object. Its answers count as already cached."""
     start = 0 if window is None else window["offset"]
-    for row in _objects(visitor, fetch, _cap(cap) if window is None else window["count"], start):
-        for page in pages(row):
-            visitor.visit(page)
-        warmed += 1
-    left_out = max(0, visitor.total - warmed) if window is None else window["left_out"]
-    return {"warmed": warmed, "noun": noun, "left_out": left_out}
+    rows = list(_objects(visitor, fetch, _cap(cap) if window is None else window["count"], start))
+    cache = apiclient.response_cache()
+    name = f"{noun}:" + hashlib.sha256(json.dumps([[row.get("type"), row["id"]] for row in rows]).encode("utf-8")).hexdigest()
+    answers = cache.slice_is_current(visitor.db, name) if cache is not None and rows else None
+    failed = len(visitor.failed)
+    if answers is not None:
+        visitor.skipped_answers += answers
+    else:
+        with cache.recording() if cache is not None else contextlib.nullcontext() as recorded:
+            for row in rows:
+                for page in pages(row):
+                    visitor.visit(page)
+        if cache is not None and rows and len(visitor.failed) == failed:
+            cache.save_slice(visitor.db, name, recorded)
+    left_out = max(0, visitor.total - len(rows)) if window is None else window["left_out"]
+    return {"warmed": len(rows), "noun": noun, "left_out": left_out}
 
 
 def _warm_sectors(visitor, cap, window=None):

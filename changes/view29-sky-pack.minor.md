@@ -1,5 +1,0 @@
-**Headline:** The sky of a system now has a compact form the browser can read, 26 bytes a star.
-
-### Changed
-
-- `web/lib/skypack.py` and `static/skypack.js` (VIEW.29, the packed sky list): `pack_sky` writes the sky of a system (`galaxy/sky.py`) as columns, each star's offset from the observer (32-bit floats, parsecs), its velocity relative to the observer (16-bit steps), its absolute magnitude plus the dust along its line of sight (steps of 1/512 magnitude), its temperature (one byte over a log scale), its tier and its index in the list; a header holds the time the offsets hold at, the limiting magnitude, the observer's velocity and a JSON note. 25,000 stars are 0.65 MB. `unpack_sky` reads it back in Python and `unpackSky` in JavaScript, and one test (`test_skypack.py` with `skypack.test.mjs`, fed by `test_js_unit.sky_pack`) holds the two to the same bytes. `galaxy.sky.Sky` now also carries the offset, velocity, temperature and dust-dimmed absolute magnitude the list needs, so the graphics card can put each star where its light left it. Nothing sends it yet: the sky route (VIEW.31) does. generation-output: unchanged
