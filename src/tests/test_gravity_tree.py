@@ -22,13 +22,13 @@ def _cluster(count=6000, scale=6.0, seed=5):
     return direction * np.minimum(radius, 60.0)[:, None], 0.08 + rng.random(count) * 3.0
 
 
-def _grid(centre, edge=4.0, n=8):
+def _grid(center, edge=4.0, n=8):
     c = (np.arange(n) + 0.5) / n * edge - edge / 2
     x, y, z = np.meshgrid(c, c, c, indexing="ij")
-    return np.stack([x.ravel(), y.ravel(), z.ravel()], 1) + np.asarray(centre)
+    return np.stack([x.ravel(), y.ravel(), z.ravel()], 1) + np.asarray(center)
 
 
-def test_every_level_holds_the_whole_mass_and_the_top_cell_the_whole_centre_of_mass():
+def test_every_level_holds_the_whole_mass_and_the_top_cell_the_whole_center_of_mass():
     positions, masses = _cluster()
     h = tree.build(positions, masses)
     for level in range(h.levels):
@@ -36,7 +36,7 @@ def test_every_level_holds_the_whole_mass_and_the_top_cell_the_whole_centre_of_m
         assert h.cell_mass[cells].sum() == pytest.approx(masses.sum(), rel=1e-12)
     top = slice(h.level_start[-2], h.level_start[-1])
     assert h.level_start[-1] - h.level_start[-2] == 1
-    np.testing.assert_allclose(h.cell_centre[top][0], (positions * masses[:, None]).sum(0) / masses.sum(), rtol=1e-10)
+    np.testing.assert_allclose(h.cell_center[top][0], (positions * masses[:, None]).sum(0) / masses.sum(), rtol=1e-10)
 
 
 def test_the_children_of_a_level_tile_the_level_below_and_the_leaves_tile_the_sources():
@@ -64,11 +64,11 @@ def test_every_source_sits_inside_its_leaf_cell():
 def test_a_list_holds_the_whole_mass_for_any_target_and_angle():
     positions, masses = _cluster()
     h = tree.build(positions, masses)
-    for centre, radius, theta in (((10.0, 0.0, 0.0), 3.0, 0.3), ((0.0, 0.0, 0.0), 2.0, 0.7), ((-30.0, 5.0, 2.0), 0.5, 1.0), ((100.0, 0.0, 0.0), 1.0, 0.5)):
-        chosen = tree.interaction_list(h, centre, radius, theta)
+    for center, radius, theta in (((10.0, 0.0, 0.0), 3.0, 0.3), ((0.0, 0.0, 0.0), 2.0, 0.7), ((-30.0, 5.0, 2.0), 0.5, 1.0), ((100.0, 0.0, 0.0), 1.0, 0.5)):
+        chosen = tree.interaction_list(h, center, radius, theta)
         assert chosen.masses.sum() == pytest.approx(masses.sum(), rel=1e-12)
         assert chosen.size == len(chosen.masses) == chosen.exact + chosen.points
-        assert tree.count(h, centre, radius, theta) == (chosen.exact, chosen.points)
+        assert tree.count(h, center, radius, theta) == (chosen.exact, chosen.points)
 
 
 def test_an_angle_small_enough_sums_every_source_exactly():
@@ -116,17 +116,17 @@ def test_the_same_inputs_give_the_same_list_and_a_shuffled_input_the_same_field(
 def test_the_angle_follows_the_pair_budget():
     positions, masses = _cluster(20000)
     h = tree.build(positions, masses)
-    centre, radius = (4.0, 0.0, 0.0), 2.0
-    assert tree.choose_theta(h, centre, radius, 4096, budget=10 ** 15) == (tree.MIN_THETA, True)
-    assert tree.choose_theta(h, centre, radius, 4096, budget=1) == (tree.MAX_THETA, False)
-    smallest = sum(tree.count(h, centre, radius, tree.MIN_THETA)) * 4096
-    largest = sum(tree.count(h, centre, radius, tree.MAX_THETA)) * 4096
+    center, radius = (4.0, 0.0, 0.0), 2.0
+    assert tree.choose_theta(h, center, radius, 4096, budget=10 ** 15) == (tree.MIN_THETA, True)
+    assert tree.choose_theta(h, center, radius, 4096, budget=1) == (tree.MAX_THETA, False)
+    smallest = sum(tree.count(h, center, radius, tree.MIN_THETA)) * 4096
+    largest = sum(tree.count(h, center, radius, tree.MAX_THETA)) * 4096
     assert largest < smallest
     middle = (smallest + largest) // 2
-    theta, fits = tree.choose_theta(h, centre, radius, 4096, budget=middle)
-    assert fits and tree.MIN_THETA < theta <= tree.MAX_THETA and sum(tree.count(h, centre, radius, theta)) * 4096 <= middle
+    theta, fits = tree.choose_theta(h, center, radius, 4096, budget=middle)
+    assert fits and tree.MIN_THETA < theta <= tree.MAX_THETA and sum(tree.count(h, center, radius, theta)) * 4096 <= middle
     below = round(theta - tree.THETA_STEP, 10)
-    assert sum(tree.count(h, centre, radius, below)) * 4096 > middle
+    assert sum(tree.count(h, center, radius, below)) * 4096 > middle
 
 
 def test_empty_sources_and_bad_input():
@@ -151,11 +151,11 @@ def test_one_source_is_a_hierarchy_of_one_cell_per_level_and_a_massless_cell_has
     h = tree.build(np.array([[1.0, 2.0, 3.0]]), np.array([2.0]))
     assert h.levels == 1 and h.cell_mass[0] == 2.0
     h = tree.build(np.array([[1.0, 2.0, 3.0], [1.1, 2.0, 3.0]]), np.zeros(2))
-    assert np.isfinite(h.cell_centre).all()
+    assert np.isfinite(h.cell_center).all()
     assert not tree.fields_at(h, np.array([[5.0, 5.0, 5.0]]), theta=0.5).values.any()
 
 
 def test_the_bounding_sphere_holds_its_points():
     points = _grid((3.0, -2.0, 1.0))
-    centre, radius = tree.bounding_sphere(points)
-    assert np.linalg.norm(points - centre, axis=1).max() == pytest.approx(radius)
+    center, radius = tree.bounding_sphere(points)
+    assert np.linalg.norm(points - center, axis=1).max() == pytest.approx(radius)
