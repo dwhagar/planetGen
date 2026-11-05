@@ -1526,6 +1526,7 @@
 -- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
 -- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v200, which gets them when the galaxy is regenerated.
+-- v205 (GEN.1254): `bright_stars` and `phenomenon_scatter` gain `uid` (BINARY(12), unique, NULL until given), the Object ID of the scatter row: its birth sector, a serial that is its rank in that sector (brightest first, stars from 0 and phenomena from the upper half of the serial space) and body number 0. The scatter writers give it as they write (`db/scatter_uids.py`, counters `scatstar` and `scatphen` in `id_counters`), and a system built round a scatter star and a built scatter phenomenon keep it. NULL for a row made before v205, and the regenerated scatter replaces it.
 -- v204 (GEN.1069): `asteroid_belts` keep where the belt came from and its history: `origin_cause` (VARCHAR(24)), `co_causes`, `origin_history` and `scatter_fates` (JSON text), `origin_sentence` (TEXT), `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` (DOUBLE), `stirred` (TINYINT(1)) and `largest_body_km` (DOUBLE, the largest body Dc settled with the mass). NULL for a row made before v201 or a belt made without an origin; the regenerated galaxy replaces it.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
@@ -4306,7 +4307,9 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     cluster_id           BIGINT UNSIGNED,  -- v127 (DB.61): the cluster this star belongs to, NULL for a field star
     rotation_period_hours DOUBLE,  -- v185 (GEN.846): the spin period in hours, NULL on a row made before v185
     nuclear_arrival_age_gy DOUBLE,  -- v198 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
+    uid                  BINARY(12) NULL,  -- v205 (GEN.1254): the star's Object ID, given when the scatter writes it, see the header comment
 
+    UNIQUE KEY uq_bright_stars_uid (uid),
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
@@ -4526,7 +4529,9 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     next_update_due      DOUBLE,  -- v93 (GEN.223): see header comment
     member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
     system_mass_solar    DOUBLE,
+    uid                  BINARY(12) NULL,  -- v205 (GEN.1254): the phenomenon's Object ID, given when the scatter writes it, see the header comment
 
+    UNIQUE KEY uq_phenomenon_scatter_uid (uid),
     KEY idx_phenomenon_scatter_address (shell_index, band_index, wedge_index),
     KEY idx_phenomenon_scatter_next_update_due (next_update_due),
     KEY idx_phenomenon_scatter_class (kind, subtype, mass_solar),  -- v82 (PERF.68): see header comment
