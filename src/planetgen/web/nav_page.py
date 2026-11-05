@@ -709,7 +709,8 @@ def _course_payload(result):
         "direct": {key: result["direct"].get(key) for key in ("distance_ly", "bearing_deg", "mark_deg")},
         "route": None if not route or len(route["path"]) < 2 else {
             "path": [str(node) for node in route["path"]], "distance_ly": route["distance_ly"],
-            "hops": [{key: hop.get(key) for key in ("distance_ly", "bearing_deg", "mark_deg")} for hop in route.get("hops") or []]},
+            "hops": [{**{key: hop.get(key) for key in ("distance_ly", "bearing_deg", "mark_deg")}, "unknown_space": hop.get("unknown_space") is True}
+                     for hop in route.get("hops") or []]},
         "adjusted": result.get("adjusted"),
     }
     return json.dumps(payload, separators=(",", ":"))

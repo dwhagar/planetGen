@@ -1464,8 +1464,21 @@ def test_a_course_page_carries_the_save_button_the_record_and_the_courses_list(c
     assert set(record["direct"]) == {"distance_ly", "bearing_deg", "mark_deg"}
     assert record["route"]["path"][0] == "1001" and record["route"]["path"][-1] == "1002" and record["route"]["hops"]
     assert record["adjusted"]["avoided"] == ["system:1500", "asteroid_field:4"]
+    assert [hop["unknown_space"] for hop in record["route"]["hops"]] == [False, False]   # NAV.39: the flag is kept for each hop
     landing = client.get("/nav").get_data(as_text=True)
     assert "data-courses-list" in landing and "data-course-save-button" not in landing
+
+
+def test_a_saved_course_keeps_which_hops_were_unknown_space(client, fake):  # NAV.39
+    import html as _html
+    import json
+    import re as _re
+
+    fake.nav_galaxy_scope = True
+    fake.nav_unknown_space = True
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    record = json.loads(_html.unescape(_re.search(r'data-course-result="([^"]*)"', page).group(1)))
+    assert [hop["unknown_space"] for hop in record["route"]["hops"]] == [False, True]
 
 
 def test_a_course_through_waypoints_joins_the_legs_at_the_waypoints(app, fake):  # NAV.49
