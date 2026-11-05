@@ -2201,6 +2201,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 2, ahead of the PERF.233 measurement. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.575, MAP.376.
 
+- [ ] **MAP.379 Five camera and geometry fixture-map browser tests are red on main: block build extent, block lines at rest, edge-on bounds, one-wheel scroll, wheel view over the disc (bug)**
+  Core 3 (as the lane reported, 2026-11-04 8:05 PM EST), full
+  test_web_browser_fixture_maps.py run on main af65299a5, alone with no
+  leftover databases: 15 failed, 186 passed, 43 minutes. Ten of the 15
+  are MAP.378 (fixture sectors missing from the map). These five are a
+  separate group: blocks_built_relative_to_origins (extent 15540 pc,
+  origin [0,0,0], 75675 prisms), draws_block_lines_only_in_a_window
+  (lines invisible at rest), turns_past_edge_on_and_under_the_plane
+  (bounds -503 to 1438),
+  one_wheel_scroll_runs_from_the_galaxy_to_a_sector and
+  wheel_keeps_the_view_over_the_disc. Find the commit that broke each
+  (bisect between the last green main and af65299a5), fix the code or,
+  where the test asserts a behavior a later item changed on purpose,
+  change the test and say why. Check first whether MAP.378's cause (no
+  charted sectors, so the camera never reaches a sector) also explains
+  these; if so, close this item with that fix. Done: the five pass on
+  main. Lock-free. Version 8.1. Owner: Core 2, with MAP.378.
+  Prerequisites: none. Related: MAP.378, TEST.580.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**

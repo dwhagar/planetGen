@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.262 |
-| MAP | MAP.379 |
+| MAP | MAP.380 |
 | NAV | NAV.73 |
 | GEN | GEN.1267 |
 | PERF | PERF.239 |
@@ -2422,6 +2422,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.376 | Clicking a region family name on the Galaxy Map flies to a default window, not to the block: an 81-block family ends in a 9-block window at 71.6 pc (bug) | none | done, PR #4929 |
 | MAP.377 | Black hole labels still show on the Galaxy Map: hide them by default with the black hole POI marks, keep the dots at their mass magnitudes (bug) | none | done, PR #4921 |
 | MAP.378 | The Galaxy Map no longer shows the fixture galaxy's charted sectors in the browser tests: 11 to 12 fixture-map tests are red alone on main (zoom stuck near 2.5e-8, no sector label, no Fixture Maw or Fixture Eden marker) (bug) | none | open |
+| MAP.379 | Five camera and geometry fixture-map browser tests are red on main: block build extent, block lines at rest, edge-on bounds, one-wheel scroll, wheel view over the disc (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
