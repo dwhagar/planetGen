@@ -121,6 +121,7 @@ const {
 const { createPicker, createRing, createHoverPreview, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
 const { createPlaneView } = await import(`./galaxyplane.js${VERSION_QUERY}`);
+const { createSideStrip } = await import(`./galaxystrip.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -160,6 +161,11 @@ export function mapControlHandlers(ctx) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
       ctx.stageView.setCellGrid(on);
+    },
+    "side-strip": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      if (ctx.setSideStrip) ctx.setSideStrip(on, button);
     },
     "charted-only": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
@@ -1253,9 +1259,12 @@ function initGalaxyMap3d(canvasEl, data) {
   var hoverRing = createRing(scene, camera, canvasEl, accentColor, { depthTest: false, renderOrder: 5, opacity: 0.45 });
 
   var planeView = null;    // MAP.371: set once the map is built
+  // MAP.375: the side strip rings what the map has selected (set once the strip is built).
+  var sideStrip = null;
   function highlightPosition(x, y, z) {
     selectionRing.at(x, y, z, { px: HIGHLIGHT_PX * 2 });
     if (planeView) planeView.select([x, y, z]);
+    if (sideStrip) sideStrip.setSelected({ x: x, y: y, z: z });
   }
 
   // Density shading's dim-to-accent-to-white ramp (galaxyblocks.js).
@@ -4005,7 +4014,7 @@ function initGalaxyMap3d(canvasEl, data) {
     labelHot: function (id) { if (galaxyLabels) galaxyLabels.setHot(id); },
     labelAct: function (label) { actOnLabel(label); },
     picker: picker,
-    clearSelection: function () { selectionRing.hide(); if (planeView) planeView.select(null); },
+    clearSelection: function () { selectionRing.hide(); if (planeView) planeView.select(null); if (sideStrip) sideStrip.setSelected(null); },
     restingHint: restingHint,
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
     // A sector page's map is locked to its sector (MAP.68): {shell, band,
@@ -5019,6 +5028,9 @@ function initGalaxyMap3d(canvasEl, data) {
     return found;
   };
 
+  // MAP.375: what the side strip draws, for the browser tests (null while it has never been opened).
+  canvasEl.galaxySideStrip = function () { return sideStrip ? sideStrip.snapshot() : null; };
+
   canvasEl.galaxyPickableStars = function () {
     var width = canvasEl.clientWidth;
     var height = canvasEl.clientHeight;
@@ -5095,6 +5107,41 @@ function initGalaxyMap3d(canvasEl, data) {
     focus: function () { return [target.x, target.y, target.z]; },
     span: function () { return 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2); },
   });
+  // MAP.375: the side strip for height (galaxystrip.js), an option in the Menu and a drawer on a phone. A star picked in
+  // the strip is selected on the map as a click on it would select it; the map's selection rings in the strip.
+  var stripHost = document.getElementById("galaxymap3d-strip");
+  var stripButton = null;
+  if (stripHost) {
+    var phoneQuery = typeof window.matchMedia === "function" ? window.matchMedia("(max-width: 700px), (pointer: coarse)") : null;
+    sideStrip = createSideStrip({
+      host: stripHost,
+      accent: accentColor,
+      version: function () { return starSetVersion; },
+      getStars: function () { return pickableStars(); },
+      getShape: function () { return galaxyShape; },
+      getFocus: function () { return { x: target.x, y: target.y, z: target.z }; },
+      isPhone: function () { return !!(phoneQuery && phoneQuery.matches); },
+      onPick: function (star) {
+        highlightPosition(star.x, star.y, star.z);
+        showStarInfo(star);
+      },
+    });
+    var stripClose = stripHost.querySelector("[data-strip-close]");
+    if (stripClose) {
+      stripClose.addEventListener("click", function () { setSideStrip(false); });
+    }
+  }
+  function setSideStrip(on, button) {
+    if (!sideStrip) return;
+    if (button) stripButton = button;
+    sideStrip.setOn(on);
+    if (stripButton) stripButton.setAttribute("aria-pressed", String(on));
+    if (on) {
+      var menu = document.getElementById("galaxymap3d-menu");
+      if (menu && phoneQuery && phoneQuery.matches) menu.open = false;   // the drawer would sit under the open menu
+    }
+  }
+
   var controlsEl = document.getElementById("galaxymap3d-controls");
   if (controlsEl) {
     // Several buttons: let them wrap rather than run off the side panel.
@@ -5113,6 +5160,7 @@ function initGalaxyMap3d(canvasEl, data) {
         if (midplane) midplane.disabled = !on;
       },
       setPlaneMidplane: function (on) { planeView.setMidplane(on); },
+      setSideStrip: setSideStrip,
     }));
   }
   var menuEl = document.getElementById("galaxymap3d-menu");
@@ -5325,6 +5373,7 @@ function initGalaxyMap3d(canvasEl, data) {
     updateClouds();
     selectionRing.update();
     hoverRing.update();
+    if (sideStrip) sideStrip.update();
     updateCourseMarkers();
     if (markerLayer) {
       // MAP.321: the symbols change level when the hand-off turns (or the open system's bodies change).

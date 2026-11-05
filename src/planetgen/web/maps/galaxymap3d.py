@@ -801,6 +801,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <aside class="starmap-info" id="galaxymap3d-info" data-overlay aria-label="Selection">
 <p class="hint">{info_hint}</p>
 </aside>
+<section class="galaxy-strip" id="galaxymap3d-strip" aria-label="Side strip: height above and below the galactic plane" hidden>
+<div class="galaxy-strip-head"><strong>Side strip</strong>
+<button type="button" class="starmap-btn" data-strip-close title="Put the side strip away">Close</button></div>
+</section>
 </div>
 </div>
 <div class="starmap-side">
@@ -821,6 +825,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Tilt the map and lay a grid on a plane through a 60 degree wedge of the galaxy, with rings at round distances (around the selection when there is one)">Plane view</button>
     <button type="button" class="starmap-btn" data-action="plane-midplane" data-icon="plane-midplane" aria-pressed="false" disabled
             title="Lay the plane view's grid in the galaxy's midplane (height 0) instead of through the middle of the view">Plane at galactic midplane</button>
+    <button type="button" class="starmap-btn" data-action="side-strip" data-icon="side-strip" aria-pressed="false"
+            title="Show the stars of a 60 degree wedge edge-on: distance from the galactic centre across, height up and down. Picking a star in either view selects it in both">Side strip</button>
     <button type="button" class="starmap-btn" data-action="cell-grid" data-icon="cell-grid" aria-pressed="false"
             title="Draw the cells of this step (blocks, then sectors) as a grid over the map">Cell grid</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"

@@ -6494,4 +6494,62 @@ a.help-mark {
   color: var(--accent, #7f8cff);
   filter: brightness(1.6);
   padding: 0 4px;
+
+/* MAP.375: the Galaxy Map's side strip for height (galaxystrip.js): an edge-on strip of the wedge's stars under the map, and on
+   a phone or a touch screen a drawer fixed to the bottom of the window. */
+.galaxy-strip {
+  margin-top: 0.5rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.galaxy-strip[hidden] {
+  display: none;
+}
+
+.galaxy-strip-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.galaxy-strip-caption {
+  margin: 0.25rem 0;
+}
+
+.galaxy-strip-canvas {
+  display: block;
+  width: 100%;
+  height: 9.5rem;
+  border-radius: 6px;
+  cursor: crosshair;
+  touch-action: manipulation;
+}
+
+.galaxy-strip-readout {
+  margin: 0.35rem 0 0;
+  min-height: 1.3em;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  .galaxy-strip {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    margin: 0;
+    border-radius: 12px 12px 0 0;
+    max-height: 45vh;
+    padding-bottom: calc(0.6rem + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -6px 18px rgba(0, 0, 0, 0.35);
+  }
+
+  .galaxy-strip-canvas {
+    height: 8rem;
+  }
 }

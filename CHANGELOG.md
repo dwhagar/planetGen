@@ -2,6 +2,34 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3232] - 2026-11-05
+
+**Headline:** The generator can now list the stars a system sees in its sky, each with its direction, brightness, colour and the place where its light left it.
+
+### Changed
+
+- `galaxy/sky.py` (VIEW.23, the sky catalogue from stored stars): `sky_from_stars` takes the stored stars as arrays and an observer and returns the stars brighter than a limiting magnitude (7.5 by default), brightest first, each with a unit direction, apparent magnitude (through the dust of the galaxy), blackbody colour, distance and light time. Each star is moved from its own epoch to the sky's time and seen where it was when its light left it, a star that had not formed yet is left out, and the observer's own system (companions too) is never in its own sky. A report says what each tier (charted, bright star, phenomenon, cluster) contributed and what was dropped and why. A star with no stored velocity gets the galaxy's circular speed at its place plus a seeded velocity dispersion, the same every time; a star with no stored epoch holds at the sky's time. `sky_from` asks a source for the stored stars in shells of distance, each above the luminosity a star needs there to reach the limit, and `sphere_source` and `stars_from_sphere` fit the sphere query of VIEW.22 to it. A sky of 30,000 stars takes about a second. Nothing reads it yet: the sky route (VIEW.31) does. Two stand-ins are registered (6.175, SKC1 and SKC2). generation-output: unchanged
+
+## [8.0.3231] - 2026-11-05
+
+**Headline:** The Galaxy Map has an optional side strip that shows height above and below the galactic plane, linked to the map by selection.
+
+### Added
+
+- Menu, Side strip opens an edge-on strip under the map: the stars of a 60 degree wedge from the galactic centre (the wedge facing the map's focus) with the distance from the centre across and the height up and down, drawn 2.2 times taller than true so the thin disc can be read. Dashed lines mark one scale height of the thin and of the thick disc either side of the plane.
+- Pick a star on the map and it is ringed in the strip, with its exact height and how many thin-disc and thick-disc scale heights that is. Pick a star in the strip and it is selected on the map, with its panel.
+- On a phone or a touch screen the strip is a drawer fixed to the bottom of the window, drawn with fewer stars (2,000), and its Close button puts it away.
+- Adds `galaxystrip.js`, `tests/js/galaxystrip.test.mjs` and `tests/test_web_browser_side_strip.py`.
+
+generation-output: unchanged
+
+## [8.0.3230] - 2026-11-05
+
+**Headline:** Every list and message of the API names a system, sector or planet by its Object ID instead of a row number.
+
+### Fixed
+- **The object lists (`GET /api/object-lists/<kind>`) gave row numbers for a sector, a system and the source row.** `sector_id`, `system_id` and `source_id` of each item are now printed IDs (the list's "Sector" column and its link use the sector ID), and the `sector_id` filter takes a sector ID. The "no species on planet" answer names the planet by its ID. An audit test (`tests/test_api_link_ids.py`) now walks the answers that feed system and body links and fails on any row number.
+
 ## [8.0.3229] - 2026-11-05
 
 **Headline:** A read-only script measures what a sky of a given limiting magnitude costs the star backfill.
