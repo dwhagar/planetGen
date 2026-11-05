@@ -6,11 +6,11 @@ This file gives the version's goal, its phases and each phase's build threads wi
 
 Version: 8.9
 
-Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
+Status: approved by Boss (5:44 PM EST on 2026-11-05); paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
 
 ## Goal
 
-Boss (5:40 PM EST on 2026-11-05): the headline is "Remote build". Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it, plus generate by recipe. Proposed by the TODO thread; not yet approved by Boss. Boss (2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9") also put here what was planned for 9.0 and needs nothing of the atmosphere colour: the sky data and research of the view from a planet (phase 3) and the backups and repair chain (ADM.91, phases 4 and 5).
+Boss (5:40 PM EST on 2026-11-05): the headline is "Remote build". Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it, plus generate by recipe. Proposed by the TODO thread; not yet approved by Boss. Boss (2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9") also put here the backups and repair chain (ADM.91, phases 3 and 4). The sky data and research of the view from a planet moved to 8.2 as foundations of the view in 9.0 (Boss (5:44 PM EST on 2026-11-05), with P3 of the version proposal).
 
 ## Phase 1: Upload groundwork and recipes
 
@@ -58,26 +58,7 @@ Generation without a database, uploads, verification and the incomplete uploads 
 | API.34 | API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them | GEN.799 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
 
 
-## Phase 3: Sky data and research
-
-The sky's data table and the research that settles the view from a planet, moved here from 9.0 (Boss, 10:27 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9"): nothing in it needs the atmosphere colour, so it is ready before the view is built in 9.1.
-
-### Sky data
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| VIEW.4 | Constellation names in the name generator |  | Constellation names from the codec under the naming key, not sliced word lists. Floats: no blockers, can run any time. |
-| VIEW.6 | Settle the handedness of the generated galaxy before mapping real sky coordinates |  | Research: needed before real sky coordinates. |
-
-### Sky research
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| VIEW.1 | View from a planet |  | Research session with Boss. |
-| VIEW.7 | Sky tiers and the backfill cost measurement | VIEW.1 | Research: the sky is about 8% to 10% complete today. |
-| VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | VIEW.1 | Research. |
-
-## Phase 4: Backup parts and restore
+## Phase 3: Backup parts and restore
 
 Target 8.9 (moved from 9.0; Boss, 2:00 PM EDT): the control database and parity parts of the backup archive, and a restore for each.
 
@@ -93,7 +74,7 @@ Target 8.9 (moved from 9.0; Boss, 2:00 PM EDT): the control database and parity 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 
-## Phase 5: Repair from backups, the repair page and proof
+## Phase 4: Repair from backups, the repair page and proof
 
 The repair of the galaxy from an archive, the one page for check, repair and restore, and the end-to-end test, guide and umbrella (moved from 9.0).
 
@@ -109,3 +90,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | ADM.89, DB.42, ADM.90, OPS.55 | Boss 2:00 PM EDT. |
 | DOC.56 | Backups, restore and repair: the deployment guide and the help page | TEST.180 | Boss 2:00 PM EDT. |
 | ADM.91 | Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | ADM.88, ADM.89, DB.42, ADM.90, TEST.180, DOC.56, OPS.55 | Umbrella of the backups and repair chain; done when its items are. |
+| API.41 | Headline of 8.9: remote build: build a galaxy on a local machine, upload it and have the server verify it, with backups and repair as the second feature | API.3, API.17, API.18, API.19, API.34, ADM.91 |  |

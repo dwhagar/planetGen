@@ -168,7 +168,7 @@ item has no row there.
 | 8.5 | [version-8-5-courses-around-gravity-wells.md](plan/releases/version-8-5-courses-around-gravity-wells.md) | Courses that bend around gravity wells |
 | 8.6 | [version-8-6-edit-everything.md](plan/releases/version-8-6-edit-everything.md) | Edit everything |
 | 8.7 | [version-8-7-console-and-help.md](plan/releases/version-8-7-console-and-help.md) | Full help for all pages |
-| 8.8 | [version-8-8-deep-sky.md](plan/releases/version-8-8-deep-sky.md) | The deep sky |
+| 8.8 | [version-8-8-deep-sky.md](plan/releases/version-8-8-deep-sky.md) | Deep sky objects |
 | 8.9 | [version-8-9-generate-anywhere.md](plan/releases/version-8-9-generate-anywhere.md) | Remote build |
 | 9.0 | [version-9-0-composition-and-atmosphere-colour.md](plan/releases/version-9-0-composition-and-atmosphere-colour.md) | Composition, atmosphere colour and the view from a planet |
 | 9.2 | [version-9-2-politics-and-territories.md](plan/releases/version-9-2-politics-and-territories.md) | Politics and territories |
@@ -205,7 +205,7 @@ body, star and atmosphere is its joint headline, with the radiation derived
 from it, and the building blocks go down to 8.1; everything planned for 9.0 before
 split between 8.9, the backups chain and the sky data, and 9.1, the view
 from a planet, 11:26 PM EDT); multiple galaxies is a possible future
-feature. Boss (5:36 PM EST on 2026-11-05): the main features of 8.2 are user accounts, bookmarks and API keys, and the rest of 8.2 is the foundations for later versions (the tile caching, the gravity grid, settlements). Boss (5:31 PM EST on 2026-11-05) folded 9.1 into 9.0: the view from a planet
+feature. Boss (5:44 PM EST on 2026-11-05) approved 8.7 (Full help for all pages), 8.8 (Deep sky objects, with every rare-star item kept in it) and 8.9 (Remote build, with the backup chain; the sky research moved to 8.2 as foundations of the view in 9.0). Boss (5:36 PM EST on 2026-11-05): the main features of 8.2 are user accounts, bookmarks and API keys, and the rest of 8.2 is the foundations for later versions (the tile caching, the gravity grid, settlements). Boss (5:31 PM EST on 2026-11-05) folded 9.1 into 9.0: the view from a planet
 (VIEW.18), the gravity map (MAP.167) and the dynamic population and trade
 are now phases 2 to 4 of 9.0, and 9.2 onward keep their numbers. Reorganized (Boss, 5:15 PM EST on 2026-11-05) against the open
 items: 8.4 is now New worlds and the first settlements, and the gravity map
@@ -1961,6 +1961,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a migration, then tell the TODO thread. Owner: Tides 1. Filed by the
   TODO thread.
   Prerequisites: MAP.385. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.388 Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon**
+  Boss (5:44 PM EST on 2026-11-05) approved 8.8 as 'Deep sky objects'
+  and kept every rare-star item in it (nothing moves to later). This
+  item is done when its items are: globular clusters as parents with
+  names, pages and drawing (GEN.359, MAP.224, MAP.381, GEN.209),
+  satellites and the names of the big features (MAP.207, MAP.232), the
+  Magellanic Clouds' gas (GEN.367, GEN.1273), the halo gas and streams
+  (GEN.239, GEN.248), the uncharted-star panel (GEN.296), the zoom
+  windows (MAP.223, MAP.194) and the rare stars and phenomena (GEN.245,
+  GEN.246, GEN.247, GEN.249, GEN.255, GEN.256, GEN.257). MAP.183 stays
+  optional and is not needed. Headline: 8.8 (deep sky objects: the
+  clusters, satellites, nebulae and rare stars of the sky, drawn on the
+  maps and reachable by flight). A hand version bump needs Boss's word.
+  Version 8.8. Filed by the TODO thread.
+  Prerequisites: GEN.359, MAP.224, MAP.381, GEN.209, MAP.207, MAP.232,
+  GEN.367, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.245, GEN.246,
+  GEN.247, GEN.249, GEN.255, GEN.256, GEN.257, MAP.223, MAP.194.
 
 ## NAV: Navigation and courses
 
@@ -15781,6 +15799,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (region-name search, open), GEN.1140. Filed by the TODO thread.
   Prerequisites: GEN.1254.
 
+- [ ] **API.41 Headline of 8.9: remote build: build a galaxy on a local machine, upload it and have the server verify it, with backups and repair as the second feature**
+  Boss (5:44 PM EST on 2026-11-05) approved 8.9 (P3: 27 items, the sky
+  research goes to 9.0 and its foundations to 8.2) with the headline
+  'Remote build', and kept the backup chain in it (P4). This item is
+  done when its items are: remote generation (API.3, API.17), recipes
+  (API.18, API.19), resources in uploads (API.34) and the backups and
+  repair chain (ADM.91). Headline: 8.9 (remote build: build a galaxy on
+  a local machine, upload it through the API and have the server verify
+  it). A hand version bump needs Boss's word. Version 8.9. Filed by the
+  TODO thread.
+  Prerequisites: API.3, API.17, API.18, API.19, API.34, ADM.91.
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -19511,6 +19541,23 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   When the view from a planet has a real observer (this item), the
   Einstein radius and any other figure that assumes an observer's place
   should read that observer instead of the reference radius.
+  Boss decisions V1 to V5 (5:44 PM EST on 2026-11-05): the research
+  session is answered: V1 the product is the whole-sky picture (Hammer
+  projection, PNG with constellations stored per system) and the horizon
+  view for a chosen planet, place and time, the interactive canvas after
+  it; V2 the sky shows what a person on the surface sees (the atmosphere
+  colour as the sky, stars fading with sky brightness and twilight, no
+  stars by day unless the planet has no air); V3 star colour has two
+  modes, Eye (default, dark-adapted) and Camera (true blackbody colours
+  with dust reddening), with a toggle; V4 the sky also holds the Sun or
+  primary as a disc with glare, the planet's moons as discs with phase,
+  the other planets as points with reflected-light magnitude, ring
+  bands, the galactic band and bright nebulae, with comets and small
+  bodies left out; V5 the view is for a chosen time on the galaxy clock,
+  default now, with light-time and parallax applied. The view lands in
+  9.0 and its foundations (this item, VIEW.4, VIEW.6, VIEW.7, VIEW.8,
+  VIEW.11, VIEW.12 and VIEW.13) are built back in 8.2. VIEW.8 takes
+  whatever dust law the realistic-dust research settles.
 
 - [ ] **VIEW.6 Settle the handedness of the generated galaxy before mapping real sky coordinates**
   The generated galaxy rotates counterclockwise about +Z and the real
@@ -19954,6 +20001,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   VIEW.30 calibration; if the factor remains, file it as its own item.
   Prerequisites: none. Related: VIEW.31.
 
+- [ ] **DOC.104 Headline of 8.7: full help for all pages, with the pilot's console look**
+  Boss (5:44 PM EST on 2026-11-05) approved 8.7 with the headline 'Full
+  help for all pages' (P1 of reports at
+  design-drafts/versions-8-7-8-8-8-9-proposal-2026-11-05.md; the
+  headline wording was his at 5:40 PM EST). This item is done when its
+  items are: the help pages for every screen (DOC.7 to DOC.16, DOC.81),
+  the coverage test (DOC.58) and the console look (UX.43, after the
+  design brief UX.130 that Boss approves first). Headline: 8.7 (full
+  help for all pages: every page explains itself, with the pilot's
+  console look as the second feature). A hand version bump needs Boss's
+  word. Version 8.7. Filed by the TODO thread.
+  Prerequisites: DOC.58, UX.43, DOC.81.
+
 ## POP: Population and politics
 
 Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
@@ -20377,9 +20437,15 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Boss decision G1 (5:44 PM EST on 2026-11-05): the option is a tilt,
+  not a command (G1 option 1): the number asked for scales the odds that
+  a species becomes space-faring so the expected count equals N, nothing
+  is forced and nothing is cancelled, and the result is reported (asked
+  N, the dice gave M). Store the asked number and the result. The 9.2
+  rule that nothing is created from nothing holds.
   Prerequisites: POP.16. Related: GEN.180, GEN.764, PERF.125.
 
-- [ ] **POP.26 Generate the requested number of space-faring governments: force civilizations where chance gives too few, hold back extra ones where it gives too many, homeworlds spread apart**
+- [ ] **POP.26 Generate toward the requested number of space-faring governments by tilting the odds that a species becomes space-faring (nothing forced, nothing cancelled), homeworlds spread apart, and report what came out**
   Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
   need an option to specify how many space-fairing governments there
   are, and have it generated so we can have those territories dynamic in
@@ -20422,9 +20488,16 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Boss decision G1 (5:44 PM EST on 2026-11-05): replaces the forcing
+  text of this item: do not force a civilization on any world and do not
+  cancel one that physics allowed (G1 option 1). The requested number
+  tilts the odds of a species becoming space-faring so the expected
+  count equals N; the run reports what came out (natural, N met, or
+  asked N and got M); a user who wants a different count repeats the run
+  with another seed. The held-back and met_forced states are dropped.
   Prerequisites: POP.25, DB.104, GEN.774. Related: GEN.180, POP.17.
 
-- [ ] **POP.27 Territories of several worlds and sectors: every government holds a minimum, its homeworld is always inside, and the check is a test**
+- [ ] **POP.27 Territories of several worlds and sectors: every government's homeworld is inside its territory, a government that really reaches only its own system holds one system and the page says why, and the check is a test**
   Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
   need an option to specify how many space-fairing governments there
   are, and have it generated so we can have those territories dynamic in
@@ -20462,6 +20535,11 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Boss decision G2 (5:44 PM EST on 2026-11-05): the minimum territory is
+  a report, not a fix (G2 option 1): a government keeps its homeworld
+  inside its territory, and one that really reaches only its own system
+  holds one system and its page says why; the reach floor is not raised
+  to meet a minimum. A lone-system polity is allowed.
   Prerequisites: POP.26. Related: PERF.125.
 
 - [ ] **POP.28 Show the governments: the option and result on the Generate page and galaxy page, a government page with its worlds, systems and sectors, and the territories overlay legend**
@@ -20495,6 +20573,9 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   registry rows with tier and tweak labels; tests are `scripts/test.py
   changed --resume`; no fixed content from the Milky Way or the Solar
   System.
+  Boss decision G1 (5:44 PM EST on 2026-11-05): the result line reads
+  natural, N met, or asked N and got M (G1 option 1); there is no
+  met_forced.
   Prerequisites: POP.27. Related: UX.143, MAP.132, UX.211.
 
 - [ ] **POP.29 Design: the world population simulation from habitability scores and the trade routes between spaceports (partner selection, hop runs, the global route list, the map filters, the nearest-route query)**
