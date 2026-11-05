@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3219] - 2026-11-05
+
+**Headline:** Clicking a gas giant or habitable-world mark on the Galaxy Map opens its system instead of "no system with ID".
+
+### Fixed
+- **The Galaxy Map's marked systems (gas giant, habitable world and the other reasons) linked to the wrong ID.** The map nodes listed each marked system by its row id, but the system page and the nearest-systems list take the printed Object ID, so View system answered "no system with ID 345604". The nodes now carry the printed ID, and stored nodes are rebuilt once (node format 10).
+
 ## [8.0.3218] - 2026-11-05
 
 **Headline:** The help links on a planet page say "More information", and the ones that repeated a link the page already has are gone.
