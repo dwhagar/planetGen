@@ -2168,17 +2168,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.157.
   Design: [docs/design/galaxy/multiple-galaxies.md](design/galaxy/multiple-galaxies.md)
 
-- [ ] **NAV.58 Edit a course: add, remove, reorder and drag its waypoints, then save the edit**
-  Boss (2026-10-10 21:05Z): the 8.5 headline is courses with waypoints
-  that are editable and saved. Waypoints today are picked once and
-  plotted (NAV.49). Done: a course drawn on the map (any display) can be
-  edited in place: add a waypoint by picking an object, remove one,
-  reorder them, or drag a waypoint to another object; the course is
-  re-planned after each edit (bending around gravity wells once NAV.6 is
-  built) and the edit is saved over the saved course or as a new one
-  (NAV.4); a test checks add, remove, reorder and save.
-  Prerequisites: NAV.4. Related: NAV.6, NAV.18, NAV.59.
-
 - [ ] **NAV.59 Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses**
   Boss (2026-10-10 21:05Z) chose this as the seminal feature of 8.5 (the
   end of phase 2). Umbrella: it is done when a viewer plots a course
@@ -2188,7 +2177,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NAV.4, NAV.23). The gravity map (GEN.198) is the same field drawn as
   a view and is related, not a prerequisite: NAV.6 does not wait for it.
   Headline: 8.5 (courses that bend around gravity wells).
-  Prerequisites: NAV.6, NAV.58, NAV.4. Related: GEN.198,
+  Prerequisites: NAV.6, NAV.4. Related: GEN.198,
   MAP.167.
 
 - [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**

@@ -2497,7 +2497,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.55 | A tuning block for the keep-out knobs | none | merged into NAV.54 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
-| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | none | open |
+| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | none | done, PR #5118 |
 | NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | none | open |
 | NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | none | done, PR #1977 |
 | NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count | none | done, PR #3685 |

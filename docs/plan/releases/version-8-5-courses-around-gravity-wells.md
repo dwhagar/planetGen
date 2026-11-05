@@ -71,8 +71,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). |
-| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.58, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
+| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
 
 ## Phase 4: Trade routes
 
