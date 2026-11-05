@@ -2458,3 +2458,8 @@ Baseline: PR #1817.
 | VIEW.22 | 8.2 | Bookmarks |
 | MAP.372 | 8.1 | Fly-through map |
 | MAP.373 | 8.1 | Fly-through map |
+| TEST.584 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.177 | 8.8 | Nebula drawing |
+| NAV.65 | 8.5 | Courses on the maps |
+| NAV.66 | 8.5 | Courses on the maps |
+| MAP.380 | 8.1 | Fly-through map |
