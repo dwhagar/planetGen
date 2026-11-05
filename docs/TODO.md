@@ -18021,6 +18021,21 @@ clears each one.
   TEST.575 (same family). Filed by the TODO thread.
   Prerequisites: none. Related: TEST.575.
 
+- [ ] **TEST.596 test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug)**
+  The Train Manager (as the lane reported, 7:11 AM EST on 2026-11-05)
+  listed these as red on plain main as well as in the train 10 gate:
+  tests/test_generation_mix.py (giant densities and the zone mix) and
+  tests/test_fuzz_planet_inputs.py. Do: first drop leftover planetgen_*
+  databases and run each alone on current main; find the commit that
+  turned each red (git bisect on the one test file) and say which item
+  owns it; fix the test with the reason or the code. Do not loosen a
+  check to get green. Done: both green on main, with the cause of each
+  noted. Lock-free unless the cause is a stored value, in which case
+  stop and tell TODO. Version 8.1. Owner: Tides 1 (the TEST.580
+  life-class tests stay with Bug 1; test_fuzz_system_generation is
+  TEST.571's). Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.580.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
