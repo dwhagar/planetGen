@@ -958,23 +958,6 @@ with `clamp()`.
   tests.
   Prerequisites: POP.50, POP.51. Related: POP.24.
 
-- [ ] **UX.272 Replace the galaxy quadrants with the names of the charted regions: the galaxy page table, the sectors list, the sector page and /api/sectors show the regions where sectors are charted**
-  Boss (6:17 PM EST on 2026-11-05): "Get rid of quadrants BTW, they are
-  useless, instead where quadrants was should list the regional names
-  where sectors are charted." Display and API only, lock-free, no
-  migration and no generated output. The change is built as a patch
-  (patch file
-  /mnt/project-files/patches/regions-replace-quadrants.patch, 20 files:
-  the galaxy page table, the sectors list, the sector page, /api/sectors
-  and their tests, with a release note) by the thread that made it,
-  which cannot push because GitHub rejects its pushes. A lane that can
-  push applies it, runs the targeted web, API and galaxy map tests and
-  opens the PR. Done: the galaxy page lists the region names where
-  sectors are charted in place of the quadrant table, the sectors list
-  and sector page show the region instead of the quadrant, /api/sectors
-  carries the region and no quadrant field is shown, and the tests pass.
-  Prerequisites: none. Related: UX.115, MAP.314.
-
 - [ ] **UX.273 Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views**
   Boss asked for it with the Chart View fixes (PR 5208, 6:40 PM EST on
   2026-11-05, as the lane reported); the first part waits on his answers
@@ -1996,34 +1979,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
 
-- [ ] **MAP.366 Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug)**
-  Boss, 1:03 PM EST on 2026-11-04 (live observation): "how we cut stars
-  off instead of the view ... one segment of stars would disappear but
-  another one right next to it would stay there and they're about the
-  same distance away. It would make the star map look like it was
-  missing these square chunks of the tiles. I understand that tiles have
-  to do that but can you investigate and see if there is a way to make
-  what is visible a little more consistent when you're at the same
-  view?" He will send screenshots after train 10 is done to check
-  whether it is still true. Do: (1) reproduce on a seeded galaxy: fly to
-  a view where two neighbouring nodes at about the same distance differ
-  in what is drawn (the per-node cut in the node budget and the star
-  fade, NODE_CUT_CONFIG maxNodes, the block hand-down to children, the
-  per-node star limit); (2) find the rule that cuts a whole node's stars
-  while its neighbour keeps them (a budget spent in node order, a
-  distance test on the node centre rather than the star, a tile fetched
-  later than its neighbour); (3) change the rule so what is shown
-  depends on the star and the view, not on which tile it sits in: cut by
-  star brightness or distance for the whole view (one global threshold),
-  keep the cut smooth over tile borders, and fade rather than drop; (4)
-  a browser test with a seeded galaxy that two adjacent nodes at the
-  same distance show the same share of stars, and that the visible count
-  follows a smooth rule as the camera moves. Owner Core 2 (Boss's
-  request relayed 1:03 PM EST on 2026-11-04; 8.1, one lock-free item at
-  a time, behind MAP.365 unless Core 2 says it clashes). Filed by the
-  TODO thread.
-  Prerequisites: none.
-
 - [ ] **MAP.369 Region labels still do not show as clickable points of interest that zoom into the charted region (bug)**
   Boss, 1:03 PM EST on 2026-11-04 (live observation): "right now we're
   still not showing a region label as a POI that I can click on and zoom
@@ -2078,37 +2033,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: MAP.224. Owner: Core 2, after MAP.223. Filed by the
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
-
-- [ ] **MAP.386 Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies**
-  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
-  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
-  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
-  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
-  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
-  against the exact sum; the kernel is numba and runs as a cached job
-  because the web app never imports numba; planets and moons fold into
-  their system's mass. Do: the rule and its code, with a test that the
-  folded field is within 0.1 percent of the explicit sum at 0.25 pc.
-  Done: the test passes. Lock-free until wired. Owner: Tides 1. Filed by
-  the TODO thread.
-  Prerequisites: none. Related: MAP.167, PERF.72.
-
-- [ ] **MAP.387 Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field**
-  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
-  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
-  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
-  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
-  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
-  against the exact sum; the kernel is numba and runs as a cached job
-  because the web app never imports numba; planets and moons fold into
-  their system's mass. Do: the cache as derived data only (no
-  galaxy-table migration), rebuilt on a threshold-based move, a job
-  queue for volume views, a slab on request. Done: a second request of
-  an unchanged sector reads the cache and a changed source stamp
-  rebuilds it, with tests. Lock-free (derived data only) unless it needs
-  a migration, then tell the TODO thread. Owner: Tides 1. Filed by the
-  TODO thread.
-  Prerequisites: MAP.385. Related: MAP.167, PERF.72.
 
 - [ ] **MAP.388 Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon**
   Boss (5:44 PM EST on 2026-11-05) approved 8.8 as 'Deep sky objects'
@@ -3478,7 +3402,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zone is thrown away only when a source passes its own threshold, the
   same event that sets its next update due time (GEN.106). PERF.72 sets
   the multiples.
-  Prerequisites: GEN.198, PERF.72, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
+  Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -14911,22 +14835,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item with the generator epoch, after the item above. Done: see the
   item above. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
   Prerequisites: GEN.1282. Related: PERF.241.
-
-- [ ] **PERF.243 Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate**
-  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
-  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
-  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
-  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
-  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
-  against the exact sum; the kernel is numba and runs as a cached job
-  because the web app never imports numba; planets and moons fold into
-  their system's mass. Do: a test that the densest-place sector grid
-  stays under 0.25 s with the pair budget of the hierarchy item, and a
-  reference file for the lane-machine pair rate so a slow machine is
-  recognised (the test scales its limit by it). Done: the test passes on
-  the reference machine and skips with a stated reason on none.
-  Lock-free. Owner: Tides 1. Filed by the TODO thread.
-  Prerequisites: MAP.385. Related: MAP.167, PERF.72.
 
 ## DB: Database and schema
 
