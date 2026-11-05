@@ -14900,6 +14900,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free. Version 8.1. Owner: Sources 1.
   Prerequisites: none. Related: GEN.1269.
 
+- [ ] **GEN.1275 The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug)**
+  Bug 1 (as the lane reported, 8:50 PM EST on 2026-11-04), found while
+  working PERF.236. Measured on main at the train 9 head with the same
+  seed series: unforced systems have a habitable-class world in 0.59 to
+  0.68 (matching the 0.598 constant). With prevalence habitable_world
+  -50 the share is still 0.59 (150 systems). With the config flag
+  HABITABLE_WORLD set false (the -habitable_world option itself) it is
+  still 0.61 (80 systems). With +50 it is 0.71 (120 systems) against the
+  0.90 it should be. Cause: the flag bars only Earth-like worlds in the
+  ecosphere that meet the habitable request (the barred-world loop in
+  generation/planet.py, habitable_request.meets, zone e), while the
+  prevalence feature and its tests count every body of a class that can
+  carry life (count_habitable_class_worlds, since the life-class epochs
+  120 and 121), including cold worlds and moons. The two meanings
+  drifted apart, so asking for no habitable world leaves most such
+  worlds in and asking for more cannot reach its target. Question for
+  Boss (plain words, passed on by the TODO thread): should no habitable
+  world mean no Earth-like ecosphere world only, or no body of any
+  life-carrying class anywhere in the system? Option 1, recommended: it
+  means no body of any life-carrying class, so the option, the
+  prevalence count and the tests all mean the same thing. Option 2: keep
+  it to Earth-like ecosphere worlds and change the prevalence count and
+  tests to count only those. Do: once Boss answers, make the generator,
+  the count and the tests use one definition and say which; the forced
+  shares must then land on their targets (about 0 at -50 and 0.90 at
+  +50, within the test margins). Related finding: asteroid_belt +30
+  changes nothing (the belt share stays 0.72) because its forcing is
+  computed from the stale 0.039 base, which TEST.579 fixes. A generation
+  change, so check whether it needs an epoch with --affects fill.
+  Version 8.1. Owner: Bug 1, with PERF.236 and TEST.579. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: PERF.236, TEST.579, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -16564,37 +16597,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   DOC.103, proposed by the TODO thread. Related: GEN.1255, API.36
   (region-name search, open), GEN.1140. Filed by the TODO thread.
   Prerequisites: GEN.1254, GEN.1255.
-
-- [ ] **API.39 /api/galaxy/nodes lists marked systems by row id, so "View system" says "no system with ID 345604" (bug)**
-  Boss (EST on 2026-11-04, as the coordinator relayed): the marked
-  systems (gas giant and habitable points of interest, interests[].id)
-  come back from /api/galaxy/nodes as row ids, because api/idpaths.py
-  had no rule for nodes.*.interests[].id, so the View system link finds
-  no system. Fix: PR #4946 from the point-of-interest link thread (rule
-  added, node cache format 10, test). Its test has not run because that
-  session has no MySQL: a lane with MySQL runs it before the merge.
-  Lock-free, no migration; the cache format bump rebuilds galaxy-nodes
-  once on update. Done: interests[].id is an object ID, View system
-  opens the system, and the test passes. Version 8.1. Owner: the
-  point-of-interest link thread for the code; Bug 1 runs the MySQL test
-  and I merge.
-  Prerequisites: none. Related: MAP.378.
-
-- [ ] **API.40 Audit every link to a system or body page for row ids that should be object IDs**
-  Follow-up to API.39: the nodes.*.interests[].id gap shows the id rules
-  in api/idpaths.py can miss a field. Walk every link that opens a
-  system or body page and every response that feeds one: sector-scene
-  planet, moon and belt entries, search results, nearest lists, the
-  galaxy and system trees, and the points of interest lists. For each,
-  confirm the id it carries is an object ID and that idpaths.py has a
-  rule for it; add the missing rules in the same change. Done: a test
-  walks the API responses that feed a system or body link and fails on
-  any numeric row id there, and the audit lists each field checked.
-  Lock-free where no stored value changes. Version 8.1. Owner: Core 2
-  (map and links).
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (moved from
-  Core 2 to keep the map lane short).
-  Prerequisites: API.39. Related: API.39.
 
 ## ADM: Admin tools
 
@@ -18821,6 +18823,19 @@ clears each one.
   Done: the four pass on main. Lock-free. Version 8.1. Owner: Tides 1,
   with TEST.580 and TEST.581. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580, TEST.581, OPS.95.
+
+- [ ] **TEST.584 test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug)**
+  Core 5 (as the lane reported, 8:47 PM EST on 2026-11-04), merging
+  API.40 (#4972): this test fails on clean main and not from that
+  change; the delete of a sector that holds facilities returns 409 where
+  the test expects the delete to go through. Find the commit that
+  changed it, then fix the code or the test and say which (a sector with
+  facilities may rightly refuse deletion now; if so the test is stale).
+  Done: the test passes on main. Lock-free. Version 8.1. Owner: Tides 1,
+  with TEST.583. The american_spelling code-strings failures
+  (updateguard.py cancelled, sheet.py disc) are the DOC.103 sweep, which
+  is in train 10. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.583, TEST.580, TEST.581, DOC.103.
 
 ## USR: User accounts
 

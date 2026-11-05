@@ -123,8 +123,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.372 | Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane | MAP.371 |  |
 | MAP.371 | Plane view with stems A: a tilt preset and a grid plane through the focus on the Galaxy Map (one click to the galaxy midplane instead) |  |  |
 | MAP.380 | The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug) |  |  |
-| API.40 | Audit every link to a system or body page for row ids that should be object IDs | API.39 |  |
-| API.39 | /api/galaxy/nodes lists marked systems by row id, so "View system" says "no system with ID 345604" (bug) |  |  |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
 | MAP.189 | The Galaxy Map opens flown in to the created sectors |  |  |
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute |  |  |
@@ -592,6 +590,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.581 | test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug) |  |  |
 | TEST.580 | Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug) |  |  |
 | TEST.583 | Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug) |  |  |
+| TEST.584 | test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug) |  |  |
 | TEST.579 | Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug) |  |  |
 | GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly |  |  |
 | GEN.1221 | Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent | GEN.1219, GEN.1220 |  |

@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.262 |
 | MAP | MAP.381 |
 | NAV | NAV.74 |
-| GEN | GEN.1275 |
+| GEN | GEN.1276 |
 | PERF | PERF.240 |
 | DB | DB.110 |
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.584 |
+| TEST | TEST.585 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -564,8 +564,8 @@ Parents marked "new parent" had no old number of their own.
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) | none | open |
 | API.37 | API fields for the life class: life_class, variant, best, best score, per-class scores and the animal grade, with an API version bump | none | done, PR #3871 |
 | API.38 | API and search for local names: name is the local name, a new sector field carries the place, a typed name returns every match with its sector, an ID typed in full still opens its object | none | open |
-| API.39 | /api/galaxy/nodes lists marked systems by row id, so "View system" says "no system with ID 345604" (bug) | none | open |
-| API.40 | Audit every link to a system or body page for row ids that should be object IDs | none | open |
+| API.39 | /api/galaxy/nodes lists marked systems by row id, so "View system" says "no system with ID 345604" (bug) | none | done, PR #4975 |
+| API.40 | Audit every link to a system or body page for row ids that should be object IDs | none | done, PR #4975 |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -2052,6 +2052,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1272 | Nebula composition part d: the nebula page, the describe sheet and the Properties sheet show the composition with units and derived marks | none | open |
 | GEN.1273 | Nebula composition part e: the Magellanic Clouds' gas metallicity as a place value | none | open |
 | GEN.1274 | Nebula composition part f: read the sources marked recalled and replace their stand-ins | none | open |
+| GEN.1275 | The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3924,6 +3925,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.581 | test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug) | none | open |
 | TEST.582 | Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census | none | open |
 | TEST.583 | Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug) | none | open |
+| TEST.584 | test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

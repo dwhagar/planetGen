@@ -2447,3 +2447,5 @@ Baseline: PR #1817.
 | VIEW.27 | 8.2 | Bookmarks |
 | VIEW.28 | 8.2 | Bookmarks |
 | PERF.233 | 8.2 | Robust tile caching |
+| API.40 | 8.1 | Fly-through map |
+| API.39 | 8.1 | Fly-through map |
