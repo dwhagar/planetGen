@@ -1,4 +1,0 @@
-**Headline:** The prevalence census tests carry the shifts train 10 (epoch 132) made, so they flag only new faults.
-
-### Changed
-- **TEST.550 (census re-tag after train 10).** The class, systems and occurrence census flagged twelve cells on the epoch 132 tree. Each is now tagged with the item that moved it, with the evidence in the anomaly text: six class cells (planet life ceilings of F5V and K0III ecosphere planets under GEN.1226; moon Class D and two moon ceilings under GEN.1244), F5V belts per system and K giants of 2 to 8 AU under GEN.1068 (belt members, belt history and the planet-chain draws), and the G2V abiogenesis share under GEN.1111 (a draw shift of 0.026 inside the sampling spread of 150 systems). Ranges are unchanged. The base shares (`PREVALENCE_BASE_SHARES`) are TEST.579's. Tests only: no generator change.
