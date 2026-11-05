@@ -9,11 +9,11 @@ from planetgen.physics import cloud_infrared as ci
 from planetgen.physics import co2_far_wing as fw
 from planetgen.physics import line_opacity, sulfuric_cloud
 
-CENTRES = line_opacity.CENTRES_CM1
+CENTERS = line_opacity.CENTERS_CM1
 
 
 def band(wavenumber):
-    return int(np.argmin(np.abs(CENTRES - wavenumber)))
+    return int(np.argmin(np.abs(CENTERS - wavenumber)))
 
 
 def test_the_table_has_a_row_for_every_radius_and_a_value_for_every_band():

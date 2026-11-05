@@ -7,7 +7,7 @@ The colour is the absolute colour of the light the air scatters down to the grou
 Boss 2026-10-16): the star's spectrum through the Rayleigh depth of the mixture, the ozone's Chappuis absorption, the haze, dust and
 cloud, and the ground's bounce, run through the CIE 1931 curves and the sRGB matrix with the brightest channel at 1 (a hue, not a
 brightness, and not adapted to the star: a red dwarf's air is cream, not blue). The result also carries the sky's luminance as a share
-of the star's, since the swatch hides it, the colour of the sun disc, and a word.
+of the star's, since the swatch hides it, the colour of the sun disk, and a word.
 
 The function is pure: every stored input (ozone column, aerosol depths, cloud cover, ground albedo) is an argument, so the callers that
 read the columns of DB.68 and the ground of GEN.441 and GEN.462 come later without touching this module. An argument left out is the
@@ -44,7 +44,7 @@ from planetgen.physics import air_column, atmospheric_radiation as radiation, el
 from planetgen.util import detmath
 
 WAVELENGTHS_NM = np.arange(380.0, 781.0, 5.0)
-"""ndarray: The grid of the colour integral, nm (cell centres)."""
+"""ndarray: The grid of the colour integral, nm (cell centers)."""
 
 EDGES_NM = np.arange(377.5, 782.6, 5.0)
 """ndarray: The cell edges of `WAVELENGTHS_NM`, nm."""
@@ -66,7 +66,7 @@ CHAPPUIS_FILE = os.path.join(elements.DATA_DIRECTORY, "ozone_chappuis.json")
 """str: The ozone cross sections of the Chappuis band on this grid (`scripts/build_ozone_chappuis.py`)."""
 
 _REFERENCE_NM = 550.0
-_TILT_CENTRE_NM = 580.0
+_TILT_CENTER_NM = 580.0
 _TILT_WIDTH_NM = 200.0
 _YBAR = np.array([photometry.cie_xyz_bar(nm)[1] for nm in WAVELENGTHS_NM])
 _STEP = 5.0
@@ -143,8 +143,8 @@ class AtmosphereColour:
         colour (Colour): The sky's hue, absolute, the brightest channel 1.
         word (str): A short word for it (`colour_word`).
         luminance_ratio (float): The sky's luminance as a share of the star's on a horizontal surface at the top of the air.
-        sun (Colour or None): The colour of the sun disc through the air, `None` when no direct light reaches the ground.
-        sun_luminance_ratio (float): The sun disc's luminance over the star's, 0 to 1.
+        sun (Colour or None): The colour of the sun disk through the air, `None` when no direct light reaches the ground.
+        sun_luminance_ratio (float): The sun disk's luminance over the star's, 0 to 1.
         tau_550 (float): The vertical extinction depth of the air at 550 nm (gas and aerosols, clear sky).
         tau_rayleigh_550 (float): The Rayleigh part of it.
         regime (str): `thin` (single scatter), `blend` or `thick` (two-stream).
@@ -231,7 +231,7 @@ def star_spectrum(temperature_k, spread_x=0.0, spread_y=0.0):
         return base
     x0, y0 = photometry.chromaticity(_xyz(base))
     target = np.array([x0 + dx + weight * spread_x * photometry.COOL_SPREAD_X, y0 + dy + weight * spread_y * photometry.COOL_SPREAD_Y])
-    t = (WAVELENGTHS_NM - _TILT_CENTRE_NM) / _TILT_WIDTH_NM
+    t = (WAVELENGTHS_NM - _TILT_CENTER_NM) / _TILT_WIDTH_NM
 
     def chromaticity_of(params):
         return np.array(photometry.chromaticity(_xyz(base * np.exp(params[0] * t + params[1] * t * t))))

@@ -1,4 +1,4 @@
-"""MAP.151, MAP.205: the Galaxy Map's data window on the shell grid -- the cells of one level whose centre lies in a
+"""MAP.151, MAP.205: the Galaxy Map's data window on the shell grid -- the cells of one level whose center lies in a
 ball, found in closed form, and the window cut from the parent stages."""
 import math
 
@@ -14,9 +14,9 @@ from planetgen.galaxy.window import (
 EDGE = 4.0
 
 
-def _brute_force(m, centre, reach, shells):
-    """Every cell of level `m` in `shells` (sector shells for m=1, block shells otherwise) whose centre lies within
-    `reach` of `centre`, by walking them all."""
+def _brute_force(m, center, reach, shells):
+    """Every cell of level `m` in `shells` (sector shells for m=1, block shells otherwise) whose center lies within
+    `reach` of `center`, by walking them all."""
     found = []
     for shell in shells:
         if m == 1:
@@ -26,7 +26,7 @@ def _brute_force(m, centre, reach, shells):
             cells = [DrillBlock(m, shell, b, w) for b in range(rows // 2, -(rows // 2) - 1, -1)
                      for w in range(drill_wedge_count(m, shell, b))]
         for cell in cells:
-            if math.dist(cell_position_pc(cell, EDGE), centre) <= reach + 1e-9:
+            if math.dist(cell_position_pc(cell, EDGE), center) <= reach + 1e-9:
                 found.append(cell)
     return found
 
@@ -42,9 +42,9 @@ def _brute_force(m, centre, reach, shells):
     (27, 3, 1, 0, 7),
 ])
 def test_the_closed_form_ball_equals_a_walk_of_every_cell(m, shell, band, wedge, g):
-    centre = DrillBlock(m, shell, band, wedge)
+    center = DrillBlock(m, shell, band, wedge)
     reach = g * m * EDGE / 2
-    point = cell_position_pc(centre, EDGE)
+    point = cell_position_pc(center, EDGE)
     radius = math.sqrt(sum(v * v for v in point))
     unit = 1 if m == 1 else m
     shells = range(max(0, int((radius - reach) / EDGE / unit) - 2), int((radius + reach) / EDGE / unit) + 4)
@@ -55,24 +55,24 @@ def test_the_closed_form_ball_equals_a_walk_of_every_cell(m, shell, band, wedge,
 
 
 @pytest.mark.parametrize("m", STAGE_LEVELS)
-def test_a_window_holds_its_centre_and_is_about_a_ball_of_cells(m):
+def test_a_window_holds_its_center_and_is_about_a_ball_of_cells(m):
     shell = 40 if m < 243 else 3
     if m == 1:
-        centre = DrillBlock(1, shell, 5, 7)
+        center = DrillBlock(1, shell, 5, 7)
     else:
-        centre = DrillBlock(m, shell, 3, 2)
-        assert 0 <= centre.wedge < drill_wedge_count(m, centre.shell, centre.band)
-    cells = window_cells(centre, EDGE, DEFAULT_WINDOW)
-    assert centre in cells and len(set(cells)) == len(cells)
+        center = DrillBlock(m, shell, 3, 2)
+        assert 0 <= center.wedge < drill_wedge_count(m, center.shell, center.band)
+    cells = window_cells(center, EDGE, DEFAULT_WINDOW)
+    assert center in cells and len(set(cells)) == len(cells)
     # A ball of radius g/2 cells holds about (4/3) pi (g/2)^3 = 382 cells of unit volume.
     assert 200 <= len(cells) <= 700, len(cells)
 
 
-def test_the_window_is_centred_on_the_centre_cell():
-    centre = DrillBlock(27, 20, 10, 3)
-    cells = window_cells(centre, EDGE, 9)
+def test_the_window_is_centered_on_the_center_cell():
+    center = DrillBlock(27, 20, 10, 3)
+    cells = window_cells(center, EDGE, 9)
     mean = [sum(c) / len(cells) for c in zip(*(cell_position_pc(c, EDGE) for c in cells))]
-    assert math.dist(mean, cell_position_pc(centre, EDGE)) < 0.5 * 27 * EDGE
+    assert math.dist(mean, cell_position_pc(center, EDGE)) < 0.5 * 27 * EDGE
 
 
 def test_widths_and_keys_are_checked():
@@ -89,8 +89,8 @@ def test_widths_and_keys_are_checked():
 
 
 def test_a_window_of_sectors_is_cut_from_the_stages_of_its_level_three_parents():
-    centre = DrillBlock(1, 30, 3, 11)
-    cells = window_cells(centre, EDGE, 5)
+    center = DrillBlock(1, 30, 3, 11)
+    cells = window_cells(center, EDGE, 5)
     parents = window_parents(cells)
     assert None not in parents and all(p.m == 3 for p in parents)
     assert len(parents) == len(set(parents))
@@ -101,7 +101,7 @@ def test_a_window_of_sectors_is_cut_from_the_stages_of_its_level_three_parents()
             "sectors": [{"shell": s.shell, "band": s.band, "wedge": s.wedge, "name": "x"} for c, in [(0,)]
                         for s in cells if drill_parent(s) == parent],
         }
-    window = crop_stages(centre, 5, stages, EDGE)
+    window = crop_stages(center, 5, stages, EDGE)
     assert window["at"] == "1.30.3.11" and window["child_m"] == 1 and window["g"] == 5
     assert len(window["cells"]) == len(cells)
     assert {(s["shell"], s["band"], s["wedge"]) for s in window["sectors"]} == {(c.shell, c.band, c.wedge) for c in cells}

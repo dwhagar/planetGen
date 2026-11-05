@@ -137,7 +137,7 @@ def test_the_rogues_velocity_is_the_hosts_plus_the_drifts_relative_velocity():
 
 
 def test_the_speed_window_of_a_rogue_passing_the_sun_holds_the_known_interstellar_objects():
-    # hosts with the thin disc's velocity dispersion (about 35, 25, 20 km/s), a giant's kick, a random age: the rogue's speed relative to the Sun
+    # hosts with the thin disk's velocity dispersion (about 35, 25, 20 km/s), a giant's kick, a random age: the rogue's speed relative to the Sun
     rng = random.Random(8)
     speeds = []
     for _ in range(4000):

@@ -507,7 +507,7 @@ def advance(conn, run_id, index):
     """
     Queues stage `index` of the run, and each stage after it that has no units to wait for, or finishes the run
     when the last stage is one of them. Called by the unit that completes the stage before (the barrier), and by
-    the starter for the first. A run that is no longer running (cancelling, cancelled, failed) queues nothing.
+    the starter for the first. A run that is no longer running (canceling, canceled, failed) queues nothing.
     """
     if runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) != "running":
         return
@@ -629,7 +629,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     """
     Runs the queued `steps` as one run: starts the run record (the machine is busy for it), queues the first stage,
     makes sure workers are running (`workers_count` of them at most: the run's `--workers`) and follows each stage to
-    its end. The run ends in Redis as `done`, or `failed` or `cancelled` if this process stops on an error or an
+    its end. The run ends in Redis as `done`, or `failed` or `canceled` if this process stops on an error or an
     interrupt first.
 
     Args:
@@ -660,7 +660,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         runrecord.Busy: Another run of that kind is running. A `GENERATION` run joins the waiting list (PERF.154) and
             waits for it up to `queue.wait_minutes`, then fails with the run named; a `MAINTENANCE` or `CHECK` run does
             not wait.
-        units.RunStopped: A unit failed or the run was cancelled.
+        units.RunStopped: A unit failed or the run was canceled.
     """
     url = url or redisqueue.redis_url()
     conn = redisqueue.connect(url)
@@ -728,10 +728,10 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                    f"in the Redis configuration or flush the page cache, then run again.") if full else \
             (str(exc) or type(exc).__name__)
         try:
-            runrecord.finish_run(conn, run_id, "cancelled" if stopped else "failed", error=message)
+            runrecord.finish_run(conn, run_id, "canceled" if stopped else "failed", error=message)
         except redis.exceptions.RedisError:
             pass        # a full Redis refuses this write too; the original error is the one to show
-        log.trace(f"run {run_id} finished: {'cancelled' if stopped else 'failed'} ({message})", area="queue")
+        log.trace(f"run {run_id} finished: {'canceled' if stopped else 'failed'} ({message})", area="queue")
         if galaxy_seed and kind == runrecord.GENERATION:
             log.error(f"Run {run_id} stopped before it was done. 'planetgen finish-run' carries it on from the first stage "
                       f"that did not finish.")

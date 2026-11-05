@@ -6,7 +6,7 @@ The nebulae and supernova remnants of a sphere, as arrays (VIEW.31, the data of 
 
 The sky a system sees (`reports/system-sky-from-the-system-2026-11-04.md`) draws a nebula or a supernova remnant as a sprite, not a point. This is
 the one read of the stored ones that the sky needs: `objects_in_sphere(conn, center, radius_pc)` returns every placed nebula (`nebulae`) and supernova
-remnant (`supernova_remnants`) whose centre lies inside the sphere, on `db/region.py` (the cell key, at most 256 runs, a covering index), as the plain
+remnant (`supernova_remnants`) whose center lies inside the sphere, on `db/region.py` (the cell key, at most 256 runs, a covering index), as the plain
 arrays `galaxy/sky_sprites.py` turns into sprites. The exact distance is measured here with `detmath`; a row outside the radius is dropped.
 
 A nebula's family is its `nebula_type` (the class's family in `tuning.NEBULA_FAMILIES`); a remnant's is `"supernova-remnant"`, or `"plerion"` for a
@@ -90,7 +90,7 @@ def _rows(conn, kind, center, radius_pc, runs):
 
 def objects_in_sphere(conn, center, radius_pc):
     """
-    Every placed nebula and supernova remnant whose centre is within `radius_pc` of `center` (galaxy-frame parsecs), as a `SpriteObjects`.
+    Every placed nebula and supernova remnant whose center is within `radius_pc` of `center` (galaxy-frame parsecs), as a `SpriteObjects`.
 
     Raises:
         region.RegionError: A point or a radius that cannot be searched.

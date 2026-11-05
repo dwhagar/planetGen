@@ -1,6 +1,6 @@
 """
 MAP.314: what a node of 27, 81 or 243 sectors lists on the wire so the Galaxy Map can name the charted regions inside it from a
-distance. Such a node carries `regions`, one entry per charted 9-block it holds (`key`, `name`, `parent`, `centre`, `radius`, `sectors`,
+distance. Such a node carries `regions`, one entry per charted 9-block it holds (`key`, `name`, `parent`, `center`, `radius`, `sectors`,
 `percent`), most sectors first; no other node has the list, nor has any node while no naming key is in force or when the block
 holds no generated sector.
 """
@@ -42,7 +42,7 @@ def test_a_node_lists_every_charted_region_it_holds_and_only_those(galaxy, keyed
             region = stored[drill.parse_node_key(entry["key"])]
             assert entry["name"] == named_regions.region_name(region["block"], KEY, EDGE)
             assert entry["parent"] == named_regions.family_name(named_regions.family_of(region["block"]), KEY, EDGE)
-            assert entry["centre"] == list(region["extent_centre_pc"]) and entry["radius"] == region["extent_radius_pc"]
+            assert entry["center"] == list(region["extent_center_pc"]) and entry["radius"] == region["extent_radius_pc"]
             assert entry["sectors"] == region["sector_count"]
             assert entry["percent"] == pytest.approx(region["charted_percent"], abs=1e-3)
         assert [entry["sectors"] for entry in listed] == sorted((entry["sectors"] for entry in listed), reverse=True)
@@ -107,5 +107,5 @@ def test_the_packed_node_keeps_the_list(galaxy, keyed):
     node = _node(galaxy, _block_over(_cells(galaxy)[0], 81))
     unpacked = tilepack.unpack_node(tilecache._node_bytes(node))
     assert [entry["name"] for entry in unpacked["regions"]] == [entry["name"] for entry in node["regions"]]
-    assert unpacked["regions"][0]["centre"] == pytest.approx(node["regions"][0]["centre"], abs=1e-3)
+    assert unpacked["regions"][0]["center"] == pytest.approx(node["regions"][0]["center"], abs=1e-3)
     assert "regions" not in tilepack.unpack_node(tilecache._node_bytes({"aggregate": {}, "stars": [], "generated": []}))

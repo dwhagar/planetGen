@@ -77,3 +77,19 @@ def test_the_word_list_knows_the_spellings_the_sweep_found():
     for british in ("the cancelled run", "a disc of gas", "the catalogue", "moves towards", "a modelled value", "a labelling pass"):
         assert plainwords.british_spellings(british), british
     assert not plainwords.british_spellings("a canceled run in a disk of gas")
+
+
+def test_the_forms_of_the_sweep_are_in_the_word_list():
+    for british in ("the centre of it", "a vapour", "a flavour", "ionising light", "an oxidised crust", "cancelling a run", "nuclear disc"):
+        assert plainwords.british_spellings(british), british
+
+
+def test_no_british_word_is_left_in_the_tree():
+    """DOC.103: the sweep script reads the whole tree (code, names, comments, tests, documents); a branch adds a word, `apply` fixes it."""
+    import importlib.util
+    root = os.path.dirname(os.path.dirname(PACKAGE))
+    spec = importlib.util.spec_from_file_location("american_spelling_sweep", os.path.join(root, "scripts", "american_spelling_sweep.py"))
+    sweep = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sweep)
+    found = sweep.left()
+    assert not found, "British spelling left (run `python scripts/american_spelling_sweep.py apply`):\n  " + "\n  ".join(found[:40])

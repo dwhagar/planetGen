@@ -67,3 +67,17 @@ def shares_of(body):
         return None
     total = math.fsum(amounts.values())
     return {key: value / total for key, value in amounts.items() if value > 0.0} if total > 0.0 else None
+
+
+ETHANE = "C2H6"
+"""str: The formula of the one ice in `OTHER` that supplies a liquid of its own (the ethane sea, GEN.1218a)."""
+
+
+def ethane_share_of_other(period_class=COMET_CLASS):
+    """
+    The ethane in the ices that have no column (`OTHER`: ethane, methanol, formaldehyde, hydrogen sulfide), as a share of them, at the medians of the comet
+    volatiles. A stand-in until GEN.1218b stores the hydrocarbons (registry GN3).
+    """
+    percent = comet_population.median_volatiles(period_class)
+    rest = math.fsum(value for formula, value in percent.items() if formula not in SPECIES)
+    return percent.get(ETHANE, 0.0) / rest if rest > 0.0 else 0.0

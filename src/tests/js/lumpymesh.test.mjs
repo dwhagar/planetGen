@@ -42,7 +42,7 @@ test("the axes keep the volume of the unit sphere and stretch more the farther t
   assert.ok(far.amplitude > near.amplitude);
 });
 
-test("the surface stays within the extent and never folds through the centre", () => {
+test("the surface stays within the extent and never folds through the center", () => {
   for (const seed of [1, 99, 123456789, 4000000000]) {
     const shape = L.shapeOf({ ...ROCK, roundness: 0.01, seed });
     for (let i = 0; i < 400; i++) {

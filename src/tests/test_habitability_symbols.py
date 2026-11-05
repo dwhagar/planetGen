@@ -65,7 +65,7 @@ def test_the_shapes_are_the_ones_boss_drew():
     assert tags("pressure") == ["path", "path", "path"]  # two triangles and a square
     assert tags("air") == ["path"] and sprite["hab-air"][0].get("d").count("M") == 4  # a hexagon, three lines cut out
     assert tags("water") == ["path"] and sprite["hab-water"][0].get("d").count("M") == 2  # a triangle, a circle cut out
-    assert tags("suitability") == ["path", "circle"]  # a disc with a diamond cut out, and a dot
+    assert tags("suitability") == ["path", "circle"]  # a disk with a diamond cut out, and a dot
     assert tags("overall") == ["path", "path", "circle"]  # a ring, a triangle with a circle cut out, a solid circle
     for name in ("air", "water", "suitability", "overall"):
         assert sprite[symbols.SPRITE_IDS[name]][0].get("fill-rule") == "evenodd", name  # the cut-outs

@@ -178,7 +178,7 @@ def test_the_classes_every_component_has_keep_their_draws(monkeypatch):
 def test_the_supernova_remnants_of_a_clouds_cell_follow_its_star_formation_as_its_component_pass_does():
     """GEN.1198: a Cloud's cell is nearly all the Cloud's own stars, so its factor is the component pass's (GEN.1191), the Large Cloud's more than the
     Small Cloud's and near 1, and a cell of a satellite that forms no stars holds none. (TEST.580: the Large Cloud's factor was 1.23 until GEN.1230
-    gave the thin disc an inside-out infall and raised the solar circle's young share from 0.011 to 0.016, against the Cloud's 0.014: the Cloud
+    gave the thin disk an inside-out infall and raised the solar circle's young share from 0.011 to 0.016, against the Cloud's 0.014: the Cloud
     forms stars about as fast per star as the solar circle, so the claim that it is above 1 was the old reference's, not a physical one.)"""
     for cloud in (LMC, SMC):
         cell = profile.profile_at(cloud.center_pc, WITH_SATELLITES, EDGE, E1).kind_factors["supernova-remnant"]
@@ -196,7 +196,7 @@ def test_the_progenitor_factor_is_one_at_the_solar_circle_s_mix_and_zero_without
     assert profile.supernova_progenitor_factor(2.0 * reference, SHAPE) > 1.0
 
 
-def test_a_disc_cell_keeps_its_gas_factor_for_the_supernova_remnants():
+def test_a_disk_cell_keeps_its_gas_factor_for_the_supernova_remnants():
     here = profile.profile_at(SUN, WITH_SATELLITES, EDGE, E1)
     assert here.kind_factors["supernova-remnant"] == pytest.approx(
         min(1.0, nebula_field.gas_factor(SUN, WITH_SATELLITES)) * (1.0 - here.populations["cluster"].share), rel=1e-6)

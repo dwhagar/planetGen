@@ -38,13 +38,13 @@ def test_the_nucleus_cell_feeds_its_density_and_dispersion_to_the_one_survival_f
     assert limit == pytest.approx(0.06, rel=0.25)         # the core note's row at 1 pc
 
 
-def test_the_limit_follows_the_note_s_table_from_the_cluster_out_through_the_nuclear_disc():
+def test_the_limit_follows_the_note_s_table_from_the_cluster_out_through_the_nuclear_disk():
     limits = [place_terms.planet_limit_au(_terms_at(r)[1], tuning.PLANET_SURVIVAL_AGE_GY)
               for r in (0.0, 3.0, 10.0, 30.0, 100.0, 200.0)]
     assert all(a <= b for a, b in zip(limits, limits[1:]))
     assert limits[0] < 0.15                                # inside a few parsecs the cluster holds no planets
     assert 0.5 < _limit(10.0) < 3.0                        # the note: about 2 AU at 10 pc
-    assert 3.0 < _limit(100.0) < 11.0                      # the nuclear disc keeps terrestrial-zone orbits
+    assert 3.0 < _limit(100.0) < 11.0                      # the nuclear disk keeps terrestrial-zone orbits
     assert _limit(8000.0) > 100.0                          # the Sun's neighbourhood keeps orbits out to hundreds of AU
 
 
@@ -53,15 +53,15 @@ def _limit(radius_pc):
 
 
 def test_every_population_is_stated_as_a_three_axis_total():
-    for name in ("cluster", "satellite", "nuclear_cluster", "nuclear_disc"):
+    for name in ("cluster", "satellite", "nuclear_cluster", "nuclear_disk"):
         assert galaxy_profile._dispersion_kms(name, SHAPE) == pytest.approx(
             tuning.STELLAR_POPULATION_DISPERSION_KMS[name] * math.sqrt(3.0))
     assert galaxy_profile._dispersion_kms("old", SHAPE) == pytest.approx(
-        galaxy_structure.disc_dispersion_kms(SHAPE.structure, "old"))
+        galaxy_structure.disk_dispersion_kms(SHAPE.structure, "old"))
     assert constants.ISOTROPIC_TOTAL_OVER_ONE_AXIS == pytest.approx(math.sqrt(3.0))
 
 
-def test_a_disc_systems_encounter_limit_uses_the_three_axis_total_over_root_three():
+def test_a_disk_systems_encounter_limit_uses_the_three_axis_total_over_root_three():
     profile, terms = _terms_at(8000.0)
     assert set(profile.populations) >= {"young", "old"}
     weighted = sum(p.share * p.dispersion_kms ** 2 for p in profile.populations.values())

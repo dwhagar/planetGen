@@ -14,7 +14,7 @@ The steps (report section 2):
 1. **The gas metallicity of the place** (`gas_oh`): the Milky Way gas has its own gradient (`GAS_GRADIENT_DEX_PER_KPC`, Boss 8:49 PM EST
    2026-11-04: not the stars' 0.06), zero at the galaxy's reference radius, with a scatter drawn from the key. In a satellite component the gas is
    the component's own [Fe/H] plus a young-gas offset drawn inside the widest range of the two published estimates (`SATELLITE_GAS_OFFSETS`).
-2. **The total composition** (gas and dust together): the birth composition of a thin-disc star of that metallicity
+2. **The total composition** (gas and dust together): the birth composition of a thin-disk star of that metallicity
    (`stellar_abundances.composition`), so a nebula and a star born in it share one chemistry.
 3. **The dust** (`dust_to_gas_law`): the broken power law of [R5102] of the oxygen abundance, times the class's survival
    (section 11 of the report: the dust that lives through the ionizing radiation, the shock or the winds of the class).
@@ -116,7 +116,7 @@ def oh_dex(elements):
 
 
 def fe_h_for_oh(target_oh):
-    """The [Fe/H] of the thin-disc birth composition whose [O/H] is `target_oh` (the [O/Fe] of the disc is a few hundredths of a dex), found by
+    """The [Fe/H] of the thin-disk birth composition whose [O/H] is `target_oh` (the [O/Fe] of the disk is a few hundredths of a dex), found by
     bisection (the fits of [X/Fe] bend, so [O/H] rises with [Fe/H] but not in a straight line)."""
     low, high = target_oh - 1.0, target_oh + 1.0
     for _ in range(50):
@@ -316,7 +316,7 @@ class NebulaMakeup:
     Attributes:
         nebula_class (str): The class letter.
         oh_dex (float): [O/H] of the gas it formed in, dex.
-        fe_h (float): [Fe/H] of the thin-disc composition that gave it that oxygen.
+        fe_h (float): [Fe/H] of the thin-disk composition that gave it that oxygen.
         x, y, z (float): Hydrogen, helium and metal mass fractions of gas and dust together (add to 1).
         elements (dict): The mass fraction of each element, gas and dust together (add to 1).
         dust_elements (dict): The mass fraction of the total that sits in dust, by element.

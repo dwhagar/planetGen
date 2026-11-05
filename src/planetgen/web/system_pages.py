@@ -25,7 +25,7 @@ from planetgen.describe.html import blocks_html
 from planetgen.describe.model import sections, split_by_body
 from planetgen.describe.stored_phenomena import stored_phenomenon_document
 from planetgen.physics.quantity import Quantity
-from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
+from planetgen.physics.lensing import einstein_radius_against_galactic_center_m
 from planetgen.util import log
 from planetgen.web.lib import apiclient, facility_display, skycache, skypack
 from planetgen.web.lib.slowroute import slow_route
@@ -748,6 +748,9 @@ FIELD_SPECS = {
     "rogue_planet": [
         ("planet_type", "Type", _rogue_planet_type_text),
         ("planet_class", "Planet Class", str),
+        ("rogue_note", "Where It Came From", str),      # GEN.1111: a rogue planet is made by the system that threw it out
+        ("since_ejection_gy", "Time Since It Was Thrown Out", lambda v: f"{format_number(v, ',.3f')} Gyr"),
+        ("ejection_speed_kms", "Speed It Left At", lambda v: f"{format_number(v, ',.1f')} km/s"),
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
         ("mass_kg", "Mass", _quantity("kg")),
         ("radius_km", "Radius", _body_radius),
@@ -819,7 +822,7 @@ def _with_galactic_speed(detail):
 def _with_derived_fields(phenomenon_type, detail):
     """`detail` plus the values worked out from it rather than stored: the
     Einstein radius (GEN.154) of a black hole, neutron star or rogue planet
-    that has a galactic position, left out for a lens beyond the galaxy's reference radius from the centre
+    that has a galactic position, left out for a lens beyond the galaxy's reference radius from the center
     (`physics/lensing.py`, GEN.404)."""
     if phenomenon_type in ("black_hole", "neutron_star"):
         mass_kg = Quantity("mass", detail.get("mass_solar") or 0, "Msun").kg
@@ -831,7 +834,7 @@ def _with_derived_fields(phenomenon_type, detail):
     observer_pc = detail.get("reference_radius_pc")
     if radius_pc is None or observer_pc is None:
         return detail
-    einstein_m = einstein_radius_against_galactic_centre_m(mass_kg, radius_pc, observer_pc)
+    einstein_m = einstein_radius_against_galactic_center_m(mass_kg, radius_pc, observer_pc)
     if einstein_m is None:
         return detail
     return {**detail, "einstein_radius_m": einstein_m}

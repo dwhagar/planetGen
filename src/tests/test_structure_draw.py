@@ -53,7 +53,7 @@ def test_the_thick_disk_mass_ratio_sits_between_the_two_fits_and_inside_the_boun
         assert math.log10(low) - sd.SCATTER_LIMIT * sd.COMERON_MASS_RATIO_SCATTER_DEX - 1e-9 <= log_ratio
         assert log_ratio <= math.log10(high) + sd.SCATTER_LIMIT * sd.COMERON_MASS_RATIO_SCATTER_DEX + 1e-9
         inside += low <= structure.thick_mass_ratio <= high
-    # The centre is spread evenly (in the log) between the fits, so about half the draws stay between them
+    # The center is spread evenly (in the log) between the fits, so about half the draws stay between them
     # once the 0.27 dex scatter is added.
     assert 0.25 < inside / len(STRUCTURES) < 0.75
     # The bound of [R0860] holds for the mean relation of either fit, with a margin of the hot
@@ -124,10 +124,10 @@ def test_a_barred_bulge_is_a_bar_and_an_unbarred_one_is_rounder():
         assert abs(count - len(STRUCTURES) / 4.0) <= 4.0 * math.sqrt(len(STRUCTURES) * 0.25 * 0.75)
 
 
-def test_the_young_discs_height_for_a_milky_way_twin_is_inside_the_sourced_band():
+def test_the_young_disks_height_for_a_milky_way_twin_is_inside_the_sourced_band():
     """GEN.1182 and GEN.1188: young OB stars, HII regions, Cepheids and open clusters of the Milky Way have a scale height of
-    about 50 pc, 36 to 66 by tracer ([R0433] and 2016, [R0453, R1804, R2203, R3151]), against a 300 pc old thin disc: young over old 0.12 to 0.23. A Milky Way check, not a law for every galaxy
-    (six low-mass edge-on discs show 0.40 to 0.59, [R4031])."""
+    about 50 pc, 36 to 66 by tracer ([R0433] and 2016, [R0453, R1804, R2203, R3151]), against a 300 pc old thin disk: young over old 0.12 to 0.23. A Milky Way check, not a law for every galaxy
+    (six low-mass edge-on disks show 0.40 to 0.59, [R4031])."""
     reference = galaxyStructure.REFERENCE_STRUCTURE
     young = galaxyStructure.population_height_ratios(reference)["young"]
     assert 0.12 <= young <= 0.23
@@ -139,19 +139,19 @@ def test_the_young_discs_height_for_a_milky_way_twin_is_inside_the_sourced_band(
 def test_the_populations_heights_and_dispersions_come_from_one_law():
     reference = galaxyStructure.REFERENCE_STRUCTURE
     ratios = galaxyStructure.population_height_ratios(reference)
-    sigma = {name: galaxyStructure.disc_vertical_dispersion_kms(reference, name) for name in ratios}
+    sigma = {name: galaxyStructure.disk_vertical_dispersion_kms(reference, name) for name in ratios}
     assert ratios["old"] == 1.0
     for name in ratios:
         assert ratios[name] == pytest.approx((sigma[name] / sigma["old"]) ** 2)
     assert 0.0 < ratios["young"] < ratios["intermediate"] < 1.0
-    # The Milky Way check of the gap plan (4.3): the old disc's vertical dispersion at the Sun is within 35 percent of
+    # The Milky Way check of the gap plan (4.3): the old disk's vertical dispersion at the Sun is within 35 percent of
     # the 21.1 km/s of [R4043].
     assert abs(sigma["old"] / 21.1 - 1.0) < 0.35
-    totals = [galaxyStructure.disc_dispersion_kms(reference, name) for name in ratios]
+    totals = [galaxyStructure.disk_dispersion_kms(reference, name) for name in ratios]
     assert totals == sorted(totals)
     for _mass, structure in STRUCTURES[:200]:
         assert 0.0 < galaxyStructure.population_height_ratios(structure)["young"] < 1.0
-        assert structure.disc_central_dispersion_kms > structure.disc_gas_dispersion_kms
+        assert structure.disk_central_dispersion_kms > structure.disk_gas_dispersion_kms
 
 
 def test_the_halo_and_bulge_dispersions_follow_the_circular_speed():

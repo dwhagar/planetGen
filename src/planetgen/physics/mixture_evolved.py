@@ -8,7 +8,7 @@ The `j` rows of the recipes (Venus-like, Mars-like, Titan-like, Pluto-like and t
 Solar System bodies are TEST rows of the research, never presets. This module draws each as chemistry on the same pieces as the
 rocky family and gives the pieces their own seeded design brackets, each a stand-in for the research item that will replace it.
 
-* **Oxidised terrestrial (`j1` Venus-like, `j2` Mars-like): the outgassed gas at high redox, minus its water and its sulfur.**
+* **Oxidized terrestrial (`j1` Venus-like, `j2` Mars-like): the outgassed gas at high redox, minus its water and its sulfur.**
   Part 05 section 6.1: take the outgassed mixture, remove the water by escape or condensation, keep the nitrogen inventory and the
   radiogenic argon. The first stage is `mixture_rocky.volcanic_gas`; the water is removed down to the share `WATER_RESIDUAL` of the
   hydrogen, and the sulfur the surface sulfates and the cloud keep is
@@ -84,7 +84,7 @@ NH3_G_MOL = 17.03052
 
 FROST_ICE = {"CH4": (3e-3, 0.3, "log"), "CO": (1e-3, 0.1, "log")}
 """dict: The mole fraction of each minor gas in the surface ice (the rest is nitrogen), stand-ins for the research item on the ice
-composition of cold bodies (part 05 section 6.2: the vapour-pressure relations of the ices are the Fray and Schmitt ones)."""
+composition of cold bodies (part 05 section 6.2: the vapor-pressure relations of the ices are the Fray and Schmitt ones)."""
 
 TITAN_MAX_METHANE = 0.5
 """float: The methane share the nitrogen-methane gas is held at when the saturation exceeds the pressure of the air."""
@@ -111,7 +111,7 @@ def _from_fractions(fractions, *, family, recipe, temperature_k, pressure_bar, i
         temperature_k=temperature_k, pressure_bar=pressure_bar, inventory=inventory, constants=constants)
 
 
-def evolved_oxidised(subject, recipe, row, supply=None):
+def evolved_oxidized(subject, recipe, row, supply=None):
     """
     The gas of a Venus-like (`j1`), Mars-like (`j2`) or abiotic-oxygen (`j5`) body.
 
@@ -220,4 +220,4 @@ def draw(subject, recipe, family, supply=None):
     if family == "frost":
         return frost_equilibrium(subject, recipe)
     row = recipe.groups["j"].name
-    return evolved_oxidised(subject, recipe, row, supply)
+    return evolved_oxidized(subject, recipe, row, supply)

@@ -27,10 +27,10 @@ def test_the_weights_favour_the_equations_that_fit_the_constraints():
     assert weights[6] < weights[8]  # holds only 2.01 solar masses, under PSR J0740+6620
 
 
-def test_the_centre_is_the_weighted_median_and_lies_in_the_miller_range_with_the_tables_stiffness():
-    centre = neutron_star.radius_km(1.4)
-    assert 12.45 - 0.65 < centre < 12.45 + 0.65 + 0.5  # the 21 tables are stiffer than the 68% interval's centre
-    assert neutron_star.radius_km(1.4, 0.0) == centre
+def test_the_center_is_the_weighted_median_and_lies_in_the_miller_range_with_the_tables_stiffness():
+    center = neutron_star.radius_km(1.4)
+    assert 12.45 - 0.65 < center < 12.45 + 0.65 + 0.5  # the 21 tables are stiffer than the 68% interval's center
+    assert neutron_star.radius_km(1.4, 0.0) == center
 
 
 @pytest.mark.parametrize("mass, radius", [
@@ -75,7 +75,7 @@ def test_a_drawn_star_is_between_the_limits_at_its_mass_and_its_radii_spread():
     assert min(radii) < 12.3 and max(radii) > 13.0
 
 
-def test_a_neutron_star_companion_has_the_centre_radius_of_its_mass():
+def test_a_neutron_star_companion_has_the_center_radius_of_its_mass():
     leaf = multistar._remnant_leaf("neutron-star", 15.0, 1.4)
     assert leaf.radius_au * constants.AU_M / 1000.0 == pytest.approx(neutron_star.radius_km(1.4))
 

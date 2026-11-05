@@ -22,8 +22,6 @@ The saved course record and its list, open and rename.
 |---|---|---|---|
 | NAV.4 | Save a course |  | Per browser now; NAV.19 moves it into accounts in phase 3+. |
 | NAV.19 | Saved courses in the account (after USR.7) | USR.7 |  |
-| NAV.21 | Fit the view to the whole course |  | Same fit as MAP.53, exempt from any zoom limit (MAP.58 was superseded by MAP.125). |
-| NAV.23 | Open a saved course on the map | NAV.4, NAV.21 |  |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again |  | With NAV.17. |
 
 ### Halo and intergalactic switch
@@ -48,7 +46,7 @@ Showing courses on the maps and bending them around keep-out spheres.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.22 | Courses inside a sector and a system |  |  |
-| NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
+| NAV.5 | Show a course on the Galaxy Map | NAV.22 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
 | NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain |  |  |
 
 ### Steering clear of gravity wells
@@ -75,7 +73,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared |  | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
 | NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | NAV.49, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). |
-| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.49, NAV.58, NAV.4, NAV.23 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
+| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.49, NAV.58, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
 
 ## Phase 4: Trade routes
 

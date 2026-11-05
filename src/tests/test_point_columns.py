@@ -87,10 +87,10 @@ def test_a_galaxy_frame_row_round_trips_through_a_spatial_position():
 
 def test_a_sector_frame_row_with_its_mass_from_the_stars_round_trips():
     layout = LAYOUTS["star_systems"]
-    centre = tuple(c * constants.PARSEC_M for c in (8000.0, -500.0, 20.0))
+    center = tuple(c * constants.PARSEC_M for c in (8000.0, -500.0, 20.0))
     row = {"position_x_mpc": 1500.0, "position_y_mpc": -250.0, "position_z_mpc": 75.0, "velocity_x_kms": 1.0,
            "velocity_y_kms": 2.0, "velocity_z_kms": 3.0, "epoch_unix": 5.0, "next_update_due": 6.0}
-    point = point_columns.spatial_from_row(layout, row, sector_center_m=centre, mass_kg=2.0e30)
+    point = point_columns.spatial_from_row(layout, row, sector_center_m=center, mass_kg=2.0e30)
     assert point.mass_kg == 2.0e30
     back = point_columns.values_from_spatial(layout, point)
     for name in layout.position + layout.velocity:

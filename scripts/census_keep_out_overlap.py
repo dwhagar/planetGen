@@ -8,13 +8,13 @@ It reads the galaxy's stored positions and takes each object's keep-out radius t
 
 * a star system: its galactic Hill radius, the larger of the stars' and the binary's `system_perimeter_km`;
 * a black hole, a neutron star or a rogue planet that was placed in the galaxy: its galactic Hill radius against the galaxy's mass
-  inside its distance from the centre (read from a table of the enclosed mass, 64 radii, log-spaced), never smaller than the object;
+  inside its distance from the center (read from a table of the enclosed mass, 64 radii, log-spaced), never smaller than the object;
 * a supermassive black hole and a quasar: the sphere of influence (and a quasar's light); an asteroid field: its stored radius.
 
 Planets, moons, belts and the radiation radii inside a system are left out: they sit inside their star's sphere, and a course that
 leaves or enters a system is exempt from that star's sphere by containment.
 
-A pair overlaps when the distance of the centres is under the sum of the radii; it is nested when one centre lies inside the other
+A pair overlaps when the distance of the centers is under the sum of the radii; it is nested when one center lies inside the other
 sphere. A cluster is a set of spheres joined by overlaps. The report counts the spheres, the pairs (by the kinds of the two), the
 spheres in at least one overlap, the nested pairs and the clusters by size.
 

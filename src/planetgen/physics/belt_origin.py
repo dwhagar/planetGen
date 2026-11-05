@@ -4,25 +4,25 @@
 Where a belt came from (GEN.1088, docs/design/systems/belt-origins.md sections 3 to 5)
 =====================================================================================
 
-Every belt and outer disc gets the cause that made it, a record of how its solids were formed and what took mass from them, and one sentence
+Every belt and outer disk gets the cause that made it, a record of how its solids were formed and what took mass from them, and one sentence
 for its page ("The leftover of a planet that never grew here ..."). The generator made the belt, so it knows. A pure law over the planet chain
-the architecture (`planet_architecture`) built and the disc's solids; it reads no database, draws no random number (the two draws it needs come
+the architecture (`planet_architecture`) built and the disk's solids; it reads no database, draws no random number (the two draws it needs come
 in as `u` arguments) and moves nothing. GEN.1068 gives it the final chain in place of the 10 percent slot roll.
 
 **Formation causes** (what made the belt; the stored `origin`):
 
 - `gap`: two neighbours of the chain stand more than `GAP_SPACING_K` mutual Hill radii apart (the thinned chains cluster at 12 to 20), and the
   space between them, less five Hill radii of each, is wide enough: the solids there did not grow into a planet.
-- `tail`: the chain stops short of `growth_limit_au`, where the disc has built less (`PLANET_OUTER_GROWTH_AU`), and the space past its last
-  rocky planet is a belt (a last giant ends the chain, the outer disc takes over).
+- `tail`: the chain stops short of `growth_limit_au`, where the disk has built less (`PLANET_OUTER_GROWTH_AU`), and the space past its last
+  rocky planet is a belt (a last giant ends the chain, the outer disk takes over).
 - `snow-line-bump`: solids pile up at the snow line as the system formed it (the formation snow line is stored); where that stretch is free of
   planets and is not already inside a gap or tail (which then take it as a second cause) it is its own belt.
-- `outer-disc`: the disc past the last giant (or past the tail), out to `disc_edge_au`.
+- `outer-disk`: the disk past the last giant (or past the tail), out to `disk_edge_au`.
 - `destroyed-planet`: the remains of a planet the system's history destroyed (the caller names it), `DESTROYED_RETAINED_SHARE` of its mass.
 - `collisional-debris`: the rubble of a collision between large bodies, a rare event at `COLLISIONAL_DEBRIS_PER_GYR` of mass
   `COLLISIONAL_DEBRIS_MASS_EARTH`; `collisional_debris` turns the caller's draw into the event or none.
 
-**Shaping causes** (what took mass afterwards; the stored `history`), applied in this order to each belt, solids weighted by the disc's own
+**Shaping causes** (what took mass afterwards; the stored `history`), applied in this order to each belt, solids weighted by the disk's own
 surface density (`belt_mass.primordial_mass_earth`):
 
 - `giant-stirring`: the chaotic zone of each giant, half-width `1.3 a mu^(2/7)` each side [R4727], and for a belt inside the giant the
@@ -42,7 +42,7 @@ belt) and every shaping cause with the share of the mass it took in `history`, s
 Use:
 
     chain = [Body(distance_au, mass_kg, eccentricity, giant, migrated, formation_au), ...]
-    belts = build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disc_edge_au, u=0.5)
+    belts = build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disk_edge_au, u=0.5)
     for belt in belts: belt.origin, belt.mass_earth, belt.sentence
 """
 
@@ -226,7 +226,7 @@ def gaps(chain, star_mass_kg):
 
 
 def tail(chain, star_mass_kg, growth_limit_au):
-    """The unfinished tail: past the last rocky planet to `growth_limit_au`, only when no giant ends the chain (the outer disc takes that one)."""
+    """The unfinished tail: past the last rocky planet to `growth_limit_au`, only when no giant ends the chain (the outer disk takes that one)."""
     if not chain or chain[-1].giant:
         return []
     last = chain[-1]
@@ -234,10 +234,10 @@ def tail(chain, star_mass_kg, growth_limit_au):
     return [_candidate("tail", lower, upper, inner_neighbour_au=last.distance_au)] if _fits(lower, upper) else []
 
 
-def outer_disc(chain, star_mass_kg, growth_limit_au, disc_edge_au):
+def outer_disk(chain, star_mass_kg, growth_limit_au, disk_edge_au):
     """
-    The outer disc: from the outer chaotic edge of the last giant and the keep-out of the last body, and from `growth_limit_au` too when the chain
-    ends in a rocky planet (the tail has the space before it), out to `disc_edge_au`.
+    The outer disk: from the outer chaotic edge of the last giant and the keep-out of the last body, and from `growth_limit_au` too when the chain
+    ends in a rocky planet (the tail has the space before it), out to `disk_edge_au`.
     """
     giants = [body for body in chain if body.giant]
     lower = growth_limit_au if not chain or not chain[-1].giant else 0.0
@@ -246,7 +246,7 @@ def outer_disc(chain, star_mass_kg, growth_limit_au, disc_edge_au):
     if giants:
         lower = max(lower, giants[-1].distance_au + chaotic_half_width_au(giants[-1], star_mass_kg))
     neighbour = giants[-1].distance_au if giants else (chain[-1].distance_au if chain else growth_limit_au)
-    return [_candidate("outer-disc", lower, disc_edge_au, inner_neighbour_au=neighbour)] if _fits(lower, disc_edge_au) else []
+    return [_candidate("outer-disk", lower, disk_edge_au, inner_neighbour_au=neighbour)] if _fits(lower, disk_edge_au) else []
 
 
 def snow_line_bump(chain, star_mass_kg, formation_snow_line_au, taken):
@@ -307,7 +307,7 @@ def cleared_spans(body, star_mass_kg, lower_au, upper_au):
 def is_stirred(body, star_mass_kg, lower_au, upper_au):
     """Whether a giant stirs the stretch: it reaches within `STIR_ZONE_WIDTHS` chaotic half-widths of the giant's orbit."""
     reach = STIR_ZONE_WIDTHS * chaotic_half_width_au(body, star_mass_kg)
-    return upper_au >= body.distance_au - reach and lower_au <= body.distance_au + reach
+    return bool(upper_au >= body.distance_au - reach and lower_au <= body.distance_au + reach)
 
 
 def moved_through(body, lower_au, upper_au, star_mass_kg):
@@ -316,7 +316,7 @@ def moved_through(body, lower_au, upper_au, star_mass_kg):
         return False
     half = chaotic_half_width_au(body, star_mass_kg)
     path = (min(body.formation_au, body.distance_au) - half, max(body.formation_au, body.distance_au) + half)
-    return upper_au >= path[0] and lower_au <= path[1]
+    return bool(upper_au >= path[0] and lower_au <= path[1])
 
 
 def instability_survival(u):
@@ -379,20 +379,20 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
                       stirred, tuple(history), sentence)
 
 
-def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disc_edge_au, u=0.5, debris=(), metal_ratio=1.0,
+def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disk_edge_au, u=0.5, debris=(), metal_ratio=1.0,
           scatter=1.0):
     """
-    Every belt of a system with the cause that made it: the gaps, the unfinished tail, the snow-line bump (or its co-cause), the outer disc and
+    Every belt of a system with the cause that made it: the gaps, the unfinished tail, the snow-line bump (or its co-cause), the outer disk and
     the `debris` events the caller names, each traced through the giants' clearing and the instability, in order of distance. Belts under
     `MIN_BELT_MASS_EARTH` of primordial mass are not belts.
 
     Args:
         chain (list): The `Body` list of the system's planets, in order of distance.
         star_mass_kg (float): The star's mass at formation.
-        snow_line_au (float): The snow line now (the disc's surface density reads it).
+        snow_line_au (float): The snow line now (the disk's surface density reads it).
         formation_snow_line_au (float): The snow line when the system formed (stored on the belt).
-        growth_limit_au (float): Where the disc built less (`tuning.PLANET_OUTER_GROWTH_AU`).
-        disc_edge_au (float): The outer edge of the disc.
+        growth_limit_au (float): Where the disk built less (`tuning.PLANET_OUTER_GROWTH_AU`).
+        disk_edge_au (float): The outer edge of the disk.
         u (float): A uniform draw in (0, 1) for the survival share of a belt a giant swept through.
         debris (iterable): `Debris` events, from `destroyed_planet` and `collisional_debris`.
 
@@ -400,7 +400,7 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
         list: `BeltOrigin`, nearest the star first.
     """
     chain = sorted(chain, key=lambda body: body.distance_au)
-    candidates = gaps(chain, star_mass_kg) + tail(chain, star_mass_kg, growth_limit_au) + outer_disc(chain, star_mass_kg, growth_limit_au, disc_edge_au)
+    candidates = gaps(chain, star_mass_kg) + tail(chain, star_mass_kg, growth_limit_au) + outer_disk(chain, star_mass_kg, growth_limit_au, disk_edge_au)
     candidates += snow_line_bump(chain, star_mass_kg, formation_snow_line_au, candidates)
     candidates += [_debris_candidate(event) for event in debris]
     belts = []

@@ -7,7 +7,7 @@ The masses of the bodies a system throws out (GEN.1112, RP2)
 The rogue planets drew their mass from one fitted power law, `dN/dlogM ~ M^-0.65`, from 0.1 Earth masses to 13 Jupiter masses, cut into four bins by hand (`rogue-planet-review.md` rows 3 and 4). A
 system does not eject a fitted law; it ejects what it has, and only what the scatterer can lift out. This module gives the ejected masses as the two things that decide them.
 
-**What there is to eject.** The small bodies of a disc are a collisional cascade, and a steady-state cascade has a power-law size spectrum `dN/dD ~ D^-q` with `q = 3.5` for bodies held
+**What there is to eject.** The small bodies of a disk are a collisional cascade, and a steady-state cascade has a power-law size spectrum `dN/dD ~ D^-q` with `q = 3.5` for bodies held
 by their strength (`n(m) ~ m^-11/6` as quoted by [R0335] eq. 1, and `q = 3.5` by [R3421] abstract), steepening to `q` up to 4 when the bodies' velocities evolve with the cascade [R3421].
 For a body of density that does not depend on size, `M ~ D^3` and the number per logarithm of mass is
 
