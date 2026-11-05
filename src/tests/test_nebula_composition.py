@@ -83,7 +83,7 @@ def test_the_gas_gradient_is_its_own_and_zero_at_the_reference_radius():
     assert nc.gas_gradient_oh(reference) == pytest.approx(0.0)
     assert nc.gas_gradient_oh(reference + 5000.0) == pytest.approx(-5.0 * nc.GAS_GRADIENT_DEX_PER_KPC)
     assert nc.GAS_GRADIENT_DEX_PER_KPC != tuning.METALLICITY_DISC_FALL_DEX_PER_KPC
-    assert 0.03 <= nc.GAS_GRADIENT_DEX_PER_KPC <= 0.04          # Boss, 8:49 PM EST 2026-11-04
+    assert 0.03 <= nc.GAS_GRADIENT_DEX_PER_KPC <= 0.04          # Boss: 0.03 to 0.04
 
 
 def test_the_gas_of_a_place_is_the_same_every_time_and_scatters_around_its_gradient():

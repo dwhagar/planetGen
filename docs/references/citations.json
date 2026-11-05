@@ -25475,6 +25475,56 @@
       "kind": "paper",
       "label": "Willingale et al. 2003",
       "title": "The mass and energy budget of Cassiopeia A"
+    },
+    "R5098": {
+      "kind": "paper",
+      "label": "Rémy-Ruyer et al. 2014",
+      "title": "Gas-to-dust mass ratios in local galaxies over a 2 dex metallicity range"
+    },
+    "R5099": {
+      "kind": "paper",
+      "label": "Toribio San Cipriano et al. 2017",
+      "title": "Carbon and oxygen in H ii regions of the Magellanic Clouds: abundance discrepancy and chemical evolution"
+    },
+    "R5100": {
+      "kind": "paper",
+      "label": "Krumholz et al. 2009",
+      "title": "THE ATOMIC-TO-MOLECULAR TRANSITION IN GALAXIES. II: H I AND H2COLUMN DENSITIES"
+    },
+    "R5101": {
+      "kind": "paper",
+      "label": "Jenkins 2009",
+      "title": "A UNIFIED REPRESENTATION OF GAS-PHASE ELEMENT DEPLETIONS IN THE INTERSTELLAR MEDIUM"
+    },
+    "R5102": {
+      "kind": "paper",
+      "label": "Esteban et al. 2004",
+      "title": "A reappraisal of the chemical composition of the Orion nebula based on Very Large Telescope echelle spectrophotometry"
+    },
+    "R5103": {
+      "kind": "paper",
+      "label": "Arellano-Córdova et al. 2019",
+      "title": "The radial abundance gradients of O, Ne, S and Cl of the Milky Way"
+    },
+    "R5104": {
+      "kind": "paper",
+      "label": "Delgado Inglada et al. 2009",
+      "title": "THE IRON ABUNDANCE IN GALACTIC PLANETARY NEBULAE"
+    },
+    "R5105": {
+      "kind": "paper",
+      "label": "Zhu et al. 2019",
+      "title": "Dust Destruction in Nonradiative Shocks"
+    },
+    "R5106": {
+      "kind": "paper",
+      "label": "Micelotta et al. 2016",
+      "title": "Dust destruction by the reverse shock in the Cassiopeia A supernova remnant"
+    },
+    "R5107": {
+      "kind": "paper",
+      "label": "Kirchschlager et al. 2019",
+      "title": "Dust survival rates in clumps passing through the Cas A reverse shock – I. Results for a range of clump densities"
     }
   }
 }

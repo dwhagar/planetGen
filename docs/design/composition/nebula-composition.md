@@ -9,8 +9,8 @@
 `physics/nebula_composition.py` stores nothing. `makeup(nebula_class, gas_oh_dex, density_cm3, radius_ly, ejecta=None, wolf_rayet_subtype=None)` returns a `NebulaMakeup`:
 
 * **Composition** of gas and dust together (`x`, `y`, `z`, and the mass fraction of each element), from the thin-disc birth composition (`stellar_abundances.composition`) whose [O/H] is the place's, so a nebula and a star born in it share one chemistry.
-* **Dust**: the dust-to-gas ratio of Remy-Ruyer et al. 2014 (`dust_to_gas_law`), times the survival of the class and held to what the metals allow; the dust by element; the gas left over; the share of the dust in silicate, iron, carbon, PAH and ice.
-* **Phases**: the ionized, atomic and molecular shares of the hydrogen (a table by class; for the cold classes F, M, N, P and Q the molecular share of the neutral gas follows the column density and metallicity, Krumholz, McKee and Tumlinson 2009).
+* **Dust**: the dust-to-gas ratio of [R5098] (`dust_to_gas_law`), times the survival of the class and held to what the metals allow; the dust by element; the gas left over; the share of the dust in silicate, iron, carbon, PAH and ice.
+* **Phases**: the ionized, atomic and molecular shares of the hydrogen (a table by class; for the cold classes F, M, N, P and Q the molecular share of the neutral gas follows the column density and metallicity, [R5100]).
 * **Abundances** of the gas phase, 12 + log(X/H), of C, N, O, Ne, S, Ar and Fe (`nan` for a hydrogen-free ejecta).
 * `values()` is the dict the composition item stores.
 
@@ -22,8 +22,8 @@
 * The caps (`MAX_IN_DUST`) keep every element's dust under its total, so the dust of a metal-poor nebula is whatever its metals allow.
 * Class S uses the sourced shocked-remnant survivals (silicate 0.39, iron 0.60); H II regions and planetary nebulae keep 0.9 of silicate and iron grains and 0.5 of the carbon half. The fresh-ejecta dust of R, T, U and W is a placeholder 0.2 until GEN.1271 writes the ejecta rule of report section 11.
 * A Wolf-Rayet ring mixes the host's surface (`stellar_composition.wolf_rayet_surface`) into the swept-up gas at `WIND_SHARE_OF_RING` (0.3, argued).
-* The stand-ins are rows NC1 to NC13 of section 6.179 of the stand-in registry.
+* The stand-ins are rows NBC1 to NBC13 of section 6.179 of the stand-in registry.
 
 ## 3. Open
 
-Krumholz, McKee and Tumlinson's form is checked only in its chi coefficient and its half-molecular column (34 against the 27 of the paper's summary); Jenkins 2009 coefficients, the depletion of the Clouds, and the dust of old remnants stay to be read (GEN.1274). The progenitor of planetary nebulae and the ejecta of remnants enter through the `ejecta` argument (GEN.1270, GEN.1271); without it those classes read as interstellar gas and say so in `open_items`.
+Krumholz, McKee and Tumlinson's form is checked only in its chi coefficient and its half-molecular column (34 against the 27 of the paper's summary); [R5101] coefficients, the depletion of the Clouds, and the dust of old remnants stay to be read (GEN.1274). The progenitor of planetary nebulae and the ejecta of remnants enter through the `ejecta` argument (GEN.1270, GEN.1271); without it those classes read as interstellar gas and say so in `open_items`.
