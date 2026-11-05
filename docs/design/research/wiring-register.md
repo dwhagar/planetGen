@@ -25,7 +25,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
-| module | planetgen.galaxy.gravity_kernel | MAP.385 | the gravity map's field kernel (pull, potential, tidal tensor of point masses), read by the interaction-list grid job of MAP.385 |
+| module | planetgen.galaxy.gravity_tree | MAP.387 | the cell hierarchy and interaction lists of the gravity map's sector grid (and `fields_at`, which runs them with the kernel), read by the grid job and cache of MAP.387 |
+| module | planetgen.galaxy.gravity_kernel | MAP.387 | the gravity map's field kernel (pull, potential, tidal tensor of point masses), read by `gravity_tree.fields_at` (MAP.385) |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
