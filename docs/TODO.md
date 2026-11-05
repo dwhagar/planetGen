@@ -1253,6 +1253,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector-level cells have no stored cover, so this item needs that if it
   wants the colour at sector level. The route is additive, so
   API_VERSION stays 5.
+  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
+  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
+  Core 4, first (VIEW.21 and VIEW.28 are merged). Core 2 keeps MAP.142 and the
+  MAP.215, MAP.191, MAP.222 order.
   Prerequisites: none. Related: MAP.131, MAP.174.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
@@ -1273,6 +1277,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Note (2026-10-10, nebula density research, PR #1188): realistic cover
   is about 2% at the median, so the ramp bins become 0, under 0.5%, 0.5
   to 1.5%, 1.5 to 3% and 3% or more (or per-view percentiles).
+  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
+  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
+  Core 4, after MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
+  MAP.222 order.
   Prerequisite: MAP.173. Related: MAP.142.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
@@ -1301,6 +1309,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   click flies to the zoom at which it splits (no page change), with a
   keyboard path. Done: hover, click and keyboard paths with browser
   tests. Owner: Foundations lane 2.
+  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
+  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
+  Core 4, after MAP.178. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
+  MAP.222 order.
   Prerequisite: MAP.176. Related: MAP.150 (done, #1382).
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
@@ -1314,6 +1326,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rim on the dark theme, chosen with the contrast checker of MAP.175,
   and a matching light-theme colour. Done: the tokens and the 3:1 test
   pass for the new colours. Owner: Foundations lane 2.
+  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
+  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
+  Core 4, with MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
+  MAP.222 order.
   Prerequisites: none. Related: MAP.142.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
@@ -2056,93 +2072,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.371 Plane view with stems A: a tilt preset and a grid plane through the focus on the Galaxy Map (one click to the galaxy midplane instead)**
-  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): option 1.1, a switchable 'Plane view with stems' in the
-  Galaxy Map 3D camera, 'but instead of height let's list its spherical
-  coordinates for its context and an ordered triple'. Size M in three
-  small parts, all map code, lock-free, no migration. Do: a tilt preset
-  in the Galaxy Map 3D camera that reuses the top-down and isometric
-  views of MAP.97; a grid drawn on a plane through the focus (the camera
-  target), parallel to the galaxy midplane, centred on the selection
-  with ring labels; a one-click choice of the midplane z = 0 instead.
-  The grid shows only at region and sector scale (tens to a few hundred
-  pc): at the galaxy scale the disc is too thin for it to mean anything.
-  Done: browser test that the preset tilts, the grid follows the focus
-  and the toggle between the two planes works. Goal #3241. Filed by the
-  TODO thread.
-  Boss decision on the shape: a 60 degree arc wedge (5:48 PM EST on
-  2026-11-04) (2026-11-04 5:50 PM EST): Boss answered the wedge mock-ups
-  (reports/galaxy-projection-survey-2026-11-04/, section 10,
-  galaxy-mock-a to d): the existing 3D perspective mode that shows
-  everything (nebulae, black holes and the rest) stays untouched; the
-  plane view with stems is drawn for a 60 degree arc wedge of the
-  galaxy, a pie slice from the galactic center, laid flat-tilted inside
-  the 3D map, with the edge-on side strip as an option (MAP.375).
-  Everything outside the wedge is drawn as today. This replaces the
-  'region and sector scale only' limit for the wedge itself: the wedge
-  works at galaxy scale (heights are drawn about 12 times taller than
-  true in mock A because the disc is about 3 percent as thick as it is
-  wide, so the height-stretch control of MAP.373 is needed; stems still
-  show only at a scale where they are larger than 2 px). Open sub-part,
-  not a requirement (the TODO thread lists it; Boss has not ruled): a
-  draggable angle and width for the wedge. The other option from the
-  survey, a wedge pointing out from a chosen star (redshift-survey
-  style), is not chosen. Done adds: a browser test that the wedge is 60
-  degrees, that the rest of the 3D view is unchanged, and that the plane
-  and kpc rings follow the wedge.
-  Prerequisites: none.
-
-- [ ] **MAP.372 Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane**
-  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): option 1.1, a switchable 'Plane view with stems' in the
-  Galaxy Map 3D camera, 'but instead of height let's list its spherical
-  coordinates for its context and an ordered triple'. Size M in three
-  small parts, all map code, lock-free, no migration. Do: one line
-  segment per drawn object from the object to its shadow on the grid
-  plane, only for the labelled objects (the label budget of MAP.317),
-  the selection, the pointer neighbourhood and the brightest N inside a
-  radius of the focus, never for all stars; thin, low contrast,
-  strongest for the selection; fade by distance and skip a stem shorter
-  than 2 px; the line layer uses the relative-to-eye encoding of the
-  star points (the MAP.240 class); shown only at region and sector
-  scale. Done: browser test and a measured frame cost at the budget.
-  Goal #3241. Filed by the TODO thread. Related: MAP.317, MAP.240.
-  Stems live inside the wedge (Boss, 5:48 PM EST on 2026-11-04)
-  (2026-11-04 5:50 PM EST): With the 60 degree arc wedge chosen (note on
-  MAP.371), the stem layer draws only inside the wedge; the budget rules
-  are unchanged (labelled, selected, near-focus objects, never all
-  stars). With a star selected, the grid rings are drawn around it (1, 2
-  and 3 kpc in mock C).
-  Prerequisites: MAP.371.
-
-- [ ] **MAP.373 Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple**
-  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): option 1.1, a switchable 'Plane view with stems' in the
-  Galaxy Map 3D camera, 'but instead of height let's list its spherical
-  coordinates for its context and an ordered triple'. Size M in three
-  small parts, all map code, lock-free, no migration. Do: a Menu toggle
-  for the plane view and its stems; a height-stretch control (draw
-  heights 2 to 10 times larger, stated on the grid so it stays honest);
-  and on a stemmed or selected object a label (and the infobox line)
-  listing its spherical coordinates in the galaxy frame as an ordered
-  triple (radius, longitude, latitude) instead of a height number, with
-  units. Done: browser test of the toggle, the stretch and the triple;
-  the triple matches the stored position within rounding. Goal #3241.
-  Filed by the TODO thread.
-  Boss refinement (5:40 PM EST on 2026-11-04) (2026-11-04 5:40 PM EST):
-  The coordinates in the label follow the current context. In a sector
-  view the ordered triple (radius, longitude, latitude) is measured from
-  the sector center; in the galaxy view from the galactic center. When a
-  star is selected, the labels instead list the course and distance of
-  each star relative to the selected star (bearing and distance from it,
-  with units). Done adds: a browser test of each of the three contexts
-  (sector, galaxy, a star selected).
-  Prerequisites: MAP.372.
-
 - [ ] **MAP.374 Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection**
   Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
   lane (galaxy projection survey, report section 8). Do: a chart of
@@ -2153,72 +2082,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.375 A linked side strip for height on the Galaxy Map: an optional panel with height on one axis and distance across, linked to the map so a pick in one rings the star in the other**
-  Boss, 5:40 PM EST on 2026-11-04, answered question 2.1 of the galaxy
-  projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): yes, as an optional panel, built together with the minimap
-  work (MAP.75, the second locked engine view). Do: an edge-on side
-  strip showing the same stars with height on one axis and distance
-  across; picking a star in the strip rings it on the map and the
-  reverse; it reads exact height and disc thickness; on phones it is a
-  drawer. Share the second-view engine and selection link with MAP.75;
-  if MAP.75 is built first, reuse it. Done: browser test of the link in
-  both directions and the phone drawer. Lock-free, no migration. Goal
-  #3241. Filed by the TODO thread.
-  Boss decision (5:48 PM EST on 2026-11-04) (2026-11-04 5:50 PM EST):
-  The side strip is an option on top of the 60 degree arc wedge
-  (MAP.371): mock D (galaxy-mock-d-arc-plus-strip.png) shows the arc
-  plus the edge-on strip, heights about 2.2 times true in the strip
-  against about 12 times in the plane view. It shows the same stars as
-  the wedge.
-  Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
-
-- [ ] **MAP.378 The Galaxy Map no longer shows the fixture galaxy's charted sectors in the browser tests: 11 to 12 fixture-map tests are red alone on main (zoom stuck near 2.5e-8, no sector label, no Fixture Maw or Fixture Eden marker) (bug)**
-  Found by Core 3 and Core 2 while working TEST.575 (7:07 PM EST on
-  2026-11-04, as the lanes reported). Red alone, same on current main:
-  test_one_wheel_scroll_..., test_the_wheel_keeps_the_view_... (scroll
-  never reaches a sector, zoom stuck near 2.5e-8),
-  test_galaxy_map_names_a_generated_sector_in_its_window and
-  ..._heaviest_sectors_first (a sector label never appears),
-  test_galaxy_map_info_popup_stays_inside_the_map_window (4 sizes, the
-  'Fixture Maw' marker never appears),
-  test_galaxy_map_marks_gas_giants_... (marker set lacks 'Fixture
-  Eden'),
-  test_the_blocks_and_their_outlines_are_built_relative_to_origins (one
-  block layer, extentPc 15540 at origin 0, 75675 blocks),
-  test_galaxy_map_draws_block_lines_only_in_a_window (lines invisible at
-  rest), test_galaxy_map_turns_past_edge_on_and_under_the_plane (box
-  left -502, expected at least -1), and the menu,
-  window-fills-page-width and popup-grows-with-window tests. One cause
-  is likely: the map stopped drawing the fixture's charted sectors,
-  which could be a real regression in the continuous zoom (MAP.260 to
-  MAP.262 area) and not a test problem. Do: bisect to the commit that
-  turned the group red, decide whether the map or the fixture is wrong,
-  and fix it; if it is the fixture only, say what the real site does.
-  Done: the group green alone with the commit named in the note. This is
-  the remaining part of TEST.575's fixture-map share. Proposed owner:
-  Core 2, ahead of the PERF.233 measurement. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.575, MAP.376.
-
-- [ ] **MAP.379 Five camera and geometry fixture-map browser tests are red on main: block build extent, block lines at rest, edge-on bounds, one-wheel scroll, wheel view over the disc (bug)**
-  Core 3 (as the lane reported, 2026-11-04 8:05 PM EST), full
-  test_web_browser_fixture_maps.py run on main af65299a5, alone with no
-  leftover databases: 15 failed, 186 passed, 43 minutes. Ten of the 15
-  are MAP.378 (fixture sectors missing from the map). These five are a
-  separate group: blocks_built_relative_to_origins (extent 15540 pc,
-  origin [0,0,0], 75675 prisms), draws_block_lines_only_in_a_window
-  (lines invisible at rest), turns_past_edge_on_and_under_the_plane
-  (bounds -503 to 1438),
-  one_wheel_scroll_runs_from_the_galaxy_to_a_sector and
-  wheel_keeps_the_view_over_the_disc. Find the commit that broke each
-  (bisect between the last green main and af65299a5), fix the code or,
-  where the test asserts a behavior a later item changed on purpose,
-  change the test and say why. Check first whether MAP.378's cause (no
-  charted sectors, so the camera never reaches a sector) also explains
-  these; if so, close this item with that fix. Done: the five pass on
-  main. Lock-free. Version 8.1. Owner: Core 2, with MAP.378.
-  Prerequisites: none. Related: MAP.378, TEST.580.
+- [ ] **MAP.380 The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug)**
+  Core 2 (as the lane reported, 8:13 PM EST on 2026-11-04):
+  test_the_wheel_comes_close_enough_to_tell_two_stars_under_a_tenth_of_a_parsec_apart
+  fails the same on main before the MAP.378 and MAP.379 fix (#4954): at
+  the end of the wheel the second star is only 15 px from the first.
+  Find the commit that moved it (bisect), then either let the wheel zoom
+  close enough or, if a later item changed the closest zoom on purpose,
+  change the test and say why. Done: the test passes on main. Lock-free.
+  Version 8.1. Owner: Core 2.
+  Prerequisites: none. Related: MAP.378, MAP.379.
 
 ## NAV: Navigation and courses
 
@@ -2688,6 +2561,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   edges, the cap and the on-route flag; the measured cost in the note.
   Proposed owner: Aux 7 (python) after GEN.1255. Goal #1679. Filed by
   the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Aux 7 (started while
+  TEST.562 waits).
   Prerequisites: none.
 
 - [ ] **NAV.66 Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels**
@@ -2711,6 +2586,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   output. Done: unit tests with fixed inputs. Proposed owner: Aux 7. The
   plain ribbon needs no branches; branches need part 1. Goal #1679.
   Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Aux 7 (started while
+  TEST.562 waits).
   Prerequisites: NAV.65.
 
 - [ ] **NAV.67 Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops**
@@ -2846,6 +2723,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   editing surface; the diagram is a better one than the 3D map, a later
   part). Goal #1679. Filed by the TODO thread.
   Prerequisites: NAV.6.
+
+- [ ] **NAV.73 Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug)**
+  Aux 7 (as the lane reported, 8:38 PM EST on 2026-11-04), found while
+  building NAV.65. db/corridor._systems_of and query._load_nav_endpoint
+  add a system's sector-local offset to its sector centre without
+  turning it by the sector's axes (frame.local_to_galaxy_pc,
+  sector_orientation). So a routed system sits up to a few light-years
+  from its stored galaxy_x_pc, galaxy_y_pc and galaxy_z_pc, the position
+  the Galaxy Map, the nearby search and the cell index use. Measured 2.7
+  to 4.5 ly on a sector at longitude about 58 degrees; near zero only
+  for sectors on the +X axis. It shifts the hop lengths and the courses
+  of every cross-sector route and the in-sector shift-back
+  (sector_offset). NAV.65 works around it by reading each stop and its
+  neighbours from the index columns, so its links are self-consistent,
+  and keeps the route's own hop lengths on the on-route edges. Do: make
+  route positions come from frame.local_to_galaxy_pc, and make the
+  shift-back use galaxy_to_local_pc; then the NAV.65 workaround can read
+  the same positions as the route. Done: a test on a sector at a
+  non-zero longitude where every routed system's position equals its
+  stored galaxy position to within rounding, and the hop lengths of a
+  cross-sector route equal the distances between the stored positions. A
+  route's length changes for Boss: routes now measure true distances.
+  Lock-free (no stored value changes; cached routes, if any, are
+  rebuilt). Version 8.1. Owner: Aux 7, after NAV.66. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: NAV.65, NAV.66.
 
 ## GEN: Generation and physics
 
@@ -14400,6 +14303,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the families report. Stored letters do not change until GEN.1207.
   Generation output changes (an epoch), so a lock item. Proposed owner:
   Core 4 after GEN.1250. Filed by the TODO thread.
+  Core 4 (as the lane reported) (8:20 PM EST on 2026-11-04): built, head
+  1848cb52b on claude/core4-gen1258, stacked on the GEN.1221 head
+  (claude/core4-gen1221 at 5561edac1) and merging with it in train 11.
+  No new column is needed: a body already stores the ammonia of its
+  water (surface_liquid_ammonia_wt and ice_nh3_mass_fraction, GEN.1215
+  and GEN.894), so class X reads it; nothing generated changes, so no
+  epoch and no migration, only a patch-level change note. Class X: ocean
+  cover 20 percent or more, ammonia at least 10 percent of the water
+  mass, 190 to 240 K, 0.05 to 2 g, no air; registry rows DM8 and DM9.
   Prerequisites: GEN.1221. Related: GEN.1221, GEN.1207, GEN.725.
 
 - [ ] **GEN.1259 A planetless stretch becomes a belt only if enough leftover rocky mass could survive there: check the belt rule of GEN.1068 and GEN.1156 against the physics and the observed belt rates (about two thirds of systems have a belt now, from 4 percent before train 7)**
@@ -14668,6 +14580,381 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration or a second one, golden and epoch). Proposed owner: Core 5.
   Filed by the TODO thread.
   Prerequisites: GEN.1265. Related: GEN.768.
+
+- [ ] **GEN.1267 A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it**
+  Boss (EST on 2026-11-04, 8:29 PM, as the coordinator relayed): he
+  thought the nebula change also covers the generation shape, not only
+  the drawing. It does not yet. MAP.365 (merged, #4844) draws each
+  nebula as an irregular wispy outline taken from the galaxy model's gas
+  and star-forming density, computed at view time (his five answers:
+  shapes from the real density, never a random blob per object ID; wispy
+  uneven edges; subtle tint; coarse far and finer near; overlaps add,
+  capped). The stored shape of a generated nebula is still the GEN.75
+  shape: 4 to 8 metaballs in nebula_shape_balls plus the ellipsoid,
+  warp, noise and isovalue columns (galaxy/nebula_shape.py), a random
+  draw per object. So the outline on the map and the volume the
+  generator uses disagree: inside_nebula_id, the bounds radius_ly, the
+  stars placed inside by GEN.241 and GEN.320, the planet conditions of
+  GEN.93 and the sector nodes all use the old metaball volume. Do: (1)
+  design note first (Core 2 owns the density helper from MAP.365 part a,
+  #4833): whether the stored shape is replaced by the model-density
+  contour at a stated resolution, so nothing per-nebula is stored beyond
+  what the model holds, or a stored outline per node is needed (then it
+  is a migration); (2) make the bounds, the containment test, the
+  placement of hosted stars and the map outline read the same contour;
+  (3) delete the metaball columns and code once nothing reads them (no
+  shim); (4) the generation census (nebula counts, stars inside, planet
+  conditions) stays within its bands, and GEN.725 rows record any
+  stand-in with tier and tweak level. Done: one shape per nebula that
+  the map, the containment test and the placement all share, a test that
+  a star placed inside a nebula lies inside the drawn outline, and a
+  seeded galaxy keeps its nebula count and hosted star counts within the
+  census bands. Lock item (it changes what a generated galaxy contains:
+  an epoch with --affects fill, and a migration if an outline is
+  stored); the earliest train is 12, after the design note and after
+  train 11 is formed. Version 8.1. Owner: Core 2 for the design note,
+  then the lane that takes the lock build (Core 3 holds GEN.1261 for
+  train 12; decide after the note). Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.365, MAP.142, GEN.75, GEN.241,
+  GEN.295, GEN.93.
+
+- [ ] **GEN.1268 Nebulae carry a real composition: gas and dust fractions by kind, metals from the place and age, ejecta from the progenitor**
+  Boss (EST on 2026-11-04, 8:30 PM, as the coordinator relayed): do all
+  of our nebulae have compositions? Checked on main. No. Every stored
+  nebula (nebulae table) has a text composition sentence copied from its
+  family table (generation/phenomena/nebula.py,
+  family_data["composition"]) and a dominant_species word; a supernova
+  remnant (supernova_remnants) has a dominant_species word and no
+  composition at all; a cloud of the nebula_field (the 163,000 clouds of
+  the field) stores only its class letter and size, so its composition
+  is its class's sentence. None has numbers: no hydrogen, helium and
+  metal mass fractions, no split of the gas into neutral, ionized and
+  molecular parts, no dust-to-gas ratio or grain mix, no abundance of
+  carbon, oxygen, nitrogen, sulfur or iron. The composition model
+  (docs/design/composition/composition-model.md, GEN.433 to GEN.440)
+  covers stars, stellar remnants and their layers, planets, moons, small
+  bodies and atmospheres, so a planetary nebula's central star has a
+  composition and the nebula around it has none. The Magellanic Clouds
+  have no nebulae at all yet (GEN.367) and need a lower-metal gas when
+  they get them. Rogue planets are not nebulae; their composition comes
+  from a notional formation host through the body chain (GEN.557). Do:
+  (1) a research note first: the mass fractions and abundance patterns
+  observed for each kind (H II regions, dark and molecular clouds,
+  reflection nebulae, planetary nebulae, supernova remnants by
+  progenitor type, superbubbles), with the dust-to-gas ratio and its
+  change with metallicity; (2) derive the composition at read time from
+  what is already stored (class, the position's [Fe/H] and gas density
+  from the galaxy model, the host star or progenitor and its age), so no
+  new stored column unless a number cannot be derived (then it is
+  registered in the wiring register and column_units.py); (3) remnants
+  and planetary nebulae take their ejecta from the progenitor's yields
+  (the stellar composition relations GEN.439); (4) the nebula page and
+  the describe sheet list the fractions with their units, and the
+  Properties sheet marks which are derived; (5) tests: fractions sum to
+  one, a Magellanic cell is more metal-poor than the solar-circle one,
+  and a remnant's ejecta match the progenitor's yield table. Stand-ins
+  go in GEN.725 with tier and tweak level. Lock-free if everything is
+  derived at read time; a stored column would make it a lock item and
+  ride a train. Version 8.1 (the composition headline). Owner: Sources 1
+  for the research note, then the build lane that takes the composition
+  chain. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.367, GEN.446, GEN.440, GEN.439,
+  GEN.557, GEN.1267.
+  Sources 1 research done (as the lane reported) (8:45 PM EST on
+  2026-11-04): report reports/gen1268-nebula-composition-2026-11-05.md.
+  The build is split into GEN.1269 to GEN.1274 (parts a to f). This item
+  is the umbrella and is done when they are.
+  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
+  composition for all nebulae, all supernova remnants and the field
+  clouds, because he wants as much as possible searchable, and the
+  stored values include the progenitor mass for planetary nebulae and
+  remnants. This replaces the report's default of deriving at read time
+  (question 2 of the report). The model parts keep their work (they
+  compute the values from the place, the class and the progenitor) but
+  the values are written at generation and backfill by GEN.1276 (nebulae
+  and remnants) and GEN.1277 (field clouds), which are lock items.
+  Question 2 of the report is answered; the other seven defaults stand.
+  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
+  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
+  the composition is stored for all nebulae, remnants and the field
+  clouds (stars stay derived); the gas gets its OWN metallicity gradient
+  as a separate GEN.725 stand-in (this replaces the default of reusing
+  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
+  range of the two methods; dust survival is sourced in section 11 (H II
+  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
+  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
+  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
+  nebulae get helium and nitrogen enrichment; each field cloud gets its
+  own varied composition keyed on its cell; rogue planets are left out;
+  the pages show everything. The report was written in the coordinator's
+  research thread, not by Sources 1.
+
+- [ ] **GEN.1269 Nebula composition part a: one shared model for diffuse, emission, reflection, dark and field-cloud nebulae (mass fractions, gas phases, dust, metals from the place)**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: section 2 and 3 of the report: one function from the
+  stored class, the place's [Fe/H] and gas density and the host star to
+  H, He and Z mass fractions, the ionized, atomic and molecular split,
+  dust-to-gas and dust-to-metals, the grain mix, and 12+log abundances
+  of C, N, O, Ne, S, Ar and Fe, derived at read time with no stored
+  column. Done: fractions sum to one, a metal-poor place gives a
+  metal-poor nebula, every class of the table has a row, and the
+  stand-ins are in GEN.725 with tier and tweak level. Lock-free. Version
+  8.1. Owner: Sources 1.
+  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
+  composition for all nebulae, all supernova remnants and the field
+  clouds, because he wants as much as possible searchable, and the
+  stored values include the progenitor mass for planetary nebulae and
+  remnants. This replaces the report's default of deriving at read time
+  (question 2 of the report). The model parts keep their work (they
+  compute the values from the place, the class and the progenitor) but
+  the values are written at generation and backfill by GEN.1276 (nebulae
+  and remnants) and GEN.1277 (field clouds), which are lock items. The
+  lock-free statement above applies to this part's model code only.
+  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
+  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
+  the composition is stored for all nebulae, remnants and the field
+  clouds (stars stay derived); the gas gets its OWN metallicity gradient
+  as a separate GEN.725 stand-in (this replaces the default of reusing
+  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
+  range of the two methods; dust survival is sourced in section 11 (H II
+  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
+  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
+  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
+  nebulae get helium and nitrogen enrichment; each field cloud gets its
+  own varied composition keyed on its cell; rogue planets are left out;
+  the pages show everything. The report was written in the coordinator's
+  research thread, not by Sources 1.
+  Prerequisites: none. Related: GEN.1268.
+
+- [ ] **GEN.1271 Nebula composition part c: supernova remnants as swept-up gas plus ejecta, checked against Cassiopeia A**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: section 6: remnants of classes R to W take their ejecta
+  from the progenitor's yields (GEN.439 relations) and the swept-up
+  interstellar part from part a, shown as two columns. Done: tests on
+  the sum, on a core-collapse versus a Type Ia ejecta pattern, and the
+  Cas A check named in the report. Lock-free. Version 8.1. Owner:
+  Planets 1 after its queue.
+  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
+  composition for all nebulae, all supernova remnants and the field
+  clouds, because he wants as much as possible searchable, and the
+  stored values include the progenitor mass for planetary nebulae and
+  remnants. This replaces the report's default of deriving at read time
+  (question 2 of the report). The model parts keep their work (they
+  compute the values from the place, the class and the progenitor) but
+  the values are written at generation and backfill by GEN.1276 (nebulae
+  and remnants) and GEN.1277 (field clouds), which are lock items. The
+  lock-free statement above applies to this part's model code only.
+  Prerequisites: GEN.1269. Related: GEN.1269.
+
+- [ ] **GEN.1272 Nebula composition part d: the nebula page, the describe sheet and the Properties sheet show the composition with units and derived marks**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: section 8: the page lists the H, He and Z fractions, the
+  abundances, the gas phases, dust-to-gas and the grain mix, with units,
+  the remnant's ejecta and swept-up as two columns, and the Properties
+  sheet marks which values are derived. Done: a page test and a describe
+  test, plain-words and the wiring guard green. Lock-free. Version 8.1.
+  Owner: Core 5 after its stem view queue.
+  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
+  composition for all nebulae, all supernova remnants and the field
+  clouds, because he wants as much as possible searchable, and the
+  stored values include the progenitor mass for planetary nebulae and
+  remnants. This replaces the report's default of deriving at read time
+  (question 2 of the report). The model parts keep their work (they
+  compute the values from the place, the class and the progenitor) but
+  the values are written at generation and backfill by GEN.1276 (nebulae
+  and remnants) and GEN.1277 (field clouds), which are lock items. This
+  part now reads the stored columns, so it waits for GEN.1276 and
+  GEN.1277.
+  Prerequisites: GEN.1269. Related: GEN.1269, GEN.1276, GEN.1277.
+
+- [ ] **GEN.1273 Nebula composition part e: the Magellanic Clouds' gas metallicity as a place value**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: section 4: the Large and Small Magellanic Cloud gas
+  takes its own metallicity, drawn within the widest range of the two
+  methods in the cited paper (two sources in question: widest range),
+  hooked into part a, so the nebulae GEN.367 adds to the Clouds are
+  metal-poor. Done: a Cloud nebula is more metal-poor than one at the
+  solar circle, and the range is a GEN.725 row. Lock-free. Version 8.1.
+  Owner: with GEN.367's owner.
+  Prerequisites: GEN.1269, GEN.367. Related: GEN.1269, GEN.367.
+
+- [ ] **GEN.1274 Nebula composition part f: read the sources marked recalled and replace their stand-ins**
+  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
+  in /mnt/project-files/reports/): every kind of nebula can be derived
+  at read time with no new column, so the chain is lock-free unless Boss
+  answers question 2 with "store the progenitor mass". Defaults taken
+  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
+  gradient now as a registry stand-in; derive progenitors from the
+  object ID at read time; Magellanic gas drawn within the widest range
+  of the two methods; dust-destruction fractions as tweakable GEN.725
+  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
+  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
+  GEN.1268. Do: open the sources the report marks "Recalled, not opened"
+  at the end of its Sources section (the star-formation efficiency, the
+  Type Ia yield tables, the grain-model paper, the Peimbert Type I
+  limits, the Crab and Cassiopeia A dust masses, and the warm neutral
+  and ionized medium fractions), add them to the citation registry with
+  scripts/build_references.py add, and replace their GEN.725 rows with
+  verified values. Done: no nebula composition row is marked recalled.
+  Lock-free. Version 8.1. Owner: Sources 1.
+  Owner change (9:08 PM EST on 2026-11-04): Sources 2 takes this item
+  (Sources 1 builds GEN.1269). Include the planetary nebula stand-ins
+  PNE1 to PNE7 of GEN.1270 that the lane tiered as recalled or tuned
+  (second dredge-up helium, intershell mix, hot bottom burning share)
+  and the Type Ia and core-collapse tables of GEN.1271 marked recalled;
+  replace them with sourced values where a source can be read, and where
+  the on-line tables cannot be opened say so and keep the tier.
+  Prerequisites: none. Related: GEN.1269.
+
+- [ ] **GEN.1275 The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug)**
+  Bug 1 (as the lane reported, 8:50 PM EST on 2026-11-04), found while
+  working PERF.236. Measured on main at the train 9 head with the same
+  seed series: unforced systems have a habitable-class world in 0.59 to
+  0.68 (matching the 0.598 constant). With prevalence habitable_world
+  -50 the share is still 0.59 (150 systems). With the config flag
+  HABITABLE_WORLD set false (the -habitable_world option itself) it is
+  still 0.61 (80 systems). With +50 it is 0.71 (120 systems) against the
+  0.90 it should be. Cause: the flag bars only Earth-like worlds in the
+  ecosphere that meet the habitable request (the barred-world loop in
+  generation/planet.py, habitable_request.meets, zone e), while the
+  prevalence feature and its tests count every body of a class that can
+  carry life (count_habitable_class_worlds, since the life-class epochs
+  120 and 121), including cold worlds and moons. The two meanings
+  drifted apart, so asking for no habitable world leaves most such
+  worlds in and asking for more cannot reach its target. Question for
+  Boss (plain words, passed on by the TODO thread): should no habitable
+  world mean no Earth-like ecosphere world only, or no body of any
+  life-carrying class anywhere in the system? Option 1, recommended: it
+  means no body of any life-carrying class, so the option, the
+  prevalence count and the tests all mean the same thing. Option 2: keep
+  it to Earth-like ecosphere worlds and change the prevalence count and
+  tests to count only those. Do: once Boss answers, make the generator,
+  the count and the tests use one definition and say which; the forced
+  shares must then land on their targets (about 0 at -50 and 0.90 at
+  +50, within the test margins). Related finding: asteroid_belt +30
+  changes nothing (the belt share stays 0.72) because its forcing is
+  computed from the stale 0.039 base, which TEST.579 fixes. A generation
+  change, so check whether it needs an epoch with --affects fill.
+  Version 8.1. Owner: Bug 1, with PERF.236 and TEST.579. Filed by the
+  TODO thread.
+  BOSS ANSWER (8:54 PM EST on 2026-11-04): Boss answered option 1: no
+  habitable world means no body of any life-carrying class anywhere in
+  the system. The generator bars every such body, and the prevalence
+  count and tests keep their current meaning. Proceed.
+  Prerequisites: none. Related: PERF.236, TEST.579, GEN.725.
+
+- [ ] **GEN.1276 Nebula composition part g: store the composition of every nebula and supernova remnant (new columns, progenitor mass, epoch, migration, backfill, units and wiring register)**
+  Part of GEN.1268. Boss (8:49 PM EST on 2026-11-04, as the coordinator
+  relayed) decided the composition is STORED, not derived at read time,
+  so that as much as possible is searchable; the stored values include
+  the progenitor mass for planetary nebulae and supernova remnants. Do:
+  add the columns to the nebulae and supernova_remnants tables for the
+  values the model of GEN.1269 to GEN.1271 produces (H, He and Z mass
+  fractions, the ionized, atomic and molecular split, dust-to-gas and
+  dust-to-metals, the grain mix, the 12+log abundances of C, N, O, Ne,
+  S, Ar and Fe, for a remnant the ejecta and swept-up parts, and the
+  progenitor mass); write them at generation; backfill the existing rows
+  by a migration that runs the same model; register every new numeric
+  column in db/column_units.py and the wiring register (a wiring-guard
+  row for each reader: the nebula page, the describe sheet, the search
+  filters and the API); the old composition sentence and
+  dominant_species stay as the plain-words summary but are now generated
+  from the stored numbers, not copied from the family table; GEN.725
+  rows for every stand-in with tier and tweak level. Lock item: a
+  generator epoch with --affects fill and a migration; earliest train 12
+  (after the model parts and after train 11 forms). Done: every nebula
+  and remnant of a seeded galaxy has a full stored composition, the
+  fractions sum to one, a re-run of the backfill gives the same values,
+  and the columns are searchable through the object-list filters.
+  Version 8.1. Owner: the lane that takes the lock build (Core 3 holds
+  GEN.1261 for train 12; decide after the models land). Filed by the
+  TODO thread.
+  Prerequisites: GEN.1269, GEN.1271. Related: GEN.1268,
+  GEN.1267, GEN.725.
+  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
+  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
+  the composition is stored for all nebulae, remnants and the field
+  clouds (stars stay derived); the gas gets its OWN metallicity gradient
+  as a separate GEN.725 stand-in (this replaces the default of reusing
+  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
+  range of the two methods; dust survival is sourced in section 11 (H II
+  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
+  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
+  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
+  nebulae get helium and nitrogen enrichment; each field cloud gets its
+  own varied composition keyed on its cell; rogue planets are left out;
+  the pages show everything. The report was written in the coordinator's
+  research thread, not by Sources 1.
+
+- [ ] **GEN.1277 Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one**
+  Part of GEN.1268. Boss decided to store the composition of the field
+  clouds too (8:49 PM EST on 2026-11-04, as the coordinator relayed).
+  The nebula_field table holds about 163,000 clouds with only a class
+  letter and size, so this adds columns for the same values as the
+  nebula composition part g (mass fractions, gas phases, dust, the
+  abundances, and the progenitor mass where the cloud is a planetary
+  nebula or remnant) in a compact encoding chosen so the table stays
+  small (state the bytes per row in the design note), a keyed per-cloud
+  draw from the place's metallicity and the class, a backfill migration,
+  db/column_units.py and wiring register rows. Do the encoding choice
+  first as a short design note (stored float columns against packed
+  integers) and report the table growth in MB. Lock item: an epoch with
+  --affects fill and a migration; the same train as the nebula
+  composition part g or later. Done: every field cloud carries a stored
+  composition, the table growth is within the stated budget, and a
+  re-run of the backfill is deterministic. Version 8.1. Owner: the lane
+  that takes the nebula composition part g. Filed by the TODO thread.
+  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
+  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
+  the composition is stored for all nebulae, remnants and the field
+  clouds (stars stay derived); the gas gets its OWN metallicity gradient
+  as a separate GEN.725 stand-in (this replaces the default of reusing
+  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
+  range of the two methods; dust survival is sourced in section 11 (H II
+  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
+  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
+  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
+  nebulae get helium and nitrogen enrichment; each field cloud gets its
+  own varied composition keyed on its cell; rogue planets are left out;
+  the pages show everything. The report was written in the coordinator's
+  research thread, not by Sources 1.
+  Prerequisites: GEN.1276. Related: GEN.1268, GEN.1276.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15228,48 +15515,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests/test_emission_members.py (the pre-placed hot star test) also
   times out past 900 s on main. Take it with this item; it is a
   slow-test cost, not a spelling effect.
-  Prerequisites: none.
-
-- [ ] **PERF.233 One command builds the entire Galaxy Map tile cache from scratch, for the nightly maintenance run after the orbital update**
-  Boss, 4:57 PM EST on 2026-11-04: "I want the entire map tile cache
-  built with one command and then I'm going to put that command in the
-  maintenance script so that nightly, after the orbital update, all of
-  the caches are rebuilt from scratch. But I want it to build
-  everything. I want it to cache the entire galactic map as map tiles
-  built." What exists: `planetgen warm` (planetgen/cli/warm.py,
-  web/warmup.py) builds the opening views, the Galaxy Map's nodes to the
-  built levels and the deep nodes along the zoom run, then the lists and
-  object pages, but it stops at each phase's cache budget (cache.max_mb)
-  and warms only what a visit would reach; web/lib/tilecache.py stores
-  packed PGT1 tiles per generation, prunes least recently written files
-  above tile_cache.max_mb, and deletes only changed tiles when data
-  changes (PERF.129, PERF.134 admin page); the monthly orbit update is
-  examples/maintenance/planetgen-orbits@.service and .timer. Do: (1)
-  MEASURE FIRST and report before building: the number of tiles per zoom
-  level for the whole galaxy, bytes per tile stored, the seconds per
-  tile and the total disk and hours for a full build on a 4-core
-  machine, so the cost is known. (2) A single command, e.g. `planetgen
-  warm tiles --all` (or `planetgen tiles build --all`), that builds
-  EVERY tile of EVERY zoom level of the whole galaxy, with no cache
-  budget cap and no pruning while it runs, from scratch: it builds into
-  a new generation beside the live one and swaps it in when complete, so
-  visitors never meet an empty cache and a killed run leaves the old
-  cache serving; progress lines per level, resumable by level, parallel
-  workers set by a setting, exits non-zero on failure. (3) Lift
-  tile_cache.max_mb pruning for a full cache or make the full build
-  declare the size it needs and warn when the disk lacks it. (4) Add the
-  command to the maintenance example: a timer unit that runs after the
-  orbit update (After= and OnSuccess= ordering, or one script that runs
-  orbits and then the build), documented in examples/maintenance and
-  INSTALL.md; the other caches (lists, objects, search) are rebuilt
-  after it by the existing planetgen warm. Done: one command builds the
-  whole galaxy's tiles; a test on a small galaxy proves every level and
-  tile exists afterwards and the swap leaves the old generation serving
-  during the build; the measured size and time are in the report; the
-  maintenance example runs it nightly after the orbit update. Lock-free
-  (no generator output change). Related: PERF.129, PERF.134, PERF.141,
-  MAP.158, MAP.260. Owner Core 2 (map tiles) with Aux 3 for the timings
-  (proposed by the TODO thread). Filed by the TODO thread.
   Prerequisites: none.
 
 - [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
@@ -16358,35 +16603,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   DOC.103, proposed by the TODO thread. Related: GEN.1255, API.36
   (region-name search, open), GEN.1140. Filed by the TODO thread.
   Prerequisites: GEN.1254, GEN.1255.
-
-- [ ] **API.39 /api/galaxy/nodes lists marked systems by row id, so "View system" says "no system with ID 345604" (bug)**
-  Boss (EST on 2026-11-04, as the coordinator relayed): the marked
-  systems (gas giant and habitable points of interest, interests[].id)
-  come back from /api/galaxy/nodes as row ids, because api/idpaths.py
-  had no rule for nodes.*.interests[].id, so the View system link finds
-  no system. Fix: PR #4946 from the point-of-interest link thread (rule
-  added, node cache format 10, test). Its test has not run because that
-  session has no MySQL: a lane with MySQL runs it before the merge.
-  Lock-free, no migration; the cache format bump rebuilds galaxy-nodes
-  once on update. Done: interests[].id is an object ID, View system
-  opens the system, and the test passes. Version 8.1. Owner: the
-  point-of-interest link thread for the code; Bug 1 runs the MySQL test
-  and I merge.
-  Prerequisites: none. Related: MAP.378.
-
-- [ ] **API.40 Audit every link to a system or body page for row ids that should be object IDs**
-  Follow-up to API.39: the nodes.*.interests[].id gap shows the id rules
-  in api/idpaths.py can miss a field. Walk every link that opens a
-  system or body page and every response that feeds one: sector-scene
-  planet, moon and belt entries, search results, nearest lists, the
-  galaxy and system trees, and the points of interest lists. For each,
-  confirm the id it carries is an object ID and that idpaths.py has a
-  rule for it; add the missing rules in the same change. Done: a test
-  walks the API responses that feed a system or body link and fails on
-  any numeric row id there, and the audit lists each field checked.
-  Lock-free where no stored value changes. Version 8.1. Owner: Core 2
-  (map and links).
-  Prerequisites: API.39. Related: API.39.
 
 ## ADM: Admin tools
 
@@ -18566,6 +18782,10 @@ clears each one.
   the claim is stale. Done: the four green on main with a note of the
   cause of each. Proposed owner: Bug 1 after TEST.579. Filed by the TODO
   thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Tides 1 takes the
+  nebula group (census_nebula_wholesphere, emission_members,
+  hosted_nebula_rows); Bug 1 keeps the life-class tests (split from Bug
+  1).
   Prerequisites: none. Related: TEST.579, GEN.367.
 
 - [ ] **TEST.581 test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug)**
@@ -18578,6 +18798,8 @@ clears each one.
   asserts (a rebuild that cannot reopen the site fails loudly, and does
   not exit zero). Done: the test green alone and in the changed gate.
   Proposed owner: Bug 1, with TEST.580. Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Tides 1 (moved from
+  Bug 1).
   Prerequisites: none. Related: TEST.580.
 
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
@@ -18594,6 +18816,34 @@ clears each one.
   the registered thresholds, and the census green. Proposed owner: Bug 1
   (prevalence census owner), after GEN.1265. Filed by the TODO thread.
   Prerequisites: GEN.1265. Related: GEN.1265, TEST.430, GEN.725.
+
+- [ ] **TEST.583 Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug)**
+  Core 2 (as the lane reported, 8:39 PM EST on 2026-11-04), found while
+  merging PERF.233 (#4965): four tests in files it touched are red on
+  main already, not from that change. test_settings fails because
+  cli/warm.py reads PLANETGEN_WARM_TIME_LIMIT_SECONDS but the settings
+  model has no such setting (the warm-up limit moved to
+  WARM_STAGE_SECONDS with OPS.95); three tests in
+  test_readme_external_files fail on the readme's external-file list.
+  Find the commit for each, fix the code or the test and say which.
+  Done: the four pass on main. Lock-free. Version 8.1. Owner: Tides 1,
+  with TEST.580 and TEST.581. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.580, TEST.581, OPS.95.
+
+- [ ] **TEST.584 test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug)**
+  Core 5 (as the lane reported, 8:47 PM EST on 2026-11-04), merging
+  API.40 (#4972): this test fails on clean main and not from that
+  change; the delete of a sector that holds facilities returns 409 where
+  the test expects the delete to go through. Find the commit that
+  changed it, then fix the code or the test and say which (a sector with
+  facilities may rightly refuse deletion now; if so the test is stale).
+  Done: the test passes on main. Lock-free. Version 8.1. Owner: Tides 1,
+  with TEST.583. The american_spelling code-strings failures
+  (updateguard.py cancelled, sheet.py disc) are the DOC.103 sweep, which
+  is in train 10. Filed by the TODO thread.
+  Owner change (9:17 PM EST on 2026-11-04): Core 5 takes this item from
+  Tides 1 (Core 5 found the failure and has no other unlocked item).
+  Prerequisites: none. Related: TEST.583, TEST.580, TEST.581, DOC.103.
 
 ## USR: User accounts
 
@@ -20167,72 +20417,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   magnitude is a setting with default 7.5, lower on phones; missing
   stars are built when a system is charted, no visit job. Goal #4907.
   Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **VIEW.20 System sky S2: photometry for the sky on arrays: apparent magnitude, the galactic dust law and the cool-star rule**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S2 of S1 to S22 in section 7. Do: the lighter 8.2
-  version of the photometry of VIEW.11 and the dust of VIEW.8, on numpy
-  arrays: apparent_magnitude, the galactic extinction law along a line
-  of sight from the galaxy's density (sourced in the references
-  registry), and a colour rule for stars under 3,500 K (VIEW.9 left that
-  open). Reddening, desaturation of faint stars and nebula extinction
-  stay with VIEW.11 and VIEW.8 in 9.1. Done: array functions with tests
-  against hand-worked cases and published columns. No prerequisite
-  (VIEW.9 merged). Proposed owner: the photometry lane that built
-  VIEW.9. Related: VIEW.8, VIEW.9, VIEW.11. Lock-free, no migration.
-  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
-  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
-  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
-  where noted, build it so the 9.1 item can reuse it); the limiting
-  magnitude is a setting with default 7.5, lower on phones; missing
-  stars are built when a system is charted, no visit job. Goal #4907.
-  Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **VIEW.21 System sky S3: sky vectors on arrays with light-travel time: advance to the sky's time, retarded position, age at the retarded time, remnant visibility**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S3 of S1 to S22 in section 7. Do: wire
-  physics/light_travel.py (built, no production caller) into production
-  on arrays: advance each star to the sky's time, solve the retarded
-  position in two or three passes, apply the age-at-retarded-time rule
-  with a phase-boundary flag (a star too young to have been seen yet, or
-  one that died within the light time), and the remnant visibility rule
-  (an explosion not yet visible). Done: tests for a star at rest 1 ly
-  away, a receding one, a hypervelocity one, an analytic case and the
-  curvature bound; light_travel.py leaves the wiring-guard list. No
-  prerequisite. Lock-free, no migration. Boss decided at 5:29 PM EST on
-  2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
-  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
-  and this part overlaps its 9.1 twin where noted, build it so the 9.1
-  item can reuse it); the limiting magnitude is a setting with default
-  7.5, lower on phones; missing stars are built when a system is
-  charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **VIEW.22 System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S4 of S1 to S22 in section 7. Do: a query that returns,
-  as arrays, every star and phenomenon inside a sphere above a
-  luminosity floor from the charted stars, bright_stars,
-  phenomenon_scatter and cluster members, plus the cell levels it
-  reached. Done: tests against a small galaxy, and a measured query
-  time. No prerequisite. Lock-free, no migration. Boss decided at 5:29
-  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
-  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
-  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
-  the 9.1 item can reuse it); the limiting magnitude is a setting with
-  default 7.5, lower on phones; missing stars are built when a system is
-  charted, no visit job. Goal #4907. Filed by the TODO thread.
+  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Planets 1 (while its
+  queue waits).
   Prerequisites: none.
 
 - [ ] **VIEW.23 System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report**
@@ -20257,27 +20443,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   limiting magnitude is a setting with default 7.5, lower on phones;
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.20, VIEW.21, VIEW.22.
-
-- [ ] **VIEW.24 System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S6 of S1 to S22 in section 7. Do: the table of how deep
-  the sky must be built at each distance (mass or luminosity floor, per
-  the ledger S1 chose) for a limiting magnitude of 7.5 from the
-  visibility physics and the dust of S2; stand-ins registered in
-  GEN.725. Overlaps the first half of VIEW.7 (9.1). Done: table with
-  tests and registry rows. Related: VIEW.7. Lock-free, no migration.
-  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
-  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
-  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
-  where noted, build it so the 9.1 item can reuse it); the limiting
-  magnitude is a setting with default 7.5, lower on phones; missing
-  stars are built when a system is charted, no visit job. Goal #4907.
-  Filed by the TODO thread.
-  Prerequisites: VIEW.19, VIEW.20.
+  Prerequisites: VIEW.22.
 
 - [ ] **VIEW.25 System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20296,7 +20462,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   scatter and fill lane (Core 3). No migration. Boss decided at 5:29 PM
   EST on 2026-11-04 (1.2, 2.1, 3.3) as in the parent plan. Goal #4907.
   Filed by the TODO thread.
-  Prerequisites: VIEW.19, VIEW.24.
+  Prerequisites: VIEW.19.
 
 - [ ] **VIEW.26 System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI)**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20316,62 +20482,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   phones; missing stars are built when a system is charted, no visit
   job. Goal #4907. Filed by the TODO thread.
   Prerequisites: VIEW.25.
-
-- [ ] **VIEW.27 System sky S9: the glow band of the unresolved stars, with galactic dust only, ray-marched and cached per 50 pc cell**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S9 of S1 to S22 in section 7. Do: the glow of the stars
-  too faint to resolve, ray-marched over the density with the dust law
-  of S2 (galactic dust only; nebula dust stays with VIEW.13) and with
-  the resolved stars subtracted, cached per 50 pc cell, as a small glow
-  image per system. Overlaps VIEW.13 (9.1). Faint stars past the limit
-  are this glow with shader grain, not invented individual stars. Done:
-  tests of the cache key and of the subtraction. Related: VIEW.13.
-  Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
-  (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
-  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
-  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
-  it); the limiting magnitude is a setting with default 7.5, lower on
-  phones; missing stars are built when a system is charted, no visit
-  job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.20.
-
-- [ ] **VIEW.28 System sky S10: sprite data for nebulae and remnants: angular size, surface brightness, extinction**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S10 of S1 to S22 in section 7. Do: for each nebula and
-  supernova remnant in view, its angular size, surface brightness and
-  extinction, from S3's retarded geometry. Done: tests. Lock-free, no
-  migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
-  a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
-  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
-  9.1 twin where noted, build it so the 9.1 item can reuse it); the
-  limiting magnitude is a setting with default 7.5, lower on phones;
-  missing stars are built when a system is charted, no visit job. Goal
-  #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.21.
-
-- [ ] **VIEW.29 System sky S11: the packed sky list format: a Python writer, a JavaScript reader and one test that holds both**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S11 of S1 to S22 in section 7. Do: observer-relative
-  positions and velocities in double precision, packed to about 30 bytes
-  a star, with the writer in Python, the reader in JS and one test that
-  holds the two to each other (as tilepack does). Done: the shared test.
-  Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
-  (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
-  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
-  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
-  it); the limiting magnitude is a setting with default 7.5, lower on
-  phones; missing stars are built when a system is charted, no visit
-  job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.23.
 
 - [ ] **VIEW.30 System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20408,25 +20518,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 9.1 item can reuse it); the limiting magnitude is a setting with
   default 7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.27, VIEW.29.
-
-- [ ] **VIEW.32 System sky S14: skylight.js: magnitude to opacity, size and colour, the GLSL twins, with a node test**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S14 of S1 to S22 in section 7. Do: the browser
-  arithmetic for the sky: magnitude to opacity and size, colour, and the
-  matching GLSL, reusing starmagnitude.js and starlight.js. Done: a node
-  test. No prerequisite. Proposed owner: Core 2 (map lane). Lock-free,
-  no migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1,
-  3.3): a lighter 8.2 backdrop (stored stars and glow only; VIEW.7,
-  VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
-  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
-  it); the limiting magnitude is a setting with default 7.5, lower on
-  phones; missing stars are built when a system is charted, no visit
-  job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: none.
+  Prerequisites: VIEW.29.
 
 - [ ] **VIEW.33 System sky S15: skysphere.js: one points object centred on the camera, the vertex shader with the light-time passes driven by the orbit clock**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20444,7 +20536,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the 9.1 item can reuse it); the limiting magnitude is a setting with
   default 7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.29, VIEW.32.
+  Prerequisites: VIEW.29.
 
 - [ ] **VIEW.34 System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20461,7 +20553,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   magnitude is a setting with default 7.5, lower on phones; missing
   stars are built when a system is charted, no visit job. Goal #4907.
   Filed by the TODO thread.
-  Prerequisites: VIEW.31, VIEW.32.
+  Prerequisites: VIEW.31.
 
 - [ ] **VIEW.35 System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20496,7 +20588,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   setting with default 7.5, lower on phones; missing stars are built
   when a system is charted, no visit job. Goal #4907. Filed by the TODO
   thread.
-  Prerequisites: VIEW.28, VIEW.33.
+  Prerequisites: VIEW.33.
 
 - [ ] **VIEW.37 System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20568,6 +20660,35 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
   Prerequisites: VIEW.35.
+
+- [ ] **VIEW.41 System sky backfill is three orders slower than planned: a coarser block draw for the sparse bright bands, and a ring of faint stars near the observer**
+  Planets 1 (as the lane reported, 8:44 PM EST on 2026-11-04), VIEW.19
+  report reports/system-sky-backfill-cost-2026-11-05.md (script in
+  #4969). (1) The backfill is paid by cells visited, not by stars: the
+  full luminosity side of a 7.5 magnitude sky is about 8e9 cell visits
+  (5.7 h warm, 32 h cold on one worker) for 9,100 stars, and a 6.5 sky
+  is 2.1e9 visits (1.4 h warm, 8 h cold) for 3,300 stars; the plan's
+  "under a minute" was off by three orders. Cutting at 1,000 solar
+  luminosities gives about half the luminosity stars for 22 minutes warm
+  at 7.5. (2) The charted-star ledger and the backfill ledger never
+  overlap (measured in both orders on 8,162 cells, agreement to 0.1
+  percent), so use both. (3) The luminosity backfill refuses floors
+  under 50 solar luminosities, so tiers under that can only be mass
+  rings, which draw about 140 stars for each one shown. (4) No backfill
+  makes stars born under 1 solar mass: 6 percent of a 7.5 sky, nearly
+  all inside 50 pc. (5) The model sky at the solar density is 5,300
+  stars at 6.5 and 15,500 at 7.5 (recalled real: 9,000 and 25,000). Do:
+  a coarser block draw for the sparse bright bands (draw a block's
+  bright stars from the block's own stats instead of visiting every
+  cell), and a ring under 1 solar mass near the observer, so a 7.5 sky
+  is built in minutes, not hours. VIEW.24 and VIEW.25 plan around a
+  luminosity cut or the 6.5 default and a queued tier job until this
+  lands. Done: a 7.5 sky builds in under 30 minutes cold with its star
+  count within 10 percent of the exact backfill, measured by the VIEW.19
+  script. Lock-free if it is a new reader; a lock item if the draw
+  changes what is stored. Version 8.2. Owner: Planets 1, after VIEW.24.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: VIEW.19, VIEW.24, VIEW.25.
 
 ## POP: Population and politics
 

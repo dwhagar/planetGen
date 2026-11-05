@@ -76,7 +76,7 @@ const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VER
 const { regionLabels } = await import(`./regionlabels.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { starLight } = await import(`./starlight.js${VERSION_QUERY}`);
-const { NEBULA_LOOKS } = await import(`./nebulalook.js${VERSION_QUERY}`);
+const { NEBULA_LOOKS, NEBULA_RIMS } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const { drawnSignature, nodeRevision } = await import(`./nodeview.js${VERSION_QUERY}`);
 const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
@@ -120,6 +120,8 @@ const {
 } = await import(`./nebulamesh.js${VERSION_QUERY}`);
 const { createPicker, createRing, createHoverPreview, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
+const { createPlaneView } = await import(`./galaxyplane.js${VERSION_QUERY}`);
+const { createSideStrip } = await import(`./galaxystrip.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -160,6 +162,11 @@ export function mapControlHandlers(ctx) {
       button.setAttribute("aria-pressed", String(on));
       ctx.stageView.setCellGrid(on);
     },
+    "side-strip": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      if (ctx.setSideStrip) ctx.setSideStrip(on, button);
+    },
     "charted-only": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
@@ -171,6 +178,22 @@ export function mapControlHandlers(ctx) {
     "up": function () { ctx.stageView.up(); },
     "reset": function () { ctx.stageView.home(); },
     "reset-view": function () { ctx.stageView.resetView(); },
+    // MAP.371: the plane view (galaxyplane.js) and the choice of the plane the grid lies in.
+    "plane-view": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.setPlaneView(on);
+    },
+    "plane-stems": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.setPlaneStems(on);
+    },
+    "plane-midplane": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.setPlaneMidplane(on);
+    },
     "step": function (button) { ctx.stageView.stepToNeighbour(button.dataset.step); },
     "map-help": function (button) {
       var dialog = document.getElementById("galaxymap3d-help");
@@ -716,10 +739,15 @@ function starFacts(star) {
   };
 }
 
+// MAP.373: the plane view's line for a star's spherical position, set once the map is built (null while the plane view is off).
+var describePosition = null;
+
 function showStarInfo(star, nearby) {
   var spec = Object.assign(starFacts(star), {
     more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   });
+  var spherical = describePosition ? describePosition([star.x, star.y, star.z]) : null;
+  if (spherical) spec.more.push(["Position (radius, longitude, latitude)", spherical]);
   if (star.system_id != null && sceneData.systemUrl) {
     var systemPage = String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id));
     spec.view = { href: systemPage, label: "View system →" };
@@ -777,8 +805,17 @@ function cloudTexture(cloud) {
     var look = NEBULA_LOOKS[cloud.descriptor] || DEFAULT_NEBULA_LOOK;
     gradient.addColorStop(0, rgba(look[0], look[1]));
     gradient.addColorStop(0.35, rgba(look[0], look[1] * 0.8));
-    gradient.addColorStop(0.75, rgba(look[0], look[2]));
-    gradient.addColorStop(1, rgba(look[0], 0));
+    var rim = NEBULA_RIMS[cloud.descriptor];
+    if (rim) {
+      // MAP.181: a dust cloud's fill is too dim to see on the black map; a light rim near its edge outlines it.
+      gradient.addColorStop(0.7, rgba(look[0], look[2]));
+      gradient.addColorStop(0.8, rgba(rim[0], rim[1]));
+      gradient.addColorStop(0.92, rgba(rim[0], rim[1] * 0.4));
+      gradient.addColorStop(1, rgba(rim[0], 0));
+    } else {
+      gradient.addColorStop(0.75, rgba(look[0], look[2]));
+      gradient.addColorStop(1, rgba(look[0], 0));
+    }
   } else {
     gradient.addColorStop(0, rgba("#ffb07a", 0.12));
     gradient.addColorStop(0.6, rgba("#ffb07a", 0.2));
@@ -1240,8 +1277,13 @@ function initGalaxyMap3d(canvasEl, data) {
   var selectionRing = createRing(scene, camera, canvasEl, accentColor, { depthTest: false, renderOrder: 5 });
   var hoverRing = createRing(scene, camera, canvasEl, accentColor, { depthTest: false, renderOrder: 5, opacity: 0.45 });
 
+  var planeView = null;    // MAP.371: set once the map is built
+  // MAP.375: the side strip rings what the map has selected (set once the strip is built).
+  var sideStrip = null;
   function highlightPosition(x, y, z) {
     selectionRing.at(x, y, z, { px: HIGHLIGHT_PX * 2 });
+    if (planeView) planeView.select([x, y, z]);
+    if (sideStrip) sideStrip.setSelected({ x: x, y: y, z: z });
   }
 
   // Density shading's dim-to-accent-to-white ramp (galaxyblocks.js).
@@ -3991,7 +4033,7 @@ function initGalaxyMap3d(canvasEl, data) {
     labelHot: function (id) { if (galaxyLabels) galaxyLabels.setHot(id); },
     labelAct: function (label) { actOnLabel(label); },
     picker: picker,
-    clearSelection: function () { selectionRing.hide(); },
+    clearSelection: function () { selectionRing.hide(); if (planeView) planeView.select(null); if (sideStrip) sideStrip.setSelected(null); },
     restingHint: restingHint,
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
     // A sector page's map is locked to its sector (MAP.68): {shell, band,
@@ -5005,6 +5047,9 @@ function initGalaxyMap3d(canvasEl, data) {
     return found;
   };
 
+  // MAP.375: what the side strip draws, for the browser tests (null while it has never been opened).
+  canvasEl.galaxySideStrip = function () { return sideStrip ? sideStrip.snapshot() : null; };
+
   canvasEl.galaxyPickableStars = function () {
     var width = canvasEl.clientWidth;
     var height = canvasEl.clientHeight;
@@ -5076,6 +5121,60 @@ function initGalaxyMap3d(canvasEl, data) {
   // docstring) -- the browser's own default context menu is left alone,
   // rather than preventDefault()-ing it for nothing.
 
+  planeView = createPlaneView({
+    THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl, parent: viewport, accentColor: accentColor,
+    focus: function () { return [target.x, target.y, target.z]; },
+    // MAP.373: the context of the coordinate labels: the center of the sector opened, else the galactic center.
+    context: function () {
+      var center = stageView.sectorCenter();
+      return center ? { kind: "sector", origin: center } : { kind: "galaxy", origin: [0, 0, 0] };
+    },
+    span: function () { return 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2); },
+    // MAP.372: what the stems may start from: the names the label engine has placed (not a region's, a sector's or a nebula's, which are
+    // places, not points) and the stars the map draws, brightest last.
+    stemSources: function () {
+      var named = galaxyLabels ? galaxyLabels.shown().filter(function (label) {
+        return label.x !== undefined && label.kind !== "region" && label.kind !== "sector" && label.kind !== "nebula";
+      }) : [];
+      return { named: named, stars: hiddenCell ? [] : pickableStars() };
+    },
+  });
+  // MAP.375: the side strip for height (galaxystrip.js), an option in the Menu and a drawer on a phone. A star picked in
+  // the strip is selected on the map as a click on it would select it; the map's selection rings in the strip.
+  var stripHost = document.getElementById("galaxymap3d-strip");
+  var stripButton = null;
+  if (stripHost) {
+    var phoneQuery = typeof window.matchMedia === "function" ? window.matchMedia("(max-width: 700px), (pointer: coarse)") : null;
+    sideStrip = createSideStrip({
+      host: stripHost,
+      accent: accentColor,
+      version: function () { return starSetVersion; },
+      getStars: function () { return pickableStars(); },
+      getShape: function () { return galaxyShape; },
+      getFocus: function () { return { x: target.x, y: target.y, z: target.z }; },
+      isPhone: function () { return !!(phoneQuery && phoneQuery.matches); },
+      onPick: function (star) {
+        highlightPosition(star.x, star.y, star.z);
+        showStarInfo(star);
+      },
+    });
+    var stripClose = stripHost.querySelector("[data-strip-close]");
+    if (stripClose) {
+      stripClose.addEventListener("click", function () { setSideStrip(false); });
+    }
+  }
+  function setSideStrip(on, button) {
+    if (!sideStrip) return;
+    if (button) stripButton = button;
+    sideStrip.setOn(on);
+    if (stripButton) stripButton.setAttribute("aria-pressed", String(on));
+    if (on) {
+      var menu = document.getElementById("galaxymap3d-menu");
+      if (menu && phoneQuery && phoneQuery.matches) menu.open = false;   // the drawer would sit under the open menu
+    }
+  }
+
+  describePosition = function (at) { return planeView.describe(at); };
   var controlsEl = document.getElementById("galaxymap3d-controls");
   if (controlsEl) {
     // Several buttons: let them wrap rather than run off the side panel.
@@ -5085,7 +5184,32 @@ function initGalaxyMap3d(canvasEl, data) {
       setTerritories: setTerritories,
       territoriesWanted: function () { return territoryWanted; },
       setChartedOnly: setChartedOnly,
+      // MAP.371: the plane view: the camera takes the tilt preset and the wedge gets its grid; the second button puts the grid in
+      // the galaxy's midplane instead of through the focus.
+      setPlaneView: function (on) {
+        planeView.set(on);
+        stageView.planeTilt(on);
+        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
+          var control = document.querySelector(selector);
+          if (control) control.disabled = !on;
+        });
+      },
+      setPlaneMidplane: function (on) { planeView.setMidplane(on); },
+      setPlaneStems: function (on) { planeView.setStems(on); },
+      setSideStrip: setSideStrip,
     }));
+  }
+  // MAP.373: the stems' height stretch, 1 (true) to 10 times.
+  var stretchInput = document.getElementById("galaxymap3d-plane-stretch");
+  if (stretchInput) {
+    stretchInput.addEventListener("input", function () {
+      planeView.setStretch(stretchInput.value);
+      var stretch = planeView.stretch();
+      var out = document.getElementById("galaxymap3d-plane-stretch-out");
+      var text = stretch > 1 ? stretch + " times" : "true";
+      if (out) out.textContent = text;
+      stretchInput.setAttribute("aria-valuetext", stretch > 1 ? stretch + " times true height" : "true height");
+    });
   }
   var menuEl = document.getElementById("galaxymap3d-menu");
   if (menuEl) {
@@ -5297,6 +5421,7 @@ function initGalaxyMap3d(canvasEl, data) {
     updateClouds();
     selectionRing.update();
     hoverRing.update();
+    if (sideStrip) sideStrip.update();
     updateCourseMarkers();
     if (markerLayer) {
       // MAP.321: the symbols change level when the hand-off turns (or the open system's bodies change).
@@ -5317,6 +5442,7 @@ function initGalaxyMap3d(canvasEl, data) {
       markerLayer.update();
     }
     if (sectorFrame) sectorFrame.update();
+    planeView.update();
     if (galaxyLabels) galaxyLabels.update(now, false);
     renderFrame();
   })();

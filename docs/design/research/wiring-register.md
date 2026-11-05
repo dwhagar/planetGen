@@ -28,7 +28,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.body_positions | MAP.253 | where every body of a system is at a time, read by the scene and the maps once they read the parent chain |
-| module | planetgen.physics.light_travel | VIEW.1 | light-travel positions for the view from a planet |
+| module | planetgen.physics.light_travel | VIEW.23 | light-travel positions on arrays for the sky of a system (VIEW.21), read by the sky catalogue galaxy/sky.py and from it the sky route |
+| module | planetgen.physics.nebula_sprites | VIEW.31 | the angular size, extinction and surface brightness of nebulae and remnants, read by the sky route (VIEW.31) that builds the sprite list |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |
 | module | planetgen.generation.redraw_kinds | by design | the names and one-line meanings of the redraw counters (TEST.476); `draw.redrawn` is called by name from the generator and the census reads this registry, so no generation code imports it |
@@ -258,7 +259,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.156:PT1 | GEN.1219 | read by planet_type.type_of; the stored type waits for GEN.1207's epoch |
 | column | binary_epoch_unix | by design | the daily orbit update (`store.advance_*`) reads and writes the pair's clock; nothing outside the store needs it |
 | column | binary_next_update_due | by design | the daily orbit update (`store.advance_*`) schedules the pair's next step from it; nothing outside the store needs it |
-| column | cluster_id | GEN.359 | `stars.cluster_id`, the cluster a star belongs to; nothing writes it until the sector fill links cluster stars to their cluster |
 | column | dynamical_state | GEN.291 | `planets` and `moons`: every body is `bound`; the unbind and capture test of GEN.291 is what sets `unbound` |
 | column | formed_at | GEN.346 | `asteroid_fields.formed_at`, the epoch an event-made field formed; written when a collision makes a field |
 | column | host_node_id | GEN.332 | `planets.host_node_id`, the orbit node a planet orbits; NULL (its star) until circumbinary and S-type planets are placed at nodes |
@@ -273,7 +273,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.object_uid.outside_reservoir_member | GEN.1083 | the designation of a captured body from a reservoir that is not a belt; the irregular-moon wiring prints it |
 | function | planetgen.galaxy.object_uid.parse_captured | GEN.1083 | reads a captured body's designation and link back; the irregular-moon wiring and the designation cascade (GEN.1141) use it |
 | function | planetgen.galaxy.region_run.next_units | GEN.1128 | the barrier of the region run (stages 0 to 2 for every unit, then the top-up); the command wires it when the top-up stage exists |
-| function | planetgen.galaxy.spherical.cells_touching_sphere | GEN.105 | the sector search of the influence set (`influence.influence_set` calls it); it reaches the app with the acceleration kernel |
 | function | planetgen.galaxy.spherical.shell_cells | by design | every cell of one shell in order, the independent reference the grid tests count, sum volumes and compare neighbours against; the generator reaches cells by band ranges and never walks a whole shell |
 | function | planetgen.galaxy.star_formation.star_formation_rate_profile | by design | the present star-formation rate against radius that `test_star_formation_profile` compares with the observed profile; the generator reads `recent_factor`, never the profile |
 | function | planetgen.galaxy.structure_draw.hot_component_bound | by design | the most the thick disc can weigh over the thin disc's ([R0860: Eq. 1]), the bound `test_structure_draw` holds the drawn thick-to-thin ratio under; the draw does not read it |
@@ -363,3 +362,26 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
 | module | planetgen.physics.system_bodies | GEN.1241 | the system body ledger (rows, tree checks, mass sums, the barycentre that includes the belts, the belt wobble); lock-free pure part of GEN.1066, the view over the typed tables reads it when the wiring lands |
+| module | planetgen.physics.sky_photometry | VIEW.23 | the sky catalogue (galaxy/sky.py, sky_from) reads apparent_magnitude and galactic_extinction_av for each stored star; the glow band (VIEW.27) reads the dust law (dust_av_per_pc) and bolometric_correction |
+| row | 6.171:SKP1 | VIEW.23 | the sky catalogue reads the dust normalisation through galactic_extinction_av |
+| row | 6.171:SKP2 | VIEW.23 | the sky catalogue reads the cool-star correction through apparent_magnitude |
+| row | 6.171:SKP3 | VIEW.23 | the sky catalogue reads the hot-star correction through apparent_magnitude |
+| row | 6.171:SKP4 | VIEW.23 | the sky catalogue reads the dust disc's shape through galactic_extinction_av |
+| module | planetgen.galaxy.sky_band | VIEW.31 | the sky route (VIEW.31) reads the band of an observer's 50 pc cell through band_for, with the file store of the sky cache |
+| row | 6.174:SKB1 | VIEW.31 | the sky route reads the luminosity density through band_for |
+| row | 6.174:SKB2 | VIEW.31 | the sky route reads the faint-light table through band_for |
+| row | 6.174:SKB3 | VIEW.31 | the sky route reads the table's ends through band_for |
+| row | 6.174:SKB4 | VIEW.31 | the sky route reads the cell, the map size and the steps through band_for |
+| module | planetgen.galaxy.sky | VIEW.31 | the sky route (VIEW.31) calls sky_from with the sphere query of VIEW.22 as its source and packs the result (VIEW.29) |
+| row | 6.175:SKC1 | VIEW.31 | the sky route reads the stand-in velocity through sky_from |
+| module | planetgen.generation.sky_tiers | VIEW.25 | charting a system builds the sky tiers from this table: build() gives the luminosity bands and mass rings to draw and the radius of each, floor_table() gives the floor against distance for the report |
+| row | 6.176:SKT1 | VIEW.25 | the charting step takes the bands that fit the cell-visit budget |
+| module | planetgen.physics.planetary_nebula_ejecta | GEN.1276 | the composition item writes the progenitor mass and the ejecta values of each planetary nebula from `progenitor(...).values()` at generation and backfill |
+| row | 6.178:PNE2 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE3 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE4 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE5 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE6 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| row | 6.178:PNE7 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
+| module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
+| data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |

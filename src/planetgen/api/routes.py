@@ -973,14 +973,16 @@ def nav():
     object reference (`?from=planet:7&to=nebula:2`; a bare number is a
     system) -- see `db.query.nav_course` for the legs and
     `db.query.nav_between` for the availability rules, and docs/reference/api.md for
-    the response shape.
+    the response shape. `graph=1` adds `route.graph` (NAV.65): the links round the route, for the
+    schematic route map.
     """
     from_ref = _nav_ref_param(request.args, "from")
     to_ref = _nav_ref_param(request.args, "to")
 
     stay_minutes = _nav_stay_param(request.args)
+    with_graph = request.args.get("graph", "") in ("1", "true", "yes", "on")
     try:
-        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes)
+        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes, with_graph=with_graph)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     except NavUnavailable as exc:
@@ -1046,7 +1048,7 @@ def _route_for_json(route):
     """
     if route is None:
         return None
-    return {
+    shown = {
         "path": route["path"],
         "distance_ly": route["distance_ly"],
         "positions": {str(node_id): position for node_id, position in route["positions"].items()},
@@ -1058,6 +1060,9 @@ def _route_for_json(route):
         "warp_times": [leg._asdict() for leg in route["warp_times"]],
         "fold_times": [leg._asdict() for leg in route["fold_times"]],
     }
+    if "graph" in route:   # NAV.65: asked for with `graph=1`; a stop's key in `more` is a string like the keys of `positions`
+        shown["graph"] = {**route["graph"], "more": {str(node_id): count for node_id, count in route["graph"]["more"].items()}}
+    return shown
 
 
 @bp.route("/galaxy/sectors")
@@ -1497,6 +1502,19 @@ def uncharted_systems():
     })
 
 
+def _object_list_sector(raw_sector_id):
+    """The sector row an object list is limited to, from the `sector_id` query parameter (a sector ID), `None` when
+    absent; 0 (no sector has it) for a sector that is not there."""
+    if not raw_sector_id:
+        return None
+    try:
+        ids.parse(ids.SECTOR, raw_sector_id)
+    except ids.IdError:
+        raise ApiError(f"sector_id must be a sector ID, got {raw_sector_id!r}")
+    found = ids.row_id(get_db(), ids.SECTOR, raw_sector_id)
+    return 0 if found is None else found
+
+
 @bp.route("/object-lists/<kind>")
 def object_list(kind):
     """
@@ -1514,14 +1532,14 @@ def object_list(kind):
     is answered). Answers `items`
     (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
     `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
-    that is not an object ID, a `from` with another sort, or a `sector_id` that is not a number.
+    that is not an object ID, a `from` with another sort, or a `sector_id` that is not a sector ID.
     """
     sort, descending = _parse_sort(request.args, [*objectlist.SORTS, *objectlist.value_sort_keys(kind)])
     try:
         limit = int(request.args.get("limit") or objectlist.DEFAULT_LIMIT)
-        sector_id = int(request.args["sector_id"]) if request.args.get("sector_id") else None
     except ValueError:
-        raise ApiError("limit and sector_id must be whole numbers")
+        raise ApiError("limit must be a whole number")
+    sector_id = _object_list_sector(request.args.get("sector_id"))
     try:
         ranges = search_values.ranges_from_args(request.args).get(kind) if kind in objectlist.VALUE_KINDS else None
         page = objectlist.list_objects(

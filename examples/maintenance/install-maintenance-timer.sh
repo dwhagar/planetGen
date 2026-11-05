@@ -10,7 +10,7 @@
 # logging) instead of hand-added crontab lines and logfiles.
 #
 # Usage:
-#   sudo examples/maintenance/install-maintenance-timer.sh [--skip-update-timer] [database ...]
+#   sudo examples/maintenance/install-maintenance-timer.sh [--skip-update-timer] [--skip-tiles-timer] [database ...]
 #
 # Each remaining argument is a database name to enable a monthly orbit
 # update timer for (a deployment with more than one game database -- see
@@ -24,6 +24,10 @@
 # -- see planetgen-update.service's own header comment for what
 # unattended updates mean (whatever's on the tracked branch gets pulled
 # and deployed automatically, with no human review in between).
+#
+# --skip-tiles-timer: do not install planetgen-tiles@.service/.timer (PERF.233), the nightly rebuild of the whole Galaxy Map
+# tile cache at 05:00, after the orbit update (`planetgen.cli.tiles`; Linux only). It needs room on the cache's disk for the new
+# cache beside the live one.
 #
 # --with-smoke-timer: also install planetgen-smoke.service/.timer (PERF.183), the nightly New galaxy smoke run at 04:30
 # that fails when a step of a small New galaxy peaks above its memory budget. Linux (systemd) only; the account in
@@ -56,10 +60,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 install_update_timer=1
 install_smoke_timer=0
+install_tiles_timer=1
 args=()
 for arg in "$@"; do
     if [[ "$arg" == "--skip-update-timer" ]]; then
         install_update_timer=0
+    elif [[ "$arg" == "--skip-tiles-timer" ]]; then
+        install_tiles_timer=0
     elif [[ "$arg" == "--with-smoke-timer" ]]; then
         install_smoke_timer=1
     else
@@ -129,6 +136,12 @@ else
     echo "  --skip-update-timer given -- not installing planetgen-update.service/.timer"
 fi
 
+if [[ "$install_tiles_timer" -eq 1 ]]; then
+    install -m 644 "$SCRIPT_DIR/planetgen-tiles@.service" /etc/systemd/system/planetgen-tiles@.service
+    install -m 644 "$SCRIPT_DIR/planetgen-tiles@.timer" /etc/systemd/system/planetgen-tiles@.timer
+    echo "  installed planetgen-tiles@.service and planetgen-tiles@.timer"
+fi
+
 if [[ "$install_smoke_timer" -eq 1 ]]; then
     install -m 644 "$SCRIPT_DIR/planetgen-smoke.service" /etc/systemd/system/planetgen-smoke.service
     install -m 644 "$SCRIPT_DIR/planetgen-smoke.timer" /etc/systemd/system/planetgen-smoke.timer
@@ -159,6 +172,10 @@ fi
 for db in "${databases[@]}"; do
     systemctl enable --now "planetgen-orbits@${db}.timer"
     echo "  enabled planetgen-orbits@${db}.timer (fires 03:30 on the 1st of each month)"
+    if [[ "$install_tiles_timer" -eq 1 ]]; then
+        systemctl enable --now "planetgen-tiles@${db}.timer"
+        echo "  enabled planetgen-tiles@${db}.timer (rebuilds the whole map tile cache every night at 05:00, after the orbit update)"
+    fi
 done
 if [[ "$install_smoke_timer" -eq 1 ]]; then
     systemctl enable --now planetgen-smoke.timer
