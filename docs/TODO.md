@@ -18319,6 +18319,21 @@ clears each one.
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
+- [ ] **TEST.595 Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug)**
+  Core 2 (as the lane reported, about 7:00 AM EST on 2026-11-05) saw
+  these red on plain main, not from NAV.49a (#5092):
+  tests/test_web_browser_map_card.py, the black hole case at 1920x1080
+  and at 390x844, which waits for a button named Fixture Maw that never
+  appears, and
+  test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox,
+  which misses Fixture Eden. Do: first drop leftover planetgen_*
+  databases and run each alone on current main; find the commit that
+  turned them red; fix the tests at the cause (not by loosening waits
+  that hide a bug) and file any real map bug as its own item. Done: all
+  three pass in 3 runs. Lock-free. Version 8.1. Owner: Core 5, with
+  TEST.575 (same family). Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.575.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
