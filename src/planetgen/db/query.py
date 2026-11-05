@@ -76,6 +76,7 @@ from planetgen.galaxy.drill import (
 from planetgen.db.corridor import (
     BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
 )
+from planetgen.db import obstacles as course_obstacles
 from planetgen.db import route_neighbours
 from planetgen.db import stones as nav_stones
 from planetgen.galaxy.nav_graph import build_route_graph, route_graph, shortest_path
@@ -1510,6 +1511,20 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         half_width = min(half_width * 2.0, NAV_CORRIDOR_MAX_LY)
 
 
+def _adjusted_course(conn, start_ly, end_ly):
+    """
+    NAV.6: the course between two galaxy-frame positions (light-years) bent around the keep-out spheres between them
+    (`db.obstacles.adjusted_course`), with the lengths also in light-years and the warp and fold times for the adjusted
+    length (NAV.2's tables use `length / speed` unchanged).
+    """
+    course = course_obstacles.adjusted_course(conn, tuple(ly_to_pc(v) for v in start_ly), tuple(ly_to_pc(v) for v in end_ly))
+    for name in ("length", "straight_length", "extra"):
+        course[name + "_ly"] = pc_to_ly(course[name])
+    course["warp_times"] = [leg._asdict() for leg in warp_travel_times(course["length_ly"])]
+    course["fold_times"] = [leg._asdict() for leg in fold_travel_times(course["length_ly"])]
+    return course
+
+
 def _with_stones(conn, path, positions, distance_ly):
     """
     NAV.47: `path` with every hop through unknown space broken up by the stepping stones
@@ -1627,7 +1642,7 @@ def _route_graph(conn, path, positions, in_galaxy):
 
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                  from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0,
-                 chart=False, stones=True, with_graph=False):
+                 chart=False, stones=True, with_graph=False, adjusted=False):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -1681,6 +1696,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             entry names its `kind` and `name`. `nav_chart_plan` turns this off,
             since it asks which cells lie on the direct jump.
         with_graph (bool): NAV.65: the route also gets `graph`, the links round it (`_route_graph`).
+        adjusted (bool): NAV.6: between systems the result also gets `adjusted`, the direct course bent around the keep-out spheres
+            it crosses, and every hop of the route (and the route) gets its own (`_adjusted_course`); see course-avoidance.md section 7.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -1765,6 +1782,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     # from the galactic core. Bearing 000 points at that center.
     frame = FRAME_SECTOR if scope == "sector" else FRAME_GALACTIC
     direct = course_between(origin_position, destination_position, frame=frame)
+    adjusted_direct = None
+    if adjusted and origin["galaxy_position_ly"] is not None and destination["galaxy_position_ly"] is not None:
+        adjusted_direct = _adjusted_course(conn, origin["galaxy_position_ly"], destination["galaxy_position_ly"])
 
     route = None
     if from_key != to_key:
@@ -1793,6 +1813,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 hop.update(_hop_course(hop, places, galaxy_frame, positions))
                 hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
                 hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
+            if adjusted and galaxy_frame is not None:
+                for hop in hops:
+                    hop["adjusted"] = _adjusted_course(conn, galaxy_frame[hop["from"]], galaxy_frame[hop["to"]])
             bypass = None
             if galaxy_frame is not None:
                 cells = unknown_cells(conn, [galaxy_frame[node_id] for node_id in path])
@@ -1825,12 +1848,17 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes, stays=stays),
                 "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes, stays=stays),
             }
+            if adjusted and galaxy_frame is not None:
+                lengths = [hop["adjusted"]["length_ly"] for hop in hops]
+                route["adjusted_distance_ly"] = sum(lengths)
+                route["adjusted_warp_times"] = route_warp_times(lengths, stay_minutes, stays=stays)
+                route["adjusted_fold_times"] = route_fold_times(lengths, stay_minutes, stays=stays)
             if bypass is not None:
                 route["bypass"] = bypass
             if with_graph:
                 route["graph"] = _route_graph(conn, path, positions, galaxy_frame is not None)
 
-    return {
+    answer = {
         "scope": scope,
         "direct": direct,
         "warp_times": warp_travel_times(direct.distance_ly),
@@ -1839,6 +1867,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         "destination_position": destination_position,
         "route": route,
     }
+    if adjusted_direct is not None:
+        answer["adjusted"] = adjusted_direct
+    return answer
 
 
 NAV_DEFAULT_HELIOPAUSE_AU = 120.0
@@ -1951,7 +1982,7 @@ def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACEN
             "bypass": route.get("bypass") if route else None}
 
 
-def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0, with_graph=False):
+def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0, with_graph=False, adjusted=False):
     """
     NAV between any two objects (NAV.16): `nav_between`'s result plus
     `origin`/`destination` (`{ref, kind, name}`), `legs` and `note`.
@@ -1966,7 +1997,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     route). Each leg is `{kind, from, to, direct, warp_times, fold_times}`;
     `direct` is a `navigation.Course`.
 
-    `stay_minutes` (NAV.11) is the stay at each stop of the route. `with_graph` (NAV.65) adds `graph` to the route.
+    `stay_minutes` (NAV.11) is the stay at each stop of the route. `with_graph` (NAV.65) adds `graph` to the route. `adjusted` (NAV.6) adds the course bent around keep-out spheres (`nav_between`).
 
     Raises:
         ValueError: For a bad reference or a missing row.
@@ -1996,7 +2027,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     from_id, from_kind, from_type = anchor_args(origin)
     to_id, to_kind, to_type = anchor_args(destination)
     result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
-                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes, with_graph=with_graph)
+                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes, with_graph=with_graph, adjusted=adjusted)
 
     toward = [d - o for o, d in zip(result["origin_position"], result["destination_position"])]
     length = math.sqrt(sum(v * v for v in toward))
