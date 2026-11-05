@@ -28,7 +28,7 @@ from planetgen.galaxy.spherical import provisional_sector_designation, sector_po
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_HALO_RADIUS_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, BESIDE_ID, BESIDE_SYSTEMS, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
-    dense_region_query, dense_site, HOLE_FIELD, FAR_BUBBLE,
+    dense_region_query, dense_site, close_pair_centre, DENSE_PAIR_IDS, HOLE_FIELD, FAR_BUBBLE,
     far_site, halo_site, holes_site,
     map_site, nebula_volume_payload,
 )
@@ -395,7 +395,7 @@ def _open_menu(page):
 
 
 POI_LAYERS = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
-POI_DEFAULT_ON = ("marker-inhabited", "marker-habitable", "marker-gas-giant")
+POI_DEFAULT_ON = ("marker-inhabited", "marker-habitable", "marker-gas-giant", "marker-nebula")
 """The Menu's point-of-interest layers, and the ones that are on until the visitor says otherwise (MAP.303)."""
 
 
@@ -1618,19 +1618,31 @@ def test_sector_map_draws_its_nebula_from_its_own_points(page, map_site):
     volumes = page.evaluate(f"() => ({VOLUMES})().volumes().filter((volume) => volume.key === 'nebula:31')")
     assert volumes and len(volumes[0]["ix"]) > 0
     assert any("/galaxy/nebula/31/volume" in url for url in requests), requests
-    assert not any("/galaxy/nebula/31/shape" in url for url in requests), requests
-    assert page.locator("#galaxymap3d-canvas[data-sector-nebula-meshes='1']").count() == 0
+    assert not any("/shape" in url for url in requests), requests
 
 
-def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):
-    """MAP.103: a nebula big enough on screen is drawn from its shape mesh
-    (fetched from the site), not only as a sprite; far out it stays a sprite."""
+def test_galaxy_map_draws_a_nebula_and_asks_for_no_shape_mesh(page, map_site):
+    """MAP.103, MAP.142 part 4: a nebula big enough on screen is drawn (from its points or as a sprite), and the map asks the site for no
+    per-nebula shape mesh any more."""
     shape_requests = []
     page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     # A locator, not wait_for_function: the page's CSP forbids evaluating strings.
-    page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)
-    assert any("/galaxy/nebula/801/shape?lod=low" in url for url in shape_requests), shape_requests
+    page.locator("#galaxymap3d-canvas:not([data-nebula-clouds='0'])").wait_for(state="attached", timeout=15000)
+    page.wait_for_timeout(1000)
+    assert not shape_requests, shape_requests
+
+
+def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelled_or_meshed(page, map_site):
+    """MAP.178: a cloud of the seed no sector has stored is listed by the node with `field` set and drawn as a sprite on the 1 to 4 px ramp; it has
+    no stored shape to fetch, no page to open and no name to label."""
+    requests = []
+    page.on("request", lambda request: requests.append(request.url))
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=40000)
+    page.wait_for_timeout(1500)
+    assert not any("field-1.2.3.4" in url for url in requests), [url for url in requests if "field" in url]
+    assert not any("/shape" in url for url in requests)
 
 
 def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
@@ -1638,7 +1650,7 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
     (the fixture's generated sectors are all in the core, thousands of
     parsecs away), in a close view of the block as well as a far one."""
     _open_window(page, map_site, 3, 250, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
+    page.locator("#galaxymap3d-canvas:not([data-nebula-clouds='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
 
 
 VOLUMES = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaVolumes"
@@ -2247,9 +2259,9 @@ def test_galaxy_map_draws_no_block_lines_on_the_way_down(page, map_site):
     assert page.evaluate(LINES)["blockEdges"] == 0, "the pointer over the map lights no block"
 
 
-def open_dense_region(page, base, dist_pc=30.0):
-    """TEST.368: the Galaxy Map of `dense_site` looking at its dense region from `dist_pc` parsecs, settled."""
-    _open_galaxy(page, base, dense_region_query(dist_pc))
+def open_dense_region(page, base, dist_pc=30.0, at=None):
+    """TEST.368: the Galaxy Map of `dense_site` looking at its dense region (at the point `at`, if given) from `dist_pc` parsecs, settled."""
+    _open_galaxy(page, base, dense_region_query(dist_pc, at))
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFill().count > 0", timeout=20000)
     # The page's header may leave part of the map below the window: bring the whole map on screen.
     page.evaluate("() => document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
@@ -2363,22 +2375,30 @@ def test_a_selected_star_can_be_bookmarked(page, dense_site):
 
 
 def _close_pair_on_the_map(page):
-    """MAP.300: two fixture stars of the dense region under a tenth of a parsec apart that the map draws, in view, as stars of their own
-    at the start (the nearest pair of the bright ones): `(a, b)`."""
+    """MAP.300, MAP.380: the dense region's two bright stars 0.05 pc apart (`DENSE_PAIR_IDS`), in view and drawn as stars of their own at the
+    start: `(a, b)`. They lie side by side across the view, which looks straight down at the start (a camera that comes in on one star sees the
+    other at the angle the pair makes with the line of sight, however close it comes), and in a cell no generated sector holds, so the galaxy
+    draws them all the way in (a generated sector's cell hands its stars to the sector scene as the camera nears)."""
     by_id = {star["id"]: star for star in DENSE_STARS}
-    drawn = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars()")
-    stars = sorted((by_id[star["id"]] for star in drawn if star["visible"] and star["id"] in by_id and by_id[star["id"]]["luminosity_sol"] >= 1.0),
-                   key=lambda star: star["x"])
-    best = None
-    for index, first in enumerate(stars):
-        for second in stars[index + 1:index + 150]:
-            if second["x"] - first["x"] > 0.1:
-                break
-            gap = math.dist((first["x"], first["y"], first["z"]), (second["x"], second["y"], second["z"]))
-            if 0.02 < gap < 0.1 and (best is None or gap < best[0]):
-                best = (gap, first, second)
-    assert best, "the dense region has no two bright stars in view under a tenth of a parsec apart"
-    return best[1], best[2]
+    pair = tuple(by_id[star_id] for star_id in DENSE_PAIR_IDS)
+    for _attempt in range(20):    # the map lists its stars as they load
+        drawn = {star["id"]: star for star in page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyPickableStars()")}
+        if all(star_id in drawn and drawn[star_id]["visible"] for star_id in DENSE_PAIR_IDS):
+            return pair
+        page.wait_for_timeout(500)
+    raise AssertionError("the dense region's close pair is not drawn in view")
+
+
+def _map_spot(page, star):
+    """Where the map itself draws `star` (client pixels), or None when it does not pick it: the map lists its stars to a coarser precision
+    than the fixture's, so close in a pointer must be on the map's own place for the star, not the fixture's."""
+    return page.evaluate("""(id) => {
+        const canvas = document.querySelector('#galaxymap3d-canvas');
+        const found = canvas.galaxyPickableStars().find((star) => star.id === id && star.visible);
+        if (!found) return null;
+        const rect = canvas.getBoundingClientRect();
+        return { x: rect.left + found.x, y: rect.top + found.y };
+    }""", star["id"])
 
 
 def _spot(page, star):
@@ -2386,19 +2406,20 @@ def _spot(page, star):
     return page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", [star["x"], star["y"], star["z"]])
 
 
-def _under(page, star):
+def _under(page, star, spot_of=None):
     """What the map finds under the pointer placed on `star`'s spot: `galaxyNearestThing`'s `{kind, point}`."""
-    spot = _spot(page, star)
+    spot = (spot_of or _spot)(page, star)
     return page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)", [spot["x"], spot["y"]])
 
 
-def _wheel_in_on(page, star, steps, until=None, delta=-150):
-    """Scrolls in with the pointer on `star`, each step, until `until(camera)` holds or `steps` are used; returns the camera."""
+def _wheel_in_on(page, star, steps, until=None, delta=-150, spot_of=None):
+    """Scrolls in with the pointer on `star` (at `spot_of(page, star)`, the fixture's place for it by default), each step, until
+    `until(camera)` holds or `steps` are used; returns the camera."""
     for _ in range(steps):
         camera = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
         if until and until(camera):
             return camera
-        spot = _spot(page, star)
+        spot = (spot_of or _spot)(page, star) or _spot(page, star)
         thing = page.evaluate("([x, y]) => document.querySelector('#galaxymap3d-canvas').galaxyNearestThing(x, y)", [spot["x"], spot["y"]])
         page.mouse.move(spot["x"], spot["y"])
         page.mouse.wheel(0, delta)
@@ -2412,26 +2433,31 @@ def test_the_wheel_comes_close_enough_to_tell_two_stars_under_a_tenth_of_a_parse
     away, is a star of its own: each is the thing under the pointer on its own spot, tens of pixels apart, and the wheel goes on to the
     least distance the map allows (a thousandth of a parsec, `FIELD_FLOOR_PC`)."""
     page.set_viewport_size(VIEWPORT)
-    open_dense_region(page, dense_site, 3.0)
+    open_dense_region(page, dense_site, 3.0, at=close_pair_centre())
     first, second = _close_pair_on_the_map(page)
     gap = math.dist((first["x"], first["y"], first["z"]), (second["x"], second["y"], second["z"]))
-    assert gap < 0.1
+    assert 0.02 < gap < 0.1
 
     def apart(_camera):
-        one, other = _spot(page, first), _spot(page, second)
-        return math.hypot(one["x"] - other["x"], one["y"] - other["y"])
+        one, other = _map_spot(page, first), _map_spot(page, second)
+        return math.hypot(one["x"] - other["x"], one["y"] - other["y"]) if one and other else 0
+
+    def stand_clear(camera):
+        # Far enough apart on the page, and each the thing under the pointer on its own spot (a star the map draws; further out it is
+        # the focus plane's point).
+        return apart(camera) >= 40 and all(_map_spot(page, star) and _under(page, star, _map_spot)["kind"] == "star" for star in (first, second))
 
     # In on the first star, the pointer on it at each step, until the second stands clear of it.
-    camera = _wheel_in_on(page, first, 40, until=lambda camera: apart(camera) >= 40)
-    assert apart(camera) >= 40, (apart(camera), camera["dist"])
+    camera = _wheel_in_on(page, first, 40, until=stand_clear, spot_of=_map_spot)
+    assert stand_clear(camera), (apart(camera), camera["dist"])
     # The map lists its stars to a coarser precision than the fixture's: the point is the star's, to a hundredth of a parsec at worst.
     for star, other in ((first, second), (second, first)):
-        found = _under(page, star)
+        found = _under(page, star, _map_spot)
         near = math.dist(found["point"], (star["x"], star["y"], star["z"]))
         assert found["kind"] == "star" and near < 0.01 and near < math.dist(found["point"], (other["x"], other["y"], other["z"])), (found, star)
     # And on: the camera goes down to the least the map allows, and the first star is still the thing under the pointer on it.
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyZoomLimits()")["nearestPc"] <= 0.002
-    camera = _wheel_in_on(page, first, 60, until=lambda camera: camera["dist"] <= 0.0011)
+    camera = _wheel_in_on(page, first, 60, until=lambda camera: camera["dist"] <= 0.0011, spot_of=_map_spot)
     assert camera["dist"] <= 0.0011, camera["dist"]
     assert math.dist(camera["eye"], (first["x"], first["y"], first["z"])) < gap, (camera["eye"], first)
 
@@ -2899,6 +2925,23 @@ def _markers_until(page, done, seconds=20):
         page.wait_for_timeout(100)
 
 
+def test_scattered_nebulae_no_sector_has_built_are_marked_and_not_drawn_as_points_of_light(page, map_site):
+    """MAP.179: a planetary nebula or supernova remnant the galaxy has scattered and no sector has built is a mark (the Menu's Nebula marks,
+    on by default, `hide=marker-nebula` in the address), not a point of light among the stars; picking one shows its card."""
+    page.set_viewport_size(VIEWPORT)
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    found = _markers_until(page, lambda entries: sum(e["kind"] == "marker-nebula" for e in entries) >= 2)
+    names = sorted(e["name"] for e in found if e["kind"] == "marker-nebula")
+    assert names == ["Planetary nebula (uncharted)", "Supernova remnant (uncharted)"], found
+    _open_menu(page)
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-nebula"]')
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button.click()
+    assert "hide=marker-nebula" in page.url
+    gone = _markers_until(page, lambda entries: not any(e["kind"] == "marker-nebula" for e in entries))
+    assert not any(e["kind"] == "marker-nebula" for e in gone)
+
+
 def _hole_names(page):
     """The names of the black holes the marks stand for (a crowd's mark, MAP.340, for each of its members), sorted."""
     names = []
@@ -3197,6 +3240,49 @@ def test_at_most_six_hundred_nebula_regions_are_drawn_out_of_three_thousand_cand
     page.wait_for_timeout(500)
     seen = page.evaluate("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return [g.count(), g.drawn()]; }")
     assert seen[0] == 3000 and 0 < seen[1] <= 600, seen
+
+
+NEBULA_GROUP_SPOTS = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaGroupSpots()"
+
+
+def _open_nebula_groups(page, map_site):
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return g && g.drawn() > 0; }", timeout=20000)
+
+
+def test_hovering_a_group_of_nebulae_says_what_it_holds_and_a_click_flies_the_camera_to_frame_it(page, map_site):
+    """MAP.180: a group of nebulae (MAP.176) shows its count and family on hover, outlines it, and a click flies to the zoom that frames it
+    (no page opens: a group has none)."""
+    _open_nebula_groups(page, map_site)
+    _settle(page)
+    spots = [spot for spot in page.evaluate(NEBULA_GROUP_SPOTS) if spot["visible"] and spot["alpha"] > 0.05]
+    assert spots
+    spot = max(spots, key=lambda candidate: candidate["alpha"])
+    where = (spot["x"], spot["y"])
+    assert _on_the_canvas(page, where)
+    before = page.evaluate(CAMERA)["dist"]
+    page.mouse.move(where[0] + 1, where[1])
+    page.mouse.move(*where)
+    page.wait_for_timeout(300)
+    text = page.locator("#galaxymap3d-tooltip").inner_text()
+    assert " nebula" in text and "mostly" in text, text
+    page.mouse.click(*where)
+    _settle(page)
+    page.wait_for_function(f"() => document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist < {before} * 0.9", timeout=20000)
+
+
+def test_the_keyboard_reaches_every_large_group_of_nebulae_through_a_list_of_buttons(page, map_site):
+    """MAP.180: the groups of nebulae, the largest first, are buttons in a list for the keyboard and screen readers; activating one flies to it."""
+    _open_nebula_groups(page, map_site)
+    buttons = page.locator(".starmap-sr-nebulae button")
+    assert 1 <= buttons.count() <= 30
+    assert "mostly" in buttons.first.inner_text() and "fly to it" in buttons.first.inner_text()
+    before = page.evaluate(CAMERA)["dist"]
+    buttons.first.focus()
+    page.keyboard.press("Enter")
+    _settle(page)
+    page.wait_for_function(f"() => document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist < {before} * 0.9", timeout=20000)
 
 
 REGION_SPOTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyRegionSpots()"
@@ -4687,17 +4773,20 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     legend = page.locator("#galaxymap3d-legend")
     assert legend.is_hidden()
     page.locator("#galaxymap3d-menu > summary").click()
-    for mode in ("density", "age", "luminosity", "stars", "habitable"):
+    for mode in ("density", "age", "luminosity", "stars", "habitable", "cover"):
         page.select_option("#galaxymap3d-color-by", mode)
         _settle(page)
         assert f"color={mode}" in _query(page)
         assert legend.is_visible(), mode
         assert legend.locator(".galaxy-legend-low").inner_text() != ""
         assert legend.locator(".galaxy-legend-title").inner_text() != ""
+    # MAP.177: the Nebula cover legend is a fixed scale of the share inside a nebula.
+    assert legend.locator(".galaxy-legend-title").inner_text().startswith("Nebula cover")
+    assert legend.locator(".galaxy-legend-low").inner_text() == "under 0.5%"
     # Reload on the address: the select and the mode follow it.
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
-    assert page.input_value("#galaxymap3d-color-by") == "habitable"
+    assert page.input_value("#galaxymap3d-color-by") == "cover"
     legend.wait_for(state="visible", timeout=15000)  # drawn once the nodes are back; under load that is not instant (TEST.126)
     assert legend.is_visible()
     page.locator("#galaxymap3d-menu > summary").click()
@@ -5828,3 +5917,199 @@ def test_galaxy_map_says_in_plain_words_that_a_level_stalled_when_its_nodes_do_n
     page.unroute("**/galaxy/nodes*")
     page.wait_for_function("() => !document.querySelector('.map-level-progress')", timeout=40000)
 
+
+
+# --- NAV.69: the course diagram and the map's course select each other ----------------------------------------------------
+
+def _course_through_the_fixture_systems():
+    """A NAV course over four systems of Fixture Prime as `nav_page.galaxy_course` makes it: points, readout and the course diagram."""
+    from planetgen.web.maps.navdiagram import render_course_diagram
+
+    centre = _sector_center_pc(1, 0, 1)
+    chosen = [system for system in SYSTEMS if system[0] in (701, 702, 703, 704)]
+    points, path, hops, places, names, urls = [], [], [], [], {}, {}
+    for index, (system_id, name, x, y, z, _stars) in enumerate(chosen):
+        position = (centre[0] + x / 1000.0, centre[1] + y / 1000.0, centre[2] + z / 1000.0)
+        role = "origin" if index == 0 else "destination" if index == len(chosen) - 1 else "hop"
+        points.append({"name": name, "role": role, "url": f"/system/{system_id}", "x": position[0], "y": position[1], "z": position[2]})
+        path.append(system_id)
+        places.append({"node": system_id, "sector_id": None, "sector_position_ly": None})
+        names[system_id], urls[system_id] = name, f"/system/{system_id}"
+        if index:
+            before = points[index - 1]
+            hops.append({"from": path[index - 1], "to": system_id, "unknown_space": False,
+                         "distance_ly": 3.26 * math.dist((before["x"], before["y"], before["z"]), position),
+                         "bearing_deg": 40.0 * index, "mark_deg": 5.0})
+    route = {"path": path, "hops": hops, "stop_places": places}
+    return {"scope": "galaxy", "points": points, "sector": None, "navUrl": "/nav?from=system:701&to=system:704",
+            "direct": [points[0], points[-1]],
+            "readout": {"distance": "9 ly", "course": "045 mark 003", "frame": "Galactic", "route_distance": "12 ly", "times": [],
+                        "stops": [{"name": p["name"], "url": p["url"]} for p in points[1:-1]],
+                        "diagram": render_course_diagram(route, names, urls, linked=True)}}
+
+
+def _course_stop_marked_in_the_diagram(page):
+    """The indexes of the diagram's stops that are marked as the selected one (in the drawing on show)."""
+    return page.evaluate("""() => [...document.querySelectorAll(".nav-diagram-stop.is-selected")]
+        .filter((el) => el.getBoundingClientRect().width > 0).map((el) => Number(el.dataset.index))""")
+
+
+def test_the_course_diagram_and_the_maps_course_select_each_other(page, map_site, monkeypatch):
+    """NAV.69: a click on a stop of the course diagram selects that stop on the map and centres the map on it, and a click on a stop's ring
+    on the map marks the same stop in the diagram; a second click on the selected ring opens its page."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    stops = page.evaluate(f"() => {canvas}.galaxyCourseStops()")
+    assert [stop["name"] for stop in stops] == ["Dimmest Dwarf", "Middling Sun", "Orange Giant", "Blue Beacon"]
+    assert page.locator(".course-readout .nav-diagram").count() == 1 and page.evaluate(f"() => {canvas}.galaxyCourseSelected()") is None
+    here = page.url.split("&cam=")[0]       # the address follows the camera (`cam=`), so only the page is compared
+
+    # The diagram to the map: a plain click on a stop of the diagram stays on the page, selects it and flies the map to it.
+    page.locator(".nav-diagram-stop[data-index='2']:visible").first.click()
+    page.wait_for_function(f"() => {canvas}.galaxyCourseSelected() === 2")
+    assert page.url.split("&cam=")[0] == here
+    _settle(page)
+    camera = page.evaluate(f"() => {canvas}.galaxyCamera()")
+    target = stops[2]
+    assert math.dist(camera["target"], (target["x"], target["y"], target["z"])) < 0.05 * camera["dist"] + 0.01, (camera["target"], target)
+    assert _course_stop_marked_in_the_diagram(page) == [2]
+    assert page.locator(".nav-diagram-stop.is-selected[aria-current='true']").count() >= 1
+
+    # The map to the diagram: a click on another stop's ring marks that one, and only that one.
+    page.evaluate(f"() => {canvas}.scrollIntoView({{block: 'center'}})")      # the course readout above the map pushes the map down the page
+    # The course opens fitted (NAV.21), so centring on one stop leaves the others off the map: zoom out until the next stop shows.
+    box = page.evaluate(f"() => {{ const r = {canvas}.getBoundingClientRect(); return {{x: r.left + r.width / 2, y: r.top + r.height / 2}}; }}")
+    for _ in range(8):
+        ring = page.evaluate(f"(p) => {canvas}.galaxyScreenOf(...p)", [stops[1]["x"], stops[1]["y"], stops[1]["z"]])
+        if ring is not None and 0 < ring["x"] < VIEWPORT["width"] and 0 < ring["y"] < VIEWPORT["height"]:
+            break
+        page.mouse.move(box["x"], box["y"])
+        page.mouse.wheel(0, 300)
+        _settle(page)
+    assert ring is not None and 0 < ring["x"] < VIEWPORT["width"] and 0 < ring["y"] < VIEWPORT["height"]
+    page.mouse.click(ring["x"], ring["y"])
+    page.wait_for_function(f"() => {canvas}.galaxyCourseSelected() === 1")
+    assert _course_stop_marked_in_the_diagram(page) == [1]
+    assert page.url.split("&cam=")[0] == here
+
+    # A second click on the selected ring opens the stop's page.
+    ring = page.evaluate(f"(p) => {canvas}.galaxyScreenOf(...p)", [stops[1]["x"], stops[1]["y"], stops[1]["z"]])
+    page.mouse.click(ring["x"], ring["y"])
+    page.wait_for_url(re.compile(r"/system/702"))
+
+
+def test_the_galaxy_maps_course_draws_a_jump_through_unknown_space_red_and_glowing(page, map_site, monkeypatch):
+    """NAV.36: a hop through unknown space is drawn apart on the Galaxy Map's course, as a row of glow sprites along it, and the key says
+    what it is; a course with no such hop has neither."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    assert page.evaluate(f"() => {canvas}.galaxyCourseUnknown().hops") == 0
+    keys = f"{canvas}.__mapLayers.keys().map((k) => k.id)"
+    assert "key-course-unknown" not in page.evaluate(f"() => {keys}")
+
+    course["points"][2]["hopUnknown"] = True
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    assert not errors, errors
+    unknown = page.evaluate(f"() => {canvas}.galaxyCourseUnknown()")
+    assert unknown["hops"] == 1
+    assert all(count >= 2 for count in unknown["beads"]), unknown
+    assert all(0.0 < opacity <= 0.2 for opacity in unknown["opacity"]), unknown
+    assert "key-course-unknown" in page.evaluate(f"() => {keys}")
+
+
+def test_the_galaxy_maps_course_draws_the_course_bent_round_a_keep_out_sphere_in_amber(page, map_site, monkeypatch):
+    """NAV.28: a course that carries `adjusted` polylines draws them over the route, and the key says what the amber line is; a course with
+    none has no such line in the key."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    keys = f"{canvas}.__mapLayers.keys().map((k) => k.id)"
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    assert "key-course-bent" not in page.evaluate(f"() => {keys}")
+
+    a, b = course["points"][0], course["points"][1]
+    course["adjusted"] = [[{"x": a["x"], "y": a["y"], "z": a["z"]},
+                           {"x": (a["x"] + b["x"]) / 2, "y": (a["y"] + b["y"]) / 2 + 0.3, "z": a["z"]},
+                           {"x": b["x"], "y": b["y"], "z": b["z"]}]]
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    assert not errors, errors
+    assert "key-course-bent" in page.evaluate(f"() => {keys}")
+
+
+# --- NAV.21, NAV.23: the course opens fitted, and its forms are layers of the Menu -------------------------------
+
+def _course_on_screen(page):
+    """The page positions of the course's stops, and the canvas box."""
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    stops = page.evaluate(f"() => {canvas}.galaxyCourseStops()")
+    box = page.evaluate(f"() => {{ const r = {canvas}.getBoundingClientRect(); return {{x: r.left, y: r.top, w: r.width, h: r.height}}; }}")
+    spots = [_screen_of(page, (stop["x"], stop["y"], stop["z"])) for stop in stops]
+    return spots, box
+
+
+def test_a_course_opens_zoomed_in_as_far_as_it_can_with_all_of_it_in_view(page, map_site, monkeypatch):
+    """NAV.21: every stop of the course is on the map when it opens, and the course fills the window: its picture spans most of the map
+    along one side. A resized window refits it."""
+    from planetgen.web import nav_page
+
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: _course_through_the_fixture_systems())
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    spots, box = _course_on_screen(page)
+    assert all(spots), spots
+    xs, ys = [spot[0] for spot in spots], [spot[1] for spot in spots]
+    assert min(xs) >= box["x"] and max(xs) <= box["x"] + box["w"] and min(ys) >= box["y"] and max(ys) <= box["y"] + box["h"], (spots, box)
+    fill = max((max(xs) - min(xs)) / box["w"], (max(ys) - min(ys)) / box["h"])
+    assert fill > 0.55, f"the course should fill the window, it fills {fill:.2f} of it"
+
+    page.set_viewport_size({"width": 700, "height": 900})
+    page.wait_for_timeout(400)
+    spots, box = _course_on_screen(page)
+    assert all(spots), spots
+    xs, ys = [spot[0] for spot in spots], [spot[1] for spot in spots]
+    assert min(xs) >= box["x"] and max(xs) <= box["x"] + box["w"] and min(ys) >= box["y"] and max(ys) <= box["y"] + box["h"], (spots, box)
+    assert max((max(xs) - min(xs)) / box["w"], (max(ys) - min(ys)) / box["h"]) > 0.55
+
+
+def test_the_forms_of_a_course_are_layers_of_the_menu(page, map_site, monkeypatch):
+    """NAV.23: the route, the direct line and the adjusted course are each shown or hidden from the Menu, and the key follows."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    a, b = course["points"][0], course["points"][1]
+    course["adjusted"] = [[{"x": a["x"], "y": a["y"], "z": a["z"]},
+                           {"x": (a["x"] + b["x"]) / 2, "y": (a["y"] + b["y"]) / 2 + 0.3, "z": a["z"]},
+                           {"x": b["x"], "y": b["y"], "z": b["z"]}]]
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()") == {"route": True, "direct": True, "adjusted": True}
+    drawn = f"{canvas}.__mapLayers.keys().filter((k) => k.drawn).map((k) => k.id)"
+    assert {"key-course", "key-direct", "key-course-bent"} <= set(page.evaluate(f"() => {drawn}"))
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('course-direct', false)")
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()") == {"route": True, "direct": False, "adjusted": True}
+    assert "key-direct" not in page.evaluate(f"() => {drawn}")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('course-adjusted', false)")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('course-route', false)")
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()") == {"route": False, "direct": False, "adjusted": False}
+    assert not {"key-course", "key-direct", "key-course-bent"} & set(page.evaluate(f"() => {drawn}"))
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('course-route', true)")
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()")["route"] is True

@@ -3403,6 +3403,24 @@ COMET_CEILING_ATTEMPTS = 25
 # ly) so the two remain visually/narratively distinct phenomena.
 ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
 
+# NAV.54: the keep-out radii a course keeps from an object that is not a Hill sphere (docs/design/orbits/course-avoidance.md section 2).
+KEEP_OUT_STAR_FLUX_W_M2 = 50000.0
+"""float: The starlight a ship may be asked to stand, W/m^2 (50 kW/m^2): a star inside its own system keeps out `sqrt(L / (4 pi F))`, 0.17 AU for the Sun and 165 AU for an O3 star (Boss, 2026-10-10: defaults approved)."""
+KEEP_OUT_STAR_FLOOR_RADII = 10.0
+"""float: A star keeps out at least this many of its own radii whatever its light (the photosphere and corona floor; 0.047 AU for the Sun)."""
+KEEP_OUT_QUASAR_FLUX_W_M2 = 10000.0
+"""float: The light a ship may be asked to stand near a quasar's nucleus, W/m^2 (10 kW/m^2): its keep-out is the larger of this radius and the sphere of influence."""
+
+# NAV.26: the course planner (docs/design/orbits/course-avoidance.md section 5).
+COURSE_BELOW_RESOLUTION = 0.002
+"""float: A keep-out sphere smaller than this fraction of the straight course is still stepped around, with two tangent points, but it is listed apart and not drawn (section 2.1)."""
+COURSE_MAX_WRAPS = 300
+"""int: A course that needs more wraps than this is given as the straight line with the warning `wrap_limit`."""
+COURSE_ARC_SAMPLE_RAD = 0.05
+"""float: The arc of a wrap is checked against the other spheres every this many radians."""
+COURSE_POLYLINE_SAGITTA = 0.01
+"""float: The drawn arc of a wrap is cut so that no chord sags from the sphere by more than this fraction of its radius (about 12 segments for a half circle)."""
+
 # Asteroid field classes (GEN.14, Boss 2026-09-30: "a digit and part
 # of the class"). The letter comes from composition and density, following
 # asteroid taxonomy (C carbonaceous, S stony, M metallic, D/P icy primitive,
@@ -4057,6 +4075,16 @@ NAV_CORRIDOR_MAX_SYSTEMS = 300000
 NAV_BYPASS_MAX_EDGES = 60000
 """int: Most distinct hops NAV.48's bypass test (a route search that may not cross an
 uncharted sector) looks at before it gives up and says the answer is unknown."""
+
+NAV_GRAPH_NEIGHBOURS = 6
+"""int: The most systems off the route listed for one stop in the graph round a route (NAV.65, `route.graph`); the rest
+are counted in the graph's `more`. The relative neighbourhood graph linked 6 systems at most to any system in the
+research's synthetic galaxies, so this seldom cuts."""
+
+NAV_GRAPH_CANDIDATES = 24
+"""int: How many of the nearest systems the graph round a route weighs for each stop (NAV.65). A link of the relative
+neighbourhood graph is exact when no closer system is left out, so a link to a system beyond the 24th nearest of a stop
+is not looked for."""
 
 NAV_CHART_CONFIRM_SECTORS = 5000
 """int: Charting the sectors of a course (NAV.48) asks for an explicit confirmation past this many sectors

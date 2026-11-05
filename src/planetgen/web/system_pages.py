@@ -19,14 +19,15 @@ every link is a plain GET link (`page_url`).
 
 import math
 
-from flask import abort, jsonify, redirect, request
+from flask import Response, abort, jsonify, redirect, request
 from markupsafe import Markup
 from planetgen.describe.html import blocks_html
 from planetgen.describe.model import sections, split_by_body
 from planetgen.describe.stored_phenomena import stored_phenomenon_document
 from planetgen.physics.quantity import Quantity
 from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
-from planetgen.web.lib import apiclient, facility_display
+from planetgen.util import log
+from planetgen.web.lib import apiclient, facility_display, skycache, skypack
 from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.fmt import (
     distance_km_html, distance_ly_html, format_members, format_number, linkify_nearest,
@@ -266,6 +267,65 @@ def system_scene(system_id):
 system_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+def _json_error(message, status):
+    response = jsonify({"error": message})
+    response.status_code = status
+    return response
+
+
+@bp.route("/system/<uid:system_id>/sky")
+def system_sky(system_id):
+    """
+    The sky the system sees (VIEW.31): `?limit=` is the limiting magnitude (2 to 9, default 7.5). The packed star list (`application/vnd.planetgen.sky`,
+    `static/skypack.js` reads it; `docs/design/interface/system-sky-wire-format.md`) whose `meta` holds the nebula and remnant sprites and the report of how
+    much of the sky is built. Kept on disk by `skycache` while the galaxy's stored stars stand. A limit out of range is a 400, an unknown system a 404 and an
+    API failure a 502, all as `{"error": ...}` JSON. The `X-Sky-Source` header says `cache` or `built`.
+    """
+    try:
+        body, header = skycache.fetch_sky(db_name(), system_id, request.args.get("limit"))
+    except skypack.SkyLimitError as exc:
+        return _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while building a system's sky: {exc}")
+        return _json_error("The sky could not be loaded. Please try again shortly.", 502)
+    response = Response(body, mimetype=skypack.MIMETYPE)
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["X-Sky-Source"] = header["source"]
+    response.headers["X-Sky-Version"] = header["version_key"]
+    return response
+
+
+system_sky.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/system/<uid:system_id>/sky/band")
+def system_sky_band(system_id):
+    """
+    The glow image of the system's sky (VIEW.13): `?limit=` as for the sky and `&key=` the `meta.band.key` the sky named. Raw half floats
+    (`application/octet-stream`, `rgb16f`: red, green and blue a texel, row by row, `X-Sky-Band-Width` by `X-Sky-Band-Height` texels), kept on disk under the
+    key by `skycache`. A limit out of range or a key that is not a hash is a 400, an unknown system a 404, an API failure a 502, as `{"error": ...}` JSON.
+    """
+    try:
+        body, header = skycache.fetch_band(db_name(), system_id, request.args.get("limit"), request.args.get("key") or None)
+    except (skypack.SkyLimitError, ValueError) as exc:
+        return _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while building a system's glow image: {exc}")
+        return _json_error("The glow image could not be loaded. Please try again shortly.", 502)
+    response = Response(body, mimetype="application/octet-stream")
+    response.headers["Cache-Control"] = "no-store"
+    response.headers.update({"X-Sky-Source": header["source"], "X-Sky-Band-Key": header["key"], "X-Sky-Band-Width": str(header["width"]),
+                             "X-Sky-Band-Height": str(header["height"]), "X-Sky-Band-Format": header["format"]})
+    return response
+
+
+system_sky_band.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/system/<uid:system_id>", methods=["GET", "POST"])
 def system(system_id):
     """One star system. A POST with a `facility_action` is the admin
@@ -303,6 +363,9 @@ def system(system_id):
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"],
                                            facilities=facilities,
                                            scene_url=page_url("system_scene", system_id=system_id),
+                                           sky_url=page_url("system_sky", system_id=system_id),
+                                           sky_star_url=page_url("object_page", ref="star:STARIDHERE").replace("STARIDHERE", "{id}"),
+                                           sky_help_url=page_url("sky_help_page"),
                                            nav=body_nav(request.args, course=detail["sector_id"] is not None))
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.

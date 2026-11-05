@@ -76,8 +76,10 @@ from planetgen.galaxy.drill import (
 from planetgen.db.corridor import (
     BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
 )
+from planetgen.db import obstacles as course_obstacles
+from planetgen.db import route_neighbours
 from planetgen.db import stones as nav_stones
-from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
+from planetgen.galaxy.nav_graph import build_route_graph, route_graph, shortest_path
 from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, route_fold_times, route_warp_times,
     warp_travel_times,
@@ -85,7 +87,7 @@ from planetgen.galaxy.navigation import (
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
-    NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
+    NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_GRAPH_CANDIDATES, NAV_GRAPH_NEIGHBOURS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
     NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
@@ -1354,14 +1356,15 @@ def _load_nav_endpoint(conn, system_id):
     )
 
     galaxy_position_ly = None
+    center_pc = None
     if row["center_x_pc"] is not None:
-        galaxy_position_ly = (
-            pc_to_ly(row["center_x_pc"]) + position_ly[0],
-            pc_to_ly(row["center_y_pc"]) + position_ly[1],
-            pc_to_ly(row["center_z_pc"]) + position_ly[2],
-        )
+        center_pc = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        # The offset is along the sector's own axes (`frame.sector_orientation`), so it is turned into the galaxy
+        # frame, as the stored `galaxy_x_pc` is (NAV.73).
+        galaxy_position_ly = tuple(pc_to_ly(c) for c in local_to_galaxy_pc(center_pc, tuple(ly_to_pc(c) for c in position_ly)))
 
-    return {"sector_id": row["sector_id"], "position_ly": position_ly, "galaxy_position_ly": galaxy_position_ly}
+    return {"sector_id": row["sector_id"], "position_ly": position_ly, "galaxy_position_ly": galaxy_position_ly,
+            "sector_center_pc": center_pc}
 
 
 def _phenomenon_nav_key(phenomenon_type, phenomenon_id):
@@ -1508,6 +1511,20 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         half_width = min(half_width * 2.0, NAV_CORRIDOR_MAX_LY)
 
 
+def _adjusted_course(conn, start_ly, end_ly):
+    """
+    NAV.6: the course between two galaxy-frame positions (light-years) bent around the keep-out spheres between them
+    (`db.obstacles.adjusted_course`), with the lengths also in light-years and the warp and fold times for the adjusted
+    length (NAV.2's tables use `length / speed` unchanged).
+    """
+    course = course_obstacles.adjusted_course(conn, tuple(ly_to_pc(v) for v in start_ly), tuple(ly_to_pc(v) for v in end_ly))
+    for name in ("length", "straight_length", "extra"):
+        course[name + "_ly"] = pc_to_ly(course[name])
+    course["warp_times"] = [leg._asdict() for leg in warp_travel_times(course["length_ly"])]
+    course["fold_times"] = [leg._asdict() for leg in fold_travel_times(course["length_ly"])]
+    return course
+
+
 def _with_stones(conn, path, positions, distance_ly):
     """
     NAV.47: `path` with every hop through unknown space broken up by the stepping stones
@@ -1591,9 +1608,41 @@ def _bypass_route(conn, origin_position, destination_position, from_key, to_key,
     return {"found": found is not None, "distance_ly": found[1] if found is not None else None, "checked": True}
 
 
+def _route_graph(conn, path, positions, in_galaxy):
+    """
+    NAV.65: the graph round a route (`nav_graph.route_graph`): the route's hops, the relative-neighbourhood links
+    between its stops and each stop's links to the systems round it, at most `NAV_GRAPH_NEIGHBOURS` systems off the
+    route for a stop. No new search: the systems round a stop are read from the cell-key index (`route_neighbours`),
+    or, for a route searched inside one sector, from the sector's own systems.
+
+    The route's positions and the index's are one (NAV.73), so a stop is measured from the same points as its neighbours.
+
+    Args:
+        path (list): The route's node ids.
+        positions (dict): `{node: (x, y, z)}` light-years, as the route search had them: galaxy frame when `in_galaxy`,
+            else sector-local.
+        in_galaxy (bool): Whether `positions` is the galaxy frame (the systems round a stop come from the index).
+
+    Returns:
+        dict: `nav_graph.route_graph`'s `nodes`, `edges` and `more`; positions in the galaxy frame (sector-local for
+        a route in a sector with no galaxy placement).
+    """
+    stop_points = {node: positions[node] for node in path}
+
+    def nearby(stop, point):
+        exclude = None if isinstance(stop, str) else stop
+        if in_galaxy:
+            return route_neighbours.nearby_systems(conn, point, NAV_GRAPH_CANDIDATES, exclude_id=exclude)
+        around = sorted((detmath.dist(point, other), key) for key, other in positions.items() if key != exclude)
+        return ({key: positions[key] for _away, key in around[:NAV_GRAPH_CANDIDATES]},
+                around[NAV_GRAPH_CANDIDATES - 1][0] if len(around) >= NAV_GRAPH_CANDIDATES else math.inf)
+
+    return route_graph(path, stop_points, nearby, NAV_GRAPH_NEIGHBOURS)
+
+
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                  from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0,
-                 chart=False, stones=True):
+                 chart=False, stones=True, with_graph=False, adjusted=False):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -1646,6 +1695,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             exists (`stones.chain_for_jump`); each such stop's `stop_places`
             entry names its `kind` and `name`. `nav_chart_plan` turns this off,
             since it asks which cells lie on the direct jump.
+        with_graph (bool): NAV.65: the route also gets `graph`, the links round it (`_route_graph`).
+        adjusted (bool): NAV.6: between systems the result also gets `adjusted`, the direct course bent around the keep-out spheres
+            it crosses, and every hop of the route (and the route) gets its own (`_adjusted_course`); see course-avoidance.md section 7.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -1663,7 +1715,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             hop's course), "warp_times", "fold_times"}], "stop_places": [{"node", "sector_id",
             "sector_position_ly"}] (NAV.42: one per id in `path`),
             "longest_hop_ly": float, "stops": int, "stay_minutes": float,
-            "warp_times", "fold_times"}` (NAV.11: a hop's lists are
+            "warp_times", "fold_times", and with `with_graph` "graph" (NAV.65, `_route_graph`)}` (NAV.11: a hop's lists are
             `WarpLeg`/`FoldLeg` dicts for that hop alone; the route's are
             `WarpLeg`/`FoldLeg` for the whole route, a stop at every system
             between the ends for `stay_minutes` each) (one entry per id in
@@ -1705,14 +1757,14 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         and destination["galaxy_position_ly"] is not None
     )
 
-    sector_offset = None
+    sector_center = None
     if sector_scope_ok:
         scope = "sector"
         origin_position, destination_position = origin["position_ly"], destination["position_ly"]
         if galaxy_scope_ok:
             # NAV.12: the route may leave the sector, so it is searched in the
-            # galaxy frame and shifted back into this sector's local frame.
-            sector_offset = tuple(g - l for g, l in zip(origin["galaxy_position_ly"], origin["position_ly"]))
+            # galaxy frame and turned back into this sector's local frame (NAV.73).
+            sector_center = origin["sector_center_pc"]
             positions = None
         else:
             positions = _sector_local_positions(conn, origin["sector_id"])
@@ -1730,6 +1782,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     # from the galactic core. Bearing 000 points at that center.
     frame = FRAME_SECTOR if scope == "sector" else FRAME_GALACTIC
     direct = course_between(origin_position, destination_position, frame=frame)
+    adjusted_direct = None
+    if adjusted and origin["galaxy_position_ly"] is not None and destination["galaxy_position_ly"] is not None:
+        adjusted_direct = _adjusted_course(conn, origin["galaxy_position_ly"], destination["galaxy_position_ly"])
 
     route = None
     if from_key != to_key:
@@ -1741,7 +1796,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             galaxy_frame = None
         else:
             search_from, search_to = ((origin["galaxy_position_ly"], destination["galaxy_position_ly"])
-                                      if sector_offset is not None else (origin_position, destination_position))
+                                      if sector_center is not None else (origin_position, destination_position))
             positions, found = _galaxy_route(conn, search_from, search_to, from_key, to_key, adjacency_k)
             galaxy_frame = positions
             search_ends = (search_from, search_to)
@@ -1758,6 +1813,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 hop.update(_hop_course(hop, places, galaxy_frame, positions))
                 hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
                 hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
+            if adjusted and galaxy_frame is not None:
+                for hop in hops:
+                    hop["adjusted"] = _adjusted_course(conn, galaxy_frame[hop["from"]], galaxy_frame[hop["to"]])
             bypass = None
             if galaxy_frame is not None:
                 cells = unknown_cells(conn, [galaxy_frame[node_id] for node_id in path])
@@ -1769,9 +1827,10 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                         hop["unknown_cells"] = hop_cells
                 if chart and any(cells):
                     bypass = _bypass_route(conn, *search_ends, from_key, to_key, adjacency_k)
-                if sector_offset is not None:
-                    route_positions = {node_id: tuple(c - o for c, o in zip(position, sector_offset))
-                                       for node_id, position in route_positions.items()}
+                if sector_center is not None:
+                    # Back into the sector's own axes, the inverse of how a system's offset became a galaxy position.
+                    route_positions = {node_id: tuple(pc_to_ly(c) for c in galaxy_to_local_pc(
+                        sector_center, tuple(ly_to_pc(v) for v in position))) for node_id, position in route_positions.items()}
             stays = max(len(hops) - 1 - len(stops_found), 0)  # not at a stop in unknown space (NAV.47)
             route = {
                 "path": path,
@@ -1789,10 +1848,17 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes, stays=stays),
                 "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes, stays=stays),
             }
+            if adjusted and galaxy_frame is not None:
+                lengths = [hop["adjusted"]["length_ly"] for hop in hops]
+                route["adjusted_distance_ly"] = sum(lengths)
+                route["adjusted_warp_times"] = route_warp_times(lengths, stay_minutes, stays=stays)
+                route["adjusted_fold_times"] = route_fold_times(lengths, stay_minutes, stays=stays)
             if bypass is not None:
                 route["bypass"] = bypass
+            if with_graph:
+                route["graph"] = _route_graph(conn, path, positions, galaxy_frame is not None)
 
-    return {
+    answer = {
         "scope": scope,
         "direct": direct,
         "warp_times": warp_travel_times(direct.distance_ly),
@@ -1801,6 +1867,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         "destination_position": destination_position,
         "route": route,
     }
+    if adjusted_direct is not None:
+        answer["adjusted"] = adjusted_direct
+    return answer
 
 
 NAV_DEFAULT_HELIOPAUSE_AU = 120.0
@@ -1913,7 +1982,7 @@ def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACEN
             "bypass": route.get("bypass") if route else None}
 
 
-def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0):
+def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0, with_graph=False, adjusted=False):
     """
     NAV between any two objects (NAV.16): `nav_between`'s result plus
     `origin`/`destination` (`{ref, kind, name}`), `legs` and `note`.
@@ -1928,7 +1997,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     route). Each leg is `{kind, from, to, direct, warp_times, fold_times}`;
     `direct` is a `navigation.Course`.
 
-    `stay_minutes` (NAV.11) is the stay at each stop of the route.
+    `stay_minutes` (NAV.11) is the stay at each stop of the route. `with_graph` (NAV.65) adds `graph` to the route. `adjusted` (NAV.6) adds the course bent around keep-out spheres (`nav_between`).
 
     Raises:
         ValueError: For a bad reference or a missing row.
@@ -1958,7 +2027,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     from_id, from_kind, from_type = anchor_args(origin)
     to_id, to_kind, to_type = anchor_args(destination)
     result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
-                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes)
+                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes, with_graph=with_graph, adjusted=adjusted)
 
     toward = [d - o for o, d in zip(result["origin_position"], result["destination_position"])]
     length = math.sqrt(sum(v * v for v in toward))
@@ -3170,9 +3239,13 @@ def _enclosed_mass_kg(conn, radius_pc):
     return enclosed_mass.enclosed_mass_kg(skeleton.shape, skeleton.galaxy_seed, radius_pc)
 
 
-def keep_out_radius(conn, kind, object_id):
+def keep_out_radius(conn, kind, object_id, scale="galaxy"):
     """
-    The keep-out radius of one object (NAV.24, `planetgen.galaxy.keepout`).
+    The keep-out radius of one object (NAV.24, NAV.54, `planetgen.galaxy.keepout`).
+
+    Args:
+        scale (str): `"galaxy"` (the default; between systems and inside a sector) or `"system"` (inside a star system). Only a star
+            has two radii: its galactic Hill radius at galaxy scale, its radiation radius inside its own system.
 
     Returns:
         keepout.KeepOut: `radius_km`, `basis` and `note`.
@@ -3200,6 +3273,9 @@ def keep_out_radius(conn, kind, object_id):
             return keepout.KeepOut(body["radius_km"], "radius", None)
         return keepout.KeepOut(body["hill_radius_km"], "hill", None)
     if kind == "star":
+        if scale == "system":
+            star = row("stars", "radius_km, luminosity_w")
+            return keepout.star_in_system_keep_out(star["radius_km"], star["luminosity_w"])
         return system_perimeter(row("stars", "star_system_id")["star_system_id"])
     if kind == "system":
         row("star_systems", "id")
@@ -3208,7 +3284,9 @@ def keep_out_radius(conn, kind, object_id):
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
         body = row(table, "star_id, mass_solar, radius_km, galactic_radius_pc"
                    if kind == "neutron_star" else "star_id, mass_solar, event_horizon_radius_km AS radius_km, "
-                   "galactic_radius_pc")
+                   "galactic_radius_pc, mass_class")
+        if kind == "black_hole" and body["mass_class"] == "supermassive":
+            return keepout.supermassive_keep_out(body["mass_solar"])
         if body["galactic_radius_pc"] is None and body["star_id"] is not None:
             # An anchored remnant is a star of its own system.
             return system_perimeter(row("stars", "star_system_id", body["star_id"])["star_system_id"])
@@ -3217,20 +3295,26 @@ def keep_out_radius(conn, kind, object_id):
         return keepout.compact_keep_out(
             _msun_to_kg(body["mass_solar"]), body["galactic_radius_pc"], body["radius_km"],
             _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
-    if kind in ("quasar", "rogue_planet"):
+    if kind == "quasar":
+        body = row(_PHENOMENON_TYPE_TO_TABLE[kind], "black_hole_mass_solar, luminosity_w")
+        return keepout.quasar_keep_out(body["black_hole_mass_solar"], body["luminosity_w"])
+    if kind == "rogue_planet":
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
-        body = row(table, "black_hole_mass_solar * " + str(constants.SOLAR_MASS_TO_KG)
-                   + " AS mass_kg, event_horizon_radius_km AS radius_km, galactic_radius_pc"
-                   if kind == "quasar" else "mass_kg, radius_km, galactic_radius_pc")
+        body = row(table, "mass_kg, radius_km, galactic_radius_pc")
         if body["galactic_radius_pc"] is None:
             return keepout.NO_KEEP_OUT
         return keepout.compact_keep_out(
             body["mass_kg"], body["galactic_radius_pc"], body["radius_km"],
             _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
-    if kind in ("nebula", "supernova_remnant", "asteroid_field"):
+    if kind == "asteroid_field":
+        return keepout.asteroid_field_keep_out(row(_PHENOMENON_TYPE_TO_TABLE[kind], "radius_ly")["radius_ly"])
+    if kind in ("nebula", "supernova_remnant"):
         row(_PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.KeepOut(None, "none", keepout.PASS_THROUGH_NOTE)
-    if kind in ("belt", "comet", "interstellar_comet", "facility"):
+    if kind == "belt":
+        row(object_ref.TABLES["belt"], "id")
+        return keepout.KeepOut(None, "none", keepout.BELT_NOTE)
+    if kind in ("comet", "interstellar_comet", "facility"):
         row(object_ref.TABLES.get(kind) or _PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.NO_KEEP_OUT
     if kind in object_ref.CONTAINER_KINDS:     # a place in the galaxy, not a body: nothing to keep out of
@@ -3443,6 +3527,8 @@ def resolve_object(conn, kind, object_id):
     }
     if kind in ("planet", "moon"):
         found.update({column: row[column] for column in _tier_columns()})
+    if kind == "star":
+        found["keep_out_in_system"] = keep_out_radius(conn, kind, object_id, scale="system")._asdict()    # NAV.54
     return found
 
 
@@ -3503,10 +3589,13 @@ def nebula_surroundings(conn, nebula_id):
         nebula_id (int): `nebulae.id`.
 
     Returns:
-        dict: `radius_pc`, `half_width_pc` (of the box) and `stars`: the
-            most luminous first, each `x`/`y`/`z` (parsecs from the
-            nebula's centre), `luminosity_sol` and `temperature_k`. No
-            stars for a nebula never placed in the galaxy.
+        dict: `radius_pc`, `half_width_pc` (of the box), `center_pc` (the
+            nebula's centre in the galaxy frame, `[x, y, z]` parsecs, `None`
+            for a nebula never placed in the galaxy: MAP.142's view draws
+            the nebula's own points round it) and `stars`: the most luminous
+            first, each `x`/`y`/`z` (parsecs from the nebula's centre),
+            `luminosity_sol` and `temperature_k`. No stars for a nebula
+            never placed in the galaxy.
 
     Raises:
         ValueError: If no such nebula exists.
@@ -3517,10 +3606,11 @@ def nebula_surroundings(conn, nebula_id):
         raise ValueError(f"no such nebula: {nebula_id!r}")
     radius_pc = ly_to_pc(row["radius_ly"])
     half = max(NEBULA_SURROUNDINGS_MIN_PC, NEBULA_SURROUNDINGS_REACH * radius_pc)
-    result = {"radius_pc": radius_pc, "half_width_pc": half, "stars": []}
+    result = {"radius_pc": radius_pc, "half_width_pc": half, "center_pc": None, "stars": []}
     if row["center_x_pc"] is None:
         return result
     center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+    result["center_pc"] = [float(c) for c in center]
     skeleton = get_galaxy_shape(conn, light=True)
     edge_pc = skeleton.edge_pc if skeleton is not None else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     stars = galaxy_bright_stars_in_box(
@@ -5765,6 +5855,64 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
                       lambda point: int(point["size"] / SCATTERED_SIZE_BAND), lambda point: point["id"])
 
 
+SCATTERED_NEBULA_CLASSES = (
+    ("planetary-nebula", None, "planetary_nebula", "Planetary nebula"),
+    ("supernova-remnant", None, "supernova_remnant", "Supernova remnant"),
+)
+"""tuple: `(scatter kind, subtype, map type, label)` for the scattered nebulae the Galaxy Map marks before their sector is
+filled (MAP.179). Their rows are drawn as marks, not as points of light among the stars."""
+
+
+def galaxy_scattered_nebulae_in_box(conn, lo, hi, edge_pc, limit):
+    """
+    The scattered planetary nebulae and supernova remnants (`phenomenon_scatter`, not yet built into a sector) whose position lies in
+    the box `[lo, hi)`, at most `limit` (MAP.179): the points the map marks from far away, before their sector is filled. A row that is
+    built is a stored nebula, which the node lists in `clouds` (`galaxy_clouds_in_box`), so a built row is never listed here and no
+    nebula is on the map twice (GEN.202).
+
+    Returns:
+        list[dict]: Points as `galaxy_scattered_points_in_box` makes them (`type` `planetary_nebula` or `supernova_remnant`, `id`
+        `s<row>`, `name` "... (uncharted)", `scattered`, `charted` false, `x`/`y`/`z`), lowest id first, thinned evenly by `_even_pick`
+        when there are more than `limit`.
+    """
+    bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
+    if not bands:
+        return []
+    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
+        where_address = "shell_index BETWEEN ? AND ?"
+        address_params = [bands[0][0], bands[-1][0]]
+    else:
+        where_address = "(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")"
+        address_params = [v for band in bands for v in band]
+    kinds = " OR ".join("kind = ?" for _ in SCATTERED_NEBULA_CLASSES)
+    kind_params = [cls[0] for cls in SCATTERED_NEBULA_CLASSES]
+    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    rows = conn.execute(
+        f"""
+        SELECT id, kind, position_x_mpc, position_y_mpc, position_z_mpc
+        FROM phenomenon_scatter
+        WHERE built_at IS NULL AND {where_address} AND ({kinds})
+          AND position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ?
+          AND position_z_mpc >= ? AND position_z_mpc < ?
+        ORDER BY id
+        LIMIT ?
+        """,
+        (*address_params, *kind_params, *box_params, int(limit) * EVEN_DROP_POOL),
+    ).fetchall()
+    kind_of = {cls[0]: (cls[2], cls[3]) for cls in SCATTERED_NEBULA_CLASSES}
+    points = []
+    for row in rows:
+        map_type, label = kind_of[row["kind"]]
+        points.append({
+            "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)", "descriptor": "scattered",
+            "luminosity_sol": 0.0, "scattered": True, "size": 0.4, "charted": False, "map_luminosity_sol": 0.0, "mass_solar": None,
+            "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
+            "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
+        })
+    return _even_pick(points, limit, lambda point: (-point["size"], point["id"]),
+                      lambda point: int(point["size"] / SCATTERED_SIZE_BAND), lambda point: point["id"])
+
+
 TILE_PIECE_SECONDS = 3.0
 """float: The statement time limit of each piece of a Galaxy Map node (PERF.76): placed sectors, sector count,
 clouds, bright stars, generated stars, points and scattered points. A piece that runs past it is left out of
@@ -6264,7 +6412,7 @@ def galaxy_node_keys(shell, band, wedge):
     return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
 
 
-TILE_FORMAT = 10
+TILE_FORMAT = 12
 """int: The version of what the Galaxy Map's stored nodes and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_node`, `tilepack`, `db.nodes.galaxy_nodes`, `galaxy_stage`). A change that alters those bytes for
 the same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored files are rebuilt once;
@@ -6272,7 +6420,7 @@ a release that does not alter them leaves every stored node valid (PERF.133). 2:
 (MAP.258) moved the rows and wedges of every level, so a stored stage names other blocks. 3: nodes replace the cube tiles
 (MAP.262), whose files are dropped with the generation. 5: a node of a charted region carries its `name` and `parent`
 (API.35), and so does the stage of a 9-block and each charted 9-block child of a stage. 6: a 9-block's node carries its
-`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant). 9: a node of 729, 243, 81, 27 or 9 sectors lists its nebula regions, `nebula_regions` (MAP.173). 10: a node's `interests` name each system by its printed ID, not its row id (the map's View system link and nearest-systems list took the row id and found no system)."""
+`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant). 9: a node of 729, 243, 81, 27 or 9 sectors lists its nebula regions, `nebula_regions` (MAP.173). 10: a node's `interests` name each system by its printed ID, not its row id (the map's View system link and nearest-systems list took the row id and found no system). 11: a node of 81 sectors or fewer lists the field clouds no sector has stored yet among its `clouds`, each with `field` true (MAP.178). 12: a node of 81 sectors or fewer lists the scattered planetary nebulae and supernova remnants no sector has built among its `points` (MAP.179)."""
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
 """int: Most changed sectors `galaxy_changes` lists nodes for. More than

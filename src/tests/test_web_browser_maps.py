@@ -254,19 +254,38 @@ def test_phenomenon_diagram_minus_zooms_out_from_the_start(page, base_url, site_
     assert seen >= 1, "no supernova remnant with an AU diagram in the database"
 
 
-def test_nebula_page_draws_its_shape_in_3d(page, base_url, site_app):
-    """MAP.105: a nebula's page swaps its still drawing for the 3D view of
-    its shape, with the endpoints answering."""
+def test_nebula_page_draws_its_cloud_in_3d(page, base_url, site_app, monkeypatch):
+    """MAP.105, MAP.142: a nebula's page swaps its still drawing for the 3D view of its own cloud of points (the layer the maps use), with
+    the endpoints answering. The test database's nebula was never placed in the galaxy (it keeps its still drawing, checked last), so the
+    two endpoints answer for a placed one: the stand-in density's cloud over the Galaxy Map fixture's star field."""
+    from planetgen.web.lib import apiclient
+    from tests.map_site_support import NEBULA_OVER_THE_FIELD, single_nebula_volume_payload
+
     nebula = next(p for p in _phenomena(site_app) if p["type"] == "nebula")
+    real_surroundings = apiclient.get_nebula_surroundings
+    placed = {"radius_pc": NEBULA_OVER_THE_FIELD["radius_pc"], "half_width_pc": 40.0, "stars": [{"x": 3.0, "y": 2.0, "z": 1.0,
+              "luminosity_sol": 900.0, "temperature_k": 9000.0}],
+              "center_pc": [NEBULA_OVER_THE_FIELD["x"], NEBULA_OVER_THE_FIELD["y"], NEBULA_OVER_THE_FIELD["z"]]}
+    monkeypatch.setattr(apiclient, "get_nebula_surroundings", lambda db, nebula_id: placed)
+    monkeypatch.setattr(apiclient, "get_nebula_volume", lambda db, nebula_id: single_nebula_volume_payload(NEBULA_OVER_THE_FIELD["id"]))
     _open(page, f"{base_url}/phenomenon/nebula/{nebula['id']}", "main")
     assert page.locator("#phenomenonmap-svg").count() == 0
     page.locator("#nebulaview-canvas[data-nebula-view='ready']").wait_for(state="attached", timeout=15000)
+    page.wait_for_function("() => Number(document.querySelector('#nebulaview-canvas').dataset.volumeDrawn) >= 1", timeout=30000)
+    held = page.evaluate("() => document.querySelector('#nebulaview-canvas').__nebulaVolumes.volumes().length")
+    assert held == 1
     # MAP.138: the view can be put back about the nebula's center.
     assert page.locator("#nebulaview-recenter").is_visible()
     page.locator("#nebulaview-recenter").click()
     client = site_app.test_client()
-    assert client.get(f"/galaxy/nebula/{nebula['id']}/shape?lod=full").status_code == 200
+    assert client.get(f"/galaxy/nebula/{nebula['id']}/volume").status_code == 200
     assert client.get(f"/galaxy/nebula/{nebula['id']}/surroundings").status_code == 200
+    # A nebula never placed has no centre: it keeps its still drawing.
+    monkeypatch.setattr(apiclient, "get_nebula_surroundings", real_surroundings)
+    _open(page, f"{base_url}/phenomenon/nebula/{nebula['id']}", "main")
+    page.wait_for_timeout(1500)
+    assert page.locator("#nebulaview-canvas").get_attribute("hidden") is not None
+    assert page.locator("#nebulaview-canvas").get_attribute("data-nebula-view") is None and page.locator(".phenomrender-still").is_visible()
 
 
 # --- TEST.55, TEST.59: the Galaxy Map ------------------------------------------------
@@ -736,6 +755,58 @@ def test_system_map_diagram_draws_each_star_beyond_the_pair_with_its_planets(pag
         assert page.locator(".sysmap-crumb-current").inner_text() == f"Planets of {member['name']}"
         page.click(".sysmap-back-btn")
         assert _active_scene(page) == "system"
+
+
+def test_system_page_3d_view_offers_the_sky_switch_and_the_status_line(page, base_url, site_app):
+    """VIEW.35: the 3D view fetches the sky its system sees and says what it drew; the switch under the view takes the sky off, remembers that, and puts it
+    back. A system with no place in the galaxy has no sky and keeps the plain background (the fixture's systems may or may not have one)."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_function("() => { const s = document.getElementById('sysview3d').dataset.skyState; return s && s !== 'loading'; }", timeout=60000)
+    first = page.locator("#sysview3d").get_attribute("data-sky-state")
+    assert first in ("ready", "filling", "unavailable"), first
+    assert page.locator("#sysview3d-sky-note").inner_text().strip()
+    drawn = first in ("ready", "filling")
+    assert (page.locator("#sysview3d-canvas").get_attribute("data-sky") == "on") is drawn
+    assert page.locator("#sysview3d-sky").is_enabled()
+
+    page.locator("#sysview3d-sky").uncheck()
+    page.wait_for_function("() => document.getElementById('sysview3d').dataset.skyState === 'off'")
+    assert page.locator("#sysview3d-canvas").get_attribute("data-sky") is None
+    assert page.evaluate("window.localStorage.getItem('planetgen.systemSky')") == "off"
+    page.reload(wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_function("() => document.getElementById('sysview3d').dataset.skyState === 'off'")
+    assert not page.locator("#sysview3d-sky").is_checked()
+
+    page.locator("#sysview3d-sky").check()
+    page.wait_for_function("() => { const s = document.getElementById('sysview3d').dataset.skyState; return s && s !== 'off' && s !== 'loading'; }", timeout=60000)
+    assert page.evaluate("window.localStorage.getItem('planetgen.systemSky')") == "on"
+
+
+def test_system_page_3d_view_says_what_a_sky_star_under_the_pointer_is(page, base_url, site_app):
+    """VIEW.37: with the sky drawn, pointing at one of its stars (where `skyStarScreen` puts it) shows its hover text, "seen as it was N years ago"
+    among it, and a click opens its card. A fixture system whose sky holds no star on the screen has nothing to point at, and the test ends there."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_function("() => { const s = document.getElementById('sysview3d').dataset.skyState; return s && s !== 'loading'; }", timeout=60000)
+    if page.locator("#sysview3d").get_attribute("data-sky-state") not in ("ready", "filling"):
+        return
+    stars = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.skyStarScreen()")
+    if not stars:
+        return
+    box = page.locator("#sysview3d-canvas").bounding_box()
+    star = stars[0]
+    page.mouse.move(box["x"] + star["x"], box["y"] + star["y"])
+    page.wait_for_function("() => document.getElementById('sysview3d-canvas').dataset.skyHover !== ''", timeout=15000)
+    tip = page.locator("#sysview3d-tip")
+    assert "seen as it was" in tip.inner_text()
 
 
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):

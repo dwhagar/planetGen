@@ -62,11 +62,13 @@ const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = a
 const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const superbubble = await import(`./superbubble.js${VERSION_QUERY}`);
+const { connectCourseDiagram } = await import(`./coursediagram.js${VERSION_QUERY}`);
+const { courseRuns, createHopGlow, makeGlowTexture } = await import(`./coursehops.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
+  BLACK_HOLE_KIND, NEBULA_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { NAMED_LIMIT } = await import(`./labelbudget.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
@@ -76,7 +78,7 @@ const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VER
 const { regionLabels } = await import(`./regionlabels.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { starLight } = await import(`./starlight.js${VERSION_QUERY}`);
-const { NEBULA_LOOKS } = await import(`./nebulalook.js${VERSION_QUERY}`);
+const { NEBULA_LOOKS, NEBULA_RIMS } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const { drawnSignature, nodeRevision } = await import(`./nodeview.js${VERSION_QUERY}`);
 const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
@@ -96,7 +98,7 @@ const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = a
 const { blackHoleDensityPx, labelBufferPx, regionLanding } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
-  FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
+  FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour, regionText: nebulaGroupText,
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
@@ -115,11 +117,10 @@ const {
 const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
 const { extentOf, groupByCell, linePieces } = await import(`./camerarelative.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
-const {
-  NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
-} = await import(`./nebulamesh.js${VERSION_QUERY}`);
 const { createPicker, createRing, createHoverPreview, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
+const { createPlaneView } = await import(`./galaxyplane.js${VERSION_QUERY}`);
+const { createSideStrip } = await import(`./galaxystrip.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -160,6 +161,11 @@ export function mapControlHandlers(ctx) {
       button.setAttribute("aria-pressed", String(on));
       ctx.stageView.setCellGrid(on);
     },
+    "side-strip": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      if (ctx.setSideStrip) ctx.setSideStrip(on, button);
+    },
     "charted-only": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
@@ -171,6 +177,22 @@ export function mapControlHandlers(ctx) {
     "up": function () { ctx.stageView.up(); },
     "reset": function () { ctx.stageView.home(); },
     "reset-view": function () { ctx.stageView.resetView(); },
+    // MAP.371: the plane view (galaxyplane.js) and the choice of the plane the grid lies in.
+    "plane-view": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.setPlaneView(on);
+    },
+    "plane-stems": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.setPlaneStems(on);
+    },
+    "plane-midplane": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.setPlaneMidplane(on);
+    },
     "step": function (button) { ctx.stageView.stepToNeighbour(button.dataset.step); },
     "map-help": function (button) {
       var dialog = document.getElementById("galaxymap3d-help");
@@ -578,7 +600,7 @@ function starColor(temperatureK) {
   return [r, g, b].map(function (v) { return Math.min(255, Math.max(0, v)) / 255; });
 }
 
-var POINT_TYPE_LABELS = { black_hole: "Black Hole", neutron_star: "Neutron Star", quasar: "Quasar" };
+var POINT_TYPE_LABELS = { black_hole: "Black Hole", neutron_star: "Neutron Star", quasar: "Quasar", planetary_nebula: "Planetary Nebula", supernova_remnant: "Supernova Remnant" };
 
 // "Black Hole (Accreting)", "Neutron Star (Millisecond pulsar)".
 function pointTypeLabel(point) {
@@ -599,8 +621,7 @@ function pointFacts(point) {
     title: point.name || POINT_TYPE_LABELS[point.type] || "Phenomenon",
     fields: [
       ["Type", pointTypeLabel(point)],
-      ["Luminosity", formatLuminositySol(point.luminosity_sol)],
-    ].concat(point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
+    ].concat(NEBULA_POINT_TYPES[point.type] ? [] : [["Luminosity", formatLuminositySol(point.luminosity_sol)]], point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),
   };
@@ -716,10 +737,15 @@ function starFacts(star) {
   };
 }
 
+// MAP.373: the plane view's line for a star's spherical position, set once the map is built (null while the plane view is off).
+var describePosition = null;
+
 function showStarInfo(star, nearby) {
   var spec = Object.assign(starFacts(star), {
     more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   });
+  var spherical = describePosition ? describePosition([star.x, star.y, star.z]) : null;
+  if (spherical) spec.more.push(["Position (radius, longitude, latitude)", spherical]);
   if (star.system_id != null && sceneData.systemUrl) {
     var systemPage = String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id));
     spec.view = { href: systemPage, label: "View system →" };
@@ -777,8 +803,17 @@ function cloudTexture(cloud) {
     var look = NEBULA_LOOKS[cloud.descriptor] || DEFAULT_NEBULA_LOOK;
     gradient.addColorStop(0, rgba(look[0], look[1]));
     gradient.addColorStop(0.35, rgba(look[0], look[1] * 0.8));
-    gradient.addColorStop(0.75, rgba(look[0], look[2]));
-    gradient.addColorStop(1, rgba(look[0], 0));
+    var rim = NEBULA_RIMS[cloud.descriptor];
+    if (rim) {
+      // MAP.181: a dust cloud's fill is too dim to see on the black map; a light rim near its edge outlines it.
+      gradient.addColorStop(0.7, rgba(look[0], look[2]));
+      gradient.addColorStop(0.8, rgba(rim[0], rim[1]));
+      gradient.addColorStop(0.92, rgba(rim[0], rim[1] * 0.4));
+      gradient.addColorStop(1, rgba(rim[0], 0));
+    } else {
+      gradient.addColorStop(0.75, rgba(look[0], look[2]));
+      gradient.addColorStop(1, rgba(look[0], 0));
+    }
   } else {
     gradient.addColorStop(0, rgba("#ffb07a", 0.12));
     gradient.addColorStop(0.6, rgba("#ffb07a", 0.2));
@@ -1053,7 +1088,7 @@ function initGalaxyMap3d(canvasEl, data) {
   function openNebulaWindow(cloud) {
     if (data.pinned || !cloud) return false;
     var candidates = [];
-    cloudSprites.forEach(function (sprite) { candidates.push(sprite.userData.cloud); });
+    cloudSprites.forEach(function (sprite) { if (!sprite.userData.cloud.field) candidates.push(sprite.userData.cloud); });
     var made = GROUP_WINDOW.createWindow("nebula", cloud, candidates);
     if (!made) return false;
     if (!groupWindow) {
@@ -1240,8 +1275,13 @@ function initGalaxyMap3d(canvasEl, data) {
   var selectionRing = createRing(scene, camera, canvasEl, accentColor, { depthTest: false, renderOrder: 5 });
   var hoverRing = createRing(scene, camera, canvasEl, accentColor, { depthTest: false, renderOrder: 5, opacity: 0.45 });
 
+  var planeView = null;    // MAP.371: set once the map is built
+  // MAP.375: the side strip rings what the map has selected (set once the strip is built).
+  var sideStrip = null;
   function highlightPosition(x, y, z) {
     selectionRing.at(x, y, z, { px: HIGHLIGHT_PX * 2 });
+    if (planeView) planeView.select([x, y, z]);
+    if (sideStrip) sideStrip.setSelected({ x: x, y: y, z: z });
   }
 
   // Density shading's dim-to-accent-to-white ramp (galaxyblocks.js).
@@ -1763,36 +1803,6 @@ function initGalaxyMap3d(canvasEl, data) {
   scene.add(cloudGroup);
   var cloudSprites = new Map();
   var cloudSignature = "";
-  // A nebula's shape mesh (MAP.103): fetched the first time the nebula is
-  // big enough on screen, then drawn in place of its sprite.
-  var cloudMeshes = new Map();
-  var meshRequested = new Set();
-  var loadNebulaShape = sceneData.nebulaShapePath ? createShapeLoader(sceneData.nebulaShapePath) : null;
-
-  function requestNebulaMesh(sprite) {
-    var cloud = sprite.userData.cloud;
-    var key = cloudKey(cloud);
-    if (!loadNebulaShape || cloud.type !== "nebula" || meshRequested.has(key)) {
-      return;
-    }
-    meshRequested.add(key);
-    loadNebulaShape(cloud.id, "low").then(function (shape) {
-      if (cloudSprites.get(key) !== sprite) {
-        return;
-      }
-      var look = NEBULA_LOOKS[cloud.descriptor] || DEFAULT_NEBULA_LOOK;
-      var mesh = buildNebulaMesh(THREE, shape, cloud.radius_pc, look);
-      mesh.position.copy(sprite.position);
-      mesh.renderOrder = 4;
-      mesh.visible = false;
-      cloudGroup.add(mesh);
-      cloudMeshes.set(key, mesh);
-      updateClouds();
-    }, function () {
-      meshRequested.delete(key);
-    });
-  }
-
   function cloudKey(cloud) {
     return cloud.type + ":" + cloud.id;
   }
@@ -1808,12 +1818,6 @@ function initGalaxyMap3d(canvasEl, data) {
         cloudGroup.remove(sprite);
         sprite.material.dispose();
         cloudSprites.delete(key);
-        var gone = cloudMeshes.get(key);
-        if (gone) {
-          cloudGroup.remove(gone);
-          disposeNebulaMesh(gone);
-        }
-        cloudMeshes.delete(key);
       }
     });
     wanted.forEach(function (cloud, key) {
@@ -1855,24 +1859,9 @@ function initGalaxyMap3d(canvasEl, data) {
       var distance = camera.position.distanceTo(sprite.position);
       var clipped = !drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z);
       var pixels = cloudPixels(cloud, distance);
-      var mesh = cloudMeshes.get(key);
-      // MAP.365: where the nebula is drawn from the model's density (nebulavolumelayer.js) its circle and its per-ID mesh give way.
+      // MAP.365: where the nebula is drawn from the model's density (nebulavolumelayer.js) its circle gives way.
       var covered = cloudCover(key);
-      if (cloud.type === "nebula" && !clipped && pixels >= NEBULA_MESH_MIN_PX && covered < 0.5) {
-        requestNebulaMesh(sprite);
-      }
-      if (mesh && !clipped && pixels >= NEBULA_MESH_MIN_PX && covered < 0.5) {
-        // The mesh takes over from the sprite, which stays (unseen) for aiming.
-        mesh.visible = true;
-        sprite.visible = true;
-        sprite.material.opacity = 0;
-        sprite.userData.share = 1;
-        drawn++;
-        return;
-      }
-      if (mesh) {
-        mesh.visible = false;
-      }
+      if (cloud.type === "nebula" && !clipped && covered >= 0.5) drawn++;
       var near = THREE.MathUtils.smoothstep(distance / cloud.radius_pc, CLOUD_NEAR_FADE[0], CLOUD_NEAR_FADE[1]);
       // MAP.155: opacity ramps in between 1 and 4 px of radius (a hard
       // edge at 2 px before); `share` is what can be aimed at.
@@ -1880,9 +1869,14 @@ function initGalaxyMap3d(canvasEl, data) {
       sprite.visible = share > 0 && !clipped;
       sprite.material.opacity = CLOUD_OPACITY * share * (1 - covered);
       sprite.userData.share = clipped ? 0 : share;
+      if (cloud.type === "nebula" && !clipped && covered < 0.5 && sprite.visible && sprite.material.opacity > 0) drawn++;
     });
-    // How many nebulae are drawn from their shape now (read by the browser tests).
-    canvasEl.dataset.nebulaMeshes = String(drawn);
+    // How many nebulae are drawn now, from their points or as a sprite (read by the browser tests).
+    canvasEl.dataset.nebulaClouds = String(drawn);
+    // How many field clouds (MAP.178) are drawn as sprites now (read by the browser tests).
+    var fieldDrawn = 0;
+    cloudSprites.forEach(function (sprite) { if (sprite.userData.cloud.field && sprite.visible && sprite.material.opacity > 0) fieldDrawn++; });
+    canvasEl.dataset.fieldClouds = String(fieldDrawn);
   }
 
   // The smallest visible cloud under a screen point that is still small
@@ -1896,7 +1890,8 @@ function initGalaxyMap3d(canvasEl, data) {
     var bestDistance = 0;
     cloudSprites.forEach(function (sprite) {
       var cloud = sprite.userData.cloud;
-      if (!sprite.visible || !visibleEnough(sprite.userData.share) || (best && best.radius_pc <= cloud.radius_pc)) {
+      // A field cloud has no page to open; picking it is MAP.180's.
+      if (cloud.field || !sprite.visible || !visibleEnough(sprite.userData.share) || (best && best.radius_pc <= cloud.radius_pc)) {
         return;
       }
       var distance = camera.position.distanceTo(sprite.position);
@@ -2151,12 +2146,50 @@ function initGalaxyMap3d(canvasEl, data) {
       return nebulaFamilyOn[family] !== false;
     }), [0, 0, 0]);
     nebulaVersion += 1;
+    renderNebulaGroupList();
     // The legend's line about rings shows only while some group is drawn.
     var held = nebulaLayer.count() > 0;
     if (held !== nebulaHeld) {
       nebulaHeld = held;
       if (stageView && stageView.layers) stageView.layers.refresh();
     }
+  }
+  // MAP.180: a click on a group of nebulae (MAP.176) flies the camera to frame it, which is the zoom at which its node hands it down to
+  // its smaller groups and its single clouds; a group has no page. The keyboard has the same through a list of the largest groups.
+  var NEBULA_GROUP_PICK_SHARE = 0.7;
+  var NEBULA_GROUP_PICK_MIN_PX = 9;
+  var NEBULA_GROUP_PICK_MIN_ALPHA = 0.03;
+  var NEBULA_GROUP_LIST_MAX = 30;
+  var nebulaGroupSpot = new THREE.Vector3();
+  var nebulaGroupList = null;
+  function flyToNebulaGroup(blob) {
+    highlightPosition(blob.x, blob.y, blob.z);
+    stageView.goTo({ entry: { x: blob.x, y: blob.y, z: blob.z, r: blob.radiusPc } });
+  }
+  // The words of a group for its hover and its list button: "12 nebulae, mostly dark nebulae" and the other families it holds.
+  function nebulaGroupLabel(blob) {
+    return nebulaGroupText(blob);
+  }
+  function renderNebulaGroupList() {
+    if (!nebulaLayer || !viewport) return;
+    if (!nebulaGroupList) {
+      nebulaGroupList = document.createElement("ul");
+      nebulaGroupList.className = "starmap-sr-list starmap-sr-nebulae sr-only";
+      nebulaGroupList.setAttribute("aria-label", "Groups of nebulae on the map");
+      viewport.appendChild(nebulaGroupList);
+    }
+    nebulaGroupList.textContent = "";
+    nebulaLayer.blobs().sort(function (p, q) { return (q.volume - p.volume) || (p.key < q.key ? -1 : 1); })
+      .slice(0, NEBULA_GROUP_LIST_MAX).forEach(function (blob) {
+        var item = document.createElement("li");
+        var button = document.createElement("button");
+        button.type = "button";
+        button.dataset.nebulaGroup = blob.key;
+        button.textContent = nebulaGroupLabel(blob) + ", fly to it";
+        button.addEventListener("click", function () { flyToNebulaGroup(blob); });
+        item.appendChild(button);
+        nebulaGroupList.appendChild(item);
+      });
   }
   var regionBlobList = [];
   var regionsVersion = 0;
@@ -2821,8 +2854,8 @@ function initGalaxyMap3d(canvasEl, data) {
       Object.defineProperty(node, "allStars", {
         value: (node.stars || []).concat((node.generated || []).map(function (star) {
           return Object.assign({ generated: true }, star);
-        }), (node.points || []).map(function (point) {
-          return Object.assign({ phenomenon: true }, point);
+        }), (node.points || []).filter(function (point) { return !NEBULA_POINT_TYPES[point.type]; }).map(function (point) {
+          return Object.assign({ phenomenon: true }, point);    // a scattered nebula (MAP.179) is a mark, not a point of light
         })),
       });
     }
@@ -3497,6 +3530,13 @@ function initGalaxyMap3d(canvasEl, data) {
   var course = data.course && (data.course.points || []).length >= 2 ? data.course : null;
   var courseSectors = [];
   var courseMarkers = [];
+  var courseRings = [];
+  var courseSelected = null;
+  var courseGlows = null;
+  // NAV.23: the course's three forms, each its own group of lines so the Menu can show or hide it; NAV.21: every point of the three, flat
+  // [x, y, z, ...] in parsecs, which the opening view is fitted round.
+  var courseLines = null;
+  var courseFitPoints = [];
   var COURSE_RING_PX = 11;
   var COURSE_LABEL_PX = 13;
 
@@ -3507,19 +3547,48 @@ function initGalaxyMap3d(canvasEl, data) {
     var courseGroup = new THREE.Group();
     courseGroup.renderOrder = 4;
     scene.add(courseGroup);
+    courseLines = { route: new THREE.Group(), direct: new THREE.Group(), adjusted: new THREE.Group() };
+    Object.keys(courseLines).forEach(function (form) { courseGroup.add(courseLines[form]); });
     var linePoints = course.points.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
+    course.points.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
     // MAP.240: a line is an object at its first stop with offsets from it.
-    courseGroup.add(lineFrom(linePoints, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })));
+    // NAV.36: a hop through unknown space is drawn on its own, red, dashed and glowing; the known hops make solid runs.
+    var unknownColor = mapVar("--error", "#d64545");
+    courseRuns(course.points).forEach(function (run) {
+      var runPoints = linePoints.slice(run.from, run.to + 1);
+      if (!run.unknown) {
+        courseLines.route.add(lineFrom(runPoints, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })));
+        return;
+      }
+      var hopLength = runPoints[0].distanceTo(runPoints[1]);
+      courseLines.route.add(lineFrom(runPoints, new THREE.LineDashedMaterial({
+        color: new THREE.Color(unknownColor), depthTest: false, transparent: true, dashSize: hopLength / 24, gapSize: hopLength / 48,
+      }), true));
+      courseGlows = courseGlows || { texture: makeGlowTexture(THREE, unknownColor), list: [] };
+      var glow = createHopGlow(THREE, runPoints[0], runPoints[1], courseGlows.texture);
+      glow.group.renderOrder = 3;
+      courseLines.route.add(glow.group);
+      courseGlows.list.push(glow);
+    });
     // NAV.20: with stops on the way, the straight line from the start to the
     // end is drawn apart from the route, dashed and muted.
     if (course.direct && course.direct.length === 2) {
       var directPoints = course.direct.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
-      courseGroup.add(lineFrom(directPoints, new THREE.LineDashedMaterial({
+      directPoints.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
+      courseLines.direct.add(lineFrom(directPoints, new THREE.LineDashedMaterial({
         color: new THREE.Color(0x9aa3b8), depthTest: false, transparent: true,
         dashSize: directPoints[0].distanceTo(directPoints[1]) / 60,
         gapSize: directPoints[0].distanceTo(directPoints[1]) / 120,
       }), true));
     }
+    // NAV.28: the course bent round keep-out spheres, one polyline for each line that bends, over the route in amber.
+    var bentColor = mapVar("--tier-yellow", "#d9a400");
+    (course.adjusted || []).forEach(function (line) {
+      if (line.length < 2) return;
+      line.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
+      courseLines.adjusted.add(lineFrom(line.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); }),
+        new THREE.LineBasicMaterial({ color: new THREE.Color(bentColor), depthTest: false, transparent: true })));
+    });
     course.points.forEach(function (point, n) {
       var ends = n === 0 || n === course.points.length - 1;
       var ring = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -3528,7 +3597,9 @@ function initGalaxyMap3d(canvasEl, data) {
       }));
       ring.position.copy(linePoints[n]);
       courseGroup.add(ring);
-      courseMarkers.push({ sprite: ring, px: ends ? COURSE_RING_PX : COURSE_RING_PX * 0.6 });
+      var ringMarker = { sprite: ring, px: ends ? COURSE_RING_PX : COURSE_RING_PX * 0.6, basePx: ends ? COURSE_RING_PX : COURSE_RING_PX * 0.6, opacity: ends ? 1 : 0.7 };
+      courseMarkers.push(ringMarker);
+      courseRings.push(ringMarker);
       if (!ends) {
         return;
       }
@@ -3644,9 +3715,53 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
+  // NAV.69: the stop of the course that is selected: its ring is bigger and solid, and the course diagram beside the map (coursediagram.js) marks
+  // the same stop, whichever of the two the visitor clicked. `fly` also centres the map on it, keeping the zoom.
+  function selectCourseStop(index, fly) {
+    if (!course || !(index >= 0 && index < course.points.length)) return false;
+    courseSelected = index;
+    courseRings.forEach(function (marker, n) {
+      var chosen = n === index;
+      marker.px = chosen ? COURSE_RING_PX * 1.6 : marker.basePx;
+      marker.sprite.material.opacity = chosen ? 1 : marker.opacity;
+    });
+    var point = course.points[index];
+    if (fly && canvasEl.galaxyGoTo) {
+      var camera_ = canvasEl.galaxyCamera();
+      canvasEl.galaxyGoTo({ center: [point.x, point.y, point.z], dist: camera_ ? camera_.dist : 1 });
+    }
+    canvasEl.dispatchEvent(new CustomEvent("galaxycoursestop", { detail: { index: index, name: point.name, url: point.url || null } }));
+    return true;
+  }
+  // For the diagram's clicks and the browser tests: selects stop `index` of the course and centres the map on it.
+  canvasEl.galaxyCourseSelect = function (index) { return selectCourseStop(index, true); };
+  // For the browser tests: the index of the selected stop, or null.
+  canvasEl.galaxyCourseSelected = function () { return courseSelected; };
+  // For the browser tests: the course's stops as `{name, x, y, z}` (parsecs).
+  canvasEl.galaxyCourseStops = function () {
+    return course ? course.points.map(function (point) { return { name: point.name, x: point.x, y: point.y, z: point.z }; }) : [];
+  };
+  // NAV.36, for the browser tests: how many hops are drawn as jumps through unknown space and how many glow sprites show now.
+  // NAV.23, for the browser tests: which forms of the course are drawn, `{route, direct, adjusted}` (a form the course has none of is left out).
+  canvasEl.galaxyCourseForms = function () {
+    var shown = {};
+    if (courseLines) Object.keys(courseLines).forEach(function (form) { if (courseLines[form].children.length) shown[form] = courseLines[form].visible; });
+    return shown;
+  };
+  canvasEl.galaxyCourseUnknown = function () {
+    var list = courseGlows ? courseGlows.list : [];
+    return {
+      hops: list.length,
+      beads: list.map(function (glow) { return glow.sprites.filter(function (sprite) { return sprite.visible; }).length; }),
+      opacity: list.map(function (glow) { return glow.sprites[0].material.opacity; }),
+    };
+  };
+  if (course) connectCourseDiagram(canvasEl, document);
+
   // NAV.20: a click on a ringed stop opens its page. Registered ahead of the
   // stage view's own pointer handlers (which come later) and ending the event
   // for them, so a click on a ring never drills into the sector beneath it.
+  // NAV.69: the first click selects the stop (its ring grows and the course diagram marks it); a click on the selected ring opens its page.
   if (course) {
     var ringDown = null;
     var ringVector = new THREE.Vector3();
@@ -3674,7 +3789,10 @@ function initGalaxyMap3d(canvasEl, data) {
       ringDown = null;
       event.stopImmediatePropagation();
       var point = moved < 6 ? ringAt(event) : null;
-      if (point && point.url) window.location.href = point.url;
+      if (!point) return;
+      var index = course.points.indexOf(point);
+      if (index !== courseSelected) selectCourseStop(index, false);
+      else if (point.url) window.location.href = point.url;
     });
     canvasEl.addEventListener("pointermove", function (event) {
       canvasEl.style.cursor = ringAt(event) ? "pointer" : "";
@@ -3687,6 +3805,9 @@ function initGalaxyMap3d(canvasEl, data) {
   function updateCourseMarkers() {
     if (!courseMarkers.length) {
       return;
+    }
+    if (courseGlows) {
+      courseGlows.list.forEach(function (glow) { glow.update(camera, canvasEl.clientHeight, performance.now(), reducedMotion); });
     }
     var heightPx = canvasEl.clientHeight || 1;
     var per = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
@@ -3898,6 +4019,8 @@ function initGalaxyMap3d(canvasEl, data) {
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
     accentColor: accentColor, canGenerate: !!data.generate, courseSectors: courseSectors,
+    // NAV.21: with a course, the view opens fitted round every point of it (the route, the direct line and the adjusted lines).
+    courseFit: courseFitPoints.length >= 6 ? function () { return courseFitPoints; } : null,
     blockScene: localBlockScene,
     makeBlockMesh: makeBlockMesh,
     // MAP.131: the blocks' color modes, the legend of the chosen one and the
@@ -3991,7 +4114,7 @@ function initGalaxyMap3d(canvasEl, data) {
     labelHot: function (id) { if (galaxyLabels) galaxyLabels.setHot(id); },
     labelAct: function (label) { actOnLabel(label); },
     picker: picker,
-    clearSelection: function () { selectionRing.hide(); },
+    clearSelection: function () { selectionRing.hide(); if (planeView) planeView.select(null); if (sideStrip) sideStrip.setSelected(null); },
     restingHint: restingHint,
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
     // A sector page's map is locked to its sector (MAP.68): {shell, band,
@@ -4093,6 +4216,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var markersDirty = true;
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
+    markerKinds.register(NEBULA_KIND);
     MAP_INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
     markerLayer = createMarkerLayer(scene, camera, canvasEl, "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
@@ -4260,6 +4384,31 @@ function initGalaxyMap3d(canvasEl, data) {
   stageView.layers.onChange(function (id, on) {
     if (id === "spin") stageView.spinSwitch.set(on);
   });
+  // NAV.23: the forms of a NAV course are layers of the Menu, all shown: the route through its stops, the direct line from the start to
+  // the end, and the course bent round keep-out spheres. A saved course opens here (the Saved Courses list on the NAV page), and the
+  // visitor switches between its forms; the address keeps the choice.
+  if (courseLines) {
+    var courseForms = [
+      { form: "route", id: "course-route", label: "Course: route", title: "Show or hide the course through each of its stops" },
+      { form: "direct", id: "course-direct", label: "Course: direct line", title: "Show or hide the straight line from the start to the end of the course" },
+      { form: "adjusted", id: "course-adjusted", label: "Course: adjusted", title: "Show or hide the course bent round the keep-out spheres it would pass too close to" },
+    ].filter(function (item) { return courseLines[item.form].children.length > 0; });
+    courseForms.forEach(function (item) {
+      stageView.layers.register({
+        id: item.id, label: item.label, modes: ["galaxy"], group: "Show on the map", data: { course: item.form },
+        defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: item.title,
+      });
+    });
+    stageView.readLayersFromLocation();
+    stageView.layers.refresh();
+    var showCourseForms = function () {
+      courseForms.forEach(function (item) { courseLines[item.form].visible = stageView.layers.isOn(item.id); });
+    };
+    showCourseForms();
+    stageView.layers.onChange(function (id) {
+      if (id.indexOf("course-") === 0) showCourseForms();
+    });
+  }
   // The superbubbles are a layer of the Menu, off unless the visitor shows them.
   if (bubbleMeshes.length) {
     stageView.layers.register({
@@ -4499,9 +4648,15 @@ function initGalaxyMap3d(canvasEl, data) {
       });
     }
     if (course) {
-      layers.registerKey({ id: "key-course", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return true; } });
+      layers.registerKey({ id: "key-course", layer: "course-route", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return stageView.layers.isOn("course-route"); } });
+      if (course.points.some(function (point) { return point.hopUnknown; })) {
+        layers.registerKey({ id: "key-course-unknown", layer: "course-route", text: "Red dashed glowing line: a jump through unknown space", swatchClass: "map-key-course-unknown", drawn: function () { return stageView.layers.isOn("course-route"); } });
+      }
+      if ((course.adjusted || []).length) {
+        layers.registerKey({ id: "key-course-bent", layer: "course-adjusted", text: "Amber line: the course bent round a keep-out sphere", swatchClass: "map-key-bent", drawn: function () { return stageView.layers.isOn("course-adjusted"); } });
+      }
       if (course.direct && course.direct.length === 2) {
-        layers.registerKey({ id: "key-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return true; } });
+        layers.registerKey({ id: "key-direct", layer: "course-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return stageView.layers.isOn("course-direct"); } });
       }
     }
   })();
@@ -4551,8 +4706,8 @@ function initGalaxyMap3d(canvasEl, data) {
     cloudSprites.forEach(function (sprite) {
       var cloud = sprite.userData.cloud;
       var distance = camera.position.distanceTo(sprite.position);
-      if (!drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z) || distance < 1.2 * cloud.radius_pc) {
-        return;
+      if (cloud.field || !drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z) || distance < 1.2 * cloud.radius_pc) {
+        return;    // a field cloud has no name and no page to label (MAP.178)
       }
       found.push({
         id: "cloud:" + cloudKey(cloud), text: cloud.name || cloudTypeLabel(cloud),
@@ -4750,6 +4905,47 @@ function initGalaxyMap3d(canvasEl, data) {
       return region ? regionFacts(region) : null;
     }
     return item.type ? pointFacts(item) : interestFacts(item);
+  }
+
+  // MAP.180: the groups of nebulae. Below a single cloud (a cloud inside a group is picked first once it is big enough to aim at) and
+  // above the charted regions' spheres.
+  if (nebulaLayer) {
+    picker.addLayer({
+      name: "nebula-groups",
+      priority: 95,
+      pick: function (ctx) {
+        if (hiddenCell || groupWindow) return null;
+        var focal = focalPixels();
+        var here = camera.position.toArray();
+        var best = null;
+        nebulaLayer.blobs().forEach(function (blob) {
+          var look = groupLook(blob, here, focal);
+          if (!(look.alpha > NEBULA_GROUP_PICK_MIN_ALPHA)) return;
+          nebulaGroupSpot.set(blob.x, blob.y, blob.z).project(camera);
+          if (!(nebulaGroupSpot.z > -1 && nebulaGroupSpot.z < 1)) return;
+          var x = ctx.rect.left + (nebulaGroupSpot.x + 1) / 2 * ctx.rect.width;
+          var y = ctx.rect.top + (1 - nebulaGroupSpot.y) / 2 * ctx.rect.height;
+          var reach = Math.max(NEBULA_GROUP_PICK_MIN_PX, look.radiusPx * NEBULA_GROUP_PICK_SHARE);
+          var near = Math.hypot(ctx.clientX - x, ctx.clientY - y) / reach;
+          if (near <= 1 && (!best || near < best.near)) best = { near: near, blob: blob, distance: look.distance };
+        });
+        return best ? { entry: best.blob, distance: best.distance } : null;
+      },
+      tooltip: function (blob) { return nebulaGroupLabel(blob); },
+      hover: function (blob) { phenomenonHover(blob); },
+      select: flyToNebulaGroup,
+    });
+    canvasEl.__mapNebulaGroupSpots = function () {    // the browser tests aim at what is drawn: each group's place on the screen, in client pixels
+      var rect = canvasEl.getBoundingClientRect();
+      var focal = focalPixels();
+      var here = camera.position.toArray();
+      return nebulaLayer.blobs().map(function (blob) {
+        var look = groupLook(blob, here, focal);
+        var spot = new THREE.Vector3(blob.x, blob.y, blob.z).project(camera);
+        return { key: blob.key, count: blob.count, alpha: look.alpha, radiusPx: look.radiusPx, x: rect.left + (spot.x + 1) / 2 * rect.width,
+          y: rect.top + (1 - spot.y) / 2 * rect.height, visible: spot.z > -1 && spot.z < 1 };
+      });
+    };
   }
 
   picker.addLayer({
@@ -5005,6 +5201,9 @@ function initGalaxyMap3d(canvasEl, data) {
     return found;
   };
 
+  // MAP.375: what the side strip draws, for the browser tests (null while it has never been opened).
+  canvasEl.galaxySideStrip = function () { return sideStrip ? sideStrip.snapshot() : null; };
+
   canvasEl.galaxyPickableStars = function () {
     var width = canvasEl.clientWidth;
     var height = canvasEl.clientHeight;
@@ -5076,6 +5275,60 @@ function initGalaxyMap3d(canvasEl, data) {
   // docstring) -- the browser's own default context menu is left alone,
   // rather than preventDefault()-ing it for nothing.
 
+  planeView = createPlaneView({
+    THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl, parent: viewport, accentColor: accentColor,
+    focus: function () { return [target.x, target.y, target.z]; },
+    // MAP.373: the context of the coordinate labels: the center of the sector opened, else the galactic center.
+    context: function () {
+      var center = stageView.sectorCenter();
+      return center ? { kind: "sector", origin: center } : { kind: "galaxy", origin: [0, 0, 0] };
+    },
+    span: function () { return 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2); },
+    // MAP.372: what the stems may start from: the names the label engine has placed (not a region's, a sector's or a nebula's, which are
+    // places, not points) and the stars the map draws, brightest last.
+    stemSources: function () {
+      var named = galaxyLabels ? galaxyLabels.shown().filter(function (label) {
+        return label.x !== undefined && label.kind !== "region" && label.kind !== "sector" && label.kind !== "nebula";
+      }) : [];
+      return { named: named, stars: hiddenCell ? [] : pickableStars() };
+    },
+  });
+  // MAP.375: the side strip for height (galaxystrip.js), an option in the Menu and a drawer on a phone. A star picked in
+  // the strip is selected on the map as a click on it would select it; the map's selection rings in the strip.
+  var stripHost = document.getElementById("galaxymap3d-strip");
+  var stripButton = null;
+  if (stripHost) {
+    var phoneQuery = typeof window.matchMedia === "function" ? window.matchMedia("(max-width: 700px), (pointer: coarse)") : null;
+    sideStrip = createSideStrip({
+      host: stripHost,
+      accent: accentColor,
+      version: function () { return starSetVersion; },
+      getStars: function () { return pickableStars(); },
+      getShape: function () { return galaxyShape; },
+      getFocus: function () { return { x: target.x, y: target.y, z: target.z }; },
+      isPhone: function () { return !!(phoneQuery && phoneQuery.matches); },
+      onPick: function (star) {
+        highlightPosition(star.x, star.y, star.z);
+        showStarInfo(star);
+      },
+    });
+    var stripClose = stripHost.querySelector("[data-strip-close]");
+    if (stripClose) {
+      stripClose.addEventListener("click", function () { setSideStrip(false); });
+    }
+  }
+  function setSideStrip(on, button) {
+    if (!sideStrip) return;
+    if (button) stripButton = button;
+    sideStrip.setOn(on);
+    if (stripButton) stripButton.setAttribute("aria-pressed", String(on));
+    if (on) {
+      var menu = document.getElementById("galaxymap3d-menu");
+      if (menu && phoneQuery && phoneQuery.matches) menu.open = false;   // the drawer would sit under the open menu
+    }
+  }
+
+  describePosition = function (at) { return planeView.describe(at); };
   var controlsEl = document.getElementById("galaxymap3d-controls");
   if (controlsEl) {
     // Several buttons: let them wrap rather than run off the side panel.
@@ -5085,7 +5338,32 @@ function initGalaxyMap3d(canvasEl, data) {
       setTerritories: setTerritories,
       territoriesWanted: function () { return territoryWanted; },
       setChartedOnly: setChartedOnly,
+      // MAP.371: the plane view: the camera takes the tilt preset and the wedge gets its grid; the second button puts the grid in
+      // the galaxy's midplane instead of through the focus.
+      setPlaneView: function (on) {
+        planeView.set(on);
+        stageView.planeTilt(on);
+        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
+          var control = document.querySelector(selector);
+          if (control) control.disabled = !on;
+        });
+      },
+      setPlaneMidplane: function (on) { planeView.setMidplane(on); },
+      setPlaneStems: function (on) { planeView.setStems(on); },
+      setSideStrip: setSideStrip,
     }));
+  }
+  // MAP.373: the stems' height stretch, 1 (true) to 10 times.
+  var stretchInput = document.getElementById("galaxymap3d-plane-stretch");
+  if (stretchInput) {
+    stretchInput.addEventListener("input", function () {
+      planeView.setStretch(stretchInput.value);
+      var stretch = planeView.stretch();
+      var out = document.getElementById("galaxymap3d-plane-stretch-out");
+      var text = stretch > 1 ? stretch + " times" : "true";
+      if (out) out.textContent = text;
+      stretchInput.setAttribute("aria-valuetext", stretch > 1 ? stretch + " times true height" : "true height");
+    });
   }
   var menuEl = document.getElementById("galaxymap3d-menu");
   if (menuEl) {
@@ -5297,6 +5575,7 @@ function initGalaxyMap3d(canvasEl, data) {
     updateClouds();
     selectionRing.update();
     hoverRing.update();
+    if (sideStrip) sideStrip.update();
     updateCourseMarkers();
     if (markerLayer) {
       // MAP.321: the symbols change level when the hand-off turns (or the open system's bodies change).
@@ -5317,6 +5596,7 @@ function initGalaxyMap3d(canvasEl, data) {
       markerLayer.update();
     }
     if (sectorFrame) sectorFrame.update();
+    planeView.update();
     if (galaxyLabels) galaxyLabels.update(now, false);
     renderFrame();
   })();

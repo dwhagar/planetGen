@@ -33,6 +33,7 @@
 // - clearSelection(): a block was picked, so a phenomenon's ring goes;
 // - restingHint: what a pinned sector's panel says before a pick, back when it is cleared;
 // - canGenerate, courseSectors, sectorUrl(id), locate(name);
+// - courseFit() (optional, NAV.21): the flat [x, y, z, ...] points of a NAV course (parsecs); the map opens fitted round them;
 // - fetchSectorScene(id): a Promise of GET /sector/<id>/scene's JSON, the
 //   sector opened in place (MAP.66; galaxysector.js);
 // - fetchUnchartedScene({shell, band, wedge}) (optional): a Promise of the
@@ -95,6 +96,8 @@ const BUTTON_ZOOM = 1.25;
 // side and one above another. Cells touch: no space between them (Boss,
 // 2026-10-01).
 export const ISO_TILT = Math.atan(Math.SQRT2);
+// MAP.371: the plane view's tilt, from straight down: flatter than the isometric slant, so a grid on the plane and the heights above it read.
+export const PLANE_TILT = (62 * Math.PI) / 180;
 // Every view can be turned, moved and zoomed (Boss, 2026-10-01; the
 // whole galaxy too since MAP.85): drag turns it, right-drag or
 // Shift-drag moves it, the wheel or a pinch zooms. It turns any way by
@@ -282,14 +285,21 @@ export function createStageView(host) {
         (payload.sectors || []).forEach(function (sector) {
           sectors.set(cellKey(sector), sector);
         });
-        entry.value = { generated: generated, stats: stats, sectors: sectors, sectorGenerated: new Map() };
+        // MAP.177: the share of each cell inside a nebula, filled or not (`null`: the cover could not be read).
+        const covers = new Map();
+        (payload.nebula_cover || []).forEach(function (cell) {
+          covers.set(cell[0] + "/" + cell[1] + "/" + cell[2], cell[3]);
+        });
+        entry.value = { generated: generated, stats: stats, sectors: sectors, sectorGenerated: new Map(), covers: covers,
+          coverKnown: Array.isArray(payload.nebula_cover) };
         payload.sectors && payload.sectors.forEach(function (sector) {
           entry.value.sectorGenerated.set(cellKey(sector), 1);
         });
         entry.ready = true;
         return entry.value;
       }).then(null, function () {
-        entry.value = { generated: new Map(), stats: new Map(), sectors: new Map(), sectorGenerated: new Map(), failed: true };
+        entry.value = { generated: new Map(), stats: new Map(), sectors: new Map(), sectorGenerated: new Map(), covers: new Map(),
+          coverKnown: false, failed: true };
         entry.ready = true;
         dataCache.delete(key);
         return entry.value;
@@ -333,6 +343,13 @@ export function createStageView(host) {
       return sector ? sector.stats || null : null;
     }
     return data.stats.get(key) || null;
+  }
+
+  // MAP.177: the share of `block` inside a nebula (0 when none), or null when this window has no cover for it: a sector
+  // (the stored aggregates are of the blocks above one) or a payload whose cover could not be read.
+  function coverOf(block, data) {
+    if (!data || !data.coverKnown || block.m === 1) return null;
+    return data.covers.get(cellKey(block)) || 0;
   }
 
   // The choices a stage offers: [{pick, blocks, a0, a1}], one per block.
@@ -412,7 +429,7 @@ export function createStageView(host) {
           shell: block.shell, band: block.band, wedge: block.wedge,
           r0: b.r0, r1: b.r1, c0: b.c0, c1: b.c1, t0: b.t0, t1: b.t1,
           filled: filled, total: filled > 0 ? totalOf(block) : 0, stats: statsOf(block, data), block: block,
-          option: index,
+          cover: coverOf(block, data) || 0, option: index,
         };
       });
     });
@@ -1749,6 +1766,13 @@ export function createStageView(host) {
     tooltip.showAt(optionText(index), camera, canvasEl, middle[0], middle[1], middle[2]);
   }
 
+  // MAP.177: a share of a cell inside a nebula, for the hover text.
+  function coverText(cover) {
+    if (cover === null) return "nebula cover not charted here";
+    if (!(cover > 0)) return "no nebula";
+    return (cover >= 0.1 ? (cover * 100).toFixed(0) : cover >= 0.01 ? (cover * 100).toFixed(1) : (cover * 100).toFixed(2)) + "% inside a nebula";
+  }
+
   function blockText(block, data) {
     const b = block.bounds;
     const generated = generatedOf(block, data);
@@ -1760,6 +1784,7 @@ export function createStageView(host) {
       Math.round(b.r0) + "–" + Math.round(b.r1) + " pc from the core"];
     if (block.m === 1) parts.push(generated > 0 ? "charted" : "uncharted");
     else parts.push(S.formatCount(generated) + (block.total != null ? " of " + S.formatCount(block.total) : "") + " sectors charted");
+    if (colorBy === "cover") parts.push(coverText(coverOf(block, data)));
     return parts.join(", ");
   }
 
@@ -3014,6 +3039,26 @@ export function createStageView(host) {
     });
   }
 
+  // MAP.371: the plane view's tilt preset (`on`), or the stage's own tilt again (off): the camera turns about its target to the
+  // tilt, keeping the bearing it looks from, the target and the distance, and the user's zoom is read again from the new turn.
+  // Returns false when the camera is not free to move now.
+  function planeTilt(on) {
+    if (!resolved || animation || !display || !view) return false;
+    dropZoomGoal();
+    const from = viewNow();
+    const kept = view;
+    const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
+    const theta = Math.hypot(back.x, back.y) > 1e-6 ? Math.atan2(back.y, back.x) : -Math.PI / 2;
+    const to = { target: from.target.slice(), dist: from.dist, quat: presetQuat(theta, on ? PLANE_TILT : (enteredSystem || entered) ? ISO_TILT : presetTilt(resolved)) };
+    flyCamera(from, to, null, function () {
+      view = Object.assign({}, kept, { target: to.target.slice(), dist: to.dist, quat: to.quat.clone() });
+      const fit = fitNow();
+      if (fit > 0) view.zoom = view.dist / fit;
+      applyView();
+    });
+    return true;
+  }
+
   // Moves the orbit center to the selection (a star, cloud or body), or to
   // the middle of what the stage shows when nothing is selected, keeping the
   // angle and the zoom, so the mouse and the keys then turn and zoom about it
@@ -3549,6 +3594,49 @@ export function createStageView(host) {
     return coarsest && camera.dist <= MAX_ZOOM * coarsestFit ? coarsest : S.galaxyStage();
   }
 
+  // NAV.21: the camera a NAV course opens at: the stage's own turn, fitted round every point of the course (the route, the direct line and
+  // the adjusted lines) as the stage is fitted round its blocks, so the course is as large as the window allows with all of it in view
+  // (only the map's global limits hold it, as for every camera put at a place, MAP.333).
+  function courseCameraAt(quat) {
+    const points = host.courseFit ? host.courseFit() : null;
+    if (!points || points.length < 6) return null;
+    const low = [Infinity, Infinity, Infinity];
+    const high = [-Infinity, -Infinity, -Infinity];
+    for (let k = 0; k + 2 < points.length; k += 3) {
+      for (let axis = 0; axis < 3; axis++) {
+        low[axis] = Math.min(low[axis], points[k + axis]);
+        high[axis] = Math.max(high[axis], points[k + axis]);
+      }
+    }
+    if (!(Math.hypot(high[0] - low[0], high[1] - low[1], high[2] - low[2]) > 0)) return null;
+    const fit = centeredFit(points, [0, 1, 2].map(function (axis) { return (low[axis] + high[axis]) / 2; }), quat);
+    return { target: fit.target, dist: fit.dist, quat: quat.toArray(), course: true };
+  }
+
+  function courseCamera(r) {
+    return courseCameraAt(cameraFor(r).quat);
+  }
+
+  // The course view as it was put, while the visitor has not moved it: a resized window refits it (NAV.21). Any turn, pan or zoom ends it.
+  let courseFit = null;
+
+  function refitCourse() {
+    if (!courseFit || !view) return;
+    const kept = view.dist === courseFit.dist && view.quat.angleTo(courseFit.quat) < 1e-9 &&
+      view.target.every(function (value, axis) { return value === courseFit.target[axis]; });
+    if (!kept) {
+      courseFit = null;
+      return;
+    }
+    const next = courseCameraAt(view.quat);
+    const full = fitNow();
+    if (!next || !(full > 0)) return;
+    view.target = next.target.slice();
+    view.dist = Math.max(GLOBAL_FLOOR_PC, Math.min(globalFarPc(), next.dist));
+    view.zoom = view.dist / full;
+    courseFit = { target: view.target.slice(), dist: view.dist, quat: view.quat.clone() };
+  }
+
   // Puts the view at `camera` within stage `r` (the view already at the stage's own camera): the distance within
   // the zoom's range.
   function viewAtCamera(r, camera) {
@@ -3562,6 +3650,7 @@ export function createStageView(host) {
     // it lands in: the view is not pushed back out after a flight that came closer than the stage's nearest.
     view.zoom = Math.max(GLOBAL_FLOOR_PC, Math.min(globalFarPc(), camera.dist)) / full;
     view.dist = view.zoom * full;
+    courseFit = camera.course ? { target: view.target.slice(), dist: view.dist, quat: view.quat.clone() } : null;
   }
 
   // Writes the view's camera into the address in place (no history entry of its own) once it has been still for
@@ -3726,6 +3815,7 @@ export function createStageView(host) {
   // new size (MAP.53).
   function relayout() {
     if (active && view && !animation) {
+      refitCourse();
       reframe();
       applyView();
     }
@@ -3851,10 +3941,12 @@ export function createStageView(host) {
     }
     if (asked) return { stage: asked, camera: parsed.camera, sector: null, problem: null };
     let next = S.galaxyStage();
+    let course = false;
     if (useCourse && host.courseSectors && host.courseSectors.length) {
       next = S.courseStage(host.courseSectors, getOutline(), edgePc);
+      course = true;
     }
-    return { stage: next, sector: null, problem: parsed.problem };
+    return { stage: next, sector: null, problem: parsed.problem, course: course };
   }
 
   // Opens the stage the URL asks for (or the galaxy, with a notice).
@@ -3872,7 +3964,7 @@ export function createStageView(host) {
     let r = resolve(asked.stage);
     let problem = asked.problem || r.problem;
     if (r.problem) r = resolve(S.galaxyStage());
-    pendingCamera = r.problem ? null : asked.camera || null;
+    pendingCamera = r.problem ? null : asked.camera || (asked.course ? courseCamera(r) : null);
     selectedSector = asked.sector;
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;
@@ -4076,6 +4168,9 @@ export function createStageView(host) {
     onKey: onKey,
     onWheel: onWheel,
     resetView: resetView,
+    planeTilt: planeTilt,
+    // MAP.373: the center of the sector opened in place, or null.
+    sectorCenter: function () { return entered ? entered.center.slice() : null; },
     recenter: recenter,
     home: home,
     up: up,
