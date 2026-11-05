@@ -2174,6 +2174,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the wedge.
   Prerequisites: none. Related: MAP.75, MAP.371, MAP.373.
 
+- [ ] **MAP.378 The Galaxy Map no longer shows the fixture galaxy's charted sectors in the browser tests: 11 to 12 fixture-map tests are red alone on main (zoom stuck near 2.5e-8, no sector label, no Fixture Maw or Fixture Eden marker) (bug)**
+  Found by Core 3 and Core 2 while working TEST.575 (7:07 PM EST on
+  2026-11-04, as the lanes reported). Red alone, same on current main:
+  test_one_wheel_scroll_..., test_the_wheel_keeps_the_view_... (scroll
+  never reaches a sector, zoom stuck near 2.5e-8),
+  test_galaxy_map_names_a_generated_sector_in_its_window and
+  ..._heaviest_sectors_first (a sector label never appears),
+  test_galaxy_map_info_popup_stays_inside_the_map_window (4 sizes, the
+  'Fixture Maw' marker never appears),
+  test_galaxy_map_marks_gas_giants_... (marker set lacks 'Fixture
+  Eden'),
+  test_the_blocks_and_their_outlines_are_built_relative_to_origins (one
+  block layer, extentPc 15540 at origin 0, 75675 blocks),
+  test_galaxy_map_draws_block_lines_only_in_a_window (lines invisible at
+  rest), test_galaxy_map_turns_past_edge_on_and_under_the_plane (box
+  left -502, expected at least -1), and the menu,
+  window-fills-page-width and popup-grows-with-window tests. One cause
+  is likely: the map stopped drawing the fixture's charted sectors,
+  which could be a real regression in the continuous zoom (MAP.260 to
+  MAP.262 area) and not a test problem. Do: bisect to the commit that
+  turned the group red, decide whether the map or the fixture is wrong,
+  and fix it; if it is the fixture only, say what the real site does.
+  Done: the group green alone with the commit named in the note. This is
+  the remaining part of TEST.575's fixture-map share. Proposed owner:
+  Core 2, ahead of the PERF.233 measurement. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.575, MAP.376.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
