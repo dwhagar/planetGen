@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3266] - 2026-11-05
+
+**Headline:** The star backfill can now draw a whole sphere of space by blocks instead of cell by cell, giving the same stars much faster for the far bright bands, and the sky tier table reaches faint stars near the observer.
+
+### Changed
+
+- `bright_stars.backfill_sphere` and `backfill_mass_sphere` (VIEW.41) draw every cell whose centre lies within a radius, by the blocks of `backfill_cells` and `backfill_mass_cells`: a band on the candidate path is looked up block by block, so a sparse band costs one count per block of 256 cells and one lookup per candidate, and only the cells that hold a star are handed to the cell draw. The stars are exactly the ones the cell draw gives (tests/test_backfill_sphere.py compares them on the candidate path, the cell path and a mix, over a sphere that wraps past longitude 0, one on the core and one on the pole). Measured on a 3,500 parsec sphere the brightest band takes 281 seconds for 2.8 billion cells (reports/system-sky-sphere-draw-2026-11-05.md); VIEW.19 priced the cell draw at 2 to 30 microseconds a cell.
+- `spherical.sphere_rows` and `cell_in_sphere` split the walk of `enumerate_sectors_within_radius` into the rows a sphere crosses with their window of wedges, and the exact test of one cell; the enumeration is built on them and lists the same cells (it may list a row's wedges in another order). `bright_stars.bound_terms` and `bound_of` split `block_bound` into the parts that do not depend on the luminosity band; the bound is the same to the last bit.
+- `sky_tiers` (VIEW.24) counts a band's cost in block and row visits (`block_visits`, `BLOCK_VISIT_BUDGET` 1e8, replacing the cell budget): a dust-free 7.5 sky takes 4.3e7 visits instead of 8.3e9 cell visits, so no band is dropped by default. It adds mass rings under 1 solar mass (`NEAR_RING_MASSES_SOL`), each drawn as far as `RING_MIN_YIELD` (1 percent) of its stars still shows, 8 to 62 parsecs at 7.5. Registry rows SKT1, SKT3 to SKT6 (6.176). Nothing reads either yet; the charting step (VIEW.25) will.
+
+generation-output: unchanged
+
 ## [8.0.3265] - 2026-11-05
 
 **Headline:** The sky behind a system can now be drawn as one set of stars, each placed where its light left it (not shown on a page yet).
