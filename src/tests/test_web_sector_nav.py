@@ -1220,16 +1220,16 @@ def test_nav_course_diagram_marks_an_unknown_space_hop_and_does_not_link_a_stop_
 
 def test_nav_course_diagram_draws_the_neighbours_and_says_a_link_is_not_a_travel_lane(client, fake):
     """NAV.68: with the route's graph, stubs round the stops, the 'and N more' of a stop the cap cut, an arc between two stops that are
-    neighbours but no hop, and the page says a link is a neighbour relation and not a travel lane."""
+    neighbours but no hop, and the page says a link is a neighbor relation and not a travel lane."""
     fake.nav_graph = True
     html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
     diagram = re.search(r'<section class="panel nav-diagram".*?</section>', html, re.S).group(0)
     assert diagram.count('class="nav-diagram-neighbour nav-diagram-stub"') >= 3 * 3
     assert diagram.count('class="nav-diagram-neighbour nav-diagram-link"') >= 2 and "and 4 more" in diagram
-    assert "a link is a neighbour relation, not a travel lane" in diagram and "Neighbour (not a travel lane)" in diagram
+    assert "a link is a neighbor relation, not a travel lane" in diagram and "Neighbor (not a travel lane)" in diagram
     fake.nav_graph = False
     plain = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
-    assert "nav-diagram-stub" not in plain and "neighbour relation" not in plain
+    assert "nav-diagram-stub" not in plain and "neighbor relation" not in plain
 
 
 def test_nav_hides_the_route_when_it_is_the_direct_hop(client, fake):
