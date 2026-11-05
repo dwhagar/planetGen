@@ -3968,13 +3968,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.609 | tests/test_precision.py::test_the_floor_of_every_table_with_a_position_is_the_documented_one fails: the table set has an extra belt_members (bug) | none | done, PR #5157 |
 | TEST.610 | tests/test_api_job_runs.py::test_a_neighborhood_job_runs_its_sectors_through_the_wrapper counts 16 sectors where it expects 1 + 14 (bug) | none | done, PR #5157 |
 | TEST.611 | tests/test_radiative_convective.py::test_a_gas_without_a_fit_takes_the_table_heat_capacities_held_at_the_ends gives 38.69 against 31.63 +- 0.03 (bug) | none | done, PR #5154 |
-| TEST.612 | test_post_main_sequence.py::test_the_bright_pieces_are_exactly_the_ages_the_star_is_that_bright fails after test_bright_measure_exactness.py in one process (190 against 150 Gy) (bug) | none | open |
-| TEST.613 | tests/test_literal_insert.py (bright_stars_read_back_exactly_as_written, a_long_run_is_cut_into_statements) fail with pymysql 1136 Column count doesn't match value count (bug) | none | open |
+| TEST.612 | test_post_main_sequence.py::test_the_bright_pieces_are_exactly_the_ages_the_star_is_that_bright fails after test_bright_measure_exactness.py in one process (190 against 150 Gy) (bug) | none | done, PR #5165 |
+| TEST.613 | tests/test_literal_insert.py (bright_stars_read_back_exactly_as_written, a_long_run_is_cut_into_statements) fail with pymysql 1136 Column count doesn't match value count (bug) | none | done, PR #5165 |
 | TEST.614 | tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug) | none | open |
-| TEST.615 | tests/test_gen_fill_groups.py::test_a_member_in_a_decayed_group_is_built_from_the_hierarchy fails: a decayed group builds 1 star where at least 2 are expected (bug) | none | open |
+| TEST.615 | tests/test_gen_fill_groups.py::test_a_member_in_a_decayed_group_is_built_from_the_hierarchy fails: a decayed group builds 1 star where at least 2 are expected (bug) | none | done, PR #5165 |
 | TEST.616 | tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug) | none | open |
-| TEST.617 | tests/test_log_shell.py::test_update_sh_prints_its_own_lines_through_the_layer fails: update.sh echoes "The update steps are finished: waiting ..." without going through logrecord.sh (bug) | none | open |
-| TEST.618 | tests/test_deploy_scripts.py::test_scripts_only_name_repo_paths_that_exist fails: scripts/measure_tile_cache.py names db/nodes.py, which does not exist (bug) | none | open |
+| TEST.617 | tests/test_log_shell.py::test_update_sh_prints_its_own_lines_through_the_layer fails: update.sh echoes "The update steps are finished: waiting ..." without going through logrecord.sh (bug) | none | done, PR #5165 |
+| TEST.618 | tests/test_deploy_scripts.py::test_scripts_only_name_repo_paths_that_exist fails: scripts/measure_tile_cache.py names db/nodes.py, which does not exist (bug) | none | done, PR #5165 |
 | TEST.619 | tests/test_mass_conversions.py fails: galaxy/keepout.py and physics/remnant_composition.py each have one new mass multiply that does not go through the unit registry (bug) | none | open |
 | TEST.620 | tests/test_reproducible_draws.py fails: math.dist at db/field_clouds.py:51 and db/obstacles.py:158 must use detmath.dist (bug) | none | open |
 | TEST.621 | The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug) | none | open |

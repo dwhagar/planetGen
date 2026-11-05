@@ -17929,34 +17929,6 @@ clears each one.
   in.
   Prerequisites: none.
 
-- [ ] **TEST.612 test_post_main_sequence.py::test_the_bright_pieces_are_exactly_the_ages_the_star_is_that_bright fails after test_bright_measure_exactness.py in one process (190 against 150 Gy) (bug)**
-  Core 2 (as the lane reported, about 3:25 PM EST on 2026-11-05) saw the
-  test fail when run after tests/test_bright_measure_exactness.py in the
-  same process, on clean main too (190 bright-piece Gy against 150);
-  alone it passes. It looks like state leaked between the two files (a
-  cache, a monkeypatch not undone, or a module global). Tests run in one
-  process under the gate, so this can turn a gate red by file order. Do:
-  reproduce with the two files in that order, find the leaked state, fix
-  at the cause (restore the state in a fixture, or stop the module
-  keeping it), and add a test that runs the two in the opposite and same
-  order. Done: both orders pass. Lock-free. Version 8.1. Owner: Core 2.
-  Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **TEST.613 tests/test_literal_insert.py (bright_stars_read_back_exactly_as_written, a_long_run_is_cut_into_statements) fail with pymysql 1136 Column count doesn't match value count (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. Two tests fail at row 1 of the literal insert:
-  the statement the writer builds has a different number of values than
-  columns. Likely a column added to bright_stars or another table after
-  the writer or test was last updated. Done: both pass on current main
-  and the writer and the table agree. Owner: Bug 1. Do: reproduce on
-  current main first (a merge since may have fixed it), fix at the cause
-  with the property kept, never skip or loosen a test. Lock-free if
-  output is unchanged; tell the TODO thread if values change. Version
-  8.1. Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **TEST.614 tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug)**
   The Train Manager's full-suite run (as the lane reported, about 3:47
   PM EST on 2026-11-05, main e6939031f, the test run alone on clean
@@ -17966,18 +17938,13 @@ clears each one.
   it), fix at the cause with the property kept, never skip or loosen a
   test. Lock-free if output is unchanged; tell the TODO thread if values
   change. Version 8.1. Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **TEST.615 tests/test_gen_fill_groups.py::test_a_member_in_a_decayed_group_is_built_from_the_hierarchy fails: a decayed group builds 1 star where at least 2 are expected (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. assert 1 >= 2 on the number of stars. Find
-  whether the fill, the hierarchy or the test moved. Done: the test
-  passes on current main. Owner: Core 1. Do: reproduce on current main
-  first (a merge since may have fixed it), fix at the cause with the
-  property kept, never skip or loosen a test. Lock-free if output is
-  unchanged; tell the TODO thread if values change. Version 8.1. Filed
-  by the TODO thread.
+  Resolves with TEST.579 (Bug 1, as the lane reported) (3:59 PM EST on
+  2026-11-05): Main's PREVALENCE_BASE_SHARES still hold the old values
+  (asteroid_belt 0.039), so +1000 is not certain and the belt stays
+  None. The TEST.579 head (bug1/test579-base-shares eac2a5a48, in train
+  12) sets habitable_world 0.584 and asteroid_belt 0.653, and with those
+  values the test's 300 draws are all correct. No separate fix; TEST.614
+  retires when TEST.579 merges.
   Prerequisites: none.
 
 - [ ] **TEST.616 tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug)**
@@ -17992,29 +17959,6 @@ clears each one.
   kept, never skip or loosen a test. Lock-free if output is unchanged;
   tell the TODO thread if values change. Version 8.1. Filed by the TODO
   thread.
-  Prerequisites: none.
-
-- [ ] **TEST.617 tests/test_log_shell.py::test_update_sh_prints_its_own_lines_through_the_layer fails: update.sh echoes "The update steps are finished: waiting ..." without going through logrecord.sh (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. The lagging check finds an echo in update.sh
-  that does not use the logging layer. Done: the line goes through
-  logrecord.sh and the test passes. Owner: Aux 7. Do: reproduce on
-  current main first (a merge since may have fixed it), fix at the cause
-  with the property kept, never skip or loosen a test. Lock-free if
-  output is unchanged; tell the TODO thread if values change. Version
-  8.1. Filed by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **TEST.618 tests/test_deploy_scripts.py::test_scripts_only_name_repo_paths_that_exist fails: scripts/measure_tile_cache.py names db/nodes.py, which does not exist (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. Fix the path in the script (or delete the script
-  if it is dead, with its docs). Done: the test passes. Owner: Aux 7.
-  Do: reproduce on current main first (a merge since may have fixed it),
-  fix at the cause with the property kept, never skip or loosen a test.
-  Lock-free if output is unchanged; tell the TODO thread if values
-  change. Version 8.1. Filed by the TODO thread.
   Prerequisites: none.
 
 - [ ] **TEST.619 tests/test_mass_conversions.py fails: galaxy/keepout.py and physics/remnant_composition.py each have one new mass multiply that does not go through the unit registry (bug)**
