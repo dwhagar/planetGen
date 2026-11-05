@@ -599,8 +599,14 @@ that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
   travel lane, and the route's own hops are drawn over the neighbours. A hop's course text is left out
   where an "and N more" sits over it. Names and labels carry a halo of the panel's colour so a stub
   never cuts through their letters.
-  The route list's unknown-space hops are red as well. The NAV page's own map polyline and the
-  Galaxy Map course still draw an unknown-space hop like any other (NAV.36's remaining parts).
+  The route list's unknown-space hops are red as well.
+  **On the maps (NAV.36).** The NAV page's own map draws each run of known hops as one solid path and each
+  unknown-space hop as its own path: red, dashed, with an SVG glow filter (`navmap-glow`) and a title in words,
+  pulsing only without `prefers-reduced-motion`; a legend line under the map and a bullet in the map help say
+  what it is. The Galaxy Map's course draws the same hop (`hopUnknown` on the point it arrives at, from
+  `nav_page.galaxy_course`) as a red dashed line, with the glow a row of soft red sprites laid along it,
+  as many as the hop is long on the screen (`static/coursehops.js`), pulsing the same way, and a Key line
+  ("Red dashed glowing line: a jump through unknown space") shown only for a course that has one.
 - **Saved courses (NAV.39, phase 2).** A saved course (NAV.17) keeps which hops
   were unknown-space jumps; opening it checks again, since sectors may have
   been filled, and says what changed.

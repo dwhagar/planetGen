@@ -1147,6 +1147,25 @@ def test_nav_route_shows_the_longest_hop_and_unknown_space_jumps(client, fake):
     assert "1 jump crosses unknown space" in html
 
 
+def test_nav_map_and_galaxy_course_flag_the_unknown_space_hop(client, fake):
+    """NAV.36: the NAV page's map draws the unknown-space hop apart (red, glowing) and the Galaxy Map's course points say which hop arrives
+    through unknown space."""
+    from planetgen.web.nav_page import galaxy_course
+
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "navmap-route-unknown" not in html
+    fake.nav_unknown_space = True
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert 'class="navmap-route-line navmap-route-unknown"' in html and "red, dashed and glowing" in html
+    fake.nav_galaxy_scope = True
+    with client.application.test_request_context("/galaxy"):
+        flags = [point["hopUnknown"] for point in galaxy_course("system:1001", "system:2001")["points"]]
+    assert flags == [False, False, True]          # the fake route's second hop is the unknown one
+    fake.nav_unknown_space = False
+    with client.application.test_request_context("/galaxy"):
+        assert not any(point["hopUnknown"] for point in galaxy_course("system:1001", "system:2001")["points"])
+
+
 def test_nav_route_names_a_stop_in_unknown_space_by_its_kind_and_does_not_link_it(client, fake):
     """NAV.47: a stepping stone in unfilled space is named from the route, is no link, and is on the map."""
     fake.nav_stone = True

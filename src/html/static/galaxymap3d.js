@@ -63,6 +63,7 @@ const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const superbubble = await import(`./superbubble.js${VERSION_QUERY}`);
 const { connectCourseDiagram } = await import(`./coursediagram.js${VERSION_QUERY}`);
+const { courseRuns, createHopGlow, makeGlowTexture } = await import(`./coursehops.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
@@ -3542,6 +3543,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var courseMarkers = [];
   var courseRings = [];
   var courseSelected = null;
+  var courseGlows = null;
   var COURSE_RING_PX = 11;
   var COURSE_LABEL_PX = 13;
 
@@ -3554,7 +3556,24 @@ function initGalaxyMap3d(canvasEl, data) {
     scene.add(courseGroup);
     var linePoints = course.points.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
     // MAP.240: a line is an object at its first stop with offsets from it.
-    courseGroup.add(lineFrom(linePoints, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })));
+    // NAV.36: a hop through unknown space is drawn on its own, red, dashed and glowing; the known hops make solid runs.
+    var unknownColor = mapVar("--error", "#d64545");
+    courseRuns(course.points).forEach(function (run) {
+      var runPoints = linePoints.slice(run.from, run.to + 1);
+      if (!run.unknown) {
+        courseGroup.add(lineFrom(runPoints, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })));
+        return;
+      }
+      var hopLength = runPoints[0].distanceTo(runPoints[1]);
+      courseGroup.add(lineFrom(runPoints, new THREE.LineDashedMaterial({
+        color: new THREE.Color(unknownColor), depthTest: false, transparent: true, dashSize: hopLength / 24, gapSize: hopLength / 48,
+      }), true));
+      courseGlows = courseGlows || { texture: makeGlowTexture(THREE, unknownColor), list: [] };
+      var glow = createHopGlow(THREE, runPoints[0], runPoints[1], courseGlows.texture);
+      glow.group.renderOrder = 3;
+      courseGroup.add(glow.group);
+      courseGlows.list.push(glow);
+    });
     // NAV.20: with stops on the way, the straight line from the start to the
     // end is drawn apart from the route, dashed and muted.
     if (course.direct && course.direct.length === 2) {
@@ -3717,6 +3736,15 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.galaxyCourseStops = function () {
     return course ? course.points.map(function (point) { return { name: point.name, x: point.x, y: point.y, z: point.z }; }) : [];
   };
+  // NAV.36, for the browser tests: how many hops are drawn as jumps through unknown space and how many glow sprites show now.
+  canvasEl.galaxyCourseUnknown = function () {
+    var list = courseGlows ? courseGlows.list : [];
+    return {
+      hops: list.length,
+      beads: list.map(function (glow) { return glow.sprites.filter(function (sprite) { return sprite.visible; }).length; }),
+      opacity: list.map(function (glow) { return glow.sprites[0].material.opacity; }),
+    };
+  };
   if (course) connectCourseDiagram(canvasEl, document);
 
   // NAV.20: a click on a ringed stop opens its page. Registered ahead of the
@@ -3766,6 +3794,9 @@ function initGalaxyMap3d(canvasEl, data) {
   function updateCourseMarkers() {
     if (!courseMarkers.length) {
       return;
+    }
+    if (courseGlows) {
+      courseGlows.list.forEach(function (glow) { glow.update(camera, canvasEl.clientHeight, performance.now(), reducedMotion); });
     }
     var heightPx = canvasEl.clientHeight || 1;
     var per = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
@@ -4579,6 +4610,9 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     if (course) {
       layers.registerKey({ id: "key-course", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return true; } });
+      if (course.points.some(function (point) { return point.hopUnknown; })) {
+        layers.registerKey({ id: "key-course-unknown", text: "Red dashed glowing line: a jump through unknown space", swatchClass: "map-key-course-unknown", drawn: function () { return true; } });
+      }
       if (course.direct && course.direct.length === 2) {
         layers.registerKey({ id: "key-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return true; } });
       }

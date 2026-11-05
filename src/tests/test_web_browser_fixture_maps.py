@@ -5921,3 +5921,29 @@ def test_the_course_diagram_and_the_maps_course_select_each_other(page, map_site
     ring = page.evaluate(f"(p) => {canvas}.galaxyScreenOf(...p)", [stops[1]["x"], stops[1]["y"], stops[1]["z"]])
     page.mouse.click(ring["x"], ring["y"])
     page.wait_for_url(re.compile(r"/system/702"))
+
+
+def test_the_galaxy_maps_course_draws_a_jump_through_unknown_space_red_and_glowing(page, map_site, monkeypatch):
+    """NAV.36: a hop through unknown space is drawn apart on the Galaxy Map's course, as a row of glow sprites along it, and the key says
+    what it is; a course with no such hop has neither."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    assert page.evaluate(f"() => {canvas}.galaxyCourseUnknown().hops") == 0
+    keys = f"{canvas}.__mapLayers.keys().map((k) => k.id)"
+    assert "key-course-unknown" not in page.evaluate(f"() => {keys}")
+
+    course["points"][2]["hopUnknown"] = True
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    assert not errors, errors
+    unknown = page.evaluate(f"() => {canvas}.galaxyCourseUnknown()")
+    assert unknown["hops"] == 1
+    assert all(count >= 2 for count in unknown["beads"]), unknown
+    assert all(0.0 < opacity <= 0.2 for opacity in unknown["opacity"]), unknown
+    assert "key-course-unknown" in page.evaluate(f"() => {keys}")
