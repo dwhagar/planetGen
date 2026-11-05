@@ -3256,7 +3256,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain | none | done, PR #5047 |
 | VIEW.35 | System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL | none | done, PR #5049 |
 | VIEW.36 | System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points | none | done, PR #5049 |
-| VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars | none | open |
+| VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars | none | done, PR #5061 |
 | VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky | none | open |
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off | none | open |
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom | none | open |
