@@ -68,7 +68,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
+  BLACK_HOLE_KIND, NEBULA_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { NAMED_LIMIT } = await import(`./labelbudget.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
@@ -603,7 +603,7 @@ function starColor(temperatureK) {
   return [r, g, b].map(function (v) { return Math.min(255, Math.max(0, v)) / 255; });
 }
 
-var POINT_TYPE_LABELS = { black_hole: "Black Hole", neutron_star: "Neutron Star", quasar: "Quasar" };
+var POINT_TYPE_LABELS = { black_hole: "Black Hole", neutron_star: "Neutron Star", quasar: "Quasar", planetary_nebula: "Planetary Nebula", supernova_remnant: "Supernova Remnant" };
 
 // "Black Hole (Accreting)", "Neutron Star (Millisecond pulsar)".
 function pointTypeLabel(point) {
@@ -624,8 +624,7 @@ function pointFacts(point) {
     title: point.name || POINT_TYPE_LABELS[point.type] || "Phenomenon",
     fields: [
       ["Type", pointTypeLabel(point)],
-      ["Luminosity", formatLuminositySol(point.luminosity_sol)],
-    ].concat(point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
+    ].concat(NEBULA_POINT_TYPES[point.type] ? [] : [["Luminosity", formatLuminositySol(point.luminosity_sol)]], point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),
   };
@@ -2909,8 +2908,8 @@ function initGalaxyMap3d(canvasEl, data) {
       Object.defineProperty(node, "allStars", {
         value: (node.stars || []).concat((node.generated || []).map(function (star) {
           return Object.assign({ generated: true }, star);
-        }), (node.points || []).map(function (point) {
-          return Object.assign({ phenomenon: true }, point);
+        }), (node.points || []).filter(function (point) { return !NEBULA_POINT_TYPES[point.type]; }).map(function (point) {
+          return Object.assign({ phenomenon: true }, point);    // a scattered nebula (MAP.179) is a mark, not a point of light
         })),
       });
     }
@@ -4247,6 +4246,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var markersDirty = true;
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
+    markerKinds.register(NEBULA_KIND);
     MAP_INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
     markerLayer = createMarkerLayer(scene, camera, canvasEl, "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },

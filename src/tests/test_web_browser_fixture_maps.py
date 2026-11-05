@@ -395,7 +395,7 @@ def _open_menu(page):
 
 
 POI_LAYERS = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
-POI_DEFAULT_ON = ("marker-inhabited", "marker-habitable", "marker-gas-giant")
+POI_DEFAULT_ON = ("marker-inhabited", "marker-habitable", "marker-gas-giant", "marker-nebula")
 """The Menu's point-of-interest layers, and the ones that are on until the visitor says otherwise (MAP.303)."""
 
 
@@ -2923,6 +2923,23 @@ def _markers_until(page, done, seconds=20):
         if done(found) or time.monotonic() > deadline:
             return found
         page.wait_for_timeout(100)
+
+
+def test_scattered_nebulae_no_sector_has_built_are_marked_and_not_drawn_as_points_of_light(page, map_site):
+    """MAP.179: a planetary nebula or supernova remnant the galaxy has scattered and no sector has built is a mark (the Menu's Nebula marks,
+    on by default, `hide=marker-nebula` in the address), not a point of light among the stars; picking one shows its card."""
+    page.set_viewport_size(VIEWPORT)
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    found = _markers_until(page, lambda entries: sum(e["kind"] == "marker-nebula" for e in entries) >= 2)
+    names = sorted(e["name"] for e in found if e["kind"] == "marker-nebula")
+    assert names == ["Planetary nebula (uncharted)", "Supernova remnant (uncharted)"], found
+    _open_menu(page)
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-nebula"]')
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button.click()
+    assert "hide=marker-nebula" in page.url
+    gone = _markers_until(page, lambda entries: not any(e["kind"] == "marker-nebula" for e in entries))
+    assert not any(e["kind"] == "marker-nebula" for e in gone)
 
 
 def _hole_names(page):
