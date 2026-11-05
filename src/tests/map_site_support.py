@@ -163,6 +163,17 @@ NEBULA_OVER_THE_FIELD = {
 block (all unfilled space: the generated sectors are in the core) is inside it."""
 NEBULAE = (NEBULA_CLOUD, NEBULA_OVER_THE_FIELD)
 
+SCATTERED_NEBULAE = (
+    {"type": "planetary_nebula", "id": "s9001", "name": "Planetary nebula (uncharted)", "descriptor": "scattered", "luminosity_sol": 0.0,
+     "scattered": True, "size": 0.4, "charted": False, "map_luminosity_sol": 0.0, "mass_solar": None,
+     "x": STAR_FIELD_CENTER_PC[0] - 70.0, "y": STAR_FIELD_CENTER_PC[1] + 30.0, "z": STAR_FIELD_CENTER_PC[2]},
+    {"type": "supernova_remnant", "id": "s9002", "name": "Supernova remnant (uncharted)", "descriptor": "scattered", "luminosity_sol": 0.0,
+     "scattered": True, "size": 0.4, "charted": False, "map_luminosity_sol": 0.0, "mass_solar": None,
+     "x": STAR_FIELD_CENTER_PC[0] + 80.0, "y": STAR_FIELD_CENTER_PC[1] - 30.0, "z": STAR_FIELD_CENTER_PC[2]},
+)
+"""Two scattered nebulae no sector has built (MAP.179): a node of 81 sectors or fewer lists the ones inside it among its `points`, as
+the real node does, for the map to mark."""
+
 FIELD_CLOUD = {
     "type": "nebula", "id": "field-1.2.3.4", "name": None, "descriptor": "dark", "class": "N", "radius_pc": 9.0, "field": True,
     "x": STAR_FIELD_CENTER_PC[0] + 60.0, "y": STAR_FIELD_CENTER_PC[1] + 40.0, "z": STAR_FIELD_CENTER_PC[2],
@@ -933,6 +944,8 @@ class FixtureApi:
                 lit = self.buckets.get(DrillBlock(*block), [])
                 stars = lit[:NODE_SECTOR_STARS if block.m == 1 else NODE_STARS]
             points = [point for point in self.points if address_in_block(self._address(point), block, self._memo)]
+            if block.m <= 81:
+                points += [point for point in SCATTERED_NEBULAE if address_in_block(self._address(point), block, self._memo)]
             worlds = [system for system in self.worlds
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             giants = [system for system in GIANT_FIELD

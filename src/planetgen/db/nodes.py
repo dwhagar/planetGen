@@ -52,6 +52,10 @@ NODE_POINTS = 60
 NODE_CLOUDS = 120
 """int: Most nebulae and supernova remnants a block node lists."""
 
+NODE_NEBULA_POINTS = 60
+"""int: Most scattered planetary nebulae and supernova remnants (not yet built into a sector) a block node lists beside its
+`points`, for the map to mark (MAP.179)."""
+
 NODE_NEBULA_REGIONS = 600
 """int: Most nebula regions a block node lists (MAP.173), largest volume first. A block's regions are its children that hold a
 nebula's centre (27 at most for a block of the ladder), so the budget only bites where the ladder is made finer."""
@@ -289,6 +293,10 @@ def galaxy_nodes(conn, node_keys):
                 conn, lo, hi, edge_pc, points_limit * POOL, coarse)
             if inside(_point_address(point, edge_pc))], [])
         points = (points + scattered)[:points_limit]
+        if not coarse:    # MAP.179: the scattered nebulae, marked from far away; a coarse node's 'points' keep to the biggest holes
+            points += piece("nebula_points", lambda: [
+                point for point in query.galaxy_scattered_nebulae_in_box(conn, lo, hi, edge_pc, NODE_NEBULA_POINTS)
+                if inside(_point_address(point, edge_pc))], [])
         interest_systems = [] if coarse else piece("interests", lambda: [
             system for system in query.galaxy_system_interests_in_box(conn, lo, hi, limit=points_limit * POOL)
             if inside(_point_address(system, edge_pc))][:points_limit], [])

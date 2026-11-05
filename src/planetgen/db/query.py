@@ -5807,6 +5807,64 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
                       lambda point: int(point["size"] / SCATTERED_SIZE_BAND), lambda point: point["id"])
 
 
+SCATTERED_NEBULA_CLASSES = (
+    ("planetary-nebula", None, "planetary_nebula", "Planetary nebula"),
+    ("supernova-remnant", None, "supernova_remnant", "Supernova remnant"),
+)
+"""tuple: `(scatter kind, subtype, map type, label)` for the scattered nebulae the Galaxy Map marks before their sector is
+filled (MAP.179). Their rows are drawn as marks, not as points of light among the stars."""
+
+
+def galaxy_scattered_nebulae_in_box(conn, lo, hi, edge_pc, limit):
+    """
+    The scattered planetary nebulae and supernova remnants (`phenomenon_scatter`, not yet built into a sector) whose position lies in
+    the box `[lo, hi)`, at most `limit` (MAP.179): the points the map marks from far away, before their sector is filled. A row that is
+    built is a stored nebula, which the node lists in `clouds` (`galaxy_clouds_in_box`), so a built row is never listed here and no
+    nebula is on the map twice (GEN.202).
+
+    Returns:
+        list[dict]: Points as `galaxy_scattered_points_in_box` makes them (`type` `planetary_nebula` or `supernova_remnant`, `id`
+        `s<row>`, `name` "... (uncharted)", `scattered`, `charted` false, `x`/`y`/`z`), lowest id first, thinned evenly by `_even_pick`
+        when there are more than `limit`.
+    """
+    bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
+    if not bands:
+        return []
+    if len(bands) > SCATTERED_MAX_SHELL_RANGES:
+        where_address = "shell_index BETWEEN ? AND ?"
+        address_params = [bands[0][0], bands[-1][0]]
+    else:
+        where_address = "(" + " OR ".join("(shell_index = ? AND band_index BETWEEN ? AND ?)" for _ in bands) + ")"
+        address_params = [v for band in bands for v in band]
+    kinds = " OR ".join("kind = ?" for _ in SCATTERED_NEBULA_CLASSES)
+    kind_params = [cls[0] for cls in SCATTERED_NEBULA_CLASSES]
+    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    rows = conn.execute(
+        f"""
+        SELECT id, kind, position_x_mpc, position_y_mpc, position_z_mpc
+        FROM phenomenon_scatter
+        WHERE built_at IS NULL AND {where_address} AND ({kinds})
+          AND position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ?
+          AND position_z_mpc >= ? AND position_z_mpc < ?
+        ORDER BY id
+        LIMIT ?
+        """,
+        (*address_params, *kind_params, *box_params, int(limit) * EVEN_DROP_POOL),
+    ).fetchall()
+    kind_of = {cls[0]: (cls[2], cls[3]) for cls in SCATTERED_NEBULA_CLASSES}
+    points = []
+    for row in rows:
+        map_type, label = kind_of[row["kind"]]
+        points.append({
+            "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)", "descriptor": "scattered",
+            "luminosity_sol": 0.0, "scattered": True, "size": 0.4, "charted": False, "map_luminosity_sol": 0.0, "mass_solar": None,
+            "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
+            "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
+        })
+    return _even_pick(points, limit, lambda point: (-point["size"], point["id"]),
+                      lambda point: int(point["size"] / SCATTERED_SIZE_BAND), lambda point: point["id"])
+
+
 TILE_PIECE_SECONDS = 3.0
 """float: The statement time limit of each piece of a Galaxy Map node (PERF.76): placed sectors, sector count,
 clouds, bright stars, generated stars, points and scattered points. A piece that runs past it is left out of
@@ -6306,7 +6364,7 @@ def galaxy_node_keys(shell, band, wedge):
     return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
 
 
-TILE_FORMAT = 11
+TILE_FORMAT = 12
 """int: The version of what the Galaxy Map's stored nodes and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_node`, `tilepack`, `db.nodes.galaxy_nodes`, `galaxy_stage`). A change that alters those bytes for
 the same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored files are rebuilt once;
@@ -6314,7 +6372,7 @@ a release that does not alter them leaves every stored node valid (PERF.133). 2:
 (MAP.258) moved the rows and wedges of every level, so a stored stage names other blocks. 3: nodes replace the cube tiles
 (MAP.262), whose files are dropped with the generation. 5: a node of a charted region carries its `name` and `parent`
 (API.35), and so does the stage of a 9-block and each charted 9-block child of a stage. 6: a 9-block's node carries its
-`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant). 9: a node of 729, 243, 81, 27 or 9 sectors lists its nebula regions, `nebula_regions` (MAP.173). 10: a node's `interests` name each system by its printed ID, not its row id (the map's View system link and nearest-systems list took the row id and found no system). 11: a node of 81 sectors or fewer lists the field clouds no sector has stored yet among its `clouds`, each with `field` true (MAP.178)."""
+`extent` (MAP.319). 7: a 9-block's node carries `charted` (its sectors and share), and a node of 27, 81 or 243 sectors lists the charted regions inside it, `regions` (MAP.314). 8: the node's `worlds` section is `interests` (MAP.305): the systems worth a mark, each with its `reasons` (a habitable world, a gas giant). 9: a node of 729, 243, 81, 27 or 9 sectors lists its nebula regions, `nebula_regions` (MAP.173). 10: a node's `interests` name each system by its printed ID, not its row id (the map's View system link and nearest-systems list took the row id and found no system). 11: a node of 81 sectors or fewer lists the field clouds no sector has stored yet among its `clouds`, each with `field` true (MAP.178). 12: a node of 81 sectors or fewer lists the scattered planetary nebulae and supernova remnants no sector has built among its `points` (MAP.179)."""
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
 """int: Most changed sectors `galaxy_changes` lists nodes for. More than
