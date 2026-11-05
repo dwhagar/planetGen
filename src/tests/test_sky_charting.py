@@ -67,6 +67,28 @@ def test_a_sphere_is_drawn_when_a_recorded_one_of_the_same_band_holds_it():
     assert not ledger.drawn("mass", 50.0, 100.0, (10.0, 0.0, 0.0), 10.0)
 
 
+# --- the limit a run charts to ----------------------------------------------------------------------------------------------------------------------
+
+def test_the_setting_gives_the_sky_limit_a_run_charts_to_and_the_command_line_overrides_it(monkeypatch):
+    import argparse
+    from planetgen.util import settings
+    monkeypatch.delenv("PLANETGEN_SKY_LIMIT", raising=False)
+    assert settings.Queue().sky_limit == 7.5                                          # on by default: charting builds the tiers when a system is charted
+    assert sky_charting.limit_of(argparse.Namespace()) == 7.5
+    monkeypatch.setenv("PLANETGEN_SKY_LIMIT", "6.0")
+    assert sky_charting.limit_of(argparse.Namespace(sky_limit=None)) == 6.0
+    assert sky_charting.limit_of(argparse.Namespace(sky_limit=8.0)) == 8.0
+    assert sky_charting.limit_of(argparse.Namespace(sky_limit=0.0)) is None           # the command line turns it off for a run
+    monkeypatch.setenv("PLANETGEN_SKY_LIMIT", "0")
+    assert sky_charting.limit_of(argparse.Namespace(sky_limit=None)) is None
+    assert sky_charting.limit_of(argparse.Namespace(sky_limit=7.5)) == 7.5
+
+
+def test_the_test_suite_charts_without_the_sky_tiers():
+    from planetgen.util.settings import get_settings
+    assert get_settings().queue.sky_limit == 0                                        # tests/conftest.py: a toy galaxy would take minutes to walk a real table
+
+
 # --- a tier drawn over a sphere ---------------------------------------------------------------------------------------------------------------------
 
 MASS_PASS = ("--mass", "--phenomenon-min-mass", "20")

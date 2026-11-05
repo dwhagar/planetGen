@@ -1275,16 +1275,17 @@ def _database_time(text):
 
 
 def add_sky_arguments(parser):
-    """Adds `--sky-limit` (VIEW.25): draw the sky tiers of the observer cells the new sectors lie in, for a limiting magnitude, after the bright-star backfill. Off unless given."""
+    """Adds `--sky-limit` (VIEW.25): draw the sky tiers of the observer cells the new sectors lie in, for a limiting magnitude, after the bright-star backfill; the `queue.sky_limit` setting when not given."""
     parser.add_argument('--sky-limit', type=float, default=None, metavar='MAG',
                         help="Also draw the stars the sky of a system shows, to this limiting magnitude (2 to 9; the sky page's default is 7.5), over the "
-                             "50-parsec cells the new sectors lie in, after the bright-star backfill. A cell already drawn costs nothing. Default: off.")
+                             "50-parsec cells the new sectors lie in, after the bright-star backfill. A cell already drawn costs nothing. 0 draws none. Default: the "
+                             "queue.sky_limit setting (7.5).")
 
 
 def validate_sky_arguments(args, parser):
     """Validates `add_sky_arguments`'s option."""
-    if getattr(args, 'sky_limit', None) is not None and not 2.0 <= args.sky_limit <= 9.0:
-        parser.error("--sky-limit must be between 2 and 9.")
+    if getattr(args, 'sky_limit', None) is not None and args.sky_limit != 0.0 and not 2.0 <= args.sky_limit <= 9.0:
+        parser.error("--sky-limit must be 0 (none) or between 2 and 9.")
 
 
 def add_since_arguments(parser):

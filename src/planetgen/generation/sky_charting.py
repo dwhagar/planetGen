@@ -55,6 +55,21 @@ class Drawn:
     skipped: bool = False
 
 
+MIN_SKY_LIMIT = 2.0
+"""float: The brightest limiting magnitude a sky is built for; a setting under it builds none (`queue.sky_limit` 0 is off)."""
+
+
+def limit_of(args):
+    """
+    The limiting magnitude a run's charting builds the sky tiers for, or `None` for none: the command's `--sky-limit` when given (0 is none), else the `queue.sky_limit` setting
+    (7.5 unless the deployment changed it; 0 is none).
+    """
+    from planetgen.util.settings import get_settings
+    given = getattr(args, "sky_limit", None)
+    limit = get_settings().queue.sky_limit if given is None else float(given)
+    return float(limit) if limit >= MIN_SKY_LIMIT else None
+
+
 def observer_cell(observer_pc):
     """The 50 parsec cell of an observer and its centre, galactocentric parsecs."""
     cell = sky_band.cell_of(observer_pc)

@@ -694,9 +694,11 @@ class BackfillFollower(followed.Follower):
         self.bar = None
 
     def params(self):
+        from planetgen.generation import sky_charting
+        sky_limit = sky_charting.limit_of(self.args)
         return {"since": since_param(self.started_at),
                 **({} if self.center_pc is None else {"center_pc": list(self.center_pc)}),
-                **({} if getattr(self.args, "sky_limit", None) is None else {"sky_limit": float(self.args.sky_limit)})}
+                **({} if sky_limit is None else {"sky_limit": sky_limit})}
 
     def on_plan(self, plan):
         if plan["detail"].get("skip"):
