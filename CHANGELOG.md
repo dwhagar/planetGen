@@ -2,6 +2,37 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3367] - 2026-11-05
+
+**Headline:** A planet's or moon's page shows its sky color again, as the first row of the Atmosphere section.
+
+### Fixed
+
+- **The "Atmosphere color" row had gone from the planet and moon page.** The row (a color chip and a word such as "pale blue", GEN.420) lived in the description's facts table of the body, which the redesigned page (UX.215 to UX.222) does not draw, and the Atmosphere section is built from the property sheet, which leaves the color out. The page now takes the row from the description and puts it first in the Atmosphere section, for a body with a solid surface and an air that lets light through.
+
+## [8.0.3366] - 2026-11-05
+
+**Headline:** The rogue-planet kind no longer shows a work-item code in its description.
+
+### Fixed
+- **The rogue-planet kind's description named GEN.1111.** The sentence is reworded without the item code, which `test_no_todo_codes_shown` refuses. The wiring-register lines of the rogue mass function, the cluster unbinding and the rogue density now name GEN.1287, GEN.1288 and GEN.1289.
+
+## [8.0.3365] - 2026-11-05
+
+**Headline:** The rogue-planet code that the planet chain replaced is deleted.
+
+### Changed
+- **GEN.1286: the unread rogue_volatiles and rogue_radiogenic modules are deleted.** A rogue planet is built by the one planet chain against a starless host, which already gives its giant class from its radius, its water from where it formed against the snow line, its radiogenic content from the donor's composition and its air from its own conditions, so the two modules were never needed. They go with their tests, the stand-in sections 6.111 and 6.114 (rows EV1, EV2, RY1), their register lines and the five tuning defaults they replaced (`ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`, `ROGUE_HYDROGEN_ENVELOPE_CHANCE`, `ROGUE_WATER_RICH_CHANCE`, `ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH`, `ROGUE_ACTIVE_HEAT_FLUX_W_M2`) and the unread `ROGUE_TIDAL_FLUX_RANGE_W_M2`. Generation output is unchanged. Not modelled, as before: the envelope a planet loses to its star's XUV in the time before the ejection.
+
+## [8.0.3364] - 2026-11-05
+
+**Headline:** Every cache warm-up now writes its own record to `warmup.log` in the log folder, in local time with its zone.
+
+### Changed
+
+- `planetgen warm` appends each run to `warmup.log` itself (next to `planetgen.log`, in `log_dir`): a line that says what started it (update stage 1 or 2, by hand, or a change such as an orbit update) and the time limit, the lines the run printed, each with the local time and its zone, and a last line that says it finished, was ended (by a signal or Ctrl+C) or failed, and after how long. Runs are added one after another, and the background warm-up that starts after a change, which wrote nowhere before, is in it too. The file is rotated with the other logs of the folder.
+- `update.sh` no longer pipes the warm-up through `tee`, so the progress bars draw on its terminal as its comments say, and the old overwritten `/tmp/planetgen-warm-map.log` is gone. A warm-up whose log file cannot be written says so once and goes on.
+
 ## [8.0.3363] - 2026-11-05
 
 **Headline:** The program's log lines are now made and written by one module, with one formatter, and the shell's log helper takes its words from it.
