@@ -14140,8 +14140,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.383, GEN.115.
 
 - [ ] **GEN.1285 The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3)**
-  Tides 1 (as the lane reported, about 5:27 PM EST on 2026-11-05;
-  reports/map383-background-rule-2026-11-05.md): the stellar mass the
+  Measured by Tides 1 (as the lane reported, about 6:35 PM EST on
+  2026-11-05; reports/gen1285-potential-fit-2026-11-05.md): the potential
+  holds 25 to 40 percent too little stellar density through the disk (1
+  to 10 kpc) and too little in the bulge beyond 700 pc, has a 40 times
+  cusp at the centre, and 2 to 20 times too much beyond 16 kpc; masses
+  are right. With the model's own stars the rotation curve rises 9
+  percent at the Sun's radius and 25 to 27 percent at 1 to 4 kpc. Chosen
+  fix (build only, no epoch needed to build): tabulate the stellar
+  potential of the density model once per galaxy by a ring sum on a log
+  (R, z) grid, cached and interpolated, which removes stand-ins GP1 to
+  GP3. NOT lock-free: the circular speed feeds galactic_orbit and the
+  cluster generators, so every generated velocity changes; it is a lock
+  item (epoch) for the next open train.
+  Earlier note (about 5:27 PM EST; reports/map383-background-rule-2026-11-05.md): the stellar mass the
   smooth potential (GEN.115) carries differs from the stellar density
   the density model generates from, by -15 percent at the solar circle
   and +19 percent in the bulge, so the background rule of MAP.383
@@ -18353,6 +18365,15 @@ clears each one.
   same galaxy and seed. Done: the file runs in the changed-files gate
   whenever a ships module changes.
   Prerequisites: USR.29, POP.11, MAP.391. Related: USR.10.
+
+- [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
+  Do: the tabulated potential matches a direct ring sum of the density
+  model at the solar circle, the bulge, the disk edge and beyond 16 kpc
+  inside the stated tolerance; the circular speed at the Sun matches the
+  model; the cache is rebuilt only when the galaxy changes; stand-in
+  rows GP1 to GP3 are gone from GEN.725. Version 8.3. Owner: Tides 1.
+  Filed by the TODO thread.
+  Prerequisites: GEN.1285. Related: GEN.115, GEN.725.
 
 ## USR: User accounts
 
