@@ -840,7 +840,7 @@ with `clamp()`.
   page and the lists. Owner Core 2 (map labels, infobox) with Core 5
   (pages), proposed by the TODO thread. Related: GEN.1254, GEN.1255,
   API.38. Filed by the TODO thread.
-  Prerequisites: GEN.1254, GEN.1255.
+  Prerequisites: GEN.1254.
 
 - [ ] **UX.260 Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere**
   Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
@@ -2456,28 +2456,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
 
-- [ ] **NAV.68 Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more'**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  4 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: faint stubs
-  around each stop from part 1's neighbours, capped per stop (the
-  label-budget idea) with 'and N more' where a dense stop has more; the
-  route's own hops always drawn. Done: a browser test in a dense and a
-  sparse case. Proposed owner: Core 2. Goal #1679. Filed by the TODO
-  thread.
-  Prerequisites: NAV.67.
-
 - [ ] **NAV.69 Schematic route map part 5: linked selection between the course diagram and the Galaxy Map**
   Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
   questions
@@ -2565,32 +2543,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   editing surface; the diagram is a better one than the 3D map, a later
   part). Goal #1679. Filed by the TODO thread.
   Prerequisites: NAV.6.
-
-- [ ] **NAV.73 Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug)**
-  Aux 7 (as the lane reported, 8:38 PM EST on 2026-11-04), found while
-  building NAV.65. db/corridor._systems_of and query._load_nav_endpoint
-  add a system's sector-local offset to its sector centre without
-  turning it by the sector's axes (frame.local_to_galaxy_pc,
-  sector_orientation). So a routed system sits up to a few light-years
-  from its stored galaxy_x_pc, galaxy_y_pc and galaxy_z_pc, the position
-  the Galaxy Map, the nearby search and the cell index use. Measured 2.7
-  to 4.5 ly on a sector at longitude about 58 degrees; near zero only
-  for sectors on the +X axis. It shifts the hop lengths and the courses
-  of every cross-sector route and the in-sector shift-back
-  (sector_offset). NAV.65 works around it by reading each stop and its
-  neighbours from the index columns, so its links are self-consistent,
-  and keeps the route's own hop lengths on the on-route edges. Do: make
-  route positions come from frame.local_to_galaxy_pc, and make the
-  shift-back use galaxy_to_local_pc; then the NAV.65 workaround can read
-  the same positions as the route. Done: a test on a sector at a
-  non-zero longitude where every routed system's position equals its
-  stored galaxy position to within rounding, and the hop lengths of a
-  cross-sector route equal the distances between the stored positions. A
-  route's length changes for Boss: routes now measure true distances.
-  Lock-free (no stored value changes; cached routes, if any, are
-  rebuilt). Version 8.1. Owner: Aux 7, after NAV.66. Filed by the TODO
-  thread.
-  Prerequisites: none. Related: NAV.65, NAV.66.
 
 ## GEN: Generation and physics
 
@@ -14045,42 +13997,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1255, GEN.1256, GEN.1257. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **GEN.1255 Local names from the Object ID: the serial and body number spelled alone as two words through a keyed bijective scramble, CODEC_VERSION 2**
-  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
-  questions of reports/id-names-without-region-prefix-2026-11-04.md
-  section 7 (research thread): (1) a name is the local part of the
-  Object ID only, two words, with the sector shown beside it, and the
-  uid stays the identity; (2) one uid-derived scheme for every ID-named
-  object, retiring the position-ID names of rogues, nebulae and the
-  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
-  old derived name is kept as a Formerly line when charting gives a
-  word-salad name. This item is question 1. Today an ID-derived name
-  spells the whole position ID as four words (36 characters), so objects
-  born near each other share their leading words. Do: in
-  names/naming_key.py add a local-name function that spells only the
-  serial (28 bits, of which 26 are count bits) and body number, in its
-  own codec domain so it never carries the sector's words, as two words
-  of about 10 characters ('Hairun Binn'). The raw serial must be
-  scrambled first with a keyed bijection on the 26 count bits (odd
-  multiplier and offset, mixed with the sector), because serials 0, 1, 2
-  spelled directly share their first word; the research check gave 1,000
-  serials as 1,000 different first words and names. The scramble is a
-  bijection, so the name is reversible with the key. The sector
-  designation is shown beside the name wherever a name stands alone
-  ('Hairun Binn, sector 00FA0FFFE9E240'); name inside a sector is exact,
-  and on its own it is shared with another object about 1 time in 27 at
-  10 million objects, which the sector settles. A naming-key change
-  renames ID-named objects without rewriting rows. CODEC_VERSION goes to
-  2 (golden words change; testing mode). Stored data and the generator
-  are untouched, so this is lock-free. Done: golden words; a bijection
-  test for the scramble; a test that local names are unique inside a
-  sector and that no two serials of a sector share a first word;
-  reversal from the name and sector back to the uid; naming docs
-  updated. Owner Aux 7 (idle after TEST.562, proposed by the TODO
-  thread). Related: GEN.70, GEN.71, GEN.120, GEN.1254. Filed by the TODO
-  thread.
-  Prerequisites: none.
-
 - [ ] **GEN.1256 One uid-derived name scheme for every ID-named object: rogues, nebulae, remnants, quasars, comets, asteroid fields and black holes stop using the position ID as a name**
   Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
   questions of reports/id-names-without-region-prefix-2026-11-04.md
@@ -14106,7 +14022,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   position-ID spelling; the audit written into the item's note. Owner
   Planets 1 (rogues and the phenomena stores) after GEN.1111. Related:
   GEN.64, GEN.71, GEN.1254, GEN.1255. Filed by the TODO thread.
-  Prerequisites: GEN.1254, GEN.1255.
+  Prerequisites: GEN.1254.
 
 - [ ] **GEN.1257 Charting keeps the old ID-derived name as the first Formerly line when a word-salad name replaces it**
   Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
@@ -14131,7 +14047,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Formerly line shows the date and reason 'charted'. Owner Core 1
   (designation history). Related: GEN.1138, GEN.1140, GEN.1141,
   GEN.1254, GEN.1255. Filed by the TODO thread.
-  Prerequisites: GEN.1254, GEN.1255.
+  Prerequisites: GEN.1254.
 
 - [ ] **GEN.1258 Store an ammonia-water fraction for icy bodies so class X (ammonia-water) can join the class-by-domain fit table**
   Core 4, 6:25 PM EST on 2026-11-04 (as the lane reported), built the
@@ -15277,28 +15193,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation and which are load.
   Prerequisites: none.
 
-- [ ] **PERF.232 test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug)**
-  Found by Aux 3's sweep of TEST.290 part b, 1:10 PM EST on 2026-11-04
-  (as the lane reported). The stack dump of the slow step is
-  backfill_cells, bright_band_fraction,
-  star_population._bright_fraction, evolved_tracks._corners: every
-  process evaluates the evolved tracks cold for each cell. The test
-  passed or failed only by the run being killed at 15 to 20 minutes.
-  Suspects named by the lane: #4688, GEN.1024, GEN.744. Do: profile one
-  backfill of a small galaxy; cache the evolved-track corner evaluation
-  across cells and processes (the star tables of PERF.188 already live
-  on disk; reuse that mechanism and its key), or hoist the per-cell work
-  out of the loop; measure before and after on the same machine. Done:
-  the test finishes in under 3 minutes on a 4-core machine and the draws
-  are bit-identical (golden unchanged). Lock-free if no value changes.
-  Related: PERF.188, TEST.290, TEST.417. Owner Star 2 (it built
-  PERF.188; proposed by the TODO thread). Filed by the TODO thread.
-  Core 5 finding (2026-11-04 3:35 PM EST):
-  tests/test_emission_members.py (the pre-placed hot star test) also
-  times out past 900 s on main. Take it with this item; it is a
-  slow-test cost, not a spelling effect.
-  Prerequisites: none.
-
 - [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
   Boss, 6:02 PM EST on 2026-11-04, lost his SSH session during planetgen
   warm --progress. What the code does (src/planetgen/cli/warm.py,
@@ -16396,7 +16290,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   answers; the wire-format docs updated. Owner Core 5 (API) after
   DOC.103, proposed by the TODO thread. Related: GEN.1255, API.36
   (region-name search, open), GEN.1140. Filed by the TODO thread.
-  Prerequisites: GEN.1254, GEN.1255.
+  Prerequisites: GEN.1254.
 
 ## ADM: Admin tools
 
@@ -18614,8 +18508,8 @@ clears each one.
   and test_a_neighborhood_job_runs_its_sectors_through_the_wrapper also
   fail on main (the last also in a partial gate). The same pass found
   the citation lock failing on main from
-  src/tests/test_nav_route_graph.py ('Wedge 2000' written by name, from
-  NAV.73, Aux 7 fixes that one). Include all of these in this item.
+  src/tests/test_nav_route_graph.py (a wedge label that read as a name and
+  a year, from NAV.73; Aux 7 fixed that one in #5012). Include all of these in this item.
   Prerequisites: none. Related: TEST.580, TEST.581, TEST.583.
 
 ## USR: User accounts
