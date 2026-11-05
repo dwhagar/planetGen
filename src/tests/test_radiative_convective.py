@@ -333,12 +333,19 @@ def test_a_gas_the_database_writes_under_another_name_takes_its_nasa_fit():
 
 
 def test_a_gas_without_a_fit_takes_the_table_heat_capacities_held_at_the_ends():
-    cp = rc._cp_over_r("HCl")
+    """CH3Cl has no NASA Glenn fit (HCl, the gas this test used, has one now) and the gas table's 33.28, 40.86 and 78.84 J/(mol K) at 100, 300 and 1000 K."""
+    assert "CH3Cl" not in rc.species_thermo.BY_FORMULA
+    cp = rc._cp_over_r("CH3Cl")
     at = int(np.searchsorted(rc._CP_GRID, 300.0))
     assert rc._CP_GRID[at] == pytest.approx(300.0)
-    assert cp[at] * rc.R == pytest.approx(29.14, rel=1e-3)
-    assert cp[-1] * rc.R == pytest.approx(31.63, rel=1e-3)
-    assert cp[0] * rc.R == pytest.approx(29.12, rel=1e-3)
+    assert cp[at] * rc.R == pytest.approx(40.86, rel=1e-3)
+    assert cp[-1] * rc.R == pytest.approx(78.84, rel=1e-3)
+    assert cp[0] * rc.R == pytest.approx(33.28, rel=1e-3)
+
+
+def test_a_gas_with_a_fit_takes_the_fit_not_the_table():
+    assert "HCl" in rc.species_thermo.BY_FORMULA
+    assert rc._cp_over_r("HCl")[np.searchsorted(rc._CP_GRID, 300.0)] * rc.R == pytest.approx(29.14, rel=1e-2)
 
 
 def test_a_gas_with_no_heat_capacity_at_all_counts_its_atoms():
