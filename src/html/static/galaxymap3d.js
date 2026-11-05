@@ -91,8 +91,9 @@ const {
   GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, UNCHARTED_FAR_GLSL, UNCHARTED_FAR_KEEP, massRampShare,
   unchartedKeep, phenomenonLuminositySol, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
-const { nodeCut, parseNodeKey, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
+const { formatNodeKey, geometry, nodeCut, parseNodeKey, projectedSize, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
 const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuffer.js${VERSION_QUERY}`);
+const { keptShare, rankShare, rankStars, referencePx } = await import(`./starthin.js${VERSION_QUERY}`);
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
 const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
@@ -2572,6 +2573,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // starList's order; redone when the camera moves or the stars change.
   var starShares = new Float32Array(0);
   var starShareSignature = "";
+  var starThinningOn = true;
   function updateStarShares() {
     var n = starList.length;
     var signature = starSetVersion + "," + n + "," + camera.position.x + "," + camera.position.y + "," + camera.position.z;
@@ -2582,8 +2584,21 @@ function initGalaxyMap3d(canvasEl, data) {
     if (starShares.length !== n) {
       starShares = new Float32Array(n);
     }
-    var weigh = drawnSettled ? weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled) : null;
+    var cameraAt = camera.position.toArray();
+    var weigh = drawnSettled ? weightCalculator(cameraAt, NODE_EDGE_PC, focalPixels(), drawnSettled) : null;
     var byNode = new Map();
+    // MAP.366: the share of its list each capped node keeps against the nodes of the view (static/starthin.js).
+    var kept = new Map();
+    var cappedSizes = [];
+    for (var j = 0; j < n; j++) {
+      var tile = starFadeList[j];
+      if (tile && tile.capped && !kept.has(tile)) {
+        kept.set(tile, projectedSize(tile.block, cameraAt, NODE_EDGE_PC, focalPixels()));
+        cappedSizes.push(kept.get(tile));
+      }
+    }
+    var reference = referencePx(cappedSizes);
+    kept.forEach(function (px, tile) { kept.set(tile, keptShare(px, reference)); });
     for (var i = 0; i < n; i++) {
       var fade = starFadeList[i];
       var share = 1;
@@ -2592,6 +2607,9 @@ function initGalaxyMap3d(canvasEl, data) {
         if (share === undefined) {
           share = starShare(fade, weigh);
           byNode.set(fade, share);
+        }
+        if (starThinningOn && fade.capped && starList[i].nodeRank !== undefined) {
+          share *= rankShare(starList[i].nodeRank, fade.listed, kept.get(fade));
         }
       }
       starShares[i] = share;
@@ -2697,6 +2715,45 @@ function initGalaxyMap3d(canvasEl, data) {
     return { limit: limit, goal: magGoal, target: magTarget, onScreen: magOnScreen, count: starList.length, stars: shares, ramp: RAMP, focus: nearUniforms.nearD.value, e: e[0] };
   };
 
+  // For tests (MAP.366): what each node on screen lists and shows, by node: its key and size on screen (pixels), the
+  // distance of its box's center, the stars it lists, and how many of them show (the sum of their opacity: the
+  // node's share times the limiting magnitude's), so a test compares nodes at one distance.
+  canvasEl.galaxyNodeStars = function () {
+    var absolute = starPoints.geometry.getAttribute("starAbsMag");
+    var tierMag = starPoints.geometry.getAttribute("starTierMag");
+    var limit = starMaterial.uniforms.magLimit.value;
+    var camAt = camera.position.toArray();
+    var found = new Map();
+    var cut = neededNodes();
+    var weigh = weightCalculator(camAt, NODE_EDGE_PC, focalPixels(), drawnSettled || undefined);
+    starList.forEach(function (star, i) {
+      var fade = starFadeList[i];
+      if (!fade) return;
+      var entry = found.get(fade);
+      if (!entry) {
+        var geo = geometry(fade.block, NODE_EDGE_PC);
+        var center = [0, 1, 2].map(function (a) { return (geo.lo[a] + geo.hi[a]) / 2; });
+        var nodeKey = formatNodeKey(fade.block);
+        entry = {
+          key: nodeKey, level: fade.block.m, listed: 0, shown: 0, weight: weigh(fade.block),
+          opened: cut.expanded.has(nodeKey), settled: !!(drawnSettled && drawnSettled.has(nodeKey)),
+          px: projectedSize(fade.block, camAt, NODE_EDGE_PC, focalPixels()),
+          distance: Math.hypot(center[0] - camAt[0], center[1] - camAt[1], center[2] - camAt[2]),
+        };
+        found.set(fade, entry);
+      }
+      var d = Math.sqrt(Math.pow(star.x - camAt[0], 2) + Math.pow(star.y - camAt[1], 2) + Math.pow(star.z - camAt[2], 2));
+      var m = apparentMagnitude(absolute.array[i], d) + tierMag.array[i];
+      entry.listed += 1;
+      entry.faint = Math.max(entry.faint === undefined ? -Infinity : entry.faint, star.phenomenon ? -Infinity : m);
+      entry.brightListed = (entry.brightListed || 0) + (star.generated || star.phenomenon ? 0 : 1);
+      entry.generatedListed = (entry.generatedListed || 0) + (star.generated ? 1 : 0);
+      entry.shown += starShares[i] * Math.min(1, Math.max(0, (limit - m) / RAMP));
+      if (starShares[i] * Math.min(1, Math.max(0, (limit - m) / RAMP)) > 0.5) entry.shownFaint = Math.max(entry.shownFaint === undefined ? -Infinity : entry.shownFaint, m);
+    });
+    return Array.from(found.values());
+  };
+
   // For tests (MAP.149): the near field the shaders were given (the
   // camera-to-focus distance, the focus's radius, the center of the block
   // the camera is inside or null), the camera and its target, and the
@@ -2750,6 +2807,13 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.galaxyStarZoomFade = function (on) {
     starMaterial.uniforms.zoomFadeOn.value = on ? 1 : 0;
     starMaterial.uniforms.magOn.value = on ? 1 : 0;
+  };
+
+  // For tests (MAP.366): switches the density rule of static/starthin.js off (every star at its node's share) to compare the picture
+  // with and without it.
+  canvasEl.galaxyStarThinning = function (on) {
+    starThinningOn = !!on;
+    starShareSignature = "";
   };
 
   // For tests: the frame the stars are drawn from and the farthest star
@@ -2867,6 +2931,15 @@ function initGalaxyMap3d(canvasEl, data) {
     return node.allStars;
   }
 
+  // MAP.366: the node's stars ranked by luminosity (`nodeRank` on each, static/starthin.js), once per node, and whether its
+  // lists reached their cap: `{ listed, capped }`.
+  function nodeThinning(node, block) {
+    if (!node.thinning) {
+      Object.defineProperty(node, "thinning", { value: rankStars(nodeStars(node), block) });
+    }
+    return node.thinning;
+  }
+
   // MAP.123: whether the star filters (classes hidden, dimmest star shown)
   // let `star` through. Phenomena are never filtered here: they have their
   // own kind toggles.
@@ -2942,6 +3015,9 @@ function initGalaxyMap3d(canvasEl, data) {
       }
       var node = getNode(key);
       var fade = { block: parseNodeKey(key) };
+      var thin = nodeThinning(node, fade.block);
+      fade.listed = thin.listed;
+      fade.capped = thin.capped;
       var entries = [];
       nodeStars(node).forEach(function (star) {
         if (starShown(star)) {
