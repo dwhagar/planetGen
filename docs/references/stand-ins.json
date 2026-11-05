@@ -25911,44 +25911,6 @@
           "fields": [
             [
               "What it is",
-              "rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays"
-            ],
-            [
-              "The range it moves in",
-              "0.3 to 1"
-            ],
-            [
-              "Where it holds",
-              "moons of ejected planets"
-            ],
-            [
-              "What would show it wrong",
-              "a moon-carrying N-body run whose survivors differ from the rule by more than 20 percent"
-            ],
-            [
-              "What replaces it",
-              "an N-body run with moons (the paper simulates none)"
-            ],
-            [
-              "Evidence",
-              "Huang and Lai Eq. 4: r_moon < f r_min (m_2/m_12)^(1/3), \"a high survival probability requires f ~ 1/2\""
-            ]
-          ],
-          "id": "RK5",
-          "key": "6.87:RK5",
-          "kind": "P",
-          "slug": "6-87-rk5",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L1",
-          "unread": null,
-          "what": "rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass)"
             ],
             [
@@ -25957,7 +25919,7 @@
             ],
             [
               "Where it holds",
-              "as RK5, two-planet systems spaced by 2 mutual Hill radii"
+              "the Huang and Lai fiducial run: two-planet systems spaced by 2 mutual Hill radii"
             ],
             [
               "What would show it wrong",
@@ -30131,7 +30093,7 @@
           "fields": [
             [
               "What it is",
-              "rogue_moons.closest_approach_survival: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii"
+              "rogue_moons.closest_approach_hill: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii"
             ],
             [
               "The range it moves in",
@@ -30162,7 +30124,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "rogue_moons.closest_approach_survival: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii"
+          "what": "rogue_moons.closest_approach_hill: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii"
         },
         {
           "burn_down": null,
