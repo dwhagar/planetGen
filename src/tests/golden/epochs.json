@@ -788,7 +788,7 @@
       "epoch": 132,
       "first_release": null,
       "pending": true,
-      "reason": "American spelling of stored values (DOC.103): hydrosphere vapor, population nuclear_disk, belt origin outer-disk, ground_oxidized_fraction, and the keys of the API and the sheet",
+      "reason": "Train 10: rogue planets made by the planet chain with their donor (GEN.1111, 1120, 1124), ice-giant heat spread (GEN.1033), the envelope share, body type and class digit of every body (GEN.1219, 1220, 1226), surface liquid makeup and second liquid (GEN.1218b), belt members (GEN.1070) and belt history (GEN.1232a), infall mass and dust rings (GEN.1246, 1233), nuclear disk grid (GEN.614), disk moon zone (GEN.1244), no description text on a body (GEN.1212), and American spelling of the stored words (DOC.103)",
       "affects": ["fill", "scatter"]
     }
   ]

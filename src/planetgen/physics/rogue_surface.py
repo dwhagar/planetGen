@@ -18,6 +18,7 @@ from planetgen.util import draw
 
 _kg_to_mjup = units.converter("kg", "Mjup")
 _kg_to_msun = units.converter("kg", "Msun")
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 SURFACE_REGIMES = ("brown-dwarf",)
 """tuple: Every `surface_regime` this module gives: `brown-dwarf`, no surface, conditions at 1 bar."""
