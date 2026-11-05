@@ -150,3 +150,25 @@ def test_the_climate_values_of_a_body_carry_its_ring():
         ring_inner_km, ring_outer_km, ring_optical_depth = 8000.0, 14000.0, 0.5
     values = habitability_world.values_from_body(Body())
     assert (values["ring_inner_km"], values["ring_outer_km"], values["ring_optical_depth"]) == (8000.0, 14000.0, 0.5)
+
+
+def test_the_climate_values_of_a_body_carry_the_share_of_the_time_its_star_is_up():
+    """TEST.606: the hours of the bands are worked with the star's angular radius, which comes from the stored `day_share_mean`. A body scored at
+    generation gave `values_from_body` without it (a point star), so a re-score from the stored row (which has it) gave other hours, 18.297 against 18.487."""
+    from planetgen.physics import habitability_world, regional_temperature
+
+    share = (1.0 + math.sin(math.radians(0.9))) / 2.0       # a star of 0.9 degrees, as a wide binary's close companion shows
+
+    class Body:
+        surface_temperature = 288.0
+        atmospheric_pressure = 101325.0
+        gravity = 1.0
+        rotation_period_hours = 23.934
+        axial_tilt_deg = 23.44
+        period = 1.0
+        day_share_mean = share
+    values = habitability_world.values_from_body(Body())
+    assert values["day_share_mean"] == share
+    row = {**EARTH, "day_share_mean": share}                  # what the stored row gives a re-score
+    assert regional_temperature.compute(values) == regional_temperature.compute(row)
+    assert regional_temperature.compute(values) != regional_temperature.compute({**EARTH})
