@@ -13219,39 +13219,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Star 2.
   Prerequisites: GEN.1068. Related: GEN.1072, GEN.1068, GEN.725.
 
-- [ ] **GEN.1232 Belt history shown on the belt page: history_text and the giant event / companion limit (giant_event)**
-  From Star 2 (relayed 4:03 PM EDT 2026-10-31 as the lane reported), the
-  follow-up of GEN.1072 (#4430): belt_history.history_text and the
-  giant_event function (the giant event and companion limit for a belt)
-  are built and read only by tests. Do: the belt's page shows its
-  history in plain words (what the star's evolution did to it: survived,
-  scattered by a giant event, engulfed, or limited by a companion) from
-  history_text, with giant_event deciding the event from the stored
-  giants and companions; no generated output changes, so this is
-  lock-free and plain-words rules apply (Oxford comma, no
-  out-of-universe words). The wiring-register lines for history_text and
-  giant_event name this item. Owner: Star 2.
-  Star 2 re-scope (2026-11-01 12:05 AM EDT): Not lock-free as written. A
-  belt history is not stored (asteroid_belts has no history column) and
-  giant_event is not called by generation. Split: GEN.1232a (lock, one
-  epoch): store the belt history text in a new column on asteroid_belts
-  and show it on the belt page, engulfed or scattered by the giant
-  branch only (what #4430 computes); GEN.1232b (lock, after GEN.1068
-  belt birth): wire giant_event into generation. Owner: Star 2 for 1232a
-  once it has a train; 1232b waits for Aux 5.
-  Part merged (train 10, #5095, 7:11 AM EST on 2026-11-05) (7:20 AM EST
-  on 2026-11-05): GEN.1232a merged: the belt history text is stored on
-  the belt and shown on its page. GEN.1232b (wire giant_event into
-  generation) stays open and waits for Aux 5.
-  Scope cut (TODO, from Star 2) (10:50 AM EST on 2026-11-05): GEN.1232b
-  closes as satisfied by GEN.1068 (belt_origin) except the INSTABILITY
-  case, which moves to GEN.1082. Star 2 repoints or removes the
-  wiring-register lines for history_text, giant_event and the companion
-  limit (belt_history.giant_event and limit are duplicated by
-  belt_origin and the stability ceiling; delete them with their tests if
-  nothing reads them, no shim), then this item retires.
-  Prerequisites: none. Related: GEN.1072, GEN.1068.
-
 - [ ] **GEN.1236 Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug)**
   Found by Core 3's TEST.212 part 1 radiation sweep (as the lane
   reported, 1:05 AM EDT 2026-11-01), filed by the TODO thread. Two class
