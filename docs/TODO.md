@@ -14143,39 +14143,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: GEN.1071. Related: GEN.1071, GEN.1068, GEN.725.
 
-- [ ] **GEN.1279 The generated sky holds only a fifth of the real stars from absolute magnitude -3 to 4 (A and F stars and giants) when counted against the HYG catalogue (bug)**
-  Core 3 (as the lane reported, about 10:20 AM EST on 2026-11-05),
-  building the HYG calibration test VIEW.30
-  (reports/system-sky-hyg-calibration-2026-11-05.md), measured the
-  dust-free sky at limiting magnitude 6.5 for the Sun's place: 2,184
-  stars against HYG's 8,920 (24.5 percent), and the shortfall sits
-  between absolute magnitude -3 and 4 (A and F stars and giants), where
-  the model holds about a fifth of the real count. Do: find out why from
-  the star mass function, the age and evolution mix, and the giant
-  branch shares (physics drives, no game rates); fix the generator at
-  the cause or register a stand-in in GEN.725 with tier and tweak level,
-  and say which. Done: the dust-free count at 6.5 for that place inside
-  a band the report gives, and the shortfall by magnitude bin shown
-  before and after. Lock item (it changes generated stars): next train
-  after it is built. Version 8.1. Owner: Star 2 (stellar populations),
-  proposed by the TODO thread. Related: VIEW.30. Filed by the TODO
-  thread.
-  Prerequisites: none. Related: VIEW.30.
-
-- [ ] **GEN.1280 The generated sky has about 24 times too many stars brighter than absolute magnitude -6 when counted without dust (bug)**
-  Core 3 (as the lane reported, about 10:20 AM EST on 2026-11-05), in
-  the HYG calibration
-  (reports/system-sky-hyg-calibration-2026-11-05.md), found about 24
-  times too many stars brighter than absolute magnitude -6 in the
-  dust-free sky against HYG. Do: find why (the top of the initial mass
-  function, the lifetime of the massive stars, the supergiant branch
-  share); fix at the cause or register a stand-in in GEN.725 with tier
-  and tweak level. Done: the bright-end count within the band the report
-  gives, shown before and after. Lock item. Version 8.1. Owner: Star 2,
-  proposed by the TODO thread. Related: VIEW.30. Filed by the TODO
-  thread.
-  Prerequisites: none. Related: VIEW.30.
-
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19673,6 +19640,16 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   findings), VIEW.42 (sky route ledger). The default dust law leaves 586
   stars beyond 217 pc against 2,184 dust-free: whoever builds the dust
   law (VIEW.20 was its home) should check its scale.
+  Retarget (TODO, from Star 2) (10:45 AM EST on 2026-11-05): Star 2's
+  report (reports/gen1279-1280-sky-counts-cause-2026-11-05.md) shows the
+  24.5 percent figure comes mostly from the test galaxy: the site is 84
+  percent thick disc (recent star formation factor 0.2 six scale lengths
+  out, so 97+ percent of its stars are 3 Gy or older), and the 75 pc
+  scale height puts most of the 6.5 sample sphere above the disc; the
+  model's luminosity function is 0.55 to 1.7 of HYG. Change the
+  calibration to a disc-dominated galaxy, the sample at about three
+  scale lengths, with a high bright-star floor, and set the band again.
+  Core 3 does this on branch claude/view30-sky-calibration.
   Prerequisites: VIEW.25.
 
 - [ ] **VIEW.39 System sky S21 (optional): aberration of the observer's motion, default off**
@@ -19717,6 +19694,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Done: the test. Lock-free once VIEW.25 has landed (train 12), stack it
   on branch view25. Version 8.1. Owner: Planets 1 (wrote VIEW.31 and
   VIEW.25). Filed by the TODO thread.
+  Possible cause of the remaining factor (TODO, from Star 2) (10:45 AM
+  EST on 2026-11-05): Star 2 finds a further factor 2 to 3 between the
+  model integral and the generated sky, largest at absolute magnitude 0
+  to 2 (the backfill range), and names the sky route not reading the
+  VIEW.25 ledger as the candidate. After this item lands, rerun the
+  VIEW.30 calibration; if the factor remains, file it as its own item.
   Prerequisites: none. Related: VIEW.31.
 
 ## POP: Population and politics
