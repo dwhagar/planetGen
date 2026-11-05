@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.265 |
+| UX | UX.271 |
 | MAP | MAP.389 |
 | NAV | NAV.77 |
 | GEN | GEN.1293 |
@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.623 |
+| TEST | TEST.624 |
 | USR | USR.32 |
 | OPS | OPS.106 |
 | DOC | DOC.105 |
@@ -3261,6 +3261,12 @@ Parents marked "new parent" had no old number of their own.
 | UX.262 | Planet and moon page Life section: the adaptation traits of the living class (the last piece of UX.237) | none | open |
 | UX.263 | The belt page reads the belt density module: wire planetgen.physics.belt_density into the belt page data builder, or delete it | none | done, PR #5187 |
 | UX.264 | The planet page no longer shows the atmosphere (sky) colour row: the chip and word such as 'pale blue' vanished from the page (bug) | none | open |
+| UX.265 | Look and theme preference: a look (cockpit, chart, phosphor) times a theme (system, light, dark), stored on the account and in the browser, chosen in Preferences and the gear menu | none | open |
+| UX.266 | Chart room look layer: the daylight-chart tokens of the mockup as a second look, in light and dark, with the shared components restyled by tokens only | none | open |
+| UX.267 | Phosphor look layer: the single-hue phosphor tokens of the mockup as a third look, in light and dark, with the shared components restyled by tokens only | none | open |
+| UX.268 | Console look on panels, dialogs and the one status chip (with its symbol or word), by tokens only | none | open |
+| UX.269 | Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only | none | open |
+| UX.270 | Console look on the admin shell and admin pages, by tokens only | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -4016,6 +4022,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.620 | tests/test_reproducible_draws.py fails: math.dist at db/field_clouds.py:51 and db/obstacles.py:158 must use detmath.dist (bug) | none | done, PR #5182 |
 | TEST.621 | The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug) | none | open |
 | TEST.622 | tests/test_parallel_names.py::test_two_passes_drawing_the_same_names_still_save_unique_ones fails alone on main (no species made) and passes in a whole-file run (bug) | none | done, PR #5182 |
+| TEST.623 | Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

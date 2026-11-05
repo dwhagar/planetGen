@@ -10,7 +10,7 @@ Status: approved by Boss (5:44 PM EST on 2026-11-05, headline Full help for all 
 
 ## Goal
 
-Boss (5:40 PM EST on 2026-11-05): the headline is full help for all pages; the pilot's console look (UX.43) stays in the version as its second feature, pending Boss's pick among three mockups. Approved by Boss (5:44 PM EST on 2026-11-05).
+Boss (5:40 PM EST on 2026-11-05): the headline is full help for all pages; the pilot's console look (UX.43) stays in the version as its second feature. Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the default and wants the Chart room and Phosphor looks selectable by users, each in light and dark: the preference plumbing is UX.265 (8.2), the two extra looks are UX.266 and UX.267, approved to ship here and built last, and TEST.623 tests all six combinations. Approved by Boss (5:44 PM EST on 2026-11-05).
 
 ## Phase 1: Help and console look
 
@@ -38,10 +38,10 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss |  | Split from UX.43. |
-| UX.131 | Console tokens, type and base template in both themes | UX.130 | Split from UX.43. |
-| UX.132 | Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome | UX.131 | Split from UX.43. |
-| UX.43 | A visual design built like a pilot's starmap and navigation console | UX.130, UX.131, UX.132 |  |
+| UX.266 | Chart room look layer: the daylight-chart tokens of the mockup as a second look, in light and dark, with the shared components restyled by tokens only | UX.131, UX.132, UX.265, UX.268, UX.269, UX.270 |  |
+| UX.267 | Phosphor look layer: the single-hue phosphor tokens of the mockup as a third look, in light and dark, with the shared components restyled by tokens only | UX.131, UX.132, UX.265, UX.268, UX.269, UX.270 |  |
+| TEST.623 | Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark) | UX.132, UX.266, UX.267, UX.268, UX.269, UX.270 |  |
+| UX.43 | A visual design built like a pilot's starmap and navigation console | UX.130, UX.131, UX.132, UX.268, UX.269, UX.270, UX.266, UX.267, TEST.623 |  |
 
 ### Resource help
 
