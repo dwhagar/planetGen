@@ -775,22 +775,22 @@ def test_a_sector_made_generates_a_near_empty_density_sector(mysql_config):
     assert levels.get(address) == 0
 
 
-def test_a_neighborhood_from_a_sparse_centre_at_the_edge_fills_every_sector_in_range(mysql_config):
+def test_a_neighborhood_from_a_sparse_center_at_the_edge_fills_every_sector_in_range(mysql_config):
     """
-    GEN.77: a neighborhood run whose centre sector predicts almost no
+    GEN.77: a neighborhood run whose center sector predicts almost no
     stars (here at the galaxy's outer edge) still generates every sector
     in range that the outline holds, density-driven, none skipped.
     """
-    centre = (995, 0, 0)
-    position = sector_position_pc(*centre, EDGE_PC)
-    assert relative_density(position, _SKELETON_SHAPE) < 0.01, "test setup needs a nearly empty centre"
+    center = (995, 0, 0)
+    position = sector_position_pc(*center, EDGE_PC)
+    assert relative_density(position, _SKELETON_SHAPE) < 0.01, "test setup needs a nearly empty center"
     _seed_skeleton(mysql_config, shells=_shells(999, 1))
     _run_cli(["--shell", "995", "--band", "0", "--wedge", "0", "--radius-pc", "6"] + _mysql_argv(mysql_config),
              planets=False)
     generated = {_address(row) for row in _all_sectors(mysql_config)}
     in_range = {(s, b, w) for s, b, w, *_ in enumerate_sectors_within_radius(position, 6.0, EDGE_PC)
                 if s <= 999 and -1 <= b <= 1}
-    assert centre in generated
+    assert center in generated
     assert len(in_range) > 5
     assert generated == in_range
 
@@ -871,9 +871,21 @@ def test_band_batch_explicit_num_systems_still_overrides_skeleton_density(mysql_
 
 
 def test_sectors_table_rejects_duplicate_address(mysql_config):
-    """The schema-level guarantee make_sector's own race
-    recovery depends on: two sectors can never share a (shell_index,
-    band_index, wedge_index) address."""
+    """The schema-level guarantee: two sectors can never share a (shell_index, band_index, wedge_index) address. (`insert_sector` itself no
+    longer raises on an occupied address: it fills the row kept there, GEN.1127, so the table is asked directly.)"""
+    conn = _db.get_connection(mysql_config)
+    try:
+        insert = ("INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc, shell_index, band_index, wedge_index)"
+                  " VALUES (?, 4000, 1.0, 2.0, 3.0, 3.74, 1, 0, 0)")
+        conn.execute(insert, ("First",))
+        with pytest.raises(pymysql.err.IntegrityError):
+            conn.execute(insert, ("Second",))
+    finally:
+        conn.close()
+
+
+def test_a_sector_saved_at_an_occupied_address_fills_the_row_kept_there(mysql_config):
+    """GEN.1127: the row of a sector kept for its residents is written into again, so the second save is the same row."""
     conn = _db.get_connection(mysql_config)
     try:
         from planetgen.galaxy.sector import SpaceSector
@@ -881,9 +893,10 @@ def test_sectors_table_rejects_duplicate_address(mysql_config):
             "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0,
             "galactic_radius_pc": 3.74, "shell_index": 1, "band_index": 0, "wedge_index": 0,
         }
-        _db.insert_sector(conn, SpaceSector(name="First"), galaxy_position=galaxy_position)
-        with pytest.raises(pymysql.err.IntegrityError):
-            _db.insert_sector(conn, SpaceSector(name="Second"), galaxy_position=galaxy_position)
+        first = _db.insert_sector(conn, SpaceSector(name="First"), galaxy_position=galaxy_position)
+        second = _db.insert_sector(conn, SpaceSector(name="Second"), galaxy_position=galaxy_position)
+        assert first == second
+        assert [row["name"] for row in conn.execute("SELECT name FROM sectors").fetchall()] == ["Second"]
     finally:
         conn.close()
 
@@ -1013,11 +1026,11 @@ def test_avoid_filled_space_starts_in_empty_space_and_says_how_many_qualified(my
     assert "Keeping away from filled space:" in text and "qualified" in text
     new = [r for r in _all_sectors(mysql_config) if r["id"] not in {b["id"] for b in before}]
     assert new
-    old_centres = [(r["center_x_pc"], r["center_y_pc"], r["center_z_pc"]) for r in before]
+    old_centers = [(r["center_x_pc"], r["center_y_pc"], r["center_z_pc"]) for r in before]
     # The new sectors are a whole neighborhood of their own; none of them touches an old sector.
     for r in new:
-        centre = (r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])
-        assert all(math.dist(centre, old) > 0 for old in old_centres)
+        center = (r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])
+        assert all(math.dist(center, old) > 0 for old in old_centers)
 
 
 def _occupy_small_outline(mysql_config, addresses):
@@ -1502,10 +1515,18 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
 
     sectors = _all_sectors(mysql_config)
     expected_sector_count = sum(wedge_count(shell, band) for shell, band in _BOUNDS_TEST_BANDS)
-    assert len(sectors) == expected_sector_count
+    conn = _db.get_connection(mysql_config)
+    try:
+        charted = {(row["shell_index"], row["band_index"], row["wedge_index"])
+                   for row in conn.execute("SELECT shell_index, band_index, wedge_index FROM chart_ledger").fetchall()}
+    finally:
+        conn.close()
+    # A rogue planet lands in a cell that may not be charted (GEN.1111) and that cell gets a row of its own, so the rows are the charted
+    # cells and the cells the rogues landed in.
+    assert len([row for row in sectors if _address(row) in charted]) == expected_sector_count
 
     contexts = _sector_cell_contexts(mysql_config)
-    assert len(contexts) == expected_sector_count
+    assert len(contexts) == len(sectors) >= expected_sector_count
 
     conn = _db.get_connection(mysql_config)
     try:
@@ -1523,7 +1544,7 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
             "neutron_stars": " AND id NOT IN (SELECT compact_remnant_neutron_star_id FROM supernova_remnants"
                              " WHERE compact_remnant_neutron_star_id IS NOT NULL)",
             # A field cloud (the dark family) is filed under the sector holding its centroid, and a cloud
-            # tens of light years across has its centre in a neighbouring cell whenever it sits near a face.
+            # tens of light years across has its center in a neighbouring cell whenever it sits near a face.
             "nebulae": " AND nebula_type <> 'dark'",
         }
         for table, label in _CHECKABLE_PHENOMENON_TABLES:

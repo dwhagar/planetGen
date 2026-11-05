@@ -52,15 +52,15 @@ def test_the_majorant_is_never_below_the_true_density(shape, shell):
     rng = random.Random(shell + 7)
     high = spherical.band_range(shell)[1]
     for fractions in ({"young": 1.0, "intermediate": 1.0, "old": 1.0, "bulge": 1.0, "halo": 1.0, "cluster": 1.0,
-                       "satellite": 1.0, "nuclear_cluster": 1.0, "nuclear_disc": 1.0},
+                       "satellite": 1.0, "nuclear_cluster": 1.0, "nuclear_disk": 1.0},
                       {"young": 0.9, "intermediate": 0.1, "old": 0.0, "bulge": 0.02, "halo": 0.0, "cluster": 0.0,
-                       "satellite": 0.0, "nuclear_cluster": 0.0, "nuclear_disc": 0.5},
+                       "satellite": 0.0, "nuclear_cluster": 0.0, "nuclear_disk": 0.5},
                       {"young": 0.0, "intermediate": 0.0, "old": 0.7, "bulge": 0.0, "halo": 0.3, "cluster": 0.0,
-                       "satellite": 0.0, "nuclear_cluster": 0.6, "nuclear_disc": 0.0},
+                       "satellite": 0.0, "nuclear_cluster": 0.6, "nuclear_disk": 0.0},
                       {"young": 0.01, "intermediate": 0.3, "old": 0.05, "bulge": 0.9, "halo": 0.5, "cluster": 0.2,
-                       "satellite": 0.2, "nuclear_cluster": 0.9, "nuclear_disc": 0.2},
+                       "satellite": 0.2, "nuclear_cluster": 0.9, "nuclear_disk": 0.2},
                       {"young": 0.0, "intermediate": 0.0, "old": 0.0, "bulge": 0.0, "halo": 1.0, "cluster": 0.0,
-                       "satellite": 0.0, "nuclear_cluster": 0.0, "nuclear_disc": 0.0}):
+                       "satellite": 0.0, "nuclear_cluster": 0.0, "nuclear_disk": 0.0}):
         fractions = {"satellite_young": fractions["satellite"], "satellite_intermediate": fractions["satellite"],
                      **fractions}           # a satellite's three populations take its share (GEN.526)
         majorants = object_first.band_majorants(shape, shell, high, EDGE_PC, fractions)
@@ -146,9 +146,9 @@ def test_a_sector_takes_several_stars_up_to_its_capacity_where_the_density_is_hi
     assert max(per_sector.values()) > 1
     fractions = brightStars.band_fractions(THRESHOLD, age_laws=brightStars.age_laws_of(SHAPE))
     for (shell, band, wedge), held in per_sector.items():
-        centre = brightStars._densities(brightStars.sector_position_pc(shell, band, wedge, EDGE_PC), SHAPE)
+        center = brightStars._densities(brightStars.sector_position_pc(shell, band, wedge, EDGE_PC), SHAPE)
         expected = (e_value * brightStars.volume_ratio(shell, band, EDGE_PC)
-                    * sum(centre[p] * fractions[p] for p in brightStars.POPULATIONS))
+                    * sum(center[p] * fractions[p] for p in brightStars.POPULATIONS))
         assert held <= max(object_first.sector_capacity(expected), 1)
 
 

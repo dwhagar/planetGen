@@ -73,7 +73,7 @@ def test_every_command_has_a_memory_figure_or_is_one_worker_on_purpose():
 def test_a_sector_stage_gets_three_workers_on_the_host_that_was_killed(monkeypatch):
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
     assert {workers.stage_worker_cap(kind) for kind in ("generate-neighborhood", "generate-sectors")} == {3}     # half of 15,992 MB in 2,600 MB workers
-    assert workers.stage_worker_cap("link-neighbours") == 11                                                      # a stage that draws no star: 700 MB workers
+    assert workers.stage_worker_cap("link-neighbors") == 11                                                      # a stage that draws no star: 700 MB workers
     assert workers.stage_worker_cap("run-population") is None                                                     # one unit: one worker
 
 
@@ -114,7 +114,7 @@ def test_a_worker_holds_the_star_tables_only_for_the_units_that_draw_stars(monke
     holds them is started over (its unit put back) before a unit that needs none."""
     from planetgen.queue import units
     assert units.TABLE_KINDS <= set(commands.REGISTRY)
-    for kind in ("link-neighbours", "settle-sector-paths", "fill-map-luminosity", "rescore-habitability", "scatter-phenomena"):
+    for kind in ("link-neighbors", "settle-sector-paths", "fill-map-luminosity", "rescore-habitability", "scatter-phenomena"):
         assert kind not in units.TABLE_KINDS
 
     class Job:
@@ -122,11 +122,11 @@ def test_a_worker_holds_the_star_tables_only_for_the_units_that_draw_stars(monke
         def __init__(self, kind):
             self.args = ("run", 1, 0, kind, {}, 1.0)
     monkeypatch.setattr(units, "tables_held", lambda: True)
-    assert units.sheds_tables_for(Job("link-neighbours")) and not units.sheds_tables_for(Job("generate-sectors"))
+    assert units.sheds_tables_for(Job("link-neighbors")) and not units.sheds_tables_for(Job("generate-sectors"))
     assert not units.sheds_tables_for(Job("scatter-luminosity"))
     monkeypatch.setattr(units, "tables_held", lambda: False)
-    assert not units.sheds_tables_for(Job("link-neighbours"))
-    other = Job("link-neighbours")
+    assert not units.sheds_tables_for(Job("link-neighbors"))
+    other = Job("link-neighbors")
     other.func_name = "planetgen.queue.api_jobs.run"
     monkeypatch.setattr(units, "tables_held", lambda: True)
     assert not units.sheds_tables_for(other)

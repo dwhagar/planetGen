@@ -101,7 +101,7 @@ function render(job) {
   }
 }
 
-// A job that succeeded or was cancelled reloads the page (it is pinned to
+// A job that succeeded or was canceled reloads the page (it is pinned to
 // the job's own page, which just stops). One that failed stays as it is,
 // with its error and log in view, until Continue is clicked (ADM.24).
 function finish() {

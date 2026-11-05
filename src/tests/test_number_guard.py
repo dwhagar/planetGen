@@ -34,7 +34,7 @@ TAG = re.compile(r"<[^>]+>")
 
 def bare_cells(page):
     """The table cells of an HTML page whose whole text is a measured number (it has a decimal point or a power of ten):
-    a figure with no unit, scale or noun beside it. A whole number is a count, and its row's label is its noun."""
+    a figure with no unit, scale, or noun beside it. A whole number is a count, and its row's label is its noun."""
     found = []
     for cell in CELL.findall(page):
         text = TAG.sub("", cell).replace("&nbsp;", " ").strip()
@@ -53,7 +53,7 @@ def test_a_ratio_cannot_be_built_without_saying_what_it_is():
 def test_a_facts_row_that_is_a_number_alone_fails_the_document_check():
     """The guard fails on a deliberately bare row: this is what a new fact with a bare number would hit."""
     bare = model.document("system", "", "A", [model.section("system", "", "A", [model.facts("x", [model.fact("v", "Value", "0.71")])])])
-    with pytest.raises(ValueError, match="no unit, scale or noun"):
+    with pytest.raises(ValueError, match="no unit, scale, or noun"):
         model.check(bare)
     fine = model.document("system", "", "A", [model.section("system", "", "A", [
         model.facts("x", [model.fact("v", "Value", "0.71 of 1"), model.fact("c", "Planets", model.qty("count", 4))])])])

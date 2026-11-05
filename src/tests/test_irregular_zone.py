@@ -56,7 +56,7 @@ def test_a_retrograde_orbit_stays_where_a_prograde_one_does_not():
     assert zone.verdict(jupiter, jupiter.retrograde_limit_au * 1.01, 0.2, 150.0) == "unstable"
 
 
-def test_a_pericentre_inside_the_outermost_regular_moon_collides():
+def test_a_pericenter_inside_the_outermost_regular_moon_collides():
     jupiter = zone.zone(*JUPITER, SUN, CALLISTO_AU)
     assert zone.verdict(jupiter, 0.05, 0.7, 150.0) is None                                  # q = 0.015 is past Callisto's 0.0126
     assert zone.verdict(jupiter, 0.05, 0.8, 150.0) == "collides with regular moons"      # q = 0.010

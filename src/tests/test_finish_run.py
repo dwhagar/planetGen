@@ -257,4 +257,4 @@ def test_a_run_still_running_is_not_carried_on(conn):
         with pytest.raises(finish_run.CannotFinish, match="still running"):
             _plan(conn, run_id)
     finally:
-        runrecord.finish_run(conn, run_id, "cancelled")
+        runrecord.finish_run(conn, run_id, "canceled")

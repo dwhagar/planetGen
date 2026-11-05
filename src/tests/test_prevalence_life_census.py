@@ -75,6 +75,18 @@ def test_the_report_names_the_share_of_worlds_each_class_lives_on():
     assert "3a 0.800" in report and "4b 0.600" in report and "beside the dominant one reached a civilization" in report
 
 
+def test_the_report_names_the_life_classes_no_sampled_world_lived_on():
+    from planetgen.physics import life_classes
+
+    result = _result(origin=60, producers=10, animals=29, sentient=1, living={"3a": 80, "4b": 60})
+    report = life.format_report(result, life.compare(result, _expectations()))
+    line = next(line for line in report.splitlines() if line.startswith("Life classes that lived on no sampled world"))
+    assert "3a" not in line.split(": ", 1)[1] and "4b" not in line.split(": ", 1)[1]
+    assert all(class_id in line for class_id in life_classes.IDS if class_id not in ("3a", "4b"))
+    everything = _result(origin=60, producers=10, animals=29, sentient=1, living={class_id: 5 for class_id in life_classes.IDS})
+    assert next(line for line in life.format_report(everything, []).splitlines() if line.startswith("Life classes that lived on no")).endswith("none")
+
+
 # --- The harness: each flag trips on a deliberately broken input ------------------------------------------------------------
 
 

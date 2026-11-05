@@ -26,7 +26,7 @@ node under it is taken as a root.
 `flux_at` is the other half: the time-averaged light on a planet of a zone's host, in units of what one solar
 luminosity gives at 1 AU. The host's own light falls with the planet's distance squared; every member outside the host
 adds `L <1/d^2>` with `d` the separation of the node that member and the host meet at and
-`<1/d^2> = 1 / (a^2 sqrt(1 - e^2))` over an eccentric orbit (6.5). Both treat a subtree as a point at its centre of
+`<1/d^2> = 1 / (a^2 sqrt(1 - e^2))` over an eccentric orbit (6.5). Both treat a subtree as a point at its center of
 mass, which holds where a planet is well inside its host's window and the hierarchy is as hierarchical as the
 stability test makes it.
 
@@ -237,7 +237,7 @@ def flux_at(zone, distance_au, luminosities_sol, nodes, members):
 
     Args:
         zone (Zone): The window the planet is in.
-        distance_au (float): The planet's distance from the host (the star for an S-type zone, the pair's centre of
+        distance_au (float): The planet's distance from the host (the star for an S-type zone, the pair's center of
             mass for a P-type one).
         luminosities_sol (dict): `{member_no: luminosity in solar units}`; every member of the tree needs one.
         nodes (iterable): The tree's nodes.

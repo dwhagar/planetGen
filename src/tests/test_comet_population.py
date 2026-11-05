@@ -1,6 +1,6 @@
 """GEN.495: the comet volatile population (`planetgen/physics/comet_population.py`, its data file
 `physics/data/comet_population.json`, parts G1 sections 2.3, 3.1 and 3.2). The Solar System comets below are test targets
-only: the draw must be able to reach them, and nothing in the file is centred on one."""
+only: the draw must be able to reach them, and nothing in the file is centered on one."""
 
 import copy
 import json
@@ -238,7 +238,7 @@ def test_missing_parts_and_a_duplicated_or_misplaced_species_are_refused():
         broken(lambda d: d["carbon_oxides"].pop("CO2"))
 
 
-# --- GEN.595: the median from the disc zone ---------------------------------------------------------------------
+# --- GEN.595: the median from the disk zone ---------------------------------------------------------------------
 
 def test_a_zone_sets_the_median_carbon_oxides_and_the_class_no_longer_does():
     """A comet formed in a CO2-rich zone keeps CO2 over CO whatever its class, and one from a CO-rich zone the reverse; the scatter stays the population's."""

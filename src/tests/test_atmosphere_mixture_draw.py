@@ -41,7 +41,7 @@ def test_the_family_of_the_evolved_cold_coma_and_molten_rows():
     assert md.family_of(drawn(k="k1"), cold) == "coma"
     assert md.family_of(drawn(l="l2"), hot) == "airless"
     assert md.family_of(drawn(l="l1"), hot) == "lava"
-    assert md.family_of(drawn(l="l1"), cold) == "airless"                  # a surface below the melting temperature has no vapour
+    assert md.family_of(drawn(l="l1"), cold) == "airless"                  # a surface below the melting temperature has no vapor
     assert md.family_of(drawn(a="a6", i="i2"), hot) == "lava"
     assert md.family_of(drawn(a="a6", i="i1"), cold) == "rocky"           # a hot-zone body that is not molten outgasses
 
@@ -122,7 +122,7 @@ def test_a_random_terrestrial_body_gets_a_mixture_from_the_inputs_the_function_n
                           host_type=rng.choice(["G", "K", "M", "F", "WD", "PSR"]), is_moon=rng.random() < 0.2,
                           insolation=10 ** rng.uniform(-4, 3), luminosity_solar=10 ** rng.uniform(-3, 1), water_lost=rng.random() < 0.2,
                           runaway_ratio=rng.uniform(0.2, 2), teq_k=temperature * 0.8, xuv_index=10 ** rng.uniform(-1, 2),
-                          v_esc_kms=10 ** rng.uniform(0, 1.6), radius_km=10 ** rng.uniform(2.5, 4.3), t_layer_k=temperature * 0.9, thin_disc_fgk=True)
+                          v_esc_kms=10 ** rng.uniform(0, 1.6), radius_km=10 ** rng.uniform(2.5, 4.3), t_layer_k=temperature * 0.9, thin_disk_fgk=True)
         quantities["core_radius_earth"] = 0.5 * quantities["radius_km"] / 6371.0
         wanted = set(md.required_inputs(body_class))
         subject = Subject(body_class, {name: value for name, value in quantities.items() if name in wanted})

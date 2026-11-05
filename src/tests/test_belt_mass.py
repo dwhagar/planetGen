@@ -14,7 +14,7 @@ SUN_W = 3.828e26
 KRASINSKY_2002_EARTH = 0.6e-3      # the inferred mass of the Solar System's belt, as [R4785] quote it: a test point only
 
 
-def disc_mass(lower, upper, star_kg=SUN_KG):
+def disk_mass(lower, upper, star_kg=SUN_KG):
     return bm.primordial_mass_earth(lower, upper, star_kg, formation.snow_line_au(SUN_W))
 
 
@@ -46,8 +46,8 @@ def test_the_mass_falls_as_one_over_the_age_late_on_and_never_rises():
 
 
 def test_the_solar_systems_belt_comes_out_within_a_few_times_the_inferred_mass():
-    """A test and not an input: 2.2 to 3.4 AU, 4.5 Gyr, Ceres-size bodies at 500 to 1000 km, a primordial disc of a few Earth masses."""
-    primordial = disc_mass(2.2, 3.4)
+    """A test and not an input: 2.2 to 3.4 AU, 4.5 Gyr, Ceres-size bodies at 500 to 1000 km, a primordial disk of a few Earth masses."""
+    primordial = disk_mass(2.2, 3.4)
     assert 1.0 < primordial < 20.0
     for largest in (500.0, 1000.0):
         left = bm.belt_mass_earth(primordial, 2.2, 3.4, 1.0, 4500.0, largest)
@@ -89,7 +89,7 @@ def test_a_belt_state_gives_the_mass_in_kilograms_and_the_word_against_the_media
     assert bl.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 4.5, bl.ROCKY_LAW, draw.Stream("belt:0"))[0] == mass_kg, "the belt's own stream: the same belt, the same mass"
     young = bl.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 0.01, bl.ROCKY_LAW, draw.Stream("belt:0"))[0]
     assert young > mass_kg, "a young belt has not been ground down"
-    assert bl.belt_state(2.2, 3.4, SUN_KG, line, 2.0, 4.5, bl.ROCKY_LAW, draw.Stream("belt:0"))[0] >= mass_kg * 0.999, "a metal-rich disc leaves no less"
+    assert bl.belt_state(2.2, 3.4, SUN_KG, line, 2.0, 4.5, bl.ROCKY_LAW, draw.Stream("belt:0"))[0] >= mass_kg * 0.999, "a metal-rich disk leaves no less"
 
 
 def test_bad_inputs_raise():

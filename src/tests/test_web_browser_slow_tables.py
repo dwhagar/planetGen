@@ -29,7 +29,7 @@ JOB = "0123456789abcdef"
 
 def _job(state="running", done=300, total=1000, eta=5.0, error=None):
     return {"id": JOB, "state": state, "done": done, "total": total, "unit": "rows", "estimated": True,
-            "eta_seconds": eta, "seconds": 3.0, "error": error, "cancelling": False,
+            "eta_seconds": eta, "seconds": 3.0, "error": error, "canceling": False,
             "cache_key": "planetgen:page:x:y", "target": f"/phenomena?db={DB}"}
 
 

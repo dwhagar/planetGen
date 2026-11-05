@@ -33,9 +33,9 @@ def _system(seed, star_type="G2V", **overrides):
         return StarSystem(system_config=_config(star_type, **overrides))
 
 
-# --- the centre and the scatter ---------------------------------------------------------------------------------
+# --- the center and the scatter ---------------------------------------------------------------------------------
 
-def test_the_centre_is_the_182_k_blackbody_position_and_scales_with_the_root_of_the_luminosity():
+def test_the_center_is_the_182_k_blackbody_position_and_scales_with_the_root_of_the_luminosity():
     sun = formation.snow_line_au(constants.SOLAR_LUMINOSITY)
     assert sun == pytest.approx(2.339, abs=0.005)
     # an independent route: the temperature of a blackbody at that distance is 182 K
@@ -47,9 +47,9 @@ def test_the_centre_is_the_182_k_blackbody_position_and_scales_with_the_root_of_
 
 def test_the_drawn_line_has_the_median_and_scatter_stated():
     luminosity = constants.SOLAR_LUMINOSITY
-    centre = formation.snow_line_au(luminosity)
+    center = formation.snow_line_au(luminosity)
     with draw.bound(458):
-        logs = sorted(math.log10(formation.draw_snow_line_au(luminosity) / centre) for _ in range(20000))
+        logs = sorted(math.log10(formation.draw_snow_line_au(luminosity) / center) for _ in range(20000))
     assert statistics.median(logs) == pytest.approx(0.0, abs=0.01)
     # 0.2 dex, a little under it for the cut at 3 sigma
     assert statistics.pstdev(logs) == pytest.approx(tuning.SNOW_LINE_SCATTER_DEX, abs=0.005)
@@ -85,8 +85,8 @@ def test_a_system_gives_the_same_line_and_flags_from_its_seed_at_one_and_four_wo
 def test_a_star_stores_a_line_inside_the_scatter_of_its_blackbody_position():
     for seed in range(12):
         star = _system(seed).star
-        centre = formation.snow_line_au(star.luminosity)
-        assert abs(math.log10(star.snow_line_au / centre)) <= tuning.SNOW_LINE_SCATTER_DEX * tuning.SNOW_LINE_SCATTER_MAX_SIGMA + 1e-12
+        center = formation.snow_line_au(star.luminosity)
+        assert abs(math.log10(star.snow_line_au / center)) <= tuning.SNOW_LINE_SCATTER_DEX * tuning.SNOW_LINE_SCATTER_MAX_SIGMA + 1e-12
 
 
 def test_a_planet_is_born_beyond_the_line_of_its_star_when_it_orbits_at_or_beyond_it_and_a_moon_takes_its_planets():

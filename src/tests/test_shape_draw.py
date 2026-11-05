@@ -212,7 +212,7 @@ def test_bulge_share_alone_sets_the_share_and_solves_the_amplitude_for_it():
         assert masses["bulge"] / total == pytest.approx(share, rel=0.02)
 
 
-def test_a_bulge_share_of_zero_is_a_disc_with_no_bulge_density():
+def test_a_bulge_share_of_zero_is_a_disk_with_no_bulge_density():
     d = shape_draw.draw_galaxy(_seed(9), bulge_to_total=0.0)
     assert d.bulge_amplitude == 0.0
     shape = density.build_galaxy_shape(
@@ -261,7 +261,7 @@ def test_a_galaxy_with_nothing_pinned_is_a_small_spiral(auto_draws):
 # --- The all-Auto window (GEN.625): a default galaxy is one the plan represents well --------------------------------
 
 MILKY_WAY_DISK_SCALE_LENGTH_PC = 2600.0
-"""float: A test-only yardstick for Boss's "no more than half as big as the Milky Way": the thin disc's scale length
+"""float: A test-only yardstick for Boss's "no more than half as big as the Milky Way": the thin disk's scale length
 [R0422]; no generator code reads it."""
 MILKY_WAY_STELLAR_MASS_SOLAR = 5.4e10
 """float: The same yardstick for the stellar mass ([R0422], test only)."""

@@ -31,13 +31,13 @@ def main():
     if located.missing:
         raise SystemExit("the ozone_uv dataset is not downloaded: run python3 -m planetgen.cli.datasets fetch ozone_uv")
     sigma = ozone_uv.cross_section_cm2(located, EDGES_NM, ozone_uv.CHAPPUIS_TEMPERATURES_K[-1], np.zeros(len(EDGES_NM) - 1))  # the 1 nm table, ratio 1
-    centres = 0.5 * (EDGES_NM[:-1] + EDGES_NM[1:])
+    centers = 0.5 * (EDGES_NM[:-1] + EDGES_NM[1:])
     ratios = [ozone_uv.chappuis_ratio(located, EDGES_NM, temperature) for temperature in ozone_uv.CHAPPUIS_TEMPERATURES_K]
     document = {
         "source": "the Brion team's 1992 to 1998 measurements, 295 K, 1 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 "
                   "([R2303], Earth Syst. Sci. Data 5, 365); cell means on 5 nm cells",
         "temperature_k": 295.0,
-        "wavelength_nm": [float(v) for v in centres],
+        "wavelength_nm": [float(v) for v in centers],
         "sigma_cm2": [float(f"{v:.6g}") for v in sigma],
         "ratio_source": "[R0599], Geophys. Res. Lett. 21, 581, 407 to 762 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot "
                         "2013-06-24, Zenodo record 6951, CC BY 4.0 [R2302, R2303]; cell means on 5 nm cells over the 298 K table, 1 outside "
@@ -48,7 +48,7 @@ def main():
     with open(OUT, "w", encoding="utf-8") as handle:
         json.dump(document, handle, indent=1)
         handle.write("\n")
-    print(f"wrote {os.path.relpath(OUT)}: peak {max(document['sigma_cm2']):.3e} cm2 at {centres[int(np.argmax(sigma))]:.1f} nm")
+    print(f"wrote {os.path.relpath(OUT)}: peak {max(document['sigma_cm2']):.3e} cm2 at {centers[int(np.argmax(sigma))]:.1f} nm")
 
 
 if __name__ == "__main__":

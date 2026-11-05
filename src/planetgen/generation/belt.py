@@ -21,7 +21,8 @@ import functools
 import weakref
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import belt_ledger, belt_mass, belt_origin, bulk_draw, radiogenic, small_body_composition
+from planetgen.physics import belt_ledger, belt_mass, belt_origin, belt_page, belt_roster, bulk_draw, radiogenic, small_body_composition
+from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
@@ -67,20 +68,25 @@ def _star_al26_ratio(system_config, star):
 def present_state(star, distance, lower_limit, upper_limit, primordial_earth=None):
     """
     `(largest body km, mass kg, density word)` of a belt between `lower_limit` and `upper_limit` AU around `star` at its age: the largest body drawn from the size law (`belt_ledger.ICY_LAW` for a
-    belt out past the snow line, `ROCKY_LAW` inside it) from a stream of the belt's own and settled with the mass the disc's solids leave after `star.age` of collisions (`belt_ledger.belt_state`,
-    GEN.1000), from `primordial_earth` Earth masses when the giants have already acted on it (`belt_origin`, GEN.1068) or from the whole disc otherwise. `belt_birth` reads it to keep only the belts
+    belt out past the snow line, `ROCKY_LAW` inside it) from a stream of the belt's own and settled with the mass the disk's solids leave after `star.age` of collisions (`belt_ledger.belt_state`,
+    GEN.1000), from `primordial_earth` Earth masses when the giants have already acted on it (`belt_origin`, GEN.1068) or from the whole disk otherwise. `belt_birth` reads it to keep only the belts
     that are left to count.
     """
-    return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth)
+    return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth)[:3]
+
+
+def present_settled(star, distance, lower_limit, upper_limit, primordial_earth=None):
+    """The `belt_ledger.BeltLedger` that `present_state` settled (the stored bodies and the mass), or None where the giants took all of the belt's solids (GEN.1070)."""
+    return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth)[3]
 
 
 @functools.lru_cache(maxsize=4096)
 def _present_state(star_mass_kg, snow_line_au, age_gy, metal_ratio, distance, lower_limit, upper_limit, primordial_earth):
-    """`present_state` on the numbers it reads (so the same belt asked for again, by the builder and by the belt itself, is settled once)."""
+    """`present_state` on the numbers it reads (so the same belt asked for again, by the builder and by the belt itself, is settled once), with the settled ledger as a fourth item."""
     law = belt_ledger.ICY_LAW if distance >= snow_line_au else belt_ledger.ROCKY_LAW
     stream = draw.Stream(f"belt-largest:{distance!r}:{lower_limit!r}:{star_mass_kg!r}")   # not the outer limit: a belt cut back keeps its own draw
     mass_kg, density, settled = belt_ledger.belt_state(lower_limit, upper_limit, star_mass_kg, snow_line_au, metal_ratio, age_gy, law, stream, primordial_earth)
-    return (0.0 if settled is None else settled.largest_km), mass_kg, density
+    return (0.0 if settled is None else settled.largest_km), mass_kg, density, settled
 
 
 _STARS = weakref.WeakKeyDictionary()
@@ -105,7 +111,7 @@ class AsteroidBelt:
         upper_limit (float): The outer boundary of the asteroid belt in AU.
         body_type (str): Always 'a' for an asteroid belt.
         density (str): The density of the asteroid belt ('dense', 'sparse', 'typical'): its mass per area against the median belt of its age (GEN.477).
-        mass_kg (float): What its disc's solids leave after the star's age of collisions (`belt_ledger.belt_state`, [R4785]).
+        mass_kg (float): What its disk's solids leave after the star's age of collisions (`belt_ledger.belt_state`, [R4785]).
         chondrite_group (str): The nearest meteorite group of the mean composition (`small_body_composition.chondrite_group`, GEN.475): `CI`, `CM`, `H`, `L` ..., or `none` far from every group.
         composition (list): A list of (component, concentration) tuples -- contrast
                             `Planet.composition`, a descriptive string (same name,
@@ -118,7 +124,7 @@ class AsteroidBelt:
 
     SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density", "mass_kg", "chondrite_group", "origin", "co_causes",
                            "formation_snow_line_au", "primordial_mass_earth", "cleared_mass_earth", "scattered_mass_earth", "stirred", "origin_history",
-                           "origin_sentence", "scatter_fates", "largest_body_km"]
+                           "origin_sentence", "scatter_fates", "largest_body_km", "history"]
     """
     Every attribute set by `__init__`, excluding `system_config` (a shared
     back-reference), `composition` (handled separately in `to_dict`/
@@ -136,9 +142,12 @@ class AsteroidBelt:
     origin_sentence = None
     scatter_fates = None
     largest_body_km = None
-    """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), the causes that
+    """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,
-    the sentences of what shaped it, its sentence for the page and, for an outer disc, the shares the scatter step gave each population (`physics/scatter.py`). All empty for a belt a `SLOTS` entry asked for. `largest_body_km` is the largest body of the belt (Dc) as settled with its mass (GEN.1000, GEN.1069); None for a belt stored before GEN.1069."""
+    the sentences of what shaped it, its sentence for the page and, for an outer disk, the shares the scatter step gave each population (`physics/scatter.py`). All empty for a belt a `SLOTS` entry asked for. `largest_body_km` is the largest body of the belt (Dc) as settled with its mass (GEN.1000, GEN.1069); None for a belt stored before GEN.1069."""
+    history = ()
+    """tuple: What the star's evolution did to the belt, one sentence per event, in order (GEN.1232: `physics/belt_history`, run by `remnant_orbits` for the giant branch and the mass loss). Stored as one
+    paragraph (`asteroid_belts.history_text`) and shown on the belt's page; empty for a belt nothing has happened to."""
 
     def __init__(self, system_config: SystemConfig, star, distance, lower_limit, upper_limit, origin=None, scatter_fates=None): # Added system_config
         """
@@ -151,7 +160,7 @@ class AsteroidBelt:
             lower_limit (float): The inner boundary of the belt in AU.
             upper_limit (float): The outer boundary of the belt in AU.
             origin (belt_origin.BeltOrigin, optional): Where the belt came from; its mass after the giants is the mass the belt begins to grind from (GEN.1068).
-            scatter_fates (dict, optional): The shares of an outer disc in each population after the scatter step (`scatter.scatter_shares`).
+            scatter_fates (dict, optional): The shares of an outer disk in each population after the scatter step (`scatter.scatter_shares`).
         """
         self.system_config = system_config # Store system_config
         self.distance = distance
@@ -170,10 +179,47 @@ class AsteroidBelt:
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]
 
+    _members = None
+
+    @property
+    def members(self):
+        """
+        The stored members of the belt (GEN.1070): one dict for each body the belt's ledger holds, heaviest first (rank 1), with its mass, radius, orbit, taxon, density, composition shares and status.
+        Drawn on first use from the belt's own stream (`belt_roster.draw_roster`), so a belt always has the same members; a belt read back from a store has the ones it was saved with, and a belt
+        that was not made in this run and was saved without any has none.
+        """
+        if self._members is None:
+            self._members = self._draw_members()
+        return self._members
+
+    def _draw_members(self):
+        star = _STARS.get(self)
+        if star is None:
+            return []
+        left = None if self.origin is None else self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
+        settled = present_settled(star, self.distance, self.lower_limit, self.upper_limit, left)
+        if settled is None:
+            return []
+        ledger = settled.ledger
+        stream = draw.Stream(f"belt-members:{self.distance!r}:{self.lower_limit!r}:{star.mass!r}")
+        entries = belt_roster.draw_roster(len(ledger.masses_kg), self.lower_limit, self.upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), stream)
+        record = belt_page.BeltRecord(None, self.lower_limit, self.upper_limit, units.convert(star.mass, "kg", "Msun"), star.luminosity,
+                                      _star_al26_ratio(self.system_config, star), ledger, tuple(entry.placement for entry in entries))
+        rows = []
+        for body, entry in zip(belt_page.member_bodies(record), entries):
+            composition = body["composition"]
+            rows.append({
+                "rank": body["rank"], "mass_kg": body["mass"]["value"], "radius_km": body["diameter"]["value"] / 2.0, "distance_au": body["distance"]["value"],
+                "eccentricity": entry.eccentricity, "inclination_deg": entry.inclination_deg, "node_deg": entry.node_deg, "periapsis_deg": entry.periapsis_deg,
+                "anomaly_deg": entry.anomaly_deg, "taxon": body["taxon"], "density_g_cm3": body["density"]["value"] / 1000.0,
+                "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
+                "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": None})
+        return rows
+
     def shorten_to(self, upper_limit):
         """
         Cuts the belt back to end at `upper_limit` AU (the orbits the star holds, once its age is final): the mass it formed with, what the giants cleared and what was scattered shrink with
-        the disc's solids between the limits, and the mass left after the star's age is worked out again. Returns False, and changes nothing, for a belt that was not made in this run or
+        the disk's solids between the limits, and the mass left after the star's age is worked out again. Returns False, and changes nothing, for a belt that was not made in this run or
         whose stretch would be narrower than `belt_origin.MIN_BELT_RATIO`.
         """
         star = _STARS.get(self)
@@ -188,6 +234,8 @@ class AsteroidBelt:
         self.cleared_mass_earth *= share
         self.scattered_mass_earth *= share
         self.upper_limit = upper_limit
+        self.distance = min(self.distance, upper_limit)     # a belt whose middle lay past the cut keeps it inside its limits (PERF.229: A2VII)
+        self._members = None          # drawn again for the shorter belt, on next use
         left_earth = self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
         self.largest_body_km, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, upper_limit, left_earth)
         return True
@@ -205,6 +253,7 @@ class AsteroidBelt:
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
         data["composition"] = [list(pair) for pair in self.composition]
         data["makeup"] = self.makeup.to_dict() if self.makeup is not None else None
+        data["members"] = self.members
         return data
 
     @classmethod
@@ -226,6 +275,7 @@ class AsteroidBelt:
         fields_from_dict(belt, data, cls.SERIALIZABLE_FIELDS)
         belt.composition = [tuple(pair) for pair in data["composition"]]
         belt.makeup = small_body_composition.SmallBodyMakeup.from_dict(data["makeup"]) if data.get("makeup") else None
+        belt._members = data.get("members") or []      # a belt read back keeps the members it was saved with, and none it was not (it is not drawn again)
         return belt
 
     def get_composition_summary(self):

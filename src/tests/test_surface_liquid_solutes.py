@@ -41,7 +41,7 @@ def test_an_ocean_with_other_ice_stores_its_ammonia_as_a_percent_of_the_liquid()
     assert body.surface_liquid_ammonia_wt == pytest.approx(100.0 * share / (1.0 + share))
 
 
-@pytest.mark.parametrize("state", ["dry", "ice", "vapour"])
+@pytest.mark.parametrize("state", ["dry", "ice", "vapor"])
 def test_a_body_without_a_liquid_ocean_stores_no_ammonia(state):
     body = _body(p_so2_kpa=0.0, hydrosphere=state, water_mass_fraction=0.1, ice_mass_fraction=0.02)
     slw.generate(body)

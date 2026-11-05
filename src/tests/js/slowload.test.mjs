@@ -26,7 +26,7 @@ function panel(attrs) {
 function job(fields) {
   return Object.assign({
     id: "0123456789abcdef", state: "running", done: 300, total: 1000, unit: "rows", estimated: true,
-    eta_seconds: 5, seconds: 3, error: null, cancelling: false,
+    eta_seconds: 5, seconds: 3, error: null, canceling: false,
   }, fields || {});
 }
 
@@ -104,9 +104,9 @@ test("a failed job shows why and offers Try again, and stops polling", async () 
   assert.equal(win.fetchCalls.length, 1);
 });
 
-test("a cancelled job says an administrator stopped it", async () => {
+test("a canceled job says an administrator stopped it", async () => {
   const win = installDom("http://localhost/phenomena");
-  win.fetchHandler = () => job({ state: "cancelled", done: 0 });
+  win.fetchHandler = () => job({ state: "canceled", done: 0 });
   const el = await start(win);
   win.timers.advance(1000);
   await settle();

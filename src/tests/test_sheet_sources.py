@@ -96,7 +96,7 @@ def test_each_physics_row_of_a_page_stands_once_with_its_source_beside_it(db_app
             assert found, f"{kind} {spec.label} is not on the page"
             if line:
                 href = reference_urls.reference_path("method", property_help.method_ref(kind, spec.label))
-                marker = f'<small class="sheet-source"><a class="reference-link" href="{href}">Where this comes from</a></small>'
+                marker = f'<small class="sheet-source"><a class="reference-link" href="{href}">More information</a></small>'
                 assert escape(line) not in page, f"{kind} {key}: the source line is on the References pages, not the body page"    # DOC.93
                 holders = [cell for cell in found if marker in cell]    # the At a glance panel may repeat a row; its copy has no source
                 assert len(holders) == 1 and page.count(marker) == 1, f"{kind} {key}"

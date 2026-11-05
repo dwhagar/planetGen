@@ -11,7 +11,7 @@ charges superscripts after the formula and isotope mass numbers superscripts bef
 - `CaSO4·2H2O` (or `CaSO4.2H2O`): a hydrate; the coefficient after the dot stays on the line.
 - `3He`, `14C`, `13CO`: an isotope's mass number before the first symbol.
 - `Na+`, `Cl-`, `NH4+`, `e-`: a charge of one; `Fe2+`, `O2+` (one element: the number is the charge, so `O2+` is
-  doubly ionised oxygen) and `SO4^2-`, `O2^+` (a `^` names the charge of anything else).
+  doubly ionized oxygen) and `SO4^2-`, `O2^+` (a `^` names the charge of anything else).
 
 These take one formula, never free text: a caller that prints a text naming chemicals (a nebula's contents, a limit's
 meaning) splits it with `split`, which marks only what the registry (`known`) holds or a charged element, so a word that
@@ -221,7 +221,7 @@ def known():
 
 
 SPECTRAL_TYPES = frozenset({"K2"})
-"""frozenset: Gas formulas that are also the spectral type of a star (the potassium dimer K2 of the lava vapour, GEN.751, and the K2 star): a
+"""frozenset: Gas formulas that are also the spectral type of a star (the potassium dimer K2 of the lava vapor, GEN.751, and the K2 star): a
 text that names a star ("a K2 star") must not have it written as a gas, so `split` does not mark them. `html` and `text` still write them out
 where a caller names the formula (the `formula` filter). The other spectral types with a digit (`B2`, `A0`, `F5`, `G2`, `M3`) are no gas."""
 
