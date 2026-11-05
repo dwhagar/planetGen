@@ -17848,21 +17848,6 @@ clears each one.
   until it lands.
   Prerequisites: none. Related: TEST.580.
 
-- [ ] **TEST.599 test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug)**
-  Core 2 (as the lane reported, about 9:10 AM EST on 2026-11-05) saw
-  tests/test_web_a11y.py -k web.system-phone-light fail on plain main on
-  a skip-link tab stop, and says link-colour axe checks also read red on
-  its machine. Core 3 saw web.system pass (8 passed, 4 skipped) on its
-  machine at main 10cf0b86d, so the failure may follow a later commit or
-  the machine. Do: run web.system-phone-light alone on current main,
-  print the failing assertion (the tab order with the skip link first,
-  or a link contrast), bisect test_web_a11y.py to the commit that turned
-  it red, and fix the page or the test at the cause; if it still passes
-  on a second lane machine, say which difference matters. Done:
-  web.system passes on current main on two lane machines. Lock-free.
-  Version 8.1. Owner: Core 3. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.346.
-
 - [ ] **TEST.600 Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12)**
   The Train Manager (as the lane reported, 9:28 AM EST on 2026-11-05)
   asked for this. GEN.1275 (the habitable-world bar, Bug 1) and TEST.579
