@@ -18325,15 +18325,6 @@ clears each one.
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
-- [ ] **TEST.594 tests/js/galaxymap.test.mjs fails on plain main (bug)**
-  Core 2 (as the lane reported, 5:40 AM EST on 2026-11-05) found the
-  Galaxy Map JS unit test file tests/js/galaxymap.test.mjs failing on
-  plain main, not from its own change. Do: run it, find the commit that
-  turned it red (git bisect on the one file), and fix the test with the
-  reason or the code. Done: the file passes on plain main. Lock-free.
-  Version 8.1. Owner: Core 5, after TEST.580. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.580.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
