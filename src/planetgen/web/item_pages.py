@@ -154,7 +154,8 @@ def tree_context():
     pages and habitability page its summary line links into."""
     return TreeContext(
         item_url=item_url, tree_url=lambda ref: page_url("object_tree", ref=ref), class_url=class_url,
-        sprite_url=static_url("icons.svg"), help_url=page_url("habitability_levels"), static_url=static_url)
+        sprite_url=static_url("icons.svg"), help_url=page_url("habitability_levels"), static_url=static_url,
+        belt_url=lambda ref: page_url("belt_info_page", belt_ref=ref))
 
 
 def tree_response(ref):
@@ -340,6 +341,10 @@ def planet_sections(name, row, sheet, species, piece, readings=()):
         return None if group is None else {**group, "rows": [r for r in group["rows"] if not drop(r["key"])]}
 
     atmosphere = without("atmosphere", lambda key: key.startswith("p_"))
+    colour = planet_layout.atmosphere_colour_fact(piece["blocks"] if piece else [])
+    if colour is not None:        # the sky colour (GEN.420) is a row of the description's facts table, which the page drops
+        colour_row = {"key": colour["key"], "label": colour["label"], "html": trusted_html(inline_html(colour["value"])), "stored": True, "source": None}
+        atmosphere = {**(atmosphere or {"key": "atmosphere", "label": "Atmosphere"}), "rows": [colour_row, *(atmosphere["rows"] if atmosphere else [])]}
     composition = without("composition", lambda key: key in planet_layout.MASS_SHARED_KEYS)
     phi6 = without("habitability", lambda key: False)
     return {
@@ -726,6 +731,7 @@ def render_item(kind, printed_id):
         admin=current_admin(),
         edit=admin,
         object_ref=ref,
+        belt_info_url=page_url("belt_info_page", belt_ref=ref) if kind == "belt" else None,
     )
 
 

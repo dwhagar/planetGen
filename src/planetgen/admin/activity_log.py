@@ -26,9 +26,9 @@ macOS;
 Every line has the same shape, documented in `docs/reference/config.md`, so tools
 can match it::
 
-    2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
+    2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
 
-the time in UTC, the process id, the category, the event, then `ip=` (the
+the time local with the offset of its zone, the process id, the category, the event, then `ip=` (the
 client address, or `-` when there is none, such as a command-line run)
 and `user=` (always quoted), then any further `key=value` fields. The
 address always comes before any text a visitor typed, and that text is
@@ -180,7 +180,7 @@ def format_line(category, action, ip=None, user=None, fields=None, when=None, pi
         raise ValueError(f"unknown activity log category {category!r}")
     if not _ACTION.match(action):
         raise ValueError(f"bad activity log action {action!r}")
-    stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() if when is None else when))
+    stamp = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(time.time() if when is None else when))
     parts = [f"{stamp} planetgen[{os.getpid() if pid is None else pid}]: {category} {action}",
              f"ip={clean_ip(ip)}", f"user={quote('-' if user is None else user)}"]
     for key, value in (fields or {}).items():

@@ -2,6 +2,271 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3371] - 2026-11-05
+
+**Headline:** The test that counts a system page's database statements no longer fails when a generated system has no moons.
+
+### Fixed
+- `test_sector_and_system_pages_use_a_fixed_number_of_queries` compared the statement count of two randomly generated systems, but a system with no moons sends three fewer statements (moon gases, class scores and life), and one with no belts sends one fewer, so it failed on most runs. It now checks that no statement is sent twice however many planets, moons and belts a system has (the host lookup, once for each star that has planets, excepted) and bounds the rest at 18, so a new statement has to be named.
+
+## [8.0.3370] - 2026-11-05
+
+**Headline:** The Systems list with a star type filter now pages by key in the sector and octant sorts, so a deep page costs what the first one does.
+
+### Changed
+- `GET /api/systems` (and the Systems list behind it, `planetgen systems`) with `star_type` set and the `sector` or `octant` sort now starts a page after the system named by `after` instead of skipping rows with `offset`. The star type is one more condition inside each sector or octant of the walk that the unfiltered list already used. Measured on MySQL with 2,000,000 systems and 2,800,000 stars, a G-type filter: a page after a system in the middle of the list went from 11 to 18 s down to 8 to 20 ms. The pages and their order are unchanged. An `offset` page of the octant sort with a star type reads as before (about 20 s at that size; the web table and the API carry `after`).
+
+## [8.0.3369] - 2026-11-05
+
+**Headline:** Every log now writes the computer's local time with its zone; no log form writes UTC any more.
+
+### Changed
+
+- The file line, the JSON line and so the record file (`--record-file`, and the run's `records.log`) carry `ts=2026-10-24T14:40:00.123-0400`, the local time with the offset of its zone, where they carried UTC with a trailing `Z`. The debug log and the display line were local already.
+- The activity log's lines start with the same kind of time (`2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ...`), and the fail2ban filter reads the offset (`datepattern ... %%z`); the jail no longer sets `logtimezone = UTC`. Copy `examples/fail2ban/planetgen.filter.conf` and `planetgen.jail.conf` over the installed ones when you update: the old filter does not match the new lines.
+- The "another run is running" refusal names the start time in local time with its zone. There is no reader for the old UTC form: a `ts=...Z` line is refused as a bad line.
+
+## [8.0.3368] - 2026-11-05
+
+**Headline:** Every cache warm-up now writes its own record to `warmup.log` in the log folder, in local time with its zone.
+
+### Changed
+
+- `planetgen warm` appends each run to `warmup.log` itself (next to `planetgen.log`, in `log_dir`): a line that says what started it (update stage 1 or 2, by hand, or a change such as an orbit update) and the time limit, the lines the run printed, each with the local time and its zone, and a last line that says it finished, was ended (by a signal or Ctrl+C) or failed, and after how long. Runs are added one after another, and the background warm-up that starts after a change, which wrote nowhere before, is in it too. The file is rotated with the other logs of the folder.
+- `update.sh` no longer pipes the warm-up through `tee`, so the progress bars draw on its terminal as its comments say, and the old overwritten `/tmp/planetgen-warm-map.log` is gone. A warm-up whose log file cannot be written says so once and goes on.
+
+## [8.0.3367] - 2026-11-05
+
+**Headline:** A planet's or moon's page shows its sky color again, as the first row of the Atmosphere section.
+
+### Fixed
+
+- **The "Atmosphere color" row had gone from the planet and moon page.** The row (a color chip and a word such as "pale blue", GEN.420) lived in the description's facts table of the body, which the redesigned page (UX.215 to UX.222) does not draw, and the Atmosphere section is built from the property sheet, which leaves the color out. The page now takes the row from the description and puts it first in the Atmosphere section, for a body with a solid surface and an air that lets light through.
+
+## [8.0.3366] - 2026-11-05
+
+**Headline:** The rogue-planet kind no longer shows a work-item code in its description.
+
+### Fixed
+- **The rogue-planet kind's description named GEN.1111.** The sentence is reworded without the item code, which `test_no_todo_codes_shown` refuses. The wiring-register lines of the rogue mass function, the cluster unbinding and the rogue density now name GEN.1287, GEN.1288 and GEN.1289.
+
+## [8.0.3365] - 2026-11-05
+
+**Headline:** The rogue-planet code that the planet chain replaced is deleted.
+
+### Changed
+- **GEN.1286: the unread rogue_volatiles and rogue_radiogenic modules are deleted.** A rogue planet is built by the one planet chain against a starless host, which already gives its giant class from its radius, its water from where it formed against the snow line, its radiogenic content from the donor's composition and its air from its own conditions, so the two modules were never needed. They go with their tests, the stand-in sections 6.111 and 6.114 (rows EV1, EV2, RY1), their register lines and the five tuning defaults they replaced (`ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`, `ROGUE_HYDROGEN_ENVELOPE_CHANCE`, `ROGUE_WATER_RICH_CHANCE`, `ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH`, `ROGUE_ACTIVE_HEAT_FLUX_W_M2`) and the unread `ROGUE_TIDAL_FLUX_RANGE_W_M2`. Generation output is unchanged. Not modelled, as before: the envelope a planet loses to its star's XUV in the time before the ejection.
+
+## [8.0.3364] - 2026-11-05
+
+**Headline:** Every cache warm-up now writes its own record to `warmup.log` in the log folder, in local time with its zone.
+
+### Changed
+
+- `planetgen warm` appends each run to `warmup.log` itself (next to `planetgen.log`, in `log_dir`): a line that says what started it (update stage 1 or 2, by hand, or a change such as an orbit update) and the time limit, the lines the run printed, each with the local time and its zone, and a last line that says it finished, was ended (by a signal or Ctrl+C) or failed, and after how long. Runs are added one after another, and the background warm-up that starts after a change, which wrote nowhere before, is in it too. The file is rotated with the other logs of the folder.
+- `update.sh` no longer pipes the warm-up through `tee`, so the progress bars draw on its terminal as its comments say, and the old overwritten `/tmp/planetgen-warm-map.log` is gone. A warm-up whose log file cannot be written says so once and goes on.
+
+## [8.0.3363] - 2026-11-05
+
+**Headline:** The program's log lines are now made and written by one module, with one formatter, and the shell's log helper takes its words from it.
+
+### Changed
+
+- `util/log.py` is the only place a log line is made and written: its `LineFormatter` replaces the five formatter classes that were spread over `util/log.py` and `util/logrecord.py` (the command line's plain text, the debug line, the file line, the JSON line and the display line), and `log.get(component)` replaces `logrecord.get_logger`. What the lines look like does not change.
+- `scripts/logrecord.sh` takes its severities, the ones that go to standard error, the stage word and the divider from the module (a block `scripts/build_log_vocabulary.py` writes), and a test fails when the block is out of date.
+- The test that watches for hand-made log lines also fails on a formatter class or a handler made outside `util/log.py`; the activity log's handlers and the queue run log's handler are named in it as stragglers for the next part.
+
+## [8.0.3362] - 2026-11-05
+
+**Headline:** The rogue-planet physics modules lose the functions and constants nothing read.
+
+### Changed
+- **GEN.1111 register leftovers wired or deleted.** The seven functions that the rogue physics wrote ahead of their callers and that no part of the plan reads (the donor offset and along-orbit speed of `rogue_drift`; the moon survival draw and probability and the relative speed of `rogue_kick`; the moon survival draw and probability of `rogue_moons`), the survival curve helper of `rogue_moons`, and the unread moon loss fraction (stand-in row RK5) are removed with their tests and register lines. `rogue_moons.closest_approach_hill` stays, it is read by the starless host. Generation output is unchanged.
+
+## [8.0.3361] - 2026-11-05
+
+**Headline:** A backed-up sector repair file can be put back and is checked against the database straight away.
+
+### Changed
+
+- `python3 -m planetgen.cli.backup restore --part parity ARCHIVE` (and any restore that names the `parity` part) puts the backed-up repair file back (DB.41). The copy is checked first (whole records only), the galaxy database is reached before anything is changed, and the restore is refused at once, before the safety archive is taken, while a save is writing parity. The file is written beside the live one, synced, and renamed over it with the live file locked.
+- The restored file is then checked against the database (`db/parity.reconcile`, the check of DB.8 with the stale-record rule of DB.9): a record that no longer matches the rows because the database changed after the backup is made again from the rows and is not read as damage; a record that fails its CRC is made again when the sector verifies; a member whose sector is gone is let go. The result says how many sectors the copy holds no record of (unprotected until their next save or `planetgen refresh-parity`) and lists the sectors that are damaged or cannot be trusted, for `planetgen repair-db`.
+- A backup part may now refuse a restore before anything is changed (`Part.check_restorable`), and `RestoreContext.database` names the galaxy database a part checks against; `ParityFile.locked(wait=False)` raises `ParityFileBusy` instead of waiting.
+
+generation-output: unchanged
+
+## [8.0.3360] - 2026-11-05
+
+**Headline:** The page of a planet or moon now shows what its ground is made of, and the lists show each body's spin, tilt and internal heat.
+
+### Changed
+
+- The Composition block of a planet or moon page lists the ground type that covers most of it, the grain of the ground, and the share of each of the 13 ground types (ocean, ice, ultramafic, anorthositic, basalt, granitoid, intermediate, clay, iron-oxidized ground, metal, carbon, evaporite salts, sulfur), each with its unit and a link to the method page that gives the source. The property sheet of the API (`GET /api/objects/<ref>/sheet`) carries the same rows.
+- The planet and moon lists have three more columns, rotation period, axial tilt and internal heat flow, and the star list has the rotation period; the object-list API (`GET /api/object-lists/<kind>`) returns the same values on each item.
+
+## [8.0.3359] - 2026-11-05
+
+**Headline:** The unused second size-law module for belt density is removed; the belt information page keeps its one set of size laws.
+
+### Changed
+- **The separate belt density module (GEN.1093) is deleted (UX.263).** The belt information page already works out the size table and the density factor from the belt ledger's laws, which hold the same hot Kuiper belt and main belt numbers from the same papers, so the second module was never read. Its stand-in rows (section 6.99, BD1 to BD5) and wiring-register lines go with it. The cold classical Kuiper belt numbers stay recorded in the small-body size-law notes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.263.
+
+## [8.0.3358] - 2026-11-05
+
+**Headline:** The system-generation fuzz tests are split or sampled so none passes the 900 second limit with every flag forced on; no generated output changes.
+
+### Changed
+- **Smaller fuzz cases (TEST.417, PERF.241).** A system with every orbit flag forced on costs 15 to 96 s for an O-type star (profile in reports/perf241-all-flags-o0v-profile-2026-11-05.md), so ten of them in one case passed 900 s. `test_every_star_type_generates_a_sane_system` now runs each letter and class in two cases, subclasses 0 to 4 and 5 to 9, with the same systems and seeds (all 70 combinations are still built); the slowest case of the M class took 215 s. `test_extreme_orbit_counts` (30 to 12 examples), `test_every_forced_flag_on_together` (25 to 10) and `test_random_valid_configs_generate_sane_systems` (20 to 10) draw fewer examples in the ordinary profile; the deep profile (`PLANETGEN_FUZZ_PROFILE=deep`) draws thousands as before. Restore the counts when GEN.1282 and PERF.242 cut the cost of a system.
+
+generation-output: unchanged
+
+TODO items resolved: none (PERF.241 continues).
+
+## [8.0.3357] - 2026-11-05
+
+**Headline:** A course's legs inside a system are now drawn in that system's 3D view, from the heliopause to the body it is bound for.
+
+### Added
+- **The 3D system view draws a course (NAV.22 part b).** A course page now offers "Show in system view" (or "Show in start system view"
+  and "Show in destination system view") for each system the course has a leg in. The view draws the leg as a line from where the
+  course crosses the system's heliopause to the body it is bound for (or from the body out to the heliopause), bent clear of the bodies
+  it would pass too close to, with a ring at each end and one where a moving destination is aimed. It is drawn in both the compressed and
+  the true scale, and listed under the view with the legs' lengths in AU and the way back to the course.
+
+## [8.0.3356] - 2026-11-05
+
+**Headline:** Every asteroid belt now has an information page that lists its individually tracked bodies by designation, the sizes and contents of the rest of its mass, and how crowded it is.
+
+### Added
+- **The asteroid belt information page, `/object/belt:<ID>/belt` (UX.241).** It shows the belt's limits, mass and typical contents; the bodies the belt keeps one by one, each by designation with its mass, diameter, distance, type, density, make-up, shape word and, for a body the giants scattered, its orbit group; the rest of the belt's mass as a table of sizes (how many bodies, how much mass, what share of the belt, their typical density and contents, and whether they are drawn on demand or kept as a total only); and the density factor, the objects larger than 1, 10 and 100 km in each square astronomical unit and the mass in each square astronomical unit, every number with its unit. The listed bodies and the sizes add up to the belt's mass. The belt's own page and its row in the system tree link to it.
+- **`GET /api/objects/<ref>/belt-page`** answers the same data for a belt (`belt`, `bodies`, `bins`, `density_factor`, `totals`). It is a new route, so the API version does not change.
+
+generation-output: unchanged
+
+TODO items resolved: UX.241.
+
+## [8.0.3355] - 2026-11-05
+
+**Headline:** The habitability re-score no longer dies with a MySQL deadlock when four workers run its units at once.
+
+### Fixed
+- `rescore-habitability` ran each unit as one transaction at the default isolation level, so two workers re-scoring neighbouring id ranges held gap locks on the shared `system_interests` and planet index ranges and each waited on the other (MySQL error 1213), which stopped the stage. The unit now runs at READ COMMITTED, which takes no gap locks, and starts over on a deadlock or a lock wait timeout (`store.RETRYABLE_ERRORS`) on a connection of its own, up to `store.SECTOR_SAVE_ATTEMPTS` times (8) with a pause that grows with each try, then fails as before. The numbers are the same whenever a unit is run, so a retry changes nothing stored.
+
+### Added
+- `tests/test_perf228_rescore_deadlock.py`: four threads re-scoring neighbouring ranges of 16 saved systems for 12 rounds each finish with no error (it failed on the old unit with error 1213), a unit that meets one deadlock gives the same answer, a unit that keeps meeting one gives up after 8 attempts, and any other database error is not retried.
+
+generation-output: unchanged
+TODO items resolved: PERF.228
+
+## [8.0.3354] - 2026-11-05
+
+**Headline:** A course that stays inside one sector is now drawn in that sector on the Galaxy Map, with its line, rings and names.
+
+### Added
+- **A course inside one sector has a line (NAV.22 part a).** Until now the Galaxy Map opened the sector for such a course and drew
+  nothing. The course's stops (the two ends and any systems between them on the route) are placed in the galaxy frame from the sector's
+  center, so the map draws the route, the straight line, any bend round a keep-out sphere, the rings, the names and the course readout
+  and diagram, as it does for a course across the galaxy.
+
+## [8.0.3353] - 2026-11-05
+
+**Headline:** A cache warm-up now goes on when its terminal is closed, and `planetgen warm --follow` watches a running one from another session.
+
+### Changed
+- A lost terminal (an SSH session that dropped, a hangup) no longer ends the cache warm-up as canceled (OPS.95 had done so). The command stops writing to the terminal, notes in the run's log that the terminal was closed, and the warm-up carries on to its end. SIGTERM and Ctrl+C still end it.
+
+### Added
+- `planetgen warm --follow` draws the progress of the warm-up that is running, started by `update.sh` or by hand, from its run record in Redis, the same bars and phase lines the starting session shows. It starts nothing; ending it with Ctrl+C or a hangup leaves the warm-up running. It says so when none is running.
+
+## [8.0.3352] - 2026-11-05
+
+**Headline:** A full backup now holds a copy of the sector repair file, so a galaxy whose live repair file is lost can still be repaired.
+
+### Changed
+
+- New backup part `parity` (DB.40, `backup/parts.py`): a copy of the parity file of the database repair (`db/parity_file.py`, DB.9) in `parity/sector-parity.pgpr`. The copy is taken with the file locked against every save (the lock the saves take) and cut at the end of its last whole record, so it is a state the file really had, never half a record. A file damaged behind its last record is refused with the reason (run `planetgen repair-db`), because that copy could repair nothing. With no parity file yet the part is empty and says so.
+- The manifest keeps what a part says about its dump as `info` (`Part.dump` may return a dict); for the parity part it is `bytes`, `sectors` covered and `groups`, or `present: false` with the reason. `planetgen.backup.PartInfo.info` holds it.
+- New option `settings.backup_parity` (default on, Admin settings, "Back up the repair file"): off leaves the copy out of full archives, for a very large galaxy. The settings backup made before each save still holds the settings part alone.
+- Restoring the part is DB.41; until then a restore of a whole archive leaves the parity copy in the archive and says so.
+
+generation-output: unchanged
+
+## [8.0.3351] - 2026-11-05
+
+**Headline:** Opening a saved course now says when a jump through unknown space has since been filled in with known sectors, or the reverse.
+
+### Changed
+- **A saved course keeps which of its hops were jumps through unknown space (NAV.39).** The record the Save button keeps now carries
+  an `unknown_space` flag on each hop of the route. When the course is opened again and the route runs through the same systems,
+  the list of what has changed adds a line for each hop whose flag differs ("Hop 1 of 2 is now through known space; it was a jump
+  through unknown space."). A course saved before the flag was kept says nothing about it, so no old record is flagged wrongly.
+
+## [8.0.3350] - 2026-11-05
+
+**Headline:** The population tests that run two passes at once now pass alone as well as in a whole-file run, because the test helper that sets the civilization chance no longer lets one pass undo it for the other.
+
+### Fixed
+- `every_window_has_a_civilization` (TEST.622) saved the civilization chance and put it back for each block on its own. Two passes on two threads overlapped: the one that finished first put the chance back to 1 in 1,000 under the one still running, which made no species, and the one that finished last saved the first one's value of 1 and left the chance there for every test after it. That is why `test_two_passes_drawing_the_same_names_still_save_unique_ones` failed alone and passed in a whole-file run. The first block in saves the chance and the last one out puts it back, under a lock.
+
+## [8.0.3349] - 2026-11-05
+
+**Headline:** The tests that need a generated civilization no longer each pay minutes to find one: the systems are drawn from numbered seeds and the numbers that gave a civilization are kept for the other test processes.
+
+### Changed
+- `tests/test_population.py` (TEST.417): the pool of civilized systems (`_civilized_candidates`) draws candidate N under a stream seeded from N, so the same number gives the same system. A number that gave a civilization is written to a file in the temporary directory, named for the size and time of the package's source files, and every test process reads it before it searches: a process that needs a civilized system makes one known to hold a civilization and does not look for another among about one in thirteen. Parallel workers start their search a thousand numbers apart. The generator is not touched, and the same G2V system with a habitable world and intelligent life requested is drawn.
+- The species limits test of a generated galaxy took 1,222 s alone on a lane machine, all in setup; with a file from an earlier run it sets up in under 40 s here, and on a cold start it takes the time the draws take, as before.
+
+## [8.0.3348] - 2026-11-05
+
+**Headline:** The mass-conversion and reproducible-maths guards are green again.
+
+### Fixed
+- **Hand-written mass conversions (TEST.619).** `galaxy/keepout.py`, `galaxy/resident_mass.py`, `generation/rogue_topup_build.py` and `physics/remnant_composition.py` convert a mass through `unit_registry.converter`. The last three give the same bits as before (checked on 200,000 random values); the sphere of influence of a supermassive hole in `keepout.py` may differ in the last bit.
+- **Maths that depends on the Python or BLAS library (TEST.620).** `db/field_clouds.py`, `db/obstacles.py` and `galaxy/unresolved_crossings.py` use `detmath.dist`, and `galaxy/avoid.py` and `galaxy/sky_band.py` use a new `detmath.dot` (a vector's dot products summed left to right, the bits of `detmath.matmul`) instead of `@` and `numpy.dot`.
+
+## [8.0.3347] - 2026-11-05
+
+**Headline:** The update script prints its settling wait through the log layer, and the tile cache measuring script names a path that exists.
+
+### Changed
+
+- `update.sh` printed "The update steps are finished: waiting ... seconds before reloading the site." with a bare `echo`, the one line of its own that did not go through `scripts/logrecord.sh`; it now uses `log_info` like the others, so it is timestamped and recorded (`test_update_sh_prints_its_own_lines_through_the_layer`, TEST.617).
+- The docstring of `scripts/measure_tile_cache.py` said the sector-block node lives in `db/nodes.py`; it now gives the path `src/planetgen/db/nodes.py` (`test_scripts_only_name_repo_paths_that_exist`, TEST.618). The script itself is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3346] - 2026-11-05
+
+**Headline:** The bulk-insert test rows carry every bright-star column again, so test_literal_insert passes; no generated output changes.
+
+### Changed
+- **Bright-star test row made whole (TEST.613).** `tests/test_literal_insert.py` built rows of 19 values while `store.BRIGHT_STAR_COLUMNS` has 21 (rotation period and nuclear arrival age were added), so MySQL answered "Column count doesn't match value count". The test row now carries both, one of them sometimes NULL, and the read-back check covers them.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.613.
+
+## [8.0.3345] - 2026-11-05
+
+**Headline:** One British spelling in a test docstring is American now.
+
+### Changed
+
+- `test_gen_cloud_at_generation.py` said "centre" in a docstring; it says "center" (DOC.103). Tests only.
+
+generation-output: unchanged
+
+## [8.0.3344] - 2026-11-05
+
+**Headline:** Two bright-star tests no longer disturb each other when they run in one process.
+
+### Fixed
+- **A test left a hole in a cached star track (TEST.612).** `test_a_track_with_a_missing_sample_takes_the_array_path` gave the cached `post_main_sequence.timeline(3.0, 0.0)` a track with a missing sample, so `test_the_bright_pieces_are_exactly_the_ages_the_star_is_that_bright` saw 190 Gy of bright pieces against 150 when it ran after it. The test now works on a copy of the timeline, and a new test runs the two in both orders in fresh processes.
+
 ## [8.0.3343] - 2026-11-05
 
 **Headline:** The field-cloud placement tests use a cloud that fills its sphere, so they no longer fail when a drawn nebula's lumpy shape leaves its centre empty.

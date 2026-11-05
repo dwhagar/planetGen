@@ -37,7 +37,7 @@ class _WholeSphere:
 
 
 def _nebula(nebula_class, radius_ly=2.0):
-    """A drawn nebula whose shape is its whole bounding sphere. The drawn shape (GEN.75) is lumpy and may leave the cloud's centre empty,
+    """A drawn nebula whose shape is its whole bounding sphere. The drawn shape (GEN.75) is lumpy and may leave the cloud's center empty,
     which depends on the nebula's drawn properties and moves whenever they do; its containment is tested in `test_nebula_shape`."""
     with draw.bound("gen357:nebula"):
         nebula = Nebula(SystemConfig(), nebula_class=nebula_class)

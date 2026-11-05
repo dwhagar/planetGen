@@ -194,6 +194,20 @@ def activity_log_path(config=None):
     return path
 
 
+WARMUP_LOG_NAME = "warmup.log"
+"""str: The warm-up log's file name inside `log_dir_path()` (OPS.96)."""
+
+
+def warmup_log_path(config=None):
+    """
+    The warm-up log: `warmup.log` in `log_dir_path()`, next to the activity log (OPS.96). Every `planetgen warm` appends a
+    run to it, bracketed by a start and an end line; the logrotate rule of the folder (`*.log`) rotates it with the others.
+    """
+    if config is None:
+        config = read_config_file()
+    return os.path.join(os.path.abspath(log_dir_path(config)), WARMUP_LOG_NAME)
+
+
 def log_rotation_mode(config=None):
     """
     How the activity log is rotated: `"system"` (logrotate or newsyslog

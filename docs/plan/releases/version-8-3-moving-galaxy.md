@@ -22,6 +22,18 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 |---|---|---|---|
 | MAP.307 | Stations and facilities become points of interest: interest reasons for the map mark and its menu filter |  |  |
 
+### Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls |  |  |
+| OPS.98 | A time on every line of every script and command |  |  |
+| OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh |  |  |
+| OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | OPS.98 |  |
+| OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log |  |  |
+| OPS.102 | Debug log: an area column in, the dead logger-name column out |  |  |
+| OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | OPS.98, OPS.99, OPS.100, OPS.101, OPS.102, OPS.105 |  |
+
 ### Nightly maintenance
 
 | ID | Item | Needs | Note |
@@ -35,6 +47,12 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 |---|---|---|---|
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt |  |  |
 | MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row |  | Split from the Galaxy Map key item. |
+
+### Console look: buttons, form fields and tables
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.132 | Console look for buttons, form fields and tables, by tokens only | UX.131 | Split from UX.43. |
 
 ### Galactic gravity
 
@@ -54,6 +72,8 @@ N-body influence, collisions, encounters and the Quantity class.
 | GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded |  | Split from GEN.115. |
 | GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | GEN.139 | Split from GEN.115. |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.339, GEN.340 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
+| VIEW.46 | The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes | VIEW.44, GEN.115 |  |
+| GEN.1285 | The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3) |  |  |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | GEN.340 |  |
 | GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter |  | Split from GEN.109. |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs |  | Split from GEN.109. |
@@ -83,6 +103,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | USR.3, GEN.344 | Needs USR.3's SMTP settings. |
 | GEN.347 | The last-collisions admin view and the test that runs the whole collision path | GEN.346 | Split from GEN.143. |
 | GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | GEN.347 | Research: makes the collision code testable. |
+| GEN.1293 | The orbital update runs registered steps: another domain (population, politics, trade) registers a step that receives the galaxy time step dt and a named draw stream, and the run calls them in a fixed order | GEN.139 |  |
 
 ### Long steps
 
@@ -97,6 +118,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential |  | Gravity map foundation (Boss 2026-10-10). |
+| GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
+| MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field |  |  |
+| API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | GEN.199 |  |
 
 ### What moved in the last update
 

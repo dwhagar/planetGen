@@ -16,18 +16,23 @@
 #     log_info, log_notice, log_warning, log_error MESSAGE
 #     log_stage FIRST TOTAL LABEL     the divider of a stage
 #
+# The severities, the stage word and the divider are generated from the module (the block below, scripts/build_log_vocabulary.py), and
 # tests/test_log_shell.py runs these against `logrecord.display_line`, so the two cannot drift apart.
+
+# BEGIN generated vocabulary (scripts/build_log_vocabulary.py from planetgen/util/logrecord.py; do not edit)
+LOG_SEVERITIES="debug info notice warning error critical"
+LOG_STDERR_SEVERITIES="warning error critical"
+LOG_STAGE_WORD="Stage"
+LOG_DIVIDER="==="
+# END generated vocabulary
 
 log_record() {
     local severity="$1" message="$2" stamp upper line
-    case "$severity" in
-        debug|info|notice|warning|error|critical) ;;
-        *) severity=info ;;
-    esac
+    [[ " $LOG_SEVERITIES " == *" $severity "* ]] || severity=info
     upper="$(printf '%s' "$severity" | tr '[:lower:]' '[:upper:]')"
     stamp="$(date '+%Y-%m-%d %H:%M:%S %Z')"
     while IFS= read -r line || [[ -n "$line" ]]; do
-        if [[ "$severity" == warning || "$severity" == error || "$severity" == critical ]]; then
+        if [[ " $LOG_STDERR_SEVERITIES " == *" $severity "* ]]; then
             printf '%s %-8s %s: %s\n' "$stamp" "$upper" "${LOG_COMPONENT:-update}" "$line" >&2
         else
             printf '%s %-8s %s: %s\n' "$stamp" "$upper" "${LOG_COMPONENT:-update}" "$line"
@@ -42,5 +47,5 @@ log_error() { log_record error "$1"; }
 
 # The divider of one stage, as `logrecord.stage_start` writes it: "=== Stage 4 of 9: label ===", an info record.
 log_stage() {
-    log_record info "=== Stage $1 of $2: $3 ==="
+    log_record info "$LOG_DIVIDER $LOG_STAGE_WORD $1 of $2: $3 $LOG_DIVIDER"
 }

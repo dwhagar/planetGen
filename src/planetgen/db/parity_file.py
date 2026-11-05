@@ -46,6 +46,10 @@ class ParityFileError(OSError):
     """The file cannot be used (damaged behind the last record, or not writable)."""
 
 
+class ParityFileBusy(ParityFileError):
+    """The file is locked by a writer and the caller asked not to wait (`ParityFile.locked(wait=False)`)."""
+
+
 class RecordDamaged(ParityFileError):
     """A record whose CRC does not match what was read."""
 
@@ -178,11 +182,19 @@ class ParityFile:
     # -- the lock and the index ------------------------------------------------------------------------------
 
     @contextlib.contextmanager
-    def locked(self):
-        """Holds the file against other threads and processes, with the index current (re-entrant)."""
-        with self._thread_lock:
+    def locked(self, wait=True):
+        """
+        Holds the file against other threads and processes, with the index current (re-entrant).
+
+        Args:
+            wait (bool): False raises `ParityFileBusy` at once when another thread or process holds the file (a save is
+                writing parity), instead of waiting for it.
+        """
+        if not self._thread_lock.acquire(blocking=wait):
+            raise ParityFileBusy(f"{self.path} is being written by another thread")
+        try:
             if self._depth == 0:
-                self._open_and_lock()
+                self._open_and_lock(wait)
             self._depth += 1
             try:
                 yield self
@@ -190,12 +202,18 @@ class ParityFile:
                 self._depth -= 1
                 if self._depth == 0:
                     self._unlock()
+        finally:
+            self._thread_lock.release()
 
-    def _open_and_lock(self):
+    def _open_and_lock(self, wait=True):
         os.makedirs(os.path.dirname(os.path.abspath(self.path)), exist_ok=True)
         while True:
             fd = os.open(self.path, os.O_RDWR | os.O_CREAT, 0o640)
-            fcntl.flock(fd, fcntl.LOCK_EX)
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | (0 if wait else fcntl.LOCK_NB))
+            except BlockingIOError:
+                os.close(fd)
+                raise ParityFileBusy(f"{self.path} is being written by another process") from None
             try:
                 same = os.stat(self.path).st_ino == os.fstat(fd).st_ino
             except FileNotFoundError:

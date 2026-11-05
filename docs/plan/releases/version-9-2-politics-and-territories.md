@@ -18,8 +18,19 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 The fixed settlements of the 8.x chain become dynamic (Boss, 9:27 PM EDT 2026-10-24). The item below holds the place; the breakdown follows Boss's answers.
 
-### Dynamic settlements
+### Dynamic settlements (Boss approved the 9.2 design at 6:00 PM EST on 2026-11-05)
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| POP.24 | Settlements become dynamic: nations and cities grow, borders and dominance shift and cities change hands over time | ADM.131, TEST.381, DB.104, POP.26, POP.27 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
+| POP.35 | Dynamic world populations: populations step forward with the nightly update from the stored growth state | POP.30 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
+| POP.48 | Claim strength and frontier ownership in the political step: strength is population times a tech factor times cohesion, a system goes to the polity with the largest strength over distance, and it changes hands only when a challenger beats the holder by the hysteresis margin | GEN.1293, POP.46, DB.110, POP.35, DB.104 |  |
+| POP.49 | Contested systems and the derived war state: a system whose two best claims are within the contested ratio is marked contested, and two polities with a contested frontier are at war, which closes trade between them and changes nothing else | POP.48 |  |
+| POP.36 | Dynamic trade routes: routes grow, shift and close as populations, ports and territories change, using the same hop pathfinding | POP.33, POP.35, MAP.309, POP.49 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
+| POP.50 | Cohesion and splits: a polity's cohesion rises on contested frontier systems and falls with the share of territory far from its capital, and below the split threshold the polity splits along its weakest line into polities of the same species | POP.49 |  |
+| POP.51 | Planet level in the political step: nations drift in dominance by a slow power score, cities change nation by the same weighted draw as at generation re-run with current dominance (the dominant nation keeps its capital), city sizes grow by a proportional law with a spread capped by carrying capacity, and ports follow their city's owner | POP.48, POP.35 |  |
+| ADM.138 | The political step skips locked polities, nations and cities and shows the lock in the editors; releasing a lock lets the step move it again | DB.110, POP.48, ADM.131 |  |
+| MAP.390 | Past borders: the Territories layer gets a time control that shows the borders at any stored epoch, from the history rows the step writes | MAP.389, POP.48 |  |
+| UX.271 | The polity history page: a timeline of its territory, cohesion, splits and trade totals, and the journal feed on the API | POP.50, POP.51 |  |
+| TEST.624 | Politics tests: determinism over 100 steps at different batchings, no flicker, a split, a locked case, and polity count and area in a sane range on a census galaxy | POP.48, POP.49, POP.50, POP.51, ADM.138 |  |
+| DOC.105 | Docs for politics: the help page for borders, contested systems, splits and the map time control, and the design note | MAP.390, UX.271 |  |
+| POP.24 | Settlements become dynamic: nations and cities grow, borders and dominance shift and cities change hands over time | ADM.131, TEST.381, DB.104, POP.26, POP.27, POP.48, POP.49, POP.50, POP.51, ADM.138, MAP.390, UX.271, TEST.624, DOC.105 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |

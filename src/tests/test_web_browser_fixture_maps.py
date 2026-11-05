@@ -6018,6 +6018,29 @@ def test_the_course_diagram_and_the_maps_course_select_each_other(page, map_site
     page.wait_for_url(re.compile(r"/system/702"))
 
 
+def test_a_course_inside_one_sector_is_drawn_in_the_open_sector(page, map_site, monkeypatch):
+    """NAV.22: a course that stays in one sector opens that sector with the course's line, rings and names drawn in it, as a course
+    across the galaxy has them."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    shell, band, wedge = next((sh, b, w) for _id, sh, b, w, name in SECTORS if name == "Fixture Prime")
+    course["scope"] = "sector"
+    course["sector"] = {"id": SECTOR_ID, "name": "Fixture Prime", "shell": shell, "band": band, "wedge": wedge}
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    assert not errors, errors
+    camera = page.evaluate(f"() => {canvas}.galaxyCamera()")
+    assert math.dist(camera["target"], _sector_center_pc(shell, band, wedge)) < 0.5, "the map opens on the sector holding the course"
+    assert [stop["name"] for stop in page.evaluate(f"() => {canvas}.galaxyCourseStops()")] == [p["name"] for p in course["points"]]
+    forms = page.evaluate(f"() => {canvas}.galaxyCourseForms()")
+    assert forms.get("route") is True and forms.get("direct") is True
+
+
 def test_the_galaxy_maps_course_draws_a_jump_through_unknown_space_red_and_glowing(page, map_site, monkeypatch):
     """NAV.36: a hop through unknown space is drawn apart on the Galaxy Map's course, as a row of glow sprites along it, and the key says
     what it is; a course with no such hop has neither."""

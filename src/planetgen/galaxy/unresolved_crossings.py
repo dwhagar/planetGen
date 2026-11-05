@@ -27,6 +27,7 @@ import numpy as np
 
 from planetgen.galaxy import density, enclosed_mass, keepout, mass_chain, resolution, spherical
 from planetgen.physics import unit_registry as units
+from planetgen.util import detmath
 
 _km_to_pc = units.converter("km", "pc")
 _msun_to_kg = units.converter("Msun", "kg")
@@ -198,7 +199,7 @@ class UnresolvedField:
         t0, t1 = clipped
         edge = self.skeleton.edge_pc
         step = edge / STEPS_PER_EDGE if step_pc is None else float(step_pc)
-        span = math.dist(start, end)
+        span = detmath.dist(start, end)
         total = inside = 0.0
         t = t0
         while t < t1 - 1e-12:
