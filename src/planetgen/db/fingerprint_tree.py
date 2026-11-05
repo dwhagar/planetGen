@@ -112,25 +112,50 @@ def combined(content, residents):
     return bytes.fromhex(encoding.digest({"content": None if content is None else content.hex(), "residents": residents.hex()}))
 
 
+_RUN_TIME_COLUMNS = frozenset({"uid", "parent_id", "rogue_planet_id", "moon_id"})
+"""frozenset: Columns left out of a rogue planet's rows in `resident_digest`: its run-time object ID (`uid`) comes from a counter that moves each time
+the donor is saved again, and the rows that point at it (its child rows, its moons' `parent_id`) carry it, so none of them says what was made."""
+
+
 def resident_digest(conn, sector_id):
     """
-    The 32-byte digest of the rogue planets filed in a sector (`rogue_planets` rows, their child tables and their moons), each row as
-    `fingerprint` writes it (foreign keys by the key of what they point at, never an id, names without the collision decoration), in
-    canonical order; `None` when it holds none.
+    The 32-byte digest of the rogue planets filed in a sector, or `None` when it holds none. Each rogue is taken whole: its `rogue_planets` row,
+    its child rows, its moons and their child rows, as `fingerprint` writes a row (a foreign key by the key of what it points at, names without
+    the collision decoration), less the run-time object IDs and the columns that carry them (`_RUN_TIME_COLUMNS`); the rogues' digests are put in
+    canonical order, so the order they landed in does not count.
     """
     from planetgen.db import fingerprint
     reader = fingerprint._Reader(conn, plain_names=True)
     rogues = reader.select("rogue_planets", "sector_id = ?", (sector_id,))
     if not rogues:
         return None
-    reader.prime("rogue_planets", rogues)
-    ids = [row["id"] for row in rogues]
-    values = [reader.row_value("rogue_planets", row) for row in rogues]
-    for table, column, parent in fingerprint.CHILD_TABLES:
-        if parent == "rogue_planets":
-            values += [reader.row_value(table, row) for row in reader.select_in(table, column, ids)]
-    values += [reader.row_value("moons", row) for row in reader.select_in("moons", "rogue_planet_id", ids)]
-    return bytes.fromhex(encoding.row_set_digests(values).full)
+
+    def bare(table, row):
+        value = reader.row_value(table, row)
+        value["row"] = {column: item for column, item in value["row"].items() if column not in _RUN_TIME_COLUMNS}
+        return value
+
+    moons = reader.select_in("moons", "rogue_planet_id", [row["id"] for row in rogues])
+    moon_children = {}
+    for table, key, owner in fingerprint.CHILD_TABLES:
+        if owner == "moons":
+            for row in reader.select_in(table, key, [moon["id"] for moon in moons]):
+                moon_children.setdefault(row[key], []).append(bare(table, row))
+    own_children = {}
+    for table, key, owner in fingerprint.CHILD_TABLES:
+        if owner == "rogue_planets":
+            for row in reader.select_in(table, key, [rogue["id"] for rogue in rogues]):
+                own_children.setdefault(row[key], []).append(bare(table, row))
+    moons_of = {}
+    for moon in moons:
+        moons_of.setdefault(moon["rogue_planet_id"], []).append(
+            {"moon": bare("moons", moon), "rows": encoding.sorted_rows(moon_children.get(moon["id"], []))})
+    digests = []
+    for rogue in rogues:
+        value = {"rogue": bare("rogue_planets", rogue), "rows": encoding.sorted_rows(own_children.get(rogue["id"], [])),
+                 "moons": encoding.sorted_rows(moons_of.get(rogue["id"], []))}
+        digests.append({"rogue": encoding.digest(value)})
+    return bytes.fromhex(encoding.row_set_digests(digests).full)
 
 
 def store_leaf(conn, sector_id, address, content):
