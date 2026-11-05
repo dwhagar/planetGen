@@ -29,7 +29,7 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_HALO_RADIUS_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, BESIDE_ID, BESIDE_SYSTEMS, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site, close_pair_centre, DENSE_PAIR_IDS, HOLE_FIELD, FAR_BUBBLE,
-    far_site, halo_site, holes_site, FIXTURE_CLUSTERS,
+    far_site, halo_site, holes_site, FIXTURE_CLUSTERS, SECTOR_CLUSTER, sector_cluster_site,
     map_site, nebula_volume_payload,
 )
 
@@ -6080,3 +6080,24 @@ def test_choosing_a_cluster_opens_its_window_on_the_cluster_alone_across_the_sec
     assert after["drawn"] == after["total"] and not page.locator("#galaxymap3d-window").is_visible()
     back = _camera(page)
     assert math.dist(back["target"], before["target"]) < 1.0
+
+
+def test_sector_map_draws_a_cluster_inside_it_and_names_it_by_name_or_designation(page, sector_cluster_site):
+    """MAP.381: a globular cluster whose sphere reaches into the sector is in the sector's scene as a soft cloud at its real radius, named
+    by its name (else its designation) through the label engine, with the Cluster names switch of the Galaxy Map; its card links to its page."""
+    base = sector_cluster_site
+    scene = page.request.get(f"{base}/sector/{SECTOR_ID}/scene").json()
+    clusters = [cloud for cloud in scene["clouds"] if cloud["kind"] == "globularCluster"]
+    assert len(clusters) == 1, scene["clouds"]
+    cluster = clusters[0]
+    assert cluster["name"] == SECTOR_CLUSTER["name"] and cluster["typeLabel"] == "Globular Cluster" and cluster["named"] is True
+    assert cluster["href"].endswith("/object/globular_cluster:" + SECTOR_CLUSTER["uid"]) and cluster["r"] > 0
+    _open_sector(page, base)
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'cluster' && label.text === 'Fixture Sector Ball')", timeout=20000)
+    _click_cluster_name(page, "Fixture Sector Ball")
+    link = page.locator('a:has-text("View cluster")').first
+    link.wait_for(state="visible", timeout=15000)
+    assert link.get_attribute("href").endswith("/object/globular_cluster:" + SECTOR_CLUSTER["uid"])
+    _open_sector(page, base, "?hide=label-cluster")
+    page.wait_for_timeout(600)
+    assert not [label for label in page.evaluate(LABELS) if label["kind"] == "cluster"]

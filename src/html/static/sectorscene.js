@@ -255,6 +255,12 @@ var CLOUD_KIND_RECIPES = {
       [0, "#ffb07a20"], [0.45, "#ffb07a30"], [0.62, "#ff8a5cb0"], [0.7, "#8fd6ffa0"], [0.8, "rgba(0,0,0,0)"],
     ]);
   },
+  // A globular cluster (MAP.381): a soft pale-gold ball, brightest at the middle where the stars crowd, fading to nothing at its tidal radius.
+  globularCluster: function () {
+    return makeSimpleRadialTexture(128, [
+      [0, "#fff4d8d0"], [0.2, "#ffe9b8a0"], [0.5, "#f2d49250"], [0.8, "#f2d49220"], [1, "rgba(0,0,0,0)"],
+    ]);
+  },
   // A starless world lit only by its own internal heat: a cool violet,
   // bright enough to find on the dark scene (MAP.46) but no star color.
   roguePlanet: function () {
@@ -302,6 +308,7 @@ var CLOUD_GLOW_RECIPES = {
   roguePlanet: { color: "#b59cff", power: 2.0, strength: 1.6, scale: 1.3 },
   interstellarComet: { color: "#8ff0e0", power: 1.4, strength: 1.8, scale: 1.4 },
   quasar: { color: "#c9d8ff", power: 1.0, strength: 3.0, scale: 1.7 },
+  globularCluster: { color: "#f2d492", power: 2.4, strength: 0.6, scale: 1.1 },
 };
 
 function glowRecipeForCloud(cloud) {
@@ -639,7 +646,7 @@ export var KINDS = [
   ["star", "Stars"], ["nebula", "Nebulae"], ["supernovaRemnant", "Supernova remnants"],
   ["asteroidField", "Asteroid fields"], ["blackHole", "Black holes"], ["neutronStar", "Neutron stars"],
   ["quasar", "Quasars"], ["roguePlanet", "Rogue planets"], ["interstellarComet", "Interstellar comets"],
-  ["neighbor", "Neighboring sectors"],
+  ["globularCluster", "Globular clusters"], ["neighbor", "Neighboring sectors"],
 ];
 
 // The kind (one of KINDS' keys) of an entry.

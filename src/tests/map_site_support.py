@@ -164,6 +164,11 @@ FIXTURE_CLUSTERS = (
 """MAP.224: two fixture globular clusters beside the star field, one with no name yet and one named (the `/api/containers` rows)."""
 
 
+SECTOR_CLUSTER = {"id": 3, "uid": "FE81000A2B-0000005-003", "kind": "globular_cluster", "name": "Fixture Sector Ball", "component_id": 3,
+                  "center_pc": [3.5, 2.0, 0.0], "extent_pc": 1.5}
+"""MAP.381: a fixture cluster inside the first sector (`sector_cluster_site` serves it; the other sites have none there)."""
+
+
 NEBULA_OVER_THE_FIELD = {
     "type": "nebula", "id": 802, "name": "Fixture Pall", "descriptor": "dark", "class": "D",
     "radius_pc": 14.0, "x": STAR_FIELD_CENTER_PC[0], "y": STAR_FIELD_CENTER_PC[1], "z": STAR_FIELD_CENTER_PC[2],
@@ -821,8 +826,9 @@ FAR_MADE_PC = [(150000.0 + dx, 20000.0 + dy, 400.0) for dx, dy in ((0.0, 0.0), (
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
-    def __init__(self, halo=False, dense=False, large=False, far=False, holes=False):
+    def __init__(self, halo=False, dense=False, large=False, far=False, holes=False, sector_cluster=False):
         self.far = far
+        self.sector_cluster = sector_cluster
         self.shape = galaxy_shape()
         self.stars = STAR_FIELD + (HALO_STARS if halo else []) + (DENSE_STARS if dense else [])
         self.buckets = None
@@ -850,7 +856,10 @@ class FixtureApi:
         return [dict(zip(("x", "y", "z", "radius_pc"), FAR_BUBBLE))] if self.far else []
 
     def get_containers(self, db, kind=None):
-        return [dict(cluster) for cluster in FIXTURE_CLUSTERS] if kind == "globular_cluster" else []
+        if kind != "globular_cluster":
+            return []
+        found = [dict(cluster) for cluster in FIXTURE_CLUSTERS]
+        return found + [dict(SECTOR_CLUSTER)] if self.sector_cluster else found
 
     def get_polities(self, db, limit=None, offset=None):
         if self.far:
@@ -1149,6 +1158,12 @@ def map_site(request, tmp_path_factory):
 def far_site(request, tmp_path_factory):
     """The base URL of a local server for the map pages with a superbubble, a polity and a job's made sectors 100 to 250 kpc out."""
     yield from _serve("far", {"far": True}, request, tmp_path_factory)
+
+
+@pytest.fixture()
+def sector_cluster_site(request, tmp_path_factory):
+    """`map_site` with a globular cluster inside the first sector (MAP.381)."""
+    yield from _serve("sector_cluster", {"sector_cluster": True}, request, tmp_path_factory)
 
 
 @pytest.fixture()

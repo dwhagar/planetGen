@@ -41,6 +41,7 @@ import colorsys
 import math
 
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
+from planetgen.physics.units import pc_to_ly
 from planetgen.web.lib.fmt import (
     format_distance_ly, format_luminosity_sol, format_members, format_number, format_period_years, format_speed_kms)
 
@@ -1071,7 +1072,7 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px, brightest_sol
 
 def map_scene_data(
     link_url, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None, generate=None,
-    compress_binaries=True,
+    compress_binaries=True, clusters=None,
 ):
     """
     The Sector Map's scene JSON (the `#starmap-data` block `map_scene_data`
@@ -1170,6 +1171,23 @@ def map_scene_data(
             extent_radii_px.append(
                 math.sqrt(x_px * x_px + y_px * y_px + z_px * z_px) + radius_px
             )
+
+    for cluster in (clusters or []) if center_pc else ():
+        # MAP.381: a globular cluster whose sphere reaches into the sector, drawn as one soft cloud at its real radius (clouds are
+        # positioned from the sector's center in the galaxy frame, like the phenomena above; the cluster's card names it by its
+        # name, else its designation).
+        offset_mpc = [(cluster[axis] - center_pc[index]) * 1000.0 for index, axis in enumerate(("x", "y", "z"))]
+        x_px, y_px, z_px = offset_mpc[0] / half_edge * _SCENE_HALF_PX, -offset_mpc[1] / half_edge * _SCENE_HALF_PX, offset_mpc[2] / half_edge * _SCENE_HALF_PX
+        radius_px = _phenomenon_cloud_radius_px(pc_to_ly(cluster["radius_pc"]), half_edge)
+        if radius_px:
+            clouds_data.append({
+                "x": x_px, "y": y_px, "z": z_px, "r": radius_px, "kind": "globularCluster", "name": cluster["name"],
+                "named": cluster["named"], "typeLabel": "Globular Cluster",
+                "radiusText": format_distance_ly(pc_to_ly(cluster["radius_pc"])),
+                "distanceText": f"{format_distance_ly(pc_to_ly(math.sqrt(sum((v / 1000.0) ** 2 for v in offset_mpc))))} from sector center",
+                "href": cluster["href"], "key": cluster["ref"],
+            })
+            extent_radii_px.append(math.sqrt(x_px * x_px + y_px * y_px + z_px * z_px) + radius_px)
 
     outline, shape_extent_radii_px = _outline_data(address, edge_mpc, half_edge)
 
