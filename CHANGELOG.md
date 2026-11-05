@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3283] - 2026-11-05
+
+**Headline:** The course planner can now ask which keep-out spheres a straight path touches.
+
+### Added
+- `db/obstacles.py` lists the keep-out spheres a straight segment of the galaxy touches, in order along it, each with its radius, basis, and whether an end of the segment lies inside it. Systems, black holes, neutron stars, rogue planets, quasars, and asteroid fields count; the search for each kind uses that kind's own widest radius. Nothing shows it yet; the path planner (NAV.26) is its caller.
+
+generation-output: unchanged
+
 ## [8.0.3282] - 2026-11-05
 
 **Headline:** A census script counts how many keep-out spheres overlap in a generated galaxy.
