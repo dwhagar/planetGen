@@ -847,25 +847,6 @@ with `clamp()`.
   Owner: Core 5. Filed by the TODO thread.
   Prerequisites: GEN.876. Related: UX.237, GEN.875, GEN.876.
 
-- [ ] **UX.264 The planet page no longer shows the atmosphere (sky) colour row: the chip and word such as 'pale blue' vanished from the page (bug)**
-  Boss live observation (about 5:43 PM EST on 2026-11-05): 'where did
-  the line item in the planet details go where it showed the sky color?'
-  Finding (as the researching thread reported): the Atmosphere color row
-  (a colour chip plus a word such as pale blue, added by GEN.420 in
-  release 8.0.2086) lived in the description's Planet facts table. The
-  planet page redesign (UX.215 to UX.222, release 8.0.2467) drops that
-  facts table (planet_layout.split_blocks) and builds the Atmosphere
-  section from sheet rows only, where atmosphere_colour is excluded
-  because the description builder shows it, so it vanished from the web
-  page by accident; the description JSON, text and Markdown outputs
-  still carry it. Do: show the row in the Atmosphere section of the
-  planet and moon page (src/planetgen/web/item_pages.py planet_sections)
-  with a test that the page shows the chip and the word. Done: the
-  planet and moon pages show the atmosphere colour again. Lock-free.
-  Version 8.1. Owner: the researching thread that found it. Filed by the
-  TODO thread.
-  Prerequisites: none. Related: GEN.420, UX.215, UX.222.
-
 - [ ] **UX.265 Look and theme preference: a look (cockpit, chart, phosphor) times a theme (system, light, dark), stored on the account and in the browser, chosen in Preferences and the gear menu**
   Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
   pilot's console default and wants the other two looks, Chart room and
@@ -2057,39 +2038,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: MAP.224. Owner: Core 2, after MAP.223. Filed by the
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
-
-- [ ] **MAP.384 Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening**
-  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
-  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
-  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
-  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
-  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
-  against the exact sum; the kernel is numba and runs as a cached job
-  because the web app never imports numba; planets and moons fold into
-  their system's mass. Do: the kernel in float64, with a test against a
-  plain numpy reference to 1e-9 on random sets; the web app never
-  imports it (a lazy import inside the job), and the wiring register
-  names where it is read once wired. Done: kernel and tests pass;
-  lock-free until wired. Owner: Tides 1. Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.167, PERF.72.
-
-- [ ] **MAP.385 Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget**
-  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
-  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
-  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
-  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
-  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
-  against the exact sum; the kernel is numba and runs as a cached job
-  because the web app never imports numba; planets and moons fold into
-  their system's mass. Do: build the hierarchy (check first whether the
-  MAP.151 region pyramid has a sub-sector level; if it does not, the
-  leaf level is a separate small item), the opening angle chosen to a
-  pair budget (floor 0.3, ceiling 0.7), and one interaction list per
-  target sector. Tests: accuracy against the exact sum on a fixed small
-  generated galaxy (pull 1 percent, tidal 2 percent at p95) and a
-  pair-budget test. Done: both tests pass. Lock-free until wired. Owner:
-  Tides 1. Filed by the TODO thread.
-  Prerequisites: MAP.384. Related: MAP.167, PERF.72.
 
 - [ ] **MAP.386 Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies**
   Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
@@ -3471,7 +3419,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zone is thrown away only when a source passes its own threshold, the
   same event that sets its next update due time (GEN.106). PERF.72 sets
   the multiples.
-  Prerequisites: GEN.198, PERF.72, MAP.384, MAP.385, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
+  Prerequisites: GEN.198, PERF.72, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -12106,204 +12054,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seven-band climate item GEN.1108. Owner of storage: Aux 2.
   Prerequisites: GEN.1108. Related: GEN.1108.
 
-- [ ] **GEN.1111 Rogue rows created from the architecture's ejections: mass, composition, moons kept, ejection speed, age and the parent system, with the flat rate becoming a test target**
-  Boss, 4:54 PM EDT 2026-10-30: physics all the way for rogue planets.
-  Design section 13 (R2): every ejection the architecture performs
-  becomes a rogue, counted with the sector's stars; the rogue row
-  records the ejecting system (or "formed free") so it has a history
-  sentence, and the speed is the escape speed at the scattering orbit
-  plus the host's velocity. Replaces the flat ROGUE_PLANET_RATE_PER_STAR
-  draw; no backward-compat shim. Lock work (epoch with --affects,
-  migration, API field), after the architecture slot loop and the
-  clearance ledger. Where we think it belongs (best guess, can move):
-  Planets 1, train 8.
-  Rogue train 8 (Boss, 4:57 PM EDT) (2026-10-30 4:59 PM EDT): Boss,
-  4:57 PM EDT 2026-10-30: rogue planets are all physics, each has its
-  own moon system and moon compositions, and a rogue planet is
-  functionally and programmatically identical to a planet in a system
-  except that it carries a note that it is rogue and is not orbiting a
-  star. So the rogue path calls the same planet and moon generation (the
-  one body chain of GEN.557), not a simplified one; the flat-rate rogue
-  tables are deleted. This item is the core of train 19: epoch with
-  --affects, migration, golden refresh through Bug 2. The fields
-  (GEN.1103 and GEN.1104) move to train 8 and GEN.1105 to GEN.1107 to
-  train 8.
-  Boss idea, 5:03 PM EDT (each star donates rogues) (2026-10-30 5:04 PM
-  EDT): Boss: have each star system in a sector donate rogue planets:
-  they are generated as part of the system, with a slot and a full
-  history (formation, migration, moons, composition, age), then ejected,
-  and the rogue keeps that history. This item is exactly that: the donor
-  system builds the planet in its architecture slot, the ejection event
-  is recorded in the system history, and the rogue row is the same
-  planet with the rogue note, its kept moons and the ejection speed and
-  age. Open question for Boss, taken as the default until he answers: an
-  ejected planet drifts (speed times age: a few km/s over Gyr is
-  kiloparsecs, far larger than a sector), so which sector holds it?
-  Default (recommended): the rogue is stored in its donor system's
-  sector, its object ID carries the parent system ID and a rank, and its
-  drawn position is the parent position (young ejections) or the parent
-  position displaced by the drift clamped to the sector (old ones);
-  nothing moves between sectors and every sector stays independent. The
-  alternative is to place it where it actually drifted, which needs the
-  donors of every sector within the drift radius and breaks sector
-  independence (not recommended).
-  Storage sector OPEN, research first (Boss, 5:06 PM EDT) (2026-10-30
-  5:07 PM EDT): Boss wants the storage question researched before it is
-  decided. His proposal: compute the planet's true galactic velocity
-  (its orbital velocity in the system relative to the star plus the
-  system's own motion through the galaxy), eject it along a random
-  direction normal to that motion vector, choose the ejection time, and
-  run time forward from there to get its present position and sector. A
-  research thread is on it. The home-sector default above is only a
-  placeholder; build nothing that depends on where a rogue is stored
-  until the research decision is merged.
-  Drift research (D4, 5:12 PM EDT) (2026-10-30 5:11 PM EDT): Research
-  result: storage by virtual donors. The sector draws its own ejection
-  events from donor records (class, seed, distance, age, speed, slot; no
-  donor system is stored or enumerated), applies the kick in the host's
-  own frame, then the host's motion, then the closed form for position
-  and velocity (GEN.1114, the drift function), and the rogue is placed
-  in the sector where it lands; its object ID is built from the present
-  galactic position, so it needs no change. This replaces "counted with
-  the sector's stars" and "ejection speed is escape speed plus the
-  host's velocity". HELD until Boss answers two questions: (1) virtual
-  donors, recommended, or real donors only (wrong positions); (2) kick
-  isotropic in the star's frame, recommended, or perpendicular to the
-  galactic motion as he first proposed (that keeps rogues within a few
-  hundred pc of the donor, the research shows the along-orbit component
-  is what causes the long drift). The earlier home-sector default is
-  superseded.
-  Held also for the storage study (Boss, 5:15 PM EDT) (2026-10-30 5:17
-  PM EDT): Boss proposes one galaxy-wide object store generated in
-  region work units, with sectors as a navigation table (design study
-  GEN.1118). The rogue storage question is part of that study; GEN.1111
-  stays held until it is read.
-  RP8 (Planets 1 review, 5:20 PM EDT) (2026-10-30 5:21 PM EDT): This
-  item is RP8: the rogue rows are built from the ejection records of
-  GEN.1119 and the RP2 to RP6 modules of GEN.1112; the storage sector
-  stays held. The yield calibration is TEST.499.
-  Boss answers (5:29 PM EDT) (2026-10-30 5:31 PM EDT): Boss, 5:28 to
-  5:29 PM EDT 2026-10-30: (1) rogues come only from generated systems
-  (each donor system builds the planet in its architecture slot, then
-  ejects it) and a rogue is stored as a full object in the sector where
-  it lands, that sector flagged uncharted when it is new; no
-  landing-phase placement and no virtual donors that are never
-  generated; (2) the physics-based spread gets a tweak into the expected
-  range leaning to the low side, and a None, Few, Normal, Many option in
-  the galaxy and sector options (GEN.1120); (3) the kick is isotropic,
-  but its direction is computed from the origin planet's actual movement
-  vector (its orbital velocity in the system plus the system's motion
-  through the galaxy), not assumed perpendicular. This supersedes the
-  "virtual donors" and "home sector" paragraphs above. Held now only
-  until the region-store study (GEN.1118) is read and final; then it is
-  released. Object names and IDs may change with a stored history
-  (GEN.1121).
-  Reworded by the region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT):
-  Design: docs/design/systems/region-object-store.md sections 7 and 8. A
-  rogue exists only because a generated system ejected it: the donor
-  draws its ejection events from its own seed (time, kick, mass, moons
-  kept, destination), drifts each by the closed form of GEN.1114, and
-  saves the rogue as a full row (same table and body chain as any
-  planet, GEN.557) in the sector where it lands, creating that sector
-  uncharted if new. The kick is isotropic and built from the origin
-  planet's actual motion (donor star's galactic velocity plus the
-  planet's orbital velocity vector at ejection from the stored orbit,
-  plus the scattering kick); needs the orbit state at the ejection from
-  GEN.1119. Each rogue row carries the donor uid and event index; saving
-  a donor first deletes the rogues it made by that key then writes them
-  again; deleting a sector deletes the rogues its systems ejected, not
-  those that landed in it (GEN.1127 removes the cascade). The earlier
-  virtual-donor, home-sector and landing-phase paragraphs are void.
-  Released from hold. Order: GEN.1127 (train 6) first, this item with
-  GEN.1129 on train 8, the abundance level and top-up GEN.1120 on train
-  19b.
-  Removal of defaults (5:59 PM EDT) (2026-10-30 5:59 PM EDT): GEN.1112
-  is retired (RP2 to RP7 modules merged: rogue_mass_function,
-  rogue_volatiles, rogue_moons, rogue_age, rogue_kick,
-  cluster_unbinding). This item wires them from the GEN.1119 record
-  (scatterer, closest approach, formation distance, ejection delay),
-  wires GEN.1134 (radiogenic inputs), and removes the ROGUE_* tuning
-  defaults that rogue.py and rogue_surface.py still read, with no
-  compatibility shim.
-  Rogue build order (Boss asked 4:41 PM EDT whether it is merged)
-  (2026-10-31 4:44 PM EDT): Not built and not started (Planets 1, as the
-  lane reported 4:43 PM EDT): it cannot ride train 8 because it saves
-  each rogue in the sector where it lands and deletes a donor's rogues
-  when the donor is saved again, which needs the chart_ledger table of
-  GEN.1127 (not on main) and GEN.1014 (in train 8). Earliest lock branch
-  is train 9. Planets 1 builds the lock-free part now: a rogue as the
-  same Planet chain with its moons from a GEN.1119 ejection record (RP
-  modules, rogue note, no star), on a branch off main, with the lock
-  wiring on top once GEN.1127 lands.
-  Train 10 merged (#5095, 7:11 AM EST on 2026-11-05); register leftovers
-  (7:20 AM EST on 2026-11-05): Rogue planets are now built by the planet
-  chain with their moons, and a saved donor writes its rogues. Open on
-  purpose: the wiring-register lines naming this item (rogue_density,
-  rogue_mass_function, rogue_volatiles, rogue_radiogenic,
-  cluster_unbinding, and the rogue_kick, rogue_drift and rogue_moons
-  functions, rows 6.102 RSM1-4, 6.110, 6.111, 6.114) still read as
-  unread. Planets 1 wires each into the rogue build or deletes it (no
-  shim), then removes the register line; then this item and GEN.1120
-  retire.
-  Owner of the register leftovers (TODO) (7:25 AM EST on 2026-11-05):
-  Tides 1 takes the register leftovers: for each listed module and
-  function, ask Planets 1 whether it is meant to be wired; wire it (lock
-  work) or delete it with its tuning rows and register lines (lock-free
-  when nothing reads it). Planets 1 stays on GEN.1277.
-  Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
-  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
-- [ ] **GEN.1120 Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range**
-  Boss, 5:28 PM EDT 2026-10-30: add a tweak to bring our physics-based
-  spread into the expected range, leaning toward the low side of the
-  expected values; also make it a value in the galaxy and sector
-  generation options, as a dropdown of None, Few, Normal and Many, where
-  Normal is our target, None means no rogue planets, and Many is the top
-  end of the observed expected rogues. Do: one option (a multiplier on
-  the ejection yield of the donor systems, never a game rate; the
-  physics still decides each rogue) with the four values: None = 0,
-  Normal = the calibrated low-leaning value against microlensing (Sumi
-  2023, [R0258, R3191] as in
-  docs/design/research/rogue-planet-review.md), Few between None and
-  Normal, Many = the top of the observed range; the option reaches the
-  CLI (planetgen galaxy and sector), the web create forms and the API,
-  is stored with the galaxy and sector parameters, and the dropdown
-  value is part of the seed contract. The calibration of Normal is the
-  yield test TEST.499 and the tweak is registered in GEN.725 with tier
-  and tweak level (L2 if tuned to the published statistic). Done: tests
-  that None yields no rogue, Many exceeds Normal exceeds Few, the
-  dropdown in both forms, the option stored and shown on the sector
-  page. Lock work (new option in the generation parameters, epoch with
-  --affects, API version bump), after GEN.1111. Where we think it
-  belongs (best guess, can move): Planets 1 for the yield and the option
-  plumbing in the rogue rows (train 8), Core 5 for the web form fields.
-  Reworded by the region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT):
-  Three-stage spread (study section 8.5): stage 0 subtracts residents
-  from the sector budget (GEN.1124); stage 1 is real physics with no
-  tweak (rogues land where they land, GEN.1111); stage 3 is the top-up,
-  once per region run after every sector finished stages 0 to 2: the
-  sector's own systems donate another round of rogues placed inside the
-  sector (GEN.1125), capped by the level (None 0, Few 2.5, Normal 4.3,
-  Many 10 terrestrial rogues per star, internal numbers never shown, the
-  dropdown shows only the words), each given a realistic velocity and an
-  apparent origin marked "apparent"; any mass left over becomes light
-  asteroid fields (GEN.1126). The selector is a row in galaxy/dials.py
-  (flag, Generate field, help and the CLI table generated from it) plus
-  a sector override recorded like density_multiplier_used (DB.60). This
-  item wires GEN.1124 to GEN.1126 into the generation phases and the
-  region run (GEN.1128), and registers ROGUE_TOPUP_PLACEMENT (L3,
-  burn-down line). Default until Boss answers: the top-up fills the
-  shortfall only up to the level. Replaces the single spread-tweak
-  wording above. Train 8, after the rogue rows.
-  Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): The three-stage plan
-  is confirmed by Boss; whole sectors are confirmed as the tile.
-  Train 10 merged (#5095, 7:11 AM EST on 2026-11-05) (7:20 AM EST on
-  2026-11-05): The rogue abundance option and top-up are in train 10.
-  Stays open with GEN.1111 until its register leftovers (some say
-  GEN.1120 reads or deletes them) are wired or deleted.
-  Prerequisites: none. Related: GEN.1111, GEN.1119, TEST.499.
-  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
-
 - [ ] **GEN.1127 chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
   GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
@@ -14369,19 +14119,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none. Related: MAP.383, GEN.115, GEN.725.
 
-- [ ] **GEN.1286 Delete the unread rogue_volatiles and rogue_radiogenic modules (EV1, EV2, RY1), or wire them, since the starless-host planet chain probably supersedes them**
-  Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
-  PR #5192): after GEN.1111's unread functions were deleted, five rogue
-  modules remain on the wiring register under GEN.1111. Version 8.1.
-  Owner: Planets 1. Filed by the TODO thread. Do: check whether the
-  starless-host planet chain (GEN.1111) already works the envelope,
-  water, giant class and frozen air, and the radiogenic content and
-  heat, of an ejected planet; if it does, delete the two modules, their
-  tests, the stand-in rows EV1, EV2 and RY1 and their register lines; if
-  not, wire them in. Done: the wiring guard passes with no line for
-  either module. Lock-free if it is a delete.
-  Prerequisites: none. Related: GEN.1111, GEN.1120, GEN.725.
-
 - [ ] **GEN.1287 Wire rogue_mass_function into rogue_topup.draw_mass_earth in place of tuning.ROGUE_PLANET_MASS_BINS (RM1, RM2)**
   Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
   PR #5192): after GEN.1111's unread functions were deleted, five rogue
@@ -15128,7 +14865,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   recognised (the test scales its limit by it). Done: the test passes on
   the reference machine and skips with a stated reason on none.
   Lock-free. Owner: Tides 1. Filed by the TODO thread.
-  Prerequisites: MAP.384, MAP.385. Related: MAP.167, PERF.72.
+  Prerequisites: MAP.385. Related: MAP.167, PERF.72.
 
 ## DB: Database and schema
 
@@ -19270,49 +19007,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.96 warmup.log in the log folder, written by planetgen warm itself, local time with zone**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: planetgen warm appends to warmup.log in log_dir (written in
-  Python, not by tee), with a header and a closing line per run, for
-  update parts 1 and 2, hand runs and the background run. Drops the tee
-  and the /tmp file in deploy-common.sh. Touches cli/warm.py,
-  util/logpaths.py (warmup_log_path),
-  examples/apache/setup-debug-log.sh, scripts/deploy-common.sh,
-  docs/design/operations/cache-warm-up.md, docs/reference/config.md and
-  tests. Done: a warm-up by update.sh, by hand and in the background
-  each leave a bracketed run in warmup.log.
-  Plan (6:05 PM EST on 2026-11-05): version moved from 8.2 to 8.3 with
-  the rest of the logging chain (OPS.97 to OPS.103, OPS.105), beside the
-  nightly run, to balance the load of 8.2; Aux 2 keeps building the
-  chain now because it is lock-free.
-  Prerequisites: OPS.104.
-
-- [ ] **OPS.97 Local time with its zone in every log form (the standard changes from UTC), including the activity log and its fail2ban filter**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: every record is local system time with its zone
-  (2026-11-05T07:41:02.123-0500, RFC 3339 with offset): the file line,
-  the JSON line, the run's log file, records.log, --record-file, the
-  debug log and the activity log. The activity log changes with its
-  fail2ban filter text, format_line and test_activity_log.py together.
-  Touches util/logrecord.py, admin/activity_log.py, the fail2ban filter
-  in examples/, queue/runrecord.py,
-  docs/design/operations/logging-standard.md, docs/reference/logging.md
-  and tests. No shim for the old form. Done: no log form writes UTC and
-  the standard says local time.
-  Prerequisites: OPS.96.
 
 - [ ] **OPS.98 A time on every line of every script and command**
   Boss decided (11-05) that every log uses the system (local) time with
