@@ -18014,6 +18014,22 @@ clears each one.
   Version 8.1. Owner: Core 3. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.346.
 
+- [ ] **TEST.600 Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12)**
+  The Train Manager (as the lane reported, 9:28 AM EST on 2026-11-05)
+  asked for this. GEN.1275 (the habitable-world bar, Bug 1) and TEST.579
+  (remeasured prevalence base shares, Bug 1, branch
+  bug1/test579-base-shares eac2a5a48, includes PERF.236) were held out
+  of train 11 because GEN.1275 duplicates the bar of GEN.1250 and
+  conflicts in planet.py and system.py; they go to train 12 after Bug 1
+  rebases and keeps one bar. Do: once both land, run the census re-tag,
+  re-baseline the TEST.430 prevalence rows for the new base shares
+  (asteroid_belt 0.653, habitable_world 0.584, large_star 0.056, planets
+  0.822) and check test_prevalence.py goes green (habitable_world -50 is
+  fixed by GEN.1275). Done: the census and prevalence tests pass on main
+  with no other test moved. Version 8.1. Owner: Train Manager, after
+  train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.430.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
