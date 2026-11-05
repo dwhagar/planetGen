@@ -2,6 +2,59 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3319] - 2026-11-05
+
+**Headline:** The prevalence census tests carry the shifts train 10 (epoch 132) made, so they flag only new faults.
+
+### Changed
+- **TEST.550 (census re-tag after train 10).** The class, systems and occurrence census flagged twelve cells on the epoch 132 tree. Each is now tagged with the item that moved it, with the evidence in the anomaly text: six class cells (planet life ceilings of F5V and K0III ecosphere planets under GEN.1226; moon Class D and two moon ceilings under GEN.1244), F5V belts per system and K giants of 2 to 8 AU under GEN.1068 (belt members, belt history and the planet-chain draws), and the G2V abiogenesis share under GEN.1111 (a draw shift of 0.026 inside the sampling spread of 150 systems). Ranges are unchanged. The base shares (`PREVALENCE_BASE_SHARES`) are TEST.579's. Tests only: no generator change.
+
+## [8.0.3318] - 2026-11-05
+
+**Headline:** A test now records that a field cloud's sprite on the Galaxy Map hands over to the nebula density volume by design, and that the cloud is never left undrawn.
+
+### Changed
+- MAP.382: the field cloud sprite is on screen for a few frames when its node arrives and then fades out as the nebula volume layer (MAP.365) draws the same region from the model's density; the map was not changed. A browser test holds that 5 s after the sprite is first seen either the volume layer or the sprite draws the cloud.
+
+## [8.0.3317] - 2026-11-05
+
+**Headline:** Waypoints are flagged and numbered on the Galaxy Map and a sector's map, and a system, phenomenon or body page can add one.
+
+### Added
+- A waypoint picked from a card on the Galaxy Map or a sector's map is flagged and numbered where it is, at every zoom level and inside an opened sector or system. A new Waypoint flags switch in the Menu's Show on the map hides the flags, and the key explains them. A plotted course flags its waypoints too.
+- The Nav menu of a system, phenomenon or body page has Add waypoint; it becomes Remove waypoint once the place is one, and the list is the same as the maps'.
+
+generation-output: unchanged
+
+## [8.0.3316] - 2026-11-05
+
+**Headline:** The sector page label test waits for the sector's map blocks to arrive before it checks which names are shown, so it no longer fails 1 run in 3.
+
+### Fixed
+- `test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch` (TEST.597) read the labels as soon as a system name showed, while the page was still loading its map blocks one level at a time (243, 81, 27, 9). A block is drawn whole until its children are in, and a whole block names its region or family for the two to four seconds that takes, so "Fixture Reach" showed in every run for a moment and the test failed whenever it read the labels in that moment. It waits until those names have gone. The map is as designed; no map bug was found.
+
+## [8.0.3315] - 2026-11-05
+
+**Headline:** Four map browser tests that failed on main wait for the right thing now, so the Galaxy Map and system view tests pass again.
+
+### Fixed
+- `test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate` (TEST.575) took the first generated system with moons, which can have only one freely turning body (its moons locked), and asked for two. It takes the first of up to eight systems with moons that has two, and fails only if none has.
+- `test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox` (TEST.575, TEST.595) waited for the first gas giant mark and then asserted all of them, so it saw only Fixture Jove while Fixture Eden had not drawn. It waits until every expected mark is drawn.
+- `test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out` (TEST.575) kept wheeling in after the sector's scene was whole (one edge in). At the window's nearest zoom, one more tick opens the sector by design (MAP.152), the scene share reads null and the test failed on a window whose nearest zoom is between 0.9 and 1 edge. It stops wheeling at one edge.
+- `test_web_browser_map_card.py` black hole cases (TEST.595) asked for the Fixture Maw button while the Black hole marks layer is off by default (MAP.368). They are marked like the other tests of the marks.
+- Not changed: the field cloud sprite test and the wheel tick test of the sector reach file passed alone in every run here (4 of 4, 3 of 3) and failed only late in a long file run or while other work ran on the machine, on 40 s and 15 s waits for a rendered frame of the software GL. No map bug was found; no wait was lengthened.
+
+## [8.0.3314] - 2026-11-05
+
+**Headline:** Two or more waypoints plot a course on the Galaxy Map that stays drawn until the waypoints are cleared.
+
+### Added
+- The Waypoints menu offers Plot the course once there are two or more waypoints. The Galaxy Map then draws the course through them: each leg planned like any other course (the route, the direct line, and the bend round keep-out spheres), the waypoints ringed and named, and a note giving the total distance.
+- The course stays: a Galaxy Map opened with two or more waypoints and no course of its own comes up with them plotted, until Clear all, or Remove down to fewer than two, takes the course away too.
+- The address carries the waypoints (`?via=`), so the plotted course can be bookmarked or shared; a waypoint the database no longer has simply draws no course.
+
+generation-output: unchanged
+
 ## [8.0.3313] - 2026-11-05
 
 **Headline:** A sea now stores what it is made of: the methane, ethane and nitrogen of a hydrocarbon sea, the salt of a water sea, and a second liquid beside the main one.

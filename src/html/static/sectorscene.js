@@ -32,6 +32,12 @@ const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const { mapVar, formatAddress } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
+
+// NAV.49: the entry's place in the galaxy frame (parsecs) on its bookmark, where the map flags it as a waypoint.
+function withPosition(bookmark, entry) {
+  if (bookmark && [entry.x, entry.y, entry.z].every(Number.isFinite)) bookmark.position = [entry.x, entry.y, entry.z];
+  return bookmark;
+}
 const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
 const { singleSource } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const {
@@ -71,7 +77,7 @@ export function infoSpec(entry, data, navPick) {
   }
   if (entry.kind) {
     spec.fields = [["Type", entry.typeLabel], ["Radius", entry.radiusText], ["Age", entry.ageText], ["Surface gravity", entry.gravityText], ["Distance", entry.distanceText]];
-    spec.bookmark = endpointBookmark(entry.key, entry.name, entry.href);
+    spec.bookmark = withPosition(endpointBookmark(entry.key, entry.name, entry.href), entry);
     if (navPick) spec.nav = navPick.actionsFor(entry.key, entry.name);
     if (!picking) {
       spec.view = { href: entry.href, label: "View phenomenon →" };
@@ -81,7 +87,7 @@ export function infoSpec(entry, data, navPick) {
   }
   spec.fields = [["Star type", entry.starType], ["Temperature", entry.temp], ["Metallicity [Fe/H]", entry.metallicity],
     ["Octant", entry.quadrant], ["Location", entry.location]];
-  spec.bookmark = endpointBookmark(entry.endpoint, entry.name, entry.href);
+  spec.bookmark = withPosition(endpointBookmark(entry.endpoint, entry.name, entry.href), entry);
   if (navPick) spec.nav = navPick.actionsFor(entry.endpoint, entry.name);
   if (!picking) {
     spec.view = { href: entry.href, label: "View system →" };

@@ -1437,3 +1437,32 @@ def test_a_course_page_carries_the_save_button_the_record_and_the_courses_list(c
     assert record["adjusted"]["avoided"] == ["system:1500", "asteroid_field:4"]
     landing = client.get("/nav").get_data(as_text=True)
     assert "data-courses-list" in landing and "data-course-save-button" not in landing
+
+
+def test_a_course_through_waypoints_joins_the_legs_at_the_waypoints(app, fake):  # NAV.49
+    from planetgen.web import nav_page
+
+    fake.nav_galaxy_scope = True
+    fake.nav_adjusted = _adjusted()
+    fake.systems[1003] = {**fake.systems[1002], "id": 1003, "name": "Third 1003"}
+    with app.test_request_context("/galaxy"):
+        course = nav_page.galaxy_course_through(["system:1001", "system:1002", "system:1003"])
+    assert course["via"] is True and course["scope"] == "galaxy"
+    # Each leg is origin, one stop on the way, destination; the second leg starts at the waypoint the first ended at.
+    assert [point["role"] for point in course["points"]] == ["origin", "hop", "waypoint", "hop", "destination"]
+    assert course["waypoints"] == [0, 2, 4]
+    assert [call[2:4] for call in fake.calls if call[0] == "get_nav"] == [("system:1001", "system:1002"), ("system:1002", "system:1003")]
+    assert len(course["directs"]) == 2 and course["direct"] is None
+    assert course["directs"][0][1]["name"] == course["points"][2]["name"] == course["directs"][1][0]["name"]
+    assert len(course["adjusted"]) == 2          # each leg's direct course bends round the same sphere in the fake
+    assert course["readout"]["distance"] and [stop["name"] for stop in course["readout"]["stops"]] == [course["points"][2]["name"]]
+    assert course["navUrl"] == "/nav?from=system:1001&to=system:1003"
+
+
+def test_a_course_through_fewer_than_two_waypoints_is_not_drawn(app, fake):  # NAV.49
+    from planetgen.web import nav_page
+
+    with app.test_request_context("/galaxy"):
+        assert nav_page.galaxy_course_through(["system:1001"]) is None
+        assert nav_page.galaxy_course_through([]) is None
+    assert not [call for call in fake.calls if call[0] == "get_nav"]

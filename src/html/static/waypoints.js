@@ -8,11 +8,17 @@
 // (list, find) are at once. Every storage read and write is wrapped by the store: with storage blocked there are just no waypoints, and
 // adding one says so.
 //
-// An entry is {name, kind, value, url?, created}: `value` is the NAV endpoint ("system:12", "nebula:3"), the entry's key.
+// An entry is {name, kind, value, url?, position?, created}: `value` is the NAV endpoint ("system:12", "nebula:3"), the entry's key, and
+// `position` (x, y, z in parsecs, galaxy frame) is where the Galaxy Map flags it when the card it was picked from knew it.
 //
 // Importing this module wires whatever the page has (no inline script, see the Content-Security-Policy in web/__init__.py):
+// - [data-waypoint-toggle]: an Add waypoint button on a system, phenomenon or body page, its entry in data-waypoint-kind, -value, -name
+//   and -url. Hidden until wired.
 // - [data-waypoints-menu]: the Galaxy Map's Waypoints menu (a <details>), its [data-waypoints-panel] filled with the list and its
-//   [data-waypoints-count] with the number of waypoints.
+//   [data-waypoints-count] with the number of waypoints. Two or more waypoints plot a course (NAV.49): the Galaxy Map takes them in its
+//   address, `?via=<a>,<b>,...`, and draws the course through them (web/nav_page.galaxy_course_through). The course stays: a Galaxy Map
+//   opened with two or more waypoints and no course of its own is opened again with them plotted, until they are cleared (Clear all, or
+//   Remove down to fewer than two, which opens the map again without the course).
 // The database comes from the first element's data-bookmark-db, as the bookmarks' does.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
@@ -44,6 +50,7 @@ function keyOf(entry) {
 function build(entry) {
   const saved = { name: entry.name.trim() || entry.value, kind: entry.value.split(":")[0], value: entry.value, created: new Date().toISOString() };
   if (entry.url) saved.url = entry.url;
+  if (Array.isArray(entry.position) && entry.position.length === 3 && entry.position.every(Number.isFinite)) saved.position = entry.position.slice();
   return saved;
 }
 
@@ -140,6 +147,50 @@ export function toggleButton(button, entryFn, compact) {
   return refresh;
 }
 
+function wireToggles() {
+  document.querySelectorAll("[data-waypoint-toggle]").forEach(function (button) {
+    const d = button.dataset;
+    const entry = { name: d.waypointName || "", kind: d.waypointKind, value: d.waypointValue, url: d.waypointUrl || null };
+    toggleButton(button, function () { return entry; });
+  });
+}
+
+// --- The course through the waypoints (NAV.49) -------------------------------------------
+
+// The endpoints a Galaxy Map address plots (`?via=`), in order.
+export function viaOf(search) {
+  const value = new URLSearchParams(search || "").get("via") || "";
+  return value.split(",").map(function (part) { return part.trim(); }).filter(Boolean);
+}
+
+export function sameList(a, b) {
+  return a.length === b.length && a.every(function (value, n) { return value === b[n]; });
+}
+
+// The address `href` (a URL) with the course through `values` plotted (`via`), or, for fewer than two, with no course through
+// waypoints; the rest of the address is kept (the view, the layers). An explicit `course` goes: it is the other way to ask for one.
+export function plotUrl(href, values) {
+  const parsed = new URL(href, "http://localhost");
+  parsed.searchParams.delete("course");
+  if (values.length >= 2) parsed.searchParams.set("via", values.join(","));
+  else parsed.searchParams.delete("via");
+  return parsed.pathname + parsed.search.replace(/%3A/gi, ":").replace(/%2C/gi, ",") + parsed.hash;
+}
+
+// What the address says about the course at this visit: "none", "other" (a course of its own, or a pick or a generate run on the
+// map: the waypoints leave the map alone), "plotted" (the course through exactly these waypoints), or "stale" (through others).
+export function plotState(search, values) {
+  const params = new URLSearchParams(search || "");
+  if (params.get("course") || params.get("pick") || params.get("made")) return "other";
+  const via = viaOf(search);
+  if (!via.length) return "none";
+  return sameList(via, values) ? "plotted" : "stale";
+}
+
+function here() {
+  return window.location.pathname + window.location.search + window.location.hash;
+}
+
 // --- The Waypoints menu --------------------------------------------------------------
 
 function el(tag, className, text) {
@@ -192,22 +243,57 @@ function renderMenu(menu) {
     ol.appendChild(li);
   });
   panel.appendChild(ol);
+  const values = entries.map(function (entry) { return entry.value; });
+  const state = plotState(window.location.search, values);
+  if (values.length >= 2 && state !== "other") {
+    if (state === "plotted") {
+      panel.appendChild(el("p", "hint", "The course through these " + values.length + " waypoints is drawn on the map."));
+    } else {
+      const plot = el("a", "bookmarks-action waypoints-plot", state === "stale" ? "Plot the course again" : "Plot the course");
+      plot.href = plotUrl(here(), values);
+      panel.appendChild(plot);
+    }
+  } else if (values.length < 2 && state === "plotted") {
+    panel.appendChild(el("p", "hint", "A course needs two or more waypoints."));
+  }
   const clearButton = el("button", "bookmarks-action waypoints-clear", "Clear all");
   clearButton.type = "button";
   clearButton.addEventListener("click", async function () {
     await clear();
+    if (viaOf(window.location.search).length) {
+      window.location.assign(plotUrl(here(), []));   // the course through them goes with them
+      return;
+    }
     renderMenu(menu);
     menu.querySelector("summary").focus();
   });
   panel.appendChild(clearButton);
 }
 
+// The course stays until the waypoints are cleared: a Galaxy Map with two or more and no course through them is opened again with them
+// plotted, and one showing a course through waypoints that are no longer two or more is opened again without it.
+function keepCourse() {
+  const values = list().map(function (entry) { return entry.value; });
+  const state = plotState(window.location.search, values);
+  if (state === "none" && values.length >= 2) window.location.replace(plotUrl(here(), values));
+  else if (viaOf(window.location.search).length && values.length < 2 && state !== "other") window.location.replace(plotUrl(here(), []));
+}
+
 function wireMenus() {
-  document.querySelectorAll("[data-waypoints-menu]").forEach(function (menu) {
+  const menus = document.querySelectorAll("[data-waypoints-menu]");
+  menus.forEach(function (menu) {
     renderMenu(menu);
-    onChange(function () { renderMenu(menu); });
+    onChange(function () {
+      renderMenu(menu);
+      // The course through waypoints goes when fewer than two are left.
+      if (list().length < 2 && viaOf(window.location.search).length && plotState(window.location.search, []) !== "other") {
+        window.location.assign(plotUrl(here(), []));
+      }
+    });
     ready.then(function () { renderMenu(menu); });
   });
+  if (menus.length) ready.then(keepCourse);
 }
 
 wireMenus();
+wireToggles();
