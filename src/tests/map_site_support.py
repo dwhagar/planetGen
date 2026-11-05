@@ -240,23 +240,6 @@ def nebula_regions_of(block, field=None, limit=600):
     return listed[:limit]
 
 
-def nebula_shape_payload(nebula_id, lod):
-    """What `GET /api/nebulae/<id>/shape` answers for the fixture nebula."""
-    import random
-
-    from planetgen.galaxy import nebula_shape
-
-    known = {cloud["id"] for cloud in NEBULAE} | {p["id"] for p in PHENOMENA if p["type"] == "nebula"}
-    if int(nebula_id) not in known:
-        raise apiclient.NotFoundError(f"no such nebula: {nebula_id}")
-    vertices, faces = nebula_shape.draw_shape(random.Random(int(nebula_id))).mesh(lod)
-    cloud = next((c for c in NEBULAE if c["id"] == int(nebula_id)), NEBULA_CLOUD)
-    return {"id": int(nebula_id), "radius_ly": pc_to_ly(cloud["radius_pc"]),
-            "center_pc": [cloud["x"], cloud["y"], cloud["z"]], "lod": lod,
-            "vertices": [[round(float(v), 5) for v in vertex] for vertex in vertices],
-            "faces": [[int(i) for i in face] for face in faces]}
-
-
 def nebula_volume_payload(key):
     """What `GET /api/galaxy/nebula-volume?key=` answers for the fixture's nebulae (the two clouds and the group field), sampled by
     the real sampler from a stand-in density (MAP.365)."""
@@ -1023,9 +1006,6 @@ class FixtureApi:
     def get_galaxy_locate(self, db, q):
         return []
 
-    def get_nebula_shape(self, db, nebula_id, lod="low"):
-        return nebula_shape_payload(nebula_id, lod)
-
     def get_galaxy_nebula_volume(self, db, key):
         return nebula_volume_payload(key)
 
@@ -1084,7 +1064,7 @@ class FixtureApi:
 
 _APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
-              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_nebula_shape", "get_system_scene",
+              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_system_scene",
               "get_uncharted_sector", "get_system", "get_galaxy_charted_regions")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window")
 

@@ -925,10 +925,6 @@ NEBULA_VOLUME_PATH = "/galaxy/nebula/{id}/volume"
 """str: The site's endpoint for the points that draw one nebula alone (`web/galaxy_views.galaxy_nebula_alone_volume`, MAP.142), for
 its page's 3D view and the Sector Map."""
 
-NEBULA_SHAPE_PATH = "/galaxy/nebula/{id}/shape"
-"""str: The site's nebula mesh endpoint (`web/galaxy_views.galaxy_nebula_shape`),
-`{id}` where the nebula's id goes."""
-
 _NEBULA_TYPE_COLORS = {
     "diffuse": "#e3a6c8",
     "emission": "#ff6f91",
@@ -1205,8 +1201,6 @@ def map_scene_data(
         # (`_BINARY_OFFSET_FRACTION`), not at their real gap (MAP.186).
         "binariesCompressed": bool(compress_binaries),
         "clouds": clouds_data,
-        # Where a nebula's mesh comes from (`{id}` is its id; MAP.103).
-        "nebulaShapePath": NEBULA_SHAPE_PATH,
         "neighbors": neighbors_data,
         "generate": generate,
         # The sector's own edge in light years, for the Generate buttons'
@@ -1348,7 +1342,7 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
         clouds.append(cloud)
     return {
         "sceneHalfPx": _SCENE_HALF_PX, "defaultZoom": 1.0, "lyPerPxAtZoom1": None, "outline": None, "compass": None,
-        "stars": stars, "clouds": clouds, "nebulaShapePath": NEBULA_SHAPE_PATH, "neighbors": [],
+        "stars": stars, "clouds": clouds, "neighbors": [],
         "generate": generate, "edgeLy": milliparsecs_to_ly(edge_pc * 1000.0), "centerPc": list(center_pc), "halfEdgePc": half_edge_pc,
         "uncharted": True, "designation": designation, "address": list(address),
     }

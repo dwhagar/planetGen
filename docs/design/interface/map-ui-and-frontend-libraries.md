@@ -366,7 +366,9 @@ lies behind it can recur.
 
 ## 4. Nebulae with soft boundaries (MAP.142)
 
-### 4.1 How nebulae are drawn today
+### 4.1 How nebulae were drawn before MAP.142
+
+(Historical: MAP.142 parts 2 to 4 replaced the per-ID mesh and the sphere with each nebula's own cloud of points, drawn by the volume layer on the Galaxy Map, the Sector Map and the nebula page; `nebulamesh.js` is removed.)
 
 - **Galaxy Map (`galaxymap3d.js`).** Each nebula or remnant is a `THREE.Sprite` with
   a 128 px radial-gradient texture (`cloudTexture`; diffuse alpha 0.47 at the centre,

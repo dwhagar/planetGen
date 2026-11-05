@@ -117,9 +117,6 @@ const {
 const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
 const { extentOf, groupByCell, linePieces } = await import(`./camerarelative.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
-const {
-  NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
-} = await import(`./nebulamesh.js${VERSION_QUERY}`);
 const { createPicker, createRing, createHoverPreview, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
 const { createPlaneView } = await import(`./galaxyplane.js${VERSION_QUERY}`);
@@ -1806,37 +1803,6 @@ function initGalaxyMap3d(canvasEl, data) {
   scene.add(cloudGroup);
   var cloudSprites = new Map();
   var cloudSignature = "";
-  // A nebula's shape mesh (MAP.103): fetched the first time the nebula is
-  // big enough on screen, then drawn in place of its sprite.
-  var cloudMeshes = new Map();
-  var meshRequested = new Set();
-  var loadNebulaShape = sceneData.nebulaShapePath ? createShapeLoader(sceneData.nebulaShapePath) : null;
-
-  function requestNebulaMesh(sprite) {
-    var cloud = sprite.userData.cloud;
-    var key = cloudKey(cloud);
-    // A field cloud (MAP.178) is a sprite from the seed alone: it has no stored shape to fetch.
-    if (!loadNebulaShape || cloud.type !== "nebula" || cloud.field || meshRequested.has(key)) {
-      return;
-    }
-    meshRequested.add(key);
-    loadNebulaShape(cloud.id, "low").then(function (shape) {
-      if (cloudSprites.get(key) !== sprite) {
-        return;
-      }
-      var look = NEBULA_LOOKS[cloud.descriptor] || DEFAULT_NEBULA_LOOK;
-      var mesh = buildNebulaMesh(THREE, shape, cloud.radius_pc, look);
-      mesh.position.copy(sprite.position);
-      mesh.renderOrder = 4;
-      mesh.visible = false;
-      cloudGroup.add(mesh);
-      cloudMeshes.set(key, mesh);
-      updateClouds();
-    }, function () {
-      meshRequested.delete(key);
-    });
-  }
-
   function cloudKey(cloud) {
     return cloud.type + ":" + cloud.id;
   }
@@ -1852,12 +1818,6 @@ function initGalaxyMap3d(canvasEl, data) {
         cloudGroup.remove(sprite);
         sprite.material.dispose();
         cloudSprites.delete(key);
-        var gone = cloudMeshes.get(key);
-        if (gone) {
-          cloudGroup.remove(gone);
-          disposeNebulaMesh(gone);
-        }
-        cloudMeshes.delete(key);
       }
     });
     wanted.forEach(function (cloud, key) {
@@ -1899,24 +1859,9 @@ function initGalaxyMap3d(canvasEl, data) {
       var distance = camera.position.distanceTo(sprite.position);
       var clipped = !drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z);
       var pixels = cloudPixels(cloud, distance);
-      var mesh = cloudMeshes.get(key);
-      // MAP.365: where the nebula is drawn from the model's density (nebulavolumelayer.js) its circle and its per-ID mesh give way.
+      // MAP.365: where the nebula is drawn from the model's density (nebulavolumelayer.js) its circle gives way.
       var covered = cloudCover(key);
-      if (cloud.type === "nebula" && !clipped && pixels >= NEBULA_MESH_MIN_PX && covered < 0.5) {
-        requestNebulaMesh(sprite);
-      }
-      if (mesh && !clipped && pixels >= NEBULA_MESH_MIN_PX && covered < 0.5) {
-        // The mesh takes over from the sprite, which stays (unseen) for aiming.
-        mesh.visible = true;
-        sprite.visible = true;
-        sprite.material.opacity = 0;
-        sprite.userData.share = 1;
-        drawn++;
-        return;
-      }
-      if (mesh) {
-        mesh.visible = false;
-      }
+      if (cloud.type === "nebula" && !clipped && covered >= 0.5) drawn++;
       var near = THREE.MathUtils.smoothstep(distance / cloud.radius_pc, CLOUD_NEAR_FADE[0], CLOUD_NEAR_FADE[1]);
       // MAP.155: opacity ramps in between 1 and 4 px of radius (a hard
       // edge at 2 px before); `share` is what can be aimed at.
@@ -1924,9 +1869,10 @@ function initGalaxyMap3d(canvasEl, data) {
       sprite.visible = share > 0 && !clipped;
       sprite.material.opacity = CLOUD_OPACITY * share * (1 - covered);
       sprite.userData.share = clipped ? 0 : share;
+      if (cloud.type === "nebula" && !clipped && covered < 0.5 && sprite.visible && sprite.material.opacity > 0) drawn++;
     });
-    // How many nebulae are drawn from their shape now (read by the browser tests).
-    canvasEl.dataset.nebulaMeshes = String(drawn);
+    // How many nebulae are drawn now, from their points or as a sprite (read by the browser tests).
+    canvasEl.dataset.nebulaClouds = String(drawn);
     // How many field clouds (MAP.178) are drawn as sprites now (read by the browser tests).
     var fieldDrawn = 0;
     cloudSprites.forEach(function (sprite) { if (sprite.userData.cloud.field && sprite.visible && sprite.material.opacity > 0) fieldDrawn++; });
