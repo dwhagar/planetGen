@@ -2252,17 +2252,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT): code built for a pending feature stays.
     Prerequisites: NAV.25, NAV.26, NAV.54.
 
-- [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
-  Boss (2026-10-02 01:53Z): "a jump through unknown space is marked in
-  red and glows to draw attention to it." Done: a hop NAV.12 flags as
-  an unknown-space jump is drawn red with a glow in UX.35's horizontal
-  route strip, on the NAV page's own map (`lib/navmap.py`) and on the
-  Galaxy Map course (with NAV.20), with a legend entry; with
-  `prefers-reduced-motion` it stays red without the pulse; it reads in
-  both themes, and the route list also labels it in text so it isn't
-  shown by color alone. Prerequisites: none.
-  Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors

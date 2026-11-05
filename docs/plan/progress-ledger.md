@@ -2474,3 +2474,4 @@ Baseline: PR #1817.
 | GEN.1255 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | NAV.68 | 8.5 | Courses on the maps |
 | NAV.69 | 8.5 | Courses on the maps |
+| NAV.36 | 8.5 | Courses on the maps |
