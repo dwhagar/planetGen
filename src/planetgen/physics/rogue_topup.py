@@ -43,7 +43,7 @@ MIN_MASS_EARTH = min(low for low, _high, _rate in tuning.ROGUE_PLANET_MASS_BINS.
 SCATTERER_AU_RANGE = (1.0, 30.0)
 """tuple: Where the scattering giant of a top-up rogue's apparent origin sits, AU, drawn log-uniformly. Source tier T8, tweak level L3."""
 VELOCITY_DISPERSION_KM_S = (35.0, 25.0, 20.0)
-"""tuple: The thin disc's velocity dispersion `(sigma_U, sigma_V, sigma_W)` of the local hosts, km/s, where the caller gives none. Source tier T6, tweak level L1."""
+"""tuple: The thin disk's velocity dispersion `(sigma_U, sigma_V, sigma_W)` of the local hosts, km/s, where the caller gives none. Source tier T6, tweak level L1."""
 DEFAULT_AGE_LAW = AgeLaw.uniform(tuning.ROGUE_PLANET_AGE_RANGE_GY)
 GALACTOCENTRIC_RADIUS_PC = 8000.0
 """float: The galactocentric radius used where the caller gives none (about the Sun's). Source tier T6, tweak level L0."""
@@ -228,7 +228,7 @@ def plan(rng, level, stars, shortfall_kg, host_masses_kg, rogues_present=0, sect
         age_law (AgeLaw): The star-formation history's age law for the sector's population.
         dispersion_km_s (tuple): The local hosts' velocity dispersion.
         placement (float, optional): Override of `tuning.ROGUE_TOPUP_PLACEMENT`.
-        galactocentric_radius_pc (float): The sector's distance from the galactic centre, for the arc the apparent origin lies along.
+        galactocentric_radius_pc (float): The sector's distance from the galactic center, for the arc the apparent origin lies along.
 
     Returns:
         TopUp: The rogues, the mass placed and the remainder.

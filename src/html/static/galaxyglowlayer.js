@@ -100,12 +100,12 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
   let strongestAlpha = 0;
   let signature = "";
 
-  // Draws exactly `list` (`blobsOf`'s). Positions are offsets from `centre` rounded to a whole parsec, the mesh sitting
+  // Draws exactly `list` (`blobsOf`'s). Positions are offsets from `center` rounded to a whole parsec, the mesh sitting
   // there (camera-relative, as the star layer's, so a float32 holds them).
-  function setBlobs(list, centre) {
+  function setBlobs(list, center) {
     blobs = list;
     signature = "";
-    frame = [Math.round(centre[0]), Math.round(centre[1]), Math.round(centre[2])];
+    frame = [Math.round(center[0]), Math.round(center[1]), Math.round(center[2])];
     const n = list.length;
     const positions = new Float32Array(12 * n);
     const corners = new Float32Array(8 * n);
@@ -142,7 +142,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
     mesh.updateMatrixWorld();
   }
 
-  // Whether a blob of `radiusPx` reaches the screen (its centre in front of the camera, its disc over the canvas).
+  // Whether a blob of `radiusPx` reaches the screen (its center in front of the camera, its disk over the canvas).
   const spot = new THREE.Vector3();
   function onScreen(blob, radiusPx) {
     spot.set(blob.x, blob.y, blob.z).project(camera);

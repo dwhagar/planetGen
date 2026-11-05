@@ -68,7 +68,7 @@ def test_a_retrograde_orbit_cannot_lock_the_body_it_goes_round_the_other_way_fro
 def test_an_ice_covered_ocean_is_zero_and_a_body_without_a_free_sea_is_empty():
     ice = ocean_tides.compute(_body(hydrosphere="ice-covered ocean", moons=[_moon()]))
     assert ice == {"tide_range_spring_m": 0.0, "tide_range_neap_m": 0.0, "ocean_liquid": "water"}
-    for state in ("dry", "vapour", "ice", "brine seep", "hycean", None):
+    for state in ("dry", "vapor", "ice", "brine seep", "hycean", None):
         assert ocean_tides.compute(_body(hydrosphere=state, moons=[_moon()])) == dict.fromkeys(ocean_tides.FIELDS)
     assert ocean_tides.compute(_body(rotation_period_hours=None)) == dict.fromkeys(ocean_tides.FIELDS)
     assert ocean_tides.compute(_body(spin_axis_x=None)) == dict.fromkeys(ocean_tides.FIELDS)
@@ -124,3 +124,17 @@ def test_a_finished_system_has_the_tide_of_its_final_water():
         if checked:
             break
     assert checked, "no seed from 7100 made an ice-covered ocean"
+
+
+def test_a_sea_of_another_liquid_has_a_tide_with_its_own_density_and_a_lava_none():
+    """GEN.1052: a methane sea on a Titan-like moon has the spring range and the liquid named; a lava surface is no sea here."""
+    giant = _body(mass=5.683e26, radius=58232.0, hydrosphere=None, distance=9.58, body_type="g")
+    titan = _body(mass=1.345e23, radius=2575.0, hydrosphere="dry", distance=0.0082, rotation_period_hours=382.7, eccentricity=0.029, is_moon=True,
+                  planet_class="H", surface_liquid="methane", surface_liquid_fraction=0.017, surface_temperature=94.0)
+    found = ocean_tides.compute(titan, giant)
+    assert found["ocean_liquid"] == "methane" and found["tide_range_spring_m"] > 0.0
+    for melt in ("basalt_melt", "peridotite_magma", "carbonatite_melt"):     # every rock melt, silicate or carbonate, by its kind
+        titan.surface_liquid = melt
+        assert ocean_tides.compute(titan, giant)["tide_range_spring_m"] is None, melt
+    titan.surface_liquid, titan.surface_liquid_fraction = "methane", None
+    assert ocean_tides.compute(titan, giant)["tide_range_spring_m"] is None

@@ -154,11 +154,41 @@ def configured_cache_dir():
     return _config().dir or DEFAULT_CACHE_DIR
 
 
+_root_override = None
+"""str or None: A cache root `building_into` has put in place of the configured one (the full build writes into it)."""
+
+
+class building_into:
+    """
+    A context in which this process reads and writes the cache under `root` instead of the configured directory, and
+    leaves it unpruned: how `tilebuild` makes a whole new cache beside the live one (PERF.233). One process builds
+    into one root at a time.
+    """
+
+    def __init__(self, root):
+        self.root = root
+        self._was = None
+
+    def __enter__(self):
+        global _root_override
+        self._was = _root_override
+        os.makedirs(self.root, mode=0o750, exist_ok=True)
+        _root_override = self.root
+        return self.root
+
+    def __exit__(self, *_exc):
+        global _root_override
+        _root_override = self._was
+        return False
+
+
 def cache_dir():
     """
     The writable cache root, created if needed, or `None` when the disk
     cache is off or no candidate directory is writable.
     """
+    if _root_override is not None:
+        return _root_override
     configured = configured_cache_dir()
     if configured is None:
         return None
@@ -452,7 +482,7 @@ def _trim_star(star):
     """One star of a node as the page reads it (MAP.157): the fields in
     `_STAR_KEYS`, `star_type` as its class letter, positions to 3
     decimals, luminosity to 4 and radius to 3 significant digits and
-    temperature to 10 K. No `system_id` when there is none, no `tier` for a star of the disc, the bulge and the rest, no `name`
+    temperature to 10 K. No `system_id` when there is none, no `tier` for a star of the disk, the bulge and the rest, no `name`
     for a star that has none."""
     trimmed = {
         "id": star["id"],
@@ -649,7 +679,7 @@ def _collect(db, keys, known_stamp, ahead=False):
                     for key, raw in made.items():
                         if key in missing and not _incomplete(raw):
                             _write_bytes(os.path.join(generation_dir, _node_filename(key)), raw, ahead=ahead)
-                    if random.random() < PRUNE_PROBABILITY:
+                    if _root_override is None and random.random() < PRUNE_PROBABILITY:
                         prune(root)
         finally:
             if owned:
@@ -792,28 +822,28 @@ def fetch_window(db, at, g=DEFAULT_WINDOW):
         apiclient.ApiError / NotFoundError: If the API is needed and fails.
     """
     try:
-        centre = parse_window_key(at)
+        center = parse_window_key(at)
         width = check_width(g)
     except ValueError as exc:
         raise TileRequestError(str(exc))
-    if centre.m > 1:
+    if center.m > 1:
         # Cells bigger than a sector: the stored block totals, in one query.
         stamp = current_stamp(db, cache_dir())["stamp"]
-        return {**get_galaxy_window(db, format_drill_key(centre), width), "stamp": stamp}
+        return {**get_galaxy_window(db, format_drill_key(center), width), "stamp": stamp}
     # The sector edge comes with every stage; the galaxy's is always cached.
     galaxy = fetch_stage(db, None)
     edge_pc = galaxy["edge_pc"]
     stamp = galaxy.get("stamp")
     stages = {}
-    for parent in window_parents(window_cells(centre, edge_pc, width)):
+    for parent in window_parents(window_cells(center, edge_pc, width)):
         key = format_drill_key(parent) if parent else "galaxy"
         stages[key] = galaxy if parent is None else fetch_stage(db, key)
-    return {**crop_stages(centre, width, stages, edge_pc), "stamp": stamp}
+    return {**crop_stages(center, width, stages, edge_pc), "stamp": stamp}
 
 
 NEAR_MAX_EDGES = 4.5
 """float: The farthest `fetch_near` looks, in sector edges: the widest window (11 cells across) holds a point's sector and the cells within
-4.5 edges of it, allowing the half edge between the point and its sector's centre."""
+4.5 edges of it, allowing the half edge between the point and its sector's center."""
 
 
 def fetch_near(db, x, y, z, r):
@@ -830,7 +860,7 @@ def fetch_near(db, x, y, z, r):
     Returns:
         dict: `at` (the key of the sector holding the point, `1.shell.band.wedge`, or `None` outside the grid), `edge_pc`,
             `r` (the radius used), `sectors` (the generated sectors of the cells within the radius of the sector's
-            centre, as a stage lists them: `shell`, `band`, `wedge`, `id`, `name`, `system_count`, `stats`) and `stamp`.
+            center, as a stage lists them: `shell`, `band`, `wedge`, `id`, `name`, `system_count`, `stats`) and `stamp`.
 
     Raises:
         TileRequestError: On a coordinate or radius that is not a finite number.
@@ -856,7 +886,7 @@ def fetch_near(db, x, y, z, r):
     except ValueError:
         return nothing
     key = format_drill_key(DrillBlock(1, shell, band, wedge))
-    # A window is a ball of `g` cells across round the centre cell's own centre, the point up to a half edge from it.
+    # A window is a ball of `g` cells across round the center cell's own center, the point up to a half edge from it.
     width = next((w for w in WINDOW_WIDTHS if w >= 2 * (radius / edge_pc + 1)), WINDOW_WIDTHS[-1])
     window = fetch_window(db, key, width)
     return {"at": key, "edge_pc": edge_pc, "r": radius, "sectors": window.get("sectors") or [], "stamp": window.get("stamp", stamp)}
@@ -898,16 +928,18 @@ def cache_is_full(root=None, max_bytes=None):
 
 def prune(root, max_bytes=None):
     """
-    Brings the cache under 80% of `max_bytes` (default `max_cache_bytes()`) when it is over `max_bytes`, and then
-    removes any directories that left empty (PERF.133): only the files a visit asked for are deleted, the
-    least recently visited first (a visit sets a file's modification time); the nodes built ahead
-    (`AHEAD_MODE`) stay, so a cache that holds nothing but those stays over the budget and the warm-up stops
-    (`cache_is_full`). The stamp files are skipped.
+    Brings the files a visit asked for under 80% of `max_bytes` (default `max_cache_bytes()`) when they are over
+    `max_bytes`, and then removes any directories that left empty (PERF.133): only those files are deleted, the
+    least recently visited first (a visit sets a file's modification time). The nodes built ahead (`AHEAD_MODE`)
+    stay and are not counted (PERF.233): the whole-galaxy build fills the cache with them every night and they carry
+    their own bound, the galaxy, so the budget is the allowance of the on-demand files that come after. A cache of
+    nothing but built-ahead nodes past the budget still stops the warm-up (`cache_is_full`). The stamp files are
+    skipped.
     """
     if max_bytes is None:
         max_bytes = max_cache_bytes()
     files = cache_files(root)
-    total = sum(size for _path, size, _mtime, _ahead in files)
+    total = sum(size for _path, size, _mtime, ahead in files if not ahead)
     if total <= max_bytes:
         return
     from planetgen.web.lib import tileprefetch

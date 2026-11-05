@@ -2,7 +2,7 @@
 
 """
 GEN.626: the plan's crest and planned-share figures come from the built shape, not from a table and a fixed system mass.
-The crest is the thin disc's peak expected systems per sector on an arm crest (the number the outline walks on), it
+The crest is the thin disk's peak expected systems per sector on an arm crest (the number the outline walks on), it
 follows the Census dial, and the planned share equals an independent integral of the model's density.
 """
 
@@ -24,9 +24,9 @@ def _outline(argv):
     return plan_outline.build(plan_outline._parser().parse_args(argv), SEED, 4.0)
 
 
-def _thin_disc_crest_from_the_density(shape, e_value):
-    """The thin disc's expected systems per sector on an arm crest, read from `component_values` a little off the
-    centre (the arms are undefined on the axis) and carried back along the exponential."""
+def _thin_disk_crest_from_the_density(shape, e_value):
+    """The thin disk's expected systems per sector on an arm crest, read from `component_values` a little off the
+    center (the arms are undefined on the axis) and carried back along the exponential."""
     radius = 100.0
     arm_angle = (shape.spiral_reference_angle_rad
                  + math.log(radius / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
@@ -39,11 +39,11 @@ def _thin_disc_crest_from_the_density(shape, e_value):
 
 
 @pytest.mark.parametrize("extra", [[], ["--richness", "1.0"], ["--richness", "3.0"]])
-def test_the_crest_is_the_thin_discs_peak_expected_systems_per_sector(extra):
+def test_the_crest_is_the_thin_disks_peak_expected_systems_per_sector(extra):
     built = _outline(extra)
     assert built.shape.nuclear_amplitude > 0
     assert plan_outline.report(built).crest == pytest.approx(
-        _thin_disc_crest_from_the_density(built.shape, built.e_value), rel=1e-9)
+        _thin_disk_crest_from_the_density(built.shape, built.e_value), rel=1e-9)
 
 
 def test_the_crest_follows_the_census_dial():

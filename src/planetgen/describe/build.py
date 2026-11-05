@@ -197,7 +197,7 @@ def _star_age_sentence(star):
     return sentence
 
 
-def _galactic_orbit_or_centre(star):
+def _galactic_orbit_or_center(star):
     if getattr(star, "ejecta_velocity_kms", None) is not None:
         speed = math.sqrt(sum(component * component for component in star.ejecta_velocity_kms))
         return inline("Ejected from the galaxy, leaving at ", _kms(speed), " on a straight line")
@@ -220,7 +220,7 @@ def _black_hole_blocks(hole):
         fact("event_horizon", "Event horizon radius", _radius_km(hole.radius)),
         fact("spin", "Spin parameter", qty("ratio", hole.spin, note="of the maximum (0 is not spinning)")),
         fact("disk", "Accretion disk", "Active accretion disk detected" if hole.has_accretion_disk else "None detected"),
-        fact("orbit", "Galactic orbit", _galactic_orbit_or_centre(hole)),
+        fact("orbit", "Galactic orbit", _galactic_orbit_or_center(hole)),
         *_wobble_row(hole),
         fact("loc", "Location", hole.name),
     ]
@@ -252,7 +252,7 @@ def _neutron_star_blocks(star):
         fact("spin_period", "Spin period", spin),
         fact("magnetic_field", "Magnetic field", _held("G", star.magnetic_field_gauss, shown="magnetic field")),
         fact("surface_temp", "Surface temperature", _kelvin(star.surface_temperature_k, companions=False)),
-        fact("orbit", "Galactic orbit", _galactic_orbit_or_centre(star)),
+        fact("orbit", "Galactic orbit", _galactic_orbit_or_center(star)),
         *_wobble_row(star),
         fact("loc", "Location", star.name),
     ]
@@ -548,7 +548,7 @@ def _planet_section(planet):
         blocks.append(prose("timeline", *_timeline_sentences(life)))
         blocks.append(prose("milestone", *_milestone_sentences(life)))
     if planet.flavor_text:
-        blocks.append(prose("flavour", f"Sensors show {planet.flavor_text}"))
+        blocks.append(prose("flavor", f"Sensors show {planet.flavor_text}"))
     kind = _noun(planet)
     children = [_planet_section(moon) for moon in planet.moons]
     return section(kind, _ref(kind, planet), planet.name, [b for b in blocks if b and (b["type"] != "prose" or b["text"])],
@@ -577,6 +577,8 @@ def _belt_section(belt):
     blocks = [facts("Asteroid belt", rows), model.composition("Composition", parts, format_composition_summary(belt.composition))]
     if belt.origin_sentence:      # GEN.1069: where the belt came from and what shaped it, as the generator wrote it
         blocks.append(prose("summary", belt.origin_sentence, *belt.origin_history))
+    if belt.history:
+        blocks.append(prose("history", *belt.history))     # GEN.1232: what the giant branch and the mass loss did to it
     return section("belt", _ref("belt", belt), "Asteroid Belt", blocks)
 
 
@@ -706,7 +708,7 @@ def describe(system):
     """
     blocks = [prose("overview", *_overview_sentences(system))]
     if system.system_flavor_text:
-        blocks.append(prose("flavour", f"Sensors show {system.system_flavor_text}"))
+        blocks.append(prose("flavor", f"Sensors show {system.system_flavor_text}"))
 
     if system.binary_type == "close":
         children = [_close_pair_section(system.star)]

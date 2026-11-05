@@ -21,7 +21,7 @@ the hyper-volatile block keeps the observed trade-off of CO and CO2 and the carb
 
 An interstellar comet draws its CO and CO2 from the wider ranges one measured object forces (CO/H2O up to 2, CO2/H2O to 10; both
 log-uniform) and the other species from the population. The one comet whose bulk ratios were measured in situ is a test target in the
-test, never a centre or a preset. Nothing here reads a Solar System comet: the numbers are the population's.
+test, never a center or a preset. Nothing here reads a Solar System comet: the numbers are the population's.
 
 Every row carries its source, label and source state (`SPECIES`, with the partly verified ones naming their limit). The draw reads only `draw` (the one random wrapper), in a fixed order, so a comet's
 volatiles are the same at any worker count. The comet record does not store them yet (GEN.442, GEN.455, GEN.457 do), so nothing
@@ -246,7 +246,7 @@ def _carbon_oxides(period_class, interstellar, ice_ratios=None):
         co_range = (co_bounds.lo_percent, co_bounds.hi_percent)
         co2_range = (co2_bounds.lo_percent, co2_bounds.hi_percent)
     else:
-        # the median comes from the disc zone the comet formed in; the observed extremes keep their distance from the population's
+        # the median comes from the disk zone the comet formed in; the observed extremes keep their distance from the population's
         # geometric mean (the bounds move with the median, so the rejection loop is as likely to end as with the population)
         co2_zone, co_zone = (100.0 * ratio for ratio in ice_ratios)
         if not (co2_zone > 0.0 and co_zone > 0.0):
@@ -295,7 +295,7 @@ def draw_volatiles(period_class, interstellar=False, ice_ratios=None):
             carbon-chain flag from the same table; the class does not move its CO and CO2, which are drawn from the ranges
             the measured interstellar object needs).
         interstellar (bool): True for an interstellar comet.
-        ice_ratios (tuple or None): `(CO2/H2O, CO/H2O)` of the ice of the disc zone the comet formed in (`comet_ice_budget.ice_ratios`, GEN.595):
+        ice_ratios (tuple or None): `(CO2/H2O, CO/H2O)` of the ice of the disk zone the comet formed in (`comet_ice_budget.ice_ratios`, GEN.595):
             the median CO and CO2 come from it (and not from the Solar System's measured median of the class) and the scatter stays the
             population's. `None` keeps the population's median.
 

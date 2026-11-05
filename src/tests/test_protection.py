@@ -301,7 +301,7 @@ def _worlds(count=400):
             gravity_ms2=rng.uniform(1, 25), relative_humidity=rng.uniform(0.05, 0.99), solvent="water",
             ph=rng.choice([None, 2.0, 7.0, 10.0, 13.0]), water_activity=rng.choice([1.0, 0.8, 0.5]),
             chaotropicity_kj_kg=rng.choice([0.0, 50.0, 90.0]), surface_dose_sv_yr=10 ** rng.uniform(-3, 3),
-            life_stage=rng.choice(hab.LIFE_STAGES), water_source=rng.choice(["liquid", "ice", "hydrated", "vapour", None]),
+            life_stage=rng.choice(hab.LIFE_STAGES), water_source=rng.choice(["liquid", "ice", "hydrated", "vapor", None]),
             life_on_surface=rng.random() < 0.8)
 
 

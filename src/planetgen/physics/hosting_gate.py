@@ -13,7 +13,7 @@ parts of the design in order and names the first that fails:
    nodes, not satellites).
 2. **A stable orbit must exist.** Outside the host's radius plus the smallest satellite's (and outside the fluid Roche limit
    (`relations.roche_limit`) when the host is fluid), inside the Domingos limit (`clearance_ledger.moon_hill_fraction`, 0.4895 for a circular orbit) of the host's Hill radius at its
-   pericentre, and, when the smallest satellite is comparable in mass to its host (`COMPARABLE_MASS_RATIO`), passing the
+   pericenter, and, when the smallest satellite is comparable in mass to its host (`COMPARABLE_MASS_RATIO`), passing the
    hierarchical stability screen of `physics.stability`.
 3. **A chance that one exists at all.** Below `SIZE_CUT_M` (1 km across, Boss's card S5, a tunable stand-in) no body has satellites.
    Above it, the share of bodies of that population and size that have one comes from the gated table `satellite-share`
@@ -151,7 +151,7 @@ def smallest_satellite_mass_kg():
 
 
 def hill_radius_m(host):
-    """The host's Hill radius at its pericentre, or `None` for a free body."""
+    """The host's Hill radius at its pericenter, or `None` for a free body."""
     if host.parent_mass_kg is None:
         return None
     return relations.hill_radius(host.orbit_radius_m * (1.0 - host.eccentricity), host.mass_kg, host.parent_mass_kg)
@@ -159,7 +159,7 @@ def hill_radius_m(host):
 
 def stable_zone_m(host):
     """
-    The orbits a satellite can hold about `host`: `(inner_m, outer_m)` from the body's centre, `outer_m` `None` for a free
+    The orbits a satellite can hold about `host`: `(inner_m, outer_m)` from the body's center, `outer_m` `None` for a free
     body. The inner edge is the host's radius plus the smallest satellite's, or the fluid Roche limit when that is farther;
     the outer edge is the Domingos fraction of the Hill radius (`clearance_ledger.moon_hill_fraction`, 0.4895 for a circular orbit).
     """

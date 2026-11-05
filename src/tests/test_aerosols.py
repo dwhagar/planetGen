@@ -53,10 +53,10 @@ def test_the_saturation_curve_of_water_and_the_ceiling_of_a_supercritical_gas():
     assert aerosols.saturation_pa("H2O", 300.0) < aerosols.saturation_pa("H2O", 320.0)
 
 
-def test_earth_air_makes_a_water_cloud_with_the_vapour_of_a_moist_column():
+def test_earth_air_makes_a_water_cloud_with_the_vapor_of_a_moist_column():
     condensate = aerosols.condensate_columns_kg_m2(EARTH, 288.0)
     assert set(condensate) == {"H2O"}
-    assert 20.0 < condensate["H2O"] < 60.0                    # the column of 1 percent vapour at 288 K above its condensation level
+    assert 20.0 < condensate["H2O"] < 60.0                    # the column of 1 percent vapor at 288 K above its condensation level
     assert aerosols.condensate_columns_kg_m2(DRY_EARTH, 288.0) == {}
 
 
@@ -178,9 +178,9 @@ def test_the_same_stream_draws_the_same_aerosols():
 
 
 def test_the_layers_carry_the_materials_optics():
-    centres = np.array([300.0, 450.0, 550.0, 650.0, 800.0])
+    centers = np.array([300.0, 450.0, 550.0, 650.0, 800.0])
     aerosol = aerosols.Aerosols(tau_haze=2.0, tau_dust=0.0, tau_cloud=10.0, cloud_cover=0.6, aerosol_draw=0.5)
-    haze, cloud = aerosols.layers(aerosol, centres)
+    haze, cloud = aerosols.layers(aerosol, centers)
     assert cloud.tau == pytest.approx(np.full(5, 10.0)) and cloud.g == pytest.approx(np.full(5, 0.85)) and cloud.omega == pytest.approx(np.ones(5))
     assert haze.tau[2] == pytest.approx(2.0)
     assert np.all(np.diff(haze.tau) < 0.0)                                                    # extinction falls with wavelength
@@ -188,18 +188,18 @@ def test_the_layers_carry_the_materials_optics():
     assert exponent == pytest.approx(aerosols._haze_exponent(0.5), rel=1e-6) and 0.97 <= exponent <= 2.34
     assert haze.omega[2] == pytest.approx(aerosols.HAZE_OMEGA_550, abs=1e-9)
     assert haze.omega[1] < haze.omega[2] < haze.omega[3]                                       # tholin absorbs blue: darker in the blue
-    dust = aerosols.layers(aerosols.Aerosols(0.0, 1.0, 0.0, 0.0, 0.0), centres)[0]
+    dust = aerosols.layers(aerosols.Aerosols(0.0, 1.0, 0.0, 0.0, 0.0), centers)[0]
     assert dust.tau == pytest.approx(np.ones(5))
     assert dust.omega[1] == pytest.approx(0.7725, abs=1e-6) and dust.omega[3] == pytest.approx(0.9545, abs=1e-6)       # [R4743], 1.2 micron: 450 and 650 nm
     assert dust.omega[0] < dust.omega[1] < dust.omega[3]
-    assert aerosols.layers(aerosols.NONE, centres) == (None, None)
+    assert aerosols.layers(aerosols.NONE, centers) == (None, None)
 
 
 def test_dust_and_haze_are_mixed_by_depth():
-    centres = np.array([550.0])
-    both, _ = aerosols.layers(aerosols.Aerosols(1.0, 1.0, 0.0, 0.0, 0.0), centres)
-    haze, _ = aerosols.layers(aerosols.Aerosols(1.0, 0.0, 0.0, 0.0, 0.0), centres)
-    dust, _ = aerosols.layers(aerosols.Aerosols(0.0, 1.0, 0.0, 0.0, 0.0), centres)
+    centers = np.array([550.0])
+    both, _ = aerosols.layers(aerosols.Aerosols(1.0, 1.0, 0.0, 0.0, 0.0), centers)
+    haze, _ = aerosols.layers(aerosols.Aerosols(1.0, 0.0, 0.0, 0.0, 0.0), centers)
+    dust, _ = aerosols.layers(aerosols.Aerosols(0.0, 1.0, 0.0, 0.0, 0.0), centers)
     assert both.tau[0] == pytest.approx(2.0)
     scattering = haze.tau * haze.omega + dust.tau * dust.omega
     assert both.omega[0] == pytest.approx(scattering[0] / 2.0)
@@ -211,8 +211,8 @@ def test_a_cloud_dims_the_ground_and_brightens_the_planet():
     options = dict(temperature_k=5772.0, flux_w_m2=flux, uv_c_share=0.256, ground_albedo=0.15, mu0=0.8)
     with fetch.disregard_missing_data():
         clear = ar.surface_radiation(DRY_EARTH, **options)
-        centres = clear.centres_nm
-        _, cloud = aerosols.layers(aerosols.Aerosols(0.0, 0.0, 10.0, 1.0, 0.5), centres)
+        centers = clear.centers_nm
+        _, cloud = aerosols.layers(aerosols.Aerosols(0.0, 0.0, 10.0, 1.0, 0.5), centers)
         overcast = ar.surface_radiation(DRY_EARTH, low_aerosol=cloud, cloud_cover=1.0, **options)
         half = ar.surface_radiation(DRY_EARTH, low_aerosol=cloud, cloud_cover=0.5, **options)
     visible = lambda s: s.band_ground_w_m2("visible")

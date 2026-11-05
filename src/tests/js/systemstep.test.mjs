@@ -7,7 +7,7 @@ import { importPage } from "./fakedom.mjs";
 
 const S = await importPage("systemstep.js");
 
-// A point 1,000 pc from the galaxy's centre on the x axis, on the plane: out is +x, east +y, north +z (colatitude shrinks
+// A point 1,000 pc from the galaxy's center on the x axis, on the plane: out is +x, east +y, north +z (colatitude shrinks
 // toward the pole), south -z.
 const HERE = { x: 1000, y: 0, z: 0 };
 const near = (name, dx, dy, dz) => ({ name, x: HERE.x + dx, y: HERE.y + dy, z: HERE.z + dz });
@@ -36,7 +36,7 @@ test("of several in the cone the nearest wins, and what lies outside the cone is
   assert.equal(S.nearestInDirection(HERE, [near("behind", 0, -1, 0)], "east"), null);
 });
 
-test("the system stood at is skipped, and the poles and the centre have no sideways", () => {
+test("the system stood at is skipped, and the poles and the center have no sideways", () => {
   const me = { x: HERE.x, y: HERE.y, z: HERE.z, name: "me" };
   assert.equal(S.nearestInDirection(HERE, [me], "out"), null, "zero distance is the system itself");
   assert.equal(S.nearestInDirection(HERE, [me, near("out", 2, 0, 0)], "out", (c) => c === me).name, "out");

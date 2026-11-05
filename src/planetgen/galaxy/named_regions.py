@@ -8,8 +8,8 @@ A region is a 9-block cell of the Galaxy Map's block ladder (`drill`) that holds
 holds one is the database's to say (`region_stats`, DB.107), and nothing here reads a database. This module is the geometry
 and the name, both pure functions of the block and the galaxy's naming key:
 
-* **The anchor** of a cell is the centre of its bounds (the middle radius, colatitude and longitude): where the standard
-  fill of the cell (a sphere of `REGION_RADIUS_PC`, 109 sectors) is centred.
+* **The anchor** of a cell is the center of its bounds (the middle radius, colatitude and longitude): where the standard
+  fill of the cell (a sphere of `REGION_RADIUS_PC`, 109 sectors) is centered.
 * **The framing radius** is that standard radius, or the cell's inscribed radius where the grid squeezes the cell below it
   (next to the core and the poles), so the sphere never leaves its cell.
 * **The extent** (GEN.827) is the sphere a region is drawn and framed with: the bounding sphere of the largest face-connected
@@ -103,7 +103,7 @@ def _hex(key, text, digits):
 
 def anchor_pc(block, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     """
-    The anchor of the 9-block `block`, `(x, y, z)` parsecs in the galaxy frame: the centre of its bounds, the middle radius
+    The anchor of the 9-block `block`, `(x, y, z)` parsecs in the galaxy frame: the center of its bounds, the middle radius
     (the core cell's origin side is the origin), colatitude and longitude (`drill.drill_block_bounds`).
     """
     block = _check_region(block)
@@ -122,7 +122,7 @@ def region_of(address):
 def anchor_address(block, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     """
     The sector `(shell, band, wedge)` that holds the anchor of the 9-block `block`: where the standard fill of the cell (the
-    sphere of `REGION_RADIUS_PC` about the anchor) is centred (GEN.826). The anchor is the middle of the cell's bounds, so the
+    sphere of `REGION_RADIUS_PC` about the anchor) is centered (GEN.826). The anchor is the middle of the cell's bounds, so the
     sector there is in the cell; where the grid's rounding puts it in a neighbour, the sector of the cell nearest the anchor.
     """
     block = _check_region(block)
@@ -135,7 +135,7 @@ def anchor_address(block, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
 
 
 def snap_to_anchor(address, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
-    """The sector the standard fill of the region holding `address` is centred on (`anchor_address` of `region_of`)."""
+    """The sector the standard fill of the region holding `address` is centered on (`anchor_address` of `region_of`)."""
     return anchor_address(region_of(address), edge_pc)
 
 
@@ -240,29 +240,29 @@ SPHERE_ITERATIONS = 400
 """int: Steps of the bounding-sphere search (`bounding_sphere`): the sphere's radius is within 1 / sqrt(steps) = 5 percent of
 the smallest one that holds the points."""
 
-Extent = namedtuple("Extent", ["centre_pc", "radius_pc", "clumps", "sectors", "sectors_in_sphere"])
-"""The extent of a region (`region_extent`): the sphere's centre `(x, y, z)` and radius in parsecs, how many face-connected
+Extent = namedtuple("Extent", ["center_pc", "radius_pc", "clumps", "sectors", "sectors_in_sphere"])
+"""The extent of a region (`region_extent`): the sphere's center `(x, y, z)` and radius in parsecs, how many face-connected
 clumps the cell's generated sectors form, how many sectors there are, and how many of them the sphere holds."""
 
 
-def bounding_sphere(centres_pc, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
+def bounding_sphere(centers_pc, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     """
-    A sphere that holds the sectors whose centres are `centres_pc` (an N by 3 array, parsecs): the smallest sphere through the
-    centres (found by the Badoiu and Clarkson steps, within 5 percent of the smallest) with the circumradius of a sector,
+    A sphere that holds the sectors whose centers are `centers_pc` (an N by 3 array, parsecs): the smallest sphere through the
+    centers (found by the Badoiu and Clarkson steps, within 5 percent of the smallest) with the circumradius of a sector,
     `sqrt(3) / 2` edges, added so the whole of each sector is inside. Deterministic.
 
     Returns:
-        tuple: `(centre, radius)` as `(x, y, z)` and parsecs.
+        tuple: `(center, radius)` as `(x, y, z)` and parsecs.
     """
-    points = np.asarray(centres_pc, dtype=float).reshape(-1, 3)
+    points = np.asarray(centers_pc, dtype=float).reshape(-1, 3)
     if not len(points):
         raise ValueError("a bounding sphere needs at least one sector")
-    centre = points[0].copy()
+    center = points[0].copy()
     for step in range(1, SPHERE_ITERATIONS):
-        farthest = points[int(np.argmax(((points - centre) ** 2).sum(axis=1)))]
-        centre += (farthest - centre) / (step + 1)
-    radius = float(np.sqrt(((points - centre) ** 2).sum(axis=1).max())) + math.sqrt(3) / 2 * edge_pc
-    return (float(centre[0]), float(centre[1]), float(centre[2])), radius
+        farthest = points[int(np.argmax(((points - center) ** 2).sum(axis=1)))]
+        center += (farthest - center) / (step + 1)
+    radius = float(np.sqrt(((points - center) ** 2).sum(axis=1).max())) + math.sqrt(3) / 2 * edge_pc
+    return (float(center[0]), float(center[1]), float(center[2])), radius
 
 
 def clumps_of(addresses):
@@ -288,7 +288,7 @@ def region_extent(block, addresses, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     """
     The extent of the 9-block `block` holding the generated sectors `addresses`: the bounding sphere of the largest
     face-connected clump (ties by the smallest address), at least `framing_radius_pc` in radius. A sphere smaller than that is
-    the framing radius about the clump's sphere centre, so a lone sector gets a sensible frame; a chain of sectors is one
+    the framing radius about the clump's sphere center, so a lone sector gets a sensible frame; a chain of sectors is one
     clump, and the clumps of a cell that were made apart are not joined by a sphere that covers the gap between them.
 
     Raises:
@@ -298,9 +298,9 @@ def region_extent(block, addresses, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     groups = clumps_of(addresses)
     if not groups:
         raise ValueError("a region needs at least one generated sector")
-    centres = np.array([spherical.sector_position_pc(*address, edge_pc) for address in groups[0]])
-    centre, radius = bounding_sphere(centres, edge_pc)
+    centers = np.array([spherical.sector_position_pc(*address, edge_pc) for address in groups[0]])
+    center, radius = bounding_sphere(centers, edge_pc)
     radius = max(radius, framing_radius_pc(block, edge_pc))
-    held = int((((np.array([spherical.sector_position_pc(*a, edge_pc) for g in groups for a in g]) - centre) ** 2)
+    held = int((((np.array([spherical.sector_position_pc(*a, edge_pc) for g in groups for a in g]) - center) ** 2)
                 .sum(axis=1) <= radius ** 2).sum())
-    return Extent(centre, radius, len(groups), sum(len(group) for group in groups), held)
+    return Extent(center, radius, len(groups), sum(len(group) for group in groups), held)

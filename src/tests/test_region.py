@@ -28,7 +28,7 @@ def _bounds(last_shell, limit=None):
     return GalaxyBounds(rows, EDGE)
 
 
-CENTRES = [
+CENTERS = [
     (0, 0, 0),       # the core
     (1, 0, 0),
     (2, 1, 0),
@@ -40,20 +40,20 @@ CENTRES = [
 ]
 
 
-def _centre_of(address):
+def _center_of(address):
     return spherical.sector_position_pc(*address, EDGE)
 
 
-@pytest.mark.parametrize("centre", CENTRES)
+@pytest.mark.parametrize("center", CENTERS)
 @pytest.mark.parametrize("sectors", [0.5, 1, 2, 5, 13, 30])
-def test_a_region_is_the_sectors_a_walk_of_the_sphere_finds(centre, sectors):
-    region = Region.around_sector(*centre, sectors, EDGE)
+def test_a_region_is_the_sectors_a_walk_of_the_sphere_finds(center, sectors):
+    region = Region.around_sector(*center, sectors, EDGE)
     got = list(region.addresses())
     assert len(got) == len(set(got)) == region.count()
     assert set(got) == _walked(region)
 
 
-def test_the_centre_sector_is_always_in_and_a_far_sector_is_not():
+def test_the_center_sector_is_always_in_and_a_far_sector_is_not():
     region = Region.around_sector(40, 0, 0, 1, EDGE)
     assert region.contains(40, 0, 0)
     assert region.count() >= 1
@@ -105,10 +105,10 @@ def test_the_count_and_cells_follow_the_outline():
     assert len(list(region.cells(bounds))) == len(listed)
 
 
-def test_cells_carry_their_centre_and_distance():
+def test_cells_carry_their_center_and_distance():
     region = Region.around_sector(12, 3, 7, 3, EDGE)
     for shell, band, wedge, x, y, z, distance in region.cells():
-        assert (x, y, z) == pytest.approx(_centre_of((shell, band, wedge)))
+        assert (x, y, z) == pytest.approx(_center_of((shell, band, wedge)))
         assert distance == pytest.approx(math.dist((x, y, z), region.center_pc))
         assert distance <= region.reach_pc + 1e-9
 
@@ -123,7 +123,7 @@ def test_spans_describe_the_same_sectors():
     assert sum(span.count(bounds) for span in region.spans()) == region.count(bounds)
 
 
-def test_a_centre_off_a_sector_centre_uses_its_own_sector():
+def test_a_center_off_a_sector_center_uses_its_own_sector():
     position = (60.0, 25.0, 9.0)
     region = Region(position, 2 * EDGE, EDGE)
     assert region.contains(*spherical.sector_address_at(position, EDGE))
@@ -135,7 +135,7 @@ def test_the_allowance_matches_the_fill_that_uses_it():
     assert region_run.reach_pc(EDGE, EDGE) == pytest.approx((1 + BALL_EDGE_ALLOWANCE) * EDGE)
 
 
-def test_a_radius_of_one_sector_holds_the_centre_and_its_face_neighbours():
+def test_a_radius_of_one_sector_holds_the_center_and_its_face_neighbours():
     for address in [(12, 0, 5), (40, -2, 0), (150, 3, 100)]:
         region = Region.around_sector(*address, 1, EDGE)
         neighbours = set(spherical.neighbor_addresses(*address))

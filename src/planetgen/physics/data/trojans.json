@@ -6,7 +6,7 @@
   "finite_trojan_rule": {"value": "(m2 + m3) / (m1 + m2 + m3) < mu_crit", "tier": "T2", "tweak": "L0", "basis": "the secondary plus the trojan under about 4 percent of the host, as TROY III [R0248] uses it per docs/design/research/oddity-rates.md WR10; the paper's own text for the rule was not read"},
   "tadpole_limit_deg": {"value": 23.9, "tier": "T2", "tweak": "L0", "basis": "[R3220]: the libration amplitude past which a small-mass tadpole becomes a horseshoe (recalled, not opened)"},
   "leading_share_range": {"value": [0.5, 0.62], "tier": "T4", "tweak": "L4", "basis": "no source read: Jupiter's L4 swarm outnumbers its L5 by about 1.6 to 1 (recalled), so the leading share runs from equal to about 0.62; a draw inside it"},
-  "ecc_max": {"value": 0.2, "tier": "T4", "tweak": "L4", "basis": "no source read for a limit: [R0919] keep e under 0.02 in discs and the Jupiter Trojans reach about 0.3 (recalled); a lane measures it with an N-body run"},
+  "ecc_max": {"value": 0.2, "tier": "T4", "tweak": "L4", "basis": "no source read for a limit: [R0919] keep e under 0.02 in disks and the Jupiter Trojans reach about 0.3 (recalled); a lane measures it with an N-body run"},
   "inclination_max_deg": {"value": 35.0, "tier": "T4", "tweak": "L4", "basis": "no source read for a limit: Earth Trojans are stable below 15 degrees and between 24 and 37 degrees [R4895]; the Jupiter Trojans reach about 40 (recalled)"}
  }
 }

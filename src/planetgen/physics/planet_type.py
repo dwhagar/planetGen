@@ -14,7 +14,8 @@ The one number that cuts is the envelope's share of the mass, `envelope_mass_fra
 * **gas**: `GAS_MIN_ENVELOPE` (50 percent, the line `bulk_structure.GIANT_ENVELOPE_FRACTION` already holds) or more: the atmosphere outweighs the core.
 
 A body whose envelope share is not stored is typed by its `body_type` (g gas, t terrestrial), and the type then says `known=False` in `type_of`.
-Nothing stores or reads the type yet (GEN.1219 stores it with GEN.1207's epoch); `tests/planet_type_cli.py` prints how a generated sample splits.
+The type is stored on every planet and moon as `planet_type` (`fill`, called with the class, `planets.apply_class`, GEN.1219), after the envelope share is stored for
+every body (`envelope_share`, GEN.1226), so a hydrogen-air dwarf is typed correctly. `tests/planet_type_cli.py` prints how a generated sample splits.
 """
 
 TERRESTRIAL = "terrestrial"
@@ -43,3 +44,12 @@ def planet_type(body):
     """The type of a planet or moon (an object, or a column-named mapping)."""
     get = body.get if hasattr(body, "get") else lambda name: getattr(body, name, None)
     return type_of(get("envelope_mass_fraction"), get("body_type"))[0]
+
+
+FIELDS = ("planet_type",)
+"""tuple: What a planet or a moon stores of this module, as `planets` and `moons` columns (GEN.1219)."""
+
+
+def fill(body):
+    """Sets `planet_type` on a planet or a moon from its stored envelope share (`type_of`)."""
+    body.planet_type = planet_type(body)

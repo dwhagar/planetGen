@@ -32,7 +32,7 @@ from planetgen.physics.protection_limits import limit
 
 ARMSTRONG_KPA = limit("armstrong_kpa")
 """float: Water boils at body temperature below this, and
-the saturated water vapour in the lungs takes this much of any breath."""
+the saturated water vapor in the lungs takes this much of any breath."""
 
 INSPIRED_O2_MIN_KPA = limit("inspired_o2_min_kpa")
 """float: Least inspired O2 for consciousness (SaO2 above 75%)."""
@@ -227,6 +227,10 @@ higher in Gy than this says, which no world near the 10 Gy/yr line notices."""
 CO_TOX_KPA = 0.01
 CO2_TOX_KPA = 2.0
 """float: T_metazoa's CO and CO2 scales, kPa (the Xenobiology doc)."""
+H2S_TOX_KPA = 0.002
+SO2_TOX_KPA = 0.001
+"""float: T_metazoa's hydrogen sulfide and sulfur dioxide scales, kPa (GEN.1253): twice the chronic limit of `GAS_LIMITS_KPA`, which is how CO (0.01 against 0.005)
+and CO2 (2.0 against 0.93) sit against theirs. Source tier T6, tweak level L1 (registry LF22)."""
 
 METAZOA_O2_LOW_KPA = 8.0
 METAZOA_O2_HIGH_KPA = 50.0
@@ -566,10 +570,10 @@ FOOD_SCORE = {"none": 0.2, "microbial": 0.5, "macroscopic": 0.85, "biosphere": 1
 (chemosynthetic mats), Green (bryophytes, invertebrates; whose chemistry may not suit a
 person) and Blue (forest canopies, complex food webs). planetGen's numbers, one per tier."""
 
-WATER_ACCESS_SCORE = {"liquid": 0.9, "ice": 0.6, "aquifer": 0.6, "hydrated": 0.25, "vapour": 0.2, None: 0.0}
+WATER_ACCESS_SCORE = {"liquid": 0.9, "ice": 0.6, "aquifer": 0.6, "hydrated": 0.25, "vapor": 0.2, None: 0.0}
 """dict: The water rung by the most accessible water (`World.water_source`): Table 2's Green
 (rivers, lakes and rain), Yellow (glacial ice, subglacial liquid, an aquifer within reach of a drill),
-Red (perchlorate brine, hydrated minerals, vapour). Fresh liquid water that is also Blue Water Chemistry is Blue (1)."""
+Red (perchlorate brine, hydrated minerals, vapor). Fresh liquid water that is also Blue Water Chemistry is Blue (1)."""
 
 YELLOW_FLOOR = 0.4
 """float: The lowest score of Yellow: where a domain that cannot make the overall Red is held in the mean."""
@@ -730,8 +734,10 @@ def phi_bio(world):
 
 
 def toxin_factor(world):
-    """The share of animal life that carbon monoxide and carbon dioxide leave (the toxic terms of `t_metazoa`): 1 for clean air."""
-    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("CO2") / CO2_TOX_KPA) ** 2))
+    """The share of animal life that carbon monoxide, carbon dioxide, hydrogen sulfide and sulfur dioxide leave (the toxic terms of `t_metazoa`; the last two
+    are the air an acid-eating life makes, GEN.1253): 1 for clean air."""
+    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("CO2") / CO2_TOX_KPA) ** 2)
+            * math.exp(-(world.partial_kpa("H2S") / H2S_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("SO2") / SO2_TOX_KPA) ** 2))
 
 
 def t_metazoa(world):

@@ -298,7 +298,7 @@
       }
     },
     "phases": {
-      "note": "Which phase of water ice a body's centre holds, from its central pressure (and the shape-set temperature for the narrow wedges). Boundaries are the usual water phase diagram (recalled, row IT8); the lookup is a stand-in for bodies whose centre is over 0.2 GPa, which are nearly all round already.",
+      "note": "Which phase of water ice a body's center holds, from its central pressure (and the shape-set temperature for the narrow wedges). Boundaries are the usual water phase diagram (recalled, row IT8); the lookup is a stand-in for bodies whose center is over 0.2 GPa, which are nearly all round already.",
       "ih_below_pa": 210000000.0,
       "ii_below_pa": 630000000.0,
       "vi_below_pa": 2200000000.0,

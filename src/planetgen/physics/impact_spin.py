@@ -45,7 +45,7 @@ MEAN_SIN2_THETA = 0.5
 """float: `<sin^2 theta>` for an impact parameter uniform in area (`b = sin theta`, `p(b) = 2 b`). Source tier T5, tweak level L0."""
 ISOLATION_MASS_EARTH = 0.1
 """float: The mass below which a body is an embryo that never had a giant impact, Earth masses (the isolation mass of oligarchic growth at 1 AU, 0.1
-to 0.2 in [R2430], recalled; the planets of the same disc past it are made by giant impacts). Source tier T6, tweak level L3 (chosen so
+to 0.2 in [R2430], recalled; the planets of the same disk past it are made by giant impacts). Source tier T6, tweak level L3 (chosen so
 that a Mars-sized planet is as likely to have had one as not)."""
 ISOLATION_STEEPNESS = 2.0
 """float: The exponent of the logistic in `log M` that gives the chance of a giant impact. Source tier T6, tweak level L3."""

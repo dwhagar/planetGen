@@ -2,7 +2,7 @@
 planetgen/galaxy/region_run.py
 
 The plan of a region run (GEN.1128; docs/design/systems/region-object-store.md sections 3, 4, 8.5 and 9): a sphere of a given radius from a
-start point becomes whole sectors (`region.Region`, a sector is in when its centre is within the radius plus `BALL_EDGE_ALLOWANCE` edges, so a
+start point becomes whole sectors (`region.Region`, a sector is in when its center is within the radius plus `BALL_EDGE_ALLOWANCE` edges, so a
 sphere that touches a sector holds it), cut into units of at most `BLOCK_SECTORS` consecutive wedges of one (shell, band) arc, nearest unit first.
 
 Nothing here reads a stream or the database, and no draw may read any of it: the tile is the sector and every draw is keyed by the sector's own
@@ -42,7 +42,7 @@ def key(unit):
 
 
 def reach_pc(radius_pc, edge_pc, grow_shells=0):
-    """How far from the start a sector's centre may be: the radius, `grow_shells` shells of one edge more (section 9: the charted sphere grows
+    """How far from the start a sector's center may be: the radius, `grow_shells` shells of one edge more (section 9: the charted sphere grows
     by whole shells) and the sector allowance."""
     if radius_pc < 0:
         raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")

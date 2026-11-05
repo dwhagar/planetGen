@@ -1,7 +1,7 @@
 # tests/test_migration_temperature_coverage.py
 
 """
-GEN.1265: what is read off the temperature of every place of a body is stored. A system saved and loaded keeps the columns; the migration gives a v204 galaxy the
+GEN.1265: what is read off the temperature of every place of a body is stored. A system saved and loaded keeps the columns; the migration gives a v211 galaxy the
 columns, empty.
 """
 
@@ -50,19 +50,19 @@ def test_a_saved_system_keeps_the_coverage_of_every_body(mysql_config):
         conn.close()
 
 
-def test_a_v204_galaxy_gets_the_columns_empty(mysql_config):
-    load_old_schema(mysql_config, 204)
-    assert store.schema_status(mysql_config)[0] == 204
+def test_a_v211_galaxy_gets_the_columns_empty(mysql_config):
+    load_old_schema(mysql_config, 211)
+    assert store.schema_status(mysql_config)[0] == 211
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        for table in ("planets", "moons"):
+        for table in ("planets", "moons", "rogue_planets"):
             assert not conn.execute("SHOW COLUMNS FROM " + table + " LIKE 'temp_livable_share'").fetchall()
     finally:
         conn.close()
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        for table in ("planets", "moons"):
+        for table in ("planets", "moons", "rogue_planets"):
             for column in temperature_coverage.FIELDS:
                 assert conn.execute("SHOW COLUMNS FROM " + table + " LIKE ?", (column,)).fetchall(), (table, column)
     finally:

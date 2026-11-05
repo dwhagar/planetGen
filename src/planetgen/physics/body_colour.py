@@ -20,7 +20,7 @@ from planetgen.physics import aerosols, air_column, atmosphere_colour, giant_col
 BODY_FIELDS = ("atmosphere_colour",)
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and `moons` (DB.96)."""
 
-_CENTRES = atmosphere_colour.WAVELENGTHS_NM
+_CENTERS = atmosphere_colour.WAVELENGTHS_NM
 
 
 def rgb_integer(rgb8):
@@ -32,7 +32,7 @@ def rgb_integer(rgb8):
 def ground_albedo(body):
     """
     The reflectance of a solid body's ground, one value per wavelength of the colour grid (GEN.462): the lab reflectance in the three visible
-    bands (450, 550 and 650 nm centres; held flat beyond them) of the stored areal mix of ground types and ice, area-weighted. The part of the
+    bands (450, 550 and 650 nm centers; held flat beyond them) of the stored areal mix of ground types and ice, area-weighted. The part of the
     surface that has no measured visible spectrum (the open ocean and the metal, `surface_composition.band_albedo`) takes
     `atmosphere_colour.STAND_IN_GROUND_ALBEDO`, and so does the whole ground of a body whose mix is not stored. A surface under air is not
     space-weathered, so no darkening enters here.
@@ -49,7 +49,7 @@ def ground_albedo(body):
     if not covered > 0.0 or any(value is None for value in values):
         return stand_in
     blended = [covered * value + (1.0 - covered) * stand_in for value in values]
-    return np.interp(_CENTRES, surface_composition.BAND_CENTRES_NM, blended)
+    return np.interp(_CENTERS, surface_composition.BAND_CENTERS_NM, blended)
 
 
 def _solid_colour(body):
@@ -60,7 +60,7 @@ def _solid_colour(body):
     if column is None:
         return None
     stored = aerosols.of_body(body)
-    haze, dust, cloud = aerosols.colour_layers(stored, _CENTRES)
+    haze, dust, cloud = aerosols.colour_layers(stored, _CENTERS)
     result = atmosphere_colour.atmosphere_colour(
         column, temperature_k=temperature, ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
         ground_albedo=ground_albedo(body), haze=haze, dust=dust, cloud=cloud, cloud_cover=stored.cloud_cover,

@@ -4,7 +4,7 @@
 The photolysis lifetime table (GEN.496): how long a molecule lasts against the far ultraviolet of its star.
 
 A photolysis lifetime is a constant of the species, not a property of a body. `data/photolysis_lifetimes.json` holds,
-for each species of the table, its lifetime at 1 AU from the quiet Sun (photodissociation plus photoionisation,
+for each species of the table, its lifetime at 1 AU from the quiet Sun (photodissociation plus photoionization,
 optically thin and unshielded), the range the sources give, the factor by which the active Sun shortens it where one
 was read, and the species-specific ratio of its rate around a 4000 K and a 10000 K star to the Sun's at equal
 91.2 to 200 nm flux. The rate in a given place is
@@ -65,7 +65,7 @@ class Species:
 
     Attributes:
         formula (str): The gas-table formula (formaldehyde is `CH2O`).
-        lifetime_s (float): Lifetime at 1 AU, quiet Sun, seconds (dissociation plus ionisation).
+        lifetime_s (float): Lifetime at 1 AU, quiet Sun, seconds (dissociation plus ionization).
         lifetime_range_s (tuple): The lowest and highest quiet-Sun value the sources give.
         beta_diss_per_s, beta_ion_per_s (float): [R1873] rates, quiet Sun, 1 AU.
         activity_factor (float or None): How many times shorter the lifetime is for the active Sun, if read.

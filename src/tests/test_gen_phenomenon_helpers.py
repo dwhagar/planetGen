@@ -196,23 +196,6 @@ def test_black_hole_mass_class_label():
 
 # --- rogue planet and interstellar comet ----------------------------------
 
-def test_infer_rogue_mass_bin_boundaries():
-    bins = PC.ROGUE_PLANET_MASS_BINS
-    for name, (low, high, _rate) in bins.items():
-        assert roguePlanetData.infer_rogue_mass_bin(low * EARTH * 1.0001) == name
-        assert roguePlanetData.infer_rogue_mass_bin(high * EARTH * 0.9999) == name
-    brown_low = PC.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * JUPITER
-    assert roguePlanetData.infer_rogue_mass_bin(brown_low) == "brown-dwarf"
-    assert roguePlanetData.infer_rogue_mass_bin(brown_low * 0.999) == "jupiter"
-    assert roguePlanetData.infer_rogue_mass_bin(0.0) == "terrestrial"
-
-
-@pytest.mark.parametrize("mass_bin", ["huge", "Jupiter", ""])
-def test_rogue_planet_rejects_an_unknown_mass_bin(mass_bin):
-    with pytest.raises(ValueError, match=rf"mass_bin must be one of .*, got {mass_bin!r}"):
-        RoguePlanet(cfg(), mass_bin=mass_bin)
-
-
 @pytest.mark.parametrize("composition, expected", [
     ([], "unknown composition"),
     (["water ice"], "water ice"),

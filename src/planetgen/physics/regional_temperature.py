@@ -11,7 +11,7 @@ bands of `physics/latitude_bands.py` (the equator band, three on each side of it
 `band1` (north pole) to `band7` (south pole) the stored columns are `bandN_mean_k`, `bandN_swing_k`, `bandN_day_hours`,
 `bandN_night_hours`, `bandN_longest_day_days`, `bandN_longest_night_days` and `bandN_state` (`column`), and the world's mean
 swing is `temp_mean_swing_k`. A tidally locked world has no latitude day: its seven bands are the rings from the point under
-its star to the point away from it (`band1` the day centre, `band7` the night centre), with no hours.
+its star to the point away from it (`band1` the day center, `band7` the night center), with no hours.
 
 * **Temperatures**: each band takes the annual-mean insolation of its band on a circular orbit for the stored axial tilt
   (`band_insolation`), turned into a temperature by the fourth-root law and scaled so the area-weighted mean of the bands is the
@@ -46,7 +46,7 @@ unbroken day and night of the year (days, GEN.1260) at the poleward edge, and th
 
 
 def column(number, field):
-    """The stored column of band `number` (1, the north pole, to 7, the south pole; for a locked world 1 the day centre to 7 the night centre) and `field` of `BAND_FIELDS`."""
+    """The stored column of band `number` (1, the north pole, to 7, the south pole; for a locked world 1 the day center to 7 the night center) and `field` of `BAND_FIELDS`."""
     return f"band{number}_{field}"
 
 
@@ -188,7 +188,7 @@ def compute(values):
 
 def summary(values):
     """
-    The regions object the API serves (`None` for a body that has none): `bands`, the seven bands from the north pole to the south pole (the day centre to the night centre
+    The regions object the API serves (`None` for a body that has none): `bands`, the seven bands from the north pole to the south pole (the day center to the night center
     for a world that turns once an orbit), each `{"name", "mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state"}` with the
     fields the body has, and `mean_swing_k`. Names are `latitude_bands.NAMES`, or `RING_NAMES` for a locked world.
     """

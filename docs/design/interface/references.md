@@ -7,7 +7,7 @@ Status: R1 (DOC.87), R2 (DOC.88), R4 (DOC.90), R5 (DOC.91) and R7 (DOC.93) built
 The whole site speaks in universe: a working navigation system that simply knows things. One Help entry, **References**, is the only
 place that speaks out of universe: where each number came from, what we have research for and what we do not, every stand-in (the GEN.725
 registry) and how it was decided, what was fitted to a result, and how scientific each part is. Every other page keeps only a quiet
-"Where this comes from" link to the exact References entry.
+"More information" link to the exact References entry.
 
 ## What is built
 
@@ -61,7 +61,7 @@ NASA technical documents (NASA Technical Memoranda and standards, and the NASA S
 * **A place inside the source** (a table, a page, a section) follows its ID after a colon: `[R0123: Table 2]`. The page numbers the notes carried stay with it where they were printed; they are not required.
 * **Where:** the same in a design document, a report, the TODO text, a code comment, a docstring and a data-file header.
 * **No author, no year, no journal, no DOI, no arXiv number** appears outside the registry, `docs/REFERENCES.md` and the References pages. Whatever the old text said about the source ("read", "recalled", "Table 2 of", the value taken) goes to the registry entry of the stand-in it supports, or stays as plain words about the value with no name in them.
-* A page a visitor reads has no citation at all. It keeps only the quiet "Where this comes from" link.
+* A page a visitor reads has no citation at all. It keeps only the quiet "More information" link.
 
 * **DOC.97** makes each citation written on a References page a link to that anchor, and fails the build on an unknown or ambiguous one. `scripts/build_reference_pages.py` writes `docs/references/citations.json` (every ID with its name as the list prints it, its title, its kind, and the merged IDs as aliases). A page passes its sentences through `references_site.cite(text)` (`web/lib/citations.py`): each `[R0123]` becomes a link with the source's name to `/references/papers#paper-r0123` (`/references/data` for a dataset or archive), a place `[R0123: Table 2]` follows after a comma, and an unknown ID, or an author and year written out, raises `CitationError`, so the page build and `src/tests/test_citations_links.py` fail. Links exist only on the References pages.
 * **DOC.98 (built for the design documents, scripts, source code, data files and tests; the TODO text, plan and generated pages follow through the TODO thread)** moves citations out of everything else. `scripts/rewrite_citations.py` turns each author and year, DOI and arXiv number into the source's ID, using the ties the settle step recorded (DOC.95): `report` counts, `apply` rewrites, `check` fails while one is left. In Python it rewrites comments and docstrings (the syntax tree minus docstrings must be unchanged), and string literals and data files with `--strings`; the files built from them (the data files of `scripts/build_*.py`, `stand-in-values.md`, the dials block of `docs/reference/cli.md`) are rebuilt after. Where two papers share a first author and a year and nothing beside the mention chooses (volume and page, the letter `2023a`, an identifier, title words in the sentence), `--all-candidates` cites both: those places are the ones for Sources 1 to narrow. The journal, volume and page that followed a citation go with it; names written without a year stay (they cite nothing).

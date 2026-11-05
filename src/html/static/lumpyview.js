@@ -111,14 +111,14 @@ export function toView(x, y, z, cosAngle, sinAngle, cosTilt, sinTilt, out, at) {
  * @param {object} mesh `lumpMesh(look)`.
  * @param {object} view `{ angle, tiltDeg }`.
  * @param {number} size The picture's side, pixels.
- * @param {number} centreX The middle of the body, pixels.
- * @param {number} centreY The middle of the body, pixels (y down).
+ * @param {number} centerX The middle of the body, pixels.
+ * @param {number} centerY The middle of the body, pixels (y down).
  * @param {number} scale Pixels per unit of the mesh.
  * @param {Uint8Array} covered A `size * size` buffer, cleared by this call.
  * @param {Float32Array} depth A `size * size` buffer, reset by this call.
  * @param {function} paint The pixel callback.
  */
-export function rasterise(mesh, view, size, centreX, centreY, scale, covered, depth, paint) {
+export function rasterise(mesh, view, size, centerX, centerY, scale, covered, depth, paint) {
   covered.fill(0);
   depth.fill(-Infinity);
   const tilt = Number.isFinite(view.tiltDeg) ? (view.tiltDeg * Math.PI) / 180 : 0;
@@ -138,12 +138,12 @@ export function rasterise(mesh, view, size, centreX, centreY, scale, covered, de
     const a = indices[t] * 3;
     const b = indices[t + 1] * 3;
     const c = indices[t + 2] * 3;
-    const ax = centreX + seen[a] * scale;
-    const ay = centreY - seen[a + 1] * scale;
-    const bx = centreX + seen[b] * scale;
-    const by = centreY - seen[b + 1] * scale;
-    const cx = centreX + seen[c] * scale;
-    const cy = centreY - seen[c + 1] * scale;
+    const ax = centerX + seen[a] * scale;
+    const ay = centerY - seen[a + 1] * scale;
+    const bx = centerX + seen[b] * scale;
+    const by = centerY - seen[b + 1] * scale;
+    const cx = centerX + seen[c] * scale;
+    const cy = centerY - seen[c + 1] * scale;
     const area = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay);
     if (Math.abs(area) < 1e-9) continue;
     // No face is culled: the lump is one closed star-shaped surface, so the depth test keeps the nearest of the two faces over a pixel.

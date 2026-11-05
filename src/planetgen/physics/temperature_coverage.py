@@ -470,7 +470,7 @@ def _band_masks(series):
 
 def band_climate(series):
     """
-    `[(mean_k, swing_k)]` for each of the seven bands of `latitude_bands` (north to south, or day centre to night centre for a world that turns once an orbit), read off the series: the
+    `[(mean_k, swing_k)]` for each of the seven bands of `latitude_bands` (north to south, or day center to night center for a world that turns once an orbit), read off the series: the
     mean of the band is the mean over its cells (by area) and the whole span, the swing the day and night swing, peak to peak, of the band's cells (the mean over its cells and its solar
     days of the hottest minus the coldest sample of the day). For a world that turns once an orbit there is no day, and a ring's swing is the range of its cells over the span, hottest minus
     coldest (the ring's real range).

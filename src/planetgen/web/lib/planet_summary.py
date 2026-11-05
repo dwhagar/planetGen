@@ -13,11 +13,13 @@ system); everything else is written here from the row of the system detail. Impo
 from html import escape
 
 from planetgen.describe import sheet as sheet_registry
-from planetgen.physics import habitability
+from planetgen.physics import class_code, habitability
 from planetgen.physics.habitability_world import TIER_NAMES
 
 def _class_sentence(name, row, values):
     code = values.get("planet_class") or escape(str(row.get("planet_class") or ""))
+    if code and row.get("class_variant"):
+        code = escape(class_code.format_code(row["planet_class"], row["class_variant"]))     # GEN.1220: the digit, when it is not 0
     giant = row.get("body_type") == "g"
     ratio = row.get("roundness_ratio")
     asteroid = not code and not giant and ratio is not None and ratio < 1.0          # GEN.1160: under a roundness ratio of 1 a body has no class, it is an Asteroid

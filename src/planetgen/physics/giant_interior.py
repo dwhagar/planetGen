@@ -34,7 +34,7 @@ the onset of helium rain (2 Mbar, D2).
 Where the heavy elements go (D5)
 --------------------------------
 Rock and iron fill the compact core first, then the dilute core, then the deep metallic envelope. Ice (water, ammonia,
-methane), which the molecular envelope can hold as vapour, fills the molecular envelope first, then the metallic
+methane), which the molecular envelope can hold as vapor, fills the molecular envelope first, then the metallic
 envelope, then the dilute core. Whatever one material cannot fill, the other takes, so the layers always hold M_Z.
 
 Left out (design note section 8): temperature, neon, helium rain in a brown dwarf. Each number
@@ -227,7 +227,7 @@ class Polytrope:
 
     def at_pressure(self, pressure_pa):
         """`(radius fraction, mass inside fraction)` where the pressure is `pressure_pa`; (1, 1) at or below the surface
-        and (0, 0) at or above the centre."""
+        and (0, 0) at or above the center."""
         if pressure_pa >= self.central_pressure_pa:
             return 0.0, 0.0
         if pressure_pa <= 0.0:
@@ -306,7 +306,7 @@ class Layer:
         components (dict): Each material's mass in the layer in Earth masses (rows of the shared materials table); they add
             up to `mass_earth`.
         top_radius_fraction, bottom_radius_fraction (float): Where the layer's top and bottom lie as a fraction of the
-            body's radius (1 at the 1 bar surface, 0 at the centre).
+            body's radius (1 at the 1 bar surface, 0 at the center).
     """
 
     kind: str
@@ -851,9 +851,9 @@ def _fix_water(layers):
 
 
 class _ConstantDensityProfile:
-    """Pressure against radius for layers of constant density stacked from the centre, integrated inward from a surface
+    """Pressure against radius for layers of constant density stacked from the center, integrated inward from a surface
     pressure of 1 bar (the stand-in closure of an ice giant, design note D7). `layers` is `[(mass_kg, density)]` from the
-    centre out; the radii follow from the masses and densities, so the outer radius is the sum of the layer thicknesses."""
+    center out; the radii follow from the masses and densities, so the outer radius is the sum of the layer thicknesses."""
 
     def __init__(self, layers, shells_per_layer=300):
         self.outer_radii = []
@@ -919,7 +919,7 @@ class _ConstantDensityProfile:
 
 
 class _LayeredProfile:
-    """The structure of `giant_structure` seen the way `_ConstantDensityProfile` is: layers from the centre out, `masses` their masses
+    """The structure of `giant_structure` seen the way `_ConstantDensityProfile` is: layers from the center out, `masses` their masses
     (kg), with the pressures at their boundaries and the radius and mass at a pressure, so the ice giant reads either."""
 
     def __init__(self, structure, masses):

@@ -87,7 +87,7 @@ def came_from(own_path):
     """
     The admin page the visitor opened this page from (the referrer, when it is a page of this site under `/admin`
     and not `own_path` itself, e.g. after a Refresh link), else `""`. A button that ends the page's own subject
-    (cancelling the job it shows) returns here as `next`, through `safe_next`.
+    (canceling the job it shows) returns here as `next`, through `safe_next`.
     """
     parts = urlsplit(request.referrer or "")
     if parts.netloc != request.host or not parts.path.startswith("/admin") or parts.path == own_path:
