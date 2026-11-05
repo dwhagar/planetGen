@@ -19795,7 +19795,7 @@
             ],
             [
               "Where it holds",
-              "detected discs, so the count of a survey with a median sensitivity of 2e-5 in fractional luminosity"
+              "detected disks, so the count of a survey with a median sensitivity of 2e-5 in fractional luminosity"
             ],
             [
               "What would show it wrong",
@@ -19824,28 +19824,28 @@
           "burn_down": [
             "no data",
             "-",
-            "no survey measures the dust of the discs this generator builds; the cut stands where the K, G and F dwarfs together hold a disk as often as the surveys find, and goes when the outer disc's mass and width come from a planetesimal-formation model (filed as GEN.1278)"
+            "no survey measures the dust of the disks this generator builds; the cut stands where the K, G and F dwarfs together hold a disk as often as the surveys find, and goes when the outer disk's mass and width come from a planetesimal-formation model (filed as GEN.1278)"
           ],
           "fields": [
             [
               "What it is",
-              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer discs are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disc)"
+              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
             ],
             [
               "The range it moves in",
-              "8e-5 to 3e-4 (G disc share 33 to 2 percent)"
+              "8e-5 to 3e-4 (G disk share 33 to 2 percent)"
             ],
             [
               "Where it holds",
-              "the generator's outer discs, which are heavy, old and mostly at their steady-state dust"
+              "the generator's outer disks, which are heavy, old and mostly at their steady-state dust"
             ],
             [
               "What would show it wrong",
-              "the K, G and F dwarfs together holding a disc outside 12 to 22 percent in a sweep of the generator, or a survey that finds the generator's A and F stars short"
+              "the K, G and F dwarfs together holding a disk outside 12 to 22 percent in a sweep of the generator, or a survey that finds the generator's A and F stars short"
             ],
             [
               "What replaces it",
-              "a cut from the survey's own sensitivity, once the outer disc's mass and width come from a planetesimal-formation model"
+              "a cut from the survey's own sensitivity, once the outer disk's mass and width come from a planetesimal-formation model"
             ],
             [
               "Evidence",
@@ -19860,7 +19860,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer discs are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disc)"
+          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
         },
         {
           "burn_down": null,
@@ -19879,7 +19879,7 @@
             ],
             [
               "What would show it wrong",
-              "a debris disc measured at its steady state with f outside a factor of 3 of this"
+              "a debris disk measured at its steady state with f outside a factor of 3 of this"
             ],
             [
               "What replaces it",
@@ -19913,7 +19913,7 @@
             ],
             [
               "Where it holds",
-              "an outer disc whose largest body is protoplanet-size"
+              "an outer disk whose largest body is protoplanet-size"
             ],
             [
               "What would show it wrong",
@@ -35007,7 +35007,7 @@
       "title": "Stand-ins of the progenitor and ejecta of a planetary nebula"
     },
     {
-      "key": "6.180",
+      "key": "6.180 Stand-ins of the drawing of the system sky",
       "number": "6.180",
       "rows": [
         {
@@ -36061,6 +36061,94 @@
       "title": "Stand-ins of the photometry of the system sky"
     },
     {
+      "key": "6.180 Stand-ins of the capture windows of a system",
+      "number": "6.180",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "capture_windows.ENCOUNTERS_PER_INSTABILITY 130 (irregular_population.REFERENCE_ENCOUNTERS): the close giant-giant encounters of one instability, the mean of the three histories (59, 280 and 49)"
+            ],
+            [
+              "The range it moves in",
+              "49 to 280"
+            ],
+            [
+              "Where it holds",
+              "one instability of two giants"
+            ],
+            [
+              "What would show it wrong",
+              "a count of close encounters of a two-giant scattering outside 49 to 280"
+            ],
+            [
+              "What replaces it",
+              "the encounters from the pair's masses, spacing and the time to the first ejection"
+            ],
+            [
+              "Evidence",
+              "NDD14 as read in irregular_population (CM2); the Solar System instability had four giants and a fifth, so a two-giant event may have fewer"
+            ]
+          ],
+          "id": "CW1",
+          "key": "6.180:CW1",
+          "kind": "P",
+          "slug": "6-180-cw1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "capture_windows.ENCOUNTERS_PER_INSTABILITY 130 (irregular_population.REFERENCE_ENCOUNTERS): the close giant-giant encounters of one instability, the mean of the three histories (59, 280 and 49)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no census of another system's giant scatterings is in hand, so one thrown giant pair stands for the instability the hot share was set for; it goes when the scatter step takes the events' number and masses"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "capture_windows.FULL_INSTABILITIES 1: one instability of the architecture is the full one the scatter step scales its hot classical share to"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "systems with one or more thrown giant pairs"
+            ],
+            [
+              "What would show it wrong",
+              "a census of the hot classical share of discs of systems with one giant instability well below or above a quarter of the cold disc left"
+            ],
+            [
+              "What replaces it",
+              "the scatter step taking the number and masses of the events"
+            ],
+            [
+              "Evidence",
+              "none: scatter.HOT_SHARE (0.4) was set for a Nice-type event, one instability here stands for it"
+            ]
+          ],
+          "id": "CW2",
+          "key": "6.180:CW2",
+          "kind": "P",
+          "slug": "6-180-cw2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "capture_windows.FULL_INSTABILITIES 1: one instability of the architecture is the full one the scatter step scales its hot classical share to"
+        }
+      ],
+      "slug": "6-180-stand-ins-of-the-capture-windows-of-a-system",
+      "title": "Stand-ins of the capture windows of a system"
+    },
+    {
       "key": "6.170",
       "number": "6.170",
       "rows": [
@@ -36873,15 +36961,14 @@
       "title": "Stand-ins of the habitable bodies per system"
     },
     {
-<<<<<<< HEAD
-      "key": "6.168",
-      "number": "6.168",
+      "key": "6.183",
+      "number": "6.183",
       "rows": [
         {
           "burn_down": [
             "no data",
             "-",
-            "no survey of another star's outer disc gives the orbits of its populations; the cold stirring stands until a self-stirring or capture model gives it"
+            "no survey of another star's outer disk gives the orbits of its populations; the cold stirring stands until a self-stirring or capture model gives it"
           ],
           "fields": [
             [
@@ -36894,25 +36981,25 @@
             ],
             [
               "Where it holds",
-              "cold members of an outer disc swept by a giant"
+              "cold members of an outer disk swept by a giant"
             ],
             [
               "What would show it wrong",
-              "a measured cold disc whose eccentricity is outside a quarter to a half of its width rule"
+              "a measured cold disk whose eccentricity is outside a quarter to a half of its width rule"
             ],
             [
               "What replaces it",
-              "the stirring of a disc by its own largest bodies (self-stirring)"
+              "the stirring of a disk by its own largest bodies (self-stirring)"
             ],
             [
               "Evidence",
-              "none: a cold disc is stirred less than a belt that a giant stirs, by how much is not measured for any disc but our own"
+              "none: a cold disk is stirred less than a belt that a giant stirs, by how much is not measured for any disk but our own"
             ]
           ],
           "id": "BPO1",
-          "key": "6.168:BPO1",
+          "key": "6.183:BPO1",
           "kind": "P",
-          "slug": "6-168-bpo1",
+          "slug": "6-183-bpo1",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L4",
@@ -36923,7 +37010,7 @@
           "burn_down": [
             "no data",
             "-",
-            "no survey of another star's outer disc gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it"
+            "no survey of another star's outer disk gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it"
           ],
           "fields": [
             [
@@ -36952,9 +37039,9 @@
             ]
           ],
           "id": "BPO2",
-          "key": "6.168:BPO2",
+          "key": "6.183:BPO2",
           "kind": "P",
-          "slug": "6-168-bpo2",
+          "slug": "6-183-bpo2",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L4",
@@ -36965,7 +37052,7 @@
           "burn_down": [
             "no data",
             "-",
-            "no survey of another star's outer disc gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it"
+            "no survey of another star's outer disk gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it"
           ],
           "fields": [
             [
@@ -36994,9 +37081,9 @@
             ]
           ],
           "id": "BPO3",
-          "key": "6.168:BPO3",
+          "key": "6.183:BPO3",
           "kind": "P",
-          "slug": "6-168-bpo3",
+          "slug": "6-183-bpo3",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L4",
@@ -37007,7 +37094,7 @@
           "burn_down": [
             "no data",
             "-",
-            "no survey of another star's outer disc gives the orbits of its populations; the detached perihelion range stands until a self-stirring or capture model gives it"
+            "no survey of another star's outer disk gives the orbits of its populations; the detached perihelion range stands until a self-stirring or capture model gives it"
           ],
           "fields": [
             [
@@ -37036,15 +37123,96 @@
             ]
           ],
           "id": "BPO4",
-          "key": "6.168:BPO4",
+          "key": "6.183:BPO4",
           "kind": "P",
-          "slug": "6-168-bpo4",
+          "slug": "6-183-bpo4",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
           "what": "belt_populations.DETACHED_PERIHELION_OVER_INNER_EDGE (1.0, 1.6): the perihelion of a body lifted out of the giant's reach, over the belt's inner edge, uniform"
-=======
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_populations.DETACHED_MIN_A_OVER_Q 1.05: a detached body's semi-major axis is at least this many times its perihelion"
+            ],
+            [
+              "The range it moves in",
+              "none (a numerical floor that keeps the orbit eccentric)"
+            ],
+            [
+              "Where it holds",
+              "detached members"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable"
+            ],
+            [
+              "What replaces it",
+              "the scatter step's own orbits"
+            ],
+            [
+              "Evidence",
+              "numerical choice"
+            ]
+          ],
+          "id": "BPO5",
+          "key": "6.183:BPO5",
+          "kind": "D",
+          "slug": "6-183-bpo5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_populations.DETACHED_MIN_A_OVER_Q 1.05: a detached body's semi-major axis is at least this many times its perihelion"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_populations.E_MAX_BOUND 0.9: the largest eccentricity of a scattered, crossing or detached body"
+            ],
+            [
+              "The range it moves in",
+              "0.8 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "bound orbits of the disk"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable"
+            ],
+            [
+              "What replaces it",
+              "the scatter step's own orbits"
+            ],
+            [
+              "Evidence",
+              "numerical choice"
+            ]
+          ],
+          "id": "BPO6",
+          "key": "6.183:BPO6",
+          "kind": "D",
+          "slug": "6-183-bpo6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_populations.E_MAX_BOUND 0.9: the largest eccentricity of a scattered, crossing or detached body"
+        }
+      ],
+      "slug": "6-183-stand-ins-of-the-orbits-of-the-scatter-populations-of-an-outer-disk",
+      "title": "Stand-ins of the orbits of the scatter populations of an outer disk"
+    },
+    {
       "key": "6.172",
       "number": "6.172",
       "rows": [
@@ -37085,93 +37253,12 @@
           "tweak": "L0",
           "unread": null,
           "what": "moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it"
->>>>>>> origin/main
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-<<<<<<< HEAD
-              "belt_populations.DETACHED_MIN_A_OVER_Q 1.05: a detached body's semi-major axis is at least this many times its perihelion"
-            ],
-            [
-              "The range it moves in",
-              "none (a numerical floor that keeps the orbit eccentric)"
-            ],
-            [
-              "Where it holds",
-              "detached members"
-            ],
-            [
-              "What would show it wrong",
-              "not applicable"
-            ],
-            [
-              "What replaces it",
-              "the scatter step's own orbits"
-            ],
-            [
-              "Evidence",
-              "numerical choice"
-            ]
-          ],
-          "id": "BPO5",
-          "key": "6.168:BPO5",
-          "kind": "D",
-          "slug": "6-168-bpo5",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L0",
-          "unread": null,
-          "what": "belt_populations.DETACHED_MIN_A_OVER_Q 1.05: a detached body's semi-major axis is at least this many times its perihelion"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_populations.E_MAX_BOUND 0.9: the largest eccentricity of a scattered, crossing or detached body"
-            ],
-            [
-              "The range it moves in",
-              "0.8 to 0.95"
-            ],
-            [
-              "Where it holds",
-              "bound orbits of the disc"
-            ],
-            [
-              "What would show it wrong",
-              "not applicable"
-            ],
-            [
-              "What replaces it",
-              "the scatter step's own orbits"
-            ],
-            [
-              "Evidence",
-              "numerical choice"
-            ]
-          ],
-          "id": "BPO6",
-          "key": "6.168:BPO6",
-          "kind": "D",
-          "slug": "6-168-bpo6",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L0",
-          "unread": null,
-          "what": "belt_populations.E_MAX_BOUND 0.9: the largest eccentricity of a scattered, crossing or detached body"
-        }
-      ],
-      "slug": "6-168-stand-ins-of-the-orbits-of-the-scatter-populations-of-an-outer-disc",
-      "title": "Stand-ins of the orbits of the scatter populations of an outer disc"
-    },
-    {
-      "key": "6.167",
-      "number": "6.167",
-=======
               "moon_disc_zone.corotation_km: the inner edge is the corotation radius (G M / omega^2)^(1/3) of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body"
             ],
             [
@@ -37212,7 +37299,6 @@
     {
       "key": "6.182",
       "number": "6.182",
->>>>>>> origin/main
       "rows": [
         {
           "burn_down": null,
@@ -37243,15 +37329,9 @@
             ]
           ],
           "id": "MR1",
-<<<<<<< HEAD
-          "key": "6.167:MR1",
-          "kind": "D",
-          "slug": "6-167-mr1",
-=======
           "key": "6.182:MR1",
           "kind": "D",
           "slug": "6-182-mr1",
->>>>>>> origin/main
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
@@ -37287,15 +37367,9 @@
             ]
           ],
           "id": "MR2",
-<<<<<<< HEAD
-          "key": "6.167:MR2",
-          "kind": "P",
-          "slug": "6-167-mr2",
-=======
           "key": "6.182:MR2",
           "kind": "P",
           "slug": "6-182-mr2",
->>>>>>> origin/main
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -37331,15 +37405,9 @@
             ]
           ],
           "id": "MR3",
-<<<<<<< HEAD
-          "key": "6.167:MR3",
-          "kind": "D",
-          "slug": "6-167-mr3",
-=======
           "key": "6.182:MR3",
           "kind": "D",
           "slug": "6-182-mr3",
->>>>>>> origin/main
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
@@ -37347,11 +37415,7 @@
           "what": "belt_roster.E_MAX 0.5 and I_MAX_DEG 60: the cuts of the Rayleigh tails"
         }
       ],
-<<<<<<< HEAD
-      "slug": "6-167-stand-ins-of-where-a-stored-belt-member-lies",
-=======
       "slug": "6-182-stand-ins-of-where-a-stored-belt-member-lies",
->>>>>>> origin/main
       "title": "Stand-ins of where a stored belt member lies"
     },
     {
