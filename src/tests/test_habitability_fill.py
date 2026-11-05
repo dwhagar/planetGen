@@ -130,6 +130,38 @@ def test_a_stale_air_rating_is_corrected_without_touching_anything_else(mysql_co
         conn.close()
 
 
+PARITY_SEEDS = 14
+"""int: How many systems the re-score parity test saves, of whatever kind the seed gives."""
+
+
+def test_a_re_score_reproduces_every_stored_number_of_systems_of_any_kind(mysql_config):
+    """GEN.1283: every `SCORE_FIELDS` column, the seven latitude bands' numbers among them, comes back as generation stored it."""
+    ids = []
+    for seed in range(PARITY_SEEDS):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            cfg = SystemConfig()
+            system = StarSystem(cfg, galactic_center_dist_ly=26000.0)
+        ids.append(store.save_system(system, cfg, config=mysql_config))
+    conn = store.get_connection(mysql_config)
+    try:
+        checked = 0
+        for system_id in ids:
+            before = _bodies(conn, system_id)
+            with conn:
+                store.refresh_habitability(conn, system_id)
+            after = _bodies(conn, system_id)
+            for key, row in before.items():
+                if row["body_type"] == "g" or row["scored"] is None:
+                    continue
+                checked += 1
+                for name in COLUMNS:
+                    assert _same(after[key][name], row[name]), (system_id, key, name, after[key][name], row[name])
+        assert checked
+    finally:
+        conn.close()
+
+
 def _fill_args(mysql_config):
     import argparse
 
