@@ -9,4 +9,6 @@
 
 - `db/sky_sphere.cell_levels` and so the sky's `filling` and `built_to_pc` read the ledger, so a sphere too large to list is complete down to the deepest sphere that holds all of it.
 
+Charting with the sky on adds stars to `bright_stars` and moves none of an existing seed's stars (a cell backfilled or filled later gets the same stars whichever came first), and the golden run charts with `queue.sky_limit` 0, so no golden file or epoch changes.
+
 generation-output: unchanged

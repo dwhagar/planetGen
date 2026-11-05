@@ -568,6 +568,10 @@ SKY_SECTOR_SECONDS = 6.0e-5
 """float: What drawing a sector costs the bar of the backfill (the draw is about 0.06 ms a sector, `BACKFILL_UNIT_CELLS`): a sky unit's predicted seconds are turned into the bar's
 unit of sectors with it."""
 
+SKY_WRITE_FACTOR = 4.6
+"""float: How many times the walk's predicted seconds (`sky_tiers.BLOCK_VISIT_SECONDS` a visit) a sky unit really takes: locking and writing the cells costs more than finding them. Measured on a full default galaxy,
+one 7.5 observer cell 2,500 pc from the centre, one worker: 1,826 s against 398 s predicted."""
+
 
 def _sky_units(params, centers):
     """
@@ -597,7 +601,7 @@ def _sky_units(params, centers):
         owed = [tier for tier in (*tiers.luminosity, *tiers.rings)
                 if not ledger.drawn(tier.ledger, float(tier.low), tier.high, centre, sky_charting.padded_radius(tier))]
         if owed:
-            seconds = sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS
+            seconds = sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS * SKY_WRITE_FACTOR
             units.append(({"database": params["database"], "sky": {"centre": list(centre), "limit": limit}}, max(seconds / SKY_SECTOR_SECONDS, 1.0)))
     return units
 

@@ -34181,7 +34181,7 @@
             ],
             [
               "Evidence",
-              "VIEW.41 report section 3, VIEW.25"
+              "VIEW.41 report section 3, VIEW.25; SKY_WRITE_FACTOR 4.6 multiplies the walk's predicted seconds, because locking and writing the cells cost more than finding them (a full galaxy's 7.5 cell: 1,826 s measured, 398 s predicted)"
             ]
           ],
           "id": "SKT8",
