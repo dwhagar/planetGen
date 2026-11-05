@@ -820,3 +820,39 @@ def test_a_v175_galaxy_gets_the_life_class_reasons_from_what_it_holds(mysql_conf
         assert _life_class_rows(conn, system_id) == want
     finally:
         conn.close()
+
+
+def test_a_marked_system_leaves_the_api_by_its_printed_id_and_its_page_opens(mysql_config):
+    """The Galaxy Map links a marked system (a gas giant, a habitable world) with the `id` its node lists: it must be the
+    printed ID the system page and `/galaxy/system/<id>/nearest` take, not the row id ("no system with ID 345604")."""
+    from planetgen.api.config import Config
+    from planetgen.web.app import create_app
+    from tests.publicids import pid
+
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        edge_pc = ly_to_pc(query.DEFAULT_SECTOR_EDGE_LY)
+        position = spherical.sector_position_pc(*ADDRESS, edge_pc)
+        conn.execute("UPDATE star_systems SET galaxy_x_pc = ?, galaxy_y_pc = ?, galaxy_z_pc = ? WHERE id = ?",
+                     (*position, system_id))
+        store.recount_habitable_worlds(conn, [system_id])
+        conn.commit()
+        key = format_drill_key(drill_chain_of(*spherical.sector_address_at(position, edge_pc))[-1])
+        printed = pid("system", system_id, conn)
+    finally:
+        conn.close()
+
+    class TestConfig(Config):
+        MYSQL_CONFIG = mysql_config
+        WRITE_MYSQL_CONFIG = mysql_config
+        CONTROL_MYSQL_CONFIG = mysql_config
+
+    app = create_app(TestConfig)
+    app.testing = True
+    client = app.test_client()
+    listed = client.get(f"/api/galaxy/nodes?keys={key}").get_json()["nodes"][key]["interests"]
+    assert [s["id"] for s in listed] == [printed]
+    assert client.get(f"/system/{listed[0]['id']}").status_code == 200
+    assert client.get(f"/galaxy/system/{listed[0]['id']}/nearest").status_code == 200
