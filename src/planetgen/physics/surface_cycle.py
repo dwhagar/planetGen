@@ -39,7 +39,7 @@ import numpy as np
 from planetgen.physics import daylight
 
 CELL_ROWS = 12
-"""int: The rows of latitude of the grid, each of the same area. [GEN.1262; resolution of the grid, a numerical choice from the plan of Boss, 7:32 PM EST 2026-11-04.]"""
+"""int: The rows of latitude of the grid, each of the same area. [GEN.1262; resolution of the grid, a numerical choice from the plan of Boss on 2026-11-04 at 7:32 PM.]"""
 
 CELL_COLUMNS = 12
 """int: The columns of longitude of the grid. Same source as `CELL_ROWS`."""
