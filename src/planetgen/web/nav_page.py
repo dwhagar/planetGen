@@ -32,6 +32,7 @@ dropdown-friendly list of every phenomenon); it becomes an endpoint only
 through a link from its own page.
 """
 
+import json
 import re
 
 from flask import redirect, request, url_for
@@ -604,6 +605,24 @@ def _passed_through_text(entry):
     return text + ". " + entry["note"]
 
 
+def _course_payload(result):
+    """
+    NAV.4: what the Save course button keeps of a course, as JSON text: the part of the API's answer `static/savedcourse.js` `recordOf`
+    reads (the two ends, `direct`, `route` as its path, distance and the course of each hop, and `adjusted`).
+    """
+    route = result.get("route")
+    payload = {
+        "origin": {"ref": result["origin"]["ref"], "name": result["origin"]["name"]},
+        "destination": {"ref": result["destination"]["ref"], "name": result["destination"]["name"]},
+        "direct": {key: result["direct"].get(key) for key in ("distance_ly", "bearing_deg", "mark_deg")},
+        "route": None if not route or len(route["path"]) < 2 else {
+            "path": [str(node) for node in route["path"]], "distance_ly": route["distance_ly"],
+            "hops": [{key: hop.get(key) for key in ("distance_ly", "bearing_deg", "mark_deg")} for hop in route.get("hops") or []]},
+        "adjusted": result.get("adjusted"),
+    }
+    return json.dumps(payload, separators=(",", ":"))
+
+
 def _bent_lines(result):
     """
     NAV.28: the lines to draw for the course bent round keep-out spheres, as polylines of `[x, y, z]` in galaxy-frame parsecs: the direct
@@ -677,7 +696,7 @@ def nav():
     """The NAV page; see the module docstring for its URL scheme."""
     from_raw = (request.args.get("from") or "").strip()
     to_raw = (request.args.get("to") or "").strip()
-    page = {"section": "nav", "description": "Plot a course between two star systems or phenomena."}
+    page = {"section": "nav", "description": "Plot a course between two star systems or phenomena.", "course_db": db_name()}
 
     if not from_raw:
         destination = _resolve(*parse_endpoint(to_raw)) if to_raw else None  # a bad `to` is a 404 now
@@ -754,7 +773,7 @@ def nav():
         chart_url=page_url("nav_chart", **{"from": _param_of(origin), "to": _param_of(destination)})
         if current_admin() is not None and route and any(hop.get("unknown_space") for hop in route.get("hops", []))
         else None,
-        adjusted_view=adjusted_view,
+        adjusted_view=adjusted_view, course_json=_course_payload(result),
         map_html=trusted_html(map_html), diagram_html=trusted_html(diagram_html),
         reverse_url=nav_url(_param_of(destination), _param_of(origin)),
         bookmark_changes=[_bookmark_pick("from", _param_of(destination), "New start"),

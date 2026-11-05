@@ -19,6 +19,7 @@
 {%- endmacro %}
 {% block head %}
 <script type="module" src="{{ static_url('boxfit.js') }}"></script>
+<script type="module" src="{{ static_url('savedcourses.js') }}"></script>
 {%- if bookmark_pick or bookmark_changes %}
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {%- endif %}
@@ -142,7 +143,13 @@
     {%- if galaxy_map_url %}
     <a class="btn btn-small" href="{{ galaxy_map_url }}">Show on Galaxy Map</a>
     {%- endif %}
+    {#- NAV.4: kept in this browser (static/savedcourses.js); hidden until the script has wired it. -#}
+    <span data-course-save data-course-db="{{ course_db }}" data-course-result="{{ course_json }}" hidden>
+      <button type="button" class="btn btn-small" data-course-save-button>Save course</button>
+    </span>
   </p>
+  <p class="hint" data-course-status hidden></p>
+  <ul data-course-changes hidden></ul>
 </section>
 {#- NAV.28: the course bent round what the straight line would pass too close to. -#}
 {%- if adjusted_view %}
@@ -315,4 +322,10 @@
   </details>
 </section>
 {%- endif %}
+{#- NAV.18: the saved courses, kept in this browser (static/savedcourses.js); hidden until wired. -#}
+<section class="panel" aria-labelledby="courses-heading" data-courses-list data-course-db="{{ course_db }}" hidden>
+  <h2 id="courses-heading" tabindex="-1">Saved Courses</h2>
+  <p class="hint">Saved in this browser, with both forms of each course: the direct line and the route.</p>
+  <div data-courses-panel class="bookmarks-panel"></div>
+</section>
 {% endblock %}

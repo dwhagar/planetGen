@@ -169,6 +169,8 @@ class FakeData:
         to_id = objectref.parse(to_ref)[1]
         result = {
             "scope": "galaxy" if self.nav_galaxy_scope else "sector",
+            "origin": {"ref": from_ref, "kind": kind, "name": f"Start {from_id}"},
+            "destination": {"ref": to_ref, "kind": objectref.parse(to_ref)[0], "name": f"End {to_id}"},
             "direct": direct,
             "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years"}],
             "fold_times": [{"fold_factor": 4, "velocity_multiple_of_c": 256.0, "formatted": "4 days"}],
@@ -1414,3 +1416,24 @@ def test_the_nav_map_draws_the_bent_course_and_the_galaxy_maps_course_carries_it
     assert 'class="navmap-bent-line"' not in client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
     with client.application.test_request_context("/galaxy"):
         assert galaxy_course("system:1001", "system:2001")["adjusted"] == []
+
+
+def test_a_course_page_carries_the_save_button_the_record_and_the_courses_list(client, fake):  # NAV.4, NAV.18
+    import json
+    import re as _re
+
+    fake.nav_galaxy_scope = True
+    fake.nav_adjusted = _adjusted()
+    page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "savedcourses.js" in page and "data-course-save-button" in page and "data-courses-list" in page
+    assert page.count('data-course-db="') == 2
+    raw = _re.search(r'data-course-result="([^"]*)"', page).group(1)
+    import html as _html
+    record = json.loads(_html.unescape(raw))
+    assert record["origin"] == {"ref": "system:1001", "name": "Start 1001"}
+    assert record["destination"]["ref"] == "system:1002"
+    assert set(record["direct"]) == {"distance_ly", "bearing_deg", "mark_deg"}
+    assert record["route"]["path"][0] == "1001" and record["route"]["path"][-1] == "1002" and record["route"]["hops"]
+    assert record["adjusted"]["avoided"] == ["system:1500", "asteroid_field:4"]
+    landing = client.get("/nav").get_data(as_text=True)
+    assert "data-courses-list" in landing and "data-course-save-button" not in landing
