@@ -4,20 +4,20 @@
 The gravity map's sector grid: the local field of one sector on 16 x 16 x 16 zones, cached (MAP.387; docs/design/orbits/gravity-map.md)
 ===========================================================================================================================================
 
-`grid(conn, sector_id, directory)` returns the *local* gravity field of a sector at the centre of each of its zones, from the rule of MAP.383: **the generated
+`grid(conn, sector_id, directory)` returns the *local* gravity field of a sector at the center of each of its zones, from the rule of MAP.383: **the generated
 stars of the sectors round it, less the smooth galaxy's own stars in those sectors**. The total field is that plus the smooth galaxy at the zone
 (`galaxy.potential`), which the reader adds because it is a closed form and keeps the file small. The rule makes the double count of the smooth potential and
 the generated stars vanish: in the tidal strength it was 36 percent at the median (`reports/map383-background-rule-2026-11-05.md`).
 
-- **Sectors.** Every stored sector whose centre lies within `REACH_EDGES` sector edges of the target's along each axis (a cube of `2 * REACH_EDGES + 1` edges, the
+- **Sectors.** Every stored sector whose center lies within `REACH_EDGES` sector edges of the target's along each axis (a cube of `2 * REACH_EDGES + 1` edges, the
   target in the middle). A sector that is not stored adds and subtracts nothing. Farther generated sectors are left out; their mass differs from the smooth
   model's by the shot noise of their stars, which falls with the square of the distance.
 - **Generated stars.** `gravity_sources.system_point_masses` (one point per system, MAP.386) summed by `gravity_tree` (the 0.5 pc hierarchy of MAP.385) and
   `gravity_kernel` (MAP.384), the opening angle chosen to the pair budget.
-- **The smooth galaxy's own stars.** For each sector the mass of the potential's own stellar density at its centre times the cell's volume
+- **The smooth galaxy's own stars.** For each sector the mass of the potential's own stellar density at its center times the cell's volume
   (`potential.stellar_density`), spread through a cube of that volume as `SUBDIVISION^3` equal point masses softened by `OWN_SOFTENING_PC` (the zone
   edge) and summed the same way. It is a continuous density where the stars are points, so it is softened and the stars are not.
-- **The zones.** A cube of the sector's edge about its centre. The cells of the galaxy are shells, bands and wedges, not cubes; the map draws the cube.
+- **The zones.** A cube of the sector's edge about its center. The cells of the galaxy are shells, bands and wedges, not cubes; the map draws the cube.
 - **Cache.** One file per sector (`gravity_cache`), keyed by a stamp of the rule, the settings, the potential and, for every sector in reach, its `modified_at` and
   the count and latest `modified_at` of its rows; a moved star changes the stamp of the grids that reach it and of no other.
 
@@ -62,7 +62,7 @@ def _sector(conn, sector_id):
 
 
 def sectors_in_reach(conn, target, reach_edges=REACH_EDGES):
-    """The rows (id, edge, address, centre) of the stored sectors in the cube of `reach_edges` edges round `target` (a sector row), in id order."""
+    """The rows (id, edge, address, center) of the stored sectors in the cube of `reach_edges` edges round `target` (a sector row), in id order."""
     reach = reach_edges * target["edge_mpc"] / 1000.0
     cx, cy, cz = target["center_x_pc"], target["center_y_pc"], target["center_z_pc"]
     return conn.execute(
@@ -91,17 +91,17 @@ def source_stamp(conn, sectors, zones=ZONES, reach_edges=REACH_EDGES, pot=None):
     return gravity_cache.stamp(tuple(parts))
 
 
-def zone_points(centre, edge_pc, zones=ZONES):
-    """The centres of the `zones^3` zones of the cube of `edge_pc` about `centre`, `(zones^3, 3)`, zone `(i, j, k)` at row `(i * zones + j) * zones + k`."""
+def zone_points(center, edge_pc, zones=ZONES):
+    """The centers of the `zones^3` zones of the cube of `edge_pc` about `center`, `(zones^3, 3)`, zone `(i, j, k)` at row `(i * zones + j) * zones + k`."""
     c = (np.arange(zones) + 0.5) / zones * edge_pc - edge_pc / 2.0
     x, y, z = np.meshgrid(c, c, c, indexing="ij")
-    return np.stack([x.ravel(), y.ravel(), z.ravel()], axis=1) + np.asarray(centre, dtype=np.float64)
+    return np.stack([x.ravel(), y.ravel(), z.ravel()], axis=1) + np.asarray(center, dtype=np.float64)
 
 
 def own_stars(sectors, pot, subdivision=SUBDIVISION):
     """
     The smooth galaxy's own stars in `sectors`: `(positions, masses)` of `subdivision^3` equal point masses per sector, in a cube of the sector's volume about its
-    centre, the mass being the potential's stellar density at the centre times the cell's volume.
+    center, the mass being the potential's stellar density at the center times the cell's volume.
     """
     offsets = (np.arange(subdivision) + 0.5) / subdivision - 0.5
     x, y, z = np.meshgrid(offsets, offsets, offsets, indexing="ij")
@@ -110,10 +110,10 @@ def own_stars(sectors, pot, subdivision=SUBDIVISION):
     for row in sectors:
         edge_pc = row["edge_mpc"] / 1000.0
         volume = spherical.cell_volume(row["shell_index"], row["band_index"], row["wedge_index"], edge_pc)
-        centre = np.array([row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]])
-        density = potential.stellar_density(pot, *centre)
+        center = np.array([row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]])
+        density = potential.stellar_density(pot, *center)
         mass = float(density) * volume if math.isfinite(float(density)) else 0.0
-        positions.append(unit * volume ** (1.0 / 3.0) + centre)
+        positions.append(unit * volume ** (1.0 / 3.0) + center)
         masses.append(np.full(len(unit), mass / len(unit)))
     if not positions:
         return np.zeros((0, 3)), np.zeros(0)
