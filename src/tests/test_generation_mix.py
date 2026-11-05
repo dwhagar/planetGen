@@ -57,7 +57,7 @@ def test_zone_mix_is_spread(systems):
 def test_giants_have_real_densities_and_super_jupiters_occur(systems):
     giants = [p for p in _planets(systems) if p.body_type == 'g']
     densities = [p.density for p in giants]
-    # TEST.596: the giants a system has are the occurrence the mass law is tuned to (registry PA2, [R1479], [R2172]): 0.045 per star of 0.1 to 0.3
+    # TEST.596: the giants a system has are the occurrence the mass law is tuned to (registry PA2, [R1479, R2172]): 0.045 per star of 0.1 to 0.3
     # solar masses, 0.11 of 0.3 to 0.7 and 0.16 of 0.7 to 1.5 (docs/design/research/rogue-planet-review.md), so a draw of stars from the mass
     # function holds about 0.1 a system and 29 of 250 is what the generator has given since at least 12 October (7 points of 600 systems, 0.10 to
     # 0.12). The bounds are the lowest band's rate (an all-dwarf sample) and the highest (an all-Sun-like one, with room for the draw): "more than a sixth" was a stale guess.
