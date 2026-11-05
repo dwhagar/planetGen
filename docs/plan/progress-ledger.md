@@ -2475,3 +2475,12 @@ Baseline: PR #1817.
 | NAV.68 | 8.5 | Courses on the maps |
 | NAV.69 | 8.5 | Courses on the maps |
 | NAV.36 | 8.5 | Courses on the maps |
+| MAP.181 | 8.8 | Nebula drawing |
+| MAP.178 | 8.8 | Nebula drawing |
+| MAP.180 | 8.8 | Nebula drawing |
+| GEN.1215 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1214 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.179 | 8.8 | Nebula drawing |
+| TEST.581 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.583 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.142 | 8.1 | Nebula data foundations |

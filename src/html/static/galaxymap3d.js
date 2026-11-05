@@ -68,7 +68,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
+  BLACK_HOLE_KIND, NEBULA_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { NAMED_LIMIT } = await import(`./labelbudget.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
@@ -98,7 +98,7 @@ const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = a
 const { blackHoleDensityPx, labelBufferPx, regionLanding } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
-  FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
+  FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour, regionText: nebulaGroupText,
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
@@ -117,9 +117,6 @@ const {
 const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
 const { extentOf, groupByCell, linePieces } = await import(`./camerarelative.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
-const {
-  NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
-} = await import(`./nebulamesh.js${VERSION_QUERY}`);
 const { createPicker, createRing, createHoverPreview, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
 const { createPlaneView } = await import(`./galaxyplane.js${VERSION_QUERY}`);
@@ -603,7 +600,7 @@ function starColor(temperatureK) {
   return [r, g, b].map(function (v) { return Math.min(255, Math.max(0, v)) / 255; });
 }
 
-var POINT_TYPE_LABELS = { black_hole: "Black Hole", neutron_star: "Neutron Star", quasar: "Quasar" };
+var POINT_TYPE_LABELS = { black_hole: "Black Hole", neutron_star: "Neutron Star", quasar: "Quasar", planetary_nebula: "Planetary Nebula", supernova_remnant: "Supernova Remnant" };
 
 // "Black Hole (Accreting)", "Neutron Star (Millisecond pulsar)".
 function pointTypeLabel(point) {
@@ -624,8 +621,7 @@ function pointFacts(point) {
     title: point.name || POINT_TYPE_LABELS[point.type] || "Phenomenon",
     fields: [
       ["Type", pointTypeLabel(point)],
-      ["Luminosity", formatLuminositySol(point.luminosity_sol)],
-    ].concat(point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
+    ].concat(NEBULA_POINT_TYPES[point.type] ? [] : [["Luminosity", formatLuminositySol(point.luminosity_sol)]], point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),
   };
@@ -1092,7 +1088,7 @@ function initGalaxyMap3d(canvasEl, data) {
   function openNebulaWindow(cloud) {
     if (data.pinned || !cloud) return false;
     var candidates = [];
-    cloudSprites.forEach(function (sprite) { candidates.push(sprite.userData.cloud); });
+    cloudSprites.forEach(function (sprite) { if (!sprite.userData.cloud.field) candidates.push(sprite.userData.cloud); });
     var made = GROUP_WINDOW.createWindow("nebula", cloud, candidates);
     if (!made) return false;
     if (!groupWindow) {
@@ -1807,36 +1803,6 @@ function initGalaxyMap3d(canvasEl, data) {
   scene.add(cloudGroup);
   var cloudSprites = new Map();
   var cloudSignature = "";
-  // A nebula's shape mesh (MAP.103): fetched the first time the nebula is
-  // big enough on screen, then drawn in place of its sprite.
-  var cloudMeshes = new Map();
-  var meshRequested = new Set();
-  var loadNebulaShape = sceneData.nebulaShapePath ? createShapeLoader(sceneData.nebulaShapePath) : null;
-
-  function requestNebulaMesh(sprite) {
-    var cloud = sprite.userData.cloud;
-    var key = cloudKey(cloud);
-    if (!loadNebulaShape || cloud.type !== "nebula" || meshRequested.has(key)) {
-      return;
-    }
-    meshRequested.add(key);
-    loadNebulaShape(cloud.id, "low").then(function (shape) {
-      if (cloudSprites.get(key) !== sprite) {
-        return;
-      }
-      var look = NEBULA_LOOKS[cloud.descriptor] || DEFAULT_NEBULA_LOOK;
-      var mesh = buildNebulaMesh(THREE, shape, cloud.radius_pc, look);
-      mesh.position.copy(sprite.position);
-      mesh.renderOrder = 4;
-      mesh.visible = false;
-      cloudGroup.add(mesh);
-      cloudMeshes.set(key, mesh);
-      updateClouds();
-    }, function () {
-      meshRequested.delete(key);
-    });
-  }
-
   function cloudKey(cloud) {
     return cloud.type + ":" + cloud.id;
   }
@@ -1852,12 +1818,6 @@ function initGalaxyMap3d(canvasEl, data) {
         cloudGroup.remove(sprite);
         sprite.material.dispose();
         cloudSprites.delete(key);
-        var gone = cloudMeshes.get(key);
-        if (gone) {
-          cloudGroup.remove(gone);
-          disposeNebulaMesh(gone);
-        }
-        cloudMeshes.delete(key);
       }
     });
     wanted.forEach(function (cloud, key) {
@@ -1899,24 +1859,9 @@ function initGalaxyMap3d(canvasEl, data) {
       var distance = camera.position.distanceTo(sprite.position);
       var clipped = !drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z);
       var pixels = cloudPixels(cloud, distance);
-      var mesh = cloudMeshes.get(key);
-      // MAP.365: where the nebula is drawn from the model's density (nebulavolumelayer.js) its circle and its per-ID mesh give way.
+      // MAP.365: where the nebula is drawn from the model's density (nebulavolumelayer.js) its circle gives way.
       var covered = cloudCover(key);
-      if (cloud.type === "nebula" && !clipped && pixels >= NEBULA_MESH_MIN_PX && covered < 0.5) {
-        requestNebulaMesh(sprite);
-      }
-      if (mesh && !clipped && pixels >= NEBULA_MESH_MIN_PX && covered < 0.5) {
-        // The mesh takes over from the sprite, which stays (unseen) for aiming.
-        mesh.visible = true;
-        sprite.visible = true;
-        sprite.material.opacity = 0;
-        sprite.userData.share = 1;
-        drawn++;
-        return;
-      }
-      if (mesh) {
-        mesh.visible = false;
-      }
+      if (cloud.type === "nebula" && !clipped && covered >= 0.5) drawn++;
       var near = THREE.MathUtils.smoothstep(distance / cloud.radius_pc, CLOUD_NEAR_FADE[0], CLOUD_NEAR_FADE[1]);
       // MAP.155: opacity ramps in between 1 and 4 px of radius (a hard
       // edge at 2 px before); `share` is what can be aimed at.
@@ -1924,9 +1869,14 @@ function initGalaxyMap3d(canvasEl, data) {
       sprite.visible = share > 0 && !clipped;
       sprite.material.opacity = CLOUD_OPACITY * share * (1 - covered);
       sprite.userData.share = clipped ? 0 : share;
+      if (cloud.type === "nebula" && !clipped && covered < 0.5 && sprite.visible && sprite.material.opacity > 0) drawn++;
     });
-    // How many nebulae are drawn from their shape now (read by the browser tests).
-    canvasEl.dataset.nebulaMeshes = String(drawn);
+    // How many nebulae are drawn now, from their points or as a sprite (read by the browser tests).
+    canvasEl.dataset.nebulaClouds = String(drawn);
+    // How many field clouds (MAP.178) are drawn as sprites now (read by the browser tests).
+    var fieldDrawn = 0;
+    cloudSprites.forEach(function (sprite) { if (sprite.userData.cloud.field && sprite.visible && sprite.material.opacity > 0) fieldDrawn++; });
+    canvasEl.dataset.fieldClouds = String(fieldDrawn);
   }
 
   // The smallest visible cloud under a screen point that is still small
@@ -1940,7 +1890,8 @@ function initGalaxyMap3d(canvasEl, data) {
     var bestDistance = 0;
     cloudSprites.forEach(function (sprite) {
       var cloud = sprite.userData.cloud;
-      if (!sprite.visible || !visibleEnough(sprite.userData.share) || (best && best.radius_pc <= cloud.radius_pc)) {
+      // A field cloud has no page to open; picking it is MAP.180's.
+      if (cloud.field || !sprite.visible || !visibleEnough(sprite.userData.share) || (best && best.radius_pc <= cloud.radius_pc)) {
         return;
       }
       var distance = camera.position.distanceTo(sprite.position);
@@ -2195,12 +2146,50 @@ function initGalaxyMap3d(canvasEl, data) {
       return nebulaFamilyOn[family] !== false;
     }), [0, 0, 0]);
     nebulaVersion += 1;
+    renderNebulaGroupList();
     // The legend's line about rings shows only while some group is drawn.
     var held = nebulaLayer.count() > 0;
     if (held !== nebulaHeld) {
       nebulaHeld = held;
       if (stageView && stageView.layers) stageView.layers.refresh();
     }
+  }
+  // MAP.180: a click on a group of nebulae (MAP.176) flies the camera to frame it, which is the zoom at which its node hands it down to
+  // its smaller groups and its single clouds; a group has no page. The keyboard has the same through a list of the largest groups.
+  var NEBULA_GROUP_PICK_SHARE = 0.7;
+  var NEBULA_GROUP_PICK_MIN_PX = 9;
+  var NEBULA_GROUP_PICK_MIN_ALPHA = 0.03;
+  var NEBULA_GROUP_LIST_MAX = 30;
+  var nebulaGroupSpot = new THREE.Vector3();
+  var nebulaGroupList = null;
+  function flyToNebulaGroup(blob) {
+    highlightPosition(blob.x, blob.y, blob.z);
+    stageView.goTo({ entry: { x: blob.x, y: blob.y, z: blob.z, r: blob.radiusPc } });
+  }
+  // The words of a group for its hover and its list button: "12 nebulae, mostly dark nebulae" and the other families it holds.
+  function nebulaGroupLabel(blob) {
+    return nebulaGroupText(blob);
+  }
+  function renderNebulaGroupList() {
+    if (!nebulaLayer || !viewport) return;
+    if (!nebulaGroupList) {
+      nebulaGroupList = document.createElement("ul");
+      nebulaGroupList.className = "starmap-sr-list starmap-sr-nebulae sr-only";
+      nebulaGroupList.setAttribute("aria-label", "Groups of nebulae on the map");
+      viewport.appendChild(nebulaGroupList);
+    }
+    nebulaGroupList.textContent = "";
+    nebulaLayer.blobs().sort(function (p, q) { return (q.volume - p.volume) || (p.key < q.key ? -1 : 1); })
+      .slice(0, NEBULA_GROUP_LIST_MAX).forEach(function (blob) {
+        var item = document.createElement("li");
+        var button = document.createElement("button");
+        button.type = "button";
+        button.dataset.nebulaGroup = blob.key;
+        button.textContent = nebulaGroupLabel(blob) + ", fly to it";
+        button.addEventListener("click", function () { flyToNebulaGroup(blob); });
+        item.appendChild(button);
+        nebulaGroupList.appendChild(item);
+      });
   }
   var regionBlobList = [];
   var regionsVersion = 0;
@@ -2865,8 +2854,8 @@ function initGalaxyMap3d(canvasEl, data) {
       Object.defineProperty(node, "allStars", {
         value: (node.stars || []).concat((node.generated || []).map(function (star) {
           return Object.assign({ generated: true }, star);
-        }), (node.points || []).map(function (point) {
-          return Object.assign({ phenomenon: true }, point);
+        }), (node.points || []).filter(function (point) { return !NEBULA_POINT_TYPES[point.type]; }).map(function (point) {
+          return Object.assign({ phenomenon: true }, point);    // a scattered nebula (MAP.179) is a mark, not a point of light
         })),
       });
     }
@@ -4203,6 +4192,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var markersDirty = true;
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
+    markerKinds.register(NEBULA_KIND);
     MAP_INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
     markerLayer = createMarkerLayer(scene, camera, canvasEl, "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
@@ -4664,8 +4654,8 @@ function initGalaxyMap3d(canvasEl, data) {
     cloudSprites.forEach(function (sprite) {
       var cloud = sprite.userData.cloud;
       var distance = camera.position.distanceTo(sprite.position);
-      if (!drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z) || distance < 1.2 * cloud.radius_pc) {
-        return;
+      if (cloud.field || !drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z) || distance < 1.2 * cloud.radius_pc) {
+        return;    // a field cloud has no name and no page to label (MAP.178)
       }
       found.push({
         id: "cloud:" + cloudKey(cloud), text: cloud.name || cloudTypeLabel(cloud),
@@ -4863,6 +4853,47 @@ function initGalaxyMap3d(canvasEl, data) {
       return region ? regionFacts(region) : null;
     }
     return item.type ? pointFacts(item) : interestFacts(item);
+  }
+
+  // MAP.180: the groups of nebulae. Below a single cloud (a cloud inside a group is picked first once it is big enough to aim at) and
+  // above the charted regions' spheres.
+  if (nebulaLayer) {
+    picker.addLayer({
+      name: "nebula-groups",
+      priority: 95,
+      pick: function (ctx) {
+        if (hiddenCell || groupWindow) return null;
+        var focal = focalPixels();
+        var here = camera.position.toArray();
+        var best = null;
+        nebulaLayer.blobs().forEach(function (blob) {
+          var look = groupLook(blob, here, focal);
+          if (!(look.alpha > NEBULA_GROUP_PICK_MIN_ALPHA)) return;
+          nebulaGroupSpot.set(blob.x, blob.y, blob.z).project(camera);
+          if (!(nebulaGroupSpot.z > -1 && nebulaGroupSpot.z < 1)) return;
+          var x = ctx.rect.left + (nebulaGroupSpot.x + 1) / 2 * ctx.rect.width;
+          var y = ctx.rect.top + (1 - nebulaGroupSpot.y) / 2 * ctx.rect.height;
+          var reach = Math.max(NEBULA_GROUP_PICK_MIN_PX, look.radiusPx * NEBULA_GROUP_PICK_SHARE);
+          var near = Math.hypot(ctx.clientX - x, ctx.clientY - y) / reach;
+          if (near <= 1 && (!best || near < best.near)) best = { near: near, blob: blob, distance: look.distance };
+        });
+        return best ? { entry: best.blob, distance: best.distance } : null;
+      },
+      tooltip: function (blob) { return nebulaGroupLabel(blob); },
+      hover: function (blob) { phenomenonHover(blob); },
+      select: flyToNebulaGroup,
+    });
+    canvasEl.__mapNebulaGroupSpots = function () {    // the browser tests aim at what is drawn: each group's place on the screen, in client pixels
+      var rect = canvasEl.getBoundingClientRect();
+      var focal = focalPixels();
+      var here = camera.position.toArray();
+      return nebulaLayer.blobs().map(function (blob) {
+        var look = groupLook(blob, here, focal);
+        var spot = new THREE.Vector3(blob.x, blob.y, blob.z).project(camera);
+        return { key: blob.key, count: blob.count, alpha: look.alpha, radiusPx: look.radiusPx, x: rect.left + (spot.x + 1) / 2 * rect.width,
+          y: rect.top + (1 - spot.y) / 2 * rect.height, visible: spot.z > -1 && spot.z < 1 };
+      });
+    };
   }
 
   picker.addLayer({

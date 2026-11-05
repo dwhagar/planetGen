@@ -853,14 +853,6 @@ def get_galaxy_locate(db, q):
     return _request("/galaxy/locate", {"db": db, "q": q})["matches"]
 
 
-def get_nebula_shape(db, nebula_id, lod="low"):
-    """Returns `GET /api/nebulae/<id>/shape`'s payload: one nebula's mesh
-    (`vertices` in nebula-radius units from its center, `faces`), at the
-    `"low"` or `"full"` level of detail (GEN.75)."""
-    _require_db(db)
-    return _request(f"/nebulae/{nebula_id}/shape", {"db": db, "lod": lod})
-
-
 def get_nebula_volume(db, nebula_id):
     """Returns `GET /api/nebulae/<id>/volume`'s payload (`id`/`format`/`level`/`count`/`data`, the base64 of the packed points that draw
     one nebula alone, MAP.142 -- see `db.nebula_volumes.single_nebula_volume`)."""

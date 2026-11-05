@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.586 |
+| TEST | TEST.587 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -1991,8 +1991,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed) | none | open |
 | GEN.1212 | Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build | none | open |
 | GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | none | open |
-| GEN.1214 | Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug) | none | open |
-| GEN.1215 | Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable) | none | open |
+| GEN.1214 | Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug) | none | done, PR #4436 |
+| GEN.1215 | Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable) | none | done, PR #4436 |
 | GEN.1216 | Research: the composition of surface liquids from physics and from life: salts and brines, acids, ammonia-water, liquid CO2, methane-ethane-nitrogen mixes, sulfur and what life and chemistry do to each | none | done, research report written (reports/gen1216-surface-liquid-composition-2026-10-31.md) |
 | GEN.1217 | Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it | none | open |
 | GEN.1218 | Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API | none | open |
@@ -2197,7 +2197,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | done, PR #2468 |
 | MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
-| MAP.142 | Nebulae have fuzzy, fading boundaries | none | open |
+| MAP.142 | Nebulae have fuzzy, fading boundaries | none | done, PR #5030 |
 | MAP.143 | Color sectors by their number of habitable locations | none | done, PR #2742 |
 | MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
@@ -2233,10 +2233,10 @@ Parents marked "new parent" had no old number of their own.
 | MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | done, PR #1203 |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | none | done, PR #3623 |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | none | done, PR #4994 |
-| MAP.178 | Field nebula clouds drawn one by one from the nebula table | none | open |
-| MAP.179 | Scattered nebulae as markers from level 8 | none | open |
-| MAP.180 | Picking, hover and fly-to for nebula regions and cover | none | open |
-| MAP.181 | Dust colour for the dark nebula family on both themes | none | open |
+| MAP.178 | Field nebula clouds drawn one by one from the nebula table | none | done, PR #5021 |
+| MAP.179 | Scattered nebulae as markers from level 8 | none | done, PR #5027 |
+| MAP.180 | Picking, hover and fly-to for nebula regions and cover | none | done, PR #5022 |
+| MAP.181 | Dust colour for the dark nebula family on both themes | none | done, PR #4998 |
 | MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | merged into GEN.241 (Boss, 2026-10-15) |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
 | MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | done, PR #1282 |
@@ -3927,11 +3927,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.578 | test_pre_main_sequence star page test is red on main: the page says 'toward' where the test expects 'towards' (bug) | none | done, PR #4866 |
 | TEST.579 | Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug) | none | open |
 | TEST.580 | Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug) | none | open |
-| TEST.581 | test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug) | none | open |
+| TEST.581 | test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug) | none | done, PR #5025 |
 | TEST.582 | Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census | none | open |
-| TEST.583 | Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug) | none | open |
+| TEST.583 | Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug) | none | done, PR #5025 |
 | TEST.584 | test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug) | none | done, PR #4993 |
 | TEST.585 | Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug) | none | open |
+| TEST.586 | test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

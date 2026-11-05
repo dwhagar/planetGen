@@ -634,7 +634,9 @@ connectivity to that specific schema rather than the default one.
   never placed. 404 for an unknown nebula.
 - `GET /api/nebulae/<id>/surroundings` — the brightest stars round a
   nebula, for its page's 3D view (MAP.105): `{radius_pc, half_width_pc,
-  stars: [{x, y, z, luminosity_sol, temperature_k}]}`, positions in
+  center_pc, stars: [{x, y, z, luminosity_sol, temperature_k}]}`, `center_pc`
+  the nebula's centre in the galaxy frame (`[x, y, z]` parsecs, `null` for a
+  nebula never placed; MAP.142's view draws the nebula's own points round it); the star positions in
   parsecs from the nebula's center, the most luminous first (at most 300,
   from a box 2.5 radii each side, at least 30 pc). No stars for a nebula
   never placed. 404 for an unknown nebula.

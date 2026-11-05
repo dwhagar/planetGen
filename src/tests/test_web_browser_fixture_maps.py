@@ -395,7 +395,7 @@ def _open_menu(page):
 
 
 POI_LAYERS = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
-POI_DEFAULT_ON = ("marker-inhabited", "marker-habitable", "marker-gas-giant")
+POI_DEFAULT_ON = ("marker-inhabited", "marker-habitable", "marker-gas-giant", "marker-nebula")
 """The Menu's point-of-interest layers, and the ones that are on until the visitor says otherwise (MAP.303)."""
 
 
@@ -1618,19 +1618,31 @@ def test_sector_map_draws_its_nebula_from_its_own_points(page, map_site):
     volumes = page.evaluate(f"() => ({VOLUMES})().volumes().filter((volume) => volume.key === 'nebula:31')")
     assert volumes and len(volumes[0]["ix"]) > 0
     assert any("/galaxy/nebula/31/volume" in url for url in requests), requests
-    assert not any("/galaxy/nebula/31/shape" in url for url in requests), requests
-    assert page.locator("#galaxymap3d-canvas[data-sector-nebula-meshes='1']").count() == 0
+    assert not any("/shape" in url for url in requests), requests
 
 
-def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):
-    """MAP.103: a nebula big enough on screen is drawn from its shape mesh
-    (fetched from the site), not only as a sprite; far out it stays a sprite."""
+def test_galaxy_map_draws_a_nebula_and_asks_for_no_shape_mesh(page, map_site):
+    """MAP.103, MAP.142 part 4: a nebula big enough on screen is drawn (from its points or as a sprite), and the map asks the site for no
+    per-nebula shape mesh any more."""
     shape_requests = []
     page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     # A locator, not wait_for_function: the page's CSP forbids evaluating strings.
-    page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)
-    assert any("/galaxy/nebula/801/shape?lod=low" in url for url in shape_requests), shape_requests
+    page.locator("#galaxymap3d-canvas:not([data-nebula-clouds='0'])").wait_for(state="attached", timeout=15000)
+    page.wait_for_timeout(1000)
+    assert not shape_requests, shape_requests
+
+
+def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelled_or_meshed(page, map_site):
+    """MAP.178: a cloud of the seed no sector has stored is listed by the node with `field` set and drawn as a sprite on the 1 to 4 px ramp; it has
+    no stored shape to fetch, no page to open and no name to label."""
+    requests = []
+    page.on("request", lambda request: requests.append(request.url))
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=40000)
+    page.wait_for_timeout(1500)
+    assert not any("field-1.2.3.4" in url for url in requests), [url for url in requests if "field" in url]
+    assert not any("/shape" in url for url in requests)
 
 
 def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
@@ -1638,7 +1650,7 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
     (the fixture's generated sectors are all in the core, thousands of
     parsecs away), in a close view of the block as well as a far one."""
     _open_window(page, map_site, 3, 250, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
+    page.locator("#galaxymap3d-canvas:not([data-nebula-clouds='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
 
 
 VOLUMES = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaVolumes"
@@ -2913,6 +2925,23 @@ def _markers_until(page, done, seconds=20):
         page.wait_for_timeout(100)
 
 
+def test_scattered_nebulae_no_sector_has_built_are_marked_and_not_drawn_as_points_of_light(page, map_site):
+    """MAP.179: a planetary nebula or supernova remnant the galaxy has scattered and no sector has built is a mark (the Menu's Nebula marks,
+    on by default, `hide=marker-nebula` in the address), not a point of light among the stars; picking one shows its card."""
+    page.set_viewport_size(VIEWPORT)
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    found = _markers_until(page, lambda entries: sum(e["kind"] == "marker-nebula" for e in entries) >= 2)
+    names = sorted(e["name"] for e in found if e["kind"] == "marker-nebula")
+    assert names == ["Planetary nebula (uncharted)", "Supernova remnant (uncharted)"], found
+    _open_menu(page)
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-nebula"]')
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button.click()
+    assert "hide=marker-nebula" in page.url
+    gone = _markers_until(page, lambda entries: not any(e["kind"] == "marker-nebula" for e in entries))
+    assert not any(e["kind"] == "marker-nebula" for e in gone)
+
+
 def _hole_names(page):
     """The names of the black holes the marks stand for (a crowd's mark, MAP.340, for each of its members), sorted."""
     names = []
@@ -3211,6 +3240,49 @@ def test_at_most_six_hundred_nebula_regions_are_drawn_out_of_three_thousand_cand
     page.wait_for_timeout(500)
     seen = page.evaluate("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return [g.count(), g.drawn()]; }")
     assert seen[0] == 3000 and 0 < seen[1] <= 600, seen
+
+
+NEBULA_GROUP_SPOTS = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaGroupSpots()"
+
+
+def _open_nebula_groups(page, map_site):
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return g && g.drawn() > 0; }", timeout=20000)
+
+
+def test_hovering_a_group_of_nebulae_says_what_it_holds_and_a_click_flies_the_camera_to_frame_it(page, map_site):
+    """MAP.180: a group of nebulae (MAP.176) shows its count and family on hover, outlines it, and a click flies to the zoom that frames it
+    (no page opens: a group has none)."""
+    _open_nebula_groups(page, map_site)
+    _settle(page)
+    spots = [spot for spot in page.evaluate(NEBULA_GROUP_SPOTS) if spot["visible"] and spot["alpha"] > 0.05]
+    assert spots
+    spot = max(spots, key=lambda candidate: candidate["alpha"])
+    where = (spot["x"], spot["y"])
+    assert _on_the_canvas(page, where)
+    before = page.evaluate(CAMERA)["dist"]
+    page.mouse.move(where[0] + 1, where[1])
+    page.mouse.move(*where)
+    page.wait_for_timeout(300)
+    text = page.locator("#galaxymap3d-tooltip").inner_text()
+    assert " nebula" in text and "mostly" in text, text
+    page.mouse.click(*where)
+    _settle(page)
+    page.wait_for_function(f"() => document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist < {before} * 0.9", timeout=20000)
+
+
+def test_the_keyboard_reaches_every_large_group_of_nebulae_through_a_list_of_buttons(page, map_site):
+    """MAP.180: the groups of nebulae, the largest first, are buttons in a list for the keyboard and screen readers; activating one flies to it."""
+    _open_nebula_groups(page, map_site)
+    buttons = page.locator(".starmap-sr-nebulae button")
+    assert 1 <= buttons.count() <= 30
+    assert "mostly" in buttons.first.inner_text() and "fly to it" in buttons.first.inner_text()
+    before = page.evaluate(CAMERA)["dist"]
+    buttons.first.focus()
+    page.keyboard.press("Enter")
+    _settle(page)
+    page.wait_for_function(f"() => document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist < {before} * 0.9", timeout=20000)
 
 
 REGION_SPOTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyRegionSpots()"

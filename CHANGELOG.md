@@ -2,6 +2,53 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3264] - 2026-11-05
+
+**Headline:** The hard-edged nebula shell is gone from the maps: nebulae are soft clouds everywhere.
+
+### Changed
+- The Galaxy Map, the Sector Map and the nebula page no longer draw a nebula as a translucent hard-edged mesh. A nebula is its own soft cloud of points (or, where the browser cannot draw that, the soft sprite or sphere it had before the mesh). The site no longer serves `/galaxy/nebula/<id>/shape`; the API's `GET /api/nebulae/<id>/shape` is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3263] - 2026-11-05
+
+**Headline:** The Galaxy Map marks the planetary nebulae and supernova remnants the galaxy has scattered but no sector has been filled for yet.
+
+### Changed
+
+- A map block of 81 sectors or fewer now lists the scattered planetary nebulae and supernova remnants that no sector has built into a nebula, and the map marks each with a small cloud symbol (MAP.179). Nebulae that a sector has built are drawn as clouds as before, and each nebula appears once. The marks are not points of light among the stars.
+- The Menu has a "Nebula marks" switch (on by default; `hide=marker-nebula` in the address turns it off), and picking a mark shows its card. The map's saved blocks are rebuilt once on the next update.
+
+## [8.0.3262] - 2026-11-05
+
+**Headline:** A nebula's own page now draws it as a soft, irregular cloud with fading edges, like the maps do.
+
+### Changed
+- The nebula page's 3D view draws the nebula from its own cloud of points (the same points and layer as the Galaxy Map and the Sector Map) instead of a translucent surface, so it fades unevenly toward its edge and reads as gas. It still turns slowly, zooms and re-centers, with the brightest stars of the galaxy dimmed round it. A nebula that was never placed in the galaxy keeps its still drawing.
+- `GET /api/nebulae/<id>/surroundings` now also says where the nebula is (`center_pc`, parsecs in the galaxy frame; null for one never placed).
+
+generation-output: unchanged
+
+## [8.0.3261] - 2026-11-05
+
+**Headline:** On the Galaxy Map you can now hover a group of nebulae to see what it holds, click it to fly to it, and reach every large group from the keyboard.
+
+### Changed
+
+- Hovering a group of nebulae (the soft glows of MAP.176) outlines it and says how many nebulae it holds and what kind most of them are, for example "12 nebulae, mostly dark nebulae" (MAP.180). Clicking it flies the camera to frame the group, which is the zoom at which it splits into its smaller groups and single clouds; a group has no page, so none opens. A single cloud under the pointer is picked before the group around it, and charted regions after it.
+- The keyboard and screen readers have a list of the 30 largest groups in view, each a button that flies to the group.
+- Hover on the Nebula cover colour already gave the share of a block inside a nebula (MAP.177).
+
+## [8.0.3260] - 2026-11-05
+
+**Headline:** The Galaxy Map now draws the galaxy's dark molecular clouds one by one, before any sector near them has been generated.
+
+### Changed
+
+- A map block of 81 sectors or fewer lists the clouds the galaxy's seed places (the `nebula_field` table, classes M and N, giant molecular and dark clouds) that no sector has stored yet, beside the stored nebulae, and the map draws each as a soft dark-dust sprite that fades in between 1 and 4 pixels of radius (MAP.178). A cloud a sector stores is drawn once, as the stored nebula. A block larger than that keeps showing the nebula regions (MAP.176), which hold these clouds.
+- A field cloud has no page, name or stored shape yet, so it is not labelled, picked or opened as a mesh; picking and fly-to for clouds and regions is MAP.180. The map's saved blocks are rebuilt once on the next update.
+
 ## [8.0.3259] - 2026-11-05
 
 **Headline:** A jump through unknown space is now drawn red, dashed and glowing on the NAV page's map and on the Galaxy Map's course.
