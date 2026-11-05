@@ -15,9 +15,9 @@ dust of nebulae stay with VIEW.11 and VIEW.8 in 9.1, which can reuse these funct
   - 4,100 K to 50,000 K: Flower's (1996) fit with Torres's (2010) coefficients, the same polynomials as
     `photometry.bolometric_correction_v` ([R4407: Table 1], VIEW.9), on arrays.
   - **Under 4,100 K (the cool-star rule VIEW.9 left open):** the mean main-sequence table of Pecaut and Mamajek
-    (2013, ApJS 208, 9, Table 5; E. Mamajek's table version 2022.04.16), from K7V (4,100 K, -0.93) to L2V (2,060 K,
+    ([R3469: Table 5]; E. Mamajek's table version 2022.04.16), from K7V (4,100 K, -0.93) to L2V (2,060 K,
     -6.62), linear in log T between rows and held at the last row below 2,060 K. Flower's fit "breaks down
-    completely for the M dwarfs" (Torres 2010) and is 0.6 mag too faint at 3,500 K against the table (-2.31
+    completely for the M dwarfs" [R4407] and is 0.6 mag too faint at 3,500 K against the table (-2.31
     against -1.7); the table is the better source from where it starts, and it meets the fit within 0.1 mag at
     4,100 K. The table is for dwarfs: a cool giant (a larger, brighter star of the same temperature) has a smaller
     correction in the red, so its V magnitude here is somewhat too faint; a stand-in, registered as SKP2.
@@ -27,7 +27,7 @@ dust of nebulae stay with VIEW.11 and VIEW.8 in 9.1, which can reuse these funct
     `-2.5 log10[(T^4 expm1(x)) / (T0^4 expm1(x0))]` with `x = c2 / (550 nm T)` (7.2 magnitudes a decade from 50,000 K, 7.5
     at a million K). A hot white dwarf, a Wolf-Rayet star or a stripped helium star is faint in V for its
     luminosity. Stand-in SKP3.
-* **Galactic dust** (`galactic_extinction_av`): the smooth dust disc of Drimmel and Spergel (2001, [R1158]),
+* **Galactic dust** (`galactic_extinction_av`): the smooth dust disc of [R1158],
   `rho(R, z) = rho_sun exp(-(R - R_sun) / h_R) sech^2(z / h_z(R))`, an exponential disc of scale length
   `h_R` = 2.26 kpc, a sech^2 layer whose scale height is 134 pc inside 4.4 kpc and rises 14.8 pc per kpc beyond (188 pc at
   the solar circle), from their Eq. 13 and 14 and Table 1 (the paper's own numbers; the farthest-out values read from its
@@ -51,8 +51,8 @@ COOL_BC_TABLE_K_MAG = (
     (3560.0, -1.62), (3620.0, -1.50), (3660.0, -1.42), (3770.0, -1.29), (3850.0, -1.15), (3930.0, -1.07),
     (3990.0, -1.03), (4100.0, -0.93),
 )
-"""tuple: `(effective temperature K, BC_V mag)` of the main-sequence rows K7V to L2V of Pecaut and Mamajek (2013,
-ApJS 208, 9, Table 5), as E. Mamajek's table of 2022.04.16 gives them. Same zero point as Flower's fit (the G2V row,
+"""tuple: `(effective temperature K, BC_V mag)` of the main-sequence rows K7V to L2V of Pecaut and Mamajek ([R3469: Table 5]), as
+E. Mamajek's table of 2022.04.16 gives them. Same zero point as Flower's fit (the G2V row,
 5,770 K, is -0.085 against the fit's -0.08 at 5,772 K)."""
 
 COOL_BELOW_K = COOL_BC_TABLE_K_MAG[-1][0]
@@ -70,7 +70,7 @@ DUST_HEIGHT_PC = 134.4
 DUST_HEIGHT_FLARE_PC_PER_KPC = 14.8
 DUST_FLARE_START_PC = 4400.0
 """float: The solar radius, the dust disc's scale length, its scale height at the centre of the flare and the flare, from
-Drimmel and Spergel (2001, [R1158]): `h_z(R) = 134.4 pc + 14.8 pc/kpc (R - 4.4 kpc)` for R over 4.4 kpc."""
+[R1158]: `h_z(R) = 134.4 pc + 14.8 pc/kpc (R - 4.4 kpc)` for R over 4.4 kpc."""
 
 DUST_AV_PER_KPC_AT_SUN = 1.0
 """float: Magnitudes of V extinction per kpc in the plane at the solar circle: the stand-in of the sky plan (SKP1)."""
