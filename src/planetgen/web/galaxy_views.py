@@ -273,18 +273,25 @@ def _course_from_args():
     """
     The NAV course the map should draw, from `?course=<from>,<to>` (the
     NAV result's "Show on Galaxy Map" link, the drill-down's section
-    9.4), or `None`. A course that can't be drawn is simply not drawn;
+    9.4) or `?via=<a>,<b>,...` (the waypoints, NAV.49; `?course=` wins), or `None`. A course that can't be drawn is simply not drawn;
     an endpoint that doesn't exist is the usual 404.
     """
+    via = [part.strip() for part in (request.args.get("via") or "").split(",") if part.strip()]
     raw = (request.args.get("course") or "").strip()
-    if not raw or "," not in raw:
+    explicit = bool(raw) and "," in raw
+    if not explicit and len(via) < 2:
         return None
-    from_raw, to_raw = (part.strip() for part in raw.split(",", 1))
-    if not from_raw or not to_raw:
-        return None
-    from .nav_page import galaxy_course  # imported here: both modules register routes on `bp`
+    from .nav_page import galaxy_course, galaxy_course_through  # imported here: both modules register routes on `bp`
 
     try:
+        if not explicit:
+            try:
+                return galaxy_course_through(via)  # NAV.49: the waypoints the visitor picked (`?via=<a>,<b>,...`)
+            except apiclient.NotFoundError:
+                return None  # a waypoint kept in the browser that the database no longer has: no course, not a 404 page
+        from_raw, to_raw = (part.strip() for part in raw.split(",", 1))
+        if not from_raw or not to_raw:
+            return None
         return galaxy_course(from_raw, to_raw)
     except apiclient.ApiError as exc:
         if isinstance(exc, apiclient.NotFoundError):
