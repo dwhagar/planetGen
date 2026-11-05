@@ -1218,6 +1218,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   optional Galaxy Map layer (MAP.170). Nothing of it lands in 8.1: only
   generation aspects that directly impact 8.1 do. The 8.2 items read
   stars already generated and change no generated output.
+  Boss decision (6:36 PM EST on 2026-11-05): the gravity map shows the
+  TOTAL field: the generated stars plus the smooth galaxy added (the
+  local-only option is not offered). The cache from MAP.384 to MAP.387
+  holds the local part per sector and galaxy/gravity_cache.py adds the
+  smooth galaxy at the zone. Owner: Tides 1 (builds MAP.168, MAP.169 and
+  API.24 on that chain)
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
 
 - [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
@@ -18374,6 +18380,16 @@ clears each one.
   rows GP1 to GP3 are gone from GEN.725. Version 8.3. Owner: Tides 1.
   Filed by the TODO thread.
   Prerequisites: GEN.1285. Related: GEN.115, GEN.725.
+
+- [ ] **TEST.628 A docs test fails when an item's Version line disagrees with the version file its row sits in**
+  Boss approved this at 6:36 PM EST on 2026-11-05 (docs review). Do: for
+  every open item in docs/TODO.md that states "Version N.N" (or lists it
+  in a Version line), check that its row sits in the matching
+  docs/plan/releases/version-*.md file, and fail with the item, the
+  stated version and the file found. Add it to the docs tests that the
+  TODO docs routine runs. Version 8.2. Owner: any lane (lock-free, tests
+  only). Filed by the TODO thread.
+  Prerequisites: none. Related: DOC.105.
 
 ## USR: User accounts
 
