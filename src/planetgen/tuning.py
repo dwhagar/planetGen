@@ -3715,10 +3715,10 @@ SATELLITE_MOLECULAR_GAS_MASS_SOLAR = {"Large Magellanic Cloud": 5.0e7, "Small Ma
 X_CO 7e20 [R5123]. Small Cloud: H2 3.2e7 from dust, with X_CO 13e21 over the whole galaxy [R5124]; dust counts gas the CO does not
 trace, so it is the upper end for the clouds. Not the CO-bright mass of the Milky Way's catalogue, but the same order of method."""
 
-SATELLITE_NEBULA_GAS_SCALE = {"Large Magellanic Cloud": 0.52, "Small Magellanic Cloud": 0.85}
+SATELLITE_NEBULA_GAS_SCALE = {"Large Magellanic Cloud": 0.435, "Small Magellanic Cloud": 0.724}
 """dict: STAND-IN (tier T1, tweak L2, GEN.725 rows MG1 and MG2): the factor on a satellite's gas tracer in the nebula field, by the
 satellite's name; a satellite not named here has 1. A satellite's gas follows its young stars' density, and a Cloud's young stars sit
-in a ball out to six half-mass radii, so unscaled the field draws 847 giant clouds in the Large Cloud and 270 in the Small (the
+in a ball out to six half-mass radii, so unscaled the field draws 1,085 giant clouds in the Large Cloud and 340 in the Small (the
 class M clouds it keeps). The Milky Way's 8,107 clouds hold 1.2e9 solar masses of H2, so a satellite holds
 `MILKY_WAY_CATALOGUED_CLOUDS * mass / MILKY_WAY_MOLECULAR_GAS_MASS_SOLAR` of them: 338 for the Large Cloud (272 catalogued above
 the survey's limit [R5123]) and 216 for the Small. The scale is that target over the unscaled count; `tests/test_gen367_cloud_gas.py`

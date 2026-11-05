@@ -36103,11 +36103,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Large Magellanic Cloud\"] 0.52: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.40 of the count)"
+              "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Large Magellanic Cloud\"] 0.435: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.31 of the count)"
             ],
             [
               "The range it moves in",
-              "0.4 to 0.7 (a factor of 1.5 either way on the count)"
+              "0.32 to 0.58 (a factor of 1.5 either way on the count)"
             ],
             [
               "Where it holds",
@@ -36134,18 +36134,18 @@
           "tier_code": "T1",
           "tweak": "L2",
           "unread": null,
-          "what": "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Large Magellanic Cloud\"] 0.52: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.40 of the count)"
+          "what": "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Large Magellanic Cloud\"] 0.435: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.31 of the count)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Small Magellanic Cloud\"] 0.85: the same for the Small Cloud, about 216 class M clouds (0.80 of the count; its gas factor meets the cap at the centre)"
+              "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Small Magellanic Cloud\"] 0.724: the same for the Small Cloud, about 216 class M clouds (0.64 of the count)"
             ],
             [
               "The range it moves in",
-              "0.65 to 1.0"
+              "0.55 to 0.95"
             ],
             [
               "Where it holds",
@@ -36172,7 +36172,7 @@
           "tier_code": "T1",
           "tweak": "L2",
           "unread": null,
-          "what": "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Small Magellanic Cloud\"] 0.85: the same for the Small Cloud, about 216 class M clouds (0.80 of the count; its gas factor meets the cap at the centre)"
+          "what": "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Small Magellanic Cloud\"] 0.724: the same for the Small Cloud, about 216 class M clouds (0.64 of the count)"
         }
       ],
       "slug": "6-183-stand-ins-of-the-gas-of-the-magellanic-clouds-in-the-nebula-field",

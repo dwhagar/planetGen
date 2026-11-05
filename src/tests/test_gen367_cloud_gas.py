@@ -81,9 +81,9 @@ def test_away_from_the_clouds_and_for_a_dwarf_without_young_stars_the_gas_is_wha
 
 
 def test_the_large_clouds_scale_is_the_target_over_the_unscaled_count_to_the_power_one_over_the_exponent(monkeypatch):
-    """Unscaled the field keeps about 847 class M clouds in the Large Cloud; the count goes as the tracer to the 1.4 there."""
+    """Unscaled the field keeps about 1,085 class M clouds in the Large Cloud; the count goes as the tracer to the 1.4 there."""
     monkeypatch.setattr(tuning, "SATELLITE_NEBULA_GAS_SCALE", {})
     unscaled = _expected_class_m_clouds(LMC, WITH_SATELLITES)
-    assert unscaled == pytest.approx(847.0, rel=0.03)
+    assert unscaled == pytest.approx(1085.0, rel=0.03)
     solved = (_target(LMC.name) / unscaled) ** (1.0 / tuning.GMC_GAS_DENSITY_EXPONENT)
-    assert solved == pytest.approx(0.52, abs=0.02)
+    assert solved == pytest.approx(0.435, abs=0.02)
