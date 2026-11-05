@@ -137,7 +137,7 @@ def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach
     # Nearer is more of it, never less, and it is whole by one edge.
     shares = [ambient["share"]]
     for _ in range(40):
-        if _distance(page, reach.center) / reach.edge < 0.9:
+        if _distance(page, reach.center) / reach.edge <= 1.0:      # whole from one edge in; one more tick would open the sector (TEST.575)
             break
         _wheel(page, _spot(page, reach), -40)
         page.wait_for_timeout(100)

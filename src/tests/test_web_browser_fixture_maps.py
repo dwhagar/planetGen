@@ -1638,8 +1638,18 @@ def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelle
     no stored shape to fetch, no page to open and no name to label."""
     requests = []
     page.on("request", lambda request: requests.append(request.url))
+    # TEST.575: the sprite is on screen for only a frame or two while the window settles, so polling the count can miss it. An observer
+    # that stays set once the count has been above 0 records it, and the wait is on that mark.
+    page.add_init_script("""
+        new MutationObserver((records) => {
+            for (const record of records) {
+                const value = record.target.getAttribute('data-field-clouds');
+                if (value !== null && value !== '0') document.documentElement.setAttribute('data-field-seen', value);
+            }
+        }).observe(document, {subtree: true, attributes: true, attributeFilter: ['data-field-clouds']});
+    """)
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=40000)
+    page.locator("html[data-field-seen]").wait_for(state="attached", timeout=40000)
     page.wait_for_timeout(1500)
     assert not any("field-1.2.3.4" in url for url in requests), [url for url in requests if "field" in url]
     assert not any("/shape" in url for url in requests)
@@ -1827,6 +1837,10 @@ def test_sector_map_names_its_systems_through_the_label_engine_with_the_system_n
     picking), with no text sprites in the scene; the System names switch (the address's `hide`) takes them away."""
     _open_sector(page, map_site)
     page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'system')")
+    # TEST.597: the page opens at once but its nodes arrive one level at a time (243, 81, 27, 9); a block is drawn whole until its
+    # children are in hand (galaxynodecut.js settledExpanded), and a whole block names its region or family (regionlabels.js) for the
+    # two to four seconds that takes. The labels are read once the nodes are in and those names have gone.
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'region')", timeout=30000)
     shown = page.evaluate(LABELS)
     assert all(label["kind"] in ("system", "sector") for label in shown), shown
     rects = page.evaluate("() => [...document.querySelectorAll('.map-label')].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })")
@@ -3540,11 +3554,12 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-gas-giant"]')
     _poi_layers(page, "marker-gas-giant")
     assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
-    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-gas-giant" for e in entries))
+    # The marks come in as the nodes do (TEST.575): wait for all of them, not for the first.
+    found = _markers_until(page, lambda entries: giants <= {e["name"] for e in entries if e["kind"] == "marker-gas-giant"}, seconds=40)
     assert {e["name"] for e in found if e["kind"] == "marker-gas-giant"} == giants
     assert not [e for e in found if e["kind"] == "marker-habitable"]
     page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
-    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    found = _markers_until(page, lambda entries: worlds <= {e["name"] for e in entries if e["kind"] == "marker-habitable"}, seconds=40)
     marks = [e["name"] for e in found if e["kind"] in ("marker-habitable", "marker-gas-giant")]
     assert sorted(marks) == sorted(giants | worlds), marks    # Fixture Eden once, though it has both reasons
     page.locator("#galaxymap3d-menu > summary").click()
@@ -6162,3 +6177,111 @@ def test_clear_all_empties_the_waypoints(page, map_site):
     menu.get_by_role("button", name="Clear all").click()
     assert "No waypoints yet" in menu.locator("[data-waypoints-panel]").inner_text()
     assert _waypoints(page) == []
+
+
+def _set_waypoints(page, refs_and_names):
+    """Puts waypoints in this browser's list as the star card does, and tells the page's store."""
+    page.evaluate("""(entries) => {
+        const db = document.querySelector('[data-bookmark-db]').getAttribute('data-bookmark-db');
+        const key = 'planetgen.waypoints.' + db;
+        localStorage.setItem(key, JSON.stringify(entries.map(([value, name]) => ({name, kind: value.split(':')[0], value, created: new Date().toISOString()}))));
+        window.dispatchEvent(new CustomEvent('planetgen-saved-change', {detail: {key}}));
+    }""", [list(item) for item in refs_and_names])
+
+
+def test_two_waypoints_plot_a_course_that_stays_until_they_are_cleared(page, map_site, monkeypatch):
+    """NAV.49: with two or more waypoints the Galaxy Map offers Plot the course, draws the course through them (its address carries
+    `via`), opens again with the course plotted on a later visit, and drops it when the waypoints are cleared."""
+    from planetgen.web import nav_page
+
+    through = _course_through_the_fixture_systems()
+    through.update({"via": True, "waypoints": [0, 2, 3], "direct": None, "navUrl": "/nav?from=system:701&to=system:704",
+                    "directs": [[through["points"][0], through["points"][2]], [through["points"][2], through["points"][3]]]})
+    through["points"][2]["role"] = "waypoint"
+    asked = []
+    monkeypatch.setattr(nav_page, "galaxy_course_through", lambda raws: asked.append(raws) or through)
+    page.set_viewport_size(VIEWPORT)
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+
+    def drawn(count):      # the map of a page just opened has no hooks until its script has run
+        return f"() => {{ const c = {canvas}; return !!(c && c.galaxyCourseStops && c.galaxyCourseStops().length === {count}); }}"
+
+    _open_galaxy(page, map_site)
+    assert page.evaluate(f"() => {canvas}.galaxyCourseStops()") == []
+    names = [(f"system:{system[0]}", system[1]) for system in SYSTEMS if system[0] in (701, 703, 704)]
+    _set_waypoints(page, names)
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    plot = menu.get_by_role("link", name="Plot the course")
+    plot.wait_for()
+    assert "via=system:701,system:703,system:704" in plot.get_attribute("href")
+    plot.click()
+    page.wait_for_function(drawn(4))
+    assert asked[-1] == ["system:701", "system:703", "system:704"]
+    assert "via=system:701,system:703,system:704" in page.url
+    assert "Showing the course through your 3 waypoints" in page.locator(".hint", has_text="Showing the course through").inner_text()
+    assert page.evaluate(f"() => {canvas}.galaxyCourseForms()")["direct"] is True
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    assert "is drawn on the map" in menu.locator("[data-waypoints-panel]").inner_text()
+
+    # The course stays: the Galaxy Map opened plain comes up with it plotted.
+    _open_galaxy(page, map_site)
+    page.wait_for_function(drawn(4))
+    assert "via=system:701,system:703,system:704" in page.url
+
+    # Clear all takes the waypoints and the course.
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    menu.get_by_role("button", name="Clear all").click()
+    page.wait_for_function(drawn(0))
+    assert "via=" not in page.url and _waypoints(page) == []
+
+
+def test_a_waypoint_is_flagged_on_the_galaxy_map_where_its_card_was_picked(page, map_site):
+    """NAV.49: a waypoint added from a star's card is flagged, numbered, at the star on the Galaxy Map; the Waypoint flags layer hides the
+    flags and the key line follows; removing the waypoint takes its flag."""
+    _open_sector(page, map_site)
+    _x, _y, first = _click_a_star(page)
+    start_id = next(i for i, n, *_rest in SYSTEMS if n == first)
+    page.locator("#galaxymap3d-info .map-info-waypoint").click()
+    page.wait_for_function("document.querySelector('#galaxymap3d-info .map-info-waypoint').getAttribute('aria-label').startsWith('Remove waypoint 1')")
+    stored = _waypoints(page)
+    assert len(stored) == 1 and len(stored[0]["position"]) == 3, stored
+
+    _open_galaxy(page, map_site)
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    flags = page.evaluate(f"() => {canvas}.galaxyWaypointFlags()")
+    assert [flag[0] for flag in flags] == [1]
+    assert flags[0][1:] == pytest.approx(stored[0]["position"])
+    drawn = f"{canvas}.__mapLayers.keys().filter((k) => k.drawn).map((k) => k.id)"
+    assert "key-waypoints" in page.evaluate(f"() => {drawn}")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('waypoints', false)")
+    assert page.evaluate(f"() => {canvas}.galaxyWaypointFlags()") == []
+    assert "key-waypoints" not in page.evaluate(f"() => {drawn}")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('waypoints', true)")
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    menu.get_by_role("button", name=f"Remove waypoint 1, {first}").click()
+    assert page.evaluate(f"() => {canvas}.galaxyWaypointFlags()") == []
+    assert start_id
+
+
+def test_a_field_cloud_sprite_hands_over_to_the_density_volume_and_something_is_drawn_for_it_at_steady_state(page, map_site):
+    """MAP.382: the field cloud sprite (MAP.178) is the stand-in for a cloud until the nebula volume layer (MAP.365) draws the same region from the model's
+    density, so it is on screen for a few frames when its node arrives and then gives way (`opacity * (1 - covered)`); that is by design. What must hold 5 s
+    after the sprite was first seen is that the cloud is not left undrawn: the volume layer draws, or the sprite is still there."""
+    page.add_init_script("""
+        new MutationObserver((records) => {
+            for (const record of records) {
+                const value = record.target.getAttribute('data-field-clouds');
+                if (value !== null && value !== '0') document.documentElement.setAttribute('data-field-seen', value);
+            }
+        }).observe(document, {subtree: true, attributes: true, attributeFilter: ['data-field-clouds']});
+    """)
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.locator("html[data-field-seen]").wait_for(state="attached", timeout=40000)
+    page.wait_for_timeout(5000)
+    state = page.evaluate("""() => { const c = document.querySelector('#galaxymap3d-canvas'); const v = c.__mapNebulaVolumes;
+        return {sprites: Number(c.dataset.fieldClouds), volumes: v ? v.drawn() : 0}; }""")
+    assert state["sprites"] > 0 or state["volumes"] > 0, state
