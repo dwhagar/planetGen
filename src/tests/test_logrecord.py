@@ -1,4 +1,4 @@
-"""UX.121: the logging layer (`planetgen/util/logrecord.py`). The same records give a file line, a JSON line and a display
+"""UX.121, OPS.104: the logging layer (`planetgen/util/logrecord.py` is the record and its lines; `planetgen/util/log.py` writes them). The same records give a file line, a JSON line and a display
 line that agree, and a file line reads back to the record it was written from."""
 
 import datetime
@@ -9,6 +9,7 @@ import zoneinfo
 
 import pytest
 
+from planetgen.util import log as planetgen_log
 from planetgen.util import logrecord
 
 NEW_YORK = zoneinfo.ZoneInfo("America/New_York")
@@ -160,11 +161,11 @@ def _handler(formatter):
 
 
 def test_a_logger_takes_fields_and_a_handler_writes_the_file_line_the_screen_line_and_the_json_line():
-    log = logrecord.get_logger("layer-test")
-    file_handler, file_out = _handler(logrecord.FileFormatter())
-    json_handler, json_out = _handler(logrecord.JsonFormatter())
-    screen_handler, screen_out = _handler(logrecord.DisplayFormatter(NEW_YORK))
-    plain_handler, plain_out = _handler(logrecord.DisplayFormatter(plain=True))
+    log = planetgen_log.get("layer-test")
+    file_handler, file_out = _handler(planetgen_log.LineFormatter("file"))
+    json_handler, json_out = _handler(planetgen_log.LineFormatter("json"))
+    screen_handler, screen_out = _handler(planetgen_log.LineFormatter("display", NEW_YORK))
+    plain_handler, plain_out = _handler(planetgen_log.LineFormatter("plain"))
     logger = log.logger
     old_level = logger.level
     logger.setLevel(logging.DEBUG)
@@ -198,17 +199,28 @@ def test_a_field_may_be_named_like_an_argument_of_the_logging_calls():
 
 
 def test_a_logger_refuses_a_field_a_file_line_could_not_hold_and_a_bad_component():
-    log = logrecord.get_logger("layer-test")
+    log = planetgen_log.get("layer-test")
     log.logger.setLevel(logging.DEBUG)
     with pytest.raises(ValueError):
         log.info("x", msg="y")
     with pytest.raises(ValueError):
-        logrecord.get_logger("Bad Name")
+        planetgen_log.get("Bad Name")
 
 
 def test_a_standard_log_record_from_any_logger_becomes_a_record():
     log_record = logging.LogRecord("planetgen.queue.units", logging.WARNING, "f.py", 1, "Unit %s slow", ("7",), None)
-    record = logrecord.record_of(log_record)
+    record = planetgen_log.record_of(log_record)
     assert (record.severity, record.component, record.message) == ("warning", "queue.units", "Unit 7 slow")
-    odd = logrecord.record_of(logging.LogRecord("urllib3.connectionpool", 5, "f.py", 1, "x", None, None))
+    odd = planetgen_log.record_of(logging.LogRecord("urllib3.connectionpool", 5, "f.py", 1, "x", None, None))
     assert (odd.severity, odd.component) == ("debug", "urllib3.connectionpool")
+
+
+def test_the_formatter_set_has_one_class_with_a_form_for_each_way_a_line_is_written():
+    assert planetgen_log.FORMS == ("plain", "display", "debug", "file", "json")
+    with pytest.raises(ValueError):
+        planetgen_log.LineFormatter("loud")
+    log_record = logging.LogRecord("planetgen.queue", logging.INFO, "queue.py", 12, "Unit %s done", ("7",), None)
+    log_record.created, log_record.origin = OCTOBER / 1000, "main"
+    debug = planetgen_log.LineFormatter("debug").format(log_record)
+    assert debug.endswith("| Unit 7 done") and "INFO" in debug and "queue.py:12" in debug
+    assert planetgen_log.LineFormatter("plain").format(log_record) == "Unit 7 done"
