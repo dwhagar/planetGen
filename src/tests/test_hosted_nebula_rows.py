@@ -16,7 +16,7 @@ import pytest
 from planetgen.db import hostednebula, query, store
 from planetgen import tuning
 from planetgen.galaxy.sector import SpaceSector
-from planetgen.generation import multistar, nebula_contents, run_sector, stored_trees
+from planetgen.generation import member_record, multistar, nebula_contents, run_sector, stored_trees
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants, stellar_evolution as evolution
@@ -48,6 +48,7 @@ def _built_star(row, k):
     from planetgen.generation import bright_stars as brightStarsGen
     config = SystemConfig()
     config.POPULATION = "young"
+    config.PLANETS = False     # the nebula is the star's own draw: a system of planets costs minutes a star
     with draw.bound(1000 + k):
         system = StarSystem(system_config=config, primary_star_params=brightStarsGen.star_params(row),
                             member_tree=stored_trees.SINGLE)
@@ -80,12 +81,16 @@ def _heavier_companion_plan(row, k):
     its second member's masses replaced (the plan is not `exact`, so the build keeps the stars it makes)."""
     placed = multistar.Placed("star", row["mass_kg"] / constants.SOLAR_MASS_TO_KG, row["initial_mass_sol"])
     age_yr = row["age_gy"] * 1.0e9
+    fe_h = _built_star(row, k).metallicity_fe_h     # the [Fe/H] the system draws for the star, which the companion is made at
     for seed in range(300):
         tree = multistar.draw_member_tree(placed, age_yr, draw.Stream(f"{k}:{seed}:members"), n_stars=2, pair_placed=True)
         if tree.member_count == 2 and tree.members[1].kind in stored_trees.PAIR_STAR_KINDS:
             plan = stored_trees.drawn(tree)
-            heavier = dataclasses.replace(plan.members[1], mass_solar=1.5 * placed.mass_solar,
-                                          initial_mass_solar=1.5 * placed.birth_mass_solar)
+            # (the member is made from its own record: its kind, mass and radius are the ones a star of that birth mass has at the age, which
+            # the build checks the star it makes against, `stored_trees.matches`)
+            record = member_record.make(plan.members[1].seed, 1.5 * placed.birth_mass_solar, plan.members[1].age_yr or age_yr, fe_h)
+            heavier = dataclasses.replace(plan.members[1], kind=record.kind, mass_solar=record.mass_solar,
+                                          initial_mass_solar=record.initial_mass_solar, radius_au=record.radius_au)
             return dataclasses.replace(plan, members=(plan.members[0], heavier))
     return None
 
@@ -107,6 +112,7 @@ def test_a_row_with_a_heavier_companion_lights_the_nebula_its_row_predicts(monke
             continue
         config = SystemConfig()
         config.POPULATION = "young"
+        config.PLANETS = False     # the nebula is the star's own draw: a system of planets costs minutes a star
         with draw.bound(1000 + k):
             system = StarSystem(system_config=config, primary_star_params=brightStarsGen.star_params(row),
                                 member_tree=plan)

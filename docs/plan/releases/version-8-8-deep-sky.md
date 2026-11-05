@@ -20,11 +20,6 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.179 | Scattered nebulae as markers from level 8 | GEN.202 | Phase 2. Foundations lane 2. |
-| MAP.177 | Color by "Nebula cover" on the Galaxy Map |  | Phase 2. Foundations lane 2. |
-| MAP.178 | Field nebula clouds drawn one by one from the nebula table |  | Phase 2. Foundations lane 2. |
-| MAP.180 | Picking, hover and fly-to for nebula regions and cover |  | Phase 2. Foundations lane 2. |
-| MAP.181 | Dust colour for the dark nebula family on both themes |  | Phase 2. Foundations lane 2. |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc |  | Phase 2. Optional, default not built. |
 
 ### Clusters and satellites on the map
@@ -40,7 +35,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline |  | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
 | MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | MAP.207 | Map labels, Boss 2:30 PM EDT. |
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae |  | Finding from Core 3. |
-| GEN.1273 | Nebula composition part e: the Magellanic Clouds' gas metallicity as a place value | GEN.1269, GEN.367 |  |
+| GEN.1273 | Nebula composition part e: the Magellanic Clouds' gas metallicity as a place value | GEN.367 |  |
 
 ### Rare stars and phenomena
 

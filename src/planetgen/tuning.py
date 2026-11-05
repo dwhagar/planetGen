@@ -4058,6 +4058,16 @@ NAV_BYPASS_MAX_EDGES = 60000
 """int: Most distinct hops NAV.48's bypass test (a route search that may not cross an
 uncharted sector) looks at before it gives up and says the answer is unknown."""
 
+NAV_GRAPH_NEIGHBOURS = 6
+"""int: The most systems off the route listed for one stop in the graph round a route (NAV.65, `route.graph`); the rest
+are counted in the graph's `more`. The relative neighbourhood graph linked 6 systems at most to any system in the
+research's synthetic galaxies, so this seldom cuts."""
+
+NAV_GRAPH_CANDIDATES = 24
+"""int: How many of the nearest systems the graph round a route weighs for each stop (NAV.65). A link of the relative
+neighbourhood graph is exact when no closer system is left out, so a link to a system beyond the 24th nearest of a stop
+is not looked for."""
+
 NAV_CHART_CONFIRM_SECTORS = 5000
 """int: Charting the sectors of a course (NAV.48) asks for an explicit confirmation past this many sectors
 (Boss, 2026-10-10); the PERF.3 disk refusal applies on top."""

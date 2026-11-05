@@ -254,19 +254,38 @@ def test_phenomenon_diagram_minus_zooms_out_from_the_start(page, base_url, site_
     assert seen >= 1, "no supernova remnant with an AU diagram in the database"
 
 
-def test_nebula_page_draws_its_shape_in_3d(page, base_url, site_app):
-    """MAP.105: a nebula's page swaps its still drawing for the 3D view of
-    its shape, with the endpoints answering."""
+def test_nebula_page_draws_its_cloud_in_3d(page, base_url, site_app, monkeypatch):
+    """MAP.105, MAP.142: a nebula's page swaps its still drawing for the 3D view of its own cloud of points (the layer the maps use), with
+    the endpoints answering. The test database's nebula was never placed in the galaxy (it keeps its still drawing, checked last), so the
+    two endpoints answer for a placed one: the stand-in density's cloud over the Galaxy Map fixture's star field."""
+    from planetgen.web.lib import apiclient
+    from tests.map_site_support import NEBULA_OVER_THE_FIELD, single_nebula_volume_payload
+
     nebula = next(p for p in _phenomena(site_app) if p["type"] == "nebula")
+    real_surroundings = apiclient.get_nebula_surroundings
+    placed = {"radius_pc": NEBULA_OVER_THE_FIELD["radius_pc"], "half_width_pc": 40.0, "stars": [{"x": 3.0, "y": 2.0, "z": 1.0,
+              "luminosity_sol": 900.0, "temperature_k": 9000.0}],
+              "center_pc": [NEBULA_OVER_THE_FIELD["x"], NEBULA_OVER_THE_FIELD["y"], NEBULA_OVER_THE_FIELD["z"]]}
+    monkeypatch.setattr(apiclient, "get_nebula_surroundings", lambda db, nebula_id: placed)
+    monkeypatch.setattr(apiclient, "get_nebula_volume", lambda db, nebula_id: single_nebula_volume_payload(NEBULA_OVER_THE_FIELD["id"]))
     _open(page, f"{base_url}/phenomenon/nebula/{nebula['id']}", "main")
     assert page.locator("#phenomenonmap-svg").count() == 0
     page.locator("#nebulaview-canvas[data-nebula-view='ready']").wait_for(state="attached", timeout=15000)
+    page.wait_for_function("() => Number(document.querySelector('#nebulaview-canvas').dataset.volumeDrawn) >= 1", timeout=30000)
+    held = page.evaluate("() => document.querySelector('#nebulaview-canvas').__nebulaVolumes.volumes().length")
+    assert held == 1
     # MAP.138: the view can be put back about the nebula's center.
     assert page.locator("#nebulaview-recenter").is_visible()
     page.locator("#nebulaview-recenter").click()
     client = site_app.test_client()
-    assert client.get(f"/galaxy/nebula/{nebula['id']}/shape?lod=full").status_code == 200
+    assert client.get(f"/galaxy/nebula/{nebula['id']}/volume").status_code == 200
     assert client.get(f"/galaxy/nebula/{nebula['id']}/surroundings").status_code == 200
+    # A nebula never placed has no centre: it keeps its still drawing.
+    monkeypatch.setattr(apiclient, "get_nebula_surroundings", real_surroundings)
+    _open(page, f"{base_url}/phenomenon/nebula/{nebula['id']}", "main")
+    page.wait_for_timeout(1500)
+    assert page.locator("#nebulaview-canvas").get_attribute("hidden") is not None
+    assert page.locator("#nebulaview-canvas").get_attribute("data-nebula-view") is None and page.locator(".phenomrender-still").is_visible()
 
 
 # --- TEST.55, TEST.59: the Galaxy Map ------------------------------------------------

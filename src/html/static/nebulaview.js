@@ -1,18 +1,21 @@
 // html/static/nebulaview.js
 //
-// A nebula page's 3D view (MAP.105): the nebula's own shape (the mesh
-// `GET /galaxy/nebula/<id>/shape?lod=full` serves, drawn translucent)
-// with the brightest stars of the galaxy round it, dimmed, there only for
-// reference (`GET /galaxy/nebula/<id>/surroundings`). One parsec is one
-// scene unit. Drag turns the view, the wheel (or pinch) zooms, and it
-// turns slowly by itself until the visitor touches it, unless they prefer
-// reduced motion. The panel's still drawing stays until this swaps in the
-// canvas, and stays for good without WebGL or when a fetch fails.
+// A nebula page's 3D view (MAP.105, MAP.142): the nebula drawn from its own cloud of points (`GET /galaxy/nebula/<id>/volume`, the
+// same points and the same layer, nebulavolumelayer.js, that draw it on the Galaxy Map and the Sector Map: soft splats that fade
+// unevenly toward an irregular edge) with the brightest stars of the galaxy round it, dimmed, there only for reference
+// (`GET /galaxy/nebula/<id>/surroundings`, which also says where the nebula is). The scene is in the galaxy's own frame, in parsecs,
+// and the camera turns round the nebula's centre. Drag turns the view, the wheel (or pinch) zooms, and it turns slowly by itself
+// until the visitor touches it, unless they prefer reduced motion. The panel's still drawing stays until this swaps in the canvas,
+// and stays for good without WebGL (or a float render target, which the layer needs), for a nebula never placed in the galaxy, or when
+// a fetch fails.
 // (planetgen/web/maps/phenomenonrender.py's `render_nebula_view_panel`.)
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { buildNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
+const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSION_QUERY}`);
+const { singleSource } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { FAMILIES, familyColour } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
+const { NEBULA_LOOKS } = await import(`./nebulalook.js${VERSION_QUERY}`);
 
 var viewport = document.getElementById("nebulaview");
 var canvas = document.getElementById("nebulaview-canvas");
@@ -26,6 +29,7 @@ var STAR_PX = 2.2;
 var TURN_PER_PX = 0.01;
 var AUTO_TURN_PER_S = 0.12;
 var TILT = 0.45;
+var FOV_DEG = 40;
 var ZOOM_RANGE = [0.35, 6];
 
 function readView() {
@@ -75,7 +79,11 @@ function starPoints(stars) {
   }));
 }
 
-function start(view, shape, around) {
+function start(view, around) {
+  var center = around.center_pc;
+  if (!center) {
+    return; // Never placed in the galaxy: no points to draw, the still drawing stays.
+  }
   var renderer;
   try {
     renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
@@ -86,21 +94,41 @@ function start(view, shape, around) {
   var scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
 
-  var pivot = new THREE.Group();
-  scene.add(pivot);
-  var mesh = buildNebulaMesh(THREE, shape, radius, [view.color, view.coreOpacity, view.edgeOpacity],
-    { depthTest: true });
-  // The surface alone is faint from outside: a brighter core helps read the shape.
-  mesh.material.opacity = Math.max(mesh.material.opacity, 0.22);
-  pivot.add(mesh);
-  pivot.add(starPoints(around.stars || []));
+  var camera = new THREE.PerspectiveCamera(FOV_DEG, 1, radius * 0.01, around.half_width_pc * 12);
+  camera.up.set(0, 0, 1);   // the galaxy's own frame: z is up
+  var layer = createNebulaVolumeLayer(scene, camera, canvas, renderer, {
+    colours: FAMILIES.map(function (family) { return familyColour(family, NEBULA_LOOKS); }),
+    fetchBytes: function () {
+      return fetch(view.volumePath).then(function (response) {
+        if (!response.ok) {
+          throw new Error(view.volumePath + " " + response.status);
+        }
+        return response.arrayBuffer();
+      });
+    },
+    onChange: function () { draw(); },
+  });
+  if (!layer) {
+    renderer.dispose();
+    return; // No float render target: the still drawing stays.
+  }
+  var source = singleSource(view.nebulaId, { x: center[0], y: center[1], z: center[2], radiusPc: radius }, 1);
 
-  var camera = new THREE.PerspectiveCamera(40, 1, radius * 0.01, around.half_width_pc * 12);
+  // The reference stars sit at their offsets from the nebula's centre, the group at the centre.
+  var stars = starPoints(around.stars || []);
+  stars.position.set(center[0], center[1], center[2]);
+  scene.add(stars);
+
+  var azimuth = 0;
   var zoom = 1;
   function placeCamera() {
     var distance = radius * 3.2 * zoom;
-    camera.position.set(0, Math.sin(TILT) * distance, Math.cos(TILT) * distance);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(
+      center[0] + Math.cos(TILT) * Math.cos(azimuth) * distance,
+      center[1] + Math.cos(TILT) * Math.sin(azimuth) * distance,
+      center[2] + Math.sin(TILT) * distance);
+    camera.lookAt(center[0], center[1], center[2]);
+    camera.updateMatrixWorld();
   }
   placeCamera();
 
@@ -120,7 +148,11 @@ function start(view, shape, around) {
   }
 
   function draw() {
+    var focalPx = (canvas.clientHeight || 1) / 2 / Math.tan(THREE.MathUtils.degToRad(FOV_DEG) / 2);
+    layer.update([source], null, focalPx);
+    layer.prepare();
     renderer.render(scene, camera);
+    canvas.dataset.volumeDrawn = String(layer.drawn());   // the tests read this: how many volumes are up
   }
 
   var touched = reducedMotion;
@@ -134,7 +166,8 @@ function start(view, shape, around) {
     if (!dragging) {
       return;
     }
-    pivot.rotation.y += (event.clientX - dragging.x) * TURN_PER_PX;
+    azimuth -= (event.clientX - dragging.x) * TURN_PER_PX;
+    placeCamera();
     dragging = { x: event.clientX };
     draw();
   });
@@ -154,7 +187,7 @@ function start(view, shape, around) {
   // MAP.138: C (or the button) puts the view back about the nebula's center
   // at its opening angle and zoom.
   function recenter() {
-    pivot.rotation.y = 0;
+    azimuth = 0;
     zoom = 1;
     touched = true;
     placeCamera();
@@ -184,6 +217,7 @@ function start(view, shape, around) {
   // The tests read this: the view is up, with this many reference stars.
   canvas.dataset.nebulaView = "ready";
   canvas.dataset.stars = String((around.stars || []).length);
+  canvas.__nebulaVolumes = layer;     // the browser tests read what is drawn
   if (reducedMotion) {
     return;
   }
@@ -200,7 +234,8 @@ function start(view, shape, around) {
     last = now;
     if (visible && !document.hidden) {
       if (!touched) {
-        pivot.rotation.y += AUTO_TURN_PER_S * dt;
+        azimuth -= AUTO_TURN_PER_S * dt;
+        placeCamera();
       }
       draw();
     }
@@ -209,7 +244,7 @@ function start(view, shape, around) {
 
 var view = viewport && canvas ? readView() : null;
 if (view) {
-  Promise.all([getJson(view.shapePath + "?lod=full"), getJson(view.surroundingsPath)]).then(function (results) {
-    start(view, results[0], results[1]);
+  getJson(view.surroundingsPath).then(function (around) {
+    start(view, around);
   }, function () {});
 }

@@ -634,7 +634,9 @@ connectivity to that specific schema rather than the default one.
   never placed. 404 for an unknown nebula.
 - `GET /api/nebulae/<id>/surroundings` — the brightest stars round a
   nebula, for its page's 3D view (MAP.105): `{radius_pc, half_width_pc,
-  stars: [{x, y, z, luminosity_sol, temperature_k}]}`, positions in
+  center_pc, stars: [{x, y, z, luminosity_sol, temperature_k}]}`, `center_pc`
+  the nebula's centre in the galaxy frame (`[x, y, z]` parsecs, `null` for a
+  nebula never placed; MAP.142's view draws the nebula's own points round it); the star positions in
   parsecs from the nebula's center, the most luminous first (at most 300,
   from a box 2.5 radii each side, at least 30 pc). No stars for a nebula
   never placed. 404 for an unknown nebula.
@@ -1332,6 +1334,19 @@ of one sector and in the Galactic Frame otherwise
 (`docs/design/orbits/navigation-frames.md`). `route.stop_places` has one
 `{node, sector_id, sector_position_ly}` per id in `path` (both `null` for a
 phenomenon end). The NAV page shows each course as `045 mark 012, 3.2 ly`.
+
+**The graph round the route (NAV.65).** `GET /api/nav?...&graph=1` adds `route.graph`, the links a schematic route
+map draws: `nodes` (each system that is linked and is not a stop of the route: `{id, position_ly}`, the galaxy-frame
+position in light-years the index holds), `edges` (`{from, to, distance_ly, on_route}`) and `more` (`{stop: n}`, the linked systems left out of a stop
+because it already lists `tuning.NAV_GRAPH_NEIGHBOURS` of them; only stops with some). An edge with `on_route` true is a
+hop of the route, `from` before `to` in `route.path`, with the length `route.hops` gives, and is always listed. The rest are neighbour links by the relative
+neighbourhood graph rule: two points are linked when no system lies closer to both of them than they are to each other
+(no tuning number, about 1.5 links to a system). They join two stops of the route, or a stop to a system off it (the stop
+in `from`), nearest first. A link is a neighbour relation, not a travel lane: nothing says a ship can fly it, and the
+route search does not use it. Each stop weighs its `tuning.NAV_GRAPH_CANDIDATES` nearest systems, read from the cell-key
+index (`db/route_neighbours.py`), so a link to a system farther out than the 24th nearest is not looked for; stops in
+unknown space and phenomenon ends get links to the systems round them like any other stop. Without `graph=1` the route
+has no `graph`, and no neighbour is read.
 
 **Charting a course (NAV.48).** `GET /api/nav/chart?from=<ref>&to=<ref>[&border=1]`
 works out the uncharted sectors that block a course, without generating

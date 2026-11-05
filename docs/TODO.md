@@ -800,59 +800,6 @@ with `clamp()`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
 
-- [ ] **UX.237 Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L9. The Life and air chart plots O2, CO2, CH4
-  (and H2S or SO2 where the class moves them) against age with the stage
-  ticks, computed on demand from the stored milestone ages and the class
-  ledger, no stored column; marked 'speculative chemistry' with the tier
-  for Classes 5 to 9. Collapsible block starts collapsed; absent or zero
-  values hidden.
-  Research (2026-10-09): Owner: Core 5 (Boss's rule, relayed 9:24 PM EDT
-  2026-10-28: Aux lanes retire when their queue ends, so the new life
-  class page goes to a Core lane), when the class data is ready (GEN.889
-  and GEN.891). Aux 6 (old Aux 11) finishes UX.215 to UX.222 and
-  retires.
-  Part 1 merged (#3885, Core 5, 12:15 AM EDT as the lane reported)
-  (2026-10-30 12:15 AM EDT): the planet and moon Life section names the
-  supported classes with scores, the class that lives there, its stage,
-  and a collapsed drinks, eats, breathes, gives-off block; class number
-  follows the life icons. Still open: part 2 (air-through-the-ages
-  chart, an additive route, no API version bump) and the adaptation
-  traits, which wait on GEN.875 and GEN.876 because no trait data is
-  stored.
-  Part 2 merged (Core 5, #3951, 4:59 AM EDT as the lane reported)
-  (2026-10-30 4:59 AM EDT): planet and moon pages get a collapsed "Life
-  and air through the ages" chart in the Life section (oxygen, CO2 and
-  methane partial pressure against star age, life stages numbered, the
-  same figures in a table, "Speculative chemistry" with tier and tweak
-  for L3 and L4 classes), worked backwards from the stored air; no
-  migration, epoch, golden or stored value; new additive routes GET
-  /api/planets|moons/<id>/life-air (API version unchanged; route
-  snapshot and api.md updated). Not drawn: sulfur gases, hydrogen
-  drawdown, the reduced gases the rise burned. UX.237 stays open only
-  for the adaptation traits (waits on GEN.875/876)
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 11) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
-  AM EDT): The Life section must read the list of living classes from
-  GEN.1209 when it lands: each living class with its stage, animal
-  grade, kinds and prevalence, the dominant one first. Until then it
-  shows the one dominant class (PR 4471 folds the kind scores into one
-  Life paragraph).
-  Changed by the life readings work (Boss, 10:07 AM EDT 2026-10-31)
-  (2026-10-31 10:14 AM EDT): Boss wants a Life section in the details
-  holding every life fact (classes, stages, animal grades, the three
-  readings per kind from GEN.1210, eats, drinks, breathes and gives off,
-  life and air through the ages), with a short Life summary in At a
-  glance (UX.251). PR 4471 already puts a first Life paragraph at the
-  top of the Life section; this item now owns the rest of the details
-  section on top of it, and the readings from GEN.1210 and the several
-  living classes of GEN.1209 are shown as they land. Help links for each
-  word come from DOC.84.
-  Prerequisites: none. Related: UX.221.
-
 - [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
   Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
   asteroid belt information page that will show the bodies in the
@@ -893,7 +840,7 @@ with `clamp()`.
   page and the lists. Owner Core 2 (map labels, infobox) with Core 5
   (pages), proposed by the TODO thread. Related: GEN.1254, GEN.1255,
   API.38. Filed by the TODO thread.
-  Prerequisites: GEN.1254, GEN.1255.
+  Prerequisites: GEN.1254.
 
 - [ ] **UX.260 Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere**
   Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
@@ -904,6 +851,21 @@ with `clamp()`.
   when it is scheduled. Not scheduled, no owner. Goal #3241. Filed by
   the TODO thread.
   Prerequisites: none.
+
+- [ ] **UX.262 Planet and moon page Life section: the adaptation traits of the living class (the last piece of UX.237)**
+  Core 5 (as the lane reported, 9:31 PM EST on 2026-11-04) checked main:
+  everything in UX.237 is built (supports and living classes, stage and
+  animal grade, the several living classes, the readings table, the
+  drinks, eats, breathes and gives-off block, the Life and air chart,
+  the class number on lists) except the adaptation traits, which need
+  GEN.876 because no trait column is stored. This item holds that one
+  piece so UX.237 can retire. Do: when GEN.876 stores the traits, list
+  them in the Life section of the planet and moon pages, with their
+  units where they have any and the derived marks, hidden when absent.
+  Done: a page test with traits present and absent, plain-words and the
+  wiring guard green. Lock-free once GEN.876 is merged. Version 8.1.
+  Owner: Core 5. Filed by the TODO thread.
+  Prerequisites: GEN.876. Related: UX.237, GEN.875, GEN.876.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1038,34 +1000,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-
-- [ ] **MAP.142 Nebulae have fuzzy, fading boundaries**
-  Boss (GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713), 2026-10-09 00:25Z): "Can we make the nebula
-  boundaries fuzzy and kind of fade a bit so it looks more gaseous?"
-  Done: nebulae drawn from their shape (GEN.75) fade out toward the edge
-  with a soft falloff instead of a hard outline, in the Galaxy, Sector
-  and nebula views, and the falloff keeps the nebula's extent readable.
-  Research (2026-10-09, nebula-and-asteroid-field-classes.md): use the
-  per-family edge widths and shell profiles in "Appearance by class":
-  nested iso-shells with edge fade now, a bounded ray-march of a served
-  3D field for the focused nebula. Done criteria add: the extent is the
-  50% contour (open question for Boss, default hard extent at today's
-  outline); dark nebulae get an outline reaching 3:1 (they composite at
-  1.17:1 today); classes are distinguished by a non-colour cue.
-  Note (2026-10-10, nebula research): Boss asked on 2026-10-10 21:46Z
-  that nebulae be visible on the Galaxy Map; the work is split into
-  MAP.172 to MAP.181 (MAP.182 was folded into GEN.241; the dark-theme contrast fix is MAP.175, the dust
-  colour MAP.181, the grouped regions MAP.176 and the individual clouds
-  MAP.178). This item keeps the fuzzy-boundary shape work.
-  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
-  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
-  irregular, bulbous, wispy shapes from the galaxy model, tinting the
-  regions they cover, overlapping additively with a cap, crossing
-  sectors (full text and his five answers in MAP.365). This item moves
-  from version 8.8 into 8.1 and is built by Core 2 after or with
-  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
-  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
-  MAP.222 (nebula zoom window). Owner: Core 2.
 
 - [ ] **MAP.145 A sky and Galaxy Map drawing rule for neighbour galaxies**
   An extended sprite with computed magnitude and size and a
@@ -1227,111 +1161,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-
-- [ ] **MAP.177 Color by "Nebula cover" on the Galaxy Map**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. a new choice in the MAP.131 Color by switch: a
-  single-hue 5-bin ramp (0, under 5, 5 to 15, 15 to 30 and 30% or more),
-  legend "share of the block inside a nebula", hover shows the
-  percentage, works on unfilled cells. Off by default. Done: the choice,
-  legend and hover with a browser test. Owner: Foundations lane 2.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the cover
-  ramp bins are those of MAP.178's nebula density research (2026-10-10,
-  PR #1188): 0, under 0.5 percent, 0.5 to 1.5, 1.5 to 3 and 3 percent or
-  more, replacing 0, under 5, 5 to 15, 15 to 30 and 30 percent or more
-  (the alternative of per-view percentiles stays open for the builder).
-  Note from MAP.174 (Core 2, #2694 merged about 3:00 PM EDT 2026-10-23
-  as the lane reported): the Galaxy Map stage and window payloads now
-  carry the nebula cover per block cell (GET /api/galaxy/nebula-cover,
-  db.query.galaxy_nebula_cover, read live beside the cached payload
-  because the tile cache only invalidates on sector changes);
-  sector-level cells have no stored cover, so this item needs that if it
-  wants the colour at sector level. The route is additive, so
-  API_VERSION stays 5.
-  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
-  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 4, first (VIEW.21 and VIEW.28 are merged). Core 2 keeps MAP.142 and the
-  MAP.215, MAP.191, MAP.222 order.
-  Prerequisites: none. Related: MAP.131, MAP.174.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
-- [ ] **MAP.178 Field nebula clouds drawn one by one from the nebula table**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. individual clouds from `nebula_field` drawn as
-  sprites on the 1 to 4 px ramp of MAP.155, then as meshes,
-  de-duplicated with stored nebulae. Done: a browser test finds one of
-  each family on a seeded galaxy. Owner: Foundations lane 2.
-  Note (2026-10-10, nebula density research, PR #1188): the far sprite
-  is drawn at the equivalent radius (0.49 of the bounding radius) with
-  the 2 px floor and the MAP.155 ramp; the bounding radius stays for
-  picking and for the mesh load.
-  Note (2026-10-10, nebula density research, PR #1188): realistic cover
-  is about 2% at the median, so the ramp bins become 0, under 0.5%, 0.5
-  to 1.5%, 1.5 to 3% and 3% or more (or per-view percentiles).
-  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
-  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 4, after MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
-  MAP.222 order.
-  Prerequisite: MAP.173. Related: MAP.142.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
-- [ ] **MAP.179 Scattered nebulae as markers from level 8**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. planetary nebulae and remnants from the scatter shown
-  as the far-zoom markers of MAP.132 from level 8. Done: the markers,
-  with a browser test. Owner: Foundations lane 2.
-  Draws the far-zoom markers of the marker layer (first child of
-  MAP.132), so it needs it (2026-10-16 review); it keeps the
-  planetary-nebula and remnant kind.
-  Prerequisites: GEN.202. Related: MAP.132.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
-- [ ] **MAP.180 Picking, hover and fly-to for nebula regions and cover**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. hover and click on a region or on cover: a region
-  click flies to the zoom at which it splits (no page change), with a
-  keyboard path. Done: hover, click and keyboard paths with browser
-  tests. Owner: Foundations lane 2.
-  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
-  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 4, after MAP.178. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
-  MAP.222 order.
-  Prerequisite: MAP.176. Related: MAP.150 (done, #1382).
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
-- [ ] **MAP.181 Dust colour for the dark nebula family on both themes**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. umber (about #a9805a at 0.45 opacity) with a light
-  rim on the dark theme, chosen with the contrast checker of MAP.175,
-  and a matching light-theme colour. Done: the tokens and the 3:1 test
-  pass for the new colours. Owner: Foundations lane 2.
-  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
-  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 4, with MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
-  MAP.222 order.
-  Prerequisites: none. Related: MAP.142.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
 - [ ] **MAP.183 Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc**
   Boss (2026-10-10 22:01Z): review the cloud density against the real
@@ -2072,99 +1901,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.371 Plane view with stems A: a tilt preset and a grid plane through the focus on the Galaxy Map (one click to the galaxy midplane instead)**
-  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): option 1.1, a switchable 'Plane view with stems' in the
-  Galaxy Map 3D camera, 'but instead of height let's list its spherical
-  coordinates for its context and an ordered triple'. Size M in three
-  small parts, all map code, lock-free, no migration. Do: a tilt preset
-  in the Galaxy Map 3D camera that reuses the top-down and isometric
-  views of MAP.97; a grid drawn on a plane through the focus (the camera
-  target), parallel to the galaxy midplane, centred on the selection
-  with ring labels; a one-click choice of the midplane z = 0 instead.
-  The grid shows only at region and sector scale (tens to a few hundred
-  pc): at the galaxy scale the disc is too thin for it to mean anything.
-  Done: browser test that the preset tilts, the grid follows the focus
-  and the toggle between the two planes works. Goal #3241. Filed by the
-  TODO thread.
-  Boss decision on the shape: a 60 degree arc wedge (5:48 PM EST on
-  2026-11-04) (2026-11-04 5:50 PM EST): Boss answered the wedge mock-ups
-  (reports/galaxy-projection-survey-2026-11-04/, section 10,
-  galaxy-mock-a to d): the existing 3D perspective mode that shows
-  everything (nebulae, black holes and the rest) stays untouched; the
-  plane view with stems is drawn for a 60 degree arc wedge of the
-  galaxy, a pie slice from the galactic center, laid flat-tilted inside
-  the 3D map, with the edge-on side strip as an option (MAP.375).
-  Everything outside the wedge is drawn as today. This replaces the
-  'region and sector scale only' limit for the wedge itself: the wedge
-  works at galaxy scale (heights are drawn about 12 times taller than
-  true in mock A because the disc is about 3 percent as thick as it is
-  wide, so the height-stretch control of MAP.373 is needed; stems still
-  show only at a scale where they are larger than 2 px). Open sub-part,
-  not a requirement (the TODO thread lists it; Boss has not ruled): a
-  draggable angle and width for the wedge. The other option from the
-  survey, a wedge pointing out from a chosen star (redshift-survey
-  style), is not chosen. Done adds: a browser test that the wedge is 60
-  degrees, that the rest of the 3D view is unchanged, and that the plane
-  and kpc rings follow the wedge.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (unowned
-  before).
-  Prerequisites: none.
-
-- [ ] **MAP.372 Plane view with stems B: stems from labelled, selected and near-focus objects down to their shadow on the grid plane**
-  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): option 1.1, a switchable 'Plane view with stems' in the
-  Galaxy Map 3D camera, 'but instead of height let's list its spherical
-  coordinates for its context and an ordered triple'. Size M in three
-  small parts, all map code, lock-free, no migration. Do: one line
-  segment per drawn object from the object to its shadow on the grid
-  plane, only for the labelled objects (the label budget of MAP.317),
-  the selection, the pointer neighbourhood and the brightest N inside a
-  radius of the focus, never for all stars; thin, low contrast,
-  strongest for the selection; fade by distance and skip a stem shorter
-  than 2 px; the line layer uses the relative-to-eye encoding of the
-  star points (the MAP.240 class); shown only at region and sector
-  scale. Done: browser test and a measured frame cost at the budget.
-  Goal #3241. Filed by the TODO thread. Related: MAP.317, MAP.240.
-  Stems live inside the wedge (Boss, 5:48 PM EST on 2026-11-04)
-  (2026-11-04 5:50 PM EST): With the 60 degree arc wedge chosen (note on
-  MAP.371), the stem layer draws only inside the wedge; the budget rules
-  are unchanged (labelled, selected, near-focus objects, never all
-  stars). With a star selected, the grid rings are drawn around it (1, 2
-  and 3 kpc in mock C).
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (unowned
-  before).
-  Prerequisites: MAP.371.
-
-- [ ] **MAP.373 Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple**
-  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): option 1.1, a switchable 'Plane view with stems' in the
-  Galaxy Map 3D camera, 'but instead of height let's list its spherical
-  coordinates for its context and an ordered triple'. Size M in three
-  small parts, all map code, lock-free, no migration. Do: a Menu toggle
-  for the plane view and its stems; a height-stretch control (draw
-  heights 2 to 10 times larger, stated on the grid so it stays honest);
-  and on a stemmed or selected object a label (and the infobox line)
-  listing its spherical coordinates in the galaxy frame as an ordered
-  triple (radius, longitude, latitude) instead of a height number, with
-  units. Done: browser test of the toggle, the stretch and the triple;
-  the triple matches the stored position within rounding. Goal #3241.
-  Filed by the TODO thread.
-  Boss refinement (5:40 PM EST on 2026-11-04) (2026-11-04 5:40 PM EST):
-  The coordinates in the label follow the current context. In a sector
-  view the ordered triple (radius, longitude, latitude) is measured from
-  the sector center; in the galaxy view from the galactic center. When a
-  star is selected, the labels instead list the course and distance of
-  each star relative to the selected star (bearing and distance from it,
-  with units). Done adds: a browser test of each of the three contexts
-  (sector, galaxy, a star selected).
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (unowned
-  before).
-  Prerequisites: MAP.372.
-
 - [ ] **MAP.374 Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection**
   Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
   lane (galaxy projection survey, report section 8). Do: a chart of
@@ -2174,17 +1910,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   question 2) is held until Boss answers. Goal #3241. Filed by the TODO
   thread.
   Prerequisites: none.
-
-- [ ] **MAP.380 The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug)**
-  Core 2 (as the lane reported, 8:13 PM EST on 2026-11-04):
-  test_the_wheel_comes_close_enough_to_tell_two_stars_under_a_tenth_of_a_parsec_apart
-  fails the same on main before the MAP.378 and MAP.379 fix (#4954): at
-  the end of the wheel the second star is only 15 px from the first.
-  Find the commit that moved it (bisect), then either let the wheel zoom
-  close enough or, if a later item changed the closest zoom on purpose,
-  change the test and say why. Done: the test passes on main. Lock-free.
-  Version 8.1. Owner: Core 2.
-  Prerequisites: none. Related: MAP.378, MAP.379.
 
 ## NAV: Navigation and courses
 
@@ -2426,17 +2151,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT): code built for a pending feature stays.
     Prerequisites: NAV.25, NAV.26, NAV.54.
 
-- [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
-  Boss (2026-10-02 01:53Z): "a jump through unknown space is marked in
-  red and glows to draw attention to it." Done: a hop NAV.12 flags as
-  an unknown-space jump is drawn red with a glow in UX.35's horizontal
-  route strip, on the NAV page's own map (`lib/navmap.py`) and on the
-  Galaxy Map course (with NAV.20), with a legend entry; with
-  `prefers-reduced-motion` it stays red without the pulse; it reads in
-  both themes, and the route list also labels it in text so it isn't
-  shown by color alone. Prerequisites: none.
-  Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors
@@ -2630,128 +2344,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
 
-- [ ] **NAV.65 Schematic route map part 1: the graph around a route: route.graph in nav_between and /api/nav, with each stop's neighbours up to a cap**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  1 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: add route.graph
-  to nav_between and /api/nav: the edges among the route's stops and
-  each stop's neighbours up to a cap (marked on-route or not),
-  neighbours chosen by the relative neighbourhood graph rule of Boss's
-  answer 3.2 from the cell-key index. The graph is already built for the
-  search, so returning its edges costs no new search. Measure the cost
-  on a real galaxy (the research had no database). Done: tests of the
-  edges, the cap and the on-route flag; the measured cost in the note.
-  Proposed owner: Aux 7 (python) after GEN.1255. Goal #1679. Filed by
-  the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Aux 7 (started while
-  TEST.562 waits).
-  Prerequisites: none.
-
-- [ ] **NAV.66 Schematic route map part 2: the ribbon layout module: hops and branches to positions, log-compressed spacing, wrapping for narrow panels**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  2 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: a pure layout
-  module for the ribbon (layout L1 of the report): the route as a line,
-  long hops compressed in log spacing with their length written on them,
-  stubs for branches, a wrapping rule for narrow panels, deterministic
-  output. Done: unit tests with fixed inputs. Proposed owner: Aux 7. The
-  plain ribbon needs no branches; branches need part 1. Goal #1679.
-  Filed by the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Aux 7 (started while
-  TEST.562 waits).
-  Prerequisites: NAV.65.
-
-- [ ] **NAV.67 Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  3 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: draw the ribbon
-  from part 2 as SVG on the NAV page below the existing map: a glyph per
-  stop kind (system, stone kinds, phenomenon), hop length and course
-  labels, unknown-space hops red and glowing (the same work as NAV.36,
-  do them together), readable at 320 px, both themes, reduced motion
-  respected, text alternatives (the route stays a list). Done: a browser
-  test. Proposed owner: Core 2 (map and SVG). Folds in NAV.36. Related:
-  NAV.36. Goal #1679. Filed by the TODO thread.
-  Prerequisites: NAV.66.
-
-- [ ] **NAV.68 Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more'**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  4 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: faint stubs
-  around each stop from part 1's neighbours, capped per stop (the
-  label-budget idea) with 'and N more' where a dense stop has more; the
-  route's own hops always drawn. Done: a browser test in a dense and a
-  sparse case. Proposed owner: Core 2. Goal #1679. Filed by the TODO
-  thread.
-  Prerequisites: NAV.65, NAV.67.
-
-- [ ] **NAV.69 Schematic route map part 5: linked selection between the course diagram and the Galaxy Map**
-  Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
-  questions
-  (reports/nav-schematic-route-map-2026-11-04/nav-schematic-route-map-2026-11-04.md,
-  section 9) with 1.1, 2.1, 3.2, 4.1: build the course diagram on the
-  NAV page first (parts 1 to 3), then the neighbours and the
-  click-through to the Galaxy Map; it sits on the NAV page below the
-  existing map, linked to the Galaxy Map; neighbourhood links use the
-  relative neighbourhood graph (no tuning number, about 1.5 links a
-  system) plus always the route's own hops; the layout is a ribbon. Part
-  5 of 8 in section 8. Lock-free (display, API or query work; no epoch,
-  no golden). The page text must say a link is a neighbour relation, not
-  a travel lane, until lanes exist. No stored neighbour link graph
-  exists, only the 3 nearest per object, so neighbours of a stop come
-  from the cell-key index (objects_within, nearest). Do: clicking a stop
-  in the diagram centres the Galaxy Map's course on it; clicking a
-  marker on the map highlights it in the diagram. Share one route record
-  between the diagram and the map route layers (MAP.309, MAP.310) so the
-  two views never disagree. Done: a browser test in both directions.
-  Proposed owner: Core 2. Related: MAP.309, MAP.310. Goal #1679. Filed
-  by the TODO thread.
-  Prerequisites: NAV.67.
-
 - [ ] **NAV.70 Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain**
   Boss, 5:45 PM EST on 2026-11-04, answered the schematic route map
   questions
@@ -2816,32 +2408,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   editing surface; the diagram is a better one than the 3D map, a later
   part). Goal #1679. Filed by the TODO thread.
   Prerequisites: NAV.6.
-
-- [ ] **NAV.73 Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug)**
-  Aux 7 (as the lane reported, 8:38 PM EST on 2026-11-04), found while
-  building NAV.65. db/corridor._systems_of and query._load_nav_endpoint
-  add a system's sector-local offset to its sector centre without
-  turning it by the sector's axes (frame.local_to_galaxy_pc,
-  sector_orientation). So a routed system sits up to a few light-years
-  from its stored galaxy_x_pc, galaxy_y_pc and galaxy_z_pc, the position
-  the Galaxy Map, the nearby search and the cell index use. Measured 2.7
-  to 4.5 ly on a sector at longitude about 58 degrees; near zero only
-  for sectors on the +X axis. It shifts the hop lengths and the courses
-  of every cross-sector route and the in-sector shift-back
-  (sector_offset). NAV.65 works around it by reading each stop and its
-  neighbours from the index columns, so its links are self-consistent,
-  and keeps the route's own hop lengths on the on-route edges. Do: make
-  route positions come from frame.local_to_galaxy_pc, and make the
-  shift-back use galaxy_to_local_pc; then the NAV.65 workaround can read
-  the same positions as the route. Done: a test on a sector at a
-  non-zero longitude where every routed system's position equals its
-  stored galaxy position to within rounding, and the hop lengths of a
-  cross-sector route equal the distances between the stored positions. A
-  route's length changes for Boss: routes now measure true distances.
-  Lock-free (no stored value changes; cached routes, if any, are
-  rebuilt). Version 8.1. Owner: Aux 7, after NAV.66. Filed by the TODO
-  thread.
-  Prerequisites: none. Related: NAV.65, NAV.66.
 
 ## GEN: Generation and physics
 
@@ -10909,7 +10475,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   what could live there; GEN.1209 adds the list of what does live there,
   with a prevalence each. Do not make life_class_id a single-valued
   public contract: GEN.1209 adds a list beside it.
-  Prerequisites: GEN.862, UX.237.
+  Prerequisites: GEN.862.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
@@ -13372,7 +12938,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   honest share, and define the terrestrial-kind class T by its thin
   hydrogen air instead of calling it a gas dwarf. The giant-kind T
   bodies keep their stored envelope and are the real gas dwarfs.
-  Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1214.
+  Prerequisites: GEN.1219, GEN.1220, GEN.1221.
   Related: GEN.1215, GEN.1211.
 
 - [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
@@ -13594,143 +13160,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one-class list equals today's air becomes a test that any difference
   from today is one the audit explains and Boss has seen.
   Prerequisites: GEN.862. Related: GEN.1209, GEN.1210, UX.237.
-
-- [ ] **GEN.1214 Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug)**
-  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): investigate and
-  fix why CO2 and hydrocarbon (methane-ethane) seas are not being
-  created. Filed by the TODO thread. Overlap checked: the surface liquid
-  inventory GEN.1035 is done and wired (surface_liquids.py,
-  surface_liquid_world.py, migration 0188: surface_liquid,
-  surface_liquid_fraction, surface_liquid_depth_km); it should give a
-  Titan-like body a methane sea and a cold CO2 world a liquid CO2 sea,
-  but Boss sees none. Do: (1) a census over a few hundred generated
-  systems of surface_liquid by value (water, lava,
-  methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water,
-  sulfur, none) split by class and by temperature and pressure band,
-  printing the cold bodies (below 120 K) that hold a volatile ice or air
-  but get none, with the reason each time (ice mass fraction, saturation
-  pressure, the SURFACE_SHARE_OF_ICE share, the triple point window of
-  CO2 which needs more than 5.2 bar, the generator never reaching the
-  cold band, or a code path not called for moons or planets); (2) find
-  the cause and fix it at the cause; if a stand-in (LQ11 to LQ14) is the
-  cause, change it with tier and tweak level in GEN.725; (3) the fix
-  changes stored output (new liquids on worlds that had none), so it is
-  an epoch with --affects on a train, and the census is printed before
-  and after in the report. Physics drives; no forced seas. Owner: Tides
-  1 (built GEN.1035). Where we think it belongs (best guess, can move):
-  Tides 1.
-  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
-  2026-10-31) (2026-10-31 11:12 AM EDT): the research GEN.1216 will say
-  what composition the seas this item creates should have; fix the
-  creation first (this item), the composition follows in GEN.1218.
-  Evidence from the Class M thread (11:20 AM EDT 2026-10-31) (2026-10-31
-  11:25 AM EDT): two 300-system samples (seed 1000, seed 5): methane
-  seas 7 and 19, CO2 seas 2, pure ammonia 7, no sulfuric acid. Causes
-  found: about 17 percent of 90 to 190 K bodies get methane ice; 25 of
-  35 cold bodies over 50 kPa with methane ice get no sea
-  (SURFACE_SHARE_OF_ICE, stand-in LQ11); of 48 and 59 bodies in the CO2
-  sea window 42 and 52 take a water liquid first (one surface liquid per
-  body) and only 16 hold CO2 ice; ICE_LIQUID has no sulfuric acid and no
-  ammonia-water solution. So the item is: review the supply of non-water
-  seas (the ice draws, the share, one liquid per body, the missing
-  liquids) and add the missing liquids, not only a bug hunt.
-  Tides 1 census (as the lane reported, 11:25 AM EDT 2026-10-31)
-  (2026-10-31 11:35 AM EDT): report
-  /mnt/project-files/reports/tides1/gen1214/census-report-2026-10-31.md
-  (300 systems, 5,311 bodies). No single faulty stage: seas are rare
-  because three quarters of the cold volatile holders are under the
-  triple pressure (the ice sublimes) and the rest are outside narrow
-  windows; no in-window supplied body was left sealess, so LQ11 is not
-  the cause. Real gaps: N2 ice is never stored (the comet table has no
-  N2), no ethane liquid, no sulfuric acid or ammonia-water solution, and
-  one liquid per body (28 of 37 CO2-window bodies show water only). The
-  gaps go to the composition chain (GEN.1217, GEN.1218) and GEN.1215;
-  GEN.1215 can share an epoch with this item and GEN.1222.
-  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
-  and GEN.1222 as one lock branch (as the lane reported):
-  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
-  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
-  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
-  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
-  seas in its sample were wrong), and warm water under crushing air (4.5
-  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
-  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
-  classes read them, classes unchanged on 404 bodies. Goes after train 7
-  merges.
-  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.821.
-
-- [ ] **GEN.1215 Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable)**
-  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): store the acid
-  and ammonia fractions of the surface liquid, because they can make a
-  planet uninhabitable. Filed by the TODO thread. Overlap checked:
-  GEN.1035 stores only which liquid (surface_liquid), its cover fraction
-  and its depth; the ammonia-water row and the sulfuric branch of the
-  acid medium (GEN.888, still open) are not stored as numbers. Do: (1)
-  new numeric columns on planets and moons, for example
-  surface_liquid_ammonia_fraction and surface_liquid_acid_fraction (mass
-  fraction of the liquid; and the acid kind or strength where the model
-  has it, sulfuric from GEN.888), declared in db/column_units.py with a
-  migration, the schema document, the API and the property sheet; (2)
-  the surface liquid world step fills them from the same inputs it
-  already uses (the ammonia ice, the SO2 and water shares for sulfuric
-  acid, the temperature) with no new random draws; (3) habitability and
-  the life class tests read them: an ammonia fraction or an acid
-  strength past the tolerance of a life class makes the world unsuitable
-  for that class (the stand-ins for the tolerances go in GEN.725 with
-  tier and tweak level, L3 until a source is read); (4) the Life section
-  says why a sea is not livable. Output change with a migration: one
-  epoch on a train, can share the epoch of the seas bug. Owner: Tides 1
-  with Aux 2 (habitability and life classes). Where we think it belongs
-  (best guess, can move): Tides 1.
-  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
-  2026-10-31) (2026-10-31 11:12 AM EDT): this item is the first part of
-  the full composition model; the research is GEN.1216, the design
-  GEN.1217 and the build GEN.1218. Keep the columns of this item
-  compatible with the design (fractions of each component), and do not
-  build a second storage scheme.
-  Evidence from the Class M thread (11:20 AM EDT 2026-10-31) (2026-10-31
-  11:25 AM EDT): the functions exist in acid_medium.py and
-  strange_solvents.py but nothing stores them; Boss: they can make a
-  world uninhabitable. The class code system (GEN.1220) uses the acid
-  medium for the sulfuric acid class U and the ammonia-water mass
-  fraction for class X.
-  Boss decisions on the design (11:56 AM EDT 2026-10-31) (2026-10-31
-  11:58 AM EDT): Boss answered (11:56 AM EDT 2026-10-31): (1) yes, a
-  body may hold one extra liquid beside its main one; (2) store a
-  liquid's makeup as separate columns; (3) acid clouds vs pools NOT
-  answered, the coordinator will ask again, build pools only until he
-  does; (4) the ammonia life gate near 5 percent of the liquid's mass is
-  accepted as a starting guess, BUT it must be tuned from real physics
-  and chemistry (research GEN.1225); (5) invent the nitrogen ice amount
-  from where nitrogen freezes as a registered stand-in, also to be tuned
-  from physics and chemistry (same research); (6) a body with methane
-  and carbon monoxide ice warm enough for liquid methane gets a methane
-  sea. Build the acid and ammonia columns as the design says (separate
-  columns, percent of the liquid's mass); the acid cloud flag waits for
-  the answer to (3).
-  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
-  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
-  the strongest level with a pool-or-cloud flag. This replaces the
-  earlier note that cloud storage waited for an answer; all six surface
-  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
-  4 and 5 to be tuned from physics by GEN.1225).
-  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
-  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
-  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
-  the ammonia gate follows the liquidus share, and nitrogen ice uses the
-  trapping factor and the partial-pressure condensation temperature.
-  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
-  and GEN.1222 as one lock branch (as the lane reported):
-  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
-  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
-  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
-  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
-  seas in its sample were wrong), and warm water under crushing air (4.5
-  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
-  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
-  classes read them, classes unchanged on 404 bodies. Goes after train 7
-  merges.
-  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
 - [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
   Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
@@ -14296,42 +13725,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1255, GEN.1256, GEN.1257. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **GEN.1255 Local names from the Object ID: the serial and body number spelled alone as two words through a keyed bijective scramble, CODEC_VERSION 2**
-  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
-  questions of reports/id-names-without-region-prefix-2026-11-04.md
-  section 7 (research thread): (1) a name is the local part of the
-  Object ID only, two words, with the sector shown beside it, and the
-  uid stays the identity; (2) one uid-derived scheme for every ID-named
-  object, retiring the position-ID names of rogues, nebulae and the
-  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
-  old derived name is kept as a Formerly line when charting gives a
-  word-salad name. This item is question 1. Today an ID-derived name
-  spells the whole position ID as four words (36 characters), so objects
-  born near each other share their leading words. Do: in
-  names/naming_key.py add a local-name function that spells only the
-  serial (28 bits, of which 26 are count bits) and body number, in its
-  own codec domain so it never carries the sector's words, as two words
-  of about 10 characters ('Hairun Binn'). The raw serial must be
-  scrambled first with a keyed bijection on the 26 count bits (odd
-  multiplier and offset, mixed with the sector), because serials 0, 1, 2
-  spelled directly share their first word; the research check gave 1,000
-  serials as 1,000 different first words and names. The scramble is a
-  bijection, so the name is reversible with the key. The sector
-  designation is shown beside the name wherever a name stands alone
-  ('Hairun Binn, sector 00FA0FFFE9E240'); name inside a sector is exact,
-  and on its own it is shared with another object about 1 time in 27 at
-  10 million objects, which the sector settles. A naming-key change
-  renames ID-named objects without rewriting rows. CODEC_VERSION goes to
-  2 (golden words change; testing mode). Stored data and the generator
-  are untouched, so this is lock-free. Done: golden words; a bijection
-  test for the scramble; a test that local names are unique inside a
-  sector and that no two serials of a sector share a first word;
-  reversal from the name and sector back to the uid; naming docs
-  updated. Owner Aux 7 (idle after TEST.562, proposed by the TODO
-  thread). Related: GEN.70, GEN.71, GEN.120, GEN.1254. Filed by the TODO
-  thread.
-  Prerequisites: none.
-
 - [ ] **GEN.1256 One uid-derived name scheme for every ID-named object: rogues, nebulae, remnants, quasars, comets, asteroid fields and black holes stop using the position ID as a name**
   Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
   questions of reports/id-names-without-region-prefix-2026-11-04.md
@@ -14357,7 +13750,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   position-ID spelling; the audit written into the item's note. Owner
   Planets 1 (rogues and the phenomena stores) after GEN.1111. Related:
   GEN.64, GEN.71, GEN.1254, GEN.1255. Filed by the TODO thread.
-  Prerequisites: GEN.1254, GEN.1255.
+  Prerequisites: GEN.1254.
 
 - [ ] **GEN.1257 Charting keeps the old ID-derived name as the first Formerly line when a word-salad name replaces it**
   Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
@@ -14382,7 +13775,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Formerly line shows the date and reason 'charted'. Owner Core 1
   (designation history). Related: GEN.1138, GEN.1140, GEN.1141,
   GEN.1254, GEN.1255. Filed by the TODO thread.
-  Prerequisites: GEN.1254, GEN.1255.
+  Prerequisites: GEN.1254.
 
 - [ ] **GEN.1258 Store an ammonia-water fraction for icy bodies so class X (ammonia-water) can join the class-by-domain fit table**
   Core 4, 6:25 PM EST on 2026-11-04 (as the lane reported), built the
@@ -14644,6 +14037,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TEST.430 prevalence census is re-baselined after it. Proposed owner:
   Core 5 (habitability and API columns), after DOC.103. Filed by the
   TODO thread.
+  Limits to print in the page text (Aux 2, as the lane reported) (9:30
+  PM EST on 2026-11-04): circular orbit only; the sea is spread evenly;
+  ground ice follows the cell's mean, not its season; a near-resonant
+  slow spinner (Nitrikin-like) uses the unlocked transport share.
+  Example livable shares: thick-air locked 1.0, 0.1 bar locked 0.22,
+  0.01 bar 0.06, Earth-like 0.97 (0.83 with ice), 12 h thin 0.62, 60 d
+  spinner 0.67. Cost: see PERF.238.
   Prerequisites: GEN.1264. Related: GEN.725, TEST.430.
 
 - [ ] **GEN.1266 Temperature coverage part 5 (lock): gear from the best site with a worst-conditions note, hours outside from the best site with a worst-to-best range, the text and the design doc**
@@ -14672,6 +14072,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (habitability from the mean). Rides the same train as part 4 (same
   migration or a second one, golden and epoch). Proposed owner: Core 5.
   Filed by the TODO thread.
+  Limits to print in the page text (Aux 2, as the lane reported) (9:30
+  PM EST on 2026-11-04): circular orbit only; the sea is spread evenly;
+  ground ice follows the cell's mean, not its season; a near-resonant
+  slow spinner (Nitrikin-like) uses the unlocked transport share.
+  Example livable shares: thick-air locked 1.0, 0.1 bar locked 0.22,
+  0.01 bar 0.06, Earth-like 0.97 (0.83 with ice), 12 h thin 0.62, 60 d
+  spinner 0.67. Cost: see PERF.238.
   Prerequisites: GEN.1265. Related: GEN.768.
 
 - [ ] **GEN.1267 A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it**
@@ -14782,80 +14189,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the pages show everything. The report was written in the coordinator's
   research thread, not by Sources 1.
 
-- [ ] **GEN.1269 Nebula composition part a: one shared model for diffuse, emission, reflection, dark and field-cloud nebulae (mass fractions, gas phases, dust, metals from the place)**
-  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
-  in /mnt/project-files/reports/): every kind of nebula can be derived
-  at read time with no new column, so the chain is lock-free unless Boss
-  answers question 2 with "store the progenitor mass". Defaults taken
-  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
-  gradient now as a registry stand-in; derive progenitors from the
-  object ID at read time; Magellanic gas drawn within the widest range
-  of the two methods; dust-destruction fractions as tweakable GEN.725
-  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
-  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
-  GEN.1268. Do: section 2 and 3 of the report: one function from the
-  stored class, the place's [Fe/H] and gas density and the host star to
-  H, He and Z mass fractions, the ionized, atomic and molecular split,
-  dust-to-gas and dust-to-metals, the grain mix, and 12+log abundances
-  of C, N, O, Ne, S, Ar and Fe, derived at read time with no stored
-  column. Done: fractions sum to one, a metal-poor place gives a
-  metal-poor nebula, every class of the table has a row, and the
-  stand-ins are in GEN.725 with tier and tweak level. Lock-free. Version
-  8.1. Owner: Sources 1.
-  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
-  composition for all nebulae, all supernova remnants and the field
-  clouds, because he wants as much as possible searchable, and the
-  stored values include the progenitor mass for planetary nebulae and
-  remnants. This replaces the report's default of deriving at read time
-  (question 2 of the report). The model parts keep their work (they
-  compute the values from the place, the class and the progenitor) but
-  the values are written at generation and backfill by GEN.1276 (nebulae
-  and remnants) and GEN.1277 (field clouds), which are lock items. The
-  lock-free statement above applies to this part's model code only.
-  BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
-  GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
-  the composition is stored for all nebulae, remnants and the field
-  clouds (stars stay derived); the gas gets its OWN metallicity gradient
-  as a separate GEN.725 stand-in (this replaces the default of reusing
-  the stars' 0.06 gradient); the Magellanic metallicity uses the widest
-  range of the two methods; dust survival is sourced in section 11 (H II
-  regions and planetary nebulae 0.9 for iron grains, a shocked LMC
-  remnant 0.39 silicate and 0.60 iron, Cas A ejecta dust 0.4 solar
-  masses falling to 12 to 16 percent); Wolf-Rayet rings and planetary
-  nebulae get helium and nitrogen enrichment; each field cloud gets its
-  own varied composition keyed on its cell; rogue planets are left out;
-  the pages show everything. The report was written in the coordinator's
-  research thread, not by Sources 1.
-  Prerequisites: none. Related: GEN.1268.
-
-- [ ] **GEN.1270 Nebula composition part b: planetary nebulae with the progenitor's ejecta and dredge-up enrichment**
-  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
-  in /mnt/project-files/reports/): every kind of nebula can be derived
-  at read time with no new column, so the chain is lock-free unless Boss
-  answers question 2 with "store the progenitor mass". Defaults taken
-  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
-  gradient now as a registry stand-in; derive progenitors from the
-  object ID at read time; Magellanic gas drawn within the widest range
-  of the two methods; dust-destruction fractions as tweakable GEN.725
-  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
-  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
-  GEN.1268. Do: section 5: a planetary nebula's helium, carbon, nitrogen
-  and oxygen from its progenitor's mass (drawn from the object ID at
-  read time, one stream a later central star can read too) and its
-  dredge-up. Done: tests on the progenitor to ejecta relation and on
-  determinism. Lock-free. Version 8.1. Owner: Sources 2 after VIEW.23.
-  BOSS DECISION (8:49 PM EST on 2026-11-04): Boss decided to STORE the
-  composition for all nebulae, all supernova remnants and the field
-  clouds, because he wants as much as possible searchable, and the
-  stored values include the progenitor mass for planetary nebulae and
-  remnants. This replaces the report's default of deriving at read time
-  (question 2 of the report). The model parts keep their work (they
-  compute the values from the place, the class and the progenitor) but
-  the values are written at generation and backfill by GEN.1276 (nebulae
-  and remnants) and GEN.1277 (field clouds), which are lock items. The
-  lock-free statement above applies to this part's model code only.
-  Prerequisites: GEN.1269. Related: GEN.1269.
-
 - [ ] **GEN.1271 Nebula composition part c: supernova remnants as swept-up gas plus ejecta, checked against Cassiopeia A**
   Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
   in /mnt/project-files/reports/): every kind of nebula can be derived
@@ -14933,28 +14266,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   metal-poor. Done: a Cloud nebula is more metal-poor than one at the
   solar circle, and the range is a GEN.725 row. Lock-free. Version 8.1.
   Owner: with GEN.367's owner.
-  Prerequisites: GEN.1269, GEN.367. Related: GEN.1269, GEN.367.
-
-- [ ] **GEN.1274 Nebula composition part f: read the sources marked recalled and replace their stand-ins**
-  Research: reports/gen1268-nebula-composition-2026-11-05.md (Sources 1,
-  in /mnt/project-files/reports/): every kind of nebula can be derived
-  at read time with no new column, so the chain is lock-free unless Boss
-  answers question 2 with "store the progenitor mass". Defaults taken
-  (reversible; Boss can say otherwise): reuse the stars' 0.06 gas
-  gradient now as a registry stand-in; derive progenitors from the
-  object ID at read time; Magellanic gas drawn within the widest range
-  of the two methods; dust-destruction fractions as tweakable GEN.725
-  rows; Wolf-Rayet rings and planetary nebulae enriched; field clouds
-  get a keyed read-time draw; rogue planets stay on GEN.557. Part of
-  GEN.1268. Do: open the sources the report marks "Recalled, not opened"
-  at the end of its Sources section (the star-formation efficiency, the
-  Type Ia yield tables, the grain-model paper, the Peimbert Type I
-  limits, the Crab and Cassiopeia A dust masses, and the warm neutral
-  and ionized medium fractions), add them to the citation registry with
-  scripts/build_references.py add, and replace their GEN.725 rows with
-  verified values. Done: no nebula composition row is marked recalled.
-  Lock-free. Version 8.1. Owner: Sources 1.
-  Prerequisites: none. Related: GEN.1269.
+  Prerequisites: GEN.367. Related: GEN.1269, GEN.367.
 
 - [ ] **GEN.1275 The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug)**
   Bug 1 (as the lane reported, 8:50 PM EST on 2026-11-04), found while
@@ -15019,7 +14331,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.1. Owner: the lane that takes the lock build (Core 3 holds
   GEN.1261 for train 12; decide after the models land). Filed by the
   TODO thread.
-  Prerequisites: GEN.1269, GEN.1270, GEN.1271. Related: GEN.1268,
+  Prerequisites: GEN.1271. Related: GEN.1268,
   GEN.1267, GEN.725.
   BOSS DECISIONS (8:54 PM EST on 2026-11-04): Boss fully decided
   GEN.1268 (as the coordinator relayed; report sections 9, 11 and 12):
@@ -15069,6 +14381,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the pages show everything. The report was written in the coordinator's
   research thread, not by Sources 1.
   Prerequisites: GEN.1276. Related: GEN.1268, GEN.1276.
+
+- [ ] **GEN.1278 Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14)**
+  Aux 5 (as the lane reported, 10:14 PM EST on 2026-11-04), finding
+  behind GEN.1071: the outer belt dust that decides whether a star holds
+  a debris disk now comes from the collisional-cascade law, with a
+  stand-in cut (DU1, L3) tuned so K, G and F dwarfs together hold a disk
+  about as often as surveys find (17 percent). Per type the result is
+  Sun-like 8 percent against 14 measured, A stars none against 24, F
+  about half. Those gaps come from the outer disc's mass and width,
+  which are too small or too narrow for hot stars. Do: derive the outer
+  disc's mass and width from a planetesimal-formation model (the disc
+  mass and the radial extent as a function of the star's mass and
+  luminosity, with the sources and their tier), so A and F stars shine
+  as surveys see, then retune or remove the DU1 cut. Done: the
+  debris-disk share by type (A, F, G, K) within the surveyed bands, the
+  stand-in rows in GEN.725 with tier and tweak level, the census shares
+  re-tagged. Lock item (generation output changes: an epoch with
+  --affects fill, golden, census re-tag); earliest train 12, after
+  GEN.1071 is on main. Version 8.1. Owner: Aux 5. Filed by the TODO
+  thread.
+  Prerequisites: GEN.1071. Related: GEN.1071, GEN.1068, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15609,28 +14942,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation and which are load.
   Prerequisites: none.
 
-- [ ] **PERF.232 test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug)**
-  Found by Aux 3's sweep of TEST.290 part b, 1:10 PM EST on 2026-11-04
-  (as the lane reported). The stack dump of the slow step is
-  backfill_cells, bright_band_fraction,
-  star_population._bright_fraction, evolved_tracks._corners: every
-  process evaluates the evolved tracks cold for each cell. The test
-  passed or failed only by the run being killed at 15 to 20 minutes.
-  Suspects named by the lane: #4688, GEN.1024, GEN.744. Do: profile one
-  backfill of a small galaxy; cache the evolved-track corner evaluation
-  across cells and processes (the star tables of PERF.188 already live
-  on disk; reuse that mechanism and its key), or hoist the per-cell work
-  out of the loop; measure before and after on the same machine. Done:
-  the test finishes in under 3 minutes on a 4-core machine and the draws
-  are bit-identical (golden unchanged). Lock-free if no value changes.
-  Related: PERF.188, TEST.290, TEST.417. Owner Star 2 (it built
-  PERF.188; proposed by the TODO thread). Filed by the TODO thread.
-  Core 5 finding (2026-11-04 3:35 PM EST):
-  tests/test_emission_members.py (the pre-placed hot star test) also
-  times out past 900 s on main. Take it with this item; it is a
-  slow-test cost, not a spelling effect.
-  Prerequisites: none.
-
 - [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
   Boss, 6:02 PM EST on 2026-11-04, lost his SSH session during planetgen
   warm --progress. What the code does (src/planetgen/cli/warm.py,
@@ -15677,7 +14988,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free. Done: the measured cost in the note and a test with a
   budget. Proposed owner: Aux 3, after GEN.1263. Filed by the TODO
   thread.
+  Measured (Aux 2, as the lane reported) (9:30 PM EST on 2026-11-04):
+  the temperature series of GEN.1262 to GEN.1264 costs 0.1 to 0.3 s a
+  body for mild worlds and 1 to 2 s for cold thin-air ones, not the 20
+  ms guessed. Bulk generation needs this item before GEN.1265 stores
+  anything: a coarser grid or fewer steps for the census, or a cached
+  series, with the stored mean unchanged. Owner: Aux 2, next lock-free
+  item, before GEN.1265.
   Prerequisites: GEN.1263. Related: GEN.1262, GEN.1263, GEN.1264.
+
+- [ ] **PERF.240 A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug)**
+  Bug 1 (as the lane reported, 10:33 PM EST on 2026-11-04), found
+  building GEN.1275: once a barred system must hold no planet or moon of
+  a life-carrying class, a barred system costs about 12 s to draw
+  against 3 s. Late remakes are 44 percent of the time and planet
+  redraws 33 percent. Do: profile a barred draw, then cut the repeated
+  work (draw the barred conditions once, reject a class earlier in the
+  planet draw, or reuse the finished bodies that are not affected),
+  keeping the generated output identical to the GEN.1275 branch. Done: a
+  barred system at or under about 4 s on the measured set, the time in
+  the performance guard, the output unchanged (golden and census
+  identical). Lock-free if the output is identical. Version 8.1. Owner:
+  Bug 1, after GEN.1275 merges. Filed by the TODO thread.
+  Prerequisites: GEN.1275. Related: GEN.1275, PERF.236.
 
 ## DB: Database and schema
 
@@ -16641,7 +15974,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   settings pages and the orbit infobox eccentricity (UX.210 says what
   the number is). What is left is only the in-site help pages and
   glossary, which wait for DOC.15; nothing to build until then.
-  Prerequisites: none. Related: GEN.771, DOC.15.
+  Core 5 (as the lane reported) (9:41 PM EST on 2026-11-04): the API,
+  CLI, stats and settings parts are merged; the only part left is the
+  units entries of the DOC.15 glossary and units help page, which does
+  not exist yet. Waits behind DOC.15; no build lane is needed until
+  then.
+  Prerequisites: none. Related: GEN.771, DOC.15, .
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
@@ -16716,7 +16054,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   answers; the wire-format docs updated. Owner Core 5 (API) after
   DOC.103, proposed by the TODO thread. Related: GEN.1255, API.36
   (region-name search, open), GEN.1140. Filed by the TODO thread.
-  Prerequisites: GEN.1254, GEN.1255.
+  Prerequisites: GEN.1254.
 
 ## ADM: Admin tools
 
@@ -17956,32 +17294,6 @@ clears each one.
   gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.171, TEST.172.
 
-- [ ] **TEST.234 test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug)**
-  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
-  GEN.321's third gate, loaded browser phase), filed by the TODO thread.
-  `src/tests/test_web_settings_browser.py::test_the_review_and_error_pages_are_accessible[admin]`
-  failed `_overflow` (scrollWidth 606 against a 390 px viewport, the
-  widest element `sl-dropdown.site-gear`) once; the same file's other
-  roles and a rerun passed (Core 3 had not rerun it alone at the time of
-  the report). The overflow is read straight after
-  `wait_for_selector("table.settings-diff")`, with no wait for the
-  Shoelace components to be defined; a `sl-dropdown` that is not
-  upgraded yet lays its slotted content out inline, which is as wide as
-  a menu (inferred from the element named, not reproduced). Fails on
-  main: not run on main. Frequency: once. Reproducer: not known; run the
-  test under load (`stress` on the box) or add a `page.route` that
-  delays the Shoelace script by 2 s. Do: wait for
-  `customElements.whenDefined('sl-dropdown')` (or the page's own ready
-  flag) before `_overflow`, in this test and in the shared `_page`
-  helper if other tests read layout before the components load; if the
-  width still shows with the components defined, the gear dropdown is a
-  real overflow on the review page at 390 px and the CSS is the fix.
-  Done: the cause is on this item and the test passes 30 of 30 runs with
-  the Shoelace script delayed by 2 s. Owner: Core 3 (found it;
-  proposed), or Core 5 (owns the TEST/DOC small items) if Core 3 is
-  busy.
-  Prerequisites: none. Related: TEST.126.
-
 - [ ] **TEST.237 The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug)**
   Found by Core 5 (2026-10-17, relayed by the coordinator at 10:46 PM
   EDT on the lane's clock, its gate 7), filed by the TODO thread. The
@@ -18902,20 +18214,6 @@ clears each one.
   1).
   Prerequisites: none. Related: TEST.579, GEN.367.
 
-- [ ] **TEST.581 test_maintenance::test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly fails on main with "Unknown database 'x'" (bug)**
-  Aux 3, 7:29 PM EST on 2026-11-04 (as the lane reported), found this
-  red on plain main, not from its PR: the test names a database 'x' that
-  the test MySQL does not have, so the rebuild fails with 'Unknown
-  database' before the check the test is about. Do: find the commit that
-  turned it red, make the test create or mock the database it names (or
-  stop the rebuild earlier through the real seam), and keep what it
-  asserts (a rebuild that cannot reopen the site fails loudly, and does
-  not exit zero). Done: the test green alone and in the changed gate.
-  Proposed owner: Bug 1, with TEST.580. Filed by the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Tides 1 (moved from
-  Bug 1).
-  Prerequisites: none. Related: TEST.580.
-
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
   Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
   (reports/temperature-coverage-2026-11-04.md, section 9). Do: sweep the
@@ -18931,31 +18229,33 @@ clears each one.
   (prevalence census owner), after GEN.1265. Filed by the TODO thread.
   Prerequisites: GEN.1265. Related: GEN.1265, TEST.430, GEN.725.
 
-- [ ] **TEST.583 Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug)**
-  Core 2 (as the lane reported, 8:39 PM EST on 2026-11-04), found while
-  merging PERF.233 (#4965): four tests in files it touched are red on
-  main already, not from that change. test_settings fails because
-  cli/warm.py reads PLANETGEN_WARM_TIME_LIMIT_SECONDS but the settings
-  model has no such setting (the warm-up limit moved to
-  WARM_STAGE_SECONDS with OPS.95); three tests in
-  test_readme_external_files fail on the readme's external-file list.
-  Find the commit for each, fix the code or the test and say which.
-  Done: the four pass on main. Lock-free. Version 8.1. Owner: Tides 1,
-  with TEST.580 and TEST.581. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.580, TEST.581, OPS.95.
-
-- [ ] **TEST.584 test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug)**
-  Core 5 (as the lane reported, 8:47 PM EST on 2026-11-04), merging
-  API.40 (#4972): this test fails on clean main and not from that
-  change; the delete of a sector that holds facilities returns 409 where
-  the test expects the delete to go through. Find the commit that
-  changed it, then fix the code or the test and say which (a sector with
-  facilities may rightly refuse deletion now; if so the test is stale).
-  Done: the test passes on main. Lock-free. Version 8.1. Owner: Tides 1,
-  with TEST.583. The american_spelling code-strings failures
-  (updateguard.py cancelled, sheet.py disc) are the DOC.103 sweep, which
-  is in train 10. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.583, TEST.580, TEST.581, DOC.103.
+- [ ] **TEST.585 Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug)**
+  Core 2 (as the lane reported, 9:43 PM EST on 2026-11-04) saw the
+  accessibility test fail with a sample_params error for
+  /references/method/<area>, and Aux 7 (9:24 PM EST) saw
+  test_health_reports_the_reason_for_maintenance and
+  test_sweep_atmosphere fail the same on main as on its branch. None is
+  from those lanes' changes. Find the commit for each, fix the code or
+  the test and say which. test_burn_down_register (the 6.170 rows) is
+  already in TEST.580. Done: the three pass on main. Lock-free. Version
+  8.1. Owner: Tides 1, with TEST.580, TEST.581 and TEST.583. Filed by
+  the TODO thread.
+  More from Aux 7 (as the lane reported) (9:46 PM EST on 2026-11-04):
+  four nebula-volume fuzz cases, test_page_numbers_clamp for /systems,
+  and test_a_neighborhood_job_runs_its_sectors_through_the_wrapper also
+  fail on main (the last also in a partial gate). The same pass found
+  the citation lock failing on main from
+  src/tests/test_nav_route_graph.py (a wedge label that read as a name and
+  a year, from NAV.73; Aux 7 fixed that one in #5012). Include all of these in this item.
+  Part 2 (Tides 1, as the lane reported) (11:10 PM EST on 2026-11-04): a
+  LOCK item for the next train: branch claude/test585-trace-air-state
+  head 3bf0c3584, build-only (no epoch, no golden): trace_air.apply
+  recomputes the stored molar mass, density and scale height after
+  adding trace gases (fixes test_sweep_atmosphere, off by 1.4e-8 on N2O
+  worlds), and gas_equilibrium.solve retries with trace-element amounts
+  1e-12 then 1e-9 (fixes the element-balance error). Part 1 (the
+  test-only fixes) is PR #5025.
+  Prerequisites: none. Related: TEST.580, TEST.581, TEST.583.
 
 ## USR: User accounts
 
@@ -20533,71 +19833,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   queue waits).
   Prerequisites: none.
 
-- [ ] **VIEW.22 System sky S4: sphere query by luminosity for charted stars, bright_stars, scattered phenomena and cluster members, on db/region.py**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S4 of S1 to S22 in section 7. Do: a query that returns,
-  as arrays, every star and phenomenon inside a sphere above a
-  luminosity floor from the charted stars, bright_stars,
-  phenomenon_scatter and cluster members, plus the cell levels it
-  reached. Done: tests against a small galaxy, and a measured query
-  time. No prerequisite. Lock-free, no migration. Boss decided at 5:29
-  PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored
-  stars and glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY
-  in 9.1 and this part overlaps its 9.1 twin where noted, build it so
-  the 9.1 item can reuse it); the limiting magnitude is a setting with
-  default 7.5, lower on phones; missing stars are built when a system is
-  charted, no visit job. Goal #4907. Filed by the TODO thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Sources 1 (while its
-  lane is free).
-  Prerequisites: none.
-
-- [ ] **VIEW.23 System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S5 of S1 to S22 in section 7. Do: galaxy/sky.py joining
-  S2, S3 and S4: sky_from(observer, limit) returns each visible star's
-  direction, apparent magnitude, colour and light-time position from the
-  STORED stars only (charted stars, bright_stars, phenomena, cluster
-  members); the observer's own system is excluded; it reports which
-  tiers it reached and uses the unbuilt-velocity stand-in (registered in
-  GEN.725 with tier and tweak level) for stars with no stored velocity.
-  The limit is a parameter (default 7.5). Overlaps VIEW.12 (9.1), which
-  later adds built tiers; build it so VIEW.12 extends it. Done: tests;
-  the calibration against HYG is S12. Related: VIEW.12. Lock-free, no
-  migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
-  a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
-  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
-  9.1 twin where noted, build it so the 9.1 item can reuse it); the
-  limiting magnitude is a setting with default 7.5, lower on phones;
-  missing stars are built when a system is charted, no visit job. Goal
-  #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.22.
-
-- [ ] **VIEW.24 System sky S6: the sky tier table: the floor against distance from the visibility physics, registered in GEN.725**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S6 of S1 to S22 in section 7. Do: the table of how deep
-  the sky must be built at each distance (mass or luminosity floor, per
-  the ledger S1 chose) for a limiting magnitude of 7.5 from the
-  visibility physics and the dust of S2; stand-ins registered in
-  GEN.725. Overlaps the first half of VIEW.7 (9.1). Done: table with
-  tests and registry rows. Related: VIEW.7. Lock-free, no migration.
-  Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
-  8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
-  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
-  where noted, build it so the 9.1 item can reuse it); the limiting
-  magnitude is a setting with default 7.5, lower on phones; missing
-  stars are built when a system is charted, no visit job. Goal #4907.
-  Filed by the TODO thread.
-  Prerequisites: VIEW.19.
-
 - [ ] **VIEW.25 System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
   thread, Boss 5:17 PM EST on 2026-11-04: the System View background
@@ -20615,7 +19850,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   scatter and fill lane (Core 3). No migration. Boss decided at 5:29 PM
   EST on 2026-11-04 (1.2, 2.1, 3.3) as in the parent plan. Goal #4907.
   Filed by the TODO thread.
-  Prerequisites: VIEW.19, VIEW.24.
+  Prerequisites: VIEW.19.
 
 - [ ] **VIEW.26 System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI)**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
@@ -20653,7 +19888,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   limiting magnitude is a setting with default 7.5, lower on phones;
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.23, VIEW.25.
+  Prerequisites: VIEW.25.
 
 - [ ] **VIEW.31 System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit=**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research

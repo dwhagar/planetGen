@@ -34,10 +34,12 @@ The directions are unit vectors in the galaxy frame (z up); turning them into th
 """
 
 import functools
+import math
 from typing import NamedTuple
 
 import numpy as np
 
+from planetgen.db import sky_sphere
 from planetgen.galaxy import potential as galacticPotential
 from planetgen.physics import light_travel, photometry, sky_photometry
 from planetgen.physics import unit_registry as units
@@ -366,14 +368,48 @@ def stars_from_sphere(sphere):
         np.asarray(sphere.lifespan_gy, dtype=float) * GY_YEARS)
 
 
-def sphere_source(query):
+def sphere_source(query, levels=None):
     """
     The `source` of `sky_from` for a sphere query `query(centre, radius_pc, min_luminosity_sol)` (`db.sky_sphere.stars_in_sphere` with its connection
-    bound): a shell is the sphere of its outer radius without the rows nearer than its inner one.
+    bound): a shell is the sphere of its outer radius without the rows nearer than its inner one. When `levels` is a list, each shell appends
+    `(inner_pc, outer_pc, floor_solar, complete_above_sol)` to it, `complete_above_sol` being the luminosity above which the cells the sphere reached
+    are complete (`CellLevels.complete_above_sol`; `inf` when the query gives none).
     """
     def source(centre_pc, inner_pc, outer_pc, floor_solar):
         sphere = query(centre_pc, outer_pc, floor_solar)
+        if levels is not None:
+            reached = getattr(sphere, "levels", None)
+            levels.append((float(inner_pc), float(outer_pc), float(floor_solar), float(getattr(reached, "complete_above_sol", math.inf))))
         stars = stars_from_sphere(sphere)
         keep = np.asarray(sphere.distance_pc, dtype=float) >= inner_pc
         return SkyStars(*[getattr(stars, name)[keep] for name in SkyStars._fields])
     return source
+
+
+def built_to_pc(levels):
+    """
+    How far the stored stars are complete to the limit, parsecs: the outer radius of the last of the shells in `levels` (from `sphere_source`) that
+    are, running outwards without a gap, ones whose cells are drawn down to the shell's luminosity floor (`complete_above_sol` at or under the floor).
+    0.0 when even the first shell is not.
+    """
+    reached = 0.0
+    for inner, outer, floor, complete in sorted(levels):
+        if complete > floor:
+            break
+        reached = outer
+    return reached
+
+
+def sky_from_database(conn, observer, at_unix, limit=DEFAULT_LIMIT, galaxy_key="", circular_speed_kms=None, dust=None,
+                      max_distance_pc=MAX_DISTANCE_PC):
+    """
+    The sky of `observer` from the stars the database stores (`sky_from` over the sphere query of VIEW.22, `db.sky_sphere.stars_in_sphere`, on `conn`).
+    The report gains `"built_to_pc"` (`built_to_pc`: how far the stored stars are complete to `limit`) and `"complete_above_sol"` (the largest level of
+    the shells' cells), the "built to magnitude X within Y pc" of the plan.
+    """
+    levels = []
+    sky = sky_from(observer, sphere_source(lambda centre, radius, floor: sky_sphere.stars_in_sphere(conn, centre, radius, floor), levels), at_unix, limit,
+                   galaxy_key, circular_speed_kms, dust, max_distance_pc)
+    sky.report["built_to_pc"] = built_to_pc(levels)
+    sky.report["complete_above_sol"] = max((level[3] for level in levels), default=math.inf)
+    return sky

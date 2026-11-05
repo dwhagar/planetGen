@@ -586,16 +586,19 @@ def get_near(db, params):
     return _request("/near", {"db": db, **params})
 
 
-def get_nav(db, from_ref, to_ref, stay=None):
+def get_nav(db, from_ref, to_ref, stay=None, graph=False):
     """Returns `GET /api/nav`'s course/route dict -- see `docs/reference/api.md`'s
     "NAV" section for the full shape. `from_ref`/`to_ref` are object
     references (`planetgen.galaxy.objectref`): a system, a body in one, or
     a standalone phenomenon. `stay` is the minutes spent at each stop of
-    the route (NAV.11; the API's default, 0, when `None`)."""
+    the route (NAV.11; the API's default, 0, when `None`). `graph` asks for
+    `route.graph`, the links round the route (NAV.65)."""
     _require_db(db)
     params = {"db": db, "from": from_ref, "to": to_ref}
     if stay is not None:
         params["stay"] = stay
+    if graph:
+        params["graph"] = 1
     return _request("/nav", params)
 
 
@@ -848,14 +851,6 @@ def get_galaxy_locate(db, q):
     `db.query.galaxy_locate`)."""
     _require_db(db)
     return _request("/galaxy/locate", {"db": db, "q": q})["matches"]
-
-
-def get_nebula_shape(db, nebula_id, lod="low"):
-    """Returns `GET /api/nebulae/<id>/shape`'s payload: one nebula's mesh
-    (`vertices` in nebula-radius units from its center, `faces`), at the
-    `"low"` or `"full"` level of detail (GEN.75)."""
-    _require_db(db)
-    return _request(f"/nebulae/{nebula_id}/shape", {"db": db, "lod": lod})
 
 
 def get_nebula_volume(db, nebula_id):

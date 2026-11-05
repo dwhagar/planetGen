@@ -2,6 +2,294 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3264] - 2026-11-05
+
+**Headline:** The hard-edged nebula shell is gone from the maps: nebulae are soft clouds everywhere.
+
+### Changed
+- The Galaxy Map, the Sector Map and the nebula page no longer draw a nebula as a translucent hard-edged mesh. A nebula is its own soft cloud of points (or, where the browser cannot draw that, the soft sprite or sphere it had before the mesh). The site no longer serves `/galaxy/nebula/<id>/shape`; the API's `GET /api/nebulae/<id>/shape` is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3263] - 2026-11-05
+
+**Headline:** The Galaxy Map marks the planetary nebulae and supernova remnants the galaxy has scattered but no sector has been filled for yet.
+
+### Changed
+
+- A map block of 81 sectors or fewer now lists the scattered planetary nebulae and supernova remnants that no sector has built into a nebula, and the map marks each with a small cloud symbol (MAP.179). Nebulae that a sector has built are drawn as clouds as before, and each nebula appears once. The marks are not points of light among the stars.
+- The Menu has a "Nebula marks" switch (on by default; `hide=marker-nebula` in the address turns it off), and picking a mark shows its card. The map's saved blocks are rebuilt once on the next update.
+
+## [8.0.3262] - 2026-11-05
+
+**Headline:** A nebula's own page now draws it as a soft, irregular cloud with fading edges, like the maps do.
+
+### Changed
+- The nebula page's 3D view draws the nebula from its own cloud of points (the same points and layer as the Galaxy Map and the Sector Map) instead of a translucent surface, so it fades unevenly toward its edge and reads as gas. It still turns slowly, zooms and re-centers, with the brightest stars of the galaxy dimmed round it. A nebula that was never placed in the galaxy keeps its still drawing.
+- `GET /api/nebulae/<id>/surroundings` now also says where the nebula is (`center_pc`, parsecs in the galaxy frame; null for one never placed).
+
+generation-output: unchanged
+
+## [8.0.3261] - 2026-11-05
+
+**Headline:** On the Galaxy Map you can now hover a group of nebulae to see what it holds, click it to fly to it, and reach every large group from the keyboard.
+
+### Changed
+
+- Hovering a group of nebulae (the soft glows of MAP.176) outlines it and says how many nebulae it holds and what kind most of them are, for example "12 nebulae, mostly dark nebulae" (MAP.180). Clicking it flies the camera to frame the group, which is the zoom at which it splits into its smaller groups and single clouds; a group has no page, so none opens. A single cloud under the pointer is picked before the group around it, and charted regions after it.
+- The keyboard and screen readers have a list of the 30 largest groups in view, each a button that flies to the group.
+- Hover on the Nebula cover colour already gave the share of a block inside a nebula (MAP.177).
+
+## [8.0.3260] - 2026-11-05
+
+**Headline:** The Galaxy Map now draws the galaxy's dark molecular clouds one by one, before any sector near them has been generated.
+
+### Changed
+
+- A map block of 81 sectors or fewer lists the clouds the galaxy's seed places (the `nebula_field` table, classes M and N, giant molecular and dark clouds) that no sector has stored yet, beside the stored nebulae, and the map draws each as a soft dark-dust sprite that fades in between 1 and 4 pixels of radius (MAP.178). A cloud a sector stores is drawn once, as the stored nebula. A block larger than that keeps showing the nebula regions (MAP.176), which hold these clouds.
+- A field cloud has no page, name or stored shape yet, so it is not labelled, picked or opened as a mesh; picking and fly-to for clouds and regions is MAP.180. The map's saved blocks are rebuilt once on the next update.
+
+## [8.0.3259] - 2026-11-05
+
+**Headline:** A jump through unknown space is now drawn red, dashed and glowing on the NAV page's map and on the Galaxy Map's course.
+
+### Changed
+- On the NAV page's map, a hop through unknown space is its own red, dashed, glowing line, with a legend line under the map and a line in the map help. On the Galaxy Map, the same hop in the course is a red dashed line with a soft red glow along it, and the Key names it. Both pulse slowly unless your system asks for reduced motion, and the hop is also named in words (title and legend), so it does not rely on colour alone.
+
+generation-output: unchanged
+
+## [8.0.3258] - 2026-11-05
+
+**Headline:** The Galaxy Map's course shows the course diagram, and clicking a stop in either one selects it in the other.
+
+### Changed
+- The Galaxy Map's course readout now carries the course diagram (NAV.67). Click a stop in the diagram and the map selects that stop's ring and flies to it; click a ring on the map and the same stop is marked in the diagram. A second click on the selected stop, or a click with Ctrl, Shift, Alt or Meta held, opens the stop's page.
+
+generation-output: unchanged
+
+## [8.0.3257] - 2026-11-05
+
+**Headline:** The NAV page's course diagram now shows each stop's nearest neighbours as faint stubs, with "and N more" where there are more.
+
+### Changed
+
+- The NAV page asks for the route's graph and draws it under the course diagram's route: a faint stub from each stop to each neighbour off the route (a few per stop, nearest first), "and N more" over a stop that has more, and a dotted arc, with its length, between two stops of one row that are neighbours but not a hop. Links between stops on different rows of a wrapped diagram are counted in a note.
+- The panel and its legend say a link is a neighbour relation, not a travel lane. The route's own hops are always drawn over the neighbours, and each stub has a text alternative with its distance.
+
+generation-output: unchanged
+
+## [8.0.3256] - 2026-11-05
+
+**Headline:** A test docstring no longer reads like a citation.
+
+### Changed
+
+- `test_nav_route_graph.py` wrote "Wedge 2000", a name and a year the citation lock took for a paper; it now says "The wedge numbered 2000". Tests only.
+
+generation-output: unchanged
+
+## [8.0.3255] - 2026-11-05
+
+**Headline:** The slow seed test takes seconds, and lane machines can share the star-table cache
+
+### Changed
+
+- `test_a_new_seed_replaces_the_old_only_before_any_sector` puts one sector in the galaxy grid directly instead of generating one, so it takes about 13 s where it took over four minutes on a fresh machine; it still checks that a different seed is refused once a sector exists, that the stored seed stays, and that the same seed plans again (PERF.232).
+- New `scripts/band_table_share.py` copies the kept star sampling tables to a shared folder under a key of the code's contents and back, so a fresh lane machine skips the 100 s table build when the code is the same; a copy made by other code is never read. Production does not use it (PERF.232).
+
+generation-output: unchanged
+
+## [8.0.3254] - 2026-11-05
+
+**Headline:** A route over several sectors now measures true distances: a routed system sits where the database stores it.
+
+### Changed
+
+- The route search added a system's sector-local offset to its sector's centre without turning it by the sector's own axes (`frame.sector_orientation`: local +X points out from the galactic axis), so a routed system sat up to a few light-years from its stored `galaxy_x_pc`, `galaxy_y_pc` and `galaxy_z_pc` (2.7 to 4.5 ly measured at a longitude of about 58 degrees; none only on the +X axis). `corridor._systems_of` and `query._load_nav_endpoint` now use `frame.local_to_galaxy_pc`, and a route between two systems of one sector that is searched in the galaxy frame comes back in that sector's own axes with `frame.galaxy_to_local_pc` (it was a plain shift). The hop lengths and courses of every cross-sector route change to the true ones; stored values are unchanged.
+- The graph round a route (NAV.65) no longer needs its workaround: it reads the route's own positions, which are the index's, and the hops keep the route's lengths because those are now the true ones.
+- Tests: a sector at a longitude of 58 degrees where every routed system equals its stored galaxy position, the hop lengths of a cross-sector route equal the distances between the stored positions, and a route inside one sector comes back in the sector's axes; the NAV.65 graph tests now run at that longitude too.
+
+generation-output: unchanged
+
+## [8.0.3253] - 2026-11-05
+
+**Headline:** The wiring register no longer names VIEW.23 as the item that wires the sky photometry and light-time modules; VIEW.31 (the sky route) does.
+
+### Changed
+
+- `docs/design/research/wiring-register.md` (VIEW.23): the lines for `planetgen.physics.light_travel`, `planetgen.physics.sky_photometry` and rows SKP1 to SKP4 of 6.171 point to VIEW.31, which is where the sky catalogue they feed is read by product code. generation-output: unchanged
+
+## [8.0.3252] - 2026-11-05
+
+**Headline:** The NAV page draws the route as a course diagram: a line of stops with a glyph for each kind, the length and course of every hop, and the hops through unknown space in red, dashed and glowing.
+
+### Changed
+
+- The NAV page has a Course Diagram panel below its map: the route as a ribbon of stops (the NAV.66 layout) drawn as SVG, a disc for a star system, a hexagon for a phenomenon and a shape of its own for each kind of stop in unknown space, with the hop's length on each hop and its course where there is room. The spacing follows the logarithm of a hop's length, so the panel says it is a schematic and not to scale.
+- A hop through unknown space is drawn red, dashed and glowing, listed in the legend and named in words in the panel, and its glow pulses only where the visitor has not asked for reduced motion. The route list's unknown-space hops are red too.
+- The panel has three drawings of the route for a phone, a middle width and a wide page, and shows the one that fits, so a long route wraps into rows on a phone with its text still readable; each stop links to its page and has a text alternative.
+
+generation-output: unchanged
+
+## [8.0.3251] - 2026-11-05
+
+**Headline:** The generator can now work out what any nebula, remnant or cloud is made of, from its class and the metals of the gas where it formed.
+
+### Added
+
+- `physics/nebula_composition.py` (GEN.1269, part a of GEN.1268): `makeup(...)` gives a nebula's hydrogen, helium and metal mass fractions, the mass of each element in gas and in dust, the dust-to-gas and dust-to-metals ratios, the share of the dust in silicate, iron, carbon, PAH and ice, the ionized, atomic and molecular shares of its hydrogen, and the gas-phase abundances of C, N, O, Ne, S, Ar and Fe, for all 23 nebula and remnant classes. `gas_oh(...)` gives the gas metallicity of a place: the Milky Way gas has its own gradient (0.034 dex per kpc, Boss's answer) with 0.14 dex of scatter drawn from the nebula's key, and a satellite's gas falls inside the widest published range of the two Magellanic Clouds. A solar-metallicity Orion-like H II region comes out with gas oxygen 12 + log(O/H) 8.69 and iron mostly on grains; a metal-poor cloud (SMC) has less than half the metals and dust of a solar-circle one; a cold cloud of the same column holds less molecular gas at lower metallicity; a Wolf-Rayet ring is helium and nitrogen enriched. Nothing stores or shows it yet (GEN.1276, GEN.1277 and the pages). Thirteen stand-ins are registered (6.179, NBC1 to NBC13). generation-output: unchanged
+
+## [8.0.3250] - 2026-11-05
+
+**Headline:** The settings review-page width test waits for the page's components before it measures the page.
+
+### Fixed
+- **A phone-width overflow reported once (606 px at the gear dropdown) came from measuring before the components had loaded.** The settings browser tests now wait until the dropdown components are defined (at most five seconds) before reading the page width, and a test holds the components script back two seconds to pin it.
+
+## [8.0.3249] - 2026-11-05
+
+**Headline:** Three nebula composition numbers that were recalled are now read from their papers: the second dredge-up helium, the Type I limits, and the wind loss and helium star of a supernova progenitor.
+
+### Changed
+
+- `physics/planetary_nebula_ejecta.py` (GEN.1274): the helium the second dredge-up adds is the table of [R5098: Table 1] (0 up to 4.0 solar masses, 0.004 at 4.5, 0.018 at 5.0, 0.033 at 5.5, 0.044 at 6.0, 0.059 at 7.0, 0.066 at 8.0, linear between) in place of a flat 0.03, and it begins above 4.0 solar masses only as the table says (it is for solar metallicity, used at every metallicity). The Type I limits are those of [R5099]. Nothing reads the module yet (GEN.1276). generation-output: unchanged
+- `physics/remnant_composition.py` and `physics/data/remnant_yields.json` (GEN.1274): the wind loss and the stripped helium star of a core-collapse progenitor are the presupernova table of [R4251: Table 2] (final mass and helium core at 10 to 30 solar masses and the bare stars of 60 to 120) in place of the fitted laws, and every progenitor of 40 solar masses or more is stripped (it was 30). The Cassiopeia A check now uses the 15 solar mass row. Nothing reads the module yet. generation-output: unchanged
+- Registry (`docs/design/research/gap-filling-plan.md` sections 6.177 and 6.178): rows PNE3, PNE6, SNC2 and SNC3 are verified and removed; PNE2, SNC1 and SNC4 say what the sources could and could not give. Karakas and Lattanzio 2014 is [R5098] and Gruenwald and Viegas 1998 is [R5099].
+
+## [8.0.3248] - 2026-11-05
+
+**Headline:** Dark nebulae on the Galaxy Map are now drawn as dust, a warm umber cloud with a light rim, so they can be seen on the black map.
+
+### Changed
+
+- The dark family's colour is an umber (`#a9805a` at 0.45 opacity) with a thin light rim (`#d9b48a`), chosen with the contrast checker of MAP.175 (MAP.181). The fill alone is dust and does not reach 3:1 on black; the rim does (4.2:1), and the contrast test now measures a family by its rim where it has one. The map is black in either theme, so one colour serves both.
+- Nebula cover shading (Color by, MAP.177) and the dark nebula regions use the same umber hue.
+
+## [8.0.3247] - 2026-11-05
+
+**Headline:** The test that scrolls in on two close stars now uses a pair the map can show, so the Galaxy Map's close-in zoom is checked again.
+
+### Changed
+
+- The two-star wheel test (MAP.300) used the nearest pair of the dense fixture region, which lies one star behind the other as the map looks down, so the pair stays about 15 pixels apart however close the camera comes, and which sits inside the first generated sector's cell, whose stars the sector scene takes over as the camera nears. The dense fixture region now holds a pair of bright stars 0.05 parsecs apart side by side in the cell beside it, and the test scrolls in on that pair, with the pointer on the map's own place for each star. The map is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3246] - 2026-11-05
+
+**Headline:** The schematic route map has its layout: a route and the links round it become a ribbon of stops, hops and stubs.
+
+### Changed
+
+- New `planetgen.web.maps.navribbon.layout_ribbon(route, width)` (NAV.66, part 2 of the schematic route map): pure arithmetic over a route as `nav_between` and `GET /api/nav` give it, with its `graph` when it has one. It returns the stops left to right with their kind (a system, a stop in unknown space by its kind, or a phenomenon end) and role, the hops with their length written on them (the site's unit text and its first unit alone) and the flag for unknown space, the neighbour links from `route.graph` as stubs above and below each stop (alternating, centred, with an "and N more" text where the graph's cap cut some), and the links between two stops that are no hop as arcs.
+- A hop's gap on the page follows the logarithm of its length (68 px at 1 ly or less, 200 px at 10,000 ly or more), the same on every route, so one 6,500 ly hop no longer squeezes nine hops of 3 ly to dots. A ribbon wraps to a new row where the next stop would pass the right margin of the panel (at least 240 px wide); a hop that wraps is two pieces, one to the right edge and one in from the left edge, and says so. The same route gives the same answer, with coordinates rounded to a hundredth.
+- Nothing draws it yet: NAV.67 puts it on the NAV page as an SVG. Tests on fixed routes: the gap law, a plain route, stops in unknown space, no route and one stop, wrapping and narrow panels, stubs, the cap's text, arcs and links across rows, determinism, and a route from `nav_between`.
+
+generation-output: unchanged
+
+## [8.0.3245] - 2026-11-05
+
+**Headline:** A route can now come back with the graph round it: the links between its stops and from each stop to the systems next to it.
+
+### Changed
+
+- `nav_between` and `nav_course` take `with_graph`, and `GET /api/nav` takes `graph=1`; the route then has `graph`: `nodes` (the linked systems off the route, with their galaxy-frame positions), `edges` (`from`, `to`, `distance_ly`, `on_route`) and `more` (how many linked systems a stop's cap left out). The route's own hops are always edges, `on_route` true, with the lengths `route.hops` gives. The other links follow the relative neighbourhood graph rule (Boss's answer 3.2 on the schematic route map): two points are linked when no system lies closer to both than they are to each other. It has no tuning number and gives about 1.5 links to a system. A link is a neighbour relation, not a travel lane.
+- The systems round a stop come from the cell-key index (`db/route_neighbours.py`, the same covering index the nearby search uses), so no new route search runs and the cost follows the neighbourhood, not the galaxy. Each stop weighs its `NAV_GRAPH_CANDIDATES` (24) nearest systems and lists at most `NAV_GRAPH_NEIGHBOURS` (6) off the route. A route in a sector with no galaxy placement takes its neighbours from the sector. Without `graph=1` nothing is read and the route is as before.
+- Measured on a synthetic galaxy of 150,000 systems in each of two boxes (about 0.08 systems per cubic parsec, like the Sun's neighbourhood, and about 4 per cubic parsec, a dense region), on the slow lane machine: 5 to 7 ms a stop, so 6 stops took 29 to 36 ms, 20 stops 104 to 116 ms and 60 stops 360 to 384 ms, about a rung and a half of the index per stop. The graph reads the stops' own positions from the same index as their neighbours, because the route search places a system at its sector's centre plus the offset without turning the offset into the galaxy frame (reported as a bug).
+- Tests: the rule against a brute-force graph, the hops, the cap and its `more`, the on-route flag, the links between two stops, a route inside one sector, a route over two sectors, the nearest-systems reader against brute force, and the API with and without `graph=1`.
+
+generation-output: unchanged
+
+## [8.0.3244] - 2026-11-05
+
+**Headline:** The Galaxy Map's Color by menu has a new choice, Nebula cover, that shades each block by the share of it inside a nebula.
+
+### Changed
+
+- Color by gains "Nebula cover" (MAP.177). Each block or window cell is drawn in one of four steps of a single umber hue (the dust colour of the dark nebulae) that lightens with the share of the cell inside a nebula (under 0.5%, 0.5% to 1.5%, 1.5% to 3%, 3% or more, the bins of the nebula density research), whether or not the cell holds a charted sector. A cell with no nebula is drawn as plain unfilled space.
+- The steps are fixed shares, not ranked against the cells in view, so the same share has the same colour on every screen. The legend names them and the hover text of a block says its share ("0.60% inside a nebula"), or that none is charted for a sector, which has no stored cover.
+- The choice rides in the address as `color=cover`, like the other fills.
+
+## [8.0.3243] - 2026-11-05
+
+**Headline:** The sector-delete test now matches the rule that a sector holding a filed facility cannot be deleted until the facility is removed.
+
+### Fixed
+- **test_deleting_a_sector_with_facilities was stale.** Since GEN.1127 a facility filed in a sector stops the sector's delete with a 409 (`facilities.sector_id` is `ON DELETE RESTRICT`); the test now checks the refusal, deletes the facility, then the sector.
+
+## [8.0.3242] - 2026-11-05
+
+**Headline:** The Galaxy Map's Plane view now has a Stems switch, a height stretch and spherical-coordinate labels.
+
+### Added
+- **Stems switch and height stretch (Menu).** "Stems" turns the stems of the Plane view off and on. "Stem height" draws each stem on past its star to a bead at 2 to 10 times the star's height above or below the plane (1 is true height); a note in the corner of the map says how tall the heights are drawn, so the exaggeration is never hidden.
+- **Spherical coordinates on labels and in the info card.** A selected star and the stars with stems that carry a name, or that the pointer is near, get a label with its position as an ordered triple with units: (radius, longitude, latitude) from the galactic center, or from the center of the sector when one is open. With a star selected, the other labels give (distance, bearing, elevation) from the selected star. The same line, "Position (radius, longitude, latitude)", is in the info card of a star while the Plane view is on.
+
+## [8.0.3241] - 2026-11-05
+
+**Headline:** The sky catalogue can now be built straight from the stars the database stores.
+
+### Changed
+
+- `galaxy/sky.py` (VIEW.23, the database entry point): `sky_from_database(conn, observer, at_unix, limit)` runs the sky over the sphere query of VIEW.22 (`db.sky_sphere.stars_in_sphere`) in shells of distance, and its report says how far the stored stars are complete to the limit (`built_to_pc`) and the largest level of the cells reached (`complete_above_sol`), the "built to magnitude X within Y pc" of the plan. `sphere_source` can now collect each shell's cell levels. Nothing reads it yet: the sky route (VIEW.31) does. generation-output: unchanged
+
+## [8.0.3240] - 2026-11-05
+
+**Headline:** A supernova remnant's ejecta and swept-up gas, and its progenitor's mass, can now be worked out from the physics (not yet stored or shown).
+
+### Added
+
+- `remnant_composition.py` gives a remnant two parts: the interstellar gas swept up inside its radius, and the ejecta of the star that exploded, element by element, with the progenitor's initial mass. A Type Ia remnant throws out the 1.37 solar masses of the W7 model (mostly iron, no hydrogen or helium); a core-collapse remnant throws out oxygen-rich ejecta that grow with the progenitor's mass, from a progenitor drawn from the windows of the core it left (a neutron star or a black hole).
+- A progenitor above 30 solar masses is stripped of its hydrogen, and a third of the lighter ones are; the remnant's core and the ejecta add up to the star's mass at death.
+- Checked against Cassiopeia A: the swept-up mass at 350 years and 3 particles per cm^3 is 8.0 solar masses (7.9 measured) and the ejecta of a stripped 16 solar mass star is 2.4 (2.2 measured).
+- The tables are the published ones (a Type Ia and a Type II table, read as `remnant_yields.json`); what scales them with the progenitor's mass, strips the star and bounds the sums are stand-ins with rows SNC1 to SNC7 in the registry.
+- Nothing reads the model yet: GEN.1276 writes the values at generation and GEN.1272 shows them. The swept-up gas is the star's own birth gas until the shared nebula model (GEN.1269) gives the gas of the place.
+
+generation-output: unchanged
+
+## [8.0.3239] - 2026-11-05
+
+**Headline:** The stars of a sphere above a luminosity floor can be read from the database as arrays, ready for the System View sky.
+
+### Added
+
+- `planetgen.db.sky_sphere` (VIEW.22): `stars_in_sphere` returns, as arrays, every charted star, unbuilt pre-placed bright star and unbuilt scattered phenomenon inside a sphere at or above a luminosity floor (with position, distance, velocity, epoch, luminosity, temperature, age, lifespan, cluster and kind), nearest first; `cell_levels` names the sectors the sphere reaches and how far each was drawn, and the level down to which the sphere is complete.
+- Nothing changes in what a person sees yet; the sky catalogue (VIEW.23) reads it.
+
+generation-output: unchanged
+
+## [8.0.3238] - 2026-11-05
+
+**Headline:** The generator can now work out what a planetary nebula is made of, from the star that threw it off.
+
+### Changed
+
+- `physics/planetary_nebula_ejecta.py` (GEN.1270, part b of GEN.1268): `progenitor(nebula_class, place_fe_h, key)` draws the star that lost a planetary nebula from the nebula's own key (the same nebula always has the same progenitor, and a later central star or white dwarf that reads the same key gets the same mass), between 0.9 and 7.2 solar masses weighted by the initial mass function and inside the window of its class (K carbon-rich: a star that dredges carbon up but does not burn it again; L nitrogen-rich: 4 solar masses and more), and works its ejecta through the first, second and third dredge-ups and hot bottom burning: helium, carbon, nitrogen and oxygen mass fractions, C/O, N/O, He/H and whether it is Type I. In the tests a solar-metallicity progenitor of 1.5 to 3.9 solar masses ejects carbon-rich gas (C/O 1.4 to 2.8) and one of 4 to 7 solar masses nitrogen-rich gas (N/O 1.1 to 2.1, helium over hydrogen near 0.12). The values and the progenitor mass are returned together (`values()`) for the composition item (GEN.1276) to write. Nothing reads it yet. Seven stand-ins are registered (6.178, PNE1 to PNE7). generation-output: unchanged
+
+## [8.0.3237] - 2026-11-05
+
+**Headline:** In the Galaxy Map's Plane view, stars now have thin stems dropping to the grid plane, so height reads on the tilted map.
+
+### Added
+- **Stems in the Plane view.** A thin line runs from each of a few stars straight down (or up) to its shadow on the grid plane: the selected star (the strongest), the names the map has placed, the stars about the pointer and the brightest stars near the middle of the view, at most 60 at a time and never every star. Only stems inside the 60 degree wedge are drawn, a stem under 2 px long on the screen is skipped, and a far stem is fainter. With the plane through the selected star, its own stem is zero; "Plane at galactic midplane" shows every star's height above or below the galaxy's midplane.
+
+## [8.0.3236] - 2026-11-05
+
+**Headline:** The generator can now say how deep the star backfill must reach, and how much of it fits, to store the sky a system sees at a given limiting magnitude.
+
+### Changed
+
+- `generation/sky_tiers.py` (VIEW.24, the sky tier table): `floor_luminosity_sol` gives the dimmest star that still shows from a distance at a limiting magnitude (the star of the best colour, through the dust), `extinction_curve` samples the dust of the galaxy along 48 lines of sight from an observer, `reach_pc` gives how far a star of a given luminosity shows (the clearest line), and `build` gives the table: the luminosity bands from 50 Lsun up and the mass rings, each with the radius of its sphere and the cells in it, cut by a budget of cell visits (`CELL_VISIT_BUDGET`, 3e8: at a 7.5 limit it keeps the bands under about 1,000 Lsun). `floor_table` lists the floor against distance and which ledger draws it. Nothing reads it yet; the charting step (VIEW.25) will. Registry rows SKT1 and SKT2 (6.176).
+
+generation-output: unchanged
+
+## [8.0.3235] - 2026-11-05
+
+**Headline:** The Galaxy Map has a Plane view: a tilted camera and a grid of distance rings across a 60 degree wedge of the galaxy.
+
+### Added
+- **Plane view (Menu).** One button tilts the camera to a preset and lays a grid on a plane through the middle of the view, parallel to the galaxy's midplane: rings at round distances (labelled in parsecs or kiloparsecs) inside a 60 degree wedge from the galactic center, with the wedge's two edges drawn. With a star or other object selected the rings are drawn around it. "Plane at galactic midplane" puts the grid at height 0 instead. The wedge stays where it is while the view stays inside it and turns to follow the view when it leaves. Turning it off brings the map's own tilt back. The existing 3D view and everything outside the wedge are drawn as before.
+
 ## [8.0.3234] - 2026-11-05
 
 **Headline:** A warm-up with nothing changed no longer visits every object page again: its object phase takes seconds, not minutes.
