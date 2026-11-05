@@ -2533,3 +2533,5 @@ Baseline: PR #1817.
 | GEN.1280 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1279 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1232 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.27 | 8.5 | Steering clear of gravity wells |
+| NAV.51 | 8.5 | Steering clear of gravity wells |

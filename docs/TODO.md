@@ -2081,51 +2081,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     leaves out is added to the course (Boss, 2026-10-16, 5:01 PM EDT).
     Prerequisites: NAV.56, NAV.62.
 
-  - [ ] **NAV.27 Moving bodies inside a system**
-    Inside a system the planets move. Done: the in-system planner uses
-    positions at the time of travel (MAP.62's positions-at-time module,
-    Python twin), from the departure time and the leg's speed. That
-    answers the item's second open question: yes. Default departure:
-    now.
-    Research (2026-10-09, course-avoidance.md): warp and fold speeds
-    make departure-time positions sufficient, with the target aimed at
-    its arrival-time position (`t0 + L/v`, 2 to 3 fixed-point steps);
-    add the 3-to-6-pass iteration only if sub-0.01c speeds are
-    introduced. `body_positions.positions_at` is the position source; no
-    new ephemeris code. Galactic-scale motion is negligible at warp, so
-    this stays system-only.
-    Prerequisites: none.
-
-  - [ ] **NAV.51 Courses route around asteroid fields**
-    Boss (2026-10-09 01:02Z): "Courses should avoid asteroid fields."
-    Follows NAV.24's open question (it ruled on asteroid fields only).
-    Done: course planning treats an asteroid field as a keep-out area
-    from its stored `radius_ly`, finds it with NAV.25's obstacle query and
-    goes around it with NAV.26's planner, at every scale. Nebulae and
-    supernova remnants stay undecided: the course passes through them
-    with a note. Parked with the rest of the NAV chain (Boss, 2026-10-09).
-    Research (2026-10-09, course-avoidance.md): keep as written.
-    `keepout.py` currently contradicts it (no keep-out for fields); the
-    whole stored sphere is the radius, no margin (the nebula document
-    suggested 1.1 times; the planner already offsets waypoints by 1e-6;
-    open question for Boss, default exactly the stored `radius_ly`). Say
-    plainly that it is a game rule: a real field would need millions of
-    times the belt's density to threaten a ship. Collision risk stays
-    keep-out only, with expected hits (about 1e-11 per AU in the main
-    belt for bodies over 1 km) as an optional note on the course.
-  Decided (2026-10-10): Boss (19:16Z, Accept all): the answers recorded
-  here stand: a lone star or object uses the galactic Hill radius;
-  inside a system a star uses the radiation radius.
-    Scope after the review (2026-10-16 review): routing around fields,
-    the course test at the three scales, using the keep-out table
-    (NAV.54) and the planner (NAV.26); the keep-out radius for fields is
-    NAV.54's.
-  Built code waiting for its caller (audit research, relayed 8:03 PM EDT
-  2026-10-22 as the lane's clock reads): `physics/body_positions.py` is built and
-  tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
-  EDT): code built for a pending feature stays.
-    Prerequisites: NAV.25, NAV.26.
-
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors

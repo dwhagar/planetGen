@@ -2466,7 +2466,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
 | NAV.25 | Find the obstacles along a path | none | open |
 | NAV.26 | Bend the path around keep-out spheres | none | open |
-| NAV.27 | Moving bodies inside a system | none | open |
+| NAV.27 | Moving bodies inside a system | none | done, PR #5131 |
 | NAV.28 | Show and save the adjusted course | none | done, PR #5082 |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
@@ -2490,7 +2490,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | done, PR #1195 |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | done, PR #5109 |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
-| NAV.51 | Courses route around asteroid fields | none | open |
+| NAV.51 | Courses route around asteroid fields | none | done, PR #5131 |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
 | NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | done, PR #5066 |
