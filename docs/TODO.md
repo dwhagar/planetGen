@@ -20265,30 +20265,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   queue waits).
   Prerequisites: none.
 
-- [ ] **VIEW.23 System sky S5: the sky catalogue galaxy/sky.py from stored stars: sky_from(observer, limit), excluding the observer system, with a tiers-reached report**
-  Plan: reports/system-sky-from-the-system-2026-11-04.md (research
-  thread, Boss 5:17 PM EST on 2026-11-04: the System View background
-  starfield is the sky that system sees, each star at its true direction
-  and distance and placed where it was when its light left it). 8.2
-  stream; label S5 of S1 to S22 in section 7. Do: galaxy/sky.py joining
-  S2, S3 and S4: sky_from(observer, limit) returns each visible star's
-  direction, apparent magnitude, colour and light-time position from the
-  STORED stars only (charted stars, bright_stars, phenomena, cluster
-  members); the observer's own system is excluded; it reports which
-  tiers it reached and uses the unbuilt-velocity stand-in (registered in
-  GEN.725 with tier and tweak level) for stars with no stored velocity.
-  The limit is a parameter (default 7.5). Overlaps VIEW.12 (9.1), which
-  later adds built tiers; build it so VIEW.12 extends it. Done: tests;
-  the calibration against HYG is S12. Related: VIEW.12. Lock-free, no
-  migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
-  a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
-  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
-  9.1 twin where noted, build it so the 9.1 item can reuse it); the
-  limiting magnitude is a setting with default 7.5, lower on phones;
-  missing stars are built when a system is charted, no visit job. Goal
-  #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.22.
-
 - [ ] **VIEW.25 System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
   thread, Boss 5:17 PM EST on 2026-11-04: the System View background
@@ -20344,7 +20320,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   limiting magnitude is a setting with default 7.5, lower on phones;
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
-  Prerequisites: VIEW.23, VIEW.25.
+  Prerequisites: VIEW.25.
 
 - [ ] **VIEW.31 System sky S13: GET /system/<uid>/sky: builds and caches the packed list and reports the tier state and counts, and takes ?limit=**
   Plan: reports/system-sky-from-the-system-2026-11-04.md (research
