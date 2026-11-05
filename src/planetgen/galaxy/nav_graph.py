@@ -387,3 +387,92 @@ def shortest_path(graph, start_id, end_id, positions=None, blocked=None):
                                           next(order), neighbor_id))
 
     return None
+
+
+def relative_neighbours(origin, candidates):
+    """
+    NAV.65: the neighbours of `origin` by the relative neighbourhood graph rule (Boss's answer 3.2 on the
+    schematic route map): `origin` and a candidate are linked when no other point lies closer to both of them than
+    they are to each other. The rule has no tuning number and keeps a graph connected.
+
+    The answer is exact for every link as long as `candidates` holds every point within the link's length of
+    `origin` (a point farther than that cannot lie closer to `origin` than the candidate does).
+
+    Args:
+        origin (tuple): The `(x, y, z)` point.
+        candidates (dict): `{id: (x, y, z)}` of the other points, `origin` itself left out; a point that is not three
+            finite numbers is ignored.
+
+    Returns:
+        list[tuple]: `(id, distance)` of each neighbour, nearest first (ties by their order in `candidates`).
+    """
+    items = [(key, point) for key, point in candidates.items() if all(map(math.isfinite, point))]
+    if not items:
+        return []
+    array = np.array([point for _key, point in items], dtype=float).reshape(-1, 3)
+    away = np.linalg.norm(array - np.array(origin, dtype=float), axis=1)
+    order = np.argsort(away, kind="stable")
+    array, away = array[order], away[order]
+    between = np.linalg.norm(array[:, None, :] - array[None, :, :], axis=2)
+    found = []
+    for row in range(len(order)):
+        # A blocking point is strictly closer to `origin` than the candidate (so it comes before it) and strictly
+        # closer to the candidate than the two are to each other.
+        blockers = (away[:row] < away[row]) & (between[row, :row] < away[row])
+        if not blockers.any():
+            found.append((items[int(order[row])][0], _distance(origin, tuple(array[row].tolist()))))
+    return found
+
+
+def route_graph(path, positions, nearby, cap, hop_distances=None):
+    """
+    NAV.65: the graph round a route, the edges a schematic route map draws: the route's own hops (always), the
+    relative-neighbourhood links (`relative_neighbours`) between its stops, and each stop's links to the systems
+    around it, nearest first, at most `cap` systems for each stop.
+
+    Args:
+        path (list): The route's node ids in order.
+        positions (dict): `{node_id: (x, y, z)}` of every id in `path`, in one frame.
+        nearby (callable): `nearby(node_id, point)` is `(systems, reach)`: `systems` is `{id: (x, y, z)}` in the same
+            frame, the systems round `point` (the stop's own system left out), and `reach` the distance within which
+            that list is complete (`relative_neighbours` is exact for links no longer than this).
+        cap (int): The most systems off the route listed for one stop; the rest are counted in `more`.
+        hop_distances (list, optional): The length of each hop of the route, when it is not the distance between the
+            stops' `positions` (the route search and the graph may read a system's position from different columns).
+
+    Returns:
+        dict: `nodes` (`[{"id", "position_ly"}]`, each system that is linked and not a stop of the route, in the
+            order first met), `edges` (`[{"from", "to", "distance_ly", "on_route"}]`: a hop of the route has
+            `on_route` true, with `from` before `to` in the path; a link from a stop to a system off the route
+            has the stop in `from`; the links between two stops come once, the earlier stop first) and `more`
+            (`{stop_id: how many linked systems were left out by the cap}`, only stops with some).
+    """
+    stops = {node: index for index, node in enumerate(path)}
+    edges = {}
+    for index, (a, b) in enumerate(zip(path, path[1:])):
+        length = hop_distances[index] if hop_distances is not None else _distance(positions[a], positions[b])
+        edges[("hop", index)] = {"from": a, "to": b, "distance_ly": length, "on_route": True}
+    nodes = {}
+    more = {}
+    for index, stop in enumerate(path):
+        point = positions[stop]
+        systems, reach = nearby(stop, point)
+        pool = dict(systems)
+        for other, other_index in stops.items():
+            if other_index != index and other not in pool and _distance(point, positions[other]) <= reach:
+                pool[other] = positions[other]
+        off_route = []
+        for key, distance in relative_neighbours(point, pool):
+            if key in stops:
+                low, high = sorted((index, stops[key]))
+                if high != low + 1 and ("link", low, high) not in edges:   # a hop of the route is in already
+                    edges[("link", low, high)] = {"from": path[low], "to": path[high], "distance_ly": distance,
+                                          "on_route": False}
+            else:
+                off_route.append((key, distance))
+        for key, distance in off_route[:max(cap, 0)]:
+            nodes.setdefault(key, {"id": key, "position_ly": pool[key]})
+            edges[("off", index, key)] = {"from": stop, "to": key, "distance_ly": distance, "on_route": False}
+        if len(off_route) > max(cap, 0):
+            more[stop] = len(off_route) - max(cap, 0)
+    return {"nodes": list(nodes.values()), "edges": list(edges.values()), "more": more}
