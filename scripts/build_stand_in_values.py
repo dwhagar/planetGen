@@ -285,6 +285,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.172", "6.172 Stand-ins of the zone the regular moons of a giant form in",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.184", "6.184 Stand-ins of the binary-stripped Wolf-Rayet channel",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.182", "6.182 Stand-ins of where a stored belt member lies",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.183", "6.183 Stand-ins of the class-by-domain matrix and the phase gate",

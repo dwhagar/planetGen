@@ -37628,6 +37628,90 @@
       "title": "Stand-ins of the zone the regular moons of a giant form in"
     },
     {
+      "key": "6.184",
+      "number": "6.184",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WR_BINARY_MIN_RATIO 0.72: the least initial mass at which a companion can strip a star into a Wolf-Rayet star, as a share of the single-star threshold (18 against 25 solar masses at the Sun's metallicity, carried up by the same metallicity law as the threshold)"
+            ],
+            [
+              "The range it moves in",
+              "0.6 to 0.85"
+            ],
+            [
+              "Where it holds",
+              "primaries of 15 to 40 solar masses with a close companion, at the Galaxy's metallicity; at lower metallicity the law is the single-star threshold's own"
+            ],
+            [
+              "What would show it wrong",
+              "a spectroscopic survey of Wolf-Rayet stars in binaries whose primaries began below 18 solar masses, or the 18 / 24 / 37 solar mass trend of the Galaxy, LMC and SMC failing to follow Z to the minus one half"
+            ],
+            [
+              "What replaces it",
+              "the stripped-star mass from a binary evolution grid by metallicity, period and mass ratio (the MESA grid of the source)"
+            ],
+            [
+              "Evidence",
+              "[R4051] Table 1 and section 3.2: the least initial mass 18 solar masses for the Galaxy, from the 7.5 solar mass least stripped helium star of a Wolf-Rayet spectrum"
+            ]
+          ],
+          "id": "WB1",
+          "key": "6.184:WB1",
+          "kind": "P",
+          "slug": "6-184-wb1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WR_BINARY_MIN_RATIO 0.72: the least initial mass at which a companion can strip a star into a Wolf-Rayet star, as a share of the single-star threshold (18 against 25 solar masses at the Sun's metallicity, carried up by the same metallicity law as the threshold)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WR_STRIPPING_FRACTION 0.33: the share of stars between the binary and the single-star threshold that a companion strips into a Wolf-Rayet star"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "the same band, near solar metallicity"
+            ],
+            [
+              "What would show it wrong",
+              "an observed binary-stripped to single-star Wolf-Rayet ratio far from 0.25 to 0.4 in the Galaxy, or a population synthesis of interacting binaries giving another stripped share"
+            ],
+            [
+              "What replaces it",
+              "a stripping chance from the period and mass-ratio law of the member trees (the share of close binaries that transfer mass in a way that strips the envelope)"
+            ],
+            [
+              "Evidence",
+              "[R4051] section 5, below its Eq. 4: the stripping efficiency 0.33 it takes from the observed interacting fraction (read, quoted by the paper, not re-derived)"
+            ]
+          ],
+          "id": "WB2",
+          "key": "6.184:WB2",
+          "kind": "P",
+          "slug": "6-184-wb2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WR_STRIPPING_FRACTION 0.33: the share of stars between the binary and the single-star threshold that a companion strips into a Wolf-Rayet star"
+        }
+      ],
+      "slug": "6-184-stand-ins-of-the-binary-stripped-wolf-rayet-channel",
+      "title": "Stand-ins of the binary-stripped Wolf-Rayet channel"
+    },
+    {
       "key": "6.182",
       "number": "6.182",
 >>>>>>> origin/main
