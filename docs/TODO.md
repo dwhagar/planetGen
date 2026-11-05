@@ -2181,6 +2181,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Needs the whole table (NAV.54) and runs before the planner (NAV.26),
   so the cluster fallback is built or skipped on the answer (2026-10-16
   review).
+  Script merged (Core 2, #5068); real run owed (4:47 AM EST on
+  2026-11-05): scripts/census_keep_out_overlap.py --database <db> counts
+  overlapping keep-out spheres in a generated galaxy (pairs by kind,
+  nested pairs, clusters by size). It has not run on real data (the lane
+  has no generated galaxy). Estimate from the Kroupa mass function and
+  the Hill-radius rule: 24 to 43 percent of star spheres near the Sun
+  overlap another, so NAV.26's cluster fallback is needed. Report
+  reports/nav56-keep-out-overlap-census-2026-11-05.md. Stays open until
+  the Train Manager posts one real run from the census database after
+  train 10 (python scripts/census_keep_out_overlap.py --database
+  planetgen).
   Prerequisites: NAV.54.
   Design: [docs/design/orbits/course-avoidance.md](design/orbits/course-avoidance.md)
 
