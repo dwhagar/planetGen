@@ -9,18 +9,18 @@ const C = await importPage("crossstars.js");
 
 const EDGE = 4;
 const rec = (id, x) => ({ id, shell: 1, band: 0, wedge: id, x });
-const centreOf = (r) => [r.x, 0, 0];
+const centerOf = (r) => [r.x, 0, 0];
 
 test("the sectors read are the ones near the system, nearest first, never the open one", () => {
   const records = [rec(1, 0), rec(2, 4), rec(3, -4), rec(4, 20), rec(5, 5.5)];
-  const got = C.neighbourRecords(records, centreOf, [1.8, 0, 0], EDGE, 1).map((r) => r.id);
+  const got = C.neighbourRecords(records, centerOf, [1.8, 0, 0], EDGE, 1).map((r) => r.id);
   assert.deepEqual(got, [2, 5, 3], "the far sector (4) and the open one (1) are left out");
 });
 
 test("no more than CROSS_SECTORS are read, and a record with no id is skipped", () => {
   const records = Array.from({ length: 20 }, (_, i) => rec(i + 10, (i % 3) * 0.1));
   records.push({ shell: 1, band: 0, wedge: 0, x: 0 });
-  assert.equal(C.neighbourRecords(records, centreOf, [0, 0, 0], EDGE, null).length, C.CROSS_SECTORS);
+  assert.equal(C.neighbourRecords(records, centerOf, [0, 0, 0], EDGE, null).length, C.CROSS_SECTORS);
 });
 
 test("a scene's systems are placed as the scene is built, with a binary's companion folded into its primary", () => {

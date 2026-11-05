@@ -31,10 +31,10 @@ KIND_LABELS = {"generation": "Generation", "maintenance": "Maintenance", "check"
 
 STATE_LABELS = {
     "running": "Running",
-    "cancelling": "Cancelling",
+    "canceling": "Canceling",
     "done": "Done",
     "failed": "Failed",
-    "cancelled": "Canceled",
+    "canceled": "Canceled",
 }
 
 STAGE_STATE_LABELS = {"waiting": "Waiting", "running": "Running", "done": "Done"}
@@ -123,7 +123,7 @@ def _actions(run):
     if run["live"]:
         return ["cancel", "clear"] if run["stale"] else ["cancel"]
     actions = []
-    if run["state"] in ("failed", "cancelled") and _retry_plan(run) is not None:
+    if run["state"] in ("failed", "canceled") and _retry_plan(run) is not None:
         actions.append("retry")
     actions.append("delete")
     return actions

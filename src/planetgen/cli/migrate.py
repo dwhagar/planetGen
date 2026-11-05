@@ -190,9 +190,9 @@ def close_site_for_the_sector_switch(config, write=print):
 def _update_guard(config, yes):
     """
     OPS.41 and OPS.53 for a migration run by hand: when there is something to migrate and `update.sh` is not
-    running it (it holds the guard already), list the running work and ask before cancelling it, close the site
+    running it (it holds the guard already), list the running work and ask before canceling it, close the site
     for the migration and open it again when it has finished. A failure leaves the site closed (the message says
-    how to open it). Exits with status 1, having changed nothing, when the work is not cancelled.
+    how to open it). Exits with status 1, having changed nothing, when the work is not canceled.
     """
     if updateguard.inside_update():
         yield

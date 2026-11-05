@@ -97,7 +97,7 @@ export var JOB_POLL_MS = 1000;
 // An answer of 202 (UX.136) says a queued job is building a slow answer: `jobs.show(job)` is called with the job
 // (`{state, percent, eta_seconds, error ...}`) as it is polled at `body.status_url` through `jobs.poll(url)` (a
 // promise of a Response, `fetch` by default), until it has succeeded, and then the table asks again. A failed or
-// cancelled job leaves the last `show` on the screen and throws; `jobs.stopped()` true ("Stop waiting") ends the
+// canceled job leaves the last `show` on the screen and throws; `jobs.stopped()` true ("Stop waiting") ends the
 // wait the same way. `jobs.show(null)` clears the display.
 export function fetchWhileBusy(request, wanted, onBusy, sleep, jobs) {
   var wait = sleep || function (ms) {
@@ -109,7 +109,7 @@ export function fetchWhileBusy(request, wanted, onBusy, sleep, jobs) {
     if (jobs.stopped()) {
       return Promise.reject(new Error("table wait stopped"));
     }
-    if (job.state === "failed" || job.state === "cancelled") {
+    if (job.state === "failed" || job.state === "canceled") {
       return Promise.reject(new Error("table job " + job.state));
     }
     if (job.state === "succeeded") {

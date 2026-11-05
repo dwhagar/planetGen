@@ -967,9 +967,9 @@ def test_the_progress_bar_counts_families():
     assert lines[3] == "[##############################] 2/2 search"
 
 
-def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):
+def test_a_sigterm_ends_the_run_as_canceled_not_stranded(script, redis_server, monkeypatch):
     """SIGTERM (the update guard's cancel, update.sh's timeout) reaches the starter as Ctrl+C does, and the run ends
-    as cancelled in Redis, freeing its place; the command ends with one line and a status, not a traceback (OPS.95)."""
+    as canceled in Redis, freeing its place; the command ends with one line and a status, not a traceback (OPS.95)."""
     import os
     import signal
     original = signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGHUP)
@@ -989,7 +989,7 @@ def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, 
         warm_cli.run_warm(_args("lists"))
     assert stopped.value.code == 130
     conn = redisqueue.connect(redis_server)
-    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "cancelled"
+    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "canceled"
     assert runrecord.active_run(conn, runrecord.MAINTENANCE) is None
 
 

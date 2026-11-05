@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Reduces the [R0535] table of 1,615 FGK dwarfs (VizieR J/ApJS/225/32, SPOCS) to the bands the generated stellar
-abundances are held to (TEST.456): per [Fe/H] bin, the number of stars, the share older than 8 Gyr (the thick-disc age of
+abundances are held to (TEST.456): per [Fe/H] bin, the number of stars, the share older than 8 Gyr (the thick-disk age of
 `tuning.STELLAR_THICK_START_GY`), and for [C/Fe], [O/Fe], [Mg/Fe], [Si/Fe] and [Ca/Fe] the median, the standard deviation and the 16th
 and 84th percentiles.
 

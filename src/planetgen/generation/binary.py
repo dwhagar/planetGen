@@ -102,7 +102,7 @@ class BinaryStarProxy(StellarObject):
                 distance from the galactic center, in light-years, threaded
                 into `_calculate_system_perimeter_static` -- see
                 `Star.calculate_system_perimeter`'s docstring for the same
-                parameter. `None` (the default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
+                parameter. `None` (the default) uses the radius that holds half of the galaxy's disk stars (`galaxy.scales`).
             galactic_orbital_phase_deg (float, optional): This system's
                 current angular position around its galactic orbit, in
                 degrees -- see `Star.__init__`'s docstring for the same
@@ -401,7 +401,7 @@ class BinaryStarProxy(StellarObject):
             galactic_center_dist_ly (float, optional): This system's actual
                 distance from the galactic center, in light-years -- see
                 `Star.calculate_system_perimeter`'s docstring. `None` (the
-                default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
+                default) uses the radius that holds half of the galaxy's disk stars (`galaxy.scales`).
 
         Returns:
             float: The radius of the Hill sphere in Astronomical Units (AU).

@@ -1,0 +1,17 @@
+{#- The help page about the sky behind a system (/help/sky, web/class_pages.py, web/lib/sky_help.py, VIEW.38). -#}
+{% extends "base.html" %}
+{% block content %}
+<section class="panel" id="sky-help" aria-labelledby="sky-help-heading">
+  <div class="panel-header"><h2 id="sky-help-heading">{{ page.title }}</h2></div>
+  {%- for paragraph in page.intro %}<p>{{ paragraph }}</p>{% endfor %}
+</section>
+{%- for section in page.sections %}
+<section class="panel" id="{{ section.id }}" aria-labelledby="{{ section.id }}-heading">
+  <div class="panel-header"><h2 id="{{ section.id }}-heading">{{ section.heading }}</h2></div>
+  {%- for paragraph in section.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+  {%- if section.reference %}
+  <p>{{ reference_link(section.reference[0], section.reference[1]) }}</p>
+  {%- endif %}
+</section>
+{%- endfor %}
+{% endblock %}

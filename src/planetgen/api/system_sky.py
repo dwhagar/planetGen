@@ -119,6 +119,33 @@ def _wanted_pc(conn, observer, limit):
     return float(sky_tiers.reach_pc(float(scatter[0]), limit, curve))
 
 
+MAX_CHARTED_NAMES = 5000
+"""int: The most charted stars `meta.charted` names (the brightest in the list come first, so a cut takes the faintest)."""
+
+
+def _charted_names(conn, stars):
+    """
+    VIEW.37: the stars of the sky that are charted, by their place in the list: `{"<place>": [printed star ID, name or null]}`. The page links such a
+    star to its own page and says its name when it is picked; a star of the other tiers (scatter, cluster, phenomenon) has no ID to give until
+    GEN.1254 and GEN.1255 land, so it is not here.
+    """
+    places = {}
+    for place, (tier, uid) in enumerate(zip(stars.tier, stars.uid)):
+        if tier == "charted":
+            places[place] = int(str(uid).partition(":")[2])
+    if not places:
+        return {}
+    wanted = sorted(set(places.values()))[:MAX_CHARTED_NAMES]
+    printed = ids.printed_many(conn, "star", wanted)
+    names = {}
+    for start in range(0, len(wanted), 500):
+        chunk = wanted[start:start + 500]
+        marks = ", ".join("?" * len(chunk))
+        for row in conn.execute(f"SELECT id, name FROM stars WHERE id IN ({marks})", tuple(chunk)).fetchall():
+            names[row["id"]] = row["name"]
+    return {str(place): [printed.get(star), names.get(star)] for place, star in places.items() if star in names and printed.get(star)}
+
+
 def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
     """
     The sky of the system `system_id` at the limiting magnitude `limit`.
@@ -169,7 +196,8 @@ def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
     printed_system = ids.printed(conn, "system", system_id) or f"system:{system_id}"
     band = {"key": band_key(info, galaxy_key, observer, limit), "width": sky_band.EQUIRECT_WIDTH, "height": sky_band.EQUIRECT_HEIGHT, "format": BAND_FORMAT,
             "href": f"/system/{printed_system}/sky/band?limit={limit:g}"}
-    meta = {"system": printed_system, "version_key": key, "limit": limit, "galaxy": galaxy_key, "nebulae": records, "band": band, "report": report}
+    meta = {"system": printed_system, "version_key": key, "limit": limit, "galaxy": galaxy_key, "nebulae": records, "band": band, "report": report,
+            "charted": _charted_names(conn, stars)}
     packed = skypack.pack_sky(stars, at_unix, limit, observer.velocity_kms, meta=meta)
     return {"system": printed_system, "limit": limit, "epoch_unix": at_unix, "version_key": key, "count": int(len(stars.uid)), "sprites": len(records),
             "report": report, "seconds": round(time.perf_counter() - started, 3), "packed": packed}

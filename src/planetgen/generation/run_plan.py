@@ -2594,11 +2594,11 @@ def expand_clean_nebula_field(params):
 def clean_nebula_field_unit(params, report):
     """
     The `clean-nebula-field` command's unit (GEN.205): brings an existing galaxy's stored field clouds in line with
-    the current keep rates. Every stored dark nebula that is a field cloud (found in its cell's draw by its centre) is
+    the current keep rates. Every stored dark nebula that is a field cloud (found in its cell's draw by its center) is
     checked against `cloud_kept`; the ones the rule now rejects are counted per class (the dry run, always done first).
     With `apply` they are deleted, which clears the `inside_nebula_id` of everything inside them (the foreign key sets
     it to NULL), and containment is refreshed in the sectors they reached. Nothing else is touched: a nebula with no
-    cell draw at its centre was not made by the field and stays. Drawing `nebula_field` again is the starter's next
+    cell draw at its center was not made by the field and stays. Drawing `nebula_field` again is the starter's next
     command (`draw-nebula-field`).
 
     Returns:

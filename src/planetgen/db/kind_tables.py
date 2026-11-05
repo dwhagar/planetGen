@@ -16,7 +16,7 @@ standalone phenomenon, and the groups it is in. The groups:
 * `timestamped`: the table has `created_at` and `modified_at`.
 * `sector_filed`: the rows are filed in a sector by `sector_id`; `system_filed`: by `star_system_id`; `star_filed`:
   a row may belong to a star by `star_id` with no `sector_id` of its own.
-* `phenomenon`: a standalone phenomenon with a galaxy-frame centre, a `quadrant` and a generator type.
+* `phenomenon`: a standalone phenomenon with a galaxy-frame center, a `quadrant` and a generator type.
 * `containable`: the rows can sit inside a nebula or a supernova remnant.
 * `path`: the rows get a path through the sectors (`sector_paths`).
 

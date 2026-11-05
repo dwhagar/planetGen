@@ -136,9 +136,9 @@ def positions_mpc(component, uniform):
     cos_colat = 2.0 * uniform[1] - 1.0
     in_plane = radius * np.sqrt(np.maximum(0.0, 1.0 - cos_colat * cos_colat))
     lon = uniform[2] * (2.0 * math.pi)
-    centre = np.asarray(component.center_pc, dtype=float)
+    center = np.asarray(component.center_pc, dtype=float)
     offsets = np.stack([in_plane * np.cos(lon), in_plane * np.sin(lon), radius * cos_colat])
-    return np.rint((centre[:, None] + offsets) * MPC_PER_PC).astype(np.int64)
+    return np.rint((center[:, None] + offsets) * MPC_PER_PC).astype(np.int64)
 
 
 def _candidates(component, mean, rng):

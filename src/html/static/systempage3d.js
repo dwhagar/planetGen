@@ -87,7 +87,7 @@ if (root && diagram && diagramButton && button3d) {
     skyModule = await import(`./systemsky.js${VERSION_QUERY}`);
     const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
     sky = skyModule.createSystemSky(THREE, {
-      skyUrl: root.dataset.skyUrl, view: view, sceneEpochUnix: scene.epoch_unix, phone: skyModule.isPhone(window),
+      skyUrl: root.dataset.skyUrl, starUrl: root.dataset.skyStarUrl || "", view: view, sceneEpochUnix: scene.epoch_unix, phone: skyModule.isPhone(window),
       pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
       storage: (() => { try { return window.localStorage; } catch (err) { return null; } })(),
       onState: (state, note) => {

@@ -184,7 +184,7 @@ function makeNebulaTexture(coreColor, edgeColor) {
 }
 
 // Reproduces planetgen/web/maps/starmap.py's old (now retired) `_ASTEROID_FIELD_BACKGROUND`
-// -- a soft tan base disc under three dark "clump" splotches -- as three
+// -- a soft tan base disk under three dark "clump" splotches -- as three
 // canvas radial-gradient fills instead of four stacked CSS ones. Not
 // pixel-identical (CSS's own unsized `radial-gradient(circle at X% Y%, ...)`
 // scales each clump to that *element's* own farthest-corner distance from
@@ -478,7 +478,7 @@ function makeCloudVolume(cloud, volume) {
 // `corePx` across in a soft halo `sizePx` across whose strength is `glow`,
 // the core `bright` opaque and whitened toward its middle (by `whiten`, 1
 // unless the entry says otherwise: an accreting black hole's core keeps
-// its disc's orange). planetgen/web/maps/starmap.py works every number out (from the
+// its disk's orange). planetgen/web/maps/starmap.py works every number out (from the
 // star's radius, luminosity and temperature, or a fixed recipe for a
 // phenomenon), with the Galaxy Map's own ranges and halo falloff, so a star
 // looks the same here as on the map the person just left (MAP.203); a

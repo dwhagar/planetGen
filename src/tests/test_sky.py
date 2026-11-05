@@ -219,9 +219,9 @@ def test_asking_by_shells_finds_every_star_the_whole_catalogue_shows():
     everything = stars(rows)
     calls = []
 
-    def source(centre, inner, outer, floor):
+    def source(center, inner, outer, floor):
         calls.append((inner, outer, floor))
-        d = np.linalg.norm(everything.position_pc - np.array(centre), axis=1)
+        d = np.linalg.norm(everything.position_pc - np.array(center), axis=1)
         keep = (d >= inner) & (d < outer) & (everything.luminosity_sol >= floor)
         return sky.SkyStars(*[getattr(everything, name)[keep] for name in sky.SkyStars._fields])
 
@@ -273,7 +273,7 @@ def test_the_sphere_source_gives_a_shell_and_the_sky_comes_out_of_it():
                           {"ident": 3, "x": 8128.0 + 400.0, "lum": 2000.0}])
     asked = []
 
-    def query(centre, radius, floor):
+    def query(center, radius, floor):
         asked.append((radius, floor))
         keep = (sphere.distance_pc <= radius) & (sphere.luminosity_sol >= floor)
         from types import SimpleNamespace
@@ -320,7 +320,7 @@ def test_the_sphere_source_reports_the_levels_of_each_shell():
     sphere = fake_sphere([{"ident": 1, "x": 8128.0 + 5.0}])
     sphere.levels = SimpleNamespace(complete_above_sol=0.5)
     levels = []
-    source = sky.sphere_source(lambda centre, radius, floor: sphere, levels)
+    source = sky.sphere_source(lambda center, radius, floor: sphere, levels)
     source(OBSERVER.position_pc, 0.0, 8.0, 0.001)
     bare = fake_sphere([{"ident": 2}])                    # a query with no levels is complete above nothing it can say
     sky.sphere_source(lambda c, r, f: bare, levels)(OBSERVER.position_pc, 8.0, 16.0, 0.01)
@@ -333,7 +333,7 @@ def test_the_database_entry_point_asks_the_sphere_query_on_its_connection(monkey
     sphere.levels = SimpleNamespace(complete_above_sol=0.0)
     seen = []
 
-    def stars_in_sphere(conn, centre, radius, floor):
+    def stars_in_sphere(conn, center, radius, floor):
         seen.append((conn, radius, floor))
         keep = (sphere.distance_pc <= radius) & (sphere.luminosity_sol >= floor)
         picked = SimpleNamespace(**{k: v[keep] for k, v in vars(sphere).items() if k != "levels"})

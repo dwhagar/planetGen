@@ -64,17 +64,17 @@ def _solve():
     """`(edges, number)`: the cell edges (solar masses) and the number of primaries born in each, on the scale of `xi`."""
     edges = _edges()
     cells = len(edges) - 1
-    centre = np.sqrt(edges[:-1] * edges[1:])
+    center = np.sqrt(edges[:-1] * edges[1:])
     born = np.array([imf.integral(0.0, a, b) for a, b in zip(edges[:-1], edges[1:])])
-    n_c = np.array([companions_per_primary(m) for m in centre])
-    ratios = mass_ratio.Ratios(centre)
+    n_c = np.array([companions_per_primary(m) for m in center])
+    ratios = mass_ratio.Ratios(center)
     primaries = np.zeros(cells)
     for i in range(cells - 1, -1, -1):
         # A companion is no lighter than `tuning.BINARY_MASS_RATIO_RANGE`'s low end of its primary, so the primaries that put one
         # in this cell are within that factor above it.
-        end = min(cells, int(np.searchsorted(centre, edges[i + 1] / tuning.BINARY_MASS_RATIO_RANGE[0])) + 1)
+        end = min(cells, int(np.searchsorted(center, edges[i + 1] / tuning.BINARY_MASS_RATIO_RANGE[0])) + 1)
         rows = slice(i, end)
-        share = (ratios.fraction_below(edges[i + 1] / centre[rows], rows) - ratios.fraction_below(edges[i] / centre[rows], rows))
+        share = (ratios.fraction_below(edges[i + 1] / center[rows], rows) - ratios.fraction_below(edges[i] / center[rows], rows))
         own = n_c[i] * share[0]
         heavier = n_c[i + 1:end] * share[1:]
         from_heavier = float(detmath.matmul(primaries[i + 1:end], heavier[:, None])[0]) if heavier.size else 0.0
@@ -101,11 +101,11 @@ def _nodes():
 def density_at(masses):
     """`P(M)` per solar mass at each of `masses` (solar masses), on the scale of `xi`, read off the solved cells (log-log)."""
     edges, primaries = _solve()
-    centre = np.sqrt(edges[:-1] * edges[1:])
+    center = np.sqrt(edges[:-1] * edges[1:])
     per_mass = primaries / (edges[1:] - edges[:-1])
-    where, log_density, at = np.log(masses), np.log(np.maximum(per_mass, 1.0e-300)), np.log(centre)
+    where, log_density, at = np.log(masses), np.log(np.maximum(per_mass, 1.0e-300)), np.log(center)
     found = np.interp(where, at, log_density)
-    # Past the first and last cell centre the line of the nearest two continues (not flat: the density falls on).
+    # Past the first and last cell center the line of the nearest two continues (not flat: the density falls on).
     found = np.where(where > at[-1], log_density[-1] + (where - at[-1]) * (log_density[-1] - log_density[-2]) / (at[-1] - at[-2]), found)
     found = np.where(where < at[0], log_density[0] + (where - at[0]) * (log_density[1] - log_density[0]) / (at[1] - at[0]), found)
     return np.exp(found)

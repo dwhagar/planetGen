@@ -22,7 +22,7 @@ from planetgen.physics import mathcheck
 SHAPE = mathcheck._reference_galaxy_shape()
 BASE = dict(disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=700.0, bulge_amplitude=3.11,
             arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)
-NAMES = ("thin_disk", "thick_disk", "bulge", "halo", "nuclear_cluster", "nuclear_disc")
+NAMES = ("thin_disk", "thick_disk", "bulge", "halo", "nuclear_cluster", "nuclear_disk")
 
 
 def _by_name(shape):
@@ -32,7 +32,7 @@ def _by_name(shape):
 def test_the_components_come_in_a_fixed_order_with_a_population_and_shape_each():
     components = density.density_components(SHAPE)
     assert tuple(c.name for c in components) == NAMES
-    assert {c.population for c in components} == {"disk", "old", "bulge", "halo", "nuclear_cluster", "nuclear_disc"}
+    assert {c.population for c in components} == {"disk", "old", "bulge", "halo", "nuclear_cluster", "nuclear_disk"}
     assert all(c.parameters and c.mass >= 0.0 for c in components)
 
 
@@ -53,7 +53,7 @@ def _quadrature_masses(shape):
     """Each component's mass by a quadrature of its profile as the model evaluates it, in the model's units (independent
     of the closed forms): the disks in cylinders, the bulge in the bar's scaled spherical coordinates, the halo in
     spheroidal shells (`m` from a hundredth of its core to 1e12 of its break), the nuclear cluster in shells and the
-    nuclear disc in cylinders."""
+    nuclear disk in cylinders."""
     terms, halo = density.model_terms(shape), density.halo_terms(shape)
     out = {}
 
@@ -72,8 +72,8 @@ def _quadrature_masses(shape):
                                 lambda v: v.thin_profile * shape.arm_level, 40.0)
     out["thick_disk"] = cylinder(terms["thick_disk_scale_length_pc"], terms["thick_disk_scale_height_pc"],
                                  lambda v: v.thick_disk, 40.0)
-    out["nuclear_disc"] = cylinder(terms["nuclear_disc_length_pc"], terms["nuclear_disc_height_pc"],
-                                   lambda v: v.nuclear_disc, 40.0)
+    out["nuclear_disk"] = cylinder(terms["nuclear_disk_length_pc"], terms["nuclear_disk_height_pc"],
+                                   lambda v: v.nuclear_disk, 40.0)
 
     # the bulge, in the bar's frame scaled by its three axes: `rho` out to 14, theta over a half, phi over a quarter
     rho, rw = np.polynomial.legendre.leggauss(240)
@@ -137,14 +137,14 @@ def test_the_integrated_masses_the_old_checks_use_still_agree_with_the_closed_fo
 def test_the_halo_is_the_stellar_halo_share_of_the_galaxys_stars():
     by_name = _by_name(SHAPE)
     ratio = SHAPE.structure.halo_stellar_ratio
-    # the nuclear cluster and disc sit on top of the stars the visible components hold, so the halo is a little under its share
+    # the nuclear cluster and disk sit on top of the stars the visible components hold, so the halo is a little under its share
     assert by_name["halo"].mass_solar / SHAPE.structure.stellar_mass_solar == pytest.approx(ratio, rel=0.05)
 
 
 def test_a_component_with_amplitude_zero_has_mass_zero_and_the_rest_are_unchanged():
     with_nucleus = density.build_galaxy_shape(**BASE, nuclear_amplitude=1.0)
     without = density.build_galaxy_shape(**BASE, nuclear_amplitude=0.0)
-    for name in ("nuclear_cluster", "nuclear_disc"):
+    for name in ("nuclear_cluster", "nuclear_disk"):
         assert _by_name(without)[name].amplitude == 0.0 and _by_name(without)[name].mass == 0.0
         assert _by_name(with_nucleus)[name].mass > 0.0
     no_thick = density.build_galaxy_shape(**BASE, structure=galaxyStructure.REFERENCE_STRUCTURE._replace(thick_mass_ratio=0.0))
@@ -222,7 +222,7 @@ def test_the_density_is_the_sum_of_the_components_and_a_zero_component_adds_noth
         assert shape.k_norm * total == pytest.approx(density.relative_density(point, shape), rel=1e-12)
     none = density.build_galaxy_shape(**{**BASE, "bulge_amplitude": 0.0}, structure=REFERENCE._replace(thick_mass_ratio=0.0))
     values = density.component_values((600.0, 100.0, 20.0), none)
-    assert values.bulge == 0.0 and values.thick_disk == 0.0 and values.nuclear_cluster == 0.0 and values.nuclear_disc == 0.0
+    assert values.bulge == 0.0 and values.thick_disk == 0.0 and values.nuclear_cluster == 0.0 and values.nuclear_disk == 0.0
     arrays = density.component_arrays(np.array([600.0, 5000.0]), np.array([100.0, 0.0]), 20.0, none)
     assert not arrays.bulge.any() and not arrays.thick_disk.any()
 

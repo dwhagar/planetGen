@@ -33,6 +33,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { addField, makeRingTexture, nearestOnScreen } = await import(`./mapcore.js${VERSION_QUERY}`);
 const B = await import(`./bookmarks.js${VERSION_QUERY}`);
+const W = await import(`./waypoints.js${VERSION_QUERY}`);
 
 // --- Picking -----------------------------------------------------------------------
 
@@ -428,6 +429,25 @@ export function createInfoPanel(panelEl) {
     return bookmarkButton;
   }
 
+  // NAV.49: the Waypoint button, one for the panel, for the object whose bookmark entry (a star system or a phenomenon has a NAV endpoint)
+  // the panel shows; it hides itself for anything a course cannot go through.
+  let waypointButton = null;
+  let waypointEntry = null;
+  let refreshWaypoint = null;
+
+  function waypointToggle(entry) {
+    waypointEntry = entry;
+    if (!waypointButton) {
+      waypointButton = el("button", "btn btn-small btn-secondary map-info-waypoint");
+      waypointButton.type = "button";
+      // A card over the map keeps to its one row of actions (MAP.347): the flag sits by the name, beside the star.
+      refreshWaypoint = W.toggleButton(waypointButton, function () { return waypointEntry; }, overlay);
+    } else {
+      refreshWaypoint();
+    }
+    return waypointButton;
+  }
+
   // Every action in one wrapping row, so the space between two buttons
   // is the same across and down (--btn-gap): the View button, the pick button, the Go to buttons and Expand (MAP.347; the ☆ sits by the name). The
   // other NAV buttons and the page links are a second row at the top of what is behind Expand (`extra`), with the same spacing.
@@ -447,6 +467,7 @@ export function createInfoPanel(panelEl) {
       into.appendChild(node);
     });
     if (spec.bookmark && !overlay) row.appendChild(bookmarkToggle(spec.bookmark));
+    if (spec.bookmark && W.isWaypoint(spec.bookmark) && !overlay) row.appendChild(waypointToggle(spec.bookmark));
     (spec.links || []).forEach(function (link) { extra.appendChild(pageLink(link.href, link.label, "btn btn-small btn-secondary")); });
     (spec.buttons || []).forEach(function (button) {
       const node = el("button", "btn btn-small btn-secondary", button.label);
@@ -472,6 +493,7 @@ export function createInfoPanel(panelEl) {
     if (!panelEl) return;
     panelEl.textContent = "";
     bookmarkEntry = null;
+    waypointEntry = null;
     rest = null;
     expandButton = null;
     if (overlay) place();
@@ -480,6 +502,7 @@ export function createInfoPanel(panelEl) {
     const head = el("div", "map-info-head");
     head.appendChild(el("h3", null, view.title));
     if (overlay && spec.bookmark) head.appendChild(bookmarkToggle(spec.bookmark));
+    if (overlay && spec.bookmark && W.isWaypoint(spec.bookmark)) head.appendChild(waypointToggle(spec.bookmark));
     if (overlay) head.appendChild(closeButton());
     panelEl.appendChild(head);
     // The kind: named by the card or by its "Type" row, which then is not repeated as a row.

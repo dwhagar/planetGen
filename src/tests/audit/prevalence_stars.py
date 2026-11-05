@@ -77,7 +77,7 @@ def solar_populations():
 
 def solar_age_laws():
     """`{population: AgeLaw}` of the default galaxy (`galaxy.disk_history.population_age_laws`): how the generator spreads the ages of a disk
-    population (the thin disc's history, the thick disc's flat window for the old ones), as every draw of a sector does (GEN.546, GEN.1025)."""
+    population (the thin disk's history, the thick disk's flat window for the old ones), as every draw of a sector does (GEN.546, GEN.1025)."""
     from planetgen.galaxy import disk_history
     from tests import test_satellites as satellites
 
@@ -103,7 +103,7 @@ def draw_mix(count):
 
     draw.set_run_seed(census.seed_for("star-mix"))
     populations = solar_populations()
-    age_laws = solar_age_laws()      # the old population is 3 to 13 Gy since GEN.1025: drawn flat it has twice the thin disc's old stars, and 8.2 percent white dwarfs
+    age_laws = solar_age_laws()      # the old population is 3 to 13 Gy since GEN.1025: drawn flat it has twice the thin disk's old stars, and 8.2 percent white dwarfs
     counts, errors = Counter(), []
     for _ in range(count):
         try:

@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.api import system_sky
+from planetgen.api import ids, system_sky
 from planetgen.api.config import Config
 from planetgen.db import sky_sprites, store
 from planetgen.galaxy import sky, sky_sprites as sprite_maker
@@ -189,6 +189,19 @@ def test_a_system_sky_holds_the_stars_it_sees_the_nebulae_and_the_report(conn):
     assert set(report) >= {"stars_in", "tiers", "built_to_pc", "complete_above_sol", "wanted_pc", "filling", "sprites", "unbuilt_velocity"}
     assert report["sprites"]["sent"] == 1 and isinstance(report["filling"], bool) and report["wanted_pc"] > 0
     assert built["report"] == report
+
+
+def test_the_charted_stars_of_a_sky_are_named_by_their_place_in_the_list_for_the_page_to_link(conn):
+    """VIEW.37: `meta.charted` maps the place of each charted star to its printed star ID and name; no other tier is in it."""
+    own, near_star, bright, _nebula = a_neighbourhood(conn)
+    store.assign_uids(conn, system_ids=[conn.execute("SELECT star_system_id FROM stars WHERE id = ?", (near_star,)).fetchone()["star_system_id"]])
+    conn.commit()                                               # a row saved by hand has no printed ID until it is issued one
+    back = skypack.unpack_sky(system_sky.build_system_sky(conn, own, 7.5, "s")["packed"])
+    charted = back["meta"]["charted"]
+    places = [i for i, kind in enumerate(back["kind"]) if kind == skypack.KIND_CODES["charted"]]
+    assert sorted(charted) == sorted(str(back["index"][i]) for i in places) and len(charted) == 1
+    printed, name = next(iter(charted.values()))
+    assert printed == ids.printed(conn, "star", near_star) and name == conn.execute("SELECT name FROM stars WHERE id = ?", (near_star,)).fetchone()["name"]
 
 
 def test_a_sky_is_the_same_bytes_every_time_and_a_dimmer_limit_has_fewer_stars(conn):

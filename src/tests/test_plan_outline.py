@@ -25,7 +25,7 @@ def test_the_line_gives_the_crest_the_share_and_the_size_of_the_outline():
     made, refusal = plan_outline.preview(["--mass", "1e8", "--disk-scale-length", "2000pc", "--flatness", "20",
                                           "--bulge-share", "0.001"], SEED)
     assert refusal is None and not made.empty
-    # The crest of this thin disc follows the density model, which four sourced changes moved: 3.32 to 3.27 (epoch 123, star composition),
+    # The crest of this thin disk follows the density model, which four sourced changes moved: 3.32 to 3.27 (epoch 123, star composition),
     # to 3.17 (epoch 125, the star mass function GEN.927 to GEN.930, which lowers the mean star mass), to 3.12 (GEN.999, the gas law that
     # steepens where the gas thins) and to 3.10 (GEN.1195, the central ring's cluster maximum mass). The line must carry the crest the
     # outline holds; the window keeps a change that is not one of those from passing.
@@ -37,7 +37,7 @@ def test_the_line_gives_the_crest_the_share_and_the_size_of_the_outline():
         SEED, 4.0).extents)
 
 
-def test_a_crest_under_twenty_is_warned_of_and_a_dense_disc_is_not():
+def test_a_crest_under_twenty_is_warned_of_and_a_dense_disk_is_not():
     thin, _ = plan_outline.preview(["--mass", "1e8", "--disk-scale-length", "2000pc", "--flatness", "20",
                                     "--bulge-share", "0.001"], SEED)
     assert any("times the one-star density (under 20)" in note for note in thin.warnings)

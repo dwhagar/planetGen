@@ -2,7 +2,7 @@
 GEN.262: companions in the scatter passes (`planetgen.generation.scatter_companions`,
 docs/design/systems/multi-star-systems.md 6 and 9). A star row always draws its member tree; a black hole, neutron star or
 planetary nebula row has one at the table's odds, screened by a uniform that is a pure function of the row's seed;
-the trees are stored under their rows with the barycentre bookkeeping, deleted with the rows, and the phenomenon
+the trees are stored under their rows with the barycenter bookkeeping, deleted with the rows, and the phenomenon
 scatter's class rate is divided by `1 + p_placed` so the density of the class is unchanged.
 """
 
@@ -442,7 +442,7 @@ def test_deleting_the_unbuilt_stars_of_a_cell_deletes_their_members_too(mysql_co
         conn.close()
 
 
-def test_the_nightly_update_moves_the_barycentre_and_writes_no_node(mysql_config):
+def test_the_nightly_update_moves_the_barycenter_and_writes_no_node(mysql_config):
     from tests.test_galactic_motion import SCATTER_RADIUS_PC, _seed_scatter_grid
     _seed_scatter_grid(mysql_config)
     conn = store.get_connection(mysql_config)

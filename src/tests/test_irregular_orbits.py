@@ -81,7 +81,7 @@ def test_the_gauss_changes_of_a_tangential_kick_on_a_circular_orbit_are_the_text
     da, de, di = orbits.gauss_changes(parent, 1.898e27, 0.0, 100.0, 0.0)
     n = math.sqrt(6.674e-11 * 1.898e27 / (0.1 * 1.495979e11) ** 3)
     assert da / 0.1 == pytest.approx(2.0 * 100.0 / (n * 0.1 * 1.495979e11), rel=1e-3)
-    assert de == pytest.approx(2.0 * 100.0 / (n * 0.1 * 1.495979e11), rel=1e-3)        # cos f + cos E = 2 at the pericentre of a circle
+    assert de == pytest.approx(2.0 * 100.0 / (n * 0.1 * 1.495979e11), rel=1e-3)        # cos f + cos E = 2 at the pericenter of a circle
     assert di == 0.0
 
 

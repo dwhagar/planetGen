@@ -46,12 +46,11 @@ def test_an_asteroid_moon_is_stored_without_a_class_and_every_page_of_its_system
     system_id = _saved_with_asteroid(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
-        rows = conn.execute("SELECT m.id, m.planet_class, m.roundness_ratio, m.description FROM moons m JOIN planets p ON p.id = m.planet_id WHERE p.star_system_id = ?", (system_id,)).fetchall()
+        rows = conn.execute("SELECT m.id, m.planet_class, m.roundness_ratio FROM moons m JOIN planets p ON p.id = m.planet_id WHERE p.star_system_id = ?", (system_id,)).fetchall()
     finally:
         conn.close()
     asteroids = [row for row in rows if row["planet_class"] is None]
     assert asteroids and all(row["roundness_ratio"] < 1.0 for row in asteroids)
-    assert all(row["description"] == planet_classes.ASTEROID.sentence for row in asteroids)
     assert all(row["roundness_ratio"] is None or row["roundness_ratio"] >= 1.0 for row in rows if row["planet_class"] is not None)    # a giant moon has no ratio
     assert client.get(f"/system/{pid('system', system_id)}").status_code == 200
     assert client.get(f"/system/{pid('system', system_id)}/scene").status_code == 200

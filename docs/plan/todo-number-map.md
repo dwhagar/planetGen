@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.592 |
+| TEST | TEST.598 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -777,7 +777,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.100 | A stable citation ID for every paper in the registry, shown in the registry, docs/REFERENCES.md and the Papers page | none | done, PR #4648 |
 | DOC.101 | Imported research notes: about 140 web-page, standards and fan-wiki lines in 8 notes have no home in the reference registry | none | done, PR #4744 |
 | DOC.102 | American spelling sweep of every text that is not a planet, moon or belt description: templates, help pages, static pages, star, system, sector, nebula and phenomenon text, error messages, the API and CLI help, so "colour" and the other British spellings go to zero | none | done, PR #4813 |
-| DOC.103 | American spelling of stored values and API keys: cancelled, vapour, centre, flavour, ionising, oxidised, disc, link-neighbours | none | open |
+| DOC.103 | American spelling of stored values and API keys: cancelled, vapour, centre, flavour, ionising, oxidised, disc, link-neighbours | none | done, PR #5096 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1391,7 +1391,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.611 | Shape dials: the pattern dial: arm contrast (crest minus trough over crest plus trough, default 0.4), with arm count and pitch angle, replacing the two arm densities | none | done, PR #2403 |
 | GEN.612 | Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable | none | open |
 | GEN.613 | Investigate the limits of the density algorithm: for which mass, size, flatness and bulge share the galaxy density model stays valid, and what it does outside them | none | open |
-| GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster | none | open |
+| GEN.614 | The nuclear disc is not softened to the grid: switch it off when its length (0.057 times the bulge radius) is under 2 pc, or soften it like the nuclear cluster | none | done, PR #5096 |
 | GEN.615 | Galaxies below the low-mass cut are one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures | none | done, PR #4830 |
 | GEN.616 | Average the galaxy density over each planned sector (or a 3 by 3 by 3 sample) instead of taking its centre point, for galaxies under 28 pc scale length | none | dropped (Boss, 2026-10-21 8:08 PM EDT, replaced by GEN.619) |
 | GEN.617 | Show the density ratio D, the share of stars in planned sectors and the outline size under the dials and in the plan output | none | done, PR #2469 |
@@ -1810,7 +1810,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1030 | Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family) | none | done, PR #4436 |
 | GEN.1031 | Port the 2+2 quadruple stability network of [R4575] the same way as the 3+1 one (about 8,300 numbers, plain numpy forward pass, no machine-learning dependency) | none | done, PR #4129 |
 | GEN.1032 | Refit the greenhouse table on the far-wing and acid-cloud model that GEN.1019 and GEN.1020 landed, and move the tropopause-jump sweep (GEN.852 family) | none | done, PR #4436 |
-| GEN.1033 | Ice-giant internal heat: the law goes through Jupiter and Neptune, so a Uranus-mass giant gets Neptune's 0.33 W/m2 instead of Uranus's 0.04 (the Uranus anomaly), and giants draw their Bond albedo from the rock range 0.12 to 0.35 | none | open |
+| GEN.1033 | Ice-giant internal heat: the law goes through Jupiter and Neptune, so a Uranus-mass giant gets Neptune's 0.33 W/m2 instead of Uranus's 0.04 (the Uranus anomaly), and giants draw their Bond albedo from the rock range 0.12 to 0.35 | none | done, PR #5096 |
 | GEN.1034 | Ocean tide data: the open-ocean equilibrium tide height and range at a world's surface from each moon and the star, for worlds with a surface ocean | none | done, PR #4385 |
 | GEN.1035 | Surface liquid inventory: which liquid a cold or hot world holds as a sea (methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water, sulfur) from its temperature, pressure, ice and air, so non-water oceans can have tides | none | done, PR #4321 |
 | GEN.1036 | Oddity table and loader: physics/oddities.py, physics/data/oddities.json, the row schema (requires, rate with source, tier and tweak, named input effect, limits, text) and the GEN.725 registry rows, no wiring | none | done, PR #4126 |
@@ -1829,7 +1829,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1049 | Wire W5 resonance heating and the W3 high-eccentricity and W4 misaligned-orbit tails in planet_architecture | none | open |
 | GEN.1050 | Wire W14 (the dying-planet flag) and W9 (rings from decayed moons) | none | open |
 | GEN.1051 | Wire the W19 nightside collapse and the W20 bistable branches (the history draw between branches) | none | open |
-| GEN.1052 | Heavy-liquid layers and mercury (from GEN.1034): the deep global heavy-liquid path with the fluid Love number, the thin-layer refusal, and mercury and other liquid metals as rows of the surface liquid table | none | open |
+| GEN.1052 | Heavy-liquid layers and mercury (from GEN.1034): the deep global heavy-liquid path with the fluid Love number, the thin-layer refusal, and mercury and other liquid metals as rows of the surface liquid table | none | done, PR #5096 |
 | GEN.1053 | G1 module: the giant-impact tilt of an ice giant (Uranus 98 degrees), a tail row on the spin lever with its ring and moon plane following the equator [R2300, R3149, R4118], pure function | none | done, PR #4149 |
 | GEN.1054 | Ring origin from history: a ring comes from a moon decayed inside the Roche limit (R1, [R0637, R1927]) or a comet passing inside it (R2, [R1140]), pure function; the always-a-ring rule for giants is what it replaces | none | done, PR #4124 |
 | GEN.1055 | Ring age and pollution darkening: a ring stores its age and its ice share and darkness follow from pollution over time (R6); ring shadow climate hook (R8) | none | open |
@@ -1989,28 +1989,28 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | none | open |
 | GEN.1210 | Life readings: abundance, trend and security for each kind of life (microbes, flora, fauna, sentient), as one pure function over stored values with no new column | none | done, PR #4481 |
 | GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed) | none | open |
-| GEN.1212 | Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build | none | open |
+| GEN.1212 | Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build | none | done, PR #5096 |
 | GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | none | open |
 | GEN.1214 | Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug) | none | done, PR #4436 |
 | GEN.1215 | Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable) | none | done, PR #4436 |
 | GEN.1216 | Research: the composition of surface liquids from physics and from life: salts and brines, acids, ammonia-water, liquid CO2, methane-ethane-nitrogen mixes, sulfur and what life and chemistry do to each | none | done, research report written (reports/gen1216-surface-liquid-composition-2026-10-31.md) |
 | GEN.1217 | Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it | none | open |
-| GEN.1218 | Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API | none | open |
-| GEN.1219 | Body types: planet_type (terrestrial, transitional, gas) from the envelope share of the mass, with a shadow report first | none | open |
-| GEN.1220 | Class code system: a letter plus a digit (class_variant column, 0 not written), the digit meanings and the letters of the oxygen-water, anoxic-water, CO2, acid, methane-ethane, ammonia-water and hot thin-air families | none | open |
+| GEN.1218 | Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API | none | done, PR #5099 |
+| GEN.1219 | Body types: planet_type (terrestrial, transitional, gas) from the envelope share of the mass, with a shadow report first | none | done, PR #5096 |
+| GEN.1220 | Class code system: a letter plus a digit (class_variant column, 0 not written), the digit meanings and the letters of the oxygen-water, anoxic-water, CO2, acid, methane-ethane, ammonia-water and hot thin-air families | none | done, PR #5096 |
 | GEN.1221 | Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent | none | open |
 | GEN.1222 | Tiny airless moons hold a water surface ocean at 20 to 33 K: 60 of 2,071 bodies in one sample (39 class D, 20 class C, 1 class T), all moons (bug) | none | done, PR #4838 |
 | GEN.1223 | Research: the gas and Transitional class lists from sources (Sudarsky-style temperature classes, sub-Neptune, ice giant, sub-Saturn, water world) | none | done, research report written (reports/gen1223-giant-and-transitional-classes-2026-10-31.md) |
 | GEN.1224 | Research: envelope share against mass and metallicity ([R4352] mass-metallicity relation) to replace the envelope-share guesses of the giant and transitional class rows | none | done, research report written (reports/gen1224-giant-heavy-element-and-envelope-share-2026-10-31.md) |
 | GEN.1225 | Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses) | none | done, research report written (reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md) |
-| GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly | none | open |
+| GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly | none | done, PR #5096 |
 | GEN.1227 | Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma | none | open |
 | GEN.1228 | Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug) | none | open |
 | GEN.1229 | Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug) | none | done, PR #4881 |
 | GEN.1230 | The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug) | none | done, PR #4886 |
 | GEN.1231 | White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent | none | open |
 | GEN.1232 | Belt history shown on the belt page: history_text and the giant event / companion limit (giant_event) | none | open |
-| GEN.1233 | Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law | none | open |
+| GEN.1233 | Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law | none | done, PR #5096 |
 | GEN.1234 | Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug) | none | done, PR #4699 |
 | GEN.1235 | The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug) | none | done, PR #4699 |
 | GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) | none | open |
@@ -2021,9 +2021,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1241 | Wire the system body view: the ledger and barycentre function read the typed tables for the system page | none | open |
 | GEN.1242 | The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug) | none | done, PR #4886 |
 | GEN.1243 | The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug) | none | done, PR #4767 |
-| GEN.1244 | Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug) | none | open |
+| GEN.1244 | Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug) | none | done, PR #5096 |
 | GEN.1245 | Remeasure HABITABLE_COUNT_PMF (the habitable bodies per system that sizes the directive forced fill and the "impossible" check): it was measured before epoch 121 and is stale | none | done, PR #4790 |
-| GEN.1246 | The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source | none | open |
+| GEN.1246 | The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source | none | done, PR #5096 |
 | GEN.1247 | Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug) | none | open |
 | GEN.1248 | The stored habitable-request answer (habitable_request_status) disagrees with the world count: answer from habitable_request.count and meets (bug) | none | done, PR #4842 |
 | GEN.1249 | A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree | none | open |
@@ -2250,7 +2250,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.192 | See the objects whose positions changed in the last orbital update | none | open |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | none | open |
 | MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | none | open |
-| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | open |
+| MAP.195 | Galaxy Map finer tiles leave out the stars a coarser tile already sent | none | closed, measured and not built (reports/map195-finer-tile-overlap-2026-11-05.md) |
 | MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) | none | done, PR #1331 |
 | MAP.197 | Remove the obsolete drill container code left by the map flip | none | done, PR #1455 |
 | MAP.198 | The Galaxy Map outlines and shades the whole block a click would zoom into (bug) | none | done, PR #1470 |
@@ -2454,17 +2454,17 @@ Parents marked "new parent" had no old number of their own.
 | NAV.15 | Pick mode everywhere | none | done, PR #566 |
 | NAV.16 | NAV endpoints can be any object | none | done, PR #697 |
 | NAV.17 | A saved course record with both forms | none | done, PR #2553 |
-| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | none | open |
+| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store | none | done, PR #5084 |
 | NAV.19 | Saved courses in the account (after USR.7) | none | open |
 | NAV.20 | Draw the direct line and the route apart | none | done, PR #711 |
-| NAV.21 | Fit the view to the whole course | none | open |
+| NAV.21 | Fit the view to the whole course | none | done, PR #5091 |
 | NAV.22 | Courses inside a sector and a system | none | open |
-| NAV.23 | Open a saved course on the map | none | open |
+| NAV.23 | Open a saved course on the map | none | done, PR #5091 |
 | NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
 | NAV.25 | Find the obstacles along a path | none | open |
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
-| NAV.28 | Show and save the adjusted course | none | open |
+| NAV.28 | Show and save the adjusted course | none | done, PR #5082 |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
@@ -2490,7 +2490,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.51 | Courses route around asteroid fields | none | open |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
-| NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | open |
+| NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | done, PR #5066 |
 | NAV.55 | A tuning block for the keep-out knobs | none | merged into NAV.54 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
@@ -2508,7 +2508,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map | none | done, PR #5015 |
 | NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | none | open |
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | none | open |
-| NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | open |
+| NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | none | done, PR #5076 |
 | NAV.73 | Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug) | none | done, PR #5009 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
@@ -2833,7 +2833,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.226 | Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory | none | open |
 | PERF.227 | Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug) | none | open |
 | PERF.228 | The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug) | none | open |
-| PERF.229 | Every supergiant and bright-giant star type times out at 900 s in the fuzz test (bug) | none | open |
+| PERF.229 | Every supergiant and bright-giant star type times out at 900 s in the fuzz test (bug) | none | done, PR #5096 |
 | PERF.230 | Faster isochrone interpolation for the star tables: edge_point and end_state are about 60 percent of a table build, output identical | none | done, PR #4742 |
 | PERF.231 | The class census hangs: a planet draw runs past the 45 s limit in 8 cells on main (bug) | none | done, PR #4880 |
 | PERF.232 | test_galaxy_seed::test_a_new_seed_replaces_the_old_only_before_any_sector takes over 10 minutes in its sectors step: cold per-process evolved-track evaluation per cell (bug) | none | done, PR #5011 |
@@ -3256,8 +3256,8 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.34 | System sky S16: the band layer: a sphere shader sampling the glow image with dither and grain | none | done, PR #5047 |
 | VIEW.35 | System sky S17: wire the sky into systempage3d.js and createSystemView: on and off in preferences, a filling-in note and poll, a fallback without WebGL | none | done, PR #5049 |
 | VIEW.36 | System sky S18: sprites for nebulae and remnants, and luminous black holes, neutron stars and quasars as points | none | done, PR #5049 |
-| VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars | none | open |
-| VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky | none | open |
+| VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars | none | done, PR #5061 |
+| VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky | none | done, PR #5063 |
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off | none | open |
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom | none | open |
 | VIEW.41 | System sky backfill is three orders slower than planned: a coarser block draw for the sparse bright bands, and a ring of faint stars near the observer | none | done, PR #5034 |
@@ -3694,7 +3694,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.343 | Three tests red on main since the habitable_systems table (MAP.220, #2945): point columns, parent-relative positions, and VALUES() in migration 0148 (bug) | none | done, PR #3071 |
 | TEST.344 | Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory | none | open |
 | TEST.345 | test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug) | none | done, PR #4018 |
-| TEST.346 | web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug) | none | open |
+| TEST.346 | web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug) | none | done, PR #5097 |
 | TEST.347 | test_admin_edits::test_system_page_regenerates_a_planet and ::test_system_page_changes_a_class fail alone on main: the system page lacks the 'Regenerated ...' and 'Change class' text (bug) | none | done, PR #3050 |
 | TEST.348 | test_class_pages: test_phenomenon_page_links_its_class (5 cases) and test_phenomenon_unknown_class_stays_text fail on clean main (bug) | none | done, PR #3050 |
 | TEST.349 | The browser phase of scripts/test.py changed fails in fixture setup with KeyError 'planets' before any test body runs, on every lane and on main (bug) | none | done, PR #3068 |
@@ -3909,7 +3909,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.559 | test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon fails on main: physics.tidal_heating has no molten_power_w (the tides chain removed it) (bug) | none | done, PR #4779 |
 | TEST.560 | test_the_code_reads_no_variable_the_model_does_not_name fails on main: PLANETGEN_BAND_TABLE_CACHE and PLANETGEN_BATTERY_DIGEST_CACHE are read in code and not named in the settings model (bug) | none | done, PR #4779 |
 | TEST.561 | Two pinned counts follow the star mass function and have moved: test_the_default_galaxy_holds_fewer_cells_than_the_study_counted (11,235,526,381 against the pinned 11,241,821,617) and test_the_halo_does_not_widen_the_outline (3418 against 3421) (bug) | none | done, PR #4809 |
-| TEST.562 | test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug) | none | open |
+| TEST.562 | test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug) | none | done, PR #5096 |
 | TEST.563 | test_a_belt_is_at_its_star_with_no_vector_and_a_stated_zero_mass fails on main: the belt mass reads 1.86e19 kg where 0.0 is expected (bug) | none | done, PR #4796 |
 | TEST.564 | test_a_directed_moon_count_still_goes_through_the_gate fails on main: moon counts vary 1 and 2 with a minimum of 0 where at least 1 and 80 percent at 2 are expected (bug) | none | done, PR #4788 |
 | TEST.565 | test_an_update_in_progress_builds_in_the_request_too fails on main: it raises CacheRebuilding instead of building in the request (bug) | none | done, PR #4796 |
@@ -3933,12 +3933,18 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.583 | Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug) | none | done, PR #5025 |
 | TEST.584 | test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug) | none | done, PR #4993 |
 | TEST.585 | Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug) | none | open |
-| TEST.586 | test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug) | none | open |
-| TEST.587 | Two more tests red on plain main: the bright-stars backfill block-path order test and the galaxy generation duplicate-address test (bug) | none | open |
-| TEST.588 | Five test_fuzz_web_routes cases are red on plain main: the nebula volume route and the /systems page numbers (bug) | none | open |
+| TEST.586 | test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug) | none | done, PR #5055 |
+| TEST.587 | Two more tests red on plain main: the bright-stars backfill block-path order test and the galaxy generation duplicate-address test (bug) | none | done, PR #5056 |
+| TEST.588 | Five test_fuzz_web_routes cases are red on plain main: the nebula volume route and the /systems page numbers (bug) | none | done, PR #5058 |
 | TEST.589 | test_no_todo_codes_shown is red on plain main: nebula_composition.py shows item codes (GEN.1269, GEN.1270, GEN.1271) in strings a person reads (bug) | none | done, PR #5045 |
 | TEST.590 | test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star fails on plain main with min() of an empty list in _nearest (bug) | none | done, PR #5051 |
 | TEST.591 | test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug) | none | open |
+| TEST.592 | test_a_directed_moon_count_still_goes_through_the_gate is flaky on plain main: its sun_like star is built outside draw.bound, so it differs every run (bug) | none | done, PR #5073 |
+| TEST.593 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug) | none | done, PR #5079 |
+| TEST.594 | tests/js/galaxymap.test.mjs fails on plain main (bug) | none | done, PR #5088 |
+| TEST.595 | Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug) | none | open |
+| TEST.596 | test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug) | none | open |
+| TEST.597 | test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch is flaky on plain main: about 1 run in 3 a region label shows (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

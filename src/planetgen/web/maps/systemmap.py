@@ -1817,7 +1817,7 @@ _NEBULA_WASH_TYPES = ("diffuse", "emission", "reflection", "planetary", "dark")
 (`.sysmap-nebula-<type>`); any other gets `.sysmap-nebula-other`."""
 
 
-def render_system_map_panel(system, stars, planets, belts, facilities=None, scene_url=None, nav=None, sky_url=None):
+def render_system_map_panel(system, stars, planets, belts, facilities=None, scene_url=None, nav=None, sky_url=None, sky_star_url=None, sky_help_url=None):
     """
     Builds the "System Map" panel embedded in `system.py`: TWO sibling
     `<svg>`s per scene (an orbits-only layer plus a body-marker layer --
@@ -1862,6 +1862,9 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
             scene JSON (`GET /api/systems/<id>/scene`, relayed by the
             site). Without it the panel is the diagram only, with no 3D
             switch (MAP.74).
+        sky_star_url (str, optional): A charted star's page with `{id}` where its printed ID goes (VIEW.37), as `data-sky-star-url`; the sky's
+            picked stars link through it.
+        sky_help_url (str, optional): The help page about the sky (VIEW.38); a small "About the sky" link by the sky switch.
         sky_url (str, optional): Where the 3D view fetches the sky the system
             sees (`GET /system/<id>/sky`, VIEW.31); handed to
             `static/systemsky.js` as `data-sky-url`. Without it the 3D view
@@ -1963,8 +1966,11 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     view3d_html = ""
     if scene_url and stars:
         sky_attr = f' data-sky-url="{esc(sky_url)}"' if sky_url else ""
+        if sky_url and sky_star_url:    # VIEW.37: a charted star of the sky links to its page
+            sky_attr += f' data-sky-star-url="{esc(sky_star_url)}"'
         sky_switch = (
             '<label class="sysview-sky"><input type="checkbox" id="sysview3d-sky" checked disabled> Sky background</label>'
+            + (f' <a class="sysview-sky-help" href="{esc(sky_help_url)}">About the sky</a>' if sky_help_url else "")
             if sky_url else "")
         sky_note = '<p class="hint sysview-sky-note" id="sysview3d-sky-note" aria-live="polite"></p>' if sky_url else ""
         view_switch = (

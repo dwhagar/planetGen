@@ -65,12 +65,12 @@ function blockRows(shell, m, outline) {
 // --- Stages -------------------------------------------------------------------
 //
 // A stage is {win}: `win` is null for the galaxy (every level-243 block of it,
-// a click on one opens the window one size down) or a window {centre, g}: `g`
-// cells across around `centre`, a cell of any level (a block of 243, 27 or 3
+// a click on one opens the window one size down) or a window {center, g}: `g`
+// cells across around `center`, a cell of any level (a block of 243, 27 or 3
 // shells deep, or a sector as {m: 1, shell, band, wedge}).
 // There is nothing to pick but a cell: a click on one takes the window one
-// level down, centred on the cell clicked (a sector is opened instead), and
-// Up takes it one level up, centred on the cell holding the centre (the
+// level down, centered on the cell clicked (a sector is opened instead), and
+// Up takes it one level up, centered on the cell holding the center (the
 // galaxy above level 243). A window's data is /galaxy/window
 // (planetgen/galaxy/window.py); the galaxy's is /galaxy/stage.
 
@@ -85,7 +85,7 @@ export { sameBlock };
 
 function sameWindow(a, b) {
   if (!a || !b) return !a && !b;
-  return a.g === b.g && sameBlock(a.centre, b.centre);
+  return a.g === b.g && sameBlock(a.center, b.center);
 }
 
 export function sameStage(a, b) {
@@ -148,7 +148,7 @@ export function galaxyBlocks(outline, edgePc) {
 // (MAP.243), not just those inside the galaxy's outline: the halo and the satellite galaxies can be reached.
 export function windowView(win, edgePc) {
   const blocks = [];
-  windowCells(win.centre, edgePc, win.g).forEach(function (block) {
+  windowCells(win.center, edgePc, win.g).forEach(function (block) {
     if (!drillBlockHolds(block, REACH_OUTLINE)) return;
     block.bounds = drillBlockBounds(block, edgePc);
     blocks.push(block);
@@ -183,14 +183,14 @@ export function resolveStage(stage, outline, edgePc) {
 // {x, y, z} in parsecs, where the click landed), or holding the block's middle without one. A block
 // holds the cell it was clicked in unless a rounding put the point on the block's edge, when the
 // block's middle serves. Null for a sector.
-export function windowChildCentre(block, at, edgePc) {
+export function windowChildCenter(block, at, edgePc) {
   if (block.m === 1) return null;
   const childM = block.m / 3;
   const b = block.bounds || drillBlockBounds(block, edgePc);
   const middle = cellCenter(b);
   const inside = function (point) {
     const child = cellAt(childM, point[0], point[1], point[2], edgePc);
-    // A sector joins the level-3 block holding its centre, so the sector at a point need not be in the block.
+    // A sector joins the level-3 block holding its center, so the sector at a point need not be in the block.
     if (childM === 1 || sameBlock(drillParent(child), block)) return child;
     return null;
   };
@@ -208,10 +208,10 @@ export function chordMiddle(bounds, at, eye) {
   const d = [at.x - eye.x, at.y - eye.y, at.z - eye.z];
   const norm = Math.hypot(d[0], d[1], d[2]);
   if (!(norm > 0)) return at;
-  const centre = cellCenter(bounds);
+  const center = cellCenter(bounds);
   const size = Math.max(bounds.r1 - bounds.r0, bounds.r1 * (bounds.c1 - bounds.c0),
     bounds.r1 * Math.sin((bounds.c0 + bounds.c1) / 2) * (bounds.t1 - bounds.t0));
-  const reach = 2 * size + Math.hypot(at.x - centre[0], at.y - centre[1], at.z - centre[2]);
+  const reach = 2 * size + Math.hypot(at.x - center[0], at.y - center[1], at.z - center[2]);
   const steps = 512;
   let first = null;
   let last = null;
@@ -229,26 +229,26 @@ export function chordMiddle(bounds, at, eye) {
   return { x: (first.x + last.x) / 2, y: (first.y + last.y) / 2, z: (first.z + last.z) / 2 };
 }
 
-export function windowStage(centre, g) {
-  return { win: { centre: stripBlock(centre), g: g || DEFAULT_WINDOW } };
+export function windowStage(center, g) {
+  return { win: { center: stripBlock(center), g: g || DEFAULT_WINDOW } };
 }
 
-// The window stage a click on `block` (at the point `at`, see windowChildCentre) opens, or null on a
+// The window stage a click on `block` (at the point `at`, see windowChildCenter) opens, or null on a
 // sector.
 export function windowInto(stage, block, at, edgePc) {
-  const centre = windowChildCentre(block, at, edgePc);
-  return centre ? windowStage(centre, stage.win ? stage.win.g : DEFAULT_WINDOW) : null;
+  const center = windowChildCenter(block, at, edgePc);
+  return center ? windowStage(center, stage.win ? stage.win.g : DEFAULT_WINDOW) : null;
 }
 
 // The steps a visitor takes, galaxy first, to reach `stage` (resolveStage
-// results): the window at each level on the way down to its centre.
+// results): the window at each level on the way down to its center.
 export function stageSteps(stage, outline, edgePc) {
   const steps = [resolveStage(galaxyStage(), outline, edgePc)];
   if (!stage.win) return steps;
   const chain = [];
-  for (let centre = stage.win.centre; centre; centre = stageParent(centre)) chain.push(centre);
-  chain.reverse().forEach(function (centre) {
-    const next = resolveStage(windowStage(centre, stage.win.g), outline, edgePc);
+  for (let center = stage.win.center; center; center = stageParent(center)) chain.push(center);
+  chain.reverse().forEach(function (center) {
+    const next = resolveStage(windowStage(center, stage.win.g), outline, edgePc);
     if (!next.problem) steps.push(next);
   });
   return steps;
@@ -270,7 +270,7 @@ function sectorInGalaxy(shell, band, wedge) {
 }
 
 // The stage that shows a sector among its neighbours (MAP.26): the window of
-// sectors centred on it. Null when the sector is outside the galaxy.
+// sectors centered on it. Null when the sector is outside the galaxy.
 export function sectorStage(shell, band, wedge) {
   if (!sectorInGalaxy(shell, band, wedge)) return null;
   return windowStage({ m: 1, shell: shell, band: band, wedge: wedge }, DEFAULT_WINDOW);
@@ -313,12 +313,12 @@ export function parseCellKey(key) {
 }
 
 export function windowLabel(win) {
-  return (win.centre.m === 1 ? "Sector " : "Block ") + blockLabel(win.centre) + " (" + win.centre.m + ")";
+  return (win.center.m === 1 ? "Sector " : "Block ") + blockLabel(win.center) + " (" + win.center.m + ")";
 }
 
 // The 12 edges of a cell given as bounds as line segments, a flat [x, y, z, x, y, z, ...] list of pairs: the
 // four arcs of longitude (at each radius and colatitude), the four of colatitude (at each radius and
-// longitude) and the four radial lines. Edges that collapse onto the axis or the centre are left out.
+// longitude) and the four radial lines. Edges that collapse onto the axis or the center are left out.
 export function cellEdgePoints(b) {
   const points = [];
   const at = function (r, c, t) {
@@ -565,9 +565,9 @@ export function crumbs(stage, outline, edgePc) {
 // in its cell, or the cell it moved to lies outside the galaxy.
 export function stageAtPoint(stage, point, outline, edgePc) {
   if (!stage.win) return stage;
-  const centre = stage.win.centre;
-  const cell = cellAt(centre.m, point[0], point[1], point[2], edgePc);
-  if (sameBlock(cell, centre)) return stage;
+  const center = stage.win.center;
+  const cell = cellAt(center.m, point[0], point[1], point[2], edgePc);
+  if (sameBlock(cell, center)) return stage;
   const next = windowStage(cell, stage.win.g);
   return resolveStage(next, outline, edgePc).problem ? stage : next;
 }

@@ -3,7 +3,7 @@
 """
 GEN.1238: a rocky body with surface water under starlight past its runaway greenhouse limit holds its water as steam, not as a cool ocean.
 
-The air's fixed point has two answers for such a body: a cool one (a few bar of vapour at 350 to 420 K, which the greenhouse table, fitted to a radiative-convective
+The air's fixed point has two answers for such a body: a cool one (a few bar of vapor at 350 to 420 K, which the greenhouse table, fitted to a radiative-convective
 model, gives no outgoing-flux limit to) and the steam one (the water in the air). Which it finds depended on where it started, and it started from the airless
 temperature, so a Venus twin (Venus's mass at Venus's 1.9 times the Sun's flux at the Earth) kept a liquid ocean in more than half of its draws although the water-loss
 history (`runaway_history`) already called it past the limit (about 1.1 S for a body of its mass around a Sun-like star). `planets._past_runaway_with_water` now

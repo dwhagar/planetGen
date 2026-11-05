@@ -280,7 +280,7 @@ def test_nebula_page_draws_its_cloud_in_3d(page, base_url, site_app, monkeypatch
     client = site_app.test_client()
     assert client.get(f"/galaxy/nebula/{nebula['id']}/volume").status_code == 200
     assert client.get(f"/galaxy/nebula/{nebula['id']}/surroundings").status_code == 200
-    # A nebula never placed has no centre: it keeps its still drawing.
+    # A nebula never placed has no center: it keeps its still drawing.
     monkeypatch.setattr(apiclient, "get_nebula_surroundings", real_surroundings)
     _open(page, f"{base_url}/phenomenon/nebula/{nebula['id']}", "main")
     page.wait_for_timeout(1500)
@@ -305,8 +305,8 @@ def _query(page):
     parts = [part for part in urlparse(page.url).query.split("&") if part and not part.startswith("cam=")]
     win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
     if win and not any(part.startswith("sector=") for part in parts):
-        centre = win["centre"]
-        parts.insert(0, f"win={centre['m']}.{centre['shell']}.{centre['band']}.{centre['wedge']}")
+        center = win["center"]
+        parts.insert(0, f"win={center['m']}.{center['shell']}.{center['band']}.{center['wedge']}")
     return "&".join(parts)
 
 
@@ -360,7 +360,7 @@ def _descend(page):
     size."""
     before = _state(page)
     win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
-    size = WINDOW_SIZES[1] if not win else WINDOW_SIZES[WINDOW_SIZES.index(win["centre"]["m"]) + 1]
+    size = WINDOW_SIZES[1] if not win else WINDOW_SIZES[WINDOW_SIZES.index(win["center"]["m"]) + 1]
     cell = {"m": size, "shell": 0, "band": 0, "wedge": 0}
     page.evaluate("(cell) => document.querySelector('#galaxymap3d-canvas').galaxyOpenWindow(cell)", cell)
     _wait_settled(page, before)
@@ -382,7 +382,7 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
         if crumbs[-1].startswith("Sector "):
             reached_sector = True
             break
-        # MAP.150: each click opens a window centred on the cell clicked, one size down.
+        # MAP.150: each click opens a window centered on the cell clicked, one size down.
         assert crumbs[-1].startswith("Block "), crumbs
         assert re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.-?\d+\.\d+", query), query
         assert query != steps[-1][0], "the URL names the new stage"
@@ -437,7 +437,7 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
     before = _state(page)
     page.click('#galaxymap3d-controls [data-action="up"]')
     _wait_settled(page, before)
-    # The trail follows the camera (MAP.227): the window above is centred where the camera lands, so its steps need
+    # The trail follows the camera (MAP.227): the window above is centered where the camera lands, so its steps need
     # not be the ones the window below was inside, but there is one fewer.
     assert len(_crumbs(page)) == len(crumbs) - 1 and _crumbs(page)[0] == crumbs[0], "Up drops the last breadcrumb"
 
@@ -459,7 +459,7 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
         page.locator("#galaxymap3d-crumbs button.crumb").nth(1).click()
     _wait_settled(page)
     # The crumb is the 243-block above where the walk ended, which the clicks may have carried past the first
-    # block's edge: the 3-ary ladder takes more steps than the old one did, each centred on the cell clicked.
+    # block's edge: the 3-ary ladder takes more steps than the old one did, each centered on the cell clicked.
     crumbs = _crumbs(page)
     assert len(crumbs) == 2 and crumbs[0] == "Galaxy" and crumbs[1].endswith("(243)"), crumbs
     before = _state(page)
@@ -787,6 +787,28 @@ def test_system_page_3d_view_offers_the_sky_switch_and_the_status_line(page, bas
     assert page.evaluate("window.localStorage.getItem('planetgen.systemSky')") == "on"
 
 
+def test_system_page_3d_view_says_what_a_sky_star_under_the_pointer_is(page, base_url, site_app):
+    """VIEW.37: with the sky drawn, pointing at one of its stars (where `skyStarScreen` puts it) shows its hover text, "seen as it was N years ago"
+    among it, and a click opens its card. A fixture system whose sky holds no star on the screen has nothing to point at, and the test ends there."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_function("() => { const s = document.getElementById('sysview3d').dataset.skyState; return s && s !== 'loading'; }", timeout=60000)
+    if page.locator("#sysview3d").get_attribute("data-sky-state") not in ("ready", "filling"):
+        return
+    stars = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.skyStarScreen()")
+    if not stars:
+        return
+    box = page.locator("#sysview3d-canvas").bounding_box()
+    star = stars[0]
+    page.mouse.move(box["x"] + star["x"], box["y"] + star["y"])
+    page.wait_for_function("() => document.getElementById('sysview3d-canvas').dataset.skyHover !== ''", timeout=15000)
+    tip = page.locator("#sysview3d-tip")
+    assert "seen as it was" in tip.inner_text()
+
+
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
     system_id, scene = _system_with_planets(site_app.test_client())
     _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
@@ -874,7 +896,7 @@ def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_u
 
 
 def test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others(page, base_url, site_app):
-    """MAP.213: a system of three stars is drawn node by node: the scene's tree puts the inner pair about its centre and the
+    """MAP.213: a system of three stars is drawn node by node: the scene's tree puts the inner pair about its center and the
     third star about the whole, each on its own scale, so the three stars sit apart (none at the middle, on top of another)."""
     import json
     import math
@@ -1251,13 +1273,13 @@ def test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate(pa
 @pytest.mark.viewport(1280, 900)
 def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base_url):
     """MAP.121: the Menu's step buttons and the keys move the window to the cell beside it at the same level, in one
-    camera move (the address carries it, the trail follows the new centre), and back the other way, without going
+    camera move (the address carries it, the trail follows the new center), and back the other way, without going
     up a level."""
     _open_galaxy(page, base_url)
     size = _descend(page)
     stage = lambda: page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]  # noqa: E731
-    centre = lambda: {k: stage()["centre"][k] for k in ("m", "shell", "band", "wedge")}  # noqa: E731
-    start = centre()
+    center = lambda: {k: stage()["center"][k] for k in ("m", "shell", "band", "wedge")}  # noqa: E731
+    start = center()
     assert start["m"] == size
 
     def enabled():
@@ -1276,7 +1298,7 @@ def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base
     page.click("#galaxymap3d-menu > summary")
     page.click('#galaxymap3d-controls [data-step="out"]')
     _wait_settled(page, before)
-    moved = centre()
+    moved = center()
     assert moved["m"] == size and moved["shell"] == start["shell"] + 1, (start, moved)
     assert _query(page) != before[0] and "cam=" in page.url
     assert abs(len(_crumbs(page)) - crumbs) <= 1, "the trail is the position's, not a level deeper"
@@ -1286,29 +1308,29 @@ def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base
     page.locator("#galaxymap3d-canvas").focus()
     page.keyboard.press("[")
     _wait_settled(page, before)
-    assert centre() == start
+    assert center() == start
 
     # A step the geometry does not allow does nothing: nothing is nearer the core than the core.
     before = _state(page)
     page.keyboard.press("[")
     page.wait_for_timeout(300)
-    assert _state(page) == before and centre() == start
+    assert _state(page) == before and center() == start
 
     # Sideways: from the shell outside the core, round the ring: a step east then west lands on the same cell.
     page.keyboard.press("]")
     _wait_settled(page)
-    ring = centre()
+    ring = center()
     sideways = enabled()
     if sideways["east"]:
         before = _state(page)
         page.keyboard.press("Alt+Shift+ArrowRight")
         _wait_settled(page, before)
-        east = centre()
+        east = center()
         assert east["m"] == size and east["shell"] == ring["shell"] and east != ring, (ring, east)
         before = _state(page)
         page.keyboard.press("Alt+Shift+ArrowLeft")
         _wait_settled(page, before)
-        assert centre() == ring
+        assert center() == ring
     else:
         assert ways["out"]
 

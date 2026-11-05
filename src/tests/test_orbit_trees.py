@@ -84,7 +84,7 @@ def test_each_star_hangs_in_the_root_node_at_its_stored_offset(mysql_config, wid
         conn.close()
 
 
-def test_a_single_star_has_no_nodes_and_sits_at_the_centre(mysql_config):
+def test_a_single_star_has_no_nodes_and_sits_at_the_center(mysql_config):
     conn, system, system_id = _saved(mysql_config, False)
     try:
         assert orbit_trees.read_nodes(conn, system_id) == () and system.orbit_nodes == ()
@@ -211,7 +211,7 @@ def test_a_lone_star_with_a_dark_member_stores_the_member_and_the_tree_and_reads
         conn.close()
 
 
-def test_the_star_of_a_system_with_a_dark_member_is_off_the_barycentre_in_proportion_to_the_masses(mysql_config):
+def test_the_star_of_a_system_with_a_dark_member_is_off_the_barycenter_in_proportion_to_the_masses(mysql_config):
     system, _cfg = _with_a_dark_member()
     star_mass = system.star.mass / constants.SOLAR_MASS_TO_KG
     dark = system.dark_members[0]

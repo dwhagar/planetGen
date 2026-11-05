@@ -27,7 +27,7 @@ from planetgen.util import draw
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
 BOOLEANS = {"is_moon", "long_lived_geology", "ocean_present", "water_lost", "co2_rich", "h2_poor", "life_chemical",
             "sep_reducing", "lightning", "gas_has_co_h2s", "has_solid_ground", "h2o_present", "carbon_bearing", "h2_air",
-            "thin_disc_fgk", "planetesimals_early"}
+            "thin_disk_fgk", "planetesimals_early"}
 
 SOLAR_HOST = {"n_over_c": 1.0, "ar_over_c": 1.0, "s_over_c": 1.0}
 """dict: The host ratios a comet's species rows read (GEN.1005, k7), at the proto-solar values."""
@@ -65,7 +65,7 @@ def full(body_class="terrestrial", **overrides):
             v_esc_kms=11.186, teq_k=255.0, ts_k=288.0, tday_k=300.0, tp_k=300.0, t_layer_k=250.0, teff_k=300.0,
             pressure_bar=1.0, insolation=1.0, luminosity_solar=1.0, xuv_index=1.0, snow_ratio=0.5, host_mass_solar=1.0,
             age_gy=4.5, core_radius_earth=1.0, perihelion_au=5.0, profile_t_min_k=200.0, profile_t_max_k=300.0,
-            thin_disc_fgk=True, long_lived_geology=True, ocean_present=True, has_solid_ground=True, h2o_present=True,
+            thin_disk_fgk=True, long_lived_geology=True, ocean_present=True, has_solid_ground=True, h2o_present=True,
             o2_pal=1.0, carbon_bearing=True, u_star=0.5, u_star_threshold=0.3, sulfur_flux_earth=1.0, grain_um=1.0)
     q.update(overrides)
     return Subject(body_class, q)
@@ -307,7 +307,7 @@ def test_the_giants_carbon_to_oxygen_correction_the_tail_is_explicit_and_not_a_l
     old = (ar.phi(hi) - ar.phi(x)) / (ar.phi(hi) - ar.phi(lo))
     assert old == pytest.approx(0.139, abs=3e-3)
     assert "13.9 percent" in RECIPES.entry("f7").notes
-    # the tail is uniform on 0.8 to 1.5, the core centre is 0.57
+    # the tail is uniform on 0.8 to 1.5, the core center is 0.57
     assert RECIPES.probability_in("f7", s, 1.0, None) == pytest.approx(tail * 0.5 / 0.7, abs=1e-9)
     d = RECIPES._dist_of(RECIPES.entry("f7"), s)
     assert d["core"]["mu"] == pytest.approx(math.log10(0.57))
@@ -382,7 +382,7 @@ def test_example_l_m_n_and_o_the_white_dwarf_atmosphere_the_trace_gases_the_clou
     assert RECIPES.crossed_windows("n2", cloud) == ["Na2S", "KCl/ZnS"]
     assert RECIPES.crossed_windows("n3", cloud) == []
     assert RECIPES.probability("n6", cloud) == pytest.approx(0.067, abs=1e-3)
-    sun = Subject("terrestrial", {"thin_disc_fgk": True, "age_gy": 3.0})
+    sun = Subject("terrestrial", {"thin_disk_fgk": True, "age_gy": 3.0})
     assert [round(b[2], 4) for b in RECIPES.bins("o1", sun)] == [0.0, 0.8729, 0.1271]
     assert RECIPES.derive("o5", sun)["heating_ratio"] == pytest.approx(1.432, abs=1e-3)
     assert RECIPES.derive("o5", Subject("terrestrial", {"age_gy": 8.0}))["heating_ratio"] == pytest.approx(0.589, abs=1e-3)
@@ -405,7 +405,7 @@ def test_example_p_the_uv_regime_depends_on_the_stellar_mass_through_the_saturat
     assert "replaces LU[0.162, 2]" in RECIPES.entry("p4").notes
 
 
-def test_the_corrected_white_dwarf_redox_ensemble_replaces_the_six_star_centre():
+def test_the_corrected_white_dwarf_redox_ensemble_replaces_the_six_star_center():
     d4 = RECIPES._dist_of(RECIPES.entry("a4"), Subject("terrestrial", {}))
     d3 = RECIPES._dist_of(RECIPES.entry("a3"), Subject("terrestrial", {}))
     assert d4["mu"] == -1.25 and d4["sigma"] == 0.22 and d3["mu"] == -1.25 and d3["sigma"] == 0.22

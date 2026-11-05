@@ -148,7 +148,7 @@ def run_status(keys, disregard_missing_data):
     step = commands.Step("datasets", "check-datasets", "Check the data sets",
                          {"keys": list(keys), "disregard": bool(disregard_missing_data)})
     found = []
-    previous_term = signal.signal(signal.SIGTERM, _raise_interrupt)      # Cancel ends the run as cancelled in Redis
+    previous_term = signal.signal(signal.SIGTERM, _raise_interrupt)      # Cancel ends the run as canceled in Redis
     try:
         wrapper.run("Data check", [step], lambda index, plan: None, lambda index, unit, result: found.append(result),
                     kind=runrecord.CHECK, argv=sys.argv[1:])

@@ -23,6 +23,7 @@ const { createSkySphere, skyYears } = await import(`./skysphere.js${VERSION_QUER
 const { createSkySprites } = await import(`./skysprites.js${VERSION_QUERY}`);
 const { createSkyBand, imageFromHalfFloats } = await import(`./skyband.js${VERSION_QUERY}`);
 const { skyLimit } = await import(`./skylight.js${VERSION_QUERY}`);
+const { pickSkyStar, describeSkyStar, skyStarsOnScreen } = await import(`./skypick.js${VERSION_QUERY}`);
 
 export const STORAGE_KEY = "planetgen.systemSky";
 // A sky still filling in is asked for again this often (ms), this many times.
@@ -106,10 +107,33 @@ export function buildLayer(THREE, sky, band, options) {
   testDepth(objects);
   const turn = new THREE.Quaternion(...GALAXY_TO_SCENE);
   objects.forEach((object) => object.quaternion.copy(turn));
+  let lastYears = 0;
+  // The camera's view of the sky for skypick.js: the galaxy's axes into the camera's (3 x 3, row-major) and the projection's scales.
+  function viewOf(camera, size) {
+    camera.updateMatrixWorld();
+    const rotation = new THREE.Matrix4().extractRotation(camera.matrixWorldInverse)
+      .multiply(new THREE.Matrix4().makeRotationFromQuaternion(turn));
+    const e = rotation.elements;
+    return {
+      matrix: [e[0], e[4], e[8], e[1], e[5], e[9], e[2], e[6], e[10]],
+      p00: camera.projectionMatrix.elements[0], p11: camera.projectionMatrix.elements[5], width: size.width, height: size.height,
+    };
+  }
   return {
     objects, count: sphere.count, sphere, sprites, band: glow,
+    // VIEW.37: the star under a point of the canvas (`pointer` `{ x, y }` CSS pixels from its top left), as `{ title, lines, href }`, or null.
+    // `size` is `{ width, height }` of the canvas.
+    screenStars(camera, size) {
+      return skyStarsOnScreen(sphere.kept, lastYears, viewOf(camera, size), { limit: sphere.limit() });
+    },
+    pick(camera, pointer, size) {
+      const view = viewOf(camera, size);
+      const found = pickSkyStar(sphere.kept, lastYears, view, pointer, { limit: sphere.limit() });
+      return found ? Object.assign({ pick: found }, describeSkyStar(found, sky.meta && sky.meta.charted, o.starUrl)) : null;
+    },
     update(camera, state) {
       const years = skyYears(sky, o.sceneEpochUnix, state.years);
+      lastYears = years;
       sphere.update(camera, { years, pixelRatio: state.pixelRatio });
       sprites.update(camera);
       if (glow) glow.update(camera);
@@ -123,7 +147,7 @@ export function buildLayer(THREE, sky, band, options) {
 }
 
 // The controller. `options`: `skyUrl` (the sky route), `view` (a system view with `attachSky(layer)` and `detachSky()`), `sceneEpochUnix`, `storage`,
-// `phone`, `pixelRatio`, `onState(state, note)`, `fetch` (default the global one), `setTimeout`/`clearTimeout` (default the globals), `pollMs`.
+// `phone`, `pixelRatio`, `starUrl` (a star's page with `{id}` for its printed ID), `onState(state, note)`, `fetch` (default the global one), `setTimeout`/`clearTimeout` (default the globals), `pollMs`.
 // Returns `{ enable(), disable(), enabled(), state(), dispose(), reload() }`; `enable` and `reload` resolve when the sky is drawn or has failed.
 export function createSystemSky(THREE, options) {
   const o = options;
@@ -187,7 +211,7 @@ export function createSystemSky(THREE, options) {
     }
     if (mine !== serial || !on) return current;
     const next = buildLayer(THREE, sky, band, {
-      phone: o.phone, limit, pixelRatio: o.pixelRatio, sceneEpochUnix: o.sceneEpochUnix,
+      phone: o.phone, limit, pixelRatio: o.pixelRatio, sceneEpochUnix: o.sceneEpochUnix, starUrl: o.starUrl,
     });
     drop();
     layer = next;

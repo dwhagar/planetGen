@@ -25,7 +25,7 @@ E_VALUE = 1.0
 
 
 def _bubble():
-    """A seeded bubble of the galaxy and the profile at its centre."""
+    """A seeded bubble of the galaxy and the profile at its center."""
     bubbles = superbubble_field.all_bubbles(SEED, SHAPE, 6000.0)
     bubble = max(bubbles, key=lambda candidate: candidate.radius_pc)
     here = profile.profile_at(bubble.center_pc, SHAPE, EDGE_PC, E_VALUE, galaxy_seed=SEED)

@@ -65,7 +65,7 @@ def test_the_chabrier_individual_curve_is_the_shape_the_generator_rows_carry_tod
     chord error of the segments."""
     shape = spec["curves"]["chabrier2003_individual"]
     assert (shape["m_c"], shape["sigma"], shape["break_sol"]) == (
-        tuning.IMF_BELL_CENTRE_SOL, tuning.IMF_BELL_WIDTH_DEX, tuning.IMF_BELL_TOP_SOL)
+        tuning.IMF_BELL_CENTER_SOL, tuning.IMF_BELL_WIDTH_DEX, tuning.IMF_BELL_TOP_SOL)
     assert shape["power_law_x"] + 1.0 == tuning.IMF_HIGH_SLOPE
     edges = spec["bins"]["edges_sol"]
     published = curve.bin_shares(shape, edges)

@@ -2,7 +2,7 @@
 //
 // NAV.69: links the course diagram beside the Galaxy Map (web/maps/navdiagram.py, in the course readout) to the map's course.
 //
-// - A plain click on a stop of the diagram selects that stop of the course and centres the map on it (`canvas.galaxyCourseSelect`,
+// - A plain click on a stop of the diagram selects that stop of the course and centers the map on it (`canvas.galaxyCourseSelect`,
 //   in galaxymap3d.js) instead of leaving the page; a click with Ctrl, Shift, Alt or the Meta key, a middle click and "open in a new
 //   tab" still follow the link to the stop's own page, and so does a keyboard Enter on a stop that is already selected.
 // - A click on a stop's ring on the map selects it there (galaxymap3d.js), and the map says so with a `galaxycoursestop` event on its
