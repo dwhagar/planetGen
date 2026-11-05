@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1136 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1141 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 155 | 16 | 8 | 1 | 0 | 180 |
-| T2 | 120 | 47 | 1 | 1 | 0 | 169 |
+| T1 | 156 | 16 | 8 | 1 | 0 | 181 |
+| T2 | 121 | 48 | 1 | 1 | 0 | 171 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 57 | 5 | 1 | 19 | 10 | 92 |
 | T5 | 51 | 19 | 2 | 1 | 0 | 73 |
-| T6 | 102 | 84 | 22 | 57 | 0 | 265 |
+| T6 | 102 | 84 | 24 | 57 | 0 | 267 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 26 | 14 | 5 | 67 | 29 | 141 |
-| All | 629 | 240 | 54 | 173 | 40 | 1136 |
+| All | 631 | 241 | 56 | 173 | 40 | 1141 |
 
 ## How the labels were given
 
@@ -1289,8 +1289,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| RM1 | P | T1 | L0 | rogue_mass_function.SUPPLY_DIFFERENTIAL_INDEX 3.5, the differential size index q of the supply, dN/dD ~ D^-q, so dN/dlogM ~ M^-0.83 | 3.5 to 4 | bodies of one density in a steady-state collisional cascade; the supply of a real disc is bimodal (embryos and planetesimals) | ejection records (GEN.1119) whose mass spectrum, 0.33 to 30 Earth masses, has a slope outside Sumi's 0.69 to 1.43 | the supply spectrum read from the architecture's own oligarch chain and sub-minimum bodies | (n(m) ~ m^-11/6, quoted in [R0335] eq. 1; q = 3.5 in the abstract of [R3421], up to 4 with velocity evolution); [R4254, R4255] [R4254] alpha = 0.96 +0.47 -0.27 read | GEN.1111 | - |
-| RM2 | P | T6 | L0 | rogue_mass_function.MAX_EJECTED_OVER_SCATTERER 1.0, the heaviest body a scatterer ejects as a multiple of its own mass | 0.3 to 1 | scatterers that eject (Safronov number over 1) | an N-body run in which a scatterer ejects a body heavier than itself, or lets a body under a tenth of its mass stay | the ejection records (GEN.1119), which give every ejected body's mass beside its scatterer's | the lighter of a pair is the one ejected (the architecture's `_scatter_crowded_giants` already does it); [R0258] eject embryos of at most one Earth mass beside Jupiter and Saturn analogues, read | GEN.1111 | - |
+| RM1 | P | T1 | L0 | rogue_mass_function.SUPPLY_DIFFERENTIAL_INDEX 3.5, the differential size index q of the supply, dN/dD ~ D^-q, so dN/dlogM ~ M^-0.83 | 3.5 to 4 | bodies of one density in a steady-state collisional cascade; the supply of a real disc is bimodal (embryos and planetesimals) | ejection records (GEN.1119) whose mass spectrum, 0.33 to 30 Earth masses, has a slope outside Sumi's 0.69 to 1.43 | the supply spectrum read from the architecture's own oligarch chain and sub-minimum bodies | (n(m) ~ m^-11/6, quoted in [R0335] eq. 1; q = 3.5 in the abstract of [R3421], up to 4 with velocity evolution); [R4254, R4255] [R4254] alpha = 0.96 +0.47 -0.27 read | GEN.1287 | - |
+| RM2 | P | T6 | L0 | rogue_mass_function.MAX_EJECTED_OVER_SCATTERER 1.0, the heaviest body a scatterer ejects as a multiple of its own mass | 0.3 to 1 | scatterers that eject (Safronov number over 1) | an N-body run in which a scatterer ejects a body heavier than itself, or lets a body under a tenth of its mass stay | the ejection records (GEN.1119), which give every ejected body's mass beside its scatterer's | the lighter of a pair is the one ejected (the architecture's `_scatter_crowded_giants` already does it); [R0258] eject embryos of at most one Earth mass beside Jupiter and Saturn analogues, read | GEN.1287 | - |
 
 ## 6.112 Stand-ins of the moons carried out with ejected planets
 
@@ -1465,6 +1465,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SNC5 | D | T6 | L0 | remnant_yields.json type_ia_progenitor_range_sol (3, 8): the main-sequence mass of the star that became the white dwarf of a Type Ia remnant, drawn from the IMF | 2 to 3 at the bottom; 7 to 9 at the top | Type Ia remnants of the single-degenerate and double-degenerate channels alike | a binary-evolution study of the white dwarf's mass at ignition whose progenitor range lies outside 2 to 9 | the delay-time and progenitor models of the Type Ia rate the generator will use | educated guess from physics: the primary of the pair that makes a 1.0 to 1.3 solar mass carbon-oxygen white dwarf; the stored mass is for a later central object to share, not for the ejecta (which is the Chandrasekhar-mass explosion W7) | - | - |
 | SNC6 | D | T9 | L0 | remnant_yields.json processed_share_cap 0.9 and least_ejecta_share 0.02: the elements the explosion made are at most 90 percent of the burned inner shells, and a core never takes more than 98 percent of the star's final mass | cap 0.5 to 1; share 0.01 to 0.1 | a core-collapse remnant whose progenitor is light and stripped, where the scaled yields could exceed the shells | none: a bound that keeps the sums positive | none | needed output: a mass balance that cannot go negative | - | - |
 | SNC7 | P | T9 | L0 | remnant_composition.ambient_masses default: the swept-up gas is the birth composition at the progenitor's [Fe/H] (stellar_abundances.composition) unless the caller gives the gas | gas [Fe/H] within 0.3 dex of the progenitor's | a remnant in gas of the star's own metallicity | the gas metallicity of GEN.1269 at the place differs from the progenitor's birth gas by more than 0.3 dex | GEN.1269's shared nebula model (gas metallicity at the place, the class's phases), passed as `ambient` | needed output: until the shared nebula model lands, the swept gas of a remnant is the gas of its star's birth | - | - |
+
+## 6.188 Stand-ins of the dust of a galaxy from its own gas
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| DU1 | D | T1 | L0 | dust_model.HYDROGEN_ATOMS_PER_AV_CM2 2.21e21: hydrogen atoms per cm2 for one magnitude of V extinction | 2.0e21 to 2.3e21 (1.79e21 in the older ROSAT value) | the diffuse gas of the Galaxy at solar metallicity | an X-ray column and optical extinction sample outside 2.0 to 2.4e21 | a column per magnitude by metallicity, or a dust mass extinction coefficient and the dust-to-gas law | [R5130: Eq. 1] READ (full text): N_H = (2.21 +- 0.09)e21 A_V from 22 supernova remnants; agrees with an older supernova-remnant value of 2.22e21 and is 3 sigma above the ROSAT value of 1.79e21 in the same paper | VIEW.44 | - |
+| DU2 | P | T6 | L2 | dust_model.VISIBLE_SHARE 0.5: the share of the gas column that dims the stars a catalogue or a person can use | 0.3 to 0.7 | a galaxy whose gas and metals are the disk's own; any radius | a high-latitude column or a plane extinction per kpc at the Sun that needs a share outside 0.3 to 0.7, or a calibrated naked-eye star count (VIEW.30) that does | the share worked out from a clumpy cloud distribution and the gas phases (VIEW.8's nebulae) | tuned to the measured column through a half layer at the Sun, 0.12 mag ([R5132]: the abstract, from two 3-D dust maps), twice the 0.47 mag the gas column gives for 11.8 solar masses per pc2; the plane at the Sun then reads 1.06 mag per kpc against 0.85 +- 0.20 in [R5132: Table 1] and 0.8 to 1.0 in [R5131] | VIEW.44 | - |
+| DU3 | P | T2 | L1 | dust_model.GAS_DISPERSION_KMS 9: the velocity dispersion of the neutral gas that sets the layer's scale height sigma^2 / (pi G Sigma) | 7 to 11 | the neutral gas layer of a disk galaxy | a layer thickness at the Sun outside 100 to 150 pc, or a flare at 12 to 13 kpc outside 300 to 700 pc | the dispersion by radius and gas phase, or the vertical force of the potential (VIEW.46) | recalled, not read: the HI of the Galaxy has 7 to 11 km/s. The layer it gives, 113 pc at the Sun and 470 pc at 12.5 kpc, is checked against 125 (+17 -7) pc ([R5135]: abstract) and the thin (340 pc) and thick (1,000 pc) dust disks of [R5131] at 12 to 13 kpc | - | - |
+| DU4 | P | T6 | L2 | dust_model.LAYER_FLOOR_PC 40: the thinnest layer | 20 to 80 | the inner disk, where the surface density of the disk alone gives a layer of a few pc | the extinction from the Sun to the Galactic Center outside 25 to 60 mag (moves by a factor of 6 over 20 to 80 pc) | the vertical force of the galactic potential, GEN.115 (VIEW.46) | the thickness of the central molecular zone, a few tens of pc; the sight line to the Galactic Center is A_V 31 to 59 in the literature and 38 to 42 for the model of [R5134] | VIEW.46 | - |
+| DU5 | D | T2 | L0 | dust_model.dust_to_gas_ratio: the dust goes with the metals by the law of [R5102] (row NBC4), the gas metallicity by the gradient of row NBC1 | factor 1.6; scatter 0.37 dex | 12 + log(O/H) 7.1 to 9 | see NBC4; dust-to-gas ratios of the Galaxy by radius ([R5131]: gas-to-dust 60 at 5 kpc to 470 at 14 kpc, about three times the gradient the metals give) | the same replacements as NBC4 and NBC1 (GEN.1291 scales the gradient with the galaxy) | NBC4's reading of [R5102: Table 1]; [R5131] finds the dust falling outward faster than the metals alone give, which this model does not capture | - | - |
 
 ## 6.176 Stand-ins of the sky tier table
 
@@ -1723,10 +1733,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| RSM1 | D | T6 | L1 | rogue_density.RADIAL_SMOOTH_PC 190: the Gaussian width in galactocentric radius between a donor and an old rogue | 100 to 700 pc (the design's range) | rogues older than 1 Gyr in a disc | the radial spread of a measured sample of free-floating planets against their donors' birth radii | the width from the kick distribution of GEN.1113 and the orbit integrator behind galactic-potential.md | rogue_drift.drift over the stand-in kick distribution (computed, not read); Hill's equations ([R0398, R0399], recalled) | GEN.1111 | - |
-| RSM2 | D | T6 | L1 | rogue_density.VERTICAL_SMOOTH_PC 30: the same in height | 20 to 50 pc (the design's range) | rogues older than 1 Gyr in a disc | the scale height of observed free-floating planets against their donors' | the same as RSM1 | rogue_drift.drift over the stand-in kick distribution (computed) | GEN.1111 | - |
-| RSM3 | D | T6 | L1 | rogue_density.YOUNG_AGE_MYR 100: rogues ejected within this long keep the donor's structure; the share is this over the population's history (ejections uniform in time) | 30 to 300 Myr | sectors of any galaxy | a time-resolved ejection rate (planet scattering peaks early, so the share is higher in young populations) | the ejection-time distribution of the yield table (R1) | the design note's "younger than about 100 Myr" and its uniform-in-donor-age test (recalled from rogue-planet-drift.md) | GEN.1111 | - |
-| RSM4 | P | T9 | L0 | rogue_density.RING_STEPS 16: points round a ring (exact for fewer than 16 arms or bar ends), with 3 nodes each in radius and height | 8 to 64 | every smoothing | not applicable (a quadrature) | a finer rule if a density with finer azimuthal structure is added | the design note's "about 16 density evaluations" | GEN.1111 | - |
+| RSM1 | D | T6 | L1 | rogue_density.RADIAL_SMOOTH_PC 190: the Gaussian width in galactocentric radius between a donor and an old rogue | 100 to 700 pc (the design's range) | rogues older than 1 Gyr in a disc | the radial spread of a measured sample of free-floating planets against their donors' birth radii | the width from the kick distribution of GEN.1113 and the orbit integrator behind galactic-potential.md | rogue_drift.drift over the stand-in kick distribution (computed, not read); Hill's equations ([R0398, R0399], recalled) | GEN.1289 | - |
+| RSM2 | D | T6 | L1 | rogue_density.VERTICAL_SMOOTH_PC 30: the same in height | 20 to 50 pc (the design's range) | rogues older than 1 Gyr in a disc | the scale height of observed free-floating planets against their donors' | the same as RSM1 | rogue_drift.drift over the stand-in kick distribution (computed) | GEN.1289 | - |
+| RSM3 | D | T6 | L1 | rogue_density.YOUNG_AGE_MYR 100: rogues ejected within this long keep the donor's structure; the share is this over the population's history (ejections uniform in time) | 30 to 300 Myr | sectors of any galaxy | a time-resolved ejection rate (planet scattering peaks early, so the share is higher in young populations) | the ejection-time distribution of the yield table (R1) | the design note's "younger than about 100 Myr" and its uniform-in-donor-age test (recalled from rogue-planet-drift.md) | GEN.1289 | - |
+| RSM4 | P | T9 | L0 | rogue_density.RING_STEPS 16: points round a ring (exact for fewer than 16 arms or bar ends), with 3 nodes each in radius and height | 8 to 64 | every smoothing | not applicable (a quadrature) | a finer rule if a density with finer azimuthal structure is added | the design note's "about 16 density evaluations" | GEN.1289 | - |
 
 ## 6.127 Stand-ins of the high-gravity class line
 

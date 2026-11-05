@@ -334,4 +334,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
 | function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |
+| module | planetgen.physics.dust_model | VIEW.44 | the dust of a galaxy from its own gas; the sky route, the glow band and the tier ledger build a `DustProfile` and pass it in the `dust=` dict |
+| row | 6.188:DU1 | VIEW.44 | `dust_model.HYDROGEN_ATOMS_PER_AV_CM2`, read when the sky reads the profile |
+| row | 6.188:DU2 | VIEW.44 | `dust_model.VISIBLE_SHARE`, read when the sky reads the profile |
+| row | 6.188:DU4 | VIEW.46 | `dust_model.LAYER_FLOOR_PC`, replaced by the vertical force of the potential |
 | function | planetgen.galaxy.spherical.sector_quadrant | DB.112 | the stored quadrant column and this function are deleted together once the migration drops the column |
