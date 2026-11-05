@@ -3962,7 +3962,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.604 | A trace gas with no thermo data (CH3Cl) crashes instead of being handled, red on clean main (bug) | none | done, PR #5154 |
 | TEST.605 | test_gas_table.py::test_the_data_file_is_what_the_builder_makes fails: scripts/build_gas_table.py:272 KeyError on the label 'H2O vapor (generic check only)' (bug) | none | done, PR #5154 |
 | TEST.606 | The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug) | none | open |
-| TEST.607 | Three cloud-placement tests find no cloud for a placed system (surrounding_cloud is None) (bug) | none | open |
+| TEST.607 | Three cloud-placement tests find no cloud for a placed system (surrounding_cloud is None) (bug) | none | done, PR #5159 |
 | TEST.608 | The web app imports numba: tests/test_install_python_deps.py::test_the_web_app_never_imports_numba fails (bug) | none | done, PR #5157 |
 | TEST.609 | tests/test_precision.py::test_the_floor_of_every_table_with_a_position_is_the_documented_one fails: the table set has an extra belt_members (bug) | none | done, PR #5157 |
 | TEST.610 | tests/test_api_job_runs.py::test_a_neighborhood_job_runs_its_sectors_through_the_wrapper counts 16 sectors where it expects 1 + 14 (bug) | none | done, PR #5157 |
