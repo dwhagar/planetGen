@@ -36,6 +36,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 from planetgen.db import search_values
 from planetgen.db import children as children_db
 from planetgen.api import nav_system, system_sky
+from planetgen.describe import belt_info
 from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.lib import skypack
 from planetgen.web.maps.systemscene import build_scene
@@ -1591,7 +1592,10 @@ def object_list(kind):
     name from this one on, with `sort=name` only; `past_end` is true when none lies at or past it and the last page
     is answered). Answers `items`
     (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
-    `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
+    `placed`; a star, planet or moon item also carries its stored physics values, UX.187: the star's `temperature_k`, `luminosity_w`, `age_gy`
+    and `rotation_period_hours`, and the planet's or moon's `distance_km`, `eccentricity`, `surface_temperature_k`, `rotation_period_hours`,
+    `axial_tilt_deg` and `internal_heat_flux_w_m2`, each null where none is stored; the whole sheet is `GET /api/objects/<ref>/sheet`),
+    `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
     that is not an object ID, a `from` with another sort, or a `sector_id` that is not a sector ID.
     """
     sort, descending = _parse_sort(request.args, [*objectlist.SORTS, *objectlist.value_sort_keys(kind)])
@@ -1915,6 +1919,26 @@ def object_sheet_route(ref):
         kind, object_id = _body_of(ref)
         return jsonify(object_sheet(get_db(), kind, object_id))
     except ValueError as exc:  # includes ids.IdError
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/belt-page")
+def object_belt_page_route(ref):
+    """
+    `GET /api/objects/<ref>/belt-page` (UX.241) -- the information page data of an asteroid belt (`describe/belt_info.py`, `physics/belt_page.py`):
+    `belt` (its `designation`, `inner`, `outer`, `mass`, typical `composition` and the `star` it goes round), `bodies` (the individually tracked
+    members by designation, heaviest first, each with its mass, diameter, distance, eccentricity, inclination, density, `taxon` and `analogue`,
+    composition shares, `status` word and Soter's mu, and the `population` of a member the giants scattered), `bins` (the rest of the belt's
+    mass by diameter: count, mass, share, whether the bodies are drawn on demand or a total only, typical composition and density),
+    `density_factor` (`by_diameter`, the objects per square AU above each diameter, and the `mass` per square AU) and `totals` (the belt, the
+    listed bodies and the bins, which add up). Every number is `{value, unit, text}`. 404 for a reference that is not a belt.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "belt":
+            raise ValueError(f"{ref} is not an asteroid belt")
+        return jsonify(belt_info.belt_info(get_db(), object_id))
+    except ValueError as exc:  # includes ids.IdError and belt_info.BeltPageNotFound
         return jsonify({"error": str(exc)}), 404
 
 

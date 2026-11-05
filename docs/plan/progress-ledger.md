@@ -684,7 +684,7 @@ Baseline: PR #1817.
 | UX.111 | 8.1 | Spherical Sector Coordinates (TOP PRIORITY, Boss 2026-10-15 06:39Z) |
 | UX.112 | 8.1 | Spherical Sector Coordinates (TOP PRIORITY, Boss 2026-10-15 06:39Z) |
 | UX.117 | 8.1 | Maps |
-| VIEW.5 | 9.1 | View |
+| VIEW.5 | 9.0 | View |
 | GEN.281 | 8.1 | Anomalies |
 | GEN.236 | 8.1 | Orbital updates |
 | PERF.104 | 8.1 | Orbital updates |
@@ -2557,3 +2557,17 @@ Baseline: PR #1817.
 | TEST.615 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.613 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.612 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.228 | 8.1 | Queue, caches and performance |
+| UX.241 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.622 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.620 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.619 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.235 | 8.2 | Robust tile caching |
+| NAV.39 | 8.5 | Saved courses |
+| NAV.22 | 8.5 | Courses on the maps |
+| NAV.5 | 8.5 | Courses on the maps |
+| UX.263 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.187 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.383 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| DB.40 | 8.9 | Parity data |
+| DB.41 | 8.9 | Parity data |

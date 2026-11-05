@@ -14,6 +14,12 @@ _STEPS = ("Five hard steps, each an exponential waiting time that starts when th
           "[R4642]")
 _AGES = _STEPS + "."
 
+_GROUND = ("The areal share of each ground type: what the hydrosphere covers, then the dominant crust by the heat flow and the mantle "
+           "[R2024], then the modifiers the body's own water, air, tectonics and tides allow.")
+
+_GROUND_TYPES = ("ocean", "ice", "ultramafic", "anorthositic", "basaltic", "felsic", "clay", "oxidized", "metal", "carbon", "evaporite",
+                 "sulfur", "intermediate")
+
 _BODY = {
     "eccentricity": "A planet draws from the Kepler multi-planet law [R1307] and is circularised by its tide; a regular "
                     "moon keeps a small forced value, a captured moon a thermal one.",
@@ -34,6 +40,9 @@ _BODY = {
     "ring_outer_km": "Ends at the Roche limit, 2.456 R (planet density over particle density)^(1/3), and inside the innermost large moon.",
     "ring_age_yr": "The years since the moon that fell inside the Roche limit, or the comet that passed inside it, made the ring; the ring thins by 1/e every half billion years.",
     "ring_optical_depth": "An output of the drawn mass, the extent and the particle size, 3 M / (4 density r area).",
+    "ground_type": _GROUND,
+    "ground_grain": "A surface under 0.1 Gyr old or molten is not yet regolith; an older one is a slab, crushed or powder by its grain.",
+    **{f"ground_{name}_fraction": _GROUND for name in _GROUND_TYPES},
     "life_stage": "The latest stage whose age is not past the age of the star.",
     "life_age_abiogenesis_gyr": _AGES,
     "life_age_photosynthesis_gyr": _AGES,

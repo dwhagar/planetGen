@@ -1,4 +1,4 @@
-# Version 8.9: Generate anywhere
+# Version 8.9: Remote build
 
 Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 [docs/TODO.md](../../TODO.md) is the master file: it holds each item's full text, and its "Plan: versions" section indexes every version.
@@ -10,7 +10,7 @@ Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cor
 
 ## Goal
 
-Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it, plus generate by recipe. Proposed by the TODO thread; not yet approved by Boss. Boss (2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9") also put here what was planned for 9.0 and needs nothing of the atmosphere colour: the sky data and research of the view from a planet (phase 3) and the backups and repair chain (ADM.91, phases 4 and 5).
+Boss (5:40 PM EST on 2026-11-05): the headline is "Remote build". Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it, plus generate by recipe. Proposed by the TODO thread; not yet approved by Boss. Boss (2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9") also put here what was planned for 9.0 and needs nothing of the atmosphere colour: the sky data and research of the view from a planet (phase 3) and the backups and repair chain (ADM.91, phases 4 and 5).
 
 ## Phase 1: Upload groundwork and recipes
 
@@ -92,8 +92,6 @@ Target 8.9 (moved from 9.0; Boss, 2:00 PM EDT): the control database and parity 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive |  | Boss 1:59 PM EDT; Core 1 owns DB.9. |
-| DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | DB.40, DB.8 | Boss 2:00 PM EDT; Core 1. |
 
 ## Phase 5: Repair from backups, the repair page and proof
 
@@ -105,9 +103,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | DB.41, DB.17 | Boss 2:00 PM EDT. |
-| ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | DB.42, ADM.89, DB.41 | Boss 2:00 PM EDT. |
-| OPS.55 | Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting | OPS.16, ADM.88, DB.40 | Boss 2:06 PM EDT. |
+| DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | DB.17 | Boss 2:00 PM EDT. |
+| ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | DB.42, ADM.89 | Boss 2:00 PM EDT. |
+| OPS.55 | Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting | OPS.16, ADM.88 | Boss 2:06 PM EDT. |
 | TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | ADM.89, DB.42, ADM.90, OPS.55 | Boss 2:00 PM EDT. |
 | DOC.56 | Backups, restore and repair: the deployment guide and the help page | TEST.180 | Boss 2:00 PM EDT. |
-| ADM.91 | Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180, DOC.56, OPS.55 | Umbrella of the backups and repair chain; done when its items are. |
+| ADM.91 | Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | ADM.88, ADM.89, DB.42, ADM.90, TEST.180, DOC.56, OPS.55 | Umbrella of the backups and repair chain; done when its items are. |

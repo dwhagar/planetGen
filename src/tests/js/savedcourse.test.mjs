@@ -36,7 +36,7 @@ test("a record keeps both forms, the two ends, a name and when", () => {
   assert.deepEqual(record.direct, { distance_ly: 12.345, bearing_deg: 45.2, mark_deg: 12.4 });
   assert.deepEqual(record.route.path, ["1", "2", "phenomenon:nebula:3"]);
   assert.equal(record.route.distance_ly, 13.5);
-  assert.deepEqual(record.route.hops[1], { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14 });
+  assert.deepEqual(record.route.hops[1], { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14, unknown_space: false });
   assert.equal(record.adjusted, null);
   assert.ok(!("positions" in record.route));
 });
@@ -89,6 +89,28 @@ test("a route that gains a stop says how many", () => {
   const record = C.recordOf(answer(), "Home run", WHEN);
   const longer = answer({ route: { path: [1, 2, 4, "phenomenon:nebula:3"], distance_ly: 13.5, hops: [] } });
   assert.deepEqual(C.changesSince(record, longer), ["The route now passes through different systems (4 stops; it was 3)."]);
+});
+
+test("opening a course says when a hop through unknown space has been filled in, or the reverse", () => {
+  const unknown = answer({ route: { path: [1, 2, "phenomenon:nebula:3"], distance_ly: 13.5, hops: [
+    { distance_ly: 6, bearing_deg: 40, mark_deg: 10, unknown_space: true }, { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14, unknown_space: false }] } });
+  const record = C.recordOf(unknown, "Home run", WHEN);
+  assert.deepEqual(record.route.hops.map((hop) => hop.unknown_space), [true, false]);
+  assert.deepEqual(C.changesSince(record, unknown), []);
+  const filledIn = answer({ route: { path: [1, 2, "phenomenon:nebula:3"], distance_ly: 13.5, hops: [
+    { distance_ly: 6, bearing_deg: 40, mark_deg: 10, unknown_space: false }, { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14, unknown_space: true }] } });
+  assert.deepEqual(C.changesSince(record, filledIn), [
+    "Hop 1 of 2 is now through known space; it was a jump through unknown space.",
+    "Hop 2 of 2 is now a jump through unknown space; it was through known space.",
+  ]);
+});
+
+test("a record saved before the unknown-space flag was kept says nothing about it", () => {
+  const record = C.recordOf(answer(), "Home run", WHEN);
+  record.route.hops.forEach((hop) => { delete hop.unknown_space; });
+  const unknown = answer({ route: { path: [1, 2, "phenomenon:nebula:3"], distance_ly: 13.5, hops: [
+    { distance_ly: 6, bearing_deg: 40, mark_deg: 10, unknown_space: true }, { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14 }] } });
+  assert.deepEqual(C.changesSince(record, unknown), []);
 });
 
 test("opening a course says when the route appears or goes", () => {

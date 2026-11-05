@@ -12,6 +12,7 @@ import copy
 from flask import abort, redirect, request
 
 from planetgen.db import objectlist, search_values
+from planetgen.util.format import format_number
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table, read_from_start
 from planetgen.web.lib.fmt import distance_km_html, measured_html
@@ -44,12 +45,16 @@ COLUMNS = [Column("name", "Name"), Column("class", "Class"), Column("mass", "Mas
 HABITABILITY_KINDS = ("planet", "moon")
 """tuple: The kinds whose list has a Habitability column of the PHI-6 symbols (UX.100), before the Sector column."""
 
+_SPIN_COLUMNS = (Column("rotation_period", "Rotation period", sortable=False), Column("axial_tilt", "Axial tilt", sortable=False),
+                 Column("internal_heat_flux", "Internal heat flow", sortable=False))
+
 PHYSICS_COLUMNS = {
-    "star": (Column("temperature", "Temperature"), Column("luminosity", "Luminosity"), Column("age", "Age")),
+    "star": (Column("temperature", "Temperature"), Column("luminosity", "Luminosity"), Column("age", "Age"),
+             Column("rotation_period", "Rotation period", sortable=False)),
     "planet": (Column("orbit_distance", "Orbit"), Column("eccentricity", "Eccentricity", sortable=False),
-               Column("surface_temperature", "Surface temperature")),
+               Column("surface_temperature", "Surface temperature"), *_SPIN_COLUMNS),
     "moon": (Column("orbit_distance", "Orbit"), Column("eccentricity", "Eccentricity", sortable=False),
-             Column("surface_temperature", "Surface temperature")),
+             Column("surface_temperature", "Surface temperature"), *_SPIN_COLUMNS),
 }
 """dict: The stored physics values a kind's list shows after the radius (UX.187), in the order of `db.objectlist.PHYSICS_COLUMNS`.
 A column named for a key of `db.search_values` sorts by that value (UX.228); the eccentricity has no key, so it does not sort."""
@@ -86,11 +91,15 @@ def _physics_cells(item, kind):
     if kind == "star":
         return [_plain(item.get("temperature_k"), lambda v: measured_html("K", v, companions=False)),
                 _plain(item.get("luminosity_w"), lambda v: measured_html("W", v)),
-                _plain(item.get("age_gy"), lambda v: measured_html("Gyr", v))]
+                _plain(item.get("age_gy"), lambda v: measured_html("Gyr", v)),
+                _plain(item.get("rotation_period_hours"), lambda v: measured_html("h", v))]
     if kind in ("planet", "moon"):
         return [_plain(item.get("distance_km"), distance_km_html),
                 {"text": _eccentricity(item["eccentricity"])} if item.get("eccentricity") is not None else {"text": "\u2013", "muted": True},
-                _plain(item.get("surface_temperature_k"), lambda v: measured_html("K", v, companions=False))]
+                _plain(item.get("surface_temperature_k"), lambda v: measured_html("K", v, companions=False)),
+                _plain(item.get("rotation_period_hours"), lambda v: measured_html("h", v)),
+                _plain(item.get("axial_tilt_deg"), lambda v: f"{format_number(v, '.4g')}\u00b0"),
+                _plain(item.get("internal_heat_flux_w_m2"), lambda v: measured_html("W_m2", v))]
     return []
 
 

@@ -162,16 +162,15 @@ item has no row there.
 | Version | Plan | Headline |
 |---|---|---|
 | 8.1 | [version-8-1-zoom-and-scatters.md](plan/releases/version-8-1-zoom-and-scatters.md) | Infinite zoom and the new generate scatters |
-| 8.2 | [version-8-2-accounts-and-invitations.md](plan/releases/version-8-2-accounts-and-invitations.md) | User accounts with email invitations |
+| 8.2 | [version-8-2-accounts-and-invitations.md](plan/releases/version-8-2-accounts-and-invitations.md) | User accounts, bookmarks and API keys, with the foundations for later versions |
 | 8.3 | [version-8-3-moving-galaxy.md](plan/releases/version-8-3-moving-galaxy.md) | The moving galaxy |
-| 8.4 | [version-8-4-new-worlds.md](plan/releases/version-8-4-new-worlds.md) | New worlds |
+| 8.4 | [version-8-4-new-worlds.md](plan/releases/version-8-4-new-worlds.md) | New worlds and the first settlements |
 | 8.5 | [version-8-5-courses-around-gravity-wells.md](plan/releases/version-8-5-courses-around-gravity-wells.md) | Courses that bend around gravity wells |
 | 8.6 | [version-8-6-edit-everything.md](plan/releases/version-8-6-edit-everything.md) | Edit everything |
-| 8.7 | [version-8-7-console-and-help.md](plan/releases/version-8-7-console-and-help.md) | The pilot's console and built-in help |
+| 8.7 | [version-8-7-console-and-help.md](plan/releases/version-8-7-console-and-help.md) | Full help for all pages |
 | 8.8 | [version-8-8-deep-sky.md](plan/releases/version-8-8-deep-sky.md) | The deep sky |
-| 8.9 | [version-8-9-generate-anywhere.md](plan/releases/version-8-9-generate-anywhere.md) | Generate anywhere |
-| 9.0 | [version-9-0-composition-and-atmosphere-colour.md](plan/releases/version-9-0-composition-and-atmosphere-colour.md) | Composition and atmosphere colour |
-| 9.1 | [version-9-1-view-from-a-planet.md](plan/releases/version-9-1-view-from-a-planet.md) | The view from a planet, with the gravity map |
+| 8.9 | [version-8-9-generate-anywhere.md](plan/releases/version-8-9-generate-anywhere.md) | Remote build |
+| 9.0 | [version-9-0-composition-and-atmosphere-colour.md](plan/releases/version-9-0-composition-and-atmosphere-colour.md) | Composition, atmosphere colour and the view from a planet |
 | 9.2 | [version-9-2-politics-and-territories.md](plan/releases/version-9-2-politics-and-territories.md) | Politics and territories |
 | 9.3 | [version-9-3-ships-and-stations.md](plan/releases/version-9-3-ships-and-stations.md) | Ships and stations |
 | 9.4 | [version-9-4-galaxy-types.md](plan/releases/version-9-4-galaxy-types.md) | Galaxy types |
@@ -206,7 +205,15 @@ body, star and atmosphere is its joint headline, with the radiation derived
 from it, and the building blocks go down to 8.1; everything planned for 9.0 before
 split between 8.9, the backups chain and the sky data, and 9.1, the view
 from a planet, 11:26 PM EDT); multiple galaxies is a possible future
-feature. A
+feature. Boss (5:36 PM EST on 2026-11-05): the main features of 8.2 are user accounts, bookmarks and API keys, and the rest of 8.2 is the foundations for later versions (the tile caching, the gravity grid, settlements). Boss (5:31 PM EST on 2026-11-05) folded 9.1 into 9.0: the view from a planet
+(VIEW.18), the gravity map (MAP.167) and the dynamic population and trade
+are now phases 2 to 4 of 9.0, and 9.2 onward keep their numbers. Reorganized (Boss, 5:15 PM EST on 2026-11-05) against the open
+items: 8.4 is now New worlds and the first settlements, and the gravity map
+(MAP.167, the second feature of 9.1) is built across 8.2 (grid foundations
+MAP.383 to MAP.386, PERF.72, PERF.243), 8.3 (GEN.198, GEN.199, MAP.387,
+API.24), 8.5 (the Sector and System Map layers MAP.168, MAP.169, UX.94) and
+9.1 (the parent and the optional Galaxy Map layer MAP.170); nothing of it
+lands in 8.1. A
 headline feature carries a `Headline: VERSION (name).` line in its item;
 `scripts/build_todo_docs.py` reads it and shows, in every plan page, each
 headline with all the open items it needs in build order. Every release in
@@ -697,52 +704,6 @@ with `clamp()`.
   sitemap entries.
   Prerequisites: none.
 
-- [ ] **UX.187 Pages, lists, the API and the help text show every physics rectification output**
-  Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the UX.
-  For each physics item in 8.1 that changes a stored value (the table in
-  reports/wiring-db-ux-audit-2026-10-24.md), the planet, moon and star
-  pages, the lists, the API field list and the help text show it with
-  its unit and a one-line source, in the order the pages use today:
-  orbit (eccentricity, inclination, seasons), heat (internal and tidal
-  flux, tectonic mode), spin and field, rings, atmosphere history
-  (escape, delivery), life timeline, star state (spectral type, white
-  dwarf cooling, neutron star structure). Follows the page layout of
-  UX.143 and UX.150 and the field macro. No value is shown that is not
-  stored. Done: a test walks the object pages of a sample galaxy and
-  checks each stored physics value appears once with its unit. Owner:
-  Aux 11 (Lane 3, pages), after the DB columns of its items.
-  Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
-  GEN.430, GEN.445.
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 5 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Research (2026-10-09): Lock-free item given to Core 3 (7:04 PM EDT
-  2026-10-29) after UX.186 merged; taken out of Core 5's chain. Owner:
-  Core 3.
-  Research (2026-10-09): Slice 1 merged (#3781, Core 3, as the lane
-  reported 7:21 PM EDT): every physics value on a star, planet or moon
-  page has a one-sentence source line (and the API sheet row carries it
-  as source). Every stored column the audit names that is on main was
-  already a row on the pages and in the API; the gap was the source
-  line. Remaining, in order: the help text, then the lists (data tables)
-  for columns on main, then the rows for columns not on main yet
-  (GEN.738 to 740, GEN.741 to 745, GEN.762, GEN.730, the brown dwarf
-  label), after train 1. The X-ray luminosity is GEN.952.
-  Boss approved first list slice (2026-10-31 1:48 PM EDT): Boss said yes
-  at 1:47 PM EDT 2026-10-31 to Core 3's first slice: the object index
-  and the star, planet and moon lists gain three stored, sortable
-  columns each (stars: temperature, luminosity, age; planets and moons:
-  orbit axis, eccentricity, surface temperature). It adds object-index
-  columns, so it is lock work: a migration, the API field list and a
-  backfill, on a train slot. Core 3 builds it on a branch off main, no
-  merge, and reports the head to TODO for the Train Manager. Later
-  slices add the rest.
-
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiHAYnXa7XwrhJHvc3pY8X4j, relayed by the
@@ -799,23 +760,6 @@ with `clamp()`.
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
-
-- [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
-  Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
-  asteroid belt information page that will show the bodies in the
-  asteroid belt that are named and the contents and sizes of the rest of
-  the mass of the asteroid belt, as well as a density factor in
-  object/square (something, not sure which unit)"; design
-  docs/design/systems/belt-evolution.md section 12, goal #4130). Belt
-  members have a designation, not a name (Boss 4:21 PM EDT), so the list
-  is the individually tracked bodies by designation. Lock work (route
-  and API field, API version bump with the change note). Done: page and
-  API tests, the web a11y and link checks, the unit shown beside every
-  number, a link from the system page. No backward-compat shim. Where we
-  think it belongs (best guess, can move): Core 2, train 7 (after the
-  members are stored on train 7).
-  Prerequisites: GEN.1070, GEN.1069.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **UX.259 Uncharted star and phenomenon pages, lists, infobox and map labels show the local name with its sector, not 'Uncharted G2V star <row id>'**
   Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
@@ -1075,7 +1019,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   umbrella carries the rule for all layers: gradient step and zone size
   come from those thresholds, and the legend names the scale in use. See
   docs/design/orbits/gravity-map.md.
-  Headline: 9.1 (the gravity map).
+  Headline: 9.0 (the gravity map).
   Prerequisites: GEN.199, MAP.168, MAP.169, UX.94, API.24. Related:
   GEN.105, NAV.6.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
@@ -1085,6 +1029,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-16, 11:25 and 11:26 PM EDT): 9.1 is the view from a planet
   (VIEW.18) with the gravity map as its second feature, and 9.0 is
   composition and the atmosphere colour.
+  Gravity grid study done (PERF.72, Tides 1) (5:02 PM EST on
+  2026-11-05): Report reports/perf72-gravity-grid-cost-2026-11-05.md.
+  Build items filed: MAP.383 (decide first: GEN.115 smooth potential
+  versus generated stars would double count), MAP.384 kernel, MAP.385
+  hierarchy, MAP.386 system point mass, MAP.387 cache, PERF.243 perf
+  guard. Open question for MAP.167 to MAP.170: whether the volume view
+  is wanted at the core; it is a queued job there (about 2 minutes for
+  1,000 sectors), not an interactive layer. Needs Boss's word when the
+  layer is built.
+  Boss decision (5:14 PM EST on 2026-11-05): the gravity map is built so
+  it lands by 9.1, with the foundations spread back: 8.2 holds the
+  double-count decision (MAP.383), the kernel (MAP.384), the interaction
+  lists (MAP.385), the point mass per system (MAP.386), the perf guard
+  (PERF.243) and the cost study close-out (PERF.72); 8.3 holds the
+  evaluator (GEN.198), the per-zone grid (GEN.199), the cache and stamps
+  (MAP.387) and the route (API.24), because they ride on the orbital
+  update and the galaxy potential (GEN.115); 8.5 holds the Sector and
+  System Map layers and the wording (MAP.168, MAP.169, UX.94), because
+  courses around gravity wells use them; 9.1 keeps this parent and the
+  optional Galaxy Map layer (MAP.170). Nothing of it lands in 8.1: only
+  generation aspects that directly impact 8.1 do. The 8.2 items read
+  stars already generated and change no generated output.
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
 
 - [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
@@ -1723,7 +1689,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a new command follows the PERF.120 rules (one command does one thing);
   tests are `scripts/test.py changed --resume`; no fixed content from
   the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
-  Prerequisites: POP.34, NAV.5. Related: NAV.5, NAV.36, MAP.240,
+  Prerequisites: POP.34. Related: NAV.5, NAV.36, MAP.240,
   MAP.307.
 
 - [ ] **MAP.310 Routes away from a selected object: select a system, spaceport or world on the star map and show only the trade routes leaving it**
@@ -1913,6 +1879,70 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
 
+- [ ] **MAP.384 Gravity grid kernel (numba, parallel): pull, potential and the six tidal components for P points against M point masses, with Plummer softening**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: the kernel in float64, with a test against a
+  plain numpy reference to 1e-9 on random sets; the web app never
+  imports it (a lazy import inside the job), and the wiring register
+  names where it is read once wired. Done: kernel and tests pass;
+  lock-free until wired. Owner: Tides 1. Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.385 Gravity grid interaction lists and the 0.5 pc hierarchy: cell mass and centre of mass per level, opening angle chosen to a pair budget**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: build the hierarchy (check first whether the
+  MAP.151 region pyramid has a sub-sector level; if it does not, the
+  leaf level is a separate small item), the opening angle chosen to a
+  pair budget (floor 0.3, ceiling 0.7), and one interaction list per
+  target sector. Tests: accuracy against the exact sum on a fixed small
+  generated galaxy (pull 1 percent, tidal 2 percent at p95) and a
+  pair-budget test. Done: both tests pass. Lock-free until wired. Owner:
+  Tides 1. Filed by the TODO thread.
+  Prerequisites: MAP.384. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.386 Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: the rule and its code, with a test that the
+  folded field is within 0.1 percent of the explicit sum at 0.25 pc.
+  Done: the test passes. Lock-free until wired. Owner: Tides 1. Filed by
+  the TODO thread.
+  Prerequisites: none. Related: MAP.167, PERF.72.
+
+- [ ] **MAP.387 Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: the cache as derived data only (no
+  galaxy-table migration), rebuilt on a threshold-based move, a job
+  queue for volume views, a slab on request. Done: a second request of
+  an unchanged sector reads the cache and a changed source stamp
+  rebuilds it, with tests. Lock-free (derived data only) unless it needs
+  a migration, then tell the TODO thread. Owner: Tides 1. Filed by the
+  TODO thread.
+  Prerequisites: MAP.385. Related: MAP.167, PERF.72.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -1958,41 +1988,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed since the first save. NAV.18 is done. This item stays open for
   NAV.19 (saved courses in the account, after USR.7).
 
-- [ ] **NAV.5 Show a course on the Galaxy Map**
-  Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
-  to view the route in the context of the galactic map, zoomed in as far
-  as it can be zoomed in and still show the entire path. The course
-  path, direct and system-to-system, should then be specially
-  highlighted as a course." Today the NAV page draws its own flat map
-  of the route (`lib/navmap.py`), and the Galaxy Map only takes
-  `?course=` for an end point. Done: from the NAV page (and a saved
-  course, NAV.4), the course opens on the Galaxy Map, zoomed in as far
-  as it can be while showing the whole path. Both the direct line and
-  the system-to-system route are drawn in a distinct course style,
-  told apart from each other, with their end points and hops marked
-  and clickable. The same works inside a sector. Ties in with MAP.61 (a course view
-  may need a fitted zoom outside the user range; MAP.58's zoom limits
-  were superseded by MAP.125).
-  Much of this exists: `/galaxy?course=<from>,<to>` (MAP.27, 7.52.0)
-  draws one line through the route's stops with the ends named. Missing:
-  the direct line drawn apart from the route, a fitted zoom, and any
-  course inside a sector.
-  Prerequisites: none.
-  Plan (2026-10-07): Boss (2026-10-07): "Plotted courses should appear
-  on the galactic map and stay until cleared." See NAV.49.
-
-  - [ ] **NAV.22 Courses inside a sector and a system**
-    Today a course that stays in one sector opens the sector with no
-    line. Done: the same course drawing at the sector stage (MAP.61)
-    and in the 3D system view (MAP.62), and a course that spans levels
-    shows its in-system legs when zoomed in.
-    Research (2026-10-09, course-avoidance.md): define the scale
-    hand-off: the galactic path ends at the system's star; the in-system
-    leg starts where the path crosses the heliopause
-    (`heliosphere_radius_km`) and ends at the target body; sector-scale
-    courses use the same keep-out table in light-years.
-    Prerequisites: MAP.217.
-
 - [ ] **NAV.6 Courses that steer clear of gravity wells**
   Boss (2026-10-01 20:55Z): "we need to factor gravitational bodies into
   the course. A ship piloting would adjust the course to avoid falling
@@ -2032,13 +2027,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   do not change in practice (overhead 0.04% to 0.2% on average).
 
   Prerequisites: none.
-- [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
-  Done: a saved course (NAV.17) keeps which hops were unknown-space
-  jumps when it was saved, and opening it checks again, since sectors
-  may have been filled in the meantime; a hop that is now known shows
-  as ordinary, and the course says what changed. Prerequisites: none.
-  Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
 - [ ] **NAV.56 Census of overlapping keep-out spheres in a generated galaxy**
   Count how many pairs of keep-out spheres overlap in a generated
   galaxy. The answer decides whether NAV.26's cluster fallback ever
@@ -3209,7 +3197,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zone is thrown away only when a source passes its own threshold, the
   same event that sets its next update due time (GEN.106). PERF.72 sets
   the multiples.
-  Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
+  Prerequisites: GEN.198, PERF.72, MAP.384, MAP.385, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -14049,6 +14037,59 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1. Owner: Bug 1. Filed by the TODO thread.
   Prerequisites: none. Related: PERF.241.
 
+- [ ] **GEN.1283 The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug)**
+  Core 1 (as the lane reported, about 5:16 PM EST on 2026-11-05, while
+  fixing PERF.228) found two tests in tests/test_habitability_fill.py
+  red on plain main:
+  test_a_system_comes_back_with_the_numbers_generation_stored and
+  test_the_command_re_scores_every_system_and_a_second_run_changes_nothing.
+  The re-score of a 'wide' system, planet 1, gives band1_day_hours 14.21
+  where generation stored 13.60. A re-score must reproduce what
+  generation stored, or a second run changes the galaxy. Do: find which
+  input differs between the generation pass and the re-score (the same
+  class of cause as the day_share_mean fix in values_from_body in
+  GEN.1265: a value generation read from the live body that the re-score
+  reads from the stored row, or the reverse), fix the side that is
+  wrong, and check every band number, not only the day length. Done:
+  both tests pass and a re-score of a generated galaxy changes no stored
+  number. A fix that changes generated numbers is a lock item (epoch).
+  Version 8.1. Owner: Core 1. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1265, PERF.228.
+
+- [ ] **GEN.1284 Generated systems hold less mass than the density profile expects: 78 percent in a solar-circle sample (bug)**
+  Tides 1 (as the lane reported, about 5:27 PM EST on 2026-11-05;
+  reports/map383-background-rule-2026-11-05.md) measured generated
+  blocks while deciding MAP.383: in a 125-sector solar circle sample the
+  generator placed 78 percent of the stellar mass the density profile
+  expects (85 percent of the systems, mean system mass 9 percent low,
+  about 3 sigma); one bulge sector placed 95 percent. Suspects, not
+  examined: the one-system-minimum per sector and the 'ran out of room'
+  cap. Do: find which stage loses the mass (count expected against
+  placed per sector, then per cause: minimum, cap, mass function,
+  multiplicity), fix it or show with numbers that the shortfall is the
+  intended physics (then say why in the density note). Done: the placed
+  mass matches the profile inside the sampling error in the solar circle
+  and the bulge, or the note says why not. A fix changes generated
+  stars, so it is a lock item (epoch). Version 8.1. Owner: Core 3. Filed
+  by the TODO thread.
+  Prerequisites: none. Related: MAP.383, GEN.115.
+
+- [ ] **GEN.1285 The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3)**
+  Tides 1 (as the lane reported, about 5:27 PM EST on 2026-11-05;
+  reports/map383-background-rule-2026-11-05.md): the stellar mass the
+  smooth potential (GEN.115) carries differs from the stellar density
+  the density model generates from, by -15 percent at the solar circle
+  and +19 percent in the bulge, so the background rule of MAP.383
+  (smooth field minus the smooth galaxy's own stellar mass in the
+  sectors that have generated stars) leaves a residual. Do: make the
+  potential's stellar components follow the density model's, or derive
+  both from one table, and re-register the stand-ins GP1 to GP3 in
+  GEN.725 with tier and tweak level. Done: the two densities agree
+  inside the stated tolerance at the solar circle, the bulge and the
+  disk edge. Version 8.3. Owner: Tides 1 or Core 3. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: MAP.383, GEN.115, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14077,7 +14118,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Math Research (2026-10-14): the field is a sum over point masses at many
   grid points, the same shape as the path integrator's acceleration; cost it
   as a numba or NumPy kernel from the start (not measured in the note).
-  Prerequisites: GEN.198. Related: GEN.198, GEN.199, MAP.151
+  Prerequisites: none. Related: GEN.198, GEN.199, MAP.151
   (done, PR #1539).
   Scope after the review (2026-10-16 review): the cost study of the grid
   on top of the kernel (measure the kernel and the aggregate split, pick
@@ -14542,50 +14583,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clear the stuck run.
   Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
 
-- [ ] **PERF.228 The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug)**
-  Star 2 (reported 2026-10-31 8:04 PM EDT as the lane reported): while
-  measuring PERF.226 on its populated test database, the
-  rescore-habitability stage failed with a MySQL deadlock (error 1213,
-  'Deadlock found when trying to get lock; try restarting transaction')
-  in unit 4, with 4 workers running at once. A deadlock between units of
-  one stage means two workers update overlapping rows in a different
-  order, or one holds a range lock the other needs. Do: (1) reproduce on
-  a populated database with 4 workers and capture `SHOW ENGINE INNODB
-  STATUS` for the latest detected deadlock, naming the two statements
-  and the index; (2) make the units touch disjoint rows in one fixed
-  order (update by primary key in ascending order, or per-unit key
-  ranges that do not share a gap lock), or retry the unit transaction on
-  1213 a bounded number of times as the repository's other stages do,
-  whichever the statements show is the cause; (3) check the other stages
-  that update stored rows from several workers for the same pattern.
-  Done: a test that runs two overlapping units against one database and
-  finishes without error, and a populated run with 4 workers that
-  finishes the stage. Lock-free, generation output unchanged. Owner:
-  unassigned (Star 2 has PERF.226; a waiting lane may take it). Version
-  8.1. Prerequisites: none. Related: PERF.226.
-  Prerequisites: none.
-
-- [ ] **PERF.235 A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup**
-  Boss, 6:02 PM EST on 2026-11-04, lost his SSH session during planetgen
-  warm --progress. What the code does (src/planetgen/cli/warm.py,
-  queue/wrapper.py, queue/redisqueue.py): the command is a client that
-  follows a run whose units are done by queue workers started in their
-  own session (start_new_session=True), and the next stage is queued by
-  the unit that ends the previous one, so the work most likely keeps
-  going after the hangup; the client itself only handles SIGTERM, so a
-  hangup ends the progress view, and the phase notes the client writes
-  (warmphases) stop. Do: (1) a planetgen warm --follow that attaches to
-  the running warm-up from the run record (wrapper.py already says a
-  second process can follow a run from the record alone) and draws the
-  same bars; (2) handle SIGHUP in the warm command so a hangup leaves
-  the run going and says so, or document the detached way (nohup or
-  tmux) in the operations guide; (3) verify on a real run that killing
-  the client leaves the run finishing, and the admin page's phase list
-  still moves. Done: a test of the follow from a second process and of
-  the hangup. Proposed owner: Aux 3 (PERF.233). Filed by the TODO
-  thread.
-  Prerequisites: none. Related: PERF.233, PERF.234.
-
 - [ ] **PERF.236 The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug)**
   Bug 1, 6:00 PM EST on 2026-11-04 (as the lane reported), closed the
   GEN.951 prevalence check: the three failing cases (habitable_world
@@ -14692,6 +14689,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item above. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
   Prerequisites: GEN.1282. Related: PERF.241.
 
+- [ ] **PERF.243 Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate**
+  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
+  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
+  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
+  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
+  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
+  against the exact sum; the kernel is numba and runs as a cached job
+  because the web app never imports numba; planets and moons fold into
+  their system's mass. Do: a test that the densest-place sector grid
+  stays under 0.25 s with the pair budget of the hierarchy item, and a
+  reference file for the lane-machine pair rate so a slow machine is
+  recognised (the test scales its limit by it). Done: the test passes on
+  the reference machine and skips with a stated reason on none.
+  Lock-free. Owner: Tides 1. Filed by the TODO thread.
+  Prerequisites: MAP.384, MAP.385. Related: MAP.167, PERF.72.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -14721,50 +14734,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.179.
   Design: [docs/design/operations/db-check-and-parity-repair.md](design/operations/db-check-and-parity-repair.md)
 
-- [ ] **DB.40 Parity data backup part: the parity file of the DB repair copied into the backup archive**
-  Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
-  control DB and backups of the parity data for DB repair." and "All
-  those should be bz2 tarballed together." Boss (2:00 PM EDT): "we also
-  have to build a way to use that data so build that out and let's make
-  this targetted for v9.0 so incorporate the chain for these (restore /
-  repair using backups) with that due date. Settings page is v8.1".
-  Target 8.9 (the backups and repair chain, umbrella ADM.91); the
-  settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
-  All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
-  retention is `settings.backups_kept` (default 20, 1 to 200). DB.9
-  keeps parity for every sector in an append-only parity file outside
-  the database (path in `config.json`). A damaged database is only
-  repairable with a parity file that matches it, so the file is a backup
-  part, written to `parity/`: the copy is taken under the parity
-  writer's lock and cuts at the last complete record (the file is an
-  append-only log of self-describing records with a header scan, so no
-  index is stored); it can be switched off for a very large galaxy with
-  the option `settings.backup_parity` (default on), and the manifest
-  records its size and the sector count it covers. Done: the part
-  registered with ADM.87, the lock-held copy under a concurrent save,
-  and the size and coverage in the manifest (the restore is DB.41).
-  Prerequisites: none. Related: ADM.85, DB.8, DB.17.
-
-- [ ] **DB.41 Parity data restore: put a backed-up parity file back and check it against the database**
-  Boss (2:00 PM EDT): "we also have to build a way to use that data so
-  build that out and let's make this targetted for v9.0 so incorporate
-  the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 8.9 (the backups and repair
-  chain, umbrella ADM.91); the settings page and the settings backups
-  stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
-  `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
-  (default 20, 1 to 200). Using the parity part of an archive: restore
-  writes the file back (to a temporary name first, then renamed), then
-  runs the DB.8 check so every record that no longer matches the
-  database is recomputed by the stale-record rule of DB.9 instead of
-  being read as damage, and reports how many sectors are unprotected
-  until their next save. `planetgen.cli.backup restore --part parity
-  ARCHIVE` and the backup list use it. Done: a restore on a fixture
-  galaxy followed by a passing check, a record from before an edit
-  treated as stale and not as damage, and a refused restore while a save
-  is writing parity.
-  Prerequisites: DB.40. Related: DB.9, ADM.85, ADM.91.
-
 - [ ] **DB.42 Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged**
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
@@ -14787,7 +14756,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   repaired from the archive, a group that lost too many members listed
   and handed to DB.17, and a stale archive recompute that does not
   damage a healthy sector.
-  Prerequisites: DB.41, DB.17. Related: DB.9, DB.17, ADM.91.
+  Prerequisites: DB.17. Related: DB.9, DB.17, ADM.91.
 
 - [ ] **DB.57 The update records what it moved: a replace-each-run table of previous and new positions**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -16275,7 +16244,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   a confirmation that names what will change. Done: the page and a
   browser test that runs a check on a damaged fixture galaxy, repairs it
   from an archive and shows a passing check.
-  Prerequisites: DB.42, ADM.89, DB.41. Related: ADM.85, DB.8, ADM.91.
+  Prerequisites: DB.42, ADM.89. Related: ADM.85, DB.8, ADM.91.
 
 - [ ] **ADM.91 Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page)**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
@@ -16293,7 +16262,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   control database and parity parts, their restores, the repair from an
   archive, the repair page, the end-to-end test and the guide are in
   8.9 (moved from 9.0, Boss, 2026-10-16, 11:26 PM EDT).
-  Prerequisites: ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180,
+  Prerequisites: ADM.88, ADM.89, DB.42, ADM.90, TEST.180,
   DOC.56, OPS.55. Related: ADM.43, ADM.87, DB.9.
 
 - [ ] **ADM.94 Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them**
@@ -18005,30 +17974,6 @@ clears each one.
   thread.
   Prerequisites: none.
 
-- [ ] **TEST.619 tests/test_mass_conversions.py fails: galaxy/keepout.py and physics/remnant_composition.py each have one new mass multiply that does not go through the unit registry (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. Use the registry converters (units.converter)
-  for the two multiplies. Done: the test passes with no new exception in
-  its allow list. Owner: Core 2. Do: reproduce on current main first (a
-  merge since may have fixed it), fix at the cause with the property
-  kept, never skip or loosen a test. Lock-free if output is unchanged;
-  tell the TODO thread if values change. Version 8.1. Filed by the TODO
-  thread.
-  Prerequisites: none.
-
-- [ ] **TEST.620 tests/test_reproducible_draws.py fails: math.dist at db/field_clouds.py:51 and db/obstacles.py:158 must use detmath.dist (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. Replace both with detmath.dist so results do not
-  depend on the platform's libm. Done: the test passes and obstacle and
-  cloud results are unchanged. Owner: Core 2. Do: reproduce on current
-  main first (a merge since may have fixed it), fix at the cause with
-  the property kept, never skip or loosen a test. Lock-free if output is
-  unchanged; tell the TODO thread if values change. Version 8.1. Filed
-  by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **TEST.621 The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug)**
   The Train Manager (as the lane reported, about 3:47 PM EST on
   2026-11-05, full-suite run on main) saw twice that the non-browser run
@@ -18045,18 +17990,6 @@ clears each one.
   Done: a deliberately hung test is killed at its limit with a clear
   message, and the full run completes. Lock-free. Version 8.1. Owner:
   Train Manager. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.417.
-
-- [ ] **TEST.622 tests/test_parallel_names.py::test_two_passes_drawing_the_same_names_still_save_unique_ones fails alone on main (no species made) and passes in a whole-file run (bug)**
-  Core 5 (as the lane reported, about 4:15 PM EST on 2026-11-05) saw the
-  test fail alone on plain main with assert ([]) because no species was
-  made, while it passes when the whole file runs; it depends on test
-  order. Do: reproduce alone, find what an earlier test in the file sets
-  up that this one needs (a seeded draw, a table row, a cached pool),
-  and make the test set up its own state; a test that only passes after
-  another is a bug in the test. Add a check that runs the test alone in
-  the file's own run. Done: the test passes alone and in the whole file.
-  Lock-free. Version 8.1. Owner: Core 5. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.417.
 
 ## USR: User accounts
@@ -18690,7 +18623,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   off, a failure that leaves archives alone, pruning by kind, and a
   second run started during the first exiting at once; the daily run
   lists the step in its log.
-  Prerequisites: ADM.88, DB.40. Related: OPS.16, ADM.87,
+  Prerequisites: ADM.88. Related: OPS.16, ADM.87,
   ADM.91.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
@@ -18725,6 +18658,199 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
+
+- [ ] **OPS.96 warmup.log in the log folder, written by planetgen warm itself, local time with zone**
+  Boss decided (11-05) that every log uses the system (local) time with
+  its zone, and that logging is unified across the board; the standard
+  moves from UTC to local time. Full text and the files touched are in
+  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
+  and the widened items". Lock-free: it touches no generated content,
+  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  that takes the warm-up and update.sh code). Filed by the TODO thread.
+  Do: planetgen warm appends to warmup.log in log_dir (written in
+  Python, not by tee), with a header and a closing line per run, for
+  update parts 1 and 2, hand runs and the background run. Drops the tee
+  and the /tmp file in deploy-common.sh. Touches cli/warm.py,
+  util/logpaths.py (warmup_log_path),
+  examples/apache/setup-debug-log.sh, scripts/deploy-common.sh,
+  docs/design/operations/cache-warm-up.md, docs/reference/config.md and
+  tests. Done: a warm-up by update.sh, by hand and in the background
+  each leave a bracketed run in warmup.log.
+  Prerequisites: OPS.104.
+
+- [ ] **OPS.97 Local time with its zone in every log form (the standard changes from UTC), including the activity log and its fail2ban filter**
+  Boss decided (11-05) that every log uses the system (local) time with
+  its zone, and that logging is unified across the board; the standard
+  moves from UTC to local time. Full text and the files touched are in
+  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
+  and the widened items". Lock-free: it touches no generated content,
+  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  that takes the warm-up and update.sh code). Filed by the TODO thread.
+  Do: every record is local system time with its zone
+  (2026-11-05T07:41:02.123-0500, RFC 3339 with offset): the file line,
+  the JSON line, the run's log file, records.log, --record-file, the
+  debug log and the activity log. The activity log changes with its
+  fail2ban filter text, format_line and test_activity_log.py together.
+  Touches util/logrecord.py, admin/activity_log.py, the fail2ban filter
+  in examples/, queue/runrecord.py,
+  docs/design/operations/logging-standard.md, docs/reference/logging.md
+  and tests. No shim for the old form. Done: no log form writes UTC and
+  the standard says local time.
+  Prerequisites: OPS.96, OPS.104.
+
+- [ ] **OPS.98 A time on every line of every script and command**
+  Boss decided (11-05) that every log uses the system (local) time with
+  its zone, and that logging is unified across the board; the standard
+  moves from UTC to local time. Full text and the files touched are in
+  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
+  and the widened items". Lock-free: it touches no generated content,
+  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  that takes the warm-up and update.sh code). Filed by the TODO thread.
+  Do: planetgen warm and the other commands print display lines with the
+  time whenever output is not a terminal; the roughly 108 plain echo
+  lines in scripts/deploy-common.sh and those in install.sh,
+  install-python-deps.sh, enable-swap.sh, setup-debug-log.sh,
+  set-permissions.sh and create-cache-dir.sh move to log_info,
+  log_warning and log_error. Shares deploy-common.sh, update.sh and
+  test_deploy_scripts.py with the closing-summary item: one branch or in
+  order. Touches those scripts, test_deploy_scripts.py and
+  test_log_shell.py. Done: every line a script prints carries a time.
+  Prerequisites: OPS.97.
+
+- [ ] **OPS.99 Compact warm-up progress by time, and the progress bars back inside update.sh**
+  Boss decided (11-05) that every log uses the system (local) time with
+  its zone, and that logging is unified across the board; the standard
+  moves from UTC to local time. Full text and the files touched are in
+  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
+  and the widened items". Lock-free: it touches no generated content,
+  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  that takes the warm-up and update.sh code). Filed by the TODO thread.
+  Do: with no tee the warm-up's output stays a terminal, so the bars
+  draw; in a log or pipe, one progress line a minute (and one per 10%,
+  whichever is rarer) with percent, chunks, elapsed and time left;
+  worker seconds and chunks-at-once move into the family's closing line;
+  --follow shows the same. Touches cli/warm_progress.py, cli/warm.py and
+  tests. Done: update.sh shows bars in a terminal and a quiet progress
+  line in a log.
+  Prerequisites: OPS.96.
+
+- [ ] **OPS.100 A closing summary for update.sh and install.sh, with warnings repeated**
+  Boss decided (11-05) that every log uses the system (local) time with
+  its zone, and that logging is unified across the board; the standard
+  moves from UTC to local time. Full text and the files touched are in
+  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
+  and the widened items". Lock-free: it touches no generated content,
+  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  that takes the warm-up and update.sh code). Filed by the TODO thread.
+  Do: one shared shell helper (log_summary) in scripts/logrecord.sh
+  prints the duration, code version, migration, the time the site was
+  reloaded and passed the health check, the warm-up result, and every
+  warning raised, repeated at the end. The reload's Done lines become
+  'Site reloaded: running the new code' so Done appears once, last. Long
+  warnings (the 330-character warm-up warning) become a headline plus
+  indented fix lines. Shares files with the time-on-every-line item.
+  Touches update.sh, install.sh, scripts/logrecord.sh, deploy-common.sh
+  and tests. Done: both scripts end with the summary.
+  Prerequisites: OPS.98.
+
+- [ ] **OPS.101 Named logs for the unattended long jobs: tiles.log, orbits.log and update.log**
+  Boss decided (11-05) that every log uses the system (local) time with
+  its zone, and that logging is unified across the board; the standard
+  moves from UTC to local time. Full text and the files touched are in
+  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
+  and the widened items". Lock-free: it touches no generated content,
+  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  that takes the warm-up and update.sh code). Filed by the TODO thread.
+  Do: tiles.log (the nightly whole-map build), orbits.log (the nightly
+  orbit update) and update.log (every line update.sh prints, appended,
+  so a hand run can be read again), all in the log folder, written with
+  the same helper as warmup.log and covered by the same logrotate rule
+  (*.log); smoke keeps its JSON output file. Touches cli/tiles.py,
+  cli/orbits.py, update.sh, util/logpaths.py and the
+  examples/maintenance units if they redirect output. Done: each of the
+  three jobs leaves its own rotating log.
+  Prerequisites: OPS.96.
+
+- [ ] **OPS.102 Debug log: an area column in, the dead logger-name column out**
+  Boss decided (11-05) that every log uses the system (local) time with
+  its zone, and that logging is unified across the board; the standard
+  moves from UTC to local time. Full text and the files touched are in
+  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
+  and the widened items". Lock-free: it touches no generated content,
+  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  that takes the warm-up and update.sh code). Filed by the TODO thread.
+  Do: the debug line gains [draw], [sql] and [queue] and loses the
+  logger-name column; the tests and bug-hunt scripts that read the line
+  change with it (no shim). Done: the new line format is the only one
+  read anywhere.
+  Prerequisites: none.
+
+- [ ] **OPS.103 One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test**
+  Boss decided (11-05) that every log uses the system (local) time with
+  its zone, and that logging is unified across the board; the standard
+  moves from UTC to local time. Full text and the files touched are in
+  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
+  and the widened items". Lock-free: it touches no generated content,
+  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  that takes the warm-up and update.sh code). Filed by the TODO thread.
+  Do: a Counting section in the logging standard: 'Stage N of M' for the
+  top-level steps of a script or run, 'Part N of M' for the runs inside
+  one, 'Phase N of M' for a named group inside a run, family names for
+  the warm-up's pieces, and 'chunk' shown only as a count. The six
+  severities and the component names (update, install, warm, tiles,
+  orbits, generate, queue, web, job) in one table; every divider is the
+  same === ... === record. Applied to update.sh, install.sh, warm,
+  tiles, orbits, generate and the queue run page. An enforcement test
+  (an extension of TEST.183) fails on a hand-made 'stage 1 of 2' or a
+  component not in the table. Built last, because it names what the
+  others produce. Touches logging-standard.md, logrecord.py,
+  stagemark.py, warmup.py, warm_progress.py, the generate stages and
+  tests. Done: the test passes and every script and command uses the
+  table.
+  Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102, OPS.105.
+
+- [ ] **OPS.104 One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone**
+  Boss decided (11-05) that there is one logging codebase for the Python
+  code and the shell scripts. Full text in
+  reports/logging-review-2026-11-05.md, last section "Boss addition
+  (11-05): one logging codebase". Lock-free: it touches no generated
+  content, golden, migration or epoch. Version 8.2. Owner: none yet.
+  Filed by the TODO thread. What exists: two Python stacks (util/log.py
+  with its own two formatters, util/logrecord.py with three, get_logger
+  used in one place), and scripts/logrecord.sh as a separate shell copy.
+  Do: planetgen.util.log stays the one import and becomes the only place
+  a line is made and written: logrecord's record (time local with zone,
+  severity, component, fields) is the one data form, and the console
+  plain line, the debug line, the file line, the JSON line, the display
+  line and the relay are writings of that record from one formatter set.
+  One call surface: log.get(component) returns the logger; log.normal,
+  debug, warning and error stay as thin calls on it; stage marks, the
+  area tag and fields go through the same record. scripts/logrecord.sh
+  stays the only shell helper, made a mirror of the module by a
+  generated vocabulary (severities, components, stage words) and the
+  existing test that runs both on the same records. TEST.183 grows to
+  fail on any formatter class or handler outside the module. Must merge
+  before every item that changes a log format (OPS.96, OPS.97, OPS.98,
+  OPS.101, OPS.103). Done: one formatter set, one call surface, the test
+  fails on a second one.
+  Prerequisites: none. Related: OPS.97, OPS.105, TEST.183.
+
+- [ ] **OPS.105 One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls**
+  Boss decided (11-05) that there is one logging codebase for the Python
+  code and the shell scripts. Full text in
+  reports/logging-review-2026-11-05.md, last section "Boss addition
+  (11-05): one logging codebase". Lock-free: it touches no generated
+  content, golden, migration or epoch. Version 8.2. Owner: none yet.
+  Filed by the TODO thread. Do: admin/activity_log.py keeps its own
+  handler and line today, queue/runrecord.py builds records a third way
+  (runrecord.log_text), 11 modules call logging.getLogger directly and
+  146 print() calls write log lines outside the layer. Move all of them
+  onto util/log.py; answers a command prints on purpose (listings and
+  the like) stay and are named in an allowed list that TEST.183 reads.
+  The activity log and its fail2ban filter move together (this is where
+  OPS.97 lands for it). Done: no handler, formatter or log-line print
+  outside the module, and TEST.183 proves it.
+  Prerequisites: OPS.104, OPS.97. Related: OPS.97, TEST.183.
 
 ## DOC: Documentation
 
@@ -19462,7 +19588,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   constellation.
   Prerequisites: VIEW.15, VIEW.16. Related: VIEW.3.
 
-- [ ] **VIEW.18 Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations**
+- [ ] **VIEW.18 Headline of 9.0: the view from a planet, with its starmap, its picture and its constellations**
   Boss (2026-10-16, 11:42 PM EDT, card "View from a planet"): the view
   from a planet is the headline of 9.1 and the gravity map is the second
   feature. This item is done when its items are: the starmap seen from a
@@ -19470,7 +19596,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (VIEW.3), which carry the sky catalogue, the photometry library, the
   galactic band, the horizon and the constellations beneath them, on the
   sky data and research of 8.9 and the atmosphere colour of 9.0.
-  Headline: 9.1 (the view from a planet: the sky from any planet or
+  Headline: 9.0 (the view from a planet: the sky from any planet or
   moon, with real constellations, rendered as a picture). A hand version
   bump needs Boss's word.
   Built code waiting for its caller (audit research, relayed 8:03 PM EDT
@@ -20568,7 +20694,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   applies habitability changes (a world whose conditions change loses or
   gains capacity) and records the change. Done: a world's population
   follows its capacity across 100 simulated nights, and rerunning the
-  same nights gives the same numbers. Version 9.1, phase 4. Owner: Core
+  same nights gives the same numbers. Version 9.0, phase 4. Owner: Core
   5 style. Rules: draws through draw.py; a PR that changes drawn output
   carries `tests.golden_update --reason ... --affects population` and
   the next epoch; every number has a unit or scale (GEN.772) and a
@@ -20589,7 +20715,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   whose owners are at war once 9.2 lands, and keeps the global list and
   the map filters current. An admin-edited route is never changed. Done:
   a test with a new port adds a route and a destroyed port closes one,
-  and the map layer shows the change. Version 9.1, phase 4. Owner: Core
+  and the map layer shows the change. Version 9.0, phase 4. Owner: Core
   5 style with Core 2. Rules: draws through draw.py; a PR that changes
   drawn output carries `tests.golden_update --reason ... --affects
   population` and the next epoch; every number has a unit or scale
