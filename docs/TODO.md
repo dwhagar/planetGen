@@ -2072,33 +2072,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.373 Plane view with stems C: a Menu toggle, a height-stretch control, and labels that give an object's spherical coordinates as an ordered triple**
-  Boss, 5:36 PM EST on 2026-11-04, answered the galaxy projection survey
-  (reports/galaxy-projection-survey-2026-11-04/galaxy-projection-survey-2026-11-04.md,
-  section 8): option 1.1, a switchable 'Plane view with stems' in the
-  Galaxy Map 3D camera, 'but instead of height let's list its spherical
-  coordinates for its context and an ordered triple'. Size M in three
-  small parts, all map code, lock-free, no migration. Do: a Menu toggle
-  for the plane view and its stems; a height-stretch control (draw
-  heights 2 to 10 times larger, stated on the grid so it stays honest);
-  and on a stemmed or selected object a label (and the infobox line)
-  listing its spherical coordinates in the galaxy frame as an ordered
-  triple (radius, longitude, latitude) instead of a height number, with
-  units. Done: browser test of the toggle, the stretch and the triple;
-  the triple matches the stored position within rounding. Goal #3241.
-  Filed by the TODO thread.
-  Boss refinement (5:40 PM EST on 2026-11-04) (2026-11-04 5:40 PM EST):
-  The coordinates in the label follow the current context. In a sector
-  view the ordered triple (radius, longitude, latitude) is measured from
-  the sector center; in the galaxy view from the galactic center. When a
-  star is selected, the labels instead list the course and distance of
-  each star relative to the selected star (bearing and distance from it,
-  with units). Done adds: a browser test of each of the three contexts
-  (sector, galaxy, a star selected).
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Core 5 (unowned
-  before).
-  Prerequisites: MAP.372.
-
 - [ ] **MAP.374 Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection**
   Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
   lane (galaxy projection survey, report section 8). Do: a chart of
@@ -18868,6 +18841,8 @@ clears each one.
   with TEST.583. The american_spelling code-strings failures
   (updateguard.py cancelled, sheet.py disc) are the DOC.103 sweep, which
   is in train 10. Filed by the TODO thread.
+  Owner change (9:17 PM EST on 2026-11-04): Core 5 takes this item from
+  Tides 1 (Core 5 found the failure and has no other unlocked item).
   Prerequisites: none. Related: TEST.583, TEST.580, TEST.581, DOC.103.
 
 ## USR: User accounts
