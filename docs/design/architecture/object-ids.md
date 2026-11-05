@@ -228,7 +228,7 @@ generated, and only then gets its name.
 ## Scatter rows (GEN.1254)
 
 A star of `bright_stars` and a scattered phenomenon of `phenomenon_scatter` have an Object ID from the moment the scatter writes them: `uid`
-(`BINARY(12)`, unique, NULL for a row made before migration 0212). It is the ID the object keeps when its sector is charted. The module is
+(`BINARY(12)`, unique, NULL for a row made before migration 0213). It is the ID the object keeps when its sector is charted. The module is
 `db/scatter_uids.py`.
 
 - **Birth sector and body.** The row's own sector, body number 0, serial kind generated.
