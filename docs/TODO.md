@@ -18042,6 +18042,18 @@ clears each one.
   train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.430.
 
+- [ ] **TEST.601 Two tests still expect the British spelling neighbour after DOC.103: test_nav_course_diagram_draws_the_neighbours and test_the_page_says_a_link_is_a_neighbour_relation (bug)**
+  Core 2 (as the lane reported, about 10:20 AM EST on 2026-11-05) found
+  these two tests red on plain main: DOC.103 (train 10) put the site in
+  American spelling, so the page and diagram now say neighbor, and the
+  tests still expect neighbour. Do: change the two tests' expected text
+  to the American spelling and run scripts/american_spelling_sweep.py
+  check; look for any other test that expects a British word in a string
+  the pages now spell American. Done: both green and the sweep check
+  clean. Lock-free, test only. Version 8.1. Owner: Core 2. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: DOC.103.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
