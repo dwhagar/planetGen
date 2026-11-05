@@ -84,7 +84,7 @@ The image is 256 by 128 texels (`sky_band.EQUIRECT_WIDTH`, `EQUIRECT_HEIGHT`), e
 | `filling` | `built_to_pc < wanted_pc`: the tiers are not all stored yet, so the page shows its note and asks again later |
 | `sprites` | `in`, `sent`, `too_small`, `too_faint`, `not_seen`, `inside` |
 
-The cell levels of a sphere of more than 200,000 sectors are not listed (`CellLevels.truncated`, SKV3): such a shell counts as complete only where its luminosity floor is above the galaxy scatter's level. `filling` is only as exact as the two ledgers it compares: VIEW.25 (charting builds the tiers) records the levels the tier table asks for, and sharpens `built_to_pc` to the table's own floors.
+The cell levels of a sphere of more than 200,000 sectors are not listed (`CellLevels.truncated`, SKV3): such a sphere is complete down to the deepest sphere of the sky tiers' ledger (`sky_tier_draws`, VIEW.25) that holds all of it, else only where its luminosity floor is above the galaxy scatter's level. The cell levels of a smaller sphere are each cell's own `sector_stats` level taken lower by the spheres drawn over it (`db/sky_tier_ledger.py`), so `built_to_pc` follows what charting (`--sky-limit`) has drawn and `filling` goes false when the table's bands are all in.
 
 ## 5. The cache
 

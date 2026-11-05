@@ -6196,6 +6196,7 @@ def clear_bright_stars(conn):
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
+    conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
                  " bright_star_mass_limit_sol = NULL")
     forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
@@ -6284,6 +6285,7 @@ def clear_bright_star_pass(conn, part, limits):
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
+    conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
     conn.execute(f"UPDATE galaxy_shape SET {forget}")
     forget_scatter_epoch(conn, ("mass",) if part == "mass" else ("luminosity", "band"))
     conn.commit()

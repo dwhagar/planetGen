@@ -1461,6 +1461,22 @@ def backfill_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order, cell by cell in no particular order.
     """
+    for addresses, work in luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, min_luminosity_sol,
+                                                     max_luminosity_sol, seed, mass_range=mass_range, memo=memo):
+        yield from backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol,
+                                  seed, mass_range=mass_range, memo=work)
+
+
+def luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
+                              mass_range=None, memo=None):
+    """
+    The cells of a sphere that the luminosity band `[min_luminosity_sol, max_luminosity_sol)` has anything to draw in (`backfill_sphere`'s walk), a few hundred at a time with
+    the memo that holds their blocks, for a caller that draws them itself (VIEW.25 gives each cell its own ceiling and mass cap). `mass_range` is the widest the caller will
+    draw with: a cell drawn with a narrower one holds no more candidates than the walk found.
+
+    Yields:
+        tuple: `(addresses, memo)`; pass the memo to `backfill_cells`.
+    """
     bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
     age_laws = age_laws_of(shape)
     shared = {} if memo is None else memo
@@ -1468,10 +1484,7 @@ def backfill_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
     of_band = _band_shares(shared, shares_key, [(k, low, high) for k, low, high in bands],
                            lambda low, high, population: bright_band_fraction(low, high, population, mass_range, age_laws))
     paths = [(k, of_band[k], mass_range) for k, _, _ in bands]
-    for addresses, work in _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths,
-                                           {shares_key: shared[shares_key]}):
-        yield from backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol,
-                                  seed, mass_range=mass_range, memo=work)
+    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, {shares_key: shared[shares_key]})
 
 
 def backfill_mass_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
@@ -1487,6 +1500,14 @@ def backfill_mass_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_densi
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
+    for addresses, work in mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
+                                               max_luminosity_sol, seed, edges, memo=memo):
+        yield from backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
+                                       max_luminosity_sol, seed, edges, memo=work)
+
+
+def mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol, max_luminosity_sol, seed, edges, memo=None):
+    """`luminosity_sphere_batches` for a mass ring: the cells of the sphere that `backfill_mass_cells` has anything to draw in, with their memo."""
     bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
     age_laws = age_laws_of(shape)
     shared = {} if memo is None else memo
@@ -1495,10 +1516,7 @@ def backfill_mass_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_densi
                            lambda low, high, population: mass_band_fraction(low, high, max_luminosity_sol, population,
                                                                             age_laws))
     paths = [(f"m{low:g}", of_band[(low, high)], (max_luminosity_sol, high)) for low, high in bands]
-    for addresses, work in _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths,
-                                           {shares_key: shared[shares_key]}):
-        yield from backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
-                                       max_luminosity_sol, seed, edges, memo=work)
+    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, {shares_key: shared[shares_key]})
 
 
 def star_params(row):
