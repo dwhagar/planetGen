@@ -58,8 +58,8 @@ def redox_class(delta_iw):
     return "intermediate"
 
 
-def vapour_pressure_kpa(gas, temperature_k):
-    """The most of `gas` (a stored species, `SPECIES`) that can be vapour at `temperature_k`, kPa: its saturation pressure
+def vapor_pressure_kpa(gas, temperature_k):
+    """The most of `gas` (a stored species, `SPECIES`) that can be vapor at `temperature_k`, kPa: its saturation pressure
     (`saturation.saturation`), infinite above its critical temperature."""
     return saturation.pressure_pa(gases.stored(gas).formula, temperature_k) / 1000.0
 

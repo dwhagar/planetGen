@@ -249,7 +249,7 @@ def sheet_view(sheet):
 def bands_view(sheet):
     """
     The table of the seven bands of a planet or moon (GEN.1108) as the page draws it: `{"caption", "columns": [label], "rows": [{"label", "cells": [html]}]}`, the bands as columns
-    (north pole to south pole, or day centre to night centre for a world that turns once an orbit) and the figures of each as rows, a cell with nothing in it a dash.
+    (north pole to south pole, or day center to night center for a world that turns once an orbit) and the figures of each as rows, a cell with nothing in it a dash.
     `None` for a body with no bands.
     """
     table = sheet.get("bands")
@@ -597,14 +597,14 @@ def _container_contents_html(listing):
 
 
 def _container_facts(container, found, listing):
-    """The About text of a cluster or a superbubble (UX.184): what it is, where its centre lies, a cluster's mass, age
+    """The About text of a cluster or a superbubble (UX.184): what it is, where its center lies, a cluster's mass, age
     and metallicity, and what sits inside it, as HTML."""
     kind = found["kind"]
     lines = [f"<p>This is {_CONTAINER_WORDS[kind]}. Its sphere is {container['extent_pc']:,.0f} parsecs "
              "in radius.</p>"]
-    centre = found["positions"]["galaxy_pc"]
-    if centre:
-        lines.append("<p>Its center lies at (" + ", ".join(f"{value:,.0f}" for value in centre)
+    center = found["positions"]["galaxy_pc"]
+    if center:
+        lines.append("<p>Its center lies at (" + ", ".join(f"{value:,.0f}" for value in center)
                      + ") parsecs in the galaxy frame.</p>")
     component = container.get("component")
     if component:

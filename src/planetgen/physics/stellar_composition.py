@@ -17,7 +17,7 @@ The key, in the order the first that applies wins (stellar-composition.md sectio
   and the offsets; each member still takes its own phase (a giant sibling differs from a dwarf one) and its own remnant.
 * `bright_seed`: a bright star's own seed.
 * `uid`: the star's 80-bit identifier.
-* otherwise the quantities that already seed the [Fe/H] stream: mass, age and distance from the centre.
+* otherwise the quantities that already seed the [Fe/H] stream: mass, age and distance from the center.
 
 The kinds and what each returns:
 
@@ -131,7 +131,7 @@ class StarDraws:
 def abundance_key(uid=None, mass=None, distance_ly=None, bright_seed=None, group=None):
     """
     The key of a star's draws (the stream is `abundance:` plus this): `group` (a system's primary, or `cluster:{seed}`) if
-    given, else `bright:{seed}`, else the star's `uid`, else the star's birth mass and distance from the galactic centre (as their `repr`). The age is not in the key: a star's age rises
+    given, else `bright:{seed}`, else the star's `uid`, else the star's birth mass and distance from the galactic center (as their `repr`). The age is not in the key: a star's age rises
     once, after its planets are made (`Star.adjust_age_for_planets`), and the star's makeup and every planet's host ratios must read the
     same draws before and after (GEN.984).
 

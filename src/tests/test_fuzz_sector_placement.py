@@ -264,7 +264,7 @@ def test_explicit_non_finite_position_is_rejected(bad, method):
 @pytest.mark.parametrize("position", [(1e9, 0.0, 0.0), (5.000001, 0.0, 0.0), (-6.0, -6.0, -6.0)])
 def test_explicit_position_outside_the_sector_is_kept_as_given(position):
     """Containment is deliberately not enforced for an explicit position
-    (planetgen anchors the quasar at the galactic centre's sector-local
+    (planetgen anchors the quasar at the galactic center's sector-local
     offset, and older tests place neighbours past the cube), so a finite
     one outside the cube is stored exactly as given, never moved."""
     sector = SpaceSector("outside", edge_ly=10.0)

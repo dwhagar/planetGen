@@ -183,7 +183,7 @@ def _seed_galaxy(mysql_config, e_value=E_VALUE):
 def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE)
     summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
-    assert summary["total"] > 3          # (the disc infall of GEN.1242 forms fewer massive stars now than the old constant rate: 7 here, over 20 before)
+    assert summary["total"] > 3          # (the disk infall of GEN.1242 forms fewer massive stars now than the old constant rate: 7 here, over 20 before)
 
     conn = store.get_connection(mysql_config)
     try:
@@ -427,7 +427,7 @@ def test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run(mysql_con
     _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE)
     calls = []
     monkeypatch.setattr(sector_support, "backfill_bright_stars", lambda *args, **kwargs: calls.append(args))
-    # shell 30, not the dense shell 4: the same two calls take two minutes there and fifteen near the centre (TEST.417)
+    # shell 30, not the dense shell 4: the same two calls take two minutes there and fifteen near the center (TEST.417)
     assert make_sector(30, 0, 5, config=mysql_config, backfill=False, num_systems=1)["created"]
     assert calls == []
     assert make_sector(30, 0, 6, config=mysql_config, num_systems=1)["created"]

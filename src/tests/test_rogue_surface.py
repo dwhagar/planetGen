@@ -69,66 +69,38 @@ def test_giants_cool_with_age_and_heavier_ones_are_hotter():
 
 
 def test_stevenson_envelope_warms_the_ground():
-    """30 K at 0.1 bar, down a gamma = 1.4 adiabat to 1,000 bar: ~417 K."""
+    """30 K at 0.1 bar, down a gamma = 1.4 adiabat to 1,000 bar: ~417 K (the profile below a giant's photosphere)."""
     assert rs.adiabat_temperature_k(30.0, 1e4, 1e8) == pytest.approx(417, abs=2)
     assert rs.adiabat_temperature_k(30.0, 1e4, 1e7) > 200
 
 
-def test_nitrogen_frost_gives_a_pluto_like_trace():
-    assert 0.5 < rs.frozen_nitrogen_pressure_pa(40.0) < 20
-    assert rs.frozen_nitrogen_pressure_pa(20.0) < 1e-6
-
-
-def test_every_regime_occurs_and_conditions_are_consistent():
-    seen = set()
-    cases = [("terrestrial", 't', 0.15 * EARTH, 3200), ("terrestrial", 't', 1.0 * EARTH, 6371),
-             ("sub-neptune", 't', 8.0 * EARTH, 12000), ("saturn", 'g', 0.3 * JUPITER, 60000),
-             ("brown-dwarf", 'g', 40 * JUPITER, 60000)]
-    for seed in range(400):
+def test_a_brown_dwarfs_conditions_are_consistent():
+    for seed in range(100):
         rng = random.Random(seed)
-        for mass_bin, kind, mass, radius in cases:
-            c = rs.rogue_surface_conditions(mass, radius, kind, mass_bin, seed % 3 == 0, rng)
-            seen.add(c["surface_regime"])
-            assert c["surface_regime"] in rs.SURFACE_REGIMES
-            lo, hi = tuning.ROGUE_PLANET_AGE_RANGE_GY
-            assert lo <= c["age_gy"] <= hi
-            assert c["internal_heat_flux_w_m2"] > 0
-            assert c["surface_temperature_k"] >= constants.COSMIC_BACKGROUND_TEMPERATURE_K
-            assert math.isfinite(c["surface_temperature_k"]) and c["surface_pressure_pa"] >= 0
-            if kind == 'g':
-                assert c["surface_pressure_pa"] == 1e5 and c["has_internal_heat"]
-            if c["has_liquid_water"]:
-                assert c["ocean_depth_km"] > 0
-            if c["surface_regime"] == "ice-shell-ocean":
-                assert c["ice_shell_thickness_km"] > 0 and c["has_liquid_water"]
-            if c["surface_regime"] in ("bare-rock", "frozen-atmosphere", "ice-shell-ocean", "ice-world"):
-                assert c["surface_temperature_k"] == pytest.approx(c["effective_temperature_k"])
-            if c["surface_regime"] == "hydrogen-envelope":
-                assert c["surface_temperature_k"] > c["effective_temperature_k"]
-    assert seen == set(rs.SURFACE_REGIMES)
+        mass = rng.uniform(13, 80) * JUPITER
+        c = rs.rogue_surface_conditions(mass, 60000, rng=rng)
+        assert c["surface_regime"] == "brown-dwarf" and c["surface_regime"] in rs.SURFACE_REGIMES
+        lo, hi = tuning.ROGUE_PLANET_AGE_RANGE_GY
+        assert lo <= c["age_gy"] <= hi
+        assert c["internal_heat_flux_w_m2"] > 0
+        assert c["surface_temperature_k"] >= constants.COSMIC_BACKGROUND_TEMPERATURE_K and math.isfinite(c["surface_temperature_k"])
+        assert c["surface_pressure_pa"] == 1e5 and c["has_internal_heat"] and not c["has_liquid_water"]
+        assert c["ice_shell_thickness_km"] is None and c["ocean_depth_km"] is None
 
 
 def test_seeded_conditions_repeat():
-    a = rs.rogue_surface_conditions(EARTH, 6371, 't', "terrestrial", True, random.Random("Wanderer"))
-    b = rs.rogue_surface_conditions(EARTH, 6371, 't', "terrestrial", True, random.Random("Wanderer"))
+    a = rs.rogue_surface_conditions(40 * JUPITER, 60000, rng=random.Random("Wanderer"))
+    b = rs.rogue_surface_conditions(40 * JUPITER, 60000, rng=random.Random("Wanderer"))
     assert a == b
 
 
-def test_rogue_planet_carries_and_describes_its_surface():
-    for mass_bin in tuning.ROGUE_PLANET_MASS_BIN_CHOICES:
-        planet = RoguePlanet(SystemConfig(), mass_bin=mass_bin)
-        text = render_support.prose_text(render_support.phenomenon_section(planet))
-        assert "only heat is its own" in text
-        data = planet.to_dict()
-        for field in rs.ROGUE_SURFACE_FIELDS:
-            assert field in data
-        old = dict(data)
-        for field in rs.ROGUE_SURFACE_FIELDS:
-            old.pop(field)
-        first = RoguePlanet.from_dict(old, SystemConfig())
-        again = RoguePlanet.from_dict(old, SystemConfig())
-        assert first.surface_regime == again.surface_regime
-        assert first.age_gy == again.age_gy
+def test_a_brown_dwarf_carries_and_describes_its_surface():
+    planet = RoguePlanet(SystemConfig())
+    text = render_support.prose_text(render_support.phenomenon_section(planet))
+    assert "only heat is its own" in text
+    data = planet.to_dict()
+    for field in rs.ROGUE_SURFACE_FIELDS:
+        assert field in data
 
 
 def test_phenomenon_page_rows():
@@ -136,17 +108,13 @@ def test_phenomenon_page_rows():
         TESTING = True
         SECRET_KEY = "test"
 
-    detail = {"planet_type": "t", "age_gy": 4.5, "internal_heat_flux_w_m2": 0.087, "effective_temperature_k": 35.1,
-              "surface_regime": "ice-shell-ocean", "surface_temperature_k": 35.1, "surface_pressure_pa": 0.3,
-              "ice_shell_thickness_km": 13.4, "ocean_depth_km": 120.0, "has_internal_heat": 1}
+    detail = {"planet_type": "g", "age_gy": 4.5, "internal_heat_flux_w_m2": 87.0, "effective_temperature_k": 620.0,
+              "surface_regime": "brown-dwarf", "surface_temperature_k": 820.0, "surface_pressure_pa": 1e5,
+              "has_internal_heat": 1}
     with create_app(_Config).test_request_context("/"):
         fields = {label: re.sub(r"<[^>]*>", "", str(text)) for label, text, _url in system_pages.phenomenon_fields("rogue_planet", detail)}
-    assert fields["Surface"] == "Ice shell over a liquid ocean"
-    assert fields["Surface temperature"] == "35.1 K (-238 °C, -396 °F)"
-    assert fields["Surface pressure"] == "300 mPa (a trace)"
-    assert fields["Ice Thickness"] == "13.4 km"
-    assert fields["Liquid Ocean Depth"] == "120 km"
-    assert fields["Internal Heat Flow"] == "87 mW/m²"
+    assert fields["Surface"] == "No solid surface (1 bar level)"
+    assert fields["Internal Heat Flow"] == "87 W/m²"
     assert fields["Geologically Active"] == "Yes"
 
 

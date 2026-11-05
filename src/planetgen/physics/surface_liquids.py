@@ -156,7 +156,7 @@ def boiling_k(liquid_id, pressure_pa):
         raise ValueError("a pressure must be positive")
     if row.saturation is not None:
         triple = saturation.triple_point_k(row.saturation)
-        if saturation.pressure_pa(row.saturation, triple + 1e-6) > pressure_pa:      # under the triple pressure the solid goes straight to vapour
+        if saturation.pressure_pa(row.saturation, triple + 1e-6) > pressure_pa:      # under the triple pressure the solid goes straight to vapor
             return None
         boil = saturation.condensation_temperature_k(row.saturation, pressure_pa)
         if boil is None:

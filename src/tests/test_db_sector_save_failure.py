@@ -133,7 +133,7 @@ def _assert_nothing_persisted(config):
 def _assert_saved_once(config, sector_id):
     systems = _query(config, "SELECT sector_id, name FROM star_systems ORDER BY name")
     assert [(r["sector_id"], r["name"]) for r in systems] == [(sector_id, n) for n in _SAVED_SYSTEMS]
-    rogues = _query(config, "SELECT sector_id, name FROM rogue_planets ORDER BY name")
+    rogues = _query(config, "SELECT sector_id, name FROM rogue_planets WHERE donor_uid IS NULL ORDER BY name")
     assert [(r["sector_id"], r["name"]) for r in rogues] == [(sector_id, n) for n in _SAVED_ROGUES]
     registry = {r["base_name"]: r["occurrence_count"] for r in _query(
         config, "SELECT base_name, occurrence_count FROM system_name_registry")}
@@ -152,7 +152,7 @@ def _fail_on_second_rogue(monkeypatch, config, lock_name):
         conn.flush()
         # The systems (and the first phenomenon) really are written.
         assert conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"] == 3
-        assert conn.execute("SELECT COUNT(*) AS n FROM rogue_planets").fetchone()["n"] == 1
+        assert conn.execute("SELECT COUNT(*) AS n FROM rogue_planets WHERE donor_uid IS NULL").fetchone()["n"] == 1
         raise pymysql.err.IntegrityError(1452, "Cannot add or update a child row (injected)")
 
     monkeypatch.setitem(store._PHENOMENON_INSERTERS, "rogue-planet", inserter)
@@ -161,7 +161,7 @@ def _fail_on_second_rogue(monkeypatch, config, lock_name):
 def _fail_linking_neighbours(monkeypatch, config, lock_name):
     def link(conn, sector_id):
         assert conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"] == 3
-        assert conn.execute("SELECT COUNT(*) AS n FROM rogue_planets").fetchone()["n"] == 2
+        assert conn.execute("SELECT COUNT(*) AS n FROM rogue_planets WHERE donor_uid IS NULL").fetchone()["n"] == 2
         assert not _lock_is_free(config, lock_name)
         raise pymysql.err.IntegrityError(1452, "Cannot add or update a child row (injected)")
 
@@ -184,7 +184,7 @@ def test_a_save_failing_after_the_systems_leaves_nothing_behind(mysql_config, mo
     assert _lock_is_free(mysql_config, lock_name)
 
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
-    assert _query(mysql_config, "SELECT name FROM sectors")[0]["name"] == "Halfway Sector"
+    assert _query(mysql_config, "SELECT name FROM sectors ORDER BY id LIMIT 1")[0]["name"] == "Halfway Sector"
     _assert_saved_once(mysql_config, sector_id)
     assert _query(mysql_config, "SELECT COUNT(*) AS n FROM nearest_systems")[0]["n"] > 0
     assert _lock_is_free(mysql_config, lock_name)
@@ -256,7 +256,7 @@ def test_a_lock_wait_timeout_on_the_neighbour_lock_retries_until_it_is_free(mysq
     systems = _query(mysql_config, "SELECT name FROM star_systems WHERE sector_id = ? ORDER BY name", (sector_id,))
     assert [r["name"] for r in systems] == _SAVED_SYSTEMS
     assert _query(mysql_config, "SELECT COUNT(*) AS n FROM star_systems")[0]["n"] == 5
-    assert _query(mysql_config, "SELECT COUNT(*) AS n FROM rogue_planets")[0]["n"] == 2
+    assert _query(mysql_config, "SELECT COUNT(*) AS n FROM rogue_planets WHERE donor_uid IS NULL")[0]["n"] == 2
     assert _orphans(mysql_config) == []
     # The stored neighbour lists are exactly what a full recompute finds,
     # and the older sector's lists picked up the new sector's systems.

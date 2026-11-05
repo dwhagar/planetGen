@@ -26,9 +26,9 @@ def _dwarf(mass=1.0):
 def test_the_orbit_of_the_past_is_smaller_by_the_mass_the_pair_lost():
     now = pair_history.pair_history(3.0, 0.0, _white_dwarf(), _dwarf())
     assert now.past_axis_au == pytest.approx(3.0 * 1.54 / 2.0)
-    assert now.past_pericentre_au == pytest.approx(now.past_axis_au)
+    assert now.past_pericenter_au == pytest.approx(now.past_axis_au)
     eccentric = pair_history.pair_history(3.0, 0.4, _white_dwarf(), _dwarf())
-    assert eccentric.past_pericentre_au == pytest.approx(0.6 * now.past_axis_au)
+    assert eccentric.past_pericenter_au == pytest.approx(0.6 * now.past_axis_au)
 
 
 def test_a_white_dwarf_close_to_its_companion_was_a_giant_that_filled_its_lobe():

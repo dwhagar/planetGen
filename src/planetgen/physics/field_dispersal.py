@@ -32,7 +32,7 @@ from planetgen.util import detmath, draw
 RETIREMENT_RADIUS_M = constants.LIGHTYEAR_M
 """float: A field whose rms radius passes this is retired: one light year (Boss, 4:54 PM EDT 2026-10-30; the top of the old radius range, `tuning.ASTEROID_FIELD_RADIUS_RANGE_LY`). IF15, tier T9, L1."""
 OORT_A_KMS_KPC = 15.0
-"""float: Oort's constant `A`, km/s per kpc, the shear of the disc near the Sun (the design uses 15; 15.3 +/- 0.4 in recent fits, recalled). IF16, tier T2, L0."""
+"""float: Oort's constant `A`, km/s per kpc, the shear of the disk near the Sun (the design uses 15; 15.3 +/- 0.4 in recent fits, recalled). IF16, tier T2, L0."""
 SHEAR_VALID_YEARS = 2.6e7
 """float: The age to which the shearing-sheet drift without epicycles holds, `1 / kappa` with the epicycle frequency of the solar neighbourhood (37 km/s per kpc), years. IF16."""
 DEFAULT_DENSITY_KG_M3 = 3000.0
@@ -99,7 +99,7 @@ def age_from_unit_yr(unit, rms_speed_ms, initial_radius_m=0.0, retirement_radius
 
 
 def column_density_kg_m2(mass_kg, radius_m):
-    """The mass of the field over the disc of its rms radius, `M / (pi R^2)`, kg/m2; falls as `1 / t^2` with the mass fixed (no grinding, no loss)."""
+    """The mass of the field over the disk of its rms radius, `M / (pi R^2)`, kg/m2; falls as `1 / t^2` with the mass fixed (no grinding, no loss)."""
     _positive(mass_kg=mass_kg, radius_m=radius_m)
     return mass_kg / (math.pi * radius_m ** 2)
 
@@ -124,7 +124,7 @@ def freeze_out_time_s(total_mass_kg, diameter_m, speed_ms, density_kg_m3=DEFAULT
 # --- shear and the belt --------------------------------------------------------------------------------------------------
 
 def shear_displacement_m(offset_m, age_yr):
-    """The drift along the orbit of a body held at the offset `offset_m` from the field's centre for `age_yr`, `2 A x t`, m (0.3 pc at 1 pc after 10 Myr)."""
+    """The drift along the orbit of a body held at the offset `offset_m` from the field's center for `age_yr`, `2 A x t`, m (0.3 pc at 1 pc after 10 Myr)."""
     return 2.0 * OORT_A_KMS_KPC * _KMS_PER_KPC_TO_PER_S * offset_m * _years_to_s(age_yr)
 
 
@@ -165,7 +165,7 @@ def member_azimuth_rad(seed, rank):
 
 def member_position_m(seed, rank, age_yr, rms_speed_ms, shape="ball", belt_radius_m=0.0):
     """
-    The position of body `rank` of the field `seed` at `age_yr`, m, from the field's centre: `x0 + v t` plus the shear drift along the orbit, `-2 A (x0 t + v_x t^2 / 2)` (the shift of a body at the offset `x0 + v_x t`,
+    The position of body `rank` of the field `seed` at `age_yr`, m, from the field's center: `x0 + v t` plus the shear drift along the orbit, `-2 A (x0 t + v_x t^2 / 2)` (the shift of a body at the offset `x0 + v_x t`,
     integrated). `x0` is the origin for a `ball` and the point of the ring of radius `belt_radius_m` at the body's azimuth for an `annulus`. A pure function of its arguments: not of the order bodies
     were made in, and linear in the age apart from the shear.
 

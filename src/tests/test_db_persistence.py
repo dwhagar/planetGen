@@ -1198,12 +1198,12 @@ def test_a_nebula_holds_only_the_points_inside_its_shape():
 
 
 def _point_inside(shape):
-    """A point inside `shape`: a metaball centre when one is (the usual
+    """A point inside `shape`: a metaball center when one is (the usual
     case), else the nearest to the middle of a coarse grid. The shape's warp
-    can carry every centre out of it (about 1 draw in 40), which made this
+    can carry every center out of it (about 1 draw in 40), which made this
     helper's first version raise StopIteration at random."""
-    centres = ([v / shape.scale for v in c] for c in shape.centres)
-    found = next((point for point in centres if shape.contains(point)), None)
+    centers = ([v / shape.scale for v in c] for c in shape.centers)
+    found = next((point for point in centers if shape.contains(point)), None)
     if found is not None:
         return found
     steps = [i / 4.0 for i in range(-8, 9)]
@@ -1215,8 +1215,8 @@ def _placed_nebula(conn, sector_id, around_pc, radius_ly, nebula_class="D", hold
     """A nebula placed so `around_pc` lies inside its shape (GEN.75): a
     nebula holds only the points within its shape, not its whole sphere.
     With `holds_ly`, the shape is drawn again until the 27 points of a cube of side `2 * holds_ly` round `around_pc` are
-    inside it too, as a smaller nebula placed round `around_pc` needs its centre to be (TEST.216: a shape whose
-    only interior point near the middle was close to its surface left that centre outside, about 1 draw in 40)."""
+    inside it too, as a smaller nebula placed round `around_pc` needs its center to be (TEST.216: a shape whose
+    only interior point near the middle was close to its surface left that center outside, about 1 draw in 40)."""
     from planetgen.generation.phenomena.nebula import Nebula
     from planetgen.physics.units import ly_to_pc
 
@@ -1756,7 +1756,7 @@ def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_con
 
 def test_halo_and_satellite_stars_are_listed_last_whatever_their_brightness(mysql_config):
     """MAP.250: a list that cannot hold every star drops the satellite galaxies' first, then the halo's, and only then
-    a star of the disc or the bulge -- in a node that reads its own addresses, one that walks the luminosity index and
+    a star of the disk or the bulge -- in a node that reads its own addresses, one that walks the luminosity index and
     the galaxy-wide sample, and the lists stay nested."""
     from planetgen.db import query as queryDb
 
@@ -1768,7 +1768,7 @@ def test_halo_and_satellite_stars_are_listed_last_whatever_their_brightness(mysq
             return _bright_row_at(z_pc, luminosity_sol, slot, population=population)
 
         with conn:
-            # Brighter than every star of the disc and the bulge: only the tier keeps them last.
+            # Brighter than every star of the disk and the bulge: only the tier keeps them last.
             rows = [row(4.0 * n, 2.0e6 + 1000.0 * n, "halo", 6) for n in range(15)]
             rows += [row(4.0 * n, 3.0e6 + 1000.0 * n, "satellite", 7) for n in range(15)]
             rows += [row(4.0 * n, 3.5e6 + 1000.0 * n, "satellite_young", 8) for n in range(5)]
@@ -1785,7 +1785,7 @@ def test_halo_and_satellite_stars_are_listed_last_whatever_their_brightness(mysq
             assert {s["id"] for s in listed[:first_low]} == {s["id"] for s in listed if s["population"] not in lows}
             if first_low < len(listed):
                 assert len(others) <= limit and set(others) <= {s["id"] for s in listed}, \
-                    "a disc or bulge star was dropped while a halo or satellite star was listed"
+                    "a disk or bulge star was dropped while a halo or satellite star was listed"
             else:
                 assert len(listed) == min(limit, len(others))
 

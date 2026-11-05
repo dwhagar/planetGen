@@ -126,7 +126,7 @@ def orbital_angular_momentum(planet_mass_kg, moon):
 
 
 def roche_limit_m(planet_radius_m, planet_density_kg_m3, moon_density_kg_m3):
-    """The fluid Roche limit for a moon of `moon_density_kg_m3`, m from the planet's centre (`rings.roche_limit_km`)."""
+    """The fluid Roche limit for a moon of `moon_density_kg_m3`, m from the planet's center (`rings.roche_limit_km`)."""
     return 1000.0 * rings.roche_limit_km(planet_radius_m / 1000.0, planet_density_kg_m3, moon_density_kg_m3)
 
 

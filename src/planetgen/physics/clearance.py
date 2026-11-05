@@ -18,9 +18,9 @@ the generator itself promises is broken; an **advisory** is a physical limit the
 1. **Stars (`roche`, hard)**: two single members of a node must clear each other at the pair's closest approach: neither
    fills more than `MAX_FILL_FACTOR` of its Roche lobe there [R1222], except a pair the record marks as a merger
    product or a post-common-envelope pair.
-2. **Subtrees (`overlap`, hard)**: for a node with a sub-node as a child, the pericentre must exceed the sum of its
-   children's extents (a star's radius; a sub-node's greatest distance from its own barycentre to the surface of any star
-   below it, at the node's apocentre): the bounding spheres of the two sides do not meet.
+2. **Subtrees (`overlap`, hard)**: for a node with a sub-node as a child, the pericenter must exceed the sum of its
+   children's extents (a star's radius; a sub-node's greatest distance from its own barycenter to the surface of any star
+   below it, at the node's apocenter): the bounding spheres of the two sides do not meet.
 3. **Stability (`stability`, hard)**: for every node with a sub-node as a child, the triple of the sub-node's two sides and the
    other child must pass at least one of [R1221, R2868] or Equation 4 of
    [R4574] (a triple the generator drew by any of them passes its own; one that fails all three is unstable
@@ -195,7 +195,7 @@ class _Tree:
         return out
 
     def extent_au(self, kind_row):
-        """The greatest distance from a side's own barycentre to the surface of any star below it, at the apocentres, AU."""
+        """The greatest distance from a side's own barycenter to the surface of any star below it, at the apocenters, AU."""
         kind, row = kind_row
         if kind == "star":
             return row["radius_km"] / AU_KM
@@ -204,8 +204,8 @@ class _Tree:
             return 0.0
         mass_low, mass_high = self.mass_solar(low), self.mass_solar(high)
         total = mass_low + mass_high
-        apocentre = row["separation_km"] / AU_KM * (1.0 + row["eccentricity"])
-        return max(apocentre * mass_high / total + self.extent_au(low), apocentre * mass_low / total + self.extent_au(high))
+        apocenter = row["separation_km"] / AU_KM * (1.0 + row["eccentricity"])
+        return max(apocenter * mass_high / total + self.extent_au(low), apocenter * mass_low / total + self.extent_au(high))
 
     def ancestors(self, star_id):
         """The nodes above a star, nearest first, each with the mass on the star's side and on the other side."""
@@ -246,11 +246,11 @@ def _audit_nodes(tree):
                 radius = mine[1]["radius_km"] / AU_KM
                 if radius > MAX_FILL_FACTOR * lobe * (1.0 + LIMIT_TOLERANCE):
                     out.append(Violation("roche", f"{where}, star {mine[1]['id']}", radius / lobe, MAX_FILL_FACTOR, "of its lobe",
-                                         detail=f"radius {radius:.5g} AU, lobe {lobe:.5g} AU at pericentre {peri:.5g} AU"))
+                                         detail=f"radius {radius:.5g} AU, lobe {lobe:.5g} AU at pericenter {peri:.5g} AU"))
             continue
         extent = tree.extent_au(low) + tree.extent_au(high)
         if peri < extent * (1.0 - LIMIT_TOLERANCE):
-            out.append(Violation("overlap", where, peri, extent, "AU", detail="the pericentre is inside the sum of the two sides' extents"))
+            out.append(Violation("overlap", where, peri, extent, "AU", detail="the pericenter is inside the sum of the two sides' extents"))
     return out
 
 
@@ -293,7 +293,7 @@ def _density(row):
 
 
 def _host_of(row, tree):
-    """What a planet goes round: `("star", star row)`, `("pair", node row)` (the pair's barycentre), or None."""
+    """What a planet goes round: `("star", star row)`, `("pair", node row)` (the pair's barycenter), or None."""
     star_id = row.get("star_id")
     if star_id is not None and star_id in tree.stars:
         return ("star", tree.stars[star_id])

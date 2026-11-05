@@ -152,12 +152,12 @@ def test_an_observation_is_two_draws_repeats_on_a_seed_and_hides_the_median_of_a
             assert r.negative_fraction >= 0.5
 
 
-def test_an_oxidised_body_is_reported_with_both_bounds_and_a_reduced_one_often_is_not():
-    oxidised = wd.class_probabilities(-0.3)
+def test_an_oxidized_body_is_reported_with_both_bounds_and_a_reduced_one_often_is_not():
+    oxidized = wd.class_probabilities(-0.3)
     reduced = wd.class_probabilities(-3.0)
-    assert sum(oxidised.values()) == pytest.approx(1.0) and sum(reduced.values()) == pytest.approx(1.0)
-    assert oxidised["both"] > 0.8 and reduced["limit"] > 0.3
-    assert reduced["limit"] > oxidised["limit"] and reduced["both"] < oxidised["both"]
+    assert sum(oxidized.values()) == pytest.approx(1.0) and sum(reduced.values()) == pytest.approx(1.0)
+    assert oxidized["both"] > 0.8 and reduced["limit"] > 0.3
+    assert reduced["limit"] > oxidized["limit"] and reduced["both"] < oxidized["both"]
     ladder = [wd.class_probabilities(d)["limit"] for d in (-0.5, -1.0, -1.5, -2.0, -3.0)]
     assert ladder == sorted(ladder)
 
@@ -190,7 +190,7 @@ def test_the_expected_sample_is_pure_and_its_fractions_sum_to_one():
 
 
 def test_a_mock_population_recovers_the_published_recovery_classes_and_mean_within_their_intervals():
-    """The Done test: the model applied to bodies centred where the sample is gives the classes and the mean the papers report."""
+    """The Done test: the model applied to bodies centered where the sample is gives the classes and the mean the papers report."""
     expected = wd.expected_sample(-1.25, 0.2)
     counts = wd.SAMPLE.counts
     n = len(wd.SAMPLE.stars)
@@ -311,12 +311,12 @@ def test_the_spread_is_tuned_with_the_error_of_the_stars_with_both_bounds_and_th
 # --- the power of the redox targets (GEN.665) --------------------------------------------------------------------------------
 
 
-def test_the_redox_targets_refuse_a_centre_wrong_by_0_3_dex_and_a_spread_wrong_by_a_factor_of_two_but_not_a_zero_width():
+def test_the_redox_targets_refuse_a_center_wrong_by_0_3_dex_and_a_spread_wrong_by_a_factor_of_two_but_not_a_zero_width():
     bounded = wd.fit_error_model(flagged=False)
     mean = th.TARGETS.get("a4-mean")
     assert _compare("a4-mean", 0.22, bounded).passed
     for shift in (-0.3, 0.3):
-        assert abs((mean.value + shift) - mean.value) > th.SIGMAS * mean.sigma, "a centre 0.3 dex off is more than 2 sigma of the 22 values"
+        assert abs((mean.value + shift) - mean.value) > th.SIGMAS * mean.sigma, "a center 0.3 dex off is more than 2 sigma of the 22 values"
     sd = th.TARGETS.get("a4-sd")
     for wrong in (sd.value * 2, sd.value / 2):
         assert abs(wrong - sd.value) > th.SIGMAS * sd.sigma

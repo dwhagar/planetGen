@@ -83,9 +83,9 @@ def test_the_reduced_table_has_the_bands_the_temperatures_and_the_line():
     assert k.shape == (129, 3, len(support.PRESSURES_BAR), 10)
     assert list(temperature) == [100.0, 300.0, 1000.0]          # 2500 K is above T_MAX_K
     edges = ir_ktables.BAND_EDGES_CM1
-    centre = (edges[1:] + edges[:-1]) / 2.0
-    line = int(np.argmin(np.abs(centre - support.LINE_CENTRE_CM1["CO2"])))
-    far = int(np.argmin(np.abs(centre - 3000.0)))
+    center = (edges[1:] + edges[:-1]) / 2.0
+    line = int(np.argmin(np.abs(center - support.LINE_CENTER_CM1["CO2"])))
+    far = int(np.argmin(np.abs(center - 3000.0)))
     assert k[line, 1, -1, -1] > 1e4 * k[far, 1, -1, -1]
     assert np.all(k[..., 1:] >= k[..., :-1] * (1.0 - 1e-6))          # g sorted by strength
     assert k[line, 1, -1, -1] > k[line, 1, 0, -1]                    # the fixture's pressure law

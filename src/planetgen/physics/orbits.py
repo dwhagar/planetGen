@@ -167,7 +167,7 @@ def classify_encounter(closest_m, radius_sum_m, roche_m, hill_m):
     given a slingshot from inside each other.
 
     Args:
-        closest_m (float): The closest approach, centre to centre, metres.
+        closest_m (float): The closest approach, center to center, metres.
         radius_sum_m (float): The two bodies' radii added.
         roche_m (float): The smaller body's Roche limit round the larger
             (`roche_limit_m`), or 0 when it doesn't apply (two stars).

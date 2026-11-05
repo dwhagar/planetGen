@@ -157,7 +157,7 @@
       "value": 0.27
     },
     {
-      "falsifier": "a mean of the drawn log10 Th/Mg more than 2 sigma from 0.061 over 2000 seeds; the value is on the solar-twin scale of row o1, the Hypatia thin-disc statistic (-0.044) being 0.12 dex under it (GEN.664)",
+      "falsifier": "a mean of the drawn log10 Th/Mg more than 2 sigma from 0.061 over 2000 seeds; the value is on the solar-twin scale of row o1, the Hypatia thin-disk statistic (-0.044) being 0.12 dex under it (GEN.664)",
       "id": "o2-mean",
       "kind": "mean",
       "label": "COMPUTED",
@@ -165,8 +165,8 @@
       "role": "target",
       "row": "atmosphere-o:o2",
       "sigma": 0.037,
-      "source": "Hypatia Catalog ([R1943]; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: mean -0.063, sd 0.193; thin disc -0.044 (N=215); the thick-thin offset inside the catalogue is -0.019 (sigma 0.036 = sqrt(0.193^2/32 + 0.153^2/215)) and is added to the solar-twin thin-disc centre of row o1, +0.08 ([R0479], 53 twins, sigma of the mean 0.008): 0.061 (GEN.664)",
-      "statistic": "mean of log10 of the thorium-to-magnesium ratio over its solar value of thick-disc stars",
+      "source": "Hypatia Catalog ([R1943]; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disk stars with both elements: mean -0.063, sd 0.193; thin disk -0.044 (N=215); the thick-thin offset inside the catalogue is -0.019 (sigma 0.036 = sqrt(0.193^2/32 + 0.153^2/215)) and is added to the solar-twin thin-disk center of row o1, +0.08 ([R0479], 53 twins, sigma of the mean 0.008): 0.061 (GEN.664)",
+      "statistic": "mean of log10 of the thorium-to-magnesium ratio over its solar value of thick-disk stars",
       "value": 0.061
     },
     {
@@ -178,8 +178,8 @@
       "role": "target",
       "row": "atmosphere-o:o2",
       "sigma": 0.025,
-      "source": "Hypatia Catalog ([R1943]; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: sd 0.193 (thin disc 0.153, N=215; intrinsic 0.056 in 53 solar twins, [R0479]); sigma = 0.193 / sqrt(2 x 31)",
-      "statistic": "sample standard deviation of log10 of the thorium-to-magnesium ratio over its solar value of thick-disc stars",
+      "source": "Hypatia Catalog ([R1943]; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disk stars with both elements: sd 0.193 (thin disk 0.153, N=215; intrinsic 0.056 in 53 solar twins, [R0479]); sigma = 0.193 / sqrt(2 x 31)",
+      "statistic": "sample standard deviation of log10 of the thorium-to-magnesium ratio over its solar value of thick-disk stars",
       "value": 0.193
     },
     {

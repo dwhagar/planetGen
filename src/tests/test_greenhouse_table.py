@@ -147,15 +147,15 @@ def test_bad_inputs_are_refused():
     ("Titan under its haze", TITAN, 1.35, 2.61, 0.6, 93.3, 8.0),
 ))
 def test_the_table_gives_the_temperatures_the_model_is_checked_to(name, air, gravity, flux, haze, model_k, tolerance_k):
-    """The model's own results (`docs/design/composition/line-opacity.md`, Checks): Earth with 1 kPa of vapour and the cloud share 284.0 K (275.6 K clear sky; measured 288 K), Mars 210 to 215 K,
+    """The model's own results (`docs/design/composition/line-opacity.md`, Checks): Earth with 1 kPa of vapor and the cloud share 284.0 K (275.6 K clear sky; measured 288 K), Mars 210 to 215 K,
     Venus 539.5 K in a clear sky with the sourced far wings of carbon dioxide (GEN.1019; 757 K once the sulfuric acid cloud of GEN.1020 is in the column, measured 735 K), Titan 106.8 K clear and 93.3 K under a haze that takes 60 percent of the sunlight at 30 mbar (measured 94 K)."""
     warming = gt.warming(air, gravity, flux, haze, 3.0e3 if haze else None)
     assert abs(warming.surface_temperature_k - model_k) < tolerance_k
 
 
 def test_doubling_the_carbon_dioxide_warms_by_about_what_the_model_gives():
-    """The model gives +0.86 K with the vapour free and the cloud share (+1.72 K before the cloud share of IR12, +0.99 K with it in the column); the measured clear-sky
-    answer is about 1.2 K. The table has the vapour free, as the air the fixed point makes does, and is held to the model's own answer in the live comparison below
+    """The model gives +0.86 K with the vapor free and the cloud share (+1.72 K before the cloud share of IR12, +0.99 K with it in the column); the measured clear-sky
+    answer is about 1.2 K. The table has the vapor free, as the air the fixed point makes does, and is held to the model's own answer in the live comparison below
     (`test_the_table_doubles_the_carbon_dioxide_as_the_model_does`)."""
     base = gt.warming(_co2(280.0), 9.81, EARTH_FLUX).surface_temperature_k
     doubled = gt.warming(_co2(560.0), 9.81, EARTH_FLUX).surface_temperature_k

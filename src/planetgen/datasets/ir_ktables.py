@@ -1,7 +1,7 @@
 # planetgen/datasets/ir_ktables.py
 
 """
-Correlated-k absorption tables of the infrared-active gases (GEN.715, AD10): the opacity of water vapour, carbon dioxide and methane
+Correlated-k absorption tables of the infrared-active gases (GEN.715, AD10): the opacity of water vapor, carbon dioxide and methane
 from line lists, at every pressure and temperature the greenhouse model needs.
 
 Source: the ExoMolOP opacity tables of the ExoMol project [R0795], the
@@ -11,7 +11,7 @@ ARCiS-format correlated-k tables at resolving power 1000 from 0.3 to 50 micron, 
 - H2O from the POKAZATEL line list [R3571],
 - CO2 from the UCL-4000 line list [R4854],
 - CH4 from the YT34to10 line list [R4855],
-- NH3 from CoYuTe [R0847], SO2 from ExoAmes [R5099], H2S from AYT2 [R5098], CO from Li2015 [R5096] and HCN from Harris [R5097]
+- NH3 from CoYuTe [R0847], SO2 from ExoAmes [R5126], H2S from AYT2 [R5125], CO from Li2015 [R5123] and HCN from Harris [R5124]
   (GEN.852 part 2; the five files share the axes of the first three).
 
 Each file is 340 to 470 MB. The eight are transient pieces: setup downloads them once, checks their sha256, reduces them to the
@@ -23,11 +23,11 @@ The reduction is the band mean of the k-distribution: all the (wavenumber, g) va
 opacity is cut at the new g edges, and each interval's mean is the new k (this keeps the band's total absorption).
 
 Limits (stated, and in the stand-in registry of docs/design/research/gap-filling-plan.md section 6): the tables cut each line at 25 cm-1 from its
-centre, so the far wings of a dense carbon dioxide air (Venus) are missing (`co2_far_wing` adds them in `line_opacity`); the
+center, so the far wings of a dense carbon dioxide air (Venus) are missing (`co2_far_wing` adds them in `line_opacity`); the
 broadening is the tables' own (air-like for H2O and CO2, so an air of hydrogen and helium is under-broadened); the temperature grid
 holds 100 K as its lowest point and 100 bar as its highest pressure, beyond which a lookup holds the edge value.
 
-The gas table's band centres and `line_opacity`'s plateaus are the labelled fallback for a run that disregards missing data
+The gas table's band centers and `line_opacity`'s plateaus are the labelled fallback for a run that disregards missing data
 (`fetch.Located.use_stand_in`).
 """
 

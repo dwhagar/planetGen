@@ -60,9 +60,9 @@ def test_a_cool_star_is_redder_than_a_hot_one_and_a_hot_one_has_more_ultraviolet
     assert hot["uv_c"] > sun["uv_c"] > cool["uv_c"]
 
 
-def test_a_hot_star_puts_over_half_of_its_light_in_the_ionising_band_and_uv_c():
+def test_a_hot_star_puts_over_half_of_its_light_in_the_ionizing_band_and_uv_c():
     shares = stellar_library.photosphere_shares(30000.0, 4.0)
-    assert shares["ionising"] + shares["uv_c"] > 0.5
+    assert shares["ionizing"] + shares["uv_c"] > 0.5
 
 
 def test_the_library_covers_the_temperatures_the_generator_makes_stars_at():

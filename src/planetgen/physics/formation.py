@@ -28,7 +28,7 @@ def snow_line_au(luminosity_w):
     blackbody to the temperature water ice condenses at, 182 K, [R2726: Table 10]: `condensate_shares.ICE_CONDENSATION_K`), in AU -- real protoplanetary disk temperature falls off with
     stellar flux, i.e. with distance^-2, the same physical reasoning
     `calculate_habitable_zone` already uses for its own sqrt(luminosity)
-    boundaries. This is the centre of the scatter a star draws its own
+    boundaries. This is the center of the scatter a star draws its own
     line from (`draw_snow_line_au`), not the star's line.
 
     Args:
@@ -57,14 +57,14 @@ def draw_snow_line_au(luminosity_w, stream=None):
     Returns:
         float: The star's snow line, in AU.
     """
-    centre = snow_line_au(luminosity_w)
+    center = snow_line_au(luminosity_w)
     scatter = tuning.SNOW_LINE_SCATTER_DEX
     limit = tuning.SNOW_LINE_SCATTER_MAX_SIGMA
     source = stream or draw
     while True:
         z = source.gauss(0.0, 1.0)
         if abs(z) <= limit:
-            return centre * 10.0 ** (scatter * z)
+            return center * 10.0 ** (scatter * z)
         draw.redrawn("snow_line.scatter")
 
 
@@ -81,7 +81,7 @@ def disk_surface_density_scale(star_mass_kg, metal_ratio=1.0):
     Args:
         star_mass_kg (float): The star's mass, in kilograms.
         metal_ratio (float): The star's metal mass fraction over the Sun-like reference's, Z / Z0 (GEN.464,
-            `bulk_draw.metal_ratio_to_solar`): the disk's solids scale with it. It is `10^[Fe/H]` for a thin-disc star
+            `bulk_draw.metal_ratio_to_solar`): the disk's solids scale with it. It is `10^[Fe/H]` for a thin-disk star
             of solar abundance ratios and 1.7 to 3 times that for a metal-poor high-alpha star, whose oxygen and
             magnesium are enhanced. 1 (solar) leaves the scale as it was.
 

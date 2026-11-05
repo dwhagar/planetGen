@@ -1,5 +1,5 @@
 """PERF.95: the workers of the two shared queues -- the wanted count, who starts them, a replacement for a dead
-one, and cancelling a job at once."""
+one, and canceling a job at once."""
 
 import math
 import os
@@ -157,7 +157,7 @@ def test_cancel_now_cancels_a_waiting_job_and_stops_a_running_one(redis_server, 
     name = _queue_name()
     queue = redisqueue.queue(name, connection)
     waiting = queue.enqueue(math.pow, 2, 2, job_timeout=600)
-    assert workers.cancel_now(waiting.id, connection, redisqueue.serializer_for(name)) == "cancelled"
+    assert workers.cancel_now(waiting.id, connection, redisqueue.serializer_for(name)) == "canceled"
     assert waiting.get_status(refresh=True) == "canceled"
 
     running = queue.enqueue(math.pow, 2, 3, job_timeout=600)

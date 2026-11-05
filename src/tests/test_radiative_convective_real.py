@@ -1,6 +1,6 @@
 """
 The radiative-convective model on the real downloaded tables (GEN.715) against numbers measured in the sky and the checks GEN.717 and GEN.718
-asked for: the response of Earth to a doubling of carbon dioxide with the vapour held, Titan's surface with and without its haze, and the
+asked for: the response of Earth to a doubling of carbon dioxide with the vapor held, Titan's surface with and without its haze, and the
 surface temperatures of Earth, Mars and Venus. Earth, Venus, Mars and Titan are test targets, never inputs of the code. Skipped on a machine
 whose cache folder does not hold the two infrared datasets (`python3 -m planetgen.cli.datasets status`); the offline fixtures of
 `test_line_opacity.py` and `test_radiative_convective.py` cover the code.
@@ -35,8 +35,8 @@ def earth():
     return rc.solve(_co2(280.0), 9.81, EARTH_FLUX)
 
 
-def test_a_doubling_of_carbon_dioxide_with_the_vapour_held_warms_by_about_a_kelvin(earth):
-    """GEN.717: the model was off against this (0.3 to 0.6 K). Held vapour is the no-feedback response (about 1.2 K from the Planck response alone
+def test_a_doubling_of_carbon_dioxide_with_the_vapor_held_warms_by_about_a_kelvin(earth):
+    """GEN.717: the model was off against this (0.3 to 0.6 K). Held vapor is the no-feedback response (about 1.2 K from the Planck response alone
     with the stratosphere adjusted, [R3229] forcing 3.7 W/m2 over a Planck feedback of about 3.2 W/m2/K)."""
     held = earth.water_fraction
     base = rc.solve(_co2(280.0), 9.81, EARTH_FLUX, water_fraction=held)
@@ -45,8 +45,8 @@ def test_a_doubling_of_carbon_dioxide_with_the_vapour_held_warms_by_about_a_kelv
     assert 0.8 < doubled.surface_temperature_k - base.surface_temperature_k < 1.4
 
 
-def test_with_the_vapour_free_the_doubling_warms_more_than_with_it_held(monkeypatch):
-    """Clear sky: the cloud falls with the surface humidity (a fixed amount of vapour is a drier air as it warms), which takes back what the vapour gives."""
+def test_with_the_vapor_free_the_doubling_warms_more_than_with_it_held(monkeypatch):
+    """Clear sky: the cloud falls with the surface humidity (a fixed amount of vapor is a drier air as it warms), which takes back what the vapor gives."""
     monkeypatch.setattr(rc, "CLOUD_LONGWAVE_SHARE", 0.0)
     base = rc.solve(_co2(280.0), 9.81, EARTH_FLUX)
     held = rc.solve(_co2(560.0), 9.81, EARTH_FLUX, water_fraction=base.water_fraction)
@@ -56,19 +56,19 @@ def test_with_the_vapour_free_the_doubling_warms_more_than_with_it_held(monkeypa
 
 def test_earth_sends_out_what_it_absorbs_and_sits_where_the_cloudy_earth_does(earth):
     assert earth.converged and earth.outgoing_w_m2 == pytest.approx(EARTH_FLUX, rel=0.01)
-    assert 280.0 < earth.surface_temperature_k < 290.0                 # 288 K measured; with its vapour fixed at 1 kPa the surface is 284 K
+    assert 280.0 < earth.surface_temperature_k < 290.0                 # 288 K measured; with its vapor fixed at 1 kPa the surface is 284 K
     # The measured cold-point and lapse-rate tropopauses are 190 to 217 K (tropics to mid-latitudes), but they sit under an ozone-heated stratosphere; the model's stratosphere is
     # clear-sky radiative equilibrium without ozone (a limit it states: 140 to 160 K here), so the adiabat meets it colder, and the level is one of 40 (a step of about 12 K, GEN.852).
     assert 155.0 < earth.tropopause_temperature_k < 230.0
     assert 5.0e3 < earth.tropopause_pressure_pa < 4.0e4                # the tropopause: 100 to 200 hPa
 
 
-def test_without_the_vapour_or_the_carbon_dioxide_the_earth_is_colder():
+def test_without_the_vapor_or_the_carbon_dioxide_the_earth_is_colder():
     dry = rc.solve({"N2": 78084.0, "O2": 20946.0, "Ar": 934.0, "CO2": 41.0}, 9.81, EARTH_FLUX).surface_temperature_k
     bare = rc.solve({"N2": 1.0e5}, 9.81, EARTH_FLUX).surface_temperature_k
     wet = rc.solve(EARTH, 9.81, EARTH_FLUX).surface_temperature_k
     assert bare < dry < wet
-    assert wet - dry > 8.0                                              # water vapour is the larger part of the natural greenhouse
+    assert wet - dry > 8.0                                              # water vapor is the larger part of the natural greenhouse
 
 
 def test_mars_sits_near_its_measured_surface_temperature():

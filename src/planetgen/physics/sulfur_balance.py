@@ -8,8 +8,8 @@ The supply law (`physics/surface_pressure.py`) says how much sulfur the volcanoe
 holds it there: sulfur has two solid sinks that take it out of the gas as fast as it arrives, and the air keeps only what the sinks
 have not yet taken and what they cannot take.
 
-* **Sulfate.** Oxidised sulfur (SO2, SO3) is taken by calcium as anhydrite or gypsum, CaSO4. With liquid water the sulfur dioxide
-  is scavenged by cloud and rain and oxidised to sulfate within days (the Earth's tropospheric lifetime is one to a few days);
+* **Sulfate.** Oxidized sulfur (SO2, SO3) is taken by calcium as anhydrite or gypsum, CaSO4. With liquid water the sulfur dioxide
+  is scavenged by cloud and rain and oxidized to sulfate within days (the Earth's tropospheric lifetime is one to a few days);
   on a dry surface the gas reacts with the calcium-bearing rock, the sulfation of calcite and silicates that [R1343]
   put at about two million years for the SO2 of Venus.
 * **Sulfide.** Reduced sulfur (H2S, S2, COS) is taken by iron as pyrite or troilite, FeS2 and FeS, on the same two lifetimes.
@@ -18,9 +18,9 @@ have not yet taken and what they cannot take.
   Earth twin's share. A sulfate sink holds at most one calcium per sulfur and a sulfide sink one iron per sulfur. Sulfur beyond
   that capacity has nowhere to go and stays in the air whole.
 
-Which sink takes a mole of sulfur is the redox of the gas it arrived in: `oxidised_share` is the share of the sulfur that sits in
-SO2 and SO3 in the equilibrium gas of the outgassing stage (`oxidised_share_of`), so a reducing mantle fills the sulfide sink and an
-oxidising one the sulfate sink.
+Which sink takes a mole of sulfur is the redox of the gas it arrived in: `oxidized_share` is the share of the sulfur that sits in
+SO2 and SO3 in the equilibrium gas of the outgassing stage (`oxidized_share_of`), so a reducing mantle fills the sulfide sink and an
+oxidizing one the sulfate sink.
 
 The balance is a steady state, as the carbonate-silicate balance is. The sulfur that goes to the sinks arrived at the mean rate
 `S / age`; with a removal lifetime `tau` the air holds `S tau / age` of it (all of it when `tau` exceeds the age). So the sulfur of the
@@ -39,7 +39,7 @@ Use:
 
     life = draw_lifetimes(constants)                                  # drawn, recorded in constants
     crust = crust_column_kg_m2(released_j, radius_m)
-    result = balance(degassed_mol_m2, age_s=age_gy * 3.156e16, ocean_present=True, oxidised_share=0.9, crust_kg_m2=crust, lifetimes=life)
+    result = balance(degassed_mol_m2, age_s=age_gy * 3.156e16, ocean_present=True, oxidized_share=0.9, crust_kg_m2=crust, lifetimes=life)
     result.air_mol_m2                                                 # the sulfur to put into the air's element budget
 
 Every number that is not read from a source is a design constant with its source tier and tweak level in
@@ -59,7 +59,7 @@ DAY_S = 86400.0
 YEAR_S = 3.15576e7
 """float: One Julian year, s."""
 
-OXIDISED_SULFUR = ("SO2", "SO3", "SO")
+OXIDIZED_SULFUR = ("SO2", "SO3", "SO")
 """tuple: The gas-table species whose sulfur is bonded to oxygen (sulfur at +2 or more): the supply of the sulfate sink."""
 
 REDUCED_SULFUR = ("H2S", "S2", "S", "OCS", "CS2")
@@ -130,22 +130,22 @@ def draw_lifetimes(constants):
     return Lifetimes(wet_s=wet, dry_s=dry)
 
 
-def oxidised_share_of(mole_fractions):
+def oxidized_share_of(mole_fractions):
     """
     The share of the sulfur of a gas that is bonded to oxygen.
 
     Args:
-        mole_fractions (dict): Gas-table formula -> mole fraction or moles; the sulfur gases of `OXIDISED_SULFUR` and `REDUCED_SULFUR`
+        mole_fractions (dict): Gas-table formula -> mole fraction or moles; the sulfur gases of `OXIDIZED_SULFUR` and `REDUCED_SULFUR`
             are read (SO2 holds one sulfur, S2 and CS2 their own count).
 
     Returns:
         float: Between 0 and 1; 1 when the gas holds no sulfur at all (nothing to sink either way).
     """
     atoms = {"SO2": 1, "SO3": 1, "SO": 1, "H2S": 1, "S2": 2, "S": 1, "OCS": 1, "CS2": 1}
-    oxidised = math.fsum(mole_fractions.get(name, 0.0) * atoms[name] for name in OXIDISED_SULFUR)
+    oxidized = math.fsum(mole_fractions.get(name, 0.0) * atoms[name] for name in OXIDIZED_SULFUR)
     reduced = math.fsum(mole_fractions.get(name, 0.0) * atoms[name] for name in REDUCED_SULFUR)
-    total = oxidised + reduced
-    return oxidised / total if total > 0.0 else 1.0
+    total = oxidized + reduced
+    return oxidized / total if total > 0.0 else 1.0
 
 
 def crust_column_kg_m2(released_j, radius_m):
@@ -176,7 +176,7 @@ def sink_capacities_mol_m2(crust_kg_m2):
     return (crust_kg_m2 * CRUST_CALCIUM_WT / elements.molar_mass("Ca"), crust_kg_m2 * CRUST_IRON_WT / elements.molar_mass("Fe"))
 
 
-def balance(degassed_mol_m2, *, age_s, ocean_present, oxidised_share, crust_kg_m2, lifetimes):
+def balance(degassed_mol_m2, *, age_s, ocean_present, oxidized_share, crust_kg_m2, lifetimes):
     """
     Splits the degassed sulfur between the air, the sulfate sink and the sulfide sink.
 
@@ -184,7 +184,7 @@ def balance(degassed_mol_m2, *, age_s, ocean_present, oxidised_share, crust_kg_m
         degassed_mol_m2 (float): The sulfur the volcanoes have brought to the surface, mol per square metre.
         age_s (float): The body's age, s; the sulfur is taken to have arrived at its mean rate over it.
         ocean_present (bool): Whether liquid water is at the surface (picks the wet or the dry lifetime).
-        oxidised_share (float): The share of the sulfur that is oxidised (`oxidised_share_of`), 0 to 1.
+        oxidized_share (float): The share of the sulfur that is oxidized (`oxidized_share_of`), 0 to 1.
         crust_kg_m2 (float): The crust that holds the sinks (`crust_column_kg_m2`).
         lifetimes (Lifetimes): `draw_lifetimes`.
 
@@ -192,7 +192,7 @@ def balance(degassed_mol_m2, *, age_s, ocean_present, oxidised_share, crust_kg_m
         SulfurBalance: The three reservoirs; they sum to `degassed_mol_m2`.
     """
     total = max(degassed_mol_m2, 0.0)
-    share = min(max(oxidised_share, 0.0), 1.0)
+    share = min(max(oxidized_share, 0.0), 1.0)
     capacity_sulfate, capacity_sulfide = sink_capacities_mol_m2(max(crust_kg_m2, 0.0))
     sulfate = min(share * total, capacity_sulfate)
     sulfide = min((1.0 - share) * total, capacity_sulfide)
