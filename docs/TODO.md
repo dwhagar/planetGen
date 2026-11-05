@@ -1253,6 +1253,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector-level cells have no stored cover, so this item needs that if it
   wants the colour at sector level. The route is additive, so
   API_VERSION stays 5.
+  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
+  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
+  Core 5, after MAP.371 to MAP.373. Core 2 keeps MAP.142 and the
+  MAP.215, MAP.191, MAP.222 order.
   Prerequisites: none. Related: MAP.131, MAP.174.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
@@ -1273,6 +1277,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Note (2026-10-10, nebula density research, PR #1188): realistic cover
   is about 2% at the median, so the ramp bins become 0, under 0.5%, 0.5
   to 1.5%, 1.5 to 3% and 3% or more (or per-view percentiles).
+  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
+  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
+  Core 5, after MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
+  MAP.222 order.
   Prerequisite: MAP.173. Related: MAP.142.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
@@ -1301,6 +1309,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   click flies to the zoom at which it splits (no page change), with a
   keyboard path. Done: hover, click and keyboard paths with browser
   tests. Owner: Foundations lane 2.
+  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
+  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
+  Core 5, after MAP.178. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
+  MAP.222 order.
   Prerequisite: MAP.176. Related: MAP.150 (done, #1382).
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
@@ -1314,6 +1326,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rim on the dark theme, chosen with the contrast checker of MAP.175,
   and a matching light-theme colour. Done: the tokens and the 3:1 test
   pass for the new colours. Owner: Foundations lane 2.
+  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
+  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
+  Core 5, with MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
+  MAP.222 order.
   Prerequisites: none. Related: MAP.142.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
@@ -14691,6 +14707,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train 12; decide after the note). Filed by the TODO thread.
   Prerequisites: none. Related: MAP.365, MAP.142, GEN.75, GEN.241,
   GEN.295, GEN.93.
+
+- [ ] **GEN.1268 Nebulae carry a real composition: gas and dust fractions by kind, metals from the place and age, ejecta from the progenitor**
+  Boss (EST on 2026-11-04, 8:30 PM, as the coordinator relayed): do all
+  of our nebulae have compositions? Checked on main. No. Every stored
+  nebula (nebulae table) has a text composition sentence copied from its
+  family table (generation/phenomena/nebula.py,
+  family_data["composition"]) and a dominant_species word; a supernova
+  remnant (supernova_remnants) has a dominant_species word and no
+  composition at all; a cloud of the nebula_field (the 163,000 clouds of
+  the field) stores only its class letter and size, so its composition
+  is its class's sentence. None has numbers: no hydrogen, helium and
+  metal mass fractions, no split of the gas into neutral, ionized and
+  molecular parts, no dust-to-gas ratio or grain mix, no abundance of
+  carbon, oxygen, nitrogen, sulfur or iron. The composition model
+  (docs/design/composition/composition-model.md, GEN.433 to GEN.440)
+  covers stars, stellar remnants and their layers, planets, moons, small
+  bodies and atmospheres, so a planetary nebula's central star has a
+  composition and the nebula around it has none. The Magellanic Clouds
+  have no nebulae at all yet (GEN.367) and need a lower-metal gas when
+  they get them. Rogue planets are not nebulae; their composition comes
+  from a notional formation host through the body chain (GEN.557). Do:
+  (1) a research note first: the mass fractions and abundance patterns
+  observed for each kind (H II regions, dark and molecular clouds,
+  reflection nebulae, planetary nebulae, supernova remnants by
+  progenitor type, superbubbles), with the dust-to-gas ratio and its
+  change with metallicity; (2) derive the composition at read time from
+  what is already stored (class, the position's [Fe/H] and gas density
+  from the galaxy model, the host star or progenitor and its age), so no
+  new stored column unless a number cannot be derived (then it is
+  registered in the wiring register and column_units.py); (3) remnants
+  and planetary nebulae take their ejecta from the progenitor's yields
+  (the stellar composition relations GEN.439); (4) the nebula page and
+  the describe sheet list the fractions with their units, and the
+  Properties sheet marks which are derived; (5) tests: fractions sum to
+  one, a Magellanic cell is more metal-poor than the solar-circle one,
+  and a remnant's ejecta match the progenitor's yield table. Stand-ins
+  go in GEN.725 with tier and tweak level. Lock-free if everything is
+  derived at read time; a stored column would make it a lock item and
+  ride a train. Version 8.1 (the composition headline). Owner: Sources 1
+  for the research note, then the build lane that takes the composition
+  chain. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.367, GEN.446, GEN.440, GEN.439,
+  GEN.557, GEN.1267.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
