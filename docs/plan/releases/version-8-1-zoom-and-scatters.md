@@ -63,7 +63,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.344 | Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory |  |  |
-| TEST.346 | web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug) |  |  |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
 | TEST.290 | test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug) |  |  |

@@ -12117,6 +12117,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unread. Planets 1 wires each into the rogue build or deletes it (no
   shim), then removes the register line; then this item and GEN.1120
   retire.
+  Owner of the register leftovers (TODO) (7:25 AM EST on 2026-11-05):
+  Tides 1 takes the register leftovers: for each listed module and
+  function, ask Planets 1 whether it is meant to be wired; wire it (lock
+  work) or delete it with its tuning rows and register lines (lock-free
+  when nothing reads it). Planets 1 stays on GEN.1277.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -13194,6 +13199,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sea_density_kg_m3 still read as unread in the wiring register. Wire
   them or delete them (no shim), remove the register lines, then this
   item retires.
+  Owner of the register leftovers (TODO) (7:25 AM EST on 2026-11-05):
+  Tides 1 wires or deletes stable_liquids and sea_density_kg_m3 (and
+  their register lines). Deleting an unread function changes no output
+  and is lock-free; wiring that changes stored values is lock work for
+  the next train.
   Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
 
 - [ ] **GEN.1221 Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent**
@@ -17468,28 +17478,6 @@ clears each one.
   and load. Still open: measure which tests fail only in the parallel
   phase on a loaded full run (the Done line).
   Prerequisites: none. Related: TEST.229, TEST.126, TEST.190.
-
-- [ ] **TEST.346 web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug)**
-  Reported by Core 3 (1:50 PM EDT 2026-10-24, "link contrast and nested
-  summary") and Core 5 (2:30 PM EDT, four variants), both as red on
-  main; Bug Hunt ran test_web_a11y.py -k web.system on main b76a44df7 at
-  about 1:20 PM EDT and got 8 passed, 4 skipped. TEST.329 (the class
-  link contrast) is retired. Possible causes: a change since (#3013 to
-  #3030), a lane machine difference (data set files such as the AD9
-  ozone data, fonts, Playwright browser version), or the nested summary
-  being a new defect. Do: Bug Hunt runs the four variants on current
-  main on its own machine and on a second lane machine, finds which
-  assertion fails (contrast or nested summary), and fixes it or files
-  the machine difference. Done: web.system passes on every lane machine
-  or the difference is documented. Owner: Bug Hunt.
-  Owner change (TODO) (7:10 AM EST on 2026-11-05): Core 3 takes this
-  (Bug Hunt is retired); it saw the failure first and has a slow lane
-  machine to reproduce it. Run the four web.system variants of
-  tests/test_web_a11y.py on current main, find which assertion fails
-  (contrast or nested summary) and whether it is a real defect, a
-  data-set or Playwright difference, or fixed since; fix at the cause or
-  document the machine difference. Lock-free.
-  Prerequisites: none. Related: TEST.329.
 
 - [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
   Boss, 9:21 PM EDT 2026-10-24 (relayed by the coordinator): "When are
