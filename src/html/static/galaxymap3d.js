@@ -69,7 +69,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, NEBULA_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
+  BLACK_HOLE_KIND, NEBULA_KIND, REGION_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { NAMED_LIMIT } = await import(`./labelbudget.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
@@ -96,7 +96,7 @@ const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuf
 const { keptShare, rankShare, rankStars, referencePx } = await import(`./starthin.js${VERSION_QUERY}`);
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
-const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
+const { regionBlobs, regionLook, chartedText, regionMarkers, chartedRegionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
 const { blackHoleDensityPx, labelBufferPx, regionLanding } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
@@ -185,6 +185,9 @@ export function mapControlHandlers(ctx) {
       button.setAttribute("aria-pressed", String(on));
       ctx.setPlaneView(on);
     },
+    // MAP.376: the wedge on either side becomes the focus.
+    "plane-wedge-prev": function () { if (ctx.stepPlaneWedge) ctx.stepPlaneWedge(-1); },
+    "plane-wedge-next": function () { if (ctx.stepPlaneWedge) ctx.stepPlaneWedge(1); },
     "plane-stems": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
@@ -4301,6 +4304,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
     markerKinds.register(NEBULA_KIND);
+    markerKinds.register(REGION_KIND);
     MAP_INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
     markerLayer = createMarkerLayer(scene, camera, canvasEl, "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
@@ -5007,6 +5011,17 @@ function initGalaxyMap3d(canvasEl, data) {
           });
         }));
     }
+    // Every charted region (one with a generated sector) carries the Region symbol while its sphere shows, whether or not a world in it is
+    // inhabited; a region that already has its inhabited token is not marked twice.
+    if (regionLayer && regionsOn && !hiddenCell && stageView.layers.isOn(REGION_KIND.id)) {
+      var regionHere = camera.position.toArray();
+      var regionFocal = focalPixels();
+      var regionTaken = chosen.filter(function (entry) { return entry.item.regionKey; });
+      chosen = chosen.concat(chartedRegionMarkers(markerKinds.get(REGION_KIND.id), regionBlobList,
+        function (blob) { return regionLook(blob, regionHere, regionFocal); },
+        function (blob) { return markerFrustum.containsPoint(markerPoint.set(blob.x, blob.y, blob.z)); },
+        function (blob) { return regionTaken.some(function (entry) { return entry.item.regionKey === blob.key; }); }));
+    }
     // MAP.306: a symbol of a reason pulled forward is drawn over the others and named first, whatever level it is drawn at.
     chosen.forEach(function (entry) {
       if (!entry.pulled && entry.kind.interest && stageView.layers.isPulled(entry.kind.id)) entry.pulled = true;
@@ -5559,11 +5574,21 @@ function initGalaxyMap3d(canvasEl, data) {
       // the galaxy's midplane instead of through the focus.
       setPlaneView: function (on) {
         planeView.set(on);
-        stageView.planeTilt(on);
-        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
+        stageView.planeTilt(on, planeView.wedgeAngle());
+        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "[data-action='plane-wedge-prev']", "[data-action='plane-wedge-next']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
           var control = document.querySelector(selector);
           if (control) control.disabled = !on;
         });
+      },
+      // MAP.376: the next wedge (60 degrees round the galactic center) becomes the focus: the grid moves to it and the camera flies to
+      // its middle line at the radius it looked at, keeping the isometric view.
+      stepPlaneWedge: function (direction) {
+        if (!planeView.isOn()) return;
+        var angle = planeView.wedgeAngle() + direction * Math.PI / 3;
+        planeView.setWedgeAngle(angle);
+        var radius = Math.hypot(target.x, target.y);
+        if (radius < 1e-6) radius = Math.max(1, 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+        stageView.planeTilt(true, planeView.wedgeAngle(), [radius * Math.cos(angle), radius * Math.sin(angle), target.z]);
       },
       setPlaneMidplane: function (on) { planeView.setMidplane(on); },
       setPlaneStems: function (on) { planeView.setStems(on); },
