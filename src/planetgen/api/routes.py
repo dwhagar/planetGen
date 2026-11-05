@@ -35,7 +35,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.db import search_values
 from planetgen.db import children as children_db
-from planetgen.api import system_sky
+from planetgen.api import nav_system, system_sky
 from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.lib import skypack
 from planetgen.web.maps.systemscene import build_scene
@@ -1036,6 +1036,8 @@ def nav():
         return jsonify({"error": str(exc)}), 404
     except NavUnavailable as exc:
         return jsonify({"error": str(exc)}), 400
+    if with_adjusted:   # NAV.27: the legs inside a system, with the bodies where they are when the ship leaves
+        nav_system.adjust_legs(get_db(), result)
 
     body = {
         "scope": result["scope"],
@@ -1051,6 +1053,7 @@ def nav():
             "kind": leg["kind"], "from": leg["from"], "to": leg["to"], "direct": leg["direct"]._asdict(),
             "warp_times": [t._asdict() for t in leg["warp_times"]],
             "fold_times": [t._asdict() for t in leg["fold_times"]],
+            **({"adjusted": leg["adjusted"]} if "adjusted" in leg else {}),
         } for leg in result["legs"]],
         "note": result["note"],
     }
