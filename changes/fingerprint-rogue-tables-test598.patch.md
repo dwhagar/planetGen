@@ -1,4 +1,4 @@
-**Headline:** The galaxy fingerprint now reads the child rows of a rogue planet, so a rogue's air, layers and spectrum count when two builds are compared.
+**Headline:** The galaxy fingerprint and its stored tree now count every rogue planet, wherever it landed, so two builds that differ in a rogue's air, layers or spectrum no longer compare equal.
 
 ### Changed
 
