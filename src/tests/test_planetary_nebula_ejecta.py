@@ -67,10 +67,30 @@ def test_hot_bottom_burning_turns_a_heavy_progenitors_carbon_into_nitrogen_and_m
     below, above = pn.ejecta_of(pn.H, 3.9, 0.0), pn.ejecta_of(pn.H, 4.1, 0.0)
     assert not below.hot_bottom_burning and above.hot_bottom_burning
     assert above.n_to_o > 4.0 * below.n_to_o and above.c_to_o < below.c_to_o
-    assert above.composition.y - below.composition.y == pytest.approx(pn.SECOND_DREDGE_UP_DELTA_Y, abs=0.01)
+    assert above.composition.y - below.composition.y < 0.01              # the second dredge-up has hardly begun at 4.1 solar masses
     assert above.type_i and not below.type_i
     solar_five = pn.ejecta_of(pn.L, 5.0, 0.0)
     assert math.log10(solar_five.n_to_o) > pn.TYPE_I_LOG_N_TO_O and solar_five.carbon_rich is False
+
+
+@pytest.mark.parametrize("mass, delta_y", [(1.0, 0.0), (4.0, 0.0), (4.5, 0.004), (5.0, 0.018), (5.5, 0.033), (6.0, 0.044), (7.0, 0.059), (8.0, 0.066)])
+def test_the_second_dredge_up_adds_the_helium_of_the_table_of_karakas_and_lattanzio(mass, delta_y):
+    """[R5098: Table 1], Z = 0.02: the rise in Y from after the first to after the second dredge-up, at the rows of the table."""
+    assert pn.second_dredge_up_delta_y(mass) == pytest.approx(delta_y)
+
+
+def test_the_second_dredge_up_is_linear_between_rows_and_held_above_the_last():
+    assert pn.second_dredge_up_delta_y(4.75) == pytest.approx(0.011)
+    assert pn.second_dredge_up_delta_y(6.5) == pytest.approx(0.0515)
+    assert pn.second_dredge_up_delta_y(12.0) == pn.second_dredge_up_delta_y(8.0) == 0.066
+    values = [pn.second_dredge_up_delta_y(4.0 + 0.1 * i) for i in range(50)]
+    assert all(b >= a for a, b in zip(values, values[1:]))
+
+
+def test_the_second_dredge_up_raises_the_helium_of_a_heavy_progenitor_by_its_row(monkeypatch):
+    with_it = pn.ejecta_of(pn.L, 7.0, 0.0).composition.y
+    monkeypatch.setattr(pn, "SECOND_DREDGE_UP_TABLE", ((4.0, 0.0), (8.0, 0.0)))
+    assert with_it - pn.ejecta_of(pn.L, 7.0, 0.0).composition.y == pytest.approx(0.059, abs=0.001)
 
 
 def test_neon_sulfur_argon_and_iron_follow_the_birth_composition():

@@ -18,7 +18,7 @@ blast wave. This module works both out and returns the values; nothing is derive
 * **Core-collapse (R, S, T, U, V).** The progenitor's initial mass is drawn from the IMF over the windows of its stored core
   (`remnant_progenitors.kind_windows`: a neutron star's or a black hole's; any core-collapse mass when none is stored). Its
   mass at death is its initial mass less its wind (`wind_loss_sol`) when it keeps its hydrogen envelope, or the mass of its helium
-  core (`helium_core_mass_sol`) when it is **stripped**, which every progenitor above 30 solar masses is [R4251] and a third of
+  core (`helium_core_mass_sol`) when it is **stripped**, which every progenitor of 40 solar masses or more is [R4251] and a third of
   the lighter ones are (a binary partner takes the envelope, SNC4). The ejecta are that mass less the compact core
   (`remnant_mass.draw_mass_sol`). The elements the explosion made, [R5096: Table 3]'s mean over 10 to 50 solar masses, are
   scaled with the progenitor's mass so that the mean over the IMF in that window is the table's (`yield_scale`): oxygen,
@@ -30,7 +30,7 @@ blast wave. This module works both out and returns the values; nothing is derive
 
 Every draw is keyed on the object (`key`, its ID), in streams of their own, so a remnant reads the same every time and no
 existing stream moves. The constants are in `physics/data/remnant_yields.json` with their source and, for the stand-ins,
-their registry rows (SNC1 to SNC6, gap-filling-plan.md section 6.177).
+their registry rows (SNC1, SNC4 to SNC7, gap-filling-plan.md section 6.177); the presupernova table is [R4251: Table 2].
 """
 
 import functools
@@ -88,18 +88,38 @@ def swept_up_mass_sol(radius_ly, density_cm3):
 
 # --- The progenitor ----------------------------------------------------------------------------------------------------
 
+def _presupernova_rows():
+    return _data()["presupernova_table"]["rows"]
+
+
+def _along_table(initial_mass_sol, column):
+    """The table's column (1 final mass, 2 helium core) at an initial mass: linear between its rows, held at the heaviest row, and under
+    the lightest row the power law of the first two rows."""
+    rows = _presupernova_rows()
+    if initial_mass_sol >= rows[-1][0]:
+        return rows[-1][column]
+    if initial_mass_sol < rows[0][0]:
+        exponent = math.log(rows[1][column] / rows[0][column]) / math.log(rows[1][0] / rows[0][0])
+        return rows[0][column] * (initial_mass_sol / rows[0][0]) ** exponent
+    for (m0, *v0), (m1, *v1) in zip(rows, rows[1:]):
+        if m0 <= initial_mass_sol <= m1:
+            return v0[column - 1] + (v1[column - 1] - v0[column - 1]) * (initial_mass_sol - m0) / (m1 - m0)
+    raise AssertionError("the rows cover every mass")
+
+
 def helium_core_mass_sol(initial_mass_sol):
-    """The mass, solar masses, of a core-collapse progenitor that has lost its hydrogen envelope: `c M^p` (a stand-in fitted so a
-    16 solar mass star ends at about 3.9, the helium star of a Cassiopeia A-like Type IIb, and held to `helium_core_cap_sol` because the wind of a Wolf-Rayet star strips it further, SNC3)."""
-    s = _stand_ins()
-    return min(s["helium_core_coefficient"] * initial_mass_sol ** s["helium_core_exponent"], s["helium_core_cap_sol"])
+    """The mass, solar masses, of a core-collapse progenitor that has lost its hydrogen envelope: the helium core of [R4251: Table 2], linear
+    between its rows (10, 12, 15, 20, 25, 30 solar masses, then the bare stars of 60 and more; the 30 to 60 span is interpolated)."""
+    return _along_table(initial_mass_sol, 2)
 
 
 def wind_loss_sol(initial_mass_sol):
-    """The mass, solar masses, an unstripped progenitor loses in its wind before it explodes (a few percent: SNC2)."""
-    s = _stand_ins()
-    loss = s["wind_coefficient"] * (initial_mass_sol / s["wind_reference_mass_sol"]) ** s["wind_exponent"] * initial_mass_sol
-    return min(loss, 0.5 * initial_mass_sol)
+    """The mass, solar masses, a progenitor loses in its wind before it explodes: its initial mass less the final mass of [R4251: Table 2],
+    linear between the rows; under 10 solar masses the share the 10 solar mass model loses."""
+    rows = _presupernova_rows()
+    if initial_mass_sol < rows[0][0]:
+        return initial_mass_sol * (1.0 - rows[0][1] / rows[0][0])
+    return initial_mass_sol - _along_table(initial_mass_sol, 1)
 
 
 def is_stripped(initial_mass_sol, u_binary):

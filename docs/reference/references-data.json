@@ -99250,6 +99250,42 @@
    "volume": "83",
    "year": 2018
   },
+  "10.1016/j.nuclphysa.2006.05.008": {
+   "arxiv": "astro-ph/0605725",
+   "authors": [
+    [
+     "Nomoto",
+     "K."
+    ],
+    [
+     "Tominaga",
+     "N."
+    ],
+    [
+     "Umeda",
+     "H."
+    ],
+    [
+     "Kobayashi",
+     "C."
+    ],
+    [
+     "Maeda",
+     "K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.nuclphysa.2006.05.008",
+   "editors": [],
+   "journal": "NuPhA",
+   "page": "424",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Nucleosynthesis yields of core-collapse supernovae and hypernovae, and galactic chemical evolution",
+   "type": "journal-article",
+   "volume": "777",
+   "year": 2006
+  },
   "10.1016/j.nuclphysbps.2016.10.013": {
    "authors": [
     [
@@ -103103,6 +103139,30 @@
    "type": "journal-article",
    "volume": "981",
    "year": 2024
+  },
+  "10.1017/pasa.2014.21": {
+   "arxiv": "1405.0062",
+   "authors": [
+    [
+     "Karakas",
+     "A. I."
+    ],
+    [
+     "Lattanzio",
+     "J. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1017/pasa.2014.21",
+   "editors": [],
+   "journal": "PASA",
+   "page": "e030",
+   "publisher": "Cambridge University Press (CUP)",
+   "src": "crossref",
+   "title": "The Dawes Review 2: Nucleosynthesis and Stellar Yields of Low- and Intermediate-Mass Single Stars",
+   "type": "journal-article",
+   "volume": "31",
+   "year": 2014
   },
   "10.1017/pasa.2016.31": {
    "authors": [
@@ -153835,6 +153895,30 @@
    "title": "The Global Schmidt Law in Star‐forming Galaxies",
    "type": "journal-article",
    "volume": "498",
+   "year": 1998
+  },
+  "10.1086/305812": {
+   "arxiv": "astro-ph/9802235",
+   "authors": [
+    [
+     "Gruenwald",
+     "R."
+    ],
+    [
+     "Viegas",
+     "S. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/305812",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "221",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Are He and N Abundances in Type I Planetary Nebulae as High as Empirically Derived?",
+   "type": "journal-article",
+   "volume": "501",
    "year": 1998
   },
   "10.1086/306448": {
@@ -217068,6 +217152,26 @@
    "volume": "403",
    "year": 2010
   },
+  "10.1111/j.1365-2966.2009.16198.x": {
+   "arxiv": "0912.2142",
+   "authors": [
+    [
+     "Karakas",
+     "A. I."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1365-2966.2009.16198.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "1413",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Updated stellar yields from asymptotic giant branch models",
+   "type": "journal-article",
+   "volume": "403",
+   "year": 2010
+  },
   "10.1111/j.1365-2966.2010.16253.x": {
    "authors": [
     [
@@ -278629,7 +278733,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5098,
+ "id_next": 5102,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -279469,6 +279573,7 @@
   "10.1016/j.newar.2016.03.001": "R1325",
   "10.1016/j.newar.2018.03.001": "R3731",
   "10.1016/j.newar.2019.03.006": "R4720",
+  "10.1016/j.nuclphysa.2006.05.008": "R5101",
   "10.1016/j.nuclphysbps.2016.10.013": "R4183",
   "10.1016/j.pepi.2003.07.006": "R2527",
   "10.1016/j.pepi.2008.05.016": "R1376",
@@ -279602,6 +279707,7 @@
   "10.1017/cbo9781139235778": "R3622",
   "10.1017/jfm.2024.132": "R5086",
   "10.1017/jfm.2024.78": "R5084",
+  "10.1017/pasa.2014.21": "R5098",
   "10.1017/pasa.2016.31": "R4747",
   "10.1017/pasa.2021.48": "R1110",
   "10.1017/rep.2019.16": "R4715",
@@ -280855,6 +280961,7 @@
   "10.1086/305262": "R0565",
   "10.1086/305424": "R1233",
   "10.1086/305588": "R2321",
+  "10.1086/305812": "R5099",
   "10.1086/306448": "R1645",
   "10.1086/306546": "R0467",
   "10.1086/306811": "R0608",
@@ -282344,6 +282451,7 @@
   "10.1111/j.1365-2966.2009.15993.x": "R1554",
   "10.1111/j.1365-2966.2009.16149.x": "R3074",
   "10.1111/j.1365-2966.2009.16177.x": "R0452",
+  "10.1111/j.1365-2966.2009.16198.x": "R5100",
   "10.1111/j.1365-2966.2010.16253.x": "R3972",
   "10.1111/j.1365-2966.2010.16309.x": "R2169",
   "10.1111/j.1365-2966.2010.16373.x": "R1409",
@@ -283558,6 +283666,7 @@
   "arxiv:0911.3937": "R2217",
   "arxiv:0911.4484": "R0508",
   "arxiv:0912.1907": "R1907",
+  "arxiv:0912.2142": "R5100",
   "arxiv:0912.3017": "R0744",
   "arxiv:0912.3484": "R2231",
   "arxiv:1001.2304": "R1313",
@@ -283829,6 +283938,7 @@
   "arxiv:1404.5292": "R2447",
   "arxiv:1404.5313": "R1522",
   "arxiv:1404.5617": "R0149",
+  "arxiv:1405.0062": "R5098",
   "arxiv:1405.1042": "R2406",
   "arxiv:1405.2041": "R4167",
   "arxiv:1405.4557": "R3785",
@@ -284874,6 +284984,7 @@
   "arxiv:astro-ph/0603682": "R3555",
   "arxiv:astro-ph/0605041": "R4052",
   "arxiv:astro-ph/0605705": "R0331",
+  "arxiv:astro-ph/0605725": "R5101",
   "arxiv:astro-ph/0606451": "R1555",
   "arxiv:astro-ph/0607640": "R2750",
   "arxiv:astro-ph/0608359": "R4159",
@@ -284905,6 +285016,7 @@
   "arxiv:astro-ph/9710107": "R0565",
   "arxiv:astro-ph/9711072": "R0618",
   "arxiv:astro-ph/9712213": "R2321",
+  "arxiv:astro-ph/9802235": "R5099",
   "arxiv:astro-ph/9808315": "R4514",
   "arxiv:astro-ph/9810070": "R2941",
   "arxiv:astro-ph/9810073": "R2884",
