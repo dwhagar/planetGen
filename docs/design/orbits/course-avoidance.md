@@ -4,6 +4,7 @@ What radius a course keeps from each kind of object, where the built rule (`gala
 
 Informs: NAV.6, NAV.22, NAV.24, NAV.25, NAV.26, NAV.27, NAV.28, NAV.51, NAV.5, NAV.21, NAV.4, NAV.17, MAP.121
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
+Built (NAV.54, 2026-11-05): the keep-out table of section 2 in `galaxy/keepout.py` and `db/query.keep_out_radius` (an asteroid field's stored radius, a supermassive hole's and a quasar's sphere of influence, a star's radiation radius inside its own system as `keep_out_in_system` on a star, the corrected pass-through notes for a cloud, a remnant and a belt; a moon's stored Hill radius was already against its planet, GEN.138); the knobs are `tuning.KEEP_OUT_*`. One change from the research: the sphere of influence uses the bulge dispersion that the hole's own mass sets (`galaxy.structure.black_hole_dispersion_kms`, the M-sigma relation the generator now draws the hole with), not a fixed 100 km/s, so a 4 million solar mass hole keeps out 3.1 pc, not 1.7 pc.
 
 Prototype and test scripts are in the research scratchpad (`nav05/`: planner `avoid.py`, numbers `physics.py`, `collide.py`, `moving.py`, `moving2.py`, `nebfrac.py`, tests `t1.py` to `t20.py`). The scripts are research code outside the repo. The research environment could only read search-result text, not the papers themselves; [R] items are listed under Evidence notes.
 

@@ -3208,9 +3208,13 @@ def _enclosed_mass_kg(conn, radius_pc):
     return enclosed_mass.enclosed_mass_kg(skeleton.shape, skeleton.galaxy_seed, radius_pc)
 
 
-def keep_out_radius(conn, kind, object_id):
+def keep_out_radius(conn, kind, object_id, scale="galaxy"):
     """
-    The keep-out radius of one object (NAV.24, `planetgen.galaxy.keepout`).
+    The keep-out radius of one object (NAV.24, NAV.54, `planetgen.galaxy.keepout`).
+
+    Args:
+        scale (str): `"galaxy"` (the default; between systems and inside a sector) or `"system"` (inside a star system). Only a star
+            has two radii: its galactic Hill radius at galaxy scale, its radiation radius inside its own system.
 
     Returns:
         keepout.KeepOut: `radius_km`, `basis` and `note`.
@@ -3238,6 +3242,9 @@ def keep_out_radius(conn, kind, object_id):
             return keepout.KeepOut(body["radius_km"], "radius", None)
         return keepout.KeepOut(body["hill_radius_km"], "hill", None)
     if kind == "star":
+        if scale == "system":
+            star = row("stars", "radius_km, luminosity_w")
+            return keepout.star_in_system_keep_out(star["radius_km"], star["luminosity_w"])
         return system_perimeter(row("stars", "star_system_id")["star_system_id"])
     if kind == "system":
         row("star_systems", "id")
@@ -3246,7 +3253,9 @@ def keep_out_radius(conn, kind, object_id):
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
         body = row(table, "star_id, mass_solar, radius_km, galactic_radius_pc"
                    if kind == "neutron_star" else "star_id, mass_solar, event_horizon_radius_km AS radius_km, "
-                   "galactic_radius_pc")
+                   "galactic_radius_pc, mass_class")
+        if kind == "black_hole" and body["mass_class"] == "supermassive":
+            return keepout.supermassive_keep_out(body["mass_solar"])
         if body["galactic_radius_pc"] is None and body["star_id"] is not None:
             # An anchored remnant is a star of its own system.
             return system_perimeter(row("stars", "star_system_id", body["star_id"])["star_system_id"])
@@ -3255,20 +3264,26 @@ def keep_out_radius(conn, kind, object_id):
         return keepout.compact_keep_out(
             _msun_to_kg(body["mass_solar"]), body["galactic_radius_pc"], body["radius_km"],
             _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
-    if kind in ("quasar", "rogue_planet"):
+    if kind == "quasar":
+        body = row(_PHENOMENON_TYPE_TO_TABLE[kind], "black_hole_mass_solar, luminosity_w")
+        return keepout.quasar_keep_out(body["black_hole_mass_solar"], body["luminosity_w"])
+    if kind == "rogue_planet":
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
-        body = row(table, "black_hole_mass_solar * " + str(constants.SOLAR_MASS_TO_KG)
-                   + " AS mass_kg, event_horizon_radius_km AS radius_km, galactic_radius_pc"
-                   if kind == "quasar" else "mass_kg, radius_km, galactic_radius_pc")
+        body = row(table, "mass_kg, radius_km, galactic_radius_pc")
         if body["galactic_radius_pc"] is None:
             return keepout.NO_KEEP_OUT
         return keepout.compact_keep_out(
             body["mass_kg"], body["galactic_radius_pc"], body["radius_km"],
             _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
-    if kind in ("nebula", "supernova_remnant", "asteroid_field"):
+    if kind == "asteroid_field":
+        return keepout.asteroid_field_keep_out(row(_PHENOMENON_TYPE_TO_TABLE[kind], "radius_ly")["radius_ly"])
+    if kind in ("nebula", "supernova_remnant"):
         row(_PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.KeepOut(None, "none", keepout.PASS_THROUGH_NOTE)
-    if kind in ("belt", "comet", "interstellar_comet", "facility"):
+    if kind == "belt":
+        row(object_ref.TABLES["belt"], "id")
+        return keepout.KeepOut(None, "none", keepout.BELT_NOTE)
+    if kind in ("comet", "interstellar_comet", "facility"):
         row(object_ref.TABLES.get(kind) or _PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.NO_KEEP_OUT
     if kind in object_ref.CONTAINER_KINDS:     # a place in the galaxy, not a body: nothing to keep out of
@@ -3481,6 +3496,8 @@ def resolve_object(conn, kind, object_id):
     }
     if kind in ("planet", "moon"):
         found.update({column: row[column] for column in _tier_columns()})
+    if kind == "star":
+        found["keep_out_in_system"] = keep_out_radius(conn, kind, object_id, scale="system")._asdict()    # NAV.54
     return found
 
 

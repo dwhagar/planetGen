@@ -3403,6 +3403,14 @@ COMET_CEILING_ATTEMPTS = 25
 # ly) so the two remain visually/narratively distinct phenomena.
 ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
 
+# NAV.54: the keep-out radii a course keeps from an object that is not a Hill sphere (docs/design/orbits/course-avoidance.md section 2).
+KEEP_OUT_STAR_FLUX_W_M2 = 50000.0
+"""float: The starlight a ship may be asked to stand, W/m^2 (50 kW/m^2): a star inside its own system keeps out `sqrt(L / (4 pi F))`, 0.17 AU for the Sun and 165 AU for an O3 star (Boss, 2026-10-10: defaults approved)."""
+KEEP_OUT_STAR_FLOOR_RADII = 10.0
+"""float: A star keeps out at least this many of its own radii whatever its light (the photosphere and corona floor; 0.047 AU for the Sun)."""
+KEEP_OUT_QUASAR_FLUX_W_M2 = 10000.0
+"""float: The light a ship may be asked to stand near a quasar's nucleus, W/m^2 (10 kW/m^2): its keep-out is the larger of this radius and the sphere of influence."""
+
 # Asteroid field classes (GEN.14, Boss 2026-09-30: "a digit and part
 # of the class"). The letter comes from composition and density, following
 # asteroid taxonomy (C carbonaceous, S stony, M metallic, D/P icy primitive,
