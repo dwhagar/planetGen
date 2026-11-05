@@ -14987,6 +14987,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change, so check whether it needs an epoch with --affects fill.
   Version 8.1. Owner: Bug 1, with PERF.236 and TEST.579. Filed by the
   TODO thread.
+  BOSS ANSWER (8:54 PM EST on 2026-11-04): Boss answered option 1: no
+  habitable world means no body of any life-carrying class anywhere in
+  the system. The generator bars every such body, and the prevalence
+  count and tests keep their current meaning. Proceed.
   Prerequisites: none. Related: PERF.236, TEST.579, GEN.725.
 
 - [ ] **GEN.1276 Nebula composition part g: store the composition of every nebula and supernova remnant (new columns, progenitor mass, epoch, migration, backfill, units and wiring register)**
