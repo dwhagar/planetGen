@@ -76,8 +76,9 @@ def _gas_tracer(position_pc, shape):
     formed from is the satellite's own (GEN.528).
     """
     mix = galaxyDensity.population_densities(position_pc, shape)
-    # A satellite galaxy's young stars (GEN.526) formed from its own gas, which no spiral arm of the disk shapes.
-    satellite = max(mix["satellite_young"], 0.0)
+    # A satellite galaxy's young stars (GEN.526) formed from its own gas, which no spiral arm of the disk shapes. A Cloud's gas is
+    # scaled to its molecular mass (GEN.367, `ComponentField.gas_density`).
+    satellite = max(shape.components.gas_density(position_pc), 0.0) if shape.components is not None else 0.0
     arm_cos = galaxyDensity._arm_cosine(position_pc[0], position_pc[1], shape)
     star_contrast = 1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE["young"] * arm_cos
     if star_contrast <= 0.0:

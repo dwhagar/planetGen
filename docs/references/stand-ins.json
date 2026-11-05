@@ -36601,6 +36601,90 @@
       "title": "Stand-ins of the photometry of the system sky"
     },
     {
+      "key": "6.183",
+      "number": "6.183",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Large Magellanic Cloud\"] 0.435: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.31 of the count)"
+            ],
+            [
+              "The range it moves in",
+              "0.32 to 0.58 (a factor of 1.5 either way on the count)"
+            ],
+            [
+              "Where it holds",
+              "the Large Cloud as the reference satellites place it"
+            ],
+            [
+              "What would show it wrong",
+              "a CO catalogue of the Large Cloud whose cloud count or mass is more than a factor of 1.5 from 338 clouds and 5e7 solar masses"
+            ],
+            [
+              "What replaces it",
+              "a gas disc for the Cloud (its HI disc is already modelled in galaxy/satellite_history.py) that the cloud field follows"
+            ],
+            [
+              "Evidence",
+              "[R5123] (ApJS 178, 56, section 3.1 READ): 272 clouds, molecular gas about 5e7 solar masses with X_CO 7e20; [R3102] (abstract READ): 8,107 clouds and 1.2e9 solar masses of H2 for the Milky Way. 8107 * 5e7 / 1.2e9 = 338, against 272 catalogued above the survey limit. test_gen367_cloud_gas::test_the_large_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass"
+            ]
+          ],
+          "id": "MG1",
+          "key": "6.183:MG1",
+          "kind": "P",
+          "slug": "6-183-mg1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Large Magellanic Cloud\"] 0.435: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.31 of the count)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Small Magellanic Cloud\"] 0.724: the same for the Small Cloud, about 216 class M clouds (0.64 of the count)"
+            ],
+            [
+              "The range it moves in",
+              "0.55 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "the Small Cloud as the reference satellites place it"
+            ],
+            [
+              "What would show it wrong",
+              "a CO catalogue of the Small Cloud whose cloud count is below 100 or its CO mass below a tenth of the Large Cloud's"
+            ],
+            [
+              "What replaces it",
+              "a gas disc for the Cloud that the cloud field follows"
+            ],
+            [
+              "Evidence",
+              "[R5124] (ApJ 658, 1027, abstract READ): H2 3.2e7 solar masses from dust, X_CO 13e21 over the whole galaxy; the CO-bright mass is lower, so 216 clouds is a ceiling. 8107 * 3.2e7 / 1.2e9 = 216. test_gen367_cloud_gas::test_the_small_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass"
+            ]
+          ],
+          "id": "MG2",
+          "key": "6.183:MG2",
+          "kind": "P",
+          "slug": "6-183-mg2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Small Magellanic Cloud\"] 0.724: the same for the Small Cloud, about 216 class M clouds (0.64 of the count)"
+        }
+      ],
+      "slug": "6-183-stand-ins-of-the-gas-of-the-magellanic-clouds-in-the-nebula-field",
+      "title": "Stand-ins of the gas of the Magellanic Clouds in the nebula field"
+    },
+    {
       "key": "6.170",
       "number": "6.170",
       "rows": [
