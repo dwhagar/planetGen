@@ -586,7 +586,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment |  | Boss, citations only in the registry. |
 | DOC.97 | Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information |  | Boss, citation links. |
 | TEST.621 | The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug) |  |  |
-| TEST.626 | tests/test_db_web_reads.py::test_sector_and_system_pages_use_a_fixed_number_of_queries fails on plain main (4 of 4 runs) (bug) |  |  |
 | PERF.241 | A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug) |  |  |
 | TEST.616 | tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug) |  |  |
 | TEST.614 | tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug) |  |  |
