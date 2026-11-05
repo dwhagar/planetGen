@@ -8,9 +8,12 @@
 // (list, find) are at once. Every storage read and write is wrapped by the store: with storage blocked there are just no waypoints, and
 // adding one says so.
 //
-// An entry is {name, kind, value, url?, created}: `value` is the NAV endpoint ("system:12", "nebula:3"), the entry's key.
+// An entry is {name, kind, value, url?, position?, created}: `value` is the NAV endpoint ("system:12", "nebula:3"), the entry's key, and
+// `position` (x, y, z in parsecs, galaxy frame) is where the Galaxy Map flags it when the card it was picked from knew it.
 //
 // Importing this module wires whatever the page has (no inline script, see the Content-Security-Policy in web/__init__.py):
+// - [data-waypoint-toggle]: an Add waypoint button on a system, phenomenon or body page, its entry in data-waypoint-kind, -value, -name
+//   and -url. Hidden until wired.
 // - [data-waypoints-menu]: the Galaxy Map's Waypoints menu (a <details>), its [data-waypoints-panel] filled with the list and its
 //   [data-waypoints-count] with the number of waypoints. Two or more waypoints plot a course (NAV.49): the Galaxy Map takes them in its
 //   address, `?via=<a>,<b>,...`, and draws the course through them (web/nav_page.galaxy_course_through). The course stays: a Galaxy Map
@@ -20,6 +23,7 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { createStore, localBackend } = await import(`./savedlist.js${VERSION_QUERY}`);
+const SC = await import(`./savedcourse.js${VERSION_QUERY}`);
 
 export const MAX_WAYPOINTS = 20;
 const FLAG = "\u2691";
@@ -30,8 +34,8 @@ const ENDPOINT_RE = /^[a-z_]+:[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}$/;
 // --- The store -------------------------------------------------------------------
 
 function database() {
-  const el = document.querySelector("[data-bookmark-db]");
-  return el ? el.getAttribute("data-bookmark-db") || "" : "";
+  const el = document.querySelector("[data-bookmark-db], [data-course-db]");
+  return el ? el.getAttribute("data-bookmark-db") || el.getAttribute("data-course-db") || "" : "";
 }
 
 // True for something a course can go through: an entry with a NAV endpoint (a map view or a sector, which the bookmarks keep, has none).
@@ -47,6 +51,7 @@ function keyOf(entry) {
 function build(entry) {
   const saved = { name: entry.name.trim() || entry.value, kind: entry.value.split(":")[0], value: entry.value, created: new Date().toISOString() };
   if (entry.url) saved.url = entry.url;
+  if (Array.isArray(entry.position) && entry.position.length === 3 && entry.position.every(Number.isFinite)) saved.position = entry.position.slice();
   return saved;
 }
 
@@ -90,9 +95,78 @@ export function remove(value) {
   return store.remove(value);
 }
 
-// A promise: every waypoint removed.
+// A promise: every waypoint removed, and the saved course they were opened from forgotten.
 export async function clear() {
-  for (const entry of store.list()) await store.remove(entry.value);
+  setSource(null);
+  await store.setAll([]);
+}
+
+// A promise of whether the waypoint with endpoint `value` now stands `by` places later (negative: earlier) in the course (NAV.58).
+export function move(value, by) {
+  return store.move(value, by);
+}
+
+// A promise of {ok, entry}: the waypoint with endpoint `value` is now `entry` ({name, value, kind?, url?, position?}), in the same place
+// in the course (NAV.58: a waypoint dragged onto another object).
+export function replace(value, entry) {
+  return store.replace(value, entry);
+}
+
+// --- The saved course the waypoints came from (NAV.58) ------------------------------------
+
+const SOURCE_PREFIX = "planetgen.waypoint-course.";
+
+function sourceKeyName() {
+  const name = database();
+  return name ? SOURCE_PREFIX + name : null;
+}
+
+// The key of the saved course (savedcourse.js) the waypoints were opened from or last saved as, or null: Save over replaces that one.
+export function source() {
+  const key = sourceKeyName();
+  if (!key) return null;
+  try {
+    return window.localStorage.getItem(key) || null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function setSource(courseKey) {
+  const key = sourceKeyName();
+  if (!key) return;
+  try {
+    if (courseKey) window.localStorage.setItem(key, courseKey);
+    else window.localStorage.removeItem(key);
+  } catch (err) {
+    // Not kept: Save over is just not offered.
+  }
+}
+
+export const courses = SC.courseStore(database);
+
+// The saved courses that go through waypoints, in the order saved.
+export function savedCourses() {
+  return courses.list().filter(SC.isWaypointCourse);
+}
+
+// Saves the waypoints as a course named `name`, over the saved course `overKey` when given: a promise of {ok, record} or {ok: false,
+// reason}. The saved course becomes the one the waypoints came from.
+export async function saveCourse(name, overKey) {
+  const entries = list();
+  if (entries.length < 2) return { ok: false, reason: "A course needs two or more waypoints." };
+  const record = SC.recordOfWaypoints(entries, name);
+  const result = overKey ? await courses.replace(overKey, record) : await courses.add(record);
+  if (!result.ok) return result;
+  setSource(SC.courseKey(result.entry));
+  return { ok: true, record: result.entry };
+}
+
+// Makes the waypoints those of the saved course `record` (one write), remembering it as their source: a promise of {ok}.
+export async function openCourse(record) {
+  const result = await store.setAll(record.stops);
+  if (result.ok) setSource(SC.courseKey(record));
+  return result;
 }
 
 // Calls `fn` whenever the waypoints change, here or in another tab.
@@ -141,6 +215,14 @@ export function toggleButton(button, entryFn, compact) {
   refresh();
   ready.then(refresh);
   return refresh;
+}
+
+function wireToggles() {
+  document.querySelectorAll("[data-waypoint-toggle]").forEach(function (button) {
+    const d = button.dataset;
+    const entry = { name: d.waypointName || "", kind: d.waypointKind, value: d.waypointValue, url: d.waypointUrl || null };
+    toggleButton(button, function () { return entry; });
+  });
 }
 
 // --- The course through the waypoints (NAV.49) -------------------------------------------
@@ -206,6 +288,7 @@ function renderMenu(menu) {
   }
   if (!entries.length) {
     panel.appendChild(el("p", "hint", "No waypoints yet. Select a star system or object and press Add waypoint."));
+    if (courses.available()) renderSaving(menu, panel, entries);
     return;
   }
   const ol = el("ol", "bookmarks-list waypoints-list");
@@ -217,6 +300,22 @@ function renderMenu(menu) {
     link.appendChild(el("span", "bookmarks-kind", kindLabel(entry.kind)));
     li.appendChild(link);
     const actions = el("span", "bookmarks-actions");
+    [["Up", -1, "earlier"], ["Down", 1, "later"]].forEach(function (way) {
+      const step = el("button", "bookmarks-action waypoints-move", way[0]);
+      step.type = "button";
+      step.setAttribute("aria-label", "Move waypoint " + (n + 1) + ", " + entry.name + ", " + way[2]);
+      step.disabled = way[1] < 0 ? n === 0 : n === entries.length - 1;
+      step.addEventListener("click", async function () {
+        await move(entry.value, way[1]);
+        renderMenu(menu);
+        const items = panel.querySelectorAll("li.bookmarks-item");
+        const again = items[n + way[1]];
+        const same = again && again.querySelector(".waypoints-move:nth-of-type(" + (way[1] < 0 ? 1 : 2) + ")");
+        const target = same && !same.disabled ? same : again && again.querySelector(".waypoints-move:not(:disabled)");
+        (target || panel.querySelector(".bookmarks-open") || menu.querySelector("summary")).focus();
+      });
+      actions.appendChild(step);
+    });
     const removeButton = el("button", "bookmarks-action", "Remove");
     removeButton.type = "button";
     removeButton.setAttribute("aria-label", "Remove waypoint " + (n + 1) + ", " + entry.name);
@@ -244,6 +343,7 @@ function renderMenu(menu) {
   } else if (values.length < 2 && state === "plotted") {
     panel.appendChild(el("p", "hint", "A course needs two or more waypoints."));
   }
+  if (courses.available()) renderSaving(menu, panel, entries);
   const clearButton = el("button", "bookmarks-action waypoints-clear", "Clear all");
   clearButton.type = "button";
   clearButton.addEventListener("click", async function () {
@@ -256,6 +356,97 @@ function renderMenu(menu) {
     menu.querySelector("summary").focus();
   });
   panel.appendChild(clearButton);
+}
+
+// Saving the waypoints as a course, and the saved courses through waypoints (NAV.58): Save over the one these waypoints came from, Save as
+// new, a line saying the course is saved, and Open for each saved course, which makes its stops the waypoints and plots them.
+function renderSaving(menu, panel, entries) {
+  const box = el("div", "waypoints-saving");
+  const stopsKey = entries.length >= 2 ? SC.courseKey(SC.recordOfWaypoints(entries, "")) : null;
+  const saved = stopsKey && courses.list().find(function (other) { return SC.courseKey(other) === stopsKey; });
+  const from = courses.list().find(function (other) { return SC.courseKey(other) === source(); });
+  if (saved) box.appendChild(el("p", "hint", "Saved as “" + saved.name + "”."));
+  function done(result, button) {
+    if (!result.ok) window.alert(result.reason);
+    renderMenu(menu);
+    (button.isConnected ? button : menu.querySelector("summary")).focus();
+  }
+  if (entries.length >= 2 && from && !saved) {
+    const over = el("button", "bookmarks-action waypoints-save-over", "Save over “" + from.name + "”");
+    over.type = "button";
+    over.addEventListener("click", async function () { done(await saveCourse(from.name, SC.courseKey(from)), over); });
+    box.appendChild(over);
+  }
+  if (entries.length >= 2 && !saved) {
+    const fresh = el("button", "bookmarks-action waypoints-save-new", "Save as new course");
+    fresh.type = "button";
+    fresh.addEventListener("click", async function () {
+      const name = window.prompt("Name this course:", entries[0].name + " to " + entries[entries.length - 1].name);
+      if (name === null) return;
+      done(await saveCourse(name, null), fresh);
+    });
+    box.appendChild(fresh);
+  }
+  const others = savedCourses().filter(function (record) { return SC.courseKey(record) !== stopsKey; });
+  if (others.length) {
+    box.appendChild(el("p", "hint", "Saved courses through waypoints:"));
+    const ul = el("ul", "bookmarks-list");
+    others.forEach(function (record) {
+      const li = el("li", "bookmarks-item");
+      li.appendChild(el("span", "bookmarks-name", record.name));
+      const open = el("button", "bookmarks-action", "Open");
+      open.type = "button";
+      open.setAttribute("aria-label", "Open saved course " + record.name + " as the waypoints");
+      open.addEventListener("click", async function () { await openAndPlot(record); });
+      li.appendChild(open);
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+  panel.appendChild(box);
+}
+
+// Makes the stops of the saved course `record` the waypoints and shows the course through them on the Galaxy Map, opening that map when
+// this is not it (`href` is the map's address; default: this page's own, a Galaxy Map).
+export async function openAndPlot(record, href) {
+  const result = await openCourse(record);
+  if (!result.ok) {
+    window.alert(result.reason);
+    return;
+  }
+  rememberOpen();
+  window.location.assign(plotUrl(href || here(), list().map(function (entry) { return entry.value; })));
+}
+
+// The course follows an edit (NAV.58): when the map shows the course through the waypoints and they change, the address is changed to plot
+// the course through the new list, or to drop it when fewer than two are left; the menu comes back open as it was.
+const OPEN_KEY = "planetgen.waypoints-open";
+
+function rememberOpen() {
+  try {
+    window.sessionStorage.setItem(OPEN_KEY, "1");
+  } catch (err) {
+    // The menu just comes back closed.
+  }
+}
+
+function wasOpen() {
+  try {
+    const open = window.sessionStorage.getItem(OPEN_KEY) === "1";
+    window.sessionStorage.removeItem(OPEN_KEY);
+    return open;
+  } catch (err) {
+    return false;
+  }
+}
+
+function followEdit(menus) {
+  const values = list().map(function (entry) { return entry.value; });
+  const shown = viaOf(window.location.search).length > 0;
+  const state = plotState(window.location.search, values);
+  if (!shown || state === "other" || state === "plotted") return;
+  if (menus.some(function (menu) { return menu.open; })) rememberOpen();
+  window.location.assign(plotUrl(here(), values));
 }
 
 // The course stays until the waypoints are cleared: a Galaxy Map with two or more and no course through them is opened again with them
@@ -273,14 +464,14 @@ function wireMenus() {
     renderMenu(menu);
     onChange(function () {
       renderMenu(menu);
-      // The course through waypoints goes when fewer than two are left.
-      if (list().length < 2 && viaOf(window.location.search).length && plotState(window.location.search, []) !== "other") {
-        window.location.assign(plotUrl(here(), []));
-      }
+      followEdit(Array.from(menus));
     });
+    courses.onChange(function () { renderMenu(menu); });
     ready.then(function () { renderMenu(menu); });
+    if (wasOpen()) menu.open = true;
   });
   if (menus.length) ready.then(keepCourse);
 }
 
 wireMenus();
+wireToggles();

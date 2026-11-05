@@ -109,3 +109,33 @@ test("an adjusted path (NAV.6) that changes is reported once courses have one", 
   assert.deepEqual(C.changesSince(record, answer({ adjusted: { path: [[0, 0, 0], [2, 2, 2]] } })),
     ["The adjusted path around gravity wells has changed."]);
 });
+
+const STOPS = [
+  { name: "Alpha", kind: "system", value: "system:1", url: "/system/1", position: [1, 2, 3] },
+  { name: "Veil", kind: "nebula", value: "nebula:3" },
+  { name: "Omega", kind: "system", value: "system:2", url: "/system/2" },
+];
+
+test("a course through waypoints keeps its stops in order and is known by all of them (NAV.58)", () => {
+  const record = C.recordOfWaypoints(STOPS, "  Round trip ", WHEN);
+  assert.equal(C.isWaypointCourse(record), true);
+  assert.equal(record.name, "Round trip");
+  assert.equal(record.from, "system:1");
+  assert.equal(record.to, "system:2");
+  assert.equal(record.fromName, "Alpha");
+  assert.deepEqual(record.stops.map((s) => s.value), ["system:1", "nebula:3", "system:2"]);
+  assert.deepEqual(record.stops[0].position, [1, 2, 3]);
+  assert.equal(record.route, null);
+  assert.equal(C.courseKey(record), "via:system:1>nebula:3>system:2");
+  assert.equal(C.recordOfWaypoints(STOPS, "", WHEN).name, "Alpha to Omega");
+});
+
+test("the same stops in another order, or a plain course between the same ends, are other courses (NAV.58)", () => {
+  const record = C.recordOfWaypoints(STOPS, "a", WHEN);
+  const reordered = C.recordOfWaypoints([STOPS[0], STOPS[2], STOPS[1]], "a", WHEN);
+  assert.notEqual(C.courseKey(record), C.courseKey(reordered));
+  const plain = C.recordOf(answer({ origin: { ref: "system:1", name: "Alpha" }, destination: { ref: "system:2", name: "Omega" } }), "p", WHEN);
+  assert.equal(C.isWaypointCourse(plain), false);
+  assert.equal(C.courseKey(plain), "system:1>system:2");
+  assert.notEqual(C.courseKey(plain), C.courseKey(C.recordOfWaypoints([STOPS[0], STOPS[2]], "p", WHEN)));
+});

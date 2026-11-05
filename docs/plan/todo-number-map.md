@@ -16,17 +16,17 @@ release is stamped.
 | UX | UX.263 |
 | MAP | MAP.383 |
 | NAV | NAV.74 |
-| GEN | GEN.1279 |
+| GEN | GEN.1281 |
 | PERF | PERF.241 |
 | DB | DB.110 |
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.598 |
+| TEST | TEST.602 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
-| VIEW | VIEW.42 |
+| VIEW | VIEW.43 |
 | POP | POP.46 |
 
 ## Why this exists
@@ -2056,6 +2056,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1276 | Nebula composition part g: store the composition of every nebula and supernova remnant (new columns, progenitor mass, epoch, migration, backfill, units and wiring register) | none | open |
 | GEN.1277 | Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one | none | open |
 | GEN.1278 | Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14) | none | open |
+| GEN.1279 | The generated sky holds only a fifth of the real stars from absolute magnitude -3 to 4 (A and F stars and giants) when counted against the HYG catalogue (bug) | none | done, PR #5122 |
+| GEN.1280 | The generated sky has about 24 times too many stars brighter than absolute magnitude -6 when counted without dust (bug) | none | done, PR #5122 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2437,7 +2439,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.379 | Five camera and geometry fixture-map browser tests are red on main: block build extent, block lines at rest, edge-on bounds, one-wheel scroll, wheel view over the disc (bug) | none | done, PR #4954 |
 | MAP.380 | The wheel does not come close enough to tell two stars under a tenth of a parsec apart (test red on main) (bug) | none | done, PR #4997 |
 | MAP.381 | Sector Map: draw the globular clusters and label them by name or designation | none | open |
-| MAP.382 | The field cloud sprite on the Galaxy Map is on screen only 1 to 2 frames, about 3.7 s after the window opens, instead of staying while the clouds are in view (bug) | none | open |
+| MAP.382 | The field cloud sprite on the Galaxy Map is on screen only 1 to 2 frames, about 3.7 s after the window opens, instead of staying while the clouds are in view (bug) | none | done, PR #5111 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2486,7 +2488,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | closed, already fixed; covered by a browser test (#568) |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | done, PR #1389 |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | done, PR #1195 |
-| NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
+| NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | done, PR #5109 |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
 | NAV.51 | Courses route around asteroid fields | none | open |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
@@ -2495,7 +2497,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.55 | A tuning block for the keep-out knobs | none | merged into NAV.54 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
-| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | none | open |
+| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | none | done, PR #5118 |
 | NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | none | open |
 | NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | none | done, PR #1977 |
 | NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count | none | done, PR #3685 |
@@ -3262,6 +3264,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off | none | open |
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom | none | open |
 | VIEW.41 | System sky backfill is three orders slower than planned: a coarser block draw for the sparse bright bands, and a ring of faint stars near the observer | none | done, PR #5034 |
+| VIEW.42 | The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug) | none | open |
 
 ## Tree IDs to flat IDs
 
@@ -3944,8 +3947,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.593 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits is red on plain main (bug) | none | done, PR #5079 |
 | TEST.594 | tests/js/galaxymap.test.mjs fails on plain main (bug) | none | done, PR #5088 |
 | TEST.595 | Three map browser tests are red on plain main: test_web_browser_map_card.py black hole at 1920x1080 and 390x844 (waits for a Fixture Maw button) and the gas giants and two-reasons info box test (misses Fixture Eden) (bug) | none | done, PR #5104 |
-| TEST.596 | test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug) | none | open |
+| TEST.596 | test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug) | none | done, PR #5115 |
 | TEST.597 | test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch is flaky on plain main: about 1 run in 3 a region label shows (bug) | none | done, PR #5106 |
+| TEST.598 | test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug) | none | open |
+| TEST.599 | test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug) | none | open |
+| TEST.600 | Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12) | none | open |
+| TEST.601 | Two tests still expect the British spelling neighbour after DOC.103: test_nav_course_diagram_draws_the_neighbours and test_the_page_says_a_link_is_a_neighbour_relation (bug) | none | done, PR #5121 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

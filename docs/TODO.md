@@ -1913,22 +1913,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
 
-- [ ] **MAP.382 The field cloud sprite on the Galaxy Map is on screen only 1 to 2 frames, about 3.7 s after the window opens, instead of staying while the clouds are in view (bug)**
-  Core 5 (as the lane reported, about 8:30 AM EST on 2026-11-05), fixing
-  TEST.575, found that the field cloud sprite (MAP.178) is on screen
-  only 1 to 2 frames about 3.7 s after the window opens, even at
-  MAP.178's own commit d4051832b, so the test now records it with a
-  MutationObserver. If the sprite is meant to stay on screen at steady
-  state, this is a map bug; if it is a one-time fade by design, say so
-  in the item and close it. Do: look at the field cloud sprite lifecycle
-  in the map JS (when it is added, when it is removed or hidden), decide
-  which is intended from MAP.178's text, and either fix it with a
-  browser test that holds at steady state or record the by-design
-  behavior. Done: the answer in the item and, if a bug, a passing test
-  that the sprite is present 5 s after the window opens. Lock-free.
-  Version 8.1. Owner: Core 4 (wrote MAP.178). Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.178.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -2149,30 +2133,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as ordinary, and the course says what changed. Prerequisites: none.
   Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
 
-- [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
-  Boss (2026-10-07 11:47Z): "Then you can go find another location
-  (star, planet, whatever) and select it and you can add a 2nd waypoint,
-  waypoints are highlighted at all map levels with an icon it will plot
-  a course." And: "Plotted courses should appear on the galactic map and
-  stay until cleared." Done: waypoints set from Star select mode are
-  marked with an icon at every map level, two or more plot a course, and
-  the course stays drawn on every map until cleared.
-  Research (2026-10-09): MAP.122 was rescoped (7:40 PM EDT 2026-10-28):
-  it now delivers the Bookmark action and the touch reach on the star
-  panel; this item only adds the Waypoint button on that panel.
-  Parts 49a and 49c merged (Core 2, #5092, #5101) (7:40 AM EST on
-  2026-11-05): 49a: a waypoint flag on the info card of a system or
-  object and a Waypoints menu beside Bookmarks (order picked, Remove,
-  Clear all), kept in the browser. 49c: with two or more waypoints the
-  menu offers Plot the course; the Galaxy Map draws the course through
-  them (each leg planned like any course: route, direct line, bend round
-  keep-out spheres), waypoints ringed and named, fitted view, kept until
-  Clear all or Remove down to one; the address carries ?via=. Galaxy Map
-  only (inside a sector or system is NAV.22, MAP.217). Left: 49b,
-  waypoint icons at every map level. This item stays open for 49b.
-  Prerequisites: MAP.122.
-  Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
-
 - [ ] **NAV.56 Census of overlapping keep-out spheres in a generated galaxy**
   Count how many pairs of keep-out spheres overlap in a generated
   galaxy. The answer decides whether NAV.26's cluster fallback ever
@@ -2208,17 +2168,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.157.
   Design: [docs/design/galaxy/multiple-galaxies.md](design/galaxy/multiple-galaxies.md)
 
-- [ ] **NAV.58 Edit a course: add, remove, reorder and drag its waypoints, then save the edit**
-  Boss (2026-10-10 21:05Z): the 8.5 headline is courses with waypoints
-  that are editable and saved. Waypoints today are picked once and
-  plotted (NAV.49). Done: a course drawn on the map (any display) can be
-  edited in place: add a waypoint by picking an object, remove one,
-  reorder them, or drag a waypoint to another object; the course is
-  re-planned after each edit (bending around gravity wells once NAV.6 is
-  built) and the edit is saved over the saved course or as a new one
-  (NAV.4); a test checks add, remove, reorder and save.
-  Prerequisites: NAV.49, NAV.4. Related: NAV.6, NAV.18, NAV.59.
-
 - [ ] **NAV.59 Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses**
   Boss (2026-10-10 21:05Z) chose this as the seminal feature of 8.5 (the
   end of phase 2). Umbrella: it is done when a viewer plots a course
@@ -2228,7 +2177,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NAV.4, NAV.23). The gravity map (GEN.198) is the same field drawn as
   a view and is related, not a prerequisite: NAV.6 does not wait for it.
   Headline: 8.5 (courses that bend around gravity wells).
-  Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4. Related: GEN.198,
+  Prerequisites: NAV.6, NAV.4. Related: GEN.198,
   MAP.167.
 
 - [ ] **NAV.62 Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model**
@@ -11723,6 +11672,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1092 part A. How many irregular moons a giant can capture now
   depends on how unstable its system was (lost or thrown planets in its
   architecture); roughly 4 percent of systems get a capture window.
+  Add: INSTABILITY wiring for belts (TODO, from Star 2) (10:50 AM EST on
+  2026-11-05): Star 2 found that GEN.1232b is satisfied by GEN.1068
+  except the Nice-type instability case: belt_origin
+  (src/planetgen/physics/belt_origin.py) already applies the Grand Tack
+  survival (BR4) and the origin_history sentence, and system.py already
+  trims belts inside the star's stability orbit ceiling. Left: when the
+  architecture records an instability (this item), belt_origin reads it
+  and applies the INSTABILITY survival 0.1 to 0.5 (BR5) with its history
+  sentence. Do that here, with a test and the stand-in rows BR5 already
+  registered.
   Prerequisites: GEN.1077. Related: GEN.728.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -13284,6 +13243,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on 2026-11-05): GEN.1232a merged: the belt history text is stored on
   the belt and shown on its page. GEN.1232b (wire giant_event into
   generation) stays open and waits for Aux 5.
+  Scope cut (TODO, from Star 2) (10:50 AM EST on 2026-11-05): GEN.1232b
+  closes as satisfied by GEN.1068 (belt_origin) except the INSTABILITY
+  case, which moves to GEN.1082. Star 2 repoints or removes the
+  wiring-register lines for history_text, giant_event and the companion
+  limit (belt_history.giant_event and limit are duplicated by
+  belt_origin and the stability ceiling; delete them with their tests if
+  nothing reads them, no shim), then this item retires.
   Prerequisites: none. Related: GEN.1072, GEN.1068.
 
 - [ ] **GEN.1236 Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug)**
@@ -17945,6 +17911,11 @@ clears each one.
   added lines for the sky and glow rows only). The nebula group stays
   with Tides 1. The train 10 gate shows kind factors red on main too, so
   check first whether train 10 changes it.
+  Groups merged (TODO) (9:58 AM EST on 2026-11-05): Nebula group merged
+  by Tides 1 (#5025). Non-nebula groups merged by Core 5 (#5086, #5087:
+  burn-down lines, Magellanic supernova claim, halo planet count). Left:
+  the life-class tests (test_system_interests), Bug 1's. This item
+  closes when those are green on main.
   Prerequisites: none. Related: TEST.579, GEN.367.
 
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
@@ -18010,20 +17981,50 @@ clears each one.
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
-- [ ] **TEST.596 test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug)**
-  The Train Manager (as the lane reported, 7:11 AM EST on 2026-11-05)
-  listed these as red on plain main as well as in the train 10 gate:
-  tests/test_generation_mix.py (giant densities and the zone mix) and
-  tests/test_fuzz_planet_inputs.py. Do: first drop leftover planetgen_*
-  databases and run each alone on current main; find the commit that
-  turned each red (git bisect on the one test file) and say which item
-  owns it; fix the test with the reason or the code. Do not loosen a
-  check to get green. Done: both green on main, with the cause of each
-  noted. Lock-free unless the cause is a stored value, in which case
-  stop and tell TODO. Version 8.1. Owner: Tides 1 (the TEST.580
-  life-class tests stay with Bug 1; test_fuzz_system_generation is
-  TEST.571's). Filed by the TODO thread.
+- [ ] **TEST.598 test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug)**
+  Aux 5 (as the lane reported, about 9:00 AM EST on 2026-11-05) found
+  tests/test_fingerprint.py, whose table list does not include
+  designations and chart_ledger, and tests/test_bring_to_epoch.py, whose
+  epoch counts no longer match, red on plain main. Do: run each alone on
+  current main; bisect each file to the commit that turned it red (the
+  table list probably moved with GEN.1014 and GEN.1127, the epoch counts
+  with epoch 132 or an earlier epoch bump); say which item owns each;
+  fix the test with the reason, or the code if the test is right. Do not
+  loosen a check. Done: both green on main with the cause of each noted.
+  Lock-free unless a stored value is the cause (then stop and tell
+  TODO). Version 8.1. Owner: Aux 7. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.580.
+
+- [ ] **TEST.599 test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug)**
+  Core 2 (as the lane reported, about 9:10 AM EST on 2026-11-05) saw
+  tests/test_web_a11y.py -k web.system-phone-light fail on plain main on
+  a skip-link tab stop, and says link-colour axe checks also read red on
+  its machine. Core 3 saw web.system pass (8 passed, 4 skipped) on its
+  machine at main 10cf0b86d, so the failure may follow a later commit or
+  the machine. Do: run web.system-phone-light alone on current main,
+  print the failing assertion (the tab order with the skip link first,
+  or a link contrast), bisect test_web_a11y.py to the commit that turned
+  it red, and fix the page or the test at the cause; if it still passes
+  on a second lane machine, say which difference matters. Done:
+  web.system passes on current main on two lane machines. Lock-free.
+  Version 8.1. Owner: Core 3. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.346.
+
+- [ ] **TEST.600 Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12)**
+  The Train Manager (as the lane reported, 9:28 AM EST on 2026-11-05)
+  asked for this. GEN.1275 (the habitable-world bar, Bug 1) and TEST.579
+  (remeasured prevalence base shares, Bug 1, branch
+  bug1/test579-base-shares eac2a5a48, includes PERF.236) were held out
+  of train 11 because GEN.1275 duplicates the bar of GEN.1250 and
+  conflicts in planet.py and system.py; they go to train 12 after Bug 1
+  rebases and keeps one bar. Do: once both land, run the census re-tag,
+  re-baseline the TEST.430 prevalence rows for the new base shares
+  (asteroid_belt 0.653, habitable_world 0.584, large_star 0.056, planets
+  0.822) and check test_prevalence.py goes green (habitable_world -50 is
+  fixed by GEN.1275). Done: the census and prevalence tests pass on main
+  with no other test moved. Version 8.1. Owner: Train Manager, after
+  train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.430.
 
 ## USR: User accounts
 
@@ -19645,6 +19646,27 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   limiting magnitude is a setting with default 7.5, lower on phones;
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
+  Built (Core 3) (10:25 AM EST on 2026-11-05): Branch
+  claude/view30-sky-calibration f6d1a5301, stacked on view25; merge
+  after VIEW.25 lands. Band set: the dust-free sky at 6.5 holds 15 to 40
+  percent of the HYG count (measured 24.5 percent). Setup also fetches
+  the HYG v4.1 catalog (dataset hyg_stars, not required; CC BY-SA 4.0,
+  noted for Boss's DATA-LICENSE.md). Test needs
+  PLANETGEN_SKY_CALIBRATION=1 and the catalog, 25 to 40 minutes, so
+  normal gates skip it. Follow-ups: GEN.1279, GEN.1280 (stars, from the
+  findings), VIEW.42 (sky route ledger). The default dust law leaves 586
+  stars beyond 217 pc against 2,184 dust-free: whoever builds the dust
+  law (VIEW.20 was its home) should check its scale.
+  Retarget (TODO, from Star 2) (10:45 AM EST on 2026-11-05): Star 2's
+  report (reports/gen1279-1280-sky-counts-cause-2026-11-05.md) shows the
+  24.5 percent figure comes mostly from the test galaxy: the site is 84
+  percent thick disc (recent star formation factor 0.2 six scale lengths
+  out, so 97+ percent of its stars are 3 Gy or older), and the 75 pc
+  scale height puts most of the 6.5 sample sphere above the disc; the
+  model's luminosity function is 0.55 to 1.7 of HYG. Change the
+  calibration to a disc-dominated galaxy, the sample at about three
+  scale lengths, with a high bright-star floor, and set the band again.
+  Core 3 does this on branch claude/view30-sky-calibration.
   Prerequisites: VIEW.25.
 
 - [ ] **VIEW.39 System sky S21 (optional): aberration of the observer's motion, default off**
@@ -19679,6 +19701,23 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
   Prerequisites: VIEW.35.
+
+- [ ] **VIEW.42 The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug)**
+  Core 3 (as the lane reported, about 10:20 AM EST on 2026-11-05) found
+  that the sky route (VIEW.31) reports built_to_pc 0.0 after a full
+  chart, because it does not read the sky_tier_draws ledger of VIEW.25.
+  Do: make the route read the ledger so built_to_pc says how far out the
+  sky is built; a test charts a sector and expects built_to_pc above 0.
+  Done: the test. Lock-free once VIEW.25 has landed (train 12), stack it
+  on branch view25. Version 8.1. Owner: Planets 1 (wrote VIEW.31 and
+  VIEW.25). Filed by the TODO thread.
+  Possible cause of the remaining factor (TODO, from Star 2) (10:45 AM
+  EST on 2026-11-05): Star 2 finds a further factor 2 to 3 between the
+  model integral and the generated sky, largest at absolute magnitude 0
+  to 2 (the backfill range), and names the sky route not reading the
+  VIEW.25 ledger as the candidate. After this item lands, rerun the
+  VIEW.30 calibration; if the factor remains, file it as its own item.
+  Prerequisites: none. Related: VIEW.31.
 
 ## POP: Population and politics
 

@@ -13,7 +13,8 @@
 //   where there is none (both ends in one system, or no route through known space);
 // - adjusted: the path bent clear of the gravity wells it passes (NAV.6), as the API answers it, or null until a
 //   course has one.
-// A course is known by its two ends, in order.
+// A course is known by its two ends, in order. A course through waypoints (NAV.58) also has `stops`, the waypoints in order, and is known
+// by all of them; it has no planned legs.
 //
 // `changesSince(record, result)` plans the course again from the current galaxy's answer and lists what differs, in
 // words: the correlative update moves systems along their galactic orbits and a regenerated system can vanish.
@@ -36,8 +37,15 @@ export function isCourse(entry) {
     && typeof entry.name === "string" && entry.from !== "" && entry.to !== "";
 }
 
+// A course through waypoints (NAV.58) is known by all its stops, in order; the other kind by its two ends.
+export function isWaypointCourse(entry) {
+  return isCourse(entry) && Array.isArray(entry.stops) && entry.stops.length >= 2
+    && entry.stops.every(function (stop) { return !!stop && typeof stop.value === "string" && typeof stop.name === "string"; });
+}
+
 export function courseKey(entry) {
-  return isCourse(entry) ? entry.from + ">" + entry.to : null;
+  if (!isCourse(entry)) return null;
+  return isWaypointCourse(entry) ? "via:" + entry.stops.map(function (stop) { return stop.value; }).join(">") : entry.from + ">" + entry.to;
 }
 
 function round(value) {
@@ -76,6 +84,32 @@ export function recordOf(result, name, now) {
     direct: leg(result.direct),
     route: routeOf(result.route),
     adjusted: result.adjusted || null,
+  };
+}
+
+// The record for the course through the waypoints `entries` (waypoints.js entries, in order), named `name` (default: the names of its first
+// and last stop). It keeps the stops themselves, so opening it for editing puts them back as the waypoints; it holds no planned legs (the
+// course is planned again where it is shown).
+export function recordOfWaypoints(entries, name, now) {
+  const first = entries[0];
+  const last = entries[entries.length - 1];
+  return {
+    kind: COURSE_KIND,
+    name: String(name || "").trim() || first.name + " to " + last.name,
+    from: first.value,
+    to: last.value,
+    fromName: first.name,
+    toName: last.name,
+    saved: (now || new Date()).toISOString(),
+    direct: null,
+    route: null,
+    adjusted: null,
+    stops: entries.map(function (entry) {
+      const stop = { value: entry.value, name: entry.name, kind: entry.kind };
+      if (entry.url) stop.url = entry.url;
+      if (Array.isArray(entry.position)) stop.position = entry.position.slice();
+      return stop;
+    }),
   };
 }
 
@@ -145,6 +179,7 @@ export function courseStore(suffix) {
       invalid: "That course can't be saved.",
       full: function (most) { return "You have " + most + " saved courses, the most there can be; delete one first."; },
       blocked: "This browser isn't letting the site save courses.",
+      duplicate: "You already have a saved course through those stops.",
     },
   });
 }

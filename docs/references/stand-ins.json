@@ -40511,44 +40511,6 @@
           "fields": [
             [
               "What it is",
-              "belt_history.GRAND_TACK_SURVIVAL (2e-3, 1e-2) and belt_history.INSTABILITY_SURVIVAL (0.1, 0.5): the share of a belt left after a migration of a giant through it and after an instability alone, drawn log-uniform"
-            ],
-            [
-              "The range it moves in",
-              "one decade each way (as BR4 and BR5 of 6.95)"
-            ],
-            [
-              "Where it holds",
-              "belts of systems with such an event"
-            ],
-            [
-              "What would show it wrong",
-              "a system with the event whose belt is outside the range"
-            ],
-            [
-              "What replaces it",
-              "N-body migration and instability runs with the system's own giants (GEN.1054 origin table)"
-            ],
-            [
-              "Evidence",
-              "[R4603] ([R4603], READ); [R3150] ([R3150], READ)"
-            ]
-          ],
-          "id": "BHS1",
-          "key": "6.117:BHS1",
-          "kind": "P",
-          "slug": "6-117-bhs1",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L1",
-          "unread": null,
-          "what": "belt_history.GRAND_TACK_SURVIVAL (2e-3, 1e-2) and belt_history.INSTABILITY_SURVIVAL (0.1, 0.5): the share of a belt left after a migration of a giant through it and after an instability alone, drawn log-uniform"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "belt_history.SURFACE_DENSITY_SLOPE 1.5: the belt's solids go as a^-1.5, so the mass between two distances goes as a^0.5"
             ],
             [
