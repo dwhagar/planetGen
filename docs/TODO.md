@@ -1190,30 +1190,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
-- [ ] **MAP.178 Field nebula clouds drawn one by one from the nebula table**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. individual clouds from `nebula_field` drawn as
-  sprites on the 1 to 4 px ramp of MAP.155, then as meshes,
-  de-duplicated with stored nebulae. Done: a browser test finds one of
-  each family on a seeded galaxy. Owner: Foundations lane 2.
-  Note (2026-10-10, nebula density research, PR #1188): the far sprite
-  is drawn at the equivalent radius (0.49 of the bounding radius) with
-  the 2 px floor and the MAP.155 ramp; the bounding radius stays for
-  picking and for the mesh load.
-  Note (2026-10-10, nebula density research, PR #1188): realistic cover
-  is about 2% at the median, so the ramp bins become 0, under 0.5%, 0.5
-  to 1.5%, 1.5 to 3% and 3% or more (or per-view percentiles).
-  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
-  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 4, after MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
-  MAP.222 order.
-  Prerequisite: MAP.173. Related: MAP.142.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
 - [ ] **MAP.179 Scattered nebulae as markers from level 8**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -1227,40 +1203,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.132), so it needs it (2026-10-16 review); it keeps the
   planetary-nebula and remnant kind.
   Prerequisites: GEN.202. Related: MAP.132.
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
-- [ ] **MAP.180 Picking, hover and fly-to for nebula regions and cover**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. hover and click on a region or on cover: a region
-  click flies to the zoom at which it splits (no page change), with a
-  keyboard path. Done: hover, click and keyboard paths with browser
-  tests. Owner: Foundations lane 2.
-  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
-  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 4, after MAP.178. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
-  MAP.222 order.
-  Prerequisite: MAP.176. Related: MAP.150 (done, #1382).
-  Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
-
-- [ ] **MAP.181 Dust colour for the dark nebula family on both themes**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/interface/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
-  visible feature. umber (about #a9805a at 0.45 opacity) with a light
-  rim on the dark theme, chosen with the contrast checker of MAP.175,
-  and a matching light-theme colour. Done: the tokens and the 3:1 test
-  pass for the new colours. Owner: Foundations lane 2.
-  Owner (TODO thread, Boss 8:30 PM EST on 2026-11-04: give the lock-free
-  nebula map items to the next free lane) (8:35 PM EST on 2026-11-04):
-  Core 4, with MAP.177. Core 2 keeps MAP.142 and the MAP.215, MAP.191,
-  MAP.222 order.
-  Prerequisites: none. Related: MAP.142.
   Design: [docs/design/interface/nebula-map-visibility.md](design/interface/nebula-map-visibility.md)
 
 - [ ] **MAP.183 Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc**
@@ -13039,7 +12981,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   honest share, and define the terrestrial-kind class T by its thin
   hydrogen air instead of calling it a gas dwarf. The giant-kind T
   bodies keep their stored envelope and are the real gas dwarfs.
-  Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1214.
+  Prerequisites: GEN.1219, GEN.1220, GEN.1221.
   Related: GEN.1215, GEN.1211.
 
 - [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
@@ -13261,143 +13203,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one-class list equals today's air becomes a test that any difference
   from today is one the audit explains and Boss has seen.
   Prerequisites: GEN.862. Related: GEN.1209, GEN.1210, UX.237.
-
-- [ ] **GEN.1214 Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug)**
-  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): investigate and
-  fix why CO2 and hydrocarbon (methane-ethane) seas are not being
-  created. Filed by the TODO thread. Overlap checked: the surface liquid
-  inventory GEN.1035 is done and wired (surface_liquids.py,
-  surface_liquid_world.py, migration 0188: surface_liquid,
-  surface_liquid_fraction, surface_liquid_depth_km); it should give a
-  Titan-like body a methane sea and a cold CO2 world a liquid CO2 sea,
-  but Boss sees none. Do: (1) a census over a few hundred generated
-  systems of surface_liquid by value (water, lava,
-  methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water,
-  sulfur, none) split by class and by temperature and pressure band,
-  printing the cold bodies (below 120 K) that hold a volatile ice or air
-  but get none, with the reason each time (ice mass fraction, saturation
-  pressure, the SURFACE_SHARE_OF_ICE share, the triple point window of
-  CO2 which needs more than 5.2 bar, the generator never reaching the
-  cold band, or a code path not called for moons or planets); (2) find
-  the cause and fix it at the cause; if a stand-in (LQ11 to LQ14) is the
-  cause, change it with tier and tweak level in GEN.725; (3) the fix
-  changes stored output (new liquids on worlds that had none), so it is
-  an epoch with --affects on a train, and the census is printed before
-  and after in the report. Physics drives; no forced seas. Owner: Tides
-  1 (built GEN.1035). Where we think it belongs (best guess, can move):
-  Tides 1.
-  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
-  2026-10-31) (2026-10-31 11:12 AM EDT): the research GEN.1216 will say
-  what composition the seas this item creates should have; fix the
-  creation first (this item), the composition follows in GEN.1218.
-  Evidence from the Class M thread (11:20 AM EDT 2026-10-31) (2026-10-31
-  11:25 AM EDT): two 300-system samples (seed 1000, seed 5): methane
-  seas 7 and 19, CO2 seas 2, pure ammonia 7, no sulfuric acid. Causes
-  found: about 17 percent of 90 to 190 K bodies get methane ice; 25 of
-  35 cold bodies over 50 kPa with methane ice get no sea
-  (SURFACE_SHARE_OF_ICE, stand-in LQ11); of 48 and 59 bodies in the CO2
-  sea window 42 and 52 take a water liquid first (one surface liquid per
-  body) and only 16 hold CO2 ice; ICE_LIQUID has no sulfuric acid and no
-  ammonia-water solution. So the item is: review the supply of non-water
-  seas (the ice draws, the share, one liquid per body, the missing
-  liquids) and add the missing liquids, not only a bug hunt.
-  Tides 1 census (as the lane reported, 11:25 AM EDT 2026-10-31)
-  (2026-10-31 11:35 AM EDT): report
-  /mnt/project-files/reports/tides1/gen1214/census-report-2026-10-31.md
-  (300 systems, 5,311 bodies). No single faulty stage: seas are rare
-  because three quarters of the cold volatile holders are under the
-  triple pressure (the ice sublimes) and the rest are outside narrow
-  windows; no in-window supplied body was left sealess, so LQ11 is not
-  the cause. Real gaps: N2 ice is never stored (the comet table has no
-  N2), no ethane liquid, no sulfuric acid or ammonia-water solution, and
-  one liquid per body (28 of 37 CO2-window bodies show water only). The
-  gaps go to the composition chain (GEN.1217, GEN.1218) and GEN.1215;
-  GEN.1215 can share an epoch with this item and GEN.1222.
-  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
-  and GEN.1222 as one lock branch (as the lane reported):
-  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
-  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
-  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
-  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
-  seas in its sample were wrong), and warm water under crushing air (4.5
-  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
-  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
-  classes read them, classes unchanged on 404 bodies. Goes after train 7
-  merges.
-  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.821.
-
-- [ ] **GEN.1215 Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable)**
-  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): store the acid
-  and ammonia fractions of the surface liquid, because they can make a
-  planet uninhabitable. Filed by the TODO thread. Overlap checked:
-  GEN.1035 stores only which liquid (surface_liquid), its cover fraction
-  and its depth; the ammonia-water row and the sulfuric branch of the
-  acid medium (GEN.888, still open) are not stored as numbers. Do: (1)
-  new numeric columns on planets and moons, for example
-  surface_liquid_ammonia_fraction and surface_liquid_acid_fraction (mass
-  fraction of the liquid; and the acid kind or strength where the model
-  has it, sulfuric from GEN.888), declared in db/column_units.py with a
-  migration, the schema document, the API and the property sheet; (2)
-  the surface liquid world step fills them from the same inputs it
-  already uses (the ammonia ice, the SO2 and water shares for sulfuric
-  acid, the temperature) with no new random draws; (3) habitability and
-  the life class tests read them: an ammonia fraction or an acid
-  strength past the tolerance of a life class makes the world unsuitable
-  for that class (the stand-ins for the tolerances go in GEN.725 with
-  tier and tweak level, L3 until a source is read); (4) the Life section
-  says why a sea is not livable. Output change with a migration: one
-  epoch on a train, can share the epoch of the seas bug. Owner: Tides 1
-  with Aux 2 (habitability and life classes). Where we think it belongs
-  (best guess, can move): Tides 1.
-  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
-  2026-10-31) (2026-10-31 11:12 AM EDT): this item is the first part of
-  the full composition model; the research is GEN.1216, the design
-  GEN.1217 and the build GEN.1218. Keep the columns of this item
-  compatible with the design (fractions of each component), and do not
-  build a second storage scheme.
-  Evidence from the Class M thread (11:20 AM EDT 2026-10-31) (2026-10-31
-  11:25 AM EDT): the functions exist in acid_medium.py and
-  strange_solvents.py but nothing stores them; Boss: they can make a
-  world uninhabitable. The class code system (GEN.1220) uses the acid
-  medium for the sulfuric acid class U and the ammonia-water mass
-  fraction for class X.
-  Boss decisions on the design (11:56 AM EDT 2026-10-31) (2026-10-31
-  11:58 AM EDT): Boss answered (11:56 AM EDT 2026-10-31): (1) yes, a
-  body may hold one extra liquid beside its main one; (2) store a
-  liquid's makeup as separate columns; (3) acid clouds vs pools NOT
-  answered, the coordinator will ask again, build pools only until he
-  does; (4) the ammonia life gate near 5 percent of the liquid's mass is
-  accepted as a starting guess, BUT it must be tuned from real physics
-  and chemistry (research GEN.1225); (5) invent the nitrogen ice amount
-  from where nitrogen freezes as a registered stand-in, also to be tuned
-  from physics and chemistry (same research); (6) a body with methane
-  and carbon monoxide ice warm enough for liquid methane gets a methane
-  sea. Build the acid and ammonia columns as the design says (separate
-  columns, percent of the liquid's mass); the acid cloud flag waits for
-  the answer to (3).
-  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
-  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
-  the strongest level with a pool-or-cloud flag. This replaces the
-  earlier note that cloud storage waited for an answer; all six surface
-  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
-  4 and 5 to be tuned from physics by GEN.1225).
-  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
-  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
-  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
-  the ammonia gate follows the liquidus share, and nitrogen ice uses the
-  trapping factor and the partial-pressure condensation temperature.
-  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
-  and GEN.1222 as one lock branch (as the lane reported):
-  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
-  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
-  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
-  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
-  seas in its sample were wrong), and warm water under crushing air (4.5
-  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
-  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
-  classes read them, classes unchanged on 404 bodies. Goes after train 7
-  merges.
-  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
 - [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
   Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from

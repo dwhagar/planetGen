@@ -1991,8 +1991,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed) | none | open |
 | GEN.1212 | Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build | none | open |
 | GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | none | open |
-| GEN.1214 | Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug) | none | open |
-| GEN.1215 | Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable) | none | open |
+| GEN.1214 | Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug) | none | done, PR #4436 |
+| GEN.1215 | Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable) | none | done, PR #4436 |
 | GEN.1216 | Research: the composition of surface liquids from physics and from life: salts and brines, acids, ammonia-water, liquid CO2, methane-ethane-nitrogen mixes, sulfur and what life and chemistry do to each | none | done, research report written (reports/gen1216-surface-liquid-composition-2026-10-31.md) |
 | GEN.1217 | Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it | none | open |
 | GEN.1218 | Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API | none | open |
@@ -2233,10 +2233,10 @@ Parents marked "new parent" had no old number of their own.
 | MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | done, PR #1203 |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | none | done, PR #3623 |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | none | done, PR #4994 |
-| MAP.178 | Field nebula clouds drawn one by one from the nebula table | none | open |
+| MAP.178 | Field nebula clouds drawn one by one from the nebula table | none | done, PR #5021 |
 | MAP.179 | Scattered nebulae as markers from level 8 | none | open |
-| MAP.180 | Picking, hover and fly-to for nebula regions and cover | none | open |
-| MAP.181 | Dust colour for the dark nebula family on both themes | none | open |
+| MAP.180 | Picking, hover and fly-to for nebula regions and cover | none | done, PR #5022 |
+| MAP.181 | Dust colour for the dark nebula family on both themes | none | done, PR #4998 |
 | MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | merged into GEN.241 (Boss, 2026-10-15) |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
 | MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | done, PR #1282 |

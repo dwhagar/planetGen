@@ -597,8 +597,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1250 | With HABITABLE_WORLD off, about 3 percent of sampled dwarf systems still hold a planet that meets the request's conditions (bug) |  |  |
 | GEN.1249 | A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree | GEN.1218 |  |
 | GEN.1217 | Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it |  |  |
-| GEN.1215 | Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable) |  |  |
-| GEN.1214 | Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug) |  |  |
 | GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | GEN.862 |  |
 | GEN.1212 | Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build |  |  |
 | GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed) |  |  |
