@@ -1,6 +1,6 @@
 """
 The superbubble field (GEN.254, `planetgen.galaxy.superbubble_field`): seeded cavities, 12% of the plane at the solar
-circle, 100 to 1,000 pc across, with ionised gas inside; the molecular cloud field keeps none whose centre is in
+circle, 100 to 1,000 pc across, with ionized gas inside; the molecular cloud field keeps none whose center is in
 one; a sector's profile and the API name the cavity a place lies in, and the Galaxy Map draws them.
 """
 
@@ -28,7 +28,7 @@ def test_the_same_seed_gives_the_same_bubbles_and_another_seed_others():
     assert first == superbubble_field.all_bubbles(SEED, MILKY_WAY, 6000.0)
 
 
-def test_a_bubble_has_its_centre_in_its_column_a_radius_in_range_and_thin_hot_gas():
+def test_a_bubble_has_its_center_in_its_column_a_radius_in_range_and_thin_hot_gas():
     low_r, high_r = tuning.SUPERBUBBLE_RADIUS_RANGE_PC
     low_n, high_n = tuning.SUPERBUBBLE_AMBIENT_DENSITY_RANGE_CM3
     bubbles = superbubble_field.all_bubbles(SEED, MILKY_WAY, 12000.0)
@@ -38,7 +38,7 @@ def test_a_bubble_has_its_centre_in_its_column_a_radius_in_range_and_thin_hot_ga
         assert low_r <= bubble.radius_pc <= high_r
         assert low_n <= bubble.ambient_density_cm3 <= high_n
         assert bubble.temperature_k == tuning.SUPERBUBBLE_TEMPERATURE_K
-        assert abs(bubble.center_pc[2]) < 6 * tuning.SUPERBUBBLE_CENTRE_HEIGHT_SIGMA_PC
+        assert abs(bubble.center_pc[2]) < 6 * tuning.SUPERBUBBLE_CENTER_HEIGHT_SIGMA_PC
     assert max(bubble.radius_pc for bubble in bubbles) > 400.0 and min(bubble.radius_pc for bubble in bubbles) < 80.0
 
 
@@ -53,7 +53,7 @@ def test_the_plane_at_the_solar_circle_is_about_an_eighth_inside_a_bubble():
     assert 0.05 <= inside / samples <= 0.30
 
 
-def test_a_point_at_a_centre_is_inside_and_one_far_beyond_the_radius_is_not():
+def test_a_point_at_a_center_is_inside_and_one_far_beyond_the_radius_is_not():
     bubble = superbubble_field.all_bubbles(SEED, MILKY_WAY, 6000.0)[0]
     assert superbubble_field.containing(SEED, MILKY_WAY, bubble.center_pc).radius_pc > 0.0
     deep = superbubble_field.containing(SEED, MILKY_WAY, bubble.center_pc)
@@ -63,7 +63,7 @@ def test_a_point_at_a_centre_is_inside_and_one_far_beyond_the_radius_is_not():
     assert superbubble_field.containing(SEED, MILKY_WAY, (0.0, 0.0, 200000.0)) is None
 
 
-def test_the_cloud_field_keeps_no_cloud_whose_centre_is_in_a_bubble():
+def test_the_cloud_field_keeps_no_cloud_whose_center_is_in_a_bubble():
     big = max(superbubble_field.all_bubbles(SEED, MILKY_WAY, 9000.0), key=lambda bubble: bubble.radius_pc)
     edge = tuning.NEBULA_FIELD_CELL_PC
     x, y, _z = big.center_pc

@@ -85,7 +85,7 @@ def draw_indices(age_years, rng):
     values = {}
     for domain, offset in zip(DOMAINS, tuning.TECH_DOMAIN_OFFSETS):
         shift = offset + pace + _student_t4(rng) * tuning.TECH_DOMAIN_SIGMA
-        raw = MAX_INDEX / (1.0 + math.exp(-tuning.TECH_CURVE_STEEPNESS * (log_age - tuning.TECH_CURVE_CENTRE - shift)))
+        raw = MAX_INDEX / (1.0 + math.exp(-tuning.TECH_CURVE_STEEPNESS * (log_age - tuning.TECH_CURVE_CENTER - shift)))
         ceiling = min(7.0, species_ceiling + rng.gauss(0.0, tuning.TECH_CEILING_DOMAIN_SD))
         values[domain] = _soft_minimum(raw, ceiling, tuning.TECH_CEILING_SOFTNESS)
     for domain, needs, margin in tuning.TECH_PREREQUISITES:

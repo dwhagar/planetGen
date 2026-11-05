@@ -157,7 +157,7 @@ def test_a_zero_direction_or_a_negative_distance_raises():
         sky.galactic_extinction_av([0.0, 0.0, 0.0], [1.0, 0.0, 0.0], -10.0)
 
 
-def test_a_star_seen_through_the_disc_is_fainter_than_the_same_star_seen_out_of_it():
+def test_a_star_seen_through_the_disk_is_fainter_than_the_same_star_seen_out_of_it():
     inside = sky.galactic_extinction_av([8000.0, 0.0, 0.0], [1.0, 0.0, 0.0], 3000.0)
     above = sky.galactic_extinction_av([8000.0, 0.0, 0.0], [0.0, 0.0, 1.0], 3000.0)
     assert inside > 2.5 * above

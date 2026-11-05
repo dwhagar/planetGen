@@ -4,7 +4,7 @@
 // on the Galaxy Map and in the sector scene it opens into. Far from the
 // camera it is a point of light POINT_PX across whose size never changes
 // with the zoom, the brightness alone telling one from another; only near
-// sector level does it grow, smoothly, into the disc and glow
+// sector level does it grow, smoothly, into the disk and glow
 // static/galaxymap3d.js and static/sectorscene.js give it.
 //
 // ONE constant sets where that happens: NEAR_SECTOR_PC, the distance from the

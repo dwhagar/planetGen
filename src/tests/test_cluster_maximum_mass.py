@@ -28,12 +28,12 @@ def test_the_central_rings_toomre_mass_and_cluster_maximum_are_the_papers():
     assert cmm.collapsed_fraction(1.0e3, CMZ_KAPPA, SIGMA) == 1.0           # shear-limited
 
 
-def test_the_toomre_parameter_is_kappa_sigma_over_pi_g_sigma_g_and_the_discs_solar_neighbourhood_is_feedback_limited():
+def test_the_toomre_parameter_is_kappa_sigma_over_pi_g_sigma_g_and_the_disks_solar_neighbourhood_is_feedback_limited():
     # the paper's solar neighbourhood: Sigma_g 13 solar masses per pc2, Omega 0.029 per Myr (kappa 0.041), sigma 10 km/s
     kappa = math.sqrt(2.0) * 0.029
     assert cmm.toomre_q(13.0, kappa, 10.0) == pytest.approx(2.3, abs=0.1)
     assert cmm.toomre_q(1.0e3, CMZ_KAPPA, 5.0) == pytest.approx(0.94, abs=0.05)
-    # beyond 4.3 kpc the disc is feedback-limited with a cloud maximum near 1e6 (their section 4.1), not the Toomre mass
+    # beyond 4.3 kpc the disk is feedback-limited with a cloud maximum near 1e6 (their section 4.1), not the Toomre mass
     assert cmm.collapsed_fraction(13.0, kappa, 10.0) < 1.0
     assert 1.0e5 < cmm.maximum_cloud_mass_sol(13.0, kappa, 10.0) < 1.0e7
 

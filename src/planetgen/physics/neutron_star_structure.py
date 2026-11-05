@@ -9,7 +9,7 @@ twenty-one tabulated cold-matter equations of state of `datasets.neutron_star_ma
     dP/dr = -(e + P) (m + 4 pi r^3 P) / (r (r - 2 m)),        dm/dr = 4 pi r^2 e,
 
 in geometrised units (G = c = 1) with lengths in kilometres, so that a pressure and an energy density are in km^-2 and a
-mass is the length G M / c^2. The integration runs in the logarithm of the pressure, from the centre (a series start a
+mass is the length G M / c^2. The integration runs in the logarithm of the pressure, from the center (a series start a
 fraction of a part per million off the central pressure) to the lowest pressure of the table, which is the surface, and
 the equation of state between two rows is the PCHIP interpolant of log e against log P and of log n against log P (no
 overshoot, so the sound speed stays what the table says). A star is fixed by its central pressure; the stable branch of
@@ -82,7 +82,7 @@ class Structure:
     crust_core_radius_km: float
     drip_radius_km: float
     crust_mass_solar: float
-    """float: The mass of the layer above the crust-core transition; zero when the star's centre is below it."""
+    """float: The mass of the layer above the crust-core transition; zero when the star's center is below it."""
 
     @property
     def crust_thickness_km(self):
@@ -146,13 +146,13 @@ def _eos(eos):
         raise ValueError(f"equation of state {eos!r}: the compilation holds 1 to {neutron_star_matter.EOS_COUNT}") from None
 
 
-def _integrate(eos, log_p_centre, dense=False):
-    """Integrates the TOV equations in ln P from the centre; returns the solver's solution over (r, m), with its
+def _integrate(eos, log_p_center, dense=False):
+    """Integrates the TOV equations in ln P from the center; returns the solver's solution over (r, m), with its
     interpolant `sol` when `dense`."""
-    p_c = math.exp(log_p_centre)
-    e_c = eos.energy(log_p_centre)
+    p_c = math.exp(log_p_center)
+    e_c = eos.energy(log_p_center)
     r0 = math.sqrt(3.0 * _START_FRACTION / (2.0 * math.pi * (e_c + p_c) * (e_c + 3.0 * p_c)) * p_c)
-    s0 = log_p_centre + math.log1p(-_START_FRACTION)
+    s0 = log_p_center + math.log1p(-_START_FRACTION)
     m0 = 4.0 / 3.0 * math.pi * r0 ** 3 * e_c
 
     def rhs(s, y):
@@ -176,7 +176,7 @@ def structure(eos, central_pressure_mev_fm3):
     radius, mass = solution.y[0, -1], solution.y[1, -1]
 
     def reaches(density_fm3):
-        """The radius and enclosed mass where the density falls to `density_fm3`, or None if the star's centre is below."""
+        """The radius and enclosed mass where the density falls to `density_fm3`, or None if the star's center is below."""
         if eos.density_fm3(log_p) <= density_fm3:
             return None
         s = eos.log_pressure(density_fm3)
@@ -238,14 +238,14 @@ def _curve(index):
 
 def integrated_curve(eos):
     """`(masses in solar masses, radii in km)`: the stable branch of the equation of state (1 to 21), rising in mass, from
-    the star of density 0.1 fm^-3 at its centre to the heaviest."""
+    the star of density 0.1 fm^-3 at its center to the heaviest."""
     masses, radii = _curve(_eos(eos).index)
     return masses.copy(), radii.copy()
 
 
 def curve_with_crust(eos, count):
     """`(masses, radii, crust thicknesses, crust masses)` of `count` stars of the equation of state (1 to 21), rising in mass from the star
-    of density `_CURVE_START_DENSITY_FM3` at its centre to the heaviest (the arrays `scripts/build_neutron_star_table.py` writes)."""
+    of density `_CURVE_START_DENSITY_FM3` at its center to the heaviest (the arrays `scripts/build_neutron_star_table.py` writes)."""
     eos = _eos(eos)
     log_p_max = _maximum_mass(eos.index)[0]
     low = eos.log_pressure(_CURVE_START_DENSITY_FM3)

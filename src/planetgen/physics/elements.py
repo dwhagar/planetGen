@@ -305,7 +305,7 @@ def parse_formula(formula):
     """
     The atoms of a chemical formula as `{symbol: count}`: element symbols with whole-number subscripts, groups in
     parentheses or brackets with a subscript (`"Ca3(PO4)2"`, `"Fe[OH]3"`), and hydrates after a dot (`"CaSO4.2H2O"`, the
-    centre dot too).
+    center dot too).
 
     Raises:
         ValueError: The text is not a formula of whole numbers of known elements.

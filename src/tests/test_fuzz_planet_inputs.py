@@ -85,9 +85,9 @@ def test_a_planet_class_can_no_longer_be_pinned(star):
         Planet(SystemConfig(), star, star.habitable_zone, _distance(star, "e"), planet_class="M")
 
 
-def test_every_class_has_a_description_composition_and_type():
+def test_every_class_has_a_composition_and_type():
     for cls, data in prog_c.PLANET_CLASSES.items():
-        assert data["description"] and data["composition"] and data["type"] in ("t", "g"), cls
+        assert data["composition"] and data["type"] in ("t", "g"), cls
 
 
 # --- orbital period ------------------------------------------------------------

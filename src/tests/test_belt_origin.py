@@ -28,7 +28,7 @@ def giant(a, mass=JUPITER, e=0.05, migrated=False, formed=None):
 
 
 def build(chain, **kwargs):
-    arguments = dict(star_mass_kg=STAR, snow_line_au=SNOW, formation_snow_line_au=SNOW, growth_limit_au=GROWTH, disc_edge_au=100.0)
+    arguments = dict(star_mass_kg=STAR, snow_line_au=SNOW, formation_snow_line_au=SNOW, growth_limit_au=GROWTH, disk_edge_au=100.0)
     arguments.update(kwargs)
     return bo.build(chain, **arguments)
 
@@ -44,7 +44,7 @@ SOL_LIKE = [rocky(0.39, 3.3e23), rocky(0.72, 4.87e24), rocky(1.0), rocky(1.52, 6
 # --- the cause file -------------------------------------------------------------------------------------------------------------------------
 
 def test_the_cause_file_has_six_formation_causes_and_two_shaping_ones_with_sentences_that_format():
-    assert set(bo.FORMATION_CAUSES) == {"gap", "tail", "snow-line-bump", "outer-disc", "collisional-debris", "destroyed-planet"}
+    assert set(bo.FORMATION_CAUSES) == {"gap", "tail", "snow-line-bump", "outer-disk", "collisional-debris", "destroyed-planet"}
     assert set(bo.SHAPING_CAUSES) == {"giant-stirring", "instability-depletion"}
     for code, cause in bo.CAUSES.items():
         assert cause["label"] and cause["text"].format(**{name: 1.5 for name in cause["fields"]}), code
@@ -85,12 +85,12 @@ def test_two_neighbours_far_apart_leave_a_gap_belt_between_their_keep_outs():
 
 
 def test_a_gap_is_a_belt_only_where_enough_solids_were_left_in_it():
-    """GEN.1259: a planetless stretch holds the disc's solids between its neighbours' keep-outs, capped by the isolation mass; under `MIN_BELT_MASS_EARTH` it is no belt."""
+    """GEN.1259: a planetless stretch holds the disk's solids between its neighbours' keep-outs; under `MIN_BELT_MASS_EARTH` of them it is no belt."""
     chain = [rocky(0.4), rocky(3.0)]
     enough = [b for b in build(chain) if b.origin == "gap"]
     assert enough and enough[0].primordial_mass_earth >= bo.MIN_BELT_MASS_EARTH
-    # the same stretch of a disc with a millionth of the solids leaves too little to be a belt
-    assert [b for b in build(chain, scatter=1.0e-9) if b.origin == "gap"] == []
+    # the same stretch of a disk with a millionth of the solids (a metal-free, almost empty disk) leaves too little to be a belt
+    assert [b for b in build(chain, scatter=bo.MIN_BELT_MASS_EARTH / (10.0 * enough[0].primordial_mass_earth)) if b.origin == "gap"] == []
 
 
 def test_a_stretch_just_over_the_least_mass_is_a_belt_and_just_under_it_is_not():
@@ -103,7 +103,7 @@ def test_a_stretch_just_over_the_least_mass_is_a_belt_and_just_under_it_is_not()
 
 
 def test_a_gap_belt_never_holds_more_than_the_planet_it_would_have_grown_took():
-    """GEN.1261: the solids of a gap are capped by the isolation mass at its centre; a stretch of more would have grown a planet."""
+    """GEN.1261: the solids of a gap are capped by the isolation mass at its center; a stretch of more would have grown a planet."""
     chain = [rocky(0.4), rocky(3.0)]
     (belt,) = [b for b in build(chain) if b.origin == "gap"]
     cap = bo.isolation_cap_earth(belt.inner_au, belt.outer_au, STAR, SNOW)
@@ -111,20 +111,20 @@ def test_a_gap_belt_never_holds_more_than_the_planet_it_would_have_grown_took():
     assert uncapped > cap
     assert belt.primordial_mass_earth == pytest.approx(cap)
     assert bo.conservation_error(belt) < 1e-9
-    # a heavier disc takes the cap up with it (the isolation mass goes as the density to the 3/2)
+    # a heavier disk takes the cap up with it (the isolation mass goes as the density to the 3/2)
     heavy = [b for b in build(chain, scatter=3.0) if b.origin == "gap"]
     assert heavy[0].primordial_mass_earth == pytest.approx(cap * 3.0 ** 1.5, rel=0.02)
 
 
-def test_the_cold_disc_keeps_only_the_share_of_solids_that_grew_to_planetesimals():
-    """GEN.1261: past the snow line only `planetesimal_share` of the disc's solids became planetesimals; inside it all of them did."""
+def test_the_cold_disk_keeps_only_the_share_of_solids_that_grew_to_planetesimals():
+    """GEN.1261: past the snow line only `planetesimal_share` of the disk's solids became planetesimals; inside it all of them did."""
     share = bo.planetesimal_share(1.0)
     assert 0.0 < share < 1.0
     assert share == pytest.approx(bo.PEBBLE_CONVERSION_PER_ORBIT / (bo.PEBBLE_CONVERSION_PER_ORBIT + bo.PEBBLE_DRIFT_FACTOR * bo.PEBBLE_TO_GAS_SOLAR))
     assert bo.planetesimal_share(3.0) < share < bo.planetesimal_share(0.3)
     chain = [rocky(1.0)]
     (tail,) = [b for b in build(chain) if b.origin == "tail"]
-    (outer,) = [b for b in build([giant(5.2)]) if b.origin == "outer-disc"]
+    (outer,) = [b for b in build([giant(5.2)]) if b.origin == "outer-disk"]
     whole = belt_mass.primordial_mass_earth(outer.inner_au, outer.outer_au, STAR, SNOW)
     assert outer.primordial_mass_earth == pytest.approx(share * whole, rel=1e-6)    # past the snow line from edge to edge
     # the tail ends at the growth limit past the snow line: its solids are the warm part whole and the cold part at the share
@@ -133,10 +133,10 @@ def test_the_cold_disc_keeps_only_the_share_of_solids_that_grew_to_planetesimals
     assert tail.primordial_mass_earth == pytest.approx(warm + share * cold, rel=1e-6)
 
 
-def test_a_disc_whose_pebbles_all_became_planetesimals_loses_nothing_to_drift(monkeypatch):
+def test_a_disk_whose_pebbles_all_became_planetesimals_loses_nothing_to_drift(monkeypatch):
     monkeypatch.setattr(bo, "PEBBLE_CONVERSION_PER_ORBIT", 1.0e9)
     assert bo.planetesimal_share(1.0) == pytest.approx(1.0)
-    (outer,) = [b for b in build([giant(5.2)]) if b.origin == "outer-disc"]
+    (outer,) = [b for b in build([giant(5.2)]) if b.origin == "outer-disk"]
     assert outer.primordial_mass_earth == pytest.approx(belt_mass.primordial_mass_earth(outer.inner_au, outer.outer_au, STAR, SNOW), rel=1e-6)
 
 
@@ -200,30 +200,30 @@ def test_the_snow_line_belt_keeps_the_snow_line_of_the_formation_not_of_now():
     assert belt.formation_snow_line_au == 2.2 and belt.inner_au == pytest.approx(2.2 / (1 + bo.SNOW_BUMP_WIDTH))
 
 
-# --- outer disc -----------------------------------------------------------------------------------------------------------------------------
+# --- outer disk -----------------------------------------------------------------------------------------------------------------------------
 
-def test_the_outer_disc_starts_past_the_chaotic_zone_of_the_last_giant():
+def test_the_outer_disk_starts_past_the_chaotic_zone_of_the_last_giant():
     chain = [rocky(1.0), giant(5.2), giant(30.0, 1.0e26, 0.01)]
-    (disc,) = [b for b in build(chain) if b.origin == "outer-disc"]
+    (disk,) = [b for b in build(chain) if b.origin == "outer-disk"]
     half = bo.chaotic_half_width_au(chain[-1], STAR)
-    assert disc.inner_au == pytest.approx(max(30.0 + half, bo.keep_out(chain[-1], STAR)[1])) and disc.inner_au > 30.0 + half
-    assert disc.outer_au == 100.0
-    assert disc.stirred and "past 34.1 AU" in disc.sentence
+    assert disk.inner_au == pytest.approx(max(30.0 + half, bo.keep_out(chain[-1], STAR)[1])) and disk.inner_au > 30.0 + half
+    assert disk.outer_au == 100.0
+    assert disk.stirred and "past 34.1 AU" in disk.sentence
 
 
-def test_with_no_giant_the_outer_disc_takes_over_where_the_tail_ends_and_a_disc_with_no_room_is_none():
+def test_with_no_giant_the_outer_disk_takes_over_where_the_tail_ends_and_a_disk_with_no_room_is_none():
     belts = build([rocky(1.0)])
-    (disc,) = [b for b in belts if b.origin == "outer-disc"]
+    (disk,) = [b for b in belts if b.origin == "outer-disk"]
     (tail,) = [b for b in belts if b.origin == "tail"]
-    assert disc.inner_au == pytest.approx(tail.outer_au) and disc.inner_au == GROWTH
-    assert bo.outer_disc([rocky(1.0)], STAR, GROWTH, 12.0) == []
+    assert disk.inner_au == pytest.approx(tail.outer_au) and disk.inner_au == GROWTH
+    assert bo.outer_disk([rocky(1.0)], STAR, GROWTH, 12.0) == []
 
 
-def test_a_hot_jupiter_with_no_other_body_leaves_the_disc_past_it_as_the_outer_disc_and_sweeps_the_part_it_crossed():
+def test_a_hot_jupiter_with_no_other_body_leaves_the_disk_past_it_as_the_outer_disk_and_sweeps_the_part_it_crossed():
     chain = [giant(0.05, migrated=True, formed=3.0)]
-    (disc,) = [b for b in build(chain) if b.origin == "outer-disc"]
-    assert disc.inner_au == pytest.approx(max(bo.keep_out(chain[0], STAR)[1], 0.05 + bo.chaotic_half_width_au(chain[0], STAR)))
-    assert disc.history[-1].cause == "instability-depletion" and 0.0 < disc.scattered_earth < disc.primordial_mass_earth
+    (disk,) = [b for b in build(chain) if b.origin == "outer-disk"]
+    assert disk.inner_au == pytest.approx(max(bo.keep_out(chain[0], STAR)[1], 0.05 + bo.chaotic_half_width_au(chain[0], STAR)))
+    assert disk.history[-1].cause == "instability-depletion" and 0.0 < disk.scattered_earth < disk.primordial_mass_earth
 
 
 # --- destroyed planets and collision rubble -------------------------------------------------------------------------------------------------
@@ -297,9 +297,9 @@ def test_a_heavier_giant_clears_more_of_the_same_belt():
 
 def test_a_belt_a_giant_only_stirs_loses_nothing_and_says_so():
     chain = [rocky(1.0), giant(5.2), giant(30.0, 1.0e26, 0.01)]
-    (disc,) = [b for b in build(chain) if b.origin == "outer-disc"]
-    assert disc.cleared_earth == 0.0 and disc.stirred and disc.history[0].text == "The giant at 30 AU stirs it."
-    assert disc.mass_earth == disc.primordial_mass_earth
+    (disk,) = [b for b in build(chain) if b.origin == "outer-disk"]
+    assert disk.cleared_earth == 0.0 and disk.stirred and disk.history[0].text == "The giant at 30 AU stirs it."
+    assert disk.mass_earth == disk.primordial_mass_earth
 
 
 # --- a moving giant sweeps ------------------------------------------------------------------------------------------------------------------
@@ -329,7 +329,7 @@ def test_a_belt_a_moving_giant_crossed_loses_the_swept_part_to_the_scatter_and_k
     assert 0.0 < swept < belt.primordial_mass_earth, "only the crossed stretch is swept"
     (kept,) = [b for b in build(chain, u=1.0) if b.origin == "tail"]
     assert kept.scattered_earth < belt.scattered_earth and "swept away" in belt.sentence
-    (far,) = [b for b in build(chain, u=0.0) if b.origin == "outer-disc"]
+    (far,) = [b for b in build(chain, u=0.0) if b.origin == "outer-disk"]
     assert far.scattered_earth == 0.0
 
 
@@ -361,12 +361,12 @@ def test_the_cleared_and_scattered_masses_are_the_sum_of_the_history():
 
 # --- the Solar System as a target -----------------------------------------------------------------------------------------------------------
 
-def test_a_sol_like_chain_gets_a_main_belt_between_the_rocky_planets_and_jupiter_and_a_disc_past_the_last_giant():
+def test_a_sol_like_chain_gets_a_main_belt_between_the_rocky_planets_and_jupiter_and_a_disk_past_the_last_giant():
     belts = build(SOL_LIKE)
     by_cause = {belt.origin: belt for belt in belts}
     main = by_cause["snow-line-bump"]
     assert 2.0 < main.inner_au < 2.7 < main.outer_au < 3.5 and main.stirred
-    assert by_cause["outer-disc"].inner_au > 30.0
+    assert by_cause["outer-disk"].inner_au > 30.0
     assert 0.0 < main.cleared_earth < main.primordial_mass_earth
 
 
@@ -375,7 +375,7 @@ def test_the_same_input_gives_the_same_belts():
     assert build(list(reversed(SOL_LIKE))) == build(SOL_LIKE)
 
 
-def test_no_planets_at_all_still_gives_the_disc_a_belt_with_its_cause():
+def test_no_planets_at_all_still_gives_the_disk_a_belt_with_its_cause():
     belts = build([])
-    assert [b.origin for b in belts] == ["snow-line-bump", "outer-disc"] or [b.origin for b in belts] == ["outer-disc"]
+    assert [b.origin for b in belts] == ["snow-line-bump", "outer-disk"] or [b.origin for b in belts] == ["outer-disk"]
     assert all(b.sentence for b in belts)

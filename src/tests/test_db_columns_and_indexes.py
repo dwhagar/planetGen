@@ -23,13 +23,18 @@ from planetgen.db import store
 PROSE_TEXT_COLUMNS = {
     # Galaxy schema: generated prose and the summaries shown on pages.
     ("facilities", "description"), ("facilities", "ratings_note"), ("facility_types", "description"),
-    ("facility_type_fields", "choices"), ("planets", "description"), ("planets", "atmosphere"),
-    ("planets", "composition"), ("moons", "description"), ("moons", "atmosphere"),
+    ("facility_type_fields", "choices"), ("planets", "atmosphere"),
+    ("planets", "composition"), ("moons", "atmosphere"),
     ("moons", "composition"),
     ("star_systems", "location"), ("star_systems", "system_flavor_text"),
     ("asteroid_belts", "composition_summary"), ("asteroid_fields", "composition_summary"),
     ("comets", "composition_summary"), ("interstellar_comets", "composition_summary"),
     ("rogue_planets", "composition"), ("nebulae", "composition"), ("nebulae", "formation_cause"),
+    # GEN.1069 and GEN.1232: what formed a belt (causes, sentences, scatter fates as JSON text) and what its star's evolution did to it
+    ("asteroid_belts", "co_causes"), ("asteroid_belts", "history_text"), ("asteroid_belts", "origin_history"),
+    ("asteroid_belts", "origin_sentence"), ("asteroid_belts", "scatter_fates"),
+    # GEN.1111: a rogue planet keeps the air text of a planet and the sentence of where it came from
+    ("rogue_planets", "atmosphere"), ("rogue_planets", "rogue_note"),
     # DB.36: a plan's request and decision text, and the before and after of an operation or journal entry as JSON documents
     ("change_plan_ops", "after_json"), ("change_plan_ops", "before_json"), ("change_plans", "decision_note"), ("change_plans", "request_text"), ("edit_journal", "after_json"), ("edit_journal", "before_json"),
     # DB.38: the parameters of an override as a JSON document

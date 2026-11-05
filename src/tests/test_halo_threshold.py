@@ -93,21 +93,21 @@ def test_a_planned_galaxy_under_the_threshold_has_no_halo_anywhere():
 
 def test_a_planned_galaxy_over_the_threshold_has_a_dark_halo_and_over_3e8_a_stellar_one():
     shape, drawn = shape_draw.plan_shape(_args(mass=ABOVE, disk_scale_length=300.0), SEED)
-    assert shape.masses[1] > 0 and density.halo_mass(shape) == 0.0      # under 3e8: one disc plus a bulge
+    assert shape.masses[1] > 0 and density.halo_mass(shape) == 0.0      # under 3e8: one disk plus a bulge
     shape, drawn = shape_draw.plan_shape(_args(mass=1.0e9, disk_scale_length=800.0), SEED)
     assert shape.masses[1] > 0 and density.halo_mass(shape) > 0.0
 
 
-# --- one disc plus a bulge under 3e8 solar masses of stars (Boss, 7:58 PM EDT 10-21) --------------------------------
+# --- one disk plus a bulge under 3e8 solar masses of stars (Boss, 7:58 PM EDT 10-21) --------------------------------
 
 FULL = dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR
 
 
-def test_under_3e8_a_galaxy_is_one_disc_plus_a_bulge():
+def test_under_3e8_a_galaxy_is_one_disk_plus_a_bulge():
     for mass in (281.0, ABOVE, FULL * 0.99):
         structure = structure_draw.draw_structure(SEED, mass)
         assert structure.thick_mass_ratio == 0.0 and structure.halo_stellar_ratio == 0.0
-        assert structure.nuclear_cluster_mass_solar == 0.0 and structure.nuclear_disc_mass_solar == 0.0
+        assert structure.nuclear_cluster_mass_solar == 0.0 and structure.nuclear_disk_mass_solar == 0.0
         assert not structure.bar_present
         assert structure.thick_length_ratio > 0 and structure.thick_height_ratio > 0   # nothing divides by zero
 
@@ -126,11 +126,11 @@ def test_a_stellar_halo_pin_is_refused_under_3e8_and_a_dark_halo_pin_under_the_h
     assert mass_chain.draw_mass_chain(SEED, 1.0e8, 5.0e10).halo_mass_solar == 5.0e10
 
 
-def test_a_simple_galaxy_has_all_its_disc_stars_in_the_thin_disc_and_no_nuclear_terms():
+def test_a_simple_galaxy_has_all_its_disk_stars_in_the_thin_disk_and_no_nuclear_terms():
     shape, drawn = shape_draw.plan_shape(_args(mass=1.0e8, disk_scale_length=300.0), SEED)
     terms = density.model_terms(shape)
     assert terms["thick_disk_amplitude"] == 0.0 and terms["nuclear_cluster_mass"] == 0.0
-    assert terms["nuclear_disc_mass"] == 0.0 and density.halo_mass(shape) == 0.0
+    assert terms["nuclear_disk_mass"] == 0.0 and density.halo_mass(shape) == 0.0
     assert shape_draw.thin_disk_share(drawn.structure, drawn.bulge_to_total) == pytest.approx(1.0 - drawn.bulge_to_total)
 
 

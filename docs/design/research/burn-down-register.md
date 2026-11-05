@@ -126,6 +126,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.70:RO3 | no data | - | no survey measures how often a ring-making comet passes inside a giant's Roche limit |
 | 6.70:RO5 | no data | - | no N-body table of the share of a torn comet that stays in orbit by speed and periapsis is in hand; [R1140] gives a range only |
 | 6.70:RO13 | no data | - | no impact-ejecta experiment on ring ice at ring meteoroid speeds gives the mass yield; the ejecta mass is argued over two decades |
+| 6.70:RO14 | no data | - | no survey of the inner moonlets of giants outside the four of the Solar System is in hand |
+| 6.70:RO16 | no data | - | no impact-ejecta experiment on a small moon's surface gives the kept share of the dust |
 | 6.74:SH3 | no data | - | the pressure a given shoreline ratio allows is not measured as a table: only Mars's 6 mbar and Pluto's 10 micro-bar sit at ratios of 1.8 and 0.78; the caps stay the design note's steps until a survey of thin atmospheres fits them |
 | 6.78:GT3 | replace | GEN.1058 | the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor |
 | 6.96:IO2 | no data | - | fitted with the Jupiter row to the retrograde to prograde split; a capture simulation's width replaces it when one is held |
@@ -198,6 +200,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.170:RNG13 | no data | - | no source gives a jet count for Uranus or Neptune; the 5 or 7 bands are needed output |
 | 6.170:RNG18 | no data | - | no source gives a storm count law by rotation or heat flux; the 1 to 4 large storms are the design's |
 | 6.170:RNG19 | no data | - | band contrast and colour are tuned by eye (a methane giant nearly featureless, an ammonia giant strongly banded); the optics of the generated clouds (GEN.422 k-tables) would replace them |
+| `6.3a:`--rogues`` | no data | - | the number behind each word (none, few, normal, many) is a lever of the user; the observed 2 to 10 rogues per star bounds it, and a measured rogue count would replace the ceilings |
 | 6.174:SKB3 | no data | - | the ends of the faint-light table are invented to close it; the share worked from the luminosity function of the generator's own stars would replace them |
 | 6.174:SKB4 | no data | - | the cell, cube map and ray sizes are a picture's needs, chosen so the band is smooth; no source gives them |
 | 6.174:GLW1 | no data | - | the glow's colour is a blackbody of 4500 K because the band is worked as one V surface brightness and the page needs three channels; the mean colour of the unresolved stars by direction, from the faint-light table's stellar mix, would replace it |

@@ -16,11 +16,11 @@ met, `Grid.adiabat_log_t`; the tables' adiabatic gradient carries numerical nois
 replaces the n = 1 polytrope the layer pressures were read from (`giant_interior.Polytrope`): a polytrope has one index for the
 whole body, where the real fluid goes from an ideal molecular gas to a degenerate metal.
 
-The body is built from its centre in up to three layers (a `Layer`): a core of the heavy elements the envelope does not hold, an
+The body is built from its center in up to three layers (a `Layer`): a core of the heavy elements the envelope does not hold, an
 ice mantle (an ice giant), and the envelope of hydrogen and helium with the envelope's share of heavy elements mixed in by the
 ideal volume law. The density of the heavy elements is the repo's own: iron's Vinet fit, the silicate mantle table and the
 water isotherm of `bulk_structure`, tabulated on a grid of pressure once. The integration goes inward from the one-bar level in
-the logarithm of the pressure (fourth-order Runge-Kutta) and stops where the mass inside falls to `CENTRE_MASS_FRACTION` of the
+the logarithm of the pressure (fourth-order Runge-Kutta) and stops where the mass inside falls to `CENTER_MASS_FRACTION` of the
 body's, closing the rest as a sphere of the density it has there.
 
 What fixes the entropy. The radius and the one-bar temperature are both inputs of the generator (the radius from the tables of
@@ -73,10 +73,10 @@ MAX_EVALUATIONS = 40
 STEP_FRACTION = 0.1
 """float: The most the radius or the mass inside may change in one step as a share of itself (a dense core changes them fast)."""
 
-CENTRE_MASS_FRACTION = 2.0e-3
+CENTER_MASS_FRACTION = 2.0e-3
 """float: The share of the body's mass left inside the radius where the integration stops; the rest is closed as a uniform sphere."""
 
-CENTRE_RADIUS_FRACTION = 0.02
+CENTER_RADIUS_FRACTION = 0.02
 """float: The integration also stops at this share of the radius (a model too light for its radius reaches it with mass to spare)."""
 
 CENTRAL_PRESSURE_LIMIT_PA = 1.0e22
@@ -86,7 +86,7 @@ HEAVY_NODES_PA = (1.0e5, 1.0e17, 220)
 """tuple: The first and last pressure (Pa) and the number of nodes of the tabulated heavy-element densities."""
 
 LAYER_KINDS = ("core", "mantle", "envelope")
-"""tuple: The layers from the centre out, as a body is built."""
+"""tuple: The layers from the center out, as a body is built."""
 
 
 class StructureError(ValueError):
@@ -132,7 +132,7 @@ def heavy_volume_table(ice_fraction, iron_share):
 @dataclass(frozen=True)
 class Layer:
     """
-    One layer of the model, from the centre out.
+    One layer of the model, from the center out.
 
     Attributes:
         kind (str): `core` (heavy elements only, the ice share `StructureSubject.core_ice_fraction`), `mantle` (ice only) or
@@ -157,7 +157,7 @@ class StructureSubject:
         mass_kg, radius_m (float): The body's, the radius at the one-bar level.
         helium_share (float): Y / (X + Y) of the hydrogen and helium.
         envelope_z (float): The heavy elements' share of the envelope's mass.
-        layers (tuple): The `Layer`s from the centre out, the last the envelope. Empty: a core of the heavy elements the envelope
+        layers (tuple): The `Layer`s from the center out, the last the envelope. Empty: a core of the heavy elements the envelope
             does not hold (`heavy_mass_kg` less what `envelope_z` of the body takes) under the envelope; with none left over the
             envelope is the whole body and holds all of `heavy_mass_kg`.
         heavy_mass_kg (float): The mass of all the heavy elements, used when `layers` is empty.
@@ -188,7 +188,7 @@ class StructureSubject:
             raise StructureError("the outermost layer is the envelope")
 
     def resolved(self):
-        """`(layers, envelope_z)`: the layers from the centre out and the envelope's heavy-element share."""
+        """`(layers, envelope_z)`: the layers from the center out and the envelope's heavy-element share."""
         if self.layers:
             return self.layers, self.envelope_z
         core = (self.heavy_mass_kg - self.envelope_z * self.mass_kg) / (1.0 - self.envelope_z)
@@ -209,7 +209,7 @@ class Profile:
             carried to one bar along the molecular gas's adiabat (GS5), good to a few percent.
         closed (bool): Whether the model closed on the subject's radius. False: no adiabat inside `ADIABAT_RANGE_K` closes it, the
             nearest was taken and `radius_m` is the radius it closes at.
-        central_pressure_pa (float): The pressure at the centre.
+        central_pressure_pa (float): The pressure at the center.
         central_temperature_k (float): The temperature the adiabat reaches at the pressure where the integration stopped (K); a core is not on it.
         evaluations (int): How many integrations the fit made.
     """
@@ -227,7 +227,7 @@ class Profile:
 
     def at_pressure(self, pressure_pa):
         """`(radius fraction, mass inside fraction)` where the pressure is `pressure_pa`; (1, 1) at or below the one-bar level and
-        (0, 0) at or above the centre."""
+        (0, 0) at or above the center."""
         if pressure_pa >= self.central_pressure_pa:
             return 0.0, 0.0
         if pressure_pa <= ONE_BAR_PA:
@@ -239,7 +239,7 @@ class Profile:
                 self._mass[i] + t * (self._mass[i + 1] - self._mass[i]))
 
     def at_mass_inside(self, fraction):
-        """`(radius fraction, pressure in Pa)` where the mass inside is `fraction` of the whole; (1, 0) for all of it and the centre for none."""
+        """`(radius fraction, pressure in Pa)` where the mass inside is `fraction` of the whole; (1, 0) for all of it and the center for none."""
         if fraction >= 1.0:
             return 1.0, 0.0
         if fraction <= 0.0:
@@ -304,7 +304,7 @@ class _Model:
                   "envelope": heavy_volume_table(subject.envelope_ice_fraction, subject.iron_share)}
         self.volumes = [tables[kind] for kind in self.kinds]
         self.y_shift = subject.helium_share - hhe_eos.TABLE_HELIUM_SHARE
-        self.mass_stop = CENTRE_MASS_FRACTION * subject.mass_kg
+        self.mass_stop = CENTER_MASS_FRACTION * subject.mass_kg
 
     def _volume_m3_per_kg(self, u, lt_nodes, layer):
         """The specific volume (m3/kg) of layer `layer` at ln P `u`, the envelope's on the adiabat whose temperatures at the table's
@@ -331,15 +331,15 @@ class _Model:
         `mass_stop` or the radius to the radius stop.
 
         Returns:
-            tuple: `(defect, centre)` (`radius_m` replaces the subject's radius, for the search of a model's own). `defect` is how
+            tuple: `(defect, center)` (`radius_m` replaces the subject's radius, for the search of a model's own). `defect` is how
                 far the model is from closing as a share of the radius: positive for a model too dense for its radius (it runs out of
                 mass with radius left), negative for one too light; it is the radius left less the radius a uniform sphere of the
-                mass left and the density there would have. `centre` is `(u, r, m, volume, central pressure)` at the stop.
+                mass left and the density there would have. `center` is `(u, r, m, volume, central pressure)` at the stop.
         """
         mass, radius = self.subject.mass_kg, radius_m or self.subject.radius_m
         volume_of = self._volume_m3_per_kg
         edges = self.edges
-        mass_stop, radius_stop = self.mass_stop, CENTRE_RADIUS_FRACTION * radius
+        mass_stop, radius_stop = self.mass_stop, CENTER_RADIUS_FRACTION * radius
         four_pi = 4.0 * math.pi
         lt_nodes = self.grid.adiabat_log_t(log_s0)
         layer = len(self.kinds) - 1

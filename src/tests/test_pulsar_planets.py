@@ -1,6 +1,6 @@
 """
 Planets of a millisecond pulsar (GEN.317, docs/design/systems/exotic-environments-planets-and-compact-binaries.md section 2.1):
-the origin of the ones that hold any, the disc origin's planets, and the pulsar wind they sit in.
+the origin of the ones that hold any, the disk origin's planets, and the pulsar wind they sit in.
 """
 
 import math
@@ -38,8 +38,8 @@ def _planets(pulsar, seed, **config):
 
 
 def test_the_origin_weights_are_the_designs_quarter_quarter_half():
-    assert tuning.PULSAR_PLANET_ORIGIN_WEIGHTS == {"disc": 25.0, "captured-giant": 25.0, "ablated-companion": 50.0}
-    assert tuning.PULSAR_PLANET_BUILT_ORIGINS == ("disc",)
+    assert tuning.PULSAR_PLANET_ORIGIN_WEIGHTS == {"disk": 25.0, "captured-giant": 25.0, "ablated-companion": 50.0}
+    assert tuning.PULSAR_PLANET_BUILT_ORIGINS == ("disk",)
 
 
 def test_a_pulsars_origin_follows_the_weights():
@@ -47,14 +47,14 @@ def test_a_pulsars_origin_follows_the_weights():
     with draw.bound(draw.Stream("pulsar-origins")):
         origins = [pulsar_planets.draw_origin(config) for _ in range(2000)]
     shares = {name: origins.count(name) / len(origins) for name in tuning.PULSAR_PLANET_ORIGIN_WEIGHTS}
-    assert shares["disc"] == pytest.approx(0.25, abs=0.04)
+    assert shares["disk"] == pytest.approx(0.25, abs=0.04)
     assert shares["captured-giant"] == pytest.approx(0.25, abs=0.04)
     assert shares["ablated-companion"] == pytest.approx(0.50, abs=0.04)
 
 
-def test_a_run_that_asks_for_planets_gets_the_disc():
+def test_a_run_that_asks_for_planets_gets_the_disk():
     with draw.bound(draw.Stream("pulsar-forced")):
-        assert {pulsar_planets.draw_origin(_config(PLANETS=True)) for _ in range(40)} == {"disc"}
+        assert {pulsar_planets.draw_origin(_config(PLANETS=True)) for _ in range(40)} == {"disk"}
 
 
 def _config(**values):
@@ -64,15 +64,15 @@ def _config(**values):
     return config
 
 
-def test_only_the_disc_origin_gives_planets(recycled):
+def test_only_the_disk_origin_gives_planets(recycled):
     pulsar = recycled(1)
     counts = [len(_planets(pulsar, seed)) for seed in range(240)]
     with_planets = sum(1 for count in counts if count)
     assert with_planets / len(counts) == pytest.approx(0.25, abs=0.07)
-    assert max(counts) <= tuning.PULSAR_DISC_PLANET_COUNT[1]
+    assert max(counts) <= tuning.PULSAR_DISK_PLANET_COUNT[1]
 
 
-def test_the_discs_planets_are_airless_carbon_rich_and_lowest_tier(recycled):
+def test_the_disks_planets_are_airless_carbon_rich_and_lowest_tier(recycled):
     pulsar = recycled(2)
     planets = [p for seed in range(30) for p in _planets(pulsar, seed, PLANETS=True)]
     assert planets
@@ -86,15 +86,15 @@ def test_the_discs_planets_are_airless_carbon_rich_and_lowest_tier(recycled):
         assert planet.tier_radiation == 3  # the lowest tier, whatever the world
 
 
-def test_the_discs_planets_keep_to_its_count_distance_and_mass(recycled):
+def test_the_disks_planets_keep_to_its_count_distance_and_mass(recycled):
     pulsar = recycled(3)
-    near, far = tuning.PULSAR_DISC_DISTANCE_AU_RANGE
-    low, high = pulsar_planets.disc_mass_range_earth()
-    assert low == tuning.PULSAR_DISC_MASS_EARTH_RANGE[0]
-    assert low < high <= tuning.PULSAR_DISC_MASS_EARTH_RANGE[1]
+    near, far = tuning.PULSAR_DISK_DISTANCE_AU_RANGE
+    low, high = pulsar_planets.disk_mass_range_earth()
+    assert low == tuning.PULSAR_DISK_MASS_EARTH_RANGE[0]
+    assert low < high <= tuning.PULSAR_DISK_MASS_EARTH_RANGE[1]
     for seed in range(40):
         planets = _planets(pulsar, seed, PLANETS=True)
-        assert tuning.PULSAR_DISC_PLANET_COUNT[0] <= len(planets) <= tuning.PULSAR_DISC_PLANET_COUNT[1]
+        assert tuning.PULSAR_DISK_PLANET_COUNT[0] <= len(planets) <= tuning.PULSAR_DISK_PLANET_COUNT[1]
         distances = [p.distance for p in planets]
         assert distances == sorted(distances)
         assert all(near * 0.999 <= d <= far * 1.001 for d in distances)
@@ -102,14 +102,14 @@ def test_the_discs_planets_keep_to_its_count_distance_and_mass(recycled):
         assert all(0.5 * low <= p.mass / constants.EARTH_MASS_TO_KG <= 1.3 * high for p in planets)
 
 
-def test_the_discs_planets_sit_near_a_low_order_period_ratio(recycled):
+def test_the_disks_planets_sit_near_a_low_order_period_ratio(recycled):
     pulsar = recycled(4)
     found = 0
     for seed in range(60):
         planets = _planets(pulsar, seed, PLANETS=True, NUM_ORBITS=3)
         for inner, outer in zip(planets, planets[1:]):
             ratio = outer.period / inner.period
-            assert any(abs(ratio / wanted - 1.0) < 0.06 for wanted in tuning.PULSAR_DISC_PERIOD_RATIOS)
+            assert any(abs(ratio / wanted - 1.0) < 0.06 for wanted in tuning.PULSAR_DISK_PERIOD_RATIOS)
             found += 1
     assert found >= 60
 
@@ -121,7 +121,7 @@ def test_num_orbits_and_planets_false_are_obeyed(recycled):
     assert _planets(pulsar, 1, PLANETS=False) == []
 
 
-def test_a_system_around_a_millisecond_pulsar_takes_the_discs_planets(recycled):
+def test_a_system_around_a_millisecond_pulsar_takes_the_disks_planets(recycled):
     pulsar = recycled(6)
     config = _config(PLANETS=True)
     with draw.bound(draw.Stream("pulsar-system")):

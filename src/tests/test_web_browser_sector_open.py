@@ -83,15 +83,15 @@ def _ready(page):
         page.wait_for_timeout(250)
 
 
-def _settled(page, centre):
-    """`_ready`, and then until `centre` (a point of the scene in parsecs, the opened sector's centre) stays where it is
+def _settled(page, center):
+    """`_ready`, and then until `center` (a point of the scene in parsecs, the opened sector's center) stays where it is
     on the screen for a second, with the canvas scrolled into the window. The scale text `_ready` reads is the same
     while a flight is still on (a sector far from the core flies longer), and a click on a moving map is ignored."""
     _ready(page)
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     held, steady = None, 0
     for _ in range(100):
-        spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(centre))
+        spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(center))
         now = None if spot is None else (round(spot["x"]), round(spot["y"]))
         steady = steady + 1 if now == held else 0
         held = now
@@ -153,7 +153,7 @@ PICK_TRIES = 4
 """int: How many times a star is clicked, where it is drawn then, before the next star is tried."""
 
 WHEEL_TRIES = 80
-"""int: How many wheel ticks at a sector's centre are tried before the sector is taken not to open."""
+"""int: How many wheel ticks at a sector's center are tried before the sector is taken not to open."""
 
 
 def _steady_spot(page, point, samples=4, in_canvas=True):
@@ -208,7 +208,7 @@ def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page
     (no reload), the address changes once to `?sector=...&open=1` and stays, the panel never goes empty and ends
     describing the opened sector. The sector that opens is the nearest charted one the camera comes up to (MAP.152): the
     sample database charts sectors side by side at the core, and on a run where the view eases a little off the aimed
-    centre the camera comes up to a neighbour, so the test holds the panel and the address to the sector that opened
+    center the camera comes up to a neighbour, so the test holds the panel and the address to the sector that opened
     (TEST.419), not to the one aimed at."""
     page = moving_page
     sector_id = sample_params["sector_id"]
@@ -219,18 +219,18 @@ def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page
     page.wait_for_selector(CANVAS, state="attached")
     _settled(page, point)
     page.evaluate("window.__panel.length = 0")
-    # The sector blocks take no click since MAP.297: the wheel runs the view in on the sector's centre and the sector
-    # opens where the camera has come up to it (MAP.152). The centre is aimed at again each tick (the view eases).
+    # The sector blocks take no click since MAP.297: the wheel runs the view in on the sector's center and the sector
+    # opens where the camera has come up to it (MAP.152). The center is aimed at again each tick (the view eases).
     for _ in range(WHEEL_TRIES):
         spot = _steady_spot(page, point, in_canvas=False)
-        assert spot, "the sector's centre is not on the map"
+        assert spot, "the sector's center is not on the map"
         page.mouse.move(spot[0], spot[1])
         page.mouse.wheel(0, -400)
         page.wait_for_timeout(120)
         if "open=1" in page.url:
             break
     else:
-        raise AssertionError(f"{WHEEL_TRIES} wheel ticks at the sector's centre did not open it: {page.url}")
+        raise AssertionError(f"{WHEEL_TRIES} wheel ticks at the sector's center did not open it: {page.url}")
     _settled(page, point)
     assert page.evaluate("window.__sameDocument") is True, "the page reloaded while the sector opened"
     opened = parse_qs(urlparse(page.url).query).get("sector", [None])[0]

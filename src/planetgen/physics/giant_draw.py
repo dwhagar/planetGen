@@ -105,6 +105,10 @@ def own_flux_w_m2(planet):
     return rogue_surface.giant_internal_flux_w_m2(planet.mass, planet.radius, age_gy)
 
 
+TABLE_FLUX_FLOOR_EARTH = 1.0e-6
+"""float: The least flux, in the Earth's, the radius tables are asked at; below 0.011 (9.5 AU from the Sun) they hold their last distance, so any smaller number gives the same radius and a zero (no star) is allowed. [Sentinel, not a tuned value.]"""
+
+
 def effective_temperature_k(flux_w_m2, own_w_m2):
     """The temperature a giant radiates at, K: the starlight it absorbs (`BOND_ALBEDO`) and its own heat flux `own_w_m2` added as
     fluxes."""
@@ -134,7 +138,8 @@ def _table_core_earth(mass_earth, heavy_earth, envelope_z):
 
 def _table_radius_km(mass_earth, core_earth, flux_w_m2, age_gy):
     """The tables' radius (no draw) at a starlight in W/m2 and an age."""
-    return giant_radius.radius_km(mass_earth, core_earth, flux_w_m2 / giant_radius.flux_w_m2(1.0), age_gy)
+    # the tables stop at 9.5 AU (a flux of 0.011 of the Earth's) and hold there; a body with no star (GEN.1111) has no flux at all, which is the same far end
+    return giant_radius.radius_km(mass_earth, core_earth, max(flux_w_m2 / giant_radius.flux_w_m2(1.0), TABLE_FLUX_FLOOR_EARTH), age_gy)
 
 
 def _ice_shares(planet, regime):

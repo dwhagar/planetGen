@@ -45,7 +45,7 @@ def photodissociation_rate_per_s(wavelength_nm, irradiance_mw_m2_nm, sigma_wavel
     The photodissociation rate at 1 AU, per second: the cross section averaged over each 1 nm bin times the photon flux of the bin.
 
     Args:
-        wavelength_nm (ndarray): The bin centres of the spectrum, nm, 1 nm apart.
+        wavelength_nm (ndarray): The bin centers of the spectrum, nm, 1 nm apart.
         irradiance_mw_m2_nm (ndarray): The irradiance of each bin, mW per m2 per nm.
         sigma_wavelength_nm, sigma_cm2 (ndarray): The cross section and its wavelengths, nm.
     """
@@ -55,8 +55,8 @@ def photodissociation_rate_per_s(wavelength_nm, irradiance_mw_m2_nm, sigma_wavel
     sigma_wavelength = np.asarray(sigma_wavelength_nm, dtype=float)
     sigma = np.asarray(sigma_cm2, dtype=float)
     mean_sigma = np.zeros(int(keep.sum()))
-    for index, centre in enumerate(wavelength[keep]):
-        inside = (sigma_wavelength >= centre - 0.5) & (sigma_wavelength < centre + 0.5)
+    for index, center in enumerate(wavelength[keep]):
+        inside = (sigma_wavelength >= center - 0.5) & (sigma_wavelength < center + 0.5)
         mean_sigma[index] = sigma[inside].mean() if inside.any() else 0.0
     return float(np.sum(mean_sigma * photons_cm2_s_nm))
 

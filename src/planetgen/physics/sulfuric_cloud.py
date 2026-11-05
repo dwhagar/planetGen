@@ -4,7 +4,7 @@
 The sulfuric acid cloud of an air (GEN.1019, docs/design/composition/line-opacity.md; part of the cloud of `physics/aerosols.py`)
 ==================================================================================================================================
 
-The condensate clouds of `aerosols` form where a gas reaches its saturation pressure. Sulfuric acid does not: its vapour is made in the
+The condensate clouds of `aerosols` form where a gas reaches its saturation pressure. Sulfuric acid does not: its vapor is made in the
 air from sulfur dioxide, an oxidiser and water, and the droplets stand where the air is cool enough, so the cloud has a supply, a base
 and a mass limit but no saturation crossing.
 

@@ -186,7 +186,7 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
             velocity_vector_cartesian=star_velocities[id(star)])
 
     wide = getattr(system, "binary_type", None) == "wide"
-    # (a lone star with dark members about it is off the tree's barycentre, and its planets go round the star, GEN.1013)
+    # (a lone star with dark members about it is off the tree's barycenter, and its planets go round the star, GEN.1013)
     hosted = wide or (getattr(system, "binary_type", None) is None and bool(getattr(system, "dark_members", ())))
     primary_at = star_centers[id(system.primary_star)]
     secondary = getattr(system, "secondary_star", None)

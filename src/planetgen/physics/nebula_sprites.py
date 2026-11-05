@@ -6,21 +6,21 @@ The sprites of nebulae and supernova remnants in the sky of a system (VIEW.28, S
 
 A nebula or a remnant is not a point: the sky draws it as an ellipse sprite with an angular size, a surface brightness and the extinction it puts in
 front of what lies behind it. All of it is worked out on arrays from the geometry the light-travel code gives (`light_travel.retarded_offsets`: the
-centre where it was when its light left it) and the stored contents of the object (`nebulae`, `supernova_remnants`):
+center where it was when its light left it) and the stored contents of the object (`nebulae`, `supernova_remnants`):
 
 * **Angular radius** `asin(R / d)` for an observer outside the ball of radius `R` at distance `d` (the silhouette of a sphere; the plan's `atan(R / d)`
   is the same to 1 percent beyond three radii); a ball that holds the observer covers the sky (`pi`).
 * **Extinction** `extinction_av` is the dimming through the middle of the ball (a diameter); a line of sight at impact parameter `b` crosses a chord
   `2 sqrt(R^2 - b^2)`, so it dims by `extinction_av * sqrt(1 - (b / R)^2)` (`chord_extinction_mag`, the first tier of the dust of the sky plan section 2.5).
-  An observer inside the ball sees half the diameter (`extinction_av / 2`, the line from the centre to the edge).
-* **Surface brightness** (V magnitudes per square arcsecond, the mean over the disc) by what makes the light:
+  An observer inside the ball sees half the diameter (`extinction_av / 2`, the line from the center to the edge).
+* **Surface brightness** (V magnitudes per square arcsecond, the mean over the disk) by what makes the light:
   - *emission* (H II regions and the emission-reflection nebulae, the planetary nebulae and the Wolf-Rayet rings, family `emission` and `planetary`):
-    the hydrogen-alpha light of an ionised gas. Its emission measure over the mean chord of a uniform ball (`4R/3`) is `EM = n^2 * 4R/3` (cm^-6 pc), the
+    the hydrogen-alpha light of an ionized gas. Its emission measure over the mean chord of a uniform ball (`4R/3`) is `EM = n^2 * 4R/3` (cm^-6 pc), the
     line is `EM / 2.75` Rayleighs at 10,000 K, and a Rayleigh of H-alpha is worked out into the V band through the filter (`rayleigh_to_v_mag`);
   - *reflection* (family `reflection`): the light of its central star scattered by the grains, `albedo * (1 - exp(-tau)) / (4 pi)` of the star's
     flux at half the radius;
   - *supernova remnants*: the swept-up shell of a strong shock, four times the ambient density over a twelfth of the radius (the Sedov-Taylor
-    shell), seen as hydrogen-alpha at a small share of a photoionised gas of the same emission measure; a plerion has no model (`None`);
+    shell), seen as hydrogen-alpha at a small share of a photoionized gas of the same emission measure; a plerion has no model (`None`);
   - *dark* and *diffuse* clouds give no light of their own (`None`): they dim, they do not shine.
 * **Visibility**: an object is a naked-eye sprite only when its mean surface brightness is under about 23 magnitudes per square arcsecond
   (docs/design/orbits/sky-view.md 2.10).
@@ -71,7 +71,7 @@ SHELL_THICKNESS_OVER_RADIUS = 1.0 / 12.0
 """float: STAND-IN NS4: the thickness of a Sedov-Taylor shell over the radius (recalled)."""
 
 SHELL_HALPHA_SHARE = 0.5
-"""float: STAND-IN NS5 (Marginal Unverified, L3): the share of the hydrogen-alpha of a photoionised gas of the same emission measure that a shocked shell gives, tuned so that an old shell remnant (n = 1 cm^-3, 50 ly) is about 1 to 10 Rayleighs, the order of the dim optical remnants (recalled, not looked up)."""
+"""float: STAND-IN NS5 (Marginal Unverified, L3): the share of the hydrogen-alpha of a photoionized gas of the same emission measure that a shocked shell gives, tuned so that an old shell remnant (n = 1 cm^-3, 50 ly) is about 1 to 10 Rayleighs, the order of the dim optical remnants (recalled, not looked up)."""
 
 REFLECTION_ALBEDO = 0.5
 """float: STAND-IN NS6 (Marginal Unverified, L1): the albedo of interstellar grains in the V band (recalled)."""
@@ -83,14 +83,14 @@ NAKED_EYE_LIMIT_MAG_ARCSEC2 = 23.0
 """float: A sprite is visible when its mean surface brightness is under this (sky-view.md 2.10; a dark site's sky is 21.8)."""
 
 EMISSION_FAMILIES = ("emission", "planetary")
-"""tuple: The nebula families whose light is the hydrogen-alpha of an ionised gas."""
+"""tuple: The nebula families whose light is the hydrogen-alpha of an ionized gas."""
 
 REMNANT_FAMILIES = ("supernova-remnant", "plerion")
 """tuple: The families of a supernova remnant: its shell (`"supernova-remnant"`) and a plerion, whose pulsar wind nebula has no model of its light."""
 
 
 def angular_radius_rad(radius_ly, distance_ly):
-    """The angular radius of balls of `radius_ly` seen from `distance_ly` from their centres: `asin(R / d)`; `pi` where the observer is inside (d <= R)."""
+    """The angular radius of balls of `radius_ly` seen from `distance_ly` from their centers: `asin(R / d)`; `pi` where the observer is inside (d <= R)."""
     radius = np.asarray(radius_ly, dtype=float)
     distance = np.asarray(distance_ly, dtype=float)
     inside = distance <= radius
@@ -99,7 +99,7 @@ def angular_radius_rad(radius_ly, distance_ly):
 
 
 def chord_extinction_mag(extinction_av, radius_ly, impact_ly):
-    """The dimming of a line of sight at `impact_ly` from the centre of a ball: `extinction_av * sqrt(1 - (b / R)^2)`; 0 outside the ball's silhouette."""
+    """The dimming of a line of sight at `impact_ly` from the center of a ball: `extinction_av * sqrt(1 - (b / R)^2)`; 0 outside the ball's silhouette."""
     radius = np.asarray(radius_ly, dtype=float)
     ratio = np.asarray(impact_ly, dtype=float) / np.where(radius > 0.0, radius, 1.0)
     inside_silhouette = ratio < 1.0
@@ -107,7 +107,7 @@ def chord_extinction_mag(extinction_av, radius_ly, impact_ly):
 
 
 def sprite_extinction_mag(extinction_av, radius_ly, distance_ly):
-    """The dimming a sprite puts in front of what lies behind its centre: the diameter's `extinction_av` for an observer outside, half of it for one inside."""
+    """The dimming a sprite puts in front of what lies behind its center: the diameter's `extinction_av` for an observer outside, half of it for one inside."""
     extinction = np.asarray(extinction_av, dtype=float)
     return np.where(np.asarray(distance_ly, dtype=float) <= np.asarray(radius_ly, dtype=float), 0.5 * extinction, extinction)
 
@@ -127,7 +127,7 @@ def rayleigh_to_v_mag(rayleigh):
 
 
 def emission_surface_brightness(density_cm3, radius_ly):
-    """The mean V surface brightness (mag per square arcsecond) of an ionised gas of `density_cm3` in a ball of `radius_ly`, from its hydrogen-alpha."""
+    """The mean V surface brightness (mag per square arcsecond) of an ionized gas of `density_cm3` in a ball of `radius_ly`, from its hydrogen-alpha."""
     return rayleigh_to_v_mag(emission_measure_cm6_pc(density_cm3, radius_ly) / EM_PER_RAYLEIGH)
 
 
@@ -164,7 +164,7 @@ def surface_brightness(family, density_cm3, radius_ly, extinction_av):
 
 
 def total_magnitude(surface_brightness_mag, angular_radius_rad_):
-    """The integrated V magnitude of a disc of mean surface brightness `surface_brightness_mag` and angular radius `angular_radius_rad_`: `S - 2.5 log10(pi theta^2)` with theta in arcseconds."""
+    """The integrated V magnitude of a disk of mean surface brightness `surface_brightness_mag` and angular radius `angular_radius_rad_`: `S - 2.5 log10(pi theta^2)` with theta in arcseconds."""
     theta_arcsec = np.asarray(angular_radius_rad_, dtype=float) * (180.0 * 3600.0 / math.pi)
     with np.errstate(divide="ignore"):
         return np.asarray(surface_brightness_mag, dtype=float) - 2.5 * np.log10(math.pi * theta_arcsec * theta_arcsec)
@@ -172,11 +172,11 @@ def total_magnitude(surface_brightness_mag, angular_radius_rad_):
 
 def sprite_data(family, radius_ly, distance_ly, density_cm3, extinction_av, foreground_av=0.0, age_years=None, light_time_s=None):
     """
-    The sprite of each object at `distance_ly` from the observer (its retarded centre, `light_travel.retarded_offsets`).
+    The sprite of each object at `distance_ly` from the observer (its retarded center, `light_travel.retarded_offsets`).
 
     Args:
         family (array): The family of each object (see `surface_brightness`).
-        radius_ly, distance_ly, density_cm3, extinction_av (array): The stored radius, the distance to the retarded centre, the stored density and the stored extinction.
+        radius_ly, distance_ly, density_cm3, extinction_av (array): The stored radius, the distance to the retarded center, the stored density and the stored extinction.
         foreground_av (float or array): The dust of the sky between the observer and the object (magnitudes), which dims its surface brightness.
         age_years (array, optional): The age of each remnant (`supernova_remnants.age_years`; `nan` for a nebula). With `light_time_s` it decides `seen`.
         light_time_s (array, optional): The light time of each object in seconds.

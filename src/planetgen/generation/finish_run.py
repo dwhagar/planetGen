@@ -37,7 +37,7 @@ from planetgen.db import store
 from planetgen.queue import commands, redisqueue, runrecord, wrapper
 
 FINISHABLE = frozenset({
-    "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbours", "scatter-mass",
+    "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "scatter-mass",
     "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "draw-nebula-field", "refresh-block-lights",
     "scatter-backfill", "run-population", "run-territories", "settle-sector-paths", "refresh-run-blocks"})
 """frozenset[str]: The commands whose stage can be run again from its start after it stopped partway, and give the
@@ -109,7 +109,7 @@ def first_unfinished(conn, run_id, steps):
 
 def last_incomplete(conn):
     """
-    The id of the newest generation run, when it stopped before it was done (failed, cancelled, or live with nobody
+    The id of the newest generation run, when it stopped before it was done (failed, canceled, or live with nobody
     following it), `None` when the newest generation run was done or there is none.
 
     Raises:

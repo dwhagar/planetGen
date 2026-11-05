@@ -105,7 +105,7 @@ def _args():
 
 
 def test_a_group_across_a_sector_boundary_is_made_once_each_star_by_the_sector_that_holds_it():
-    centre_pc = (8000.0, 0.0, 0.0)
+    center_pc = (8000.0, 0.0, 0.0)
     args = _args()
     built = []
     expected = 0
@@ -114,7 +114,7 @@ def test_a_group_across_a_sector_boundary_is_made_once_each_star_by_the_sector_t
                                                                    "giant", "white-dwarf"))
         for side in (True, False):
             sector = _Sector(side)
-            run_sector._add_members(sector, args, [member], centre_pc, 26000.0, "emission-member")
+            run_sector._add_members(sector, args, [member], center_pc, 26000.0, "emission-member")
             built += sector.systems
     assert built and len(built) == expected          # none twice, none missing
     by_group = collections.Counter(entry.group_seed for entry in built)
@@ -126,20 +126,20 @@ def test_a_group_across_a_sector_boundary_is_made_once_each_star_by_the_sector_t
 
 
 def test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group():
-    centre_pc = (8000.0, 0.0, 0.0)
+    center_pc = (8000.0, 0.0, 0.0)
     args = _args()
     for member, tree in _groups(600, age_yr=DECAYED_AGE_YR)[:3]:
         sector = _Sector(True)
-        run_sector._add_members(sector, args, [member], centre_pc, 26000.0, "emission-member")
+        run_sector._add_members(sector, args, [member], center_pc, 26000.0, "emission-member")
         assert len(sector.systems) == 1
         entry = sector.systems[0]
         assert not hasattr(entry, "group_seed")
-        assert len(entry.star_system.stars) >= 2
+        assert len(entry.star_system.stars) == tree.member_count >= 2     # TEST.562: every star the group left, not the member alone
 
 
 def test_a_member_in_no_group_is_built_as_before():
-    centre_pc = (8000.0, 0.0, 0.0)
+    center_pc = (8000.0, 0.0, 0.0)
     member = _member(0, mass=1.0)
     sector = _Sector(True)
-    run_sector._add_members(sector, _args(), [member], centre_pc, 26000.0, "protostar")
+    run_sector._add_members(sector, _args(), [member], center_pc, 26000.0, "protostar")
     assert len(sector.systems) == 1 and not hasattr(sector.systems[0], "group_seed")

@@ -74,8 +74,8 @@ def _number(value):
 
 def glyph(kind, x, y, radius=NODE_RADIUS):
     """
-    The SVG shapes of one stop's glyph centred on (`x`, `y`): a disc for a system, a hexagon for a phenomenon, and for each kind of
-    unknown-space stop its own outline (a four-point star, a ringed dark disc, a diamond, a double ring, a chevron, a square), so
+    The SVG shapes of one stop's glyph centered on (`x`, `y`): a disk for a system, a hexagon for a phenomenon, and for each kind of
+    unknown-space stop its own outline (a four-point star, a ringed dark disk, a diamond, a double ring, a chevron, a square), so
     the kinds read apart by shape and not by colour alone.
     """
     r = radius
@@ -152,16 +152,16 @@ def _hop_words(hop, source):
 
 def _stub_words(stub, names):
     """The text alternative of a stub: a neighbour of the stop, how far off, and that it is not a lane."""
-    return f"A system {stub['label']} from {names.get(stub['stop'], stub['stop'])}: a neighbour, not a travel lane"
+    return f"A system {stub['label']} from {names.get(stub['stop'], stub['stop'])}: a neighbor, not a travel lane"
 
 
 def _link_words(link, names):
-    return (f"{names.get(link['from'], link['from'])} and {names.get(link['to'], link['to'])} are neighbours {link['label']} apart: "
-            "a neighbour relation, not a travel lane")
+    return (f"{names.get(link['from'], link['from'])} and {names.get(link['to'], link['to'])} are neighbors {link['label']} apart: "
+            "a neighbor relation, not a travel lane")
 
 
 def _more_words(more, names):
-    return f"{more['count']} more neighbours of {names.get(more['stop'], more['stop'])} are not drawn"
+    return f"{more['count']} more neighbors of {names.get(more['stop'], more['stop'])} are not drawn"
 
 
 def _bend_mark(segments, bend):
@@ -179,7 +179,7 @@ def _bend_mark(segments, bend):
 
 
 def _anchored(x, text, width):
-    """`(text-anchor, x)` for `text` at a stop at `x`: centred on it, or starting or ending at it when it would run past the drawing's edge."""
+    """`(text-anchor, x)` for `text` at a stop at `x`: centered on it, or starting or ending at it when it would run past the drawing's edge."""
     half = len(text) * CHAR_WIDTH / 2
     if x - half < 2:
         return "start", x - NODE_RADIUS
@@ -313,7 +313,7 @@ def render_legend(kinds, unknown=False, neighbours=False, bent=False):
     if neighbours:
         items.append('<li><svg class="nav-legend-glyph" viewBox="0 0 34 22" width="34" height="22" aria-hidden="true" focusable="false">'
                      '<g class="nav-diagram-neighbour nav-diagram-stub"><line x1="4" y1="11" x2="29" y2="11"/><circle cx="29" cy="11" r="2.2"/></g></svg>'
-                     ' Neighbour (not a travel lane)</li>')
+                     ' Neighbor (not a travel lane)</li>')
     return f'<ul class="nav-diagram-legend" role="list">{"".join(items)}</ul>' if items else ""
 
 
@@ -325,7 +325,7 @@ def render_course_diagram(route, names, urls, linked=False):
         route (dict): The route `GET /api/nav` sends (`path`, `hops`, `stop_places`).
         names (dict): `{node: name}` of every stop.
         urls (dict): `{node: url or None}` of every stop.
-        linked (bool): The diagram sits beside the Galaxy Map's course (NAV.69): says that a click on a stop centres the map on it.
+        linked (bool): The diagram sits beside the Galaxy Map's course (NAV.69): says that a click on a stop centers the map on it.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -341,12 +341,12 @@ def render_course_diagram(route, names, urls, linked=False):
     drawings = []
     for size, width in WIDTHS:
         hidden = navribbon.layout_ribbon(route, width)["hidden_links"]
-        hidden_note = (f'<p class="hint nav-diagram-hidden">{hidden} neighbour link{"" if hidden == 1 else "s"} between stops on '
+        hidden_note = (f'<p class="hint nav-diagram-hidden">{hidden} neighbor link{"" if hidden == 1 else "s"} between stops on '
                        f'different rows {"is" if hidden == 1 else "are"} not drawn.</p>' if hidden else "")
         drawings.append(f'<div class="nav-diagram-{size}-box">{render_drawing(route, names, urls, width, size)}{hidden_note}</div>')
     drawings = "".join(drawings)
-    neighbour_note = (" The faint lines round a stop and the dotted arcs between stops show which systems are its nearest neighbours "
-                      "(the few drawn, and \u201cand N more\u201d where there are more); a link is a neighbour relation, not a travel "
+    neighbour_note = (" The faint lines round a stop and the dotted arcs between stops show which systems are its nearest neighbors "
+                      "(the few drawn, and \u201cand N more\u201d where there are more); a link is a neighbor relation, not a travel "
                       "lane. The route\u2019s own hops are always drawn." if has_graph else "")
     unknown_note = (f' {unknown} hop{"" if unknown == 1 else "s"} cross{"es" if unknown == 1 else ""} unknown space (uncharted '
                     f'sectors); {"it is" if unknown == 1 else "they are"} drawn in red, dashed and glowing, and the route list names '
@@ -354,7 +354,7 @@ def render_course_diagram(route, names, urls, linked=False):
     bend_note = (f" {len(bends)} hop{'' if len(bends) == 1 else 's'} would pass inside the keep-out sphere of a star or another object, so "
                  f"{'it is' if len(bends) == 1 else 'they are'} marked with a bend under the line: the real course goes round the sphere and is "
                  "a little longer, by the amount in the hop\u2019s text." if bends else "")
-    link_note = (" A click on a stop selects it on the map and centres the map on it; a second click, or a click with Ctrl held, opens its page."
+    link_note = (" A click on a stop selects it on the map and centers the map on it; a second click, or a click with Ctrl held, opens its page."
                  if linked else "")
     return (
         '<section class="panel nav-diagram" aria-labelledby="course-diagram-heading">'

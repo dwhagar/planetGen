@@ -184,8 +184,8 @@ export function buildSystemScene(scene, layout, options) {
   });
 
   // MAP.213: the stars' paths are the orbits of the scene's tree, each child of a node on its own ellipse about the node's
-  // centre of mass, the slot-0 child on the other side of it from the slot-1 child, each at the other's share of the
-  // separation (MAP.136); a sub-pair's centre follows its own path about its parent node's centre.
+  // center of mass, the slot-0 child on the other side of it from the slot-1 child, each at the other's share of the
+  // separation (MAP.136); a sub-pair's center follows its own path about its parent node's center.
   if (scene.stars.length) {
     const colors = {};
     scene.stars.forEach((star) => { colors[star.ref] = colorOf(star); });
@@ -261,7 +261,7 @@ export function buildSystemScene(scene, layout, options) {
     for (const ref of Object.keys(placed)) {
       const p = placed[ref];
       const entry = byRef[ref];
-      if (!entry) continue;    // a tree node's centre of mass: a point the stars hang from, not a body
+      if (!entry) continue;    // a tree node's center of mass: a point the stars hang from, not a body
       objects[ref].position.set(p[0], p[1], p[2]);
       entry.x = p[0];
       entry.y = p[1];
@@ -363,7 +363,7 @@ export function buildSystemScene(scene, layout, options) {
     });
   }
 
-  // UX.244: the direction from a body to what it orbits (a barycentre: the nearest star), for a tidally locked body to keep its face toward.
+  // UX.244: the direction from a body to what it orbits (a barycenter: the nearest star), for a tidally locked body to keep its face toward.
   function towardParent(entry) {
     const own = objects[entry.ref].position;
     let target = objects[entry.parent];

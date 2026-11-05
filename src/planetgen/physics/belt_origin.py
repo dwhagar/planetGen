@@ -4,25 +4,25 @@
 Where a belt came from (GEN.1088, docs/design/systems/belt-origins.md sections 3 to 5)
 =====================================================================================
 
-Every belt and outer disc gets the cause that made it, a record of how its solids were formed and what took mass from them, and one sentence
+Every belt and outer disk gets the cause that made it, a record of how its solids were formed and what took mass from them, and one sentence
 for its page ("The leftover of a planet that never grew here ..."). The generator made the belt, so it knows. A pure law over the planet chain
-the architecture (`planet_architecture`) built and the disc's solids; it reads no database, draws no random number (the two draws it needs come
+the architecture (`planet_architecture`) built and the disk's solids; it reads no database, draws no random number (the two draws it needs come
 in as `u` arguments) and moves nothing. GEN.1068 gives it the final chain in place of the 10 percent slot roll.
 
 **Formation causes** (what made the belt; the stored `origin`):
 
 - `gap`: two neighbours of the chain stand more than `GAP_SPACING_K` mutual Hill radii apart (the thinned chains cluster at 12 to 20), and the
   space between them, less five Hill radii of each, is wide enough: the solids there did not grow into a planet.
-- `tail`: the chain stops short of `growth_limit_au`, where the disc has built less (`PLANET_OUTER_GROWTH_AU`), and the space past its last
-  rocky planet is a belt (a last giant ends the chain, the outer disc takes over).
+- `tail`: the chain stops short of `growth_limit_au`, where the disk has built less (`PLANET_OUTER_GROWTH_AU`), and the space past its last
+  rocky planet is a belt (a last giant ends the chain, the outer disk takes over).
 - `snow-line-bump`: solids pile up at the snow line as the system formed it (the formation snow line is stored); where that stretch is free of
   planets and is not already inside a gap or tail (which then take it as a second cause) it is its own belt.
-- `outer-disc`: the disc past the last giant (or past the tail), out to `disc_edge_au`.
+- `outer-disk`: the disk past the last giant (or past the tail), out to `disk_edge_au`.
 - `destroyed-planet`: the remains of a planet the system's history destroyed (the caller names it), `DESTROYED_RETAINED_SHARE` of its mass.
 - `collisional-debris`: the rubble of a collision between large bodies, a rare event at `COLLISIONAL_DEBRIS_PER_GYR` of mass
   `COLLISIONAL_DEBRIS_MASS_EARTH`; `collisional_debris` turns the caller's draw into the event or none.
 
-**Shaping causes** (what took mass afterwards; the stored `history`), applied in this order to each belt, solids weighted by the disc's own
+**Shaping causes** (what took mass afterwards; the stored `history`), applied in this order to each belt, solids weighted by the disk's own
 surface density (`belt_mass.primordial_mass_earth`):
 
 - `giant-stirring`: the chaotic zone of each giant, half-width `1.3 a mu^(2/7)` each side [R4727], and for a belt inside the giant the
@@ -33,7 +33,7 @@ surface density (`belt_mass.primordial_mass_earth`):
   `INSTABILITY_SURVIVAL_RANGE` of the swept stretch survives, log-uniform in the draw `u`; the rest is `scattered_earth` (the scatter step, GEN.1089,
   decides where it went).
 
-**What a stretch starts with** (GEN.1261): the solids of the disc in it, less the cold disc's drift loss (`planetesimal_share`: past the snow line only the share of solids that grew to planetesimals before the pebbles drifted in), and for a gap no more than the isolation mass at its centre (`isolation_cap_earth`: more would have grown the planet). That is the `primordial_mass_earth` below.
+**What a stretch starts with** (GEN.1261): the solids of the disk in it, less the cold disk's drift loss (`planetesimal_share`: past the snow line only the share of solids that grew to planetesimals before the pebbles drifted in), and for a gap no more than the isolation mass at its center (`isolation_cap_earth`: more would have grown the planet). That is the `primordial_mass_earth` below.
 
 Mass is conserved: `primordial_mass_earth = mass_earth + cleared_earth + scattered_earth` (`conservation_error`). The mass later lost to
 collisional grinding is not here: that is `belt_mass.belt_mass_earth`, which needs the age and the largest body.
@@ -44,7 +44,7 @@ belt) and every shaping cause with the share of the mass it took in `history`, s
 Use:
 
     chain = [Body(distance_au, mass_kg, eccentricity, giant, migrated, formation_au), ...]
-    belts = build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disc_edge_au, u=0.5)
+    belts = build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disk_edge_au, u=0.5)
     for belt in belts: belt.origin, belt.mass_earth, belt.sentence
 """
 
@@ -101,22 +101,22 @@ DEBRIS_MIN_WIDTH = 0.05
 """float: The least half-width of the belt of debris round its distance, as a share of the distance (BG11)."""
 
 PEBBLE_CONVERSION_PER_ORBIT = 0.01
-"""float: The share of the pebbles of a patch of the disc that the streaming instability turns into planetesimals each orbit, where it works (pebble-to-planetesimal simulations set the rate at 0.01 of the pebble surface density per orbit). [Stand-in BG17, tier Confident Unverified, tweak L0.]"""
+"""float: The share of the pebbles of a patch of the disk that the streaming instability turns into planetesimals each orbit, where it works (pebble-to-planetesimal simulations set the rate at 0.01 of the pebble surface density per orbit). [Stand-in BG17, tier Confident Unverified, tweak L0.]"""
 
 PEBBLE_TO_GAS_SOLAR = 0.01
-"""float: The solids-to-gas ratio of a disc of solar metal content, the interstellar value; it scales with the star's `metal_ratio`. [Stand-in BG18, tier Confident Unverified, tweak L0.]"""
+"""float: The solids-to-gas ratio of a disk of solar metal content, the interstellar value; it scales with the star's `metal_ratio`. [Stand-in BG18, tier Confident Unverified, tweak L0.]"""
 
 PEBBLE_DRIFT_FACTOR = 1.1
-"""float: The pebbles of a drift-limited disc fall in over `1 / (PEBBLE_DRIFT_FACTOR Z Omega)`: their Stokes number is the drift limit `0.55 Z / (eta)` of the drift-limited dust models
+"""float: The pebbles of a drift-limited disk fall in over `1 / (PEBBLE_DRIFT_FACTOR Z Omega)`: their Stokes number is the drift limit `0.55 Z / (eta)` of the drift-limited dust models
 and the drift speed `2 St eta v_K`, so the pressure gradient `eta` drops out and the time is 1.1 inverse growth rates, whatever the radius. [Stand-in BG19, tier Marginal educated guess from physics, tweak L0.]"""
 
 
 def planetesimal_share(metal_ratio=1.0):
     """
-    The share of the solids of the cold disc that grew into planetesimals before the pebbles drifted in (GEN.1261). Pebbles turn into planetesimals at
+    The share of the solids of the cold disk that grew into planetesimals before the pebbles drifted in (GEN.1261). Pebbles turn into planetesimals at
     `PEBBLE_CONVERSION_PER_ORBIT` of their mass an orbit and fall in over `1 / (PEBBLE_DRIFT_FACTOR Z Omega)` (Z the solids-to-gas ratio, `PEBBLE_TO_GAS_SOLAR` times
     `metal_ratio`); the two compete, so the share that becomes planetesimals is `zeta / (zeta + PEBBLE_DRIFT_FACTOR Z)`, the same at every radius because both rates scale with
-    the orbital frequency. The rest is the drift loss ("the majority of the dust reservoir is lost through drift", a pebble-drift disc model, read second-hand).
+    the orbital frequency. The rest is the drift loss ("the majority of the dust reservoir is lost through drift", a pebble-drift disk model, read second-hand).
     """
     zeta = PEBBLE_CONVERSION_PER_ORBIT
     return zeta / (zeta + PEBBLE_DRIFT_FACTOR * PEBBLE_TO_GAS_SOLAR * max(metal_ratio, 0.0))
@@ -124,12 +124,12 @@ def planetesimal_share(metal_ratio=1.0):
 
 def isolation_cap_earth(lower, upper, star_mass_kg, snow_line_au, metal_ratio=1.0, scatter=1.0, separation=None):
     """
-    The most solids a planetless stretch can hold (GEN.1261): the isolation mass a planet at its centre would have taken from its feeding zone (`formation.isolation_mass_kg`,
-    [R2430]) in the disc's own solids there. A stretch holding more would have grown the planet, so the chain would not have the gap.
+    The most solids a planetless stretch can hold (GEN.1261): the isolation mass a planet at its center would have taken from its feeding zone (`formation.isolation_mass_kg`,
+    [R2430]) in the disk's own solids there. A stretch holding more would have grown the planet, so the chain would not have the gap.
     """
-    centre = math.sqrt(lower * upper)
-    density = planet_mass.solids_surface_density_gcm2(centre, star_mass_kg, snow_line_au, metal_ratio, scatter)
-    return _kg_to_mearth(formation.isolation_mass_kg(centre, density, star_mass_kg, tuning.OLIGARCH_SEPARATION_MEDIAN if separation is None else separation))
+    center = math.sqrt(lower * upper)
+    density = planet_mass.solids_surface_density_gcm2(center, star_mass_kg, snow_line_au, metal_ratio, scatter)
+    return _kg_to_mearth(formation.isolation_mass_kg(center, density, star_mass_kg, tuning.OLIGARCH_SEPARATION_MEDIAN if separation is None else separation))
 
 
 COLLISIONAL_DEBRIS_PER_GYR = 0.003
@@ -260,7 +260,7 @@ def gaps(chain, star_mass_kg):
 
 
 def tail(chain, star_mass_kg, growth_limit_au):
-    """The unfinished tail: past the last rocky planet to `growth_limit_au`, only when no giant ends the chain (the outer disc takes that one)."""
+    """The unfinished tail: past the last rocky planet to `growth_limit_au`, only when no giant ends the chain (the outer disk takes that one)."""
     if not chain or chain[-1].giant:
         return []
     last = chain[-1]
@@ -268,10 +268,10 @@ def tail(chain, star_mass_kg, growth_limit_au):
     return [_candidate("tail", lower, upper, inner_neighbour_au=last.distance_au)] if _fits(lower, upper) else []
 
 
-def outer_disc(chain, star_mass_kg, growth_limit_au, disc_edge_au):
+def outer_disk(chain, star_mass_kg, growth_limit_au, disk_edge_au):
     """
-    The outer disc: from the outer chaotic edge of the last giant and the keep-out of the last body, and from `growth_limit_au` too when the chain
-    ends in a rocky planet (the tail has the space before it), out to `disc_edge_au`.
+    The outer disk: from the outer chaotic edge of the last giant and the keep-out of the last body, and from `growth_limit_au` too when the chain
+    ends in a rocky planet (the tail has the space before it), out to `disk_edge_au`.
     """
     giants = [body for body in chain if body.giant]
     lower = growth_limit_au if not chain or not chain[-1].giant else 0.0
@@ -280,7 +280,7 @@ def outer_disc(chain, star_mass_kg, growth_limit_au, disc_edge_au):
     if giants:
         lower = max(lower, giants[-1].distance_au + chaotic_half_width_au(giants[-1], star_mass_kg))
     neighbour = giants[-1].distance_au if giants else (chain[-1].distance_au if chain else growth_limit_au)
-    return [_candidate("outer-disc", lower, disc_edge_au, inner_neighbour_au=neighbour)] if _fits(lower, disc_edge_au) else []
+    return [_candidate("outer-disk", lower, disk_edge_au, inner_neighbour_au=neighbour)] if _fits(lower, disk_edge_au) else []
 
 
 def snow_line_bump(chain, star_mass_kg, formation_snow_line_au, taken):
@@ -341,7 +341,7 @@ def cleared_spans(body, star_mass_kg, lower_au, upper_au):
 def is_stirred(body, star_mass_kg, lower_au, upper_au):
     """Whether a giant stirs the stretch: it reaches within `STIR_ZONE_WIDTHS` chaotic half-widths of the giant's orbit."""
     reach = STIR_ZONE_WIDTHS * chaotic_half_width_au(body, star_mass_kg)
-    return upper_au >= body.distance_au - reach and lower_au <= body.distance_au + reach
+    return bool(upper_au >= body.distance_au - reach and lower_au <= body.distance_au + reach)
 
 
 def moved_through(body, lower_au, upper_au, star_mass_kg):
@@ -350,7 +350,7 @@ def moved_through(body, lower_au, upper_au, star_mass_kg):
         return False
     half = chaotic_half_width_au(body, star_mass_kg)
     path = (min(body.formation_au, body.distance_au) - half, max(body.formation_au, body.distance_au) + half)
-    return upper_au >= path[0] and lower_au <= path[1]
+    return bool(upper_au >= path[0] and lower_au <= path[1])
 
 
 def instability_survival(u):
@@ -371,7 +371,7 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
     cold_share = planetesimal_share(metal_ratio)
 
     def mass(low, high):
-        """The planetesimals of a stretch: the solids of the disc, less the cold disc's drift loss (past the snow line only `cold_share` of them grew to planetesimals)."""
+        """The planetesimals of a stretch: the solids of the disk, less the cold disk's drift loss (past the snow line only `cold_share` of them grew to planetesimals)."""
         warm_high = min(high, formation_snow_line_au)
         warm = _primordial(low, warm_high, star_mass_kg, snow_line_au, metal_ratio, scatter) if warm_high > low else 0.0
         cold_low = max(low, formation_snow_line_au)
@@ -423,20 +423,20 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
                       stirred, tuple(history), sentence)
 
 
-def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disc_edge_au, u=0.5, debris=(), metal_ratio=1.0,
+def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disk_edge_au, u=0.5, debris=(), metal_ratio=1.0,
           scatter=1.0):
     """
-    Every belt of a system with the cause that made it: the gaps, the unfinished tail, the snow-line bump (or its co-cause), the outer disc and
+    Every belt of a system with the cause that made it: the gaps, the unfinished tail, the snow-line bump (or its co-cause), the outer disk and
     the `debris` events the caller names, each traced through the giants' clearing and the instability, in order of distance. Belts under
     `MIN_BELT_MASS_EARTH` of primordial mass are not belts.
 
     Args:
         chain (list): The `Body` list of the system's planets, in order of distance.
         star_mass_kg (float): The star's mass at formation.
-        snow_line_au (float): The snow line now (the disc's surface density reads it).
+        snow_line_au (float): The snow line now (the disk's surface density reads it).
         formation_snow_line_au (float): The snow line when the system formed (stored on the belt).
-        growth_limit_au (float): Where the disc built less (`tuning.PLANET_OUTER_GROWTH_AU`).
-        disc_edge_au (float): The outer edge of the disc.
+        growth_limit_au (float): Where the disk built less (`tuning.PLANET_OUTER_GROWTH_AU`).
+        disk_edge_au (float): The outer edge of the disk.
         u (float): A uniform draw in (0, 1) for the survival share of a belt a giant swept through.
         debris (iterable): `Debris` events, from `destroyed_planet` and `collisional_debris`.
 
@@ -444,7 +444,7 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
         list: `BeltOrigin`, nearest the star first.
     """
     chain = sorted(chain, key=lambda body: body.distance_au)
-    candidates = gaps(chain, star_mass_kg) + tail(chain, star_mass_kg, growth_limit_au) + outer_disc(chain, star_mass_kg, growth_limit_au, disc_edge_au)
+    candidates = gaps(chain, star_mass_kg) + tail(chain, star_mass_kg, growth_limit_au) + outer_disk(chain, star_mass_kg, growth_limit_au, disk_edge_au)
     candidates += snow_line_bump(chain, star_mass_kg, formation_snow_line_au, candidates)
     candidates += [_debris_candidate(event) for event in debris]
     belts = []

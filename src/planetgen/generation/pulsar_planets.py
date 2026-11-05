@@ -8,9 +8,9 @@ Whether a pulsar holds planets at all is the remnant satellite table's (`phenome
 none for a young pulsar or any other remnant). The ones that do have one of three origins, drawn here from the four
 known systems (`tuning.PULSAR_PLANET_ORIGIN_WEIGHTS`, low confidence):
 
-* **disc** (25%): the carbon-rich fallback disc of a disrupted white dwarf, as PSR B1257+12's. One to three planets
+* **disk** (25%): the carbon-rich fallback disk of a disrupted white dwarf, as PSR B1257+12's. One to three planets
   between 0.1 and 0.6 AU, masses log-uniform from 0.01 to 10 Earth masses, each period near a low-order ratio to the
-  one inside it. They are carbon-rich (the disc's C/O, `bulk_draw.REMNANT_DISC_RATIOS`) and have no moons. The pulsar
+  one inside it. They are carbon-rich (the disk's C/O, `bulk_draw.REMNANT_DISK_RATIOS`) and have no moons. The pulsar
   wind (`magnetism.pulsar_wind_pressure_pa`) crushes their magnetosphere to the surface, and the radiation rating
   (`habitability_world.compact_host_name`) always puts them in the lowest tier.
 * **captured-giant** (25%): a giant taken in a globular cluster (PSR B1620-26 b), 1 to 4 Jupiter masses at 20 to
@@ -46,9 +46,9 @@ def applies(star):
 
 def draw_origin(system_config):
     """The origin of a pulsar's planets (`tuning.PULSAR_PLANET_ORIGIN_WEIGHTS`); a run that asks for planets
-    (`PLANETS` true) gets the disc, the one origin that is built."""
+    (`PLANETS` true) gets the disk, the one origin that is built."""
     if system_config.PLANETS is True:
-        return "disc"
+        return "disk"
     origins = list(tuning.PULSAR_PLANET_ORIGIN_WEIGHTS)
     weights = [tuning.PULSAR_PLANET_ORIGIN_WEIGHTS[name] for name in origins]
     origin = draw.choices(origins, weights=weights)[0]
@@ -56,12 +56,12 @@ def draw_origin(system_config):
     return origin
 
 
-def disc_mass_range_earth():
-    """`(low, high)` Earth masses of a disc planet: the design range, cut at the largest disc body (a sphere of `tuning.PULSAR_DISC_MAX_RADIUS_KM`
+def disk_mass_range_earth():
+    """`(low, high)` Earth masses of a disk planet: the design range, cut at the largest disk body (a sphere of `tuning.PULSAR_DISK_MAX_RADIUS_KM`
     at the mean of its density range)."""
-    low, high = tuning.PULSAR_DISC_MASS_EARTH_RANGE
+    low, high = tuning.PULSAR_DISK_MASS_EARTH_RANGE
     low_density, high_density = constants.PLANET_DENSITY["t"]
-    max_radius_km = tuning.PULSAR_DISC_MAX_RADIUS_KM
+    max_radius_km = tuning.PULSAR_DISK_MAX_RADIUS_KM
     ceiling = _mass_earth(max_radius_km, (low_density + high_density) / 2.0)
     return low, max(low, min(high, ceiling))
 
@@ -78,15 +78,15 @@ def _radius_km(mass_earth, density_g_cm3):
     return _m_to_km((3.0 * volume_m3 / (4.0 * math.pi)) ** (1.0 / 3.0))
 
 
-def _disc_distances_au(count):
+def _disk_distances_au(count):
     """`count` distances, AU, in order: the inner planet's log-uniform in a span that keeps the outermost inside the
-    disc's outer edge, each next one at the period ratio drawn for it (a low-order ratio scattered by
-    `PULSAR_DISC_PERIOD_RATIO_SCATTER`) with Kepler's third law (the planets weigh nothing against the pulsar)."""
-    ratios = [draw.choice(tuning.PULSAR_DISC_PERIOD_RATIOS) * (1.0 + draw.gauss(0.0, tuning.PULSAR_DISC_PERIOD_RATIO_SCATTER))
+    disk's outer edge, each next one at the period ratio drawn for it (a low-order ratio scattered by
+    `PULSAR_DISK_PERIOD_RATIO_SCATTER`) with Kepler's third law (the planets weigh nothing against the pulsar)."""
+    ratios = [draw.choice(tuning.PULSAR_DISK_PERIOD_RATIOS) * (1.0 + draw.gauss(0.0, tuning.PULSAR_DISK_PERIOD_RATIO_SCATTER))
               for _ in range(count - 1)]
     steps = [ratio ** (2.0 / 3.0) for ratio in ratios]
     span = math.prod(steps)
-    inner, outer = tuning.PULSAR_DISC_DISTANCE_AU_RANGE
+    inner, outer = tuning.PULSAR_DISK_DISTANCE_AU_RANGE
     high = max(inner, outer / span)
     first = math.exp(draw.uniform(math.log(inner), math.log(high)))
     distances = [first]
@@ -98,7 +98,7 @@ def _disc_distances_au(count):
 def generate(system_config, star, habitable_zone, orbit_ceiling_au):
     """
     The planets of the millisecond pulsar `star`, in orbital order: none for an origin that is not built, or when
-    `PLANETS` is false. `NUM_ORBITS` sets the disc's count when given.
+    `PLANETS` is false. `NUM_ORBITS` sets the disk's count when given.
 
     Args:
         system_config (SystemConfig): The system's config.
@@ -116,12 +116,12 @@ def generate(system_config, star, habitable_zone, orbit_ceiling_au):
         return []
     count = system_config.NUM_ORBITS
     if count is None:
-        count = draw.randint(*tuning.PULSAR_DISC_PLANET_COUNT)
-    low, high = disc_mass_range_earth()
+        count = draw.randint(*tuning.PULSAR_DISK_PLANET_COUNT)
+    low, high = disk_mass_range_earth()
     low_density, high_density = constants.PLANET_DENSITY["t"]
-    max_radius_km = tuning.PULSAR_DISC_MAX_RADIUS_KM
+    max_radius_km = tuning.PULSAR_DISK_MAX_RADIUS_KM
     planets = []
-    for distance in _disc_distances_au(count) if count > 0 else []:
+    for distance in _disk_distances_au(count) if count > 0 else []:
         if distance > orbit_ceiling_au:
             break
         mass_earth = math.exp(draw.uniform(math.log(low), math.log(high)))

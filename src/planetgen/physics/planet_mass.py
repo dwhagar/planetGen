@@ -4,15 +4,15 @@
 Planet mass (GEN.650)
 =====================
 
-How heavy a planet is when no class letter supplies the mass: the disc's solids at the distance it formed, the
+How heavy a planet is when no class letter supplies the mass: the disk's solids at the distance it formed, the
 oligarchs a feeding zone merges into one planet, and the core-accretion rule that turns a heavy enough core into a gas
 giant. A pure law over the star and the formation distance; it reads no class and writes none.
 
 1. **Solids.** The isolation mass at the formation distance (`formation.isolation_mass_kg`, [R2709]; Kokubo & Ida
    2000) for a feeding zone `OLIGARCH_SEPARATION_MEDIAN` mutual Hill radii wide, from the minimum-mass nebula scaled for the star's
-   mass (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`), [Fe/H] and the disc's own scatter (`DISC_SOLIDS_SCATTER_DEX`, [R0114]),
-   boosted beyond the snow line and steeper inside 1 AU (`PLANET_INNER_DISC_STEEPENING`). Beyond `PLANET_OUTER_GROWTH_AU` the slow
-   outer disc has built less: the mass falls as a power of the distance. `planet_architecture` builds a whole chain of these
+   mass (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`), [Fe/H] and the disk's own scatter (`DISK_SOLIDS_SCATTER_DEX`, [R0114]),
+   boosted beyond the snow line and steeper inside 1 AU (`PLANET_INNER_DISK_STEEPENING`). Beyond `PLANET_OUTER_GROWTH_AU` the slow
+   outer disk has built less: the mass falls as a power of the distance. `planet_architecture` builds a whole chain of these
    (`oligarch_core_kg`) and thins it; a planet asked for alone at a distance draws one.
 2. **Runaway.** A core of `GIANT_CORE_CRITICAL_MASS_EARTH` or more, beyond the snow line, that finds gas left (a share
    scaled with the star's [Fe/H]) becomes a gas giant of the observed mass function `dN/dlogM ~ M^-0.31` (Cumming et al.
@@ -40,23 +40,23 @@ _BROWN_DWARF_LIMIT_KG = mass_boundaries.kg("deuterium_burning_limit")
 
 def solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_ratio=1.0, scatter=1.0):
     """
-    The disc's solid surface density at `distance_au`, in g/cm^2: the minimum-mass nebula scaled for the star's mass
-    (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`), its [Fe/H] (`metal_ratio`) and `PLANET_DISC_SOLIDS_ENHANCEMENT`, boosted beyond
-    the snow line and steeper inside 1 AU (`PLANET_INNER_DISC_STEEPENING`); `scatter` multiplies it (a disc heavier or lighter than
+    The disk's solid surface density at `distance_au`, in g/cm^2: the minimum-mass nebula scaled for the star's mass
+    (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`), its [Fe/H] (`metal_ratio`) and `PLANET_DISK_SOLIDS_ENHANCEMENT`, boosted beyond
+    the snow line and steeper inside 1 AU (`PLANET_INNER_DISK_STEEPENING`); `scatter` multiplies it (a disk heavier or lighter than
     the median of its star's mass, 1 for the median).
     """
     solar_masses = _kg_to_msun(star_mass_kg)
-    scale = solar_masses ** tuning.PLANET_SOLIDS_STELLAR_MASS_EXPONENT * metal_ratio * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT * scatter
+    scale = solar_masses ** tuning.PLANET_SOLIDS_STELLAR_MASS_EXPONENT * metal_ratio * tuning.PLANET_DISK_SOLIDS_ENHANCEMENT * scatter
     density = formation.mmsn_surface_density_gcm2(distance_au, snow_line_au, scale)
     if distance_au < 1.0:
-        density *= distance_au ** -tuning.PLANET_INNER_DISC_STEEPENING
+        density *= distance_au ** -tuning.PLANET_INNER_DISK_STEEPENING
     return density
 
 
 def oligarch_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatter, separation):
     """
-    The mass of the oligarch a feeding zone `separation` mutual Hill radii wide builds at `distance_au` in a disc scattered by `scatter`: the
-    isolation mass, less beyond `PLANET_OUTER_GROWTH_AU` where the disc has built less, never above `PLANET_MAX_STAR_MASS_RATIO` of the star
+    The mass of the oligarch a feeding zone `separation` mutual Hill radii wide builds at `distance_au` in a disk scattered by `scatter`: the
+    isolation mass, less beyond `PLANET_OUTER_GROWTH_AU` where the disk has built less, never above `PLANET_MAX_STAR_MASS_RATIO` of the star
     nor above the brown dwarf edge (GEN.1096: a metal-rich star of 1.5 to 2 solar masses has a 0.01 ratio of 15 to 21 Jupiter masses, and
     `gas_outcome` returns the larger of the runaway mass and the core, so the core was the planet's mass).
     """
@@ -67,10 +67,10 @@ def oligarch_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatt
     return min(mass, tuning.PLANET_MAX_STAR_MASS_RATIO * star_mass_kg, _BROWN_DWARF_LIMIT_KG)
 
 
-def draw_disc_scatter(stream=None):
-    """The factor a disc's solids are scattered by about the median of its star's mass: 10 to a normal of `DISC_SOLIDS_SCATTER_DEX` dex."""
+def draw_disk_scatter(stream=None):
+    """The factor a disk's solids are scattered by about the median of its star's mass: 10 to a normal of `DISK_SOLIDS_SCATTER_DEX` dex."""
     source = stream or draw
-    return 10.0 ** (tuning.DISC_SOLIDS_SCATTER_DEX * source.gauss(0.0, 1.0))
+    return 10.0 ** (tuning.DISK_SOLIDS_SCATTER_DEX * source.gauss(0.0, 1.0))
 
 
 def draw_separation(median, stream=None):
@@ -81,8 +81,8 @@ def draw_separation(median, stream=None):
 
 def assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio=1.0, stream=None):
     """
-    The mass of the planet the disc's solids build alone at `distance_au` before any gas runaway: one oligarch (`oligarch_core_kg`) of a disc
-    scattered at random (`draw_disc_scatter`) and spaced at random (`draw_separation`).
+    The mass of the planet the disk's solids build alone at `distance_au` before any gas runaway: one oligarch (`oligarch_core_kg`) of a disk
+    scattered at random (`draw_disk_scatter`) and spaced at random (`draw_separation`).
 
     Args:
         distance_au (float): The formation distance from the star, in AU.
@@ -95,7 +95,7 @@ def assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio=1.0, 
         float: The assembled solid mass, in kilograms.
     """
     source = stream or draw
-    scatter = draw_disc_scatter(source)
+    scatter = draw_disk_scatter(source)
     separation = draw_separation(tuning.OLIGARCH_SEPARATION_MEDIAN, source)
     return oligarch_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatter, separation)
 
@@ -121,7 +121,7 @@ def runaway_mass_kg(star_mass_kg, stream=None):
 
 def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1.0, stream=None):
     """
-    A planet's mass at its formation distance from a star (module docstring). Draws, in this order, the disc scatter and
+    A planet's mass at its formation distance from a star (module docstring). Draws, in this order, the disk scatter and
     the spacing, then (only for a core past the critical mass beyond the snow line) the gas-survival draw and the runaway
     mass, all from `stream`, so the same stream gives the same planet.
 
@@ -130,7 +130,7 @@ def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1
         star_mass_kg (float): The star's mass, in kilograms.
         snow_line_au (float): The star's own snow line, in AU.
         fe_h (float): The star's [Fe/H] in dex: the giant-planet occurrence law (Fischer and Valenti) is stated in it.
-        metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464): the disc's solids law is stated in it.
+        metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464): the disk's solids law is stated in it.
         stream (draw.Stream or None): The body's own stream; `None` draws from the stream bound now.
 
     Returns:

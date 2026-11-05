@@ -5,7 +5,7 @@ The acceleration kernel of the orbital update (GEN.342; docs/design/orbits/orbit
 =========================================================================================================
 
 One function, `pull`, returns the acceleration at a point: the pull of the object's influence set (the pairwise point masses of
-`galaxy.influence`, a folded sector as one point at its centre of mass) plus the galactic gradient of `galaxy.potential`, and one,
+`galaxy.influence`, a folded sector as one point at its center of mass) plus the galactic gradient of `galaxy.potential`, and one,
 `kick`, turns it into a new velocity. The object itself is left out of its own set (the caller builds the set with the object's key in
 `exclude_keys`, as `influence.influence_set` does), so nothing here needs to know which member is the object.
 

@@ -37,7 +37,7 @@ def test_the_stages_are_the_union_in_the_order_of_a_galaxy():
 
 
 def test_a_plan_epoch_between_means_a_full_regeneration():
-    assert generator_epoch.needs_full_regeneration(52, 53)      # epoch 53 changed the nuclear disc
+    assert generator_epoch.needs_full_regeneration(52, 53)      # epoch 53 changed the nuclear disk
     assert not generator_epoch.needs_full_regeneration(58, 60)
 
 

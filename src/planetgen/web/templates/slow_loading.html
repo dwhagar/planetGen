@@ -23,13 +23,13 @@ place of its content. static/slowload.js polls the job and swaps the finished pa
   <p id="slow-load-status" data-slow-status role="status" aria-live="polite">
     {%- if job.state == "running" %}{{ progress_text }}{% else %}{{ state_text.get(job.state, "") }}{% endif -%}
   </p>
-  <p class="error" role="alert" data-slow-error{% if job.state not in ("failed", "cancelled") %} hidden{% endif %}>
-    {%- if job.state == "failed" %}{{ job.error or state_text.failed }}{% elif job.state == "cancelled" %}{{ state_text.cancelled }}{% endif -%}
+  <p class="error" role="alert" data-slow-error{% if job.state not in ("failed", "canceled") %} hidden{% endif %}>
+    {%- if job.state == "failed" %}{{ job.error or state_text.failed }}{% elif job.state == "canceled" %}{{ state_text.canceled }}{% endif -%}
   </p>
   <p class="slow-load-actions">
-    <button type="button" class="btn" data-slow-stop{% if job.state in ("failed", "cancelled") %} hidden{% endif %}>Stop waiting</button>
+    <button type="button" class="btn" data-slow-stop{% if job.state in ("failed", "canceled") %} hidden{% endif %}>Stop waiting</button>
     <button type="button" class="btn" data-slow-resume hidden>Check again</button>
-    <button type="button" class="btn" data-slow-retry{% if job.state not in ("failed", "cancelled") %} hidden{% endif %}>Try again</button>
+    <button type="button" class="btn" data-slow-retry{% if job.state not in ("failed", "canceled") %} hidden{% endif %}>Try again</button>
   </p>
   <noscript><p class="hint">This page refreshes itself every {{ refresh_seconds }} seconds until it is ready.</p></noscript>
 </section>

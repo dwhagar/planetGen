@@ -68,7 +68,7 @@ def test_a_fast_spinner_and_a_retrograde_one_get_their_solar_day_from_both_motio
 def test_io_and_the_moon_spend_the_shares_of_their_orbits_the_hand_work_gives_in_their_planets_shadow():
     io = daylight.parent_shadow_share(421_800.0, 71_492.0, 3.1)
     assert daylight.parent_shadow_share(421_800.0, 71_492.0, 0.0) == pytest.approx(
-        math.asin(71_492.0 / 421_800.0) / math.pi, rel=1e-6)           # in the planet's plane: the disc's angular radius over pi
+        math.asin(71_492.0 / 421_800.0) / math.pi, rel=1e-6)           # in the planet's plane: the disk's angular radius over pi
     assert io == pytest.approx(0.0528, abs=0.0005)                      # 2.2 hours of each 42.5 hour orbit
     moon = daylight.parent_shadow_share(384_400.0, 6_371.0, 5.145)
     assert moon == pytest.approx(4.9e-4, abs=0.3e-4)                    # eclipse seasons of about 43 days a year, hours each month

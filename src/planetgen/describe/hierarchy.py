@@ -57,10 +57,10 @@ def _node_sentences(node, stars, nodes, seen):
         return sentences + [f"{_first_mention(sides[0][1], seen)} and {_first_mention(sides[1][1], seen)} are a {node['kind']} pair."]
     # The second side orbits the first.
     orbiter = [sides[1][1]] if sides[1][0] == "star" else _members(sides[1][1], stars, nodes)
-    centre = [sides[0][1]] if sides[0][0] == "star" else _members(sides[0][1], stars, nodes)
+    center = [sides[0][1]] if sides[0][0] == "star" else _members(sides[0][1], stars, nodes)
     subject = _names([_first_mention(star, seen) for star in orbiter])
     verb = "orbits" if len(orbiter) == 1 else "orbit"
-    return sentences + [f"{subject} {verb} {_names([star['name'] for star in centre])} in a {node['kind']} orbit."]
+    return sentences + [f"{subject} {verb} {_names([star['name'] for star in center])} in a {node['kind']} orbit."]
 
 
 def hierarchy_sentences(stars, nodes):

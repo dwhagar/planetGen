@@ -138,12 +138,12 @@ def test_the_intermediate_mass_holes_keep_their_rate_whatever_the_metals():
 
 
 def test_the_below_cut_draw_scales_with_the_place_factor():
-    centre = (4000.0, 0.0, 0.0)
+    center = (4000.0, 0.0, 0.0)
     cells = [(shell, band, 0) for shell in range(2, 6) for band in range(-2, 3)]
 
     def total(shape):
         return sum(count for cell in cells for kind, subtype, _range, count in
-                   scatter.below_cut_draws(cell, centre, shape, 5000.0, 20.0, 7)[0] if kind == "black-hole")
+                   scatter.below_cut_draws(cell, center, shape, 5000.0, 20.0, 7)[0] if kind == "black-hole")
     poor, rich = total(_shape(0.0, 0.05)), total(_shape(0.15, 0.15))
     assert rich > 1.5 * poor
     assert total(_shape(0.0, 0.0)) == 0

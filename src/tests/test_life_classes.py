@@ -103,7 +103,7 @@ def test_a_dry_airless_rock_supports_nothing():
 
 def test_a_methane_sea_world_supports_class_7_and_not_class_1a():
     temperature = 94.0
-    methane_kpa = atmosphere.vapour_pressure_kpa("ch4", temperature)
+    methane_kpa = atmosphere.vapor_pressure_kpa("ch4", temperature)
     titan = world(hydrosphere="dry", surface_temperature_k=temperature, atmospheric_pressure_pa=146700.0, ocean_ph=None, water_activity=None,
                   water_mass_fraction=0.3, internal_heat_flux_w_m2=0.01, star_luminosity_w=3.828e26, star_distance_au=9.5,
                   energy_flux_w_m2=1e-3, **{atmosphere.GAS_FIELD: {"N2": 140000.0, "CH4": methane_kpa * 1000.0}})

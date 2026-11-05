@@ -150,7 +150,7 @@ def test_every_population_has_a_share_between_zero_and_one_and_the_old_ones_have
     shares = {name: population.placed_star_fraction(FLOOR_SOL, MASS_CUT_SOL, name)
               for name in population.POPULATIONS}
     assert all(0.0 <= share <= 1.0 for share in shares.values())
-    for name in ("old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster", "nuclear_disc"):
+    for name in ("old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster", "nuclear_disk"):
         assert shares[name] == 0.0, name
     # 10 to 13 Gyr populations hold no star at or above 9,000 L_sun and none born above 14 solar masses.
     for name, (low, _high) in tuning.STELLAR_POPULATION_AGE_RANGES_GY.items():

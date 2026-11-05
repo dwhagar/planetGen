@@ -122,7 +122,7 @@ def test_an_inner_system_starts_at_the_inner_edge_and_neighbours_are_alike():
     assert found > 10
 
 
-def test_a_heavier_disc_builds_heavier_inner_planets():
+def test_a_heavier_disk_builds_heavier_inner_planets():
     def median_mass(scatter):
         draw.set_run_seed(6)
         masses = [m for _ in range(200) for _a, m in pa.inner_chain(SUN, scatter, 0.0, None)]
@@ -181,7 +181,7 @@ def test_a_star_gets_its_planets_in_order_with_the_masses_a_planet_has_and_a_see
             assert s.core_kg <= s.mass_kg or s.runaway
 
 
-def test_the_architecture_of_a_dim_disc_is_empty_and_of_a_massive_one_is_not():
+def test_the_architecture_of_a_dim_disk_is_empty_and_of_a_massive_one_is_not():
     draw.set_run_seed(13)
     counts = [len(pa.build(**sun_like()).planets) for _ in range(300)]
     assert min(counts) == 0 and max(counts) >= 6

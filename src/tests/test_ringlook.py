@@ -57,7 +57,7 @@ def test_a_moons_two_to_one_resonance_gap_falls_at_its_radius():
     gaps = ringlook.resonance_gaps(74500.0, 140200.0, SATURN_MASS_KG, moons)
     two_to_one = [g for g in gaps if abs(g[0] - (185500.0 * 0.5 ** (2 / 3) - 74500.0) / 65700.0) < 1e-3]
     assert len(two_to_one) == 1
-    centre, width, depth = two_to_one[0]
+    center, width, depth = two_to_one[0]
     assert 0.03 < width < 0.1 and 0.3 <= depth <= 0.95
 
 

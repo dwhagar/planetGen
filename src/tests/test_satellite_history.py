@@ -66,7 +66,7 @@ def test_the_large_cloud_forms_stars_at_about_the_rate_and_with_about_the_gas_ob
 
 
 def test_the_small_cloud_holds_about_the_gas_observed_and_more_of_it_than_the_stars_would_need_at_their_size():
-    """The Small Cloud's atomic gas is some 4e8 solar masses [recalled, [R4193]: to verify]; a gas disc
+    """The Small Cloud's atomic gas is some 4e8 solar masses [recalled, [R4193]: to verify]; a gas disk
     only as large as the stars (the half-mass circle at the rate's density) held a seventh of it (GEN.1192)."""
     found = _history("Small Magellanic Cloud")
     assert 4.0e8 / 2.5 < found.gas_mass_solar < 4.0e8 * 2.5
@@ -75,7 +75,7 @@ def test_the_small_cloud_holds_about_the_gas_observed_and_more_of_it_than_the_st
     assert found.gas_mass_solar > 2.0 * inside_the_half_mass_circle
 
 
-def test_a_longer_gas_disc_holds_more_gas_for_the_same_rate(monkeypatch):
+def test_a_longer_gas_disk_holds_more_gas_for_the_same_rate(monkeypatch):
     short = satellite_history.history(1.0e9, 1500.0, 5.0)
     monkeypatch.setattr(tuning, "SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO", 3.0)
     satellite_history.history.cache_clear()
@@ -88,7 +88,7 @@ def test_a_longer_gas_disc_holds_more_gas_for_the_same_rate(monkeypatch):
     assert long.present_rate_msun_yr == short.present_rate_msun_yr
 
 
-def test_a_thinner_gas_disc_takes_longer_to_use_its_gas_up():
+def test_a_thinner_gas_disk_takes_longer_to_use_its_gas_up():
     """The depletion time, gas over rate, lengthens as the gas thins (the law steepens below the saturation density)."""
     found = [satellite_history.history(mass, 1500.0, 5.0) for mass in (3.0e8, 1.0e9, 4.0e9)]        # thinner gas to denser
     depletion_gy = [t.gas_mass_solar / t.present_rate_msun_yr / 1.0e9 for t in found]
@@ -105,19 +105,19 @@ def test_the_small_cloud_forms_stars_too_and_the_dwarf_spheroidals_do_not():
         assert _history(name).intermediate_share < 0.01       # old populations: almost nothing in the last 3 Gy
 
 
-def test_the_gas_disc_forms_stars_at_the_rate_and_the_threshold_decides():
+def test_the_gas_disk_forms_stars_at_the_rate_and_the_threshold_decides():
     found = satellite_history.history(2.0e9, 2000.0, 5.0)
     scale = tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO * 2000.0 / satellite_history._EXPONENTIAL_HALF_MASS_OVER_SCALE
     central = found.gas_surface_density * math.exp(2000.0 / scale)
     assert found.gas_mass_solar == pytest.approx(2.0 * math.pi * central * scale ** 2)
-    assert satellite_history._disc_rate_msun_yr(central, scale) == pytest.approx(found.present_rate_msun_yr, rel=1e-6)
+    assert satellite_history._disk_rate_msun_yr(central, scale) == pytest.approx(found.present_rate_msun_yr, rel=1e-6)
     assert found.forming == (found.gas_surface_density >= tuning.SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2)
     spread = satellite_history.history(2.0e9, 20000.0, 5.0)         # the same stars over a hundred times the area
     assert spread.gas_surface_density < found.gas_surface_density
     assert not spread.forming and spread.young_share == 0.0 and spread.intermediate_share > 0.0
 
 
-def test_the_half_mass_constant_is_the_exponential_disc_s():
+def test_the_half_mass_constant_is_the_exponential_disk_s():
     x = satellite_history._EXPONENTIAL_HALF_MASS_OVER_SCALE
     assert 1.0 - (1.0 + x) * math.exp(-x) == pytest.approx(0.5, abs=1e-4)
 
