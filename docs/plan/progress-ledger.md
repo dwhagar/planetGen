@@ -2483,3 +2483,4 @@ Baseline: PR #1817.
 | MAP.179 | 8.8 | Nebula drawing |
 | TEST.581 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.583 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.142 | 8.1 | Nebula data foundations |

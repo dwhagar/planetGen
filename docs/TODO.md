@@ -1001,34 +1001,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
 
-- [ ] **MAP.142 Nebulae have fuzzy, fading boundaries**
-  Boss (GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713), 2026-10-09 00:25Z): "Can we make the nebula
-  boundaries fuzzy and kind of fade a bit so it looks more gaseous?"
-  Done: nebulae drawn from their shape (GEN.75) fade out toward the edge
-  with a soft falloff instead of a hard outline, in the Galaxy, Sector
-  and nebula views, and the falloff keeps the nebula's extent readable.
-  Research (2026-10-09, nebula-and-asteroid-field-classes.md): use the
-  per-family edge widths and shell profiles in "Appearance by class":
-  nested iso-shells with edge fade now, a bounded ray-march of a served
-  3D field for the focused nebula. Done criteria add: the extent is the
-  50% contour (open question for Boss, default hard extent at today's
-  outline); dark nebulae get an outline reaching 3:1 (they composite at
-  1.17:1 today); classes are distinguished by a non-colour cue.
-  Note (2026-10-10, nebula research): Boss asked on 2026-10-10 21:46Z
-  that nebulae be visible on the Galaxy Map; the work is split into
-  MAP.172 to MAP.181 (MAP.182 was folded into GEN.241; the dark-theme contrast fix is MAP.175, the dust
-  colour MAP.181, the grouped regions MAP.176 and the individual clouds
-  MAP.178). This item keeps the fuzzy-boundary shape work.
-  Moved to 8.1, owner Core 2 (2026-11-04 12:50 PM EST): Boss, 12:30 PM
-  EST on 2026-11-04: the dark nebulae now draw as circles; he wants
-  irregular, bulbous, wispy shapes from the galaxy model, tinting the
-  regions they cover, overlapping additively with a cap, crossing
-  sectors (full text and his five answers in MAP.365). This item moves
-  from version 8.8 into 8.1 and is built by Core 2 after or with
-  MAP.365, in this order: MAP.365 (shapes), MAP.142 (fuzzy edges on the
-  shapes), MAP.215 (tint of stars and regions), MAP.191 (default view),
-  MAP.222 (nebula zoom window). Owner: Core 2.
-
 - [ ] **MAP.145 A sky and Galaxy Map drawing rule for neighbour galaxies**
   An extended sprite with computed magnitude and size and a
   surface-brightness cut at about 23 mag/arcsec^2; the Magellanic Clouds

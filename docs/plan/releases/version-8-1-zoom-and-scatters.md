@@ -79,7 +79,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
 | MAP.369 | Region labels still do not show as clickable points of interest that zoom into the charted region (bug) |  |  |
 | MAP.366 | Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug) |  |  |
-| MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 
 ### Composition research and design
 
