@@ -2581,3 +2581,4 @@ Baseline: PR #1817.
 | OPS.96 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
 | OPS.97 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
 | PERF.219 | later | Paging audit |
+| TEST.626 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
