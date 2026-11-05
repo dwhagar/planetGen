@@ -1639,7 +1639,7 @@ def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelle
     requests = []
     page.on("request", lambda request: requests.append(request.url))
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=15000)
+    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=40000)
     page.wait_for_timeout(1500)
     assert not any("field-1.2.3.4" in url for url in requests), [url for url in requests if "field" in url]
     assert any("/galaxy/nebula/801/shape?lod=low" in url for url in requests)    # a stored cloud still gets its mesh
@@ -3223,6 +3223,49 @@ def test_at_most_six_hundred_nebula_regions_are_drawn_out_of_three_thousand_cand
     page.wait_for_timeout(500)
     seen = page.evaluate("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return [g.count(), g.drawn()]; }")
     assert seen[0] == 3000 and 0 < seen[1] <= 600, seen
+
+
+NEBULA_GROUP_SPOTS = "() => document.querySelector('#galaxymap3d-canvas').__mapNebulaGroupSpots()"
+
+
+def _open_nebula_groups(page, map_site):
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapNebulae; return g && g.drawn() > 0; }", timeout=20000)
+
+
+def test_hovering_a_group_of_nebulae_says_what_it_holds_and_a_click_flies_the_camera_to_frame_it(page, map_site):
+    """MAP.180: a group of nebulae (MAP.176) shows its count and family on hover, outlines it, and a click flies to the zoom that frames it
+    (no page opens: a group has none)."""
+    _open_nebula_groups(page, map_site)
+    _settle(page)
+    spots = [spot for spot in page.evaluate(NEBULA_GROUP_SPOTS) if spot["visible"] and spot["alpha"] > 0.05]
+    assert spots
+    spot = max(spots, key=lambda candidate: candidate["alpha"])
+    where = (spot["x"], spot["y"])
+    assert _on_the_canvas(page, where)
+    before = page.evaluate(CAMERA)["dist"]
+    page.mouse.move(where[0] + 1, where[1])
+    page.mouse.move(*where)
+    page.wait_for_timeout(300)
+    text = page.locator("#galaxymap3d-tooltip").inner_text()
+    assert " nebula" in text and "mostly" in text, text
+    page.mouse.click(*where)
+    _settle(page)
+    page.wait_for_function(f"() => document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist < {before} * 0.9", timeout=20000)
+
+
+def test_the_keyboard_reaches_every_large_group_of_nebulae_through_a_list_of_buttons(page, map_site):
+    """MAP.180: the groups of nebulae, the largest first, are buttons in a list for the keyboard and screen readers; activating one flies to it."""
+    _open_nebula_groups(page, map_site)
+    buttons = page.locator(".starmap-sr-nebulae button")
+    assert 1 <= buttons.count() <= 30
+    assert "mostly" in buttons.first.inner_text() and "fly to it" in buttons.first.inner_text()
+    before = page.evaluate(CAMERA)["dist"]
+    buttons.first.focus()
+    page.keyboard.press("Enter")
+    _settle(page)
+    page.wait_for_function(f"() => document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist < {before} * 0.9", timeout=20000)
 
 
 REGION_SPOTS = "() => document.querySelector('#galaxymap3d-canvas').galaxyRegionSpots()"

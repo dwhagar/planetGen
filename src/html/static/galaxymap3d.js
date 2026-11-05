@@ -98,7 +98,7 @@ const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = a
 const { blackHoleDensityPx, labelBufferPx, regionLanding } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
-  FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour,
+  FAMILY_LABELS: NEBULA_FAMILY_LABELS, familyColour: nebulaFamilyColour, regionText: nebulaGroupText,
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
@@ -2201,12 +2201,50 @@ function initGalaxyMap3d(canvasEl, data) {
       return nebulaFamilyOn[family] !== false;
     }), [0, 0, 0]);
     nebulaVersion += 1;
+    renderNebulaGroupList();
     // The legend's line about rings shows only while some group is drawn.
     var held = nebulaLayer.count() > 0;
     if (held !== nebulaHeld) {
       nebulaHeld = held;
       if (stageView && stageView.layers) stageView.layers.refresh();
     }
+  }
+  // MAP.180: a click on a group of nebulae (MAP.176) flies the camera to frame it, which is the zoom at which its node hands it down to
+  // its smaller groups and its single clouds; a group has no page. The keyboard has the same through a list of the largest groups.
+  var NEBULA_GROUP_PICK_SHARE = 0.7;
+  var NEBULA_GROUP_PICK_MIN_PX = 9;
+  var NEBULA_GROUP_PICK_MIN_ALPHA = 0.03;
+  var NEBULA_GROUP_LIST_MAX = 30;
+  var nebulaGroupSpot = new THREE.Vector3();
+  var nebulaGroupList = null;
+  function flyToNebulaGroup(blob) {
+    highlightPosition(blob.x, blob.y, blob.z);
+    stageView.goTo({ entry: { x: blob.x, y: blob.y, z: blob.z, r: blob.radiusPc } });
+  }
+  // The words of a group for its hover and its list button: "12 nebulae, mostly dark nebulae" and the other families it holds.
+  function nebulaGroupLabel(blob) {
+    return nebulaGroupText(blob);
+  }
+  function renderNebulaGroupList() {
+    if (!nebulaLayer || !viewport) return;
+    if (!nebulaGroupList) {
+      nebulaGroupList = document.createElement("ul");
+      nebulaGroupList.className = "starmap-sr-list starmap-sr-nebulae sr-only";
+      nebulaGroupList.setAttribute("aria-label", "Groups of nebulae on the map");
+      viewport.appendChild(nebulaGroupList);
+    }
+    nebulaGroupList.textContent = "";
+    nebulaLayer.blobs().sort(function (p, q) { return (q.volume - p.volume) || (p.key < q.key ? -1 : 1); })
+      .slice(0, NEBULA_GROUP_LIST_MAX).forEach(function (blob) {
+        var item = document.createElement("li");
+        var button = document.createElement("button");
+        button.type = "button";
+        button.dataset.nebulaGroup = blob.key;
+        button.textContent = nebulaGroupLabel(blob) + ", fly to it";
+        button.addEventListener("click", function () { flyToNebulaGroup(blob); });
+        item.appendChild(button);
+        nebulaGroupList.appendChild(item);
+      });
   }
   var regionBlobList = [];
   var regionsVersion = 0;
@@ -4869,6 +4907,47 @@ function initGalaxyMap3d(canvasEl, data) {
       return region ? regionFacts(region) : null;
     }
     return item.type ? pointFacts(item) : interestFacts(item);
+  }
+
+  // MAP.180: the groups of nebulae. Below a single cloud (a cloud inside a group is picked first once it is big enough to aim at) and
+  // above the charted regions' spheres.
+  if (nebulaLayer) {
+    picker.addLayer({
+      name: "nebula-groups",
+      priority: 95,
+      pick: function (ctx) {
+        if (hiddenCell || groupWindow) return null;
+        var focal = focalPixels();
+        var here = camera.position.toArray();
+        var best = null;
+        nebulaLayer.blobs().forEach(function (blob) {
+          var look = groupLook(blob, here, focal);
+          if (!(look.alpha > NEBULA_GROUP_PICK_MIN_ALPHA)) return;
+          nebulaGroupSpot.set(blob.x, blob.y, blob.z).project(camera);
+          if (!(nebulaGroupSpot.z > -1 && nebulaGroupSpot.z < 1)) return;
+          var x = ctx.rect.left + (nebulaGroupSpot.x + 1) / 2 * ctx.rect.width;
+          var y = ctx.rect.top + (1 - nebulaGroupSpot.y) / 2 * ctx.rect.height;
+          var reach = Math.max(NEBULA_GROUP_PICK_MIN_PX, look.radiusPx * NEBULA_GROUP_PICK_SHARE);
+          var near = Math.hypot(ctx.clientX - x, ctx.clientY - y) / reach;
+          if (near <= 1 && (!best || near < best.near)) best = { near: near, blob: blob, distance: look.distance };
+        });
+        return best ? { entry: best.blob, distance: best.distance } : null;
+      },
+      tooltip: function (blob) { return nebulaGroupLabel(blob); },
+      hover: function (blob) { phenomenonHover(blob); },
+      select: flyToNebulaGroup,
+    });
+    canvasEl.__mapNebulaGroupSpots = function () {    // the browser tests aim at what is drawn: each group's place on the screen, in client pixels
+      var rect = canvasEl.getBoundingClientRect();
+      var focal = focalPixels();
+      var here = camera.position.toArray();
+      return nebulaLayer.blobs().map(function (blob) {
+        var look = groupLook(blob, here, focal);
+        var spot = new THREE.Vector3(blob.x, blob.y, blob.z).project(camera);
+        return { key: blob.key, count: blob.count, alpha: look.alpha, radiusPx: look.radiusPx, x: rect.left + (spot.x + 1) / 2 * rect.width,
+          y: rect.top + (1 - spot.y) / 2 * rect.height, visible: spot.z > -1 && spot.z < 1 };
+      });
+    };
   }
 
   picker.addLayer({
