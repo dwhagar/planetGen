@@ -270,7 +270,7 @@ def _debug_formatter():
 
 FORMS = ("plain", "display", "debug", "file", "json")
 """tuple: The ways `LineFormatter` writes a record: `plain` (the command line's text without times, UX.122), `display` (local time with its zone,
-UX.121), `debug` (the debug log's line), `file` (logfmt, the time UTC) and `json` (JSON Lines)."""
+UX.121), `debug` (the debug log's line), `file` (logfmt, the time local with its offset) and `json` (JSON Lines)."""
 
 
 class LineFormatter(logging.Formatter):
@@ -404,7 +404,7 @@ _record_handler = None
 def set_record_file(path, as_json=False):
     """
     Also writes every record this process logs to `path`, one per line, in the logging layer's file form
-    (`logrecord.file_line`, or `json_line` with `as_json`): the times in UTC, whatever the console shows. At the console's
+    (`logrecord.file_line`, or `json_line` with `as_json`): the times local with their offset (OPS.97), whatever the console shows. At the console's
     own level, so a debug run's file holds the debug lines too. `None` stops. Call `configure` (or let the next
     command's setup do it) to apply it.
     """
@@ -553,7 +553,7 @@ def add_debug_arguments(parser):
 
     def add_records(target, default):
         target.add_argument("--record-file", metavar="FILE", default=default,
-                            help="Also write every log line to FILE as a record: one per line, the time in UTC "
+                            help="Also write every log line to FILE as a record: one per line, the time local with its offset "
                                  "($PLANETGEN_RECORD_FILE does the same).")
         target.add_argument("--record-json", action="store_true", default=default,
                             help="Write the --record-file records as JSON lines.")
