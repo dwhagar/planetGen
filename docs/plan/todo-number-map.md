@@ -22,7 +22,7 @@ release is stamped.
 | API | API.41 |
 | ADM | ADM.138 |
 | SEC | SEC.37 |
-| TEST | TEST.600 |
+| TEST | TEST.601 |
 | USR | USR.32 |
 | OPS | OPS.96 |
 | DOC | DOC.104 |
@@ -3948,6 +3948,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.597 | test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch is flaky on plain main: about 1 run in 3 a region label shows (bug) | none | done, PR #5106 |
 | TEST.598 | test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug) | none | open |
 | TEST.599 | test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug) | none | open |
+| TEST.600 | Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
