@@ -64,16 +64,16 @@ def test_every_planetary_nebula_sits_on_a_hot_white_dwarf_system_of_its_own(plan
     for sector, entry in planetary_nebulae:
         hosts = [e for e in sector.entries if e.position == entry.position]
         assert len(hosts) == 1, entry.phenomenon.name
-        primary = hosts[0].star_system.stars[0]
-        assert run_sector._spectral_code(primary) in tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
+        placed = hosts[0].star_system.placed_star       # GEN.710: the star the place drew; a heavier main-sequence companion is `stars[0]`, not the white dwarf
+        assert run_sector._spectral_code(placed) in tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
 
 
-def test_a_planetary_nebula_with_a_companion_still_has_the_white_dwarf_as_its_primary(planetary_nebulae):
+def test_a_planetary_nebula_with_a_companion_still_has_the_white_dwarf_as_its_placed_star(planetary_nebulae):
     paired = 0
     for sector, entry in planetary_nebulae:
         system = next(e for e in sector.entries if e.position == entry.position).star_system
         paired += len(system.stars) > 1
-        assert run_sector._spectral_code(system.stars[0]) in tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
+        assert run_sector._spectral_code(system.placed_star) in tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
     assert paired < len(planetary_nebulae)       # the companion is a minority (a fifth)
 
 
