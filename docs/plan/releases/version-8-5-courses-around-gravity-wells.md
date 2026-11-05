@@ -56,6 +56,14 @@ Showing courses on the maps and bending them around keep-out spheres.
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy |  | Research: decides the overlap policy. |
 | NAV.6 | Courses that steer clear of gravity wells |  | Parent; closes with its subitems. |
 
+### Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| MAP.168 | The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength | API.24 |  |
+| MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | MAP.168 |  |
+| UX.94 | Gravity map wording: the legend, the mode names and the Map help text | MAP.168 |  |
+
 ## Phase 3: Waypoints and the headline
 
 Waypoints, editing a course and the umbrella.
