@@ -45,9 +45,17 @@ are marked.
   holds no masses). The cost study (PERF.72) fixes the split, the opening
   angle (0.3 to 0.7, chosen to a pair budget) and checks it against the exact
   sum; the kernel is `galaxy/gravity_kernel.py` (MAP.384).
-- **Cache.** The grid is derived data, cached like the Galaxy Map tiles and
-  thrown away when the orbital update (GEN.105) moves the sources; it is
-  never part of the galaxy itself, so it needs no galaxy-table migration.
+- **Cache.** One file per sector in a cache directory (`galaxy/gravity_cache.py`,
+  MAP.387), keyed by a stamp of the rule, the settings, the potential and, for
+  every sector within 4 edges, its `modified_at` and its rows' count and latest
+  `modified_at`. The orbital update (GEN.105) writes the rows it moves, so a
+  moved star changes the stamp of the grids that reach its sector and of no
+  other, and the next read works only those out again. The file holds the
+  *local* field (generated stars less the smooth galaxy's own stars, 16^3 zones,
+  ten float32 values each: the pull, the potential and the tidal tensor); the
+  reader adds the smooth galaxy at the zone. The job is `db/gravity_grid.py` (it
+  imports numba, so a worker runs it; the web app reads the files and never
+  imports it). Derived data: never part of the galaxy, no migration.
 - **Slices and volumes.** The map shows one slab (a plane slice) at a time
   and can show the whole volume as transparent layers; on the System Map it
   is the orbital plane.
