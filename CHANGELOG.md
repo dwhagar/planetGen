@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3315] - 2026-11-05
+
+**Headline:** Four map browser tests that failed on main wait for the right thing now, so the Galaxy Map and system view tests pass again.
+
+### Fixed
+- `test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate` (TEST.575) took the first generated system with moons, which can have only one freely turning body (its moons locked), and asked for two. It takes the first of up to eight systems with moons that has two, and fails only if none has.
+- `test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox` (TEST.575, TEST.595) waited for the first gas giant mark and then asserted all of them, so it saw only Fixture Jove while Fixture Eden had not drawn. It waits until every expected mark is drawn.
+- `test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out` (TEST.575) kept wheeling in after the sector's scene was whole (one edge in). At the window's nearest zoom, one more tick opens the sector by design (MAP.152), the scene share reads null and the test failed on a window whose nearest zoom is between 0.9 and 1 edge. It stops wheeling at one edge.
+- `test_web_browser_map_card.py` black hole cases (TEST.595) asked for the Fixture Maw button while the Black hole marks layer is off by default (MAP.368). They are marked like the other tests of the marks.
+- Not changed: the field cloud sprite test and the wheel tick test of the sector reach file passed alone in every run here (4 of 4, 3 of 3) and failed only late in a long file run or while other work ran on the machine, on 40 s and 15 s waits for a rendered frame of the software GL. No map bug was found; no wait was lengthened.
+
 ## [8.0.3314] - 2026-11-05
 
 **Headline:** Two or more waypoints plot a course on the Galaxy Map that stays drawn until the waypoints are cleared.
