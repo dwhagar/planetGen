@@ -105,6 +105,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | USR.3, GEN.344 | Needs USR.3's SMTP settings. |
 | GEN.347 | The last-collisions admin view and the test that runs the whole collision path | GEN.346 | Split from GEN.143. |
 | GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | GEN.347 | Research: makes the collision code testable. |
+| GEN.1293 | The orbital update runs registered steps: another domain (population, politics, trade) registers a step that receives the galaxy time step dt and a named draw stream, and the run calls them in a fixed order | GEN.139 |  |
 
 ### Long steps
 

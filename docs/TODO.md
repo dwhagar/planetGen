@@ -207,7 +207,7 @@ split between 8.9, the backups chain and the sky data, and 9.1, the view
 from a planet, 11:26 PM EDT); multiple galaxies is a possible future
 feature. Boss (5:44 PM EST on 2026-11-05) approved 8.7 (Full help for all pages), 8.8 (Deep sky objects, with every rare-star item kept in it) and 8.9 (Remote build, with the backup chain; the sky research moved to 8.2 as foundations of the view in 9.0). Boss (5:36 PM EST on 2026-11-05): the main features of 8.2 are user accounts, bookmarks and API keys, and the rest of 8.2 is the foundations for later versions (the tile caching, the gravity grid, settlements). Boss (5:31 PM EST on 2026-11-05) folded 9.1 into 9.0: the view from a planet
 (VIEW.18), the gravity map (MAP.167) and the dynamic population and trade
-are now phases 2 to 4 of 9.0, and 9.2 onward keep their numbers. Reorganized (Boss, 5:15 PM EST on 2026-11-05) against the open
+are now phases 2 and 3 of 9.0 (the dynamic population and trade moved to 9.2 at 6:00 PM EST on 2026-11-05), and 9.2 onward keep their numbers. Reorganized (Boss, 5:15 PM EST on 2026-11-05) against the open
 items: 8.4 is now New worlds and the first settlements, and the gravity map
 (MAP.167, the second feature of 9.1) is built across 8.2 (grid foundations
 MAP.383 to MAP.386, PERF.72, PERF.243), 8.3 (GEN.198, GEN.199, MAP.387,
@@ -622,6 +622,10 @@ with `clamp()`.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 2
   held it before; this replaces any earlier owner line).
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.2 to 8.8 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): not a foundation of anything; it fits the deep sky
+  pages and takes load off 8.2.
   Prerequisites: none. Related: DB.79, UX.141, MAP.139, UX.144, MAP.254.
 
 - [ ] **UX.144 Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it**
@@ -666,6 +670,10 @@ with `clamp()`.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 2
   held it before; this replaces any earlier owner line).
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.2 to 8.8 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): not a foundation of anything; it fits the deep sky
+  pages and takes load off 8.2.
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
 - [ ] **UX.150 Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table**
@@ -950,6 +958,25 @@ with `clamp()`.
   pass in both themes. Split from UX.132.
   Prerequisites: UX.268. Related: UX.43, UX.132.
 
+- [ ] **UX.271 The polity history page: a timeline of its territory, cohesion, splits and trade totals, and the journal feed on the API**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: a page for each
+  polity with its history (territory size, cohesion, splits, the
+  contested frontiers, trade totals) and an API route listing the
+  journal rows for a polity, a nation or a city with the usual scopes.
+  Done: the page, the route, the units on every number, and the page
+  tests.
+  Prerequisites: POP.50, POP.51. Related: POP.24.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -1031,7 +1058,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zoom budget and picking, shipping the black-hole kind), markers for
   habitable worlds and chosen classes (child b) and the station and
   vessel icons (child c, in 9.3).
-  Prerequisites: MAP.221.
+  Boss decision (6:20 PM EST on 2026-11-05): leaves 9.3 (S7): it no
+  longer needs MAP.221 and moves to 8.8 beside the deep sky objects,
+  since it marks black holes, nebulae and habitable worlds.
+  Prerequisites: none.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
   Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
@@ -1400,6 +1430,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Unchanged in scope; it passes a GEN.302 region and shows the count,
   and the outline of the sectors in view comes from Span (2026-10-16
   review).
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.4 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Prerequisites: GEN.302. Related: ADM.57, NAV.45.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
@@ -1446,6 +1481,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exist (issue #1234: 'icons for space stations, etc.'). Done: the two
   kinds in the registry with their toggles, and a browser test that
   finds a user's ship and a scattered station.
+  Boss decision (6:20 PM EST on 2026-11-05): S7: icons cluster when
+  crowded, with the cluster size a presentation setting.
   Prerequisites: USR.29, POP.11. Related: MAP.132.
 
 - [ ] **MAP.223 Globular cluster zoom window: choosing a cluster flies into a view of its own stars**
@@ -1830,6 +1867,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.34. Related: NAV.5, NAV.36, MAP.240,
   MAP.307.
+  Boss decision (6:20 PM EST on 2026-11-05): reserve a dashed grey style
+  for a closed trade route now (9.2 closes routes whose owners are at
+  war).
 
 - [ ] **MAP.310 Routes away from a selected object: select a system, spaceport or world on the star map and show only the trade routes leaving it**
   Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
@@ -2100,6 +2140,63 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.367, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.245, GEN.246,
   GEN.247, GEN.249, GEN.255, GEN.256, GEN.257, MAP.223, MAP.194.
 
+- [ ] **MAP.389 Borders on the maps: hard lines on the Sector and System Maps where two owners meet, a soft haze on the Galaxy Map, and a reserved hatch style for contested systems, drawn from the stored owners and cached by the territory epoch**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: draw the border of
+  the stored system owners (system_owners) as hard lines on the Sector
+  and System Maps and as haze on the Galaxy Map's Territories layer;
+  reserve the hatched style for a contested system and the dashed grey
+  style for a closed trade route (MAP.309), both unused until 9.2.
+  Nothing is stored but the owner per system; the drawing is cached by
+  the territory epoch. Done: the three maps show borders for a galaxy
+  with two or more polities, the layer key explains the styles, and a
+  test checks the border segments of a small case.
+  Prerequisites: POP.28. Related: POP.24, MAP.309.
+
+- [ ] **MAP.390 Past borders: the Territories layer gets a time control that shows the borders at any stored epoch, from the history rows the step writes**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: a time control on
+  the Territories layer of the Galaxy, Sector and System Maps that draws
+  the border of any stored epoch from the territory history (DB.104) and
+  the journal; the present stays the default. Done: the control, the
+  layer key, and a test that a stored epoch draws the owners it stored.
+  Prerequisites: MAP.389, POP.48. Related: POP.24, DB.104.
+
+- [ ] **MAP.391 The ship page shows the territories crossed: a read of the owners along a vessel's track (borders block nothing)**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.3
+  design in
+  /mnt/project-files/design-drafts/ships-and-stations-9-3-design-2026-11-05.md:
+  a vessel's position is derived from its course, departure time and
+  speed (no nightly stepping), four states (docked, parked, underway,
+  waiting at a waypoint) with no fuel or loss, a warp or fold factor
+  from the speed tables with each race using its tech band's top, four
+  physics-checked places for stations and ships, generated traffic
+  derived from trade flow and never stored per ship, borders block
+  nothing, clustered map icons. Do: a read that lists the polity
+  territories a vessel's course crosses and when (from vessel_position
+  and the stored owners at that time), shown on the ship page; it only
+  informs and never refuses a course. Done: the read, the ship page row,
+  and tests for a course across two territories.
+  Prerequisites: NAV.77, USR.29. Related: USR.10.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -2337,6 +2434,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   here. Done: decided when it is scheduled. Goal #1679. Filed by the
   TODO thread.
   Prerequisites: POP.33, POP.34, DB.105.
+
+- [ ] **NAV.77 vessel_position(vessel, t): the position of a vessel at any galaxy time from its stored course, departure time and speed, agreeing with the course planner's travel times to the second**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.3
+  design in
+  /mnt/project-files/design-drafts/ships-and-stations-9-3-design-2026-11-05.md:
+  a vessel's position is derived from its course, departure time and
+  speed (no nightly stepping), four states (docked, parked, underway,
+  waiting at a waypoint) with no fuel or loss, a warp or fold factor
+  from the speed tables with each race using its tech band's top, four
+  physics-checked places for stations and ships, generated traffic
+  derived from trade flow and never stored per ship, borders block
+  nothing, clustered map icons. Do: a pure function that walks the saved
+  course (both forms): along each system hop in the galaxy frame at the
+  vessel's speed (warp or fold factor from the speed tables), then the
+  in-system legs (NAV.27) to the target body's place at arrival; the
+  track is the finished legs plus the part of the current leg up to t.
+  Done: tests that the function agrees with the planner for direct,
+  system-route, adjusted and waypoint courses, and that it is the same
+  at any batching of time.
+  Prerequisites: DB.111, NAV.4, GEN.105. Related: USR.29.
 
 ## GEN: Generation and physics
 
@@ -4273,6 +4390,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and scatter membership by cell key; shell, band, wedge and ball come
   from `planetgen/galaxy/span.py` (`Span`) and
   `planetgen/galaxy/region.py` (`Region`).
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.4 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Prerequisites: none. Related: ADM.57, NAV.60.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
@@ -14357,6 +14479,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version: later. Owner: none yet. Filed by the TODO thread.
   Prerequisites: VIEW.46. Related: GEN.282, GEN.115.
 
+- [ ] **GEN.1293 The orbital update runs registered steps: another domain (population, politics, trade) registers a step that receives the galaxy time step dt and a named draw stream, and the run calls them in a fixed order**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. This is the foundation
+  the 9.2 political step, the 8.3 world population steps (POP.30,
+  POP.31) and the later dynamic population (POP.35) share. Do: a small
+  registry in the orbital update where a domain adds a step function,
+  its order and the stream name; the run passes the same dt the movement
+  uses (real time by default, longer when an admin states an extra span)
+  and records each step's result in the activity log; a step that fails
+  is logged and skipped, never leaving the run half done. Done: two test
+  steps run in order on a 100-night run, the result does not change when
+  the same total time is batched into different nights, and the admin's
+  fast-forward moves them with the orbits.
+  Prerequisites: GEN.139. Related: POP.24, POP.35, POP.30.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14640,6 +14786,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 16) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.2 to 8.9 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): not a foundation of anything; it fits generating
+  anywhere and takes load off 8.2.
   Prerequisites: PERF.197. Related: PERF.125, PERF.196, PERF.197.
 
 - [ ] **PERF.197 Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2)**
@@ -14676,6 +14826,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gone. No migration, output unchanged. The item stays open for part
   (b), the lock work (drop the sample recording, its table, column_units
   and fingerprint entries, migration), which Sources 2 is building.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.2 to 8.9 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): not a foundation of anything; it fits generating
+  anywhere and takes load off 8.2.
   Prerequisites: none. Related: PERF.195.
 
 - [ ] **PERF.198 Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6)**
@@ -14732,6 +14886,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.2 to 8.9 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): not a foundation of anything; it fits generating
+  anywhere and takes load off 8.2.
   Prerequisites: none. Related: PERF.149.
 
 - [ ] **PERF.219 The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target**
@@ -15423,6 +15581,45 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   dry.
   Prerequisites: none.
 
+- [ ] **DB.110 Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: one migration
+  adding the journal table, a lock flag on polities, nations and cities
+  (so the admin editors of 8.6 can mark what the step must skip), and a
+  cohesion column (0 to 1) beside DB.104's growth state and history
+  columns, each numeric column in db/column_units.py. Done: the
+  migration, the old-schema fixture, the number guard and the storage
+  checksum list pass, and nothing writes the new columns yet.
+  Prerequisites: DB.104. Related: POP.24, DB.104, ADM.131.
+
+- [ ] **DB.111 Storage for vessels and stations: the vessel table (Object ID, owner, name, kind, speed table entry, state, anchor, course id, departure and arrival time, finished legs) and the owner and free-point columns on facilities if it lacks them**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.3
+  design in
+  /mnt/project-files/design-drafts/ships-and-stations-9-3-design-2026-11-05.md:
+  a vessel's position is derived from its course, departure time and
+  speed (no nightly stepping), four states (docked, parked, underway,
+  waiting at a waypoint) with no fuel or loss, a warp or fold factor
+  from the speed tables with each race using its tech band's top, four
+  physics-checked places for stations and ships, generated traffic
+  derived from trade flow and never stored per ship, borders block
+  nothing, clustered map icons. Do: one migration for the vessel table
+  and, only if the facilities table cannot carry a user owner or a free
+  point, those columns, with Object IDs and units. Stations of POP.21
+  and user stations are then the same kind of row, editable by the same
+  8.6 tools. Done: the migration, the old-schema fixture, the number
+  guard and the storage checksum list pass, and nothing writes vessel
+  rows yet.
+  Prerequisites: NAV.4. Related: USR.29, POP.21.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -15747,6 +15944,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   for fixed, ranged and random fields.
   Prerequisites: ADM.62, ADM.64. Related: API.18, API.19, ADM.70,
   ADM.57.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.5 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
 - [ ] **API.29 Upload spool and unit states: received batches on disk, units assembled at seal, finalize as a queue job**
@@ -16123,6 +16325,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   plan touches is edited by anything else. Done: the store with tests
   against MySQL, and a plan that survives a restart with its computed
   diff intact so the admin approves exactly what they were shown.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.4 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Prerequisites: ADM.58. Related: ADM.57.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
@@ -16142,6 +16349,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   on (maintenance, a running update, or the orbital update). Done:
   apply, undo and audit with tests, including a failed apply that
   changes nothing and an undo that restores every stored row.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.4 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Prerequisites: ADM.59. Related: ADM.57, OPS.41, ADM.82.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
@@ -16160,6 +16372,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   replay.
   Prerequisites: ADM.60, DB.17. Related: DB.9, DB.17,
   GEN.57, GEN.59.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.4 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
 - [ ] **ADM.62 Aspect catalogue for systems, stars, planets, moons and belts: every stored field and every generation input, with how they depend on each other**
@@ -16176,6 +16393,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   other aspects (a planet's radius follows its class and mass) and what
   depends on it. Done: the catalogue with a test that every stored
   column of every body table belongs to exactly one aspect.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.5 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Prerequisites: none. Related: ADM.57, ADM.35, ADM.6, ADM.7.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
@@ -16188,6 +16410,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   columns, its generation input and its dependencies. Done: the
   catalogue extended, with the same every-column-belongs-to-one-aspect
   test.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.5 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Prerequisites: ADM.62. Related: ADM.57.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
@@ -16205,6 +16432,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   conflicts, with tests for every dependency edge in the catalogue;
   `regenerate_planet` in planetgen/admin/edits.py gains the fixed-input
   path.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.5 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Prerequisites: ADM.62. Related: ADM.57, ADM.35.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
@@ -16450,6 +16682,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   library with tests for a valid unit, a name clash, a derived column
   fix and each kind of rejection, and `save_system_edits` goes through
   it.
+  Plan (6:20 PM EST on 2026-11-05): moved from 8.6 to 8.4 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): foundations of the edit-everything headline are
+  built early, in the lightest version before it, so 8.6 is not one
+  lump.
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
@@ -16709,6 +16946,25 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   that lane); it goes in the next changed-files gate.
   Prerequisites: none. Related: ADM.95, PERF.227.
   Prerequisites: none.
+
+- [ ] **ADM.138 The political step skips locked polities, nations and cities and shows the lock in the editors; releasing a lock lets the step move it again**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: the step reads the
+  lock flags of the political storage item and skips locked objects; the
+  civilization editors of 8.6 (ADM.131) set and release the lock and
+  show what an unlocked edit would be allowed to change. Done: tests of
+  a locked polity, nation and city left alone for 100 steps and of the
+  release.
+  Prerequisites: DB.110, POP.48, ADM.131. Related: POP.24, ADM.131.
 
 ## SEC: Security
 
@@ -18285,6 +18541,44 @@ clears each one.
   Prerequisites: UX.132, UX.266, UX.267. Related: UX.43, UX.131, UX.132,, UX.268, UX.269, UX.270.
   UX.266, UX.267.
 
+- [ ] **TEST.624 Politics tests: determinism over 100 steps at different batchings, no flicker, a split, a locked case, and polity count and area in a sane range on a census galaxy**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: the test file that
+  runs a small civilized galaxy for 100 steps twice (once in one batch,
+  once in uneven nights) and compares the owners, the journal and the
+  draws; plus the no-flicker, split, locked and sane-range cases. Done:
+  the file runs in the changed-files gate whenever a politics module
+  changes.
+  Prerequisites: POP.48, POP.49, POP.50, POP.51, ADM.138. Related:
+  POP.24.
+
+- [ ] **TEST.625 Ships and stations tests: position against the course planner, the arrival job, refused orbits, and determinism of generated traffic**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.3
+  design in
+  /mnt/project-files/design-drafts/ships-and-stations-9-3-design-2026-11-05.md:
+  a vessel's position is derived from its course, departure time and
+  speed (no nightly stepping), four states (docked, parked, underway,
+  waiting at a waypoint) with no fuel or loss, a warp or fold factor
+  from the speed tables with each race using its tech band's top, four
+  physics-checked places for stations and ships, generated traffic
+  derived from trade flow and never stored per ship, borders block
+  nothing, clustered map icons. Do: tests that vessel_position agrees
+  with the planner's travel times, that the arrival job flips states and
+  appends a leg once, that an unstable orbit is refused with a reason,
+  and that generated traffic from the trade flow is the same for the
+  same galaxy and seed. Done: the file runs in the changed-files gate
+  whenever a ships module changes.
+  Prerequisites: USR.29, POP.11, MAP.391. Related: USR.10.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -18592,6 +18886,9 @@ clears each one.
   for ships and stations (a, Core 1), the vessel and station objects
   with ownership (b) and the pages and map display (c); POP.11 needs
   only a and b.
+  Plan (6:20 PM EST on 2026-11-05): Headline: 9.3 (users place their own
+  ships and stations and follow them across the live map). This item is
+  done when the items it needs are done.
   Prerequisites: USR.29, USR.30. Related: USR.8, GEN.105, NAV.4.
 
 - [ ] **USR.11 A "home" field on user accounts: where the Galaxy Map zooms to when it opens**
@@ -18628,6 +18925,11 @@ clears each one.
   Owner-only options of the settings page. Done: the catalogue and the
   check with tests for every role and permission, and a generated table
   in docs.
+  Plan (6:20 PM EST on 2026-11-05): moved from 10.0 to 8.2 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): the permission check must exist before 8.3 to 8.6
+  add admin routes, so every new route starts on it; it rides on the
+  accounts work of 8.2.
   Prerequisites: none. Related: USR.2, ADM.86.
   Design: [docs/design/interface/roles-and-requests.md](design/interface/roles-and-requests.md)
 
@@ -18643,6 +18945,11 @@ clears each one.
   to); the Owner and admins are not affected. Done: the page actions,
   the audit rows and tests that a moderator holds exactly the moderator
   permissions.
+  Plan (6:20 PM EST on 2026-11-05): moved from 10.0 to 8.2 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): the permission check must exist before 8.3 to 8.6
+  add admin routes, so every new route starts on it; it rides on the
+  accounts work of 8.2.
   Prerequisites: USR.12, USR.27. Related: USR.2, USR.6.
   Design: [docs/design/interface/roles-and-requests.md](design/interface/roles-and-requests.md)
 
@@ -18657,6 +18964,11 @@ clears each one.
   with `can()`, so a new role needs no edit to a route. Done: no raw
   role comparison is left in `src/planetgen` (a test scans for them),
   and the existing admin and user tests pass unchanged.
+  Plan (6:20 PM EST on 2026-11-05): moved from 10.0 to 8.2 (Boss asked
+  for foundations spread back and no version doing all the work, 5:48 PM
+  EST on 2026-11-05): the permission check must exist before 8.3 to 8.6
+  add admin routes, so every new route starts on it; it rides on the
+  accounts work of 8.2.
   Prerequisites: USR.12. Related: USR.2.
   Design: [docs/design/interface/roles-and-requests.md](design/interface/roles-and-requests.md)
 
@@ -18875,7 +19187,14 @@ clears each one.
   Done: add, list, get and track routes with the usual API scopes,
   ownership checks, and tests for a course, a track and a refused edit
   by another user.
-  Prerequisites: NAV.4, GEN.105. Related: USR.10.
+  Boss decision (6:20 PM EST on 2026-11-05): S1: the position is derived
+  from the course, the departure time and the speed (NAV.77), not
+  stepped by the nightly run; the item becomes the vessel API, the
+  arrival job (one indexed query on arrival time and state that flips
+  docked or parked and appends a finished leg) and one admin setting for
+  a ceiling on objects per account (empty by default). Storage is DB.111
+  (8.5).
+  Prerequisites: NAV.4, GEN.105. Related: USR.10, DB.111, NAV.77.
 
 - [ ] **USR.30 Add a ship or station from a page and see it and its track on the maps**
   Split from USR.10 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -20264,6 +20583,43 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   thread.
   Prerequisites: VIEW.44, GEN.115. Related: GEN.115, VIEW.8.
 
+- [ ] **DOC.105 Docs for politics: the help page for borders, contested systems, splits and the map time control, and the design note**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: a help page
+  (borders and territories, what contested and at war mean, why a polity
+  splits, the time control, how an admin lock holds a polity) and the
+  design note in docs/design/habitability/population-and-politics.md
+  with the stand-in tiers. Done: both pages, linked from the Help menu,
+  and the help coverage test passes.
+  Prerequisites: MAP.390, UX.271. Related: POP.24.
+
+- [ ] **DOC.106 Docs for ships and stations: the help page (states, courses, tracks, how the ship's place is found) and the design note**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.3
+  design in
+  /mnt/project-files/design-drafts/ships-and-stations-9-3-design-2026-11-05.md:
+  a vessel's position is derived from its course, departure time and
+  speed (no nightly stepping), four states (docked, parked, underway,
+  waiting at a waypoint) with no fuel or loss, a warp or fold factor
+  from the speed tables with each race using its tech band's top, four
+  physics-checked places for stations and ships, generated traffic
+  derived from trade flow and never stored per ship, borders block
+  nothing, clustered map icons. Do: a help page for ships and stations
+  (the four states, what a course and a track are, the warp and fold
+  speeds, the four places, generated traffic) and the design note with
+  the stand-ins (cargo per ship by tech band, the share of a route's
+  flow carried by ship, the icon cluster size). Done: both pages, linked
+  from the Help menu, and the help coverage test passes.
+  Prerequisites: TEST.625. Related: USR.10.
+
 ## POP: Population and politics
 
 Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
@@ -20279,8 +20635,12 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   level allows vessels and which stations is set from the tech-level
   design (docs/design/research/imported/technological-assessment.md and the "Tech levels"
   section of population-and-politics.md, POP.8, done in PR #1422). Owner: not assigned.
-  Prerequisites: USR.29. Related: POP.7 (done, PR #1461), POP.10
+  Prerequisites: USR.29. Related: POP.7 (done, PR #1461), POP.10, POP.33.
   (done, PRs #1517 and #1524), USR.10.
+  Boss decision (6:20 PM EST on 2026-11-05): S5: generated traffic is
+  derived from the trade flow of the trade routes (a flow of cargo over
+  a route length gives the number of ships in transit) and is not stored
+  per ship; the item keeps its stations from POP.21.
 
 - [ ] **POP.13 A species editor: create and edit species and their environment limits**
   Boss (2026-10-15 04:15Z): "Add a TODO item, I want the system to allow
@@ -20646,7 +21006,17 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   territory history of DB.104 and the governments of POP.26 and POP.27:
   9.2 advances reach and claims and appends history rows; it never
   rebuilds a government's start.
-  Prerequisites: ADM.131, TEST.381. Related: POP.8, ADM.81, DB.104, POP.26, POP.27.
+  Boss decision (6:20 PM EST on 2026-11-05): the 9.2 design is approved
+  (cards of 6:00 PM EST on 2026-11-05): the breakdown is POP.46, DB.110,
+  POP.48, POP.49, POP.50, POP.51, ADM.138, MAP.390, UX.271, TEST.624,
+  DOC.105, with the foundations built back: the step registry in the
+  orbital update GEN.1293 (8.3), the constants POP.46 and storage DB.110
+  (8.4), borders on the maps MAP.389 (8.5). POP.35 and POP.36 move into
+  9.2. There is no separate history clock.
+  Plan (6:20 PM EST on 2026-11-05): Headline: 9.2 (territories that grow
+  and shift over time on the map, with borders drawn and polities that
+  trade). This item is done when the items it needs are done.
+  Prerequisites: ADM.131, TEST.381. Related: POP.8, ADM.81, DB.104, POP.26, POP.27, POP.48, POP.49, POP.50, POP.51, ADM.138, MAP.390, UX.271, TEST.624, DOC.105.
 
 - [ ] **POP.25 Option: how many space-faring governments the galaxy has (a number, or natural), on the Generate page, the CLI, the API and the stored plan**
   Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
@@ -21109,6 +21479,9 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   tweak labels; tests are `scripts/test.py changed --resume`; no fixed
   content from the Milky Way or the Solar System. Part of the trade
   tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Boss decision (6:20 PM EST on 2026-11-05): moves into 9.2 (Q5); it
+  steps through the orbital update's registered step, with the dt it is
+  given.
   Prerequisites: POP.30. Related: POP.24, GEN.212.
 
 - [ ] **POP.36 Dynamic trade routes: routes grow, shift and close as populations, ports and territories change, using the same hop pathfinding**
@@ -21130,7 +21503,9 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   rows with tier and tweak labels; tests are `scripts/test.py changed
   --resume`; no fixed content from the Milky Way or the Solar System.
   Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
-  Prerequisites: POP.33, POP.35, MAP.309. Related: POP.33, POP.24.
+  Boss decision (6:20 PM EST on 2026-11-05): moves into 9.2 (Q5); it
+  reads the derived at-war flag to close routes.
+  Prerequisites: POP.33, POP.35, MAP.309. Related: POP.33, POP.24, POP.49.
 
 - [ ] **POP.38 Species traits and facility needs read the homeworld and host: dose, pressure, air, thermal range, day length and the equipment kit (G1)**
   Unused stored values audit (the "Find stored values nothing uses"
@@ -21280,4 +21655,127 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch; tests are `scripts/test.py changed --resume`.
   Prerequisites: POP.44, GEN.799. Related: POP.39, GEN.799, GEN.441.
+
+- [ ] **POP.46 Politics constants as settings and registry rows: the reach cap (100 ly), the hysteresis margin, the contested ratio, the cohesion gain and loss, the split threshold and the city growth spread, each with tier and tweak level in GEN.725**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: add the constants
+  as settings with defaults and range checks (the reach cap stays 100 ly
+  as a setting, Q4), and register each as a stand-in with tier and tweak
+  level so later research can replace it: the cohesion constants from
+  the published model of state rise and fall (educated guess from a
+  published model, L3 once tuned on the sweep), the hysteresis margin
+  (educated guess, L3), the contested ratio, the split threshold, the
+  city growth spread (Gibrat's law). Done: the settings page shows them,
+  the registry rows exist, and nothing reads them yet except the
+  existing reach law, which now reads the cap setting.
+  Prerequisites: POP.27. Related: POP.24, GEN.725.
+
+- [ ] **POP.47 Station and vessel places are physics-checked: a station or ship is placed only in orbit inside the stable fraction of the body's Hill radius, at a Lagrange point, in a belt or at rest at a point in a frame, and an unstable orbit is refused**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.3
+  design in
+  /mnt/project-files/design-drafts/ships-and-stations-9-3-design-2026-11-05.md:
+  a vessel's position is derived from its course, departure time and
+  speed (no nightly stepping), four states (docked, parked, underway,
+  waiting at a waypoint) with no fuel or loss, a warp or fold factor
+  from the speed tables with each race using its tech band's top, four
+  physics-checked places for stations and ships, generated traffic
+  derived from trade flow and never stored per ship, borders block
+  nothing, clustered map icons. Do: a function that accepts one of four
+  places (orbit around a body, a Lagrange point, a belt or field, a
+  point in a frame) and refuses an orbit outside the stable fractions
+  the moon code already holds (the clearance ledger's prograde and
+  retrograde fractions of the Hill radius), with the reason in words;
+  POP.21 places generated stations through it so generated and user
+  stations obey one rule. Done: tests for each place, each refusal and
+  the reasons, and the stand-ins it uses are registered.
+  Prerequisites: POP.21. Related: POP.21, USR.29, POP.11.
+
+- [ ] **POP.48 Claim strength and frontier ownership in the political step: strength is population times a tech factor times cohesion, a system goes to the polity with the largest strength over distance, and it changes hands only when a challenger beats the holder by the hysteresis margin**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: replace the
+  from-scratch territory recompute with a step that runs inside the
+  orbital update (the registered step of the 8.3 step registry) with the
+  dt it is given; the reach law still grows the distance reach until the
+  cap; every change writes a journal row. Done: tests that borders do
+  not flicker (a challenger just under the margin changes nothing), that
+  the same total time gives the same owners at any batching, and that a
+  locked polity is skipped.
+  Prerequisites: GEN.1293, POP.46, DB.110, POP.35, DB.104. Related:
+  POP.24.
+
+- [ ] **POP.49 Contested systems and the derived war state: a system whose two best claims are within the contested ratio is marked contested, and two polities with a contested frontier are at war, which closes trade between them and changes nothing else**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: compute the
+  contested mark in the political step and the derived at-war flag per
+  pair of polities; show both on the system, polity and map pages;
+  POP.36 reads the flag to close routes. No combat is simulated and no
+  population or territory is lost to war. Done: tests for the mark, the
+  flag, a pair leaving the contested state, and the trade closure.
+  Prerequisites: POP.48. Related: POP.24, POP.36.
+
+- [ ] **POP.50 Cohesion and splits: a polity's cohesion rises on contested frontier systems and falls with the share of territory far from its capital, and below the split threshold the polity splits along its weakest line into polities of the same species**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: the cohesion
+  number per polity in the political step; a split makes new polities
+  from the existing species only, with governments drawn from the 14
+  forms and names from the name codec, and the journal records it.
+  Nothing is created from nothing and no species or civilization is
+  made. Done: tests of a split, of a polity that holds together, of a
+  split's determinism, and a check on a census galaxy that polity count
+  and total area stay in a sane range.
+  Prerequisites: POP.49. Related: POP.24.
+
+- [ ] **POP.51 Planet level in the political step: nations drift in dominance by a slow power score, cities change nation by the same weighted draw as at generation re-run with current dominance (the dominant nation keeps its capital), city sizes grow by a proportional law with a spread capped by carrying capacity, and ports follow their city's owner**
+  Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
+  design in
+  /mnt/project-files/design-drafts/politics-and-territories-9-2-design-2026-11-05.md:
+  one real-time clock (the political step uses the orbital update's dt,
+  there is no separate history clock), no combat but a derived contested
+  state that closes trade, a cohesion number with splits, the 100 ly
+  reach cap kept as a setting, hard border lines on the Sector and
+  System Maps with haze on the Galaxy Map, and past borders shown by a
+  map time control. Nothing is created from nothing: new polities come
+  only from splits of existing ones. Draws go through draw.py on a
+  stream named by the object and the step number. Do: the planet-level
+  half of the step, keeping the size distribution of cities stable (the
+  rank-size law is checked, not forced). Done: tests of dominance drift,
+  a city changing nation, the capital rule, the carrying-capacity cap
+  and determinism across batching.
+  Prerequisites: POP.48, POP.35. Related: POP.24, POP.17, POP.19.
 

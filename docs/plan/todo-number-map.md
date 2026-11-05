@@ -13,21 +13,21 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.271 |
-| MAP | MAP.389 |
-| NAV | NAV.77 |
-| GEN | GEN.1293 |
+| UX | UX.272 |
+| MAP | MAP.392 |
+| NAV | NAV.78 |
+| GEN | GEN.1294 |
 | PERF | PERF.244 |
-| DB | DB.110 |
+| DB | DB.112 |
 | API | API.42 |
-| ADM | ADM.138 |
+| ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.624 |
+| TEST | TEST.626 |
 | USR | USR.32 |
 | OPS | OPS.106 |
-| DOC | DOC.105 |
+| DOC | DOC.107 |
 | VIEW | VIEW.47 |
-| POP | POP.46 |
+| POP | POP.52 |
 
 ## Why this exists
 
@@ -526,6 +526,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.135 | The data check in front of a Generate job no longer fails because another check holds the check place, and a refusal names the run that holds it (bug) | none | done, PR #4675 |
 | ADM.136 | A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug) | none | open |
 | ADM.137 | Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug) | none | done, PR #4723 |
+| ADM.138 | The political step skips locked polities, nations and cities and shows the lock in the editors; releasing a lock lets the step move it again | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -676,6 +677,8 @@ Parents marked "new parent" had no old number of their own.
 | DB.107 | Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b) | none | done, PR #3383 |
 | DB.108 | Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e) | none | done, PR #3465 |
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute | none | open |
+| DB.110 | Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units | none | open |
+| DB.111 | Storage for vessels and stations: the vessel table (Object ID, owner, name, kind, speed table entry, state, anchor, course id, departure and arrival time, finished legs) and the owner and free-point columns on facilities if it lacks them | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -780,6 +783,8 @@ Parents marked "new parent" had no old number of their own.
 | DOC.102 | American spelling sweep of every text that is not a planet, moon or belt description: templates, help pages, static pages, star, system, sector, nebula and phenomenon text, error messages, the API and CLI help, so "colour" and the other British spellings go to zero | none | done, PR #4813 |
 | DOC.103 | American spelling of stored values and API keys: cancelled, vapour, centre, flavour, ionising, oxidised, disc, link-neighbours | none | done, PR #5096 |
 | DOC.104 | Headline of 8.7: full help for all pages, with the pilot's console look | none | open |
+| DOC.105 | Docs for politics: the help page for borders, contested systems, splits and the map time control, and the design note | none | open |
+| DOC.106 | Docs for ships and stations: the help page (states, courses, tracks, how the ship's place is found) and the design note | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -2072,6 +2077,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1290 | Gas and star metallicity depend on the galaxy's stellar mass (the mass-metallicity relation), so small galaxies are metal-poor and dustier-poor | none | open |
 | GEN.1291 | The gas metallicity gradient scales with the galaxy: 0.088 dex per disk scale length in place of 0.034 dex per kpc (row NBC1) | none | open |
 | GEN.1292 | The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later) | none | open |
+| GEN.1293 | The orbital update runs registered steps: another domain (population, politics, trade) registers a step that receives the galaxy time step dt and a named draw stream, and the run calls them in a fixed order | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2460,6 +2466,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.386 | Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies | none | open |
 | MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field | none | open |
 | MAP.388 | Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon | none | open |
+| MAP.389 | Borders on the maps: hard lines on the Sector and System Maps where two owners meet, a soft haze on the Galaxy Map, and a reserved hatch style for contested systems, drawn from the stored owners and cached by the territory epoch | none | open |
+| MAP.390 | Past borders: the Territories layer gets a time control that shows the borders at any stored epoch, from the history rows the step writes | none | open |
+| MAP.391 | The ship page shows the territories crossed: a read of the owners along a vessel's track (borders block nothing) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2536,6 +2545,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.74 | A pure function for the expected number of unresolved stars a course segment crosses, with a cheap miss test outside the capped core | none | done, PR #5142 |
 | NAV.75 | The adjusted course says how many unresolved stars it passes through: the course, the API and the Navigation page | none | done, PR #5142 |
 | NAV.76 | A dense-core scale test for course avoidance: a course through the capped core stays within its time budget | none | done, PR #5142 |
+| NAV.77 | vessel_position(vessel, t): the position of a vessel at any galaxy time from its stored course, departure time and speed, agreeing with the course planner's travel times to the second | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -2929,6 +2939,12 @@ Parents marked "new parent" had no old number of their own.
 | POP.43 | Settlement and facility pages say why: the species traits and the host's dose, air and kit behind each rating (G1, step 4) | none | open |
 | POP.44 | Register the facility constants (_WEIGHTS, FACILITY_HOST_RICHNESS, FACILITY_KIND_SIZE, FACILITY_RATING_*) in the GEN.725 registry with tier and tweak level (G6, step 1) | none | open |
 | POP.45 | A facility's richness reads the host's stored composition and resource scores instead of a per-type constant (G6, step 2) | none | open |
+| POP.46 | Politics constants as settings and registry rows: the reach cap (100 ly), the hysteresis margin, the contested ratio, the cohesion gain and loss, the split threshold and the city growth spread, each with tier and tweak level in GEN.725 | none | open |
+| POP.47 | Station and vessel places are physics-checked: a station or ship is placed only in orbit inside the stable fraction of the body's Hill radius, at a Lagrange point, in a belt or at rest at a point in a frame, and an unstable orbit is refused | none | open |
+| POP.48 | Claim strength and frontier ownership in the political step: strength is population times a tech factor times cohesion, a system goes to the polity with the largest strength over distance, and it changes hands only when a challenger beats the holder by the hysteresis margin | none | open |
+| POP.49 | Contested systems and the derived war state: a system whose two best claims are within the contested ratio is marked contested, and two polities with a contested frontier are at war, which closes trade between them and changes nothing else | none | open |
+| POP.50 | Cohesion and splits: a polity's cohesion rises on contested frontier systems and falls with the share of territory far from its capital, and below the split threshold the polity splits along its weakest line into polities of the same species | none | open |
+| POP.51 | Planet level in the political step: nations drift in dominance by a slow power score, cities change nation by the same weighted draw as at generation re-run with current dominance (the dominant nation keeps its capital), city sizes grow by a proportional law with a spread capped by carrying capacity, and ports follow their city's owner | none | open |
 | SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
 | SEC.2 | Security audit findings of 2026-09-30 (new parent) | none | done in 7.5.0, PR #112, except SEC.17 to SEC.19 |
 | SEC.3 | Seeded admin/password login claimable | 39 (2026-09-30 19:02Z to 20:27Z) | done in 7.5.0, PR #112 |
@@ -3267,6 +3283,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.268 | Console look on panels, dialogs and the one status chip (with its symbol or word), by tokens only | none | open |
 | UX.269 | Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only | none | open |
 | UX.270 | Console look on the admin shell and admin pages, by tokens only | none | open |
+| UX.271 | The polity history page: a timeline of its territory, cohesion, splits and trade totals, and the journal feed on the API | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -4023,6 +4040,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.621 | The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug) | none | open |
 | TEST.622 | tests/test_parallel_names.py::test_two_passes_drawing_the_same_names_still_save_unique_ones fails alone on main (no species made) and passes in a whole-file run (bug) | none | done, PR #5182 |
 | TEST.623 | Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark) | none | open |
+| TEST.624 | Politics tests: determinism over 100 steps at different batchings, no flicker, a split, a locked case, and polity count and area in a sane range on a census galaxy | none | open |
+| TEST.625 | Ships and stations tests: position against the course planner, the arrival job, refused orbits, and determinism of generated traffic | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
