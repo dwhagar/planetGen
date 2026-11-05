@@ -139,6 +139,23 @@ export function regionMarkers(kind, blobs, look, inView, covered) {
   return found;
 }
 
+// The Region symbol of every charted region (a region with a generated sector) whose sphere is drawn: one marker item for each blob
+// of `blobs`, unless `skip(blob)` (an inhabited token or a system's own mark already stands for it). Same arguments as `regionMarkers`.
+export function chartedRegionMarkers(kind, blobs, look, inView, skip) {
+  const found = [];
+  (blobs || []).forEach((blob) => {
+    if (!(blob.sectorCount > 0) || !(look(blob).alpha >= REGION_TOKEN_MIN_ALPHA) || !inView(blob) || skip(blob)) return;
+    found.push({
+      kind,
+      item: {
+        key: "region-mark:" + blob.key, id: "region-mark:" + blob.key, name: blob.name, x: blob.x, y: blob.y, z: blob.z,
+        n: blob.sectorCount, sectors: blob.sectorCount, regionKey: blob.key,
+      },
+    });
+  });
+  return found;
+}
+
 // The text of a region's inhabited worlds, "3 inhabited worlds in 2 systems, best Blue": the token's hover and the region card's line.
 export function inhabitedText(inhabited) {
   if (!inhabited) return "";
