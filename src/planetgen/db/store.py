@@ -77,7 +77,7 @@ from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import aerosols, body_colour, body_strength, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
-from planetgen.generation import generator_battery as generatorBattery
+from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import cloud as cloudContext, multistar, steps, stored_trees
@@ -609,7 +609,7 @@ still answers as before."""
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
-    "asteroid_belt_composition", "belt_members",
+    "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
@@ -3202,7 +3202,41 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     for position, moon in enumerate(planet.moons or []):
         insert_moon(conn, moon, star_system_id, star_id, planet_id, position)
 
+    insert_irregular_moons(conn, planet, planet_id)
+
     return planet_id
+
+
+IRREGULAR_MOON_COLUMNS = ("moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction",
+                          "water_fraction", "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")
+"""tuple: The value columns of `irregular_moons`, after `planet_id`."""
+
+
+def insert_irregular_moons(conn, planet, planet_id):
+    """Writes the `irregular_sets` row and the `irregular_moons` rows of `planet` (GEN.1084): nothing for a planet with none."""
+    held = getattr(planet, "irregulars", irregular_moons.NO_IRREGULARS)
+    if held is irregular_moons.NO_IRREGULARS:
+        return
+    conn.execute("INSERT INTO irregular_sets (planet_id, remainder_kg, above_floor, lost, `temporary`) VALUES (?, ?, ?, ?, ?)",
+                 (planet_id, held.remainder_kg, held.above_floor, held.lost, 1 if held.temporary else 0))
+    for moon in held.moons:
+        d = moon.to_dict()
+        conn.execute(
+            f"INSERT INTO irregular_moons (planet_id, {', '.join(IRREGULAR_MOON_COLUMNS)}) VALUES ({', '.join('?' * (len(IRREGULAR_MOON_COLUMNS) + 1))})",
+            (planet_id, d["rank"], d["window"], d["mass_kg"], d["radius_km"], d["density_kg_m3"] / 1000.0, d["taxon"], d["source_distance_au"] * _AU_KM, d["ice_loss"], d["rock"],
+             d["metal"], d["water"], d["ice"], d["semi_major_axis_au"] * _AU_KM, d["eccentricity"], d["inclination_deg"], d["ascending_node_deg"], d["arg_periapsis_deg"],
+             d["mean_anomaly_deg"]))
+
+
+def irregular_set_dict(summary, rows):
+    """The `IrregularSet.from_dict` dict of a planet's `irregular_sets` row (`None` for none) and its `irregular_moons` rows."""
+    if summary is None:
+        return None
+    return {"remainder_kg": summary["remainder_kg"], "above_floor": summary["above_floor"], "lost": summary["lost"], "temporary": bool(summary["temporary"]), "moons": [{"rank": r["moon_rank"], "window": r["capture_window"], "mass_kg": r["mass_kg"], "radius_km": r["radius_km"], "density_kg_m3": r["density_g_cm3"] * 1000.0,
+                                  "taxon": r["taxon"], "source_distance_au": r["source_distance_km"] / _AU_KM, "ice_loss": r["ice_loss"], "rock": r["rock_fraction"],
+                                  "metal": r["metal_fraction"], "water": r["water_fraction"], "ice": r["ice_fraction"], "semi_major_axis_au": r["distance_km"] / _AU_KM,
+                                  "eccentricity": r["eccentricity"], "inclination_deg": r["inclination_deg"], "ascending_node_deg": r["ascending_node_deg"],
+                                  "arg_periapsis_deg": r["arg_periapsis_deg"], "mean_anomaly_deg": r["mean_anomaly_deg"]} for r in rows]}
 
 
 def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -> int:
@@ -9292,6 +9326,10 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         giant_interior.LAYERS_ATTRIBUTE: [{name: layer[name] for name in INTERIOR_LAYER_COLUMNS} for layer in layer_rows] or None,
         "moons": [],
     })
+    if not is_moon:
+        summary = conn.execute("SELECT remainder_kg, above_floor, lost, `temporary` FROM irregular_sets WHERE planet_id = ?", (row["id"],)).fetchone()
+        rows = conn.execute(f"SELECT {', '.join(IRREGULAR_MOON_COLUMNS)} FROM irregular_moons WHERE planet_id = ? ORDER BY moon_rank", (row["id"],)).fetchall()
+        data["irregulars"] = irregular_set_dict(summary, rows)
     return data
 
 

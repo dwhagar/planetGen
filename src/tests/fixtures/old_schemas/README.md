@@ -88,3 +88,4 @@ Commit each file came from:
 - v202: train 9 (GEN.1138 designations, before GEN.1209 life per class; train 9 schema at e3f3908e0)
 - v203: train 9 (GEN.1209 life per class, before GEN.1069 belt origin; train 9 schema at 23820b6a6)
 - v204: train 9 (GEN.1069 belt origin, before GEN.1070 belt members; main 54368fb84)
+- v205: train 10 (GEN.1070 belt members, before GEN.1084 irregular moons; stacked branch schema)

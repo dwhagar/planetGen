@@ -21,6 +21,7 @@ Nothing about a planet is drawn from the global stream: every number comes from 
 irregulars. Stand-ins are IW1 to IW4 of `docs/design/research/gap-filling-plan.md` section 6.181.
 """
 
+import dataclasses
 from dataclasses import dataclass
 
 from planetgen.physics import captured_composition, compaction, irregular_orbits, irregular_population, irregular_zone, moon_composition
@@ -35,31 +36,58 @@ COMPOSITION_MASS_CAP_KG = compaction.TAPER_END_KG * 0.999
 """float: The heaviest mass the composition rows reach (`captured_composition.compose` stops at `compaction.TAPER_END_KG`); a heavier body (an exchange capture of a Triton) has the composition of this mass. [Stand-in IW4, tier T6, tweak level L2.]"""
 
 
+MOON_KEYS = ("rank", "window", "mass_kg", "radius_km", "density_kg_m3", "taxon", "source_distance_au", "ice_loss", "rock", "metal", "water", "ice",
+             "semi_major_axis_au", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")
+"""tuple: The keys of an `IrregularMoon.to_dict`, which are also the keys of the stored row (`db.store`) bar the distances' units."""
+
+
 @dataclass(frozen=True)
 class IrregularMoon:
     """
     One stored irregular moon.
 
     Attributes:
-        rank (int): 0 for the largest of the planet's stored bodies; the rank names the body for its planet.
+        rank (int): 0 for the largest of the planet's stored bodies when it was built; the rank names the body for its planet and stays when a smaller body is lost.
         window (str): `gas`, `encounter` or `exchange` (`captured_composition.WINDOWS`).
-        mass_kg (float): Its mass.
-        captured (captured_composition.Captured): Where it came from and what it is made of; its radius is `captured.radius_km`.
+        mass_kg, radius_km, density_kg_m3 (float): Its mass and, from the composition it was given, its radius and bulk density.
+        taxon (str): The class letter of the body at its source (`physics/belt_member.py`).
+        source_distance_au (float): Where in the disc it came from.
+        ice_loss (float): The share of its water ice that capture removed.
+        rock, metal, water, ice (float): The shares of its mass, after the loss.
         orbit (irregular_orbits.Orbit): Its orbit about the planet at the epoch of the star's age.
     """
     rank: int
     window: str
     mass_kg: float
-    captured: object
+    radius_km: float
+    density_kg_m3: float
+    taxon: str
+    source_distance_au: float
+    ice_loss: float
+    rock: float
+    metal: float
+    water: float
+    ice: float
     orbit: object
-
-    @property
-    def radius_km(self):
-        return self.captured.radius_km
 
     @property
     def retrograde(self):
         return self.orbit.retrograde
+
+    def to_dict(self):
+        """The moon as a dict of `MOON_KEYS` (the orbit's six elements flattened in)."""
+        o = self.orbit
+        return {"rank": self.rank, "window": self.window, "mass_kg": self.mass_kg, "radius_km": self.radius_km, "density_kg_m3": self.density_kg_m3, "taxon": self.taxon,
+                "source_distance_au": self.source_distance_au, "ice_loss": self.ice_loss, "rock": self.rock, "metal": self.metal, "water": self.water, "ice": self.ice,
+                "semi_major_axis_au": o.semi_major_axis_au, "eccentricity": o.eccentricity, "inclination_deg": o.inclination_deg, "ascending_node_deg": o.ascending_node_deg,
+                "arg_periapsis_deg": o.arg_periapsis_deg, "mean_anomaly_deg": o.mean_anomaly_deg}
+
+    @classmethod
+    def from_dict(cls, data):
+        orbit = irregular_orbits.Orbit(data["semi_major_axis_au"], data["eccentricity"], data["inclination_deg"], data["ascending_node_deg"], data["arg_periapsis_deg"],
+                                       data["mean_anomaly_deg"])
+        return cls(data["rank"], data["window"], data["mass_kg"], data["radius_km"], data["density_kg_m3"], data["taxon"], data["source_distance_au"], data["ice_loss"],
+                   data["rock"], data["metal"], data["water"], data["ice"], orbit)
 
 
 @dataclass(frozen=True)
@@ -71,7 +99,7 @@ class IrregularSet:
         moons (tuple): The stored `IrregularMoon`s, largest first.
         remainder_kg (float): The expected mass of the bodies not stored (`irregular_population.Irregulars.remainder_kg`).
         above_floor (int): How many bodies are above the storage floor (`irregular_population.STORE_FLOOR_KG`).
-        lost (int): Stored bodies given up for want of an orbit that stays (`ORBIT_TRIES`).
+        lost (int): Stored bodies lost: given up for want of an orbit that stays (`ORBIT_TRIES`), or that stopped staying when the planet moved (`keep_stable`).
         temporary (bool): Whether the planet's zone is wide enough for temporary captures (`irregular_population.holds_temporary_captures`): a flag, no object.
     """
     moons: tuple = ()
@@ -79,6 +107,16 @@ class IrregularSet:
     above_floor: int = 0
     lost: int = 0
     temporary: bool = False
+
+    def to_dict(self):
+        return {"moons": [moon.to_dict() for moon in self.moons], "remainder_kg": self.remainder_kg, "above_floor": self.above_floor, "lost": self.lost, "temporary": self.temporary}
+
+    @classmethod
+    def from_dict(cls, data):
+        """The set a `to_dict` made; `None` or an empty dict is `NO_IRREGULARS`."""
+        if not data:
+            return NO_IRREGULARS
+        return cls(tuple(IrregularMoon.from_dict(moon) for moon in data["moons"]), data["remainder_kg"], data["above_floor"], data["lost"], data["temporary"])
 
 
 NO_IRREGULARS = IrregularSet()
@@ -167,8 +205,27 @@ def for_planet(planet, source):
         if orbit is None:
             lost += 1
             continue
-        moons.append(IrregularMoon(len(moons), window, mass, _compose(source, planet, window, mass, stream), orbit))
+        captured = _compose(source, planet, window, mass, stream)
+        makeup = captured.makeup
+        moons.append(IrregularMoon(len(moons), window, mass, captured.radius_km, captured.density_kg_m3, captured.taxon, captured.source_distance_au, captured.ice_loss,
+                                   makeup.rock, makeup.metal, makeup.water, makeup.ice, orbit))
     if not moons and not population.remainder_kg and not temporary:
         return NO_IRREGULARS
     return IrregularSet(tuple(moons), population.remainder_kg, population.above_floor, lost, temporary)
 
+
+
+def keep_stable(planet):
+    """
+    Drops the irregular moons of `planet` that no longer stay in its zone (the planet's orbit, mass or regular moons changed: `physics.planets.drop_unstable_moons`), counting them as lost. Returns how many were dropped.
+    """
+    held = getattr(planet, "irregulars", NO_IRREGULARS)
+    if not held.moons:
+        return 0
+    zone = irregular_zone.zone(planet.distance, planet.mass, planet.star.mass, max((moon.distance for moon in planet.moons), default=0.0))
+    kept = tuple(moon for moon in held.moons
+                 if irregular_zone.verdict(zone, moon.orbit.semi_major_axis_au, moon.orbit.eccentricity, moon.orbit.inclination_deg) is None)
+    dropped = len(held.moons) - len(kept)
+    if dropped:
+        planet.irregulars = dataclasses.replace(held, moons=kept, lost=held.lost + dropped)
+    return dropped
