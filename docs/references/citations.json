@@ -25465,6 +25465,16 @@
       "kind": "paper",
       "label": "Chiappini et al. 2001",
       "title": "Abundance Gradients and the Formation of the Milky Way"
+    },
+    "R5096": {
+      "kind": "paper",
+      "label": "Iwamoto et al. 1999",
+      "title": "Nucleosynthesis in Chandrasekhar Mass Models for Type Ia Supernovae and Constraints on Progenitor Systems and Burning‐Front Propagation"
+    },
+    "R5097": {
+      "kind": "paper",
+      "label": "Willingale et al. 2003",
+      "title": "The mass and energy budget of Cassiopeia A"
     }
   }
 }

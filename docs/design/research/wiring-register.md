@@ -378,3 +378,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.175:SKC1 | VIEW.31 | the sky route reads the stand-in velocity through sky_from |
 | module | planetgen.generation.sky_tiers | VIEW.25 | charting a system builds the sky tiers from this table: build() gives the luminosity bands and mass rings to draw and the radius of each, floor_table() gives the floor against distance for the report |
 | row | 6.176:SKT1 | VIEW.25 | the charting step takes the bands that fit the cell-visit budget |
+| module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
+| data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |

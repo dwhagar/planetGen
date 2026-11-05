@@ -33685,6 +33685,280 @@
       "title": "Stand-ins of the two cuts of the body type"
     },
     {
+      "key": "6.177",
+      "number": "6.177",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "remnant_yields.json yield_exponent alpha_heavy 2.5, alpha_light 1.5, iron_group 0 (yield_group): a progenitor of mass M makes an element in proportion to M^p, the table's mean over 10 to 50 solar masses scaled so the IMF-weighted mean is the table's"
+            ],
+            [
+              "The range it moves in",
+              "alpha_heavy 2 to 3; alpha_light 1 to 2; iron_group 0 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "core-collapse explosions of 10 to 50 solar masses at solar metallicity; beyond that the law is carried on, held by processed_share_cap"
+            ],
+            [
+              "What would show it wrong",
+              "a yield table by progenitor mass (Sukhbold et al., Limongi and Chieffi) whose oxygen mass does not rise between 15 and 25 solar masses by a factor of 2.5 to 4, or whose iron mass is not flat within a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "the per-mass yield tables of [R4251], fetched at setup (stellar-composition decision D6) and fitted"
+            ],
+            [
+              "Evidence",
+              "physics: the oxygen made grows with the helium core, which grows faster than the star, and the iron is the mass that fell back or not (0.04 to 0.05 per explosion, [R4251: Table 4]); the exponents are recalled, not read from the yield tables"
+            ]
+          ],
+          "id": "SNC1",
+          "key": "6.177:SNC1",
+          "kind": "D",
+          "slug": "6-177-snc1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "remnant_yields.json yield_exponent alpha_heavy 2.5, alpha_light 1.5, iron_group 0 (yield_group): a progenitor of mass M makes an element in proportion to M^p, the table's mean over 10 to 50 solar masses scaled so the IMF-weighted mean is the table's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "remnant_yields.json wind_coefficient 0.02, wind_reference_mass_sol 10 and wind_exponent 1.5: an unstripped progenitor loses 2 percent of its mass at 10 solar masses and more above, capped at half"
+            ],
+            [
+              "The range it moves in",
+              "coefficient 0.01 to 0.05; exponent 1 to 2.5"
+            ],
+            [
+              "Where it holds",
+              "red supergiant progenitors of 8 to 30 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "an evolution track whose mass at core collapse differs from this by more than 5 percent of the initial mass"
+            ],
+            [
+              "What replaces it",
+              "the final masses of the stellar evolution tracks the repo reads (stellar_evolution), when they carry the wind"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the hydrogen envelope is kept to explosion, the wind takes a few percent"
+            ]
+          ],
+          "id": "SNC2",
+          "key": "6.177:SNC2",
+          "kind": "P",
+          "slug": "6-177-snc2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "remnant_yields.json wind_coefficient 0.02, wind_reference_mass_sol 10 and wind_exponent 1.5: an unstripped progenitor loses 2 percent of its mass at 10 solar masses and more above, capped at half"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "remnant_yields.json helium_core_coefficient 0.08, helium_core_exponent 1.4 and helium_core_cap_sol 15: the mass at explosion of a progenitor that lost its hydrogen envelope, and the helium core inside an unstripped one"
+            ],
+            [
+              "The range it moves in",
+              "coefficient 0.06 to 0.10; exponent 1.2 to 1.6; cap 10 to 20"
+            ],
+            [
+              "Where it holds",
+              "stripped progenitors of 8 to 80 solar masses and the helium core of the rest; a Wolf-Rayet progenitor is held at the cap"
+            ],
+            [
+              "What would show it wrong",
+              "a stripped progenitor whose final mass differs from this by more than 30 percent at 16 and at 40 solar masses"
+            ],
+            [
+              "What replaces it",
+              "the final masses of a binary or Wolf-Rayet stellar evolution grid"
+            ],
+            [
+              "Evidence",
+              "tuned to a published statistic: a 16 solar mass progenitor gives 3.9 solar masses, so a 1.5 solar mass neutron star leaves 2.4 of ejecta against the 2.2 of Cassiopeia A [R5097], a Type IIb"
+            ]
+          ],
+          "id": "SNC3",
+          "key": "6.177:SNC3",
+          "kind": "P",
+          "slug": "6-177-snc3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "remnant_yields.json helium_core_coefficient 0.08, helium_core_exponent 1.4 and helium_core_cap_sol 15: the mass at explosion of a progenitor that lost its hydrogen envelope, and the helium core inside an unstripped one"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "remnant_yields.json stripped_above_mass_sol 30 and binary_stripped_share 0.33: every progenitor above 30 solar masses explodes without its hydrogen, and a third of the lighter ones do (a companion took the envelope)"
+            ],
+            [
+              "The range it moves in",
+              "above 25 to 35; share 0.2 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "core-collapse remnants of any age; the share is for the whole population of progenitors, not one galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "an observed Type Ib and Ic and IIb share of core-collapse supernovae outside 0.2 to 0.4 of the lighter stars"
+            ],
+            [
+              "What replaces it",
+              "a binary population synthesis of the explosion types, and the mass-loss grids of the stripped stars"
+            ],
+            [
+              "Evidence",
+              "the 30 solar masses is the edge the research note reports from [R4251]; the third is recalled (the share of massive stars that give up their envelope to a companion), not read"
+            ]
+          ],
+          "id": "SNC4",
+          "key": "6.177:SNC4",
+          "kind": "P",
+          "slug": "6-177-snc4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "remnant_yields.json stripped_above_mass_sol 30 and binary_stripped_share 0.33: every progenitor above 30 solar masses explodes without its hydrogen, and a third of the lighter ones do (a companion took the envelope)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "remnant_yields.json type_ia_progenitor_range_sol (3, 8): the main-sequence mass of the star that became the white dwarf of a Type Ia remnant, drawn from the IMF"
+            ],
+            [
+              "The range it moves in",
+              "2 to 3 at the bottom; 7 to 9 at the top"
+            ],
+            [
+              "Where it holds",
+              "Type Ia remnants of the single-degenerate and double-degenerate channels alike"
+            ],
+            [
+              "What would show it wrong",
+              "a binary-evolution study of the white dwarf's mass at ignition whose progenitor range lies outside 2 to 9"
+            ],
+            [
+              "What replaces it",
+              "the delay-time and progenitor models of the Type Ia rate the generator will use"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: the primary of the pair that makes a 1.0 to 1.3 solar mass carbon-oxygen white dwarf; the stored mass is for a later central object to share, not for the ejecta (which is the Chandrasekhar-mass explosion W7)"
+            ]
+          ],
+          "id": "SNC5",
+          "key": "6.177:SNC5",
+          "kind": "D",
+          "slug": "6-177-snc5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "remnant_yields.json type_ia_progenitor_range_sol (3, 8): the main-sequence mass of the star that became the white dwarf of a Type Ia remnant, drawn from the IMF"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "remnant_yields.json processed_share_cap 0.9 and least_ejecta_share 0.02: the elements the explosion made are at most 90 percent of the burned inner shells, and a core never takes more than 98 percent of the star's final mass"
+            ],
+            [
+              "The range it moves in",
+              "cap 0.5 to 1; share 0.01 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "a core-collapse remnant whose progenitor is light and stripped, where the scaled yields could exceed the shells"
+            ],
+            [
+              "What would show it wrong",
+              "none: a bound that keeps the sums positive"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "needed output: a mass balance that cannot go negative"
+            ]
+          ],
+          "id": "SNC6",
+          "key": "6.177:SNC6",
+          "kind": "D",
+          "slug": "6-177-snc6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "remnant_yields.json processed_share_cap 0.9 and least_ejecta_share 0.02: the elements the explosion made are at most 90 percent of the burned inner shells, and a core never takes more than 98 percent of the star's final mass"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "remnant_composition.ambient_masses default: the swept-up gas is the birth composition at the progenitor's [Fe/H] (stellar_abundances.composition) unless the caller gives the gas"
+            ],
+            [
+              "The range it moves in",
+              "gas [Fe/H] within 0.3 dex of the progenitor's"
+            ],
+            [
+              "Where it holds",
+              "a remnant in gas of the star's own metallicity"
+            ],
+            [
+              "What would show it wrong",
+              "the gas metallicity of GEN.1269 at the place differs from the progenitor's birth gas by more than 0.3 dex"
+            ],
+            [
+              "What replaces it",
+              "GEN.1269's shared nebula model (gas metallicity at the place, the class's phases), passed as ambient"
+            ],
+            [
+              "Evidence",
+              "needed output: until the shared nebula model lands, the swept gas of a remnant is the gas of its star's birth"
+            ]
+          ],
+          "id": "SNC7",
+          "key": "6.177:SNC7",
+          "kind": "P",
+          "slug": "6-177-snc7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "remnant_composition.ambient_masses default: the swept-up gas is the birth composition at the progenitor's [Fe/H] (stellar_abundances.composition) unless the caller gives the gas"
+        }
+      ],
+      "slug": "6-177-stand-ins-of-the-composition-of-a-supernova-remnant",
+      "title": "Stand-ins of the composition of a supernova remnant"
+    },
+    {
       "key": "6.176",
       "number": "6.176",
       "rows": [
