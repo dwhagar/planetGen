@@ -173,15 +173,9 @@ def spells(latitudes_deg, tilt_deg, alpha, orbital_hours, solar_day_hours, sampl
     """
     The longest unbroken day and night of the year and the mean day and night at each of the latitudes, a `Spells` (GEN.1260).
 
-<<<<<<< HEAD
     One search for every body, from its own year, solar day, tilt and star: the star is stepped through the longer of the year and the solar day (the geometry is
     `surface_cycle.cosine_zenith`, GEN.1262: the declination from the tilt and the point of the year, the hour angle from the solar day), and the runs of steps with the upper limb of the star (`alpha` its angular radius, radians) above the horizon, and
     below it, are read off; the year starts at an equinox, so the longest stretches (centered on a solstice) are not cut by its ends. The step is a `samples_per_day`-th of a solar
-=======
-    One search for every body, from its own year, solar day, tilt and star: the star is stepped through the longer of the year and the solar day, its declination from the tilt
-    and the point of the year, its hour angle from the solar day, and the runs of steps with the upper limb of the star (`alpha` its angular radius, radians) above the horizon, and
-    below it, are read off; the year starts at an equinox, so the longest stretches (centered on a solstice) are not cut by its ends. The step is a `samples_per_day`-th of a solar
->>>>>>> claude/gen1260-spells-t10
     day when that fits in `max_steps` (at most a 360th of the year when the day is the longer), and up to `phases` starting angles of the turn share what is left of the steps: a
     year of a few solar days slips its turn against the year, and the longest stretch the body shows over the years is the best phase, the mean the average of them.
     A year of very many solar days outruns the steps. When the steps are fewer than `_MIN_SAMPLES_PER_DAY` to a solar day the search no longer follows the turn: the declination
