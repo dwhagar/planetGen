@@ -187,7 +187,7 @@ def _expected_links(config, route):
 @pytest.mark.parametrize("west_wedge, east_wedge", [(0, None), (0, 20), (2000, None), (2000, 2020)])
 def test_the_graph_holds_the_hops_and_the_links_the_rule_gives(mysql_config, monkeypatch, west_wedge, east_wedge):
     """`None`: both ends in one sector (the route is turned back into the sector's frame, NAV.12); else two sectors apart.
-    Wedge 2000 lies at a longitude where the sector's axes are turned well away from the galaxy's (NAV.73)."""
+    The wedge numbered 2000 lies at a longitude where the sector's axes are turned well away from the galaxy's (NAV.73)."""
     monkeypatch.setattr(query, "NAV_GRAPH_NEIGHBOURS", 99)
     west_ids = _save_grid_sector(mysql_config, "West", west_wedge, _cloud_local(1))
     if east_wedge is None:
