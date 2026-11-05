@@ -1,4 +1,4 @@
-# Version 8.4: New worlds
+# Version 8.4: New worlds and the first settlements
 
 Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 [docs/TODO.md](../../TODO.md) is the master file: it holds each item's full text, and its "Plan: versions" section indexes every version.
