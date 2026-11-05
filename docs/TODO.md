@@ -14184,6 +14184,59 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lock-free.
   Prerequisites: none. Related: GEN.1111, GEN.1115.
 
+- [ ] **GEN.1290 Gas and star metallicity depend on the galaxy's stellar mass (the mass-metallicity relation), so small galaxies are metal-poor and dustier-poor**
+  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
+  recommendations, option 1 on all five questions
+  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
+  galaxy's own gas, nearly clear small galaxies are accepted,
+  metallicity by galaxy mass, the gradient per scale length, and a
+  smooth disk first with the central molecular zone as a later item.
+  Today every galaxy's gas is solar at its reference radius. Real dwarfs
+  are 0.3 to 0.4 dex poorer in oxygen. Do, research first: find the
+  mass-metallicity relation from papers that can be read (second-hand
+  sources are accepted; register them), pick the law and its scatter,
+  and register the stand-ins in GEN.725 with tier and tweak level; then
+  make the reference-radius gas metallicity, and with it the star and
+  nebula metallicity of the galaxy, follow the galaxy's stellar mass,
+  with a seeded scatter. The dust model (item before) reads it when it
+  lands but does not wait for it. This changes generated stars and
+  nebulae, so it is a lock item (epoch); a galaxy of Milky Way mass
+  keeps today's values. Version 8.2. Owner: none yet. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: GEN.1269, GEN.469, GEN.725.
+
+- [ ] **GEN.1291 The gas metallicity gradient scales with the galaxy: 0.088 dex per disk scale length in place of 0.034 dex per kpc (row NBC1)**
+  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
+  recommendations, option 1 on all five questions
+  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
+  galaxy's own gas, nearly clear small galaxies are accepted,
+  metallicity by galaxy mass, the gradient per scale length, and a
+  smooth disk first with the central molecular zone as a later item.
+  Today the gradient is 0.034 dex per kpc in every galaxy, so a small
+  galaxy has almost no gradient. Do: express it per scale length (0.088
+  dex per scale length, the Milky Way's value in its 2.6 kpc units),
+  register the change of NBC1 in GEN.725, and check the nebula and star
+  metallicities of a Milky Way sized galaxy do not move. This changes
+  the metallicity of small galaxies, so it is a lock item (epoch).
+  Version 8.2. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1269, GEN.725.
+
+- [ ] **GEN.1292 The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later)**
+  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
+  recommendations, option 1 on all five questions
+  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
+  galaxy's own gas, nearly clear small galaxies are accepted,
+  metallicity by galaxy mass, the gradient per scale length, and a
+  smooth disk first with the central molecular zone as a later item. The
+  first dust model is a smooth disk with a 40 pc floor, so the
+  Sun-to-centre line (39 mag) is in range but depends on the floor. Do
+  (later, after the potential replaces the floor): add the central
+  molecular zone, the gas ring of galaxy.core_gas (GEN.282), to the dust
+  model so the centre's extinction is a feature and not a floor, and
+  check the Galactic Center column against 31 to 59 mag. Lock-free.
+  Version: later. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: VIEW.46. Related: GEN.282, GEN.115.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19580,6 +19633,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
 - [ ] **VIEW.8 A dust model for the sky: the galactic extinction law and `nebulae.extinction_av`**
   The galactic law of sky-view.md 2.5 plus the use of
   `nebulae.extinction_av`.
+  Boss decision (5:46 PM EST on 2026-11-05): the nebula side takes the
+  same law as the disk (Boss approved the realistic-dust model): A_V =
+  N_H / 2.21e21 x dust-to-gas(Z) / dust-to-gas(solar) x the class
+  survival, from the column and dust that nebula_composition.makeup
+  already stores, one law for the disk and the clouds; it reads the dust
+  model VIEW.43 and waits on it.
   Prerequisite: VIEW.1.
   Design: [docs/design/orbits/sky-view.md](design/orbits/sky-view.md)
 
@@ -19949,6 +20008,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   calibration to a disc-dominated galaxy, the sample at about three
   scale lengths, with a high bright-star floor, and set the band again.
   Core 3 does this on branch claude/view30-sky-calibration.
+  Boss decision (5:46 PM EST on 2026-11-05): the dust model changes
+  (Boss approved gas-built dust, VIEW.43 to VIEW.45): the baseline is
+  re-measured in VIEW.45, and the Core 3 finding stands that the tier
+  reach was sized for the old fixed law.
   Prerequisites: VIEW.25.
 
 - [ ] **VIEW.39 System sky S21 (optional): aberration of the observer's motion, default off**
@@ -20013,6 +20076,81 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   console look as the second feature). A hand version bump needs Boss's
   word. Version 8.7. Filed by the TODO thread.
   Prerequisites: DOC.58, UX.43, DOC.81.
+
+- [ ] **VIEW.43 Dust model built from the galaxy's own gas: planetgen/physics/dust_model.py with the column and layer-thickness tables, and the stand-ins DU1 to DU5**
+  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
+  recommendations, option 1 on all five questions
+  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
+  galaxy's own gas, nearly clear small galaxies are accepted,
+  metallicity by galaxy mass, the gradient per scale length, and a
+  smooth disk first with the central molecular zone as a later item. Do:
+  physics/dust_model.py builds two tables per galaxy, the vertical dust
+  column and the layer thickness against radius, from the ring gas of
+  galaxy.disk_history (GEN.469), the dust-to-gas law and gas metallicity
+  of physics.nebula_composition (GEN.1269, [R5102], rows NBC1 and NBC4)
+  and the equilibrium thickness h = sigma_g^2 / (pi G Sigma_total) with
+  a floor of 40 pc; the extinction per parsec is column / (2 h) x
+  sech^2(z / h), with the visible share f_vis = 0.5 and N_H per A_V of
+  2.21e21 (a supernova-remnant measurement, arXiv 0903.2057, read and verified; this item adds it to the reference list and writes its [R0123]). dust_av_per_pc gets a table
+  form beside the fixed one; av_per_kpc_at_sun = 0 still means
+  dust-free. Register DU1 to DU5 in GEN.725 with tier and tweak level as
+  the report lists them (a new section number is taken at merge) and
+  replace SKP1 and SKP4. Tests: the Milky Way sized case gives about 1
+  mag per kpc in the plane at the Sun and 0.24 mag through the layer,
+  the small test galaxy about 0.14. Lock-free, no migration, no epoch.
+  Version 8.2. Owner: none yet (Core 3 has the context). Filed by the
+  TODO thread.
+  Prerequisites: none. Related: VIEW.8, VIEW.30, GEN.469, GEN.1269,
+  GEN.725.
+
+- [ ] **VIEW.44 The sky reads the gas-built dust model: galaxy/sky.py, galaxy/sky_band.py and generation/sky_tiers.py take the two tables through the dust dict, and the table hash is in their cache keys**
+  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
+  recommendations, option 1 on all five questions
+  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
+  galaxy's own gas, nearly clear small galaxies are accepted,
+  metallicity by galaxy mass, the gradient per scale length, and a
+  smooth disk first with the central molecular zone as a later item. Do:
+  wire VIEW dust model (the item before this one) into the three callers
+  through the dust= dict; the table hash goes into the cache keys of
+  sky_band and the tier ledger so a changed law rebuilds only what it
+  changes; the default for a galaxy becomes the table. Done: a sky of
+  the small test galaxy is nearly clear (about 0.14 mag per kpc) and a
+  Milky Way sized galaxy keeps about 1. Lock-free, no migration, no
+  epoch (derived sky data only). Version 8.2. Owner: none yet. Filed by
+  the TODO thread.
+  Prerequisites: VIEW.43. Related: VIEW.25, VIEW.8, VIEW.30.
+
+- [ ] **VIEW.45 Re-baseline the HYG calibration test (VIEW.30) for the new dust, in dust-free and default-dust modes, in the small and the Milky Way sized galaxy**
+  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
+  recommendations, option 1 on all five questions
+  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
+  galaxy's own gas, nearly clear small galaxies are accepted,
+  metallicity by galaxy mass, the gradient per scale length, and a
+  smooth disk first with the central molecular zone as a later item. Do:
+  VIEW.30's calibration test compares a dust-free count with dust-free
+  tiers (Core 3's change) and, new, the default-dust count with the
+  gas-built model, in both the small galaxy and a Milky Way sized one;
+  state the bands. The small galaxy's 586 stars beyond 217 pc against
+  2,184 dust-free was a scaling bug of the old fixed law, so the new
+  default should land close to the dust-free count. Done: the bands and
+  the test. Lock-free. Version 8.2. Owner: Core 3. Filed by the TODO
+  thread.
+  Prerequisites: VIEW.44, VIEW.30. Related: VIEW.30.
+
+- [ ] **VIEW.46 The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes**
+  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
+  recommendations, option 1 on all five questions
+  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
+  galaxy's own gas, nearly clear small galaxies are accepted,
+  metallicity by galaxy mass, the gradient per scale length, and a
+  smooth disk first with the central molecular zone as a later item. Do:
+  replace the disk-only gravity in the layer thickness with
+  galaxy.potential.vertical_force (the bulge and the dark halo
+  included), drop the 40 pc floor and its stand-in DU4 once the centre's
+  extinction is checked on a lane machine with datasets. Lock-free, no
+  migration, no epoch. Version 8.3. Owner: none yet. Filed by the TODO
+  thread.
+  Prerequisites: VIEW.44, GEN.115. Related: GEN.115, VIEW.8.
 
 ## POP: Population and politics
 
