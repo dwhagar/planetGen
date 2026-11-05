@@ -1,5 +1,5 @@
-"""VIEW.24: the sky tier table (`planetgen/generation/sky_tiers.py`): the floor against distance, the reach of a band through the dust, the cut by a budget
-of cell visits, and the split between the luminosity and the mass ledger."""
+"""VIEW.24, VIEW.41: the sky tier table (`planetgen/generation/sky_tiers.py`): the floor against distance, the reach of a band through the dust, the cut by a
+budget of block visits, the rings under one solar mass, and the split between the luminosity and the mass ledger."""
 
 import math
 
@@ -8,6 +8,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import spherical
+from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import sky_tiers as tiers_module
 from planetgen.generation.sky_tiers import build, cells_in_sphere, extinction_curve, floor_luminosity_sol, floor_table, reach_pc
 from planetgen.physics import photometry
@@ -93,37 +94,113 @@ def test_the_luminosity_bands_start_at_the_brightest_white_dwarf_and_end_at_the_
     assert bands[-1][1] < tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL <= bands[-1][2]
 
 
-def test_the_rings_are_the_default_mass_edges_and_every_ring_reaches_as_far_as_a_star_of_50_lsun(clear):
+@pytest.fixture
+def few_samples(monkeypatch):
+    """A ring's visible share is found from a sample; a small one keeps the tests quick."""
+    monkeypatch.setattr(tiers_module, "RING_SAMPLES", 40)
+
+
+def test_the_rings_of_one_solar_mass_and_up_are_the_default_mass_edges_and_reach_as_far_as_a_star_of_50_lsun(clear, few_samples):
     table = build(SUN, 7.5, EDGE, curve=clear)
+    heavy = [ring for ring in table.rings if ring.key >= 1.0]
+    assert [ring.key for ring in heavy] == [1.0, 2.0, 5.0, 8.0]
+    assert heavy[-1].high == tuning.PHENOMENON_MIN_MASS_SOLAR
+    assert all(ring.reach_pc == pytest.approx(reach_pc(50.0, 7.5, clear)) for ring in heavy)
+    assert all(ring.ledger == "mass" and ring.visits == ring.cells for ring in table.rings)
+
+
+def test_the_rings_under_one_solar_mass_are_the_near_masses_and_reach_less_far(clear, few_samples):
+    table = build(SUN, 7.5, EDGE, curve=clear)
+    near = [ring for ring in table.rings if ring.key < 1.0]
+    assert near and [ring.key for ring in near] == sorted(ring.key for ring in near)
+    assert all(ring.key in tiers_module.NEAR_RING_MASSES_SOL for ring in near)
+    assert near[-1].high == 1.0
+    ceiling = reach_pc(50.0, 7.5, clear)
+    assert all(0.0 < ring.reach_pc < ceiling for ring in near)
+    assert near[-1].reach_pc < 0.5 * ceiling                        # tens of parsecs, not the 250 of a ring of 1 solar mass and up
+    assert [ring.reach_pc for ring in near] == sorted(ring.reach_pc for ring in near)      # the heavier the ring, the farther it shows
+
+
+def test_a_ring_that_shows_nowhere_is_left_out_and_without_near_masses_the_rings_are_the_scatters(clear, few_samples):
+    table = build(SUN, 7.5, EDGE, curve=clear, edges=tiers_module.ring_edges(()))
     assert [ring.key for ring in table.rings] == [1.0, 2.0, 5.0, 8.0]
-    assert table.rings[-1].high == tuning.PHENOMENON_MIN_MASS_SOLAR
-    assert all(ring.reach_pc == pytest.approx(reach_pc(50.0, 7.5, clear)) for ring in table.rings)
-    assert all(ring.ledger == "mass" for ring in table.rings)
+    dim = build(SUN, 1.0, EDGE, curve=clear)
+    assert all(ring.key >= 1.0 or ring.reach_pc < 30.0 for ring in dim.rings)           # a 1.0 sky shows almost no dwarf
+
+
+def test_the_share_of_a_ring_that_shows_falls_with_the_floor(few_samples):
+    luminosities = tiers_module.ring_luminosities(0.5, 0.7, 40)
+    shares = [tiers_module.visible_share(luminosities, floor) for floor in (1e-4, 1e-2, 1e-1, 1.0, 50.0)]
+    assert shares[0] == 1.0 and shares == sorted(shares, reverse=True) and shares[-1] < 0.5
+    assert tiers_module.ring_luminosities(0.5, 0.7, 40) is luminosities                  # kept: the same ring gives the same sample
+
+
+def test_the_weights_of_the_populations_change_the_share_and_must_name_one(few_samples):
+    luminosities = tiers_module.ring_luminosities(0.7, 0.85, 40)
+    halo = tiers_module.visible_share(luminosities, 2.0, {"halo": 1.0})
+    old = tiers_module.visible_share(luminosities, 2.0, {"old": 1.0})
+    assert halo > old                                                                   # the halo's old giants are bright, the disk's are not yet
+    both = tiers_module.visible_share(luminosities, 2.0, {"halo": 1.0, "old": 1.0})
+    assert both == pytest.approx((halo + old) / 2.0)
+    with pytest.raises(ValueError):
+        tiers_module.visible_share(luminosities, 2.0, {"nowhere": 1.0})
+
+
+def test_a_stricter_yield_shortens_a_ring(clear, few_samples):
+    loose = tiers_module.ring_reach_pc(0.7, 0.85, 7.5, clear, min_yield=0.01)
+    strict = tiers_module.ring_reach_pc(0.7, 0.85, 7.5, clear, min_yield=0.5)
+    assert 0.0 <= strict < loose
+
+
+def test_the_rows_of_a_sphere_are_its_cross_section_in_edges():
+    for radius in (60.0, 250.0):
+        rows = sum(1 for _ in spherical.sphere_rows((4000.0, 0.0, 0.0), radius, EDGE))
+        assert rows == pytest.approx(math.pi * (radius / EDGE) ** 2, rel=0.02)
+
+
+def test_the_visits_of_a_sphere_are_its_rows_and_its_blocks():
+    radius = 250.0
+    rows = sum(1 for _ in spherical.sphere_rows((4000.0, 0.0, 0.0), radius, EDGE))
+    blocks = cells_in_sphere(radius, EDGE) / brightStars.BLOCK_WEDGES
+    assert tiers_module.block_visits(radius, EDGE) == pytest.approx(rows + blocks, rel=0.02)
+    assert tiers_module.block_visits(3000.0, EDGE) > 100 * tiers_module.block_visits(250.0, EDGE)       # the far spheres cost the most
+
+
+def _lum_visits(table):
+    return sum(tier.visits for tier in table.luminosity)
 
 
 def test_the_bands_taken_fit_the_budget_and_the_rest_are_dropped_from_the_bright_end(clear):
-    table = build(SUN, 7.5, EDGE, curve=clear, cell_budget=3.0e8)
-    assert sum(tier.cells for tier in table.luminosity) <= 3.0e8
+    total = _lum_visits(build(SUN, 7.5, EDGE, curve=clear, visit_budget=1.0e15))
+    budget = total / 3.0
+    table = build(SUN, 7.5, EDGE, curve=clear, visit_budget=budget)
+    assert _lum_visits(table) <= budget
     assert table.dropped and table.luminosity
     assert [tier.key for tier in table.luminosity + table.dropped] == [k for k, _l, _h in tiers_module.luminosity_bands()]
     assert table.luminosity[-1].high <= table.dropped[0].low * 1.0001            # bands run on from each other
-    assert table.dropped[0].cells + sum(tier.cells for tier in table.luminosity) > 3.0e8
+    assert table.dropped[0].visits + _lum_visits(table) > budget
 
 
 def test_a_bigger_budget_takes_more_bands_and_a_huge_one_takes_them_all(clear):
-    small = build(SUN, 7.5, EDGE, curve=clear, cell_budget=1.0e7)
-    large = build(SUN, 7.5, EDGE, curve=clear, cell_budget=1.0e9)
-    everything = build(SUN, 7.5, EDGE, curve=clear, cell_budget=1.0e12)
+    everything = build(SUN, 7.5, EDGE, curve=clear, visit_budget=1.0e15)
+    total = _lum_visits(everything)
+    small = build(SUN, 7.5, EDGE, curve=clear, visit_budget=total / 100.0)
+    large = build(SUN, 7.5, EDGE, curve=clear, visit_budget=total / 3.0)
     assert len(small.luminosity) < len(large.luminosity) < len(everything.luminosity)
     assert not everything.dropped
-    assert tiers_module.cell_visits(everything) > 5e9                                # VIEW.19: 8e9 uncut at 7.5 with no dust, a thinner galaxy aside
+    assert 1e6 < total < 1e9                  # the whole luminosity side of a 7.5 sky is millions of block visits, VIEW.19 had 8e9 cell visits
+
+
+def test_the_default_budget_takes_a_dust_free_7_5_sky_whole(clear):
+    table = build(SUN, 7.5, EDGE, curve=clear)
+    assert not table.dropped and len(table.luminosity) == len(tiers_module.luminosity_bands())
 
 
 def test_a_6_5_sky_is_cheaper_than_a_7_5_sky_and_dust_is_cheaper_still(clear, dusty):
-    uncut = 1.0e13
-    clear_75 = tiers_module.cell_visits(build(SUN, 7.5, EDGE, curve=clear, cell_budget=uncut))
-    clear_65 = tiers_module.cell_visits(build(SUN, 6.5, EDGE, curve=clear, cell_budget=uncut))
-    dusty_75 = tiers_module.cell_visits(build(SUN, 7.5, EDGE, curve=dusty, cell_budget=uncut))
+    uncut = 1.0e15
+    clear_75 = _lum_visits(build(SUN, 7.5, EDGE, curve=clear, visit_budget=uncut))
+    clear_65 = _lum_visits(build(SUN, 6.5, EDGE, curve=clear, visit_budget=uncut))
+    dusty_75 = _lum_visits(build(SUN, 7.5, EDGE, curve=dusty, visit_budget=uncut))
     assert dusty_75 < clear_75 and clear_65 < clear_75
 
 
@@ -138,7 +215,7 @@ def test_the_table_changes_ledger_where_the_floor_passes_50_lsun(clear):
 
 
 def test_a_distance_inside_the_cut_is_built_and_one_past_it_is_not(clear):
-    table = build(SUN, 7.5, EDGE, curve=clear, cell_budget=3.0e8)
+    table = build(SUN, 7.5, EDGE, curve=clear, visit_budget=_lum_visits(build(SUN, 7.5, EDGE, curve=clear, visit_budget=1.0e15)) / 3.0)
     near, far = floor_table(table, clear, (300.0, 3000.0))
     assert near["built"] and not far["built"]
     assert far["band"] is not None and far["band"] > near["band"]
