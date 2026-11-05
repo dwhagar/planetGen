@@ -75,7 +75,35 @@ if (root && diagram && diagramButton && button3d) {
     reset: document.getElementById("sysview3d-reset"),
     recenter: document.getElementById("sysview3d-recenter"),
     list: document.getElementById("sysview3d-list"),
+    sky: document.getElementById("sysview3d-sky"),
+    skyNote: document.getElementById("sysview3d-sky-note"),
   };
+  let skyModule = null;
+  let sky = null;
+
+  // VIEW.35: the sky this system sees is the 3D view's background; the switch under the view turns it off, and the note says what is drawn.
+  async function startSky(scene) {
+    if (!root.dataset.skyUrl) return;
+    skyModule = await import(`./systemsky.js${VERSION_QUERY}`);
+    const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
+    sky = skyModule.createSystemSky(THREE, {
+      skyUrl: root.dataset.skyUrl, view: view, sceneEpochUnix: scene.epoch_unix, phone: skyModule.isPhone(window),
+      pixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+      storage: (() => { try { return window.localStorage; } catch (err) { return null; } })(),
+      onState: (state, note) => {
+        els.skyNote.textContent = note;
+        root.dataset.skyState = state.kind;
+        els.sky.checked = state.kind !== "off";
+      },
+    });
+    els.sky.disabled = false;
+    if (sky.enabled()) await sky.reload();
+    else {
+      els.skyNote.textContent = skyModule.noteFor({ kind: "off" });
+      root.dataset.skyState = "off";
+    }
+    els.sky.checked = sky.enabled();
+  }
 
   function showRate() {
     els.play.textContent = clock.playing() ? "Pause" : "Play";
@@ -118,6 +146,7 @@ if (root && diagram && diagramButton && button3d) {
       fillList(view.list());
       showRate();
       root.dataset.ready = "true";
+      startSky(scene).catch(() => { els.skyNote.textContent = "The sky could not be loaded; the plain background is shown."; });
       return view;
     })();
     return loading;
@@ -174,6 +203,7 @@ if (root && diagram && diagramButton && button3d) {
   els.slower.addEventListener("click", () => { if (clock) { clock.slower(); showRate(); } });
   els.faster.addEventListener("click", () => { if (clock) { clock.faster(); showRate(); } });
   els.now.addEventListener("click", () => { if (clock) { clock.now(Date.now()); showRate(); } });
+  if (els.sky) els.sky.addEventListener("change", () => { if (sky) { if (els.sky.checked) sky.enable(); else sky.disable(); } });
   els.reset.addEventListener("click", () => { if (view) view.reset(); });
   els.recenter.addEventListener("click", () => { if (view) view.recenter(); });
   els.scale.addEventListener("change", () => {
