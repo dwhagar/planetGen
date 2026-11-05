@@ -159,21 +159,23 @@ def test_every_star_of_a_wide_pair_takes_the_system_velocity_so_a_loaded_pair_ma
     sector_center_ly = tuple(c * constants.PARSEC_M / constants.LIGHTYEAR_M
                              for c in spherical.sector_position_pc(*ADDRESS, EDGE_PC))
     checked = 0
+    systems = 0
     for _ in range(6000):
         cfg = SystemConfig()
         system = StarSystem(system_config=cfg)
         if getattr(system, "binary_type", None) != "wide":
             continue
-        position = (1.0, -0.5, 0.5)
-        velocity = place_system(system, sector_center_ly, position, EDGE_PC)
-        placed = [star.spatial.get_velocity_vector("galactic") for star in system.stars]
-        assert all(v == velocity for v in placed)
-        for star in system.stars:  # a loaded star has no speed of its own
-            star.galactic_orbital_speed_kms = None
-        system.star.galactic_orbital_speed_kms = None
-        place_system(system, sector_center_ly, position, EDGE_PC, velocity_ms=velocity)
-        assert [star.spatial.get_velocity_vector("galactic") for star in system.stars] == placed
-        checked += 1
-        if checked == 30:
+        systems += 1
+        for position in ((1.0, -0.5, 0.5), (-2.0, 1.5, -1.0), (0.25, 2.0, 1.75)):   # TEST.417: a wide pair costs seconds to build, a placement nothing
+            velocity = place_system(system, sector_center_ly, position, EDGE_PC)
+            placed = [star.spatial.get_velocity_vector("galactic") for star in system.stars]
+            assert all(v == velocity for v in placed)
+            for star in system.stars:  # a loaded star has no speed of its own
+                star.galactic_orbital_speed_kms = None
+            system.star.galactic_orbital_speed_kms = None
+            place_system(system, sector_center_ly, position, EDGE_PC, velocity_ms=velocity)
+            assert [star.spatial.get_velocity_vector("galactic") for star in system.stars] == placed
+            checked += 1
+        if systems == 10:
             return
-    pytest.fail(f"only {checked} wide pairs in 6000 systems")
+    pytest.fail(f"only {systems} wide pairs in 6000 systems")
