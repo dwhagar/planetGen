@@ -70,7 +70,6 @@ Showing courses on the maps and bending them around keep-out spheres.
 |---|---|---|---|
 | UX.269 | Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only | UX.268 |  |
 | UX.274 | Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps |  |  |
-| MAP.393 | Chart View fixes: steady coordinate labels, fixed isometric tilt, wedge focus buttons, one Chart View menu group, Charted regions on by default |  |  |
 
 ### Edit everything foundations: aspects and the recipe schema (spread back from 8.6)
 

@@ -2204,20 +2204,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the test is in.
   Prerequisites: none. Related: MAP.142, MAP.176, MAP.179, MAP.365.
 
-- [ ] **MAP.393 Chart View fixes: steady coordinate labels, fixed isometric tilt, wedge focus buttons, one Chart View menu group, Charted regions on by default**
-  Boss asked for these fixes to the Chart View (the old Plane view);
-  merged as PR 5208 at about 6:40 PM EST on 2026-11-05 (as the lane
-  reported) with no item number, filed after the fact. Done: the
-  coordinate labels no longer blink (pooled by star and placed in the
-  frame they are made); a fixed isometric tilt looking outward along the
-  wedge; Previous wedge and Next wedge buttons make the neighbouring 60
-  degree wedge the focus and fly the camera to it; the Chart View
-  controls sit in one Menu sub-group; the Charted regions point of
-  interest (Region symbol) is on by default and marks every region
-  holding generated sectors (before, only regions with inhabited worlds
-  got a mark). Version 8.1. Filed by the TODO thread.
-  Prerequisites: none.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
