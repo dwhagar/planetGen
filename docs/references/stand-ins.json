@@ -33685,6 +33685,128 @@
       "title": "Stand-ins of the two cuts of the body type"
     },
     {
+      "key": "6.180",
+      "number": "6.180",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ROCKY_IMPACT_MOON_CHANCE 1/12: the chance that a rocky planet holds a massive moon from a giant impact"
+            ],
+            [
+              "The range it moves in",
+              "1/45 to 1/4"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.5 Earth masses and over formed in a disc like the Sun's; the source's own cut is 0.5 Earth masses, applied here to every rocky planet"
+            ],
+            [
+              "What would show it wrong",
+              "a measured exomoon occurrence among rocky planets outside 1/45 to 1/4, or a planet-formation study with fragmentation and hit-and-run collisions that makes moons far less often"
+            ],
+            [
+              "What replaces it",
+              "a population of giant impacts from an N-body formation run, with the moon mass from the impact's angular momentum and energy"
+            ],
+            [
+              "Evidence",
+              "[R5112] abstract: \"more than 1 in 12 terrestrial planets hosting a massive moon, with a low-end estimate of 1 in 45 and a high-end estimate of 1 in 4\""
+            ]
+          ],
+          "id": "RM1",
+          "key": "6.180:RM1",
+          "kind": "P",
+          "slug": "6-180-rm1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.ROCKY_IMPACT_MOON_CHANCE 1/12: the chance that a rocky planet holds a massive moon from a giant impact"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ROCKY_MASSIVE_MOON_MASS_RATIO 0.006: the least moon-to-planet mass ratio of a massive moon, half the Moon's 0.0123 of the Earth's mass, so the source's cut (a satellite over half a lunar mass, around a planet over half an Earth mass) is carried to planets of other masses as a ratio"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.012"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.05 to 10 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a giant-impact study of planets of other masses whose least moon, as a ratio, differs by a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "the same impact model as RM1"
+            ],
+            [
+              "Evidence",
+              "[R5112] section 5 (the definition of a massive moon; read in a summary of the paper, not verbatim); the ratio is worked from it"
+            ]
+          ],
+          "id": "RM2",
+          "key": "6.180:RM2",
+          "kind": "P",
+          "slug": "6-180-rm2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.ROCKY_MASSIVE_MOON_MASS_RATIO 0.006: the least moon-to-planet mass ratio of a massive moon, half the Moon's 0.0123 of the Earth's mass, so the source's cut (a satellite over half a lunar mass, around a planet over half an Earth mass) is carried to planets of other masses as a ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ROCKY_IMPACT_MOON_CHANCE again after each moon: a rocky planet gets a further massive moon with the same chance, the planet's orbits and stable range limiting the count"
+            ],
+            [
+              "The range it moves in",
+              "same range as RM1"
+            ],
+            [
+              "Where it holds",
+              "rocky planets with room for two moons"
+            ],
+            [
+              "What would show it wrong",
+              "a count of two massive moons around rocky planets in a formation run far from the geometric law at 1/12"
+            ],
+            [
+              "What replaces it",
+              "the same impact model as RM1"
+            ],
+            [
+              "Evidence",
+              "[R5112] section 5: 88 moon-forming events among about 180 planets (read in a summary; the events are independent in the source's runs)"
+            ]
+          ],
+          "id": "RM3",
+          "key": "6.180:RM3",
+          "kind": "P",
+          "slug": "6-180-rm3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.ROCKY_IMPACT_MOON_CHANCE again after each moon: a rocky planet gets a further massive moon with the same chance, the planet's orbits and stable range limiting the count"
+        }
+      ],
+      "slug": "6-180-stand-ins-of-the-massive-moons-of-rocky-planets",
+      "title": "Stand-ins of the massive moons of rocky planets"
+    },
+    {
       "key": "6.177",
       "number": "6.177",
       "rows": [

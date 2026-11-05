@@ -441,7 +441,7 @@ def test_a_generated_moon_has_an_induced_field_figure_and_a_giant_has_none():
                 assert moon.induced_moment_a_m2 is not None and moon.induced_moment_a_m2 >= 0.0
                 if moon.hydrosphere not in magnetism.INDUCTION_HYDROSPHERES and interior_heat.core_of(moon) is None:
                     assert moon.induced_moment_a_m2 == 0.0           # GEN.981: a moon with no ocean answers with its metal core, if it has one
-    assert moons > 5
+    assert moons > 2                    # GEN.962: a rocky planet's moon is rare (1 in 12), so the moons are mostly a giant's
 
 
 # --- GEN.982: the far-ultraviolet flux a star gives at a distance, relative to the quiet Sun at 1 AU ---------------------------------

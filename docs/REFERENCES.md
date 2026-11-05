@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**4995 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**4996 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -1306,6 +1306,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r1259"></a>**R1259** Elsasser, W. M. 1941a, Meteorology: Dynamic Meteorology . By Bernhard Haurwitz. 365 pp. New York: McGraw-Hill. 1941. $4.00., Science, 94, 541, doi:10.1126/science.94.2449.541-b. [paper](https://doi.org/10.1126/science.94.2449.541-b) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1126/science.94.2449.541-b/abstract)
 - <a id="paper-r1260"></a>**R1260** Elsasser, W. M. 1941b, Meteorology: Dynamic Meteorology . By Bernhard Haurwitz. 365 pp. New York: McGraw-Hill. 1941. $4.00., Science, 94, 541, doi:10.1126/science.94.2449.541.b. [paper](https://doi.org/10.1126/science.94.2449.541.b) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1126/science.94.2449.541.b/abstract)
 - <a id="paper-r1262"></a>**R1262** Elser, S., Meyer, M., & Moore, B. 2012, On the origin of elemental abundances in the terrestrial planets, Icarus, 221, 859, doi:10.1016/j.icarus.2012.09.016. [paper](https://doi.org/10.1016/j.icarus.2012.09.016) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2012.09.016/abstract)
+- <a id="paper-r5112"></a>**R5112** Elser, S., Moore, B., Stadel, J., & Morishima, R. 2011, How common are Earth–Moon planetary systems?, Icarus, 214, 357, doi:10.1016/j.icarus.2011.05.025. [paper](https://doi.org/10.1016/j.icarus.2011.05.025) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2011.05.025/abstract)
 - <a id="paper-r1263"></a>**R1263** Elson, E. C., de Blok, W. J. G., & Kraan-Korteweg, R. C. 2010, A search for non-circular flows in the extended H i disc of NGC 2915, MNRAS, 411, 200, doi:10.1111/j.1365-2966.2010.17672.x. [paper](https://doi.org/10.1111/j.1365-2966.2010.17672.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2010.17672.x/abstract)
 - <a id="paper-r1264"></a>**R1264** Elson, R. A. W. 1997, Red giants in the halo of the SO galaxy NGC 3115: a distance and a bimodal metallicity distribution, MNRAS, 286, 771, doi:10.1093/mnras/286.3.771. [paper](https://doi.org/10.1093/mnras/286.3.771) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/286.3.771/abstract)
 - <a id="paper-r1265"></a>**R1265** Eluszkiewicz, J. & Stevenson, D. J. 1990, Rheology of solid methane and nitrogen: applications to TRITON, GeoRL, 17, 1753, doi:10.1029/gl017i010p01753. [paper](https://doi.org/10.1029/gl017i010p01753) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/gl017i010p01753/abstract)

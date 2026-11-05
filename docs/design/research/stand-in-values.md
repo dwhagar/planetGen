@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1117 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1120 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 153 | 17 | 8 | 1 | 0 | 179 |
-| T2 | 121 | 47 | 1 | 1 | 0 | 170 |
+| T1 | 154 | 17 | 8 | 1 | 0 | 180 |
+| T2 | 121 | 48 | 1 | 1 | 0 | 171 |
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 56 | 5 | 1 | 18 | 10 | 90 |
 | T5 | 50 | 19 | 2 | 1 | 0 | 72 |
-| T6 | 106 | 83 | 21 | 57 | 0 | 267 |
+| T6 | 106 | 84 | 21 | 57 | 0 | 268 |
 | T7 | 33 | 14 | 7 | 12 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 25 | 14 | 5 | 50 | 29 | 123 |
-| All | 629 | 241 | 53 | 154 | 40 | 1117 |
+| All | 630 | 243 | 53 | 154 | 40 | 1120 |
 
 ## How the labels were given
 
@@ -1474,6 +1474,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
+
+## 6.180 Stand-ins of the massive moons of rocky planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RM1 | P | T1 | L0 | tuning.ROCKY_IMPACT_MOON_CHANCE 1/12: the chance that a rocky planet holds a massive moon from a giant impact | 1/45 to 1/4 | rocky planets of 0.5 Earth masses and over formed in a disc like the Sun's; the source's own cut is 0.5 Earth masses, applied here to every rocky planet | a measured exomoon occurrence among rocky planets outside 1/45 to 1/4, or a planet-formation study with fragmentation and hit-and-run collisions that makes moons far less often | a population of giant impacts from an N-body formation run, with the moon mass from the impact's angular momentum and energy | [R5112] abstract: "more than 1 in 12 terrestrial planets hosting a massive moon, with a low-end estimate of 1 in 45 and a high-end estimate of 1 in 4" | - | - |
+| RM2 | P | T2 | L1 | tuning.ROCKY_MASSIVE_MOON_MASS_RATIO 0.006: the least moon-to-planet mass ratio of a massive moon, half the Moon's 0.0123 of the Earth's mass, so the source's cut (a satellite over half a lunar mass, around a planet over half an Earth mass) is carried to planets of other masses as a ratio | 0.003 to 0.012 | rocky planets of 0.05 to 10 Earth masses | a giant-impact study of planets of other masses whose least moon, as a ratio, differs by a factor of 2 | the same impact model as RM1 | [R5112] section 5 (the definition of a massive moon; read in a summary of the paper, not verbatim); the ratio is worked from it | - | - |
+| RM3 | P | T6 | L1 | tuning.ROCKY_IMPACT_MOON_CHANCE again after each moon: a rocky planet gets a further massive moon with the same chance, the planet's orbits and stable range limiting the count | same range as RM1 | rocky planets with room for two moons | a count of two massive moons around rocky planets in a formation run far from the geometric law at 1/12 | the same impact model as RM1 | [R5112] section 5: 88 moon-forming events among about 180 planets (read in a summary; the events are independent in the source's runs) | - | - |
 
 ## 6.177 Stand-ins of the composition of a supernova remnant
 

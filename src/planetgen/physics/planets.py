@@ -1047,6 +1047,12 @@ def generate_moons(planet, moon_count=None):
     if limit_mass_kg <= tuning.MOON_MIN_MASS_KG:
         return
     parent_is_giant = planet.body_type == "g"
+    # GEN.962: a rocky planet (no row in the `satellite-share` table, not a giant) holds massive moons from giant impacts at a rate of its own; its other moons
+    # are the captured ones of `captured_moons`
+    impact_moons = not parent_is_giant and hosting_gate.satellite_share(hosting_host(planet)) is None
+    impact_floor_kg = tuning.ROCKY_MASSIVE_MOON_MASS_RATIO * planet.mass if impact_moons else None
+    # a massive moon is often denser or lighter than its parent can hold (the radius limit), so its draws are repeated further before the slot is given up
+    rejection_limit = MOON_REJECTION_LIMIT * 4 if impact_moons else MOON_REJECTION_LIMIT
 
     low_orbit, high_orbit = moon_orbit_bounds_km(planet)
     total_orbit_distance = low_orbit
@@ -1065,7 +1071,7 @@ def generate_moons(planet, moon_count=None):
         if moon_count is not None and len(planet.moons) >= moon_count:
             break
 
-        moon_mass = planet_kind.draw_moon_mass_kg(planet.mass, parent_is_giant, limit_mass_kg)
+        moon_mass = planet_kind.draw_moon_mass_kg(planet.mass, parent_is_giant, limit_mass_kg, impact_floor_kg)
         if moon_mass is None:
             break
 
@@ -1097,12 +1103,14 @@ def generate_moons(planet, moon_count=None):
         if new_moon.radius > limit_radius_km:    # denser or lighter than the parent could hold; its slot stays open
             draw.redrawn("moon.too_large")
             rejected += 1
-            if rejected >= MOON_REJECTION_LIMIT:
+            if rejected >= rejection_limit:
                 break
             continue
         rejected = 0
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
+        if impact_moons and moon_count is None and draw.random() >= tuning.ROCKY_IMPACT_MOON_CHANCE:    # GEN.962: a further impact, or no more
+            break
 
     if planet.moons:
         # This planet's own reflex-offset "wobble" (schema v20) from the

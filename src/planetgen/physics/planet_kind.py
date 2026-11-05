@@ -82,10 +82,11 @@ def moon_mass_ceiling_kg(parent_mass_kg, parent_is_giant):
     return ratio * parent_mass_kg
 
 
-def draw_moon_mass_kg(parent_mass_kg, parent_is_giant, limit_kg=None):
+def draw_moon_mass_kg(parent_mass_kg, parent_is_giant, limit_kg=None, floor_kg=None):
     """
     A moon's mass (GEN.646): `dN/dlogM ~ M^-MOON_MASS_FUNCTION_SLOPE` between `MOON_MIN_MASS_KG` and the parent's ceiling
-    (`moon_mass_ceiling_kg`, or `limit_kg` where lower). One draw, from the stream bound now.
+    (`moon_mass_ceiling_kg`, or `limit_kg` where lower). `floor_kg`, where given and above `MOON_MIN_MASS_KG`, replaces the floor (the least a giant
+    impact leaves, GEN.962). One draw, from the stream bound now.
 
     Returns:
         float: The mass in kg, or `None` when the ceiling is under `MOON_MIN_MASS_KG` (the parent holds no moon that light).
@@ -93,6 +94,7 @@ def draw_moon_mass_kg(parent_mass_kg, parent_is_giant, limit_kg=None):
     ceiling = moon_mass_ceiling_kg(parent_mass_kg, parent_is_giant)
     if limit_kg is not None:
         ceiling = min(ceiling, limit_kg)
-    if ceiling <= tuning.MOON_MIN_MASS_KG:
+    floor = tuning.MOON_MIN_MASS_KG if floor_kg is None else max(floor_kg, tuning.MOON_MIN_MASS_KG)
+    if ceiling <= floor:
         return None
-    return sample_power_law(tuning.MOON_MIN_MASS_KG, ceiling, tuning.MOON_MASS_FUNCTION_SLOPE)
+    return sample_power_law(floor, ceiling, tuning.MOON_MASS_FUNCTION_SLOPE)
