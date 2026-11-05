@@ -85,11 +85,11 @@ def test_two_neighbours_far_apart_leave_a_gap_belt_between_their_keep_outs():
 
 
 def test_a_gap_is_a_belt_only_where_enough_solids_were_left_in_it():
-    """GEN.1259: a planetless stretch holds the disc's solids between its neighbours' keep-outs; under `MIN_BELT_MASS_EARTH` of them it is no belt."""
+    """GEN.1259: a planetless stretch holds the disk's solids between its neighbours' keep-outs; under `MIN_BELT_MASS_EARTH` of them it is no belt."""
     chain = [rocky(0.4), rocky(3.0)]
     enough = [b for b in build(chain) if b.origin == "gap"]
     assert enough and enough[0].primordial_mass_earth >= bo.MIN_BELT_MASS_EARTH
-    # the same stretch of a disc with a millionth of the solids (a metal-free, almost empty disc) leaves too little to be a belt
+    # the same stretch of a disk with a millionth of the solids (a metal-free, almost empty disk) leaves too little to be a belt
     assert [b for b in build(chain, scatter=bo.MIN_BELT_MASS_EARTH / (10.0 * enough[0].primordial_mass_earth)) if b.origin == "gap"] == []
 
 
