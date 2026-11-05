@@ -18337,17 +18337,6 @@ clears each one.
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
-- [ ] **TEST.592 test_a_directed_moon_count_still_goes_through_the_gate is flaky on plain main: its sun_like star is built outside draw.bound, so it differs every run (bug)**
-  Core 2 (as the lane reported, 4:40 AM EST on 2026-11-05) found
-  tests/test_gen_hosting_wiring.py::test_a_directed_moon_count_still_goes_through_the_gate
-  passing and failing on plain main run to run, because its sun_like
-  star is built outside draw.bound and so differs every run. Do: build
-  the star inside draw.bound with a fixed seed (the draw.py wrapper is
-  the one random source), then run the test 20 times. Done: 20 passes in
-  a row on plain main. Lock-free, no output change. Version 8.1. Owner:
-  Aux 7. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.591.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

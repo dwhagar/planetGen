@@ -2499,3 +2499,4 @@ Baseline: PR #1817.
 | VIEW.38 | 8.2 | Bookmarks |
 | MAP.195 | 8.1 | Fly-through map |
 | NAV.54 | 8.5 | Steering clear of gravity wells |
+| TEST.592 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
