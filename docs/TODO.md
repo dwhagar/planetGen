@@ -17905,6 +17905,11 @@ clears each one.
   added lines for the sky and glow rows only). The nebula group stays
   with Tides 1. The train 10 gate shows kind factors red on main too, so
   check first whether train 10 changes it.
+  Groups merged (TODO) (9:58 AM EST on 2026-11-05): Nebula group merged
+  by Tides 1 (#5025). Non-nebula groups merged by Core 5 (#5086, #5087:
+  burn-down lines, Magellanic supernova claim, halo planet count). Left:
+  the life-class tests (test_system_interests), Bug 1's. This item
+  closes when those are green on main.
   Prerequisites: none. Related: TEST.579, GEN.367.
 
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
@@ -17969,21 +17974,6 @@ clears each one.
   parity test needs both; that line changes what generation stores, so
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
-
-- [ ] **TEST.596 test_generation_mix (giants densities, zone mix) and test_fuzz_planet_inputs are red on plain main after train 10 (bug)**
-  The Train Manager (as the lane reported, 7:11 AM EST on 2026-11-05)
-  listed these as red on plain main as well as in the train 10 gate:
-  tests/test_generation_mix.py (giant densities and the zone mix) and
-  tests/test_fuzz_planet_inputs.py. Do: first drop leftover planetgen_*
-  databases and run each alone on current main; find the commit that
-  turned each red (git bisect on the one test file) and say which item
-  owns it; fix the test with the reason or the code. Do not loosen a
-  check to get green. Done: both green on main, with the cause of each
-  noted. Lock-free unless the cause is a stored value, in which case
-  stop and tell TODO. Version 8.1. Owner: Tides 1 (the TEST.580
-  life-class tests stay with Bug 1; test_fuzz_system_generation is
-  TEST.571's). Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.580.
 
 - [ ] **TEST.598 test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug)**
   Aux 5 (as the lane reported, about 9:00 AM EST on 2026-11-05) found
