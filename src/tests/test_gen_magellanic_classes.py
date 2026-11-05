@@ -176,12 +176,16 @@ def test_the_classes_every_component_has_keep_their_draws(monkeypatch):
 
 
 def test_the_supernova_remnants_of_a_clouds_cell_follow_its_star_formation_as_its_component_pass_does():
-    """GEN.1198: a Cloud's cell is nearly all the Cloud's own stars, so its factor is the component pass's (GEN.1191), above 1 for the Large Cloud,
-    and a cell of a satellite that forms no stars holds none."""
+    """GEN.1198: a Cloud's cell is nearly all the Cloud's own stars, so its factor is the component pass's (GEN.1191), the Large Cloud's more than the
+    Small Cloud's and near 1, and a cell of a satellite that forms no stars holds none. (TEST.580: the Large Cloud's factor was 1.23 until GEN.1230
+    gave the thin disc an inside-out infall and raised the solar circle's young share from 0.011 to 0.016, against the Cloud's 0.014: the Cloud
+    forms stars about as fast per star as the solar circle, so the claim that it is above 1 was the old reference's, not a physical one.)"""
     for cloud in (LMC, SMC):
         cell = profile.profile_at(cloud.center_pc, WITH_SATELLITES, EDGE, E1).kind_factors["supernova-remnant"]
         assert cell == pytest.approx(component_pass.supernova_remnant_factor(cloud, WITH_SATELLITES), rel=1e-3)
-    assert profile.profile_at(LMC.center_pc, WITH_SATELLITES, EDGE, E1).kind_factors["supernova-remnant"] > 1.0
+    large = profile.profile_at(LMC.center_pc, WITH_SATELLITES, EDGE, E1).kind_factors["supernova-remnant"]
+    small = profile.profile_at(SMC.center_pc, WITH_SATELLITES, EDGE, E1).kind_factors["supernova-remnant"]
+    assert 0.5 < large < 2.0 and small < large
     assert profile.profile_at(FORNAX.center_pc, WITH_SATELLITES, EDGE, E1).kind_factors["supernova-remnant"] == 0.0
 
 
