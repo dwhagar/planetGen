@@ -283,12 +283,12 @@ CLASSES = {
     "N": ClassRow("dense", {}, "as M"),
     "P": ClassRow("dense", {}, "as M, with organics in the carbon"),
     "Q": ClassRow("dense", {}, "as M, with organics in the carbon"),
-    "R": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "fresh ejecta dust, mostly destroyed by the reverse shock (open: GEN.1271)"),
+    "R": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "fresh ejecta dust, mostly destroyed by the reverse shock (the survival is a stand-in until the dust yields of the ejecta are modeled)"),
     "S": ClassRow("diffuse", {"silicate": 0.39, "iron": 0.60, "carbon": 0.5, "PAH": 0.1}, "shocked interstellar dust: 61 percent of the Si-rich and 40 percent of the Fe-rich grains destroyed"),
-    "T": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "filament dust of the ejecta (open: GEN.1271)"),
-    "U": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "filament dust of the ejecta (open: GEN.1271)"),
+    "T": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "filament dust of the ejecta (the survival is a stand-in until the dust yields of the ejecta are modeled)"),
+    "U": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "filament dust of the ejecta (the survival is a stand-in until the dust yields of the ejecta are modeled)"),
     "V": ClassRow("diffuse", {k: 0.5 for k in ("silicate", "carbon", "PAH", "iron")}, "a cooling shell sputters about half its grains"),
-    "W": ClassRow("iron-group", {k: 0.2 for k in ("silicate", "iron")}, "iron-group dust of a Type Ia ejecta (open: GEN.1271)"),
+    "W": ClassRow("iron-group", {k: 0.2 for k in ("silicate", "iron")}, "iron-group dust of a Type Ia ejecta (the survival is a stand-in until the dust yields of the ejecta are modeled)"),
 }
 """dict: One `ClassRow` for every class of `tuning.NEBULA_CLASSES`. The survivals come from the dust-destruction research of the report (section 11):
 more than 90 percent of the iron of planetary nebulae and H II regions is on grains [R5108]; a shocked LMC remnant keeps 39 percent of the
@@ -423,7 +423,7 @@ def makeup(nebula_class, gas_oh_dex, density_cm3, radius_ly, ejecta=None, wolf_r
     open_items = []
     if nebula_class in EJECTA_CLASSES:
         if ejecta is None:
-            open_items.append("no progenitor ejecta given: read as interstellar gas (GEN.1270 for H to L, GEN.1271 for R to W)")
+            open_items.append("no progenitor ejecta given: read as interstellar gas (the ejecta of a planetary nebula and of a remnant are modeled separately)")
             elements = interstellar
         else:
             elements = {symbol: ejecta.get(symbol, 0.0) for symbol in interstellar}
