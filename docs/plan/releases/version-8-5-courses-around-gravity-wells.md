@@ -52,9 +52,8 @@ Showing courses on the maps and bending them around keep-out spheres.
 | NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
 | NAV.36 | Unknown-space jumps drawn red and glowing |  | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
 | NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain | NAV.68 |  |
-| NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map | NAV.67 |  |
-| NAV.68 | Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more' | NAV.67 |  |
-| NAV.67 | Schematic route map part 3: the course diagram on the NAV page: an SVG ribbon with a glyph per stop kind, hop length and course labels, red unknown-space hops |  |  |
+| NAV.69 | Schematic route map part 5: linked selection between the course diagram and the Galaxy Map |  |  |
+| NAV.68 | Schematic route map part 4: neighbour branches around each stop: faint capped stubs by the relative neighbourhood rule, with 'and N more' |  |  |
 | NAV.73 | Galaxy-scope route positions are not in the galaxy frame: a routed system sits up to 4.5 light-years from where it is stored (bug) |  |  |
 
 ### Steering clear of gravity wells
