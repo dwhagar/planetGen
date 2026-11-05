@@ -2466,7 +2466,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.23 | Open a saved course on the map | none | done, PR #5091 |
 | NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
 | NAV.25 | Find the obstacles along a path | none | open |
-| NAV.26 | Bend the path around keep-out spheres | none | open |
+| NAV.26 | Bend the path around keep-out spheres | none | done, PR #5143 |
 | NAV.27 | Moving bodies inside a system | none | done, PR #5131 |
 | NAV.28 | Show and save the adjusted course | none | done, PR #5082 |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |

@@ -2055,34 +2055,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (NAV.54).
     Prerequisites: NAV.54.
 
-  - [ ] **NAV.26 Bend the path around keep-out spheres**
-    Done: a path planner that leaves the straight line only where it
-    crosses a keep-out sphere, going around it on the shortest detour
-    (a tangent arc, or waypoints just outside the sphere), checked
-    again against the other spheres; the end bodies' own spheres are
-    exempt (a ship has to enter them to arrive). Unit tests with
-    hand-placed spheres.
-    Asteroid fields count as keep-out areas too (Boss, 2026-10-09
-    01:02Z: "Courses should avoid asteroid fields."), which NAV.51
-    adds; nebulae and remnants stay pass-through with a note until Boss
-    decides.
-    Research (2026-10-09, course-avoidance.md): use the "insert wrap at
-    first hit, then validated polish" method (section 5 of the design
-    doc; the prototype needs only `math` and numpy). Exempt every sphere
-    that contains an end, not only the end body's own. Add the overlap
-    policy (cluster detection, enclosing sphere, flagged straight-line
-    fallback `overlap_fallback`). Hand-placed tests: one sphere on the
-    line (closed form), collinear start-centre-end, start inside a
-    sphere, end on a surface, two spheres with a gap and with contact, a
-    chain of wraps, 40 tiny spheres on a long line, an overlapping pair,
-    a scene shifted by 2e4 pc (same answer). Say "short detour", not
-    "shortest".
-    The NAV.62 study is done (Core 2, PR #5136): the unresolved stars
-    are not steered round; the course goes round the made stars and the
-    central hole's sphere and reports the expected unresolved count
-    (the unresolved-star count). Not a prerequisite of this item.
-    Prerequisites: NAV.56.
-
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors

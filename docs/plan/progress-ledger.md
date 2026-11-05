@@ -2542,3 +2542,4 @@ Baseline: PR #1817.
 | NAV.76 | 8.5 | Steering clear of gravity wells |
 | NAV.75 | 8.5 | Steering clear of gravity wells |
 | NAV.74 | 8.5 | Steering clear of gravity wells |
+| NAV.26 | 8.5 | Steering clear of gravity wells |
