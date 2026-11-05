@@ -11801,6 +11801,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Belt origins (2026-10-30 4:35 PM EDT): Captured moons from the scatter
   step wait for the census (GEN.1087) to show a moon deficit, with
   GEN.921.
+  Branch (Aux 5) (1:05 AM EST on 2026-11-05): Pushed on
+  claude/aux5-gen1082 (head 513e566b9, as the lane reported), stacked on
+  GEN.1092 part A. How many irregular moons a giant can capture now
+  depends on how unstable its system was (lost or thrown planets in its
+  architecture); roughly 4 percent of systems get a capture window.
   Prerequisites: GEN.1077. Related: GEN.728.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -11824,6 +11829,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whether its module is reached, and GEN.1072 now imports belt_history
   in generation code. The reminder lives here: wire
   SURFACE_DENSITY_SLOPE into the captured composition when this lands.
+  Branch (Aux 5) (1:05 AM EST on 2026-11-05): Pushed on
+  claude/aux5-gen1083 (head 6dbad45f7, as the lane reported), stacked on
+  GEN.1082. Giants keep small captured bodies as irregular moons (drawn
+  from the outer disc and their own feeding zone, composition by where
+  in the disc they came from, orbits inside the stable zone, so most are
+  retrograde at Jupiter); regular moons take the captured origin less
+  often the heavier they are. Not stored yet (GEN.1084). Census at 130
+  encounters, 30 Earth-mass disc: Jupiter-like 6 stored, Saturn-like
+  about 80, ice giants about 80; the Jupiter figure is low, a
+  calibration note for later. The wiring lines for the captured-member
+  designation functions now point at GEN.1084.
   Prerequisites: GEN.1082.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
