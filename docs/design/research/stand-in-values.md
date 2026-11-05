@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1154 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1156 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 57 | 5 | 1 | 19 | 10 | 92 |
 | T5 | 51 | 19 | 2 | 1 | 0 | 73 |
-| T6 | 107 | 85 | 22 | 61 | 0 | 275 |
+| T6 | 107 | 85 | 22 | 62 | 0 | 276 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 28 | 14 | 5 | 70 | 29 | 146 |
-| All | 637 | 243 | 54 | 180 | 40 | 1154 |
+| T9 | 28 | 14 | 5 | 71 | 29 | 147 |
+| All | 637 | 243 | 54 | 182 | 40 | 1156 |
 
 ## How the labels were given
 
@@ -1635,6 +1635,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DM5 | P | T9 | L3 | the ranges of M, H, O, P and R in planet_class_fit.json: mean 275 to 305, 295 to 315, 298 to 312, 240 to 270 and 312 to 345 K, the regional, night and wet-bulb limits, oxygen 16 to 35 percent, 50 to 250 kPa and 0.75 to 1.25 g for the family | each edge by up to its shoulder | terrestrial bodies with oxygen-water air | a class sweep that finds a class near none of its edges, or a body of an obvious class that fits another | the family ranges from a survey of the habitable zone of the generator and the comfort limits of the habitability index | reports/class-families-and-positions-design-2026-10-31.md section 3 (Boss's directions of 10:39 to 10:55 AM EDT 10-31) | - | - |
 | DM6 | P | T9 | L3 | the range of Z, the hot thin-air world: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean | each edge by its shoulder | terrestrial bodies with thin air | a sweep that finds the gap filled by a different class or a body of Z outside the box | the sweep of the gap by GEN.1207 | reports/class-fit-shadow-2026-10-31.md (about 1.6 percent of bodies fit no class) | - | - |
 | DM7 | P | T9 | L3 | the ranges of U (91 to 130 K, 50 to 500 kPa, methane 1 percent or more, with the methane-ethane window) and Y (300 to 350 K, sulfur dioxide 3 percent or more, with the sulfuric acid window, until the acid medium is stored) | each edge by its shoulder | terrestrial bodies with the liquid of the family | a Titan-like body that does not fit U, or a sulfur air that fits Y without acid | the ranges from the family ideal bands once the acid medium and the sea fractions are stored | the families design section 4 ideal bands | - | - |
+| DM8 | P | T6 | L3 | planet_class_fit.json shoulders.ammonia_water_mass_fraction: 0.03 (the 0.1 line of class X, the Class 8 gate of life_classes.json, fades over 0.03 of the water's mass) | 0.01 to 0.1 | icy bodies with an ice and a water share | an ammonia share measured on an icy body that puts class 8's window elsewhere than 10 percent | the spread of the ammonia share among icy bodies of the generator | the Class 8 gate (10 percent of the water mass, life-classes.md 3.1) | - | - |
+| DM9 | P | T9 | L3 | the range of X, the ammonia-water world: liquid cover 20 percent or more (the ocean lies under an ice lid, so no surface phase gate), ammonia at least 0.1 of the water's mass, 190 to 240 K, 0.05 to 2 g, no air (under 10 Pa) | each edge by its shoulder | icy bodies with an ammonia-water ocean | an ammonia-water body of an obvious class that fits another, or an X outside the box | the ideal band once the sea fractions of the family are stored | the families design section 4 (ammonia-water 176 to 273 K, ideal 190 to 240 K); GEN.1258 found the ammonia share already stored (`surface_liquid_ammonia_wt`, `ice_nh3_mass_fraction`) | - | - |
 | PG1 | P | T6 | L0 | phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure | 350 to 450 K | bodies with carbon dioxide above 7.38 MPa | a supercritical carbon dioxide life window that ends elsewhere | the window of the life class 6 chemistry | the 217 to 400 K window of the dense CO2 class in life_classes.json | - | - |
 
 ## 6.166 Stand-ins of the interior viscosity ranges
