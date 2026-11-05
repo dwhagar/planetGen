@@ -17725,6 +17725,13 @@ clears each one.
   assertion fails (contrast or nested summary), and fixes it or files
   the machine difference. Done: web.system passes on every lane machine
   or the difference is documented. Owner: Bug Hunt.
+  Owner change (TODO) (7:10 AM EST on 2026-11-05): Core 3 takes this
+  (Bug Hunt is retired); it saw the failure first and has a slow lane
+  machine to reproduce it. Run the four web.system variants of
+  tests/test_web_a11y.py on current main, find which assertion fails
+  (contrast or nested summary) and whether it is a real defect, a
+  data-set or Playwright difference, or fixed since; fix at the cause or
+  document the machine difference. Lock-free.
   Prerequisites: none. Related: TEST.329.
 
 - [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
