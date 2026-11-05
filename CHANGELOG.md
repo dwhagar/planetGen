@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3342] - 2026-11-05
+
+**Headline:** The web app no longer pulls in numba through the post-main-sequence module, and the belt members table has its documented precision floor.
+
+### Fixed
+- **The web app imported numba (TEST.608).** `physics/post_main_sequence.py` imported the numba bright-piece kernel at the top, and `planetgen.web.app` reaches that module, so Apache's web user (which cannot write numba's cache) would fail on it (OPS.42). The kernel is now imported where it is used, in `bright_pieces`, which only the workers call.
+
+### Changed
+- **The belt members table is in the precision floor table (TEST.609).** `belt_members` places a body to 2.4 m like `asteroid_belts` (km columns at 10,000 AU); `tests/test_precision.py` and `unified-unit-quantity.md` section 6.1 list it.
+
 ## [8.0.3341] - 2026-11-05
 
 **Headline:** The job runs test counts only the sectors a fill charted, so it passes now that a rogue planet can put a sector row in a cell nobody charted.
