@@ -5010,6 +5010,16 @@ body.app {
   border-color: var(--accent);
 }
 
+/* NAV.18: a saved course's Direct / Route switch and its link to the map look like the other actions. */
+.bookmarks-action[aria-pressed="true"] {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+a.bookmarks-action {
+  text-decoration: none;
+}
+
 .bookmarks-rename {
   display: flex;
   flex: 1 1 100%;
