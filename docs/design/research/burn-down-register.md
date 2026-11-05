@@ -196,6 +196,14 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.185:BPO2 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it |
 | 6.185:BPO3 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it |
 | 6.185:BPO4 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the detached perihelion range stands until a self-stirring or capture model gives it |
+| 6.183:DM1 | no data | - | no survey gives the climate scatter among bodies of one class; the 5 K shoulder of the regional temperature lines is a width of the class fit, chosen so a class edge is not a cliff |
+| 6.183:DM2 | no data | - | no measurement of another world's wet-bulb limit is in hand; the 3 C shoulder is a width of the class fit around the human limit of 31 C |
+| 6.183:DM3 | no data | - | no class reads a humidity edge yet and no survey measures one; the shoulder waits for the first class that does |
+| 6.183:DM5 | no data | - | the edges of classes M, H, O, P and R are the plan's reading of the class definitions; no survey of other worlds fits them, so they stay as fitted to the finished bodies (reports/class-fit-shadow-2026-10-31.md) |
+| 6.183:DM6 | no data | - | no observed hot thin-air world fixes the box of class Z; the edges are the gap in the class table, filled and checked by the shadow sweep |
+| 6.183:DM7 | no data | - | no observed methane-ethane or sulfuric-acid world is in hand beyond Titan and Venus; the ranges of U and Y are read from those two and widened |
+| 6.183:DM8 | no data | - | no ammonia share is measured on an icy body outside the Solar System; the 0.03 shoulder around the 0.1 line of Class 8 is a width of the fit |
+| 6.183:DM9 | no data | - | no ammonia-water ocean is observed; the box of class X is the ideal band of the ammonia-water phase diagram, read from the lab freezing curve |
 | 6.170:RNG2 | no data | - | no measured slope of a dust ring (Jupiter, Uranus, Neptune) is in hand; a dark red-brown ring was wanted and the slope is a picture choice |
 | 6.170:RNG5 | no data | - | no measured albedo of a dust ring is in hand; an educated guess between the ice ring and the dark sooty ones |
 | 6.170:RNG6 | no data | - | display choices (gain, opacity floor and ceiling) of the ring picture; a rendering model that works the light of the ring would replace them |
