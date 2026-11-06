@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1141 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1142 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 57 | 5 | 1 | 19 | 10 | 92 |
 | T5 | 51 | 19 | 2 | 1 | 0 | 73 |
-| T6 | 102 | 84 | 24 | 57 | 0 | 267 |
+| T6 | 103 | 84 | 24 | 57 | 0 | 268 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 26 | 14 | 5 | 67 | 29 | 141 |
-| All | 631 | 241 | 56 | 173 | 40 | 1141 |
+| All | 632 | 241 | 56 | 173 | 40 | 1142 |
 
 ## How the labels were given
 
@@ -263,6 +263,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM92 | B | T6 | L0 | mixture_rocky.INVENTORY | halogen_per_hydrogen_max 1e-3 to 1e-1, log (the most Cl and F atoms the air holds per hydrogen atom) | rocky bodies with hydrogen in the air | test_halogen_budget::test_the_halogens_are_cut_to_the_hydrogen_they_can_pair_with_in_proportion | a crust halogen reservoir with chlorides and fluorides (NaCl, KCl and a salt sink) | design (source tier 6, tweak level 0; arc volcanic gas holds about 0.001 to 0.05 HCl per H2O, recalled, and the Venus air about 0.017, a test point only) | - | - |
 | AM93 | B | T6 | L0 | surface_pressure.DEGAS_EFFICIENCY_HALOGEN | 0.05 to 0.5, log, drawn for each of Cl and F | rocky bodies | test_halogen_budget::test_the_degassing_efficiencies_carry_chlorine_and_fluorine_inside_the_bracket | halogen solubility in basalt (a melt model) | design (source tier 6, tweak level 0; chlorine and fluorine dissolve in a silicate melt far better than carbon dioxide and leave it with the water, the bracket of hydrogen's) | - | - |
 | AM94 | D | T2 | L0 | saturation.EDMISTER_COEFFICIENT | 5.373, fixed (hydrogen fluoride; the gas table has no HF triple point) | HF from 68 K to its critical point, HCl up to its triple point (above it the solid's curve is carried on) | test_saturation::test_the_halide_curves_sit_near_their_normal_boiling_points_and_condense_a_trace_gas_in_the_cold | measured vapour-pressure curves of HF and HCl (NIST fits) | 2ND-HAND (the Edmister correlation, ln(P/Pc) = 5.373 (1 + omega) (1 - Tc/T), recalled; the HCl curve is Clausius-Clapeyron from the gas table's triple point with its sublimation heat 19.65 kJ/mol; source tier 2, tweak level 0) | - | - |
+| AM95 | P | T6 | L0 | mixture_lava.MELT_MAX_K | 6000 K, the top of the table | a molten surface over 6000 K, up to the vapor-only regime where the melt model no longer applies | test_atmosphere_mixture_lava::test_a_surface_hotter_than_the_fits_has_its_vapor_worked_out_at_their_top | a vapor model for a fully vaporised silicate surface, or fits of the liquid oxides and the gases above 6000 K (GEN.499) | design (source tier 6, tweak level 0; NASA Glenn's fits of the liquid oxides and of 47 of the 84 gases stop at 6000 K, so a molten surface hotter than that, the dayside of a rock next to a hot star or a white-dwarf planet's exosphere, had no vapor and a build died with `SiO2(L): no thermodynamic fit at 6881 K` (GEN.1294); the liquids are constant-heat-capacity fits, but half the gases would silently drop out above 6000 K and the melt model is an ideal solution of the oxides, so the vapor is worked out at 6000 K and the mixture reports the surface's own temperature) | - | - |
 
 ## 6.8 Stand-ins of the hours outside in a day
 
