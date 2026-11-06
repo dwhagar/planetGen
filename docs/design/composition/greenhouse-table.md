@@ -64,6 +64,54 @@ The table was fitted for GEN.1030 and GEN.1032, on the model with the methane ps
 The loss weights (an error floor of 0.003 on `ln(T_s/T_e)` and a relative term of 0.025) make the fit follow the cool airs the habitability and the life read; the hot dense airs (over 500 K: runaway greenhouses and
 Venus-like airs) are the model's own weakest and the table's: a hot dense air is right to the first tens of kelvin, not to the degree. The weights are stated in `scripts/fit_greenhouse_table.py` (`NOISE_FLOOR`, `RELATIVE_ERROR`).
 
+## The refit for the temperate wet branch (GEN.1304)
+
+GEN.852 part 3 left the table 12 K cold on the branch an Earth-like world stands on: the Earth twin of the fixed point (1 bar nitrogen, 40 Pa of carbon dioxide, vapor at
+0.77 of saturation, 239 W/m2 absorbed) sat at 276.0 K where the model puts it at 288.0 K, and the runaway sweep at 255 and 285 W/m2 read 282.8 K and 295.7 K against the model's 294.9 K
+and 307.7 K, which is why `test_atmosphere_state.py` was red on main. The table sat under the model by 4.8 K at 400 Pa of vapor, 8.2 K at 1,200 Pa and 10.3 K at 2,000 Pa at 239 W/m2:
+it underweighted the feedback of the vapor, and `test_greenhouse_table.py` did not see it because its Earth air (1,000 Pa of vapor) was one anchor in 22,000.
+
+The work folder of the GEN.852 fit was not kept (hours of model time), so the table was not fitted from the beginning. `scripts/fit_greenhouse_table.py` gained the steps of a refit from the file:
+
+- **`wet`** draws temperate nitrogen-oxygen airs with their vapor free (100 Pa to 3e4 Pa), 20 kPa to 400 kPa, gravity 4 to 16, 150 to 400 W/m2 absorbed, carbon dioxide from 10 ppm to 2 percent,
+  a third of them near one bar and the Earth's gravity with 100 to 3,000 ppm (the airs the checks use), and a third with no oxygen or no argon. 10,000 airs, all solved by the model.
+- **`solve --cool-below 340`** runs the model only on the airs the file puts under 340 K (about half a second to ten seconds an air), in a random order, so any prefix is a fair sample. 12,388 airs of the generator
+  (seeds 1000 to 1300 and perturbed copies, 7,388 of them random and 5,000 drawn from the hazy and hydrogen-chloride-bearing ones, because the first 7,000 left those the weakest) were solved.
+- **`fit --start --distill --hold anchors`** begins from the weights and the standardisation of the file, takes the model's answer for every solved air, takes the file's own answer for the hot airs
+  the model was not asked about (over 340 K, minutes an air), and holds 2,500 copies of the airs the tests hold the table to (Mars, Venus from 5 to 92 bar, a 5 bar carbon dioxide air, Titan clear and
+  hazy, a cold nitrogen-methane air, hydrogen-helium, the three giants; not solved, held at the old answers) so the correction does not move them. A temperate wet air that the generator made is not
+  held at the old answer (it is in the fit only where the model solved it).
+
+Result against the model: the Earth twin 287.7 K (model 288.0), 255 W/m2 at 294.5 K (294.9), 285 W/m2 at 307.0 K (307.7); at 239 W/m2 the air with 400, 1,200, 2,000 and 5,000 Pa of vapor reads 279.4, 287.3, 290.4 and
+293.5 K (model 279.3, 287.3, 291.9, 294.0). On the 10,000 wet airs of the fit the median error is 0.5 K and the 99th percentile 3.4 K (the GEN.852 file: 3.8 K and 20 K, and 2.8 K cold on average).
+
+The validation is 1,081 airs of the model's own answers from seeds 5000 to 5100 of today's generator, which the fit never saw (all of them solved by the model, hot and dense included):
+
+| Surface temperature | Airs | Median error | 90th percentile | 99th percentile |
+|---|---|---|---|---|
+| 0 to 300 K | 773 | 0.7 K (0.45 %) | 10.5 K (6.1 %) | 88 K (35 %) |
+| 300 to 500 K | 243 | 13.9 K (3.9 %) | 169 K (42 %) | 428 K (93 %) |
+| 500 to 1000 K | 53 | 29.9 K (4.7 %) | 170 K (23 %) | 487 K (79 %) |
+| over 1000 K | 12 | 40.2 K (3.6 %) | 132 K (11 %) | 1,564 K (66 %) |
+| all | 1,081 | 2.0 K (0.97 %) | 45.7 K (12.6 %) | 271 K (69 %) |
+
+The cool airs by class (`cool_by_class` in the file; the classes are read from the features: haze is any sunlight taken aloft, `other_infrared_gases` is 1 percent or more of gases that have only stand-in bands,
+hydrogen chloride and fluoride among them):
+
+| Cool airs (under 300 K) | Airs | Median error | 90th percentile | 99th percentile |
+|---|---|---|---|---|
+| clear | 262 | 0.6 K (0.40 %) | 5.3 K (2.6 %) | 17.8 K (11 %) |
+| other infrared gases | 144 | 1.0 K (0.62 %) | 10.5 K (5.2 %) | 128 K (52 %) |
+| haze | 367 | 0.6 K (0.48 %) | 16.1 K (9.0 %) | 92 K (35 %) |
+
+The GEN.852 file on the same airs read, for the cool airs, 2.4 K (1.5 %) median and 32.7 K (16 %) at the 90th percentile; for the clear ones 1.6 K, 9.5 K and 39.7 K. **The accuracy the GEN.852 file stated
+(0.37 % median, 3 % at the 90th percentile of the cool airs) was true of the airs the generator made when it was fitted. The generator now makes many airs it never saw**: hazy ones with up to 95 percent
+of the sunlight taken aloft (47 percent of the cool airs of this set) and ones rich in hydrogen chloride and fluoride (19 percent held 1 percent or more of gases with only stand-in bands). The table is weaker there, and `test_the_file_states_an_accuracy_the_fit_reached`
+now holds the clear-sky airs to the old figures and the other two classes to what they reached.
+
+**Not changed, and open:** the airs over 300 K are held at the GEN.852 answers where the model was not asked (the hot dense airs: 13.9 K median and 169 K at the 90th percentile in 300 to 500 K), and the hazy and
+hydrogen-chloride-bearing airs need several tens of thousands more model solves (the generator makes them at 5 to 10 seconds an air). A refit of those is a separate item.
+
 ## The guards (stand-in IR11)
 
 The network was fitted on airs that always hold an absorber and are at least 10 Pa thick, and left alone it gave a noble-gas air a greenhouse of 0.4. Two guards multiply `ln(T_s / T_e)`: a surface pressure under
@@ -91,7 +139,7 @@ A hazy air is cooler at the ground than the same air clear (the anti-greenhouse 
 ## What moves
 
 Every planet and moon with an air: the surface temperature, and with it the class, the habitability and the life draw. 28 percent of the airs the generator makes shift by more than 5 K against the
-grey closure, the dense ones by 60 to 190 K (the closure was too cold); the worlds with a haze are cooler. The Earth twin of the fixed point stays at 288 K. Airs above 1000 bar (the pressure the table and the model stop at) rise past the table's top value by the adiabat, `ln(T_s / T_e)` gaining `(1 - 1/gamma) ln(P / P_top)` with the air's own heat-capacity ratio (GEN.1240, stand-in IR16): a convective air is as warm as its adiabat takes it from a radiating level the opacity sets and the column does not move, so a steam air of 1e5 bar reads 1,800 K where the held table read 700 K. It is not fitted to the model, which does not converge there, and the solver's own ceiling (2,000 K) still bounds it.
+grey closure, the dense ones by 60 to 190 K (the closure was too cold); the worlds with a haze are cooler. The Earth twin of the fixed point stays at 288 K (287.7 K since GEN.1304; it read 276.0 K between GEN.852 part 3 and GEN.1304). Airs above 1000 bar (the pressure the table and the model stop at) rise past the table's top value by the adiabat, `ln(T_s / T_e)` gaining `(1 - 1/gamma) ln(P / P_top)` with the air's own heat-capacity ratio (GEN.1240, stand-in IR16): a convective air is as warm as its adiabat takes it from a radiating level the opacity sets and the column does not move, so a steam air of 1e5 bar reads 1,800 K where the held table read 700 K. It is not fitted to the model, which does not converge there, and the solver's own ceiling (2,000 K) still bounds it.
 
 ## Limits
 

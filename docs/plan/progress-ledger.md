@@ -2715,3 +2715,5 @@ Baseline: PR #1817.
 | GEN.888 | 8.1 | Physics rectification: life classes, chemistries and their pages |
 | GEN.1209 | 8.1 | Physics rectification: life classes, chemistries and their pages |
 | GEN.1213 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| MAP.400 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1297 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
