@@ -519,11 +519,12 @@ def advance(conn, run_id, index):
     runrecord.finish_run(conn, run_id, "done")
 
 
-def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None):
+def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None, touch=True):
     """Stage `index`'s plan once its stage has been expanded (by the unit that completed the stage before it)."""
     last_ensure = float("-inf")
     while True:
-        runrecord.touch(conn, run_id)
+        if touch:
+            runrecord.touch(conn, run_id)
         if on_debug is not None:
             on_debug()
         plan = runrecord.read_plan(conn, run_id, index)
@@ -539,11 +540,12 @@ def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sl
         sleep(units.POLL_SECONDS)
 
 
-def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None):
+def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None, touch=True):
     """What stage `index`'s conclusion found (`conclude_stage`), once the unit that completed the stage has made it."""
     last_ensure = float("-inf")
     while True:
-        runrecord.touch(conn, run_id)
+        if touch:
+            runrecord.touch(conn, run_id)
         if on_debug is not None:
             on_debug()
         found = runrecord.conclusion(conn, run_id, index)
@@ -557,6 +559,43 @@ def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=t
             last_ensure = clock()
             ensure()
         sleep(units.POLL_SECONDS)
+
+
+def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done=None):
+    """
+    Follows a run this process did not start, from the run record alone (PERF.235): the steps are read from the record, and for each
+    stage it waits for the plan, tells the caller (`on_plan(index, plan)`), and follows the units' results (`on_result(index, unit,
+    result)`, and `on_progress(index, unit, done, estimate)` for the units still working) to the end, the results already stored first. It starts nothing, queues nothing and does not say the run is alive (the process
+    that started it does), so it can be started and stopped at any time without changing the run.
+
+    Returns:
+        list[commands.Step]: The run's steps.
+
+    Raises:
+        redisqueue.Unavailable: No Redis server answers.
+        units.RunStopped: A unit failed or the run was canceled before the end.
+    """
+    url = url or redisqueue.redis_url()
+    conn = redisqueue.connect(url)
+    try:
+        conn.ping()
+    except Exception as exc:  # noqa: BLE001 -- any connection failure
+        raise redisqueue.Unavailable(f"no Redis server answers at {url} (config.json's redis.url): {exc}") from exc
+    steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
+    for index in range(len(steps)):
+        plan = _await_plan(conn, run_id, index, None, touch=False)
+        on_plan(index, plan)
+        if plan["units"]:
+            units.follow_stage(conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
+                               None if on_progress is None else
+                               (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
+                               None, touch=False)
+        conclusion = None
+        if commands.spec(steps[index].kind).conclude is not None:
+            conclusion = _await_conclusion(conn, run_id, index, None, touch=False)
+        if on_stage_done is not None:
+            on_stage_done(index, conclusion)
+    return steps
 
 
 def queue_of(kind):

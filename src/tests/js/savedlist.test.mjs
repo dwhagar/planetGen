@@ -183,3 +183,45 @@ test("bookmarks.js keeps the format and key it always had", async () => {
   assert.deepEqual(B.list().map((e) => e.name), ["Newer"]);
   assert.equal((await B.add({ name: "", kind: "", value: "" })).reason, "That can't be bookmarked.");
 });
+
+test("an entry moves earlier or later and stays inside the list (NAV.58)", async () => {
+  const { store } = localStore({ max: 5 });
+  await store.ready;
+  for (const id of ["a", "b", "c"]) await store.add({ id, name: id.toUpperCase() });
+  assert.equal(await store.move("c", -1), true);
+  assert.deepEqual(store.list().map((e) => e.id), ["a", "c", "b"]);
+  assert.equal(await store.move("a", 1), true);
+  assert.deepEqual(store.list().map((e) => e.id), ["c", "a", "b"]);
+  assert.equal(await store.move("c", -1), false, "already first");
+  assert.equal(await store.move("b", 1), false, "already last");
+  assert.equal(await store.move("zz", 1), false, "not in the list");
+  assert.equal(await store.move("c", 9), true, "kept inside the list");
+  assert.deepEqual(store.list().map((e) => e.id), ["a", "b", "c"]);
+});
+
+test("replace puts an entry in the place of another, and refuses one already there (NAV.58)", async () => {
+  const { store } = localStore({ max: 5, words: { duplicate: "Already there." } });
+  await store.ready;
+  for (const id of ["a", "b", "c"]) await store.add({ id, name: id.toUpperCase() });
+  const done = await store.replace("b", { id: "x", name: "X" });
+  assert.equal(done.ok, true);
+  assert.deepEqual(store.list().map((e) => e.id), ["a", "x", "c"]);
+  const dup = await store.replace("a", { id: "c", name: "C again" });
+  assert.deepEqual(dup, { ok: false, reason: "Already there." });
+  assert.equal((await store.replace("gone", { id: "y", name: "Y" })).ok, false);
+  assert.equal((await store.replace("a", { name: "no id" })).ok, false);
+  assert.equal((await store.replace("c", { id: "c", name: "C renamed" })).ok, true, "the same key is a rewrite");
+  assert.deepEqual(store.list().map((e) => e.name), ["A", "X", "C renamed"]);
+});
+
+test("setAll makes the whole list in one write (NAV.58)", async () => {
+  const backend = fakeAsyncBackend([]);
+  const store = asyncStore(backend, { max: 3 });
+  await store.ready;
+  const result = await store.setAll([{ id: "a", name: "A" }, { id: "a", name: "again" }, { name: "none" }, { id: "b", name: "B" }, { id: "c", name: "C" }, { id: "d", name: "D" }]);
+  assert.deepEqual(result, { ok: true, count: 3 });
+  assert.equal(backend.state.saves, 1);
+  assert.deepEqual(store.list().map((e) => e.id), ["a", "b", "c"]);
+  await store.setAll([]);
+  assert.deepEqual(store.list(), []);
+});

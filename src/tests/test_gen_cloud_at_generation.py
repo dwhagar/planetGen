@@ -28,10 +28,21 @@ CENTER_PC = (0.0, 8000.0, 0.0)
 """tuple: A sector center on the +y axis, so the sector's local +X is the galaxy's +y (`frame.sector_orientation`)."""
 
 
+class _WholeSphere:
+    """A cloud shape that fills its bounding sphere, so these tests ask only whether the placement finds the cloud."""
+
+    @staticmethod
+    def contains(offset):
+        return sum(c * c for c in offset) <= 1.0
+
+
 def _nebula(nebula_class, radius_ly=2.0):
+    """A drawn nebula whose shape is its whole bounding sphere. The drawn shape (GEN.75) is lumpy and may leave the cloud's center empty,
+    which depends on the nebula's drawn properties and moves whenever they do; its containment is tested in `test_nebula_shape`."""
     with draw.bound("gen357:nebula"):
         nebula = Nebula(SystemConfig(), nebula_class=nebula_class)
     nebula.radius_ly = radius_ly
+    nebula._shape = _WholeSphere()
     return nebula
 
 

@@ -71,7 +71,7 @@ def test_the_features_follow_the_names_and_an_absent_gas_sits_at_the_floor():
 def test_gases_with_stand_in_bands_are_counted_by_the_strength_the_gas_table_flags_them_with():
     from planetgen.physics import gases
 
-    strong = next(f for f in ("NH3", "H2S", "SO2") if gases.gas(f).ir == "ir")
+    strong = next(f for f in ("C2H6", "O3", "N2O") if gases.gas(f).ir == "ir")
     named = dict(zip(gt.FEATURE_NAMES, gt.features({"N2": 0.9e5, strong: 0.1e5}, 9.81, 240.0)))
     assert named["ln_fraction_ir"] == pytest.approx(math.log(0.1 + gt.FRACTION_FLOOR))
     assert named["ln_fraction_weak"] == pytest.approx(math.log(gt.FRACTION_FLOOR))
@@ -154,10 +154,12 @@ def test_the_table_gives_the_temperatures_the_model_is_checked_to(name, air, gra
 
 
 def test_doubling_the_carbon_dioxide_warms_by_about_what_the_model_gives():
-    """The model gives +1.72 K with the vapor free (+1.04 K with it held; the table has the vapor free, as the air the fixed point makes does)."""
+    """The model gives +0.86 K with the vapor free and the cloud share (+1.72 K before the cloud share of IR12, +0.99 K with it in the column); the measured clear-sky
+    answer is about 1.2 K. The table has the vapor free, as the air the fixed point makes does, and is held to the model's own answer in the live comparison below
+    (`test_the_table_doubles_the_carbon_dioxide_as_the_model_does`)."""
     base = gt.warming(_co2(280.0), 9.81, EARTH_FLUX).surface_temperature_k
     doubled = gt.warming(_co2(560.0), 9.81, EARTH_FLUX).surface_temperature_k
-    assert 1.0 < doubled - base < 2.6
+    assert 0.5 < doubled - base < 2.6
 
 
 # --- against the model ------------------------------------------------------------------------------------------------------------
@@ -180,3 +182,14 @@ def test_the_table_agrees_with_the_model_on_airs_the_checks_use(name, air, gravi
     assert model.converged
     table = gt.warming(air, gravity, flux)
     assert table.surface_temperature_k == pytest.approx(model.surface_temperature_k, rel=tolerance), name
+
+
+
+@pytest.mark.skipif(not DATA_PRESENT, reason="the infrared datasets are not in this machine's cache folder")
+def test_the_table_doubles_the_carbon_dioxide_as_the_model_does():
+    from planetgen.physics import radiative_convective
+
+    def doubling(warming):
+        return warming(_co2(560.0), 9.81, EARTH_FLUX).surface_temperature_k - warming(_co2(280.0), 9.81, EARTH_FLUX).surface_temperature_k
+
+    assert abs(doubling(gt.warming) - doubling(radiative_convective.warming)) < 0.3

@@ -162,6 +162,28 @@ def acceleration(pot, x, y, z):
     return ax, ay, az
 
 
+def stellar_density(pot, x, y, z):
+    """
+    The density of the potential's own stars (its Hernquist spheres and Miyamoto-Nagai disks, not the dark halo or the black hole) at `(x, y, z)`, parsecs, in solar
+    masses per pc^3 (MAP.383: the mass the gravity map takes out of the smooth field where it puts the generated stars in). It is the Poisson density of those terms,
+    `laplacian(phi) / (4 pi G)`, in closed form: a Hernquist sphere `M a / (2 pi r (r + a)^3)` and a Miyamoto-Nagai disk
+    `(b^2 M / 4 pi) (a R^2 + (a + 3 s) (a + s)^2) / ((R^2 + (a + s)^2)^(5/2) s^3)` with `s = sqrt(z^2 + b^2)`. Arrays in, arrays out; a float for float input.
+    """
+    x, y, z = _arrays(x, y, z)
+    r = np.sqrt(x * x + y * y + z * z)
+    cylinder2 = x * x + y * y
+    total = np.zeros_like(r)
+    for sphere in pot.spheres:
+        safe = np.where(r > 0.0, r, 1.0)
+        total += np.where(r > 0.0, sphere.mass_solar * sphere.scale_pc / (2.0 * math.pi * safe * (safe + sphere.scale_pc) ** 3), np.inf)
+    for disk in pot.disks:
+        s = np.sqrt(z * z + disk.scale_height_pc ** 2)
+        a = disk.scale_length_pc
+        total += (disk.scale_height_pc ** 2 * disk.mass_solar / (4.0 * math.pi)
+                  * (a * cylinder2 + (a + 3.0 * s) * (a + s) ** 2) / ((cylinder2 + (a + s) ** 2) ** 2.5 * s ** 3))
+    return float(total) if total.ndim == 0 else total
+
+
 def circular_speed_kms(pot, radius_pc):
     """The speed, km/s, of a circular orbit of the given cylindrical radius in the plane `z = 0`: `sqrt(R |a_R|)`, so `v_c^2 = R x pull` holds by construction."""
     radius = np.asarray(radius_pc, dtype=float)

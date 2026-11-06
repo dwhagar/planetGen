@@ -1,7 +1,7 @@
 {#- planetgen/web/templates/partials/action_bar.html -- the one action bar of an
     object page (UX.63): Nav, Show on Galaxy Map and Bookmark, in one row in the
     same order on a system, a phenomenon, and a sector. UX.201: one Nav button
-    opens a menu of Navigate from here, Navigate to here, and Nearby locations.
+    opens a menu of Navigate from here, Navigate to here, and Nearby locations, and (NAV.49) Add waypoint, on all but a sector.
 
     `action_bar(bookmark, nav_links, pick, galaxy_url, admin, nearby)`: `nav_links` is
     web.system_pages.nav_links (None where the page has no Navigate yet, as a
@@ -10,6 +10,7 @@
     `nearby` is the nearby-locations page (None leaves it out);
     `admin` is the Admin menu button (`admin_menu_button`, UX.68), last in the bar. -#}
 {% from "partials/bookmark.html" import bookmark_button %}
+{% from "partials/waypoint.html" import waypoint_item %}
 {%- macro action_bar(bookmark, nav_links=none, pick=none, galaxy_url=none, admin=none, nearby=none) -%}
 <div class="page-actions nav-row">
   {%- if pick %}
@@ -26,6 +27,7 @@
       {%- if nearby %}
       <sl-menu-item data-href="{{ nearby }}">Nearby locations</sl-menu-item>
       {%- endif %}
+      {{ waypoint_item(bookmark) }}
     </sl-menu>
   </sl-dropdown>
   {%- endif %}

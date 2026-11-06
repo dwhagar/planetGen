@@ -7,6 +7,14 @@ module -- everything routes through here instead of bare
 `print()` calls, so `--debug`/`--quiet`/`--silent` behave consistently
 everywhere.
 
+**One module writes every line (OPS.104).** `logrecord.Record` (time, severity, component, message, fields) is the one data form; this module is the
+only place a record is made from a `logging` call (`record_of`, `get(component)` and the `normal`/`debug`/`warning`/`error` calls) and the only
+place one is written: `LineFormatter` is the one formatter class, with a form for each way a line is written (`FORMS`: the command line's
+`plain` text, the `display` line with the local time and its zone, the `debug` line, the `file` line and the `json` line), and the handlers
+(`_ConsoleHandler`, the debug log, the relay, the record file) are here. `scripts/logrecord.sh` is the shell's copy of the display line, made a
+mirror of the module's vocabulary by `scripts/build_log_vocabulary.py`; `tests/test_no_own_log_formatting.py` fails on a formatter or handler
+made anywhere else.
+
 Three severities, matched one-to-one to stdlib `logging` levels so
 threshold filtering is just `Logger.setLevel`, not reinvented:
 
@@ -250,17 +258,6 @@ class _AreaFilter(logging.Filter):
         return area in DEFAULT_AREAS if _areas is None else area in _areas
 
 
-class _DebugLogFormatter(logging.Formatter):
-    """Local time with milliseconds and UTC offset, e.g.
-    `2026-09-24T02:57:37.123-0400`, so lines from several processes (and
-    across a DST change) still sort and compare correctly."""
-
-    def formatTime(self, record, datefmt=None):
-        local = time.localtime(record.created)
-        return (time.strftime("%Y-%m-%dT%H:%M:%S", local)
-                + f".{int(record.msecs):03d}" + time.strftime("%z", local))
-
-
 _DEBUG_LOG_FORMAT = ("%(asctime)s %(levelname)-8s %(origin)s %(name)s "
                      "%(filename)s:%(lineno)d %(funcName)s | %(message)s")
 _origin_filter = _OriginFilter()
@@ -268,7 +265,67 @@ _area_filter = _AreaFilter()
 
 
 def _debug_formatter():
-    return _DebugLogFormatter(_DEBUG_LOG_FORMAT)
+    return LineFormatter("debug")
+
+
+FORMS = ("plain", "display", "debug", "file", "json")
+"""tuple: The ways `LineFormatter` writes a record: `plain` (the command line's text without times, UX.122), `display` (local time with its zone,
+UX.121), `debug` (the debug log's line), `file` (logfmt, the time local with its offset) and `json` (JSON Lines)."""
+
+
+class LineFormatter(logging.Formatter):
+    """
+    The one formatter set (OPS.104): every line the program writes, on a screen, in a file or in a run's log, is a `logrecord.Record` written
+    in one of `FORMS` by this class, so no form has a second implementation to drift. `tz` (a `datetime.tzinfo`, the computer's own zone when
+    `None`) and `parts` (`times`, `component`, `fields`) shape the `display` form; `component` names the one component every line carries, whichever module logged it (a log that belongs to one job). The `debug` form is local time with milliseconds and the
+    UTC offset, e.g. `2026-09-24T02:57:37.123-0400`, so lines from several processes (and across a DST change) still sort and compare.
+    """
+
+    def __init__(self, form="display", tz=None, component=None, **parts):
+        if form not in FORMS:
+            raise ValueError(f"no form {form!r}; the forms are {', '.join(FORMS)}")
+        super().__init__(_DEBUG_LOG_FORMAT if form == "debug" else None)
+        self.form, self.tz, self.component, self.parts = form, tz, component, parts
+
+    def formatTime(self, record, datefmt=None):
+        local = time.localtime(record.created)
+        return (time.strftime("%Y-%m-%dT%H:%M:%S", local)
+                + f".{int(record.msecs):03d}" + time.strftime("%z", local))
+
+    def format(self, log_record):
+        if self.form == "debug":
+            return super().format(log_record)
+        record = record_of(log_record)
+        if self.component:
+            record.component = self.component
+        if self.form == "file":
+            return logrecord.file_line(record)
+        if self.form == "json":
+            return logrecord.json_line(record)
+        if self.form == "display":
+            return logrecord.display_line(record, self.tz, **self.parts)
+        text = logrecord.plain_line(record)
+        if log_record.exc_info and not log_record.exc_text:
+            log_record.exc_text = self.formatException(log_record.exc_info)
+        return f"{text}\n{log_record.exc_text}" if log_record.exc_text else text
+
+
+def record_of(log_record):
+    """The `logrecord.Record` of a standard `logging.LogRecord`: its level as a severity, the logger's name (less a leading
+    `planetgen.`; for the program's own logger the module that logged) as the component, the fields `get` attached, and its time."""
+    level = log_record.levelno
+    severity = "debug"
+    for name in logrecord.SEVERITIES:
+        if level >= logrecord.LOGGING_LEVELS[name]:
+            severity = name
+    component = log_record.name.removeprefix("planetgen.").lower() or "planetgen"
+    if component == "planetgen" and getattr(log_record, "module", None):
+        component = log_record.module.lower()          # the program's own logger: the module that logged is the component
+    component = re.sub(r"[^a-z0-9_.-]", "_", component)[:24]
+    if not logrecord.COMPONENT_PATTERN.match(component):
+        component = "planetgen"
+    return logrecord.Record.at(log_record.created, severity, component, log_record.getMessage(),
+                     **getattr(log_record, "fields", {}))
 
 
 class _ConsoleHandler(logging.Handler):
@@ -312,15 +369,30 @@ class _ConsoleHandler(logging.Handler):
 _console_handler = _ConsoleHandler()
 
 
-class _PlainFormatter(logging.Formatter):
-    """The console's text outside debug mode (UX.122): a record drawn as the logging layer's plain line
-    (`logrecord.plain_line`), which for an ordinary line is its message, as the program has always printed it."""
+def file_handler(path, form="display", component=None, level=logging.INFO):
+    """
+    A handler that appends to `path` in `form` (`FORMS`; with `component` every line carries that one), reopening the file if a rotation moves it
+    (OPS.104: a job's own log, such as the warm-up log, is made here and not with a handler of its own). Add it with `attach` and take it off
+    with `detach`.
 
-    def format(self, record):
-        text = logrecord.plain_line(logrecord.record_of(record))
-        if record.exc_info and not record.exc_text:
-            record.exc_text = self.formatException(record.exc_info)
-        return f"{text}\n{record.exc_text}" if record.exc_text else text
+    Raises:
+        OSError: The file cannot be opened.
+    """
+    handler = logging.handlers.WatchedFileHandler(path, encoding="utf-8")
+    handler.setFormatter(LineFormatter(form, component=component))
+    handler.setLevel(level)
+    return handler
+
+
+def attach(handler):
+    """Adds `handler` (a `file_handler`) to the program's logger."""
+    _logger.addHandler(handler)
+
+
+def detach(handler):
+    """Takes `handler` off the program's logger and closes it."""
+    _logger.removeHandler(handler)
+    handler.close()
 
 
 _record_file = None
@@ -332,7 +404,7 @@ _record_handler = None
 def set_record_file(path, as_json=False):
     """
     Also writes every record this process logs to `path`, one per line, in the logging layer's file form
-    (`logrecord.file_line`, or `json_line` with `as_json`): the times in UTC, whatever the console shows. At the console's
+    (`logrecord.file_line`, or `json_line` with `as_json`): the times local with their offset (OPS.97), whatever the console shows. At the console's
     own level, so a debug run's file holds the debug lines too. `None` stops. Call `configure` (or let the next
     command's setup do it) to apply it.
     """
@@ -358,7 +430,7 @@ def _attach_record_file(level):
         return
     path, as_json = _record_file
     handler = logging.FileHandler(path, encoding="utf-8")
-    handler.setFormatter(logrecord.JsonFormatter() if as_json else logrecord.FileFormatter())
+    handler.setFormatter(LineFormatter("json" if as_json else "file"))
     handler.setLevel(level)
     if level == logging.DEBUG:
         handler.addFilter(_origin_filter)
@@ -403,7 +475,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
 
     set_areas(areas if areas is not None else _configured_areas())
     console_level = _LEVELS[level]
-    formatter = _debug_formatter() if level == DEBUG else _PlainFormatter()
+    formatter = _debug_formatter() if level == DEBUG else LineFormatter("plain")
     _console_handler.setFormatter(formatter)
     _console_handler.setLevel(console_level)
     _console_handler.to_stderr = to_stderr
@@ -481,7 +553,7 @@ def add_debug_arguments(parser):
 
     def add_records(target, default):
         target.add_argument("--record-file", metavar="FILE", default=default,
-                            help="Also write every log line to FILE as a record: one per line, the time in UTC "
+                            help="Also write every log line to FILE as a record: one per line, the time local with its offset "
                                  "($PLANETGEN_RECORD_FILE does the same).")
         target.add_argument("--record-json", action="store_true", default=default,
                             help="Write the --record-file records as JSON lines.")
@@ -1133,6 +1205,56 @@ def set_console(console):
 def reset_console():
     """Reverts console output to a plain stdout write."""
     _console_handler.set_console(None)
+
+
+class Logger:
+    """
+    A standard logger for one component that takes fields as keyword arguments: `log.info("Placed sectors", count=12,
+    seconds=1.5)`. Its stage methods log the start, finish and failure of a stage in the one wording.
+    """
+
+    def __init__(self, component):
+        self.component = component
+        self.logger = logging.getLogger(f"planetgen.{component}")
+
+    def log(self, severity, message, /, **fields):
+        if self.logger.isEnabledFor(logrecord.LOGGING_LEVELS[severity]):
+            logrecord.Record.now(severity, self.component, str(message), **fields)       # a bad field is the caller's bug, now
+            self.logger.log(logrecord.LOGGING_LEVELS[severity], message, extra={"fields": fields})
+
+    def debug(self, message, /, **fields):
+        self.log("debug", message, **fields)
+
+    def info(self, message, /, **fields):
+        self.log("info", message, **fields)
+
+    def notice(self, message, /, **fields):
+        self.log("notice", message, **fields)
+
+    def warning(self, message, /, **fields):
+        self.log("warning", message, **fields)
+
+    def error(self, message, /, **fields):
+        self.log("error", message, **fields)
+
+    def critical(self, message, /, **fields):
+        self.log("critical", message, **fields)
+
+    def stage(self, event, first, total, label=None, seconds=0.0, reason=None, count=1):
+        """Logs the start, finish or failure of a stage (`logrecord.stage_record`)."""
+        record = logrecord.stage_record(event, self.component, first, total, label, seconds, reason, count)
+        self.log(record.severity, record.message, **record.fields)
+
+
+def get(component):
+    """The `Logger` of `component`.
+
+    Raises:
+        ValueError: A component name that is not allowed.
+    """
+    if not logrecord.COMPONENT_PATTERN.match(component):
+        raise ValueError(f"component {component!r} is not a short lower-case name (a-z, 0-9, _ . -)")
+    return Logger(component)
 
 
 # stacklevel=2 on each wrapper so the debug log's file:line/function is the

@@ -60,6 +60,7 @@ class TreeContext:
         help_url: The habitability page the symbols link into, or `None`.
         static_url: A function from a path under `static/` to its URL, for the point-of-interest symbol of a body (UX.233; none
             drawn without it).
+        belt_url: A function from a belt's reference to the URL of its information page (UX.241), or `None` for no link.
     """
 
     item_url: object
@@ -68,6 +69,7 @@ class TreeContext:
     sprite_url: str = ""
     help_url: str = None
     static_url: object = None
+    belt_url: object = None
 
 
 def _link(url, text_html):
@@ -169,6 +171,8 @@ def stats_html(item, context):
         stats = _STATS[kind](item.get("summary") or {}, context) if kind in _STATS else [_stat(esc(KIND_LABELS.get(kind, kind)))]
         if kind == "belt":
             stats.insert(0, poi_mark_html(kind, {}, context))
+            if context.belt_url:
+                stats.append(_stat(_link(context.belt_url(item["ref"]), "Bodies and sizes")))
     if item.get("orbits"):
         stats.insert(0, _stat(f"Orbits {esc(item['orbits'])}"))
     below = counts_text(item.get("counts") or {})

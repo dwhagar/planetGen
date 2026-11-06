@@ -74,8 +74,7 @@ class FakeSite:
         return self.shape
 
     def get_sectors(self, db, limit=None, offset=None, **table):
-        return {"items": [], "total": self.sector_total, "limit": limit, "offset": offset,
-                "facets": {"quadrant": []}}
+        return {"items": [], "total": self.sector_total, "limit": limit, "offset": offset}
 
 
 @pytest.fixture

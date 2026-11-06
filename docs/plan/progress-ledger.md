@@ -684,7 +684,7 @@ Baseline: PR #1817.
 | UX.111 | 8.1 | Spherical Sector Coordinates (TOP PRIORITY, Boss 2026-10-15 06:39Z) |
 | UX.112 | 8.1 | Spherical Sector Coordinates (TOP PRIORITY, Boss 2026-10-15 06:39Z) |
 | UX.117 | 8.1 | Maps |
-| VIEW.5 | 9.1 | View |
+| VIEW.5 | 9.0 | View |
 | GEN.281 | 8.1 | Anomalies |
 | GEN.236 | 8.1 | Orbital updates |
 | PERF.104 | 8.1 | Orbital updates |
@@ -2521,3 +2521,126 @@ Baseline: PR #1817.
 | GEN.1246 | 8.2 | Robust tile caching |
 | GEN.1244 | 8.2 | Robust tile caching |
 | TEST.346 | 8.1 | Bugs and flaky tests |
+| GEN.1218 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.575 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.595 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.597 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.49 | 8.5 | Waypoints and editing |
+| MAP.382 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.596 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.58 | 8.5 | Waypoints and editing |
+| TEST.601 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1280 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1279 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1232 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.27 | 8.5 | Steering clear of gravity wells |
+| NAV.51 | 8.5 | Steering clear of gravity wells |
+| TEST.292 | 8.1 | Bugs and flaky tests |
+| TEST.411 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.603 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| NAV.62 | 8.5 | Steering clear of gravity wells |
+| NAV.76 | 8.5 | Steering clear of gravity wells |
+| NAV.75 | 8.5 | Steering clear of gravity wells |
+| NAV.74 | 8.5 | Steering clear of gravity wells |
+| NAV.26 | 8.5 | Steering clear of gravity wells |
+| NAV.25 | 8.5 | Steering clear of gravity wells |
+| TEST.599 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.611 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.604 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.605 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.610 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.609 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.608 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.607 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.618 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.617 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.615 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.613 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.612 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.228 | 8.1 | Queue, caches and performance |
+| UX.241 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.622 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.620 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.619 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.235 | 8.2 | Robust tile caching |
+| NAV.39 | 8.5 | Saved courses |
+| NAV.22 | 8.5 | Courses on the maps |
+| NAV.5 | 8.5 | Courses on the maps |
+| UX.263 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.187 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.383 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| DB.40 | 8.9 | Parity data |
+| DB.41 | 8.9 | Parity data |
+| OPS.104 | 8.2 | Robust tile caching |
+| GEN.1111 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1120 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.264 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1286 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.384 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| MAP.385 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| OPS.96 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.97 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| PERF.219 | later | Paging audit |
+| TEST.626 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.393 | 8.5 | Console look: icons and the maps' chrome |
+| MAP.366 | 8.1 | Nebula data foundations |
+| UX.272 | 8.1 | Interface update |
+| MAP.386 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| PERF.243 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| MAP.387 | 8.3 | Gravity field evaluator |
+| MAP.369 | 8.1 | Nebula data foundations |
+| UX.164 | 8.1 | Habitability system |
+| TEST.631 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.621 | 8.1 | Physics rectification: citations and the gate's test health |
+| UX.277 | 8.2 | User features |
+| TEST.628 | 8.2 | User features |
+| VIEW.43 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
+| VIEW.44 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
+| MAP.392 | 8.1 | Fly-through map |
+| GEN.1294 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| UX.275 | 8.2 | User features |
+| OPS.106 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.107 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.108 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.109 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| UX.279 | 8.2 | User features |
+| UX.278 | 8.2 | User features |
+| MAP.398 | 8.1 | Fly-through map |
+| UX.276 | 8.2 | User features |
+| MAP.397 | 8.1 | Fly-through map |
+| GEN.1289 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.499 | 8.1 | Physics rectification: infrared opacity, tides and the class re-sweep |
+| TEST.498 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.632 | 8.1 | Physics rectification: citations and the gate's test health |
+| API.24 | 8.3 | Gravity field evaluator |
+| MAP.168 | 8.5 | Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05) |
+| PERF.242 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| MAP.169 | 8.5 | Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05) |
+| UX.94 | 8.5 | Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05) |
+| GEN.1071 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1254 | 8.1 | Physics rectification: names, designations and Object IDs |
+| GEN.1221 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1258 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1250 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.995 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| GEN.962 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| GEN.1262 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.1263 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.1264 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.367 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| PERF.238 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| TEST.633 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.635 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.636 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.638 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.614 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.637 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.852 | 8.1 | Physics rectification: infrared opacity, tides and the class re-sweep |
+| GEN.1260 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| TEST.585 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.616 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.643 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.640 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.645 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1301 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1302 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
