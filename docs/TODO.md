@@ -17200,16 +17200,31 @@ clears each one.
   8.1. Owner: none yet (life lane). Filed by the TODO thread from Bug 1.
   Prerequisites: none. Related: GEN.750.
 
-- [ ] **TEST.654 tests/test_sheet_fill.py::test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies fails on main (bug)**
-  Aux 5 found it red on plain main (5:10 PM EST as the lane reported)
-  while testing GEN.1092 part B, and says it is not its change. The test
-  checks that every body kind whose property sheet says tide applies
-  stores a tide. Do: say which commit turned it red (bisect the one test
-  file), which item owns it, and either fix the test with the reason or
-  fix the code that stopped storing the tide. Lock-free unless stored
-  values change. Done: the test is green on main with a note of the
-  cause. Version 8.1. Owner: Tides 1 (tides). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.842.
+- [ ] **TEST.654 tests/test_sheet_fill.py::test_a_sample_has_no_empty_column_that_applies_and_is_not_filed fails on main: runner_up_class is empty for moons of class D and many planet classes (bug)**
+  Aux 5 reported test_sheet_fill red on plain main (5:10 PM EST as the
+  lane reported); Tides 1 found the failing test (5:16 PM EST as the lane
+  reported): in 12 systems from seed 7100 the runner_up_class column is
+  empty for moons of class D and many planet classes though the sheet
+  says it applies. The tide test of the same file passes. Do: bisect the
+  one test file, say which item owns it, and either fix the test (the
+  sheet may be wrong to say it applies) or fix the code that stopped
+  storing the runner-up. Lock-free unless stored values change. Done:
+  the test is green on main with a note of the cause. Version 8.1.
+  Owner: Core 4 (class fit). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1281.
+
+- [ ] **TEST.655 tests/test_ice_species.py: a Pluto-like body's ice_n2_mass_fraction reads 0.0 after a database round trip, expected 0.1455 (bug)**
+  Tides 1 hit it red on plain main while running its gate (5:16 PM EST as
+  the lane reported):
+  test_a_pluto_like_and_a_co2_frost_mars_like_body_keep_their_species_through_the_database.
+  The stored Pluto-like body's ice_n2_mass_fraction comes back 0.0 where
+  0.1455 was written. Do: find where the species fraction is lost between
+  the generated body and the stored row (a missing column in the writer
+  or reader, or a unit pass), bisect, and fix the code or the test with
+  the reason. Lock if stored values change, else lock-free. Done: the
+  test is green on main with a note of the cause. Version 8.1. Owner:
+  Planets 1 (stored composition). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1276.
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
