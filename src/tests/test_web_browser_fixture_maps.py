@@ -392,6 +392,8 @@ def test_sector_map_has_no_rogue_planet_marker_button(page, map_site):
 def _open_menu(page):
     if not page.locator("#galaxymap3d-menu").evaluate("m => m.open"):
         page.locator("#galaxymap3d-menu > summary").click()
+    # UX.278: a sector page's Menu folds its headings; the tests that press its switches want them all open.
+    page.locator("#galaxymap3d-kinds details.view-menu-heading").evaluate_all("els => els.forEach(e => { e.open = true; })")
 
 
 POI_LAYERS = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
@@ -416,14 +418,14 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
     before = _shot(page, SECTOR_CANVAS)
     _open_menu(page)
-    buttons = page.locator("#galaxymap3d-kinds button[data-kind]")
-    names = buttons.all_inner_texts()
+    buttons = page.locator("#galaxymap3d-kinds input[data-kind]")
+    names = [b.evaluate("el => el.closest('label').innerText.trim()") for b in buttons.all()]
     assert "Stars" in names and "Rogue planets" in names, names
-    assert [b.get_attribute("aria-pressed") for b in buttons.all()] == [
-        "false" if name == "Rogue planets" else "true" for name in names], "all on but the rogue planets (MAP.137)"
-    stars = page.locator('#galaxymap3d-kinds button[data-kind="star"]')
+    assert [b.is_checked() for b in buttons.all()] == [name != "Rogue planets" for name in names], \
+        "all on but the rogue planets (MAP.137)"
+    stars = page.locator('#galaxymap3d-kinds input[data-kind="star"]')
     stars.click()
-    assert stars.get_attribute("aria-pressed") == "false"
+    assert not stars.is_checked()
     assert "hide=star" in page.url
     page.locator("#galaxymap3d-menu > summary").click()   # the open Menu covers the spot of the star
     page.mouse.click(_x, _y)
@@ -433,10 +435,10 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     # A reload keeps it.
     page.reload()
     page.wait_for_selector(".starmap-sr-list button", state="attached")
-    page.wait_for_selector('#galaxymap3d-kinds button[data-kind="star"]', state="attached")
+    page.wait_for_selector('#galaxymap3d-kinds input[data-kind="star"]', state="attached")
     _open_menu(page)
-    assert page.locator('#galaxymap3d-kinds button[data-kind="star"]').get_attribute("aria-pressed") == "false"
-    page.locator('#galaxymap3d-kinds button[data-kind="star"]').click()
+    assert not page.locator('#galaxymap3d-kinds input[data-kind="star"]').is_checked()
+    page.locator('#galaxymap3d-kinds input[data-kind="star"]').click()
     assert "hide" not in page.url
 
 
@@ -451,32 +453,32 @@ def test_sector_map_a_registered_layer_has_a_menu_button_a_url_key_and_a_legend_
         layers.refresh();
     }""")
     _open_menu(page)
-    button = page.locator('#galaxymap3d-kinds button[data-layer="testLayer"]')
-    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button = page.locator('#galaxymap3d-kinds input[data-layer="testLayer"]')
+    assert button.count() == 1 and button.is_checked()
     legend = page.locator("#galaxymap3d-layer-legend")
     assert "marks the test layer" in legend.inner_text()
     button.click()
-    assert button.get_attribute("aria-pressed") == "false"
+    assert not button.is_checked()
     assert "hide=testLayer" in page.url
     assert "marks the test layer" not in legend.inner_text(), "an off layer has no legend line"
     button.click()
     assert "hide" not in page.url
     assert "marks the test layer" in legend.inner_text()
     # The kinds the sector stage owns still work beside it.
-    assert page.locator('#galaxymap3d-kinds button[data-kind="star"]').get_attribute("aria-pressed") == "true"
+    assert page.locator('#galaxymap3d-kinds input[data-kind="star"]').is_checked()
 
 
 def test_sector_map_show_on_map_shows_a_hidden_kind_again(page, map_site):
     _open_sector(page, map_site, "?contents_type=Rogue+Planet")
     _open_menu(page)
     rogue = next(p for p in PHENOMENA if p["type"] == "rogue_planet")
-    toggle = page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]')
-    assert toggle.get_attribute("aria-pressed") == "false", "rogue planets begin hidden (MAP.137)"
+    toggle = page.locator('#galaxymap3d-kinds input[data-kind="roguePlanet"]')
+    assert not toggle.is_checked(), "rogue planets begin hidden (MAP.137)"
     page.locator("#galaxymap3d-menu > summary").click()  # closed, so its panel isn't over the table
     button = page.locator(f'[data-map-target="rogue_planet:{rogue["id"]}"]')
     button.click()
     assert _info_title(page) == rogue["name"]
-    assert toggle.get_attribute("aria-pressed") == "true", "selecting it shows its kind again"
+    assert toggle.is_checked(), "selecting it shows its kind again"
     assert "show=roguePlanet" in page.url and "hide" not in page.url
 
 
@@ -4890,7 +4892,7 @@ def test_sector_map_highlight_draws_a_phenomenon_kind_larger_and_keeps_it_in_the
     toggle = page.locator('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]')
     assert toggle.get_attribute("aria-pressed") == "false"
     # MAP.137: rogue planets start hidden, and a hidden kind has nothing to highlight; show them first.
-    page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]').click()
+    page.locator('#galaxymap3d-kinds input[data-kind="roguePlanet"]').click()
     page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
     # The shots are taken with the Menu closed: its panel hangs over the map.
     page.locator("#galaxymap3d-menu").evaluate("m => { m.open = false; }")
