@@ -17113,12 +17113,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.593.
 
-- [ ] **TEST.642 tests/test_work_units.py: three tests start a second run in the same process and raise Busy from the ADM.136 guard (a run started inside a run would wait for itself for ever) (bug)**
-  The Train Manager (as the lane reported, about 11:24 PM EST on 2026-11-05, main e97e2e2d9) ran tests/test_work_units.py: test_a_second_run_waits_in_line_for_the_first_and_then_runs, test_a_runs_results_do_not_depend_on_the_place_it_started_from and test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for raise planetgen.queue.runrecord.Busy: the run is started by the same process that follows it, so it would wait for itself for ever. That is the ADM.136 guard (#4680) firing on tests that start a second run in the same pytest process. Do: start the first run from a separate process (or a thread that is not the follower) in those tests so the guard stays, and never weaken the guard. Reproduce on current main first. Lock-free, no
-  migration. Done: the test passes on current main. Version 8.1. Owner:
-  Core 1. Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **GEN.1303 Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug)**
   Bug 1 (as the lane reported, 5:21 AM EST on 2026-11-06) found
   test_sweep_bulk's detail-ranges check red on plain main: 10 sweep bodies
@@ -17244,6 +17238,21 @@ clears each one.
   remnants and black holes. Version 8.1. Owner: Core 2. Filed by the TODO
   thread.
   Prerequisites: none. Related: MAP.399, PERF.245.
+
+- [ ] **MAP.401 An uncharted sector has an info page showing what is placed in it, with a link to each object's page**
+  Boss, 5:11 PM EST on 2026-11-06 (relayed by the coordinator): uncharted
+  sectors should have an info page showing what is known in the sector
+  (what is placed) with links to each object page in the uncharted
+  sector. Do: the page for a placeholder sector (MAP.399 names it) lists
+  the rogue planets, black holes, remnants, nebula clouds and other
+  scattered objects placed in its cell, each linked to its own object
+  page, and says plainly that the sector is uncharted and what that
+  means (nothing generated here yet). Reads phenomenon_scatter,
+  nebula_field and the rogue rows by cell; a browser test follows a link
+  to an object page. Lock-free. Done: the placeholder's page lists its
+  known objects with working links. Version 8.1. Owner: Planets 1,
+  after MAP.399. Filed by the TODO thread.
+  Prerequisites: MAP.399. Related: MAP.400, GEN.1111.
 
 - [ ] **PERF.245 The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types**
   Boss, 5:08 PM EST on 2026-11-06: the warm-up takes all workers, so
