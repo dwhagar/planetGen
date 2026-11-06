@@ -390,7 +390,7 @@ with `clamp()`.
   a one-line explanation each, the Map help dialog explains what the
   colours mean and what a saddle point is, and no TODO code appears in
   any of it (UX.93, done).
-  Prerequisite: MAP.168. Related: MAP.167.
+  Prerequisites: none. Related: MAP.167.
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
