@@ -208,10 +208,10 @@ def live_worker_count(queue):
 
 def lane_of(queue_name):
     """
-    The queues one worker started for `queue_name` serves (PERF.245): the maintenance lane's three (`redisqueue.MAINTENANCE_LANE`,
+    The queues one worker started for `queue_name` serves (PERF.245): the maintenance lane's three (`redisqueue.maintenance_lane()`,
     one per task type, taken in turn) for any of them, else just the queue itself.
     """
-    return redisqueue.MAINTENANCE_LANE if queue_name in redisqueue.MAINTENANCE_LANE else (queue_name,)
+    return redisqueue.maintenance_lane() if queue_name in redisqueue.maintenance_lane() else (queue_name,)
 
 
 def reserved_places(queue_name):
@@ -221,7 +221,7 @@ def reserved_places(queue_name):
     workers only while the host runs fewer than the cap less these, so a warm-up or a generation run that has used up the host's
     places never leaves a visitor's search or sector list with no worker to start; the two lanes themselves may use the whole cap.
     """
-    if queue_name not in (redisqueue.BULK_QUEUE, *redisqueue.MAINTENANCE_LANE):
+    if queue_name not in (redisqueue.BULK_QUEUE, *redisqueue.maintenance_lane()):
         return 0
     from planetgen.util.settings import get_settings
     section = get_settings().queue
@@ -293,9 +293,9 @@ def _start_missing(queue, names, connection, url, mysql_host, count, waiting):
               f"{max(0, need)} to start", area="queue")
     started = 0
     for _ in range(max(0, need)):
-        running, host_cap = host_worker_processes(), host_worker_cap() - reserved_places(queue_name)
-        if running >= host_cap:
-            _note_refused(connection, queue_name, running, host_cap)
+        running, host_cap, kept = host_worker_processes(), host_worker_cap(), reserved_places(queue_name)
+        if running >= host_cap - kept:
+            _note_refused(connection, queue_name, running, host_cap, kept)
             break
         connection.incr(starting_key)
         connection.expire(starting_key, STARTING_SECONDS)
@@ -379,13 +379,15 @@ def host_worker_processes():
     return count_worker_processes(listing)
 
 
-def _note_refused(connection, queue_name, running, host_cap):
-    """Counts a start the host cap refused and says so in the log, once a minute."""
+def _note_refused(connection, queue_name, running, host_cap, kept=0):
+    """Counts a start the host cap refused and says so in the log, once a minute; `kept` is how many of the cap's places the
+    queue's lane may not take (`reserved_places`)."""
     connection.incr(REFUSED_KEY)
     connection.expire(REFUSED_KEY, 3600)
     if connection.set(REFUSED_NOTE_KEY, "1", nx=True, ex=REFUSED_NOTE_SECONDS):
         log.normal(f"Worker start refused for {queue_name}: {running} planetgen worker processes already run on this "
-                   f"host, and the cap is {host_cap} (queue.max_host_workers, 0 sizes it from memory and cores).")
+                   f"host, and the cap is {host_cap}{f', {kept} of its places kept for short and long jobs' if kept else ''} "
+                   "(queue.max_host_workers, 0 sizes it from memory and cores).")
 
 
 def maintenance_cap(connection, mysql_host=None):
@@ -406,7 +408,7 @@ def maintenance_share(connection, mysql_host=None):
     many places."""
     queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
     busy = sum(1 for worker in live_workers(queue) if worker.get_state() != "idle")
-    waiting = sum(redisqueue.queue(name, connection).count for name in redisqueue.MAINTENANCE_LANE)
+    waiting = sum(redisqueue.queue(name, connection).count for name in redisqueue.maintenance_lane())
     return min(maintenance_cap(connection, mysql_host), busy + waiting)
 
 

@@ -62,7 +62,7 @@ def warm(queues=None):
         warmup.build_app()      # PERF.245: made once here and dropped; what it imports and sets up stays, so a horse's build_app takes 0.07 s, not 6.8 s
 
 
-APP_QUEUES = frozenset({*redisqueue.MAINTENANCE_LANE, redisqueue.INTERACTIVE_QUEUE, redisqueue.LONG_QUEUE})
+APP_QUEUES = frozenset({*redisqueue.maintenance_lane(), redisqueue.INTERACTIVE_QUEUE, redisqueue.LONG_QUEUE})
 """frozenset: The queues whose jobs build the site's app (`web/warmup.build_app`): a warm-up unit, a node prefetch, a slow page's answer
 (`queue/pagejobs.build_answer`). Their workers build it once before they fork a horse for a job (PERF.245); building it opens no
 connection or thread, so the horses share it safely. On a 4-core test box it cost a horse 6.8 s a job and costs a worker 75 MB."""
@@ -105,7 +105,7 @@ def worker_class(round_robin=False):
     TEST.371: when it registers, it stops counting among the workers `ensure_workers` is waiting for
     (`workers.registered`), so one killed soon after it started is replaced at once.
 
-    PERF.245: a worker of several queues (`round_robin`, the maintenance lane's `redisqueue.MAINTENANCE_LANE`) is RQ's
+    PERF.245: a worker of several queues (`round_robin`, the maintenance lane's `redisqueue.maintenance_lane()`) is RQ's
     `RoundRobinWorker`: it takes one job from each queue in turn, so a cache warm-up that queued thousands of units never makes a
     database check or a visitor's node wait behind them; with one queue it is the plain `rq.Worker`.
     """
