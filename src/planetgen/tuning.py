@@ -2138,6 +2138,11 @@ PLANET_CLASSES = {
         "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
+    # GEN.1207: the letters of the best-fit classes (GEN.1221, GEN.1258): R hothouse, U methane-ethane, X ammonia-water, Y sulfuric acid, Z hot thin-air.
+    'R': {
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
+    },
     'S': {
         "composition": 'silicate rock over a large iron core',
         "type": 't',
@@ -2147,8 +2152,24 @@ PLANET_CLASSES = {
         "type": 'g',
         "also_type": 't',       # GEN.1142: a terrestrial-kind body under about 10 Earth masses with a hydrogen-dominated air is a gas dwarf too
     },
+    'U': {
+        "composition": 'silicon, iron, magnesium, ice, and hydrocarbons',
+        "type": 't',
+    },
     'V': {
         "composition": 'iron, iridium, tungsten, and nickel',
+        "type": 't',
+    },
+    'X': {
+        "composition": 'silicon, iron, magnesium, water ice, and ammonia',
+        "type": 't',
+    },
+    'Y': {
+        "composition": 'silicon, iron, magnesium, and sulfur',
+        "type": 't',
+    },
+    'Z': {
+        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
 }
