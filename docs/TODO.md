@@ -14934,23 +14934,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after GEN.1298. Filed by the TODO thread.
   Prerequisites: GEN.1282. Related: PERF.241, GEN.1282.
 
-- [ ] **PERF.242 Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget**
-  Bug 1's profile of PERF.241 (as the lane reported, about 4:35 PM EST
-  on 2026-11-05; reports/perf241-all-flags-o0v-profile-2026-11-05.md):
-  the forced habitable world makes the placement loop draw the whole
-  system 8 times and spend the 60-planet request budget. Gas equilibrium
-  (29,800 solves of 7 ms, none repeated) is 54 percent of the unprofiled
-  time, so a cache gains nothing and a warm start of the Newton loop
-  gains 10 to 20 percent without changing output. Do: say from the
-  physics which draws can be skipped for a star where no habitable world
-  can exist (a hot O or B star's habitable zone is far out and
-  short-lived: the forced flag cannot be met before the star leaves the
-  main sequence), short-circuit those, and warm-start the Newton solve
-  where bits are unchanged. Output changes for forced-flag draws: lock
-  item with the generator epoch, after the item above. Done: see the
-  item above. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
-  Prerequisites: GEN.1282. Related: PERF.241.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
