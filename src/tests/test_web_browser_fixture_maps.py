@@ -3368,14 +3368,16 @@ def test_the_charted_regions_are_soft_spheres_at_galactic_scale_colored_by_share
 def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card(page, map_site):
     """MAP.321 c: at galactic scale a region whose list entry has inhabited worlds carries the inhabited symbol at its middle
     (the Menu's Inhabited worlds layer, on by default), in the colour of its best world's tier; picking it shows the region's card with
-    the inhabited line, and a region without any has no token."""
+    the inhabited line. A region without any carries the Region symbol instead (the Menu's Charted regions layer, #5208), and a region
+    already marked by its inhabited token is not marked twice. MAP.398: the test once said a region without inhabited worlds has no token;
+    that stopped being so when the Region symbol came in."""
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
     page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
     found = _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
     tokens = [e for e in found if e["regionKey"]]
-    assert [(e["kind"], e["regionKey"]) for e in tokens] == [("marker-inhabited", "9.0.0.0")], found
-    assert tokens[0]["name"] == "Fixture Beez Region", tokens
+    assert sorted((e["kind"], e["regionKey"]) for e in tokens) == [("marker-inhabited", "9.0.0.0"), ("marker-region", "9.1.0.0")], found
+    assert {e["regionKey"]: e["name"] for e in tokens} == {"9.0.0.0": "Fixture Beez Region", "9.1.0.0": "Fixture Zarh Region"}, tokens
     spot = next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.0.0.0")
     assert spot["visible"]
     box = page.locator(GALAXY_CANVAS).bounding_box()
@@ -3389,13 +3391,16 @@ def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_tha
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     info = page.locator("#galaxymap3d-info").inner_text()
     assert "3 inhabited worlds in 2 systems, best Blue" in info, info
-    # Switching the Inhabited worlds layer off takes the token, and the regions layer off takes it with its sphere.
+    # Switching the Inhabited worlds layer off takes the inhabited token and leaves its region the Region symbol; switching it on again
+    # gives the token back. The regions layer off takes every token with the spheres.
+    def kinds_of_tokens(entries):
+        return sorted((e["kind"], e["regionKey"]) for e in entries if e["regionKey"])
+
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
-    _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
-    assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
+    _markers_until(page, lambda entries: kinds_of_tokens(entries) == [("marker-region", "9.0.0.0"), ("marker-region", "9.1.0.0")])
     page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
-    _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
+    _markers_until(page, lambda entries: kinds_of_tokens(entries) == [("marker-inhabited", "9.0.0.0"), ("marker-region", "9.1.0.0")])
     page.locator('#galaxymap3d-kinds button[data-layer="regions"]').click()
     _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
     assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
