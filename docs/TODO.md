@@ -16859,6 +16859,21 @@ clears each one.
   Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
   Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430.
 
+- [ ] **GEN.1318 Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers**
+  Boss, 6:36 PM EST on 2026-11-06 (relayed by the coordinator): the oxygen
+  envelope was still being fixed when the fudge cap was set, so revisit the
+  spread. Do: after GEN.1309 and GEN.1306 parts 2 and 3 are on main, rerun
+  the sensitivity harness (GEN.1311) and the no-cap minimal-fudge sweep
+  (GEN.1312), rebuild the matrix and the table (GEN.1313), re-derive the
+  widths and the cap tiers at the knees of the share-placed-versus-cap
+  curve, and report what changed against the first run (cap tiers, share of
+  bodies placed, bodies past the widest tier). The run is on a lane machine
+  with MySQL, Redis and the datasets (scripts/lane_up.sh). Lock-free until
+  the table is read (GEN.1314); if GEN.1314 is already on a train, the
+  re-derived table rides it. Version 8.1. Owner: the thread "Run fudge cap
+  simulation sweep". Filed by the TODO thread.
+  Prerequisites: GEN.1309, GEN.1312, GEN.1313. Related: GEN.1306, GEN.1314.
+
 - [ ] **TEST.656 Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876**
   Train Manager census run on main d2b0ba47b (3:30 PM EST on 2026-11-06,
   as the lane reported), notes
