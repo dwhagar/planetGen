@@ -35627,6 +35627,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "nebula_columns.GRAIN_NAME_SHARE 0.15: the share of the dust a grain kind must hold for dominant_species to name it (a wording cut)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_composition.GAS_OH_MAX_DEX 0.7: the highest [O/H] the gas of a place can have, dex (the gradient is capped; a galaxy with a very wide disk would otherwise put the gas several dex above solar)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1.0"
+            ],
+            [
+              "Where it holds",
+              "the inner Milky Way disk; a galaxy whose reference radius is a few times the Milky Way's"
+            ],
+            [
+              "What would show it wrong",
+              "an H II region in the inner disk with [O/H] above +0.7"
+            ],
+            [
+              "What replaces it",
+              "the gas metallicity from the galaxy's own chemical-evolution model"
+            ],
+            [
+              "Evidence",
+              "the most metal-rich gas measured in the inner Milky Way disk is about +0.5"
+            ]
+          ],
+          "id": "NBC16",
+          "key": "6.179:NBC16",
+          "kind": "P",
+          "slug": "6-179-nbc16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_composition.GAS_OH_MAX_DEX 0.7: the highest [O/H] the gas of a place can have, dex (the gradient is capped; a galaxy with a very wide disk would otherwise put the gas several dex above solar)"
         }
       ],
       "slug": "6-179-stand-ins-of-the-composition-of-a-nebula",
