@@ -61,7 +61,7 @@ Kinds: **physics** (a law or a sourced fit, keep), **sourced stand-in** (a publi
 | 13 | Retention test | `ROGUE_MIN_ESCAPE_PARAMETER` 15 | physics (Jeans) | keep | none |
 | 14 | Speed | generic galactic orbit; no ejection kick | missing | ejection speed from the encounter (scatterer escape speed at periapsis) added to the host's velocity (GEN.1111 storage research) | velocity dispersion of the free-floating population |
 | 15 | Origin / parent | none | missing | record ejecting system and ejection time (or "formed free") so the page gets a history sentence | every rogue has a parent id or "formed free" |
-| 16 | Cluster unbinding | not modelled | missing | stellar-encounter stripping of wide orbits in the birth cluster, GEN.291 | fraction unbound by cluster age |
+| 16 | Cluster unbinding | modelled (GEN.1288): a star of a cluster (`stars.cluster_id`) is built with the cluster's history (`cluster_unbinding.history_of`); each architecture planet takes a draw, and one the cluster unbinds (`unbinding_epoch_myr`, soft pieces only) leaves the system and is made again as a rogue whose note says its birth cluster unbound it | done | stellar-encounter stripping of wide orbits in the birth cluster, GEN.291 | fraction unbound by cluster age |
 
 ## 4. Small findings in code
 

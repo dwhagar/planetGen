@@ -6955,7 +6955,7 @@ def replace_galaxy_components(conn, found, kind=None):
           int(c.core_collapsed), c.seed) for c in found])
 
 
-def get_galaxy_components(conn, kind=None, profile=None):
+def get_galaxy_components(conn, kind=None, profile=None, ids=None):
     """
     The stored components, by id.
 
@@ -6964,14 +6964,23 @@ def get_galaxy_components(conn, kind=None, profile=None):
         kind (str, optional): Only this kind.
         profile (str, optional): Only this density profile (the containers' read wants the 157 King clusters among a
             plan's tens of thousands of components, PERF.165).
+        ids (iterable, optional): Only the components with these ids (the cluster a star belongs to, GEN.1288); none given for an empty list.
 
     Returns:
         list[galaxy.components.Component]: Each with its `id`.
     """
     sql = f"SELECT id, {', '.join(GALAXY_COMPONENT_COLUMNS)} FROM galaxy_components"
     tests = [(column, value) for column, value in (("kind", kind), ("profile", profile)) if value]
-    where = " WHERE " + " AND ".join(f"{column} = ?" for column, _ in tests) if tests else ""
-    rows = conn.execute(sql + where + " ORDER BY id", tuple(value for _, value in tests)).fetchall()
+    clauses = [f"{column} = ?" for column, _ in tests]
+    params = [value for _, value in tests]
+    if ids is not None:
+        ids = sorted({int(each) for each in ids})
+        if not ids:
+            return []
+        clauses.append(f"id IN ({', '.join('?' for _ in ids)})")
+        params.extend(ids)
+    where = " WHERE " + " AND ".join(clauses) if clauses else ""
+    rows = conn.execute(sql + where + " ORDER BY id", tuple(params)).fetchall()
     return [galaxyComponents.Component(
         id=row["id"], kind=row["kind"], name=row["name"], catalogue_id=row["catalogue_id"], source=row["source"],
         parent_component_id=row["parent_component_id"],

@@ -126,6 +126,7 @@ from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
 from planetgen.db.render import describe_system, render_system_text
+from planetgen.physics import cluster_unbinding
 from planetgen.physics.units import ly_to_milliparsecs, pc_to_ly
 from planetgen.util import detmath
 
@@ -1681,6 +1682,10 @@ def generate_uncharted_system_job(config, bright_star_id):
                                status_code=409)
             system_config = SystemConfig()
             system_config.POPULATION = row["population"]
+            if row["cluster_id"] is not None:         # GEN.1288: the cluster the star was born in pulls planets off it
+                cluster = store.get_galaxy_components(conn, kind="cluster", ids=[row["cluster_id"]])
+                if cluster:
+                    system_config.CLUSTER_HISTORY = cluster_unbinding.history_of(cluster[0].mass_solar, cluster[0].half_mass_radius_pc, cluster[0].age_gy) or None
             x, y, z = (row[f"position_{axis}_mpc"] / brightStars.MPC_PER_PC for axis in "xyz")
             # GEN.315: the system is the tree the row stored, and draws no companion of its own
             plan = stored_trees.plan(scatter_systems.read_stored_trees(conn, "bright_stars", [bright_star_id])

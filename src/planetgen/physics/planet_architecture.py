@@ -66,11 +66,11 @@ how many oligarchs merged into it, whether it migrated in to a hot Jupiter orbit
 composition reads, the snow line it was born past)."""
 
 Lost = collections.namedtuple("Lost", ("chain_mass_kg", "merge_debris_kg", "merges", "capped_kg", "capped", "small", "swept", "thrown", "snow_line_au",
-                                       "star_mass_kg"))
+                                       "star_mass_kg", "stripped"))
 """What the build lost, raw, for `losses` to class: the chain's whole mass in kilograms (what the planets and the losses must add up to), the mass
 the merges did not keep and their number, the mass the core cap of a planet without gas cut off and the number of planets cut, the chain bodies
 below the planet minimum as `[distance_au, mass_kg]`, the planets a giant swept as `(seed, giant)`, the planets a crowded giant threw out as
-`(seed, heavier)`, the star's snow line (AU) and mass (kg)."""
+`(seed, heavier)`, the star's snow line (AU) and mass (kg), and the planets its birth cluster pulled off (`strip`) as `(seed, time_yr)`."""
 
 Architecture = collections.namedtuple("Architecture", ("planets", "disk_scatter", "separation", "oligarchs", "lost"))
 """The planets in order of distance, the factor the disk's solids were scattered by, the spacing the oligarchs formed at (mutual Hill
@@ -78,7 +78,7 @@ radii), the number of oligarchs before the thinning and what the build lost (`Lo
 
 Loss = collections.namedtuple("Loss", ("kind", "count", "mass_kg", "core_kg", "distance_au", "formation_au", "time_yr", "perturber_au", "perturber_mass_kg",
                                        "theta", "hill_radius_au", "ice_rich", "ejected", "collided", "bound"))
-"""One loss of the architecture (`losses`): `kind` ('merge', 'sub_minimum', 'swept' or 'thrown'), the number of bodies it stands for and their total mass and
+"""One loss of the architecture (`losses`): `kind` ('merge', 'sub_minimum', 'swept', 'thrown' or 'stripped'), the number of bodies it stands for and their total mass and
 core mass in kilograms, where it sat and formed (AU; None for the merges), when it was lost (years; None for the merges), the perturber's orbit and
 mass, the Safronov number of the encounter, the body's own Hill radius there (AU; the moons that stay bound sit inside a fraction of it), whether it
 formed beyond the snow line, and the shares `ejected`, `collided` and `bound` (summing to 1; `scatter.loss_fates`)."""
@@ -433,8 +433,23 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
     seeds.sort(key=lambda s: s.distance_au)
     seeds, swept, thrown = _clear_split(seeds, star_mass_kg)
     lost = Lost(sum(body[1] for body in chain), merge_debris, merges, capped_kg, capped, tuple((body[0], body[1]) for body in small), tuple(swept), tuple(thrown),
-                snow_line_au, star_mass_kg)
+                snow_line_au, star_mass_kg, ())
     return Architecture(tuple(seeds), scatter, separation, len(chain), lost)
+
+
+def strip(architecture, stripped):
+    """
+    `architecture` with the planets its birth cluster pulled off taken out of `planets` and put in `lost.stripped` (GEN.1288, `cluster_unbinding`): a planet that leaves is a loss, so what the planets and the losses hold still adds up to the chain.
+
+    Args:
+        architecture (Architecture): The architecture.
+        stripped (sequence): `(seed, time_yr)` for each planet pulled off, the time after the cluster formed.
+    """
+    if not stripped:
+        return architecture
+    gone = {id(seed) for seed, _time in stripped}
+    kept = tuple(seed for seed in architecture.planets if id(seed) not in gone)
+    return architecture._replace(planets=kept, lost=architecture.lost._replace(stripped=architecture.lost.stripped + tuple(stripped)))
 
 
 def _seed_radius_earth(seed):
@@ -488,6 +503,9 @@ def losses(architecture):
                             scatter_rule.hill_radius_au(mass / _EARTH_KG, distance, star_solar), distance > lost.snow_line_au, fates))
     if free_count:
         result.append(Loss("sub_minimum", free_count, free_mass, free_mass, None, None, None, None, None, None, None, False, 0.0, 0.0, 1.0))
+    for seed, time_yr in lost.stripped:
+        result.append(Loss("stripped", 1, seed.mass_kg, seed.core_kg, seed.distance_au, seed.formation_au, time_yr, None, None, None,
+                           scatter_rule.hill_radius_au(seed.mass_kg / _EARTH_KG, seed.distance_au, star_solar), seed.formation_au > lost.snow_line_au, 1.0, 0.0, 0.0))
     return tuple(result)
 
 

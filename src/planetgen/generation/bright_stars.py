@@ -52,7 +52,7 @@ import math
 
 import numpy as np
 
-from planetgen.physics import constants, metallicity, spin
+from planetgen.physics import cluster_unbinding, constants, metallicity, spin
 from planetgen.physics.stellar_evolution import birth_fe_h
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
@@ -1595,14 +1595,16 @@ class FillContext:
             (`db.scatter_systems.read_stored_trees`, GEN.315); a row not in it is a single star.
         orbit_epoch_unix (float or None): The orbit epoch a built system holds its phases at; a stored node is carried
             to it. `None` when no orbit update has run (a node keeps the time it was drawn at).
+        clusters (dict): The clusters the `bright_rows` belong to, `{galaxy_components.id: Component}` (GEN.1288): a star of one is built with the cluster's history.
         residents (tuple): The `resident_mass.Resident`s the sector already holds from elsewhere when it is filled (rogue planets and asteroid fields that
             landed in it, GEN.1124): their mass comes off the sector's system draw (`resident_share`).
     """
 
     def __init__(self, profile, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
                  below_cut=None, star_mass_limit_sol=None, resolution=None, emission_hosts=(), member_trees=None,
-                 orbit_epoch_unix=None, residents=()):
+                 orbit_epoch_unix=None, residents=(), clusters=None):
         self.residents = tuple(residents)
+        self.clusters = dict(clusters or {})
         self.member_trees = dict(member_trees or {})
         self.orbit_epoch_unix = orbit_epoch_unix
         self.emission_hosts = tuple(emission_hosts)
@@ -1622,6 +1624,13 @@ class FillContext:
         """What a build of the `bright_rows` row `row_id` takes from its stored tree (`stored_trees.StoredPlan`): a
         single star for a row with no members."""
         return stored_trees.plan(self.member_trees.get(row_id), self.orbit_epoch_unix)
+
+    def cluster_history(self, row):
+        """The history (`cluster_unbinding.history_of`) of the cluster the `bright_rows` row belongs to, or `None` for a star of no cluster or of one this context does not hold."""
+        cluster = self.clusters.get(row.get("cluster_id"))
+        if cluster is None:
+            return None
+        return cluster_unbinding.history_of(cluster.mass_solar, cluster.half_mass_radius_pc, cluster.age_gy) or None
 
     @functools.cached_property
     def place_terms(self):

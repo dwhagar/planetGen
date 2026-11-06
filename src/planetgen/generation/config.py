@@ -263,6 +263,13 @@ class SystemConfig:
         from the center. None draws from the population's mean (`metallicity.mean_fe_h`). Not saved with the config.
         """
 
+        self.CLUSTER_HISTORY = None
+        """
+        tuple or None: The history of the cluster a star of the system belongs to, `(duration_myr, density, speed)` pieces
+        (`cluster_unbinding.history_of`, GEN.1288): the planets it pulls off their stars leave as rogues. None for a star
+        of no cluster. Not saved with the config.
+        """
+
         self.PLACE_TERMS = None
         """
         place_terms.PlaceTerms or None: The density and velocity dispersion of the place a galaxy sector's systems are
