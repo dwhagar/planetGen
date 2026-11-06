@@ -1009,6 +1009,7 @@ export function createStageView(host) {
   KINDS.forEach(function (pair) {
     layers.register({
       id: pair[0], label: pair[1], modes: ["galaxy", "sector"], group: "Show on the map", data: { kind: pair[0] },
+      heading: "Show", keywords: [pair[1].toLowerCase(), pair[0], "object", "kind"], common: ["star", "nebula", "blackHole"].indexOf(pair[0]) >= 0,
       defaultOn: DEFAULT_HIDDEN_KINDS.indexOf(pair[0]) < 0, urlKey: "hide", urlKeyOn: "show",
       available: function () { return kindCount(pair[0]) > 0; },
       title: function () { return "Show or hide the " + pair[1].toLowerCase() + " (" + kindCount(pair[0]) + ")"; },
