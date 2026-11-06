@@ -16703,6 +16703,7 @@ clears each one.
   8.1. Owner: the investigation thread "Fix massive-star scatter deadlock
   crash" (Bug lane). Filed by the TODO thread.
   Prerequisites: none. Related: DB.40, DB.41, PERF.245.
+  Extension (Boss, 6:33 PM EST on 2026-11-06, relayed by the coordinator): dynamic retries, so a deadlock does not hammer the database: the wait between tries adapts (backoff that grows with each failure and with how many writers are waiting, with jitter from the process, never a draw). A unit can also raise a needs flag to the run system (what it needs, for example the table to itself or fewer parallel writers); after the 8th failed try the run system grants it (a short exclusive window or a reduced worker count for that stage) and the unit continues. Every retry, every wait length, every flag and every grant is logged to the run log. Done adds: the retries back off with load, the 9th attempt runs with the grant, the log lines are tested.
 
 - [ ] **DB.114 The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113)**
   Found with the DB.113 fix (coordinator, 6:27 PM EST on 2026-11-06, PR
@@ -16722,6 +16723,7 @@ clears each one.
   MySQL passes. Version 8.1. Owner: the DB.113 investigation thread, after
   #5392. Filed by the TODO thread.
   Prerequisites: DB.113. Related: DB.113.
+  Extension (Boss, 6:33 PM EST on 2026-11-06): the backfill and sky-charting writes use the same mechanism as DB.113 (dynamic retries with adaptive backoff, the needs flag, the grant after the 8th failed try, all logged), not a second copy of the retry code.
 
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
