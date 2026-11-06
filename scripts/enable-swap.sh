@@ -16,26 +16,32 @@
 
 set -euo pipefail
 
+# The lines this script prints are log records (OPS.98): a time, a severity and a component on every one.
+LOG_COMPONENT="${LOG_COMPONENT:-swap}"
+export LOG_COMPONENT
+# shellcheck source=scripts/logrecord.sh
+source "$(dirname "${BASH_SOURCE[0]}")/logrecord.sh"
+
 SIZE="${1:-8G}"
 FILE="${2:-/swapfile}"
 SYSCTL_FILE="/etc/sysctl.d/99-planetgen-swap.conf"
 
 if [[ $EUID -ne 0 ]]; then
-    echo "Run this as root: sudo $0 $*" >&2
+    log_error "Run this as root: sudo $0 $*"
     exit 1
 fi
 
 if ! [[ "$SIZE" =~ ^[0-9]+[KMGkmg]$ ]]; then
-    echo "The size is a number and K, M or G (for example 8G), not '$SIZE'." >&2
+    log_error "The size is a number and K, M or G (for example 8G), not '$SIZE'."
     exit 1
 fi
 
 if swapon --show=NAME --noheadings | grep -q .; then
-    echo "Swap is already on:"
-    swapon --show
+    log_info "Swap is already on:"
+    swapon --show | log_lines info
     if ! grep -qE '^[^#]*[[:space:]]swap[[:space:]]' /etc/fstab; then
-        echo "Warning: no swap line in /etc/fstab, so it will not come back after a reboot." >&2
-        echo "Add one for the file or partition shown above, or turn it off (swapoff -a) and run this again." >&2
+        log_warning "no swap line in /etc/fstab, so it will not come back after a reboot."
+        log_error "Add one for the file or partition shown above, or turn it off (swapoff -a) and run this again."
     fi
     exit 0
 fi
@@ -46,16 +52,16 @@ mkdir -p "$DIR"
 need_kb=$(numfmt --from=iec --to-unit=1024 "${SIZE^^}")
 free_kb=$(df --output=avail -k "$DIR" | tail -n 1 | tr -d ' ')
 if (( free_kb < need_kb + 1048576 )); then
-    echo "Not enough room in $DIR: $((free_kb / 1024)) MB free, ${SIZE} wanted plus 1 GB to spare." >&2
+    log_error "Not enough room in $DIR: $((free_kb / 1024)) MB free, ${SIZE} wanted plus 1 GB to spare."
     exit 1
 fi
 
 if [[ -e "$FILE" ]]; then
-    echo "$FILE already exists but is not in use as swap; leaving it alone. Name another file or remove it first." >&2
+    log_error "$FILE already exists but is not in use as swap; leaving it alone. Name another file or remove it first."
     exit 1
 fi
 
-echo "Making $FILE ($SIZE)..."
+log_info "Making $FILE ($SIZE)..."
 if ! fallocate -l "$SIZE" "$FILE" 2>/dev/null; then
     # Some filesystems (and copy-on-write ones) cannot fallocate a swap file: write it out instead.
     dd if=/dev/zero of="$FILE" bs=1M count="$(( need_kb / 1024 ))" status=none
@@ -63,19 +69,19 @@ fi
 chmod 600 "$FILE"
 if ! mkswap "$FILE" >/dev/null; then
     rm -f "$FILE"
-    echo "mkswap failed on $FILE (the filesystem may not allow swap files); nothing was changed." >&2
+    log_error "mkswap failed on $FILE (the filesystem may not allow swap files); nothing was changed."
     exit 1
 fi
 swapon "$FILE"
 
 if ! grep -qF "$FILE" /etc/fstab; then
     printf '%s none swap sw 0 0\n' "$FILE" >> /etc/fstab
-    echo "Added $FILE to /etc/fstab, so it stays on after a reboot."
+    log_info "Added $FILE to /etc/fstab, so it stays on after a reboot."
 fi
 
 printf 'vm.swappiness=10\n' > "$SYSCTL_FILE"
 sysctl -q -p "$SYSCTL_FILE" || true
 
-echo "Swap is on:"
-swapon --show
-free -m
+log_info "Swap is on:"
+swapon --show | log_lines info
+free -m | log_lines info

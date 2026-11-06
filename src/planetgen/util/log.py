@@ -517,7 +517,23 @@ def _attach_record_file(level):
     _record_handler = handler
 
 
-def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, areas=None, errors_to_stderr=False):
+def times_on_console(to_stderr=False):
+    """
+    Whether the console's lines carry the time (OPS.98): on a terminal they are plain, and when the output goes to a pipe or a file (a log, `tee`,
+    an update run) every line is a display line with the local time, its zone, the severity and the component, so a log that is read hours later
+    says when each line was written. `PLANETGEN_LOG_TIMES` overrides: `always` or `never`; anything else (or nothing) is `auto`, the rule above.
+    """
+    wanted = os.environ.get("PLANETGEN_LOG_TIMES", "auto").strip().lower()
+    if wanted in ("always", "never"):
+        return wanted == "always"
+    stream = sys.stderr if to_stderr else sys.stdout
+    try:
+        return not stream.isatty()
+    except (AttributeError, ValueError):
+        return True
+
+
+def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, areas=None, errors_to_stderr=False, times_when_piped=False):
     """
     (Re)configures the shared logger for the given console severity `level`
     (`SILENT`/`NORMAL`/`DEBUG`). `debug_file`, if given, is opened as an
@@ -541,6 +557,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
         to_stderr (bool): Write the console's lines to stderr, for a command whose own result goes to stdout.
         errors_to_stderr (bool): Write the lines of `warning` severity and above to stderr and the rest to stdout, as a standalone
             command's own messages go (UX.122).
+        times_when_piped (bool): A command line's lines carry the time and the severity when its output is not a terminal (`times_on_console`).
         areas (str | None): The areas debug output is limited to (`parse_areas`); `None` takes `PLANETGEN_DEBUG_AREAS`,
             then `config.json`'s `"debug_areas"`, then every area.
     """
@@ -553,7 +570,10 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
 
     set_areas(areas if areas is not None else _configured_areas())
     console_level = _LEVELS[level]
-    formatter = _debug_formatter() if level == DEBUG else LineFormatter("plain")
+    if level == DEBUG:
+        formatter = _debug_formatter()
+    else:
+        formatter = LineFormatter("display" if times_when_piped and times_on_console(to_stderr) else "plain")
     _console_handler.setFormatter(formatter)
     _console_handler.setLevel(console_level)
     _console_handler.to_stderr = to_stderr
@@ -661,7 +681,7 @@ def apply_debug_arguments(args, parser=None, errors_to_stderr=False):
                 raise
             parser.error(f"--debug-areas: {exc}")
     apply_record_arguments(args)
-    configure(DEBUG if wanted else NORMAL, areas=areas, errors_to_stderr=errors_to_stderr)
+    configure(DEBUG if wanted else NORMAL, areas=areas, errors_to_stderr=errors_to_stderr, times_when_piped=True)
 
 
 _SECRET_OPTIONS = ("--mysql-password",)

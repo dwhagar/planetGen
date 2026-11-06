@@ -15,6 +15,10 @@
 #     log_record SEVERITY MESSAGE     one record
 #     log_info, log_notice, log_warning, log_error MESSAGE
 #     log_stage FIRST TOTAL LABEL     the divider of a stage
+#     log_lines [SEVERITY]            every non-empty line read from stdin, as a record (a heredoc of instructions)
+#     log_tail PREFIX                 the lines a command wrote to stdout, as records (OPS.98)
+#     log_summary_note SEVERITY MSG   a line for the closing summary, and what log_summary repeats (OPS.100)
+#     log_summary HEADLINE            the closing block of a script
 #
 # The severities, the stage word and the divider are generated from the module (the block below, scripts/build_log_vocabulary.py), and
 # tests/test_log_shell.py runs these against `logrecord.display_line`, so the two cannot drift apart.
@@ -32,6 +36,10 @@ log_record() {
     upper="$(printf '%s' "$severity" | tr '[:lower:]' '[:upper:]')"
     stamp="$(date '+%Y-%m-%d %H:%M:%S %Z')"
     while IFS= read -r line || [[ -n "$line" ]]; do
+        # A warning or an error is kept for the closing summary (OPS.100): its first line only, the lines under it are its fix.
+        if [[ -n "${LOG_WARNING_FILE:-}" && -w "${LOG_WARNING_FILE:-}" && " $LOG_STDERR_SEVERITIES " == *" $severity "* && "$line" != [[:space:]]* ]]; then
+            printf '%s\n' "$line" >> "$LOG_WARNING_FILE"
+        fi
         if [[ " $LOG_STDERR_SEVERITIES " == *" $severity "* ]]; then
             printf '%s %-8s %s: %s\n' "$stamp" "$upper" "${LOG_COMPONENT:-update}" "$line" >&2
         else
@@ -48,4 +56,61 @@ log_error() { log_record error "$1"; }
 # The divider of one stage, as `logrecord.stage_start` writes it: "=== Stage 4 of 9: label ===", an info record.
 log_stage() {
     log_record info "$LOG_DIVIDER $LOG_STAGE_WORD $1 of $2: $3 $LOG_DIVIDER"
+}
+
+# Every non-empty line read from stdin, as a record of the given severity (default info): the instructions a script prints in a heredoc.
+log_lines() {
+    local severity="${1:-info}" line
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ -z "$line" ]] && continue
+        log_record "$severity" "$line"
+    done
+}
+
+# The closing summary of a long script (OPS.100). `log_summary_begin` starts the clock and a file that keeps every warning and error the
+# script prints (a file, so a warning printed inside `$(...)` or a pipe is kept too); `log_summary TITLE DETAILS` ends with one line,
+# "=== Update done after 20:53: DETAILS ===", then every warning repeated, so the last thing on the screen is what went wrong.
+log_summary_begin() {
+    LOG_STARTED=$SECONDS
+    LOG_WARNING_TMP="$(mktemp "${TMPDIR:-/tmp}/planetgen-warnings.XXXXXX")"
+    LOG_WARNING_FILE="$LOG_WARNING_TMP"
+    export LOG_WARNING_FILE
+}
+
+# Forgets the warnings file; the script's EXIT trap calls it so an abort leaves nothing in the temporary folder.
+log_summary_forget() {
+    [[ -n "${LOG_WARNING_TMP:-}" ]] && rm -f "$LOG_WARNING_TMP"
+    LOG_WARNING_FILE=""
+    LOG_WARNING_TMP=""
+}
+
+# A length of time the way the summary shows it: 4:07, or 1:04:07 from an hour on.
+log_duration() {
+    local total="$1"
+    if (( total >= 3600 )); then
+        printf '%d:%02d:%02d' $(( total / 3600 )) $(( total % 3600 / 60 )) $(( total % 60 ))
+    else
+        printf '%d:%02d' $(( total / 60 )) $(( total % 60 ))
+    fi
+}
+
+log_summary() {
+    local title="$1" details="${2:-}" warnings="" count=0 line
+    if [[ -n "${LOG_WARNING_FILE:-}" && -r "$LOG_WARNING_FILE" ]]; then
+        warnings="$(cat "$LOG_WARNING_FILE")"
+    fi
+    LOG_WARNING_FILE=""      # the repeated warnings are not new warnings
+    log_summary_forget
+    log_info "$LOG_DIVIDER $title done after $(log_duration $(( SECONDS - ${LOG_STARTED:-0} )))${details:+: $details} $LOG_DIVIDER"
+    if [[ -z "$warnings" ]]; then
+        log_info "No warnings during this $(printf '%s' "$title" | tr '[:upper:]' '[:lower:]')."
+        return 0
+    fi
+    while IFS= read -r line; do
+        [[ -n "$line" ]] && count=$(( count + 1 ))
+    done <<< "$warnings"
+    log_warning "$count warning$([[ $count == 1 ]] || printf s) during this $(printf '%s' "$title" | tr '[:upper:]' '[:lower:]'), repeated here:"
+    while IFS= read -r line; do
+        [[ -n "$line" ]] && log_warning "  $line"
+    done <<< "$warnings"
 }

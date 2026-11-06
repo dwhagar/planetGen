@@ -351,7 +351,10 @@ def display_line(record, tz=None, times=True, component=True, fields=True):
     if component:
         parts.append(f"{record.component}:")
     divider = record.event in STAGE_EVENTS
-    parts.append(f"{DIVIDER} {record.message} {DIVIDER}" if divider else record.message)
+    message = record.message
+    if message.lower().startswith(f"{record.severity}: "):
+        message = message[len(record.severity) + 2:]         # the severity column says it: not "ERROR  migrate: error: ..."
+    parts.append(f"{DIVIDER} {message} {DIVIDER}" if divider else message)
     if fields and not divider and record.fields:
         parts.append("(" + " ".join(f"{name}={_value_text(value)}" for name, value in record.fields.items()) + ")")
     return " ".join(parts)
