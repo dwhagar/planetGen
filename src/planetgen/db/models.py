@@ -3347,6 +3347,7 @@ sectors = sa.Table(
     sa.Column('storage_checksum', mysql.BINARY(32), nullable=True),
     sa.Column('parity_dirty', mysql.TINYINT(), server_default=sa.text("'1'"), nullable=False),
     sa.Column('leaf_digest', mysql.BINARY(32), nullable=True),
+    sa.Column('content_leaf', mysql.BINARY(32), nullable=True),
     sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('run_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('density_multiplier_used', mysql.DECIMAL(), nullable=True),

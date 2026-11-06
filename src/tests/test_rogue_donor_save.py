@@ -124,3 +124,59 @@ def test_a_sector_that_holds_a_rogue_born_elsewhere_cannot_be_deleted(saved):
     with pytest.raises(edits.SectorHasResidents):
         with conn:
             edits.delete_sector_with_contents(conn, other["sector_id"])
+
+
+def _leaf(conn, sector_id):
+    row = conn.execute("SELECT leaf_digest, content_leaf FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    return (None if row["leaf_digest"] is None else bytes(row["leaf_digest"]),
+            None if row["content_leaf"] is None else bytes(row["content_leaf"]))
+
+
+def test_a_sector_with_a_rogue_in_it_has_a_leaf_that_holds_it_charted_or_not(saved):
+    """TEST.602: the leaf the fingerprint tree reads is the content part joined to the rogues filed in the sector, and a sector made only for a landing has
+    the rogues alone."""
+    from planetgen.db import fingerprint_tree
+    conn, sector_id, address = saved
+    filed = [row["sector_id"] for row in conn.execute("SELECT DISTINCT sector_id FROM rogue_planets").fetchall()]
+    assert filed
+    for filed_in in filed:
+        residents = fingerprint_tree.resident_digest(conn, filed_in)
+        leaf, content = _leaf(conn, filed_in)
+        assert residents is not None and leaf == fingerprint_tree.combined(content, residents)
+        if filed_in != sector_id:               # a landing sector: never charted, no content part
+            assert content is None and leaf == fingerprint_tree.combined(None, residents) and leaf is not None
+        else:
+            assert content is not None and leaf != content
+
+
+def test_the_leaf_of_a_sector_with_no_rogue_is_its_content_part_and_saving_a_donor_again_leaves_every_leaf_as_it_was(saved, donor):
+    conn, sector_id, address = saved
+    before = {row["id"]: _leaf(conn, row["id"]) for row in conn.execute("SELECT id FROM sectors").fetchall()}
+    system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
+    placement = dict(zip(("center_x_pc", "center_y_pc", "center_z_pc"), _donor_position(conn, sector_id)))
+    with conn:
+        store.save_donor_rogues(conn, [(system_id, donor, placement)], sector_id, EDGE_PC)
+    after = {row["id"]: _leaf(conn, row["id"]) for row in conn.execute("SELECT id FROM sectors").fetchall()}
+    assert before == after
+
+
+def test_the_landing_sectors_leaves_go_when_the_donors_sector_is_emptied(saved):
+    from planetgen.db import edits
+    conn, sector_id, address = saved
+    landing = [row["sector_id"] for row in conn.execute("SELECT DISTINCT sector_id FROM rogue_planets WHERE sector_id <> ?", (sector_id,)).fetchall()]
+    if not landing:
+        pytest.skip("every rogue landed in its donor's own sector")
+    with conn:
+        edits.delete_sector_birth_contents(conn, sector_id)
+    assert all(_leaf(conn, filed_in) == (None, None) for filed_in in landing)
+    marked = conn.execute("SELECT COUNT(*) AS n FROM sector_tree_nodes WHERE dirty = 1").fetchone()["n"]
+    assert marked > 0
+
+
+def test_the_leaf_joins_the_content_part_and_the_residents():
+    from planetgen.db import fingerprint_tree as tree
+    content, residents = bytes([1]) * 32, bytes([2]) * 32
+    assert tree.combined(content, None) == content and tree.combined(None, None) is None
+    assert len(tree.combined(content, residents)) == 32 and tree.combined(content, residents) != content
+    assert tree.combined(None, residents) != tree.combined(content, residents)
+    assert tree.combined(content, residents) != tree.combined(content, bytes([3]) * 32)
