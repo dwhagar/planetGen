@@ -96,3 +96,4 @@ Commit each file came from:
 - v210: train 10 (GEN.1232a belt history text, before DOC.103 American spelling; the train schema before the sweep)
 - v211: GEN.1221 (humidity and groundwater, before the next change; train 10 schema at bf93bc352)
 - v212: train 11 after GEN.1221's migration 0212 (humidity and groundwater), before GEN.1254 scatter Object IDs
+- v213: GEN.1207 best-fit classes (train 11 schema after GEN.1254 scatter Object IDs), before migration 0214 class_match

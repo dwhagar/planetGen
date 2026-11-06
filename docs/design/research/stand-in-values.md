@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1171 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1173 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 108 | 83 | 23 | 61 | 0 | 275 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 30 | 14 | 5 | 72 | 33 | 154 |
-| All | 643 | 244 | 58 | 182 | 44 | 1171 |
+| T9 | 31 | 14 | 5 | 72 | 34 | 156 |
+| All | 644 | 244 | 58 | 182 | 45 | 1173 |
 
 ## How the labels were given
 
@@ -1668,6 +1668,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DM8 | P | T6 | L3 | planet_class_fit.json shoulders.ammonia_water_mass_fraction: 0.03 (the 0.1 line of class X, the Class 8 gate of life_classes.json, fades over 0.03 of the water's mass) | 0.01 to 0.1 | icy bodies with an ice and a water share | an ammonia share measured on an icy body that puts class 8's window elsewhere than 10 percent | the spread of the ammonia share among icy bodies of the generator | the Class 8 gate (10 percent of the water mass, life-classes.md 3.1) | - | no data |
 | DM9 | P | T9 | L3 | the range of X, the ammonia-water world: liquid cover 20 percent or more (the ocean lies under an ice lid, so no surface phase gate), ammonia at least 0.1 of the water's mass, 190 to 240 K, 0.05 to 2 g, no air (under 10 Pa) | each edge by its shoulder | icy bodies with an ammonia-water ocean | an ammonia-water body of an obvious class that fits another, or an X outside the box | the ideal band once the sea fractions of the family are stored | the families design section 4 (ammonia-water 176 to 273 K, ideal 190 to 240 K); GEN.1258 found the ammonia share already stored (`surface_liquid_ammonia_wt`, `ice_nh3_mass_fraction`) | - | no data |
 | PG1 | P | T6 | L0 | phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure | 350 to 450 K | bodies with carbon dioxide above 7.38 MPa | a supercritical carbon dioxide life window that ends elsewhere | the window of the life class 6 chemistry | the 217 to 400 K window of the dense CO2 class in life_classes.json | GEN.1258 | - |
+
+## 6.189 Stand-ins of the holes of the best-fit classifier
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HC1 | P | T9 | L0 | class_fit.LIMIT_DOMAINS gravity and air_amount, with LIMITED_FAMILIES M, R, P, O, H, F, G, Y, U, X and digit 9: a hole body whose class is found with its gravity and its air amount set aside takes that letter and the digit 9 (limited by another domain) | which domains are set aside; which families | terrestrial bodies with air that fit no class | a hole body that a domain other than gravity or air amount explains, or a class defined by gravity (B, V, Z) that should be the answer | a sweep of the holes by domain once Boss rules on the oxygen window of the oxygen-water family | the digit 9 meaning of GEN.1220 (reports/class-code-system-2026-10-31.md); TODO relay, 9:40 AM EST 2026-11-05: keep the letter the other domains give with digit 9 | - | - |
+| HC2 | P | T9 | L4 | class_fit.HOLE_FLOOR 0.01 and NEAREST_FAMILIES M, R, P, O, H, F, G: a body that still fits no class takes the class with the highest geometric mean of its memberships lifted to 0.01, among the ordinary worlds with air, and stores a match of 0 | the floor 0.001 to 0.1; the families | terrestrial bodies with air that fit no class even without their gravity and air amount | a nearest class that a reader would not call the nearest (the sample of holes in the sweep) | a distance measure on the domains of the class-by-domain matrix once the hole bodies are sorted by Boss | needed output: the classifier must give every body a letter; the match of 0 marks the hole | - | - |
 
 ## 6.166 Stand-ins of the interior viscosity ranges
 

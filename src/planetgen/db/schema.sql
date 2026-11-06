@@ -1523,9 +1523,9 @@
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
--- v213 (GEN.1207): `planets`, `moons` and `rogue_planets` keep how well the class fits the body: `class_match` (DOUBLE, 0 to 1, the geometric mean of the memberships of the conditions of the class,
+-- v214 (GEN.1207): `planets`, `moons` and `rogue_planets` keep how well the class fits the body: `class_match` (DOUBLE, 0 to 1, the geometric mean of the memberships of the conditions of the class,
 --   0 when no class fits the body and the stored one is the nearest), `runner_up_class` (CHAR(1), the next best class, NULL when only one passes the gates) and `runner_up_match` (DOUBLE). `class_variant` is 9 when
---   the class is found only with the gravity and the air amount set aside (`physics/class_fit.py`). NULL for an Asteroid and for a row made before v213, which gets them when the galaxy is regenerated.
+--   the class is found only with the gravity and the air amount set aside (`physics/class_fit.py`). NULL for an Asteroid and for a row made before v214, which gets them when the galaxy is regenerated.
 -- v212 (GEN.1221): `planets` and `moons` keep the relative humidity of the air (`relative_humidity`, DOUBLE, 0.05 to 0.99) and the groundwater of the body (`groundwater`, VARCHAR(10): none, reachable
 --   or deep; `physics/habitability_world.py`), which the class-by-domain matrix reads (`physics/class_domains.py`); `rogue_planets` keep them too. NULL for a row made before v212.
 -- v206 (GEN.1219, GEN.1220, GEN.1226): `planets` and `moons` keep the body type (`planet_type`, VARCHAR(12): terrestrial, transitional or gas, from the envelope share
@@ -2495,9 +2495,9 @@ CREATE TABLE IF NOT EXISTS planets (
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
     relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
     groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
-    class_match                 DOUBLE,  -- v213 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
-    runner_up_class             CHAR(1),  -- v213 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
-    runner_up_match             DOUBLE,  -- v213 (GEN.1207): its match
+    class_match                 DOUBLE,  -- v214 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
+    runner_up_class             CHAR(1),  -- v214 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
+    runner_up_match             DOUBLE,  -- v214 (GEN.1207): its match
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2943,9 +2943,9 @@ CREATE TABLE IF NOT EXISTS moons (
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
     relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
     groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
-    class_match                 DOUBLE,  -- v213 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
-    runner_up_class             CHAR(1),  -- v213 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
-    runner_up_match             DOUBLE,  -- v213 (GEN.1207): its match
+    class_match                 DOUBLE,  -- v214 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
+    runner_up_class             CHAR(1),  -- v214 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
+    runner_up_match             DOUBLE,  -- v214 (GEN.1207): its match
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -4169,9 +4169,9 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     class_variant                 TINYINT,  -- v207 (GEN.1111)
     relative_humidity             DOUBLE,  -- v212 (GEN.1221)
     groundwater                   VARCHAR(10),  -- v212 (GEN.1221)
-    class_match                   DOUBLE,  -- v213 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
-    runner_up_class               CHAR(1),  -- v213 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
-    runner_up_match               DOUBLE,  -- v213 (GEN.1207): its match
+    class_match                   DOUBLE,  -- v214 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
+    runner_up_class               CHAR(1),  -- v214 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
+    runner_up_match               DOUBLE,  -- v214 (GEN.1207): its match
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)
