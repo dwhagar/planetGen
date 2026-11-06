@@ -164,6 +164,15 @@ FIXTURE_CLUSTERS = (
 """MAP.224: two fixture globular clusters beside the star field, one with no name yet and one named (the `/api/containers` rows)."""
 
 
+SECTOR_CLUSTER = {"id": 3, "uid": "FE81000A2B-0000005-003", "kind": "globular_cluster", "name": "Fixture Sector Ball", "component_id": 3,
+                  "center_pc": [3.5, 2.0, 0.0], "extent_pc": 1.5}
+"""MAP.381: a fixture cluster inside the first sector (`sector_cluster_site` serves it; the other sites have none there)."""
+
+CLUSTER_COMPONENT = {"mass_solar": 2.0e5, "age_gy": 11.0, "metallicity_fe_h": -1.2, "half_mass_radius_pc": 4.0, "tidal_radius_pc": 40.0,
+                     "king_w0": 7, "core_collapsed": False}
+"""MAP.381: the `component` the fixture cluster's container record carries (the ball's King profile is made from it)."""
+
+
 NEBULA_OVER_THE_FIELD = {
     "type": "nebula", "id": 802, "name": "Fixture Pall", "descriptor": "dark", "class": "D",
     "radius_pc": 14.0, "x": STAR_FIELD_CENTER_PC[0], "y": STAR_FIELD_CENTER_PC[1], "z": STAR_FIELD_CENTER_PC[2],
@@ -869,8 +878,9 @@ FAR_MADE_PC = [(150000.0 + dx, 20000.0 + dy, 400.0) for dx, dy in ((0.0, 0.0), (
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
-    def __init__(self, halo=False, dense=False, large=False, far=False, holes=False):
+    def __init__(self, halo=False, dense=False, large=False, far=False, holes=False, sector_cluster=False):
         self.far = far
+        self.sector_cluster = sector_cluster
         self.shape = galaxy_shape()
         self.stars = STAR_FIELD + (HALO_STARS if halo else []) + (DENSE_STARS if dense else [])
         self.buckets = None
@@ -898,7 +908,17 @@ class FixtureApi:
         return [dict(zip(("x", "y", "z", "radius_pc"), FAR_BUBBLE))] if self.far else []
 
     def get_containers(self, db, kind=None):
-        return [dict(cluster) for cluster in FIXTURE_CLUSTERS] if kind == "globular_cluster" else []
+        if kind != "globular_cluster":
+            return []
+        found = [dict(cluster) for cluster in FIXTURE_CLUSTERS]
+        return found + [dict(SECTOR_CLUSTER)] if self.sector_cluster else found
+
+    def get_container(self, db, printed_id):
+        """One fixture cluster with the `component` the container API gives (MAP.381: the ball's profile reads it)."""
+        for cluster in [*FIXTURE_CLUSTERS, SECTOR_CLUSTER]:
+            if cluster["uid"] == printed_id:
+                return dict(cluster, component=dict(CLUSTER_COMPONENT))
+        raise apiclient.NotFoundError(f"no container {printed_id}")
 
     def get_polities(self, db, limit=None, offset=None):
         if self.far:
@@ -1128,7 +1148,7 @@ class FixtureApi:
         return cell
 
 
-_APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
+_APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "get_container", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_cloud_volume", "get_system_scene",
               "get_uncharted_sector", "get_system", "get_galaxy_charted_regions", "get_sector_gravity")
@@ -1206,6 +1226,12 @@ def map_site(request, tmp_path_factory):
 def far_site(request, tmp_path_factory):
     """The base URL of a local server for the map pages with a superbubble, a polity and a job's made sectors 100 to 250 kpc out."""
     yield from _serve("far", {"far": True}, request, tmp_path_factory)
+
+
+@pytest.fixture()
+def sector_cluster_site(request, tmp_path_factory):
+    """`map_site` with a globular cluster inside the first sector (MAP.381)."""
+    yield from _serve("sector_cluster", {"sector_cluster": True}, request, tmp_path_factory)
 
 
 @pytest.fixture()

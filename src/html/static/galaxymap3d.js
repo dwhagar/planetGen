@@ -5417,7 +5417,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // MAP.224: the globular clusters, named by their name, else by their designation while they have none. Each is anchored at its center,
   // as wide as its sphere, and in the nebulae's share of the label budget (a cluster is a place, not a point).
   function clusterNames() {
-    if (hiddenCell || !Array.isArray(data.clusters)) return [];
+    if (!Array.isArray(data.clusters)) return [];
     return data.clusters.filter(function (cluster) {
       return drawnByTheGalaxy(cluster.x, cluster.y, cluster.z);
     }).map(function (cluster) {
