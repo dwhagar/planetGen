@@ -60,6 +60,11 @@ TRACE_ELEMENT_FRACTION = 1e-12
 Newton step of a gas that is all one element (a nitrogen air with 1e-15 of everything else) can stall with the rarest elements
 in, and what they would add is below the precision of the rest."""
 
+TRACE_ELEMENT_FRACTIONS = (TRACE_ELEMENT_FRACTION, 1e-9)
+"""tuple: The fractions `solve` tries in turn. A nitrogen gas with 2e-11 of carbon and oxygen (a moon's air at 502 K and 1 bar, found by the
+GEN.1282 profile run) stalls at a carbon balance 1e5 times its own abundance with them in, and settles with only the nitrogen: what they
+would add is below 1e-9 of the gas."""
+
 MOLES_FLOOR = 1e-290
 """float: The least moles a species is allowed, so that no logarithm is minus infinity."""
 
@@ -106,14 +111,22 @@ def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None
     """
     try:
         return _solve(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
-    except EquilibriumError:
+    except EquilibriumError as first_error:
         given = {symbol: float(value) for symbol, value in abundances.items() if value and value > 0}
         if not given:
             raise
-        kept = {symbol: value for symbol, value in given.items() if value >= TRACE_ELEMENT_FRACTION * max(given.values())}
-        if len(kept) == len(given):
-            raise
-        return _solve(kept, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+        last_error = None
+        tried = len(given)
+        for fraction in TRACE_ELEMENT_FRACTIONS:
+            kept = {symbol: value for symbol, value in given.items() if value >= fraction * max(given.values())}
+            if len(kept) == tried:
+                continue    # nothing more left out than the try before
+            tried = len(kept)
+            try:
+                return _solve(kept, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+            except EquilibriumError as error:
+                last_error = error
+        raise last_error if last_error is not None else first_error
 
 
 def _solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):

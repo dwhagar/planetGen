@@ -1325,7 +1325,7 @@ class StarSystem:
                 if apply_guarantees and hz and self.system_config.HABITABLE_WORLD is True:
                     planet = self._planet_in_ecosphere(star, habitable_zone, estimated_distance, **given)
                 else:
-                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance, **given) # Pass system_config
+                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance, defer_climate=True, **given)   # GEN.1282: its air and moons come once the spacing has settled
                 planets.append(planet)
 
                 if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
@@ -2285,6 +2285,9 @@ class StarSystem:
         if planets is None:
             planets = self.planets
         validation.space_orbits(planets)
+        for body in planets:   # GEN.1282: the planets built without their climate get it at the distance the spacing left them
+            if body.body_type != 'a':
+                body.finish_climate()
 
     def _reconcile_moved_planet(self, planet):
         """
