@@ -28,7 +28,6 @@ Sequence Star" -> ("G", "V")).
 """
 
 import functools
-import logging
 import math
 
 from markupsafe import Markup, escape
@@ -42,7 +41,7 @@ from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
-from planetgen.util import chem
+from planetgen.util import chem, log
 from planetgen.web.lib import help_registry
 
 LUMINOSITY_CLASS_ALIASES = {"D": "VII"}
@@ -473,7 +472,7 @@ def preload():
     try:
         catalog()
     except DataMissing as missing:
-        logging.getLogger(__name__).warning("the class reference catalog was not built at start: %s", missing)
+        log.warning("the class reference catalog was not built at start: %s", missing)
         return False
     return True
 

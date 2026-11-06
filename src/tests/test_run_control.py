@@ -11,6 +11,7 @@ import rq
 
 from planetgen.queue import commands, redisqueue, runcontrol, runrecord, units, wrapper
 from planetgen.queue.runrecord import Stage
+from planetgen.util import log
 
 KIND = "control-test"
 
@@ -179,15 +180,15 @@ def test_a_run_started_by_a_job_is_found_from_the_job(conn, jobs_dir):
 def test_what_the_follower_logs_joins_the_event_stream(conn, caplog):
     caplog.set_level(logging.INFO, logger="planetgen")        # whatever level an earlier test left on the logger
     run_id = runrecord.start_run(conn, "Tee", [Stage("s", "S", units=1)])
-    handler = runrecord.EventHandler(conn, run_id)
+    handler = runrecord.event_handler(conn, run_id)
     logger = logging.getLogger("planetgen")
-    logger.addHandler(handler)
+    log.attach(handler)
     try:
         logger.info("sector 7 saved")
         logger.debug("not a line for the log")
         logger.warning("slow disk")
     finally:
-        logger.removeHandler(handler)
+        log.detach(handler)
     lines = [(fields["level"], fields["message"]) for _id, fields in runrecord.read_events(conn, run_id)
              if fields["kind"] == "log"]
     assert lines == [("info", "sector 7 saved"), ("warning", "slow disk")]

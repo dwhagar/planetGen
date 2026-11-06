@@ -33,12 +33,12 @@ Keys (`runrecord.PREFIX` first):
 * `line:<ticket>:alive`  a run's sign of life.
 """
 
-import logging
 import secrets
 import time
 import traceback
 
 from planetgen.queue import runrecord
+from planetgen.util import log
 from planetgen.util.settings import get_settings
 
 RUN = "run"
@@ -262,7 +262,7 @@ def start_when_free(conn, take, limit_seconds, on_wait=None, kind=runrecord.GENE
             else:
                 last = runrecord.Busy(runrecord.busy_message(conn, holder))
             if nested_guard and holder and runrecord.followed_here(conn, holder):
-                logging.getLogger("planetgen").error("A run was started inside a run of the same process; where from:\n"
+                log.error("A run was started inside a run of the same process; where from:\n"
                                                      + "".join(traceback.format_stack(limit=25)))
                 raise runrecord.Busy(f"{runrecord.busy_message(conn, holder)}; this run is started by the same process "
                                      f"that follows it, so it would wait for itself for ever (a run started inside a run)")
