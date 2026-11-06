@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1176 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1177 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 41 | 7 | 9 | 0 | 142 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 109 | 83 | 23 | 61 | 0 | 276 |
+| T6 | 110 | 83 | 23 | 61 | 0 | 277 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 32 | 14 | 5 | 74 | 33 | 158 |
-| All | 646 | 244 | 58 | 184 | 44 | 1176 |
+| All | 647 | 244 | 58 | 184 | 44 | 1177 |
 
 ## How the labels were given
 
@@ -264,6 +264,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM93 | B | T6 | L0 | surface_pressure.DEGAS_EFFICIENCY_HALOGEN | 0.05 to 0.5, log, drawn for each of Cl and F | rocky bodies | test_halogen_budget::test_the_degassing_efficiencies_carry_chlorine_and_fluorine_inside_the_bracket | halogen solubility in basalt (a melt model) | design (source tier 6, tweak level 0; chlorine and fluorine dissolve in a silicate melt far better than carbon dioxide and leave it with the water, the bracket of hydrogen's) | - | - |
 | AM94 | D | T2 | L0 | saturation.EDMISTER_COEFFICIENT | 5.373, fixed (hydrogen fluoride; the gas table has no HF triple point) | HF from 68 K to its critical point, HCl up to its triple point (above it the solid's curve is carried on) | test_saturation::test_the_halide_curves_sit_near_their_normal_boiling_points_and_condense_a_trace_gas_in_the_cold | measured vapour-pressure curves of HF and HCl (NIST fits) | 2ND-HAND (the Edmister correlation, ln(P/Pc) = 5.373 (1 + omega) (1 - Tc/T), recalled; the HCl curve is Clausius-Clapeyron from the gas table's triple point with its sublimation heat 19.65 kJ/mol; source tier 2, tweak level 0) | - | - |
 | AM95 | P | T6 | L0 | mixture_lava.MELT_MAX_K | 6000 K, the top of the table | a molten surface over 6000 K, up to the vapor-only regime where the melt model no longer applies | test_atmosphere_mixture_lava::test_a_surface_hotter_than_the_fits_has_its_vapor_worked_out_at_their_top | a vapor model for a fully vaporised silicate surface, or fits of the liquid oxides and the gases above 6000 K (GEN.499) | design (source tier 6, tweak level 0; NASA Glenn's fits of the liquid oxides and of 47 of the 84 gases stop at 6000 K, so a molten surface hotter than that, the dayside of a rock next to a hot star or a white-dwarf planet's exosphere, had no vapor and a build died with `SiO2(L): no thermodynamic fit at 6881 K` (GEN.1294); the liquids are constant-heat-capacity fits, but half the gases would silently drop out above 6000 K and the melt model is an ideal solution of the oxides, so the vapor is worked out at 6000 K and the mixture reports the surface's own temperature) | - | - |
+| AM96 | P | T6 | L0 | mixture_lava.OXYGEN_SHARE_MAX | 0.99: the gas pressure over the melt is raised to what holds its buffered oxygen with 1 percent to spare when the surface pressure is lower; nothing changes where the oxygen takes under 99 percent | volatile-bearing lava worlds over 2500 K at surface pressures under a bar, and every temperature where the buffered oxygen exceeds the surface pressure | test_atmosphere_mixture_lava::test_a_surface_pressure_the_buffered_oxygen_fills_is_raised_and_the_carbon_solve_converges | a gas-over-melt model in which the oxygen is one more species of the melt's vapor, not a reservoir held at a fugacity (GEN.499) | design (source tier 6, tweak level 0; the carbon solve of a volatile-bearing lava world holds the oxygen at the redox buffer's fugacity, and when that oxygen (O2 and O) alone fills the surface pressure there is no room for carbon and `gas_equilibrium.solve` does not converge (GEN.1296); checked from 0.8 to 1.2 of the pressure at six temperatures between 2600 and 6000 K and three redox states: it converges for every share under 1 and fails for every share of 1 and over) | - | - |
 
 ## 6.8 Stand-ins of the hours outside in a day
 
@@ -1672,7 +1673,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DM7 | P | T9 | L3 | the ranges of U (91 to 130 K, 50 to 500 kPa, methane 1 percent or more, with the methane-ethane window) and Y (300 to 350 K, sulfur dioxide 3 percent or more, with the sulfuric acid window, until the acid medium is stored) | each edge by its shoulder | terrestrial bodies with the liquid of the family | a Titan-like body that does not fit U, or a sulfur air that fits Y without acid | the ranges from the family ideal bands once the acid medium and the sea fractions are stored | the families design section 4 ideal bands | - | no data |
 | DM8 | P | T6 | L3 | planet_class_fit.json shoulders.ammonia_water_mass_fraction: 0.03 (the 0.1 line of class X, the Class 8 gate of life_classes.json, fades over 0.03 of the water's mass) | 0.01 to 0.1 | icy bodies with an ice and a water share | an ammonia share measured on an icy body that puts class 8's window elsewhere than 10 percent | the spread of the ammonia share among icy bodies of the generator | the Class 8 gate (10 percent of the water mass, life-classes.md 3.1) | - | no data |
 | DM9 | P | T9 | L3 | the range of X, the ammonia-water world: liquid cover 20 percent or more (the ocean lies under an ice lid, so no surface phase gate), ammonia at least 0.1 of the water's mass, 190 to 240 K, 0.05 to 2 g, no air (under 10 Pa) | each edge by its shoulder | icy bodies with an ammonia-water ocean | an ammonia-water body of an obvious class that fits another, or an X outside the box | the ideal band once the sea fractions of the family are stored | the families design section 4 (ammonia-water 176 to 273 K, ideal 190 to 240 K); GEN.1258 found the ammonia share already stored (`surface_liquid_ammonia_wt`, `ice_nh3_mass_fraction`) | - | no data |
-| PG1 | P | T6 | L0 | phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure | 350 to 450 K | bodies with carbon dioxide above 7.38 MPa | a supercritical carbon dioxide life window that ends elsewhere | the window of the life class 6 chemistry | the 217 to 400 K window of the dense CO2 class in life_classes.json | GEN.1207 | - |
+| PG1 | P | T6 | L0 | phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure | 350 to 450 K | bodies with carbon dioxide above 7.38 MPa | a supercritical carbon dioxide life window that ends elsewhere | the window of the life class 6 chemistry | the 217 to 400 K window of the dense CO2 class in life_classes.json | GEN.1281 | - |
 
 ## 6.166 Stand-ins of the interior viscosity ranges
 
