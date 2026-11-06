@@ -104,6 +104,38 @@ def test_one_nebula_alone_is_drawn_with_the_points_its_node_gives_it(planned):
         conn.close()
 
 
+def test_a_cloud_given_by_its_sphere_is_drawn_with_the_points_of_the_stored_nebula_of_that_sphere(planned):
+    """MAP.392: a supernova remnant or a scattered nebula has no id the map can ask for, so it asks for its sphere: the same sampler and density, so a
+    nebula given by its sphere looks the same as the stored one, and a remnant's shell is the shell profile of its family."""
+    from planetgen.physics import units
+
+    conn = store.get_connection(planned)
+    try:
+        row = conn.execute("SELECT id, radius_ly, center_x_pc, center_y_pc, center_z_pc FROM nebulae ORDER BY id DESC LIMIT 1").fetchone()
+        center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        sphere = nebula_volumes.sphere_volume(conn, center, units.ly_to_pc(row["radius_ly"]), "emission", _Model)
+        assert sphere == nebula_volumes.single_nebula_volume(conn, row["id"], _Model)
+        assert sphere == nebula_volumes.sphere_volume(conn, center, units.ly_to_pc(row["radius_ly"]), "emission", _Model)
+        assert len(_points(sphere)) > 20
+        shell = nebula_volumes.sphere_volume(conn, center, units.ly_to_pc(row["radius_ly"]), "supernova-remnant", _Model)
+        assert shell != sphere and len(_points(shell)) > 0, "a remnant is a shell, not the nebula's filled cloud"
+    finally:
+        conn.close()
+
+
+@pytest.mark.parametrize("family, radius, center", [
+    ("galaxy", 10.0, (0.0, 0.0, 0.0)), ("emission", 0.0, (0.0, 0.0, 0.0)), ("emission", -3.0, (0.0, 0.0, 0.0)),
+    ("emission", nebula_volumes.MAX_SPHERE_RADIUS_PC + 1.0, (0.0, 0.0, 0.0)), ("emission", 10.0, (float("nan"), 0.0, 0.0)),
+    ("emission", float("inf"), (0.0, 0.0, 0.0))])
+def test_a_sphere_that_is_no_cloud_is_refused(mysql_config, family, radius, center):
+    conn = store.get_connection(mysql_config)
+    try:
+        with pytest.raises(ValueError):
+            nebula_volumes.sphere_volume(conn, center, radius, family, _Model)
+    finally:
+        conn.close()
+
+
 def test_a_nebula_in_a_galaxy_never_planned_is_header_only(mysql_config):
     conn = store.get_connection(mysql_config)
     try:

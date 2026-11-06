@@ -3113,7 +3113,7 @@
             ],
             [
               "What would show it wrong",
-              "test_atmosphere_mixture_lava::test_the_vapour_pressure_over_the_melt_is_kites_within_a_factor_of_four_from_2000_to_2500_k"
+              "test_atmosphere_mixture_lava::test_the_vapor_pressure_over_the_melt_is_kites_within_a_factor_of_four_from_2000_to_2500_k"
             ],
             [
               "What replaces it",
@@ -3303,7 +3303,7 @@
             ],
             [
               "What would show it wrong",
-              "test_atmosphere_mixture_rocky::test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent"
+              "test_atmosphere_mixture_rocky::test_an_earth_like_oxidized_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent"
             ],
             [
               "What replaces it",
@@ -4253,7 +4253,7 @@
             ],
             [
               "What would show it wrong",
-              "test_impact_history::test_the_impactor_vapour_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets"
+              "test_impact_history::test_the_impactor_vapor_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets"
             ],
             [
               "What replaces it",
@@ -4519,7 +4519,7 @@
             ],
             [
               "What would show it wrong",
-              "test_atmosphere_mixture_lava::test_a_more_aluminous_melt_has_more_aluminium_in_its_vapour"
+              "test_atmosphere_mixture_lava::test_a_more_aluminous_melt_has_more_aluminium_in_its_vapor"
             ],
             [
               "What replaces it",
@@ -33771,7 +33771,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "VIEW.44",
+          "unread": null,
           "what": "dust_model.HYDROGEN_ATOMS_PER_AV_CM2 2.21e21: hydrogen atoms per cm2 for one magnitude of V extinction"
         },
         {
@@ -33809,7 +33809,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
-          "unread": "VIEW.44",
+          "unread": null,
           "what": "dust_model.VISIBLE_SHARE 0.5: the share of the gas column that dims the stars a catalogue or a person can use"
         },
         {
@@ -33885,7 +33885,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
-          "unread": "VIEW.46",
+          "unread": null,
           "what": "dust_model.LAYER_FLOOR_PC 40: the thinnest layer"
         },
         {
@@ -34221,7 +34221,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GAS_GRADIENT_DEX_PER_KPC 0.034: the fall of the Milky Way gas's metallicity with galactic radius, dex per kpc (Boss: its own gradient, not the stars' 0.06)"
         },
         {
@@ -34259,7 +34259,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GAS_SCATTER_DEX 0.14: the scatter of the gas around its gradient, dex"
         },
         {
@@ -34297,7 +34297,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L2",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.SATELLITE_GAS_OFFSETS ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26)): the lowest and highest offset of a satellite's gas [O/H] above the component's [Fe/H], dex, at the SMC and LMC stars"
         },
         {
@@ -34335,7 +34335,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.DUST_BREAK_12LOG 7.96, DUST_HIGH_METALLICITY (2.21, 1.0), DUST_LOW_METALLICITY (0.68, 3.08): the broken power law of the gas-to-dust ratio against 12 + log(O/H)"
         },
         {
@@ -34373,7 +34373,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.MAX_IN_DUST {Mg 0.95, Si 0.95, Fe 0.99, C 0.70, O 0.60}: the most of an element that can sit in dust, as a share of its total"
         },
         {
@@ -34415,7 +34415,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
         },
         {
@@ -34693,7 +34693,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind"
         }
       ],

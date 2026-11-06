@@ -4151,6 +4151,7 @@ export function createStageView(host) {
   return {
     // MAP.142: the nebulae of the sector that is up which the map draws from their own points (nebulavolume.singleSource).
     sectorNebulaSources: function () { return sectorStage.nebulaSources(); },
+    sectorHardClouds: function () { return sectorStage.hardClouds(); },
     selectBody: selectBody,
     selectBodyRef: selectBodyRef,
     systemMarkerSource: systemMarkerSource,

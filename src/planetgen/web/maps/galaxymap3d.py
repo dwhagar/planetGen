@@ -473,7 +473,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               uncharted_scene_url=None,
                               uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
                               system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None,
-                              nebula_volume_path="/galaxy/nebula-volume", nebula_alone_volume_path="/galaxy/nebula/{id}/volume"):
+                              nebula_volume_path="/galaxy/nebula-volume", nebula_alone_volume_path="/galaxy/nebula/{id}/volume",
+                              cloud_volume_path="/galaxy/cloud-volume"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -545,6 +546,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             map draws the nebulae of a node from (`static/nebulavolume.js`, `static/nebulavolumelayer.js`) once one is wide enough.
         nebula_alone_volume_path (str): The endpoint of one nebula's points (`/galaxy/nebula/{id}/volume`, `{id}` where the nebula's id goes, MAP.142),
             which an opened sector draws each of its nebulae from, by the same layer, in place of a sphere (MAP.142 part 4: the per-ID shape mesh is gone).
+        cloud_volume_path (str): The endpoint of the points of one cloud given by its sphere (`/galaxy/cloud-volume?x=&y=&z=&radius_pc=&family=`, MAP.392),
+            which an opened sector draws every supernova remnant and every nebula it has no id for (a scattered one, one a waiting star lights) from.
         uncharted_scene_url (str, optional): The scene endpoint of a sector
             nothing was generated in (`/galaxy/uncharted/{shell}/{band}/{wedge}/scene`),
             which the map opens in place with an "Uncharted" mark when it
@@ -603,6 +606,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "territoryPath": territory_path,
         "nebulaVolumePath": nebula_volume_path,
         "nebulaAloneVolumePath": nebula_alone_volume_path,
+        "cloudVolumePath": cloud_volume_path,
         "regionsPath": regions_path,
         "systemNearestPath": system_nearest_path,
         "course": course,
