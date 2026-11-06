@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3471] - 2026-11-06
+
+**Headline:** A cluster's page lists the stars that belong to it, and a star's page names its cluster.
+
+### Changed
+- The page of a globular cluster now lists its own stars first, as "Stars of the cluster", each linked to its page, and says how many more of its stars are not yet charted: the ones the plan has placed that no filled sector has built yet. A cluster with no name yet is called "Globular cluster" and its ID, and takes its name on the page when the first sector holding one of its stars is filled.
+- The page of a star that belongs to a cluster shows "Member of" and the cluster, linked, in its Location block.
+- The container contents answer carries the cluster's stars as kind `star` and `uncharted_stars`; the star's object answer carries `cluster`.
+
+generation-output: unchanged
+
+## [8.0.3470] - 2026-11-06
+
+**Headline:** The galaxy's tabulated stellar potential is now tested against an independent ring sum at the bulge, the Sun, the disk edge, and past 16 kpc.
+
+### Added
+- **Tests for the tabulated stellar potential (TEST.627).** The circular speed of the stars is held to an independent ring sum within four percent at 500 pc and 1.5 kpc (the bulge), the solar circle, three and four and a half thin-disk scale lengths (the disk edge), and 22 and 30 kpc; the whole galaxy's speed at the Sun is pinned and made of the stars' and the halo's in quadrature; the table is built once per galaxy and again only when the galaxy changes; and the stand-in registry says the analytic disks and spheres are the baseline since the table.
+
 ## [8.0.3469] - 2026-11-06
 
 **Headline:** The system sky page now knows when charting has built its stars: "built to" follows the spheres charting drew instead of staying at zero.
