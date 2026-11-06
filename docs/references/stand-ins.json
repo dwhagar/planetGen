@@ -11926,9 +11926,9 @@
       "rows": [
         {
           "burn_down": [
-            "replace",
-            "GEN.962",
-            "the moon rate item (giant-impact and capture frequency) replaces the moon mass floor and function; the satellite mass ratios are a Solar System check, not a source"
+            "no data",
+            "-",
+            "GEN.962 built the moon count from giant-impact frequency (rows RM1 to RM3), but no exomoon mass distribution is observed; the mass floor and the mass function stay recalled, with the satellite mass ratios a Solar System check, not a source"
           ],
           "fields": [
             [
@@ -11968,9 +11968,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.962",
-            "the moon rate item (giant-impact and capture frequency) replaces the moon mass floor and function; the satellite mass ratios are a Solar System check, not a source"
+            "no data",
+            "-",
+            "GEN.962 built the moon count from giant-impact frequency (rows RM1 to RM3), but no exomoon mass distribution is observed; the mass floor and the mass function stay recalled, with the satellite mass ratios a Solar System check, not a source"
           ],
           "fields": [
             [
@@ -38317,7 +38317,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1258",
+          "unread": "GEN.1207",
           "what": "phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure"
         }
       ],
