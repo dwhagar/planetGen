@@ -19231,6 +19231,26 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   outside the module, and TEST.183 proves it.
   Prerequisites: OPS.97. Related: OPS.97, TEST.183.
 
+- [ ] **OPS.106 update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed**
+  Boss (7:20 PM EST on 2026-11-05, as the lane reported): drop the
+  duration guesses from the update.sh output (scripts/deploy-common.sh).
+  Do: remove every text that promises how long a step takes; the
+  progress bars and the measured time left (OPS.99) stay. Version 8.3.
+  Lock-free, no migration, no epoch. Owner: the project thread building
+  it on claude/project-thread-a1n0vp. Filed by the TODO thread.
+  Prerequisites: none. Related: OPS.99.
+
+- [ ] **OPS.107 The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs**
+  Boss (7:20 PM EST on 2026-11-05, as the lane reported): the warm-up
+  bar and time left jump because a unit reports only when it finishes.
+  Do: finer progress reports inside a unit of sectors, systems or
+  phenomena, counted by WarmProgress, so the bar and the time left
+  follow the work; test that a long unit moves the bar before it ends.
+  Version 8.3. Lock-free, no migration, no epoch. Owner: the project
+  thread building it on claude/project-thread-a1n0vp. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: OPS.99.
+
 ## DOC: Documentation
 
 - [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**

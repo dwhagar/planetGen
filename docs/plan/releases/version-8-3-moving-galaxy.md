@@ -27,6 +27,8 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls |  |  |
+| OPS.106 | update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed |  |  |
+| OPS.107 | The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs |  |  |
 | OPS.98 | A time on every line of every script and command |  |  |
 | OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh |  |  |
 | OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | OPS.98 |  |
