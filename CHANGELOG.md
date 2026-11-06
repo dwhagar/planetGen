@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3390] - 2026-11-06
+
+**Headline:** The life class rules page is rebuilt with the American spelling DOC.103 gave the rule file, and its test passes again.
+
+### Changed
+
+- `docs/design/habitability/life-class-rules.md` is rebuilt from the rule file (`scripts/build_life_class_rules.py`): one word, "center" for "centre", had changed in the file and not in the page, so `test_life_class_rules_doc::test_the_page_is_the_rule_file_as_built` failed on main.
+
+generation-output: unchanged
+
 ## [8.0.3389] - 2026-11-06
 
 **Headline:** The density identity test's notes use the American spelling.
