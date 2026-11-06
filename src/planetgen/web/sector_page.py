@@ -41,8 +41,8 @@ from planetgen.queue import runline
 from planetgen.web import formerly
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
-    esc, format_number, format_distance_ly, inside_text, linkify_nearest, nearest_systems_html,
-    runaway_text,
+    esc, format_luminosity_sol, format_number, format_distance_ly, format_mass_solar, inside_text, linkify_nearest,
+    nearest_systems_html, runaway_text,
 )
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, parts_of, plain
 from planetgen.web.maps.galaxymap3d import (
@@ -71,7 +71,7 @@ PHENOMENON_TYPE_LABELS = {
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
     "supernova_remnant": "Supernova Remnant",
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
-    "quasar": "Quasar",
+    "quasar": "Quasar", "hypervelocity_star": "Hypervelocity Star",
 }
 """dict: Display labels for `db.query.phenomena_near_sector`'s `type`
 values (the same ones the phenomena list uses)."""
@@ -739,6 +739,9 @@ def sector(sector_id):
 
     g.setdefault("sector_data", {}).pop(sector_id, None)  # a POST above may have changed it
     detail, facilities = _sector_data(sector_id)
+    if detail.get("uncharted"):       # MAP.399: a placeholder row a drifting rogue made in a cell nothing was generated in
+        address = (detail["shell_index"], detail["band_index"], detail["wedge_index"])
+        return _uncharted_page(apiclient.get_uncharted_sector(db_name(), *address), address, stored=detail.get("phenomena"))
     pick = _pick_mode(request.args)
     _rows, map_systems = _contents(detail, facilities)
     contents = tables.render(CONTENTS_TABLE, request.path, anchor="sector-contents", sector=sector_id)
@@ -799,19 +802,73 @@ def sector_at(shell, band, wedge):
         raise
     if cell.get("sector_id") is not None:
         return redirect(url_for("web.sector", sector_id=cell["sector_id"]), code=302)
+    return _uncharted_page(cell, (shell, band, wedge))
+
+
+def placed_in_uncharted(cell, stored=None):
+    """
+    What is placed in an uncharted cell (MAP.401), as rows for the page's table: `{"name", "url", "kind", "details"}`, each linked to its own page. First the objects stored
+    in the cell's placeholder sector row (`stored`, `phenomena` of its sector detail, only those generated as part of it: the rogue planets that drifted in, and any other
+    phenomenon filed there), then what the scatters left waiting in the cell (`cell`, the answer of `GET /api/galaxy/uncharted`): its bright stars, its unbuilt scattered
+    phenomena (black holes, neutron stars, planetary nebulae, supernova remnants, hypervelocity stars) and the nebulae its waiting stars light.
+    """
+    rows = []
+    for row in sorted((r for r in stored or () if r.get("home")), key=lambda r: (r["distance_ly"] is None, r["distance_ly"] or 0.0, r["name"])):
+        details = [(row.get("descriptor") or "").replace("_", " ").capitalize()]
+        if row.get("class"):
+            details.insert(0, f"Class {row['class']}")
+        if row.get("mass_solar"):
+            details.append(format_mass_solar(row["mass_solar"]))
+        if row.get("radius_ly"):
+            details.append(f"{format_distance_ly(row['radius_ly'])} radius")
+        rows.append({"name": row["name"], "url": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"]),
+                     "kind": PHENOMENON_TYPE_LABELS.get(row["type"], row["type"]), "details": ", ".join(bit for bit in details if bit)})
+    for star in cell.get("stars") or ():
+        details = [f"{star['star_type']} star"]
+        if star.get("luminosity_sol") is not None:
+            details.append(format_luminosity_sol(star["luminosity_sol"]))
+        if star.get("member_count"):
+            details.append(f"{star['member_count']} stars together")
+        rows.append({"name": f"Uncharted {star['star_type']} star {star['id']}", "url": page_url("uncharted_star", bright_star_id=star["id"]),
+                     "kind": "Waiting star", "details": ", ".join(details)})
+    for scattered in cell.get("scattered") or ():
+        label = PHENOMENON_TYPE_LABELS.get(scattered["type"]) or scattered["type"].replace("_", " ").title()
+        details = [(scattered.get("subtype") or "").replace("_", " ").replace("-", " ").capitalize()]
+        if scattered.get("mass_solar"):
+            details.append(format_mass_solar(scattered["mass_solar"]))
+        rows.append({"name": f"{label} (uncharted)", "url": page_url("uncharted_phenomenon", scatter_id=scattered["id"]),
+                     "kind": label, "details": ", ".join(bit for bit in details if bit)})
+    for nebula in cell.get("hosted_nebulae") or ():
+        rows.append({"name": nebula["name"], "url": page_url("uncharted_star", bright_star_id=nebula["star_id"]),
+                     "kind": "Nebula", "details": f"{nebula['class_name']}, lit by a waiting star, {format_distance_ly(nebula['radius_ly'])} radius"})
+    return rows
+
+
+def _uncharted_page(cell, address, stored=None):
+    """
+    The page of a cell nothing was generated in, for `cell` (the answer of `GET /api/galaxy/uncharted`): the cell's name and region (MAP.399), its place, what is placed in it
+    (`placed_in_uncharted`, MAP.401), its profile and what charting it would take. A placeholder sector row a drifting rogue made there (`store.uncharted_sector_id`) shows this
+    page too, at its own address, with the objects stored in it (`stored`).
+    """
+    shell, band, wedge = address
     designation = cell["designation"]
+    name = cell.get("name") or f"Uncharted sector {designation}"
+    region = cell.get("region")
     return render_page(
         "sector_uncharted.html",
-        title=f"Uncharted sector {designation}",
+        title=name,
         section="sectors",
-        breadcrumbs=[crumb("Sectors", "sectors"), crumb(f"Uncharted {designation}")],
-        description=f"Uncharted sector {designation}: what the galaxy's shape says it holds, and what charting it would take.",
+        breadcrumbs=[crumb("Sectors", "sectors"), crumb(name)],
+        description=f"{name}, an uncharted sector{' in ' + region['name'] if region else ''}: what the galaxy's shape says it holds, and what charting it would take.",
         cell=cell,
         designation=designation,
+        name=name,
+        region=region,
         address=(shell, band, wedge),
         edge_text=format_distance_ly(pc_to_ly(cell["edge_pc"])),
         star_count=len(cell.get("stars") or ()),
         scattered_count=len(cell.get("scattered") or ()),
+        placed=placed_in_uncharted(cell, stored),
         galaxy_url=page_url("galaxy"),
         can_generate=current_admin() is not None,
         profile=_profile_panel((shell, band, wedge)),

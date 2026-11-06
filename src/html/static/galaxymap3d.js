@@ -5780,7 +5780,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // MAP.291: the window is as wide as its column and as tall as the browser window leaves room for.
   // MAP.350: the Galaxy Map is as tall as the browser window less 20 pixels above and below, and the page rests with it there.
   // MAP.359: a sector page's map (pinned) is the same size, so the sector's map matches the Galaxy Map for the window.
-  watchWindowFit(viewport, null, { fill: true });
+  // TEST.634: the Go to row above the map (the address form, when the map has one) is part of what fills the window, so the page rests with the row in view
+  // under the held header and the map is as much shorter as the row is tall.
+  watchWindowFit(viewport, null, { fill: true, block: function () { return document.getElementById("galaxymap3d-address"); } });
 
   watchResize(viewport, function () {
     fitRendererToCanvas(renderer, camera, canvasEl);

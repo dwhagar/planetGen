@@ -285,7 +285,8 @@ def _warm_view(warm):
         "auto_enabled": auto["enabled"], "auto_wanted": auto["wanted"], "auto_running": auto["holder"] is not None,
         "index_size": format_bytes(warm["index"]["size_bytes"]) if warm["index"]["size_bytes"] else "",
         "index_kinds": [{**row, "built": time_text(_iso(row["built_at"])),
-                         "rows_text": f"{row['rows']:,}" if row["rows"] is not None else ""}
+                         "rows_text": f"{row['rows']:,}" if row["rows"] is not None else "",
+                         "uncharted_text": f"{row['uncharted']:,}" if row.get("uncharted") else "0"}
                         for row in warm["index"]["kinds"]],
     }
 

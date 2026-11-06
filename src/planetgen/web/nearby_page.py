@@ -46,6 +46,7 @@ KIND_LABELS = {
     "comet": "Comets", "facility": "Facilities", "nebula": "Nebulae", "asteroid_field": "Asteroid fields",
     "black_hole": "Black holes", "neutron_star": "Neutron stars", "supernova_remnant": "Supernova remnants",
     "rogue_planet": "Rogue planets", "interstellar_comet": "Interstellar comets", "quasar": "Quasars",
+    "hypervelocity_star": "Hypervelocity stars",
 }
 """dict: Each searchable kind's plural label."""
 
@@ -57,6 +58,7 @@ KIND_NAMES = {
     "comet": "Comet", "facility": "Facility", "nebula": "Nebula", "asteroid_field": "Asteroid field",
     "black_hole": "Black hole", "neutron_star": "Neutron star", "supernova_remnant": "Supernova remnant",
     "rogue_planet": "Rogue planet", "interstellar_comet": "Interstellar comet", "quasar": "Quasar",
+    "hypervelocity_star": "Hypervelocity star",
 }
 """dict: Each searchable kind's singular label."""
 
@@ -71,6 +73,8 @@ def nearby_url(place=None, distance=None, **params):
 def _row_url(row):
     """The page of one result."""
     kind = row["kind"]
+    if row.get("uncharted"):  # MAP.400: no sector has stored it; a scattered row has the page of its scatter row, a field cloud none
+        return page_url("uncharted_phenomenon", scatter_id=row["scatter_id"]) if row.get("scatter_id") is not None else None
     if row.get("ref"):        # UX.232: every list opens an object by the reference the API gave it, one builder
         from .item_pages import item_url        # imported here: item_pages reaches this module through the nav page
         return item_url(row["ref"])

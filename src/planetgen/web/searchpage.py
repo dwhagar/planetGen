@@ -94,7 +94,7 @@ _FACET_ALLOWED = {
     **{name: score_filters.values(name) for name in score_filters.FACETS},
     **{f"moon_{name}": score_filters.values(name) for name in score_filters.FACETS},
     "phenomenon": {"nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant",
-                   "rogue_planet", "interstellar_comet", "quasar"},
+                   "rogue_planet", "interstellar_comet", "quasar", "hypervelocity_star"},
 }
 
 NAME_FIELDS = (
@@ -579,7 +579,10 @@ def _rows(panel, rows):
             item["url"] = page_url("sector", sector_id=row["id"])
             item["galaxy_url"] = page_url("sector_on_galaxy_map", sector_id=row["id"])
         elif panel == "phenomena":
-            item["url"] = page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"])
+            if row.get("uncharted"):    # MAP.400: no sector has stored it; a scattered row has the page of its scatter row, a field cloud none
+                item["url"] = page_url("uncharted_phenomenon", scatter_id=row["scatter_id"]) if row.get("scatter_id") is not None else None
+            else:
+                item["url"] = page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"])
             item["type_label"] = PHENOMENON_TYPE_LABELS.get(row["type"], row["type"])
             item["sector_url"] = _sector_cell(row["sector_id"])
         elif panel == "systems":

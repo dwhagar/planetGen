@@ -42,7 +42,7 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns, search_values
+from planetgen.db import chart_ledger, compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns, search_values
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -217,7 +217,10 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         list[dict]: One row per sector, with `id`, `name`,
                            `edge_ly`, `system_count`,
                            `galactic_radius_pc`/`galactic_radius_ly`
-                           (`None` if unplaced).
+                           (`None` if unplaced), and `uncharted` (MAP.399: a
+                           placeholder row a drifting rogue planet made in a cell
+                           nothing was generated in, `store.uncharted_sector_id`:
+                           placed, with no row in the chart ledger).
     """
     if sort is not None and sort not in SECTOR_SORTS:
         raise ValueError(f"unknown sector sort {sort!r}")
@@ -226,10 +229,12 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         rows = _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after)
     else:
         rows = _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after)
+    charted = chart_ledger.charted_among(conn, [(r["shell_index"], r["band_index"], r["wedge_index"]) for r in rows if r["shell_index"] is not None])
     return [
         {
             "id": r["id"], "name": r["name"], "edge_mpc": r["edge_mpc"], "edge_ly": milliparsecs_to_ly(r["edge_mpc"]),
             "system_count": r["system_count"],
+            "uncharted": r["shell_index"] is not None and (r["shell_index"], r["band_index"], r["wedge_index"]) not in charted,
             "center_x_pc": r["center_x_pc"], "center_y_pc": r["center_y_pc"], "center_z_pc": r["center_z_pc"],
             "galactic_radius_pc": r["galactic_radius_pc"],
             "galactic_radius_ly": (
@@ -241,6 +246,22 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         }
         for r in rows
     ]
+
+
+def count_uncharted_sectors(conn):
+    """
+    How many sector rows are uncharted placeholders (MAP.399): placed rows (`shell_index` set) beyond the cells the chart ledger holds. Every charted
+    sector has its cell in the ledger (`store.save_sector` records it), so the difference of the two counts is the placeholders, each count read from an index.
+    """
+    placed = conn.execute("SELECT COUNT(shell_index) AS n FROM sectors").fetchone()["n"]
+    return max(0, placed - chart_ledger.count(conn))
+
+
+def sector_is_uncharted(conn, sector):
+    """Whether the `sectors` row `sector` (anything with `shell_index`, `band_index`, `wedge_index`) is an uncharted placeholder (MAP.399)."""
+    if sector["shell_index"] is None:
+        return False
+    return chart_ledger.row(conn, (sector["shell_index"], sector["band_index"], sector["wedge_index"])) is None
 
 
 def _read_sectors(conn, where, params, order, limit, offset):
@@ -2303,7 +2324,7 @@ def sector_detail(conn, sector_id):
     Returns:
         dict: `id`, `name`, `edge_mpc`, `edge_ly`, `center_x_pc`/
             `center_y_pc`/`center_z_pc`, `shell_index`, `band_index`,
-            `wedge_index`, `placed`, `system_count`, and `systems` (one entry per system
+            `wedge_index`, `placed`, `uncharted` (a placeholder, MAP.399), `system_count`, and `systems` (one entry per system
             placed in this sector, nearest the sector's center first,
             then any with no position by name: `id`, `name`, `quadrant`, `location`,
             `is_binary`, `binary_type`, `binary_separation_km`,
@@ -2374,6 +2395,7 @@ def sector_detail(conn, sector_id):
         "shell_index": sector["shell_index"], "band_index": sector["band_index"],
         "wedge_index": sector["wedge_index"],
         "placed": sector["center_x_pc"] is not None,
+        "uncharted": sector_is_uncharted(conn, sector),
         "system_count": len(systems),
         "star_count": star_count,
         "interstellar_debris_count": interstellar_debris_count(star_count),
@@ -6746,6 +6768,7 @@ _SEARCH_PHENOMENON_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field", "black_hole": "Black Hole",
     "neutron_star": "Neutron Star", "supernova_remnant": "Supernova Remnant",
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet", "quasar": "Quasar",
+    "hypervelocity_star": "Hypervelocity Star",
 }
 
 _SEARCH_PHENOMENON_CLASS_COLUMNS = {
@@ -7152,10 +7175,23 @@ def _search_phenomenon_tables():
     return [(table, type_label) for table, type_label, _descriptor, _radius in _PHENOMENON_TABLES]
 
 
+def _uncharted():
+    """`planetgen.db.uncharted`, imported when a search needs it: that module reads the scatter classes through this one."""
+    from planetgen.db import uncharted
+    return uncharted
+
+
 def _search_facet_phenomenon(conn):
+    """The Phenomenon facet: each type with the objects a sector stored and the uncharted ones no sector has (MAP.400: the scattered rows and
+    the field clouds, `db.uncharted`), so its count is what the map draws."""
     options = []
+    unstored = _uncharted().counts(conn)
     for table, type_label in _search_phenomenon_tables():
-        count = conn.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()["c"]
+        count = conn.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()["c"] + unstored.pop(type_label, 0)
+        if count:
+            options.append({"value": type_label, "label": _SEARCH_PHENOMENON_LABELS.get(type_label, type_label),
+                            "count": count, "tooltip": None})
+    for type_label, count in unstored.items():          # a type only uncharted objects have: the hypervelocity stars
         if count:
             options.append({"value": type_label, "label": _SEARCH_PHENOMENON_LABELS.get(type_label, type_label),
                             "count": count, "tooltip": None})
@@ -7173,13 +7209,16 @@ def _search_facet_phenomenon_class(conn):
     options = []
     tables = dict((type_label, table) for table, type_label in _search_phenomenon_tables())
     for type_label, column in _SEARCH_PHENOMENON_CLASS_COLUMNS.items():
-        rows = conn.execute(
-            f"SELECT {column} AS v, COUNT(*) AS c FROM {tables[type_label]} GROUP BY v ORDER BY v"
-        ).fetchall()
+        counts = {row["v"]: row["c"] for row in conn.execute(
+            f"SELECT {column} AS v, COUNT(*) AS c FROM {tables[type_label]} GROUP BY v ORDER BY v").fetchall()}
+        if type_label == "nebula":      # MAP.400: the field clouds no sector has stored are nebulae of class M and N
+            for row in conn.execute("SELECT nebula_class AS v, COUNT(*) AS c FROM nebula_field WHERE is_stored = 0"
+                                    " GROUP BY v").fetchall():
+                counts[row["v"]] = counts.get(row["v"], 0) + row["c"]
         options.extend(
-            {"value": f"{type_label}:{row['v']}", "label": _search_phenomenon_class_label(type_label, row["v"]),
-             "count": row["c"], "tooltip": None}
-            for row in rows if row["v"]
+            {"value": f"{type_label}:{value}", "label": _search_phenomenon_class_label(type_label, value),
+             "count": count, "tooltip": None}
+            for value, count in sorted(counts.items(), key=lambda pair: (pair[0] is None, pair[0] or "")) if value
         )
     return options
 
@@ -7189,7 +7228,11 @@ def _search_result_phenomena(conn, type_tags, class_tags, limit, offset):
     Class tags. Tags in one group combine with OR, the two groups with AND,
     and a class tag only narrows its own type (UX.44): Black Hole + Nebula
     + nebula class D is every black hole and the class D nebulae. With no
-    Phenomenon tag, the class tags pick their own types."""
+    Phenomenon tag, the class tags pick their own types.
+
+    The objects no sector has stored yet follow the stored ones (MAP.400, `db.uncharted`): the field clouds, which a class tag of their
+    type narrows to their own class (M or N), and the scattered rows, which have no class and so are left out of a type a class tag
+    narrows. A row of them has `uncharted` true, `scatter_id` (the row of `phenomenon_scatter`, `None` for a field cloud) and no `ref`."""
     classes = {}
     for tag in class_tags:
         type_label, _sep, value = tag.partition(":")
@@ -7209,13 +7252,40 @@ def _search_result_phenomena(conn, type_tags, class_tags, limit, offset):
             params.extend(sorted(classes[type_label]))
         parts.append(f"SELECT '{type_label}' AS type, id, name, {class_sql} AS phenomenon_class, sector_id "
                      f"FROM {table}{where}")
-    if not parts:
+    uncharted = _uncharted()
+    tail_types = [kind for kind in uncharted.TAIL_KINDS
+                  if (not type_tags or kind in type_tags) and not (class_tags and not type_tags and kind not in classes)]
+    scatter_types = [kind for kind in tail_types if kind not in classes]
+    field_codes = classes.get("nebula")
+    cap = max(SEARCH_COUNT_CAP, offset + 2 * limit)
+    charted = 0
+    if parts:
+        union = f"FROM ({' UNION ALL '.join(parts)}) AS p"
+        charted = conn.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 AS one {union} LIMIT ?) capped",
+                               list(params) + [cap + 1]).fetchone()["n"]
+    tail_rows, tail_total = uncharted.search_rows(conn, tail_types, max(0, limit - max(0, charted - offset)), max(0, offset - charted),
+                                                  field_codes=field_codes, scatter_types=scatter_types)
+    if not parts and not tail_types:
         return {"rows": [], "total": 0, "limit": limit, "offset": 0, "truncated": False}
-    rows, page = _search_page(
-        conn, "SELECT type, id, name, phenomenon_class, sector_id",
-        f"FROM ({' UNION ALL '.join(parts)}) AS p", "name, type, id", params, limit, offset,
-    )
-    return {"rows": _with_refs(conn, [dict(r) for r in rows], None), **page}
+    capped = charted > cap
+    if capped:
+        charted = cap
+    total = charted + tail_total
+    if total and offset >= total:                       # a stale page link: the last page
+        offset = ((total - 1) // limit) * limit
+        tail_rows, _total = uncharted.search_rows(conn, tail_types, max(0, limit - max(0, charted - offset)), max(0, offset - charted),
+                                                  field_codes=field_codes, scatter_types=scatter_types)
+    rows = []
+    if parts and offset < charted:
+        rows = [dict(r) for r in conn.execute(
+            f"SELECT type, id, name, phenomenon_class, sector_id {union} ORDER BY name, type, id LIMIT ? OFFSET ?",
+            list(params) + [limit, offset]).fetchall()]
+        _with_refs(conn, rows, None)
+    for row in tail_rows:
+        row["ref"], row["parents"] = None, []
+    rows += tail_rows
+    return {"rows": rows, "total": total, "total_capped": capped, "limit": limit, "offset": offset,
+            "truncated": len(rows) < total}
 
 
 def _search_name_list(conn, table, limit=SEARCH_AUTOCOMPLETE_LIMIT):

@@ -29,6 +29,7 @@ import functools
 import hashlib
 import re
 
+from planetgen.galaxy.spherical import provisional_sector_designation
 from planetgen.galaxy import object_uid
 from planetgen.generation.phenomena import registry
 from planetgen.names import object_id
@@ -182,6 +183,28 @@ def local_name(uid, key):
     number = (fields.serial_kind << layout.serial_count_bits) | count
     spelled = f"{(number << layout.body_bits) | fields.body:0{LOCAL_DIGITS}X}"
     return _CODEC.encode(spelled, domain=local_domain(key)).title()
+
+
+SECTOR_DOMAIN = "sector"
+"""str: The codec domain's kind of an uncharted sector's name; like `LOCAL_DOMAIN`, not one of `KINDS`."""
+
+
+def uncharted_sector_name(address, key):
+    """
+    The name of an uncharted sector, the placeholder row a drifting rogue planet makes in a cell nothing was generated in (MAP.399), under naming key
+    `key`: the cell's 56-bit sector address (the sector field of the Object IDs born there, `provisional_sector_designation`) spelled by the codec in
+    a domain of its own, two capitalized words, the same for the same cell and key and never shared by two cells. Charting the cell gives it a word-salad name.
+
+    Args:
+        address (tuple): The cell, `(shell, band, wedge)`.
+        key: The naming key.
+    """
+    bits = object_uid.LAYOUT.sector_bits
+    sector = int(provisional_sector_designation(*address), 16)
+    digest = hashlib.sha256(f"sector-name:{parse_key(key)}".encode()).digest()
+    mask = (1 << bits) - 1
+    scrambled = ((int.from_bytes(digest[:8], "big") | 1) * sector + int.from_bytes(digest[8:16], "big")) & mask      # a keyed bijection, so neighbouring cells do not share a first word
+    return _CODEC.encode(f"{scrambled:0{bits // 4}X}", domain=f"{parse_key(key)}:{SECTOR_DOMAIN}").title()
 
 
 def local_name_with_sector(uid, key):

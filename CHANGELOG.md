@@ -2,6 +2,91 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3494] - 2026-11-06
+
+**Headline:** The page of an uncharted sector now lists what is placed in it, each object linked to its own page, and says plainly that the sector is uncharted.
+
+### Added
+- The uncharted-sector page (`/sector/at/<shell>/<band>/<wedge>`, and the page of a placeholder sector row from the Sectors list) has a "What is placed here" panel: a table of the rogue planets and other objects stored in the cell, the bright stars the scatters left waiting in it, the unbuilt scattered phenomena (black holes, neutron stars, planetary nebulae, supernova remnants, hypervelocity stars) and the nebulae its waiting stars light. Each row links to the object's page (`/phenomenon/...`, `/systems/uncharted/...`, `/uncharted-phenomenon/...`). A cell with nothing in it says so. Nothing is generated; the lists are read from what is stored.
+- New tests: `test_web_uncharted_contents.py` (the page with a faked API) and a browser check in `test_web_uncharted_sectors_browser.py` (the panel on a placeholder's page fits the phone, tablet and desktop and passes the accessibility check).
+
+generation-output: unchanged
+
+## [8.0.3493] - 2026-11-06
+
+**Headline:** Two moon tests that had stopped testing anything (one sampled systems with almost no moons, one compared a giant's moons with the radius the giant has shrunk to) now test what they say.
+
+### Changed
+
+- `src/tests/test_moon_history.py` (TEST.657): `_systems` made plain systems with `SystemConfig()`, whose `MOONS` is off by default. Since GEN.962 and GEN.1082 to GEN.1084 a rocky planet has a moon only by a giant impact (1 in 12) or capture, so the 16 sampled systems held 2 moons and `test_every_planet_with_moons_ends_with_moons_it_can_keep` failed on `seen_moons > 5`. `_systems` now sets `config.MOONS = True`.
+- `src/tests/test_moon_disk_zone.py` (TEST.657): `test_the_disk_moons_of_generated_giants_sit_inside_the_zone` compared a disk moon's birth distance with 30 radii of the giant's final radius. A giant's radius is derived again at the star's final age (`_settle_to_final_age`) after its moons are drawn, so the final radius is a few percent smaller than the one the zone was made for. The test now records the zone each giant's moons were drawn in (`moon_disk_zone.zone_km`), asserts the birth distance lies inside that zone, and that the zone is 30 radii of the giant to within 6 percent.
+
+generation-output: unchanged
+
+## [8.0.3492] - 2026-11-06
+
+**Headline:** A giant's stored albedo and greenhouse pair is tested to give its temperature back at every mass, and the scale-height inversion says plainly that it does not apply to a giant.
+
+### Fixed
+- `climate_draws.from_stored` no longer runs the barometric law on a giant's row (every generated giant came out with an albedo under 0, or as an "edited" row): it answers that a giant's scale height is not the no-air temperature's, and the row is backfilled from its stored temperature against the starlight alone, which reproduces it.
+- A test draws giants of ten masses from 5 to 4,000 Earth masses and checks that the stored pair (with the giant's own heat inside its greenhouse quantity, GEN.1030) and the backfill both reproduce the temperature to a part in a billion.
+
+generation-output: unchanged
+
+## [8.0.3491] - 2026-11-06
+
+**Headline:** The lists, the counts, the search and Nearby now include the scattered black holes, neutron stars, remnants, planetary nebulae and hypervelocity stars and the field clouds that no sector has stored yet, so the Lists page counts what the map draws.
+
+### Fixed
+
+- The object index reads only the tables that hold a stored object, so the Lists page, the admin Object index table, the Phenomenon facet and panel of the search page and Nearby showed NEBULA 0, SUPERNOVA_REMNANT 0 and BLACK_HOLE 1 while the map draws the 110 thousand field clouds (`nebula_field`) and the 9.7 million scattered phenomena (`phenomenon_scatter`). They are not put in the index (about 3 GB, three times the cache budget the index is kept first in). `db/uncharted.py` reads them beside it: a name-sorted list shows the charted objects first and the uncharted ones after them (field clouds, then scattered rows), and a count adds the two.
+- A scattered row links to its scatter page (`/uncharted-phenomenon/<id>`); a field cloud, which has no Object ID or page until a sector stores it, is listed by its key (`field-i.j.k.n`).
+
+### Added
+
+- A Hypervelocity stars list (`/lists/hypervelocity_star`, `GET /api/object-lists/hypervelocity_star`), the Hypervelocity Star type in the search page's Phenomenon facet, and the kind in Nearby: a hypervelocity star is a system once its sector is built, so until then only the scatter row has it.
+- Nearby lists the uncharted objects in range (`uncharted`, `scatter_id`, `ref` null) instead of counting the scattered ones under `not_generated`; the pre-placed bright stars are still counted only.
+- The admin Object index table has an Uncharted column beside Rows, recorded by each index run.
+
+generation-output: unchanged
+
+## [8.0.3490] - 2026-11-06
+
+**Headline:** The Sectors list now tells the cells rogue planets landed in from generated sectors: they are named from their cell, marked uncharted, placed in their region and given no density.
+
+### Changed
+- A sector row a drifting rogue planet made in a cell nothing was generated in (`store.uncharted_sector_id`) is an uncharted placeholder (no cell in the chart ledger). `GET /api/sectors` and `GET /api/sectors/<id>` mark it `uncharted`, name it from its cell under the naming key (`naming_key.uncharted_sector_name`: two words, never the raw hex designation, which stays as `designation`), and give it its `region`, named whether or not any of that region is charted. `GET /api/galaxy/uncharted` carries the same `name` and `region`. `GET /api/sectors` adds `uncharted_total`.
+- The Sectors page lists a placeholder as "Uncharted" in the Systems column with no density, and the header counts the generated sectors with the uncharted number beside it. A placeholder's page is the uncharted-sector page, with its name, an Uncharted badge and its region.
+- New tests: `test_uncharted_sector_rows.py` (database and API) and `test_web_uncharted_sectors_browser.py` (browser, with the accessibility and phone-fit checks).
+
+generation-output: unchanged
+
+## [8.0.3489] - 2026-11-06
+
+**Headline:** The merge train's gate, number checks and machine start-up are scripts in the repository, so a restart or a second machine no longer loses them.
+
+### Changed
+
+- `scripts/train_gate.py` lists the test files a train reaches, splits them over several machines by their last durations, runs them one at a time with a results file that a restart resumes from, and reports only the failures that `scripts/data/known_reds.json` (the failures present on a clean main) does not explain.
+- `scripts/train.py` merges a train's heads in stacking order, shows the next migration, epoch, stand-in section and citation numbers, finds a number claimed by two heads or already taken on main, and runs the rebuild, golden and final checks.
+- `scripts/lane_up.sh` starts Redis and MySQL after a restart and sets the test variables.
+
+generation-output: unchanged
+
+## [8.0.3488] - 2026-11-06
+
+**Headline:** On the Galaxy Map the Go to row and the map are one block that fills the window, so the page rests with the row in view under the header and the map is about 40 px shorter.
+
+### Fixed
+
+- The Galaxy Map scrolled itself to the map when it loaded (MAP.350), which left the Go to row (the address box and its button) above the window under the held header, over the site search link, Help and Menu; the layout test `test_controls_do_not_overlap[web.galaxy]` failed at 390, 600, 820 and 1280 px for it (TEST.634). `mapfit.js` now takes a block: the row and the map together are 95 percent of the window (less the held header), the map is the row's height shorter, and the page aligns to the row's top. A row that is not shown leaves the map to fill the window alone, as before, and the sector page's map has no row.
+
+### Changed
+
+- `tests/js/mapfit.test.mjs` and the MAP.350 browser tests (`test_web_browser_map_window.py`, the Galaxy Map window geometry test) measure the block; the layout test is unchanged.
+
+generation-output: unchanged
+
 ## [8.0.3487] - 2026-11-06
 
 **Headline:** The waiting-in-line tests hold the machine with a run another process follows, so the guard against a run waiting for itself stays as it is.
