@@ -298,7 +298,8 @@ def test_the_web_app_never_imports_numba():
             "assert 'numba' not in sys.modules, 'numba was imported by the web app'\n"
             "assert 'planetgen.physics.field_kernel' not in sys.modules, 'the field kernel was imported by the web app'\n"
             "assert 'planetgen.galaxy.gravity_kernel' not in sys.modules, 'the gravity kernel was imported by the web app'\n"
-            "assert 'planetgen.galaxy.gravity_tree' not in sys.modules, 'the gravity tree was imported by the web app'\n")
+            "assert 'planetgen.galaxy.gravity_tree' not in sys.modules, 'the gravity tree was imported by the web app'\n"
+            "assert 'planetgen.db.gravity_grid' not in sys.modules, 'the gravity grid job was imported by the web app'\n")
     done = subprocess.run([sys.executable, "-c", code], cwd=os.path.join(ROOT, "src"), capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[-1500:]
 

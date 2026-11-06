@@ -44,8 +44,8 @@
   <span class="badge">{{ phenomenon_count }} {{ "phenomenon" if phenomenon_count == 1 else "phenomena" }}</span>
   {%- endif %}
 </p>
-{%- if quadrant %}
-<p class="location">In <a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a> of the galaxy</p>
+{%- if sector.region %}
+<p class="location">In the {{ sector.region.name }}{% if sector.region.parent %}, part of {{ sector.region.parent }}{% endif %}</p>
 {%- endif %}
 {{ formerly(former) }}
 {{ action_bar(bookmark, none, none, galaxy_url, admin_button, nearby_url) }}

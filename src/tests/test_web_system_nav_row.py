@@ -48,7 +48,9 @@ def test_system_buttons_share_one_row(browser, base_url, page_targets, admin_tok
     try:
         # The bookmark button is shown by a script a moment after load.
         page.locator(ROW + " > .btn-bookmark").wait_for(state="visible")
-        boxes = [el.bounding_box() for el in page.locator(ROW_BUTTONS).all()]
+        # TEST.635: the three boxes are read in one call. The page scrolls itself to the System Map a moment after it loads (MAP.350, mapfit.js, until the
+        # reader acts), so boxes read one call at a time can be read either side of that scroll (one at y 217, the next at y -170) and look like two rows.
+        boxes = page.locator(ROW_BUTTONS).evaluate_all("els => els.map(el => el.getBoundingClientRect().toJSON())")
         assert len(boxes) == count, boxes
         centers = [box["y"] + box["height"] / 2 for box in boxes]
         assert max(centers) - min(centers) < 2, f"buttons on more than one row: {boxes}"
@@ -66,7 +68,7 @@ def test_the_nav_menu_lists_navigate_from_to_and_nearby(browser, base_url, page_
         page.locator(ROW + " .nav-menu > [slot=trigger]").click()
         names = [name.strip() for name in page.locator(ROW + " .nav-menu sl-menu-item").all_inner_texts()]
         assert names[:2] == ["Navigate from here", "Navigate to here"], names
-        assert set(names[2:]) <= {"Nearby locations"}, names
+        assert names[2:] in (["Nearby locations", "Add waypoint"], ["Add waypoint"], ["Nearby locations"], []), names      # NAV.49 put Add waypoint last
         page.get_by_role("menuitem", name="Navigate to here").click()
         page.wait_for_url(lambda url: "/nav" in url and "to=" in url)
     finally:

@@ -371,6 +371,16 @@ SECTOR_MAP_HELP = """<h3>Moving</h3>
     <li>Translucent clouds are nebulae, asteroid fields and supernova remnants; faint clouds reach in from a
     neighboring sector.</li>
     <li>Faint points are rogue planets; Mark in the Menu makes a kind of object easier to see.</li>
+  </ul>
+  <h3>Gravity</h3>
+  <ul>
+    <li>Turn on Gravity in the Menu to color the sector by its gravity. Pull is how hard gravity tugs on a ship at a spot, Well depth is how far down
+    in a gravity well the spot lies, and Stretch is how much gravity pulls a ship apart, nose from tail. Step through the sector one slab at a time,
+    or show every slab at once.</li>
+    <li>Brighter is more. The colors cover the middle 96% of this sector's own values on a log scale, so the wells of the nearby stars stand out
+    against the pull of the galaxy as a whole, which is far stronger and almost the same everywhere in a sector. The Key gives the range and the unit.</li>
+    <li>A white diamond is a saddle point: a spot between stars where their pulls cancel, so a ship could hover there, though it is still stretched
+    and drifts away if nudged. Hover one for the full pull there.</li>
   </ul>"""
 """The sector page's map (MAP.68): the help dialog (UX.50)."""
 
@@ -473,7 +483,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               uncharted_scene_url=None,
                               uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
                               system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None,
-                              nebula_volume_path="/galaxy/nebula-volume", nebula_alone_volume_path="/galaxy/nebula/{id}/volume"):
+                              nebula_volume_path="/galaxy/nebula-volume", nebula_alone_volume_path="/galaxy/nebula/{id}/volume",
+                              cloud_volume_path="/galaxy/cloud-volume"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -545,6 +556,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             map draws the nebulae of a node from (`static/nebulavolume.js`, `static/nebulavolumelayer.js`) once one is wide enough.
         nebula_alone_volume_path (str): The endpoint of one nebula's points (`/galaxy/nebula/{id}/volume`, `{id}` where the nebula's id goes, MAP.142),
             which an opened sector draws each of its nebulae from, by the same layer, in place of a sphere (MAP.142 part 4: the per-ID shape mesh is gone).
+        cloud_volume_path (str): The endpoint of the points of one cloud given by its sphere (`/galaxy/cloud-volume?x=&y=&z=&radius_pc=&family=`, MAP.392),
+            which an opened sector draws every supernova remnant and every nebula it has no id for (a scattered one, one a waiting star lights) from.
         uncharted_scene_url (str, optional): The scene endpoint of a sector
             nothing was generated in (`/galaxy/uncharted/{shell}/{band}/{wedge}/scene`),
             which the map opens in place with an "Uncharted" mark when it
@@ -603,6 +616,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "territoryPath": territory_path,
         "nebulaVolumePath": nebula_volume_path,
         "nebulaAloneVolumePath": nebula_alone_volume_path,
+        "cloudVolumePath": cloud_volume_path,
         "regionsPath": regions_path,
         "systemNearestPath": system_nearest_path,
         "course": course,
@@ -834,17 +848,26 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Move the center the view turns and zooms about to what is selected, or the middle of the view (C)">Center on selection</button>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
+    <details class="galaxy-sub" id="galaxymap3d-chart">
+      <summary>Chart View</summary>
     <button type="button" class="starmap-btn" data-action="plane-view" data-icon="plane-view" aria-pressed="false"
-            title="Tilt the map and lay a grid on a plane through a 60 degree wedge of the galaxy, with rings at round distances (around the selection when there is one)">Plane view</button>
+            title="Switch between the 3D View (the default) and the Chart View: a fixed isometric view of a 60 degree wedge of the galaxy with a grid of rings on a plane, around the selection when there is one">Chart View</button>
+    <div class="galaxy-menu-wedges" role="group" aria-label="Wedge">
+    <button type="button" class="starmap-btn" data-action="plane-wedge-prev" data-icon="plane-wedge" disabled
+            title="Make the wedge on the clockwise side the focus (the view moves to it)">Previous wedge</button>
+    <button type="button" class="starmap-btn" data-action="plane-wedge-next" data-icon="plane-wedge" disabled
+            title="Make the wedge on the counterclockwise side the focus (the view moves to it)">Next wedge</button>
+    </div>
     <button type="button" class="starmap-btn" data-action="plane-midplane" data-icon="plane-midplane" aria-pressed="false" disabled
-            title="Lay the plane view's grid in the galaxy's midplane (height 0) instead of through the middle of the view">Plane at galactic midplane</button>
+            title="Lay the Chart View's grid in the galaxy's midplane (height 0) instead of through the middle of the view">Grid at galactic midplane</button>
     <button type="button" class="starmap-btn" data-action="plane-stems" data-icon="plane-stems" aria-pressed="true" disabled
-            title="Show or hide the stems from stars down to the plane view's grid plane">Stems</button>
+            title="Show or hide the stems from stars down to the Chart View's grid plane">Stems</button>
     <label class="galaxy-menu-stretch" title="Draw heights above and below the plane this many times taller than true; the grid says so">Stem height
       <input type="range" id="galaxymap3d-plane-stretch" min="1" max="10" step="1" value="1" disabled aria-valuetext="true height">
       <output id="galaxymap3d-plane-stretch-out" for="galaxymap3d-plane-stretch">true</output></label>
     <button type="button" class="starmap-btn" data-action="side-strip" data-icon="side-strip" aria-pressed="false"
             title="Show the stars of a 60 degree wedge edge-on: distance from the galactic center across, height up and down. Picking a star in either view selects it in both">Side strip</button>
+    </details>
     <button type="button" class="starmap-btn" data-action="cell-grid" data-icon="cell-grid" aria-pressed="false"
             title="Draw the cells of this step (blocks, then sectors) as a grid over the map">Cell grid</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"

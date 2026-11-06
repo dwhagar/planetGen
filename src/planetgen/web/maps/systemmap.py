@@ -833,6 +833,9 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "xkm": planet.get("position_x_km") or 0.0,
         "ykm": planet.get("position_y_km") or 0.0,
         "radiuskm": planet.get("radius_km"),
+        # MAP.169: the raw mass (kg) and the motion in the plane (km/s), which the Gravity layer reads (`static/systemgravity.js`).
+        "masskg": planet.get("mass_kg"),
+        "vxkms": planet.get("velocity_x_kms"), "vykms": planet.get("velocity_y_kms"),
         "note": planet.get("_position_note"),
     }
     if parent_name is not None:
@@ -1024,6 +1027,11 @@ def _binary_star_positions_km(system, stars):
         primary["id"]: (-bx * primary_frac, -by * primary_frac),
         secondary["id"]: (bx * secondary_frac, by * secondary_frac),
     }
+
+
+def _host_mass_attr(mass_kg):
+    """` data-hostkg="<kg>"` for a scene's body layer (MAP.169): the mass its bodies orbit, which the Gravity layer sets the Hill spheres and Lagrange points by."""
+    return f' data-hostkg="{mass_kg:.6g}"' if mass_kg and mass_kg > 0 else ""
 
 
 def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, scale=None, bounds=_DEFAULT_BOUNDS,
@@ -1230,7 +1238,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svg/body_svgs) had.
         f'{"".join(belt_svgs)}{star_svg}{"".join(body_svgs)}{extra_svg}{facility_markers}',
-        scale=(lo, hi), bounds=bounds,
+        scale=(lo, hi), bounds=bounds, extra_attrs=_host_mass_attr(star.get("mass_kg")),
     )
 
 
@@ -1268,6 +1276,7 @@ def _wide_binary_star_attrs(system, star, role, scene_target=None):
         # where the real separation (not 0, 0) is what a "measure
         # distance" click needs.
         "xkm": 0.0, "ykm": 0.0,
+        "masskg": star["mass_kg"],
     }
     if scene_target is not None:
         attrs["scene"] = scene_target
@@ -1590,6 +1599,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
             # drawn `cx`/`cy` -- same reasoning as `_planet_attrs`'s
             # identical `xkm`/`ykm`.
             "xkm": sx, "ykm": sy,
+            "masskg": star["mass_kg"],
         }, bounds))
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers],
@@ -1617,6 +1627,8 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
         # old spot (inside orbit_paths, before star_svgs/body_svgs) had.
         f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}{members_svg}{facility_markers}',
         scale=(lo, hi), bounds=bounds,
+        # a close pair is orbited as one (the barycenter is the scene's middle): its planets feel both stars' mass
+        extra_attrs=_host_mass_attr(sum(star.get("mass_kg") or 0.0 for star in stars) if close_binary else (stars[0].get("mass_kg") if stars else None)),
     )] + member_scenes
 
 
@@ -1746,7 +1758,7 @@ def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
         "".join(orbit_paths) + facility_orbits,
         f'{center_svg}{"".join(body_svgs)}{facility_markers}',
         linear_px_per_km=px_per_km, bounds=bounds,
-        extra_attrs=((f' data-scale-twin="{esc(twin_id)}"' if twin else "")
+        extra_attrs=(_host_mass_attr(planet.get("mass_kg")) + (f' data-scale-twin="{esc(twin_id)}"' if twin else "")
                      + f' data-scale-true="{"true" if true_scale else "enlarged"}"'
                      f' data-scale-note="{esc(note)}" data-enlarge="{scale["enlarge"]:.3f}"'),
     )
@@ -1965,8 +1977,9 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
         "</div></details>"
         if stars else ""
     )
+    # every system with stars has the Gravity layer (MAP.169), whose Key line the legend holds, as the facilities' did
     layer_legend_html = (
-        '<div class="map-layer-legend" id="sysmap-layer-legend" hidden></div>' if facilities else ""
+        '<div class="map-layer-legend" id="sysmap-layer-legend" hidden></div>' if stars else ""
     )
     # UX.61, UX.50: under the map, as on the other maps, beside Map help.
     controls_html = (
@@ -2084,6 +2097,9 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     <span class="sysmap-legend-life-badge" aria-hidden="true"></span> marks a world that supports life;
     {facility_legend}</li>
     <li>Measure distance, then click two bodies for the real distance between them{wash_hint}.</li>
+    <li>Gravity in the Menu colors the view by the pull, well depth, or stretch of the stars, planets, and moons shown here (brighter is more, on this
+    view's own scale; the Key gives the range and the unit). Dashed rings are Hill spheres, where a body's own gravity wins over its star's. Diamonds
+    are the Lagrange points L1 to L5 of a body and what it orbits: saddle points where the two pulls cancel and a ship could hover.</li>
   </ul>
   <sl-button slot="footer" data-dialog-close>Close</sl-button>
 </sl-dialog>

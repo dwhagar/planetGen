@@ -231,7 +231,7 @@ def sky_from_stars(observer, stars, at_unix, limit=DEFAULT_LIMIT, galaxy_key="",
         galaxy_key (str): Names the galaxy for the stand-in velocities.
         circular_speed_kms: A function of radius in parsecs for the stand-in velocities; defaults to the running galaxy's potential
             (`galaxy.potential.current`).
-        dust (dict): Overrides of the dust law, for a galaxy of another size.
+        dust (dict): Overrides of the dust law (`sky_photometry.dust_av_per_pc` keywords; `profile` is a `physics.dust_model.DustProfile`). `sky_from_database` gives a galaxy the dust of its own gas when this is `None`; the other functions use the fixed Milky Way law.
 
     Returns:
         Sky: The visible stars, brightest first, with `report`: `{"limit", "stars_in", "tiers": {tier: {"in", "visible", "faintest_magnitude",
@@ -400,6 +400,17 @@ def built_to_pc(levels):
     return reached
 
 
+def default_dust(conn):
+    """
+    The dust a galaxy's sky is seen through when the caller gives none (VIEW.44): the dust of its own gas (`physics.dust_model.dust_for_shape`) for the stored shape;
+    the fixed Milky Way law (an empty override) for a database with no shape.
+    """
+    from planetgen.db import store
+    from planetgen.physics import dust_model
+    info = store.get_galaxy_shape(conn, light=True)
+    return {} if info is None else dust_model.dust_for_shape(info.shape)
+
+
 def sky_from_database(conn, observer, at_unix, limit=DEFAULT_LIMIT, galaxy_key="", circular_speed_kms=None, dust=None,
                       max_distance_pc=MAX_DISTANCE_PC):
     """
@@ -407,6 +418,8 @@ def sky_from_database(conn, observer, at_unix, limit=DEFAULT_LIMIT, galaxy_key="
     The report gains `"built_to_pc"` (`built_to_pc`: how far the stored stars are complete to `limit`) and `"complete_above_sol"` (the largest level of
     the shells' cells), the "built to magnitude X within Y pc" of the plan.
     """
+    if dust is None:
+        dust = default_dust(conn)
     levels = []
     sky = sky_from(observer, sphere_source(lambda center, radius, floor: sky_sphere.stars_in_sphere(conn, center, radius, floor), levels), at_unix, limit,
                    galaxy_key, circular_speed_kms, dust, max_distance_pc)

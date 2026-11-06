@@ -26,6 +26,24 @@ def test_a_planet_and_a_moon_get_a_solid_look_with_their_own_seed():
     assert moon["kind"] == "moon" and moon["seed"] != planet["seed"]
 
 
+def test_what_the_picture_guessed_is_named(monkeypatch):
+    """UX.276: a world colored from its temperature alone says its ground color is an estimate; a giant, its cloud-top color; a star none."""
+    assert bodyview.view("star", STAR, [STAR])["estimate"] == []
+    assert bodyview.view("planet", PLANET, [STAR])["estimate"] == ["ground color"]
+    giant = dict(PLANET, body_type="g", planet_class="J")
+    assert bodyview.view("planet", giant, [STAR])["estimate"] == ["cloud-top color"]
+    known = dict(PLANET, **{field: 0.2 for field in bodyview.sensor.bodylook.surface_composition.FRACTION_FIELDS})
+    assert bodyview.view("planet", known, [STAR])["estimate"] == []
+
+
+def test_only_a_kind_the_registry_draws_with_the_sphere_painter_has_a_view():
+    from planetgen.web.lib import sensor
+
+    drawn = {kind for kind, entry in sensor.REGISTRY.items() if entry.painter == "sphere"}
+    assert drawn == {"star", "planet", "moon"}
+    assert bodyview.view("black_hole", {"id": "H"}, [STAR]) is None and bodyview.view("system", {}, []) is None
+
+
 def test_a_belt_and_a_comet_have_no_picture():
     assert bodyview.view("belt", {"id": "B"}, [STAR]) is None
     assert bodyview.view("comet", {"id": "C"}, [STAR]) is None

@@ -90,8 +90,8 @@ Entry = collections.namedtuple("Entry", "incarnation tags body stored_at cost")
 process stored it (the cache's clock) and how many seconds it took to fetch."""
 
 
-UNCACHED_SUFFIXES = ("/sky",)
-"""tuple: Path endings never cached here: a system's sky (`/systems/<id>/sky`, VIEW.31) is megabytes of packed stars that `skycache.py` keeps on disk."""
+UNCACHED_SUFFIXES = ("/sky", "/gravity")
+"""tuple: Path endings never cached here: a system's sky (`/systems/<id>/sky`, VIEW.31) is megabytes of packed stars that `skycache.py` keeps on disk; a sector's gravity grid (`/sectors/<id>/gravity`, API.24) is a file of its own that is queued while it is built, and a `202` must not be kept."""
 
 
 def is_cacheable(path):

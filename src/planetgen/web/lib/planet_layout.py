@@ -40,19 +40,21 @@ MASS_SHARED_KEYS = frozenset(key for key, _label in MASS_KEYS)
 def split_blocks(blocks):
     """
     The description's blocks of a planet or moon sorted by where the page puts them: `phi6` (the ratings table and the
-    radiation and survival equipment tables), `life` (what the life looks like) and `rest` (anything else the page
-    still shows, such as the sensors' flavor line and a gas giant's depth). The facts table of the body, the class
+    radiation and survival equipment tables), `life` (what the life looks like), `flavor` (the "Sensors show ..." line,
+    which the page puts under the Sensor view, UX.276) and `rest` (anything else the page still shows, such as a gas giant's depth). The facts table of the body, the class
     sentence, the atmosphere and composition summaries, and the life class, system age and milestone sentences (`life-class`, `timeline`
     and `milestone`, which the Life section says from the stored columns and the life readings, UX.251) are dropped.
     """
-    parts = {"phi6": [], "life": [], "rest": []}
+    parts = {"phi6": [], "life": [], "flavor": [], "rest": []}
     for block in blocks:
         kind = block["type"]
         if kind == "ratings" or (kind == "facts" and block["caption"] in PHI6_CAPTIONS):
             parts["phi6"].append(block)
         elif kind == "prose" and block["role"] == "life":
             parts["life"].append(block)
-        elif kind == "prose" and block["role"] in ("flavor", "depth"):
+        elif kind == "prose" and block["role"] == "flavor":
+            parts["flavor"].append(block)
+        elif kind == "prose" and block["role"] == "depth":
             parts["rest"].append(block)
     return parts
 

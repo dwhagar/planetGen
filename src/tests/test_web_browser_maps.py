@@ -122,6 +122,68 @@ def _expand_info(page):
         button.click()
 
 
+def _gravity_state(page):
+    """What the Gravity layer drew in the scene on show: the heat map's image (a PNG data URL), the Hill sphere rings, the Lagrange diamonds and the Key line."""
+    return page.evaluate("""() => {
+        const body = document.querySelector('#sysmap-root .sysmap-svg:not(.sysmap-orbits-layer):not(.sysmap-hidden)');
+        const orbits = [...document.querySelectorAll('#sysmap-root .sysmap-orbits-layer')].find((l) => l.dataset.scene === body.dataset.scene);
+        const group = orbits.querySelector('.sysmap-gravity-group');
+        const image = group && group.querySelector('image.sysmap-gravity-image');
+        const key = [...document.querySelectorAll('#sysmap-layer-legend .map-layer-legend-line')].find((l) => l.dataset.layer === 'gravity');
+        return {
+            scene: body.dataset.scene,
+            groups: document.querySelectorAll('#sysmap-root .sysmap-gravity-group').length,
+            image: image ? image.getAttribute('href').slice(0, 22) : null,
+            hills: group ? group.querySelectorAll('.sysmap-hill').length : 0,
+            points: group ? group.querySelectorAll('.sysmap-lagrange').length : 0,
+            orbiters: [...body.querySelectorAll('[data-kind="planet"],[data-kind="moon"]')].filter((e) => parseFloat(e.dataset.masskg) > 0 && e.dataset.self !== 'true').length,
+            key: key ? key.textContent : null,
+            legend: document.querySelector('#sysmap-layer-legend').innerHTML.slice(0, 600),
+        };
+    }""")
+
+
+@pytest.mark.viewport(1280, 900)
+def test_system_map_gravity_layer_draws_the_field_hill_spheres_and_lagrange_points(page, base_url, site_app):
+    client = site_app.test_client()
+    target = None
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        whole = re.search(rb'<svg class="sysmap-svg" data-scene="system".*?</svg>', client.get(f"/system/{system['id']}").data, re.S)
+        if whole and re.search(rb'data-kind="planet"[^>]*data-scene="', whole.group(0)):
+            target = system["id"]
+            break
+    assert target, "no generated single-star system has a planet with moons"
+    page.add_init_script("try { window.localStorage.setItem('planetgen.systemView', 'diagram'); } catch (e) {}")
+    _open(page, f"{base_url}/system/{target}", '#sysmap-root[data-ready="true"]')
+    assert _gravity_state(page)["groups"] == 0, "the layer begins off"
+    assert "gravity" not in page.url
+
+    page.evaluate("document.querySelector('#sysmap-layers input[data-layer=\"gravity\"]').click()")
+    page.wait_for_function("() => document.querySelectorAll('#sysmap-root .sysmap-gravity-group').length === 1", timeout=20000)
+    state = _gravity_state(page)
+    assert state["scene"] == "system" and state["image"] == "data:image/png;base64,", state
+    assert state["orbiters"] > 0 and state["hills"] == state["orbiters"], "a Hill sphere for each planet"
+    assert state["points"] > 0 and state["points"] % 5 == 0, "the Lagrange points of each planet"
+    assert state["key"] and "Pull" in state["key"] and "Hill spheres" in state["key"], state
+    assert "show=gravity" in page.url and "gravity=pull" in page.url, page.url
+
+    page.evaluate("document.querySelector('#sysmap-layers button[data-gravity-mode=\"tidal\"]').click()")
+    page.wait_for_function("() => /Stretch/.test(document.querySelector('#sysmap-layer-legend').textContent)", timeout=20000)
+    assert "gravity=tidal" in page.url, page.url
+
+    # A planet's moon system gets its own field (the planet and its moons), Hill spheres about the planet and points for each moon.
+    planet = page.locator('#sysmap-root .sysmap-svg[data-scene="system"] [data-kind="planet"][data-scene]').first
+    moons = planet.get_attribute("data-scene")
+    _click_body(planet)
+    assert _active_scene(page) == moons
+    page.wait_for_function("(scene) => { const g = document.querySelectorAll('#sysmap-root .sysmap-gravity-group'); return g.length === 1 && g[0].closest('svg').dataset.scene === scene; }", arg=moons, timeout=20000)
+    state = _gravity_state(page)
+    assert state["image"] == "data:image/png;base64," and state["hills"] == state["orbiters"] > 0, state
+
+    page.evaluate("document.querySelector('#sysmap-layers input[data-layer=\"gravity\"]').click()")
+    assert _gravity_state(page)["groups"] == 0 and "gravity" not in page.url, page.url
+
+
 @pytest.mark.viewport(1280, 900)  # the planet's info card (MAP.332 sizes it to its content) covers the moons in a window of 800x600
 def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     client = site_app.test_client()
@@ -809,6 +871,52 @@ def test_system_page_3d_view_says_what_a_sky_star_under_the_pointer_is(page, bas
     assert "seen as it was" in tip.inner_text()
 
 
+def test_every_layer_of_the_system_map_has_a_view_menu_heading_and_keywords(page, base_url, site_app):
+    """UX.277: the System Map's layers (facilities, body names, spin) name a View menu heading and keywords, and the common switches say so."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    root = "document.querySelector('#sysmap-root').__mapLayers"
+    assert page.evaluate(f"() => {root}.unheaded()") == []
+    entries = {entry["id"]: entry for entry in page.evaluate(f"() => {root}.entries()")}
+    assert set(entries) >= {"facility", "label-body", "spin"}
+    assert entries["spin"]["heading"] == "Move and Settings" and entries["label-body"]["heading"] == "Show" and entries["label-body"]["common"] is True
+
+
+def test_the_system_map_menu_is_the_shared_view_menu_with_headings_counts_and_checkboxes(page, base_url, site_app):
+    """UX.278: the System Map's Menu is made by the shared builder: a fold per heading it has layers for, a count in each,
+    real checkboxes that keep the layers' selectors, the word "changed" where a switch is not as it starts, and the fold kept."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.click("#sysmap-view-diagram")
+    page.click("#sysmap-menu > summary")
+    headings = page.locator("#sysmap-layers details.view-menu-heading")
+    assert headings.evaluate_all("els => els.map(e => e.dataset.heading)") == ["Show", "Move and Settings"]
+    assert headings.evaluate_all("els => els.map(e => e.open)") == [True, True], "a small menu starts open"
+    boxes = page.locator("#sysmap-layers input[type=checkbox][data-layer]")
+    assert boxes.evaluate_all("els => els.map(e => e.dataset.layer)") == ["facility", "label-body", "gravity", "spin"]
+    counts = page.locator("#sysmap-layers summary .view-menu-count")
+    # MAP.169: the Gravity layer begins off, so the Show fold has two of its three on
+    assert counts.nth(0).inner_text() == "2 of 3 on" and counts.nth(1).inner_text() == "1 of 1 on"
+    body = page.locator('#sysmap-layers [data-label="body"]')
+    assert body.is_checked()
+    assert page.locator('#sysmap-layers [data-row="label-body"] .view-menu-changed').is_hidden()
+    body.click()
+    assert not body.is_checked()
+    assert counts.nth(0).inner_text() == "1 of 3 on, 1 changed"
+    assert page.locator('#sysmap-layers [data-row="label-body"] .view-menu-changed').is_visible()
+    assert "label-body" in page.url
+    page.locator('#sysmap-layers details[data-heading="Move and Settings"] > summary').click()
+    page.wait_for_function("() => localStorage.getItem('planetgen.viewMenu.open.system.Move and Settings') === '0'")
+    page.reload(wait_until="load")
+    page.wait_for_selector('#sysmap-root[data-ready="true"]')
+    if page.locator("#sysmap-view-diagram").count():
+        page.click("#sysmap-view-diagram")
+    page.click("#sysmap-menu > summary")
+    assert page.locator('#sysmap-layers details[data-heading="Move and Settings"]').evaluate("e => e.open") is False
+    assert not page.locator('#sysmap-layers [data-label="body"]').is_checked(), "the address keeps the switch"
+
+
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
     system_id, scene = _system_with_planets(site_app.test_client())
     _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
@@ -1243,6 +1351,14 @@ def test_a_ring_on_the_system_map_is_the_planets_own_stored_ring(page, base_url,
             assert 1.0 < ring["in"] < ring["out"], ring
 
 
+def test_every_control_in_the_system_menu_is_a_working_button(page, base_url, site_app):
+    """MAP.397: every visible thing in the system map's Menu list is a heading or an enabled, named button, and pressing each one changes it."""
+    from tests.map_menu_support import check_menu_controls
+    _open_spinning_diagram(page, base_url, site_app)
+    page.click("#sysmap-menu > summary")
+    check_menu_controls(page, "#sysmap-layers")
+
+
 def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url, site_app):
     """MAP.328: the Menu's Spin switch holds every body still (and a reload keeps it so); turning it on again sets them
     turning."""
@@ -1251,9 +1367,9 @@ def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url,
     assert any(b["angle"] != a["angle"] for a, b in zip(moving["first"], moving["second"])), "bodies turn by default"
     page.click("#sysmap-menu > summary")
     button = page.locator('#sysmap-layers [data-setting="spin"]')
-    assert button.get_attribute("aria-pressed") == "true"
+    assert button.is_checked()
     button.click()
-    assert button.get_attribute("aria-pressed") == "false"
+    assert not button.is_checked()
     page.wait_for_timeout(200)
     held = page.evaluate(SPIN_SAMPLE, 500)
     assert [b["angle"] for b in held["second"]] == [a["angle"] for a in held["first"]], "switched off, nothing turns"
