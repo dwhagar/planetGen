@@ -60,7 +60,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | MAP.224 | Split from MAP.194. |
 | MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | MAP.223 |  |
-| MAP.388 | Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon | GEN.359, MAP.224, MAP.381, GEN.209, MAP.207, MAP.232, GEN.367, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.245, GEN.246, GEN.247, GEN.249, GEN.255, GEN.256, GEN.257, MAP.223, MAP.194 |  |
+| MAP.388 | Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon | GEN.359, MAP.224, MAP.381, GEN.209, MAP.207, MAP.232, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.245, GEN.246, GEN.247, GEN.249, GEN.255, GEN.256, GEN.257, MAP.223, MAP.194 |  |
 
 ### Pages for every kind of item (moved from 8.2)
 

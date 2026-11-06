@@ -78,6 +78,13 @@ not named among the sensitive ones and its condensation temperature the same for
 the paper and its Al2O3 value are not opened). The alkalis are the exception that `ALKALI_ACTIVITY_COEFFICIENT` carries. The research
 item that replaces it is the melt activity model of GEN.499."""
 
+OXYGEN_SHARE_MAX = 0.99
+"""float: The largest share of the gas pressure over a melt that its held oxygen (O2 and O at the buffer's fugacity) may take in the carbon solve
+of a volatile-bearing body (GEN.1296). The buffered oxygen fills the pressure when it reaches it: the solve then has no room for carbon and does not
+converge (checked from 0.8 to 1.2 of the pressure, at six temperatures between 2600 and 6000 K and three redox states: it converges for every
+share under 1 and fails for every share of 1 and over). A surface pressure lower than the oxygen holds is raised to what holds it, as the gas over a
+melt cannot be thinner than the melt's own oxygen. A stand-in: registry row AM96 (tier 6, tweak level 0)."""
+
 VOLATILE_BEARING_PER_CARBON = 1.0
 """float: Moles of carbon the volatile-bearing gas is computed for (only its CO2 to CO ratio matters)."""
 
@@ -175,10 +182,11 @@ def vapor_mixture(subject, recipe, *, temperature_name="tp_k", oxides_wt_percent
     volatile_bearing = recipe.binaries.get("i6", (False, None))[0]
     if volatile_bearing:
         require(subject, ("pressure_bar",))
-        volatile = gas_equilibrium.solve({"C": VOLATILE_BEARING_PER_CARBON}, chemistry_k, subject["pressure_bar"],
+        gas_pressure = max(subject["pressure_bar"], (pressures.get("O2", 0.0) + pressures.get("O", 0.0)) / OXYGEN_SHARE_MAX)
+        volatile = gas_equilibrium.solve({"C": VOLATILE_BEARING_PER_CARBON}, chemistry_k, gas_pressure,
                                          fixed_o2_log_fugacity=fo2.log_fo2(redox, chemistry_k))
         for name, fraction in volatile.mole_fractions.items():
-            pressures[name] = pressures.get(name, 0.0) + fraction * subject["pressure_bar"]
+            pressures[name] = pressures.get(name, 0.0) + fraction * gas_pressure
         constants["volatile_bearing"] = True
     total = sum(pressures.values())
     equilibrium = gas_equilibrium.Equilibrium(

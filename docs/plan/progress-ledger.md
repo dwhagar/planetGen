@@ -2617,3 +2617,26 @@ Baseline: PR #1817.
 | PERF.242 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | MAP.169 | 8.5 | Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05) |
 | UX.94 | 8.5 | Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05) |
+| GEN.1071 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1254 | 8.1 | Physics rectification: names, designations and Object IDs |
+| GEN.1221 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1258 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1250 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.995 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| GEN.962 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| GEN.1262 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.1263 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.1264 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.367 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| PERF.238 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| TEST.633 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.635 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.636 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.638 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.614 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.637 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.852 | 8.1 | Physics rectification: infrared opacity, tides and the class re-sweep |
+| GEN.1260 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| TEST.585 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.616 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.643 | 8.1 | Physics rectification: citations and the gate's test health |
