@@ -17,7 +17,7 @@ as a mode (one at a time, switchable in the map Menu):
 |---|---|---|---|
 | Pull | the size of the acceleration vector, \|g\| | m/s^2 | where gravity is strong |
 | Well depth | the potential, Phi | m^2/s^2 | how deep the wells are |
-| Tidal strength | the size of the gradient of g (the tidal tensor's largest eigenvalue) | 1/s^2 | where space is stretched; Lagrange points show as saddles |
+| Tidal strength (shown as *Stretch*) | the size of the gradient of g (the tidal tensor's largest eigenvalue) | 1/s^2 | where space is stretched; Lagrange points show as saddles |
 
 The gradient mode is what Boss called the gradients of the vector field.
 Lagrange and saddle points (where g is nearly zero but the gradient is not)
@@ -127,6 +127,12 @@ percent of the pull and its slope across a sector is 700 to 900 times the stars'
 top), and the Key says so and gives the smooth galaxy's level and its change across the sector. A sector with no variation draws nothing and says that. The saddle
 points show as small white diamonds that can be hovered. No *stars only* switch (Boss, 2026-11-06). Measured on real sector grids in
 `reports/gravity-range-2026-11-06/`.
+
+**The wording (UX.94).** The reader sees *Pull* (how hard gravity tugs on a ship at a spot), *Well depth* (how far down in a gravity well the spot lies) and *Stretch* (how
+much gravity pulls a ship apart, nose from tail; the tidal strength, `tidal` in the address and the API), each with a one-line explanation under the buttons and as the button's tip.
+Numbers are written the way the site writes them (`numberformat.js`): the pull through the acceleration unit ladder, so it follows the Metric or Customary choice (meters or feet
+per second squared), the depth and the stretch in their scientific units to three figures. Both maps' Map help explains the modes, what the colors cover (the view's middle 96%
+of values on a log scale), the Hill spheres and what a saddle point is (a spot where pulls cancel, so a ship could hover, still stretched). No item code is in any of the words.
 
 **The System Map layer (MAP.169).** The same row on the System Map draws the orbital plane of the scene on show: the point-mass field of the stars, planets and moons drawn in it
 (each softened by its own radius; the galaxy's pull is below what a system can show), in the same three modes, colors and Key. The map is a log radial diagram (or one

@@ -88,10 +88,31 @@ test("a step along the slabs stays between the first and the last", () => {
 });
 
 test("a value is written to three digits with its unit", () => {
-  assert.equal(G.valueText("pull", 1.5534e-10), "1.55e-10 m/s²");
-  assert.equal(G.valueText("tidal", 3.1e-27), "3.10e-27 s⁻²");
-  assert.equal(G.valueText("depth", 1234.5), "1230 m²/s²");
+  assert.equal(G.valueText("pull", 1.5534e-10), "1.55 × 10⁻¹⁰ m/s²");
+  assert.equal(G.valueText("tidal", 3.1e-27), "3.10 × 10⁻²⁷ s⁻²");
+  assert.equal(G.valueText("depth", 1234.5), "1,235 m²/s²");
+  assert.equal(G.valueText("depth", 12.34), "12.3 m²/s²");
   assert.equal(G.valueText("pull", 0), "0 m/s²");
+});
+
+test("the pull follows the reader's unit system and the other modes stay in their scientific units (the site's number style)", async () => {
+  const preference = await import(new URL("unitpreference.js", STATIC_URL).href);
+  try {
+    preference.setUnitSystem("customary");
+    assert.match(G.valueText("pull", 9.80665), /ft\/s²/);
+    assert.equal(G.valueText("depth", 1234.5), "1,235 m²/s²");
+  } finally {
+    preference.setUnitSystem("auto");
+  }
+  assert.match(G.valueText("pull", 9.80665), /m\/s²/);
+});
+
+test("each mode has a plain name and one line saying what it shows, with no item codes", () => {
+  assert.deepEqual(G.MODES.map((m) => m[1]), ["Pull", "Well depth", "Stretch"]);
+  G.MODES.forEach((m) => {
+    assert.ok(m[2].length > 30 && m[2].endsWith("."), m[0]);
+    assert.ok(!/\b(MAP|API|UX|GEN)\.\d+/.test(m[2] + m[1]), "no TODO code in the words");
+  });
 });
 
 test("a point of the grid goes to the scene's frame, parsecs from the center", () => {
@@ -102,11 +123,11 @@ test("a point of the grid goes to the scene's frame, parsecs from the center", (
 test("the legend says what the colors are and that the galaxy's part is left out", () => {
   const grid = gridOf(() => 1);
   const pull = G.legendText({ mode: "pull", slab: 7, volume: false, grid: grid, range: { lo: 1.55e-10, hi: 1.66e-10, flat: false }, building: false, failed: false });
-  assert.match(pull, /^Pull \(slab 8 of 16\): 1\.55e-10 m\/s² to 1\.66e-10 m\/s², the sector's own 2% to 98%, log scale\./);
-  assert.match(pull, /Total pull 1\.60e-10 m\/s² from the smooth galaxy at the center/);
+  assert.match(pull, /^Pull \(slab 8 of 16\): 1\.55 × 10⁻¹⁰ m\/s² to 1\.66 × 10⁻¹⁰ m\/s², the sector's own middle 96% of values, on a log scale \(brighter is more\)\. How hard gravity tugs/);
+  assert.match(pull, /The galaxy as a whole adds 1\.60 × 10⁻¹⁰ m\/s² at the center of the sector; colors show only how the pull varies across it/);
   const depth = G.legendText({ mode: "depth", slab: 0, volume: true, grid: grid, range: { lo: 1, hi: 1e4, flat: false }, building: false, failed: false });
   assert.match(depth, /all slabs/);
-  assert.match(depth, /the galaxy's own slope across the sector \(1\.00e-13 m²\/s²\) is left out/);
+  assert.match(depth, /the slope of the galaxy's own pull across the sector \(1\.00 × 10⁻¹³ m²\/s²\) is left out/);
   assert.match(G.legendText({ mode: "pull", slab: 0, volume: false, grid: grid, range: { lo: 1, hi: 1, flat: true }, building: false, failed: false }), /no variation across this sector/);
   assert.match(G.legendText({ mode: "pull", building: true, grid: null }), /working out this sector's grid/);
   assert.match(G.legendText({ mode: "pull", failed: true }), /could not be loaded/);
@@ -243,7 +264,7 @@ test("the saddle points are marked, put in the scene's frame and picked with the
   assert.equal(marks.length, 1);
   assert.ok(Math.abs(marks[0].position.x - 0.1) < 1e-9 && Math.abs(marks[0].position.y + 0.2) < 1e-9 && Math.abs(marks[0].position.z - 0.3) < 1e-9);
   assert.equal(r.layers[0].entryOf({ object: marks[0] }), spot);
-  assert.equal(r.layers[0].tooltip(spot), "Saddle point (zone 8, 9, 9): total 3.50e-10 m/s²");
+  assert.equal(r.layers[0].tooltip(spot), "Saddle point (zone 8, 9, 9): total 3.50 × 10⁻¹⁰ m/s²");
   r.controller.setOn(false);
   assert.equal(r.layers.length, 0);
   assert.equal(r.group.children.length, 0);

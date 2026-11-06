@@ -1007,3 +1007,13 @@ def test_gravity_layer_does_not_write_a_mass_a_body_does_not_have():
                                       [_planet(1, 10, AU_KM, 0.0)], [])
     assert "data-hostkg" not in html
     assert 'data-kind="planet"' in html and "data-masskg" not in re.search(r'<g[^>]*data-kind="planet"[^>]*>', html).group(0)
+
+
+def test_the_system_map_help_explains_the_gravity_layer_in_plain_words():
+    """UX.94: the System Map's help says what the colors, the rings, and the diamonds are, with no item code in it."""
+    html = sm.render_system_map_panel({"name": "Help Test", "binary_configuration": None}, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], [])
+    help_text = html[html.index('id="sysmap-help"'):]
+    help_text = help_text[:help_text.index("</sl-dialog>")]
+    for word in ("Gravity in the Menu", "pull, well depth, or stretch", "Hill spheres", "Lagrange points L1 to L5", "saddle points"):
+        assert word in help_text, word
+    assert not re.search(r"\b(MAP|API|UX|GEN)\.\d+", help_text)

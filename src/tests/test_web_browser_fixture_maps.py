@@ -6565,7 +6565,7 @@ def test_sector_map_gravity_layer_draws_switches_mode_and_keeps_the_address(page
     assert _shot(page, SECTOR_CANVAS) != before, "the gravity slab draws over the map"
     drawn = _shot(page, SECTOR_CANVAS)
     page.locator('button[data-gravity-mode="tidal"]').click()
-    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('Tidal')", timeout=20000)
+    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('Stretch')", timeout=20000)
     assert "gravity=tidal" in page.url
     page.locator('button[data-gravity="next"]').click()
     assert "gslab=10" in page.url, page.url
@@ -6574,7 +6574,7 @@ def test_sector_map_gravity_layer_draws_switches_mode_and_keeps_the_address(page
     assert _shot(page, SECTOR_CANVAS) != drawn, "every slab drawn is not the one slab"
     toggle.click()
     assert "gravity" not in page.url and "gslab" not in page.url, page.url
-    assert "Tidal" not in legend.inner_text(), "an off layer has no legend line"
+    assert "Stretch" not in legend.inner_text(), "an off layer has no legend line"
 
 
 def test_sector_map_gravity_layer_opens_from_the_address(page, map_site):
