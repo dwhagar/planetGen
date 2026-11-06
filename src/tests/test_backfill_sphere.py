@@ -1,7 +1,7 @@
 # tests/test_backfill_sphere.py
 
 """
-VIEW.41: the sphere draw (`backfill_sphere`, `backfill_mass_sphere`) draws a sphere's backfill by blocks: it gives exactly the
+VIEW.41: the sphere draw (`luminosity_sphere_batches`, `mass_sphere_batches`, each batch drawn by `backfill_cells` or `backfill_mass_cells`, as the helpers below do and charting does) draws a sphere's backfill by blocks: it gives exactly the
 stars `backfill_cells` and `backfill_mass_cells` give for the cells `enumerate_sectors_within_radius` lists, on the candidate
 path, the cell path and a mix of the two, for a sphere that wraps past longitude 0, one that holds the core cell, and one
 on the pole.
@@ -27,6 +27,18 @@ CENTERS = {
 }
 
 
+def _sphere_stars(shape, center, radius, edge_pc, rate, floor, ceiling, seed, mass_range=None, memo=None):
+    """The stars of a sphere's luminosity band, batch by batch, as charting draws them (`sky_charting.draw_tier`)."""
+    for addresses, work in brightStars.luminosity_sphere_batches(shape, center, radius, edge_pc, rate, floor, ceiling, seed, mass_range=mass_range, memo=memo):
+        yield from brightStars.backfill_cells(shape, addresses, edge_pc, rate, floor, ceiling, seed, mass_range=mass_range, memo=work)
+
+
+def _mass_sphere_stars(shape, center, radius, edge_pc, rate, target, held, ceiling, seed, edges, memo=None):
+    """The stars of a sphere's mass ring, batch by batch."""
+    for addresses, work in brightStars.mass_sphere_batches(shape, center, radius, edge_pc, rate, target, held, ceiling, seed, edges, memo=memo):
+        yield from brightStars.backfill_mass_cells(shape, addresses, edge_pc, rate, target, held, ceiling, seed, edges, memo=work)
+
+
 def _cells(center, radius):
     return [row[:3] for row in spherical.enumerate_sectors_within_radius(center, radius, EDGE_PC)]
 
@@ -36,7 +48,7 @@ def _luminosity_by_cells(center, radius, rate=RATE, mass_range=None):
 
 
 def _luminosity_by_sphere(center, radius, rate=RATE, mass_range=None):
-    return sorted(brightStars.backfill_sphere(SHAPE, center, radius, EDGE_PC, rate, FLOOR, None, SEED, mass_range=mass_range))
+    return sorted(_sphere_stars(SHAPE, center, radius, EDGE_PC, rate, FLOOR, None, SEED, mass_range=mass_range))
 
 
 def _mass_by_cells(center, radius, rate=RATE):
@@ -44,7 +56,7 @@ def _mass_by_cells(center, radius, rate=RATE):
 
 
 def _mass_by_sphere(center, radius, rate=RATE):
-    return sorted(brightStars.backfill_mass_sphere(SHAPE, center, radius, EDGE_PC, rate, 1.0, 8.0, None, SEED, EDGES))
+    return sorted(_mass_sphere_stars(SHAPE, center, radius, EDGE_PC, rate, 1.0, 8.0, None, SEED, EDGES))
 
 
 @pytest.mark.parametrize("name", sorted(CENTERS))
@@ -99,7 +111,7 @@ def test_a_mass_range_and_a_ceiling_pass_through(monkeypatch):
     center, radius = CENTERS["wrapped"]
     cells = _cells(center, radius)
     expected = sorted(brightStars.backfill_cells(SHAPE, cells, EDGE_PC, RATE, 50.0, 400.0, SEED, mass_range=(None, 14.0)))
-    got = sorted(brightStars.backfill_sphere(SHAPE, center, radius, EDGE_PC, RATE, 50.0, 400.0, SEED, mass_range=(None, 14.0)))
+    got = sorted(_sphere_stars(SHAPE, center, radius, EDGE_PC, RATE, 50.0, 400.0, SEED, mass_range=(None, 14.0)))
     assert expected and got == expected
 
 
@@ -115,13 +127,13 @@ def test_batches_do_not_change_the_draw(monkeypatch):
 def test_a_shared_memo_keeps_only_the_shares():
     center, radius = CENTERS["wrapped"]
     memo = {}
-    first = sorted(brightStars.backfill_sphere(SHAPE, center, radius, EDGE_PC, RATE, FLOOR, None, SEED, memo=memo))
+    first = sorted(_sphere_stars(SHAPE, center, radius, EDGE_PC, RATE, FLOOR, None, SEED, memo=memo))
     assert set(key[0] for key in memo) == {"shares"}
-    assert sorted(brightStars.backfill_sphere(SHAPE, center, radius, EDGE_PC, RATE, FLOOR, None, SEED, memo=memo)) == first
+    assert sorted(_sphere_stars(SHAPE, center, radius, EDGE_PC, RATE, FLOOR, None, SEED, memo=memo)) == first
 
 
 def test_an_empty_sphere_draws_nothing():
-    assert list(brightStars.backfill_sphere(SHAPE, (1.0e6, 0.0, 0.0), 10.0, EDGE_PC, RATE, FLOOR, None, SEED)) == []
+    assert list(_sphere_stars(SHAPE, (1.0e6, 0.0, 0.0), 10.0, EDGE_PC, RATE, FLOOR, None, SEED)) == []
 
 
 def test_the_sphere_visits_blocks_not_cells(monkeypatch):
@@ -136,5 +148,5 @@ def test_the_sphere_visits_blocks_not_cells(monkeypatch):
         return real(shape, addresses, *args, **kwargs)
 
     monkeypatch.setattr(brightStars, "backfill_cells", spy)
-    list(brightStars.backfill_sphere(SHAPE, center, radius, EDGE_PC, E_VALUE, FLOOR, None, SEED))
+    list(_sphere_stars(SHAPE, center, radius, EDGE_PC, E_VALUE, FLOOR, None, SEED))
     assert sum(seen) < len(_cells(center, radius)) / 4

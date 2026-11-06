@@ -2,6 +2,34 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3486] - 2026-11-06
+
+**Headline:** The property sheet no longer lists a missing runner-up class as a gap where only one class fits the body.
+
+### Changed
+- The "Runner-up class" row of a planet or moon applies only where a second class fits the body at more than 0 percent, which is the rule the classifier already follows; where one class fits, the row is empty and the match is 0. The sheet-fill test that counted those bodies as gaps (TEST.654) passes again.
+
+generation-output: unchanged
+
+## [8.0.3485] - 2026-11-06
+
+**Headline:** The ice-species storage test now picks a system with two rocky planets, so its Pluto-like body is no longer overwritten by the CO2-frost one.
+
+### Fixed
+- `test_a_pluto_like_and_a_co2_frost_mars_like_body_keep_their_species_through_the_database` gave the first rocky planet a Pluto-like split and the last one a CO2-frost split, but took the first system of 60 seeds that had any rocky planet. When that system had one (the draw moved after the stored-composition and rogue work), both splits went to the same body, the second overwrote the first and the stored N2 amount read 0.0. Nothing was lost between the generated body and the stored row; the search now needs two rocky planets. No generator change.
+
+generation-output: unchanged
+
+## [8.0.3484] - 2026-11-06
+
+**Headline:** A run that charts the sky now says how faint a star its stored sky shows at each distance, and the unused whole-sphere draw wrappers are gone.
+
+### Changed
+- Sky charting already runs by default (`queue.sky_limit` 7.5, set by VIEW.25), so a generation run, the API job and the setup call all draw the sky tiers of the observer cells they touch. The run log now ends the "Sky tiers" line with the sky's floor at 10, 50, 250, 1000 and 3000 parsecs (`sky_tiers.floor_table`): the dimmest star the stored sky shows there through the least dust of any direction, and whether the table draws it.
+- `bright_stars.backfill_sphere` and `backfill_mass_sphere` are removed. Charting draws each batch of a sphere itself (`luminosity_sphere_batches`, `mass_sphere_batches` with `backfill_cells` and `backfill_mass_cells`) because each cell has its own ceiling; the tests keep the same two helpers.
+
+generation-output: unchanged
+
 ## [8.0.3483] - 2026-11-06
 
 **Headline:** The information page of an outer disk now says where the disk's mass went: how much stayed cold or got stirred, sits in a resonance, was scattered, thrown out, parked beside the giant, put in the inner belt or caught as moons.

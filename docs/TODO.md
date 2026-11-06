@@ -17157,18 +17157,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.852, TEST.649.
 
-- [ ] **VIEW.47 Sky charting runs by default: the Generate console, the API job and the setup call the sphere draws and the floor table of VIEW.25 (--sky-limit is opt-in today)**
-  VIEW.25 (train 12, #5333) charts the sky tiers only when a run is given
-  --sky-limit, so generation output did not change. Do: decide with
-  Planets 1 which entry points run it by default (Generate console, API
-  job, setup warm-up), call bright_stars.backfill_sphere,
-  backfill_mass_sphere and sky_tiers.floor_table from them, and report the
-  time cost. Stored stars change, so it is a lock item with an epoch.
-  Done: a default galaxy run charts the tiers, the three functions are
-  read by the run, and the wiring register line is gone. Version 8.1.
-  Owner: Planets 1. Filed by the TODO thread.
-  Prerequisites: none. Related: VIEW.25, VIEW.42.
-
 - [ ] **GEN.1306 Planet class matrix edges left after GEN.1281: cold air worlds, hot anoxic worlds, the 1 kPa and 10 kPa clamp edges, heavy oxygen ocean worlds, thin-air oxygen worlds**
   Core 4 measured the class matrix on 1448 generated bodies while building
   GEN.1281 and found gaps outside that item. Do, one part each, smallest
@@ -17200,31 +17188,20 @@ clears each one.
   8.1. Owner: none yet (life lane). Filed by the TODO thread from Bug 1.
   Prerequisites: none. Related: GEN.750.
 
-- [ ] **TEST.654 tests/test_sheet_fill.py::test_a_sample_has_no_empty_column_that_applies_and_is_not_filed fails on main: runner_up_class is empty for moons of class D and many planet classes (bug)**
-  Aux 5 reported test_sheet_fill red on plain main (5:10 PM EST as the
-  lane reported); Tides 1 found the failing test (5:16 PM EST as the lane
-  reported): in 12 systems from seed 7100 the runner_up_class column is
-  empty for moons of class D and many planet classes though the sheet
-  says it applies. The tide test of the same file passes. Do: bisect the
-  one test file, say which item owns it, and either fix the test (the
-  sheet may be wrong to say it applies) or fix the code that stopped
-  storing the runner-up. Lock-free unless stored values change. Done:
-  the test is green on main with a note of the cause. Version 8.1.
-  Owner: Core 4 (class fit). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1281.
-
-- [ ] **TEST.655 tests/test_ice_species.py: a Pluto-like body's ice_n2_mass_fraction reads 0.0 after a database round trip, expected 0.1455 (bug)**
-  Tides 1 hit it red on plain main while running its gate (5:16 PM EST as
-  the lane reported):
-  test_a_pluto_like_and_a_co2_frost_mars_like_body_keep_their_species_through_the_database.
-  The stored Pluto-like body's ice_n2_mass_fraction comes back 0.0 where
-  0.1455 was written. Do: find where the species fraction is lost between
-  the generated body and the stored row (a missing column in the writer
-  or reader, or a unit pass), bisect, and fix the code or the test with
-  the reason. Lock if stored values change, else lock-free. Done: the
-  test is green on main with a note of the cause. Version 8.1. Owner:
-  Planets 1 (stored composition). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1276.
+- [ ] **GEN.1308 Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders**
+  Split out of GEN.1092 by Aux 5 (5:40 PM EST as the lane reported) when
+  part B (the display of where an outer disk's mass went, #5357) merged.
+  Do: hand the scatter step's swept shares on (1) the implanted-inner-belt
+  share to the inner belt's mass, (2) the captured_moons share to the
+  irregular-moon pool, replacing the pool's own efficiency draw or
+  checking it against the share (GEN.1083 already moved captured moons
+  to irregulars, so check first what is left), (3) the ejected share to
+  the rogue builders. Physics drives, no game rates; register any
+  stand-in in GEN.725. Lock item (belt masses and moons change). Done:
+  the shares that left an outer disk arrive where they went, and the
+  mass ledger sums exactly in a test. Version 8.1. Owner: Aux 5, after
+  GEN.1085. Filed by the TODO thread from Aux 5.
+  Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;

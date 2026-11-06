@@ -1369,7 +1369,7 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
 
 
 SPHERE_BATCH_CELLS = 500
-"""int: The cells a sphere draw (`backfill_sphere`) gathers before it draws them, so the blocks it worked out for them are held
+"""int: The cells a sphere draw (`luminosity_sphere_batches`, `mass_sphere_batches`) gathers before it draws them, so the blocks it worked out for them are held
 for a few hundred cells and then let go."""
 
 SPHERE_BATCH_ROWS = 200
@@ -1438,41 +1438,10 @@ def _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
         yield addresses, work
 
 
-def backfill_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
-                    mass_range=None, memo=None):
-    """
-    The stars `backfill_cells` draws for every cell whose center lies within `radius_pc` of `center_pc`, drawn by blocks
-    (VIEW.41): the same stars, because it asks `backfill_cells` for the cells that hold any and nothing else. A band on
-    the candidate path (GEN.309) is looked up block by block (`BLOCK_WEDGES` cells to a block), so a sparse band costs one
-    count per block and one lookup per candidate instead of a visit to every cell: the sky backfill's far bright bands, 3
-    billion cells for a few hundred stars (reports/system-sky-backfill-cost-2026-11-05.md section 4.2), cost the blocks.
-    A band on the cell path (a dense row) still visits the cells of its row's window.
-
-    Args:
-        shape (GalaxyShape): The galaxy's shape.
-        center_pc (tuple): The sphere's center, galactocentric parsecs.
-        radius_pc (float): Its radius, zero or more.
-        edge_pc (float): The sector edge.
-        expected_at_density_1 (float): Systems per sector at density 1.
-        min_luminosity_sol (float): The band's floor (Lsun).
-        max_luminosity_sol (float or None): Its ceiling, the level the cells were already filled to.
-        seed (int): The galaxy's bright-star seed.
-        mass_range (tuple, optional): As in `backfill_cells`.
-        memo (dict, optional): Only the bands' shares are kept in it, for a caller that draws many spheres.
-
-    Yields:
-        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order, cell by cell in no particular order.
-    """
-    for addresses, work in luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, min_luminosity_sol,
-                                                     max_luminosity_sol, seed, mass_range=mass_range, memo=memo):
-        yield from backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol,
-                                  seed, mass_range=mass_range, memo=work)
-
-
 def luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
                               mass_range=None, memo=None):
     """
-    The cells of a sphere that the luminosity band `[min_luminosity_sol, max_luminosity_sol)` has anything to draw in (`backfill_sphere`'s walk), a few hundred at a time with
+    The cells of a sphere that the luminosity band `[min_luminosity_sol, max_luminosity_sol)` has anything to draw in (the walk of a sphere draw), a few hundred at a time with
     the memo that holds their blocks, for a caller that draws them itself (VIEW.25 gives each cell its own ceiling and mass cap). `mass_range` is the widest the caller will
     draw with: a cell drawn with a narrower one holds no more candidates than the walk found.
 
@@ -1487,25 +1456,6 @@ def luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_
                            lambda low, high, population: bright_band_fraction(low, high, population, mass_range, age_laws))
     paths = [(k, of_band[k], mass_range) for k, _, _ in bands]
     yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, {shares_key: shared[shares_key]})
-
-
-def backfill_mass_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
-                         max_luminosity_sol, seed, edges, memo=None):
-    """
-    The stars `backfill_mass_cells` draws for every cell whose center lies within `radius_pc` of `center_pc`, drawn by blocks
-    as `backfill_sphere` does (VIEW.41): the same stars.
-
-    Args:
-        shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, memo: As in `backfill_sphere`.
-        target_mass_sol, held_mass_sol, max_luminosity_sol, edges: As in `backfill_mass_cells`.
-
-    Yields:
-        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
-    """
-    for addresses, work in mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
-                                               max_luminosity_sol, seed, edges, memo=memo):
-        yield from backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
-                                       max_luminosity_sol, seed, edges, memo=work)
 
 
 def mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol, max_luminosity_sol, seed, edges, memo=None):

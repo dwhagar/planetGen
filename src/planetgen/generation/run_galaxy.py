@@ -653,7 +653,7 @@ def _sky_unit(unit_args, report):
     goes on from its last batch. `report(done, total)` counts the tiers.
 
     Returns:
-        dict: As `backfill_bright_stars_unit`, with `sectors` 0, `stars` the stars drawn, `visited` 0, no `shells`, and `sky`: `stars`, `seconds`, `spheres` (tiers drawn) and `cell`.
+        dict: As `backfill_bright_stars_unit`, with `sectors` 0, `stars` the stars drawn, `visited` 0, no `shells`, and `sky`: `stars`, `seconds`, `spheres` (tiers drawn), `cell` and `floors` (`sky_charting.chart`).
     """
     from planetgen.generation import sky_charting
     sky = unit_args["sky"]
@@ -669,7 +669,7 @@ def _sky_unit(unit_args, report):
         conn.close()
     drawn = [item for item in result["tiers"] if not item.skipped]
     return {"sectors": 0, "stars": result["stars"], "visited": 0, "shells": {},
-            "sky": {"stars": result["stars"], "seconds": result["seconds"], "spheres": len(drawn), "cell": list(result["cell"])}}
+            "sky": {"stars": result["stars"], "seconds": result["seconds"], "spheres": len(drawn), "cell": list(result["cell"]), "floors": result["floors"]}}
 
 
 class BackfillFollower(followed.Follower):
@@ -741,6 +741,10 @@ class BackfillFollower(followed.Follower):
             sectors = max(self.summary["sectors"], 1)
             log.normal(f"Sky tiers: {stars:,} bright stars in {sum(item['spheres'] for item in self.sky):,} spheres around {len(self.sky)} observer cell(s), "
                        f"{seconds:,.0f} s of drawing ({seconds / sectors * 1000:.1f} ms a backfilled sector).")
+            floors = next((item["floors"] for item in self.sky if item.get("floors")), [])
+            if floors:
+                log.normal("Sky floor (the dimmest star the sky shows, least dust of any direction): "
+                           + "; ".join(f"{row['distance_pc']:g} pc {row['floor_sol']:.3g} Lsun ({'drawn' if row['built'] else 'not drawn'}, {row['ledger']})" for row in floors) + ".")
 
 
 def _backfill_on_queue(args, started_at, center_pc=None):
