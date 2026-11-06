@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.653 |
+| TEST | TEST.654 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -4103,6 +4103,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.647 | The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock) | none | done, PR #5340 |
 | TEST.648 | Four tests fail on a registry mismatch: test_solar_system_standin_rows (2) and test_calibration_fence (2) cannot match the SSR9 rows ('surface-ground-types', 'oxidised') and ('atmosphere-m', 'm1'/'m2') after the DOC.103 respelling to 'oxidized' (bug) | none | done, PR #5313 |
 | TEST.650 | tests/test_gen_reach_groups.py case 3 fails on main: the expected star count is 873.8 where the test wants over 1000 (bug) | none | open |
+| TEST.653 | tests/test_web_seo.py::test_every_web_page_is_classified_on_purpose fails on main: web.sector_gravity (MAP.168) is missing from the indexing matrix in web/seo.py (bug) | none | open |
 | TEST.651 | tests/test_web_sector_nav.py::test_the_nav_page_says_how_the_course_goes_round fails on main: the page lacks the 'Leave on' course text (bug) | none | done, PR #5344 |
 | TEST.652 | tests/test_wording_agrees_with_the_index.py::test_a_generated_body_claims_life fails on main: a timeline text on a body with phi_bio 0 (bug) | none | done, PR #5346 |
 | TEST.649 | Five tests are red on clean main: test_api_link_ids, test_atmosphere_state (2) and test_gen_component_pass (2) (bug) | none | done, PR #5332 |
