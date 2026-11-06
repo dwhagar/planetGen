@@ -17148,6 +17148,12 @@ clears each one.
   stated reason it stays at nearest class. Version 8.1. Owner: Core 4,
   after GEN.1281. Filed by the TODO thread.
   Prerequisites: GEN.1281. Related: GEN.909, GEN.822.
+  Additions (Core 4, 5:43 PM EST on 2026-11-06, table in
+  /mnt/project-files/reports/planet-class-matrix-2026-11-06.md): (a) under
+  part 2, the oxygen plus carbon dioxide mix (30 to 49 percent CO2 with 35
+  percent O2, 1.5 to 1.8 g) has no class; (b) new part 6: dense heavy
+  worlds with no oxygen at 1.8 g just under class V's 2 g line fit nothing
+  because F stops at 1.4 g (2 bodies of 1448).
 
 - [ ] **GEN.1307 Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug)**
   Found by Bug 1 while fixing TEST.652: a 2595 K vapor world with stored
