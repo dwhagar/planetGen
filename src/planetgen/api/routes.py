@@ -38,7 +38,7 @@ from planetgen.db import children as children_db
 from planetgen.api import nav_system, system_sky
 from planetgen.describe import belt_info
 from planetgen.describe.sheet import sheet as object_sheet
-from planetgen.web.lib import skypack
+from planetgen.web.lib import sensor, skypack
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs, pagejobs
@@ -1933,6 +1933,21 @@ def object_sheet_route(ref):
     try:
         kind, object_id = _body_of(ref)
         return jsonify(object_sheet(get_db(), kind, object_id))
+    except ValueError as exc:  # includes ids.IdError
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/sensor")
+def object_sensor_route(ref):
+    """
+    `GET /api/objects/<ref>/sensor` (UX.275) -- the Sensor view's record of one object (`web/lib/sensor.py`): `v`, `kind`, `id`, `painter` (the
+    painter that draws it, `sphere`, `phenomenon` or `nebula`, `null` for a kind with none yet), `look` (the record that painter reads), `caption`,
+    `estimate` (what the picture guessed), `inputs` (the stored properties it is built from) and `reason` (why a kind has no painter). Built from the
+    stored row and the Object ID seed alone. 404 for a reference that names nothing or a kind with no property sheet.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        return jsonify(sensor.sensor_for(get_db(), kind, object_id))
     except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404
 
