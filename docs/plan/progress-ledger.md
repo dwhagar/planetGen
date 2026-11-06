@@ -2686,3 +2686,4 @@ Baseline: PR #1817.
 | TEST.651 | 8.1 | Physics rectification: citations and the gate's test health |
 | MAP.381 | 8.8 | Clusters and satellites on the map |
 | MAP.223 | 8.8 | Zoom windows |
+| TEST.652 | 8.1 | Physics rectification: citations and the gate's test health |

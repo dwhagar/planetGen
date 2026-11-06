@@ -17222,18 +17222,6 @@ clears each one.
   current main. Version 8.1. Owner: Core 3. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.652 tests/test_wording_agrees_with_the_index.py::test_a_generated_body_claims_life fails on main: a timeline text on a body with phi_bio 0 (bug)**
-  The Train Manager (as the lane reported, 2:42 PM EST on 2026-11-06,
-  plain main) found test_a_generated_body_claims_life red: a generated
-  body with phi_bio 0 carries a life timeline text. Do: reproduce on
-  current main, find the stage that writes the timeline text without
-  checking the life index, and fix it at the cause (a body with no life
-  never claims life); if the test is wrong, say why. Lock item if stored
-  text changes (new epoch), else lock-free. Done: the test passes on
-  current main. Version 8.1. Owner: Bug 1 (life classes). Filed by the
-  TODO thread.
-  Prerequisites: none. Related: GEN.1298.
-
 - [ ] **VIEW.47 Sky charting runs by default: the Generate console, the API job and the setup call the sphere draws and the floor table of VIEW.25 (--sky-limit is opt-in today)**
   VIEW.25 (train 12, #5333) charts the sky tiers only when a run is given
   --sky-limit, so generation output did not change. Do: decide with
@@ -17289,7 +17277,7 @@ clears each one.
   bodies shows no animals or higher tier where the cloud layer is outside
   the window, and the 2595 K body is re-classed or explained. Version
   8.1. Owner: none yet (life lane). Filed by the TODO thread from Bug 1.
-  Prerequisites: none. Related: GEN.750, TEST.652.
+  Prerequisites: none. Related: GEN.750.
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;

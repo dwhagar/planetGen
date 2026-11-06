@@ -4104,7 +4104,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.648 | Four tests fail on a registry mismatch: test_solar_system_standin_rows (2) and test_calibration_fence (2) cannot match the SSR9 rows ('surface-ground-types', 'oxidised') and ('atmosphere-m', 'm1'/'m2') after the DOC.103 respelling to 'oxidized' (bug) | none | done, PR #5313 |
 | TEST.650 | tests/test_gen_reach_groups.py case 3 fails on main: the expected star count is 873.8 where the test wants over 1000 (bug) | none | open |
 | TEST.651 | tests/test_web_sector_nav.py::test_the_nav_page_says_how_the_course_goes_round fails on main: the page lacks the 'Leave on' course text (bug) | none | done, PR #5344 |
-| TEST.652 | tests/test_wording_agrees_with_the_index.py::test_a_generated_body_claims_life fails on main: a timeline text on a body with phi_bio 0 (bug) | none | open |
+| TEST.652 | tests/test_wording_agrees_with_the_index.py::test_a_generated_body_claims_life fails on main: a timeline text on a body with phi_bio 0 (bug) | none | done, PR #5346 |
 | TEST.649 | Five tests are red on clean main: test_api_link_ids, test_atmosphere_state (2) and test_gen_component_pass (2) (bug) | none | done, PR #5332 |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
