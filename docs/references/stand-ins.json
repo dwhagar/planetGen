@@ -3113,7 +3113,7 @@
             ],
             [
               "What would show it wrong",
-              "test_atmosphere_mixture_lava::test_the_vapour_pressure_over_the_melt_is_kites_within_a_factor_of_four_from_2000_to_2500_k"
+              "test_atmosphere_mixture_lava::test_the_vapor_pressure_over_the_melt_is_kites_within_a_factor_of_four_from_2000_to_2500_k"
             ],
             [
               "What replaces it",
@@ -3303,7 +3303,7 @@
             ],
             [
               "What would show it wrong",
-              "test_atmosphere_mixture_rocky::test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent"
+              "test_atmosphere_mixture_rocky::test_an_earth_like_oxidized_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent"
             ],
             [
               "What replaces it",
@@ -4253,7 +4253,7 @@
             ],
             [
               "What would show it wrong",
-              "test_impact_history::test_the_impactor_vapour_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets"
+              "test_impact_history::test_the_impactor_vapor_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets"
             ],
             [
               "What replaces it",
@@ -4519,7 +4519,7 @@
             ],
             [
               "What would show it wrong",
-              "test_atmosphere_mixture_lava::test_a_more_aluminous_melt_has_more_aluminium_in_its_vapour"
+              "test_atmosphere_mixture_lava::test_a_more_aluminous_melt_has_more_aluminium_in_its_vapor"
             ],
             [
               "What replaces it",
@@ -6155,6 +6155,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "saturation.EDMISTER_COEFFICIENT"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design (source tier 6, tweak level 0; NASA Glenn's fits of the liquid oxides and of 47 of the 84 gases stop at 6000 K, so a molten surface hotter than that, the dayside of a rock next to a hot star or a white-dwarf planet's exosphere, had no vapor and a build died with SiO2(L): no thermodynamic fit at 6881 K (GEN.1294); the liquids are constant-heat-capacity fits, but half the gases would silently drop out above 6000 K and the melt model is an ideal solution of the oxides, so the vapor is worked out at 6000 K and the mixture reports the surface's own temperature)"
+            ],
+            [
+              "What it is",
+              "mixture_lava.MELT_MAX_K"
+            ],
+            [
+              "The range it moves in",
+              "6000 K, the top of the table"
+            ],
+            [
+              "Where it holds",
+              "a molten surface over 6000 K, up to the vapor-only regime where the melt model no longer applies"
+            ],
+            [
+              "What would show it wrong",
+              "test_atmosphere_mixture_lava::test_a_surface_hotter_than_the_fits_has_its_vapor_worked_out_at_their_top"
+            ],
+            [
+              "What replaces it",
+              "a vapor model for a fully vaporised silicate surface, or fits of the liquid oxides and the gases above 6000 K (GEN.499)"
+            ]
+          ],
+          "id": "AM95",
+          "key": "6.7:AM95",
+          "kind": "P",
+          "slug": "6-7-am95",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_lava.MELT_MAX_K"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
@@ -19787,7 +19825,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.DEBRIS_DISK_INCIDENCE (0.022, 0.130, 0.143, 0.239, 0.24) with DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL (0.45, 0.8, 1.04, 1.4): the share of stars of each mass that hold a cold disk"
+              "test_gen_debris_disk.SURVEY_SHARE_BY_MASS (0.022, 0.130, 0.143, 0.239, 0.24): the share of stars of each mass band that hold a cold disk, the benchmark the cut DU1 is tuned to"
             ],
             [
               "The range it moves in",
@@ -19795,7 +19833,7 @@
             ],
             [
               "Where it holds",
-              "detected discs, so the count of a survey with a median sensitivity of 2e-5 in fractional luminosity"
+              "detected disks, so the count of a survey with a median sensitivity of 2e-5 in fractional luminosity"
             ],
             [
               "What would show it wrong",
@@ -19818,159 +19856,125 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.DEBRIS_DISK_INCIDENCE (0.022, 0.130, 0.143, 0.239, 0.24) with DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL (0.45, 0.8, 1.04, 1.4): the share of stars of each mass that hold a cold disk"
+          "what": "test_gen_debris_disk.SURVEY_SHARE_BY_MASS (0.022, 0.130, 0.143, 0.239, 0.24): the share of stars of each mass band that hold a cold disk, the benchmark the cut DU1 is tuned to"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey measures the dust of the disks this generator builds; the cut stands where the K, G and F dwarfs together hold a disk as often as the surveys find, and goes when the outer disk's mass and width come from a planetesimal-formation model (filed as GEN.1278)"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
+            ],
+            [
+              "The range it moves in",
+              "8e-5 to 3e-4 (G disk share 33 to 2 percent)"
+            ],
+            [
+              "Where it holds",
+              "the generator's outer disks, which are heavy, old and mostly at their steady-state dust"
+            ],
+            [
+              "What would show it wrong",
+              "the K, G and F dwarfs together holding a disk outside 12 to 22 percent in a sweep of the generator, or a survey that finds the generator's A and F stars short"
+            ],
+            [
+              "What replaces it",
+              "a cut from the survey's own sensitivity, once the outer disk's mass and width come from a planetesimal-formation model"
+            ],
+            [
+              "Evidence",
+              "tuned against a sweep of 70 to 160 systems each of K3V, G2V, F5V and A2V (A stars then hold none, F about half the survey's share)"
+            ]
+          ],
+          "id": "DU1",
+          "key": "6.53:DU1",
+          "kind": "P",
+          "slug": "6-53-du1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "tuning.DEBRIS_DISK_INCIDENCE[-1] 0.24: a star above 1.4 solar masses takes the A figure"
+              "debris_dust.F_MAX_COEFFICIENT 0.004: the steady-state fractional luminosity 0.004 r^1.5 (dr/r) Dc^0.5 L^-0.5 / (t G(Xc)), r in AU, Dc in km, t in Myr"
             ],
             [
               "The range it moves in",
-              "B stars unmeasured here"
+              "none (the paper's own)"
             ],
             [
               "Where it holds",
-              "stars up to the Herschel sample's hottest"
+              "size law q = 11/6, e equal to I, density 2700 kg/m^3"
             ],
             [
               "What would show it wrong",
-              "a B-star survey"
+              "a debris disk measured at its steady state with f outside a factor of 3 of this"
             ],
             [
               "What replaces it",
-              "a measured B-star incidence"
+              "the paper's Eq. 16 with the blow-out size of the star"
             ],
             [
               "Evidence",
-              "no clear dependence of the dust on type from late B to M (read in the summary part of the fetched copy)"
+              "[R4785: Eq. 18], checked against its Eq. 21 (1.5e-4 / t at r = 1 AU for its nominal belt)"
             ]
           ],
-          "id": "DD2",
-          "key": "6.53:DD2",
-          "kind": "B",
-          "slug": "6-53-dd2",
-          "tier": "T4",
-          "tier_code": "T4",
+          "id": "DU2",
+          "key": "6.53:DU2",
+          "kind": "P",
+          "slug": "6-53-du2",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "tuning.DEBRIS_DISK_INCIDENCE[-1] 0.24: a star above 1.4 solar masses takes the A figure"
+          "what": "debris_dust.F_MAX_COEFFICIENT 0.004: the steady-state fractional luminosity 0.004 r^1.5 (dr/r) Dc^0.5 L^-0.5 / (t G(Xc)), r in AU, Dc in km, t in Myr"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "tuning.DEBRIS_DISK_TEMPERATURE_MEDIAN_K 58 and DEBRIS_DISK_TEMPERATURE_LOG_SIGMA 0.45: the dust temperature of a disk, log-normal"
+              "debris_dust.CASCADE_MAX_KM 2000: the largest body the dust cascade is reckoned for, whatever the belt's own largest body"
             ],
             [
               "The range it moves in",
-              "median 45 to 70 K, sigma 0.3 to 0.6"
+              "1000 to 3000"
             ],
             [
               "Where it holds",
-              "stars of one solar luminosity"
+              "an outer disk whose largest body is protoplanet-size"
             ],
             [
               "What would show it wrong",
-              "the 47 blackbody radii of Table 1"
+              "a belt whose dust is the sum of cascades of bodies over 2000 km"
             ],
             [
               "What replaces it",
-              "the temperatures read from the table itself"
+              "a ledger that settles the cascade's Dc apart from the largest body"
             ],
             [
               "Evidence",
-              "median 23 AU and 7 to 40 AU for most, from the abstract and the table as counted"
+              "the nominal Dc of [R4785] (Fig. 2 and Eq. 21)"
             ]
           ],
-          "id": "DD3",
-          "key": "6.53:DD3",
+          "id": "DU3",
+          "key": "6.53:DU3",
           "kind": "P",
-          "slug": "6-53-dd3",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L2",
-          "unread": null,
-          "what": "tuning.DEBRIS_DISK_TEMPERATURE_MEDIAN_K 58 and DEBRIS_DISK_TEMPERATURE_LOG_SIGMA 0.45: the dust temperature of a disk, log-normal"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "tuning.DEBRIS_RADIUS_OVER_BLACKBODY 1.74: the belt lies this far beyond its blackbody radius"
-            ],
-            [
-              "The range it moves in",
-              "1.5 to 2.5 (the paper: a blackbody radius \"can underestimate the true disc radius by up to a factor of 2.5\")"
-            ],
-            [
-              "Where it holds",
-              "realistic dust"
-            ],
-            [
-              "What would show it wrong",
-              "resolved belt radii"
-            ],
-            [
-              "What replaces it",
-              "resolved radii from the imaged discs"
-            ],
-            [
-              "Evidence",
-              "\"scales to about 40 AU for realistic dust properties\" over a median of 23 AU"
-            ]
-          ],
-          "id": "DD4",
-          "key": "6.53:DD4",
-          "kind": "P",
-          "slug": "6-53-dd4",
-          "tier": "T6",
-          "tier_code": "T6",
+          "slug": "6-53-du3",
+          "tier": "T1",
+          "tier_code": "T1",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.DEBRIS_RADIUS_OVER_BLACKBODY 1.74: the belt lies this far beyond its blackbody radius"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "tuning.DEBRIS_DISK_EDGES_OVER_RADIUS (0.7, 1.5): the ring spans 0.7 to 1.5 of the belt radius"
-            ],
-            [
-              "The range it moves in",
-              "width over radius 0.3 to 1.2"
-            ],
-            [
-              "Where it holds",
-              "every debris disk"
-            ],
-            [
-              "What would show it wrong",
-              "resolved widths"
-            ],
-            [
-              "What replaces it",
-              "measured fractional widths"
-            ],
-            [
-              "Evidence",
-              "design (a ring about as wide as it is far out)"
-            ]
-          ],
-          "id": "DD5",
-          "key": "6.53:DD5",
-          "kind": "P",
-          "slug": "6-53-dd5",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L0",
-          "unread": null,
-          "what": "tuning.DEBRIS_DISK_EDGES_OVER_RADIUS (0.7, 1.5): the ring spans 0.7 to 1.5 of the belt radius"
+          "what": "debris_dust.CASCADE_MAX_KM 2000: the largest body the dust cascade is reckoned for, whatever the belt's own largest body"
         }
       ],
       "slug": "6-53-stand-ins-of-the-debris-disks",
@@ -25546,9 +25550,9 @@
       "rows": [
         {
           "burn_down": [
-            "replace",
-            "GEN.1111",
-            "the rogue research settles the per-star rate of free-floating planets and replaces the level ceilings"
+            "no data",
+            "-",
+            "the level ceilings are the numbers of the Rogues dropdown that Boss sets, a display choice and not a research rate; tier stays"
           ],
           "fields": [
             [
@@ -25630,9 +25634,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1111",
-            "the ejection records give the scatterer's distance, so the drawn range is replaced by the architecture's own"
+            "no data",
+            "-",
+            "top-up rogues have no donor and no ejection record by design (apparent origin), so there is no scatterer distance to read; the drawn range stays"
           ],
           "fields": [
             [
@@ -25946,9 +25950,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1111",
-            "the closest approach of each scattering is in the architecture's own ejection record, which replaces the line through three medians"
+            "no data",
+            "-",
+            "the stored Loss record holds no closest approach (distance, formation distance, time, scatterer orbit and mass, Safronov number, Hill radius only); the curve through three measured points stays until a deterministic closest approach is derived from the scatterer geometry"
           ],
           "fields": [
             [
@@ -26073,7 +26077,7 @@
         {
           "burn_down": [
             "replace",
-            "GEN.1111",
+            "GEN.1295",
             "the ejection records (RP1) give the time of each loss after formation, so the drawn delay distribution is replaced by the architecture's own"
           ],
           "fields": [
@@ -26705,6 +26709,424 @@
           "tweak": "L1",
           "unread": "GEN.1048",
           "what": "seasonal_swing.MAX_SHARE 0.999, the transport share is cut here; the seasonal damping is the mean state's own, B_t = B s / (1 - s)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "seasonal_swing.OCEAN_EDDY_DIFFUSIVITY_M2_S 2.5e-4, how fast the sea mixes heat down: the depth a cycle of period P reaches is sqrt(kappa P / pi), 50 m for a year and 2.6 m for a day"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-3"
+            ],
+            [
+              "Where it holds",
+              "worlds with a liquid water ocean"
+            ],
+            [
+              "What would show it wrong",
+              "an ocean model whose diurnal mixed layer averages under 1 m or over 8 m"
+            ],
+            [
+              "What replaces it",
+              "the ocean's own mixing from the wind and the heat flux (the hydrosphere)"
+            ],
+            [
+              "Evidence",
+              "set to give the 50 m of SS1 at a year; the observed diurnal mixed layers are a few metres"
+            ]
+          ],
+          "id": "SS4",
+          "key": "6.91:SS4",
+          "kind": "P",
+          "slug": "6-91-ss4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": "GEN.1265",
+          "what": "seasonal_swing.OCEAN_EDDY_DIFFUSIVITY_M2_S 2.5e-4, how fast the sea mixes heat down: the depth a cycle of period P reaches is sqrt(kappa P / pi), 50 m for a year and 2.6 m for a day"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_cycle.CELL_ROWS 12 and CELL_COLUMNS 12, the cells of the grid of equal area and equal longitude"
+            ],
+            [
+              "The range it moves in",
+              "rows and columns 8 to 24"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose livable share changes by more than 0.03 when the grid is doubled"
+            ],
+            [
+              "What replaces it",
+              "a finer grid, if the sweep shows the share moves"
+            ],
+            [
+              "Evidence",
+              "a numerical choice (Boss, plan of 7:32 PM EST 11-04)"
+            ]
+          ],
+          "id": "SS5",
+          "key": "6.91:SS5",
+          "kind": "P",
+          "slug": "6-91-ss5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_cycle.CELL_ROWS 12 and CELL_COLUMNS 12, the cells of the grid of equal area and equal longitude"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_cycle.PERIODIC_TOLERANCE 0.02 and MAX_PERIODIC_ORBITS 12 (the solar day may be stretched by 2 percent, or the span lengthened to up to 12 orbits, so the series repeats exactly)"
+            ],
+            [
+              "The range it moves in",
+              "tolerance 0.005 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose livable share changes by more than 0.02 when the tolerance is halved"
+            ],
+            [
+              "What replaces it",
+              "an exact commensurate solver"
+            ],
+            [
+              "Evidence",
+              "a numerical choice"
+            ]
+          ],
+          "id": "SS6",
+          "key": "6.91:SS6",
+          "kind": "P",
+          "slug": "6-91-ss6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_cycle.PERIODIC_TOLERANCE 0.02 and MAX_PERIODIC_ORBITS 12 (the solar day may be stretched by 2 percent, or the span lengthened to up to 12 orbits, so the series repeats exactly)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "regional_temperature.LOCKED_TRANSPORT_X0 0.1, the air column in Earth's at which the air removes half of the day to night contrast of a tidally locked world"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "tidally locked bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a published locked-planet circulation model whose night side of a 1 bar world is more than 15 K under the day side's mean"
+            ],
+            [
+              "What replaces it",
+              "the day to night contrast of a general circulation model grid of locked worlds by pressure"
+            ],
+            [
+              "Evidence",
+              "the order that general circulation models of locked Earth-like worlds give: a bar of air removes about 90 percent of the contrast, a Mars-thin one about 14 percent"
+            ]
+          ],
+          "id": "SS7",
+          "key": "6.91:SS7",
+          "kind": "P",
+          "slug": "6-91-ss7",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "regional_temperature.LOCKED_TRANSPORT_X0 0.1, the air column in Earth's at which the air removes half of the day to night contrast of a tidally locked world"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "regional_temperature.TRANSPORT_X0 20, the air column in Earth's at which the air removes half of the pole to equator contrast"
+            ],
+            [
+              "The range it moves in",
+              "10 to 40"
+            ],
+            [
+              "Where it holds",
+              "bodies that turn faster than once an orbit"
+            ],
+            [
+              "What would show it wrong",
+              "a general circulation model whose polar annual mean for an Earth-like world is not 35 to 40 K under the mean"
+            ],
+            [
+              "What replaces it",
+              "a diffusion coefficient from the circulation"
+            ],
+            [
+              "Evidence",
+              "fitted so Earth's polar band sits about 35 K under its mean (the observed annual polar mean is 35 to 40 K under)"
+            ]
+          ],
+          "id": "SS8",
+          "key": "6.91:SS8",
+          "kind": "P",
+          "slug": "6-91-ss8",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L2",
+          "unread": null,
+          "what": "regional_temperature.TRANSPORT_X0 20, the air column in Earth's at which the air removes half of the pole to equator contrast"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "regional_temperature.GROUND_INERTIA 300, the thermal inertia of the ground, J/(m2 K s^0.5)"
+            ],
+            [
+              "The range it moves in",
+              "55 (regolith) to 2500 (bare rock)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a measured thermal inertia of the body's own ground more than 2 times from 300"
+            ],
+            [
+              "What replaces it",
+              "the surface composition and grain (GEN.441)"
+            ],
+            [
+              "Evidence",
+              "lunar regolith 55, Mars about 300, bare rock 2000 to 2500"
+            ]
+          ],
+          "id": "SS9",
+          "key": "6.91:SS9",
+          "kind": "P",
+          "slug": "6-91-ss9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "regional_temperature.GROUND_INERTIA 300, the thermal inertia of the ground, J/(m2 K s^0.5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "regional_temperature.AIR_CP_J_KG_K 1000, the heat capacity of air per kilogram"
+            ],
+            [
+              "The range it moves in",
+              "850 (carbon dioxide) to 14000 (hydrogen)"
+            ],
+            [
+              "Where it holds",
+              "bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose air has a heat capacity under 700 or over 3000 and that is a thin one where the column dominates the capacity"
+            ],
+            [
+              "What replaces it",
+              "the mixture's own heat capacity"
+            ],
+            [
+              "Evidence",
+              "air 1004, carbon dioxide 850, hydrogen 14,000"
+            ]
+          ],
+          "id": "SS10",
+          "key": "6.91:SS10",
+          "kind": "P",
+          "slug": "6-91-ss10",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "regional_temperature.AIR_CP_J_KG_K 1000, the heat capacity of air per kilogram"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "seasonal_swing.TEMPERATURE_MAX_STEPS 1500, SAMPLES_PER_DAY 8, STEPS_PER_YEAR 120, FEW_COLUMNS 4 from MANY_TURNS 24, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 1.0, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 1.0, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series, set in PERF.238 so a median body takes 26 ms; FINE is the check)"
+            ],
+            [
+              "The range it moves in",
+              "steps 1000 to 6000; tolerance 0.25 to 2 K"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose livable share is more than 0.06 from that of FINE (tests) or a sweep where it is more than 0.03 at the 95th percentile"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "numerical choices"
+            ]
+          ],
+          "id": "SS11",
+          "key": "6.91:SS11",
+          "kind": "P",
+          "slug": "6-91-ss11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.1265",
+          "what": "seasonal_swing.TEMPERATURE_MAX_STEPS 1500, SAMPLES_PER_DAY 8, STEPS_PER_YEAR 120, FEW_COLUMNS 4 from MANY_TURNS 24, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 1.0, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 1.0, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series, set in PERF.238 so a median body takes 26 ms; FINE is the check)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.MOST_OF_THE_TIME 0.5 and NEARLY_ALWAYS 0.9 (a place is in the livable area when it is livable at least half the time; the research note's 90 percent for the area livable nearly always)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a decision of Boss on what counts as livable most of the time"
+            ],
+            [
+              "What replaces it",
+              "Boss's number"
+            ],
+            [
+              "Evidence",
+              "definitions from the research note of 11-04 and the decision of 7:32 PM EST"
+            ]
+          ],
+          "id": "SS12",
+          "key": "6.91:SS12",
+          "kind": "D",
+          "slug": "6-91-ss12",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": "GEN.1265",
+          "what": "temperature_coverage.MOST_OF_THE_TIME 0.5 and NEARLY_ALWAYS 0.9 (a place is in the livable area when it is livable at least half the time; the research note's 90 percent for the area livable nearly always)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.DAY_SIDE_DEG 60 and NIGHT_SIDE_DEG 120 (the day side is within 60 degrees of the point under the star of a world that turns once an orbit, the night side beyond 120, the terminator belt between: a quarter, a half and a quarter of the surface)"
+            ],
+            [
+              "The range it moves in",
+              "45 to 75 and 105 to 135"
+            ],
+            [
+              "Where it holds",
+              "tidally locked bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a decision of Boss on where the belt ends"
+            ],
+            [
+              "What replaces it",
+              "Boss's number"
+            ],
+            [
+              "Evidence",
+              "definitions; the plan says only day side, terminator and night side"
+            ]
+          ],
+          "id": "SS13",
+          "key": "6.91:SS13",
+          "kind": "D",
+          "slug": "6-91-ss13",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": "GEN.1265",
+          "what": "temperature_coverage.DAY_SIDE_DEG 60 and NIGHT_SIDE_DEG 120 (the day side is within 60 degrees of the point under the star of a world that turns once an orbit, the night side beyond 120, the terminator belt between: a quarter, a half and a quarter of the surface)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.TIE_TOLERANCE 1e-3 (cells whose livable time is within a tenth of a percent of the best tie for the best site, the more moderate winning)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep where the best site changes with the tolerance in more than 1 percent of worlds"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "a numerical choice"
+            ]
+          ],
+          "id": "SS14",
+          "key": "6.91:SS14",
+          "kind": "P",
+          "slug": "6-91-ss14",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.1265",
+          "what": "temperature_coverage.TIE_TOLERANCE 1e-3 (cells whose livable time is within a tenth of a percent of the best tie for the best site, the more moderate winning)"
         }
       ],
       "slug": "6-91-stand-ins-of-the-seasonal-swing",
@@ -30002,9 +30424,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1111",
-            "the ejection record gives the real closest approach, so the curve through two printed points is not needed"
+            "no data",
+            "-",
+            "the stored Loss record holds no closest approach; the curve through two printed points stays until a deterministic closest approach is derived from the scatterer geometry"
           ],
           "fields": [
             [
@@ -33497,6 +33919,128 @@
       "title": "Stand-ins of the two cuts of the body type"
     },
     {
+      "key": "6.186",
+      "number": "6.186",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ROCKY_IMPACT_MOON_CHANCE 1/12: the chance that a rocky planet holds a massive moon from a giant impact"
+            ],
+            [
+              "The range it moves in",
+              "1/45 to 1/4"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.5 Earth masses and over formed in a disc like the Sun's; the source's own cut is 0.5 Earth masses, applied here to every rocky planet"
+            ],
+            [
+              "What would show it wrong",
+              "a measured exomoon occurrence among rocky planets outside 1/45 to 1/4, or a planet-formation study with fragmentation and hit-and-run collisions that makes moons far less often"
+            ],
+            [
+              "What replaces it",
+              "a population of giant impacts from an N-body formation run, with the moon mass from the impact's angular momentum and energy"
+            ],
+            [
+              "Evidence",
+              "[R5127] abstract: \"more than 1 in 12 terrestrial planets hosting a massive moon, with a low-end estimate of 1 in 45 and a high-end estimate of 1 in 4\""
+            ]
+          ],
+          "id": "RM1",
+          "key": "6.186:RM1",
+          "kind": "P",
+          "slug": "6-186-rm1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.ROCKY_IMPACT_MOON_CHANCE 1/12: the chance that a rocky planet holds a massive moon from a giant impact"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ROCKY_MASSIVE_MOON_MASS_RATIO 0.006: the least moon-to-planet mass ratio of a massive moon, half the Moon's 0.0123 of the Earth's mass, so the source's cut (a satellite over half a lunar mass, around a planet over half an Earth mass) is carried to planets of other masses as a ratio"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.012"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 0.05 to 10 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a giant-impact study of planets of other masses whose least moon, as a ratio, differs by a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "the same impact model as RM1"
+            ],
+            [
+              "Evidence",
+              "[R5127] section 5 (the definition of a massive moon; read in a summary of the paper, not verbatim); the ratio is worked from it"
+            ]
+          ],
+          "id": "RM2",
+          "key": "6.186:RM2",
+          "kind": "P",
+          "slug": "6-186-rm2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.ROCKY_MASSIVE_MOON_MASS_RATIO 0.006: the least moon-to-planet mass ratio of a massive moon, half the Moon's 0.0123 of the Earth's mass, so the source's cut (a satellite over half a lunar mass, around a planet over half an Earth mass) is carried to planets of other masses as a ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ROCKY_IMPACT_MOON_CHANCE again after each moon: a rocky planet gets a further massive moon with the same chance, the planet's orbits and stable range limiting the count"
+            ],
+            [
+              "The range it moves in",
+              "same range as RM1"
+            ],
+            [
+              "Where it holds",
+              "rocky planets with room for two moons"
+            ],
+            [
+              "What would show it wrong",
+              "a count of two massive moons around rocky planets in a formation run far from the geometric law at 1/12"
+            ],
+            [
+              "What replaces it",
+              "the same impact model as RM1"
+            ],
+            [
+              "Evidence",
+              "[R5127] section 5: 88 moon-forming events among about 180 planets (read in a summary; the events are independent in the source's runs)"
+            ]
+          ],
+          "id": "RM3",
+          "key": "6.186:RM3",
+          "kind": "P",
+          "slug": "6-186-rm3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.ROCKY_IMPACT_MOON_CHANCE again after each moon: a rocky planet gets a further massive moon with the same chance, the planet's orbits and stable range limiting the count"
+        }
+      ],
+      "slug": "6-186-stand-ins-of-the-massive-moons-of-rocky-planets",
+      "title": "Stand-ins of the massive moons of rocky planets"
+    },
+    {
       "key": "6.177",
       "number": "6.177",
       "rows": [
@@ -33693,6 +34237,204 @@
       ],
       "slug": "6-177-stand-ins-of-the-composition-of-a-supernova-remnant",
       "title": "Stand-ins of the composition of a supernova remnant"
+    },
+    {
+      "key": "6.188",
+      "number": "6.188",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.HYDROGEN_ATOMS_PER_AV_CM2 2.21e21: hydrogen atoms per cm2 for one magnitude of V extinction"
+            ],
+            [
+              "The range it moves in",
+              "2.0e21 to 2.3e21 (1.79e21 in the older ROSAT value)"
+            ],
+            [
+              "Where it holds",
+              "the diffuse gas of the Galaxy at solar metallicity"
+            ],
+            [
+              "What would show it wrong",
+              "an X-ray column and optical extinction sample outside 2.0 to 2.4e21"
+            ],
+            [
+              "What replaces it",
+              "a column per magnitude by metallicity, or a dust mass extinction coefficient and the dust-to-gas law"
+            ],
+            [
+              "Evidence",
+              "[R5130: Eq. 1] READ (full text): N_H = (2.21 +- 0.09)e21 A_V from 22 supernova remnants; agrees with an older supernova-remnant value of 2.22e21 and is 3 sigma above the ROSAT value of 1.79e21 in the same paper"
+            ]
+          ],
+          "id": "DU1",
+          "key": "6.188:DU1",
+          "kind": "D",
+          "slug": "6-188-du1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dust_model.HYDROGEN_ATOMS_PER_AV_CM2 2.21e21: hydrogen atoms per cm2 for one magnitude of V extinction"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.VISIBLE_SHARE 0.5: the share of the gas column that dims the stars a catalogue or a person can use"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "a galaxy whose gas and metals are the disk's own; any radius"
+            ],
+            [
+              "What would show it wrong",
+              "a high-latitude column or a plane extinction per kpc at the Sun that needs a share outside 0.3 to 0.7, or a calibrated naked-eye star count (VIEW.30) that does"
+            ],
+            [
+              "What replaces it",
+              "the share worked out from a clumpy cloud distribution and the gas phases (VIEW.8's nebulae)"
+            ],
+            [
+              "Evidence",
+              "tuned to the measured column through a half layer at the Sun, 0.12 mag ([R5132]: the abstract, from two 3-D dust maps), twice the 0.47 mag the gas column gives for 11.8 solar masses per pc2; the plane at the Sun then reads 1.06 mag per kpc against 0.85 +- 0.20 in [R5132: Table 1] and 0.8 to 1.0 in [R5131]"
+            ]
+          ],
+          "id": "DU2",
+          "key": "6.188:DU2",
+          "kind": "P",
+          "slug": "6-188-du2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "dust_model.VISIBLE_SHARE 0.5: the share of the gas column that dims the stars a catalogue or a person can use"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.GAS_DISPERSION_KMS 9: the velocity dispersion of the neutral gas that sets the layer's scale height sigma^2 / (pi G Sigma)"
+            ],
+            [
+              "The range it moves in",
+              "7 to 11"
+            ],
+            [
+              "Where it holds",
+              "the neutral gas layer of a disk galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a layer thickness at the Sun outside 100 to 150 pc, or a flare at 12 to 13 kpc outside 300 to 700 pc"
+            ],
+            [
+              "What replaces it",
+              "the dispersion by radius and gas phase, or the vertical force of the potential (VIEW.46)"
+            ],
+            [
+              "Evidence",
+              "recalled, not read: the HI of the Galaxy has 7 to 11 km/s. The layer it gives, 113 pc at the Sun and 470 pc at 12.5 kpc, is checked against 125 (+17 -7) pc ([R5135]: abstract) and the thin (340 pc) and thick (1,000 pc) dust disks of [R5131] at 12 to 13 kpc"
+            ]
+          ],
+          "id": "DU3",
+          "key": "6.188:DU3",
+          "kind": "P",
+          "slug": "6-188-du3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "dust_model.GAS_DISPERSION_KMS 9: the velocity dispersion of the neutral gas that sets the layer's scale height sigma^2 / (pi G Sigma)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.LAYER_FLOOR_PC 40: the thinnest layer"
+            ],
+            [
+              "The range it moves in",
+              "20 to 80"
+            ],
+            [
+              "Where it holds",
+              "the inner disk, where the surface density of the disk alone gives a layer of a few pc"
+            ],
+            [
+              "What would show it wrong",
+              "the extinction from the Sun to the Galactic Center outside 25 to 60 mag (moves by a factor of 6 over 20 to 80 pc)"
+            ],
+            [
+              "What replaces it",
+              "the vertical force of the galactic potential, GEN.115 (VIEW.46)"
+            ],
+            [
+              "Evidence",
+              "the thickness of the central molecular zone, a few tens of pc; the sight line to the Galactic Center is A_V 31 to 59 in the literature and 38 to 42 for the model of [R5134]"
+            ]
+          ],
+          "id": "DU4",
+          "key": "6.188:DU4",
+          "kind": "P",
+          "slug": "6-188-du4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "dust_model.LAYER_FLOOR_PC 40: the thinnest layer"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.dust_to_gas_ratio: the dust goes with the metals by the law of [R5102] (row NBC4), the gas metallicity by the gradient of row NBC1"
+            ],
+            [
+              "The range it moves in",
+              "factor 1.6; scatter 0.37 dex"
+            ],
+            [
+              "Where it holds",
+              "12 + log(O/H) 7.1 to 9"
+            ],
+            [
+              "What would show it wrong",
+              "see NBC4; dust-to-gas ratios of the Galaxy by radius ([R5131]: gas-to-dust 60 at 5 kpc to 470 at 14 kpc, about three times the gradient the metals give)"
+            ],
+            [
+              "What replaces it",
+              "the same replacements as NBC4 and NBC1 (GEN.1291 scales the gradient with the galaxy)"
+            ],
+            [
+              "Evidence",
+              "NBC4's reading of [R5102: Table 1]; [R5131] finds the dust falling outward faster than the metals alone give, which this model does not capture"
+            ]
+          ],
+          "id": "DU5",
+          "key": "6.188:DU5",
+          "kind": "D",
+          "slug": "6-188-du5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dust_model.dust_to_gas_ratio: the dust goes with the metals by the law of [R5102] (row NBC4), the gas metallicity by the gradient of row NBC1"
+        }
+      ],
+      "slug": "6-188-stand-ins-of-the-dust-of-a-galaxy-from-its-own-gas",
+      "title": "Stand-ins of the dust of a galaxy from its own gas"
     },
     {
       "key": "6.176",
@@ -33985,7 +34727,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GAS_GRADIENT_DEX_PER_KPC 0.034: the fall of the Milky Way gas's metallicity with galactic radius, dex per kpc (Boss: its own gradient, not the stars' 0.06)"
         },
         {
@@ -34023,7 +34765,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GAS_SCATTER_DEX 0.14: the scatter of the gas around its gradient, dex"
         },
         {
@@ -34061,7 +34803,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L2",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.SATELLITE_GAS_OFFSETS ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26)): the lowest and highest offset of a satellite's gas [O/H] above the component's [Fe/H], dex, at the SMC and LMC stars"
         },
         {
@@ -34099,7 +34841,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.DUST_BREAK_12LOG 7.96, DUST_HIGH_METALLICITY (2.21, 1.0), DUST_LOW_METALLICITY (0.68, 3.08): the broken power law of the gas-to-dust ratio against 12 + log(O/H)"
         },
         {
@@ -34137,7 +34879,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.MAX_IN_DUST {Mg 0.95, Si 0.95, Fe 0.99, C 0.70, O 0.60}: the most of an element that can sit in dust, as a share of its total"
         },
         {
@@ -34179,7 +34921,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
         },
         {
@@ -34457,7 +35199,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind"
         }
       ],
@@ -35725,6 +36467,90 @@
       "title": "Stand-ins of the photometry of the system sky"
     },
     {
+      "key": "6.187",
+      "number": "6.187",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Large Magellanic Cloud\"] 0.435: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.31 of the count)"
+            ],
+            [
+              "The range it moves in",
+              "0.32 to 0.58 (a factor of 1.5 either way on the count)"
+            ],
+            [
+              "Where it holds",
+              "the Large Cloud as the reference satellites place it"
+            ],
+            [
+              "What would show it wrong",
+              "a CO catalogue of the Large Cloud whose cloud count or mass is more than a factor of 1.5 from 338 clouds and 5e7 solar masses"
+            ],
+            [
+              "What replaces it",
+              "a gas disc for the Cloud (its HI disc is already modelled in galaxy/satellite_history.py) that the cloud field follows"
+            ],
+            [
+              "Evidence",
+              "[R5128] (ApJS 178, 56, section 3.1 READ): 272 clouds, molecular gas about 5e7 solar masses with X_CO 7e20; [R3102] (abstract READ): 8,107 clouds and 1.2e9 solar masses of H2 for the Milky Way. 8107 * 5e7 / 1.2e9 = 338, against 272 catalogued above the survey limit. test_gen367_cloud_gas::test_the_large_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass"
+            ]
+          ],
+          "id": "MG1",
+          "key": "6.187:MG1",
+          "kind": "P",
+          "slug": "6-187-mg1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Large Magellanic Cloud\"] 0.435: the factor on the Large Cloud's gas tracer so the field keeps about 338 class M clouds (the count goes as the tracer to the 1.4, so 0.31 of the count)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Small Magellanic Cloud\"] 0.724: the same for the Small Cloud, about 216 class M clouds (0.64 of the count)"
+            ],
+            [
+              "The range it moves in",
+              "0.55 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "the Small Cloud as the reference satellites place it"
+            ],
+            [
+              "What would show it wrong",
+              "a CO catalogue of the Small Cloud whose cloud count is below 100 or its CO mass below a tenth of the Large Cloud's"
+            ],
+            [
+              "What replaces it",
+              "a gas disc for the Cloud that the cloud field follows"
+            ],
+            [
+              "Evidence",
+              "[R5129] (ApJ 658, 1027, abstract READ): H2 3.2e7 solar masses from dust, X_CO 13e21 over the whole galaxy; the CO-bright mass is lower, so 216 clouds is a ceiling. 8107 * 3.2e7 / 1.2e9 = 216. test_gen367_cloud_gas::test_the_small_clouds_class_m_clouds_are_its_share_of_the_milky_ways_by_molecular_mass"
+            ]
+          ],
+          "id": "MG2",
+          "key": "6.187:MG2",
+          "kind": "P",
+          "slug": "6-187-mg2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.SATELLITE_NEBULA_GAS_SCALE[\"Small Magellanic Cloud\"] 0.724: the same for the Small Cloud, about 216 class M clouds (0.64 of the count)"
+        }
+      ],
+      "slug": "6-187-stand-ins-of-the-gas-of-the-magellanic-clouds-in-the-nebula-field",
+      "title": "Stand-ins of the gas of the Magellanic Clouds in the nebula field"
+    },
+    {
       "key": "6.170",
       "number": "6.170",
       "rows": [
@@ -36157,7 +36983,7 @@
             ],
             [
               "Evidence",
-              "fitted to what is seen on Jupiter and Saturn; [R5082] 30 and 17 jets observed"
+              "fitted to what is seen on Jupiter and Saturn; [R5098] 30 and 17 jets observed"
             ]
           ],
           "id": "RNG11",
@@ -36195,7 +37021,7 @@
             ],
             [
               "Evidence",
-              "[R5082] Jupiter's equatorial jet within plus or minus 15 degrees, Saturn's a single jet to plus or minus 30"
+              "[R5098] Jupiter's equatorial jet within plus or minus 15 degrees, Saturn's a single jet to plus or minus 30"
             ]
           ],
           "id": "RNG12",
@@ -36275,7 +37101,7 @@
             ],
             [
               "Evidence",
-              "[R5081] about 2000 km at Jupiter, [R5085] 500 to 2500 km; the scaling with scale height and the Coriolis parameter is the form L_R = H_P N / f of [R5086], with N kept at Jupiter's"
+              "[R5099] about 2000 km at Jupiter, [R5085] 500 to 2500 km; the scaling with scale height and the Coriolis parameter is the form L_R = H_P N / f of [R5086], with N kept at Jupiter's"
             ]
           ],
           "id": "RNG14",
@@ -36537,6 +37363,258 @@
       "title": "Stand-ins of the habitable bodies per system"
     },
     {
+      "key": "6.185",
+      "number": "6.185",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of another star's outer disk gives the orbits of its populations; the cold stirring stands until a self-stirring or capture model gives it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "belt_populations.COLD_STIRRING 0.25: the eccentricity and inclination of a cold classical member over the rms of the whole belt"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "cold members of an outer disk swept by a giant"
+            ],
+            [
+              "What would show it wrong",
+              "a measured cold disk whose eccentricity is outside a quarter to a half of its width rule"
+            ],
+            [
+              "What replaces it",
+              "the stirring of a disk by its own largest bodies (self-stirring)"
+            ],
+            [
+              "Evidence",
+              "none: a cold disk is stirred less than a belt that a giant stirs, by how much is not measured for any disk but our own"
+            ]
+          ],
+          "id": "BPO1",
+          "key": "6.185:BPO1",
+          "kind": "P",
+          "slug": "6-185-bpo1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "belt_populations.COLD_STIRRING 0.25: the eccentricity and inclination of a cold classical member over the rms of the whole belt"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of another star's outer disk gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "belt_populations.RESONANT_E_RANGE (0.05, 0.35): the eccentricity of a body held in the giant's resonance, uniform"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "members at the 3:2 or 2:1 resonance"
+            ],
+            [
+              "What would show it wrong",
+              "a population captured by an outward-migrating giant with eccentricities outside 0 to 0.5"
+            ],
+            [
+              "What replaces it",
+              "the capture model of a migrating giant (adiabatic eccentricity growth)"
+            ],
+            [
+              "Evidence",
+              "none for another star's resonant bodies; the eccentricity growth of resonance capture is physics, not carried here"
+            ]
+          ],
+          "id": "BPO2",
+          "key": "6.185:BPO2",
+          "kind": "P",
+          "slug": "6-185-bpo2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "belt_populations.RESONANT_E_RANGE (0.05, 0.35): the eccentricity of a body held in the giant's resonance, uniform"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of another star's outer disk gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "belt_populations.CENTAUR_PERIHELION_OVER_GIANT (0.5, 1.0): the perihelion of a body crossing the giant's orbit, over the giant's distance, uniform"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 1.0"
+            ],
+            [
+              "Where it holds",
+              "members crossing the outermost giant"
+            ],
+            [
+              "What would show it wrong",
+              "a crossing population with its perihelia mostly outside 0.3 to 1.0 of the giant's distance"
+            ],
+            [
+              "What replaces it",
+              "the encounter rate of the scatter step"
+            ],
+            [
+              "Evidence",
+              "none; a crossing orbit is one whose perihelion is inside the giant's"
+            ]
+          ],
+          "id": "BPO3",
+          "key": "6.185:BPO3",
+          "kind": "P",
+          "slug": "6-185-bpo3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "belt_populations.CENTAUR_PERIHELION_OVER_GIANT (0.5, 1.0): the perihelion of a body crossing the giant's orbit, over the giant's distance, uniform"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of another star's outer disk gives the orbits of its populations; the detached perihelion range stands until a self-stirring or capture model gives it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "belt_populations.DETACHED_PERIHELION_OVER_INNER_EDGE (1.0, 1.6): the perihelion of a body lifted out of the giant's reach, over the belt's inner edge, uniform"
+            ],
+            [
+              "The range it moves in",
+              "1.0 to 2.0"
+            ],
+            [
+              "Where it holds",
+              "members the giant lifted beyond its reach"
+            ],
+            [
+              "What would show it wrong",
+              "a detached population whose perihelia lie outside 1.0 to 2.0 of the belt's inner edge"
+            ],
+            [
+              "What replaces it",
+              "the scatter step's perihelion lift"
+            ],
+            [
+              "Evidence",
+              "none"
+            ]
+          ],
+          "id": "BPO4",
+          "key": "6.185:BPO4",
+          "kind": "P",
+          "slug": "6-185-bpo4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "belt_populations.DETACHED_PERIHELION_OVER_INNER_EDGE (1.0, 1.6): the perihelion of a body lifted out of the giant's reach, over the belt's inner edge, uniform"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_populations.DETACHED_MIN_A_OVER_Q 1.05: a detached body's semi-major axis is at least this many times its perihelion"
+            ],
+            [
+              "The range it moves in",
+              "none (a numerical floor that keeps the orbit eccentric)"
+            ],
+            [
+              "Where it holds",
+              "detached members"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable"
+            ],
+            [
+              "What replaces it",
+              "the scatter step's own orbits"
+            ],
+            [
+              "Evidence",
+              "numerical choice"
+            ]
+          ],
+          "id": "BPO5",
+          "key": "6.185:BPO5",
+          "kind": "D",
+          "slug": "6-185-bpo5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_populations.DETACHED_MIN_A_OVER_Q 1.05: a detached body's semi-major axis is at least this many times its perihelion"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_populations.E_MAX_BOUND 0.9: the largest eccentricity of a scattered, crossing or detached body"
+            ],
+            [
+              "The range it moves in",
+              "0.8 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "bound orbits of the disk"
+            ],
+            [
+              "What would show it wrong",
+              "not applicable"
+            ],
+            [
+              "What replaces it",
+              "the scatter step's own orbits"
+            ],
+            [
+              "Evidence",
+              "numerical choice"
+            ]
+          ],
+          "id": "BPO6",
+          "key": "6.185:BPO6",
+          "kind": "D",
+          "slug": "6-185-bpo6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_populations.E_MAX_BOUND 0.9: the largest eccentricity of a scattered, crossing or detached body"
+        }
+      ],
+      "slug": "6-185-stand-ins-of-the-orbits-of-the-scatter-populations-of-an-outer-disk",
+      "title": "Stand-ins of the orbits of the scatter populations of an outer disk"
+    },
+    {
       "key": "6.172",
       "number": "6.172",
       "rows": [
@@ -36619,6 +37697,90 @@
       ],
       "slug": "6-172-stand-ins-of-the-zone-the-regular-moons-of-a-giant-form-in",
       "title": "Stand-ins of the zone the regular moons of a giant form in"
+    },
+    {
+      "key": "6.184",
+      "number": "6.184",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WR_BINARY_MIN_RATIO 0.72: the least initial mass at which a companion can strip a star into a Wolf-Rayet star, as a share of the single-star threshold (18 against 25 solar masses at the Sun's metallicity, carried up by the same metallicity law as the threshold)"
+            ],
+            [
+              "The range it moves in",
+              "0.6 to 0.85"
+            ],
+            [
+              "Where it holds",
+              "primaries of 15 to 40 solar masses with a close companion, at the Galaxy's metallicity; at lower metallicity the law is the single-star threshold's own"
+            ],
+            [
+              "What would show it wrong",
+              "a spectroscopic survey of Wolf-Rayet stars in binaries whose primaries began below 18 solar masses, or the 18 / 24 / 37 solar mass trend of the Galaxy, LMC and SMC failing to follow Z to the minus one half"
+            ],
+            [
+              "What replaces it",
+              "the stripped-star mass from a binary evolution grid by metallicity, period and mass ratio (the MESA grid of the source)"
+            ],
+            [
+              "Evidence",
+              "[R4051: Table 1] and section 3.2: the least initial mass 18 solar masses for the Galaxy, from the 7.5 solar mass least stripped helium star of a Wolf-Rayet spectrum"
+            ]
+          ],
+          "id": "WB1",
+          "key": "6.184:WB1",
+          "kind": "P",
+          "slug": "6-184-wb1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WR_BINARY_MIN_RATIO 0.72: the least initial mass at which a companion can strip a star into a Wolf-Rayet star, as a share of the single-star threshold (18 against 25 solar masses at the Sun's metallicity, carried up by the same metallicity law as the threshold)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WR_STRIPPING_FRACTION 0.33: the share of stars between the binary and the single-star threshold that a companion strips into a Wolf-Rayet star"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "the same band, near solar metallicity"
+            ],
+            [
+              "What would show it wrong",
+              "an observed binary-stripped to single-star Wolf-Rayet ratio far from 0.25 to 0.4 in the Galaxy, or a population synthesis of interacting binaries giving another stripped share"
+            ],
+            [
+              "What replaces it",
+              "a stripping chance from the period and mass-ratio law of the member trees (the share of close binaries that transfer mass in a way that strips the envelope)"
+            ],
+            [
+              "Evidence",
+              "[R4051] section 5, below its Eq. 4: the stripping efficiency 0.33 it takes from the observed interacting fraction (read, quoted by the paper, not re-derived)"
+            ]
+          ],
+          "id": "WB2",
+          "key": "6.184:WB2",
+          "kind": "P",
+          "slug": "6-184-wb2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WR_STRIPPING_FRACTION 0.33: the share of stars between the binary and the single-star threshold that a companion strips into a Wolf-Rayet star"
+        }
+      ],
+      "slug": "6-184-stand-ins-of-the-binary-stripped-wolf-rayet-channel",
+      "title": "Stand-ins of the binary-stripped Wolf-Rayet channel"
     },
     {
       "key": "6.182",
@@ -36741,6 +37903,426 @@
       ],
       "slug": "6-182-stand-ins-of-where-a-stored-belt-member-lies",
       "title": "Stand-ins of where a stored belt member lies"
+    },
+    {
+      "key": "6.183",
+      "number": "6.183",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey gives the climate scatter among bodies of one class; the 5 K shoulder of the regional temperature lines is a width of the class fit, chosen so a class edge is not a cliff"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K)"
+            ],
+            [
+              "The range it moves in",
+              "3 to 10 K"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air and stored latitude bands"
+            ],
+            [
+              "What would show it wrong",
+              "a climate scatter among bodies of one class wider or narrower than the band the shoulders give"
+            ],
+            [
+              "What replaces it",
+              "the shoulder from the spread of the regional temperature among bodies of one class in the generator (the class sweep)"
+            ],
+            [
+              "Evidence",
+              "half the shoulder of the mean temperature (CF3, 10 K); the regional lines are the Earth-like extremes of the families design"
+            ]
+          ],
+          "id": "DM1",
+          "key": "6.183:DM1",
+          "kind": "P",
+          "slug": "6-183-dm1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measurement of another world's wet-bulb limit is in hand; the 3 C shoulder is a width of the class fit around the human limit of 31 C"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25, 28 and 31 C lines fade over 3 C)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5 C"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a wet-bulb limit research that puts the lines elsewhere than 28 and 31 C"
+            ],
+            [
+              "What replaces it",
+              "the limit of the habitability index (habitability.wet_bulb_c, 31 C, [R4521]) with the class lines read from it"
+            ],
+            [
+              "Evidence",
+              "the uncompensable limit of 31 C in species_limits; 28 C is M's margin in the design"
+            ]
+          ],
+          "id": "DM2",
+          "key": "6.183:DM2",
+          "kind": "P",
+          "slug": "6-183-dm2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25, 28 and 31 C lines fade over 3 C)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no class reads a humidity edge yet and no survey measures one; the shoulder waits for the first class that does"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.relative_humidity: 0.1 (no class reads a humidity edge yet; the shoulder is for GEN.1207)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a class whose humidity edge is measured"
+            ],
+            [
+              "What replaces it",
+              "the humidity edges of the classes from their water and temperature"
+            ],
+            [
+              "Evidence",
+              "none read yet"
+            ]
+          ],
+          "id": "DM3",
+          "key": "6.183:DM3",
+          "kind": "P",
+          "slug": "6-183-dm3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.relative_humidity: 0.1 (no class reads a humidity edge yet; the shoulder is for GEN.1207)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json weights: 1 for each of the six main domains"
+            ],
+            [
+              "The range it moves in",
+              "any positive weights"
+            ],
+            [
+              "Where it holds",
+              "every body"
+            ],
+            [
+              "What would show it wrong",
+              "Boss tilting a domain"
+            ],
+            [
+              "What replaces it",
+              "Boss's list"
+            ],
+            [
+              "Evidence",
+              "the design asks for equal weights to start, one list in the data file"
+            ]
+          ],
+          "id": "DM4",
+          "key": "6.183:DM4",
+          "kind": "P",
+          "slug": "6-183-dm4",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planet_class_fit.json weights: 1 for each of the six main domains"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the edges of classes M, H, O, P and R are the plan's reading of the class definitions; no survey of other worlds fits them, so they stay as fitted to the finished bodies (reports/class-fit-shadow-2026-10-31.md)"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "the ranges of M, H, O, P and R in planet_class_fit.json: mean 275 to 305, 295 to 315, 298 to 312, 240 to 270 and 312 to 345 K, the regional, night and wet-bulb limits, oxygen 16 to 35 percent, 50 to 250 kPa and 0.75 to 1.25 g for the family"
+            ],
+            [
+              "The range it moves in",
+              "each edge by up to its shoulder"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with oxygen-water air"
+            ],
+            [
+              "What would show it wrong",
+              "a class sweep that finds a class near none of its edges, or a body of an obvious class that fits another"
+            ],
+            [
+              "What replaces it",
+              "the family ranges from a survey of the habitable zone of the generator and the comfort limits of the habitability index"
+            ],
+            [
+              "Evidence",
+              "reports/class-families-and-positions-design-2026-10-31.md section 3 (Boss's directions of 10:39 to 10:55 AM EDT 10-31)"
+            ]
+          ],
+          "id": "DM5",
+          "key": "6.183:DM5",
+          "kind": "P",
+          "slug": "6-183-dm5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "the ranges of M, H, O, P and R in planet_class_fit.json: mean 275 to 305, 295 to 315, 298 to 312, 240 to 270 and 312 to 345 K, the regional, night and wet-bulb limits, oxygen 16 to 35 percent, 50 to 250 kPa and 0.75 to 1.25 g for the family"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no observed hot thin-air world fixes the box of class Z; the edges are the gap in the class table, filled and checked by the shadow sweep"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "the range of Z, the hot thin-air world: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean"
+            ],
+            [
+              "The range it moves in",
+              "each edge by its shoulder"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with thin air"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep that finds the gap filled by a different class or a body of Z outside the box"
+            ],
+            [
+              "What replaces it",
+              "the sweep of the gap by GEN.1207"
+            ],
+            [
+              "Evidence",
+              "reports/class-fit-shadow-2026-10-31.md (about 1.6 percent of bodies fit no class)"
+            ]
+          ],
+          "id": "DM6",
+          "key": "6.183:DM6",
+          "kind": "P",
+          "slug": "6-183-dm6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "the range of Z, the hot thin-air world: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no observed methane-ethane or sulfuric-acid world is in hand beyond Titan and Venus; the ranges of U and Y are read from those two and widened"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "the ranges of U (91 to 130 K, 50 to 500 kPa, methane 1 percent or more, with the methane-ethane window) and Y (300 to 350 K, sulfur dioxide 3 percent or more, with the sulfuric acid window, until the acid medium is stored)"
+            ],
+            [
+              "The range it moves in",
+              "each edge by its shoulder"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with the liquid of the family"
+            ],
+            [
+              "What would show it wrong",
+              "a Titan-like body that does not fit U, or a sulfur air that fits Y without acid"
+            ],
+            [
+              "What replaces it",
+              "the ranges from the family ideal bands once the acid medium and the sea fractions are stored"
+            ],
+            [
+              "Evidence",
+              "the families design section 4 ideal bands"
+            ]
+          ],
+          "id": "DM7",
+          "key": "6.183:DM7",
+          "kind": "P",
+          "slug": "6-183-dm7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "the ranges of U (91 to 130 K, 50 to 500 kPa, methane 1 percent or more, with the methane-ethane window) and Y (300 to 350 K, sulfur dioxide 3 percent or more, with the sulfuric acid window, until the acid medium is stored)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no ammonia share is measured on an icy body outside the Solar System; the 0.03 shoulder around the 0.1 line of Class 8 is a width of the fit"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.ammonia_water_mass_fraction: 0.03 (the 0.1 line of class X, the Class 8 gate of life_classes.json, fades over 0.03 of the water's mass)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "icy bodies with an ice and a water share"
+            ],
+            [
+              "What would show it wrong",
+              "an ammonia share measured on an icy body that puts class 8's window elsewhere than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "the spread of the ammonia share among icy bodies of the generator"
+            ],
+            [
+              "Evidence",
+              "the Class 8 gate (10 percent of the water mass, life-classes.md 3.1)"
+            ]
+          ],
+          "id": "DM8",
+          "key": "6.183:DM8",
+          "kind": "P",
+          "slug": "6-183-dm8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.ammonia_water_mass_fraction: 0.03 (the 0.1 line of class X, the Class 8 gate of life_classes.json, fades over 0.03 of the water's mass)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no ammonia-water ocean is observed; the box of class X is the ideal band of the ammonia-water phase diagram, read from the lab freezing curve"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "the range of X, the ammonia-water world: liquid cover 20 percent or more (the ocean lies under an ice lid, so no surface phase gate), ammonia at least 0.1 of the water's mass, 190 to 240 K, 0.05 to 2 g, no air (under 10 Pa)"
+            ],
+            [
+              "The range it moves in",
+              "each edge by its shoulder"
+            ],
+            [
+              "Where it holds",
+              "icy bodies with an ammonia-water ocean"
+            ],
+            [
+              "What would show it wrong",
+              "an ammonia-water body of an obvious class that fits another, or an X outside the box"
+            ],
+            [
+              "What replaces it",
+              "the ideal band once the sea fractions of the family are stored"
+            ],
+            [
+              "Evidence",
+              "the families design section 4 (ammonia-water 176 to 273 K, ideal 190 to 240 K); GEN.1258 found the ammonia share already stored (surface_liquid_ammonia_wt, ice_nh3_mass_fraction)"
+            ]
+          ],
+          "id": "DM9",
+          "key": "6.183:DM9",
+          "kind": "P",
+          "slug": "6-183-dm9",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "the range of X, the ammonia-water world: liquid cover 20 percent or more (the ocean lies under an ice lid, so no surface phase gate), ammonia at least 0.1 of the water's mass, 190 to 240 K, 0.05 to 2 g, no air (under 10 Pa)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure"
+            ],
+            [
+              "The range it moves in",
+              "350 to 450 K"
+            ],
+            [
+              "Where it holds",
+              "bodies with carbon dioxide above 7.38 MPa"
+            ],
+            [
+              "What would show it wrong",
+              "a supercritical carbon dioxide life window that ends elsewhere"
+            ],
+            [
+              "What replaces it",
+              "the window of the life class 6 chemistry"
+            ],
+            [
+              "Evidence",
+              "the 217 to 400 K window of the dense CO2 class in life_classes.json"
+            ]
+          ],
+          "id": "PG1",
+          "key": "6.183:PG1",
+          "kind": "P",
+          "slug": "6-183-pg1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.1258",
+          "what": "phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure"
+        }
+      ],
+      "slug": "6-183-stand-ins-of-the-class-by-domain-matrix-and-the-phase-gate",
+      "title": "Stand-ins of the class-by-domain matrix and the phase gate"
     },
     {
       "key": "6.166",
@@ -38759,166 +40341,6 @@
       ],
       "slug": "6-94-stand-ins-of-the-irregular-zone",
       "title": "Stand-ins of the irregular zone"
-    },
-    {
-      "key": "6.102",
-      "number": "6.102",
-      "rows": [
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "rogue_density.RADIAL_SMOOTH_PC 190: the Gaussian width in galactocentric radius between a donor and an old rogue"
-            ],
-            [
-              "The range it moves in",
-              "100 to 700 pc (the design's range)"
-            ],
-            [
-              "Where it holds",
-              "rogues older than 1 Gyr in a disc"
-            ],
-            [
-              "What would show it wrong",
-              "the radial spread of a measured sample of free-floating planets against their donors' birth radii"
-            ],
-            [
-              "What replaces it",
-              "the width from the kick distribution of GEN.1113 and the orbit integrator behind galactic-potential.md"
-            ],
-            [
-              "Evidence",
-              "rogue_drift.drift over the stand-in kick distribution (computed, not read); Hill's equations ([R0398, R0399], recalled)"
-            ]
-          ],
-          "id": "RSM1",
-          "key": "6.102:RSM1",
-          "kind": "D",
-          "slug": "6-102-rsm1",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
-          "unread": "GEN.1289",
-          "what": "rogue_density.RADIAL_SMOOTH_PC 190: the Gaussian width in galactocentric radius between a donor and an old rogue"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "rogue_density.VERTICAL_SMOOTH_PC 30: the same in height"
-            ],
-            [
-              "The range it moves in",
-              "20 to 50 pc (the design's range)"
-            ],
-            [
-              "Where it holds",
-              "rogues older than 1 Gyr in a disc"
-            ],
-            [
-              "What would show it wrong",
-              "the scale height of observed free-floating planets against their donors'"
-            ],
-            [
-              "What replaces it",
-              "the same as RSM1"
-            ],
-            [
-              "Evidence",
-              "rogue_drift.drift over the stand-in kick distribution (computed)"
-            ]
-          ],
-          "id": "RSM2",
-          "key": "6.102:RSM2",
-          "kind": "D",
-          "slug": "6-102-rsm2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
-          "unread": "GEN.1289",
-          "what": "rogue_density.VERTICAL_SMOOTH_PC 30: the same in height"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "rogue_density.YOUNG_AGE_MYR 100: rogues ejected within this long keep the donor's structure; the share is this over the population's history (ejections uniform in time)"
-            ],
-            [
-              "The range it moves in",
-              "30 to 300 Myr"
-            ],
-            [
-              "Where it holds",
-              "sectors of any galaxy"
-            ],
-            [
-              "What would show it wrong",
-              "a time-resolved ejection rate (planet scattering peaks early, so the share is higher in young populations)"
-            ],
-            [
-              "What replaces it",
-              "the ejection-time distribution of the yield table (R1)"
-            ],
-            [
-              "Evidence",
-              "the design note's \"younger than about 100 Myr\" and its uniform-in-donor-age test (recalled from rogue-planet-drift.md)"
-            ]
-          ],
-          "id": "RSM3",
-          "key": "6.102:RSM3",
-          "kind": "D",
-          "slug": "6-102-rsm3",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
-          "unread": "GEN.1289",
-          "what": "rogue_density.YOUNG_AGE_MYR 100: rogues ejected within this long keep the donor's structure; the share is this over the population's history (ejections uniform in time)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "rogue_density.RING_STEPS 16: points round a ring (exact for fewer than 16 arms or bar ends), with 3 nodes each in radius and height"
-            ],
-            [
-              "The range it moves in",
-              "8 to 64"
-            ],
-            [
-              "Where it holds",
-              "every smoothing"
-            ],
-            [
-              "What would show it wrong",
-              "not applicable (a quadrature)"
-            ],
-            [
-              "What replaces it",
-              "a finer rule if a density with finer azimuthal structure is added"
-            ],
-            [
-              "Evidence",
-              "the design note's \"about 16 density evaluations\""
-            ]
-          ],
-          "id": "RSM4",
-          "key": "6.102:RSM4",
-          "kind": "P",
-          "slug": "6-102-rsm4",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L0",
-          "unread": "GEN.1289",
-          "what": "rogue_density.RING_STEPS 16: points round a ring (exact for fewer than 16 arms or bar ends), with 3 nodes each in radius and height"
-        }
-      ],
-      "slug": "6-102-stand-ins-of-the-smoothed-rogue-density",
-      "title": "Stand-ins of the smoothed rogue density"
     },
     {
       "key": "6.127 Stand-ins of the high-gravity class line",

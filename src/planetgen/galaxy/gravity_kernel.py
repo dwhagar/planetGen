@@ -109,23 +109,3 @@ def fields(points, positions, masses_solar, softening_pc=DEFAULT_SOFTENING_PC, t
     finally:
         set_num_threads(previous)
     return out
-
-
-def pull_size(result):
-    """The size of the pull, (km/s)^2 per pc, at each point of a `fields` result."""
-    return np.sqrt(result[:, PULL_X] ** 2 + result[:, PULL_Y] ** 2 + result[:, PULL_Z] ** 2)
-
-
-def tensors(result):
-    """The tidal tensors of a `fields` result as an `(p, 3, 3)` array (symmetric)."""
-    t = np.empty((result.shape[0], 3, 3))
-    t[:, 0, 0], t[:, 1, 1], t[:, 2, 2] = result[:, T_XX], result[:, T_YY], result[:, T_ZZ]
-    t[:, 0, 1] = t[:, 1, 0] = result[:, T_XY]
-    t[:, 0, 2] = t[:, 2, 0] = result[:, T_XZ]
-    t[:, 1, 2] = t[:, 2, 1] = result[:, T_YZ]
-    return t
-
-
-def tidal_strength(result):
-    """The largest eigenvalue of the tidal tensor, (km/s)^2 per pc^2, at each point of a `fields` result: the stretch the map's Tidal strength mode draws."""
-    return np.linalg.eigvalsh(tensors(result))[:, 2] if result.shape[0] else np.empty(0)

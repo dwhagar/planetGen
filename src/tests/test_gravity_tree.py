@@ -9,6 +9,7 @@ pair budget.
 import numpy as np
 import pytest
 
+from planetgen.galaxy import gravity_field
 from planetgen.galaxy import gravity_kernel as kernel
 from planetgen.galaxy import gravity_tree as tree
 
@@ -93,8 +94,8 @@ def test_the_tree_sum_stays_near_the_exact_sum():
     previous = None
     for theta in (0.3, 0.5, 0.7):
         got = tree.fields_at(h, points, theta=theta).values
-        pull = np.linalg.norm(got[:, 0:3] - exact[:, 0:3], axis=1) / kernel.pull_size(exact)
-        tidal = np.linalg.norm(kernel.tensors(got) - kernel.tensors(exact), axis=(1, 2)) / np.linalg.norm(kernel.tensors(exact), axis=(1, 2))
+        pull = np.linalg.norm(got[:, 0:3] - exact[:, 0:3], axis=1) / gravity_field.pull_size(exact)
+        tidal = np.linalg.norm(gravity_field.tensors(got) - gravity_field.tensors(exact), axis=(1, 2)) / np.linalg.norm(gravity_field.tensors(exact), axis=(1, 2))
         assert np.percentile(pull, 95) < 0.01 and np.percentile(tidal, 95) < (0.02 if theta <= 0.5 else 0.04), theta      # PERF.72: the tidal strength limits the cut
         if previous is not None:
             assert np.percentile(pull, 95) >= previous * 0.5      # a larger angle is not more exact (up to the scatter of a few cells)

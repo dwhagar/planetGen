@@ -64,6 +64,7 @@ def _sector_detail(sector_id=5, name="Fake Sector", systems=None, placed=True):
         "shell_index": 5 if placed else None, "band_index": 1 if placed else None,
         "wedge_index": 20 if placed else None,
         "placed": placed,
+        "region": {"name": "Vang Zarh Region", "parent": "Vang Reach"} if placed else None,
         "center_x_pc": 500.0 if placed else None, "center_y_pc": 200.0 if placed else None,
         "center_z_pc": 10.0 if placed else None,
         "systems": systems if systems is not None else [
@@ -302,7 +303,7 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     crumbs = re.search(r'<nav class="breadcrumbs".*?</nav>', html, re.S).group(0)
     assert '<a href="/sectors">Sectors</a>' in crumbs and '<span aria-current="page">Fake Sector</span>' in crumbs
     assert "Edge 3.07 pc (10 ly)" in html and "2 systems" in html and "1 phenomenon" in html
-    assert 'href="/galaxy?quadrant=' in html
+    assert "Quadrant" not in html and "In the Vang Zarh Region, part of Vang Reach" in html
     assert re.search(r'<script type="module" src="/static/galaxymap3d.js\?v=[^"]+"></script>', html)
     # The map is the Galaxy Map locked to this sector (MAP.68).
     assert 'id="galaxymap3d-canvas"' in html and "galaxymap3d-crumbs" not in html
@@ -1256,13 +1257,13 @@ def test_nav_hides_the_route_when_it_is_the_direct_hop(client, fake):
 
 
 def test_sector_header_chips_are_facts_only(client, fake):
-    """UX.65: the chips hold only counts; the quadrant is a plain link in the
+    """UX.65: the chips hold only counts; the region is a plain line in the
     header, and the comet estimate is a Details line under the map."""
     fake.sectors[5]["interstellar_debris_count"] = 1.5e14
     html = client.get("/sector/5").get_data(as_text=True)
     chips = re.search(r'<p class="badges">(.*?)</p>', html, re.S).group(1)
     assert "<a " not in chips and "interstellar" not in chips and "Quadrant" not in chips
-    assert re.search(r'<p class="location">In <a href="/galaxy\?quadrant=[^"]+">Quadrant \w+</a>', html)
+    assert re.search(r'<p class="location">In the Vang Zarh Region, part of Vang Reach</p>', html)
     assert re.search(r'<p class="hint sector-details"><strong>Details:</strong> About', html)
 
 

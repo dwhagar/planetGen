@@ -1,0 +1,5 @@
+**Headline:** A world whose air gained trace gases (nitrous oxide, phosphine, nitrogen dioxide, methyl chloride) now stores the molar mass, density and scale height of that air, and a gas solve that lost its element balance retries with a smaller trace of the element.
+
+### Changed
+- **TEST.585 (a generator defect, not a stale test).** `trace_air.apply` adds the trace gases of table m after the life stage, but the stored `atm_molar_density`, `atm_density` and `scale_height` were those of the air before them, so they differed from the stored partials by about 1e-8 (the atmosphere sweep holds them to 1e-9). They are now recomputed from the new air with `atmosphere_state.air_state`. `gas_equilibrium.solve` tries the trace-element amounts 1e-12 and 1e-9 in turn when a solve loses its element balance (a nitrogen gas with a stoichiometric trace of carbon monoxide at 610.8 K), and re-raises the first error when none settles. Generation: the stored molar mass, density and scale height of worlds with trace gases move at the eighth digit (`--affects fill`).
+generation-output: changed

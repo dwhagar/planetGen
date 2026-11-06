@@ -157,6 +157,23 @@ test("a star behind a nebula takes its hue, more the denser it is, and a little 
   assert.ok(V.NEBULA_TINT_GLSL.includes("nebulaTinted") && V.NEBULA_TINT_GLSL.includes(V.TINT_MAX.toFixed(3)), "the shader carries the same constants");
 });
 
+test("a cloud given by its sphere is its own key, the same for the same sphere, and the key gives the sphere back (MAP.392)", () => {
+  const sphere = { x: 1.23456, y: -2, z: 3.5, radiusPc: 4.25 };
+  const source = V.sphereSource("supernova-remnant", sphere, 0.5);
+  assert.equal(source.key, "sphere:supernova-remnant:1.235,-2.000,3.500,4.250");
+  assert.equal(source.single, true);
+  assert.equal(source.block, null);
+  assert.equal(source.weight, 0.5);
+  assert.deepEqual(source.reaches, [sphere]);
+  assert.equal(V.sphereSource("supernova-remnant", { ...sphere }, 1).key, source.key, "one request for one cloud, however often the scene is built");
+  assert.deepEqual(V.sphereOf(source.key), { family: "supernova-remnant", x: 1.235, y: -2, z: 3.5, radiusPc: 4.25 });
+  assert.equal(V.sphereOf("27.3.0.5"), null, "a node key is not one");
+  assert.equal(V.sphereOf("nebula:5"), null, "nor is a stored nebula's");
+  assert.equal(V.singleIdOf(source.key), null, "and a sphere key is not a stored nebula's id");
+  assert.equal(V.sphereSource("diffuse", sphere, 9).weight, 1, "held to 0..1");
+  assert.equal(V.wanted([source], [0, 0, 0], 800).length, 1, "it is asked for like any source once wide enough");
+});
+
 test("a single nebula is its own key, has no node block, and shows at the weight it is given (MAP.142)", () => {
   const source = V.singleSource("00001000000000-4000000-000", { x: 1, y: 2, z: 3, radiusPc: 4 }, 0.5);
   assert.deepEqual(source, { key: "nebula:00001000000000-4000000-000", single: true, block: null, weight: 0.5, reaches: [{ x: 1, y: 2, z: 3, radiusPc: 4 }] });

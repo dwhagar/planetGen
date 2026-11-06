@@ -353,6 +353,7 @@ def planet_sections(name, row, sheet, species, piece, readings=()):
         "life_class": life_class_with_links(row, readings),
         "civilization": [trusted_html(sentence) for sentence in planet_layout.civilization_sentences(row, species)],
         "notes": trusted_html(blocks_html(parts["rest"], _ref_link)),
+        "readout": trusted_html(blocks_html(parts["flavor"], _ref_link)),      # "Sensors show ...", under the Sensor view (UX.276)
         "phi6_blocks": trusted_html(blocks_html(parts["phi6"], _ref_link)),
         "phi6": phi6 if phi6 and phi6["rows"] else None,
         "atmosphere": atmosphere if atmosphere and atmosphere["rows"] else None,
