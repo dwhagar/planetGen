@@ -2154,25 +2154,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and tests for a course across two territories.
   Prerequisites: NAV.77, USR.29. Related: USR.10.
 
-- [ ] **MAP.392 Weird spheres and circle markers still drawn for nebulae (bug)**
-  Boss, live observation (6:10 PM EST on 2026-11-05): "When did the
-  nebula stuff get merged? I'm still seeing the weird spheres / circle
-  markers that I was trying to get rid of." The nebula shape mesh was
-  retired in MAP.142 part 4 (merged 11:34 PM EST on 2026-11-04, release
-  8.0.3264) and scattered nebulae became markers in MAP.179 (11:25 PM
-  EST, 8.0.3263), so what Boss sees is either a build older than
-  8.0.3267, a sphere or circle that another layer still draws (a field
-  cloud, a group sprite, a scattered-nebula marker, the sector map
-  volume), or a leftover of a path those items did not reach. Do: ask
-  Boss which map, zoom level and object it is (the Galaxy Map at what
-  level, the Sector Map, the System Map or a nebula page), reproduce it
-  in the browser test harness, find the code that draws it, and remove
-  or replace it with the soft sprite of the family colour; add a browser
-  test that fails when a hard-edged sphere or circle is drawn for a
-  nebula at any zoom. Done: the cause is named, the drawing is fixed,
-  and the test is in.
-  Prerequisites: none. Related: MAP.142, MAP.176, MAP.179, MAP.365.
-
 - [ ] **MAP.394 Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal

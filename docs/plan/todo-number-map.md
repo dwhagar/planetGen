@@ -2474,7 +2474,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.389 | Borders on the maps: hard lines on the Sector and System Maps where two owners meet, a soft haze on the Galaxy Map, and a reserved hatch style for contested systems, drawn from the stored owners and cached by the territory epoch | none | open |
 | MAP.390 | Past borders: the Territories layer gets a time control that shows the borders at any stored epoch, from the history rows the step writes | none | open |
 | MAP.391 | The ship page shows the territories crossed: a read of the owners along a vessel's track (borders block nothing) | none | open |
-| MAP.392 | Weird spheres and circle markers still drawn for nebulae (bug) | none | open |
+| MAP.392 | Weird spheres and circle markers still drawn for nebulae (bug) | none | done, PR #5245 |
 | MAP.393 | Chart View fixes: steady coordinate labels, fixed isometric tilt, wedge focus buttons, one Chart View menu group, Charted regions on by default | none | done, PR #5223 |
 | MAP.394 | Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel | none | open |
 | MAP.395 | Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat | none | open |

@@ -2596,3 +2596,4 @@ Baseline: PR #1817.
 | TEST.628 | 8.2 | User features |
 | VIEW.43 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
 | VIEW.44 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
+| MAP.392 | 8.1 | Fly-through map |
