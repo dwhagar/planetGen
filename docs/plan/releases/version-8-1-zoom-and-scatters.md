@@ -625,6 +625,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.634 | test_web_browser_layout.py::test_controls_do_not_overlap[web.galaxy at 390, 600, 820 and 1280] fails: on /galaxy the Go to button and address input overlap the site search link, Help and Menu (bug) |  |  |
 | TEST.642 | tests/test_work_units.py: three tests start a second run in the same process and raise Busy from the ADM.136 guard (a run started inside a run would wait for itself for ever) (bug) |  |  |
 | TEST.647 | The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock) |  |  |
+| TEST.649 | Five tests are red on clean main: test_api_link_ids, test_atmosphere_state (2) and test_gen_component_pass (2) (bug) |  |  |
 | TEST.606 | The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug) |  |  |
 | TEST.602 | test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug) |  |  |
 | VIEW.42 | The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug) |  |  |

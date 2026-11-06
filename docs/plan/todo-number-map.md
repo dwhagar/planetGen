@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.649 |
+| TEST | TEST.650 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -2668,7 +2668,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | none | done, PR #5322 |
 | OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log | none | done, PR #5326 |
 | OPS.102 | Debug log: an area column in, the dead logger-name column out | none | done, PR #5328 |
-| OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | none | open |
+| OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | none | done, PR #5330 |
 | OPS.104 | One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone | none | done, PR #5202 |
 | OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | none | done, PR #5306 |
 | OPS.106 | update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed | none | done, PR #5249 |
@@ -4097,6 +4097,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.646 | More tests red on main beyond TEST.644: test_parallel_generation (6), test_deferred_sectors (3), test_habitability_fill (2), test_db_check_deep, test_generation_stats (4), test_materials_table, test_sectors_command (2), test_prevalence (asteroid_belt, large_star, habitable_world), test_benchmark_suite, test_estimate_sampling, test_run_job (scatter redraw), test_maintenance (map rebuild), test_no_todo_codes_shown, test_plain_words nav comma (bug) | none | done, PR #5319 |
 | TEST.647 | The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock) | none | open |
 | TEST.648 | Four tests fail on a registry mismatch: test_solar_system_standin_rows (2) and test_calibration_fence (2) cannot match the SSR9 rows ('surface-ground-types', 'oxidised') and ('atmosphere-m', 'm1'/'m2') after the DOC.103 respelling to 'oxidized' (bug) | none | done, PR #5313 |
+| TEST.649 | Five tests are red on clean main: test_api_link_ids, test_atmosphere_state (2) and test_gen_component_pass (2) (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
