@@ -62,6 +62,7 @@ const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
 const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
 const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
+const { renderViewMenu } = await import(`./viewmenu.js${VERSION_QUERY}`);
 const superbubble = await import(`./superbubble.js${VERSION_QUERY}`);
 const { connectCourseDiagram } = await import(`./coursediagram.js${VERSION_QUERY}`);
 const { courseRuns, createHopGlow, makeGlowTexture } = await import(`./coursehops.js${VERSION_QUERY}`);
@@ -3988,7 +3989,8 @@ function initGalaxyMap3d(canvasEl, data) {
     kindsEl.hidden = false;
     kindsEl.appendChild(kindsLayersEl);
     if (drawKindLayers) drawKindLayers();
-    else drawKindLayers = stageView.layers.renderMenu(kindsLayersEl);
+    // UX.278: a sector page's Menu is the shared View menu (viewmenu.js); the Galaxy Map's stays as it was until UX.280.
+    else drawKindLayers = data.pinned ? renderViewMenu(stageView.layers, kindsLayersEl) : stageView.layers.renderMenu(kindsLayersEl);
     if (!kinds.length) {
       rebuildStarFilters();
       return;
