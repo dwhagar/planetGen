@@ -167,14 +167,14 @@ def cache_key(cell, galaxy_key, limiting_magnitude=DEFAULT_LIMITING_MAGNITUDE, p
               max_distance_pc=MAX_DISTANCE_PC, dust=None):
     """
     The cache key of a band: a hash of the cell, the caller's `galaxy_key` (a string naming the galaxy's id, seed and
-    epoch), the limiting magnitude, the image size, the steps, the dust law's overrides and the constants the image
+    epoch), the limiting magnitude, the image size, the steps, the dust law's overrides (a `physics.dust_model.DustProfile` by its `key()`, the digest of its two tables) and the constants the image
     depends on (`MODEL_VERSION`, the luminosity density, the faint-light table, the cell size).
     """
     payload = {
         "version": MODEL_VERSION, "cell": [int(v) for v in cell], "cell_pc": CELL_PC, "galaxy": str(galaxy_key),
         "m_lim": float(limiting_magnitude), "pixels": int(pixels), "steps": int(steps), "max_pc": float(max_distance_pc),
         "j0": LOCAL_V_LUMINOSITY_DENSITY, "faint": [list(row) for row in FAINT_LIGHT_TABLE],
-        "dust": sorted((str(k), float(v)) for k, v in (dust or {}).items()),
+        "dust": sorted((str(k), v.key() if hasattr(v, "key") else float(v)) for k, v in (dust or {}).items()),
         "dust_default": [sky_photometry.DUST_AV_PER_KPC_AT_SUN, sky_photometry.DUST_SCALE_LENGTH_PC,
                          sky_photometry.DUST_HEIGHT_PC, sky_photometry.DUST_HEIGHT_FLARE_PC_PER_KPC,
                          sky_photometry.DUST_FLARE_START_PC, sky_photometry.DUST_SOLAR_RADIUS_PC],

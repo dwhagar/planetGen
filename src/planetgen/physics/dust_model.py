@@ -188,3 +188,11 @@ def profile_for_shape(shape):
 def _profile_for_shape(shape):
     from planetgen.galaxy import disk_history
     return profile_from_history(disk_history.history_of(shape), shape.disk_scale_length_pc)
+
+
+def dust_for_shape(shape):
+    """
+    The `dust=` dict of the sky functions for the galaxy of this shape (VIEW.44): its own `DustProfile` under `"profile"`. The sky, the glow band and the tier table take it
+    as they take any override (`sky_photometry.dust_av_per_pc`), so the default dust of a galaxy is the dust of its own gas.
+    """
+    return {"profile": profile_for_shape(shape)}
