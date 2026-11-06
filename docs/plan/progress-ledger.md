@@ -2695,3 +2695,4 @@ Baseline: PR #1817.
 | TEST.580 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
 | TEST.655 | 8.1 | Physics rectification: life classes, chemistries and their pages |
 | VIEW.47 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.654 | 8.1 | Physics rectification: life classes, chemistries and their pages |
