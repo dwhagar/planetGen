@@ -26,7 +26,6 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.359 | Sector fill links cluster stars to their cluster and names the cluster at its first fill |  | Split from GEN.209. |
 | MAP.224 | Cluster pages and the Galaxy Map use the parent link | GEN.359 | Split from GEN.209. |
 | MAP.381 | Sector Map: draw the globular clusters and label them by name or designation | MAP.224 |  |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds |  | Later (Boss 2026-10-08 01:59Z colors). |

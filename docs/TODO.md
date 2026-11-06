@@ -964,21 +964,6 @@ with `clamp()`.
   yet. Filed by the TODO thread.
   Prerequisites: none. Related: UX.269, UX.277, UX.278, UX.279, UX.280, UX.281, TEST.630, DOC.108.
 
-- [ ] **UX.276 Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels**
-  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
-  proposal
-  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
-  Do: rename the rendered example of the star, planet and moon pages
-  (UX.171) to Sensor view and make it the first panel of every kind that
-  has an entry in the registry; add the short readout line under the
-  picture, "Sensors show ...", from the text hook that exists in
-  describe/; where an input is not stored (cloud cover before 9.0,
-  ground colour before 8.4) the panel says estimate and the picture uses
-  today's fallback. Same look tokens as the pilot console (UX.130).
-  Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
-  by the TODO thread.
-  Prerequisites: UX.275. Related: UX.171, UX.130.
-
 - [ ] **UX.280 Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list**
   View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
   design cards; design
@@ -2123,7 +2108,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the Sensor view does not become a third map mode. Version 8.2.
   Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
   thread.
-  Prerequisites: UX.276.
+  Prerequisites: none.
 
 - [ ] **MAP.395 Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
@@ -2147,20 +2132,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
   thread.
   Prerequisites: UX.275.
-
-- [ ] **MAP.397 Some View menu options show only the word "Forward" and cannot be clicked (bug)**
-  Boss (6:50 PM EST on 2026-11-05, as the lane reported): in the Map
-  View menu, some options just say the word "Forward" and are not
-  clickable. Likely the "pull forward" second button of the points of
-  interest rows (or a hand-written control) rendered as plain text; the
-  cause is not yet known. Do: find which menu rows show only "Forward",
-  why they are not interactive (markup, a disabled state with no
-  explanation, or a missing handler), fix them on the Galaxy, Sector and
-  System Maps, and add a browser test that every visible menu control is
-  a working button or checkbox. It may fold into the shared builder of
-  UX.278; fix it now on the present menu, lock-free. Version 8.1. Owner:
-  Core 5. Filed by the TODO thread.
-  Prerequisites: none. Related: UX.274, UX.278, MAP.392.
 
 ## NAV: Navigation and courses
 
@@ -14162,6 +14133,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This changes generated rogue planets, so it is a lock item (epoch).
   Prerequisites: none. Related: GEN.1111, GEN.1120.
 
+- [ ] **GEN.1299 The planet architecture ejects about 0.1 body per star where the observed free-floating yield is 8 to 42 per star (0.33 Earth masses and up) and 0.8 to 7.5 rocky bodies per star: decide where the yield should come from**
+  Planets 1 (as the lane reported, about 7:52 PM EST on 2026-11-05),
+  TEST.499, PR #5262, report
+  /mnt/project-files/reports/rogue-yield-calibration-2026-11-06.md. Over
+  3,000 stars of the generator's mass function the architecture ejects
+  0.11 bodies of 0.33 Earth masses or more per star against the
+  microlensing band of 8 to 42 (central 21), and 0.085 of 0.1 to 10 Earth
+  masses against the terrestrial band of 0.8 to 7.5 (2.5 central). By
+  class: M dwarfs 0.069, K 0.16, G 0.24, F and A 0.25 per star; about 11
+  Earth masses thrown out per G star. The Rogues level ceilings reach the
+  bands (Few 2.5 and Normal 4.3 sit inside the terrestrial band; only
+  Many, 10, reaches the microlensing lower edge), so the top-up
+  (GEN.1287) makes up the difference today. The cause is the earlier
+  finding that about 125 sub-minimum bodies per star are deleted from the
+  chain. The strict expected failure in
+  tests/test_rogue_yield_calibration.py starts failing the day the donors
+  alone enter the bands. Do: write a short design note on whether the
+  architecture itself should carry the yield (keep the sub-minimum
+  bodies as ejected mass or small rogues, which changes every generated
+  system and is a lock item with an epoch) or the top-up stays the
+  source (then say so in the rogue design note and turn the expected
+  failure into a plain test of the top-up). Boss's design call; no code
+  until he answers. Version 8.1. Owner: Planets 1. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: TEST.499, GEN.1111, GEN.1287.
+
 - [ ] **GEN.1288 cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections**
   Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
   PR #5192): after GEN.1111's unread functions were deleted, five rogue
@@ -14175,22 +14172,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   birth cluster. Done: the guard passes with no line for the module and
   a cluster-born rogue says so. This changes generated rogue planets, so
   it is a lock item (epoch).
-  Prerequisites: none. Related: GEN.1111, GEN.209.
-
-- [ ] **GEN.1289 Decide rogue_density (RSM1 to RSM4): wire the smoothed star density into the virtual-donor sector draw, or delete it**
-  Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
-  PR #5192): after GEN.1111's unread functions were deleted, five rogue
-  modules remain on the wiring register under GEN.1111. Version 8.1.
-  Owner: Planets 1. Filed by the TODO thread. Do:
-  planetgen.galaxy.rogue_density gives the smoothed star density a rogue
-  is drawn from (GEN.1115), for the virtual-donor sector draw's Poisson
-  mean; nothing reads it, and GEN.1111 may have replaced the virtual
-  donor with a stored donor. Decide with a small check of what the draw
-  uses today: wire it, or delete the module, its tests, the rows RSM1 to
-  RSM4 and the register lines. Done: the guard passes with no line for
-  the module. A wire changes generated rogues (lock); a delete is
-  lock-free.
-  Prerequisites: none. Related: GEN.1111, GEN.1115.
+  Decision (the TODO thread, 7:55 PM EST on 2026-11-05, Planets 1 asked):
+  the full version. The share is of planets a cluster pulls off their
+  stars, so a stripped planet leaves its system as well as becoming a
+  rogue and nothing exists twice; the architecture drops those planets
+  for cluster stars, from the cluster's age, mass and half-mass radius
+  history. It starts once GEN.359 (stars.cluster_id filled, branch
+  claude/core2-gen359, train 12) is on main.
+  Prerequisites: GEN.359. Related: GEN.1111, GEN.209.
 
 - [ ] **GEN.1290 Gas and star metallicity depend on the galaxy's stellar mass (the mass-metallicity relation), so small galaxies are metal-poor and dustier-poor**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
@@ -18025,22 +18014,6 @@ clears each one.
   carries it.
   Prerequisites: GEN.1111.
 
-- [ ] **TEST.499 RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against [R4254, R4255] (central 21, lower 1 sigma 8 over the probed range), the [R3191] Jupiter limit and [R0258]'s 2.5 terrestrial bodies per star**
-  Rogue planet physics (goal #4130, review report
-  docs/design/research/rogue-planet-review.md, GEN.1109 merged).
-  Measured on 1500 stars: the architecture ejects only about 0.3 bodies
-  (about 9 Earth masses, almost all giants) per star while the flat rate
-  gives about 2.7 per star over the range microlensing probes ([R4254, R4255]
-  central value 21, lower 1 sigma 8; [R3191] Jupiter limit holds);
-  about 125 sub-minimum bodies per star are deleted and merges lose 10
-  percent of mass; [R0258]'s 2.5 terrestrial bodies per star is the
-  target scale. Do: a census check after the rogue rows are wired
-  (GEN.1111), bands wide because the observations are loose; fails if
-  the yield leaves them. Where we think it belongs (best guess, can
-  move): Bug 2 (census) after train 8.
-  Prerequisites: GEN.1111.
-  Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
-
 - [ ] **TEST.550 Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug)**
   Train 8 (#4655, merged 11:59 PM EDT 2026-10-31 by GitHub's stamp) left
   five prevalence census tests red on main on purpose: their baselines
@@ -18392,7 +18365,7 @@ clears each one.
   /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
   Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
   by the TODO thread.
-  Prerequisites: UX.276, MAP.394, MAP.395, MAP.396.
+  Prerequisites: MAP.394, MAP.395, MAP.396.
 
 - [ ] **TEST.630 Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps**
   View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
@@ -20363,7 +20336,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
   Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
   by the TODO thread.
-  Prerequisites: UX.276, MAP.394, MAP.395, MAP.396.
+  Prerequisites: MAP.394, MAP.395, MAP.396.
 
 - [ ] **DOC.108 Docs: the View menu (headings, search, reset, how a layer declares its heading) in the help and the design notes**
   View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
