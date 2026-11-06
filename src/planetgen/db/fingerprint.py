@@ -117,9 +117,6 @@ _SECTION_OF = {table: name for name, tables in SECTIONS.items() for table in tab
 
 LEFT_OUT_TABLES = frozenset({
     "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
-    # The rogue planet's own rows (GEN.1111) are generation output no fingerprint reads yet: reading them changes every digest of a galaxy with a
-    # rogue, so the golden galaxy and the stored plans change with it. Left out until a lock item brings them in (TEST.644).
-    "rogue_planet_reflection_spectrum", "rogue_planet_interior_layers", "rogue_planet_gases", "rogue_planet_life_class_scores",
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs", "scatter_epochs",
     "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "scatter_members", "scatter_nodes", "sector_system_counts", "system_interests", "nebula_field", "galaxy_components", "object_timing_stats", "object_timing_samples", "species", "facility_types", "facility_type_fields", "facility_field_values", "polities", "system_owners", "population_state",
