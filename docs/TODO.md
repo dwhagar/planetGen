@@ -16703,6 +16703,7 @@ clears each one.
   8.1. Owner: the investigation thread "Fix massive-star scatter deadlock
   crash" (Bug lane). Filed by the TODO thread.
   Prerequisites: none. Related: DB.40, DB.41, PERF.245.
+  Extension (Boss, 6:33 PM EST on 2026-11-06, relayed by the coordinator): dynamic retries, so a deadlock does not hammer the database: the wait between tries adapts (backoff that grows with each failure and with how many writers are waiting, with jitter from the process, never a draw). A unit can also raise a needs flag to the run system (what it needs, for example the table to itself or fewer parallel writers); after the 8th failed try the run system grants it (a short exclusive window or a reduced worker count for that stage) and the unit continues. Every retry, every wait length, every flag and every grant is logged to the run log. Done adds: the retries back off with load, the 9th attempt runs with the grant, the log lines are tested.
 
 - [ ] **DB.114 The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113)**
   Found with the DB.113 fix (coordinator, 6:27 PM EST on 2026-11-06, PR
@@ -16722,6 +16723,7 @@ clears each one.
   MySQL passes. Version 8.1. Owner: the DB.113 investigation thread, after
   #5392. Filed by the TODO thread.
   Prerequisites: DB.113. Related: DB.113.
+  Extension (Boss, 6:33 PM EST on 2026-11-06): the backfill and sky-charting writes use the same mechanism as DB.113 (dynamic retries with adaptive backoff, the needs flag, the grant after the 8th failed try, all logged), not a second copy of the retry code.
 
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
@@ -16800,6 +16802,7 @@ clears each one.
   reported.
   Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
   Prerequisites: GEN.1311. Related: GEN.725, GEN.1306, TEST.430.
+  Update (Boss, 6:31 PM EST on 2026-11-06, plan section 4d): part 2 also adds a class_fit_cli sweep with no cap: per body the class taken, the values moved and the amounts. Cap tiers are set from that data at the knees of the share-placed-versus-cap curve; starting guess tier 1 = 1 width, tier 2 = 2 widths, no tier 3 (at 4 widths the prototype gives nonsense classes). Bodies past the widest tier are reported as missing classes (GEN.1306), not hidden.
 
 - [ ] **GEN.1313 Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths**
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Per quantity: width = root sum of squares of the column of the matrix; a
@@ -16826,6 +16829,7 @@ clears each one.
   explained.
   Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
   Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430.
+  Update (Boss, 6:31 PM EST on 2026-11-06, plan section 4c, prototype /mnt/project-files/design-drafts/fudge-prototype/minfudge.py): the selection rule replaces the best geometric mean. No fudge if any class fits fully; otherwise the fewest values moved first (mean temperature with its bands, day and night counts as one value), then the smallest total move in widths of the fudge table; a class needing a move past the cap is not eligible. The body stores which values were fudged and the amount (new columns), and the match is rebuilt from the amount. Cap tiers come from the part 2 sweep (section 4d).
 
 - [ ] **GEN.1315 Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters)**
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Same train as GEN.1314. Lock item. Done: the habitable count by threshold,
