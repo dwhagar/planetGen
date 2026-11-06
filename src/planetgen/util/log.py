@@ -35,10 +35,11 @@ after argument parsing. Every other module just does
 command a debug run. A debug run writes every decision it makes to
 **stdout**, one line each, in one format:
 
-    2026-10-23T17:29:42.729-0400 DEBUG    worker.py[2142] draw.random() ... | roll draw.random() -> 0.31
+    2026-10-23T17:29:42.729-0400 DEBUG    worker.py[2142] [draw] random.py:688 random | roll draw.random() -> 0.31
 
 (ISO time to the millisecond with the UTC offset, severity, the process
-and, for a thread other than the main one, its name, the logger, the
+and, for a thread other than the main one, its name, the area in brackets
+(`[draw]`, `[sql]`, `[queue]`: the one thing to filter on, OPS.102), the
 source line that logged it, and the message). The lines of the worker
 processes that do a run's work reach the command's stdout too, as they
 are written: a unit that is running in a work-queue worker (whose own
@@ -259,7 +260,7 @@ class _AreaFilter(logging.Filter):
         return area in DEFAULT_AREAS if _areas is None else area in _areas
 
 
-_DEBUG_LOG_FORMAT = ("%(asctime)s %(levelname)-8s %(origin)s %(name)s "
+_DEBUG_LOG_FORMAT = ("%(asctime)s %(levelname)-8s %(origin)s [%(area)s] "
                      "%(filename)s:%(lineno)d %(funcName)s | %(message)s")
 _origin_filter = _OriginFilter()
 _area_filter = _AreaFilter()
@@ -296,6 +297,8 @@ class LineFormatter(logging.Formatter):
 
     def format(self, log_record):
         if self.form == "debug":
+            if not hasattr(log_record, "area"):
+                log_record.area = _area_of(log_record)        # a record no filter has stamped (a handler made outside `configure`)
             return super().format(log_record)
         if self.form == "raw":
             return log_record.getMessage()
