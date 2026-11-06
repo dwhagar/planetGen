@@ -646,6 +646,7 @@ The map panels and their data.
 | `systemcourse.js` | A NAV course's legs inside one system, turned from kilometers into the units the 3D system view draws in, so the line meets the heliopause sphere and the bodies (NAV.22). |
 | `systemview3d.js` | The 3D system view: one star system from `GET /api/systems/<id>/scene` drawn with three.js (MAP.72, MAP.73). |
 | `tilepack.js` | Reads the packed Galaxy Map nodes `/galaxy/nodes` sends and the node store keeps (MAP.159, MAP.260). |
+| `viewmenusearch.js` | The search over the View menu's entries: which match what a visitor typed (name, group, keywords) and which headings and groups to open. A pure function; no box uses it yet (UX.279). |
 | `unitpreference.js` | The reader's unit preference: Automatic, Metric only or Customary (UX.78). |
 | `units.js` | Shows every server-rendered measurement in the reader's unit system (UX.78). |
 | `vendor/` | Vendored three.js and its license notices. |
