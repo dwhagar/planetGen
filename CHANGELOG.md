@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3417] - 2026-11-06
+
+**Headline:** Every body's bands now show the longest day and night it really has: Nitrikin III's equator reads about a week of unbroken day, not nothing.
+
+### Changed
+
+- The longest unbroken day and night of each latitude band were the polar day alone, worked out from a closed form that is 0 at every latitude without a polar circle. A body that turns once in 27.9 days round a 28.5-day orbit has a solar day of 14.1 days and a sun that rises and sets while its declination moves, so its equator read 0 where the real longest daylight is about 7 days. One search now serves every body: it steps the star through the year and the turns of the planet from the body's own spin, orbit, tilt, star size and solar day, and reads the longest run above (or below) the horizon. Nitrikin III's equator comes out at 7.1 days, its tropics at 8.4 days, its middle latitudes at about 17 days and its pole at 14.25 days. Earth's pole reads 184 days of day and 181 of night, and its equator half a day. A band whose stretch outlasts a solar day reads as polar day and night (GEN.1260).
+- The Day and Night rows were the year's average share of the turn the star is up, times the solar day, which reads half a solar day at every latitude. They are now the mean length of a day and of a night from the same search (the time the star is up, or down, over the number of separate stretches), and are labelled "Mean day" and "Mean night": Nitrikin III's equator band reads about 7 days of each, its polar band about 10 days, and Earth's equator 12 hours.
+- Only stored values change; no draw is added or removed.
+
 ## [8.0.3416] - 2026-11-06
 
 **Headline:** The best-fit class table now has class X, the ammonia-water world, read from the ammonia share the bodies already store.
