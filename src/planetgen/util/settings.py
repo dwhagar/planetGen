@@ -828,7 +828,7 @@ class Settings(_Section):
         choice_labels={"logfmt": "Key and value pairs", "json": "JSON lines"},
         label="Record file form",
         summary="Whether the record file is written as key=value lines or as JSON lines.")
-    log_dir: str = opt("", "The folder of the always-on activity log and of the warm-up log (warmup.log); empty means /var/log/planetgen on Linux, "
+    log_dir: str = opt("", "The folder of the always-on activity log and of the long jobs' logs (warmup.log, tiles.log, orbits.log, update.log); empty means /var/log/planetgen on Linux, "
                        "/Library/Logs/planetgen on macOS.",
                        env="PLANETGEN_LOG_DIR", restart=True, editable=False, group="logging",
                        label="Activity log folder",

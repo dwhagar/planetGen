@@ -117,3 +117,26 @@ def test_the_shell_vocabulary_is_the_modules_and_the_committed_block_is_current(
 def test_a_severity_the_module_does_not_have_is_an_info_record():
     done = _run('log_record loud "Placed the sectors"')
     assert done.stdout.rstrip("\n").endswith("INFO     update: Placed the sectors") and done.stderr == ""
+
+
+def test_a_script_log_keeps_the_records_from_before_its_folder_was_known_and_then_appends(tmp_path):
+    """OPS.101: update.sh keeps every record from the start, writes them to update.log once the folder is known, and appends from then on."""
+    target = tmp_path / "logs" / "update.log"
+    done = _run(f'log_file_begin; log_info "before the folder"; log_file_to "{target}"; log_warning "after it"')
+    lines = target.read_text(encoding="utf-8").splitlines()
+    assert len(lines) == 2 and lines[0].endswith("INFO     update: before the folder") and lines[1].endswith("WARNING  update: after it")
+    assert done.stdout.count("before the folder") == 1 and "after it" in done.stderr, "the screen has them too"
+    again = _run(f'log_file_begin; log_info "second run"; log_file_to "{target}"')
+    assert again.returncode == 0 and len(target.read_text(encoding="utf-8").splitlines()) == 3, "a second run appends"
+
+
+def test_a_script_log_that_cannot_be_written_leaves_the_screen_as_it_was(tmp_path):
+    blocker = tmp_path / "file"
+    blocker.write_text("")
+    done = _run(f'log_file_begin; log_info "kept on the screen"; log_file_to "{blocker}/update.log"; log_info "still"')
+    assert done.returncode == 0 and "kept on the screen" in done.stdout and "still" in done.stdout
+
+
+def test_update_sh_starts_update_log_once_the_python_environment_is_known():
+    text = open(os.path.join(REPO, "update.sh"), encoding="utf-8").read()
+    assert "log_file_begin" in text and text.index("log_file_begin") < text.index("start_update_log") < text.index("ensure_update_guard required")

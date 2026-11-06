@@ -156,6 +156,9 @@ if [[ "$(uname -s)" == Darwin ]]; then
 # logfilename            [owner:group]              mode count size(KB) when  flags
 $ACTIVITY_LOG  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
 $ACTIVITY_DIR/warmup.log  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
+$ACTIVITY_DIR/tiles.log  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
+$ACTIVITY_DIR/orbits.log  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
+$ACTIVITY_DIR/update.log  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
 EOF
     then
         log_info "Activity log rotation: /etc/newsyslog.d/planetgen-log.conf (daily or past 100 MB, 30 kept)"

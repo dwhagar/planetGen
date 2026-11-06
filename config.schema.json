@@ -2056,7 +2056,7 @@
     },
     "log_dir": {
       "default": "",
-      "description": "The folder of the always-on activity log and of the warm-up log (warmup.log); empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS.",
+      "description": "The folder of the always-on activity log and of the long jobs' logs (warmup.log, tiles.log, orbits.log, update.log); empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS.",
       "title": "Log Dir",
       "type": "string",
       "x-advanced": false,

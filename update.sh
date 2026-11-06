@@ -131,6 +131,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 export LOG_COMPONENT=update
 source "$SCRIPT_DIR/scripts/logrecord.sh"
 log_summary_begin
+log_file_begin
 
 ANSWER_YES=()
 RESET_JOBS=0
@@ -232,6 +233,7 @@ UPDATE_STEP="step 2/9, checking the Python libraries"
 log_stage 2 9 "Checking the Python libraries"
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
 use_site_python
+start_update_log
 ensure_update_guard required
 # OPS.86: the address the update asks whether the site answers is config.json's api_base_url; missing, it stops here
 # (before the database is touched) and says so, instead of falling back to a loopback address.

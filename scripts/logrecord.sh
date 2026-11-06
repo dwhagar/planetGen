@@ -31,7 +31,7 @@ LOG_DIVIDER="==="
 # END generated vocabulary
 
 log_record() {
-    local severity="$1" message="$2" stamp upper line
+    local severity="$1" message="$2" stamp upper line record
     [[ " $LOG_SEVERITIES " == *" $severity "* ]] || severity=info
     upper="$(printf '%s' "$severity" | tr '[:lower:]' '[:upper:]')"
     stamp="$(date '+%Y-%m-%d %H:%M:%S %Z')"
@@ -40,10 +40,15 @@ log_record() {
         if [[ -n "${LOG_WARNING_FILE:-}" && -w "${LOG_WARNING_FILE:-}" && " $LOG_STDERR_SEVERITIES " == *" $severity "* && "$line" != [[:space:]]* ]]; then
             printf '%s\n' "$line" >> "$LOG_WARNING_FILE"
         fi
+        record="$(printf '%s %-8s %s: %s' "$stamp" "$upper" "${LOG_COMPONENT:-update}" "$line")"
         if [[ " $LOG_STDERR_SEVERITIES " == *" $severity "* ]]; then
-            printf '%s %-8s %s: %s\n' "$stamp" "$upper" "${LOG_COMPONENT:-update}" "$line" >&2
+            printf '%s\n' "$record" >&2
         else
-            printf '%s %-8s %s: %s\n' "$stamp" "$upper" "${LOG_COMPONENT:-update}" "$line"
+            printf '%s\n' "$record"
+        fi
+        # The same record goes to the script's log file when it has one (OPS.101).
+        if [[ -n "${LOG_TEE:-}" ]]; then
+            printf '%s\n' "$record" >> "$LOG_TEE" 2>/dev/null || true
         fi
     done <<< "$message"
 }
@@ -80,6 +85,7 @@ log_summary_begin() {
 # Forgets the warnings file; the script's EXIT trap calls it so an abort leaves nothing in the temporary folder.
 log_summary_forget() {
     [[ -n "${LOG_WARNING_TMP:-}" ]] && rm -f "$LOG_WARNING_TMP"
+    [[ -n "${LOG_TEE_BUFFER:-}" ]] && rm -f "$LOG_TEE_BUFFER"
     LOG_WARNING_FILE=""
     LOG_WARNING_TMP=""
 }
@@ -113,4 +119,23 @@ log_summary() {
     while IFS= read -r line; do
         [[ -n "$line" ]] && log_warning "  $line"
     done <<< "$warnings"
+}
+
+# The script's own log file (OPS.101): `log_file_begin` starts keeping every record in a temporary file, because the log folder is not known
+# until the Python environment is (the script may have just pulled the code that says where it is); `log_file_to PATH` appends what was kept
+# to PATH and from then on records are appended there directly. A path that cannot be written leaves the screen as it was.
+log_file_begin() {
+    LOG_TEE_BUFFER="$(mktemp "${TMPDIR:-/tmp}/planetgen-log.XXXXXX")"
+    LOG_TEE="$LOG_TEE_BUFFER"
+}
+
+log_file_to() {
+    local path="$1"
+    [[ -n "${LOG_TEE_BUFFER:-}" && -n "$path" ]] || return 0
+    mkdir -p "$(dirname "$path")" 2>/dev/null || return 0
+    if cat "$LOG_TEE_BUFFER" >> "$path" 2>/dev/null; then
+        LOG_TEE="$path"
+        rm -f "$LOG_TEE_BUFFER"
+        LOG_TEE_BUFFER=""
+    fi
 }
