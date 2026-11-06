@@ -3070,3 +3070,12 @@ A rocky planet with no row in the hosting gate's `satellite-share` table holds a
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md |
+### 6.193 Stand-ins of the anoxic world (GEN.1281)
+
+Class F was the reducing world (no free oxygen, methane and hydrogen 5 percent or more). A heavy world with a plain nitrogen air, no oxygen and no methane or hydrogen fit no class, since the class system is organized by oxygen state and the anoxic slot asked for a reducing gas. F is now the anoxic world: the same box without the reducing-gas condition, so a methane or hydrogen air and an inert nitrogen air are both F. 28 of 1448 bodies (3 seeds of 150 systems, 1.9 percent) fit no class before; 16 after, 6 bodies changed letter.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| AW1 | P | T9 | L3 | class F gravity edge 1.4 g (`planet_class_fit.json`, F `gravity_g lt 1.4`; 2.0 g before): F stops where the heavy thin-air class Z starts, so an anoxic air of 1.4 g or more is Z (hot, thin) or V (2 g or more) | 1.2 to 1.75 g | anoxic worlds with air at 273 to 400 K | a sweep where the edge moves bodies of class Z or V into F at 1.75 g (15 of 1448 changed letter, 7 of Z, against 6 at 1.4 g) | the gravity edges of Z and V fixed from the heavy-world physics of GEN.1136 | GEN.1281 class sweep, 1448 bodies from three seeds of 150 systems |
+| AW2 | P | T9 | L0 | class F carbon dioxide edge 20 percent (`share_co2 lt 0.2`): the edge class G starts at (`share_co2 min 0.2`), so an anoxic air with a fifth carbon dioxide is G and the rest is F | none (the edge of G) | anoxic worlds with air at 273 to 400 K | a carbon-dioxide air that is better read as F | the carbon-dioxide edge of G once the greenhouse classes are fitted | the G row of the same file; GEN.1207 |
+
