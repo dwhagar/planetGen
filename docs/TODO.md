@@ -16704,6 +16704,25 @@ clears each one.
   crash" (Bug lane). Filed by the TODO thread.
   Prerequisites: none. Related: DB.40, DB.41, PERF.245.
 
+- [ ] **DB.114 The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113)**
+  Found with the DB.113 fix (coordinator, 6:27 PM EST on 2026-11-06, PR
+  #5392): the massive-star, bright-star-band and phenomenon scatter units
+  now run each batch at READ COMMITTED and start over up to 8 times after a
+  deadlock (1213) or lock wait timeout (1205), because scatter_uids.assign
+  reads every row of a table that has no ID yet and parallel writers meet
+  on each other's uncommitted rows. The backfill and the sky-charting
+  writes run the same ID step but with other writes in the same
+  transaction, so the batch-level retry does not apply as written and they
+  still stop the run on a deadlock. Do: find every caller of
+  scatter_uids.assign (and any sibling that scans a whole table for rows
+  without a value), give each a retry that rolls back and rewrites the
+  whole transaction, or move the ID step into its own short transaction,
+  and test with two or more real writers on MySQL. Lock-free. Done: no
+  caller of the ID step lacks a deadlock retry, and a two-writer test on
+  MySQL passes. Version 8.1. Owner: the DB.113 investigation thread, after
+  #5392. Filed by the TODO thread.
+  Prerequisites: DB.113. Related: DB.113.
+
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
   oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md
