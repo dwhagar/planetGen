@@ -197,15 +197,48 @@ def activity_log_path(config=None):
 WARMUP_LOG_NAME = "warmup.log"
 """str: The warm-up log's file name inside `log_dir_path()` (OPS.96)."""
 
+TILES_LOG_NAME = "tiles.log"
+"""str: The whole-map build's log, `planetgen tiles` (the nightly run), inside `log_dir_path()` (OPS.101)."""
 
-def warmup_log_path(config=None):
+ORBITS_LOG_NAME = "orbits.log"
+"""str: The orbit update's log, `planetgen orbits` (the nightly run), inside `log_dir_path()` (OPS.101)."""
+
+UPDATE_LOG_NAME = "update.log"
+"""str: Every line `update.sh` prints, appended, inside `log_dir_path()` (OPS.101)."""
+
+JOB_LOG_NAMES = (WARMUP_LOG_NAME, TILES_LOG_NAME, ORBITS_LOG_NAME, UPDATE_LOG_NAME)
+"""tuple[str, ...]: The named logs of the long jobs; each is a `*.log` of the folder, so the folder's one rotation rule covers it."""
+
+
+def job_log_path(name, config=None):
     """
-    The warm-up log: `warmup.log` in `log_dir_path()`, next to the activity log (OPS.96). Every `planetgen warm` appends a
-    run to it, bracketed by a start and an end line; the logrotate rule of the folder (`*.log`) rotates it with the others.
+    The log of a long job: `name` (one of `JOB_LOG_NAMES`) in `log_dir_path()`, next to the activity log (OPS.96, OPS.101). Every run of the
+    job appends to it, bracketed by a start and an end line; the logrotate rule of the folder (`*.log`) rotates it with the others.
     """
+    if name not in JOB_LOG_NAMES:
+        raise ValueError(f"no job log {name!r}; the job logs are {', '.join(JOB_LOG_NAMES)}")
     if config is None:
         config = read_config_file()
-    return os.path.join(os.path.abspath(log_dir_path(config)), WARMUP_LOG_NAME)
+    return os.path.join(os.path.abspath(log_dir_path(config)), name)
+
+
+def warmup_log_path(config=None):
+    """The warm-up log, `warmup.log` (`job_log_path`, OPS.96)."""
+    return job_log_path(WARMUP_LOG_NAME, config)
+
+
+def main(argv=None):
+    """`python -m planetgen.util.logpaths update.log` prints the path of a job log, for the shell scripts (`update.sh` appends to `update.log`)."""
+    import sys
+    argv = sys.argv[1:] if argv is None else argv
+    if len(argv) != 1 or argv[0] not in JOB_LOG_NAMES:
+        raise SystemExit(f"usage: python -m planetgen.util.logpaths {{{'|'.join(JOB_LOG_NAMES)}}}")
+    print(job_log_path(argv[0]))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
 
 
 def log_rotation_mode(config=None):

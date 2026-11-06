@@ -58,7 +58,7 @@ def format_composition_summary(composition):
     return ", ".join(composition_phrases[:-1]) + f", and {composition_phrases[-1]}"
 
 
-def _star_al26_ratio(system_config, star):
+def star_al26_ratio(system_config, star):
     """The aluminium-26 the star was born with (`radiogenic.star_al26_ratio`); a star with no [Fe/H] or age (a binary's proxy) takes its galaxy's mean."""
     shape = getattr(system_config, "GALAXY_SHAPE", None)
     ratio = radiogenic.star_al26_ratio(star, shape)
@@ -178,7 +178,7 @@ class AsteroidBelt:
             self.scatter_fates = scatter_fates
             self.scatter_giant_au = scatter_giant_au
         log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
-        self.makeup = small_body_composition.draw_belt(distance, star.luminosity, _star_al26_ratio(system_config, star))
+        self.makeup = small_body_composition.draw_belt(distance, star.luminosity, star_al26_ratio(system_config, star))
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]
 
@@ -209,7 +209,7 @@ class AsteroidBelt:
         entries = belt_roster.draw_roster(len(ledger.masses_kg), self.lower_limit, self.upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), stream,
                                           populations, self.scatter_giant_au)
         record = belt_page.BeltRecord(None, self.lower_limit, self.upper_limit, units.convert(star.mass, "kg", "Msun"), star.luminosity,
-                                      _star_al26_ratio(self.system_config, star), ledger, tuple(entry.placement for entry in entries))
+                                      star_al26_ratio(self.system_config, star), ledger, tuple(entry.placement for entry in entries))
         rows = []
         for body, entry in zip(belt_page.member_bodies(record), entries):
             composition = body["composition"]

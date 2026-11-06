@@ -15,10 +15,11 @@ Nearest-system links and the population data are rebuilt from content, so they a
 
 import pytest
 
-from planetgen.db import fingerprint, store
+from planetgen.db import fingerprint, models, store
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
+from planetgen.galaxy import object_uid as objectUid
 from planetgen.util import draw
 
 from tests.test_galaxy_gen import _plan_wide_galaxy
@@ -31,11 +32,57 @@ SECTORS = ((1, 0, 0), (1, 0, 5), (1, 0, 11), (1, 1, 0))
 """tuple: `(shell, band, wedge)` of the set: three of the equator's twelve cells of shell 1 and the cell above them."""
 
 
+def _canonical_scatter_serials(conn, addresses):
+    """
+    GEN.1302: gives the scatter-born objects of each sector the serials their brightness order would give them in one call, so the comparison
+    does not see how the writes were batched. A scatter row's serial is its rank among the rows written in the same call, continuing the
+    sector's counter (`db.scatter_uids`), so a sector whose dimmer stars were written by an earlier backfill (serials 0 and 1) and whose
+    brighter ones by the first fill (2 and 3) holds the same four systems as one whose first fill wrote all four at once, with the
+    serials in another order. That is by design: scatter serials depend on the run order (docs/design/architecture/object-ids.md,
+    "Scatter rows"); what must not depend on it is everything else, which this test compares. The serials a sector's scatter stars hold are
+    kept as a set and handed out again by `luminosity_w` (then `seed`), in every table that carries an Object ID.
+    """
+    tables = [name for name, table in models.metadata.tables.items() if "uid" in {column.name for column in table.columns}]
+    for address in addresses:
+        sector = objectUid.sector_bytes(*address)
+        rows = conn.execute("SELECT uid, luminosity_w, seed FROM bright_stars WHERE shell_index = ? AND band_index = ? AND wedge_index = ?",
+                            address).fetchall()
+        if not rows:
+            continue
+        held = sorted(objectUid.unpack(objectUid.from_bytes(row["uid"])).serial for row in rows)
+        by_brightness = sorted(rows, key=lambda row: (-row["luminosity_w"], row["seed"]))
+        remap = {objectUid.unpack(objectUid.from_bytes(row["uid"])).serial: serial for row, serial in zip(by_brightness, held)}
+        if all(old == new for old, new in remap.items()):
+            continue
+        shift = 1 << 20   # two passes, so no row meets a unique key that another row still holds
+        for phase in (0, 1):
+            for table in tables:
+                for row in conn.execute(f"SELECT uid FROM `{table}` WHERE uid IS NOT NULL AND LEFT(uid, ?) = ?",
+                                        (len(sector), sector)).fetchall():
+                    value = objectUid.from_bytes(row["uid"])
+                    parts = objectUid.unpack(value)
+                    if parts.serial_kind != objectUid.SERIAL_GENERATED:
+                        continue
+                    if phase:
+                        if parts.serial < shift:
+                            continue
+                        target = parts.serial - shift
+                    else:
+                        if parts.serial not in remap:
+                            continue
+                        target = remap[parts.serial] + shift
+                    moved = objectUid.pack(parts.shell, parts.band, parts.wedge, parts.serial_kind, target, parts.body)
+                    conn.execute(f"UPDATE `{table}` SET uid = ? WHERE uid = ?", (objectUid.to_bytes(moved), row["uid"]))
+    conn.commit()
+
+
 def _fingerprint(config, addresses=SECTORS):
     """`(fingerprint, sections)` of the region: the sectors' digests and, per sector, the digests of its named sections
-    (`fingerprint.sector_sections`), which say what differs when two do."""
+    (`fingerprint.sector_sections`), which say what differs when two do. The scatter serials are put in brightness order first
+    (`_canonical_scatter_serials`)."""
     conn = store.get_connection(config)
     try:
+        _canonical_scatter_serials(conn, addresses)
         found = fingerprint.region_fingerprint(conn, addresses=addresses)
         sections = {f"{a[0]} {a[1]} {a[2]}": fingerprint.sector_sections(conn, address=a) for a in addresses}
         return found, sections

@@ -79,18 +79,18 @@ def _debris(star, chain):
     return [found] if found is not None else []
 
 
-def _fates(star_mass_kg, planets, origin, disk_edge_au):
+def _fates(star_mass_kg, planets, origin, disk_edge_au, instability=0.0):
     """`(shares, sentence, giant_au)` of an outer disk after the outermost giant (`scatter.scatter_shares`, the giant's distance), or `(None, None, None)` where the belt is not an outer disk or no giant has been."""
     giants = sorted((planet for planet in planets if planet.body_type == 'g'), key=lambda planet: planet.distance)
     if origin.origin != "outer-disk" or not giants:
         return None, None, None
     giant = giants[-1]
     moved_out = max(giant.distance - (giant.formation_distance_au or giant.distance), 0.0)
-    shares = scatter.scatter_shares(_kg_to_msun(star_mass_kg), _kg_to_mearth(giant.mass), giant.distance, _km_to_rearth(giant.radius), moved_out, origin.inner_au, disk_edge_au)
+    shares = scatter.scatter_shares(_kg_to_msun(star_mass_kg), _kg_to_mearth(giant.mass), giant.distance, _km_to_rearth(giant.radius), moved_out, origin.inner_au, disk_edge_au, instability)
     return shares, scatter.history_line(shares, giant.distance, moved_out), giant.distance
 
 
-def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_edge_au):
+def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_edge_au, instability=0.0):
     """
     The `AsteroidBelt` list of a system: the stretches the planets in `planets` leave unfinished, each as `belt_origin` traced it, cut to the orbits between `orbit_floor_au` and
     `orbit_ceiling_au` and kept when `MIN_PRESENT_MASS_EARTH` is left after the star's age. Nearest the star first. A system asked to hold a belt (`ASTEROID_BELT` True) that has none
@@ -102,6 +102,7 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
         planets (list): The `Planet` list (a belt in it is skipped, and its stretch is not counted twice by the caller).
         orbit_floor_au, orbit_ceiling_au (float): The innermost and outermost orbits the star holds.
         disk_edge_au (float): The disk's outer edge, AU (infinite when the star's light no longer describes its disk: then `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` snow lines).
+        instability (float): 0 to 1, how much the system's giants scattered each other (`capture_windows.instability_level`), which excites a share of the cold outer disk (`scatter.scatter_shares`).
     """
     chain = chain_of(planets)
     star_mass_kg = remnant_orbits.formation_mass_kg(star)
@@ -121,7 +122,7 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
         kept = [max(found, key=lambda item: item[0])]
     belts = []
     for _mass, origin, lower, upper in kept:
-        shares, sentence, giant_au = _fates(star_mass_kg, planets, origin, edge_au)
+        shares, sentence, giant_au = _fates(star_mass_kg, planets, origin, edge_au, instability)
         belt = AsteroidBelt(system_config, star, lower, lower, upper, origin=origin, scatter_fates=shares, scatter_giant_au=giant_au)
         if sentence:
             belt.origin_sentence = f"{belt.origin_sentence} {sentence[0].upper()}{sentence[1:]}."

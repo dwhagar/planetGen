@@ -56,7 +56,8 @@ def test_every_cluster_is_a_well_formed_king_component(system):
         assert tuning.CLUSTER_AGE_RANGE_GY[0] <= c.age_gy <= tuning.CLUSTER_AGE_RANGE_GY[1]
         assert 0 <= c.seed < 2 ** 63
         assert c.id is None and c.parent_component_id is None and c.catalogue_id is None
-        names.add(c.name)
+        assert c.name is None                       # GEN.359: the first fill that touches a cluster names it
+        names.add(c.key)
     assert len(names) == len(system)
 
 

@@ -170,7 +170,7 @@ def test_the_runs_table_route_lists_runs_with_their_controls(web_app, admin_clie
     assert data["total"] == 1
     title, status, started, _duration, left, progress, actions = data["rows"][0]
     assert title["text"] == "Fill shell 1" and title["href"] == f"/admin/queue/{run_id}"
-    assert status["text"] == "Running" and "stage 1 of 2: Sectors" in progress["text"] and "1 of 5 units" in progress["text"]
+    assert status["text"] == "Running" and "Stage 1 of 2: Sectors" in progress["text"] and "1 of 5 units" in progress["text"]
     labels = {part["text"]: part["href"] for part in actions["parts"] if isinstance(part, dict)}
     assert labels["Cancel"] == f"/admin/queue/confirm/cancel?run={run_id}"
     assert "Clear" not in labels, "a run that answers is canceled, not cleared"
@@ -199,7 +199,7 @@ def test_the_time_left_and_the_progress_read_as_words():
     assert queue_page._eta_text(None, True) == "estimating"
     assert queue_page._eta_text({"seconds": 90.0, "stalled": True}, True) == "waiting on progress"
     run = {"stage": {"index": 1, "count": 3, "label": "Settle"}, "live": True, "units": 10, "units_done": 4}
-    assert queue_page._progress_text(run) == "stage 2 of 3: Settle, 4 of 10 units"
+    assert queue_page._progress_text(run) == "Stage 2 of 3: Settle, 4 of 10 units"
     assert queue_page._progress_text({**run, "live": False}) == "3 stages, 4 of 10 units"
 
 
@@ -222,7 +222,7 @@ def test_the_run_page_log_lines_are_the_display_lines_of_the_records_the_downloa
     assert records
     for record in records:
         assert html_escape(logrecord.display_line(record)) in html
-    assert " INFO     run: sector 1,0,0 saved" in html
+    assert " INFO     queue: sector 1,0,0 saved" in html
     downloaded = [logrecord.parse_file_line(line) for line in runrecord.log_text(conn, run_id).splitlines()]
     assert [logrecord.display_line(r) for r in downloaded] == [logrecord.display_line(r) for r in records]
 

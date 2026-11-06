@@ -220,7 +220,7 @@ def _hot_row(point_pc, address, k):
             "initial_mass_sol": params["initial_mass_sol"], "phase_end_age_gy": params["phase_end_age_gy"],
             "seed": 12345 + k, "metallicity_fe_h": -0.1,
             "rotation_period_hours": brightStars.rotation_period_hours(12345 + k, params),
-            "nuclear_arrival_age_gy": params.get("nuclear_arrival_age_gy")}
+            "nuclear_arrival_age_gy": params.get("nuclear_arrival_age_gy"), "cluster_id": None}
 
 
 @pytest.mark.db

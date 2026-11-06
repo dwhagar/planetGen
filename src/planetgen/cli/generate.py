@@ -450,6 +450,7 @@ def add_shared_generation_options(parser):
                                           (`prefix_chars='-+'`) for the
                                           tri-state options below.
     """
+    add_sky_arguments(parser)
     # The forcing options are for a single system only (GEN.51). They stay
     # registered, hidden, so one given here gets a clear error, and their
     # attributes stay None ("let the generator decide") for
@@ -563,6 +564,7 @@ def validate_shared_generation_args(args, parser):
         except ValueError as exc:
             parser.error(f"--star-mix: {exc}")
         args.prevalence = [*(args.prevalence or ()), *mix.items()]
+    validate_sky_arguments(args, parser)
     if args.density is not None and args.num_systems is not None:
         parser.error("--density cannot be combined with --num-systems.")
     if args.workers is not None and args.workers < 0:
@@ -1282,6 +1284,20 @@ def _database_time(text):
         raise argparse.ArgumentTypeError(f"{text!r} is not a time like '2026-10-22 17:30:00'") from None
 
 
+def add_sky_arguments(parser):
+    """Adds `--sky-limit` (VIEW.25): draw the sky tiers of the observer cells the new sectors lie in, for a limiting magnitude, after the bright-star backfill; the `queue.sky_limit` setting when not given."""
+    parser.add_argument('--sky-limit', type=float, default=None, metavar='MAG',
+                        help="Also draw the stars the sky of a system shows, to this limiting magnitude (2 to 9; the sky page's default is 7.5), over the "
+                             "50-parsec cells the new sectors lie in, after the bright-star backfill. A cell already drawn costs nothing. 0 draws none. Default: the "
+                             "queue.sky_limit setting (7.5).")
+
+
+def validate_sky_arguments(args, parser):
+    """Validates `add_sky_arguments`'s option."""
+    if getattr(args, 'sky_limit', None) is not None and args.sky_limit != 0.0 and not 2.0 <= args.sky_limit <= 9.0:
+        parser.error("--sky-limit must be 0 (none) or between 2 and 9.")
+
+
 def add_since_arguments(parser):
     """Adds the options of a command that works on the galaxy sectors saved since a time (`link`, `backfill`, `settle`,
     PERF.123): `--since` (the database's clock; a `sectors` or `galaxy` run says its start time), then the common ones."""
@@ -1297,6 +1313,7 @@ def validate_fill_args(args, parser):
         parser.error("--workers must be 0 (automatic) or more.")
     if args.command == 'settle' and args.sector_id and args.since is not None:
         parser.error("--since and --sector-id cannot be combined.")
+    validate_sky_arguments(args, parser)
 
 
 def add_clean_nebula_field_arguments(parser):
@@ -1673,6 +1690,7 @@ def build_parser():
                     "get the stars born from 1, 2, 5 and 8 solar masses up, each only where it is not drawn yet.",
         help="Backfill the bright stars out from the sectors saved since a time.")
     add_since_arguments(backfill_parser)
+    add_sky_arguments(backfill_parser)
 
     settle_parser = subparsers.add_parser(
         'settle',
@@ -1949,7 +1967,7 @@ def run_fingerprint(args):
     finally:
         conn.close()
     if warning:
-        log.normal(f"Warning: {warning}")
+        log.warning(warning)
     for line in result:
         print(line)
 
@@ -2327,7 +2345,7 @@ def _fatal(message, logger_ready=True, traceback=False):
         else:
             log.error(f"Error: {message}")
     else:
-        print(f"planetgen: error: {message}", file=sys.stderr)
+        log.error(f"planetgen: error: {message}")
         if traceback:
             import traceback as traceback_module
 

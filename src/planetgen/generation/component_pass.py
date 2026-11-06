@@ -87,13 +87,13 @@ def parts(weighted, size):
             continue
         slices = part_count(expected, size)
         if slices > 1:
-            tasks.extend((expected / slices, [[component.kind, component.name, index, slices]])
+            tasks.extend((expected / slices, [[component.kind, component.key, index, slices]])
                          for index in range(slices))
             continue
         if bundle and held + expected > size:
             tasks.append((held, bundle))
             bundle, held = [], 0.0
-        bundle.append([component.kind, component.name, 0, 1])
+        bundle.append([component.kind, component.key, 0, 1])
         held += expected
         if held >= size:
             tasks.append((held, bundle))
@@ -111,7 +111,7 @@ def chosen(components, task_parts):
     Raises:
         ValueError: A named component is not among `components` (it was removed after the run was cut).
     """
-    by_name = {(component.kind, component.name): component for component in components}
+    by_name = {(component.kind, component.key): component for component in components}
     missing = [f"{kind} {name}" for kind, name, _index, _slices in task_parts if (kind, name) not in by_name]
     if missing:
         raise ValueError(f"The galaxy no longer has the component {missing[0]!r} this run was cut for; plan again.")
@@ -208,13 +208,14 @@ def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None,
     for component in components:
         if component.kind not in COMPONENT_KINDS:
             continue
-        here = (slices or {}).get((component.kind, component.name), (0, 1))
-        rng = draw.Stream(f"{seed}:objects:component:{component.kind}:{_stream_name(component.name, here)}")
+        here = (slices or {}).get((component.kind, component.key), (0, 1))
+        rng = draw.Stream(f"{seed}:objects:component:{component.kind}:{_stream_name(component.key, here)}")
         placed = {(tier, population): [] for population in POPULATIONS for tier in range(len(pass_bands))}
         for shell_index, band_index, wedge, point, population, tier in component_spots(
                 component, edge_pc, by_tier, tiers_of_places, rng, skip_addresses, here[1]):
             placed[(tier, population)].append((shell_index, band_index, wedge, point))
-        yield from bright_stars.draw_placed(placed, pass_bands, rng, fe_h_peaks=component_field.fe_h_peaks_of(component))
+        yield from bright_stars.draw_placed(placed, pass_bands, rng, fe_h_peaks=component_field.fe_h_peaks_of(component),
+                                            cluster_id=component.id if component.kind == "cluster" else None)
 
 
 def expected_stars(components, fractions, tiered=None):
@@ -369,10 +370,10 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
         if component.kind not in COMPONENT_KINDS or component_table.is_open_cluster(component):
             continue
         is_satellite = component.kind == "satellite"
-        here = (slices or {}).get((component.kind, component.name), (0, 1))
+        here = (slices or {}).get((component.kind, component.key), (0, 1))
         for kind, subtype, rate in rates + (extra if is_satellite else []):
             rng = phenomenon_scatter.class_stream(
-                f"{seed}:phenomena:component:{component.kind}:{_stream_name(component.name, here)}", kind, subtype)
+                f"{seed}:phenomena:component:{component.kind}:{_stream_name(component.key, here)}", kind, subtype)
             points, (mass_draw, keep) = _candidates(
                 component, _class_mean(component, kind, subtype, rate, shape) / here[1], rng)
             masses = phenomenon_scatter._masses(kind, subtype, min_mass_solar, mass_draw)

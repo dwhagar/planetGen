@@ -21,7 +21,6 @@ km/s for 1 Jupiter mass at 5.2 AU: the mean is 0.87 of `v_c` at both. The speeds
 log-normal of mean `MEAN_OVER_SCALE` and 99th percentile 2.5 (`SPEED_SIGMA_LN`), drawn by the inverse of the normal distribution from a uniform number `u`. [R3937] assume a kick falling with the ejected mass as `M^-1/2` instead (a stated prescription, not a result), and the two N-body papers contradict it;
 their medians of 0.7 to 10.7 km/s bracket the speeds of giants scattering between 1 and 30 AU here. The tail that eccentric giants and three-planet systems add (Kramer and
 Profumo: up to 7 km/s mean, 80 km/s at the first outbound step for a giant of eccentricity 0.9; Huang and Lai: 5 to 8 `v_c` for three planets) is **not** modelled yet.
-A scatterer whose Safronov number (`ejects`) is under 1 only stirs.
 
 **Moons.** [R2031] (Sec. 1 and Eq. 4) judge a moon by how close the planets came (the criterion is `rogue_moons.survival_distance_m`). Their runs give `r_min` in units of the mutual Hill radius with a median of
 0.089 for a 10 Jupiter-mass scatterer ejecting a 1 Jupiter-mass planet, falling as the scatterer's mass to the 1.13 (0.034 at 5, 0.0066 at 1 Jupiter masses at a fixed ratio
@@ -60,8 +59,6 @@ CLOSEST_APPROACH_MASS_INDEX = 1.13
 """float: The median closest approach goes as the scatterer's mass to this power (0.089, 0.034, 0.0066 at 10, 5, 1 Jupiter masses at a fixed ratio of 10; Huang and Lai Fig. 2). Source tier T3, tweak level L3."""
 CLOSEST_APPROACH_SIGMA_LN = 2.35
 """float: The ln-width of the closest approach: 48 percent of runs above 0.1 and 82 percent above 0.01 mutual Hill radii at a median of 0.089 give 2.3 to 2.4 (Huang and Lai Sec. 7). Source tier T1, tweak level L1."""
-EJECTION_SAFRONOV_NUMBER = 1.0
-"""float: The Safronov number above which a scatterer ejects what it scatters and below which it only stirs ([R1417, R3867] use the same cut). Source tier T6, tweak level L0."""
 _KM = 1.0e3
 
 
@@ -79,23 +76,6 @@ def escape_speed_km_s(host_mass_kg, distance_au):
 def circular_speed_km_s(host_mass_kg, distance_au):
     """The circular orbital speed round a star at a distance, km/s."""
     return escape_speed_km_s(host_mass_kg, distance_au) / math.sqrt(2.0)
-
-
-def planet_escape_speed_km_s(planet_mass_kg, planet_radius_m):
-    """The escape speed from the surface of the scattering planet, km/s."""
-    if not planet_mass_kg > 0.0 or not planet_radius_m > 0.0:
-        raise RogueKickError("the planet's mass and radius must be positive")
-    return math.sqrt(2.0 * constants.G * planet_mass_kg / planet_radius_m) / _KM
-
-
-def safronov_number(planet_mass_kg, planet_radius_m, host_mass_kg, distance_au):
-    """`Theta = v_esc,p^2 / (2 v_orb^2) = (M_p / M_*)(a / R_p)`: above 1 a scatterer ejects, below 1 it stirs."""
-    return (planet_escape_speed_km_s(planet_mass_kg, planet_radius_m) / circular_speed_km_s(host_mass_kg, distance_au)) ** 2 / 2.0
-
-
-def ejects(planet_mass_kg, planet_radius_m, host_mass_kg, distance_au):
-    """Whether the scatterer ejects what it scatters (its Safronov number is above `EJECTION_SAFRONOV_NUMBER`)."""
-    return safronov_number(planet_mass_kg, planet_radius_m, host_mass_kg, distance_au) > EJECTION_SAFRONOV_NUMBER
 
 
 def scatter_speed_km_s(planet_mass_kg, distance_au, ejected_mass_kg=0.0):

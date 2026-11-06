@@ -234,11 +234,11 @@ unless given.
 | World | Inputs | P / T / Air / Water / R / Suit | PHI-6 | PHI_bio | PHI_cpx | Equipment |
 |---|---|---|---|---|---|---|
 | Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7, a full biosphere | Blue x6 | 1.00 | 0.97 | 0.97 | ideal |
-| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2, no life | Green / Yellow / Red / Blue / Blue / Red | 0.69 | 0.97 | 0 | environment suit |
-| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes | Yellow / Yellow / Green / Blue / Blue / Yellow | 0.73 | 0.97 | 0 | environment suit |
+| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2, no life | Green / Yellow / Red / Blue / Blue / Red | 0.63 | 0.97 | 0 | environment suit |
+| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes | Yellow / Yellow / Green / Blue / Blue / Yellow | 0.68 | 0.97 | 0 | environment suit |
 | Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5, no life | Blue / Blue / Red / Blue / Blue / Red | 0.74 | 0.97 | 0 | environment suit |
 | Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Blue / Green / Red | 0 | 0.53 | 0 | environment suit |
-| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life | Red / Red / Green / Red / Yellow / Red | 0.3999 | 0.01 | 0 | environment suit |
+| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life | Red / Red / Green / Red / Yellow / Red | 0 | 0.01 | 0 | environment suit |
 | Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour, first plants | Blue / Green / Blue / Yellow / Blue / Red | 0.7499 | 0.64 | 0.64 | ideal |
 | Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Green / Red / Red | 0 | 0.40 | 0 | full life support |
 
@@ -246,7 +246,7 @@ Recomputed for GEN.207 (six domains and the gates): the Water column is the old
 Chemistry's water inputs, the Air column its gas inputs, and Suitability is new;
 Red air or Red Suitability alone now gives a Yellow overall instead of 0 (the dense CO2 world
 0 to 0.69, the photochemical CO world 0.59 to 0.74); the Mars-analog brine
-has Red Pressure and Temperature (0.3999, the top of Red). Recomputed for GEN.148 (the Liebig blend, the 20 mSv/yr Blue edge): the
+has Red Pressure and Temperature (0.3999, the top of Red; 0 since GEN.1265, when a Temperature that is Red everywhere scores 0; the dense CO2 world fell 0.69 to 0.63 and the hycean world 0.73 to 0.68 because every sample of their one temperature is Yellow by the wet bulb rule and counts for the Yellow credit). Recomputed for GEN.148 (the Liebig blend, the 20 mSv/yr Blue edge): the
 ice-sealed ocean's surface dose of 0.05 Sv/yr is now Green (it was Blue);
 PHI_bio rose where one likelihood was short (the Europan ocean 0.27 to 0.40,
 the dune world 0.54 to 0.64, the ice-sealed ocean 0.41 to 0.53) and

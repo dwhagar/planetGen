@@ -210,7 +210,7 @@ def test_suitability_never_says_water_is_available_against_a_water_row_that_want
 
 def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_names_the_heated_suit():
     text = _paragraph(_world(temperature_c=-80.0))
-    assert "**Temperature: Red** (0.23). The air temperature is -80 C. Required: heated sealed suit + self-contained air. **Air:" in text
+    assert "**Temperature: Red** (0.00). The air temperature is -80 C. Required: heated sealed suit + self-contained air. **Air:" in text
     assert "Required: heated sealed suit + self-contained air." in text
 
 

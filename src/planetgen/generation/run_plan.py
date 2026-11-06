@@ -24,7 +24,7 @@ import types
 import pymysql
 
 from planetgen.queue import commands, progress_rate, units, wrapper
-from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, storage_checksum, store
+from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -124,6 +124,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
     sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
     blocks = {}        # the blocks' candidates, drawn once for the whole draw (GEN.309)
+    sky_ledger = skyTierLedger.read(conn)      # VIEW.25: the spheres the sky tiers drew
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -134,6 +135,13 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
         held_masses = store.sector_bright_masses(conn, chunk, current=True)
         filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
         rows, new_levels = [], {}
+        settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, held_masses)    # VIEW.25: what the sky spheres drew here
+        if settled.masses:
+            store.set_sector_bright_masses(conn, settled.masses)
+            held_masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
+            locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
+        locked.update(settled.levels)
+        new_levels.update(settled.levels)
         for address in chunk:
             floor = floors if isinstance(floors, (int, float)) else floors[address]
             level = locked.get(address)
@@ -204,6 +212,7 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
     edges = brightStars.mass_band_edges([found.mass_limit_sol for found in limits.tiers or ()])
     addresses = sorted(targets)
     blocks = {}        # the blocks' candidates, drawn once for the whole draw (GEN.309)
+    sky_ledger = skyTierLedger.read(conn)      # VIEW.25: the spheres the sky tiers drew
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -214,6 +223,14 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
         masses = store.sector_bright_masses(conn, chunk, current=True)
         filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
         rows, states = [], {}
+        settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, masses)         # VIEW.25: what the sky spheres drew here
+        if settled.masses:
+            store.set_sector_bright_masses(conn, settled.masses)
+            masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
+            locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
+        if settled.levels:
+            store.set_sector_bright_levels(conn, settled.levels)
+            locked.update(settled.levels)
         for address in chunk:
             target = targets[address]
             level = locked.get(address)
@@ -1128,7 +1145,7 @@ def _plan_shape(skeleton, extents, fractions, band_share, components, tiered):
                                   componentPass.STAR_SLICE_STARS)
         # The cut is by the candidates (the most a slice holds, and what keeps the streams where they were); the stars
         # a task is expected to place are what its components keep at the places they lie (GEN.678).
-        kept = {(component.kind, component.name): stars for component, stars in
+        kept = {(component.kind, component.key): stars for component, stars in
                 componentPass.kept_weights(components, fractions, tiered, skeleton.edge_pc)}
         cut = [(sum(kept[(kind, name)] / slices for kind, name, _index, slices in task_parts), task_parts)
                for _candidates, task_parts in cut]

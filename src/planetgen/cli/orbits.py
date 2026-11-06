@@ -138,7 +138,7 @@ from planetgen import tuning
 from planetgen.admin import updateguard
 from planetgen.db import dataversion
 from planetgen.cli.stage_progress import StageProgress
-from planetgen.util import log, stagemark
+from planetgen.util import joblog, log, logpaths, stagemark
 from planetgen.db.sector_paths import compute_sector_paths
 from planetgen.db.store import (
     add_mysql_connection_args,
@@ -247,6 +247,13 @@ def main():
 
     config = mysql_config_from_args(args)
 
+    # OPS.101: the run is appended to orbits.log in the log folder, whoever started it (the nightly timer or a hand run).
+    with joblog.JobLog(logpaths.ORBITS_LOG_NAME, "orbits", "Orbital update", started_by=joblog.started_by_environment()):
+        _update(args, config)
+
+
+def _update(args, config):
+    """One orbital update, start to end; it leaves the process with `sys.exit` where it stops."""
     try:
         updateguard.refuse_while_updating("The orbital update")
     except updateguard.UpdateRunning as exc:
