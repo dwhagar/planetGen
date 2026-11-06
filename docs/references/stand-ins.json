@@ -12881,11 +12881,11 @@
           "fields": [
             [
               "What it is",
-              "tidal_rheology.MELT_VISCOSITY_FACTOR 26 (a partly molten mantle is exp(-26 phi) times as viscous as its solid)"
+              "tidal_rheology.MELT_VISCOSITY_FACTOR 30 (a partly molten rocky mantle is exp(-30 phi) times as viscous as its solid; it was 26)"
             ],
             [
               "The range it moves in",
-              "20 to 31"
+              "26 to 45"
             ],
             [
               "Where it holds",
@@ -12901,7 +12901,7 @@
             ],
             [
               "Evidence",
-              "[R1956] (diffusion creep, 26) and [R3021] (26 to 31), recalled, not opened"
+              "[R1956: Table 1] (read, GEN.1190; the column is the melt coefficient of eq. 1): 30 for diffusion creep, 30 to 45 for dislocation creep, and tidal flexing is slow and low-stress, so the diffusion value; [R3021] 26 to 31"
             ]
           ],
           "id": "TR1",
@@ -12912,7 +12912,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "tidal_rheology.MELT_VISCOSITY_FACTOR 26 (a partly molten mantle is exp(-26 phi) times as viscous as its solid)"
+          "what": "tidal_rheology.MELT_VISCOSITY_FACTOR 30 (a partly molten rocky mantle is exp(-30 phi) times as viscous as its solid; it was 26)"
         },
         {
           "burn_down": null,
@@ -13019,7 +13019,7 @@
             ],
             [
               "Evidence",
-              "laboratory olivine 0.2 to 0.4; 0.3 in [R0682, R2121], recalled"
+              "laboratory olivine and ice 0.2 to 0.4 (read, GEN.1190: [R0682] by way of a later paper's section 2.1; 0.23 to 0.28 for the present solid Earth; olivine 0.1 to 0.4 and a peridotite peak at 0.15 to 0.25 from secondary summaries); the repo's 0.3 is inside the range and the midpoint of it, and 0.3 in [R0682, R2121]"
             ]
           ],
           "id": "TR4",
@@ -13057,15 +13057,15 @@
             ],
             [
               "Evidence",
-              "1 in [R1214, R3732] explore 0.01 to 100; the Moon's Q of 38 to 60 is reproduced at 1 without tuning"
+              "1 in [R1214, R3732] explore 0.01 to 100; READ (GEN.1190): about 1 at low stress for ice and for grain-boundary diffusion ([R0682] by way of two papers), but 'differ considerably' for dislocation unpinning in Earth-like bodies; the sources conflict for rock (a summary of laboratory work gives 1e-10 to 1e-4 against about 1 in a later laboratory paper; the primary papers are not in hand), so the ratio is a bracket, Marginal Unverified for a rocky mantle and Confident Unverified for an ice; the Moon's Q of 38 to 60 is reproduced at 1 without tuning"
             ]
           ],
           "id": "TR5",
           "key": "6.23:TR5",
           "kind": "P",
           "slug": "6-23-tr5",
-          "tier": "T6",
-          "tier_code": "T6",
+          "tier": "T3",
+          "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
           "what": "tidal_rheology.ANDRADE_TIMESCALE_RATIO 1 (the Andrade timescale over the Maxwell time)"
@@ -13209,7 +13209,7 @@
             ],
             [
               "Evidence",
-              "[R1503] (rigidity), [R1614] (creep), all second-hand; [R1190: Table 2] (read, GEN.1186): the Ih dislocation activation energies are 39 kJ/mol below 195 K, 61 from 195 to 240 K and 91 from 240 to 258 K, so the 49 kJ/mol used sits inside a 40 to 90 span the evidence supports"
+              "[R1503] (rigidity), [R1614] (creep), all second-hand; [R1190: Table 2] (read, GEN.1186): the Ih dislocation activation energies are 39 kJ/mol below 195 K, 61 from 195 to 240 K and 91 from 240 to 258 K, so the 49 kJ/mol used sits inside a 40 to 90 span the evidence supports; [R1614: Table 5] (read from the page image, GEN.1190): grain-boundary-sliding-accommodated creep below 255 K has n 1.8, grain-size exponent 1.4 and Q 49 kJ/mol (A 3.9e-3 MPa^-1.8 m^1.4 s^-1), basal-limited n 2.4 and Q 60, dislocation n 4 and Q 60, so the 49 kJ/mol used is the sliding law's (verified), and a second source agrees; the sliding law's n and grain-size exponent are not used here (the Arrhenius form has the one activation energy)"
             ]
           ],
           "id": "TR9",
@@ -35469,7 +35469,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": "GEN.1305",
           "what": "nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity"
         },
         {
@@ -38545,6 +38545,204 @@
       "title": "Stand-in of how far apart random placement keeps two systems"
     },
     {
+      "key": "6.193",
+      "number": "6.193",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "water_layer.melting_pressure_mpa: the melting pressure of ice III (251.165 to 256.164 K), V (to 273.31 K), VI (to 355 K) and VII (above), the IAPWS R14-08 equations with all their coefficients, and the triple points 208.566, 350.1, 632.4 and 2,216 MPa"
+            ],
+            [
+              "The range it moves in",
+              "uncertainty 3 percent for III, V and VI and 7 percent for VII"
+            ],
+            [
+              "Where it holds",
+              "water at the base of an ocean from 251 K to 715 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured melting pressure outside the release's uncertainty"
+            ],
+            [
+              "What replaces it",
+              "none (the release is the standard)"
+            ],
+            [
+              "Evidence",
+              "[R4585] (IAPWS R14-08; the check values 268.685 MPa for ice III at 254 K, 479.640 for V at 265 K, 1,356.76 for VI at 320 K and 6,308.71 for VII at 550 K are reproduced by the tests; the ice VII exponents were restored from a garbled text layer and verified against the paper's 6,308.714 MPa at 550 K)"
+            ]
+          ],
+          "id": "MC1",
+          "key": "6.193:MC1",
+          "kind": "D",
+          "slug": "6-193-mc1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "water_layer.melting_pressure_mpa: the melting pressure of ice III (251.165 to 256.164 K), V (to 273.31 K), VI (to 355 K) and VII (above), the IAPWS R14-08 equations with all their coefficients, and the triple points 208.566, 350.1, 632.4 and 2,216 MPa"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "water_layer.ice_ih_melting_pressure_mpa and ice_ih_melting_k: the ice Ih melting curve, 273.16 K at 0.000611657 MPa down to the ice III triple point at 251.165 K and 208.566 MPa, 264.2 K at 100 MPa and 252.3 K at 200 MPa; the lid's base melts along it"
+            ],
+            [
+              "The range it moves in",
+              "uncertainty 2 percent"
+            ],
+            [
+              "Where it holds",
+              "the base of an ice lid at 251 to 273 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Ih melting pressure outside the release's uncertainty"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R4585] (IAPWS R14-08)"
+            ]
+          ],
+          "id": "MC2",
+          "key": "6.193:MC2",
+          "kind": "D",
+          "slug": "6-193-mc2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "water_layer.ice_ih_melting_pressure_mpa and ice_ih_melting_k: the ice Ih melting curve, 273.16 K at 0.000611657 MPa down to the ice III triple point at 251.165 K and 208.566 MPa, 264.2 K at 100 MPa and 252.3 K at 200 MPa; the lid's base melts along it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "water_layer.melting_pressure_mpa beyond 715 K and below 251.165 K: the ice VII equation is continued above its stated range, and under the ice III triple point the liquidus is held at that point's pressure (no liquid is stable there, the metastable region is not modelled)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an ocean base hotter than 715 K, or colder than 251.165 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ice VII melting pressure above 715 K that departs from the continued equation"
+            ],
+            [
+              "What replaces it",
+              "a ice VII melting curve fitted above 715 K"
+            ],
+            [
+              "Evidence",
+              "the form is monotone in the release's range; the hold is the old table's"
+            ]
+          ],
+          "id": "MC3",
+          "key": "6.193:MC3",
+          "kind": "T",
+          "slug": "6-193-mc3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "water_layer.melting_pressure_mpa beyond 715 K and below 251.165 K: the ice VII equation is continued above its stated range, and under the ice III triple point the liquidus is held at that point's pressure (no liquid is stable there, the metastable region is not modelled)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_types.water_phase: ice II holds to 620 MPa below 218 K, the temperature of the II-V-VI triple point, because no II-VI boundary equation was found; and the liquid wedge between the Ih and the high-pressure melting curves is not named, the lookup taking the solid next above it"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a body centre under 218 K and over 0.2 GPa, or at 251 to 273 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured II-VI boundary far from 620 MPa between 150 and 218 K"
+            ],
+            [
+              "What replaces it",
+              "the II-VI line of [R0777]"
+            ],
+            [
+              "Evidence",
+              "no equation for II-VI, VI-VII-VIII or VII-VIII could be found (Sources 1, GEN.1190)"
+            ]
+          ],
+          "id": "MC4",
+          "key": "6.193:MC4",
+          "kind": "T",
+          "slug": "6-193-mc4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ice_types.water_phase: ice II holds to 620 MPa below 218 K, the temperature of the II-V-VI triple point, because no II-VI boundary equation was found; and the liquid wedge between the Ih and the high-pressure melting curves is not named, the lookup taking the solid next above it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tidal_rheology.ICE_MELT_VISCOSITY_FACTOR 22: the viscosity of partly molten ice is exp(-22 phi) times its solid's; viscosity_pa_s reads it from the material when the material is ice"
+            ],
+            [
+              "The range it moves in",
+              "22"
+            ],
+            [
+              "Where it holds",
+              "ammonia-rich ice with 4 to 8 percent melt"
+            ],
+            [
+              "What would show it wrong",
+              "a measured melt law of pure water ice outside 15 to 30"
+            ],
+            [
+              "What replaces it",
+              "a melt law of pure water ice"
+            ],
+            [
+              "Evidence",
+              "[R0133] (by way of a later paper, B about 22 for ammonia-water ice at 180 to 210 K); no ice shell in the generator has a melt share yet, so the factor is read by the path that has one"
+            ]
+          ],
+          "id": "MC5",
+          "key": "6.193:MC5",
+          "kind": "P",
+          "slug": "6-193-mc5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tidal_rheology.ICE_MELT_VISCOSITY_FACTOR 22: the viscosity of partly molten ice is exp(-22 phi) times its solid's; viscosity_pa_s reads it from the material when the material is ice"
+        }
+      ],
+      "slug": "6-193-stand-ins-of-the-melting-curves-and-the-sourced-rheology-constants-of-water-ice-and-rock",
+      "title": "Stand-ins of the melting curves and the sourced rheology constants of water ice and rock"
+    },
+    {
       "key": "6.182",
       "number": "6.182",
       "rows": [
@@ -40739,53 +40937,49 @@
           "what": "ice_types co2_ice strength_pa 0.3 MPa: solid carbon dioxide has a strength of its own, not scaled by ice Ih"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the 1993 ammonia-water constants of Durham, Kirby and Stern are not in hand; they replace the three interpolated points"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "ice_types nh3_dihydrate ratio_by_temperature_k 2.0 at 110 K, 1.0 at 135 K, 0.3 at 170 K, log-linear, held at the ends"
+              "ice_types nh3_dihydrate ratio_by_temperature_k 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K, 0.18 at 170 K and 0.14 at 176 K, log-linear, held at the ends (it was 2.0 at 110 K, 1.0 at 135 K and 0.3 at 170 K)"
             ],
             [
               "The range it moves in",
-              "ratio 0.15 to 4"
+              "ratio 0.1 to 2"
             ],
             [
               "Where it holds",
-              "ammonia dihydrate and ammonia-water ices between 100 and 176 K"
+              "ammonia dihydrate and ammonia-water ices between 132 and 176 K, the tested range; under 135 K the ratio is held at 1.7, a lower bound (the law gives 19 at 110 K)"
             ],
             [
               "What would show it wrong",
-              "a measured dihydrate strength far from the three points at those temperatures"
+              "a measured dihydrate strength at 1e-15 per second that differs from the law's ratio by more than a factor of 2 in 135 to 176 K"
             ],
             [
               "What replaces it",
-              "the ammonia-water constants of [R1189] (not in hand)"
+              "the alloys between pure ice and the dihydrate (NH3 mole fraction 0.01 to 0.295) of [R1189], whose full text is not in hand"
             ],
             [
               "Evidence",
-              "Durham and Kirby, NASA NTRS N92-10735 (READ): weaker than water ice near 176 K, stronger below 135 K; the three points are the interpolation of strength research section 14"
+              "[R1189] as tabulated in the 1996 preprint UCRL-JC-123734 of the same authors (Table 1, read): the dihydrate law log A 21.55, n 5.81, E* 107.5 kJ/mol, tested 132 to 176 K at 50 to 100 MPa, over the ice I law of [R1190] (the 1997 row, log A -3.8, n 6.0, E* 39 kJ/mol; the preprint's own ice I row was different and is not used); the paper's laboratory-rate crossover is 143 K; Sources 1 computed the ratios (GEN.1190)"
             ]
           ],
           "id": "IT6",
           "key": "6.129:IT6",
           "kind": "P",
           "slug": "6-129-it6",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
           "unread": null,
-          "what": "ice_types nh3_dihydrate ratio_by_temperature_k 2.0 at 110 K, 1.0 at 135 K, 0.3 at 170 K, log-linear, held at the ends"
+          "what": "ice_types nh3_dihydrate ratio_by_temperature_k 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K, 0.18 at 170 K and 0.14 at 176 K, log-linear, held at the ends (it was 2.0 at 110 K, 1.0 at 135 K and 0.3 at 170 K)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "ice_types phases: Ih under 0.21 GPa, II to 0.63 GPa except III at 240 to 256 K and 0.21 to 0.35 GPa and V at 250 K and over and 0.35 to 0.63 GPa, VI to 2.2 GPa and beyond"
+              "ice_types water_phase with a temperature: the boundary lines Ih-II 176.0 + 0.918 (T - 198.15) MPa, Ih-III 198.2 - 0.42 (T - 273.15), II-III 213 + 99.517 [(T/238.45)^19.676 - 1], II-V 412.0 - 7.01 (T - 239.15), III-V 344.3 - 0.275 d - 0.01099 d^2 and V-VI 625.9 + 0.06086 d - 0.0008571 d^2 (d = T - 273.15), each only between its triple points, and VI from 2,216 MPa (VII and X take its strength); with a pressure alone Ih under 212.9 MPa, II to 620 MPa, VI beyond"
             ],
             [
               "The range it moves in",
@@ -40793,30 +40987,30 @@
             ],
             [
               "Where it holds",
-              "water ice by central pressure"
+              "water ice by central pressure and the shape-set temperature, 218 to 273 K for the lines; below 218 K only the Ih-II line is used and II holds to 620 MPa"
             ],
             [
               "What would show it wrong",
-              "a phase of the water phase diagram at a body's centre that differs"
+              "a phase of the water phase diagram at a body's centre that differs from the lookup's, in a paper's equations"
             ],
             [
               "What replaces it",
-              "a phase-diagram table read from a source"
+              "the solid-solid boundary equations of a paper (the thermodynamic model of [R0777], not in hand, or [R2204]'s Gibbs splines)"
             ],
             [
               "Evidence",
-              "the water phase diagram (recalled, no source read)"
+              "one tertiary source: the water phase diagram page of the LSBU water site (updated Nov 2021; its references are numbers only and unreachable; not yet in the citation registry because the site is not on the machine's allowed list); Sources 1 checked every line meets its triple points within 1 MPa except III-V at the liquid point (345.8 against 350.1) and V-VI there (625.9 against 632.4); the triple points of the liquid are the IAPWS release's [R4585]; Ih-II-III 238.45 K, 212.9 MPa; II-III-V 248.85 K, 344.3 MPa; II-V-VI about 218 K, 620 MPa; VI-VII-liquid 355 K, 2,216 MPa; no equation was found for II-VI, VI-VII-VIII or VII-VIII"
             ]
           ],
           "id": "IT7",
           "key": "6.129:IT7",
           "kind": "D",
           "slug": "6-129-it7",
-          "tier": "T2",
-          "tier_code": "T2",
+          "tier": "T3",
+          "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "ice_types phases: Ih under 0.21 GPa, II to 0.63 GPa except III at 240 to 256 K and 0.21 to 0.35 GPa and V at 250 K and over and 0.35 to 0.63 GPa, VI to 2.2 GPa and beyond"
+          "what": "ice_types water_phase with a temperature: the boundary lines Ih-II 176.0 + 0.918 (T - 198.15) MPa, Ih-III 198.2 - 0.42 (T - 273.15), II-III 213 + 99.517 [(T/238.45)^19.676 - 1], II-V 412.0 - 7.01 (T - 239.15), III-V 344.3 - 0.275 d - 0.01099 d^2 and V-VI 625.9 + 0.06086 d - 0.0008571 d^2 (d = T - 273.15), each only between its triple points, and VI from 2,216 MPa (VII and X take its strength); with a pressure alone Ih under 212.9 MPa, II to 620 MPa, VI beyond"
         },
         {
           "burn_down": null,

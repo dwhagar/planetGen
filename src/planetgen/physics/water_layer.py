@@ -19,7 +19,7 @@ surface area onto the smaller sphere at depth (the column mass per area grows as
 Four-step Runge-Kutta in `s`.
 
 The liquid ends where the pressure reaches the **liquidus** of the temperature at the bottom (`liquidus_pressure_pa`): the
-melting curve of ice III, V and VI recomputed from the [R2204] Gibbs-energy splines (design doc 2.3). Below it the
+melting curve of ice III, V, VI and VII (the IAPWS R14-08 equations, [R4585]; GEN.1190). Below it the
 water is high-pressure ice, ice VI and then VII (`Column.hp_ice_km`), and an ocean with ice under it is sealed off from the
 rock.
 
@@ -46,17 +46,72 @@ SHALLOW_STEPS = 8
 galaxy's bodies are (an Earth's ocean is 40 MPa)."""
 SHALLOW_PRESSURE_PA = 1.0e9
 
-LIQUIDUS_K_MPA = (
-    (251.2, 210.0), (256.2, 350.0), (271.7, 600.0), (272.1, 620.0), (286.8, 800.0), (300.4, 1000.0), (327.0, 1500.0),
-    (347.0, 2000.0), (353.8, 2200.0),
-)
-"""tuple: Where liquid water stops being stable, `(K, MPa)`: ice III (251.2 K at 210 MPa), ice V (256.2 K at 350 MPa) and ice
-VI (272.1 K at 620 MPa to 353.8 K at 2200 MPa) melting, COMPUTED from the [R2204] splines (design doc 2.3). Liquid
-is stable below the line. The three published sets of triple points agree within 1 to 3 percent."""
+ICE_IH_III_TRIPLE_K = 251.165
+"""float: The temperature of the ice Ih, ice III and liquid triple point, K ([R4585]: IAPWS R14-08). Below it no liquid water is stable at any pressure.
+Source tier T1, tweak level L0."""
+ICE_III_V_TRIPLE_K = 256.164
+"""float: The ice III, ice V and liquid triple point, K (350.1 MPa; [R4585]). Source tier T1, tweak level L0."""
+ICE_V_VI_TRIPLE_K = 273.31
+"""float: The ice V, ice VI and liquid triple point, K (632.4 MPa; [R4585]). Source tier T1, tweak level L0."""
+ICE_VI_VII_TRIPLE_K = 355.0
+"""float: The ice VI, ice VII and liquid triple point, K (2,216 MPa; [R4585]). Source tier T1, tweak level L0."""
+WATER_TRIPLE_K = 273.16
+"""float: The triple point of ordinary water, K [R4585]; the temperature scale of the ice Ih melting curve."""
+WATER_TRIPLE_MPA = 0.000611657
+"""float: The pressure of the triple point of ordinary water, MPa [R4585]."""
+ICE_IH_III_TRIPLE_MPA = 208.566
+"""float: The pressure at the ice Ih, ice III and liquid triple point, MPa ([R4585]; calculated there)."""
+ICE_III_V_TRIPLE_MPA = 350.1
+"""float: The pressure at the ice III, ice V and liquid triple point, MPa [R4585]."""
+ICE_V_VI_TRIPLE_MPA = 632.4
+"""float: The pressure at the ice V, ice VI and liquid triple point, MPa [R4585]: ice VI first freezes out of liquid water at this pressure."""
+ICE_VI_VII_TRIPLE_MPA = 2216.0
+"""float: The pressure at the ice VI, ice VII and liquid triple point, MPa [R4585]."""
 
-LIQUIDUS_SLOPE_ABOVE_MPA_PER_K = (LIQUIDUS_K_MPA[-1][1] - LIQUIDUS_K_MPA[-2][1]) / (LIQUIDUS_K_MPA[-1][0] - LIQUIDUS_K_MPA[-2][0])
-"""float: Beyond the ice VI-VII-liquid triple point (2.2 GPa, 355 K) the line continues with ice VI's last slope: a stand-in for
-the ice VII melting curve, which the table does not hold."""
+LIQUIDUS_SOURCE_NOTE = "IAPWS R14-08, the melting-pressure equations of ice Ih, III, V, VI and VII"
+"""str: Where the melting curves below come from; the uncertainty is 2 percent for ice Ih, 3 percent for III, V and VI and 7 percent for VII."""
+
+
+def ice_ih_melting_pressure_mpa(temperature_k):
+    """The pressure at which ice Ih melts at `temperature_k`, MPa ([R4585], IAPWS R14-08; 251.165 K to 273.16 K)."""
+    theta = temperature_k / WATER_TRIPLE_K
+    pi = (1.0 + 0.119539337e7 * (1.0 - theta ** 3) + 0.808183159e5 * (1.0 - theta ** 25.75)
+          + 0.333826860e4 * (1.0 - theta ** 103.75))
+    return pi * WATER_TRIPLE_MPA
+
+
+def ice_ih_melting_k(pressure_mpa):
+    """The temperature at which ice Ih melts under `pressure_mpa`, K: the inverse of `ice_ih_melting_pressure_mpa` (bisection), held at the ice III
+    triple point beyond `ICE_IH_III_TRIPLE_MPA` (under more pressure than that the ice meets ice III, not a deeper Ih melt) and at the triple point of
+    water at or under `WATER_TRIPLE_MPA`."""
+    if pressure_mpa >= ICE_IH_III_TRIPLE_MPA:
+        return ICE_IH_III_TRIPLE_K
+    if pressure_mpa <= WATER_TRIPLE_MPA:
+        return WATER_TRIPLE_K
+    low, high = ICE_IH_III_TRIPLE_K, WATER_TRIPLE_K
+    for _ in range(60):
+        middle = 0.5 * (low + high)
+        if ice_ih_melting_pressure_mpa(middle) > pressure_mpa:
+            low = middle
+        else:
+            high = middle
+    return 0.5 * (low + high)
+
+
+def melting_pressure_mpa(temperature_k):
+    """The pressure at which the high-pressure ice that melts at `temperature_k` (ice III from 251.165 K, V from 256.164 K, VI from 273.31 K and
+    VII from 355 K) melts, MPa ([R4585], IAPWS R14-08, `LIQUIDUS_SOURCE_NOTE`). Under the ice III triple point it is that triple point's
+    pressure (no liquid is stable there); above ice VII's range, 715 K, the equation is continued."""
+    if temperature_k <= ICE_IH_III_TRIPLE_K:
+        return ICE_IH_III_TRIPLE_MPA
+    if temperature_k <= ICE_III_V_TRIPLE_K:
+        return ICE_IH_III_TRIPLE_MPA * (1.0 - 0.299948 * (1.0 - (temperature_k / ICE_IH_III_TRIPLE_K) ** 60))
+    if temperature_k <= ICE_V_VI_TRIPLE_K:
+        return ICE_III_V_TRIPLE_MPA * (1.0 - 1.18721 * (1.0 - (temperature_k / ICE_III_V_TRIPLE_K) ** 8))
+    if temperature_k <= ICE_VI_VII_TRIPLE_K:
+        return ICE_V_VI_TRIPLE_MPA * (1.0 - 1.07476 * (1.0 - (temperature_k / ICE_V_VI_TRIPLE_K) ** 4.6))
+    theta = temperature_k / ICE_VI_VII_TRIPLE_K
+    return ICE_VI_VII_TRIPLE_MPA * math.exp(1.73683 * (1.0 - 1.0 / theta) - 0.0544606 * (1.0 - theta ** 5) + 0.806106e-7 * (1.0 - theta ** 22))
 
 
 @dataclass(frozen=True)
@@ -77,18 +132,9 @@ class Column:
 
 
 def liquidus_pressure_pa(bottom_temperature_k):
-    """The pressure at which water at `bottom_temperature_k` freezes into a high-pressure ice, Pa. Linear between the table's
-    points, flat below the ice III triple point (251.2 K, the line through the metastable region is not modelled) and
-    continued with ice VI's last slope above 353.8 K."""
-    points = LIQUIDUS_K_MPA
-    if bottom_temperature_k <= points[0][0]:
-        return points[0][1] * 1e6
-    if bottom_temperature_k >= points[-1][0]:
-        return (points[-1][1] + (bottom_temperature_k - points[-1][0]) * LIQUIDUS_SLOPE_ABOVE_MPA_PER_K) * 1e6
-    for (t0, p0), (t1, p1) in zip(points, points[1:]):
-        if bottom_temperature_k <= t1:
-            return (p0 + (bottom_temperature_k - t0) * (p1 - p0) / (t1 - t0)) * 1e6
-    raise AssertionError("unreachable")
+    """The pressure at which water at `bottom_temperature_k` freezes into a high-pressure ice, Pa: the melting curve of ice III, V, VI and VII
+    (`melting_pressure_mpa`), flat below the ice III triple point (251.165 K; the line through the metastable region is not modelled)."""
+    return melting_pressure_mpa(bottom_temperature_k) * 1e6
 
 
 MIN_RADIUS_SHARE = 0.05
