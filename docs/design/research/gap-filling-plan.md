@@ -3067,6 +3067,14 @@ A rocky planet with no row in the hosting gate's `satellite-share` table holds a
 | IW3 | B | T6 | L0 | irregular_moons.ORBIT_TRIES 400: a stored body's orbit is drawn again until it stays in the zone (the pool counts the bodies that stayed), so a stored body is lost only when 400 draws all fail | 50 to 1000 | giants at 5 AU (about 4 in 100 drawn orbits stay) | a giant whose accepted orbits are far from the observed medians of the stable ones | an orbit drawn once with the capture's own geometry | design section 4.3; the draw is conditioned on the cut |
 | IW4 | P | T6 | L2 | irregular_moons.COMPOSITION_MASS_CAP_KG (0.999 of `compaction.TAPER_END_KG`): an exchange capture heavier than the composition rows reach is composed as a body of this mass | 1e20 to 1e21 kg | exchange captures of a Triton | structure solver output for a Triton-class capture | the structure solver (GEN.429) composing a heavy capture | design section 2.2 |
 
+### 6.194 Stand-in of the mass the planets take from an outer disk (GEN.1085)
+
+`generation/irregular_moons.take_from_disks` takes the bodies the planets of a star hold as irregular moons (the stored ones and the remainder of each set) out of the outer disks of that star, so a belt's mass less what its planets hold is what it keeps. Inner belts are not yet reservoirs (the pool is drawn from the outer disk, section 6.191), so only outer disks give up mass.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| CD1 | D | T6 | L0 | irregular_moons.take_from_disks: what the planets hold now (stored bodies and remainder, after their own grinding) leaves the disks' present mass, shared by the disks' primordial mass and never more than a disk's remainder; the grinding the captured bodies and the disk each suffered separately is not told apart | the share of the disk is under 1e-6 for a Jupiter | outer disks with one or more giants | a captured population that is a tenth of its disk's present mass | the capture taken from the disk at the window and both ground down apart | conservation of mass: the design asks that "belt mass minus captured mass is conserved" (docs/design/systems/captured-asteroid-moons.md section 4.4) |
+
 ### 6.192 Stand-in of how far apart random placement keeps two systems (GEN.1284)
 
 `galaxy/sector.py` places a sector's systems at random points that keep clear of every placed system's galactic Hill sphere. The whole sum of two radii asks for spheres that fill 0.6 of a 4 pc solar-circle sector (median radius 1.3 pc, 0.055 systems per cubic parsec), more than random placement can pack, so 25 of 125 solar-circle sectors ran out of room and the sample kept 85 percent of the expected systems and 78 percent of the mass; with half the sum all 424 requested systems are placed.

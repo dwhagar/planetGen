@@ -1363,9 +1363,12 @@ class StarSystem:
         hosts += [(bodies, star) for star, bodies in self.member_hosts()]
         for bodies, star in hosts:
             source = irregular_moons.source_of(bodies, star, self.capture_windows(star), star_al26_ratio(self.system_config, star))
+            sets = []
             for body in bodies:
                 if body.body_type != 'a' and not body.is_moon:
                     body.irregulars = irregular_moons.for_planet(body, source)
+                    sets.append(body.irregulars)
+            irregular_moons.take_from_disks([belt for belt in bodies if belt.body_type == 'a' and getattr(belt, "origin", None) == "outer-disk"], sets)     # GEN.1085
 
     def capture_windows(self, star):
         """
