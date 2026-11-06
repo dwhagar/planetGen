@@ -59,8 +59,8 @@ def _star(conn, row):
 
 
 def _estimates(look):
-    """What the picture guessed: a colour from temperature alone (no stored ground mixture) is an estimate."""
-    return ["surface colour"] if look.get("quality") == "estimate" else []
+    """What the picture guessed: a color from temperature alone (no stored ground mixture) is an estimate."""
+    return ["surface color"] if look.get("quality") == "estimate" else []
 
 
 def _with_air(conn, kind, row):
