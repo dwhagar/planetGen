@@ -38335,7 +38335,11 @@
       "number": "6.192",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, hand-tuned against a Hill-sphere packing sweep (125, 27 and 27 sectors at 8,128, 4,000 and 1,500 pc); it goes when a nearest-neighbour distribution from catalogued stars is fitted"
+          ],
           "fields": [
             [
               "What it is",
@@ -38911,7 +38915,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1281",
+          "unread": null,
           "what": "phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure"
         }
       ],
@@ -38947,7 +38951,7 @@
             ],
             [
               "Evidence",
-              "the digit 9 meaning of GEN.1220 (reports/class-code-system-2026-10-31.md); TODO relay, 9:40 AM EST 2026-11-05: keep the letter the other domains give with digit 9"
+              "the digit 9 meaning of GEN.1220 (reports/class-code-system-2026-10-31.md); TODO relay, 9:40 AM EST on 2026-11-05: keep the letter the other domains give with digit 9"
             ]
           ],
           "id": "HC1",
@@ -38961,7 +38965,11 @@
           "what": "class_fit.LIMIT_DOMAINS gravity and air_amount, with LIMITED_FAMILIES M, R, P, O, H, F, G, Y, U, X and digit 9: a hole body whose class is found with its gravity and its air amount set aside takes that letter and the digit 9 (limited by another domain)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, a body that fits no class takes the nearest of the ordinary families by the geometric mean of its memberships with a floor of 0.01; no survey says what such a body is called, so the floor and the family list are fitted to keep the stored class defined"
+          ],
           "fields": [
             [
               "What it is",
