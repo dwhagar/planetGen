@@ -12071,27 +12071,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, so lock-free until then.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
-- [ ] **GEN.1185 Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned**
-  Change INTERIOR_ACTIVATION_RANGE_KJ_MOL from 200 to 300 to 260 to 390
-  kJ/mol and retune eta0 so the reference viscosity holds (medium
-  confidence in the review). Changes tidal heating and interior outputs,
-  so a lock window plus a census; do it with the next Tides 1 window.
-  Owner Tides 1. Source: reports/papers-vs-standins-2026-10-31.md
-  section 7 (the strength papers review of all 14 uploaded and 35
-  downloaded papers, Boss's request).
-  Prerequisites: none. Related: GEN.725.
-
-- [ ] **GEN.1186 Small evidence updates to registered stand-ins from the strength papers review**
-  Update the registry text only (no value used by generation changes):
-  TR9 ice activation range to 40 to 90 kJ/mol and ice rigidity to 3.5
-  GPa as the knob range, RN5 range to 4 to 9, and the evidence lists of
-  RN2 and RN8. Lock-free docs and registry rows. Owner Aux 5 for
-  RN2/RN5/RN8, Tides 1 for TR9. Source:
-  reports/papers-vs-standins-2026-10-31.md section 7 (the strength
-  papers review of all 14 uploaded and 35 downloaded papers, Boss's
-  request).
-  Prerequisites: none. Related: GEN.725.
-
 - [ ] **GEN.1189 Greenhouse refit method: the refit table is blind to the methane share of a hydrogen air and a dense carbon dioxide air is 2 to 8 percent warm, so find a better fit than one L-BFGS network**
   From Air 1 (GEN.1030/GEN.1032 ready for train 7): a drawn ice giant
   with a few percent methane reads about 5 percent warm because the
@@ -12212,7 +12191,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   trust their equation of state for volumes. Still missing: [R1181]
   (Solar System Research 44:202) or Choukroun and Grasset by upload.
   Report: reports/ice-phase-boundaries-secondary-sources-2026-10-31.md.
-  Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
+  Prerequisites: none. Related: GEN.1183, GEN.725.
 
 - [ ] **GEN.1194 Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus**
   From Air 1 (GEN.973 finding): outgoing flux rises monotonically with
