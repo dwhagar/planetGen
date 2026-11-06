@@ -10256,35 +10256,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train 5) and GEN.992 (own slot).
   Prerequisites: none. Related: GEN.727, GEN.731, GEN.737, GEN.725, GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.960, GEN.961, GEN.976, GEN.977, GEN.978, GEN.979.
 
-- [ ] **GEN.852 Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others)**
-  Left by Math 1 after GEN.715/GEN.717/GEN.718 (#3507, 5:55 PM EDT
-  2026-10-28 as the lane reported): (1) Venus cloud and line-wing
-  treatment, the IR3 far wing is a labelled stand-in; (2) more gas
-  absorption tables; (3) tropopause quantisation in the
-  radiative-convective model; (4) OCS and other species have no data in
-  the _cp_over_r path. Source each from published data (verified wins,
-  widest range when two are in question), record stand-in tier and tweak
-  level. Owner: none yet; released pool, low priority after the two
-  wiring items.
-  Prerequisites: none. Related: GEN.715, GEN.717, GEN.718, GEN.850,
-  GEN.851.
-  Research (2026-10-09): Proposed for Air 1 after GEN.850 and GEN.851
-  (low priority; Air 1 may hand it back).
-  Data we hold (2026-10-29 8:55 PM EDT): ExoMol correlated-k tables
-  (H2O, CO2, CH4) and HITRAN collision-induced absorption are downloaded
-  at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
-  nasa_glenn_species.json and saturation_pressure.json are in the repo.
-  Catalog sections 1 and 2.
-  Progress (2026-10-30 12:22 PM EDT): Sources 1 (as the lane reported):
-  part 4 (cp for every gas in the table, registry IR9) and part 3
-  (tropopause step is a model level nothing reads, surface temperature
-  moves under 0.1 K when it steps, registry IR10, no code change) merged
-  in #4048 at 12:20 PM EDT. Part 2 (NH3, SO2, H2S, CO and HCN ExoMol
-  k-tables in the setup download, about 2 GB more, derive_version 2) is
-  on claude/gen852-tables head ea5dbe456 and rides a train (new epoch,
-  --affects the air and greenhouse stage, no migration). Part 1 (Venus
-  clouds and the CO2 far wing) moved to its own item, GEN.1019.
-
 - [ ] **GEN.854 Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug)**
   Boss, 6:59 PM EDT 2026-10-28 (relayed by the coordinator), live
   observation, so a bug: looking at the list of class M planets on his
@@ -13167,45 +13138,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ready for; it cannot reach train 10 (its list is frozen). Proposed
   owner: Core 3 after GEN.1246. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.579, GEN.725.
-
-- [ ] **GEN.1260 The latitude band table's Day/Night and Longest day/night rows are empty or wrong for slow spinners: rewrite them as a time-stepped spell calculation (bug)**
-  Found on Nitrikin III by a lane, 7:05 PM EST on 2026-11-04 (as the
-  lane reported): rotation 27.9 d, orbit 28.5 d, tilt 128.3, solar day
-  14.1 d, 2.02 solar days per year. In physics/latitude_bands.py
-  (GEN.1108): (1) the Day/Night rows are year averages, and the annual
-  mean day share is 0.5 at every latitude by north-south symmetry, so
-  every band reads about half the solar day and the row says nothing;
-  (2) longest day and longest night are the polar-day share of the year,
-  which holds the declination fixed through one turn and means 'star up
-  all day'; with a solar day of 14 d the declination swings across half
-  its range in one day, so it is invalid, and it reads 0 s at the
-  equator and tropics where the real longest daylight spell is about 7
-  d. A time-stepped check gives longest daylight about 7.1 d at the
-  equator, 8.4 d at 26 degrees, 19 d at 39 degrees (beyond one solar
-  day, a true polar day) and 14 d at the pole; the stored 1.3 d at the
-  tropic edge and 14.3 d at the pole disagree. (3) Near resonance (2.02
-  solar days per year) makes the noon phase lock to the season for
-  decades, so annual averaging is not independent. Retrograde tilt and
-  solar day are handled correctly (folded tilt 51.7, polar circle 37.8).
-  Do: rewrite the band day and night hours as a time-stepped spell
-  calculation (longest unbroken spell of star up and of star down, and
-  the mean spell length, by latitude); no new random draws, so it
-  changes stored values only and needs a column recompute at the epoch
-  bump (a lock item); the label-only part (rename the row to 'Longest
-  unbroken day', 'Longest unbroken night') is lock-free and can go
-  first. Done: a test with this body's numbers (equator about 7.1 d,
-  pole 14 d) and a fast spinner (Earth-like) unchanged within rounding.
-  Proposed owner: Aux 2 (GEN.1108 and GEN.1097). Filed by the TODO
-  thread.
-  Boss rule on the fix (7:18 PM EST on 2026-11-04) (2026-11-04 7:20 PM
-  EST): No body is 'ordinary': 24 h is just Earth. The fix must work
-  from each planet's own spin, orbit, tilt, star size and solar day,
-  assume no Earth-like case, and give a fast spinner no special
-  handling: one time-stepped spell calculation for every body. This
-  replaces the 'fast spinner unchanged within rounding' clause of Done:
-  a fast spinner is checked by the same calculation and its result is
-  what it is, with no guard that keeps old values.
-  Prerequisites: none. Related: GEN.1108, GEN.1097.
 
 - [ ] **GEN.1261 Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken**
   Boss, 7:23 PM EST on 2026-11-04, confirmed option 1 on the GEN.1259
@@ -17894,24 +17826,6 @@ clears each one.
   in.
   Prerequisites: none.
 
-- [ ] **TEST.614 tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. Decide from the cause whether the forcing rules
-  or the test moved. Done: the test passes on current main. Owner: Bug
-  1. Do: reproduce on current main first (a merge since may have fixed
-  it), fix at the cause with the property kept, never skip or loosen a
-  test. Lock-free if output is unchanged; tell the TODO thread if values
-  change. Version 8.1. Filed by the TODO thread.
-  Resolves with TEST.579 (Bug 1, as the lane reported) (3:59 PM EST on
-  2026-11-05): Main's PREVALENCE_BASE_SHARES still hold the old values
-  (asteroid_belt 0.039), so +1000 is not certain and the belt stays
-  None. The TEST.579 head (bug1/test579-base-shares eac2a5a48, in train
-  12) sets habitable_world 0.584 and asteroid_belt 0.653, and with those
-  values the test's 300 draws are all correct. No separate fix; TEST.614
-  retires when TEST.579 merges.
-  Prerequisites: none.
-
 - [ ] **TEST.616 tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug)**
   The Train Manager's full-suite run (as the lane reported, about 3:47
   PM EST on 2026-11-05, main e6939031f, the test run alone on clean
@@ -17979,20 +17893,6 @@ clears each one.
   whenever a ships module changes.
   Prerequisites: USR.29, POP.11, MAP.391. Related: USR.10.
 
-- [ ] **TEST.633 tests/js/galaxynebulae.test.mjs fails on main: "a region's blob is the group's sphere in the colour of its dominant family, with a ring when it holds several" expects blob.ring true (bug)**
-  Tides 1 (as the lane reported, about 8:44 PM EST on 2026-11-05) found
-  test_js_unit[galaxynebulae.test.mjs] red on plain main; the TODO thread
-  reproduced it with node --test on main 29fe528f8: line 26 expects
-  blob.ring to be true for a group of 12 nebulae and the blob has none.
-  The likely cause is MAP.392 (#5212, Core 4), which drew the nebula
-  group blobs without the ring outline and left the test saying the
-  ring is there. Do: decide from the code whether the ring should be
-  gone (then the test, its title and the one-nebula case follow it) or
-  came back by mistake (then the code does), fix at the cause, never
-  skip or loosen the test. Lock-free, JS only. Done: the test passes on
-  current main. Version 8.1. Owner: Core 4. Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.392.
-
 - [ ] **TEST.634 test_web_browser_layout.py::test_controls_do_not_overlap[web.galaxy at 390, 600, 820 and 1280] fails: on /galaxy the Go to button and address input overlap the site search link, Help and Menu (bug)**
   The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
   47 failures, 39 of them failing alone) found tests/test_web_browser_layout.py::test_controls_do_not_overlap for the page web.galaxy at widths 390, 600, 820 and 1280 (4 cases): the Go to button and its address input overlap the site search link, Help and the Menu. It was
@@ -18001,50 +17901,6 @@ clears each one.
   still fails, find the change that broke it (bisect) and fix at the
   cause, a layout test never loosened to pass. Lock-free, no migration.
   Done: the test passes alone on current main. Version 8.1. Owner: Core 2.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.593.
-
-- [ ] **TEST.635 test_web_system_nav_row.py::test_system_buttons_share_one_row fails at 390, 600, 820 and 1280: the system buttons sit on more than one row, two at negative y (bug)**
-  The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
-  47 failures, 39 of them failing alone) found tests/test_web_system_nav_row.py::test_system_buttons_share_one_row at widths 390, 600, 820 and 1280 (the -3 cases, 4 in all): the system buttons are on more than one row, two buttons at negative y. It was
-  measured on main e6939031f, so it may be fixed or flaky under load
-  since. Do: reproduce on current main first (run the test alone); if it
-  still fails, find the change that broke it (bisect) and fix at the
-  cause, a layout test never loosened to pass. Lock-free, no migration.
-  Done: the test passes alone on current main. Version 8.1. Owner: Core 5.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.593.
-
-- [ ] **TEST.636 test_web_ui_fields_browser.py::test_each_kind_of_field_is_filled_and_submitted fails on desktop and phone, light and dark: strict mode violation, details.search-more > summary resolves to 2 elements (bug)**
-  The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
-  47 failures, 39 of them failing alone) found tests/test_web_ui_fields_browser.py::test_each_kind_of_field_is_filled_and_submitted (desktop and phone by light and dark, 4 cases): Playwright strict mode violation, the locator details.search-more > summary matches 2 elements. It was
-  measured on main e6939031f, so it may be fixed or flaky under load
-  since. Do: reproduce on current main first (run the test alone); if it
-  still fails, find the change that broke it (bisect) and fix at the
-  cause, a layout test never loosened to pass. Lock-free, no migration.
-  Done: the test passes alone on current main. Version 8.1. Owner: Core 2.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.593.
-
-- [ ] **TEST.637 test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not fails: assert True is False (bug)**
-  The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
-  47 failures, 39 of them failing alone) found tests/test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not: assert True is False (the same test TEST.593 fixed in #5079, so a later change broke it again). It was
-  measured on main e6939031f, so it may be fixed or flaky under load
-  since. Do: reproduce on current main first (run the test alone); if it
-  still fails, find the change that broke it (bisect) and fix at the
-  cause, a layout test never loosened to pass. Lock-free, no migration.
-  Done: the test passes alone on current main. Version 8.1. Owner: Core 5.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.593.
-
-- [ ] **TEST.638 test_web_admin_menu_fits.py fails for the laptop, phone, short and tablet sizes in light and dark: on web.sector the panel is not at its button, the button at negative y (bug)**
-  The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
-  47 failures, 39 of them failing alone) found tests/test_web_admin_menu_fits.py (laptop, phone, short and tablet by light and dark, 8 cases): on web.sector the admin panel is not at its button; the button is at a negative y. It was
-  measured on main e6939031f, so it may be fixed or flaky under load
-  since. Do: reproduce on current main first (run the test alone); if it
-  still fails, find the change that broke it (bisect) and fix at the
-  cause, a layout test never loosened to pass. Lock-free, no migration.
-  Done: the test passes alone on current main. Version 8.1. Owner: Core 1.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.593.
 
