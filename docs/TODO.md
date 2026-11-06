@@ -14074,7 +14074,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the bulge, or the note says why not. A fix changes generated
   stars, so it is a lock item (epoch). Version 8.1. Owner: Core 3. Filed
   by the TODO thread.
-  Prerequisites: none. Related: MAP.383, GEN.115.
+  Cause found and fix built (Core 3, as the lane reported, about 9:08 PM
+  EST on 2026-11-05; reports/gen1284-placement-mass-loss-2026-11-05.md):
+  random placement keeps two systems the whole sum of their galactic Hill
+  radii apart (median 1.3 pc at the solar circle), which asks a 4 pc cube
+  for spheres filling 0.6 of it; placement cannot pack that, and the
+  sector stops at the first system with no room ("ran out of room"; the
+  one-system minimum plays no part). Placed: solar circle 84 percent of
+  expected systems (78 percent of mass), 4,000 pc 44 percent (35
+  percent), 1,500 pc 20 percent (18 percent). Fix: branch
+  claude/gen1284-mass-deficit, head 078b115b1,
+  SECTOR_HILL_SEPARATION_SHARE = 0.5, stand-in SEP1 in section 6.183
+  (renumber at merge). After: 100 percent of systems and 92 to 94 percent
+  of mass at all three places. The inner disk grows to about 5 times as
+  many systems (1,407 to 6,993 in the same 27 sectors) and generates
+  about 5 times slower there. Lock item: no migration, star positions
+  move in every sector with 2 or more systems (golden and census move),
+  --affects the system placement of the fill (systems stage and after).
+  Train 12 candidate. The remaining 6 to 8 percent mass gap is GEN.1300.
+  Prerequisites: none. Related: MAP.383, GEN.115, GEN.1300.
 
 - [ ] **GEN.1285 The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3)**
   Measured by Tides 1 (as the lane reported, about 6:35 PM EST on
@@ -14143,6 +14161,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until he answers. Version 8.1. Owner: Planets 1. Filed by the TODO
   thread.
   Prerequisites: none. Related: TEST.499, GEN.1111, GEN.1287.
+
+- [ ] **GEN.1300 After the GEN.1284 fix, placed systems still hold 6 to 8 percent less mass than the density profile expects with the count right: find whether the mass draw or a leftover placement bias holds it**
+  Core 3 (as the lane reported, about 9:08 PM EST on 2026-11-05),
+  GEN.1284 follow-up (the item was called GEN.1284b by the lane). With
+  the Hill-separation share at 0.5, 100 percent of the expected systems
+  are placed at the solar circle, 4,000 pc and 1,500 pc but only 92 to 94
+  percent of the expected mass. Do: compare the drawn system mass against
+  the profile per system (mass function and multiplicity draw) and the
+  placement against the cell's expected position distribution (a bias
+  toward low-mass systems in what stays unplaced, or in the order of
+  placement), and fix at the cause or show with numbers that the gap is
+  the intended physics and say why in the density note. A fix changes
+  generated stars, so it is a lock item. Done: the placed mass matches
+  the profile inside the sampling error at the three places, or the note
+  says why not. Version 8.1. Owner: Core 3. Filed by the TODO thread.
+  Prerequisites: GEN.1284. Related: MAP.383, GEN.115.
 
 - [ ] **GEN.1288 cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections**
   Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
