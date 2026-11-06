@@ -49,24 +49,17 @@ each `Star`/`BinaryStarProxy` has a `system_perimeter` (its Hill sphere
 *relative to the Milky Way* -- see `Star.calculate_system_perimeter` --
 i.e. the radius beyond which the galaxy's own gravity dominates over the
 star's, roughly the same concept that sets the outer edge of the Oort
-cloud). Two systems are required to be at least the *sum* of their two Hill
-radii apart (`required_separation_ly`), so those radii can touch but not
-overlap.
+cloud). Two systems are required to be at least `program_constants.SECTOR_HILL_SEPARATION_SHARE`
+(half) of the *sum* of their two Hill radii apart (`required_separation_ly`), so neither one's centre sits deep inside the
+other's sphere. The whole sum is not asked (GEN.1284): at the solar circle the median system's sphere is 1.3 pc in radius (measured
+in the audit galaxy), the mean spacing of systems is 2.2 pc, and real neighbouring spheres overlap (the Sun's nearest neighbour is
+inside its sphere); asking for the whole sum fills 0.6 of a 4 pc sector with spheres, which random placement cannot do, and the
+sector ran out of room and kept 85 percent of the systems its profile expects (78 percent of the mass).
 
-This isn't a new number invented for sector placement -- it's the same
-`system_perimeter` already shown in every generated system's output, and it
-checks out against real astronomy: with this package's own constants, the
-Sun's `system_perimeter` comes out to ~1.71 ly (~108,000 AU), squarely inside
-the ~100,000-150,000 AU commonly cited for the Oort cloud's outer boundary.
-Scaled by (mass/solar mass)^(1/3) across spectral types (using the typical
-main-sequence mass ranges in `physical_constants.SPECTRAL_MASS_RANGES`), it
-runs from ~0.7 ly for a small M dwarf up to ~7-8 ly for a massive O star.
-Two Sun-like stars' Hill spheres summed come to ~3.4 ly -- which lines up
-neatly with the ~3.9 ly mean nearest-neighbor distance the ~0.00284/ly^3
-density above implies for a random (Poisson) distribution of systems. In
-other words, real stars are spaced, on average, almost exactly as close as
-their mutual gravity allows without one's Oort cloud bleeding into the
-other's -- and this module's default placement reproduces that.
+Each system's `system_perimeter` is the one already shown in every generated system's output (the Sun's Oort cloud is
+inside it); it follows the mass of the galaxy inside the star's place (`galaxy.enclosed_mass`), so its median is about 4 ly
+(1.3 pc) over the systems of the audit galaxy at the solar circle and it falls toward the centre. Scaled by (mass/solar mass)^(1/3) across spectral types it runs from a
+small M dwarf's to a massive O star's several times larger.
 
 Position sampling draws through `planetgen.util.draw`, the stream bound
 to the running unit. A galaxy sector runs on its own seed, derived from the
@@ -288,13 +281,13 @@ def hill_radius_ly(obj):
 
 def required_separation_ly(system_a, system_b):
     """
-    The minimum distance, in light-years, at which two systems' galactic
-    Hill spheres (`hill_radius_ly`) stop overlapping: the sum of each
-    system's own Hill radius. Placing two systems closer than this puts each
-    one, at least partly, inside the other's zone of gravitational
-    dominance -- their Oort-cloud-scale outskirts would be stripped,
-    perturbed, or (at the extreme) drawn into the other system rather than
-    staying bound to their own star.
+    The minimum distance, in light-years, two systems are placed apart:
+    `program_constants.SECTOR_HILL_SEPARATION_SHARE` (half) of the sum of
+    their galactic Hill radii (`hill_radius_ly`). The whole sum would keep
+    the spheres from overlapping at all; the real solar neighbourhood
+    overlaps them, and the whole sum cannot be placed at the density of
+    one (GEN.1284). Closer than this puts one system's centre deep inside
+    the other's zone of gravitational dominance.
 
     Args:
         system_a (StarSystem): The first system.
@@ -303,7 +296,7 @@ def required_separation_ly(system_a, system_b):
     Returns:
         float: The minimum non-overlapping separation, in light-years.
     """
-    return hill_radius_ly(system_a) + hill_radius_ly(system_b)
+    return program_constants.SECTOR_HILL_SEPARATION_SHARE * (hill_radius_ly(system_a) + hill_radius_ly(system_b))
 
 
 def mean_nearest_neighbor_ly():
@@ -772,7 +765,7 @@ class _NeighborArrays:
         if min_separation_ly is not None:
             required = np.full(n, float(min_separation_ly))
         else:
-            required = hill_new + self.hill[:n]
+            required = program_constants.SECTOR_HILL_SEPARATION_SHARE * (hill_new + self.hill[:n])
         delta = positions - np.asarray(candidate)
         squared = np.einsum("ij,ij->i", delta, delta)
         clear = squared > (required * (1 + _CLEAR_MARGIN)) ** 2
@@ -792,7 +785,7 @@ class _NeighborArrays:
         if n == 0:
             return []
         positions = self.positions[:n]
-        required = hill_new + self.hill[:n]
+        required = program_constants.SECTOR_HILL_SEPARATION_SHARE * (hill_new + self.hill[:n])
         delta = positions - np.asarray(position)
         squared = np.einsum("ij,ij->i", delta, delta)
         near = np.nonzero(squared <= (required * (1 + _CLEAR_MARGIN)) ** 2)[0]
