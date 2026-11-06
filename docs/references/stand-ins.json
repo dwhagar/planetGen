@@ -26581,7 +26581,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "seasonal_swing.OCEAN_MIXED_LAYER_M 50, the depth of the sea that follows the seasons"
         },
         {
@@ -26619,7 +26619,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "seasonal_swing.WATER_HEAT_CAPACITY_J_M3_K 4.1e6, the volumetric heat capacity of liquid water"
         },
         {
@@ -26657,7 +26657,7 @@
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L1",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "seasonal_swing.MAX_SHARE 0.999, the transport share is cut here; the seasonal damping is the mean state's own, B_t = B s / (1 - s)"
         },
         {
@@ -26695,7 +26695,7 @@
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L1",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "seasonal_swing.OCEAN_EDDY_DIFFUSIVITY_M2_S 2.5e-4, how fast the sea mixes heat down: the depth a cycle of period P reaches is sqrt(kappa P / pi), 50 m for a year and 2.6 m for a day"
         },
         {
@@ -26961,7 +26961,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "seasonal_swing.TEMPERATURE_MAX_STEPS 1500, SAMPLES_PER_DAY 8, STEPS_PER_YEAR 120, FEW_COLUMNS 4 from MANY_TURNS 24, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 1.0, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 1.0, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series, set in PERF.238 so a median body takes 26 ms; FINE is the check)"
         },
         {
@@ -26999,7 +26999,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "temperature_coverage.MOST_OF_THE_TIME 0.5 and NEARLY_ALWAYS 0.9 (a place is in the livable area when it is livable at least half the time; the research note's 90 percent for the area livable nearly always)"
         },
         {
@@ -27037,7 +27037,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "temperature_coverage.DAY_SIDE_DEG 60 and NIGHT_SIDE_DEG 120 (the day side is within 60 degrees of the point under the star of a world that turns once an orbit, the night side beyond 120, the terminator belt between: a quarter, a half and a quarter of the surface)"
         },
         {
@@ -27075,8 +27075,206 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "temperature_coverage.TIE_TOLERANCE 1e-3 (cells whose livable time is within a tenth of a percent of the best tie for the best site, the more moderate winning)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "habitability.LIVABLE_YELLOW_EDGE 0.10, LIVABLE_GREEN_EDGE 0.50 with COVERAGE_EDGE_SCORES (0, 0), (0.10, 0.4), (0.50, 0.75): the livable share of area and time at which the Temperature score reaches the Yellow edge (0.4) and the Green edge (0.75), joined by straight lines so the geometric mean of overall_score still works"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2 and 0.4 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "every body with a temperature"
+            ],
+            [
+              "What would show it wrong",
+              "a decision of Boss on the edges"
+            ],
+            [
+              "What replaces it",
+              "Boss's numbers"
+            ],
+            [
+              "Evidence",
+              "the proposal of the research note of 11-04 (option S2), accepted at 7:32 PM EST"
+            ]
+          ],
+          "id": "SS15",
+          "key": "6.91:SS15",
+          "kind": "D",
+          "slug": "6-91-ss15",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "habitability.LIVABLE_YELLOW_EDGE 0.10, LIVABLE_GREEN_EDGE 0.50 with COVERAGE_EDGE_SCORES (0, 0), (0.10, 0.4), (0.50, 0.75): the livable share of area and time at which the Temperature score reaches the Yellow edge (0.4) and the Green edge (0.75), joined by straight lines so the geometric mean of overall_score still works"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the Blue edge and the Blue share are a lenient cut set on a sweep of generated bodies (Boss: near 0.8 livable); a survey of what people call a comfortable world would replace them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "habitability.LIVABLE_BLUE_EDGE 0.80 (the livable share at which the score reaches 1) and BLUE_SHARE_MIN 0.30 (the share of area and time in the Blue band a Blue world also needs; under it the score is held below the Blue edge)"
+            ],
+            [
+              "The range it moves in",
+              "0.7 to 0.9 and 0.2 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "every body with a temperature"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep (GEN.1265, 1976 rocky bodies of 300 systems) where Earth-like worlds (livable share 0.8 or more, Blue share 0.45 or more) stop reading Blue, or a world 270 K or colder reads Blue"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "a lenient Blue cut near 0.8 (Boss, 7:32 PM EST 11-04) set on the sweep: all 12 worlds that read Blue have a livable share of 0.80 or more and a Blue share of 0.47 or more, and the worlds livable everywhere but with no Blue share (255 to 265 K) stay Green"
+            ]
+          ],
+          "id": "SS16",
+          "key": "6.91:SS16",
+          "kind": "D",
+          "slug": "6-91-ss16",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "habitability.LIVABLE_BLUE_EDGE 0.80 (the livable share at which the score reaches 1) and BLUE_SHARE_MIN 0.30 (the share of area and time in the Blue band a Blue world also needs; under it the score is held below the Blue edge)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the credit for a place that needs a suit is a design choice so a suit-everywhere world reads Yellow, not Red; Boss's decision on that reading would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "habitability.YELLOW_CREDIT 0.15 (a sample that needs a suit, the Yellow band, counts for this share of a livable one in the score, so a world where a person needs a suit everywhere reads Yellow and one that kills everywhere reads Red)"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "every body with a temperature"
+            ],
+            [
+              "What would show it wrong",
+              "a decision of Boss that a world that needs a suit everywhere reads Red, or a sweep where the credit puts a world with a livable share under 0.1 in Green"
+            ],
+            [
+              "What replaces it",
+              "0"
+            ],
+            [
+              "Evidence",
+              "the plan scores livable area only; with no credit every suit-only world fell from Yellow to Red, which the Yellow cap on the overall rating (unchanged) did not intend"
+            ]
+          ],
+          "id": "SS17",
+          "key": "6.91:SS17",
+          "kind": "P",
+          "slug": "6-91-ss17",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "habitability.YELLOW_CREDIT 0.15 (a sample that needs a suit, the Yellow band, counts for this share of a livable one in the score, so a world where a person needs a suit everywhere reads Yellow and one that kills everywhere reads Red)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.BELT_ONLY_SHARE 0.1 (a world that turns once an orbit is livable only in its terminator belt when it has some livable area and under this share of its day side and of its night side is livable)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "tidally locked bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a decision of Boss on where the belt ends"
+            ],
+            [
+              "What replaces it",
+              "Boss's number"
+            ],
+            [
+              "Evidence",
+              "the decision of 7:32 PM EST that such a world reads Yellow with a note"
+            ]
+          ],
+          "id": "SS18",
+          "key": "6.91:SS18",
+          "kind": "D",
+          "slug": "6-91-ss18",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "temperature_coverage.BELT_ONLY_SHARE 0.1 (a world that turns once an orbit is livable only in its terminator belt when it has some livable area and under this share of its day side and of its night side is livable)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "temperature_coverage.WET_BULB_TOP_C 50 (the wet bulb rule is applied to samples up to 50 C; hotter ones are Red already) and seasonal_swing.CEILING_MARGIN 1.05 (a temperature in the series is held under the fourth root of the largest forcing over the emission, times this, so a hot airless fast spinner does not overflow the fourth power)"
+            ],
+            [
+              "The range it moves in",
+              "45 to 60 and 1.01 to 1.2"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose livable share changes by more than 0.01 with the margin, or a sweep where a series is not finite"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "numerical choices"
+            ]
+          ],
+          "id": "SS19",
+          "key": "6.91:SS19",
+          "kind": "P",
+          "slug": "6-91-ss19",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "temperature_coverage.WET_BULB_TOP_C 50 (the wet bulb rule is applied to samples up to 50 C; hotter ones are Red already) and seasonal_swing.CEILING_MARGIN 1.05 (a temperature in the series is held under the fourth root of the largest forcing over the emission, times this, so a hot airless fast spinner does not overflow the fourth power)"
         }
       ],
       "slug": "6-91-stand-ins-of-the-seasonal-swing",

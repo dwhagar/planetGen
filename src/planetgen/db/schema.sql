@@ -2482,6 +2482,31 @@ CREATE TABLE IF NOT EXISTS planets (
     band7_longest_night_days    DOUBLE,
     band7_state                 VARCHAR(24),
     temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
+    temp_livable_share          DOUBLE,  -- v212 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v212: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v212: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v212: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v212: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v212: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v212: the share above 45 C
+    temp_area_always            DOUBLE,  -- v212: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v212: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v212: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v212: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v212: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v212: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v212: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v212: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v212: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v212: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v212: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v212: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
@@ -2564,11 +2589,11 @@ CREATE TABLE IF NOT EXISTS planets (
     surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
     surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
     surface_liquid_methane_mol    DOUBLE,  -- v205 (GEN.1218b): the methane of a methane, ethane or nitrogen sea, mole fraction (NULL: another liquid)
-    surface_liquid_ethane_mol     DOUBLE,  -- v205: its ethane, mole fraction
-    surface_liquid_nitrogen_mol   DOUBLE,  -- v205: its dissolved nitrogen, mole fraction
-    surface_liquid_salt_wt  DOUBLE,  -- v205: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
-    surface_liquid_2              VARCHAR(32),  -- v205: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
-    surface_liquid_2_fraction     DOUBLE,  -- v205: the share of the surface it covers
+    surface_liquid_ethane_mol     DOUBLE,  -- v212: its ethane, mole fraction
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v212: its dissolved nitrogen, mole fraction
+    surface_liquid_salt_wt  DOUBLE,  -- v212: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
+    surface_liquid_2              VARCHAR(32),  -- v212: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_2_fraction     DOUBLE,  -- v212: the share of the surface it covers
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2927,6 +2952,31 @@ CREATE TABLE IF NOT EXISTS moons (
     band7_longest_night_days    DOUBLE,
     band7_state                 VARCHAR(24),
     temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
+    temp_livable_share          DOUBLE,  -- v212 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v212: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v212: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v212: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v212: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v212: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v212: the share above 45 C
+    temp_area_always            DOUBLE,  -- v212: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v212: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v212: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v212: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v212: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v212: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v212: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v212: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v212: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v212: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v212: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v212: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
@@ -3004,11 +3054,11 @@ CREATE TABLE IF NOT EXISTS moons (
     surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
     surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
     surface_liquid_methane_mol    DOUBLE,  -- v205 (GEN.1218b): the methane of a methane, ethane or nitrogen sea, mole fraction (NULL: another liquid)
-    surface_liquid_ethane_mol     DOUBLE,  -- v205: its ethane, mole fraction
-    surface_liquid_nitrogen_mol   DOUBLE,  -- v205: its dissolved nitrogen, mole fraction
-    surface_liquid_salt_wt  DOUBLE,  -- v205: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
-    surface_liquid_2              VARCHAR(32),  -- v205: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
-    surface_liquid_2_fraction     DOUBLE,  -- v205: the share of the surface it covers
+    surface_liquid_ethane_mol     DOUBLE,  -- v212: its ethane, mole fraction
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v212: its dissolved nitrogen, mole fraction
+    surface_liquid_salt_wt  DOUBLE,  -- v212: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
+    surface_liquid_2              VARCHAR(32),  -- v212: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_2_fraction     DOUBLE,  -- v212: the share of the surface it covers
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -4160,6 +4210,31 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     band7_longest_night_days    DOUBLE,  -- v207 (GEN.1111)
     band7_state                 VARCHAR(24),  -- v207 (GEN.1111)
     temp_mean_swing_k           DOUBLE,  -- v207 (GEN.1111)
+    temp_livable_share          DOUBLE,  -- v212 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v212: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v212: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v212: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v212: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v212: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v212: the share above 45 C
+    temp_area_always            DOUBLE,  -- v212: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v212: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v212: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v212: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v212: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v212: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v212: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v212: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v212: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v212: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v212: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v212: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v207 (GEN.1111)
     outside_hours_limit         VARCHAR(16),  -- v207 (GEN.1111)
     day_night_state             VARCHAR(24),  -- v207 (GEN.1111)

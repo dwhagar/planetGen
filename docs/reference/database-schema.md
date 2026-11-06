@@ -1421,6 +1421,31 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `relative_humidity` | DOUBLE | nullable | Added in v212 (GEN.1221). The air's water vapor over saturation at the surface temperature, 0.05 to 0.99 (`physics/habitability_world.py`), the number the wet bulb uses. NULL for a row made before v212 and for a giant. |
 | `groundwater` | VARCHAR(10) | nullable | Added in v212 (GEN.1221). `none`, `reachable` or `deep`: the liquid water a body with none at its surface holds underground, reachable when the top of its water layer is within `tuning.AQUIFER_REACH_KM`. NULL for a row made before v212 and for a giant. |
 | `temp_mean_swing_k` | DOUBLE | nullable | Added in v182 (GEN.848), kept in v196 (GEN.1108). The day and night swing of the whole surface, peak to peak, in kelvin of difference: the area-weighted mean of the swings of the seven bands (`band1_swing_k` to `band7_swing_k`). NULL for a gas giant, an unscored body and a row made before v195. |
+| `temp_livable_share` | DOUBLE | nullable | Added in v214 (GEN.1265). L, the share of the surface's area and time a person can be out in without a suit (the Green band, -20 to 45 C, or better; a sample past the wet bulb limit is not livable). NULL for a gas giant and an unscored body. |
+| `temp_livable_area` | DOUBLE | nullable | Added in v214 (GEN.1265). The share of the surface livable at least half of the time. NULL for a gas giant and an unscored body. |
+| `temp_livable_time` | DOUBLE | nullable | Added in v214 (GEN.1265). The mean share of the time that ground is livable. NULL for a gas giant and an unscored body. |
+| `temp_blue_share` | DOUBLE | nullable | Added in v214 (GEN.1265). The share of area and time in the Blue band (0 to 31 C). NULL for a gas giant and an unscored body. |
+| `temp_green_share` | DOUBLE | nullable | Added in v214 (GEN.1265). The share in the Green band and not Blue. NULL for a gas giant and an unscored body. |
+| `temp_cold_share` | DOUBLE | nullable | Added in v214 (GEN.1265). The share below -20 C. NULL for a gas giant and an unscored body. |
+| `temp_hot_share` | DOUBLE | nullable | Added in v214 (GEN.1265). The share above 45 C. NULL for a gas giant and an unscored body. |
+| `temp_area_always` | DOUBLE | nullable | Added in v214 (GEN.1265). The share of the surface livable all the time. NULL for a gas giant and an unscored body. |
+| `temp_area_most` | DOUBLE | nullable | Added in v214 (GEN.1265). The share of the surface livable at least 90 percent of the time. NULL for a gas giant and an unscored body. |
+| `temp_livable_belt_only` | TINYINT | nullable | Added in v214 (GEN.1265). 1 when a world that turns once an orbit is livable only in its terminator belt (the day side and the night side are each under a tenth livable), else 0. NULL for a gas giant and an unscored body. |
+| `temp_coldest_k` | DOUBLE | nullable | Added in v214 (GEN.1265). The coldest sample anywhere in the year, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_coldest_lat_deg` | DOUBLE | nullable | Added in v214 (GEN.1265). Its latitude, degrees. NULL for a gas giant and an unscored body. |
+| `temp_coldest_lon_deg` | DOUBLE | nullable | Added in v214 (GEN.1265). Its longitude, degrees. NULL for a gas giant and an unscored body. |
+| `temp_coldest_day` | DOUBLE | nullable | Added in v214 (GEN.1265). When, days from an equinox. NULL for a gas giant and an unscored body. |
+| `temp_hottest_k` | DOUBLE | nullable | Added in v214 (GEN.1265). The hottest sample anywhere, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_hottest_lat_deg` | DOUBLE | nullable | Added in v214 (GEN.1265). Its latitude. NULL for a gas giant and an unscored body. |
+| `temp_hottest_lon_deg` | DOUBLE | nullable | Added in v214 (GEN.1265). Its longitude. NULL for a gas giant and an unscored body. |
+| `temp_hottest_day` | DOUBLE | nullable | Added in v214 (GEN.1265). When, days from an equinox. NULL for a gas giant and an unscored body. |
+| `temp_site_lat_deg` | DOUBLE | nullable | Added in v214 (GEN.1265). The best site, the cell livable the largest share of the time (a tie goes to the most moderate): its latitude, degrees. NULL for a gas giant and an unscored body. |
+| `temp_site_lon_deg` | DOUBLE | nullable | Added in v214 (GEN.1265). Its longitude, degrees. NULL for a gas giant and an unscored body. |
+| `temp_site_livable_time` | DOUBLE | nullable | Added in v214 (GEN.1265). The share of the time it is livable. NULL for a gas giant and an unscored body. |
+| `temp_site_coldest_k` | DOUBLE | nullable | Added in v214 (GEN.1265). Its coldest sample, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_site_hottest_k` | DOUBLE | nullable | Added in v214 (GEN.1265). Its hottest sample, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_site_mean_k` | DOUBLE | nullable | Added in v214 (GEN.1265). Its mean temperature, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_site_longest_out_days` | DOUBLE | nullable | Added in v214 (GEN.1265). Its longest unbroken spell out of the livable band, days (0 when it is always livable). NULL for a gas giant and an unscored body. |
 | `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The four likelihoods behind microbial life: `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation, each 0 to 1. (v76 also stored `phi_bio`, `phi_cpx` and `phi_tech`; v136 dropped them for the four life scores below.) |
 | `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | Added in v150 (GEN.649). The four life scores, 0 (none) to 9 (abundant), from the evolutionary path the body reached and its surface conditions ([habitability-index.md](../design/habitability/habitability-index.md) section 11). NULL for a gas giant or a body with no score. |
 | `energy_flux_w_m2` | DOUBLE | nullable | Added in v76 (GEN.89). The light or chemical power life can use: 6% of the starlight, or 1% of the body's own heat flow, whichever is more (the heat only, under an ice lid). The one input the score keeps, so the dose refresh can re-score from the row. |
@@ -2317,6 +2342,7 @@ Migration 0195 adds `roundness_ratio`, `yield_strength_pa` and `binding_energy_j
 
 Migration 0200 adds `density_g_cm3` and `binding_energy_j` (DOUBLE, nullable) to `stars`, `black_holes` and `neutron_stars`; those with `roundness_ratio` and `yield_strength_pa` to `rogue_planets`; and `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` to `interstellar_comets`, skipping a column already there. All are NULL after the migration; a row made before v196 gets them when the galaxy is regenerated.
 
+
 Migration 0204 adds `origin_cause`, `co_causes`, `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth`, `stirred`, `origin_history`, `origin_sentence`, `scatter_fates` and `largest_body_km` (nullable) to `asteroid_belts`, the origin a belt carries and the largest body settled with its mass (GEN.1069). A belt made before v201 gets them when the galaxy is regenerated.
 
 ### v189 (GEN.1009): the largest radius and mass of a member
@@ -2346,6 +2372,10 @@ Migration 0202 creates `designations`, one row for each ID or name an object use
 ### v212 (GEN.1221): the relative humidity and the groundwater
 
 Migration 0212 adds `relative_humidity` (DOUBLE) and `groundwater` (VARCHAR(10)) to `planets`, `moons` and `rogue_planets`, nullable and NULL for a row made before v212, skipping a column already there.
+
+### v214 (GEN.1265): what is read off the temperature of every place
+
+Migration 0214 adds the 25 temperature coverage columns `temp_livable_share` to `temp_site_longest_out_days` (nullable; DOUBLE except `temp_livable_belt_only`, TINYINT) to `planets`, `moons` and `rogue_planets` (GEN.1265, `physics/temperature_coverage.py`): the livable share and its pieces, the Blue, Green, cold and hot shares, the extremes and the best site read off the temperature of every place through the year. `planets` and `moons` carry a FULLTEXT key, so each table is rebuilt once with every change in one ALTER. A column already added is skipped, so a stopped run can be started again. All the new columns are NULL after the migration: they are worked out when a body is generated or brought to the epoch, so a regenerated galaxy fills them. The mean and the swing of the seven bands (`band1_mean_k` to `band7_swing_k`) are read off the same series from this epoch.
 
 ### v206 (GEN.1219, GEN.1220, GEN.1226): the body type, the class digit and the envelope share
 

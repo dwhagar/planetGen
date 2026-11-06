@@ -146,6 +146,18 @@ TEMPERATURE_DIFFERENCES = (*BAND_SWINGS, "temp_mean_swing_k")
 """tuple: The columns of `REGIONAL_TEMPERATURES` that are a size and not a place on the scale: the swing between the
 hottest and the coldest hour is in kelvin of difference (`dK`), so it is never shown as -264 °C."""
 
+COVERAGE_KELVIN = ("temp_coldest_k", "temp_hottest_k", "temp_site_coldest_k", "temp_site_hottest_k", "temp_site_mean_k")
+"""tuple: The temperatures read off the temperature of every place on `planets` and `moons` (GEN.1265, `physics/temperature_coverage.py`), kelvin."""
+COVERAGE_SHARES = ("temp_livable_share", "temp_livable_area", "temp_livable_time", "temp_blue_share", "temp_green_share", "temp_cold_share", "temp_hot_share", "temp_area_always",
+                   "temp_area_most", "temp_site_livable_time")
+"""tuple: The shares of area and time in each temperature band, 0 to 1."""
+COVERAGE_DEGREES = ("temp_coldest_lat_deg", "temp_coldest_lon_deg", "temp_hottest_lat_deg", "temp_hottest_lon_deg", "temp_site_lat_deg", "temp_site_lon_deg")
+"""tuple: The places of the coldest and hottest samples and the best site, degrees."""
+COVERAGE_DAYS = ("temp_coldest_day", "temp_hottest_day", "temp_site_longest_out_days")
+"""tuple: The times of the coldest and hottest samples (days from an equinox) and the longest spell out of the livable band at the best site, days."""
+COVERAGE_FLAGS = ("temp_livable_belt_only",)
+"""tuple: The livable ground is only the terminator belt, 0 or 1."""
+
 TABLES = {
     "asteroid_belt_composition": {
         "id": ("id", "belt_id"),
@@ -472,9 +484,9 @@ TABLES = {
         "km3": ("volume_km3",),
         "yr": ("period_years", "min_update_interval_years", "ring_age_yr"),
         "g0": ("gravity_g",),
-        "K": ("surface_temperature_k", *(name for name in REGIONAL_TEMPERATURES if name not in TEMPERATURE_DIFFERENCES)),
+        "K": ("surface_temperature_k", *(name for name in REGIONAL_TEMPERATURES if name not in TEMPERATURE_DIFFERENCES), *COVERAGE_KELVIN),
         "dK": TEMPERATURE_DIFFERENCES,
-        "d": BAND_LONGEST_DAYS,
+        "d": (*BAND_LONGEST_DAYS, *COVERAGE_DAYS),
         "g_cm3": ("density_g_cm3",),
         "kg_m3": ("atm_density",),
         "kg/mol": ("atm_molar_density",),
@@ -483,7 +495,7 @@ TABLES = {
         "class-digit": ("class_variant",),
         "count": ("flavor_text_count",),
         "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS),
-        "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg", "polar_circle_deg"),
+        "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg", "polar_circle_deg", *COVERAGE_DEGREES),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
         "h": ("rotation_period_hours", "outside_hours", "outside_hours_day", "solar_day_hours", "daylight_hours", "night_hours", *BAND_HOURS),
@@ -513,7 +525,7 @@ TABLES = {
         "mg-si": ("rock_mg_si_ratio",),
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "frac": (
-            "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover", "relative_humidity",
+            *COVERAGE_SHARES, "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover", "relative_humidity",
             "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "ice_co2_mass_fraction", "ice_ch4_mass_fraction", "ice_nh3_mass_fraction", "ice_n2_mass_fraction", "ice_so2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_other_mass_fraction", "envelope_mass_fraction",
             "rock_feo_fraction", "rock_al2o3_fraction", "envelope_helium_fraction", "envelope_z_fraction", "porosity",
             "ring_ice_fraction",
@@ -531,7 +543,7 @@ TABLES = {
         "pct": ("surface_liquid_acid_wt", "surface_liquid_ammonia_wt", "surface_liquid_salt_wt"),
         "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr", "dose_belt_msv_yr"),
         "DU": ("ozone_column_du",),
-        "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock", "has_helium_shell"),
+        "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock", "has_helium_shell", *COVERAGE_FLAGS),
         "Mearth": ("core_mass_earth", "dilute_core_mass_earth"),
         "GPa": ("metallization_pressure_gpa",),
         "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2", "internal_heat_flux_w_m2"),
@@ -744,9 +756,9 @@ TABLES = {
         "km3": ("volume_km3",),
         "yr": ("period_years", "min_update_interval_years", "ring_age_yr"),
         "g0": ("gravity_g",),
-        "K": ("surface_temperature_k", *(name for name in REGIONAL_TEMPERATURES if name not in TEMPERATURE_DIFFERENCES)),
+        "K": ("surface_temperature_k", *(name for name in REGIONAL_TEMPERATURES if name not in TEMPERATURE_DIFFERENCES), *COVERAGE_KELVIN),
         "dK": TEMPERATURE_DIFFERENCES,
-        "d": BAND_LONGEST_DAYS,
+        "d": (*BAND_LONGEST_DAYS, *COVERAGE_DAYS),
         "g_cm3": ("density_g_cm3",),
         "kg_m3": ("atm_density",),
         "kg/mol": ("atm_molar_density",),
@@ -755,7 +767,7 @@ TABLES = {
         "class-digit": ("class_variant",),
         "count": ("flavor_text_count",),
         "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS),
-        "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg", "polar_circle_deg"),
+        "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg", "polar_circle_deg", *COVERAGE_DEGREES),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
         "h": ("rotation_period_hours", "outside_hours", "outside_hours_day", "solar_day_hours", "daylight_hours", "night_hours", *BAND_HOURS),
@@ -785,7 +797,7 @@ TABLES = {
         "mg-si": ("rock_mg_si_ratio",),
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "frac": (
-            "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover", "relative_humidity",
+            *COVERAGE_SHARES, "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover", "relative_humidity",
             "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "ice_co2_mass_fraction", "ice_ch4_mass_fraction", "ice_nh3_mass_fraction", "ice_n2_mass_fraction", "ice_so2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_other_mass_fraction", "envelope_mass_fraction",
             "rock_feo_fraction", "rock_al2o3_fraction", "envelope_helium_fraction", "envelope_z_fraction", "porosity",
             "ring_ice_fraction",
@@ -803,7 +815,7 @@ TABLES = {
         "pct": ("surface_liquid_acid_wt", "surface_liquid_ammonia_wt", "surface_liquid_salt_wt"),
         "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr", "dose_belt_msv_yr"),
         "DU": ("ozone_column_du",),
-        "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock", "has_helium_shell"),
+        "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock", "has_helium_shell", *COVERAGE_FLAGS),
         "Mearth": ("core_mass_earth", "dilute_core_mass_earth"),
         "GPa": ("metallization_pressure_gpa",),
         "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2", "internal_heat_flux_w_m2"),

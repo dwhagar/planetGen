@@ -178,8 +178,21 @@ def test_earth_from_its_columns_has_the_full_daylight():
     assert _body(_world(), daylight_hours=12.1, band4_swing_k=10.0) == (12.1, "daylight")
 
 
-def test_a_hot_desert_from_its_columns_is_cut_by_the_heat():
-    hours, binding = _body(_world(temperature_c=120.0, relative_humidity=0.1), band4_swing_k=40.0)
+def test_a_hot_desert_from_its_columns_is_worked_from_the_extremes_of_its_best_site():
+    """GEN.1266: the temperatures are the coldest and hottest hour of the best site through the year, not the band's mean and swing."""
+    from tests.test_temperature_score import _spinning
+    from planetgen.physics import habitability_world as hw
+    values = _spinning(surface_temperature_k=450.0, ground_ocean_fraction=0.0, ground_ice_fraction=0.0, greenhouse_factor=0.0, axial_tilt_deg=0.0)
+    values.update(atmospheric_pressure_pa=101_300.0, p_o2_kpa=21.3, p_n2_kpa=80.0, daylight_hours=12.0)
+    world = hw.world_from(values)
+    cold_c, hot_c = habitability.site_extremes_c(world)
+    assert hot_c > 100.0 and cold_c < hot_c
+    assert outside_hours.for_body(world, equipment.compute(world), values) == outside_hours.outside_hours_day(
+        world, equipment.compute(world), 12.0, outside_hours.work_days_per_year(24.0, 1.0), Temperatures(cold_c + C, hot_c + C))
+
+
+def test_a_hot_day_is_cut_by_the_heat():
+    hours, binding = _day(_world(temperature_c=120.0, relative_humidity=0.1), swing=40.0)
     assert binding == "heat" and 1.0 < hours < 12.0
 
 
