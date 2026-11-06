@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.646 |
+| TEST | TEST.647 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -2669,7 +2669,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.102 | Debug log: an area column in, the dead logger-name column out | none | open |
 | OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | none | open |
 | OPS.104 | One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone | none | done, PR #5202 |
-| OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | none | open |
+| OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | none | done, PR #5306 |
 | OPS.106 | update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed | none | done, PR #5249 |
 | OPS.107 | The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs | none | done, PR #5249 |
 | OPS.108 | A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged | none | done, PR #5249 |
@@ -4093,6 +4093,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.643 | tests/test_work_units.py::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units fails: 36 'Saved sector' lines against 60 saved (bug) | none | done, PR #5292 |
 | TEST.644 | Four more tests are red on main: test_web_fresh_after_cli (3), test_fingerprint every_table_is_compared, test_db_check (3) and test_galaxy_gen span_mode (bug) | none | open |
 | TEST.645 | tests/test_db_column_round_trip.py::test_every_column_is_written fails in a combined run and passes alone: moons.rogue_planet_id depends on which rogues the shared galaxy draws (bug) | none | done, PR #5298 |
+| TEST.646 | More tests red on main beyond TEST.644: test_parallel_generation (6), test_deferred_sectors (3), test_habitability_fill (2), test_db_check_deep, test_generation_stats (4), test_materials_table, test_sectors_command (2), test_prevalence (asteroid_belt, large_star, habitable_world), test_benchmark_suite, test_estimate_sampling, test_run_job (scatter redraw), test_maintenance (map rebuild), test_no_todo_codes_shown, test_plain_words nav comma (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
