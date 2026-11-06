@@ -49,6 +49,10 @@ SOURCES = {CHARTED: "charted", BRIGHT: "bright_star", SCATTER: "scatter"}
 CHUNK = 500
 """int: How many system IDs one statement reads the stars of."""
 
+MAX_LEVEL_CELLS = 200000
+"""int: The most sectors `cell_levels` lists for a sphere (stand-in SKV3): a sphere that touches more is `truncated`, because a sky out to 40 kpc touches
+10^13 sectors of a 3 parsec edge and listing them is neither possible nor of use (almost all are untouched)."""
+
 _to_watts = units.converter("Lsun", "W")
 _to_solar = units.converter("W", "Lsun")
 
@@ -78,6 +82,10 @@ class CellLevels:
     cells: tuple
     scatter_level_sol: object
     complete_above_sol: float
+    truncated: bool = False
+    """bool: The sphere touches more than `MAX_LEVEL_CELLS` sectors, too many to list (VIEW.31: a sky reaches tens of kiloparsecs): `cells` is empty and
+    `complete_above_sol` is what an untouched sector guarantees, the galaxy scatter's level (`inf` when it has none), the safe answer for a sphere that
+    big. The sky tiers (VIEW.25) record the spheres they drew, not their cells."""
 
     @property
     def untouched(self):
@@ -240,6 +248,8 @@ def cell_levels(conn, center, radius_pc):
     scatter_level = None if scatter is None else float(scatter[0])
     if edge <= 0.0:
         return CellLevels((), scatter_level, math.inf)
+    if 4.0 / 3.0 * math.pi * ((radius_pc / edge) + spherical.CELL_REACH_EDGES) ** 3 > MAX_LEVEL_CELLS:
+        return CellLevels((), scatter_level, math.inf if scatter_level is None else scatter_level, truncated=True)
     addresses = sorted((shell, band, wedge) for shell, band, wedge, *_rest in spherical.cells_touching_sphere(center, radius_pc, edge))
     levels = store.sector_bright_levels(conn, addresses)
     masses = store.sector_bright_masses(conn, addresses)

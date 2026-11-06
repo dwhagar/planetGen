@@ -42,7 +42,7 @@ def test_the_set_pull_is_a_direct_sum_for_random_sets():
         assert A.set_pull(here, _set(positions, masses)) == pytest.approx(tuple(expected), rel=1e-12)
 
 
-def test_a_monopole_pulls_like_a_member_of_its_mass_at_its_centre_of_mass():
+def test_a_monopole_pulls_like_a_member_of_its_mass_at_its_center_of_mass():
     monopole = influence.Monopole((1, 2, 3), (4.0, 0.0, 0.0), 12.0 * MSUN, 7)
     assert A.set_pull((0.0, 0.0, 0.0), _set([], [], [monopole])) == pytest.approx(A.set_pull((0.0, 0.0, 0.0), _set([(4.0, 0.0, 0.0)], [12.0])), rel=1e-12)
 

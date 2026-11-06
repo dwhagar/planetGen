@@ -1,0 +1,105 @@
+{#- One asteroid belt's information page (/object/belt:<ID>/belt, web/belt_info_page.py, UX.241): its individually tracked bodies, the rest of its mass by size and its density. -#}
+{% extends "base.html" %}
+{% block subhead %}
+<div class="page-subhead">
+  <p class="badges">
+    <span class="badge">Asteroid belt</span>
+    <span class="badge">Object ID {{ belt.designation }}</span>
+    {%- if belt.star %}<span class="badge">Goes round {{ belt.star }}</span>{% endif %}
+  </p>
+</div>
+{% endblock %}
+{% block content %}
+<section class="panel" aria-labelledby="belt-summary-heading">
+  <div class="panel-header"><h2 id="belt-summary-heading">The belt</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      <tr><th scope="row">Page of the belt</th><td><a href="{{ belt_url }}">{{ name }}</a></td></tr>
+      <tr><th scope="row">From</th><td>{{ quantity(belt.inner) }}</td></tr>
+      <tr><th scope="row">To</th><td>{{ quantity(belt.outer) }}</td></tr>
+      <tr><th scope="row">Mass</th><td>{{ quantity(belt.mass) }}</td></tr>
+      <tr><th scope="row">Contents</th><td>{{ belt_composition }}</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="panel" id="belt-bodies" aria-labelledby="belt-bodies-heading">
+  <div class="panel-header"><h2 id="belt-bodies-heading">Bodies kept one by one</h2></div>
+  {%- if bodies %}
+  <p>These {{ bodies|length }} bodies are the heaviest of the belt and are kept individually. They have a designation, not a name. Heaviest first.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead>
+      <tr><th scope="col">Designation</th><th scope="col">Mass</th><th scope="col">Diameter</th><th scope="col">Distance</th><th scope="col">Type</th><th scope="col">Density</th>
+          <th scope="col">Made of</th><th scope="col">Shape</th><th scope="col">Orbit group</th></tr>
+    </thead>
+    <tbody>
+      {%- for body in bodies %}
+      <tr>
+        <th scope="row"><code>{{ body.designation }}</code></th>
+        <td>{{ quantity(body.mass) }}</td>
+        <td>{{ quantity(body.diameter) }}</td>
+        <td>{{ quantity(body.distance) }}</td>
+        <td>{{ body.analogue }} ({{ body.taxon }})</td>
+        <td>{{ quantity(body.density) }}</td>
+        <td>{{ body.composition_text }}</td>
+        <td>{{ body.status.word or "" }}</td>
+        <td>{{ (body.population or "")|replace("_", " ") }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- else %}
+  <p>This belt keeps no bodies one by one: all of its mass is in the sizes below.</p>
+  {%- endif %}
+</section>
+
+<section class="panel" id="belt-sizes" aria-labelledby="belt-sizes-heading">
+  <div class="panel-header"><h2 id="belt-sizes-heading">The rest of the belt's mass</h2></div>
+  <p>Everything that is not kept one by one, by size. The counts and masses add up, with the bodies above, to the belt's mass. Bodies of the larger sizes are drawn when asked for; the smallest sizes are a total only.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead>
+      <tr><th scope="col">Size</th><th scope="col">Bodies</th><th scope="col">Mass</th><th scope="col">Share of the belt</th><th scope="col">Typical density</th><th scope="col">Typical contents</th><th scope="col">Kept as</th></tr>
+    </thead>
+    <tbody>
+      {%- for row in bins %}
+      <tr>
+        <th scope="row">{% if row["from"] %}{{ quantity(row["from"]) }} to {% else %}Up to {% endif %}{{ quantity(row.to) }}</th>
+        <td>{{ quantity(row.count) }}</td>
+        <td>{{ quantity(row.mass) }}</td>
+        <td>{{ quantity(row.mass_share) }}</td>
+        <td>{{ quantity(row.typical_density) }}</td>
+        <td>{{ row.composition_text }}</td>
+        <td>{{ row.tier }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+
+<section class="panel" id="belt-density" aria-labelledby="belt-density-heading">
+  <div class="panel-header"><h2 id="belt-density-heading">How crowded the belt is</h2></div>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead>
+      <tr><th scope="col">Bodies larger than</th><th scope="col">In each square astronomical unit of the belt</th></tr>
+    </thead>
+    <tbody>
+      {%- for row in density.by_diameter %}
+      <tr><th scope="row">{{ quantity(row.above) }}</th><td>{{ quantity(row.objects) }}</td></tr>
+      {%- endfor %}
+      <tr><th scope="row">Mass</th><td>{{ quantity(density.mass) }}</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sheet-help">The mean over the belt's whole area: no part of the belt is thicker or thinner than another.</p>
+</section>
+
+<section class="panel" id="belt-totals" aria-labelledby="belt-totals-heading">
+  <div class="panel-header"><h2 id="belt-totals-heading">Where the belt's mass is</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      <tr><th scope="row">Bodies kept one by one</th><td>{{ quantity(totals.listed) }}</td></tr>
+      <tr><th scope="row">Everything smaller</th><td>{{ quantity(totals.bins) }}</td></tr>
+      <tr><th scope="row">The whole belt</th><td>{{ quantity(totals.belt_mass) }}</td></tr>
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

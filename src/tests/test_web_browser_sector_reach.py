@@ -3,7 +3,7 @@ A sector's own scene fades in as the camera comes up to it (MAP.152), in a real 
 database `test_web_a11y.py` builds.
 
 In a window of sectors the wheel brings the camera toward the sector at the middle; within 1.5 sector edges of
-its centre the sector's scene (its stars and phenomena) is fetched and fades in, whole at 1 edge; it is dropped
+its center the sector's scene (its stars and phenomena) is fetched and fades in, whole at 1 edge; it is dropped
 past 3 edges. None of that is "opening" the sector: the address and the panel stay the window's, and a click on
 the sector then opens it from the scene already there (no second fetch).
 
@@ -53,9 +53,9 @@ def _ambient(page):
     return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyAmbient()")
 
 
-def _distance(page, centre):
+def _distance(page, center):
     eye = _camera(page)["eye"]
-    return math.dist(eye, centre)
+    return math.dist(eye, center)
 
 
 def _wheel(page, spot, delta):
@@ -71,7 +71,7 @@ class _Scene:
         self.id = sample_params["sector_id"]
         self.app = site_app
         detail = _sector(site_app, self.id)
-        self.centre = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
+        self.center = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
         scene = _scene(site_app, self.id)
         self.edge = scene["halfEdgePc"] * 2
         self.code = _designation(detail)
@@ -93,28 +93,45 @@ def reach(page, base_url, site_app, sample_params):
 
 
 def _spot(page, reach):
-    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(reach.centre))
-    assert spot, "the sector's centre is not on the map"
+    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(reach.center))
+    assert spot, "the sector's center is not on the map"
     return (spot["x"], spot["y"])
 
 
+def _at_rest(page, limit=60):
+    """The camera once two reads 100 ms apart agree (it is no longer coming in or going out)."""
+    last = _camera(page)
+    for _ in range(limit):
+        page.wait_for_timeout(100)
+        now = _camera(page)
+        if now["dist"] == last["dist"]:
+            return now
+        last = now
+    return last
+
+
 def _zoom_in_until(page, reach, edges, limit=40):
-    """Wheels toward the sector until the camera is within `edges` sector edges of its centre (or no closer is
+    """Wheels toward the sector until the camera is within `edges` sector edges of its center (or no closer is
     possible); returns the distance in edges."""
     for _ in range(limit):
-        distance = _distance(page, reach.centre) / reach.edge
+        distance = _distance(page, reach.center) / reach.edge
         if distance <= edges:
             return distance
         before = _camera(page)["zoom"]
-        _wheel(page, _spot(page, reach), -40)
-        if _camera(page)["zoom"] >= before - 1e-9:
+        # TEST.411: a tick moves the camera over the frames after it (slowly on a loaded machine), so the zoom is read once it has come to
+        # rest; read at once it can look unchanged half way in. The window's nearest zoom is where a second tick moves nothing either.
+        for _ in range(2):
+            _wheel(page, _spot(page, reach), -40)
+            if _at_rest(page)["zoom"] < before - 1e-9:
+                break
+        else:
             break
-    return _distance(page, reach.centre) / reach.edge
+    return _distance(page, reach.center) / reach.edge
 
 
 def test_no_scene_is_loaded_while_the_camera_is_far(page, reach):
     """At the window's fit nothing of the sector's own scene is up and nothing is fetched for it."""
-    assert _distance(page, reach.centre) / reach.edge > 1.5
+    assert _distance(page, reach.center) / reach.edge > 1.5
     page.wait_for_timeout(600)
     assert _ambient(page) is None
     assert reach.fetched() == 0
@@ -124,20 +141,20 @@ def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach
     """Coming up to the sector brings its scene in by the law (0 at 1.5 edges, 1 at 1), without opening it; going
     away again drops it past 3 edges."""
     distance = _zoom_in_until(page, reach, 1.4)
-    assert distance <= 1.4, f"the window's nearest zoom stops {distance:.2f} edges from the sector's centre"
+    assert distance <= 1.4, f"the window's nearest zoom stops {distance:.2f} edges from the sector's center"
     # The scene is up once it is fetched; its share is set by the frame after (slow under load).
     page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share > 0", timeout=30000)
     page.wait_for_timeout(300)
     ambient = _ambient(page)
     assert ambient["id"] == reach.id
-    distance = _distance(page, reach.centre) / reach.edge
+    distance = _distance(page, reach.center) / reach.edge
     assert ambient["share"] == pytest.approx(_expected_share(distance * reach.edge, reach.edge), abs=0.02), (ambient, distance)
     assert "open=1" not in page.url, "the scene was only brought in: the sector is not opened"
     assert reach.fetched() == 1
     # Nearer is more of it, never less, and it is whole by one edge.
     shares = [ambient["share"]]
     for _ in range(40):
-        if _distance(page, reach.centre) / reach.edge < 0.9:
+        if _distance(page, reach.center) / reach.edge <= 1.0:      # whole from one edge in; one more tick would open the sector (TEST.575)
             break
         _wheel(page, _spot(page, reach), -40)
         page.wait_for_timeout(100)
@@ -145,16 +162,16 @@ def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach
     page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share > 0.999", timeout=30000)
     shares.append(_ambient(page)["share"])
     assert shares == sorted(shares), shares
-    # The loop stops at 0.999, the share from which the disc counts as whole; the step that crosses it may land short of 1.
+    # The loop stops at 0.999, the share from which the disk counts as whole; the step that crosses it may land short of 1.
     assert shares[-1] >= 0.999, shares
     assert _camera(page)["zoom"] > 0, "the camera is still in the window"
     # Away again: dropped past 3 edges, and the address never changed.
     for _ in range(80):
-        if _distance(page, reach.centre) / reach.edge > 3.2:
+        if _distance(page, reach.center) / reach.edge > 3.2:
             break
         _wheel(page, _spot(page, reach), 40)
-    far = _distance(page, reach.centre) / reach.edge
-    assert far > 3.2, f"the window's farthest zoom stops {far:.2f} edges from the sector's centre"
+    far = _distance(page, reach.center) / reach.edge
+    assert far > 3.2, f"the window's farthest zoom stops {far:.2f} edges from the sector's center"
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyAmbient() === null", timeout=15000)
     assert "open=1" not in page.url
 
@@ -162,14 +179,21 @@ def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach
 def test_a_wheel_tick_right_up_to_the_sector_opens_it_where_the_camera_is(page, reach):
     """Zoomed in until the scene is whole, one more wheel tick opens the sector with no flight (the camera does not
     move) and no second fetch; the address becomes the opened sector's."""
-    _zoom_in_until(page, reach, 0.6)
-    _wheel(page, _spot(page, reach), -600)   # held at the window's nearest zoom, half an edge from the sector
-    page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share > 0.99", timeout=15000)
-    before = _camera(page)
+    _zoom_in_until(page, reach, 1.0)
+    page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share >= 0.999", timeout=15000)
+    # TEST.411: a turn of the wheel of any size is one step (the map caps it), and the step that finds the camera at the window's nearest zoom
+    # opens the sector (`zoomAcross` takes no gesture into account), so the ticks are made one at a time, each once the camera is at rest,
+    # until the sector opens; the camera has not moved in that one.
+    for _ in range(20):
+        before = _at_rest(page)
+        assert "open=1" not in page.url
+        _wheel(page, _spot(page, reach), -40)
+        _at_rest(page)
+        if page.evaluate("() => location.search.includes('open=1')"):
+            break
+    else:
+        pytest.fail(f"no tick opened the sector; the camera is {before['dist'] / reach.edge:.2f} edges from it")
     assert before["dist"] / reach.edge < 0.6
-    page.wait_for_timeout(500)   # the wheel quiet: a new gesture
-    _wheel(page, _spot(page, reach), -40)
-    page.wait_for_function("() => location.search.includes('open=1')", timeout=20000)
     _ready(page)
     after = _camera(page)
     assert after["dist"] == pytest.approx(before["dist"], rel=1e-6), (before["dist"], after["dist"])
@@ -177,8 +201,7 @@ def test_a_wheel_tick_right_up_to_the_sector_opens_it_where_the_camera_is(page, 
     assert _ambient(page) is None
     # ... and the wheel goes on in from there (the opened sector's own zoom range).
     _wheel(page, _spot(page, reach), -40)
-    page.wait_for_timeout(300)
-    assert _camera(page)["dist"] < after["dist"]
+    assert _at_rest(page)["dist"] < after["dist"]
 
 
 def _system_requests(page):
@@ -203,9 +226,9 @@ def _system_ambient(page):
     return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySystemAmbient()")
 
 
-def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_url, site_app, sample_params):
+def test_a_systems_disk_fades_in_as_the_camera_comes_up_to_its_star(page, base_url, site_app, sample_params):
     """In the opened sector, with the star at the middle of the view, the wheel brings the camera down to where the
-    system's disc is whole: its scene is fetched once, fades in by the disc's size, is not "opened" (no system in the
+    system's disk is whole: its scene is fetched once, fades in by the disk's size, is not "opened" (no system in the
     address), and one more tick opens it from that scene."""
     scene = _Scene(page, base_url, site_app, sample_params)
     # No names over the stars: a click on a name flies to the thing it names (MAP.298), not to the star under it.
@@ -214,14 +237,14 @@ def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_u
     _ready(page)
     star, point = _star_point(page, base_url, scene)
     seen = _system_requests(page)
-    page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...p)", list(point))
+    page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCenterOn(...p)", list(point))
     _ready(page)
     assert _system_ambient(page) is None
     position = _still_spot(page, point)
     shares = []
     for _ in range(80):
         _wheel(page, position, -60)
-        # Near enough for a disc to show, the camera is given time (a system is asked for after it has stayed in range,
+        # Near enough for a disk to show, the camera is given time (a system is asked for after it has stayed in range,
         # and the fetch takes longer under load) before it goes on in: the nearest zoom would open the system.
         near = math.dist(_camera(page)["eye"], point) < 0.05
         page.wait_for_timeout(900 if near else 60)
@@ -234,7 +257,7 @@ def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_u
     assert shares == sorted(shares), shares
     assert shares[-1] >= 0.999, shares
     # A small system is first loaded at the 50 AU it is taken for, found too small to stay and dropped; its real size is
-    # remembered, so it is loaded once more when its disc is big enough, and not again.
+    # remembered, so it is loaded once more when its disk is big enough, and not again.
     assert 1 <= len(seen) <= 2, seen
     fetched = len(seen)
     assert "system=" not in page.url
@@ -263,7 +286,7 @@ def _anchor_near_star(page, point, shift):
 
 
 def _still_spot(page, point):
-    """Where `point` is on the screen once the camera has stopped moving (the centring is a flight): the same place
+    """Where `point` is on the screen once the camera has stopped moving (the centering is a flight): the same place
     on three reads 100 ms apart. Read at once, a loaded machine gives a spot the star has left by the time the
     anchor is asked for (TEST.231)."""
     last, steady = None, 0
@@ -308,7 +331,7 @@ def test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it(
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)
     star, point = _star_point(page, base_url, scene)
-    page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...p)", list(point))
+    page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCenterOn(...p)", list(point))
     _ready(page)
     position = _still_spot(page, point)
     for shift in ((0, 0), _shift_nearest_to(page, base_url, scene, point, position)):
@@ -413,7 +436,7 @@ def _landed(page, point):
 
 
 def test_a_double_click_on_a_star_flies_the_camera_to_it(page, base_url, site_app, sample_params):
-    """MAP.146: two clicks on a star take the camera to look at it from where its system's disc is whole, without
+    """MAP.146: two clicks on a star take the camera to look at it from where its system's disk is whole, without
     opening the system (the address is the sector's still)."""
     point, spot = _fly_setup(page, base_url, site_app, sample_params)
     before = _camera(page)

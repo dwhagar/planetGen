@@ -28,10 +28,10 @@ def _stepper(mass_earth=1.0, radius_km=6371.0, metal=0.325):
     return core_heat.Stepper(MID, mass_earth * EARTH * metal, mass_earth * EARTH * (1.0 - metal), dry_m * metal ** 0.5, dry_m)
 
 
-def test_the_pressures_of_the_shells_give_the_earths_boundary_and_centre():
+def test_the_pressures_of_the_shells_give_the_earths_boundary_and_center():
     earth = _stepper()
     assert earth.cmb_gpa == pytest.approx(136.0, rel=0.03)
-    assert earth.centre_gpa == pytest.approx(364.0, rel=0.1)
+    assert earth.center_gpa == pytest.approx(364.0, rel=0.1)
     assert earth.liquidus_k(core_heat.LIQUIDUS_ANCHOR[0]) == pytest.approx(core_heat.LIQUIDUS_ANCHOR[1])
     assert earth.liquidus_k(0.0) == pytest.approx(core_heat.LIQUIDUS_ZERO_K)
 

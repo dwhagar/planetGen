@@ -1,38 +1,15 @@
 # planetgen/web/maps/galaxymap.py
 
 """
-Quadrant/Zone classification shared by every page that groups sectors by
-galaxy-frame position -- `galaxy.py`'s own Quadrant summary/drill-down
-tables, and `sector.py`/`browse.py`'s "Quadrant N" links back into it.
+Zone classification shared by the pages that group sectors by galaxy-frame position (`sector_zone`, `zone_bounds_ly`).
 
-This module used to also build the Galaxy Map's own visualization (a
-flat, face-on SVG projection) -- superseded by a real 3D map
-(`planetgen/web/maps/galaxymap3d.py`/`static/galaxymap3d.js`), which `galaxy.py` now
-renders directly instead. That SVG rendering code (and its own
-`static/galaxymap.js`) has been removed; only the plain classification
-math below survived, since `sector.py`/`browse.py` still need it
-independent of how the map itself is drawn.
-
-Terminology note: `star_systems.quadrant` (Roman numerals I-VIII,
-`spaceSector.classify_octant`) is a different, older concept -- an octant
-classification of a *system's* position within its own *sector*. That
-column/attribute name is left alone for schema stability, but every place
-`html/` displays it now says "Octant" (`sector.py`, `system.py`,
-`static/sectorscene.js`) specifically so it doesn't collide with *this*
-module's Quadrant, which is the real, galaxy-scale, 4-region azimuthal
-concept the word ordinarily means (and which is a genuine 2D mathematical
-standard, unlike the 8-region octant workaround -- see `spaceSector.py`'s
-own module docstring).
+Galaxy quadrants are gone from the site: pages name the regions where sectors are charted instead (`db/region_stats.py`).
+`star_systems.quadrant` (Roman numerals I-VIII, `spaceSector.classify_octant`) is a different, older concept -- the octant of a
+*system's* position within its own *sector* -- and every page that shows it says "Octant".
 """
 
 from planetgen.galaxy import spherical
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
-
-QUADRANT_LABELS = ("I", "II", "III", "IV")
-"""tuple[str]: The four galaxy-scale Quadrants, in azimuthal order starting
-from `+X` -- `sector_quadrant` indexes into this. Deliberately the plain
-2D I-IV convention (see this module's own docstring) rather than the
-sector-internal octant's Roman-numeral scheme."""
 
 ZONE_TARGET_LY = 100.0
 """float: The approximate light-year width a Zone should aim for.
@@ -43,25 +20,6 @@ sector edge deep) end to end."""
 
 ZONE_SHELL_DEPTH = max(1, round(ZONE_TARGET_LY / DEFAULT_SECTOR_EDGE_LY))
 """int: How many consecutive `shell_index` values make up one Zone."""
-
-
-def sector_quadrant(x_pc, y_pc):
-    """
-    Labels a galaxy-frame `(x, y)` position with its Quadrant:
-    `planetgen.galaxy.spherical.sector_quadrant`'s 1-4 (four 90-degree
-    bands of `theta = atan2(y, x)` starting at `+X`, matching
-    `docs/design/galaxy/galaxy-coordinate-system.md`'s own theta convention) as
-    `"I"`-`"IV"`. Blind to `z`/height by design -- a Quadrant is purely
-    azimuthal, the same way real astronomical galactic quadrants are.
-
-    Args:
-        x_pc (float): `sectors.center_x_pc`.
-        y_pc (float): `sectors.center_y_pc`.
-
-    Returns:
-        str: One of `QUADRANT_LABELS` (`"I"`, `"II"`, `"III"`, `"IV"`).
-    """
-    return QUADRANT_LABELS[spherical.sector_quadrant(x_pc, y_pc) - 1]
 
 
 def sector_zone(shell_index):

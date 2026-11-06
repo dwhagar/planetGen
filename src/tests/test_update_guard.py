@@ -21,7 +21,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__
 
 
 class FakeWork:
-    """A source of running work: `items` are the jobs it holds; `stops` says whether cancelling ends them."""
+    """A source of running work: `items` are the jobs it holds; `stops` says whether canceling ends them."""
 
     name = "fake"
 
@@ -30,13 +30,13 @@ class FakeWork:
                       "started": "2026-10-16T03:00:00Z", "holds": "the work lease", "queued": title in queued}
                      for index, title in enumerate(titles)]
         self.stops = stops
-        self.cancelled = []
+        self.canceled = []
 
     def items(self):
         return [dict(item) for item in self.live]
 
     def cancel(self, item):
-        self.cancelled.append(item["id"])
+        self.canceled.append(item["id"])
         if self.stops:
             self.live = [other for other in self.live if other["id"] != item["id"]]
         return True
@@ -229,7 +229,7 @@ def test_a_manual_migration_refuses_running_work_without_a_terminal_and_changes_
     with pytest.raises(SystemExit) as stopped:
         with migrate._update_guard(object(), False):
             raise AssertionError("the migration must not start")
-    assert stopped.value.code == 1 and fake_machine.cancelled == []
+    assert stopped.value.code == 1 and fake_machine.canceled == []
     assert not maintenance.is_on() and updateguard.read_lock() is None
 
 

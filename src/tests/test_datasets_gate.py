@@ -166,6 +166,18 @@ def test_the_status_command_the_generate_page_runs_exits_1_while_data_is_missing
     assert "isochrones: missing (SC1)" in result.stdout and "generation will not start" in result.stdout
 
 
+def test_a_plan_in_a_new_process_is_refused_by_the_gate_and_not_by_a_missing_isochrone_trace(cache):
+    """TEST.632: drawing the shape the plan is checked against reads the isochrones, so the gate has to come first. A fresh process has
+    no cached mean masses, which an earlier test in the same process leaves behind (the failure showed with `-n 3` only)."""
+    env = dict(os.environ, PLANETGEN_DATA_DIR=str(cache), PYTHONPATH=os.path.join(REPO, "src"))
+    result = subprocess.run([sys.executable, "-m", "planetgen.cli.generate", "plan"], capture_output=True, text=True, cwd=REPO,
+                            env=env, timeout=300)
+    text = result.stdout + result.stderr
+    assert result.returncode == 1, text
+    assert "isochrones (SC1)" in text and "nothing was generated" in text
+    assert "Traceback" not in text
+
+
 def test_update_sh_says_that_generation_refuses_without_the_data():
     with open(os.path.join(REPO, "update.sh"), encoding="utf-8") as handle:
         update = handle.read()

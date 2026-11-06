@@ -68,7 +68,7 @@ def _uniform(rng_seed, count):
 
 
 @pytest.mark.parametrize("make", [_cluster, _satellite])
-def test_the_positions_follow_the_profile_about_the_components_centre(make):
+def test_the_positions_follow_the_profile_about_the_components_center(make):
     component = make()
     points = component_pass.positions_mpc(component, _uniform(1, 60000)) / 1000.0
     offsets = points - np.asarray(component.center_pc)[:, None]
@@ -186,8 +186,8 @@ def test_the_stars_placed_in_a_cell_are_the_share_the_fill_takes_off_it():
     field = component_field.ComponentField([component], EDGE, E_VALUE)
     heavy = collections.Counter(tuple(row[:3]) for seed in range(12) for row in _stars([component], seed=seed))
     address = heavy.most_common(1)[0][0]
-    centre = spherical.sector_position_pc(*address, EDGE)
-    systems = field.relative_density(centre) * E_VALUE
+    center = spherical.sector_position_pc(*address, EDGE)
+    systems = field.relative_density(center) * E_VALUE
     share = brightStars.placed_star_fraction(FLOOR, None, "cluster")
     wanted = systems * share
     assert wanted > 20

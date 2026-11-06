@@ -8,7 +8,7 @@ its cavity. Both come from the galaxy seed alone, so nothing here is fixed conte
 `galaxy_components` (`generation.clusters`), the bubbles are the superbubble field (`galaxy.superbubble_field`, GEN.254),
 and `build` lists them with the object ID each is named by.
 
-The object ID is the sector holding the container's centre (its birth sector), the `SERIAL_REGION` kind and the
+The object ID is the sector holding the container's center (its birth sector), the `SERIAL_REGION` kind and the
 container's rank among the containers born in that sector, counted in a fixed order (clusters by name and seed, then
 bubbles by column and draw), so the same seed gives the same IDs on every run.
 """
@@ -38,7 +38,7 @@ class Container:
         bubble (tuple or None): `(i, j, n)`, the column and draw of a bubble in the superbubble field.
         center_pc (tuple): `(x, y, z)`, galaxy-frame parsecs.
         extent_pc (float): A cluster's tidal radius or a bubble's radius, parsecs.
-        birth (tuple): `(shell, band, wedge)` of the sector holding the centre.
+        birth (tuple): `(shell, band, wedge)` of the sector holding the center.
         uid (bytes): The container's object ID.
     """
 
@@ -57,7 +57,7 @@ def _is_globular(component):
 
 
 def _wanted(galaxy_seed, shape, reach_pc, components):
-    """`(sort key, kind, name, component id, bubble address, centre, extent)` of every container, unsorted."""
+    """`(sort key, kind, name, component id, bubble address, center, extent)` of every container, unsorted."""
     wanted = []
     for component in components:
         if _is_globular(component):
@@ -78,8 +78,8 @@ def build(galaxy_seed, shape, edge_pc, reach_pc, components):
         galaxy_seed (bytes or int or None): The galaxy's seed, which the superbubble field draws from; no bubbles
             when `None`.
         shape (GalaxyShape): The galaxy's shape, for the bubble field's gas tracer.
-        edge_pc (float): The sector edge, to find the sector holding each centre.
-        reach_pc (float): How far from the axis a bubble's centre may lie: the charted galaxy's reach.
+        edge_pc (float): The sector edge, to find the sector holding each center.
+        reach_pc (float): How far from the axis a bubble's center may lie: the charted galaxy's reach.
         components (iterable[galaxy.components.Component]): The stored components, each with its `id`; the globular
             clusters (a `cluster` with the `king` profile) become containers.
 

@@ -16,7 +16,7 @@ many there are, and how a running job is stopped. Section 5.4 of docs/design/ope
   called by whoever queues work and by every status poll, so a dead worker is replaced.
 * `set_wanted` (ADM.15) changes the count; lowering it tells the extra bulk workers to finish their unit and
   exit. "Ludicrous Speed" is a number (`ludicrous_count`), not a mode.
-* `cancel_now` stops a job at once: a waiting one is cancelled, a running one gets RQ's stop command.
+* `cancel_now` stops a job at once: a waiting one is canceled, a running one gets RQ's stop command.
 * `reap_dead_jobs` clears the jobs a killed worker left "running" in Redis: the web queues' jobs have no time
   limit, so RQ never gives them up.
 """
@@ -94,7 +94,7 @@ STAGE_WORKER_MEMORY_MB = {
     "generate-sectors": SECTOR_WORKER_MEMORY_MB, "generate-unplaced-sector": SECTOR_WORKER_MEMORY_MB,
     "scatter-phenomena": LEAN_WORKER_MEMORY_MB, "fill-map-luminosity": LEAN_WORKER_MEMORY_MB,
     "rescore-habitability": LEAN_WORKER_MEMORY_MB, "draw-nebula-field": LEAN_WORKER_MEMORY_MB,
-    "link-neighbours": LEAN_WORKER_MEMORY_MB, "settle-sector-paths": LEAN_WORKER_MEMORY_MB,
+    "link-neighbors": LEAN_WORKER_MEMORY_MB, "settle-sector-paths": LEAN_WORKER_MEMORY_MB,
     "warm-galaxy-nodes": LEAN_WORKER_MEMORY_MB, "warm-galaxy-deep-nodes": LEAN_WORKER_MEMORY_MB,
     "warm-sectors": LEAN_WORKER_MEMORY_MB, "warm-systems": LEAN_WORKER_MEMORY_MB, "warm-phenomena": LEAN_WORKER_MEMORY_MB,
     "warm-cluster-field": BULK_WORKER_MEMORY_MB,        # not measured yet (PERF.225 cuts it into parts): the larger figure
@@ -427,12 +427,12 @@ def set_wanted(connection, count):
 
 def cancel_now(job_id, connection=None, serializer=None):
     """
-    Stops the job `job_id` at once (PERF.40): a waiting job is cancelled, a running one is sent RQ's stop command
+    Stops the job `job_id` at once (PERF.40): a waiting job is canceled, a running one is sent RQ's stop command
     (`cancel()` alone leaves a running job running; safe because a unit's save is one transaction). A finished or
     unknown job is left alone.
 
     Returns:
-        str | None: What was done, `"cancelled"` or `"stopped"`, or `None`.
+        str | None: What was done, `"canceled"` or `"stopped"`, or `None`.
     """
     connection = connection or redisqueue.connect()
     job = redisqueue.fetch_job(job_id, connection, serializer)
@@ -441,7 +441,7 @@ def cancel_now(job_id, connection=None, serializer=None):
     state = job.get_status(refresh=True)
     if state in ("queued", "deferred", "scheduled"):
         job.cancel()
-        return "cancelled"
+        return "canceled"
     if state == "started":
         command.send_stop_job_command(connection, job.id)
         return "stopped"

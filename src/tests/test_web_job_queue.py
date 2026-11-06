@@ -3,7 +3,7 @@
 """
 The jobs that wait behind the running one in the one waiting list (ADM.123, PERF.154; `planetgen.web.jobs.queue_next`
 and `promote_queued`): they start one at a time, in the order they arrived, by themselves when the job before them
-succeeded or was cancelled, are held when that job failed, can be started or discarded by an admin from the job strip,
+succeeded or was canceled, are held when that job failed, can be started or discarded by an admin from the job strip,
 and one more than `queue.max_waiting` is refused naming the list.
 
 Run with: pytest tests/test_web_job_queue.py
@@ -113,8 +113,8 @@ def test_submit_starts_a_job_or_takes_a_place(jobs_root, started):
     assert third.position == 2
 
 
-@pytest.mark.parametrize("status", ["succeeded", "cancelled"])
-def test_it_starts_when_the_job_before_it_succeeded_or_was_cancelled(jobs_root, started, status):
+@pytest.mark.parametrize("status", ["succeeded", "canceled"])
+def test_it_starts_when_the_job_before_it_succeeded_or_was_canceled(jobs_root, started, status):
     first = _running(started)
     _end(first, status)
     new = jobs.promote_queued()

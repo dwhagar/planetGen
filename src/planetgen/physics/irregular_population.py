@@ -9,26 +9,26 @@ in **capture windows**, short stretches of the planet's life in which something 
 that the generator keeps the windows and has no continuous pick-up. This module gives the count that a planet's windows put in orbit about it, how the collisions of the next Gyr grind it down, and the draw of the bodies that
 are stored as objects. It does not place them (`irregular_orbits`, `irregular_zone`) or give them a composition (GEN.1080).
 
-1. **The source.** Every window draws from a reservoir of small bodies: a planetesimal disc with a piecewise size law, the cumulative number above a radius `R` falling as `R^-1.8` below `R = 70 km` and `R^-5` above it, `3.5e7` bodies above `R = 40 km`
-   in a disc of 30 Earth masses (`source_count_above`; NDD14 section 3.3, NVM07 section 3.5 and [R0483], rows CM3). A heavier or lighter disc scales every count (`Pool.scale`). Until the belt ledger (GEN.1061) hands the generator its own
-   reservoirs, this disc is the only source, and so is a disc the generator does not have: a system without a planetesimal disc at the window passes `reservoir_mass_earth` 0 and gets no captures.
-2. **The encounter window** is the planetary instability: a giant passes close to another giant while the disc is there, and three-body captures put a share of the disc's bodies about it. NDD14 count, for Jupiter in three histories, 1.3e-10 to 2.6e-10
-   captures **per disc particle per encounter** (`ENCOUNTER_YIELD`, row CM1), times 49 to 280 encounters, which is 1.3e-8 to 3.6e-8 per particle (CM2). The caller gives the planet's own encounter count (`Pool.encounters`; the architecture records it,
+1. **The source.** Every window draws from a reservoir of small bodies: a planetesimal disk with a piecewise size law, the cumulative number above a radius `R` falling as `R^-1.8` below `R = 70 km` and `R^-5` above it, `3.5e7` bodies above `R = 40 km`
+   in a disk of 30 Earth masses (`source_count_above`; NDD14 section 3.3, NVM07 section 3.5 and [R0483], rows CM3). A heavier or lighter disk scales every count (`Pool.scale`). Until the belt ledger (GEN.1061) hands the generator its own
+   reservoirs, this disk is the only source, and so is a disk the generator does not have: a system without a planetesimal disk at the window passes `reservoir_mass_earth` 0 and gets no captures.
+2. **The encounter window** is the planetary instability: a giant passes close to another giant while the disk is there, and three-body captures put a share of the disk's bodies about it. NDD14 count, for Jupiter in three histories, 1.3e-10 to 2.6e-10
+   captures **per disk particle per encounter** (`ENCOUNTER_YIELD`, row CM1), times 49 to 280 encounters, which is 1.3e-8 to 3.6e-8 per particle (CM2). The caller gives the planet's own encounter count (`Pool.encounters`; the architecture records it,
    GEN.1082). The yield is for a target of the size of Jupiter's Hill sphere and falls with the Hill volume for a smaller one (`geometry_factor`, `min(1, (r_H / 0.35 AU)^3)`): an Earth at 1 AU gets 2e-5 of it (the design's figure),
    and the ice giants, whose Hill spheres are larger, get the same as Jupiter (NDD14's per-particle probabilities for them, 1e-8 to 3e-8, are the same order; the Hill volume would give Neptune ten times Jupiter's).
-3. **The gas window** is the last stage of a giant's formation, while its envelope was extended and the disc still there: gas drag slows a body that meets about its own mass of gas, and the envelope then collapses ([R3560], abstract only;
-   second-hand in [R2158] section 6.2, CM18). It needs a gas envelope (`gas_giant`) and a disc that lasted `GAS_MIN_DISC_LIFETIME_MYR`, and takes only bodies of `GAS_SIZE_WINDOW_KM` (larger ones barely feel the drag, smaller ones
+3. **The gas window** is the last stage of a giant's formation, while its envelope was extended and the disk still there: gas drag slows a body that meets about its own mass of gas, and the envelope then collapses ([R3560], abstract only;
+   second-hand in [R2158] section 6.2, CM18). It needs a gas envelope (`gas_giant`) and a disk that lasted `GAS_MIN_DISK_LIFETIME_MYR`, and takes only bodies of `GAS_SIZE_WINDOW_KM` (larger ones barely feel the drag, smaller ones
    spiral in). No paper gives its strength against the encounter channel: `GAS_WINDOW_STRENGTH` 0.2 of what the reference instability gives is a guess (CM14, L3), so a giant that had no instability still holds a fraction of the Solar System's number
    and an ice giant none, which is the design's rule.
 4. **The exchange window** is a planetesimal binary flying past: one component keeps the energy, the other stays ([R3147]; CM11). It is the only route found for a massive moon such as Triton, far too weak for small
-   irregulars, and none at a gas giant (`exchange_chance`, `draw_exchange`). The chance is `EXCHANGE_CHANCE` for a disc in which every planetesimal is a binary, times the binary fraction of the reservoir.
+   irregulars, and none at a gas giant (`exchange_chance`, `draw_exchange`). The chance is `EXCHANGE_CHANCE` for a disk in which every planetesimal is a binary, times the binary fraction of the reservoir.
 5. **The temporary window** is a flag, not an object: a body that passes through the Hill sphere slowly stays for a year or so, and the Earth always holds one a metre across ([R1666], CM13).
 
 **What the windows leave is counted before the stable zone is applied.** NDD14 count the captures that stay bound to the end of their integrations, and the stable limit of the zone (`irregular_zone`) is what makes them stay. Applying the
 zone's survival to the counts a second time would take Jupiter from 24 bodies above 5 km to under one (the draw of `irregular_orbits` puts 97 percent of Jupiter's orbits outside the limits): the orbits of the bodies this module returns are
 drawn from the stable part of the orbit distribution, never dropped.
 
-**Grinding.** The population then loses bodies to collisions with itself and with the disc: `N(t) = N0 / (1 + t / t_c)` for bodies of one size ([R4785], the law `belt_mass` uses), with `t_c` the time in which a body of radius `R` is destroyed by
+**Grinding.** The population then loses bodies to collisions with itself and with the disk: `N(t) = N0 / (1 + t / t_c)` for bodies of one size ([R4785], the law `belt_mass` uses), with `t_c` the time in which a body of radius `R` is destroyed by
 the projectiles above `DISRUPTION_SIZE_RATIO` times its radius, `t_c = 1 / (P_i (R (1 + ratio))^2 N0(> ratio R))`, and `P_i` the intrinsic collision probability of the zone, per square kilometre per year: the relative speed (`sqrt(2)` times the circular
 speed at the zone's radius) over the zone's volume (`intrinsic_probability`). It comes out 1.4 to 6 times below the 3.8e-15 to 1.6e-14 that [R0483] compute for the irregulars (CM9), who follow the orbits' eccentricity and
 inclination (which concentrate the bodies); no factor is added to match them, so the grinding is a lower bound. The projectile count is the initial one, which overstates the loss of the larger bodies, and the two errors act the other way round.
@@ -51,23 +51,23 @@ from dataclasses import dataclass
 from planetgen.physics import belt_ledger, constants, irregular_orbits, irregular_zone
 from planetgen.util.checks import finite_domain
 
-REFERENCE_DISC_MASS_EARTH = 30.0
-"""float: The mass of the disc whose size law the counts are, Earth masses (NDD14 and NVM07 use 20 to 35; [R0483] 20.4 and 40.8). [Stand-in IP1, tier T1, tweak L0; row CM3.]"""
-DISC_REFERENCE_RADIUS_KM = 40.0
-"""float: The radius at which the disc's count is given. [Stand-in IP1, tier T1, tweak L0.]"""
-DISC_COUNT_AT_REFERENCE = 3.5e7
-"""float: The bodies above `DISC_REFERENCE_RADIUS_KM` in the reference disc ((3 to 4)e7, calibrated to the Jupiter Trojans by NDD14). [Stand-in IP1, tier T1, tweak L0.]"""
-DISC_BREAK_RADIUS_KM = 70.0
-"""float: The radius where the disc's size law steepens (NDD14; NVM07 and [R0483] break at 100 km across). [Stand-in IP1, tier T1, tweak L0.]"""
-DISC_INDEX_BELOW = 1.8
+REFERENCE_DISK_MASS_EARTH = 30.0
+"""float: The mass of the disk whose size law the counts are, Earth masses (NDD14 and NVM07 use 20 to 35; [R0483] 20.4 and 40.8). [Stand-in IP1, tier T1, tweak L0; row CM3.]"""
+DISK_REFERENCE_RADIUS_KM = 40.0
+"""float: The radius at which the disk's count is given. [Stand-in IP1, tier T1, tweak L0.]"""
+DISK_COUNT_AT_REFERENCE = 3.5e7
+"""float: The bodies above `DISK_REFERENCE_RADIUS_KM` in the reference disk ((3 to 4)e7, calibrated to the Jupiter Trojans by NDD14). [Stand-in IP1, tier T1, tweak L0.]"""
+DISK_BREAK_RADIUS_KM = 70.0
+"""float: The radius where the disk's size law steepens (NDD14; NVM07 and [R0483] break at 100 km across). [Stand-in IP1, tier T1, tweak L0.]"""
+DISK_INDEX_BELOW = 1.8
 """float: The cumulative index below the break (1.75 to 2.75 over the three papers). [Stand-in IP1, tier T1, tweak L0.]"""
-DISC_INDEX_ABOVE = 5.0
+DISK_INDEX_ABOVE = 5.0
 """float: The cumulative index above the break (4.25 to 5.5 over the three papers). [Stand-in IP1, tier T1, tweak L0.]"""
 CAPTURED_DENSITY_KG_M3 = 2000.0
 """float: The bulk density that turns a captured body's radius into a mass (the density of row CM15's 10.6 km at 1e16 kg; the composition of GEN.1080 replaces it body by body). [Stand-in IP2, tier T9, tweak L0.]"""
 
 ENCOUNTER_YIELD = 2.0e-10
-"""float: Captures per disc particle per planetary encounter at a planet with Jupiter's Hill sphere or more (1.3e-10 to 2.6e-10 in NDD14's three histories). [Stand-in IP3, tier T2, tweak L1; row CM1.]"""
+"""float: Captures per disk particle per planetary encounter at a planet with Jupiter's Hill sphere or more (1.3e-10 to 2.6e-10 in NDD14's three histories). [Stand-in IP3, tier T2, tweak L1; row CM1.]"""
 REFERENCE_HILL_AU = 0.35
 """float: The Hill radius at which the encounter yield applies in full, AU (Jupiter's, [R2158: Table 1]); a smaller one scales as its cube, a larger one gets the same. [Stand-in IP4, tier T9, tweak L1.]"""
 REFERENCE_ENCOUNTERS = 130.0
@@ -76,8 +76,8 @@ GAS_WINDOW_STRENGTH = 0.2
 """float: The gas window's captures as a share of the reference instability's (0.1 to 0.3); zero for a planet with no gas envelope. [Stand-in IP5, tier T6, tweak L3; row CM14.]"""
 GAS_SIZE_WINDOW_KM = (1.0, 500.0)
 """tuple: The radii, km, that gas drag can capture. [Stand-in IP6, tier T1, tweak L0; row CM18.]"""
-GAS_MIN_DISC_LIFETIME_MYR = 1.0
-"""float: The shortest gas disc that gives a gas window. [Stand-in IP6, tier T6, tweak L0; row CM14.]"""
+GAS_MIN_DISK_LIFETIME_MYR = 1.0
+"""float: The shortest gas disk that gives a gas window. [Stand-in IP6, tier T6, tweak L0; row CM14.]"""
 EXCHANGE_CHANCE = 0.008
 """float: The chance of a massive capture by binary exchange at an ice giant when every planetesimal is a binary (0.002 to 0.035, geometric mean 0.008). [Stand-in IP7, tier T1, tweak L1; row CM11.]"""
 EXCHANGE_MIN_RADIUS_KM = 300.0
@@ -107,17 +107,17 @@ class IrregularPopulationError(ValueError):
 
 
 def _break_count():
-    return DISC_COUNT_AT_REFERENCE * (DISC_BREAK_RADIUS_KM / DISC_REFERENCE_RADIUS_KM) ** -DISC_INDEX_BELOW
+    return DISK_COUNT_AT_REFERENCE * (DISK_BREAK_RADIUS_KM / DISK_REFERENCE_RADIUS_KM) ** -DISK_INDEX_BELOW
 
 
 @finite_domain()
 def source_count_above(radius_km, scale=1.0):
-    """The reservoir's bodies of radius over `radius_km`: the disc's size law times `scale` (the reservoir's mass over `REFERENCE_DISC_MASS_EARTH`)."""
+    """The reservoir's bodies of radius over `radius_km`: the disk's size law times `scale` (the reservoir's mass over `REFERENCE_DISK_MASS_EARTH`)."""
     if not radius_km > 0.0 or not scale >= 0.0:
         raise IrregularPopulationError("the radius must be positive and the scale not negative")
-    if radius_km <= DISC_BREAK_RADIUS_KM:
-        return scale * DISC_COUNT_AT_REFERENCE * (radius_km / DISC_REFERENCE_RADIUS_KM) ** -DISC_INDEX_BELOW
-    return scale * _break_count() * (radius_km / DISC_BREAK_RADIUS_KM) ** -DISC_INDEX_ABOVE
+    if radius_km <= DISK_BREAK_RADIUS_KM:
+        return scale * DISK_COUNT_AT_REFERENCE * (radius_km / DISK_REFERENCE_RADIUS_KM) ** -DISK_INDEX_BELOW
+    return scale * _break_count() * (radius_km / DISK_BREAK_RADIUS_KM) ** -DISK_INDEX_ABOVE
 
 
 @finite_domain()
@@ -127,8 +127,8 @@ def source_radius_at_count(count, scale=1.0):
         raise IrregularPopulationError("the count and the scale must be positive")
     at_break = scale * _break_count()
     if count >= at_break:
-        return DISC_REFERENCE_RADIUS_KM * (count / (scale * DISC_COUNT_AT_REFERENCE)) ** (-1.0 / DISC_INDEX_BELOW)
-    return DISC_BREAK_RADIUS_KM * (count / at_break) ** (-1.0 / DISC_INDEX_ABOVE)
+        return DISK_REFERENCE_RADIUS_KM * (count / (scale * DISK_COUNT_AT_REFERENCE)) ** (-1.0 / DISK_INDEX_BELOW)
+    return DISK_BREAK_RADIUS_KM * (count / at_break) ** (-1.0 / DISK_INDEX_ABOVE)
 
 
 @finite_domain()
@@ -163,7 +163,7 @@ class Pool:
     Attributes:
         encounter_fraction (float): Bodies captured by the encounter window per body of the reservoir.
         gas_fraction (float): The same for the gas window (for the bodies of `GAS_SIZE_WINDOW_KM` only).
-        scale (float): The reservoir's mass over `REFERENCE_DISC_MASS_EARTH`.
+        scale (float): The reservoir's mass over `REFERENCE_DISK_MASS_EARTH`.
     """
 
     encounter_fraction: float
@@ -187,7 +187,7 @@ class Pool:
 
 
 @finite_domain()
-def make_pool(hill_radius_au, encounters, reservoir_mass_earth, gas_giant=False, gas_disc_myr=0.0):
+def make_pool(hill_radius_au, encounters, reservoir_mass_earth, gas_giant=False, gas_disk_myr=0.0):
     """
     The `Pool` of a planet.
 
@@ -196,14 +196,14 @@ def make_pool(hill_radius_au, encounters, reservoir_mass_earth, gas_giant=False,
         encounters (float): The giant-giant close encounters the planet had while the reservoir was there (0 for a system with no instability).
         reservoir_mass_earth (float): The mass of the small-body reservoir at the window, Earth masses (0 for none).
         gas_giant (bool): Whether the planet had a gas envelope (`envelope_mass_fraction` at or above the giant fraction) in the last stage of its formation.
-        gas_disc_myr (float): How long the gas disc lasted, Myr.
+        gas_disk_myr (float): How long the gas disk lasted, Myr.
     """
-    if not hill_radius_au > 0.0 or not encounters >= 0.0 or not reservoir_mass_earth >= 0.0 or not gas_disc_myr >= 0.0:
+    if not hill_radius_au > 0.0 or not encounters >= 0.0 or not reservoir_mass_earth >= 0.0 or not gas_disk_myr >= 0.0:
         raise IrregularPopulationError("the Hill radius must be positive and the encounters, reservoir mass and gas lifetime not negative")
     factor = geometry_factor(hill_radius_au)
     encounter = ENCOUNTER_YIELD * encounters * factor
-    gas = GAS_WINDOW_STRENGTH * ENCOUNTER_YIELD * REFERENCE_ENCOUNTERS * factor if gas_giant and gas_disc_myr >= GAS_MIN_DISC_LIFETIME_MYR else 0.0
-    return Pool(encounter, gas, reservoir_mass_earth / REFERENCE_DISC_MASS_EARTH)
+    gas = GAS_WINDOW_STRENGTH * ENCOUNTER_YIELD * REFERENCE_ENCOUNTERS * factor if gas_giant and gas_disk_myr >= GAS_MIN_DISK_LIFETIME_MYR else 0.0
+    return Pool(encounter, gas, reservoir_mass_earth / REFERENCE_DISK_MASS_EARTH)
 
 
 @finite_domain()
@@ -216,12 +216,12 @@ def exchange_chance(binary_fraction, hill_radius_au, gas_giant):
 
 @finite_domain()
 def draw_exchange(u_chance, u_size, chance):
-    """The radius of the body an exchange captured, km, or `None` when it did not: `u_size` places it on the reservoir's size law above `EXCHANGE_MIN_RADIUS_KM` (index `DISC_INDEX_ABOVE`)."""
+    """The radius of the body an exchange captured, km, or `None` when it did not: `u_size` places it on the reservoir's size law above `EXCHANGE_MIN_RADIUS_KM` (index `DISK_INDEX_ABOVE`)."""
     if not (0.0 <= u_chance <= 1.0 and 0.0 <= u_size < 1.0):
         raise IrregularPopulationError("the draws must be uniform numbers")
     if not u_chance < chance:
         return None
-    return EXCHANGE_MIN_RADIUS_KM * (1.0 - u_size) ** (-1.0 / DISC_INDEX_ABOVE)
+    return EXCHANGE_MIN_RADIUS_KM * (1.0 - u_size) ** (-1.0 / DISK_INDEX_ABOVE)
 
 
 @finite_domain()

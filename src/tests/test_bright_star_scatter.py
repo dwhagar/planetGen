@@ -183,7 +183,7 @@ def _seed_galaxy(mysql_config, e_value=E_VALUE):
 def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE)
     summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
-    assert summary["total"] > 3          # (the disc infall of GEN.1242 forms fewer massive stars now than the old constant rate: 7 here, over 20 before)
+    assert summary["total"] > 3          # (the disk infall of GEN.1242 forms fewer massive stars now than the old constant rate: 7 here, over 20 before)
 
     conn = store.get_connection(mysql_config)
     try:
@@ -352,7 +352,8 @@ def test_band_stars_stay_inside_their_band():
 
 
 def test_backfilled_cells_get_band_stars_in_their_own_cell():
-    addresses = [(2, 0, wedge) for wedge in range(12)] + [(3, 1, wedge) for wedge in range(12)]
+    # TEST.417: shell 2 holds about 120 stars a cell, so three of its cells carry the check (twelve took nine minutes); the thinner shell 3 keeps twelve.
+    addresses = [(2, 0, wedge) for wedge in range(3)] + [(3, 1, wedge) for wedge in range(12)]
     rows = list(brightStars.backfill_cells(SHAPE, addresses, EDGE_PC, E_VALUE, FLOOR, THRESHOLD, 2))
     assert rows
     for row in map(_row_dict, rows):
@@ -427,7 +428,7 @@ def test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run(mysql_con
     _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE)
     calls = []
     monkeypatch.setattr(sector_support, "backfill_bright_stars", lambda *args, **kwargs: calls.append(args))
-    # shell 30, not the dense shell 4: the same two calls take two minutes there and fifteen near the centre (TEST.417)
+    # shell 30, not the dense shell 4: the same two calls take two minutes there and fifteen near the center (TEST.417)
     assert make_sector(30, 0, 5, config=mysql_config, backfill=False, num_systems=1)["created"]
     assert calls == []
     assert make_sector(30, 0, 6, config=mysql_config, num_systems=1)["created"]
@@ -930,7 +931,7 @@ def test_topping_up_backfilled_sectors_shows_a_bar_on_the_web(mysql_config, web_
     run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     assert backfill_bright_stars(mysql_config, sector_position_pc(4, 0, 5, EDGE_PC))["sectors"]
     del web_progress[:]
-    run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", str(FLOOR)))
+    run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", "400"))   # TEST.417: the first step down is the cheap one, and it reports the same phase
     topping = [report for report in web_progress if report[0] == "Topping up backfilled sectors"]
     assert topping and topping[0][1:] == (0, topping[0][2]) and topping[0][2] > 0
     assert topping[-1][1] == topping[-1][2]

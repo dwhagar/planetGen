@@ -324,7 +324,7 @@ def test_a_barren_airless_dry_world_says_so_in_sentences_and_leaves_the_sections
     # a trace of air, of water or of life, and a value that is not stored, never count as none
     assert registry.missing("moon", {**barren, "atmospheric_pressure_pa": 5.0}) == ["life", "water"]
     assert registry.missing("moon", {**barren, "water_mass_fraction": 1e-3}) == ["life", "atmosphere"]
-    assert registry.missing("moon", {**barren, "hydrosphere": "vapour"}) == ["life", "atmosphere"]
+    assert registry.missing("moon", {**barren, "hydrosphere": "vapor"}) == ["life", "atmosphere"]
     assert registry.missing("moon", {**barren, "life_fauna": 1}) == ["atmosphere", "water"]
     assert registry.missing("planet", {**barren, "life_fauna": None, "atmospheric_pressure_pa": None,
                                         "hydrosphere": None}) == []
@@ -437,7 +437,7 @@ def _rich_document():
     planet["blocks"] += [
         model.ratings({"name": "PHI-6", "score": 0.8, "tier": "Green"}, [], []),
         model.facts("Radiation", [model.fact("dose", "Total dose", "1 mSv")]),
-        model.prose("life", "Life based on carbon lives on this world."), model.prose("flavour", "Sensors show a green haze.")]
+        model.prose("life", "Life based on carbon lives on this world."), model.prose("flavor", "Sensors show a green haze.")]
     return document
 
 
@@ -459,6 +459,10 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
     positions = [names.index(name) for name in wanted]
     assert positions == sorted(positions), names
     assert "Rendered example" not in page
+    panel = page.split('id="item-example"')[1].split("</section>")[0]
+    assert "Sensors show a green haze." in panel and 'class="prose sensor-readout"' in panel, "the readout line sits under the picture (UX.276)"
+    assert page.count("Sensors show a green haze.") == 1, "and nowhere else on the page"
+    assert "Estimate:" in panel and "ground color" in panel and "worked out from the temperature" in panel
     assert page.index('id="location"') < page.index("hab-symbols") < page.index('class="summary inline-links"')
     assert page.index("Life based on carbon") < page.index('id="habitability"') < page.index('id="sheet-atmosphere"') \
         < page.index('id="sheet-composition"') < page.index('id="item-properties"')
@@ -467,6 +471,19 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
     assert "Mole fraction" in page and "Partial pressure" in page and "Share by mass" in page
     assert "Metal (iron and nickel core)" in page and "70 percent of its mass" in page
     assert "Dominant species" not in page and "A technological civilization or a colony lives here." in page
+
+
+def test_a_planets_page_shows_its_sky_colour_as_the_first_row_of_the_atmosphere(client, monkeypatch):
+    """GEN.420: the Atmosphere color row (a chip and a word) sits in the page's Atmosphere section, ahead of the pressure and the gases."""
+    document = _rich_document()
+    document["sections"][0]["children"][0]["blocks"].insert(0, model.facts("Planet", [
+        model.fact("atmosphere_colour", "Atmosphere color", model.swatch("#99bfff", "pale blue"))]))
+    monkeypatch.setattr(apiclient, "get_object_sheet", lambda db, ref: _rich_sheet(ref))
+    monkeypatch.setattr(apiclient, "get_system_description", lambda db, system_id: document)
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    section = page.split('id="sheet-atmosphere"')[1].split("</section>")[0]
+    assert "Atmosphere color" in section and 'data-colour="#99bfff"' in section and "pale blue" in section
+    assert section.index("Atmosphere color") < section.index("Surface pressure")
 
 
 def test_gen1108_a_planets_page_has_the_climate_by_latitude_table_between_the_atmosphere_and_the_composition(client, monkeypatch):

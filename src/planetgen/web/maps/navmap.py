@@ -301,7 +301,7 @@ def _route_lines(waypoints, projected):
     return "".join(paths), unknown
 
 
-def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0, 0.0)):
+def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0, 0.0), bent=None):
     """
     Builds the "NAV Map" panel: a flat, top-down SVG plot of an origin, a
     destination, and (when `has_route` is true) the optimal route's
@@ -347,13 +347,19 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
                           arrow points from the origin toward it. Defaults
                           to `(0, 0, 0)`, the center of both NAV frames
                           (sector-local and galaxy-frame).
+        bent (list, optional): NAV.28: the lines of the course bent round keep-out spheres, each a list of `(x, y, z)` in the waypoints'
+                          frame and unit (the galaxy frame only), drawn over the route. The map is scaled to hold them.
 
     Returns:
         str: A complete `<section class="panel">` block.
     """
     points_xy = [(w["position"][0], w["position"][1]) for w in waypoints]
-    px_per_ly, center_x, center_y = _scale(points_xy)
+    bent_xy = [[(p[0], p[1]) for p in line] for line in bent or []]
+    px_per_ly, center_x, center_y = _scale(points_xy + [p for line in bent_xy for p in line])
     projected = _project_all(points_xy, px_per_ly, center_x, center_y)
+    bent_paths = "".join(
+        '<path class="navmap-bent-line" fill="none" d="M ' + " L ".join(f"{x:.1f} {y:.1f}" for x, y in _project_all(line, px_per_ly, center_x, center_y))
+        + '"><title>The course bent round a keep-out sphere</title></path>' for line in bent_xy if len(line) > 1)
 
     origin_xy, destination_xy = projected[0], projected[-1]
     direct_line = (
@@ -396,7 +402,7 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
         for css_class, label in (("navmap-compass-label", compass_label), ("navmap-scale-label", scale_label))
     ]
 
-    body = f"{direct_line}{route_line}{''.join(points_html)}{compass_line}{scale_lines}"
+    body = f"{direct_line}{route_line}{bent_paths}{''.join(points_html)}{compass_line}{scale_lines}"
 
     svg = (
         f'<svg class="navmap-svg" viewBox="0 0 {_SVG_WIDTH:.0f} {_SVG_HEIGHT:.0f}" role="img" '
@@ -406,8 +412,11 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
     )
 
     key = ""
+    if bent_paths:
+        key += ('<p class="navmap-key"><svg class="navmap-key-glyph" width="36" height="8" viewBox="0 0 36 8" aria-hidden="true">'
+                '<path class="navmap-bent-line" d="M1 6 Q18 -2 35 6" fill="none"/></svg> The course bent round a keep-out sphere.</p>')
     if unknown_hops:
-        key = (
+        key += (
             '<p class="navmap-key"><svg class="navmap-key-glyph" width="36" height="8" viewBox="0 0 36 8" aria-hidden="true">'
             '<line class="navmap-route-unknown-sample" x1="1" y1="4" x2="35" y2="4"/></svg> '
             + ("A jump through unknown space: red, dashed and glowing." if unknown_hops == 1 else
@@ -419,6 +428,8 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
     )
 
     unknown_help = "\n    <li>A red, dashed, glowing hop is a jump through unknown space.</li>" if unknown_hops else ""
+    if bent_paths:
+        unknown_help += "\n    <li>The amber line is the course bent round the keep-out sphere of a star or another object the straight line would pass inside.</li>"
     return f"""
 <section class="panel">
 <div class="panel-header">

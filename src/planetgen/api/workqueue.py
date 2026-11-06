@@ -157,7 +157,7 @@ def control(run_id):
     """
     `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}`. Cancel stops a live run now (its waiting units are
     taken off the queue, its started ones sent the stop command, the machine is freed); clear ends a run that has stopped
-    answering (`runcontrol.is_clearable`) and frees the machine. Returns `{"ok": bool, "cancelled", "stopped"}`: false
+    answering (`runcontrol.is_clearable`) and frees the machine. Returns `{"ok": bool, "canceled", "stopped"}`: false
     when the run is over or, for clear, still answering.
     """
     action = parse_body(RunAction, require_json_body()).action
@@ -212,7 +212,7 @@ def queue():
     until it's resumed; running tasks finish; PERF.152) or resumes it. `{"ok": bool}`: false when it
     already was.
 
-    `stop-all` (PERF.186, `stopall.stop_all`) stops everything: the hold, every run and job cancelled, every queue
+    `stop-all` (PERF.186, `stopall.stop_all`) stops everything: the hold, every run and job canceled, every queue
     emptied, every planetgen worker and command process on the host ended, and nothing starts until `resume-all`
     lifts the hold. It works with no Redis answering. `{"ok": true, "summary": {"runs", "queued", "job", "killed",
     "survivors", "already"}}`; `resume-all` returns `{"ok": whether it was stopped}`.

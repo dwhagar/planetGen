@@ -73,7 +73,7 @@ export function positionsOf(volume, frame) {
 }
 
 // The middle of a volume's points, parsecs.
-export function centreOf(volume) {
+export function centerOf(volume) {
   const sum = [0, 0, 0];
   for (let i = 0; i < volume.count; i++) {
     sum[0] += volume.ix[i];
@@ -148,15 +148,15 @@ export function volumeAlpha(radiusPx, share) {
   return ease((radiusPx - MIN_RADIUS_PX) / (FULL_RADIUS_PX - MIN_RADIUS_PX)) * Math.min(1, Math.max(0, share));
 }
 
-// The nebulae a drawn node lists: its groups (`nebula_regions`, a centre and a radius each) and its single clouds. Returns
+// The nebulae a drawn node lists: its groups (`nebula_regions`, a center and a radius each) and its single clouds. Returns
 // `{ key, block, reaches }` for a node that holds any, `reaches` a list of `{ x, y, z, radiusPc }` (the groups' and the clouds' spheres).
 export function sourceOf(entry) {
   const node = entry && entry.node;
   if (!node) return null;
   const reaches = [];
   (node.nebula_regions || []).forEach((region) => {
-    if (region && region.centre && region.radius_pc > 0) {
-      reaches.push({ x: region.centre[0], y: region.centre[1], z: region.centre[2], radiusPc: region.radius_pc });
+    if (region && region.center && region.radius_pc > 0) {
+      reaches.push({ x: region.center[0], y: region.center[1], z: region.center[2], radiusPc: region.radius_pc });
     }
   });
   (node.clouds || []).forEach((cloud) => {
@@ -172,6 +172,24 @@ export function singleSource(id, sphere, weight) {
     key: "nebula:" + id, single: true, block: null, weight: Math.min(1, Math.max(0, weight === undefined ? 1 : weight)),
     reaches: [{ x: sphere.x, y: sphere.y, z: sphere.z, radiusPc: sphere.radiusPc }],
   };
+}
+
+// MAP.392: a source for one cloud given by its sphere (a scattered nebula, one a waiting star lights, a supernova remnant: the map has no id for
+// them): `GET /galaxy/cloud-volume?x=&y=&z=&radius_pc=&family=` samples the model's density at the sphere. Its key holds the sphere to the thousandth
+// of a parsec (`sphere:<family>:<x>,<y>,<z>,<radius>`), so the same cloud is one request however often the scene is built.
+export function sphereSource(family, sphere, weight) {
+  const at = (value) => Number(value).toFixed(3);
+  return {
+    key: `sphere:${family}:${at(sphere.x)},${at(sphere.y)},${at(sphere.z)},${at(sphere.radiusPc)}`, single: true, block: null,
+    weight: Math.min(1, Math.max(0, weight === undefined ? 1 : weight)),
+    reaches: [{ x: sphere.x, y: sphere.y, z: sphere.z, radiusPc: sphere.radiusPc }],
+  };
+}
+
+// The `{ family, x, y, z, radiusPc }` of a sphere source's key (`sphere:<family>:<x>,<y>,<z>,<radius>`), or null for any other key.
+export function sphereOf(key) {
+  const found = typeof key === "string" && /^sphere:([a-z-]+):(-?[\d.]+),(-?[\d.]+),(-?[\d.]+),([\d.]+)$/.exec(key);
+  return found ? { family: found[1], x: Number(found[2]), y: Number(found[3]), z: Number(found[4]), radiusPc: Number(found[5]) } : null;
 }
 
 // The id of a single source's key (`nebula:<id>`), or null for a node key.

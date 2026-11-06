@@ -3,9 +3,9 @@
 """
 The two density figures the plan prints about its galaxy (GEN.626), read from the built shape and not from a table:
 
-- the **crest**, how many systems the thin disc expects in a sector on an arm crest at its centre, the number the
+- the **crest**, how many systems the thin disk expects in a sector on an arm crest at its center, the number the
   outline walks on (`k_norm x arm_level x (1 + arm_amplitude) x E`, `E` the systems a sector holds at the real local
-  stellar density), which is also the thin disc's peak density in units of the one-star density;
+  stellar density), which is also the thin disk's peak density in units of the one-star density;
 - the **planned share**, the share of the galaxy's own systems that sit in sectors expecting at least one system,
   integrated from the model's density over radius, height and azimuth.
 
@@ -35,20 +35,20 @@ SHARE_AZIMUTHS = 24
 
 
 def crest(shape, expected_systems_at_density_1):
-    """The thin disc's crest: the systems per sector it expects on an arm crest at its centre, the density in units of
+    """The thin disk's crest: the systems per sector it expects on an arm crest at its center, the density in units of
     the one-star density (`expected_systems_at_density_1` is `E`, a sector's expected systems at density 1)."""
     return (shape.k_norm * shape.arm_level * (1.0 + shape.arm_amplitude) * expected_systems_at_density_1)
 
 
 Planned = collections.namedtuple("Planned", ["share", "volume_pc3"])
-"""The planned share of the galaxy's systems, and the volume (cubic parsecs) of the disc and bulge's sectors expecting one."""
+"""The planned share of the galaxy's systems, and the volume (cubic parsecs) of the disk and bulge's sectors expecting one."""
 
 
 def reaching_sectors(shape, expected_systems_at_density_1, radius_pc, edge_pc, figures=None):
     """
     How many sectors expect at least one system: the volume where the model's density reaches it (`planned`) over a
     sector's volume, plus each component's sphere out to where its own density reaches one system in a cell
-    (`ComponentField.qualifying_volume_pc3`). Approximate to a few percent; a component inside the disc is counted twice.
+    (`ComponentField.qualifying_volume_pc3`). Approximate to a few percent; a component inside the disk is counted twice.
     `figures` is the `planned` of the same shape, `E` and radius when the caller has it already (the integral is the
     plan's costliest figure, PERF.169).
     """

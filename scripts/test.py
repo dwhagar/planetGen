@@ -46,7 +46,7 @@ Resuming (TEST.148, TEST.208): every run keeps `.test-progress/<build id>.jsonl`
 a test that passed, the files it used. After a run was killed or stopped, the same command with `--resume` skips the
 tests that passed in the same build, and the tests that passed in an earlier run (any command) of the same
 environment (packages, Python, MySQL and Redis versions, PLANETGEN_* variables, day) when none of the files that
-changed since is one the test used (the rules of `changed`), so a merge of main after a cancelled gate reruns only
+changed since is one the test used (the rules of `changed`), so a merge of main after a canceled gate reruns only
 what it touched. A different environment reuses nothing and every test runs. It says RESUMING first and RESUMED on
 its last line, with how many tests were reused and from which runs. Never automatic, and not part of the merge gate.
 
@@ -67,6 +67,7 @@ import re
 import signal
 import subprocess
 import sys
+import threading
 import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -171,20 +172,82 @@ def summary_counts(line):
     return counts
 
 
+IDLE_LIMIT_S = 7200.0
+"""float: Seconds a phase may print nothing before it is called hung (TEST.621). A test is held to its own limit by
+`tests/hang_guard.py` (900 s and a grace of 120 s by default, and the run goes on), so a phase that is quiet for two hours is
+waiting on something no test limit reaches. `PLANETGEN_TEST_IDLE_LIMIT_S` changes it; 0 turns it off."""
+
+HUNG_EXIT_CODE = 124
+"""int: The exit code of a phase stopped for printing nothing for `IDLE_LIMIT_S` (the code `timeout` uses)."""
+
+
+def idle_limit():
+    try:
+        return float(os.environ.get("PLANETGEN_TEST_IDLE_LIMIT_S", IDLE_LIMIT_S))
+    except ValueError:
+        return IDLE_LIMIT_S
+
+
+class IdleWatch:
+    """Stops `child` when `touch()` has not been called for `limit_s` seconds: says so on stdout, ends the child (its xdist
+    workers go with it), and sets `hung`."""
+
+    def __init__(self, child, limit_s, poll_s=5.0):
+        self.child = child
+        self.limit_s = limit_s
+        self.poll_s = poll_s
+        self.last = time.monotonic()
+        self.hung = False
+        self._done = threading.Event()
+        self._thread = threading.Thread(target=self._run, daemon=True)
+
+    def start(self):
+        if self.limit_s > 0:
+            self._thread.start()
+
+    def touch(self):
+        self.last = time.monotonic()
+
+    def stop(self):
+        self._done.set()
+
+    def _run(self):
+        while not self._done.wait(min(self.poll_s, self.limit_s)):
+            quiet = time.monotonic() - self.last
+            if quiet < self.limit_s:
+                continue
+            self.hung = True
+            sys.stdout.write(f"\nHUNG RUN: pytest printed nothing for {minutes(quiet)}, past the {minutes(self.limit_s)} a phase may be "
+                             f"quiet (TEST.621). Stopping it; the tests that did not finish are the ones the progress log has no line "
+                             f"for, and a test past its own limit is named by a 'HUNG TEST' line above.\n")
+            sys.stdout.flush()
+            self.child.terminate()
+            try:
+                self.child.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                self.child.kill()
+            return
+
+
 def run_phase(command, environment, on_child=None):
     """Runs one pytest command, passing its output through line by line. Returns (exit code, counts from its
-    summary line). If this process is interrupted the child is stopped first and the interrupt goes on."""
+    summary line). If this process is interrupted the child is stopped first and the interrupt goes on. A phase that
+    prints nothing for `idle_limit()` seconds is stopped and returns `HUNG_EXIT_CODE` (TEST.621)."""
     counts = {}
     child = subprocess.Popen(command, cwd=ROOT, env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                              text=True, errors="replace", bufsize=1)
     if on_child:
         on_child(child)
+    watch = IdleWatch(child, idle_limit())
+    watch.start()
     try:
         for line in child.stdout:
+            watch.touch()
             sys.stdout.write(line)
             sys.stdout.flush()
             counts = summary_counts(line.strip()) or counts
-        return child.wait(), counts
+        code = child.wait()
+        return (HUNG_EXIT_CODE if watch.hung else code), counts
     except BaseException:
         child.terminate()
         try:
@@ -192,6 +255,8 @@ def run_phase(command, environment, on_child=None):
         except subprocess.TimeoutExpired:
             child.kill()
         raise
+    finally:
+        watch.stop()
 
 
 def describe_counts(counts):

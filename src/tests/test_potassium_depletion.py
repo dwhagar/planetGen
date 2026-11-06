@@ -38,7 +38,7 @@ def test_the_classes_split_between_the_moon_and_mercury():
     assert kd.statistics_of(True)[0] == 3 and kd.statistics_of(False)[0] == 3
 
 
-def test_a_planet_is_centred_on_a_fifth_and_a_small_body_on_a_twelfth_of_that():
+def test_a_planet_is_centered_on_a_fifth_and_a_small_body_on_a_twelfth_of_that():
     assert kd.median_depletion(1.0) == pytest.approx(0.19, abs=0.01)
     assert kd.median_depletion(0.01) == pytest.approx(0.0153, abs=0.001)
     assert kd.median_depletion(1.0) / kd.median_depletion(0.01) > 10

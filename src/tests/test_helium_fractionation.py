@@ -19,7 +19,7 @@ def test_the_envelope_escape_model_keeps_a_solar_mix():
 
 
 def test_the_diffusion_coefficient_is_the_papers():
-    # Hu et al. 2015 Sec. 2.1: 10^4 K and an ionised share of 0.1 give b' = 8.0e20 cm^-1 s^-1
+    # Hu et al. 2015 Sec. 2.1: 10^4 K and an ionized share of 0.1 give b' = 8.0e20 cm^-1 s^-1
     assert math.isclose(hf.effective_diffusion_m(1.0e4, 0.1) / 100.0, 8.0e20, rel_tol=0.01)
     assert math.isclose(hf.binary_diffusion_m(2.0e4) / hf.binary_diffusion_m(1.0e4), 2 ** 0.732, rel_tol=1e-9)
 

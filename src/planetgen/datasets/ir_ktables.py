@@ -1,7 +1,7 @@
 # planetgen/datasets/ir_ktables.py
 
 """
-Correlated-k absorption tables of the infrared-active gases (GEN.715, AD10): the opacity of water vapour, carbon dioxide and methane
+Correlated-k absorption tables of the infrared-active gases (GEN.715, AD10): the opacity of water vapor, carbon dioxide and methane
 from line lists, at every pressure and temperature the greenhouse model needs.
 
 Source: the ExoMolOP opacity tables of the ExoMol project [R0795], the
@@ -10,9 +10,11 @@ ARCiS-format correlated-k tables at resolving power 1000 from 0.3 to 50 micron, 
 
 - H2O from the POKAZATEL line list [R3571],
 - CO2 from the UCL-4000 line list [R4854],
-- CH4 from the YT34to10 line list [R4855].
+- CH4 from the YT34to10 line list [R4855],
+- NH3 from CoYuTe [R0847], SO2 from ExoAmes [R5126], H2S from AYT2 [R5125], CO from Li2015 [R5123] and HCN from Harris [R5124]
+  (GEN.852 part 2; the five files share the axes of the first three).
 
-Each file is 370 to 465 MB. The three are transient pieces: setup downloads them once, checks their sha256, reduces them to the
+Each file is 340 to 470 MB. The eight are transient pieces: setup downloads them once, checks their sha256, reduces them to the
 129 bands of `BAND_EDGES_CM1` (20 cm-1 wide from 10 to 5 micron, then 50, 100 and 250 cm-1 wide) and 10 g points (six under
 `G_SPLIT`, four over it, so the strongest 10 percent of the lines are resolved) on the temperatures to `T_MAX_K`, writes the
 2 MB each into `ir_ktables.npz`, and removes the archives. The raw tables are never kept.
@@ -21,11 +23,11 @@ The reduction is the band mean of the k-distribution: all the (wavenumber, g) va
 opacity is cut at the new g edges, and each interval's mean is the new k (this keeps the band's total absorption).
 
 Limits (stated, and in the stand-in registry of docs/design/research/gap-filling-plan.md section 6): the tables cut each line at 25 cm-1 from its
-centre, so the far wings of a dense carbon dioxide air (Venus) are missing (`co2_far_wing` adds them in `line_opacity`); the
+center, so the far wings of a dense carbon dioxide air (Venus) are missing (`co2_far_wing` adds them in `line_opacity`); the
 broadening is the tables' own (air-like for H2O and CO2, so an air of hydrogen and helium is under-broadened); the temperature grid
 holds 100 K as its lowest point and 100 bar as its highest pressure, beyond which a lookup holds the edge value.
 
-The gas table's band centres and `line_opacity`'s plateaus are the labelled fallback for a run that disregards missing data
+The gas table's band centers and `line_opacity`'s plateaus are the labelled fallback for a run that disregards missing data
 (`fetch.Located.use_stand_in`).
 """
 
@@ -50,6 +52,16 @@ GASES = {
             "2c4134cf478818590ca544f18d3906ac931d00e79aa1b639e4b93d90788b3682", 421823286),
     "CH4": ("ir_ktable_ch4.fits.gz", "https://exomol.com/db/CH4/12C-1H4/YT34to10/12C-1H4__YT34to10.R1000_0.3-50mu.ktable.ARCiS.fits.gz",
             "7d8fd39d9247c6710053cd38b18083f7114fdd90c180ee9b70fd15e55d520b20", 370707002),
+    "NH3": ("ir_ktable_nh3.fits.gz", "https://exomol.com/db/NH3/14N-1H3/CoYuTe/14N-1H3__CoYuTe.R1000_0.3-50mu.ktable.ARCiS.fits.gz",
+            "c0dd15bf982aefd6e6c2abd44c880080618fe9058c8c7ff2488aad0f8cd8379a", 417215004),
+    "SO2": ("ir_ktable_so2.fits.gz", "https://exomol.com/db/SO2/32S-16O2/ExoAmes/32S-16O2__ExoAmes.R1000_0.3-50mu.ktable.ARCiS.fits.gz",
+            "1c6b8488fc28256784c266c44e453f07860a9590c45b086da9f91647d9473b60", 336913802),
+    "H2S": ("ir_ktable_h2s.fits.gz", "https://exomol.com/db/H2S/1H2-32S/AYT2/1H2-32S__AYT2.R1000_0.3-50mu.ktable.ARCiS.fits.gz",
+            "0cc6a1f0fb4f6aaa14a1f5a2a18980500ae499f22f4dbca2ac3bd546a0047c2b", 466664042),
+    "CO": ("ir_ktable_co.fits.gz", "https://exomol.com/db/CO/12C-16O/Li2015/12C-16O__Li2015.R1000_0.3-50mu.ktable.ARCiS.fits.gz",
+           "5405f090b87b1d7734e8037426e98f42be35183627b4605597a56a0d697a867b", 392577103),
+    "HCN": ("ir_ktable_hcn.fits.gz", "https://exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.R1000_0.3-50mu.ktable.ARCiS.fits.gz",
+            "2bbb9e68a71bb40d3d4e5917e836169d49d01d5501e42f5a5d84b456c6ea13e7", 394120324),
 }
 """dict: Each gas's formula to (file name in the cache, URL, sha256, size in bytes)."""
 
@@ -222,7 +234,7 @@ def derive(folder):
 
 DATASET = fetch.Dataset(
     key="ir_ktables",
-    title="Infrared correlated-k tables of H2O, CO2 and CH4 (ExoMolOP, R1000, line lists POKAZATEL, UCL-4000 and YT34to10)",
+    title="Infrared correlated-k tables of H2O, CO2, CH4, NH3, SO2, H2S, CO and HCN (ExoMolOP, R1000)",
     source="[R0795], ExoMolOP R1000 ARCiS k-tables from exomol.com",
     pieces=tuple(fetch.Piece(name, url, sha, size, transient=True) for name, url, sha, size in GASES.values()),
     replaces="the band-strength and wing stand-ins of the gray infrared opacity: plateau opacities per band center of the gas table",
@@ -230,7 +242,7 @@ DATASET = fetch.Dataset(
     fallback="none at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the tables are read to fit and check it",
     derived=(DERIVED,),
     derive=lambda folder: derive(folder),
-    derive_version=1,
+    derive_version=2,
 )
 
 
@@ -241,7 +253,7 @@ def load(path):
 
 
 def tables(located):
-    """The reduced tables as a dict of arrays (`k_H2O`, `k_CO2`, `k_CH4`, `temperature_k`, `pressure_bar`, `g`, `weights`, `edges_cm1`)
+    """The reduced tables as a dict of arrays (`k_<gas>` for each gas of `GASES`, `temperature_k`, `pressure_bar`, `g`, `weights`, `edges_cm1`)
     from a `fetch.Located`."""
     return load(located.path(DERIVED))
 

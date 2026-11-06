@@ -4,7 +4,7 @@
 Metallicity (GEN.158): one [Fe/H] per star, in dex against the Sun.
 
 `sample_fe_h` draws it from the star's stellar population and its distance
-from the galactic centre: the disc populations follow a mild radial gradient
+from the galactic center: the disk populations follow a mild radial gradient
 that is zero at the Sun's distance, the bulge and the halo have their own mean
 and scatter, and a cluster carries its own value (the caller passes it). The
 first use is the planet-occurrence factor: a protoplanetary disk's solids scale
@@ -29,16 +29,16 @@ _kpc_to_ly = units.converter("kpc", "ly")
 _KPC_IN_LY = _kpc_to_ly(1.0)
 
 
-def disc_gradient_fe_h(galactic_center_dist_ly):
-    """The mean [Fe/H] of the disc at this distance from the centre: zero at the galaxy's reference radius
+def disk_gradient_fe_h(galactic_center_dist_ly):
+    """The mean [Fe/H] of the disk at this distance from the center: zero at the galaxy's reference radius
     (`galaxy.scales`; GEN.405 replaces the zero point with the central metallicity of its mass-metallicity relation),
-    rising inward and falling outward by `METALLICITY_DISC_FALL_DEX_PER_KPC`."""
+    rising inward and falling outward by `METALLICITY_DISK_FALL_DEX_PER_KPC`."""
     reference_kpc = scales.reference_radius_pc() / 1000.0
-    return -tuning.METALLICITY_DISC_FALL_DEX_PER_KPC * (galactic_center_dist_ly / _KPC_IN_LY - reference_kpc) + 0.0
+    return -tuning.METALLICITY_DISK_FALL_DEX_PER_KPC * (galactic_center_dist_ly / _KPC_IN_LY - reference_kpc) + 0.0
 
 
 def halo_mean_fe_h(galactic_center_dist_ly):
-    """The mean [Fe/H] of the halo at this distance from the centre (-1.6 inside 25 kpc, -2.2 outside)."""
+    """The mean [Fe/H] of the halo at this distance from the center (-1.6 inside 25 kpc, -2.2 outside)."""
     kpc = galactic_center_dist_ly / _KPC_IN_LY
     halo = tuning.METALLICITY_HALO
     return halo["inner"] if kpc < halo["break_kpc"] else halo["outer"]
@@ -52,7 +52,7 @@ def open_cluster_disk_population(population):
 
 
 def mean_fe_h(population, galactic_center_dist_ly):
-    """The mean and scatter `(mean, sigma)` of [Fe/H] for a population at this distance from the centre."""
+    """The mean and scatter `(mean, sigma)` of [Fe/H] for a population at this distance from the center."""
     if population == "halo":
         return halo_mean_fe_h(galactic_center_dist_ly), tuning.METALLICITY_HALO["sigma"]
     if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate"):
@@ -64,7 +64,7 @@ def mean_fe_h(population, galactic_center_dist_ly):
     except KeyError:
         raise ValueError(f"unknown stellar population {population!r}; expected one of "
                          f"{sorted(tuning.METALLICITY_BY_POPULATION) + ['halo']}") from None
-    gradient = disc_gradient_fe_h(galactic_center_dist_ly) if row["gradient"] else 0.0
+    gradient = disk_gradient_fe_h(galactic_center_dist_ly) if row["gradient"] else 0.0
     return row["offset"] + gradient, row["sigma"]
 
 
@@ -82,9 +82,9 @@ def generic_peaks(population):
 
 def sample_fe_h(population, galactic_center_dist_ly, rng=draw, peaks=None):
     """A star's [Fe/H] (dex): normal about the population's mean at this distance, clamped to
-    `METALLICITY_RANGE_FE_H`. `population` None means the whole disc (`intermediate`). `peaks`, `((weight, mean,
+    `METALLICITY_RANGE_FE_H`. `population` None means the whole disk (`intermediate`). `peaks`, `((weight, mean,
     sigma), ...)` as the sector profile holds a place's distribution (GEN.237) or a component its own (GEN.662),
-    replaces the population's own: a cluster or satellite star has no mean at a distance from the centre, only that of
+    replaces the population's own: a cluster or satellite star has no mean at a distance from the center, only that of
     the component it belongs to (`generic_peaks` where none is given; `birth_fe_h` applies them); one peak is
     picked by weight, then the normal about it drawn."""
     low, high = tuning.METALLICITY_RANGE_FE_H
@@ -142,7 +142,7 @@ def expected_factor(function, peaks):
 
 
 def mean_fe_h_array(population, galactic_center_dist_ly):
-    """`mean_fe_h` at an array of distances from the centre (`np.ndarray` of the same shape for the mean, the scatter one
+    """`mean_fe_h` at an array of distances from the center (`np.ndarray` of the same shape for the mean, the scatter one
     number): the same laws, so a point's mean matches the one-point form."""
     distance = np.asarray(galactic_center_dist_ly, dtype=float)
     if population == "halo":
@@ -152,7 +152,7 @@ def mean_fe_h_array(population, galactic_center_dist_ly):
     if population in tuning.OPEN_CLUSTER_POPULATIONS:
         population = open_cluster_disk_population(population)
     row = tuning.METALLICITY_BY_POPULATION[population]
-    gradient = disc_gradient_fe_h(distance) if row["gradient"] else 0.0
+    gradient = disk_gradient_fe_h(distance) if row["gradient"] else 0.0
     return row["offset"] + gradient + np.zeros_like(distance), row["sigma"]
 
 

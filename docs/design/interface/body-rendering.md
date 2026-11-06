@@ -199,10 +199,10 @@ The version rule is the roadmap's: a blocker is done earlier in the same phase o
 | R12 | Info panel line: how the colour was worked out (inputs, partial or full) | R1 |
 | R15 | Night-side thermal glow on hot worlds | R4b |
 
-### 9.1 (view from a planet)
+### 9.0 (view from a planet)
 | Tag | Item | Needs |
 |---|---|---|
-| R16 | Close-up tier: fragment-shader detail over about 500 px, shared with the sky view | R3, 9.1 sky data |
+| R16 | Close-up tier: fragment-shader detail over about 500 px, shared with the sky view | R3, 9.0 sky data |
 
 ### Not built (Boss decision)
 City lights wait for 9.2.

@@ -378,7 +378,7 @@ def check_response(response, path, sent=()):
     Returns:
         str: The body.
     """
-    body = response.get_data(as_text=True)
+    body = response.get_data().decode("utf-8", errors="replace")        # a volume route answers bytes (application/octet-stream), which are not text
     where = f"{response.status_code} from {path!r}: {body[:400]!r}"
     assert response.status_code < 500, where
     assert not _TRACEBACK.search(body), where
@@ -782,7 +782,7 @@ def test_api_listing_limit_clamps(app, fuzz_db, limit, expected):
 _PAGE_ROUTES = [
     ("/", "sectors_page"), ("/", "standalone_page"), ("/sectors", "sectors_page"),
     ("/systems", "standalone_page"), ("/phenomena", "page"), ("/sector/{sector}", "contents_page"),
-    ("/galaxy?quadrant=I", "page"), ("/search?q=a", "sectors_page"), ("/search?q=a", "systems_page"),
+    ("/galaxy", "page"), ("/search?q=a", "sectors_page"), ("/search?q=a", "systems_page"),
     ("/search?q=a", "planets_page"), ("/admin", "keys_page"), ("/admin/stats", "names_page"),
     ("/species", "species_page"), ("/species?spacefaring=1", "species_page"),
     ("/polities", "polities_page"),  # TEST.51
@@ -814,6 +814,14 @@ def test_page_numbers_clamp(app, admin_client, fuzz_db, monkeypatch, path, param
     check_response(response, full)
     if base.startswith("/search") and page == "":
         assert response.status_code == 302  # the search page drops empty params by redirecting
+        return
+    if page == "" and response.status_code == 302:
+        # an empty parameter is dropped by redirecting to the clean address (the search page above, and the list pages since the canonical-address step): the clean page answers
+        target = response.headers["Location"]
+        assert param not in target, f"{full} -> {target}"
+        followed = client.get(target)
+        check_response(followed, target)
+        assert followed.status_code == 200, f"{full} -> {target} -> {followed.status_code}"
         return
     assert response.status_code == 200, f"{full} -> {response.status_code}"
 

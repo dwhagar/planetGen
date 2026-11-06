@@ -16,7 +16,7 @@ and the MUSCLES corona), and this module's seeded share serves a run that disreg
 quantities the library needs.
 
 Bands (R6, nm): UV-C 100 to 280, UV-B 280 to 315, UV-A 315 to 400, visible 400 to 700, near infrared 700 to 4000, and the
-thermal infrared beyond 4000 nm; below 100 nm is ionising and never reaches the ground (R18).
+thermal infrared beyond 4000 nm; below 100 nm is ionizing and never reaches the ground (R18).
 
 Units: wavelengths in nm, fluxes in W/m2 (a band) or W/m2/nm (per wavelength).
 """
@@ -28,7 +28,7 @@ import numpy as np
 from planetgen.physics import constants
 
 BAND_EDGES_NM = {
-    "ionising": (0.0, 100.0), "uv_c": (100.0, 280.0), "uv_b": (280.0, 315.0), "uv_a": (315.0, 400.0),
+    "ionizing": (0.0, 100.0), "uv_c": (100.0, 280.0), "uv_b": (280.0, 315.0), "uv_a": (315.0, 400.0),
     "visible": (400.0, 700.0), "near_infrared": (700.0, 4000.0), "thermal_infrared": (4000.0, math.inf),
 }
 """dict: The band edges of R6 (partly verified: the UV names are second-hand, 700 nm is a convention, 4 micron leaks under 1 percent
@@ -124,7 +124,7 @@ def bolometric_flux_w_m2(luminosity_w, distance_au):
 
 
 def band_flux_w_m2(edges_nm, cell_values, band):
-    """The sum of per-cell fluxes `cell_values` (W/m2 per cell) over the cells whose centre lies in `band` (a key of `BAND_EDGES_NM`)."""
+    """The sum of per-cell fluxes `cell_values` (W/m2 per cell) over the cells whose center lies in `band` (a key of `BAND_EDGES_NM`)."""
     edges = np.asarray(edges_nm, dtype=float)
     middle = 0.5 * (edges[:-1] + edges[1:])
     lo, hi = BAND_EDGES_NM[band]

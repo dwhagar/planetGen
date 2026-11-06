@@ -3,7 +3,7 @@
 """
 The Sectors and Systems tables' server side (UX.41): `GET /api/sectors` and
 `GET /api/systems` sort, filter and facet counts (`queryDb.list_sectors`,
-`list_systems`, `sectors_facets`, `systems_facets`).
+`list_systems`, `systems_facets`).
 """
 
 from planetgen.db import store
@@ -66,17 +66,13 @@ def test_the_sectors_endpoint_pages_by_the_printed_id_of_the_last_sector(client,
     assert client.get("/api/sectors?after=not-an-id").status_code == 400
 
 
-def test_sectors_quadrant_filter_and_facets(client, seeded_sector):
+def test_sectors_have_no_quadrant_filter_or_facets_and_carry_a_region(client, seeded_sector):
     mysql_config, _sector_id, _systems = seeded_sector
     _second_sector(mysql_config)
-    # Neither saved sector has a galaxy position.
-    body = client.get("/api/sectors?quadrant=unplaced&facets=1").get_json()
-    assert body["total"] == 2
-    assert body["facets"] == {"quadrant": [{"value": "unplaced", "count": 2}]}
-    none = client.get("/api/sectors?quadrant=I").get_json()
-    assert none["items"] == [] and none["total"] == 0
-    # A menu ignores its own filter: the counts stay put.
-    assert client.get("/api/sectors?quadrant=I&facets=1").get_json()["facets"]["quadrant"][0]["count"] == 2
+    body = client.get("/api/sectors?quadrant=I&facets=1").get_json()
+    assert body["total"] == 2 and "facets" not in body
+    # Neither saved sector has a galaxy position, so neither lies in a region.
+    assert [item["region"] for item in body["items"]] == [None, None]
 
 
 def test_sectors_reject_a_bad_sort(client, seeded_sector):

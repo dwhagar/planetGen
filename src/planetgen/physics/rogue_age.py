@@ -15,7 +15,7 @@ rogue rows).
 the galaxy's star-forming past and not a flat range. The window starts no younger than the shortest ejection delay, since the planet cannot be ejected before it exists.
 
 **The ejection delay** has the density `p(t)` proportional to `t^-DELAY_INDEX` between `EJECTION_DELAY_MIN_GY` and the parent's age: embryos and the planets of a crowded
-disc are thrown out early (within the first few tens of Myr), and planet-planet scattering goes on at every later time with a roughly even share of each decade of time
+disk are thrown out early (within the first few tens of Myr), and planet-planet scattering goes on at every later time with a roughly even share of each decade of time
 ([R0747]:580, whose scattering times span 10^6 to 10^9 yr and beyond; recalled, not opened here). Index 1 is that logarithmic spread; 0 would be
 uniform in time. When the ejection record (RP1, GEN.1119) gives the time of the loss itself the delay is read from it (`from_record`) and the index is not used.
 
@@ -27,7 +27,7 @@ import math
 from dataclasses import dataclass
 
 EJECTION_DELAY_MIN_GY = 1.0e-3
-"""float: The earliest an ejection is placed after formation, Gy (1 Myr: after the gas disc's first stage, the embryos of a crowded disc being thrown out). Source tier T8, tweak level L2."""
+"""float: The earliest an ejection is placed after formation, Gy (1 Myr: after the gas disk's first stage, the embryos of a crowded disk being thrown out). Source tier T8, tweak level L2."""
 DELAY_INDEX = 1.0
 """float: `p(t)` proportional to `t^-DELAY_INDEX` for the ejection delay `t`; 1 is an even share of each decade of time, 0 uniform in time. Source tier T8, tweak level L3."""
 

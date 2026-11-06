@@ -67,6 +67,10 @@ class FakeData:
         self.stage_children = []
         self.stage_sectors = []
         self.polity_total = 2
+        self.regions = [
+            {"key": "9.5.1.7", "name": "Vang Zarh Region", "parent": "Vang Reach", "sector_count": 3, "capacity": 12, "share": 0.25},
+            {"key": "9.5.1.8", "name": "Kell Oon Region", "parent": "Vang Reach", "sector_count": 1, "capacity": 12, "share": 1 / 12},
+        ]
 
     def get_polities(self, db, limit=None, offset=None):
         self.dbs.add(db)
@@ -83,6 +87,10 @@ class FakeData:
     def get_galaxy_sectors(self, db):
         self.dbs.add(db)
         return self.sectors
+
+    def get_galaxy_charted_regions(self, db):
+        self.dbs.add(db)
+        return {"regions": self.regions, "edge_pc": 3.526}
 
     def get_galaxy_shape(self, db):
         self.dbs.add(db)
@@ -130,7 +138,7 @@ class FakeData:
 def fake(monkeypatch, tmp_path):
     data = FakeData()
     for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers",
-                 "auth_me", "get_galaxy_nebula_cover"):
+                 "auth_me", "get_galaxy_nebula_cover", "get_galaxy_charted_regions"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_nodes", data.get_galaxy_nodes)
@@ -175,7 +183,7 @@ def test_galaxy_page_names_the_maps_modules_up_front(client, fake):
     assert html.index('rel="modulepreload"') < html.index(script)
 
 
-def test_galaxy_page_renders_map_and_quadrant_summary(client, fake, app):
+def test_galaxy_page_renders_map_and_charted_regions(client, fake, app):
     resp = client.get("/galaxy")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
@@ -189,9 +197,11 @@ def test_galaxy_page_renders_map_and_quadrant_summary(client, fake, app):
     # The Galaxy section is current, with a breadcrumb.
     assert re.search(r'<a href="/galaxy" aria-current="page">Galaxy</a>', html)
     assert '<li><span aria-current="page">Galaxy</span></li>' in html
-    # Quadrant rows are plain GET links.
-    for label in ("I", "II", "III", "IV"):
-        assert f'<a href="/galaxy?quadrant={label}#galaxy-table">Quadrant {label}</a>' in html
+    # The regions where sectors are charted, with their names (quadrants are gone).
+    assert '<h2 id="galaxy-table-heading">Charted regions</h2>' in html
+    assert "Vang Zarh Region" in html and "Kell Oon Region" in html and "25.0%" in html and "Vang Reach" in html
+    assert html.index("Vang Zarh Region") < html.index("Kell Oon Region")
+    assert "Quadrant" not in html
     # The database never leaves the server.
     assert fake.dbs == {DB}
     assert not re.search(r'/galaxy[^"\s]*db=', html)
@@ -294,75 +304,15 @@ def test_galaxy_without_shape_shows_hint(client, fake):
     assert _scene(html)["hasShape"] is True  # from the nodes' own has_shape
 
 
-def test_galaxy_quadrant_lists_its_sectors_nearest_first(client, fake):
-    fake.sectors = [_placed(1, radius=900.0, name="Far"), _placed(2, radius=10.0, name="Near <b>x</b>"),
-                    _placed(3, x=-100.0, name="Elsewhere")]
-    resp = client.get("/galaxy?quadrant=i")
-    html = resp.get_data(as_text=True)
-    assert "<title>Galaxy Map: Quadrant I - " in html
-    assert "Sectors in Quadrant I" in html
-    assert "Elsewhere" not in html
-    assert html.index("Near &lt;b&gt;x&lt;/b&gt;") < html.index(">Far<")
-    assert '<a href="/galaxy" aria-current="page">Galaxy</a>' in html
-    crumbs = re.search(r'<nav class="breadcrumbs".*?</nav>', html, re.S).group(0)
-    assert '<a href="/galaxy">Galaxy</a>' in crumbs and "Quadrant I</span>" in crumbs
-    assert '<a href="/galaxy#galaxy-table">All Quadrants</a>' in html
-
-
-def test_galaxy_quadrant_sector_links_follow_the_sector_page(client, fake, app):
+def test_galaxy_quadrant_address_is_ignored(client, fake):
     html = client.get("/galaxy?quadrant=I").get_data(as_text=True)
-    with app.test_request_context("/"):
-        expected = page_url("sector", sector_id=1).replace("&", "&amp;")
-    assert f'<a href="{expected}">Placed 001</a>' in html
+    assert "<title>Galaxy Map - " in html and "Quadrant" not in html
 
 
-def test_galaxy_quadrant_pages(client, fake):
-    fake.sectors = [_placed(i) for i in range(1, 56)]
-    page1 = client.get("/galaxy?quadrant=I").get_data(as_text=True)
-    assert "Placed 050" in page1 and "Placed 051" not in page1
-    assert 'href="/galaxy?quadrant=I&amp;page=2#galaxy-table"' in page1
-    page2 = client.get("/galaxy?quadrant=I&page=2").get_data(as_text=True)
-    assert "Placed 055" in page2 and "Placed 050" not in page2
-
-
-def test_a_table_that_hit_the_statement_limit_answers_504_to_retry(client, fake, monkeypatch):
-    """UX.96: the table route answers a statement timeout with a 504, `Retry-After` and `busy`, not a 502."""
-    def timed_out(*args, **kwargs):
-        raise apiclient.ApiError("QUERY_TIMEOUT", status_code=504)
-
-    monkeypatch.setattr(apiclient, "get_galaxy_sectors", timed_out)
-    response = client.get("/table/galaxy-quadrant?quadrant=I")
-    assert response.status_code == 504 and response.headers["Retry-After"] == "10"
-    assert response.get_json()["busy"] is True and "busy" in response.get_json()["error"]
-
-    def broken(*args, **kwargs):
-        raise apiclient.ApiError("down", status_code=500)
-
-    monkeypatch.setattr(apiclient, "get_galaxy_sectors", broken)
-    assert client.get("/table/galaxy-quadrant?quadrant=I").status_code == 502
-
-
-def test_galaxy_quadrant_table_route_sorts_and_filters(client, fake):
-    fake.sectors = [_placed(1, radius=900.0, name="Far"), _placed(2, radius=10.0, name="Near"),
-                    _placed(3, x=-100.0, name="Elsewhere")]
-    data = client.get("/table/galaxy-quadrant?quadrant=I&sort=name&order=desc&facets=1").get_json()
-    assert [row[0]["text"] for row in data["rows"]] == ["Near", "Far"] and data["total"] == 2
-    assert data["rows"][0][0]["href"].startswith("/sector/")
-    assert data["facets"]["zone"] and all(o["label"].startswith("Zone ") for o in data["facets"]["zone"])
-    nearest = client.get("/table/galaxy-quadrant?quadrant=I").get_json()
-    assert [row[0]["text"] for row in nearest["rows"]] == ["Near", "Far"]
-    assert client.get("/table/galaxy-quadrant").get_json()["total"] == 0
-
-
-def test_galaxy_empty_quadrant(client, fake):
-    html = client.get("/galaxy?quadrant=IV").get_data(as_text=True)
-    assert "0 sectors" in html and "<em>None</em>" in html
-
-
-def test_galaxy_unknown_quadrant_falls_back_to_summary(client, fake):
-    html = client.get("/galaxy?quadrant=IX&db=other").get_data(as_text=True)
-    assert "<h2 id=\"galaxy-table-heading\">Quadrants</h2>" in html
-    assert fake.dbs == {DB}
+def test_galaxy_with_no_charted_regions_says_so(client, fake):
+    fake.regions = []
+    html = client.get("/galaxy").get_data(as_text=True)
+    assert "No sectors are charted yet." in html
 
 
 def test_galaxy_api_failure_is_a_502_page(client, fake, monkeypatch):
@@ -685,6 +635,34 @@ def test_galaxy_page_shows_the_course_legend_and_readout(client, fake, monkeypat
     assert "Direct line" not in client.get("/galaxy?course=system:1,system:2").get_data(as_text=True)
 
 
+def test_the_galaxy_map_draws_the_course_through_the_waypoints_in_its_address(client, fake, monkeypatch):  # NAV.49
+    from planetgen.web import nav_page
+
+    asked = []
+
+    def through(raws):
+        asked.append(raws)
+        return {"scope": "galaxy", "points": [{"name": "A", "role": "origin", "url": "/system/1", "x": 1.0, "y": 0.0, "z": 0.0, "hopUnknown": False},
+                                              {"name": "B", "role": "waypoint", "url": "/system/2", "x": 2.0, "y": 1.0, "z": 0.0, "hopUnknown": False},
+                                              {"name": "C", "role": "destination", "url": "/system/3", "x": 3.0, "y": 0.0, "z": 0.0, "hopUnknown": False}],
+                "sector": None, "via": True, "waypoints": [0, 1, 2], "navUrl": "/nav?from=system:1&to=system:3", "direct": None,
+                "directs": [[{"x": 1.0, "y": 0.0, "z": 0.0}, {"x": 2.0, "y": 1.0, "z": 0.0}]], "adjusted": [],
+                "readout": {"distance": "2 ly", "course": None, "frame": "Galactic", "route_distance": "2 ly", "times": [],
+                            "stops": [{"name": "B", "url": "/system/2"}], "diagram": None}}
+
+    monkeypatch.setattr(nav_page, "galaxy_course_through", through)
+    page = client.get("/galaxy?via=system:1,system:2,system:3").get_data(as_text=True)
+    assert asked == [["system:1", "system:2", "system:3"]]
+    assert "Showing the course through your <strong>3 waypoints</strong>, from <strong>A</strong> to <strong>C</strong>" in page
+    assert "course-readout" in page and "Direct line" in page
+    asked.clear()
+    assert "Showing the course" not in client.get("/galaxy?via=system:1").get_data(as_text=True) and asked == []
+    # A course of its own wins over the waypoints.
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda a, b: None)
+    client.get("/galaxy?course=system:1,system:2&via=system:1,system:2,system:3")
+    assert asked == []
+
+
 def test_galaxy_page_without_a_course(client, fake):
     assert _scene(client.get("/galaxy").get_data(as_text=True))["course"] is None
     # A malformed value asks nothing and draws nothing.
@@ -773,6 +751,36 @@ def test_nebula_volume_endpoint_serves_the_packed_bytes(client, fake, monkeypatc
     assert resp.status_code == 502 and "error" in resp.get_json()
 
 
+def test_cloud_volume_endpoint_serves_the_packed_bytes_of_a_sphere(client, fake, monkeypatch):
+    """MAP.392: `/galaxy/cloud-volume` hands the browser the decoded bytes the API sampled at a sphere, cacheable; a query that is no sphere is a 400,
+    an API refusal or failure a 502, as JSON."""
+    import base64
+
+    calls = []
+
+    def fake_volume(db, x, y, z, radius_pc, family):
+        calls.append((db, x, y, z, radius_pc, family))
+        return {"format": "NVOL1", "level": 2, "count": 0, "data": base64.b64encode(b"NVOL\x01\x02").decode("ascii")}
+
+    monkeypatch.setattr(apiclient, "get_cloud_volume", fake_volume)
+    resp = client.get("/galaxy/cloud-volume?x=1&y=-2.5&z=3&radius_pc=4&family=supernova-remnant")
+    assert resp.status_code == 200 and resp.data == b"NVOL\x01\x02"
+    assert "max-age" in resp.headers["Cache-Control"]
+    assert calls == [(DB, 1.0, -2.5, 3.0, 4.0, "supernova-remnant")]
+
+    for query in ("", "x=1&y=2&z=3", "x=a&y=2&z=3&radius_pc=4", "x=1&y=2&z=3&radius_pc=four"):
+        resp = client.get("/galaxy/cloud-volume?" + query)
+        assert resp.status_code == 400 and "error" in resp.get_json(), query
+    assert len(calls) == 1, "a bad query never reaches the API"
+
+    def refused(db, x, y, z, radius_pc, family):
+        raise apiclient.ApiError("radius_pc must be above 0")
+
+    monkeypatch.setattr(apiclient, "get_cloud_volume", refused)
+    resp = client.get("/galaxy/cloud-volume?x=1&y=2&z=3&radius_pc=4&family=diffuse")
+    assert resp.status_code == 502 and "error" in resp.get_json()
+
+
 def test_nebula_surroundings_endpoint_passes_the_stars_through(client, fake, monkeypatch):
     calls = []
 
@@ -843,10 +851,8 @@ def test_real_galaxy_page_and_nodes(db_client, mysql_config, tmp_path):
                    for section in ("planned", "filled")), "MAP.157: sections the page never reads"
     assert sector_id
 
-    quadrant = re.search(r'href="/galaxy\?quadrant=(I|II|III|IV)#galaxy-table">Quadrant \1</a></td>\s*<td data-label="Sectors">1<',
-                         html).group(1)
-    listing = db_client.get(f"/galaxy?quadrant={quadrant}").get_data(as_text=True)
-    assert "Real &lt;Placed&gt;" in listing
+    assert '<h2 id="galaxy-table-heading">Charted regions</h2>' in html
+    assert "Quadrant" not in html
 
     root = format_drill_key(drill_chain_of(5, 1, 20)[0])
     query = f"/galaxy/nodes?keys={root},1.5.1.20"

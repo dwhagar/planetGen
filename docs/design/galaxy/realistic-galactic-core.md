@@ -2,7 +2,7 @@
 
 Boss (2026-10-16, 8:43 PM EDT), to Core 3: "I want a realistic galactic core, add that to Core 3 please. Modify our density and generation model so we keep our consistent rules and adjust sector parameters to control what is filled." At 8:48 PM EDT he added: "we may have to do a tiered system for mass and luminosity, where at the core both are 10% higher caps at the core, and then 10% lower in the halo and intergalactic space" (section 5.1). This reopens GEN.155 (now GEN.279), which [fill-order-curves-and-core.md](fill-order-curves-and-core.md) section 4.2 had closed as "leave the model alone". This note is the plan. It is a recommendation: nothing here is built, and nothing is built from it until Boss approves.
 
-Informs: GEN.155 (reopened as GEN.279), GEN.235 (the rule set and profile), GEN.237 and GEN.244 (the component table and young clusters), GEN.223 (the orbital update), GEN.24 (the core fill), ADM.49 (the Gaussian core). Read with [galaxy-disk-density.md](galaxy-disk-density.md), [intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) (the sector profile, section 5), [globular-clusters.md](globular-clusters.md) (the dense-component precedent), [mass-backfill.md](../generation/mass-backfill.md) (the per-sector level), [spherical-sector-coordinates.md](spherical-sector-coordinates.md) and [later-phenomena-scatter-rules.md](../systems/later-phenomena-scatter-rules.md).
+Informs: NAV.62 (section 11), GEN.155 (reopened as GEN.279), GEN.235 (the rule set and profile), GEN.237 and GEN.244 (the component table and young clusters), GEN.223 (the orbital update), GEN.24 (the core fill), ADM.49 (the Gaussian core). Read with [galaxy-disk-density.md](galaxy-disk-density.md), [intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) (the sector profile, section 5), [globular-clusters.md](globular-clusters.md) (the dense-component precedent), [mass-backfill.md](../generation/mass-backfill.md) (the per-sector level), [spherical-sector-coordinates.md](spherical-sector-coordinates.md) and [later-phenomena-scatter-rules.md](../systems/later-phenomena-scatter-rules.md).
 
 Evidence tags as in the catalogue: **[S]** seen in the repository, **[C]** computed with the repository's code or a short script, **[R]** recalled and unconfirmed, **[I]** inferred.
 
@@ -361,6 +361,68 @@ Boss's call is only needed where marked; the rest stand as written.
 6. **Remnants count as one tenth of a system against the cap**, to be measured. Default: one tenth.
 7. **Tiers** (5.1, decided by Boss 9:09 PM EDT): a core pair of limits 10% above the baseline, the baseline, and a halo luminosity floor (default 500, slider from 100), chosen per band by the dominant term of `lambda`, with satellites and clusters on the baseline; the halo has no mass limit of its own. Default: as written.
 8. **Ceiling and fill cap** (4.2, Boss 9:09 PM EDT): ceiling 50,000 (now 5,000), cap 100 solar luminosities, a step and not a slope (the cap rises per cell when the stars at the cap would still exceed the ceiling). Default: as written; the ladder is the alternative if the step matters.
+
+## 11. The gravity of the stars a cell leaves out (NAV.62, study of 2026-11-05)
+
+Boss (2026-10-16): "I would like to figure out how we can account for the gravity of items left out." The cap of section 4 leaves 99.3% to 99.7% of the systems of a capped cell unmade (the share at or above 100 solar luminosities is 3.2e-3 for bulge-age stars and 1.5e-2 for young ones); `galaxy/resolution.py` (GEN.281) derives their count and mass from the address. This section says what that mass does to a course and to the orbital update. No build; the work is the items at the end. All numbers are [C] from `reports/nav62-unresolved-gravity-calc-2026-11-05.py` (project files), which uses the section 3 models (Hernquist cluster, 2.5e7 solar masses, `a` = 2.07 pc; exponential nuclear disc, `R_d` = 90 pc, `h` = 35 pc; a central hole of 4e6), 0.4 solar masses a system, and a crude spherical `M(<r)` for the disc, good to about a factor of 2 in the covering fractions.
+
+### 11.1 The pull is already in the model, as a smooth field
+
+- **The galactic potential** (`galaxy/potential.py`, GEN.338/GEN.285) is built from the density model (`density.density_components`: bulge, halo, thin and thick disc, nuclear cluster, nuclear disc), not from the stars a cell made. Every star the cap leaves out is in it as part of the smooth mass, so the orbital update of a resolved star already feels the mean pull of the unresolved ones. Nothing is added or double counted for them [S].
+- **The galaxy's enclosed mass** for a Hill sphere (`galaxy/enclosed_mass.py`, GEN.370) integrates the same density model, so a resolved star's keep-out radius already uses the whole mass inside it, unresolved included [S].
+- **The influence set** (`galaxy/influence.py`) adds the pull of the made stars as point masses on top of the smooth field. Their mean is in the smooth field too, but a made star's neighbours pull from every side, so the net of that part cancels at leading order and the double count is the difference, not the sum [I]. It is the existing design of orbital-updates.md section 10.1 and needs no change.
+
+### 11.2 What the smooth field leaves out: the fluctuation
+
+The unresolved stars also pull as point masses, each a little differently from the average. Their effect on a resolved star is the relaxation of the cluster [C]:
+
+| r (pc) | systems per pc^3 | speed (km/s) | relaxation time (Gyr) | speed change per Myr (km/s) |
+|---|---|---|---|---|
+| 0.1 | 2.0e7 | 418 | 42 | 2.05 |
+| 1 | 7.1e5 | 169 | 78 | 0.61 |
+| 4 | 2.4e4 | 127 | 990 | 0.13 |
+| 10 | 1.7e3 | 97 | 6,400 | 0.04 |
+| 100 | 177 | 120 | 1.1e5 | 0.01 |
+
+Per Myr of update the change is at most half a percent of the star's speed even at 0.1 pc, and it is a random walk, not a drift. **The orbital update does not need a term for the unresolved mass at any zoom**; the smooth field is enough. A star taken deeper later (section 8) is drawn at that epoch from its keyed draw, so nothing that was skipped has to be replayed.
+
+### 11.3 A course does not bend to a smooth field, but it does cross unresolved keep-out spheres
+
+A course bends round keep-out spheres (NAV.26); gravity does not steer the ship (course-avoidance.md section 6, last paragraph), so a smooth density has nothing to bend round. What the cap changes is the count of spheres: a star's keep-out is its galactic Hill radius (`keepout.py`), which in the core is small because the enclosed mass is large [C]:
+
+| r (pc) | Hill radius (pc) | share of space inside Hill spheres | mean free path of a straight line (pc) |
+|---|---|---|---|
+| 0.1 | 0.0003 | 0.003 | 0.15 |
+| 1 | 0.0027 | 0.06 | 0.06 |
+| 4 | 0.0083 | 0.06 | 0.20 |
+| 10 | 0.018 | 0.04 | 0.58 |
+| 100 (nuclear disc) | 0.074 | 0.3 | 0.33 |
+
+A straight line through the nuclear region would cross about 1,100 unresolved spheres across 400 pc of the midplane (on or off the centre, the disc dominates), about 480 going straight through the disc at 100 pc from the centre, and about 60 in the width of one 4 pc cell near the centre. The made stars are 0.3% to 1.5% of that, so a planner given only the made stars bends round 3 to 15 spheres in 1,100 and the line is still full of unresolved ones.
+
+**The finding: a course cannot steer clear of the unresolved stars, and does not have to be made to.** Making them all is the cost the cap exists to avoid, and a route that bends round every one of 1,100 spheres is a random walk, not a short detour. The rule the nebula already follows (course-avoidance.md section 2: a cloud is passed through with a note) fits: **the course goes round the made stars and the central hole's sphere of influence (1.56 pc, NAV.54), and says how many unresolved keep-out spheres it passes through.** The hole's sphere covers the cluster's innermost stars by itself (the stars inside its radius weigh about twice the hole, which is how that radius is defined), and a course with an end inside a sphere is already exempt from it.
+
+### 11.4 Where it applies and what it costs
+
+- **Only inside the capped region.** A cell is capped only where it expects more than the ceiling (5,000 systems): the nuclear cluster and the nuclear disc, about 150 to 230 pc from the centre in the midplane. A course that does not touch a sphere of that radius around the centre needs no query at all: the test is one distance from a point to a segment.
+- **Per query**, for a course that does touch it: the cells along the segment (a line across the nuclear disc crosses about 75 cells of 4 pc), and for each a profile and `cell_resolution`, which is a pure function of the address with up to about 30 bright-fraction evaluations for a capped cell. The expected crossings of a cell are `unresolved_systems / volume * pi * R_H^2 * chord` (the chord of the segment in that cell), summed. The cost is about the cells touched times one profile; it is not measured here [I], and the first item should time it and cache by address.
+- **Consistent with deeper fills.** The unresolved count of a cell falls as it is taken deeper (section 4.4), and the stars made are real keep-out spheres from then on, so the same course bends round more and counts fewer; no stored number goes stale (nothing is stored).
+- **No fixed table.** The count comes from the density model and the address through `cell_resolution`, never from a stored list (the item's rule).
+
+### 11.5 Belts, fields and nebulae (Core 1's note)
+
+- **Belts and asteroid fields keep a mass of zero.** A course keeps out of a field by its stored radius (NAV.51) and never by its mass. The orbital update would need a mass only if it were a visible fraction of the pull of the stars round it: the Sun's main belt is 5e-4 Earth masses, and a field a million times heavier is 1.5 Jupiter masses, 0.1% of one solar mass, below any star's own pull at any distance where the field's members are not themselves inside a Hill sphere. A real model is not needed for the course or the update.
+- **Nebulae** have a mass that matters (a giant cloud is 1e3 to 1e6 solar masses). Its pull on the update is GEN.295's to refine; the course does not need it (course-avoidance.md section 2).
+
+### 11.6 Recommendation and new items
+
+1. Keep the smooth field as it is for the orbital update (11.1, 11.2). No item.
+2. Do not make NAV.62 a prerequisite of NAV.26 or NAV.6: the planner works without it (the stale line in NAV.6 says it waits).
+3. Build the pass-through count (11.3, 11.4) as three small items, lock-free and in the courses lane:
+   - **A. The expected crossings of a segment.** A pure function `galaxy/unresolved_crossings.py` (inputs: a segment, the profile reader, the ceiling and the cap; output: the expected number of unresolved keep-out spheres crossed and the systems and mass inside the segment's cells), with the cheap miss test of 11.4. Tests: a segment missing the capped region is zero with no profile read; a segment through one cell equals the formula; the sum over cells equals a fine numeric integral; deeper fill lowers it.
+   - **B. In the course.** `db/obstacles.adjusted_course` adds `passed_through_unresolved` (`{crossings, length_pc, unresolved_systems}`) to the `adjusted` object (course-avoidance.md section 7), and the NAV page says "This course crosses the dense core, where about N stars are too faint to be drawn; it goes round the ones that are, and cannot go round the rest." API docs and a page test.
+   - **C. A dense-core scale test.** A course across the nuclear disc, with a made hole and a made bright star, bends round those two and reports the count.
+4. File no item for the orbital update, belts or fields; GEN.295 stays as the nebula mass item.
 
 ## Evidence notes
 

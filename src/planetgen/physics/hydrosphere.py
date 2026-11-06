@@ -19,7 +19,7 @@ planets (`physics.rogue_surface`) use the functions here.
    2.7 km layer covers 0.71.
 3. **State.** Under water's triple-point pressure and warmer than
    `VACUUM_ICE_MAX_K` the water has sublimated away (`dry`); above the
-   boiling curve it is in the air (`vapour`). Below freezing, an ice lid grows to
+   boiling curve it is in the air (`vapor`). Below freezing, an ice lid grows to
    `ice_shell_thickness_km` from the body's internal heat; it seals the
    whole column (`ice`) or floats on an ocean (`ice-covered ocean`). The
    lid is ice (917 kg/m3) and is compared with the column by mass; its base
@@ -73,7 +73,7 @@ BRINE_SEEP = "brine seep"
 """str: The state of a liquid surface whose ocean is a chloride brine (GEN.908): a puddle of concentrated salt water that melts below
 273 K under thin or no air, not a sea. It is a liquid surface (the ocean columns apply, and it holds water for a base), but the checks
 that ask for a `surface ocean` (a sunlit sea for life, the plate tectonics of a wet world, an induction ocean) do not take it."""
-HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocean", BRINE_SEEP, "hycean")
+HYDROSPHERE_STATES = ("dry", "vapor", "ice", "ice-covered ocean", "surface ocean", BRINE_SEEP, "hycean")
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")
 
 WATER_MELTING_K = 273.15
@@ -280,7 +280,7 @@ def draw_surface_water(body):
     """
     The water mass fraction at the surface of a rocky body: what its mantle leaves of the bulk water (rule 1, a seeded draw of the
     mantle's buffer), less what escape has stripped (GEN.639), plus the part of the mantle's that volcanism returns. Drawn before the
-    air (`planets.calculate_atmospheric_conditions`): the ocean is the reservoir the air's water vapour stands in contact with, and the
+    air (`planets.calculate_atmospheric_conditions`): the ocean is the reservoir the air's water vapor stands in contact with, and the
     carbonate cycle needs it, so the air and the ocean are solved together.
 
     Raises:
@@ -340,7 +340,7 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
     salt = None
     if temperature >= WATER_MELTING_K:
         if temperature >= water_boiling_k(pressure):
-            body.hydrosphere = "vapour"
+            body.hydrosphere = "vapor"
             body.ocean_fraction, body.land_fraction = 0.0, 1.0
             return surface_w
         column = water_layer.column(body.mass, body.radius, water_kg, covered=covered, bottom_temperature_k=temperature,

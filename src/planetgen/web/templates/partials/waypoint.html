@@ -1,0 +1,11 @@
+{#- planetgen/web/templates/partials/waypoint.html -- the Add waypoint item of the Nav menu on a system, phenomenon or body page
+(NAV.49), after Navigate from here, Navigate to here and Nearby locations; the action bar's row has no room for another button on a
+phone. `entry` is web.helpers.bookmark(...); a sector has no NAV endpoint and gets none. static/waypoints.js wires it (shows it, adds
+or removes the waypoint, and says its place in the course while it is one); with no script it stays hidden, since waypoints live in
+the browser. -#}
+{%- macro waypoint_item(entry) -%}
+{%- if entry.kind != "sector" %}
+<sl-menu-item data-waypoint-toggle data-waypoint-kind="{{ entry.kind }}" data-waypoint-value="{{ entry.value }}"
+              data-waypoint-name="{{ entry.name }}" data-waypoint-url="{{ entry.url }}" hidden>Add waypoint</sl-menu-item>
+{%- endif %}
+{%- endmacro -%}

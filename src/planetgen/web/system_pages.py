@@ -19,14 +19,15 @@ every link is a plain GET link (`page_url`).
 
 import math
 
-from flask import abort, jsonify, redirect, request
+from flask import Response, abort, jsonify, redirect, request
 from markupsafe import Markup
 from planetgen.describe.html import blocks_html
 from planetgen.describe.model import sections, split_by_body
 from planetgen.describe.stored_phenomena import stored_phenomenon_document
 from planetgen.physics.quantity import Quantity
-from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
-from planetgen.web.lib import apiclient, facility_display
+from planetgen.physics.lensing import einstein_radius_against_galactic_center_m
+from planetgen.util import log
+from planetgen.web.lib import apiclient, facility_display, skycache, skypack
 from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.fmt import (
     distance_km_html, distance_ly_html, format_members, format_number, linkify_nearest,
@@ -266,6 +267,90 @@ def system_scene(system_id):
 system_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+def _json_error(message, status):
+    response = jsonify({"error": message})
+    response.status_code = status
+    return response
+
+
+@bp.route("/system/<uid:system_id>/sky")
+def system_sky(system_id):
+    """
+    The sky the system sees (VIEW.31): `?limit=` is the limiting magnitude (2 to 9, default 7.5). The packed star list (`application/vnd.planetgen.sky`,
+    `static/skypack.js` reads it; `docs/design/interface/system-sky-wire-format.md`) whose `meta` holds the nebula and remnant sprites and the report of how
+    much of the sky is built. Kept on disk by `skycache` while the galaxy's stored stars stand. A limit out of range is a 400, an unknown system a 404 and an
+    API failure a 502, all as `{"error": ...}` JSON. The `X-Sky-Source` header says `cache` or `built`.
+    """
+    try:
+        body, header = skycache.fetch_sky(db_name(), system_id, request.args.get("limit"))
+    except skypack.SkyLimitError as exc:
+        return _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while building a system's sky: {exc}")
+        return _json_error("The sky could not be loaded. Please try again shortly.", 502)
+    response = Response(body, mimetype=skypack.MIMETYPE)
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["X-Sky-Source"] = header["source"]
+    response.headers["X-Sky-Version"] = header["version_key"]
+    return response
+
+
+system_sky.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/system/<uid:system_id>/sky/band")
+def system_sky_band(system_id):
+    """
+    The glow image of the system's sky (VIEW.13): `?limit=` as for the sky and `&key=` the `meta.band.key` the sky named. Raw half floats
+    (`application/octet-stream`, `rgb16f`: red, green and blue a texel, row by row, `X-Sky-Band-Width` by `X-Sky-Band-Height` texels), kept on disk under the
+    key by `skycache`. A limit out of range or a key that is not a hash is a 400, an unknown system a 404, an API failure a 502, as `{"error": ...}` JSON.
+    """
+    try:
+        body, header = skycache.fetch_band(db_name(), system_id, request.args.get("limit"), request.args.get("key") or None)
+    except (skypack.SkyLimitError, ValueError) as exc:
+        return _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while building a system's glow image: {exc}")
+        return _json_error("The glow image could not be loaded. Please try again shortly.", 502)
+    response = Response(body, mimetype="application/octet-stream")
+    response.headers["Cache-Control"] = "no-store"
+    response.headers.update({"X-Sky-Source": header["source"], "X-Sky-Band-Key": header["key"], "X-Sky-Band-Width": str(header["width"]),
+                             "X-Sky-Band-Height": str(header["height"]), "X-Sky-Band-Format": header["format"]})
+    return response
+
+
+system_sky_band.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+def _course_in_system(system_id):
+    """
+    NAV.22: the legs of the NAV course in `?course=<from>,<to>` that lie in this system, for the 3D view to draw
+    (`nav_page.system_course`), or `None` when none is asked for, none lies here, or it can't be drawn: a course that can't is simply not
+    drawn.
+    """
+    raw = (request.args.get("course") or "").strip()
+    if "," not in raw:
+        return None
+    from_raw, to_raw = (part.strip() for part in raw.split(",", 1))
+    if not from_raw or not to_raw:
+        return None
+    from .nav_page import system_course  # imported here: nav_page registers routes on `bp`, as this module does
+
+    try:
+        return system_course(system_id, from_raw, to_raw)
+    except apiclient.ApiError as exc:
+        if isinstance(exc, apiclient.NotFoundError):
+            return None  # an endpoint the database no longer has: no course, not a 404 page
+        log.exception(f"API error while plotting a course for the system view: {exc}")
+        return None
+    except ValueError:
+        return None  # an endpoint that does not parse
+
+
 @bp.route("/system/<uid:system_id>", methods=["GET", "POST"])
 def system(system_id):
     """One star system. A POST with a `facility_action` is the admin
@@ -298,12 +383,16 @@ def system(system_id):
 
     section, breadcrumbs = _system_crumbs(detail)
     inside = detail.get("inside")
+    course = _course_in_system(system_id) if detail["stars"] else None
     map_html = ""
     if detail["stars"]:
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"],
                                            facilities=facilities,
                                            scene_url=page_url("system_scene", system_id=system_id),
-                                           nav=body_nav(request.args, course=detail["sector_id"] is not None))
+                                           sky_url=page_url("system_sky", system_id=system_id),
+                                           sky_star_url=page_url("object_page", ref="star:STARIDHERE").replace("STARIDHERE", "{id}"),
+                                           sky_help_url=page_url("sky_help_page"),
+                                           nav=body_nav(request.args, course=detail["sector_id"] is not None), course=course)
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.
     links, pick = pick_nav("system", system_id, request.args) if detail["sector_id"] is not None else (None, None)
@@ -685,6 +774,9 @@ FIELD_SPECS = {
     "rogue_planet": [
         ("planet_type", "Type", _rogue_planet_type_text),
         ("planet_class", "Planet Class", str),
+        ("rogue_note", "Where It Came From", str),      # GEN.1111: a rogue planet is made by the system that threw it out
+        ("since_ejection_gy", "Time Since It Was Thrown Out", lambda v: f"{format_number(v, ',.3f')} Gyr"),
+        ("ejection_speed_kms", "Speed It Left At", lambda v: f"{format_number(v, ',.1f')} km/s"),
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
         ("mass_kg", "Mass", _quantity("kg")),
         ("radius_km", "Radius", _body_radius),
@@ -756,7 +848,7 @@ def _with_galactic_speed(detail):
 def _with_derived_fields(phenomenon_type, detail):
     """`detail` plus the values worked out from it rather than stored: the
     Einstein radius (GEN.154) of a black hole, neutron star or rogue planet
-    that has a galactic position, left out for a lens beyond the galaxy's reference radius from the centre
+    that has a galactic position, left out for a lens beyond the galaxy's reference radius from the center
     (`physics/lensing.py`, GEN.404)."""
     if phenomenon_type in ("black_hole", "neutron_star"):
         mass_kg = Quantity("mass", detail.get("mass_solar") or 0, "Msun").kg
@@ -768,7 +860,7 @@ def _with_derived_fields(phenomenon_type, detail):
     observer_pc = detail.get("reference_radius_pc")
     if radius_pc is None or observer_pc is None:
         return detail
-    einstein_m = einstein_radius_against_galactic_centre_m(mass_kg, radius_pc, observer_pc)
+    einstein_m = einstein_radius_against_galactic_center_m(mass_kg, radius_pc, observer_pc)
     if einstein_m is None:
         return detail
     return {**detail, "einstein_radius_m": einstein_m}

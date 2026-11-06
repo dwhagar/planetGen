@@ -69,7 +69,7 @@ ENQUEUE_BATCH = 500
 """int: How many units go to Redis in one pipeline."""
 
 class RunStopped(RuntimeError):
-    """The run ended (failed, was cancelled or went stale) before its stage was done."""
+    """The run ended (failed, was canceled or went stale) before its stage was done."""
 
 
 def job_id(run_id, stage, unit):
@@ -171,7 +171,7 @@ class _Reporter:
 def run_unit(run_id, stage, unit, kind, args, cost=None):
     """
     The RQ job of one unit: does it, stores its result, joins the done set, and, when it completes its stage, has the
-    wrapper queue the next one or, after the last, ends the run. A unit that finds the run no longer live (cancelled,
+    wrapper queue the next one or, after the last, ends the run. A unit that finds the run no longer live (canceled,
     failed) does nothing.
 
     Returns:
@@ -374,15 +374,20 @@ def _progress(conn, run_id, stage):
 
 
 def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure=None, clock=time.monotonic,
-                 sleep=time.sleep, on_debug=None):
+                 sleep=time.sleep, on_debug=None, touch=True):
     """
     Follows stage `stage` of the run until its `units` units are done: calls `on_result(unit, result)` once for
     each as it finishes and `on_progress(unit, done, estimate)` for those still working, and `ensure()` every
     `ENSURE_SECONDS` (starting workers, replacing dead ones), and `on_debug()` at every poll and when the stage ends
     (a debug run prints the lines its workers relayed, `planetgen.util.log.RelayReader`).
 
+    Args:
+        touch (bool): Whether this process says the run is alive (`runrecord.touch`) at every poll. The process that
+            started the run does; one that only watches it (`wrapper.follow`, PERF.235) does not, so a run whose own
+            process is gone is not taken for a live one on its account.
+
     Raises:
-        RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was cancelled).
+        RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was canceled).
     """
     seen = set()
     last_ensure = float("-inf")
@@ -396,7 +401,8 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             seen.update(ordered)
 
     while True:
-        runrecord.touch(conn, run_id)
+        if touch:
+            runrecord.touch(conn, run_id)
         drain()
         if on_debug is not None:
             on_debug()

@@ -2,7 +2,7 @@
 
 """
 GEN.158: one [Fe/H] per star (`planetgen/physics/metallicity.py`), drawn from
-the star's population and its distance from the galactic centre, and the
+the star's population and its distance from the galactic center, and the
 planet-occurrence factors it feeds (docs/design/galaxy/globular-clusters.md 5 and 7).
 """
 
@@ -17,7 +17,7 @@ from planetgen.generation.star import Star
 from planetgen.physics import constants, formation, metallicity
 from planetgen.util import draw
 
-SUN = scales.reference_radius_pc() * 3.2615637771674337   # the zero point of the disc gradient, light-years
+SUN = scales.reference_radius_pc() * 3.2615637771674337   # the zero point of the disk gradient, light-years
 KPC = constants.KILOPARSEC_M / constants.LY_TO_M
 
 
@@ -26,10 +26,10 @@ def _sample(population, distance_ly, n=3000, seed=1):
     return [metallicity.sample_fe_h(population, distance_ly, stream) for _ in range(n)]
 
 
-def test_the_disc_gradient_is_zero_at_the_sun_and_falls_outward():
-    assert metallicity.disc_gradient_fe_h(SUN) == pytest.approx(0.0)
-    assert metallicity.disc_gradient_fe_h(SUN + 5 * KPC) == pytest.approx(-0.30)
-    assert metallicity.disc_gradient_fe_h(SUN - 5 * KPC) == pytest.approx(0.30)
+def test_the_disk_gradient_is_zero_at_the_sun_and_falls_outward():
+    assert metallicity.disk_gradient_fe_h(SUN) == pytest.approx(0.0)
+    assert metallicity.disk_gradient_fe_h(SUN + 5 * KPC) == pytest.approx(-0.30)
+    assert metallicity.disk_gradient_fe_h(SUN - 5 * KPC) == pytest.approx(0.30)
 
 
 def test_each_population_has_its_own_mean_and_scatter():

@@ -863,7 +863,7 @@ tbody tr:last-child td {
 
 /* MAP.199: the center the view turns and zooms about -- always the middle
    of the map -- marked with a small cross so it is always known. */
-.starmap-centre {
+.starmap-center {
   position: absolute;
   left: 50%;
   top: 50%;
@@ -878,7 +878,7 @@ tbody tr:last-child td {
   filter: drop-shadow(0 0 1px var(--bg-subtle));
 }
 
-.starmap-centre.is-moving {
+.starmap-center.is-moving {
   opacity: 1;
   transform: scale(1.5);
 }
@@ -1076,7 +1076,7 @@ tbody tr:last-child td {
   cursor: default;
 }
 
-.starmap-centre-readout {
+.starmap-center-readout {
   position: absolute;
   left: 50%;
   top: 0.5rem;
@@ -1615,6 +1615,12 @@ a.navmap-label:focus-visible {
   stroke-width: 2;
 }
 
+/* NAV.28: the course bent round keep-out spheres, over the route, in the amber of the site's warning tier. */
+.navmap-bent-line {
+  stroke: var(--tier-yellow);
+  stroke-width: 2.5;
+}
+
 /* NAV.36: a jump through unknown space is red, dashed and glowing (the glow is the SVG's filter); it pulses only where the visitor has
    not asked for reduced motion. */
 .navmap-route-unknown,
@@ -2139,6 +2145,16 @@ a:focus-visible .navmap-point circle {
   stroke: var(--error);
   stroke-width: 3;
   stroke-dasharray: 7 4;
+}
+
+.nav-diagram-bend {
+  stroke: var(--accent);
+  stroke-width: 2;
+  fill: none;
+}
+
+.nav-diagram-bend-flag {
+  stroke: var(--tier-yellow);
 }
 
 .nav-diagram-label,
@@ -3070,6 +3086,56 @@ code {
   font-size: 0.78rem;
 }
 
+/* MAP.168: the Gravity layer's ramp in the key and its controls under its row of the View menu. */
+.map-layer-legend-swatch.gravity-ramp {
+  width: 2.2rem;
+  height: 0.55rem;
+  border-radius: 0.15rem;
+  background: linear-gradient(90deg, rgb(68, 1, 84), rgb(59, 82, 139), rgb(33, 145, 140), rgb(94, 201, 98), rgb(253, 231, 37));
+}
+.gravity-button {
+  margin: 0.1rem 0.2rem 0.1rem 0;
+}
+.gravity-button[aria-pressed="true"] {
+  font-weight: 600;
+  outline: 2px solid var(--accent);
+}
+.gravity-hint {
+  display: block;
+  margin: 0.2rem 0;
+  font-size: 0.8rem;
+}
+.gravity-slab {
+  margin: 0 0.4rem;
+  font-size: 0.85rem;
+}
+.gravity-volume {
+  display: block;
+  font-size: 0.85rem;
+}
+
+/* MAP.169: the System Map's Gravity layer: the heat map under the orbits, the Hill spheres and the Lagrange points. */
+.sysmap-gravity-image {
+  pointer-events: none;
+}
+.sysmap-hill {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1px;
+  stroke-dasharray: 4 3;
+  opacity: 0.8;
+}
+.sysmap-lagrange {
+  fill: var(--bg);
+  stroke: var(--text);
+  stroke-width: 1px;
+}
+.sysmap-lagrange-label {
+  fill: var(--text);
+  font-size: 8px;
+  pointer-events: none;
+}
+
 /* The marks of the key lines for what the map draws as shapes. */
 .map-layer-legend-swatch.map-key-point {
   border-radius: 50%;
@@ -3106,6 +3172,21 @@ code {
 .map-layer-legend-swatch.map-key-course-unknown {
   height: 0;
   border-top: 3px dashed var(--error);
+  border-radius: 0;
+  vertical-align: 0.2rem;
+}
+.map-layer-legend-swatch.map-key-waypoint {
+  background: none;
+  border-radius: 0;
+}
+.map-layer-legend-swatch.map-key-waypoint::before {
+  content: "\2691";
+  color: var(--accent);
+  line-height: 1;
+}
+.map-layer-legend-swatch.map-key-bent {
+  height: 0;
+  border-top: 3px solid var(--tier-yellow);
   border-radius: 0;
   vertical-align: 0.2rem;
 }
@@ -3378,14 +3459,19 @@ code {
   gap: 0.3rem;
 }
 
+/* MAP.397: a layer's button and its Forward button are one row that does not break across lines. */
+.galaxy-kinds .galaxy-kinds-row {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  white-space: nowrap;
+}
+
 .galaxy-kinds .map-forward-toggle {
   margin-left: -0.35rem;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-}
-
-.galaxy-kinds .map-forward-toggle:disabled {
-  opacity: 0.45;
 }
 
 .galaxy-sub > summary {
@@ -3451,6 +3537,78 @@ code {
   color: var(--text-muted);
 }
 
+/* UX.278: the View menu the shared builder (viewmenu.js) draws: a fold per heading with its count, real checkboxes in rows, a group box
+   for a family, and the word "changed" (not colour alone) where a layer is not as it starts. */
+.galaxy-kinds .view-menu {
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.view-menu-heading > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  min-height: 2.75rem;
+  align-content: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.view-menu-count,
+.view-menu-changed {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.view-menu-group {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0.4rem;
+}
+
+.view-menu-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.5rem;
+  min-height: 2.75rem;
+  font-size: 0.85rem;
+}
+
+.view-menu-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.6rem;
+  min-height: 2.75rem;
+}
+
+.view-menu-item,
+.view-menu-forward {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+
+.view-menu-differs .view-menu-label {
+  font-weight: 600;
+}
+
+.view-menu-settings:empty {
+  display: none;
+}
+
+.view-menu input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
 /* MAP.256, MAP.288: the Galaxy Map's selection panel is a popup inside the map's window (static/mappick.js,
    `data-overlay`), at every width: drawn over the map, in the corner farthest from where the reader pressed, with a Close
    button, and not at all until something is picked. The map under it stays pickable: only its buttons and links take
@@ -3492,7 +3650,8 @@ code {
 }
 
 .starmap-info[data-overlay] .map-info-head > .map-info-close,
-.starmap-info[data-overlay] .map-info-head > .map-info-bookmark {
+.starmap-info[data-overlay] .map-info-head > .map-info-bookmark,
+.starmap-info[data-overlay] .map-info-head > .map-info-waypoint {
   flex: none;
 }
 
@@ -4988,6 +5147,16 @@ body.app {
   border-color: var(--accent);
 }
 
+/* NAV.18: a saved course's Direct / Route switch and its link to the map look like the other actions. */
+.bookmarks-action[aria-pressed="true"] {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+a.bookmarks-action {
+  text-decoration: none;
+}
+
 .bookmarks-rename {
   display: flex;
   flex: 1 1 100%;
@@ -5051,7 +5220,7 @@ body.app {
 }
 
 .badge.job-paused,
-.badge.job-cancelled {
+.badge.job-canceled {
   border-style: dashed;
 }
 
@@ -5251,6 +5420,17 @@ body.app {
   display: block;
   touch-action: none;
   cursor: grab;
+}
+
+.sysview-sky {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.sysview-sky-note {
+  margin: 0.25rem 0;
 }
 
 .sysview-canvas:focus-visible {
@@ -5936,7 +6116,7 @@ p.hint a {
 }
 
 
-/* The icons on the walls of the sector opened in place (MAP.327, sectorframe.js): a labelled button at the centre of each
+/* The icons on the walls of the sector opened in place (MAP.327, sectorframe.js): a labelled button at the center of each
    wall that faces a neighbouring sector, screen-sized whatever the zoom, over the names; a click flies there. */
 .map-wall-icons {
   position: absolute;
@@ -6092,7 +6272,7 @@ p.hint a {
   display: none;
 }
 
-/* The kind's mark: a small disc, a ring for a body that is not a whole world, drawn by CSS. */
+/* The kind's mark: a small disk, a ring for a body that is not a whole world, drawn by CSS. */
 .tree-kind {
   display: inline-block;
   align-self: center;
@@ -6414,6 +6594,18 @@ a.help-mark {
   font-size: 0.875rem;
   text-align: center;
 }
+/* UX.276: the readout under the Sensor view reads as the instruments' line, and an estimate says it is one. */
+.sensor-readout {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-style: italic;
+}
+.sensor-estimate {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
 
 /* UX.174: a system's row in the sector page's Contents opens onto its summary tree under the name. */
 .datatable td .tree-toggle {
@@ -6695,6 +6887,21 @@ a.help-mark {
 .map-region-poi:hover,
 .map-region-poi:focus-visible {
   background: var(--bg-elevated);
+}
+.map-region-poi-name {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-region-poi-count {
+  /* A badge apart from the name: "Fixture Beez Region" and, beside it, "2" regions in the point. */
+  min-width: 1.2em;
+  padding: 0 0.3em;
+  text-align: center;
+  color: var(--bg-elevated);
+  background: var(--accent);
+  border-radius: 999px;
 }
 .map-region-poi-count:empty {
   display: none;

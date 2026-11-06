@@ -12,7 +12,7 @@ each other nor on the order they run in.
    dex intrinsic upper limit in mass, over the slope 4). STAND-IN until the potential of GEN.338 gives the circular
    speed from the enclosed mass; the gas is not added.
 2. **Thick disk** (fills GR3 and the thick-disk rows of the gap plan; Boss's cards of 12:02 PM EDT and 1:12 PM EDT):
-   - mass over the thin disk's: the centre is drawn log-uniformly between the two fits (both verified, "widen and keep
+   - mass over the thin disk's: the center is drawn log-uniformly between the two fits (both verified, "widen and keep
      both"): `0.53 (Vc / 100)^-2.3` ([R4824], astro-ph/0508460, sections 4.4.5 and 4.4.6) and
      `10^2.113 Vc^-1.086 = 0.87 (Vc / 100)^-1.086` ([R0865], VizieR J/A+A/610/A5,
      124 galaxies, scatter 0.268 dex), and scattered by Comeron's 0.268 dex, the wider of the two;
@@ -28,17 +28,17 @@ each other nor on the order they run in.
    [R1816: Table 1] and [R1169: Fig. 16]) drawn with a
    scatter of 1.01 dex (Dragonfly: [R3041]; the widest of it and Harmsen's 0.33 dex,
    Boss's rule of 1:12 PM EDT), cut so the halo is 0.1 percent to 30 percent of the galaxy's stars (the upper end is
-   [R1169]'s disc-dominated galaxies; below it the Dragonfly galaxies with no detected halo). A galaxy under
+   [R1169]'s disk-dominated galaxies; below it the Dragonfly galaxies with no detected halo). A galaxy under
    `dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR` (3e8, Boss 7:58 PM EDT 10-21) runs none of this: it has no stellar halo, no thick
-   disc, no bar and no nuclear structures.
-4. **Motions** (fills GR4, GR5): the birth-gas dispersion 6.5 +/- 1 km/s (the molecular CO widths of [R3114], Sun 2020, [R2830], GEN.536; the atomic value is 10 +/- 2, [R4298]), the disc's central vertical
+   disk, no bar and no nuclear structures.
+4. **Motions** (fills GR4, GR5): the birth-gas dispersion 6.5 +/- 1 km/s (the molecular CO widths of [R3114], Sun 2020, [R2830], GEN.536; the atomic value is 10 +/- 2, [R4298]), the disk's central vertical
    dispersion `0.248 V` with 15 percent [R2917], the age exponent 0.441 +/- 0.03 [R4043],
    and the bulge's scatter 0.097 dex about `Vc / sigma_0 = 2 (1 - B/T)` [R0908].
 5. **Black holes** (GEN.563; `draw_black_hole_shares`): the shares of the massive stars that fail to explode at solar and at
    zero metallicity, which `galaxy.remnant_density` turns into a rate per star at a place.
 6. **Bar** (GEN.533; sources and conflicts in `docs/design/galaxy/gen533-bar-sources.md`): whether the galaxy has a bar, the
    bar's (or an unbarred bulge's) axis ratios and the bar's angle; see `draw_bar`.
-7. **Nuclear disc** (GEN.628): the barred galaxy's disc mass from its stellar mass, the centre log-uniform between the
+7. **Nuclear disk** (GEN.628): the barred galaxy's disk mass from its stellar mass, the center log-uniform between the
    two fits of [R1487] ([R1487], Eqs. 1 and 2), scattered by a placeholder 0.3 dex;
    none for an unbarred galaxy or one under `dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`. It no longer follows the
    nuclear cluster's mass.
@@ -80,18 +80,18 @@ HALO_RATIO_SCATTER_DEX = 1.01
 HALO_RATIO_RANGE = (0.001 / 0.999, 0.30 / 0.70)
 
 GAS_DISPERSION_KMS = (6.5, 1.0)
-"""tuple: `(centre, scatter)` km/s of the cold gas the stars are born from. Stars form in molecular clouds, whose line-of-sight
+"""tuple: `(center, scatter)` km/s of the cold gas the stars are born from. Stars form in molecular clouds, whose line-of-sight
 CO width in nearby spirals is 7.3 +/- 1.7 km/s per pixel ([R3114], 9 THINGS and HERACLES galaxies), 6.3 to 7.5
-km/s mass-weighted and 4.4 to 4.9 km/s area-weighted in galaxy discs at 90 and 150 pc (Sun et al. 2020, PHANGS-ALMA, 70
+km/s mass-weighted and 4.4 to 4.9 km/s area-weighted in galaxy disks at 90 and 150 pc (Sun et al. 2020, PHANGS-ALMA, 70
 galaxies), 7.1 to 7.8 km/s near the Sun [R2830], and at most 12.0 +/- 3.9 km/s from spectra stacked over inclined
-discs [R0625], against the atomic gas's 10 +/- 2 km/s ([R4298], HI at r25 in 11 THINGS
-discs). The centre 6.5 km/s sits inside 7.0 +/- 1.7 and gives a young disc 0.22 of the old disc's height (66 pc for 300 pc),
+disks [R0625], against the atomic gas's 10 +/- 2 km/s ([R4298], HI at r25 in 11 THINGS
+disks). The center 6.5 km/s sits inside 7.0 +/- 1.7 and gives a young disk 0.22 of the old disk's height (66 pc for 300 pc),
 inside the 35 to 70 pc that Milky Way OB stars, HII regions, Cepheids and young open clusters show (GEN.1182; 7.0 gives
 73 pc, 10 km/s 119 pc and twice the molecular clouds the catalogues hold). Confident unverified (the CO widths are read, the
 step to the stars' birth dispersion is physics), tweak L1 (the weighting); reports/gen536-co-velocity-dispersion-2026-10-31.md."""
-DISC_CENTRAL_DISPERSION_OVER_V = (0.248, 0.15)
-"""tuple: `(centre, relative scatter)`: [R2917], `0.248 +/- 0.038`, 15 percent."""
-DISC_AGE_EXPONENT = (0.441, 0.03)
+DISK_CENTRAL_DISPERSION_OVER_V = (0.248, 0.15)
+"""tuple: `(center, relative scatter)`: [R2917], `0.248 +/- 0.038`, 15 percent."""
+DISK_AGE_EXPONENT = (0.441, 0.03)
 BULGE_DISPERSION_SCATTER_DEX = 0.097
 NUCLEAR_CLUSTER_MASS_AT_1E9 = 6.51
 """float: `log10` of a nuclear star cluster's mass, solar masses, in a galaxy of 1e9 solar masses of stars ([R3273: Eq. 1]: `log M_NSC = 0.48 log(M* / 1e9) + 6.51`)."""
@@ -100,16 +100,16 @@ NUCLEAR_CLUSTER_SLOPE_RANGE = (0.48, 1.36)
 1.0 late types, 1.36 early types), the two verified papers that disagree; both stay (Boss, gap plan decision 2, GX3)."""
 NUCLEAR_CLUSTER_SCATTER_DEX = 0.6
 """float: Its scatter, dex ([R3273], mostly intrinsic)."""
-NUCLEAR_DISC_MASS_AT_1E9 = ((7.62, 1.32), (7.99, 0.86))
-"""tuple: `(log10 of the nuclear disc's mass, solar masses, in a galaxy of 1e9 solar masses of stars, slope)` of the two
+NUCLEAR_DISK_MASS_AT_1E9 = ((7.62, 1.32), (7.99, 0.86))
+"""tuple: `(log10 of the nuclear disk's mass, solar masses, in a galaxy of 1e9 solar masses of stars, slope)` of the two
 fits of [R1487] ([R1487], to appear in MNRAS Letters, Eqs. 1 and 2, 16 TIMER barred
 galaxies, bootstrapped errors 0.44 and 0.25 on the intercept and slope): `log M_ND = 1.32 log(M* / 1e9) + 7.62` from the
 photometric decompositions and `0.86 log(M* / 1e9) + 7.99` from the spectroscopic star formation histories, which sit
 about 0.5 dex lower (the photometric masses may be biased high by the other components). Two verified fits that disagree:
-the centre is drawn log-uniform between them (the widest range, as for the thick disc), both kept. The Milky Way's own
-nuclear disc is not in either fit; they put it at 7e9 and 3e9 against the 1e9 to 1.5e9 measured."""
-NUCLEAR_DISC_SCATTER_DEX = 0.3
-"""PLACEHOLDER (gap plan 6): the scatter of a nuclear disc's mass about the fit, dex. The paper prints the parameters'
+the center is drawn log-uniform between them (the widest range, as for the thick disk), both kept. The Milky Way's own
+nuclear disk is not in either fit; they put it at 7e9 and 3e9 against the 1e9 to 1.5e9 measured."""
+NUCLEAR_DISK_SCATTER_DEX = 0.3
+"""PLACEHOLDER (gap plan 6): the scatter of a nuclear disk's mass about the fit, dex. The paper prints the parameters'
 bootstrapped errors but not the scatter of the 16 points, which a figure holds; replaced when it is read."""
 NUCLEATION_PEAK = 0.85
 NUCLEATION_PEAK_MASS_SOLAR = 1.0e9
@@ -185,18 +185,18 @@ def nuclear_cluster_mass_solar(stellar_mass_solar, slope, deviation):
                     + deviation * NUCLEAR_CLUSTER_SCATTER_DEX)
 
 
-def nuclear_disc_mass_bounds_solar(stellar_mass_solar):
-    """`(photometric, spectroscopic)`: the two fits' nuclear disc mass, solar masses, in a galaxy of `stellar_mass_solar`."""
+def nuclear_disk_mass_bounds_solar(stellar_mass_solar):
+    """`(photometric, spectroscopic)`: the two fits' nuclear disk mass, solar masses, in a galaxy of `stellar_mass_solar`."""
     return tuple(10.0 ** (intercept + slope * math.log10(stellar_mass_solar / 1.0e9))
-                 for intercept, slope in NUCLEAR_DISC_MASS_AT_1E9)
+                 for intercept, slope in NUCLEAR_DISK_MASS_AT_1E9)
 
 
-def draw_nuclear_disc_mass_solar(galaxy_seed, stellar_mass_solar):
-    """A nuclear stellar disc's mass, solar masses, in a galaxy of `stellar_mass_solar`: the centre log-uniform between the
-    two fits (`NUCLEAR_DISC_MASS_AT_1E9`), scattered by `NUCLEAR_DISC_SCATTER_DEX`."""
-    low, high = sorted(nuclear_disc_mass_bounds_solar(stellar_mass_solar))
-    centre = _stream(galaxy_seed, "nuclear-disc-centre").uniform(math.log10(low), math.log10(high))
-    return 10.0 ** (centre + _scatter(_stream(galaxy_seed, "nuclear-disc"), NUCLEAR_DISC_SCATTER_DEX))
+def draw_nuclear_disk_mass_solar(galaxy_seed, stellar_mass_solar):
+    """A nuclear stellar disk's mass, solar masses, in a galaxy of `stellar_mass_solar`: the center log-uniform between the
+    two fits (`NUCLEAR_DISK_MASS_AT_1E9`), scattered by `NUCLEAR_DISK_SCATTER_DEX`."""
+    low, high = sorted(nuclear_disk_mass_bounds_solar(stellar_mass_solar))
+    center = _stream(galaxy_seed, "nuclear-disk-center").uniform(math.log10(low), math.log10(high))
+    return 10.0 ** (center + _scatter(_stream(galaxy_seed, "nuclear-disk"), NUCLEAR_DISK_SCATTER_DEX))
 
 
 def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None):
@@ -217,16 +217,16 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
     vc = draw_circular_speed_kms(galaxy_seed, mass)
 
     low, high = thick_mass_ratio_bounds(vc)
-    centre = _stream(galaxy_seed, "thick-mass-centre").uniform(math.log10(min(low, high)), math.log10(max(low, high)))
-    mass_ratio = 10.0 ** (centre + _scatter(_stream(galaxy_seed, "thick-mass"), COMERON_MASS_RATIO_SCATTER_DEX))
+    center = _stream(galaxy_seed, "thick-mass-center").uniform(math.log10(min(low, high)), math.log10(max(low, high)))
+    mass_ratio = 10.0 ** (center + _scatter(_stream(galaxy_seed, "thick-mass"), COMERON_MASS_RATIO_SCATTER_DEX))
     length_ratio = thick_length_ratio_median(vc) * 10.0 ** _scatter(
         _stream(galaxy_seed, "thick-length"), COMERON_LENGTH_RATIO_SCATTER_DEX)
-    height_centre = _stream(galaxy_seed, "thick-height-centre").uniform(
+    height_center = _stream(galaxy_seed, "thick-height-center").uniform(
         math.log10(THICK_HEIGHT_RATIO_RANGE[0]), math.log10(THICK_HEIGHT_RATIO_RANGE[1]))
-    height_ratio = 10.0 ** (height_centre + _scatter(_stream(galaxy_seed, "thick-height"), THICK_HEIGHT_RATIO_SCATTER_DEX))
+    height_ratio = 10.0 ** (height_center + _scatter(_stream(galaxy_seed, "thick-height"), THICK_HEIGHT_RATIO_SCATTER_DEX))
 
     full = mass_chain.has_full_structure(mass)
-    if not full:      # Boss, 7:58 PM EDT 10-21: one disc plus a bulge under the mass the thick disc and halo laws were fitted to
+    if not full:      # Boss, 7:58 PM EDT 10-21: one disk plus a bulge under the mass the thick disk and halo laws were fitted to
         mass_ratio = 0.0
     if stellar_halo_share is not None:
         if not full:
@@ -240,9 +240,9 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
         halo = 0.0
 
     gas = GAS_DISPERSION_KMS[0] + _scatter(_stream(galaxy_seed, "gas-dispersion"), GAS_DISPERSION_KMS[1])
-    centre_over_v, relative = DISC_CENTRAL_DISPERSION_OVER_V
-    central = vc * centre_over_v * math.exp(_scatter(_stream(galaxy_seed, "disc-dispersion"), relative))
-    exponent = DISC_AGE_EXPONENT[0] + _scatter(_stream(galaxy_seed, "disc-heating"), DISC_AGE_EXPONENT[1])
+    center_over_v, relative = DISK_CENTRAL_DISPERSION_OVER_V
+    central = vc * center_over_v * math.exp(_scatter(_stream(galaxy_seed, "disk-dispersion"), relative))
+    exponent = DISK_AGE_EXPONENT[0] + _scatter(_stream(galaxy_seed, "disk-heating"), DISK_AGE_EXPONENT[1])
     bulge_scatter = _scatter(_stream(galaxy_seed, "bulge-dispersion"), BULGE_DISPERSION_SCATTER_DEX)
     bar = draw_bar(galaxy_seed, mass)
     if not full:
@@ -257,26 +257,26 @@ def draw_structure(galaxy_seed, stellar_mass_solar=None, stellar_halo_share=None
         cluster = 0.0
     if not full:
         cluster = 0.0
-    # Nuclear discs are the bar's (every TIMER galaxy, the sample the law is fitted to, is barred; GEN.282's ring needs
+    # Nuclear disks are the bar's (every TIMER galaxy, the sample the law is fitted to, is barred; GEN.282's ring needs
     # one too): a galaxy with no bar has none.
-    disc = draw_nuclear_disc_mass_solar(galaxy_seed, mass) if bar[0] else 0.0
+    disk = draw_nuclear_disk_mass_solar(galaxy_seed, mass) if bar[0] else 0.0
     black_holes = draw_black_hole_shares(galaxy_seed)
     kick = _kick_inputs(galaxy_seed, stellar_mass_solar)
     return Structure(
         vc_kms=vc, thick_mass_ratio=mass_ratio, thick_length_ratio=length_ratio, thick_height_ratio=height_ratio,
         bar_present=bar[0], bar_axis_ratio_y=bar[1], bar_axis_ratio_z=bar[2], bar_angle_deg=bar[3],
         halo_stellar_ratio=halo,
-        disc_gas_dispersion_kms=gas, disc_central_dispersion_kms=max(central, gas * 1.05), disc_age_exponent=exponent,
+        disk_gas_dispersion_kms=gas, disk_central_dispersion_kms=max(central, gas * 1.05), disk_age_exponent=exponent,
         bulge_dispersion_scatter_dex=bulge_scatter,
         stellar_mass_solar=mass, classical_bulge=classical, black_hole_deviation=black_hole,
-        nuclear_cluster_mass_solar=cluster, nuclear_disc_mass_solar=disc,
+        nuclear_cluster_mass_solar=cluster, nuclear_disk_mass_solar=disk,
         black_hole_solar_share=black_holes[0], black_hole_metal_free_share=black_holes[1],
         neutron_star_unbound_share=natal_kick.neutron_star_unbound_share(*kick),
         neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(*kick))
 
 
 def _kick_inputs(galaxy_seed, stellar_mass_solar=None):
-    """`(mass chain, circular speed, disc scale length in kpc)` the seed's natal kick is measured against (a pinned stellar
+    """`(mass chain, circular speed, disk scale length in kpc)` the seed's natal kick is measured against (a pinned stellar
     mass replaces the seed's)."""
     from planetgen.galaxy import shape_draw   # shape_draw imports this module
     seed = galaxy_seed or mass_chain.FALLBACK_SEED
@@ -287,7 +287,7 @@ def _kick_inputs(galaxy_seed, stellar_mass_solar=None):
 
 def draw_neutron_star_unbound_share(galaxy_seed, stellar_mass_solar=None):
     """The share of the neutron stars the galaxy forms that its kicks eject (GEN.554, `galaxy.natal_kick`): the natal kick
-    law against the escape speed of the seed's halo (none under the halo threshold), stars and disc, the disc's scale
+    law against the escape speed of the seed's halo (none under the halo threshold), stars and disk, the disk's scale
     length the one the seed draws (a shape that fixes its own scale length keeps this share). A pinned stellar mass
     replaces the seed's."""
     return natal_kick.neutron_star_unbound_share(*_kick_inputs(galaxy_seed, stellar_mass_solar))
@@ -336,8 +336,8 @@ and C/A not above B/A are a STAND-IN). [R3034] give a thicker bulge (C/A near 0.
 is taken and the older kept in the record."""
 
 
-def _clamped_normal(stream, centre, sigma, limits):
-    return min(max(stream.gauss(centre, sigma), limits[0]), limits[1])
+def _clamped_normal(stream, center, sigma, limits):
+    return min(max(stream.gauss(center, sigma), limits[0]), limits[1])
 
 
 def bar_fraction(stellar_mass_solar):
@@ -361,7 +361,7 @@ def draw_bar(galaxy_seed, stellar_mass_solar):
 
     A barred galaxy's bulge is the bar: `y0/x0` from the bar's ellipticity and `z0/x0` from a boxy/peanut or a thin
     bar. An unbarred galaxy's is a spheroid with the flattenings of the CALIFA bulges. The bar's angle from the
-    Sun-centre line is uniform on 0 to 180 degrees (a bar has no direction; by symmetry nothing prefers one: a
+    Sun-center line is uniform on 0 to 180 degrees (a bar has no direction; by symmetry nothing prefers one: a
     STAND-IN, no measured test was found).
 
     Returns:
@@ -373,9 +373,9 @@ def draw_bar(galaxy_seed, stellar_mass_solar):
         ellipticity = _clamped_normal(_stream(galaxy_seed, "bar-width"), *BAR_ELLIPTICITY, BAR_ELLIPTICITY_RANGE)
         axis_y = 1.0 - ellipticity
         peanut = _stream(galaxy_seed, "bar-peanut").random() < boxy_peanut_fraction(stellar_mass_solar)
-        centre, sigma = BOXY_PEANUT_HEIGHT if peanut else THIN_BAR_HEIGHT
+        center, sigma = BOXY_PEANUT_HEIGHT if peanut else THIN_BAR_HEIGHT
         limits = BOXY_PEANUT_HEIGHT_RANGE if peanut else THIN_BAR_HEIGHT_RANGE
-        axis_z = _clamped_normal(_stream(galaxy_seed, "bar-height"), centre, sigma, limits)
+        axis_z = _clamped_normal(_stream(galaxy_seed, "bar-height"), center, sigma, limits)
     else:
         axis_y = _clamped_normal(_stream(galaxy_seed, "bulge-width"), *UNBARRED_AXIS_RATIO_Y, UNBARRED_AXIS_RATIO_Y_RANGE)
         axis_z = _clamped_normal(_stream(galaxy_seed, "bulge-height"), *UNBARRED_AXIS_RATIO_Z, UNBARRED_AXIS_RATIO_Z_RANGE)

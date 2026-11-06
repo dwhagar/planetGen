@@ -51,7 +51,7 @@ def _direction(stream):
 
 
 def _halo_distance(stream):
-    """A distance from the centre for a density falling as r**-3.5 between the halo's limits: the number inside r grows
+    """A distance from the center for a density falling as r**-3.5 between the halo's limits: the number inside r grows
     as r**-0.5 away from the inner limit, which inverts exactly."""
     low, high = tuning.CLUSTER_HALO_RADIUS_RANGE_PC
     shrink = 1.0 - (low / high) ** 0.5
@@ -91,7 +91,7 @@ def _place(stream, group, scale, pot):
 
 def _structure(stream, galactocentric_pc, scale=1.0):
     """`(half_mass_radius_pc, king_w0, tidal_radius_pc, core_collapsed)` of one cluster at this distance from the
-    centre: the King concentration is lowered where the Jacobi radius would cut the cluster's edge off."""
+    center: the King concentration is lowered where the Jacobi radius would cut the cluster's edge off."""
     low, high = tuning.CLUSTER_HALF_MASS_RADIUS_RANGE_PC
     reference_pc = tuning.CLUSTER_RADIUS_REFERENCE_SCALE_LENGTHS * tuning.HALO_SCALE_LENGTH_PC * scale
     growth = (max(galactocentric_pc, 1000.0 * scale) / reference_pc) ** tuning.CLUSTER_RADIUS_GROWTH
@@ -161,7 +161,7 @@ def generate_clusters(galaxy_seed, count, epoch_unix=0.0, scale=1.0, shape=None)
         count (int): How many clusters (`cluster_count` from the galaxy's halo mass).
         epoch_unix (float): When the positions and velocities hold.
         scale (float): How much larger than the Milky Way the galaxy is, by its disk scale length: every distance from
-            the centre is multiplied by it, so a toy galaxy keeps its clusters inside itself. The clusters themselves
+            the center is multiplied by it, so a toy galaxy keeps its clusters inside itself. The clusters themselves
             (mass, size, concentration) do not scale.
         shape (GalaxyShape, optional): The galaxy's shape, whose potential and enclosed mass set a metal-rich cluster's rotation speed and every
             cluster's Jacobi radius (GEN.339); `None` takes the shape the seed draws with every lever on Auto (`shape_draw.default_shape`).
