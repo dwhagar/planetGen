@@ -489,7 +489,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 |  |  |
 | PERF.246 | A planet draw takes more than 45 seconds at A0V hot and K0III hot cells in the class census (machine speed or a slow draw) |  |  |
 | TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") |  |  |
-| MAP.400 | The Object index reads only per-sector tables, so the nebula field (109,811 clouds) and the scattered black holes, remnants, magnetars and hypervelocity stars (9.7 million rows) are missing from search, lists, Nearby and the kind table (bug) |  |  |
 | MAP.401 | An uncharted sector has an info page showing what is placed in it, with a link to each object's page |  |  |
 | PERF.245 | The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types |  |  |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | GEN.1069, GEN.1006 |  |
@@ -618,7 +617,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 |---|---|---|---|
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages |  |  |
 | GEN.1282 | Settle orbit spacing before any atmosphere is solved, so a planet pushed outward by space_orbits is built once, not twice (about 60 percent of the cost of a hot O star system) |  |  |
-| GEN.1297 | values_from_body does not hand day_share_mean to the latitude bands: generation computes every rocky band for a point star while the re-score and API use the star's real angular size (bug) |  |  |
 | GEN.1298 | Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug) |  |  |
 | GEN.1303 | Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug) |  |  |
 | GEN.1304 | The greenhouse table under-warms a temperate wet air after the GEN.852 part 3 refit: the Earth twin sits at 276.0 K instead of 288 K (lock) |  |  |
