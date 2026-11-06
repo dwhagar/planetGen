@@ -17189,18 +17189,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.852, TEST.649.
 
-- [ ] **TEST.650 tests/test_gen_reach_groups.py case 3 fails on main: the expected star count is 873.8 where the test wants over 1000 (bug)**
-  The Train Manager (as the lane reported, 2:42 PM EST on 2026-11-06,
-  plain main) found test_gen_reach_groups[3] red: expected stars 873.8,
-  the test wants over 1000. Do: reproduce on current main and say whether
-  the count fell because generation changed (name the item: the mass
-  profile, GEN.1284 placement, GEN.1287 mass spectrum) or the test bound
-  is stale; if the generation is right, move the bound with the reason in
-  the test, and if the count is wrong, fix it at the cause. Lock-free
-  unless the cause changes generation output. Done: the test passes on
-  current main. Version 8.1. Owner: Core 3. Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **TEST.653 tests/test_web_seo.py::test_every_web_page_is_classified_on_purpose fails on main: web.sector_gravity (MAP.168) is missing from the indexing matrix in web/seo.py (bug)**
   Aux 5 found it red on main (2:40 PM EST as the lane reported) while
   testing GEN.1070 part 2, and says it is not its change. The Sector Map
