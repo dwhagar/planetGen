@@ -3,6 +3,7 @@
 {% block content %}
 <section class="panel" id="lists" aria-labelledby="lists-heading">
   <div class="panel-header"><h2 id="lists-heading">Lists</h2></div>
+  <p class="hint">A count includes the objects no sector has stored yet (the scattered black holes, neutron stars, remnants, planetary nebulae and hypervelocity stars, and the field clouds); a list shows them after the charted ones.</p>
   <ul>
     {%- for entry in entries %}
     <li><a href="{{ entry.url }}">{{ entry.label }}</a>{% if entry.total is not none %} ({{ num(entry.total) }}{% if entry.capped %}+{% endif %}){% endif %}</li>

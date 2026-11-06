@@ -96,7 +96,7 @@ def _add_unbuilt_bright_star(mysql_config, system_id):
         point = (row["x"] + 1.0, row["y"], row["z"])
         store.insert_bright_stars(conn, [(*spherical.sector_address_at(point, EDGE_PC),
                                           *(int(round(v * 1000)) for v in point), "young", "B", "III", 1e31, 1e7,
-                                          15000.0, 1e28, 0.05, 0.1, 8.0, None, 1, None, None, None)])   # the last values: the rotation period (GEN.846) and the nuclear arrival age, which a scattered star stores
+                                          15000.0, 1e28, 0.05, 0.1, 8.0, None, 1, None, None, None, None)])   # the last values: the rotation period (GEN.846), the nuclear arrival age and the cluster, which a scattered star stores
         conn.commit()
     finally:
         conn.close()
