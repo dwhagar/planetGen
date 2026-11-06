@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.78 |
 | GEN | GEN.1311 |
 | PERF | PERF.247 |
-| DB | DB.113 |
+| DB | DB.114 |
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.43 |
@@ -4199,6 +4199,7 @@ Each citation below resolves to one item by its date.
 | items 62-63 (PR #150) | 2026-10-01 01:58Z | UX.2, MAP.3 |
 | TODO 24 (PR #151) | 2026-10-01 02:10Z | ADM.3 |
 | TODO 35 (PR #152) | 2026-10-01 02:22Z | DB.1 |
+| DB.113 | The generate run stops at stage 7 (Scatter the massive stars) on a MySQL deadlock (error 1213) in unit 11, with 15 workers (bug) | none | open |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
