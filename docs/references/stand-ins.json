@@ -6155,6 +6155,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "saturation.EDMISTER_COEFFICIENT"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design (source tier 6, tweak level 0; NASA Glenn's fits of the liquid oxides and of 47 of the 84 gases stop at 6000 K, so a molten surface hotter than that, the dayside of a rock next to a hot star or a white-dwarf planet's exosphere, had no vapor and a build died with SiO2(L): no thermodynamic fit at 6881 K (GEN.1294); the liquids are constant-heat-capacity fits, but half the gases would silently drop out above 6000 K and the melt model is an ideal solution of the oxides, so the vapor is worked out at 6000 K and the mixture reports the surface's own temperature)"
+            ],
+            [
+              "What it is",
+              "mixture_lava.MELT_MAX_K"
+            ],
+            [
+              "The range it moves in",
+              "6000 K, the top of the table"
+            ],
+            [
+              "Where it holds",
+              "a molten surface over 6000 K, up to the vapor-only regime where the melt model no longer applies"
+            ],
+            [
+              "What would show it wrong",
+              "test_atmosphere_mixture_lava::test_a_surface_hotter_than_the_fits_has_its_vapor_worked_out_at_their_top"
+            ],
+            [
+              "What replaces it",
+              "a vapor model for a fully vaporised silicate surface, or fits of the liquid oxides and the gases above 6000 K (GEN.499)"
+            ]
+          ],
+          "id": "AM95",
+          "key": "6.7:AM95",
+          "kind": "P",
+          "slug": "6-7-am95",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_lava.MELT_MAX_K"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
