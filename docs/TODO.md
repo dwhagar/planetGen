@@ -17697,34 +17697,6 @@ clears each one.
   (prevalence census owner), after GEN.1265. Filed by the TODO thread.
   Prerequisites: GEN.1265. Related: GEN.1265, TEST.430, GEN.725.
 
-- [ ] **TEST.585 Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug)**
-  Core 2 (as the lane reported, 9:43 PM EST on 2026-11-04) saw the
-  accessibility test fail with a sample_params error for
-  /references/method/<area>, and Aux 7 (9:24 PM EST) saw
-  test_health_reports_the_reason_for_maintenance and
-  test_sweep_atmosphere fail the same on main as on its branch. None is
-  from those lanes' changes. Find the commit for each, fix the code or
-  the test and say which. test_burn_down_register (the 6.170 rows) is
-  already in TEST.580. Done: the three pass on main. Lock-free. Version
-  8.1. Owner: Tides 1, with TEST.580, TEST.581 and TEST.583. Filed by
-  the TODO thread.
-  More from Aux 7 (as the lane reported) (9:46 PM EST on 2026-11-04):
-  four nebula-volume fuzz cases, test_page_numbers_clamp for /systems,
-  and test_a_neighborhood_job_runs_its_sectors_through_the_wrapper also
-  fail on main (the last also in a partial gate). The same pass found
-  the citation lock failing on main from
-  src/tests/test_nav_route_graph.py (a wedge label that read as a name and
-  a year, from NAV.73; Aux 7 fixed that one in #5012). Include all of these in this item.
-  Part 2 (Tides 1, as the lane reported) (11:10 PM EST on 2026-11-04): a
-  LOCK item for the next train: branch claude/test585-trace-air-state
-  head 3bf0c3584, build-only (no epoch, no golden): trace_air.apply
-  recomputes the stored molar mass, density and scale height after
-  adding trace gases (fixes test_sweep_atmosphere, off by 1.4e-8 on N2O
-  worlds), and gas_equilibrium.solve retries with trace-element amounts
-  1e-12 then 1e-9 (fixes the element-balance error). Part 1 (the
-  test-only fixes) is PR #5025.
-  Prerequisites: none. Related: TEST.580, TEST.581, TEST.583.
-
 - [ ] **TEST.591 test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug)**
   Core 5 (as the lane reported, 2:08 AM EST on 2026-11-05) found two
   tests red on plain main: test_number_guard (Oxford comma wording in
@@ -17824,21 +17796,6 @@ clears each one.
   test, which is red on main until GEN.1265 lands and merges after it.
   Ignore the old branch claude/test606. TEST.606 retires when both are
   in.
-  Prerequisites: none.
-
-- [ ] **TEST.616 tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. Either the rule's tolerance is tighter than the
-  arithmetic (a float order difference) or a value is rounded at
-  storage. Say which and fix at the cause; a tolerance may be set only
-  to the stated precision of the stored column. Done: the test passes on
-  current main. Owner: Tides 1 (moved from Aux 2 by the TODO thread, 9:58
-  PM EST on 2026-11-05, no start was reported by Aux 2). Do: reproduce on current main first (a
-  merge since may have fixed it), fix at the cause with the property
-  kept, never skip or loosen a test. Lock-free if output is unchanged;
-  tell the TODO thread if values change. Version 8.1. Filed by the TODO
-  thread.
   Prerequisites: none.
 
 - [ ] **TEST.623 Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark)**

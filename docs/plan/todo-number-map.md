@@ -4034,7 +4034,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.582 | Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census | none | open |
 | TEST.583 | Four tests red on main: test_settings (PLANETGEN_WARM_TIME_LIMIT_SECONDS is read in cli/warm.py but not in the settings model) and three in test_readme_external_files (bug) | none | done, PR #5025 |
 | TEST.584 | test_api_thin_routes::test_deleting_a_sector_with_facilities fails on main with a 409 (bug) | none | done, PR #4993 |
-| TEST.585 | Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug) | none | open |
+| TEST.585 | Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug) | none | done, PR #5282 |
 | TEST.586 | test_every_web_page_is_classified_on_purpose is red on main: nine web.references_* pages have no entry in the indexing matrix (bug) | none | done, PR #5055 |
 | TEST.587 | Two more tests red on plain main: the bright-stars backfill block-path order test and the galaxy generation duplicate-address test (bug) | none | done, PR #5056 |
 | TEST.588 | Five test_fuzz_web_routes cases are red on plain main: the nebula volume route and the /systems page numbers (bug) | none | done, PR #5058 |
@@ -4065,7 +4065,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.613 | tests/test_literal_insert.py (bright_stars_read_back_exactly_as_written, a_long_run_is_cut_into_statements) fail with pymysql 1136 Column count doesn't match value count (bug) | none | done, PR #5165 |
 | TEST.614 | tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug) | none | done, PR #5283 |
 | TEST.615 | tests/test_gen_fill_groups.py::test_a_member_in_a_decayed_group_is_built_from_the_hierarchy fails: a decayed group builds 1 star where at least 2 are expected (bug) | none | done, PR #5165 |
-| TEST.616 | tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug) | none | open |
+| TEST.616 | tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug) | none | done, PR #5282 |
 | TEST.617 | tests/test_log_shell.py::test_update_sh_prints_its_own_lines_through_the_layer fails: update.sh echoes "The update steps are finished: waiting ..." without going through logrecord.sh (bug) | none | done, PR #5165 |
 | TEST.618 | tests/test_deploy_scripts.py::test_scripts_only_name_repo_paths_that_exist fails: scripts/measure_tile_cache.py names db/nodes.py, which does not exist (bug) | none | done, PR #5165 |
 | TEST.619 | tests/test_mass_conversions.py fails: galaxy/keepout.py and physics/remnant_composition.py each have one new mass multiply that does not go through the unit registry (bug) | none | done, PR #5182 |

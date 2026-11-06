@@ -2637,3 +2637,5 @@ Baseline: PR #1817.
 | TEST.637 | 8.1 | Physics rectification: citations and the gate's test health |
 | GEN.852 | 8.1 | Physics rectification: infrared opacity, tides and the class re-sweep |
 | GEN.1260 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| TEST.585 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.616 | 8.1 | Physics rectification: citations and the gate's test health |

@@ -600,7 +600,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1127 | chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is |  |  |
 | TEST.569 | Red on main: the reproducibility guard (five call sites), the mass-conversion guard (two tests), the pinned galaxy and the sector panel test (bug) |  |  |
 | TEST.580 | Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug) |  |  |
-| TEST.585 | Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug) |  |  |
 | TEST.579 | Remeasure tuning.PREVALENCE_BASE_SHARES: asteroid_belt reads 0.662 on a 600-system draw against the constant 0.039, so test_measured_base_shares_still_hold and every belt prevalence case rest on a stale or wrong base (bug) |  |  |
 
 ### Physics rectification: the class-by-domain matrix and stored liquids and air
@@ -623,7 +622,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment |  | Boss, citations only in the registry. |
 | DOC.97 | Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information |  | Boss, citation links. |
 | PERF.241 | A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug) |  |  |
-| TEST.616 | tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug) |  |  |
 | TEST.634 | test_web_browser_layout.py::test_controls_do_not_overlap[web.galaxy at 390, 600, 820 and 1280] fails: on /galaxy the Go to button and address input overlap the site search link, Help and Menu (bug) |  |  |
 | TEST.639 | tests/test_mass_conversions.py fails on main: physics/dust_model.py has two multiplies or divides by a mass constant that do not go through the unit registry (bug) |  |  |
 | TEST.640 | tests/test_object_list.py is flaky: the fixture galaxy sometimes has no moons (bug) |  |  |
