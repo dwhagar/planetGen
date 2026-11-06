@@ -139,6 +139,7 @@
   "/api/sectors/<uid:sector_id>/contents DELETE",
   "/api/sectors/<uid:sector_id>/facilities GET",
   "/api/sectors/<uid:sector_id>/generate-neighborhood POST",
+  "/api/sectors/<uid:sector_id>/gravity GET",
   "/api/sectors/<uid:sector_id>/regenerate POST",
   "/api/species GET",
   "/api/species/<int:species_id> GET",

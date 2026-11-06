@@ -10,7 +10,7 @@ import math
 import numpy as np
 import pytest
 
-from planetgen.db import gravity_grid, gravity_sources, store
+from planetgen.db import gravity_grid, gravity_sources, gravity_stamp, store
 from planetgen.galaxy import gravity_cache, gravity_kernel, potential, spherical
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
@@ -73,8 +73,8 @@ def test_the_grid_is_the_generated_stars_less_the_smooth_galaxys_own(galaxy, tmp
     conn = _conn(config)
     try:
         result = gravity_grid.grid(conn, near, str(tmp_path), POT)
-        target = gravity_grid._sector(conn, near)
-        sectors = gravity_grid.sectors_in_reach(conn, target)
+        target = gravity_stamp.sector_row(conn, near)
+        sectors = gravity_stamp.sectors_in_reach(conn, target)
         assert {row["id"] for row in sectors} == {near, beside}
         points = gravity_grid.zone_points((target["center_x_pc"], target["center_y_pc"], target["center_z_pc"]), target["edge_mpc"] / 1000.0)
         stars = gravity_sources.system_point_masses(conn, [near, beside])
@@ -122,12 +122,12 @@ def test_the_stamp_follows_the_potential_and_the_settings(galaxy, tmp_path):
     config, near, beside, far = galaxy
     conn = _conn(config)
     try:
-        sectors = gravity_grid.sectors_in_reach(conn, gravity_grid._sector(conn, near))
-        base = gravity_grid.source_stamp(conn, sectors, pot=POT)
-        assert base == gravity_grid.source_stamp(conn, sectors, pot=POT)
-        assert base != gravity_grid.source_stamp(conn, sectors, pot=potential.Potential())
-        assert base != gravity_grid.source_stamp(conn, sectors, zones=8, pot=POT)
-        assert base != gravity_grid.source_stamp(conn, sectors, reach_edges=3, pot=POT)
+        sectors = gravity_stamp.sectors_in_reach(conn, gravity_stamp.sector_row(conn, near))
+        base = gravity_stamp.source_stamp(conn, sectors, pot=POT)
+        assert base == gravity_stamp.source_stamp(conn, sectors, pot=POT)
+        assert base != gravity_stamp.source_stamp(conn, sectors, pot=potential.Potential())
+        assert base != gravity_stamp.source_stamp(conn, sectors, zones=8, pot=POT)
+        assert base != gravity_stamp.source_stamp(conn, sectors, reach_edges=3, pot=POT)
     finally:
         conn.close()
 

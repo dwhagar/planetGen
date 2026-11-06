@@ -31,18 +31,8 @@ import math
 import numpy as np
 
 from planetgen.db import gravity_sources
+from planetgen.db.gravity_stamp import OWN_SOFTENING_PC, REACH_EDGES, SUBDIVISION, ZONES, sector_row, sectors_in_reach, source_stamp, zone_points
 from planetgen.galaxy import gravity_cache, gravity_kernel, gravity_tree, potential, spherical
-
-ZONES = 16
-"""int: Zones along each edge of a sector (0.25 pc at 4 pc; a setting of the map)."""
-REACH_EDGES = 4
-"""int: How many sector edges away, along each axis, a sector still adds its stars to the grid."""
-SUBDIVISION = 8
-"""int: Point masses along each edge of the cube the smooth galaxy's own stars of one sector are spread through."""
-OWN_SOFTENING_PC = 0.25
-"""float: The Plummer softening of those point masses, parsecs (a zone edge at the default grid): they stand for a continuous density."""
-_TABLES = ("star_systems", "black_holes", "neutron_stars")
-
 
 @dataclasses.dataclass(frozen=True)
 class GridResult:
@@ -51,51 +41,6 @@ class GridResult:
     values: np.ndarray
     hit: bool
     stamp: str
-
-
-def _sector(conn, sector_id):
-    row = conn.execute("SELECT id, edge_mpc, shell_index, band_index, wedge_index, center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id = ?",
-                       (sector_id,)).fetchone()
-    if row is None:
-        raise ValueError(f"no sector {sector_id}")
-    return row
-
-
-def sectors_in_reach(conn, target, reach_edges=REACH_EDGES):
-    """The rows (id, edge, address, center) of the stored sectors in the cube of `reach_edges` edges round `target` (a sector row), in id order."""
-    reach = reach_edges * target["edge_mpc"] / 1000.0
-    cx, cy, cz = target["center_x_pc"], target["center_y_pc"], target["center_z_pc"]
-    return conn.execute(
-        "SELECT id, edge_mpc, shell_index, band_index, wedge_index, center_x_pc, center_y_pc, center_z_pc FROM sectors"
-        " WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ? ORDER BY id",
-        (cx - reach, cx + reach, cy - reach, cy + reach, cz - reach, cz + reach)).fetchall()
-
-
-def source_stamp(conn, sectors, zones=ZONES, reach_edges=REACH_EDGES, pot=None):
-    """The stamp of the grid of a target whose reach holds `sectors` (rows from `sectors_in_reach`) under `pot` (see the module doc)."""
-    ids = [row["id"] for row in sectors]
-    marks = ", ".join("?" for _ in ids)
-    parts = [gravity_cache.RULE_VERSION, zones, reach_edges, SUBDIVISION, OWN_SOFTENING_PC, gravity_tree.LEAF_PC, gravity_tree.PAIR_BUDGET,
-             gravity_tree.MIN_THETA, gravity_tree.MAX_THETA, gravity_tree.THETA_STEP, repr(pot)]
-    modified = {row["id"]: str(row["modified_at"]) for row in conn.execute(f"SELECT id, modified_at FROM sectors WHERE id IN ({marks})", ids).fetchall()} if ids else {}
-    rows = {}
-    for table in _TABLES:
-        sector_column = "sector_id"
-        if ids:
-            for row in conn.execute(
-                    f"SELECT {sector_column} AS sector_id, COUNT(*) AS n, MAX(modified_at) AS latest FROM {table} WHERE {sector_column} IN ({marks})"
-                    f" GROUP BY {sector_column}", ids).fetchall():
-                rows[(row["sector_id"], table)] = (row["n"], str(row["latest"]))
-    for sector_id in sorted(ids):
-        parts.append((sector_id, modified.get(sector_id), tuple(rows.get((sector_id, table)) for table in _TABLES)))
-    return gravity_cache.stamp(tuple(parts))
-
-
-def zone_points(center, edge_pc, zones=ZONES):
-    """The centers of the `zones^3` zones of the cube of `edge_pc` about `center`, `(zones^3, 3)`, zone `(i, j, k)` at row `(i * zones + j) * zones + k`."""
-    c = (np.arange(zones) + 0.5) / zones * edge_pc - edge_pc / 2.0
-    x, y, z = np.meshgrid(c, c, c, indexing="ij")
-    return np.stack([x.ravel(), y.ravel(), z.ravel()], axis=1) + np.asarray(center, dtype=np.float64)
 
 
 def own_stars(sectors, pot, subdivision=SUBDIVISION):
@@ -122,7 +67,7 @@ def own_stars(sectors, pot, subdivision=SUBDIVISION):
 
 def compute(conn, sector_id, pot, zones=ZONES, reach_edges=REACH_EDGES, threads=None):
     """The local field of the sector on `zones^3` zones, float64 `(zones^3, 10)`: generated stars less the smooth galaxy's own (see the module doc)."""
-    target = _sector(conn, sector_id)
+    target = sector_row(conn, sector_id)
     sectors = sectors_in_reach(conn, target, reach_edges)
     edge_pc = target["edge_mpc"] / 1000.0
     points = zone_points((target["center_x_pc"], target["center_y_pc"], target["center_z_pc"]), edge_pc, zones)
@@ -139,7 +84,7 @@ def grid(conn, sector_id, directory, pot=None, zones=ZONES, reach_edges=REACH_ED
     `potential.Potential` (`potential.current()` when not given).
     """
     pot = potential.current() if pot is None else pot
-    target = _sector(conn, sector_id)
+    target = sector_row(conn, sector_id)
     stamp = source_stamp(conn, sectors_in_reach(conn, target, reach_edges), zones, reach_edges, pot)
     cached = gravity_cache.read(directory, sector_id, zones, stamp)
     if cached is not None:

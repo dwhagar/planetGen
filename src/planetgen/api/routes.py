@@ -29,16 +29,17 @@ separate, write-capable database account -- see `docs/reference/api.md`'s
 
 import base64
 import math
+import time
 
 import pymysql
 from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.db import search_values
 from planetgen.db import children as children_db
-from planetgen.api import nav_system, system_sky
+from planetgen.api import gravity as gravity_api, nav_system, system_sky
 from planetgen.describe import belt_info
 from planetgen.describe.sheet import sheet as object_sheet
-from planetgen.web.lib import sensor, skypack
+from planetgen.web.lib import sensor, skypack, tilecache
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs, pagejobs
@@ -119,7 +120,7 @@ from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.profile import profile_at
-from planetgen.galaxy import drill, spherical
+from planetgen.galaxy import drill, gravity_field, potential as galacticPotential, spherical
 from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
@@ -2823,6 +2824,60 @@ def sector_facilities(sector_id):
     if db.execute("SELECT 1 FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
         raise ApiError(f"no such sector: {sector_id}", status_code=404)
     return jsonify({"items": facilities_in_sector(db, sector_id)})
+
+
+_gravity_jobs = {}
+"""dict: `(database, sector, stamp) -> (job_id, queued_at)`: the grid jobs this process queued lately, so a map that asks again while the job runs does not queue a second."""
+GRAVITY_JOB_REUSE_SECONDS = 600
+"""int: How long a queued grid job is taken to still be running."""
+
+
+@bp.route("/sectors/<uid:sector_id>/gravity")
+def sector_gravity(sector_id):
+    """
+    `GET /api/sectors/<id>/gravity?mode=pull|depth|tidal[&field=total|local]` -- the per-zone gravity grid of a sector (API.24, `api/gravity.py`; the grid is
+    MAP.387's, the sector cut into 16 x 16 x 16 zones of the sector's own edge): one scalar per zone, `values`, with the zone size, the `origin_pc` corner, the
+    `unit`, the range, the `saddle` zones where the pull is nearly nothing and the tidal tensor has both signs, and the grid's `stamp`. `mode` is the pull in
+    m/s^2 (the default), the well depth in m^2/s^2 or the tidal strength in 1/s^2; `field` is the `total` field (the generated stars and the smooth galaxy, the
+    default) or the `local` one (the generated stars less the smooth galaxy's own stars). A grid that is not worked out yet (or went stale when a star moved)
+    is queued as a job: `202` with the job's `status_url`, ask again when it is done; `503` when no cache folder is available or no queue answers. A mode or
+    field that is not one of those is a `400`, an unknown sector a `404`, a galaxy with no shape yet a `409`.
+    """
+    mode = request.args.get("mode", "pull")
+    field = request.args.get("field", "total")
+    if mode not in gravity_field.MODES:
+        raise ApiError(f"mode must be one of {', '.join(gravity_field.MODES)}")
+    if field not in gravity_api.FIELDS:
+        raise ApiError(f"field must be one of {', '.join(gravity_api.FIELDS)}")
+    conn = get_db()
+    info = get_galaxy_shape(conn, light=True)
+    if info is None:
+        raise ApiError("the galaxy has no shape yet", status_code=409)
+    folder = gravity_api.directory(tilecache.cache_dir())
+    if folder is None:
+        raise ApiError("the gravity map needs the cache folder (config.json's tile_cache), and none is writable", status_code=503)
+    pot = galacticPotential.for_galaxy(info.shape, info.galaxy_seed)
+    try:
+        local, stamp = gravity_api.read_grid(conn, sector_id, pot, folder)
+    except ValueError as exc:
+        raise ApiError(str(exc), status_code=404)
+    if local is not None:
+        return jsonify({"sector_id": sector_id, **gravity_api.payload(conn, sector_id, pot, local, stamp, mode, total=field == "total")})
+    config = _resolve_requested_db_config()
+    key = (getattr(config, "database", None), sector_id, stamp)
+    now = time.monotonic()
+    queued = _gravity_jobs.get(key)
+    if queued is None or now - queued[1] > GRAVITY_JOB_REUSE_SECONDS:
+        try:
+            job_id = api_jobs.submit(api_jobs.build_gravity_grid, sector_id, config, folder, expected_seconds=30)
+        except api_jobs.NoQueue as exc:
+            raise ApiError(str(exc), status_code=503)
+        _gravity_jobs[key] = (job_id, now)
+        for old in [k for k, v in _gravity_jobs.items() if now - v[1] > GRAVITY_JOB_REUSE_SECONDS]:
+            del _gravity_jobs[old]
+    else:
+        job_id = queued[0]
+    return accepted(job_id)
 
 
 @bp.route("/galaxy/bright-stars")
