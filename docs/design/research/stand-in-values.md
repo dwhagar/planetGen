@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1192 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1193 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 111 | 85 | 24 | 61 | 0 | 281 |
+| T6 | 112 | 85 | 24 | 61 | 0 | 282 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 653 | 248 | 58 | 188 | 45 | 1192 |
+| All | 654 | 248 | 58 | 188 | 45 | 1193 |
 
 ## How the labels were given
 
@@ -1668,6 +1668,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | WB1 | P | T1 | L0 | tuning.WR_BINARY_MIN_RATIO 0.72: the least initial mass at which a companion can strip a star into a Wolf-Rayet star, as a share of the single-star threshold (18 against 25 solar masses at the Sun's metallicity, carried up by the same metallicity law as the threshold) | 0.6 to 0.85 | primaries of 15 to 40 solar masses with a close companion, at the Galaxy's metallicity; at lower metallicity the law is the single-star threshold's own | a spectroscopic survey of Wolf-Rayet stars in binaries whose primaries began below 18 solar masses, or the 18 / 24 / 37 solar mass trend of the Galaxy, LMC and SMC failing to follow Z to the minus one half | the stripped-star mass from a binary evolution grid by metallicity, period and mass ratio (the MESA grid of the source) | [R4051: Table 1] and section 3.2: the least initial mass 18 solar masses for the Galaxy, from the 7.5 solar mass least stripped helium star of a Wolf-Rayet spectrum | - | - |
 | WB2 | P | T2 | L0 | tuning.WR_STRIPPING_FRACTION 0.33: the share of stars between the binary and the single-star threshold that a companion strips into a Wolf-Rayet star | 0.2 to 0.5 | the same band, near solar metallicity | an observed binary-stripped to single-star Wolf-Rayet ratio far from 0.25 to 0.4 in the Galaxy, or a population synthesis of interacting binaries giving another stripped share | a stripping chance from the period and mass-ratio law of the member trees (the share of close binaries that transfer mass in a way that strips the envelope) | [R4051] section 5, below its Eq. 4: the stripping efficiency 0.33 it takes from the observed interacting fraction (read, quoted by the paper, not re-derived) | - | - |
+
+## 6.194 Stand-in of the speed of a hand-made asteroid field
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| AF1 | B | T6 | L0 | tuning.ASTEROID_FIELD_SPEED_KMS_RANGE (0.1, 15.0) km/s, log-uniform: the rms speed of the pieces of a hand-made field, from a tidally disrupted rubble body to the fastest rubble of a collision | 0.1 to 15 | a field with no parent drawn | a survey of the spread of the pieces of the fields that stand, outside this range | the speed of the source that made the field (`rogue_collision.unbound_rms_speed_ms`, `field_dispersal.unbound_belt_speed_ms`) once such a field is drawn by hand | the design's table of ages at a radius (docs/design/systems/interstellar-asteroid-fields.md section 5.2) | - | - |
 
 ## 6.192 Stand-in of how far apart random placement keeps two systems
 

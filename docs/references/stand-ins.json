@@ -38495,6 +38495,52 @@
       "title": "Stand-ins of the binary-stripped Wolf-Rayet channel"
     },
     {
+      "key": "6.194",
+      "number": "6.194",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ASTEROID_FIELD_SPEED_KMS_RANGE (0.1, 15.0) km/s, log-uniform: the rms speed of the pieces of a hand-made field, from a tidally disrupted rubble body to the fastest rubble of a collision"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 15"
+            ],
+            [
+              "Where it holds",
+              "a field with no parent drawn"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of the spread of the pieces of the fields that stand, outside this range"
+            ],
+            [
+              "What replaces it",
+              "the speed of the source that made the field (rogue_collision.unbound_rms_speed_ms, field_dispersal.unbound_belt_speed_ms) once such a field is drawn by hand"
+            ],
+            [
+              "Evidence",
+              "the design's table of ages at a radius (docs/design/systems/interstellar-asteroid-fields.md section 5.2)"
+            ]
+          ],
+          "id": "AF1",
+          "key": "6.194:AF1",
+          "kind": "B",
+          "slug": "6-194-af1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.ASTEROID_FIELD_SPEED_KMS_RANGE (0.1, 15.0) km/s, log-uniform: the rms speed of the pieces of a hand-made field, from a tidally disrupted rubble body to the fastest rubble of a collision"
+        }
+      ],
+      "slug": "6-194-stand-in-of-the-speed-of-a-hand-made-asteroid-field",
+      "title": "Stand-in of the speed of a hand-made asteroid field"
+    },
+    {
       "key": "6.192",
       "number": "6.192",
       "rows": [

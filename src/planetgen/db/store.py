@@ -4254,6 +4254,8 @@ ASTEROID_FIELD_FIELDS = (
     object_rows.context("sector_id"), object_rows.attr("name"), object_rows.attr("field_class"),
     object_rows.attr("composition_family"), object_rows.attr("density"), object_rows.attr("radius_ly"),
     object_rows.optional("chondrite_group"),
+    object_rows.optional("rms_speed_kms"), object_rows.optional("birth_age_yr"), object_rows.optional("shape"), object_rows.optional("origin"),
+    object_rows.optional("history"), object_rows.optional("largest_body_kg"),
     object_rows.computed("composition_summary", lambda field, context: field.get_composition_summary()),
     _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: getattr(field, "mass_kg", None) or 0.0),
     _GALACTIC_ORBIT_FIELD,

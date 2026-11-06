@@ -344,10 +344,12 @@ _NEBULA = (
 
 _ASTEROID_FIELD = (
     *_rows("identity", ("field_class", "Class", TEXT), ("density", "Density", TEXT)),
-    *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members")),
+    *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members"), ("largest_body_kg", "Mass of its largest piece"),
+           ("rms_speed_kms", "Speed its pieces spread at"), ("birth_age_yr", "Age"), ("shape", "Made as", TEXT)),
     *_rows("composition", ("composition_family", "Composition family", TEXT),
            ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
            ("chondrite_group", "Nearest meteorite group", TEXT)),
+    *_rows("origin", ("origin", "Where it came from", TEXT), ("history", "History", TEXT)),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 

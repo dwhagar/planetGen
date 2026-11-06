@@ -3070,3 +3070,11 @@ A rocky planet with no row in the hosting gate's `satellite-share` table holds a
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md |
+
+### 6.194 Stand-in of the speed of a hand-made asteroid field (GEN.1103)
+
+`AsteroidField` (`generation/phenomena/asteroid_field.py`) gives a field that is made by hand, with no physical source behind it, an rms speed of its pieces and an age, and its radius is a result of the two (`field_dispersal.rms_radius_m`). Fields from the Rogues top-up bring their own speed and age (`physics/topup_field`, section 6.108).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| AF1 | B | T6 | L0 | tuning.ASTEROID_FIELD_SPEED_KMS_RANGE (0.1, 15.0) km/s, log-uniform: the rms speed of the pieces of a hand-made field, from a tidally disrupted rubble body to the fastest rubble of a collision | 0.1 to 15 | a field with no parent drawn | a survey of the spread of the pieces of the fields that stand, outside this range | the speed of the source that made the field (`rogue_collision.unbound_rms_speed_ms`, `field_dispersal.unbound_belt_speed_ms`) once such a field is drawn by hand | the design's table of ages at a radius (docs/design/systems/interstellar-asteroid-fields.md section 5.2) |

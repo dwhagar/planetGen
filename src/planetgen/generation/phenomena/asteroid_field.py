@@ -24,7 +24,7 @@ import math
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.config import SystemConfig
 from planetgen import tuning
-from planetgen.physics import small_body_composition
+from planetgen.physics import constants, field_dispersal, small_body_composition
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS
@@ -37,6 +37,12 @@ _ly_to_au = units.converter("ly", "au")
 AU_PER_LY = _ly_to_au(1.0)
 """float: Astronomical units in one light-year, exact from the two definitions in `physics/constants.py` (GEN.572), for
 the size digit."""
+
+
+def radius_ly_at(age_yr, rms_speed_kms):
+    """The rms radius of a field `age_yr` after it was made, light-years: the field spreads from a point at the rms speed of its pieces (`field_dispersal.rms_radius_m`), so a field's radius is a result of its
+    age (GEN.1103) and bring-to-epoch advances it by the same formula."""
+    return field_dispersal.rms_radius_m(age_yr, rms_speed_kms * 1000.0) / constants.LIGHTYEAR_M
 
 
 def asteroid_field_size_digit(radius_ly):
@@ -98,8 +104,13 @@ class AsteroidField(SmallBody):
             generated the same way `AsteroidBelt.composition` is (the words of `makeup`).
         chondrite_group (str): The nearest meteorite group of the mean composition (`small_body_composition.chondrite_group`, GEN.475), `none` far from every group.
         makeup (SmallBodyMakeup or None): The drawn composition (GEN.477); None for a field read from a store without it.
-        radius_ly (float): The field's approximate radius, in light-years
-            (`tuning.ASTEROID_FIELD_RADIUS_RANGE_LY`).
+        radius_ly (float): The field's rms radius, in light-years: a result of `birth_age_yr` and `rms_speed_kms` (`radius_ly_at`).
+        rms_speed_kms (float): The rms speed of its pieces, km/s (how fast it spreads).
+        birth_age_yr (float): Its age at the sector's epoch, years.
+        shape (str): `ball` (or `annulus`), what the cloud was made as.
+        origin (str or None): How it came to be (`unbound remnant` for a top-up field), None for one that claims none.
+        history (str or None): The sentence of where it came from, None for a field with no history.
+        largest_body_kg (float or None): The mass of its largest piece, None where it is not known.
         galactic_orbital_speed_kms (float): Circular orbital speed around
             the galactic center, km/s -- an asteroid field is still
             gravitationally part of the galaxy even though it isn't bound
@@ -114,7 +125,8 @@ class AsteroidField(SmallBody):
 
     FIELD_UNITS = {
         "name": "text", "field_class": "text", "composition_family": "text", "density": "text", "radius_ly": "ly",
-        "chondrite_group": "text", **GALACTIC_MOTION_UNITS,
+        "chondrite_group": "text", "rms_speed_kms": "km_s", "birth_age_yr": "yr", "shape": "text", "origin": "text", "history": "text", "largest_body_kg": "kg",
+        **GALACTIC_MOTION_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
@@ -144,7 +156,13 @@ class AsteroidField(SmallBody):
         self.makeup = small_body_composition.draw_field(self.composition_family)
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]
-        self.radius_ly = draw.uniform(*tuning.ASTEROID_FIELD_RADIUS_RANGE_LY)
+        self.rms_speed_kms = math.exp(draw.uniform(*(math.log(speed) for speed in tuning.ASTEROID_FIELD_SPEED_KMS_RANGE)))
+        low_age = field_dispersal.age_yr_at_radius(tuning.ASTEROID_FIELD_RADIUS_RANGE_LY[0] * constants.LIGHTYEAR_M, self.rms_speed_kms * 1000.0)
+        high_age = field_dispersal.retirement_age_yr(self.rms_speed_kms * 1000.0)
+        self.birth_age_yr = draw.uniform(low_age, high_age)         # births are uniform in time: the age is uniform up to the retirement age, and the radius follows from it
+        self.radius_ly = radius_ly_at(self.birth_age_yr, self.rms_speed_kms)
+        log.choice("Asteroid field age", self.birth_age_yr, f"uniform between the age that gives the smallest field and the age at which it is retired, at {self.rms_speed_kms:.3g} km/s")
+        self.shape, self.origin, self.history, self.largest_body_kg = "ball", None, None, None
         self.field_class = asteroid_field_class(self.composition_family, self.density, self.radius_ly)
 
         self.set_galactic_motion()

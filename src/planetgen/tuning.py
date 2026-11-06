@@ -3343,6 +3343,10 @@ COMET_CEILING_ATTEMPTS = 25
 # ly) so the two remain visually/narratively distinct phenomena.
 ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
 
+ASTEROID_FIELD_SPEED_KMS_RANGE = (0.1, 15.0)
+"""tuple: The rms speed a hand-made asteroid field spreads at, km/s, log-uniform (GEN.1103): a tidally disrupted rubble body is the slow end (0.1), the fastest rubble of a collision the fast end
+(15), the design's table (docs/design/systems/interstellar-asteroid-fields.md section 5.2). Registry section 6.194, row AF1."""
+
 # NAV.54: the keep-out radii a course keeps from an object that is not a Hill sphere (docs/design/orbits/course-avoidance.md section 2).
 KEEP_OUT_STAR_FLUX_W_M2 = 50000.0
 """float: The starlight a ship may be asked to stand, W/m^2 (50 kW/m^2): a star inside its own system keeps out `sqrt(L / (4 pi F))`, 0.17 AU for the Sun and 165 AU for an O3 star (Boss, 2026-10-10: defaults approved)."""
