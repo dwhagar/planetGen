@@ -10,10 +10,10 @@
   {%- endif %}
   <span class="badge">Edge {{ edge_text }}</span>
   {%- if star_count %}
-  <span class="badge">{{ star_count }} waiting bright star{{ "" if star_count == 1 else "s" }}</span>
+  <span class="badge">{{ star_count }} detected star{{ "" if star_count == 1 else "s" }}</span>
   {%- endif %}
   {%- if scattered_count %}
-  <span class="badge">{{ scattered_count }} waiting {{ "phenomenon" if scattered_count == 1 else "phenomena" }}</span>
+  <span class="badge">{{ scattered_count }} detected {{ "phenomenon" if scattered_count == 1 else "phenomena" }}</span>
   {%- endif %}
 </p>
 <div class="page-actions nav-row">
@@ -24,13 +24,14 @@
 {% block content %}
 <p class="hint">{{ name }} is an uncharted sector{% if region %} in the {{ region.name }}{% endif %} (designation {{ designation }}). Nothing has been charted at shell {{ address[0] }}, band {{ address[1] }}, wedge {{ address[2] }}. The profile below is worked out from the galaxy's shape and does not store anything; asking for the sector makes it by the same rules.
 {%- if can_generate %} Generate it from the <a href="{{ url_for('web.generate') }}">Generate page</a> with the Address mode.{% endif %}</p>
+{{ map_html }}
 <section class="panel" id="uncharted-contents" aria-labelledby="uncharted-contents-heading">
-  <h2 id="uncharted-contents-heading">What is placed here</h2>
+  <h2 id="uncharted-contents-heading">Detected by long-range scans</h2>
   {%- if placed %}
-  <p class="hint">This sector is uncharted, so none of it has been generated. {{ placed|length }} object{{ "" if placed|length == 1 else "s" }} {{ "is" if placed|length == 1 else "are" }} placed in it already: the rogue planets that drifted in, and what the scatters left waiting. Each links to its own page.</p>
+  <p class="hint">No survey has charted this sector, so nothing in it is known up close. Long-range scans have detected {{ placed|length }} object{{ "" if placed|length == 1 else "s" }} here: rogue planets adrift in it, and the stars and phenomena the scans picked up.</p>
   <div class="table-scroll" tabindex="0">
     <table>
-      <caption class="sr-only">Objects placed in {{ name }}</caption>
+      <caption class="sr-only">Objects detected in {{ name }} by long-range scans</caption>
       <thead><tr><th scope="col">Object</th><th scope="col">Kind</th><th scope="col">Details</th></tr></thead>
       <tbody>
       {%- for item in placed %}
@@ -40,7 +41,7 @@
     </table>
   </div>
   {%- else %}
-  <p class="hint">This sector is uncharted and nothing is placed in it yet: no rogue planet has drifted in and the scatters left no star or phenomenon waiting here.</p>
+  <p class="hint">No survey has charted this sector, and long-range scans have detected nothing in it: no rogue planet, star or phenomenon.</p>
   {%- endif %}
 </section>
 {%- if profile %}
