@@ -46687,6 +46687,120 @@
           "tweak": "L1",
           "unread": null,
           "what": "belt_birth.MIGRATED_RATIO 1.25, a giant that ended this many times nearer or further than where it formed is one that moved (it swept the belts it passed)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_origin.PEBBLE_CONVERSION_PER_ORBIT 0.01, the share of a patch's pebbles the streaming instability turns into planetesimals each orbit where it works"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.03"
+            ],
+            [
+              "Where it holds",
+              "the solids of the disk past the snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a streaming-instability simulation or a planetesimal population synthesis that finds a conversion rate outside 0.003 to 0.03 per orbit"
+            ],
+            [
+              "What replaces it",
+              "the rate read from Gerbig and Li 2023 in the paper"
+            ],
+            [
+              "Evidence",
+              "pebble-to-planetesimal simulations use 0.01 of the pebble surface density per orbit; read second-hand, not opened"
+            ]
+          ],
+          "id": "BG17",
+          "key": "6.97:BG17",
+          "kind": "P",
+          "slug": "6-97-bg17",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_origin.PEBBLE_CONVERSION_PER_ORBIT 0.01, the share of a patch's pebbles the streaming instability turns into planetesimals each orbit where it works"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_origin.PEBBLE_TO_GAS_SOLAR 0.01, the solids-to-gas ratio of a disk of solar metal content; it scales with the star's metal ratio"
+            ],
+            [
+              "The range it moves in",
+              "0.005 to 0.02"
+            ],
+            [
+              "Where it holds",
+              "any disk"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dust-to-gas ratio of disks outside 0.005 to 0.02"
+            ],
+            [
+              "What replaces it",
+              "the ratio of the star's own composition"
+            ],
+            [
+              "Evidence",
+              "the interstellar value, the standard in disk models"
+            ]
+          ],
+          "id": "BG18",
+          "key": "6.97:BG18",
+          "kind": "D",
+          "slug": "6-97-bg18",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_origin.PEBBLE_TO_GAS_SOLAR 0.01, the solids-to-gas ratio of a disk of solar metal content; it scales with the star's metal ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_origin.PEBBLE_DRIFT_FACTOR 1.1, the pebbles of a drift-limited disk fall in over 1 / (1.1 Z Omega): the drift-limited Stokes number is 0.55 Z / eta and the drift speed 2 St eta v_K, so eta drops out"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2"
+            ],
+            [
+              "Where it holds",
+              "the solids of the disk past the snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a dust-evolution model of the outer disk whose pebbles live more than twice or less than half this long"
+            ],
+            [
+              "What replaces it",
+              "the drift time read from a dust-evolution run (drift-limited dust models, read second-hand)"
+            ],
+            [
+              "Evidence",
+              "physics fixes the form (growth and drift rates both scale with the orbital frequency); the 0.55 is the drift-limited dust model as quoted second-hand"
+            ]
+          ],
+          "id": "BG19",
+          "key": "6.97:BG19",
+          "kind": "P",
+          "slug": "6-97-bg19",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_origin.PEBBLE_DRIFT_FACTOR 1.1, the pebbles of a drift-limited disk fall in over 1 / (1.1 Z Omega): the drift-limited Stokes number is 0.55 Z / eta and the drift speed 2 St eta v_K, so eta drops out"
         }
       ],
       "slug": "6-97-stand-ins-of-the-belt-origins",
