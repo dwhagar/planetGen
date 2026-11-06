@@ -1706,7 +1706,7 @@
       "properties": {
         "build_workers": {
           "default": 0,
-          "description": "Processes `planetgen.cli.tiles` (the whole-galaxy map build) builds nodes in at once; 0 is one per core.",
+          "description": "Processes `planetgen.cli.tiles` (the whole-galaxy map build) builds nodes in at once, at the lowered priority queue workers run at; 0 is one per core less the workers kept for short and long jobs.",
           "maximum": 64,
           "minimum": 0,
           "title": "Build Workers",
@@ -1722,7 +1722,7 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many processes the nightly whole-map build uses; 0 is one per core.",
+          "x-summary": "How many processes the nightly whole-map build uses; 0 is one per core less the ones kept for short and long jobs.",
           "x-unit": "processes"
         },
         "dir": {

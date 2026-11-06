@@ -654,7 +654,10 @@ def prefetch(galaxy, monkeypatch):
         with real(galaxy.config).test_request_context("/"):
             return tileprefetch.schedule(galaxy.config.database, keys)
     Rules.schedule = staticmethod(schedule)
+    nodes_queue = redisqueue.queue(redisqueue.NODES_QUEUE, redisqueue.connect())
+    nodes_queue.empty()                 # PERF.245: the nodes the earlier tests of the run queued are not this test's to count
     yield Rules
+    nodes_queue.empty()
     client = redisclient.client(decode_responses=True)
     for key in client.scan_iter(f"planetgen-test:{token}:*"):
         client.delete(key)
@@ -663,7 +666,7 @@ def prefetch(galaxy, monkeypatch):
 def _run_queued(prefetch):
     import rq
     connection = redisqueue.connect()
-    done = rq.SimpleWorker([redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)], connection=connection,
+    done = rq.SimpleWorker([redisqueue.queue(redisqueue.NODES_QUEUE, connection)], connection=connection,
                            serializer=redisqueue.JsonSerializer)
     done.work(burst=True, logging_level="WARNING")
 

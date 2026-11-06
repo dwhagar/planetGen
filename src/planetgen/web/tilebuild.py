@@ -90,9 +90,13 @@ def staging_root(root):
 
 
 def workers_setting():
-    """How many processes build at once (`tile_cache.build_workers`; 0 is one per core)."""
+    """How many processes build at once (`tile_cache.build_workers`; 0 is one per core less the places kept for the short and
+    long job lanes, `queue.interactive_workers` and `queue.long_workers`, PERF.245)."""
     configured = get_settings().tile_cache.build_workers
-    return configured if configured > 0 else max(1, os.cpu_count() or 1)
+    if configured > 0:
+        return configured
+    section = get_settings().queue
+    return max(1, (os.cpu_count() or 1) - section.interactive_workers - section.long_workers)
 
 
 _app = None

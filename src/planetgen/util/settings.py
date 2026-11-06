@@ -289,10 +289,10 @@ class TileCache(_Section):
                                label="Closest map block built ahead",
                                summary="How far in the map is prepared: blocks of this many shells; "
                                        "243 or more skips it.")
-    build_workers: int = opt(0, "Processes `planetgen.cli.tiles` (the whole-galaxy map build) builds nodes in at once; 0 is "
-                             "one per core.", unit="processes", group="speed", ge=0, le=64,
+    build_workers: int = opt(0, "Processes `planetgen.cli.tiles` (the whole-galaxy map build) builds nodes in at once, at the "
+                             "lowered priority queue workers run at; 0 is one per core less the workers kept for short and long jobs.", unit="processes", group="speed", ge=0, le=64,
                              label="Whole-map build processes",
-                             summary="How many processes the nightly whole-map build uses; 0 is one per core.")
+                             summary="How many processes the nightly whole-map build uses; 0 is one per core less the ones kept for short and long jobs.")
     prefetch_per_visit: int = opt(128, "Most nodes one request for nodes queues to be built in the background: "
                                   "the children of the nodes it asked for, then their parents and the parents' other "
                                   "children (0 turns the background build off).", unit="nodes", group="speed", ge=0,
