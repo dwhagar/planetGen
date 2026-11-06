@@ -10096,6 +10096,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   expectations are in src/tests/data/prevalence_expectations.json.
   Catalog sections 2 and 4.
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
+  Plan (TODO) (6:20 PM EST on 2026-11-06): oxygen-air rarity is GEN.1309 (generator side, Planets 1); the heavy and thin oxygen worlds that fall outside the classes are GEN.1306 parts 2 and 3 (Core 4); the temperate oxygen-free ocean worlds go to class F, which GEN.1281 makes anoxic. Judge this item on the count of class M worlds after those.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
@@ -16731,6 +16732,53 @@ clears each one.
   mass ledger sums exactly in a test. Version 8.1. Owner: Aux 5, after
   GEN.1085. Filed by the TODO thread from Aux 5.
   Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
+
+- [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
+  Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
+  oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md
+  (1437-world sample: no world reaches even a partial match with M, H, L,
+  O, P, R, Y or X; of 1446 worlds with air, 26 carry 3 percent or more
+  free oxygen and 24 carry 16 percent or more, and those sit at the
+  clamped 1 or 10 kPa, at 1.4 to 2.6 g, at 188 to 233 K, or exactly on
+  the 35 percent top edge). Earlier probes: oxygenic life on 16 of 69
+  class M worlds (GEN.855, Core 1), chlorophyll a vetoed on A and M stars
+  (GEN.867), hot hycean worlds make none. GEN.909 was diagnosed as a cold
+  zone by the physics, so it is not the cause. Do, in order: (1) measure
+  the chain on a fixture sample at current main: the share of bodies with
+  oxygenic life, the oxygen each makes (GEN.855 release against the sinks:
+  crust oxidation, ferrous iron, volcanic reduced gases, the escape of
+  hydrogen), and where the oxygen ends up against the pressure and
+  temperature the world ended with; (2) say which step loses the oxygen
+  (a stand-in too low, a sink too strong, the 10 kPa clamp, the 35 percent
+  cap, life arriving too late in GEN.750's timeline, or too few worlds
+  with a sunlit sea); (3) fix it from the physics, no game rate, and
+  register any stand-in in GEN.725 with tier and tweak level; a world that
+  ends with an Earth-like air is allowed to be rare, but not nearly
+  absent where the physics allows it. Lock item if stored values change
+  (epoch, census re-baseline); step 1 and 2 are lock-free. Done: a
+  1437-body measure shows how many worlds fall in each oxygen band and
+  which cause was found or why the count stays low. The oxygen window of
+  the class table (16 to 35 percent for M, H, O, P and R) is not changed
+  here; if the cap at 35 percent is a pile-up, say so and TODO asks Boss.
+  Version 8.1. Owner: Planets 1. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.854, GEN.855, GEN.867, GEN.750, GEN.1306, GEN.909.
+
+- [ ] **GEN.1310 Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent**
+  Found by Core 5 while building GEN.1304 (6:18 PM EST on 2026-11-06 as the
+  lane reported): after the GEN.1304 refit, clear-sky cool airs meet the
+  stated accuracy, but hazy airs (90th percentile 9 percent) and hot dense
+  airs of 300 to 500 K (median 3.9 percent, 90th percentile 42 percent)
+  stay weak, and the shipped table's stated accuracy did not hold for
+  hazy and HCl/HF airs. Do: refit those two regimes (tens of thousands of
+  model solves, about 6 hours of 4 cores), state the accuracy the fit
+  reaches per regime, and fold in any of GEN.1236 and GEN.1240 that need
+  the table (the 1000 bar edge is a stand-in, IR16, and the 2000 K cap is
+  a solver constant in surface_air, so those two do not ride this refit
+  unless the solver changes). Changes generated output, so a lock item.
+  Done: the accuracy per regime is measured and the weak regimes meet the
+  stated figure or the figure is stated lower with a reason. Version 8.1.
+  Owner: Core 5, after GEN.1304. Filed by the TODO thread.
+  Prerequisites: GEN.1304. Related: GEN.1236, GEN.1240, GEN.1238.
 
 - [ ] **TEST.656 Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876**
   Train Manager census run on main d2b0ba47b (3:30 PM EST on 2026-11-06,
