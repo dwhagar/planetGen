@@ -17203,36 +17203,58 @@ clears each one.
   GEN.1085. Filed by the TODO thread from Aux 5.
   Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
 
-- [ ] **MAP.399 The Sectors list shows 375 uncharted placeholder sectors beside the 107 generated ones, each reading as an empty sector with 0 systems and 0% density (bug)**
-  Boss, 5:00 PM EST on 2026-11-06 (as the coordinator relayed): the
-  Sectors list shows 482 rows but the run generated only 107 sectors (the
-  2,953 systems). The other 375 are uncharted placeholder sectors made by
-  store.uncharted_sector_id (GEN.1111 part 7, store.py near line 4010),
-  where drifting rogue planets land in never-charted cells.
+- [ ] **MAP.399 Uncharted placeholder sectors in the Sectors list are named from their Object ID, say they are uncharted and name their region, and show no density (bug)**
+  Boss, 5:00 PM EST on 2026-11-06 (relayed by the coordinator): the
+  Sectors list shows 482 rows but the run generated only 107 sectors
+  (the 2,953 systems). The other 375 are uncharted placeholder sectors
+  made by store.uncharted_sector_id (GEN.1111 part 7, store.py near line
+  4010), where drifting rogue planets land in never-charted cells.
   list_sectors (query.py near line 185) has no chart_ledger filter, so
   they sort first by distance from the core and read as generated empty
-  sectors (0 systems, 0% density, no region). Do: keep the placeholders
-  out of the generated-sector rows, or label them "Uncharted" and show
-  their rogue count instead of 0% density, and make the list header count
-  only generated sectors with the uncharted number beside it. A browser
-  test shows an uncharted placeholder labelled and not counted as
-  generated. Lock-free. Done: the Sectors list tells generated sectors
-  from uncharted ones. Version 8.1. Owner: Planets 1 (GEN.1111 rogue
-  work). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1111.
+  sectors (0 systems, 0% density, no region). Boss: use the uncharted
+  name system (the Object ID based names) to name these sectors so the
+  list shows that name and not the raw hex ID; uncharted sectors have no
+  density, say which region they are in, and say they are uncharted. Do:
+  name, label and region in list_sectors and the sector page for a
+  placeholder, no density column value, header counts generated sectors
+  with the uncharted number beside it. A browser test shows a placeholder
+  named, labelled uncharted, with its region and no density. Lock-free.
+  Done: the Sectors list tells generated sectors from uncharted ones as
+  Boss described. Version 8.1. Owner: Planets 1 (GEN.1111 rogue work).
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1111, GEN.1256.
 
-- [ ] **MAP.400 After warm-up the Galaxy Map kind table reads NEBULA 0, SUPERNOVA_REMNANT 0 and BLACK_HOLE 1 though the run placed 109,811 nebula clouds, 39 remnants and 9.7 million black holes (bug, unverified)**
-  Boss, 5:00 PM EST on 2026-11-06 (as the coordinator relayed), from a
-  run log made before train 12 with no errors or warnings. Probably the
-  tile cache budget or the kind table counting only what the warm-up
-  cached, not what was placed; unverified. Do: read the kind table code
-  after warm-up, say whether it counts placed objects or cached tiles,
-  and fix the count or the label so the table matches the run (nebula
-  clouds, remnants, black holes). Lock-free. Done: the kind table matches
-  the placed counts on a fresh run or says plainly that it counts cached
-  tiles. Version 8.1. Owner: Core 4 (nebula and map items). Filed by the
-  TODO thread.
-  Prerequisites: none. Related: MAP.177, PERF.243.
+- [ ] **MAP.400 The Object index reads only per-sector tables, so the nebula field (109,811 clouds) and the scattered black holes, remnants, magnetars and hypervelocity stars (9.7 million rows) are missing from search, lists, Nearby and the kind table (bug)**
+  Boss, 5:08 PM EST on 2026-11-06: do a bugfix run to find out why the
+  kind table showed NEBULA 0, SUPERNOVA_REMNANT 0 and BLACK_HOLE 1 when
+  the map does show nebulae. Finding (coordinator, 5:08 PM EST): the
+  Object index (db/objectindex.py, _sources and _phenomenon_sources)
+  reads only per-sector tables; the map draws nebulae from nebula_field
+  and uncharted black holes, remnants, magnetars and hypervelocity stars
+  from phenomenon_scatter, and the index reads neither, so the counts are
+  right for charted rows only. It is a coverage gap, not a failed build.
+  Do: either add nebula_field and phenomenon_scatter as index sources
+  (mind the index budget at 9.7 million rows) or have search, lists and
+  Nearby read them another way; the kind table counts what the map draws
+  or says plainly what it counts. A test shows each scattered kind found
+  by search and counted. Lock-free unless the index schema changes. Done:
+  search, lists, Nearby and the kind table find the scattered nebulae,
+  remnants and black holes. Version 8.1. Owner: Core 2. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: MAP.399, PERF.245.
+
+- [ ] **PERF.245 The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types**
+  Boss, 5:08 PM EST on 2026-11-06: the warm-up takes all workers, so
+  indexing and things like searches and sector lists fail to get a
+  worker. He suggests round robin or similar so all tasks get done. Do:
+  find where the warm-up and the whole-map build take the worker slots,
+  give each task type (warm-up, indexing, search, sector and system
+  lists) its own share or a fair queue so none starves, keep the warm-up
+  parallel with what is left, and measure a search and a sector list
+  during a warm-up before and after. Lock-free. Done: a search and a
+  sector list answer while the warm-up runs. Version 8.1. Owner: Core 2.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.400, PERF.241.
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
