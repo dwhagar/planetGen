@@ -16906,22 +16906,6 @@ clears each one.
   the TODO thread.
   Prerequisites: none. Related: PERF.241, TEST.656.
 
-- [ ] **MAP.401 An uncharted sector has an info page showing what is placed in it, with a link to each object's page**
-  Boss, 5:11 PM EST on 2026-11-06 (relayed by the coordinator): uncharted
-  sectors should have an info page showing what is known in the sector
-  (what is placed) with links to each object page in the uncharted
-  sector. Do: the page for a placeholder sector (MAP.399 names it) lists
-  the rogue planets, black holes, remnants, nebula clouds and other
-  scattered objects placed in its cell, each linked to its own object
-  page, and says plainly that the sector is uncharted and what that
-  means (nothing generated here yet). Reads phenomenon_scatter,
-  nebula_field and the rogue rows by cell; a browser test follows a link
-  to an object page. Lock-free. Done: the placeholder's page lists its
-  known objects with working links. Version 8.1. Owner: Planets 1,
-  after MAP.399. Filed by the TODO thread.
-  Related: MAP.399, MAP.400, GEN.1111.
-  Owner change (TODO) (5:35 PM EST on 2026-11-06): Core 1 takes it after MAP.399.
-
 - [ ] **PERF.245 The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types**
   Boss, 5:08 PM EST on 2026-11-06: the warm-up takes all workers, so
   indexing and things like searches and sector lists fail to get a
