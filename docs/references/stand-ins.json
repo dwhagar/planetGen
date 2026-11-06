@@ -39489,7 +39489,7 @@
             ],
             [
               "Evidence",
-              "[R3103] for the profile; the pairing with the exponential disk is the habit of [R0496] (MWPotential2014 fits a = 3 kpc, b = 280 pc to a disk of 2.6 kpc scale length), recalled"
+              "[R3103] for the profile; the pairing with the exponential disk is the habit of [R0496] (MWPotential2014 fits a = 3 kpc, b = 280 pc to a disk of 2.6 kpc scale length), recalled; since GEN.1285 the profile is only the baseline: stellar_table adds the density model's residual from it, so the field follows the model"
             ]
           ],
           "id": "GP1",
@@ -39527,7 +39527,7 @@
             ],
             [
               "Evidence",
-              "the bulge density model's long axis as scale is this lane's choice"
+              "the bulge density model's long axis as scale is this lane's choice; since GEN.1285 the sphere is only the baseline: stellar_table adds the density model's residual from it (axis-averaged, so the bar's triaxiality is still not held)"
             ]
           ],
           "id": "GP2",
