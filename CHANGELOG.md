@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3497] - 2026-11-06
+
+**Headline:** The page of an uncharted sector now shows the Sector Map locked to that sector, and its list of what is known there is worded as what long-range scans detected.
+
+### Changed
+- The uncharted-sector page (a cell nothing was generated in, or its placeholder row) carries the same Sector Map panel as a generated sector, pinned to the cell. Detected stars and phenomena in the cell open on it, linked to their own pages; an empty cell shows the empty map.
+- The panel "What is placed here" is "Detected by long-range scans", with an intro and an empty-cell line in that voice. The kind "Waiting star" is "Detected star", a nebula is "lit by a detected star", and the header badges say "N detected stars" and "N detected phenomena". The lists and links are unchanged.
+- New tests in `test_web_uncharted_contents.py` and `test_web_uncharted_sectors_browser.py`.
+
+generation-output: unchanged
+
 ## [8.0.3496] - 2026-11-06
 
 **Headline:** The one-off system page now takes the number of stars, says that habitable world and intelligent life only raise the odds, and refuses bad input with the same messages as the command line.
