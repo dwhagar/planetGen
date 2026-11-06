@@ -330,7 +330,7 @@ def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, 
     its `center`) is a table already built by `plan`, so a caller that costed it first does not build it twice.
 
     Returns:
-        dict: `center`, `cell`, `limit_mag`, `tiers` (a `Drawn` each, in the order drawn), `stars`, `cells`, `seconds` and `dropped` (the luminosity bands the visit budget cut off).
+        dict: `center`, `cell`, `limit_mag`, `tiers` (a `Drawn` each, in the order drawn), `stars`, `cells`, `seconds`, `dropped` (the luminosity bands the visit budget cut off) and `floors` (`sky_tiers.floor_table` at `FLOOR_DISTANCES_PC`: the dimmest star the stored sky shows at each distance and whether the table draws it).
     """
     context = _Context(conn)
     if tiers is None:
@@ -347,4 +347,5 @@ def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, 
                 ledger = sky_tier_ledger.read(conn)        # the next tier's cells see what this one drew
     return {"center": tuple(center), "cell": sky_band.cell_of(observer_pc), "limit_mag": float(limit_mag), "tiers": drawn,
             "stars": sum(d.stars for d in drawn), "cells": sum(d.cells for d in drawn), "seconds": time.perf_counter() - started,
-            "dropped": [tier.key for tier in tiers.dropped]}
+            "dropped": [tier.key for tier in tiers.dropped],
+            "floors": [] if tiers.curve is None else sky_tiers.floor_table(tiers, tiers.curve, sky_tiers.FLOOR_DISTANCES_PC)}
