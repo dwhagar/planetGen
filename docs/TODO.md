@@ -17916,6 +17916,19 @@ clears each one.
   Version 8.1. Owner: Core 5. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.619.
 
+- [ ] **TEST.641 tests/test_sweep_atmosphere.py::test_the_sweep_holds_planets_of_many_classes_in_every_zone_and_some_moons finds 7 moons where it asks for at least 20 (bug)**
+  Tides 1 (as the lane reported, about 11:23 PM EST on 2026-11-05) found
+  this test red on main after train 11. The likely cause is GEN.962
+  (train 11): rocky planets now hold a massive moon only from a giant
+  impact, so moons per planet fell from about 1.3 to 0.1 and the sweep
+  holds fewer moons. Do: confirm that is the cause, then give the sweep
+  enough moons by widening it (more systems, or a sweep that adds moons
+  of giants) rather than lowering the floor without a reason, and say in
+  the test why the number is what it is. Lock-free, no migration. Done:
+  the test passes on current main. Version 8.1. Owner: Bug 1. Filed by
+  the TODO thread.
+  Prerequisites: none. Related: GEN.962.
+
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
