@@ -18264,7 +18264,7 @@ clears each one.
   storage. Say which and fix at the cause; a tolerance may be set only
   to the stated precision of the stored column. Done: the test passes on
   current main. Owner: Tides 1 (moved from Aux 2 by the TODO thread, 9:58
-  PM EST on 2026-11-05, Aux 2 had not started it). Do: reproduce on current main first (a
+  PM EST on 2026-11-05, no start was reported by Aux 2). Do: reproduce on current main first (a
   merge since may have fixed it), fix at the cause with the property
   kept, never skip or loosen a test. Lock-free if output is unchanged;
   tell the TODO thread if values change. Version 8.1. Filed by the TODO
