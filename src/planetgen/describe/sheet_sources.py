@@ -14,6 +14,12 @@ _STEPS = ("Five hard steps, each an exponential waiting time that starts when th
           "[R4642]")
 _AGES = _STEPS + "."
 
+_GROUND = ("The areal share of each ground type: what the hydrosphere covers, then the dominant crust by the heat flow and the mantle "
+           "[R2024], then the modifiers the body's own water, air, tectonics and tides allow.")
+
+_GROUND_TYPES = ("ocean", "ice", "ultramafic", "anorthositic", "basaltic", "felsic", "clay", "oxidized", "metal", "carbon", "evaporite",
+                 "sulfur", "intermediate")
+
 _BODY = {
     "eccentricity": "A planet draws from the Kepler multi-planet law [R1307] and is circularised by its tide; a regular "
                     "moon keeps a small forced value, a captured moon a thermal one.",
@@ -34,6 +40,9 @@ _BODY = {
     "ring_outer_km": "Ends at the Roche limit, 2.456 R (planet density over particle density)^(1/3), and inside the innermost large moon.",
     "ring_age_yr": "The years since the moon that fell inside the Roche limit, or the comet that passed inside it, made the ring; the ring thins by 1/e every half billion years.",
     "ring_optical_depth": "An output of the drawn mass, the extent and the particle size, 3 M / (4 density r area).",
+    "ground_type": _GROUND,
+    "ground_grain": "A surface under 0.1 Gyr old or molten is not yet regolith; an older one is a slab, crushed or powder by its grain.",
+    **{f"ground_{name}_fraction": _GROUND for name in _GROUND_TYPES},
     "life_stage": "The latest stage whose age is not past the age of the star.",
     "life_age_abiogenesis_gyr": _AGES,
     "life_age_photosynthesis_gyr": _AGES,
@@ -55,12 +64,12 @@ _STAR = {
     "axial_tilt_deg": "Rayleigh about 15 degrees from the star's reference normal.",
     "nuclear_arrival_age_gy": "The age MIST's tracks put the star on the main sequence [R0773]; the star counts as pre-main-sequence "
                               "only until its radius has settled, the earlier age BHAC15 gives [R0254].",
-    "disk_kind": "A young star holds a class 0, I or II disk by its age; a main-sequence star has a cold debris belt at the share "
-                 "the DEBRIS survey found for its kind, 2 to 24 percent [R4081].",
-    "disk_inner_au": "A young star's disk starts at the dust sublimation radius; a debris belt starts at 0.7 of its radius, the "
-                     "blackbody radius of its drawn dust temperature times 1.74 [R4081].",
-    "disk_outer_au": "A young star's disk ends log-uniform between 10 and 300 AU; a debris belt ends at 1.5 of its radius, the "
-                     "blackbody radius of its drawn dust temperature times 1.74 [R4081].",
+    "disk_kind": "A young star holds a class 0, I or II disk by its age; a main-sequence star has a cold debris disk when "
+                 "the dust of its outer belt is bright enough for a survey to find (about 1e-5 of the star's light [R4081], the dust law of [R4785]).",
+    "disk_inner_au": "A young star's disk starts at the dust sublimation radius; a debris disk starts at the inner edge of "
+                     "the star's outer belt.",
+    "disk_outer_au": "A young star's disk ends log-uniform between 10 and 300 AU; a debris disk ends at the outer edge of the "
+                     "star's outer belt.",
     "chemistry_branch": "A star older than the thick disk's start is alpha-rich with [R0349]'s logistic probability of its "
                         "[Fe/H] (age gate, [R1863]); one draw of the star's own decides it.",
     "chemistry_alpha_fe": "The mean [X/Fe] of O, Mg, Si and Ca: the branch's hinge fit at the star's [Fe/H] [R0349, R3294] "

@@ -31,6 +31,13 @@ one line per family, with how many pages it built, how many were already cached 
 not answer, or an update still running when the run would start, is an error printed, never a silent skip. It waits
 for a running update to finish before it queues anything.
 
+A warm-up goes on without its terminal (PERF.235): the process that started it is only a client of a run whose units queue workers do, and
+when its terminal is closed (an SSH session lost, a hangup) it stops drawing and writing to the terminal, says in the run's log that the
+terminal was closed, and carries on to the end of the run; the admin page's phase list keeps moving. `planetgen warm --follow` watches a
+running warm-up from any other session, drawing the same bars from the run record (the stages already done show as done); it starts nothing,
+and ending it, with Ctrl+C or a hangup, leaves the warm-up as it was. A SIGTERM (the update guard's cancel, a stop-all, update.sh's time limit)
+and Ctrl+C in the process that started the run still end it.
+
 The answers go to Redis and to the disk cache the web server reads, so they are the ones a visitor gets; each is kept
 only while the data it read is unchanged (docs/design/operations/cache-warm-up.md). A list of every family ends with the command
 that opens the site after the sector-grid switch closed it (`maintenance.SECTOR_SWITCH`, UX.112): the site is closed
@@ -43,9 +50,12 @@ import sys
 import time
 
 from planetgen.admin import stop_reason, updateguard
-from planetgen.cli import warm_progress
+from planetgen.cli import warm_log, warm_progress
 from planetgen.queue import redisqueue, runrecord, units, warmphases, warmstart, wrapper
 from planetgen.util import log
+
+RUN_TITLE = "Cache warm-up"
+"""str: The title of the warm-up's run in the run record: what `--follow` looks for among the maintenance runs."""
 
 UPDATE_WAIT_SECONDS = 1200
 """int: How long it waits for a running update to finish before it starts the run."""
@@ -65,6 +75,9 @@ def add_warm_arguments(parser):
     parser.add_argument("--progress", action="store_true",
                         help="show progress: rich bars with a terminal (the stage's chunk N of M, elapsed, time left), "
                              "otherwise one line per chunk (update.sh shows it while it waits for the warm-up)")
+    parser.add_argument("--follow", action="store_true",
+                        help="watch the warm-up that is running (started anywhere, by update.sh or by hand) from its run record, "
+                             "drawing the same progress; starts nothing, and ending it leaves the warm-up running")
     parser.add_argument("--on-change", metavar="DATABASE", default=None,
                         help="what a change starts (warmstart.request): wait cache.warm_settle_seconds, then warm once "
                              "for each time DATABASE was changed meanwhile; does nothing when DATABASE is not the one "
@@ -91,7 +104,7 @@ def _site_database():
         return db_name()
 
 
-TIME_LIMIT_ENV = "PLANETGEN_WARM_TIME_LIMIT_SECONDS"
+TIME_LIMIT_ENV = warm_log.TIME_LIMIT_ENV
 """str: update.sh's time limit for the stage (`WARM_STAGE_SECONDS`), told to the run so it can say the limit ended it."""
 
 _started = time.monotonic()
@@ -122,20 +135,52 @@ def _who_sent_sigterm():
     return "a SIGTERM that left no reason (a kill, or a stop-all or cancel that could not write one)"
 
 
+_hung_up = [False]
+"""list[bool]: Whether the terminal this process ran in has been closed (`_detach_from_terminal`)."""
+
+
+def _silence(fds=(1, 2)):
+    """Points file descriptors `fds` (standard output and error) at /dev/null, so writing to a terminal that is gone (the bars, the log) fails
+    nowhere."""
+    try:
+        null = os.open(os.devnull, os.O_RDWR)
+    except OSError:
+        return
+    try:
+        for fd in fds:
+            try:
+                os.dup2(null, fd)
+            except OSError:
+                pass
+    finally:
+        os.close(null)
+
+
+def _detach_from_terminal():
+    """What a hangup (SIGHUP: the terminal closed, an SSH session lost) does to the warm-up (PERF.235): it stops writing to the terminal and goes
+    on. The run is the queue workers' and the process that started it only follows it, so ending the run for a lost terminal would waste what
+    was built; the line goes to the run's log, which the admin page and `planetgen warm --follow` show."""
+    if _hung_up[0]:
+        return
+    _hung_up[0] = True
+    _silence()
+    log.normal("The terminal this warm-up ran in was closed: it goes on without it. Watch it with `planetgen warm --follow`.")
+
+
 def _stop_on_signals():
-    """Makes SIGTERM (the update guard's cancel, a stop-all, update.sh's time limit) and SIGHUP (the terminal closed) end the run as
-    canceled in Redis, as Ctrl+C does, with the reason in a `Stopped` that `run_warm` prints as one line."""
+    """Makes SIGTERM (the update guard's cancel, a stop-all, update.sh's time limit) end the run as canceled in Redis, as Ctrl+C does, with the
+    reason in a `Stopped` that `run_warm` prints as one line. A hangup (SIGHUP: the terminal closed) does not end it: the run goes on without the
+    terminal (`_detach_from_terminal`)."""
     global _started
     _started = time.monotonic()
+    _hung_up[0] = False
     stop_reason.clear(os.getpid())
 
     def on_term(_signum, _frame):
         raise Stopped(_who_sent_sigterm(), 143)
 
-    def on_hangup(_signum, _frame):
-        raise Stopped("the terminal it ran in was closed (hangup)", 129)
     signal.signal(signal.SIGTERM, on_term)
-    signal.signal(signal.SIGHUP, on_hangup)
+    signal.signal(signal.SIGHUP, lambda _signum, _frame: _detach_from_terminal())
 
 
 def _say_stopped(reason, status):
@@ -147,12 +192,21 @@ def _say_stopped(reason, status):
 
 def _warm_once(args, reason=None):
     """
-    Builds the list of cache-warming commands the arguments ask for and runs it through the wrapper, printing each
-    command's line.
+    Runs one warm-up (`_warm_run`) and keeps its record in `warmup.log` (`warm_log.RunLog`, OPS.96): a line that says what started it,
+    every line it prints, and a line that says how it ended.
 
     Raises:
         Failed: A command failed, Redis did not answer or another warm-up runs.
         SystemExit: The arguments name no such family or phase.
+    """
+    with warm_log.RunLog(reason) as record:
+        _warm_run(args, reason, record)
+
+
+def _warm_run(args, reason, record):
+    """
+    Builds the list of cache-warming commands the arguments ask for and runs it through the wrapper, printing each
+    command's line (and `record.families` the number of families it warmed).
     """
     from planetgen.web import warmup
     try:
@@ -168,7 +222,7 @@ def _warm_once(args, reason=None):
             warmphases.begin(args.database, phases, reason)
             bars = warm_progress.WarmProgress(
                 [step.key for step in steps], log.normal, show=getattr(args, "progress", False),
-                rich_bars=warm_progress.stdout_is_terminal(), expected=warmup.EXPECTED_SECONDS)
+                rich_bars=warm_progress.stdout_is_terminal(), expected=warmup.EXPECTED_SECONDS, mirror=record.say)
 
             def report_ended():
                 for name in tally.ended:
@@ -182,13 +236,13 @@ def _warm_once(args, reason=None):
                     warmphases.start_phase(args.database, warmup.phase_of(steps[index].key))
                 bars.plan(index, plan)
 
-            def on_result(index, _unit, result):
+            def on_result(index, unit, result):
                 if steps[index].key in tally.totals:
                     tally.add(steps[index].key, result)
-                bars.result(result)
+                bars.result(result, unit)
 
             with bars:
-                wrapper.run("Cache warm-up", steps, on_plan, on_result, database=args.database,
+                wrapper.run(RUN_TITLE, steps, on_plan, on_result, bars.unit_progress, database=args.database,
                             argv=sys.argv[1:], kind=runrecord.MAINTENANCE)
                 for line in tally.finish():
                     bars.say(line)
@@ -201,7 +255,53 @@ def _warm_once(args, reason=None):
             warmphases.end(args.database, error=f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__)
             raise
     warmed = [step.key for step in steps if step.key in warmup.FAMILIES]
+    record.families = len(warmed)
     log.normal(f"Cache warm-up done: {len(warmed)} families.")
+
+
+def _follow(args):
+    """
+    `planetgen warm --follow` (PERF.235): draws the progress of the warm-up that is running, from its run record. It starts nothing and says
+    nothing to the run, so ending it leaves the warm-up as it was.
+
+    Raises:
+        Failed: Redis did not answer, or the warm-up stopped before its end.
+    """
+    from planetgen.web import warmup
+    try:
+        conn = redisqueue.connect(redisqueue.redis_url())
+        conn.ping()
+    except Exception as exc:  # noqa: BLE001 -- any connection failure
+        raise Failed(f"no Redis server answers: {exc}") from exc
+    run_id = runrecord.active_run(conn, runrecord.MAINTENANCE)
+    run = runrecord.read_run(conn, run_id) if run_id else None
+    if run is None or run.get("title") != RUN_TITLE:
+        log.normal("No cache warm-up is running.")
+        return
+    keys = [item["key"] for item in runrecord.read_steps(conn, run_id)]
+    tally = warmup.PhaseTally(keys)
+    bars = warm_progress.WarmProgress(keys, log.normal, show=True, rich_bars=warm_progress.stdout_is_terminal(),
+                                      expected=warmup.EXPECTED_SECONDS)
+    log.normal(f"Following the cache warm-up {run_id}: {len(keys)} steps. Ctrl+C stops watching; the warm-up goes on.")
+
+    def on_plan(index, plan):
+        for line in tally.start(keys[index]):
+            bars.say(line)
+        bars.plan(index, plan)
+
+    def on_result(index, unit, result):
+        if keys[index] in tally.totals:
+            tally.add(keys[index], result)
+        bars.result(result, unit)
+
+    try:
+        with bars:
+            wrapper.follow(run_id, on_plan, on_result, bars.unit_progress)
+            for line in tally.finish():
+                bars.say(line)
+    except (redisqueue.Unavailable, units.RunStopped) as exc:
+        raise Failed(str(exc)) from exc
+    log.normal("Cache warm-up done.")
 
 
 def _warm_on_change(args):
@@ -231,10 +331,21 @@ def _warm_on_change(args):
 def run_warm(args):
     """
     `planetgen warm`: runs the cache-warming commands the arguments ask for (`_warm_once`), or with `--on-change`
-    what a change asks for (`_warm_on_change`). Exits 1 on any failure. A run told to stop (SIGTERM, a hangup, Ctrl+C) prints one
-    line saying what ended it and that a rerun continues, and exits 143, 129 or 130, never with a traceback.
+    what a change asks for (`_warm_on_change`), or with `--follow` only watches the one that is running (`_follow`). Exits 1 on any failure.
+    A run told to stop (SIGTERM, Ctrl+C) prints one line saying what ended it and that a rerun continues, and exits 143 or 130, never with
+    a traceback; a hangup does not stop it (`_detach_from_terminal`).
     """
     args.database = _site_database()
+    if getattr(args, "follow", False):
+        try:
+            _follow(args)
+        except Failed as exc:
+            log.error(f"error: the cache warm-up stopped: {exc}")
+            raise SystemExit(1)
+        except KeyboardInterrupt:
+            log.normal("Stopped watching. The warm-up goes on; `planetgen warm --follow` watches it again.")
+            raise SystemExit(130)
+        return
     _stop_on_signals()
     try:
         if args.on_change is not None:

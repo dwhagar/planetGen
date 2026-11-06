@@ -50,10 +50,25 @@ export function alignScroll(top, scrollY, maxScroll, options) {
   return Math.abs(wanted - scrollY) <= ALIGN_TOLERANCE_PX ? null : wanted;
 }
 
+// TEST.599: whether the reader has pressed a key, a mouse button or a finger or turned the wheel on this page. The page is then theirs: a map that fills its window does not scroll it,
+// not even one built later (the 3D system view is built when its data has come, which on a slow machine is after the reader's first Tab; the scroll it made then left the focused skip
+// link above the window).
+let readerActed = false;
+const READER_EVENTS = ["keydown", "pointerdown", "wheel", "touchstart"];
+if (typeof window !== "undefined" && window.addEventListener) {
+  READER_EVENTS.forEach(function (type) { window.addEventListener(type, function () { readerActed = true; }, { passive: true, capture: true }); });
+}
+
+// Forgets that the reader acted (the tests of this file, which share one page).
+export function forgetReader() {
+  readerActed = false;
+}
+
 // Sets `view.style.height` to the fitting height now, when the window is resized and when the page above the view
 // changes height (a notice, wrapped crumbs). `below` is the element after the view (or null). Returns {refit, stop}.
 // MAP.350: with `options.fill` the view is 95% of the window's height (less what a held header covers), with the rest split above and below it, and the page is scrolled
-// so it sits there, once it has loaded and as what is above it settles, until the reader scrolls the page themselves.
+// so it sits there, once it has loaded and as what is above it settles, until the reader takes the page over: scrolls it, or presses a key, a mouse button or a finger on it (TEST.599: a
+// Tab to the skip link at the top of the page was followed by a scroll to the map, which left the focused skip link above the window).
 export function watchWindowFit(view, below, options) {
   let busy = false;
   const fill = !!(options && options.fill);
@@ -67,7 +82,7 @@ export function watchWindowFit(view, below, options) {
     return position === "fixed" || position === "sticky" ? Math.round(header.getBoundingClientRect().bottom) : 0;
   }
   function align() {
-    if (!fill || readerScrolled) return;
+    if (!fill || readerScrolled || readerActed) return;
     const doc = document.documentElement;
     const rect = view.getBoundingClientRect();
     const hidden = covered();

@@ -15,28 +15,19 @@ MOON = 7.346e22
 R_EARTH = 6.371e6
 
 
-def test_the_survival_curve_passes_through_the_two_points_the_paper_prints():
-    assert rm.closest_approach_survival(0.01) == pytest.approx(0.82)
-    assert rm.closest_approach_survival(0.1) == pytest.approx(0.48)
-    assert rm.closest_approach_survival(0.089) == pytest.approx(0.5, abs=0.02)      # their median
-    assert rm.closest_approach_survival(1e-6) == 1.0 and rm.closest_approach_survival(100.0) == 0.0
-    shares = [rm.closest_approach_survival(10.0 ** k) for k in range(-4, 3)]
-    assert shares == sorted(shares, reverse=True)
-
-
-def test_the_draw_inverts_the_survival_curve():
-    for u in (0.1, 0.4, 0.5, 0.7):
-        assert rm.closest_approach_survival(rm.closest_approach_hill(u)) == pytest.approx(1.0 - u)
+def test_the_draw_passes_through_the_two_points_the_paper_prints():
+    # the survival is 1 - u: 0.82 beyond 0.01 mutual Hill radii and 0.48 beyond 0.1, their median 0.089
+    assert rm.closest_approach_hill(1.0 - 0.82) == pytest.approx(0.01)
+    assert rm.closest_approach_hill(1.0 - 0.48) == pytest.approx(0.1)
     assert rm.closest_approach_hill(0.5) == pytest.approx(0.089, rel=0.1)
-    assert rm.closest_approach_hill(0.0) < rm.closest_approach_hill(1.0)
+    draws = [rm.closest_approach_hill(i / 20.0) for i in range(21)]
+    assert draws == sorted(draws) and rm.closest_approach_hill(0.0) < rm.closest_approach_hill(1.0)
 
 
 def test_a_moon_follows_its_planet_when_its_orbit_is_inside_the_encounter_scale():
     r_min = 1.0e9
     reach = rm.survival_distance_m(r_min, EARTH, JUPITER)
     assert reach == pytest.approx(r_min * (EARTH / (EARTH + JUPITER)) ** (1.0 / 3.0))
-    assert rm.moon_survives(0.99 * reach, r_min, EARTH, JUPITER)
-    assert not rm.moon_survives(1.01 * reach, r_min, EARTH, JUPITER)
     # the orbital time against the encounter time of eq. 4: equal at the limit
     t_moon = math.sqrt(reach ** 3 / (constants.G * EARTH))
     t_encounter = math.sqrt(r_min ** 3 / (constants.G * (EARTH + JUPITER)))
@@ -50,9 +41,8 @@ def test_a_heavier_scatterer_makes_it_harder_for_the_moon():
 def test_the_earth_moon_orbit_survives_most_encounters_and_a_wide_orbit_few():
     hill = rm.mutual_hill_radius_m(5.2 * constants.AU_M, 4.0 * constants.AU_M, JUPITER, EARTH, SUN)
     assert hill == pytest.approx(0.5 * 9.2 * constants.AU_M * ((JUPITER + EARTH) / (3 * SUN)) ** (1.0 / 3.0))
-    near = rm.survival_probability(3.84e8, EARTH, JUPITER, hill)
-    wide = rm.survival_probability(0.5 * hill, EARTH, JUPITER, hill)
-    assert 0.4 < near < rm.SURVIVAL_AT_0P01_HILL and wide < 0.2             # under the paper's 0.82 at 0.01 R_H: the light planet's reach is cut by (m / (m + M))^(1/3)
+    median_reach = rm.survival_distance_m(rm.closest_approach_hill(0.5) * hill, EARTH, JUPITER)
+    assert 3.84e8 < median_reach < 0.5 * hill       # the Moon's orbit is inside the reach of the median encounter, half a Hill radius is far outside it
 
 
 def test_the_circularisation_heat_of_the_debes_and_sigurdsson_median_pair():
@@ -76,10 +66,8 @@ def test_the_default_rheology_is_the_rock_of_tidal_heating_and_the_flux_scales_w
 
 def test_bad_inputs_are_refused():
     with pytest.raises(rm.RogueMoonError):
-        rm.closest_approach_survival(0.0)
-    with pytest.raises(rm.RogueMoonError):
         rm.closest_approach_hill(1.5)
     with pytest.raises(rm.RogueMoonError):
-        rm.moon_survives(0.0, 1e9, EARTH, JUPITER)
+        rm.survival_distance_m(0.0, EARTH, JUPITER)
     with pytest.raises(rm.RogueMoonError):
         rm.circularisation_flux_w_m2(EARTH, R_EARTH, MOON, 1e8, 1.0)

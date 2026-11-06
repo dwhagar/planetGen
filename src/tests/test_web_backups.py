@@ -25,6 +25,12 @@ from planetgen.web import csrf
 from tests.test_web_settings import START, _audit_rows, config, site  # noqa: F401 -- fixtures and helpers
 
 
+@pytest.fixture(autouse=True)
+def _only_the_parts_these_tests_count(monkeypatch):
+    """These tests count the parts of an archive; the parity part has its own tests (test_backup_parity_part.py)."""
+    monkeypatch.delitem(backup_core._PARTS, "parity", raising=False)
+
+
 def _form(client, path, **fields):
     data = {csrf.FIELD_NAME: client.csrf}
     data.update({key.replace("__", "."): value for key, value in fields.items()})

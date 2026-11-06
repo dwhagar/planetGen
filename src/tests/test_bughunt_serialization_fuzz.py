@@ -140,8 +140,9 @@ _RUNTIME_ONLY = {
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
              "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw", "_age_drawn",
-             "_surface_w", "_belt_exposure_msv_yr", "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au"},    # kept so the moon history can run again (GEN.959); the ring it builds is stored
-    AsteroidBelt: {"system_config", "composition", "makeup"},
+             "_surface_w", "_belt_exposure_msv_yr", "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au",
+             "_formation_fractions"},    # the solid fractions drawn before the envelope took its share (GEN.1226); the stored fractions are the ones after    # kept so the moon history can run again (GEN.959); the ring it builds is stored
+    AsteroidBelt: {"system_config", "composition", "makeup", "scatter_giant_au"},    # the giant's distance the members of an outer disk are drawn with (GEN.1092); the stored members hold what it gave
 }
 
 

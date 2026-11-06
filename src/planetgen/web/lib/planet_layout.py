@@ -20,6 +20,9 @@ from planetgen.util.wordlist import join_words
 PHI6_CAPTIONS = ("Radiation", "Survival equipment")
 """tuple: The captions of the description's facts tables that belong with the PHI-6 rating."""
 
+BODY_CAPTIONS = ("Planet", "Moon")
+"""tuple: The captions of the description's facts table of the body itself."""
+
 ICE_KEYS = (("ice_co2_mass_fraction", "Carbon dioxide ice, part of the ice"), ("ice_ch4_mass_fraction", "Methane ice, part of the ice"),
             ("ice_nh3_mass_fraction", "Ammonia ice, part of the ice"), ("ice_n2_mass_fraction", "Nitrogen ice, part of the ice"),
             ("ice_so2_mass_fraction", "Sulfur dioxide ice, part of the ice"), ("ice_co_mass_fraction", "Carbon monoxide ice, part of the ice"),
@@ -37,21 +40,35 @@ MASS_SHARED_KEYS = frozenset(key for key, _label in MASS_KEYS)
 def split_blocks(blocks):
     """
     The description's blocks of a planet or moon sorted by where the page puts them: `phi6` (the ratings table and the
-    radiation and survival equipment tables), `life` (what the life looks like) and `rest` (anything else the page
-    still shows, such as the sensors' flavor line and a gas giant's depth). The facts table of the body, the class
+    radiation and survival equipment tables), `life` (what the life looks like), `flavor` (the "Sensors show ..." line,
+    which the page puts under the Sensor view, UX.276) and `rest` (anything else the page still shows, such as a gas giant's depth). The facts table of the body, the class
     sentence, the atmosphere and composition summaries, and the life class, system age and milestone sentences (`life-class`, `timeline`
     and `milestone`, which the Life section says from the stored columns and the life readings, UX.251) are dropped.
     """
-    parts = {"phi6": [], "life": [], "rest": []}
+    parts = {"phi6": [], "life": [], "flavor": [], "rest": []}
     for block in blocks:
         kind = block["type"]
         if kind == "ratings" or (kind == "facts" and block["caption"] in PHI6_CAPTIONS):
             parts["phi6"].append(block)
         elif kind == "prose" and block["role"] == "life":
             parts["life"].append(block)
-        elif kind == "prose" and block["role"] in ("flavor", "depth"):
+        elif kind == "prose" and block["role"] == "flavor":
+            parts["flavor"].append(block)
+        elif kind == "prose" and block["role"] == "depth":
             parts["rest"].append(block)
     return parts
+
+
+def atmosphere_colour_fact(blocks):
+    """
+    The "Atmosphere color" row of the description's facts table of the body (`{"key", "label", "value"}`, the value a colour chip and its
+    word), or `None` for a body without one: an airless body, a gas or ice giant, or one whose air lets no light through. `split_blocks`
+    drops that table, so the page puts this row at the head of its Atmosphere section.
+    """
+    for block in blocks:
+        if block["type"] == "facts" and block["caption"] in BODY_CAPTIONS:
+            return next((row for row in block["rows"] if row["key"] == "atmosphere_colour"), None)
+    return None
 
 
 def _rows(sheet, group_key):
