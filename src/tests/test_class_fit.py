@@ -74,7 +74,7 @@ def test_best_class_is_total_over_gated_bodies():
 def test_a_hot_thin_air_world_is_class_z_and_a_body_no_class_matches_has_no_best_letter():
     hot_thin = body(surface_temperature_k=414.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=1.4)
     assert cf.best_class(hot_thin)[:2] == ("Z", 1.0)      # GEN.1221: the hot thin-air world has its own class
-    nothing = body(surface_temperature_k=300.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=0.9)
+    nothing = body(surface_temperature_k=300.0, atmospheric_pressure_pa=10000.0, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=0.9)
     assert cf.best_class(nothing)[:2] == (None, 0.0)
 
 
@@ -126,3 +126,19 @@ def test_a_plain_nitrogen_air_with_no_oxygen_is_f_and_a_carbon_dioxide_rich_one_
     assert pc.classify(rich) == "G"
     heavy_hot_thin = no_oxygen(surface_temperature_k=380.0, gravity_g=1.8, atmospheric_pressure_pa=9000.0, ocean_fraction=0.0, hydrosphere="vapor")
     assert pc.classify(heavy_hot_thin) == "Z"      # F stops at 1.4 g so the heavy thin-air class Z keeps its bodies
+
+
+def test_a_heavy_oxygen_ocean_world_of_1_6_g_is_a_temperate_class_and_not_a_hole():
+    # GEN.1306 part 2 (registry AW3): M, H, O, P and R reach V's 2 g line
+    heavy = body(gravity_g=1.6)
+    letter, fit, _runner, _fit2 = cf.best_class(heavy)
+    assert letter == "M" and fit > 0.9
+    assert cf.best_class(body(gravity_g=2.1))[0] == "V"
+
+
+def test_a_carbon_dioxide_air_is_g_whatever_its_oxygen_and_a_thin_air_is_k_whatever_its_oxygen():
+    # GEN.1306 parts 2 and 3 (registry AW4, AW5)
+    rich = body(surface_temperature_k=290.0, atmospheric_pressure_pa=15000.0, share_co2=0.5, share_o2=0.35, ocean_fraction=1.0, gravity_g=1.5)
+    assert cf.best_class(rich)[:2] == ("G", 1.0)
+    thin = body(surface_temperature_k=290.0, atmospheric_pressure_pa=1000.0, share_co2=0.01, share_o2=0.63, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=1.3)
+    assert cf.best_class(thin)[:2] == ("K", 1.0)

@@ -38579,6 +38579,128 @@
       "title": "Stand-ins of the anoxic world"
     },
     {
+      "key": "6.194",
+      "number": "6.194",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class M, H, O, P and R gravity edge 2 g (planet_class_fit.json, gravity_g lt 2.0; 1.25 g before): the edge class V starts at, so a heavy oxygen world of 1.25 to 2 g is a temperate class and the rest is V"
+            ],
+            [
+              "The range it moves in",
+              "none (the edge of V, GEN.1136)"
+            ],
+            [
+              "Where it holds",
+              "oxygen worlds with air at 0.75 to 2 g"
+            ],
+            [
+              "What would show it wrong",
+              "a heavy oxygen world whose air or ocean no temperate class describes"
+            ],
+            [
+              "What replaces it",
+              "the gravity edge of V once the heavy-world physics of GEN.1136 is refit"
+            ],
+            [
+              "Evidence",
+              "the V row of the same file; GEN.1136"
+            ]
+          ],
+          "id": "AW3",
+          "key": "6.194:AW3",
+          "kind": "P",
+          "slug": "6-194-aw3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class M, H, O, P and R gravity edge 2 g (planet_class_fit.json, gravity_g lt 2.0; 1.25 g before): the edge class V starts at, so a heavy oxygen world of 1.25 to 2 g is a temperate class and the rest is V"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class K no oxygen cap (share_o2 lt 0.1 removed): under 3 kPa even pure oxygen is under the 6.3 kPa Armstrong line, so a thin air is K whatever its oxygen share"
+            ],
+            [
+              "The range it moves in",
+              "none (the edge of the breathing line)"
+            ],
+            [
+              "Where it holds",
+              "worlds with air under 3 kPa at 273 to 320 K"
+            ],
+            [
+              "What would show it wrong",
+              "a breathable air under 3 kPa (none exists)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the Armstrong limit of 6.3 kPa (docs/design/habitability/survival-equipment-fields.md: inspired oxygen is the O2 fraction times (P minus 6.3 kPa), zero under 6.3 kPa); the K row of the same file"
+            ]
+          ],
+          "id": "AW4",
+          "key": "6.194:AW4",
+          "kind": "P",
+          "slug": "6-194-aw4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class K no oxygen cap (share_o2 lt 0.1 removed): under 3 kPa even pure oxygen is under the 6.3 kPa Armstrong line, so a thin air is K whatever its oxygen share"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class G no oxygen cap (share_o2 lt 0.16 removed): carbon dioxide at 20 percent or more is G whatever the oxygen, since the carbon dioxide alone makes it unbreathable"
+            ],
+            [
+              "The range it moves in",
+              "none (the edge of G)"
+            ],
+            [
+              "Where it holds",
+              "worlds with air, carbon dioxide 20 percent or more, 273 to 400 K"
+            ],
+            [
+              "What would show it wrong",
+              "a carbon dioxide air with free oxygen that is better read as L"
+            ],
+            [
+              "What replaces it",
+              "the carbon dioxide edge of L once the greenhouse classes are fitted"
+            ],
+            [
+              "Evidence",
+              "the G and L rows of the same file; GEN.1281"
+            ]
+          ],
+          "id": "AW5",
+          "key": "6.194:AW5",
+          "kind": "P",
+          "slug": "6-194-aw5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class G no oxygen cap (share_o2 lt 0.16 removed): carbon dioxide at 20 percent or more is G whatever the oxygen, since the carbon dioxide alone makes it unbreathable"
+        }
+      ],
+      "slug": "6-194-stand-ins-of-the-heavy-oxygen-worlds-and-the-thin-oxygen-worlds",
+      "title": "Stand-ins of the heavy oxygen worlds and the thin oxygen worlds"
+    },
+    {
       "key": "6.192",
       "number": "6.192",
       "rows": [

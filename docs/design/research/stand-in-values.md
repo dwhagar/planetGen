@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1194 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1197 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 122 | 50 | 1 | 1 | 0 | 174 |
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
-| T5 | 51 | 21 | 3 | 1 | 0 | 76 |
+| T5 | 52 | 21 | 3 | 1 | 0 | 77 |
 | T6 | 111 | 85 | 24 | 61 | 0 | 281 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
-| T9 | 36 | 14 | 5 | 80 | 34 | 169 |
-| All | 654 | 248 | 58 | 189 | 45 | 1194 |
+| T9 | 38 | 14 | 5 | 80 | 34 | 171 |
+| All | 657 | 248 | 58 | 189 | 45 | 1197 |
 
 ## How the labels were given
 
@@ -1675,6 +1675,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | AW1 | P | T9 | L3 | class F gravity edge 1.4 g (`planet_class_fit.json`, F `gravity_g lt 1.4`; 2.0 g before): F stops where the heavy thin-air class Z starts, so an anoxic air of 1.4 g or more is Z (hot, thin) or V (2 g or more) | 1.2 to 1.75 g | anoxic worlds with air at 273 to 400 K | a sweep where the edge moves bodies of class Z or V into F at 1.75 g (15 of 1448 changed letter, 7 of Z, against 6 at 1.4 g) | the gravity edges of Z and V fixed from the heavy-world physics of GEN.1136 | GEN.1281 class sweep, 1448 bodies from three seeds of 150 systems | - | - |
 | AW2 | P | T9 | L0 | class F carbon dioxide edge 20 percent (`share_co2 lt 0.2`): the edge class G starts at (`share_co2 min 0.2`), so an anoxic air with a fifth carbon dioxide is G and the rest is F | none (the edge of G) | anoxic worlds with air at 273 to 400 K | a carbon-dioxide air that is better read as F | the carbon-dioxide edge of G once the greenhouse classes are fitted | the G row of the same file; GEN.1207 | - | - |
+
+## 6.194 Stand-ins of the heavy oxygen worlds and the thin oxygen worlds
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| AW3 | P | T9 | L0 | class M, H, O, P and R gravity edge 2 g (`planet_class_fit.json`, `gravity_g lt 2.0`; 1.25 g before): the edge class V starts at, so a heavy oxygen world of 1.25 to 2 g is a temperate class and the rest is V | none (the edge of V, GEN.1136) | oxygen worlds with air at 0.75 to 2 g | a heavy oxygen world whose air or ocean no temperate class describes | the gravity edge of V once the heavy-world physics of GEN.1136 is refit | the V row of the same file; GEN.1136 | - | - |
+| AW4 | P | T5 | L0 | class K no oxygen cap (`share_o2 lt 0.1` removed): under 3 kPa even pure oxygen is under the 6.3 kPa Armstrong line, so a thin air is K whatever its oxygen share | none (the edge of the breathing line) | worlds with air under 3 kPa at 273 to 320 K | a breathable air under 3 kPa (none exists) | none | the Armstrong limit of 6.3 kPa (`docs/design/habitability/survival-equipment-fields.md`: inspired oxygen is the O2 fraction times (P minus 6.3 kPa), zero under 6.3 kPa); the K row of the same file | - | - |
+| AW5 | P | T9 | L0 | class G no oxygen cap (`share_o2 lt 0.16` removed): carbon dioxide at 20 percent or more is G whatever the oxygen, since the carbon dioxide alone makes it unbreathable | none (the edge of G) | worlds with air, carbon dioxide 20 percent or more, 273 to 400 K | a carbon dioxide air with free oxygen that is better read as L | the carbon dioxide edge of L once the greenhouse classes are fitted | the G and L rows of the same file; GEN.1281 | - | - |
 
 ## 6.192 Stand-in of how far apart random placement keeps two systems
 

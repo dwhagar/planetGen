@@ -191,8 +191,8 @@
       "letter": "K",
       "name": "Thin-air world",
       "kind": "t",
-      "sentence": "An adaptable world with a thin atmosphere: air under 3 kPa with little oxygen, a mean surface from freezing to about 320 K.",
-      "basis": "design stand-in (GEN.1142, registry CL4): 3 kPa, 273.15 to 320 K and under 10 percent oxygen; the cold part goes to P"
+      "sentence": "An adaptable world with a thin atmosphere: air under 3 kPa, whatever the oxygen (under 6.3 kPa nothing is breathable), a mean surface from freezing to about 320 K.",
+      "basis": "design stand-in (GEN.1142, registry CL4; GEN.1306, registry AW4): 3 kPa and 273.15 to 320 K; the cold part goes to P; no oxygen cap"
     },
     {
       "letter": "E",
@@ -226,7 +226,7 @@
       "letter": "G",
       "name": "Carbon dioxide world",
       "kind": "t",
-      "sentence": "A rocky world with a carbon dioxide air (20 percent or more), warm (under 400 K), and 0.5 to 2 g.",
+      "sentence": "A rocky world with a carbon dioxide air (20 percent or more, whatever the oxygen), warm (under 400 K), and 0.5 to 2 g.",
       "basis": "design"
     },
     {

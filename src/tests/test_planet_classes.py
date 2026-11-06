@@ -165,9 +165,10 @@ def test_a_best_class_always_exists_and_a_body_that_fits_none_gets_its_nearest_w
 
 
 def test_a_world_that_fits_a_family_only_with_its_gravity_set_aside_is_limited_by_another_domain_digit_9():
-    heavy = body(gravity_g=1.6, mass_earth=2.6)
-    detail = pc.classify_detail(heavy)
+    light = body(gravity_g=0.6, mass_earth=0.3)      # GEN.1306: M reaches 2 g, so a heavy world is plain M; a light one is still limited
+    detail = pc.classify_detail(light)
     assert detail.letter == "M" and detail.digit == 9 and detail.match == pytest.approx(1.0)
+    assert pc.classify_detail(body(gravity_g=1.6, mass_earth=2.6)).digit == 0
     assert pc.classify_detail(body()).digit == 0
 
 
