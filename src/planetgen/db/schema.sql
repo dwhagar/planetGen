@@ -4800,7 +4800,7 @@ CREATE TABLE IF NOT EXISTS chart_ledger (
 
 
 -- ---------------------------------------------------------------------
--- sky_tier_draws (v212, VIEW.25): the spheres the sky tiers have drawn. Charting draws the stars a system's sky needs (`generation/sky_tiers.py`: luminosity bands of 50 Lsun and up,
+-- sky_tier_draws (v216, VIEW.25): the spheres the sky tiers have drawn. Charting draws the stars a system's sky needs (`generation/sky_tiers.py`: luminosity bands of 50 Lsun and up,
 -- mass rings under it) over spheres centered on the system's 50 parsec cell (the cell the glow band is kept for) with the star backfill, and records each sphere here: `kind` (luminosity or mass),
 -- the band's range (`band_low`, `band_high`: Lsun for a band, solar masses for a ring; NULL for no upper edge), the center and `radius_pc` (padded by the cell's half diagonal so every system in the cell
 -- is covered), the limiting magnitude it was built for, the stars written, the seconds it took and the generator epoch. A cell inside a sphere is complete down to the tier's floor with no
