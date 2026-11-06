@@ -15298,6 +15298,7 @@ Design: [docs/design/operations/login-brute-force-protection.md](design/operatio
   seed reproducibility counts as High. This holds unless Boss
   specifically authorizes an exception.
   Prerequisites: none. Related: TEST.261.
+  Release log: 8.1 first pass, 6:00 PM EST on 2026-11-06, d371f13e1 (report /mnt/project-files/reports/release-audit-security-8.1.md, verdict PASS WITH FILED ITEMS, no Critical or High; findings filed as SEC.37 to SEC.42; the delta pass runs at the end of 8.1).
 
 ## TEST: The test suite
 
@@ -15309,6 +15310,89 @@ means read from the code, not reproduced yet; the bug hunt confirms or
 clears each one.
 
 ### Infrastructure and CI
+
+- [ ] **SEC.37 Update.sh and the guards run as root from a checkout the web user owns: make the code tree root-owned**
+  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M1, Medium, report section 1): set-permissions.sh
+  chowns the whole install tree, update.sh, scripts/, src/planetgen/ and
+  .git included, to www-data, and update.sh then runs python,
+  check_redis_settings.py and git from that tree as root, so a web-user
+  compromise becomes root at the next sudo ./update.sh. Do: make code and
+  scripts root-owned and read-only to the web user and keep only state/, the
+  tile cache and the log folders web-owned; change how update.sh writes the
+  tree to match. Needs a Boss decision (it changes how update.sh writes the
+  tree): TODO will bring it as a plain-word card with the fix as option 1.
+  Done: no file the web user can write is run as root, or Boss accepts the
+  risk with his name and an EST time in the report. Blocks the 8.1 stamp
+  unless Boss accepts. Version 8.1. Owner: Train Manager (update.sh and the
+  deploy scripts), after Boss decides.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.33.
+
+- [ ] **SEC.38 World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite**
+  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M2, Medium): admin/updateguard.py:200 and
+  admin/stop_reason.py:42 make <state>/running/ and the stop-reason folder
+  mode 1777; the update guard sends SIGTERM as root to any pid named in any
+  marker there with no owner check, and stop_reason.leave opens <pid>.txt
+  for writing as root, so a local user can plant a symlink and have root
+  overwrite a file. Do: stop using world-writable folders (a per-user
+  subfolder, or check the marker owner uid against the pid owner), and write
+  with O_NOFOLLOW and O_EXCL; add tests for the forged marker and the
+  symlink. Lock-free. Done: both attacks fail in a test. Blocks the 8.1
+  stamp. Version 8.1. Owner: Core 3, after GEN.1261.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.33.
+
+- [ ] **SEC.39 A run's own queue still uses pickle and Redis has no ACL user: use ids or add an ACL**
+  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M3, Medium, confirmed): queue/redisqueue.py
+  serializer_for makes the web queues JSON but a run's own queue still uses
+  RQ's default pickle, so anything that can write to Redis can queue code a
+  worker runs; examples/redis/planetgen.conf ships with no ACL user. PERF.95
+  to PERF.98 are done, so the run's own tasks were left out of them. Do:
+  make the run's own queue carry ids and JSON like the web queues, and
+  meanwhile ship a Redis ACL user in the example config and the redis.url
+  setting (update.sh check_redis_settings.py must accept it). Done: no
+  pickle on any queue and the ACL user documented, or Boss accepts the risk.
+  Blocks the 8.1 stamp unless Boss accepts. Version 8.1. Owner: Core 3 after
+  SEC.38 (queue code is Core 3's from PERF.95 to 98).
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.33.
+
+- [ ] **SEC.40 Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740)**
+  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L1, Low): GHSA-8mgp-746c-j5xp / CVE-2026-81726 is
+  fixed in 3.10.4. Not reachable (nltk only reads the words corpus in
+  names/wordlists.py), but the lock should not carry it. Do: bump the
+  version in both lock files and re-run pip-audit; if the bump breaks the
+  wordlist read, record a dated ignore with the not-reachable reason
+  instead. Lock-free. Done: pip-audit clean for nltk on both locks. Version
+  8.1. Owner: Core 3, after SEC.38.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.33.
+
+- [ ] **SEC.41 GET /api/galaxy/made?since=nan: reject non-finite floats**
+  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L2, Low, suspected from code): api/routes.py:1148
+  takes float() with no isfinite test, so nan or inf goes to MySQL as a
+  parameter and probably gives an anonymous 500. Do: reject non-finite
+  values in the one place that parses these floats, with a test for nan, inf
+  and -inf on this route and its siblings. Lock-free. Done: the request
+  returns the usual 400 error. Version 8.1. Owner: Core 3, after SEC.38.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.33.
+
+- [ ] **SEC.42 Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml**
+  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L3, S-L4, S-L5, Low): ci.yml, release-note.yml and
+  deep-fuzz.yml set no permissions block and actions are pinned by tag, not
+  commit; the gunicorn systemd unit has only NoNewPrivileges, PrivateTmp,
+  ProtectHome and ProtectSystem=full (add ProtectKernelTunables,
+  ProtectControlGroups, RestrictAddressFamilies, ReadWritePaths); the SVG
+  upload check parses with xml.etree and screens DOCTYPE on raw bytes, so a
+  UTF-16 SVG slips past (parse with defusedxml or reject non-UTF-8; upload
+  is admin-only and served with a sandbox policy). The hygiene notes S-I1 to
+  S-I8 in the report ride along (parameterise search_values._gas,
+  usedforsecurity=False on the two SHA-1 cache fingerprints, delete vm.err
+  from the repo root). Do: all of the above. Lock-free. Done: each point
+  fixed or noted with a reason. Version 8.2. Owner: none yet (after 8.1).
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.33.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,

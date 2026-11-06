@@ -21,8 +21,8 @@ release is stamped.
 | DB | DB.113 |
 | API | API.42 |
 | ADM | ADM.139 |
-| SEC | SEC.37 |
-| TEST | TEST.658 |
+| SEC | SEC.43 |
+| TEST | TEST.659 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -3464,6 +3464,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.2.14.1 | SEC.17 |
 | SEC.2.14.2 | SEC.18 |
 | SEC.2.14.3 | SEC.19 |
+| SEC.37 | Update.sh and the guards run as root from a checkout the web user owns: make the code tree root-owned | none | open |
+| SEC.38 | World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite | none | open |
+| SEC.39 | A run's own queue still uses pickle and Redis has no ACL user: use ids or add an ACL | none | open |
+| SEC.40 | Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740) | none | open |
+| SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats | none | open |
+| SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | open |
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |
 | TEST.3 | MariaDB in CI | none | done, PR #251 (CI legs MySQL 8.0, MySQL 8.4, MariaDB 11.4; 10.11 covered by local runs) |
@@ -4117,6 +4123,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.655 | tests/test_ice_species.py: a Pluto-like body's ice_n2_mass_fraction reads 0.0 after a database round trip, expected 0.1455 (bug) | none | done, PR #5363 |
 | TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 | none | open |
 | TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") | none | open |
+| TEST.658 | Train tooling: scripts/train_gate.py, scripts/train.py, scripts/lane_up.sh, the known-red list and gate durations (Train Manager) | none | done, PR #5376 |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
