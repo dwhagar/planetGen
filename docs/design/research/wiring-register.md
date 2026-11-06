@@ -320,22 +320,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.178:PNE4 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE5 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE7 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
-| module | planetgen.physics.nebula_composition | GEN.1276 | the composition item writes the values of each nebula and remnant at generation and backfill from `makeup(...).values()`, with `gas_oh` for the place; GEN.1277 does the same for the field clouds through `field_cloud_density_cm3` |
-| row | 6.179:NBC1 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC2 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC3 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC4 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC5 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC6 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | row | 6.179:NBC11 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC13 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| function | planetgen.physics.nebula_composition.gas_oh | GEN.1276 | the composition item writes the values of each nebula and remnant with `gas_oh` for the oxygen-hydrogen share |
+| function | planetgen.physics.nebula_composition.field_cloud_density_cm3 | GEN.1276 | the composition item draws the density of a field cloud (classes M and N) from its cell key |
 | module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
 | data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |
 | function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
 | function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |
-| module | planetgen.physics.dust_model | VIEW.44 | the dust of a galaxy from its own gas; the sky route, the glow band and the tier ledger build a `DustProfile` and pass it in the `dust=` dict |
-| row | 6.188:DU1 | VIEW.44 | `dust_model.HYDROGEN_ATOMS_PER_AV_CM2`, read when the sky reads the profile |
-| row | 6.188:DU2 | VIEW.44 | `dust_model.VISIBLE_SHARE`, read when the sky reads the profile |
-| row | 6.188:DU4 | VIEW.46 | `dust_model.LAYER_FLOOR_PC`, replaced by the vertical force of the potential |
 | function | planetgen.galaxy.spherical.sector_quadrant | DB.112 | the stored quadrant column and this function are deleted together once the migration drops the column |
