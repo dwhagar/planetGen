@@ -271,7 +271,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.sky_band.face_lookup | by design | the nearest-pixel lookup of the cube map: the reference the bilinear `face_bilinear` that makes the page's image is tested against (test_sky_band), and the CPU twin of the band shader's lookup |
 | function | planetgen.generation.bright_stars.backfill_sphere | VIEW.47 | charting draws each luminosity band of the tier table over its sphere with this |
 | function | planetgen.generation.bright_stars.backfill_mass_sphere | VIEW.47 | charting draws each mass ring of the tier table over its sphere with this |
-| row | 6.179:NBC11 | GEN.1305 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | function | planetgen.generation.sky_tiers.floor_table | VIEW.47 | the charting step reads the floor against distance to say which cells the tiers still owe |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
 | function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |
