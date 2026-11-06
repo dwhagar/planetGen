@@ -178,7 +178,7 @@ def test_the_inclination_draw_is_one_number_and_repeats_with_the_seed():
 
 
 def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it():
-    """GEN.714: through `generate_moons`, every moon holds an origin, regular moons lie near the equator and captured ones, which exist, can be retrograde."""
+    """GEN.714: through `generate_moons`, every moon holds an origin, regular moons lie near the equator and captured ones (the regular moons that drew that origin and the irregular moons of GEN.1083), which exist, can be retrograde."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.physics import constants
@@ -195,6 +195,8 @@ def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it()
                 for moon in planet.moons:
                     assert moon.moon_origin in mc.ORIGINS
                     origins.setdefault(moon.moon_origin, []).append(moon.orbital_inclination_deg)
+                # the bodies a giant caught are its irregular moons (GEN.1083); a regular moon is rarely a captured one now
+                origins.setdefault("captured", []).extend(irregular.orbit.inclination_deg for irregular in planet.irregulars.moons)
     assert "captured" in origins and ("disk" in origins or "impact" in origins)
     for origin, values in origins.items():
         if origin == "captured":
