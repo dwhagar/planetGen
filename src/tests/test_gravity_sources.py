@@ -32,6 +32,8 @@ def _save(mysql_config):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         cfg.BINARY_SYSTEM = False
+        cfg.PLANETS = True      # the test is about folding the planets in: the run seed must not draw a bare star
+        cfg.MAX_PLANETS = True
         system = StarSystem(system_config=cfg)
         system.name = f"Gravstar {index}"
         sector.add_system(system, position=(float(index) - 0.5, 0.0, 0.0), system_config=cfg)
