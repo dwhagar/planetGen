@@ -2690,3 +2690,5 @@ Baseline: PR #1817.
 | GEN.1186 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
 | GEN.1185 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
 | TEST.650 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.653 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1305 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |

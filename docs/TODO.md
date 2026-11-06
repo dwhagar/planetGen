@@ -17189,19 +17189,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.852, TEST.649.
 
-- [ ] **TEST.653 tests/test_web_seo.py::test_every_web_page_is_classified_on_purpose fails on main: web.sector_gravity (MAP.168) is missing from the indexing matrix in web/seo.py (bug)**
-  Aux 5 found it red on main (2:40 PM EST as the lane reported) while
-  testing GEN.1070 part 2, and says it is not its change. The Sector Map
-  Gravity layer (MAP.168, #5267) added the JSON-only route
-  web.sector_gravity (it carries json_only = True in sector_page.py) and
-  did not classify it in the indexing matrix. Do: classify web.sector_gravity
-  in web/seo.py on purpose (a utility or private JSON route, not indexed),
-  run test_web_seo.py, and say in the changes note why. Lock-free, test
-  and a one-line matrix entry, no migration. Done: the test is green on
-  main. Version 8.1. Owner: Tides 1 (gravity layer). Filed by the TODO
-  thread.
-  Prerequisites: none. Related: MAP.168.
-
 - [ ] **VIEW.47 Sky charting runs by default: the Generate console, the API job and the setup call the sphere draws and the floor table of VIEW.25 (--sky-limit is opt-in today)**
   VIEW.25 (train 12, #5333) charts the sky tiers only when a run is given
   --sky-limit, so generation output did not change. Do: decide with
@@ -17213,20 +17200,6 @@ clears each one.
   read by the run, and the wiring register line is gone. Version 8.1.
   Owner: Planets 1. Filed by the TODO thread.
   Prerequisites: none. Related: VIEW.25, VIEW.42.
-
-- [ ] **GEN.1305 The molecular fraction of a cold cloud (stand-in NBC11, KMT constants) is read when the nebula composition is written, or the row is removed**
-  The wiring guard found the 6.179:NBC11 row (nebula_composition.KMT_*,
-  the molecular fraction of a cold neutral cloud from its column density
-  and metallicity) unread after GEN.1276 and GEN.1277 stored the
-  composition. Do: Planets 1 checks whether the stored composition or the
-  dust model should read the molecular fraction (the sky and the cloud
-  pages show a molecular share), wires it if so, or removes the row and
-  the constants with the reason. If it is already read, point the register
-  line at what reads it. Lock item if stored values change, else lock-
-  free. Done: the wiring register line for 6.179:NBC11 is gone because the
-  value is read or removed. Version 8.1. Owner: Planets 1. Filed by the
-  TODO thread.
-  Prerequisites: none. Related: GEN.1276, GEN.1277.
 
 - [ ] **GEN.1306 Planet class matrix edges left after GEN.1281: cold air worlds, hot anoxic worlds, the 1 kPa and 10 kPa clamp edges, heavy oxygen ocean worlds, thin-air oxygen worlds**
   Core 4 measured the class matrix on 1448 generated bodies while building
