@@ -19251,6 +19251,18 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   thread.
   Prerequisites: none. Related: OPS.99.
 
+- [ ] **OPS.108 A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged**
+  Boss (about 7:25 PM EST on 2026-11-05, as the lane reported): during
+  the warm-up step of update.sh a keypress should skip the warm-up. Do:
+  show the key on screen while the warm-up runs; read it only when stdin
+  is a terminal; the skip ends the warm-up cleanly (the site still
+  starts, the warm-up is simply not finished, and the closing summary of
+  OPS.100 says it was skipped); without a terminal nothing changes; a
+  test with a pseudo-terminal. Version 8.3. Lock-free, no migration, no
+  epoch. Owner: the project thread building OPS.106 and OPS.107 on
+  claude/project-thread-a1n0vp. Filed by the TODO thread.
+  Prerequisites: none. Related: OPS.99, OPS.100, OPS.107.
+
 ## DOC: Documentation
 
 - [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**
