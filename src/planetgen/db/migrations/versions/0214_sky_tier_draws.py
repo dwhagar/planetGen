@@ -1,6 +1,6 @@
 """The spheres the sky tiers have drawn (VIEW.25).
 
-Schema v212. `sky_tier_draws` is new: one row for each tier of a system's sky (`generation/sky_tiers.py`) that charting has drawn over a sphere with the star backfill
+Schema v214. `sky_tier_draws` is new: one row for each tier of a system's sky (`generation/sky_tiers.py`) that charting has drawn over a sphere with the star backfill
 (`generation/sky_charting.py`): whether the tier is a luminosity band or a mass ring, the band's range, the centre of the sphere (the 50 parsec cell of the system, the same cell
 the glow band is kept for) and its radius, the limiting magnitude it was built for, the stars written, the seconds it took and the generator epoch. A cell inside a sphere is
 complete down to the tier's floor without a `sector_stats` row of its own (a sky sphere holds billions of cells); the backfill and the fill read the rows here
@@ -12,8 +12,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0212"
-down_revision = "0211"
+revision = "0214"
+down_revision = "0213"
 branch_labels = None
 depends_on = None
 

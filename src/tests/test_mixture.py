@@ -4,9 +4,10 @@ The mixture accessor (GEN.411's first slice, `planetgen.physics.mixture`).
 
 from types import SimpleNamespace
 
+import numpy as np
 import pytest
 
-from planetgen.physics import atmosphere, elements, gases, mixture
+from planetgen.physics import atmosphere, constants, elements, gases, mixture, species_thermo
 
 from tests.air_support import air
 
@@ -51,3 +52,24 @@ def test_any_gas_of_the_table_may_be_in_a_mixture():
         0.86 * gases.gas("H2").molar_mass + 0.14 * gases.gas("He").molar_mass)
     with pytest.raises(gases.UnknownGas):
         mixture.mean_molar_mass_kg_mol({"unobtainium": 1.0})
+
+
+def test_a_trace_gas_with_no_nasa_fit_has_a_heat_capacity_ratio_from_the_gas_table():
+    """TEST.604: CH3Cl has a gas-table row and no NASA Glenn fit; the ratio of an air that holds it used to raise KeyError."""
+    assert "CH3Cl" not in species_thermo.BY_FORMULA
+    air = {"N2": 0.78e5, "O2": 0.21e5, "CH3Cl": 1.0e3}
+    assert 1.2 < mixture.heat_capacity_ratio(air, 288.0) < 1.5
+    pure = mixture.heat_capacity_ratio({"CH3Cl": 1.0e5}, 288.0)
+    row = gases.gas("CH3Cl")
+    cp = np.interp(288.0, sorted(row.cp_j_mol_k), [row.cp_j_mol_k[t] for t in sorted(row.cp_j_mol_k)]) / constants.R
+    assert pure == pytest.approx(cp / (cp - 1.0))
+    assert mixture.heat_capacity_ratio({"N2": 1.0e5}, 288.0) == pytest.approx(mixture.heat_capacity_ratio({"N2": 1.0e5, "CH3Cl": 0.0}, 288.0))
+
+
+def test_a_gas_with_neither_a_fit_nor_table_heat_capacities_takes_the_rigid_rotor_count(monkeypatch):
+    class Row:
+        cp_j_mol_k = {100: None, 300: None, 1000: None}
+    monkeypatch.setattr(mixture.gases, "gas", lambda formula: Row())
+    assert mixture.cp_over_r_without_fit("CH3Cl", 300.0) == pytest.approx(4.0 + 0.5 * (3 * 5 - 6))
+    assert mixture.cp_over_r_without_fit("HCl", 300.0) == pytest.approx(3.5)
+    assert list(mixture.cp_over_r_without_fit("He", np.array([100.0, 300.0]))) == [2.5, 2.5]

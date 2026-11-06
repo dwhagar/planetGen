@@ -14,8 +14,7 @@ time follows its planet through ([R2031], eq. 4):
 
 Their N-body runs (circular restricted and finite-mass pairs of planets, point masses, a star of one solar mass) give the closest approach in units of the pair's mutual Hill radius `R_H`: for a
 planet of 10 Jupiter masses ejecting one of 1 Jupiter mass round a solar-mass star (`m1 / M` about 0.01, `m1 / m2` 10), the median is 0.089 `R_H`, 48 percent of ejections stay beyond 0.1 `R_H` and 82 percent beyond
-0.01 `R_H` (their conclusions; the regular moons of the Solar System orbit at about 0.01 `R_H`). `closest_approach_survival` is those two points joined on a logarithmic axis; `closest_approach_hill`
-inverts it for a draw. The ejection record of RP1 (GEN.1119) gives the real `r_min` and the criterion above is then exact (`moon_survives`). Closer encounters happen for small
+0.01 `R_H` (their conclusions; the regular moons of the Solar System orbit at about 0.01 `R_H`). `closest_approach_hill` joins those two points on a logarithmic axis and inverts the line for a draw. The ejection record of RP1 (GEN.1119) gives the real `r_min` and the criterion above is then exact (`survival_distance_m`). Closer encounters happen for small
 inclinations and weaker scatterers (their sections 4.2.1 to 4.2.4); those runs are not in the fit, which is the weakest part of this module.
 
 **The moon's orbit afterwards.** [R1032] threw Earth-Moon pairs out with a Jupiter: in 4.6 percent of 2,700 runs the pair left bound, the median eccentricity
@@ -58,17 +57,9 @@ def mutual_hill_radius_m(inner_axis_m, outer_axis_m, inner_mass_kg, outer_mass_k
     return 0.5 * (inner_axis_m + outer_axis_m) * ((inner_mass_kg + outer_mass_kg) / (3.0 * host_mass_kg)) ** (1.0 / 3.0)
 
 
-def closest_approach_survival(r_min_over_hill):
-    """The share of ejections whose closest approach stayed beyond `r_min_over_hill` mutual Hill radii: 0.82 at 0.01 and 0.48 at 0.1, linear in the logarithm, held to 0 to 1."""
-    if not r_min_over_hill > 0.0:
-        raise RogueMoonError("the distance must be positive")
-    share = SURVIVAL_AT_0P01_HILL - _SLOPE_PER_DECADE * (math.log10(r_min_over_hill) + 2.0)
-    return min(1.0, max(0.0, share))
-
-
 @finite_domain()
 def closest_approach_hill(u):
-    """A closest approach drawn from `closest_approach_survival`, in mutual Hill radii: the distance beyond which a share `1 - u` of the ejections stayed. `u` uniform, 0 to 1."""
+    """A closest approach in mutual Hill radii: the distance beyond which a share `1 - u` of the ejections stayed, the two printed points joined on a logarithmic axis (0.82 at 0.01 and 0.48 at 0.1). `u` uniform, 0 to 1."""
     if not 0.0 <= u <= 1.0:
         raise RogueMoonError("u must be from 0 to 1")
     survival = 1.0 - u
@@ -82,19 +73,8 @@ def survival_distance_m(r_min_m, planet_mass_kg, scatterer_mass_kg):
     return r_min_m * (planet_mass_kg / (planet_mass_kg + scatterer_mass_kg)) ** (1.0 / 3.0)
 
 
-def moon_survives(moon_axis_m, r_min_m, planet_mass_kg, scatterer_mass_kg):
-    """Whether a moon of orbital radius `moon_axis_m` stays with its planet through a closest approach of `r_min_m`."""
-    if not moon_axis_m > 0.0:
-        raise RogueMoonError("the moon's orbit must be positive")
-    return moon_axis_m < survival_distance_m(r_min_m, planet_mass_kg, scatterer_mass_kg)
 
 
-def survival_probability(moon_axis_m, planet_mass_kg, scatterer_mass_kg, hill_radius_m):
-    """The chance a moon of orbital radius `moon_axis_m` stays, when the closest approach is not recorded: the share of ejections whose `r_min` is wide enough, from `closest_approach_survival`."""
-    if not moon_axis_m > 0.0 or not hill_radius_m > 0.0:
-        raise RogueMoonError("the moon's orbit and the Hill radius must be positive")
-    needed = moon_axis_m / (planet_mass_kg / (planet_mass_kg + scatterer_mass_kg)) ** (1.0 / 3.0)
-    return closest_approach_survival(needed / hill_radius_m)
 
 
 def moon_limit_km(hill_radius_km, stable_hill_fraction, r_min_km, planet_mass_kg, scatterer_mass_kg):

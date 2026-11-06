@@ -26,6 +26,7 @@ from planetgen.db import sky_sprites, store
 from planetgen.galaxy import potential as galacticPotential
 from planetgen.galaxy import sky, sky_band, sky_sprites as spriteMaker
 from planetgen.generation import sky_charting, sky_tiers
+from planetgen.physics import dust_model
 from planetgen.web.lib import skypack
 
 MAX_SPRITES = 600
@@ -49,9 +50,14 @@ def _band_galaxy_key(info, galaxy_key):
     return f"{galaxy_key}|{hashlib.sha256(repr(shape).encode('utf-8')).hexdigest()[:16]}"
 
 
+def _dust(info):
+    """The dust the galaxy's sky is seen through: that of its own gas (VIEW.44)."""
+    return dust_model.dust_for_shape(info.shape)
+
+
 def band_key(info, galaxy_key, observer, limit):
     """The cache key of the glow image of `observer` (its 50 parsec cell) at `limit`: the band's own key and what turns it into the image; also the name of the file the web layer keeps."""
-    inner = sky_band.cache_key(sky_band.cell_of(observer.position_pc), _band_galaxy_key(info, galaxy_key), limit)
+    inner = sky_band.cache_key(sky_band.cell_of(observer.position_pc), _band_galaxy_key(info, galaxy_key), limit, dust=_dust(info))
     image = f"{inner}|{skypack.SKY_VERSION}|{sky_band.SB_REF}|{sky_band.TINT_TEMPERATURE_K}|{sky_band.EQUIRECT_WIDTH}x{sky_band.EQUIRECT_HEIGHT}|{BAND_FORMAT}"
     return hashlib.sha256(image.encode("utf-8")).hexdigest()[:32]
 
@@ -83,7 +89,7 @@ def build_system_band(conn, system_id, limit=None):
     info, _speed, galaxy_key, observer = _setup(conn, system_id)
     key = band_key(info, galaxy_key, observer, limit)
     full = store.get_galaxy_shape(conn)
-    band = sky_band.band_for(observer.position_pc, full.shape, _band_galaxy_key(info, galaxy_key), _bands, limit)
+    band = sky_band.band_for(observer.position_pc, full.shape, _band_galaxy_key(info, galaxy_key), _bands, limit, dust=_dust(info))
     image = sky_band.equirect(band)
     return {"key": key, "limit": limit, "cell": list(sky_band.cell_of(observer.position_pc)), "width": image.shape[1], "height": image.shape[0],
             "format": BAND_FORMAT, "seconds": round(time.perf_counter() - started, 3), "data": sky_band.to_half_bytes(image)}
@@ -108,14 +114,14 @@ def _observer(conn, system_id, galaxy_key, circular_speed):
     return sky.Observer(position, float(epoch), tuple(float(v) for v in velocity), int(system_id))
 
 
-def _wanted_pc(conn, observer, limit):
+def _wanted_pc(conn, observer, limit, dust=None):
     """How far the stored stars must be complete for this observer and limit: the reach of a star of the galaxy scatter's own floor (`sky_tiers.reach_pc`,
     through the dust of the clearest line of sight), past which the pre-placed scatter alone supplies every star that shows. `None` for a galaxy with no
     scatter level. It ignores the budget that drops a band (`sky_tiers.build`), which costs a minute to work out; VIEW.25 sharpens it."""
     scatter = store.bright_star_scatter_settings(conn)
     if scatter is None or not float(scatter[0]) > 0.0:
         return None
-    curve = sky_tiers.extinction_curve(observer.position_pc)
+    curve = sky_tiers.extinction_curve(observer.position_pc, **(dust or {}))
     return float(sky_tiers.reach_pc(float(scatter[0]), limit, curve))
 
 
@@ -170,7 +176,8 @@ def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
     info, circular_speed, galaxy_key, observer = _setup(conn, system_id)
     at_unix = observer.epoch_unix
 
-    stars = sky.sky_from_database(conn, observer, at_unix, limit, galaxy_key, circular_speed)
+    dust = _dust(info)
+    stars = sky.sky_from_database(conn, observer, at_unix, limit, galaxy_key, circular_speed, dust)
     built = max(stars.report["built_to_pc"], sky_charting.built_to_pc(conn, observer.position_pc))          # VIEW.42: the tiers charting drew, not only the cells' luminosity levels
     objects = sky_sprites.objects_in_sphere(conn, observer.position_pc, spriteMaker.SEARCH_RADIUS_PC)
     printed = {}
@@ -178,11 +185,11 @@ def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
         rows = objects.ident[objects.kind == kind]
         for row, text in ids.printed_many(conn, kind, rows).items():
             printed[(kind, int(row))] = text
-    records, sprite_report = spriteMaker.sprites_from(observer, objects, at_unix, galaxy_key, circular_speed, ids=printed)
+    records, sprite_report = spriteMaker.sprites_from(observer, objects, at_unix, galaxy_key, circular_speed, dust, ids=printed)
     records.sort(key=lambda r: (-r["angularRadiusRad"], r["id"]))
     sprite_report["dropped_for_count"] = max(0, len(records) - MAX_SPRITES)
     records = records[:MAX_SPRITES]
-    wanted = _wanted_pc(conn, observer, limit)
+    wanted = _wanted_pc(conn, observer, limit, dust)
 
     report = {key: stars.report[key] for key in ("limit", "stars_in", "tiers", "excluded_own_system", "no_photometry", "unknown_epoch", "not_formed_yet",
                                                  "other_phase", "unbuilt_velocity", "visible")}

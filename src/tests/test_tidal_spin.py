@@ -266,6 +266,8 @@ def test_a_generated_giant_tail_reaches_past_sixty_degrees_for_an_ice_giant_only
     from planetgen.physics import giant_tilt
     ice, gas = [], []
     for seed in range(7100, 7160):
+        if len(ice) >= 8 and len(gas) >= 6:   # TEST.417: a system costs seconds, so stop at more giants of each kind than the checks need
+            break
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             config = SystemConfig()

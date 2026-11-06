@@ -1,6 +1,6 @@
 {#- The Galaxy Map (web/galaxy_views.py's `galaxy`). Context: map_html
-    (Markup from planetgen/web/maps/galaxymap3d.py), placed_count, quadrant, and either
-    summary_rows (no quadrant) or sector_table (the data table's view). -#}
+    (Markup from planetgen/web/maps/galaxymap3d.py), placed_count, glance, and the charted regions
+    (region_rows, region_count, region_cap). -#}
 {% extends "base.html" %}
 {% from "partials/datatable.html" import datatable with context %}
 {% from "partials/poi_key.html" import poi_key with context %}
@@ -24,13 +24,6 @@
   {{ poi_key() }}
 </details>
 <section class="panel" id="galaxy-table" aria-labelledby="galaxy-table-heading">
-  {%- if quadrant %}
-  <div class="panel-header">
-    <h2 id="galaxy-table-heading">Sectors in Quadrant {{ quadrant }}</h2>
-    <a href="{{ page_url('galaxy', _anchor='galaxy-table') }}">All Quadrants</a>
-  </div>
-  {{ datatable(sector_table) }}
-  {%- else %}
   {%- if glance %}
   <h2 id="galaxy-glance-heading">At a glance</h2>
   <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table" id="galaxy-glance">
@@ -41,20 +34,24 @@
     </tbody>
   </table></div>
   {%- endif %}
-  <h2 id="galaxy-table-heading">Quadrants</h2>
+  <h2 id="galaxy-table-heading">Charted regions</h2>
+  {%- if region_rows %}
+  <p class="muted">{{ num(region_count) }} region{{ "" if region_count == 1 else "s" }} with charted sectors{% if region_count > region_cap %}; the {{ num(region_cap) }} most charted are listed{% endif %}.</p>
   <div class="table-scroll"><table class="table-stack">
-    <thead><tr><th scope="col">Quadrant</th><th scope="col">Sectors</th><th scope="col">Systems</th><th scope="col">Extent</th></tr></thead>
+    <thead><tr><th scope="col">Region</th><th scope="col">Part of</th><th scope="col">Sectors charted</th><th scope="col">Share charted</th></tr></thead>
     <tbody>
-      {%- for row in summary_rows %}
+      {%- for row in region_rows %}
       <tr>
-        <td class="stack-title"><a href="{{ row.url }}">Quadrant {{ row.label }}</a></td>
-        <td data-label="Sectors">{{ row.sector_count }}</td>
-        <td data-label="Systems">{{ row.system_count }}</td>
-        <td data-label="Extent">{{ row.extent if row.extent else "–" }}</td>
+        <td class="stack-title">{{ row.name }}</td>
+        <td data-label="Part of">{{ row.parent if row.parent else "–" }}</td>
+        <td data-label="Sectors charted">{{ num(row.sector_count) }}</td>
+        <td data-label="Share charted">{{ row.share }}</td>
       </tr>
       {%- endfor %}
     </tbody>
   </table></div>
+  {%- else %}
+  <p class="muted">No sectors are charted yet.</p>
   {%- endif %}
 </section>
 {% endblock %}

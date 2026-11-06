@@ -46,6 +46,7 @@ import numpy as np
 
 from planetgen.galaxy import density
 from planetgen.physics import sky_photometry
+from planetgen.util import detmath
 
 CELL_PC = 50.0
 """float: Side of the observer cells that share a band (parsecs)."""
@@ -166,14 +167,14 @@ def cache_key(cell, galaxy_key, limiting_magnitude=DEFAULT_LIMITING_MAGNITUDE, p
               max_distance_pc=MAX_DISTANCE_PC, dust=None):
     """
     The cache key of a band: a hash of the cell, the caller's `galaxy_key` (a string naming the galaxy's id, seed and
-    epoch), the limiting magnitude, the image size, the steps, the dust law's overrides and the constants the image
+    epoch), the limiting magnitude, the image size, the steps, the dust law's overrides (a `physics.dust_model.DustProfile` by its `key()`, the digest of its two tables) and the constants the image
     depends on (`MODEL_VERSION`, the luminosity density, the faint-light table, the cell size).
     """
     payload = {
         "version": MODEL_VERSION, "cell": [int(v) for v in cell], "cell_pc": CELL_PC, "galaxy": str(galaxy_key),
         "m_lim": float(limiting_magnitude), "pixels": int(pixels), "steps": int(steps), "max_pc": float(max_distance_pc),
         "j0": LOCAL_V_LUMINOSITY_DENSITY, "faint": [list(row) for row in FAINT_LIGHT_TABLE],
-        "dust": sorted((str(k), float(v)) for k, v in (dust or {}).items()),
+        "dust": sorted((str(k), v.key() if hasattr(v, "key") else float(v)) for k, v in (dust or {}).items()),
         "dust_default": [sky_photometry.DUST_AV_PER_KPC_AT_SUN, sky_photometry.DUST_SCALE_LENGTH_PC,
                          sky_photometry.DUST_HEIGHT_PC, sky_photometry.DUST_HEIGHT_FLARE_PC_PER_KPC,
                          sky_photometry.DUST_FLARE_START_PC, sky_photometry.DUST_SOLAR_RADIUS_PC],
@@ -296,7 +297,7 @@ def tint():
     """The colour of the glow, linear red, green and blue with a luminance (0.2126, 0.7152, 0.0722) of 1: the blackbody of `TINT_TEMPERATURE_K`."""
     from planetgen.galaxy import sky
     rgb = sky.star_colours([TINT_TEMPERATURE_K])[0]
-    return rgb / float(np.dot(rgb, (0.2126, 0.7152, 0.0722)))
+    return rgb / detmath.dot(rgb, (0.2126, 0.7152, 0.0722))
 
 
 def face_bilinear(values, directions):

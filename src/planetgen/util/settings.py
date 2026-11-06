@@ -473,6 +473,12 @@ class SettingsFile(_Section):
                             label="Settings backups kept",
                             summary="How many settings backup archives to keep; the oldest is "
                                     "deleted first.")
+    backup_parity: bool = opt(True, "Put a copy of the sector repair file (the parity file) in every full backup archive, so a "
+                              "galaxy whose live repair file is lost can still be repaired from a backup. The copy is as big as the "
+                              "file (about 7 percent of the sectors' size); switch it off for a very large galaxy. The settings "
+                              "backup made before each save never holds it.",
+                              group="housekeeping", label="Back up the repair file",
+                              summary="Include the sector repair file in full backup archives.")
 
 
 _HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
@@ -830,7 +836,7 @@ class Settings(_Section):
         choice_labels={"logfmt": "Key and value pairs", "json": "JSON lines"},
         label="Record file form",
         summary="Whether the record file is written as key=value lines or as JSON lines.")
-    log_dir: str = opt("", "The folder of the always-on activity log; empty means /var/log/planetgen on Linux, "
+    log_dir: str = opt("", "The folder of the always-on activity log and of the warm-up log (warmup.log); empty means /var/log/planetgen on Linux, "
                        "/Library/Logs/planetgen on macOS.",
                        env="PLANETGEN_LOG_DIR", restart=True, editable=False, group="logging",
                        label="Activity log folder",
