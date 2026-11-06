@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3486] - 2026-11-06
+
+**Headline:** The property sheet no longer lists a missing runner-up class as a gap where only one class fits the body.
+
+### Changed
+- The "Runner-up class" row of a planet or moon applies only where a second class fits the body at more than 0 percent, which is the rule the classifier already follows; where one class fits, the row is empty and the match is 0. The sheet-fill test that counted those bodies as gaps (TEST.654) passes again.
+
+generation-output: unchanged
+
 ## [8.0.3485] - 2026-11-06
 
 **Headline:** The ice-species storage test now picks a system with two rocky planets, so its Pluto-like body is no longer overwritten by the CO2-frost one.
