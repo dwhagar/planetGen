@@ -55,6 +55,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 
 ### Bugs and flaky tests
