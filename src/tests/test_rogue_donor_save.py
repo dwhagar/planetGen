@@ -18,17 +18,23 @@ pytestmark = pytest.mark.fresh_database
 EDGE_LY = 10.0
 EDGE_PC = ly_to_pc(EDGE_LY)
 DONOR_PC = (8000.0, 100.0, 20.0)
-UID = bytes(range(1, 13))
+ADDRESS = spherical.sector_address_at(DONOR_PC, EDGE_PC)
+CENTER_PC = spherical.sector_position_pc(*ADDRESS, EDGE_PC)
+
+
+def _real_uid():
+    """The ID the donor really gets when it is the only system saved in its sector: the sector's first generated serial."""
+    return object_uid.to_bytes(object_uid.pack(*ADDRESS, object_uid.SERIAL_GENERATED, 0))
 
 
 def _donor():
-    """A G-star system that threw something out (the first of a few seeds that did)."""
+    """A G-star system that threw something out, by the ID and the place it will really be saved with (the first of a few seeds that did)."""
     for seed in range(40):
         config = SystemConfig()
         config.STAR_TYPE = "G2V"
         with draw.bound(f"rogue-donor-{seed}"):
             system = StarSystem(config)
-        if rogue_yield.rogues_of(UID, system, DONOR_PC, EDGE_PC):
+        if rogue_yield.rogues_of(_real_uid(), system, CENTER_PC, EDGE_PC):
             return system
     pytest.skip("no system of forty threw a body out")
 
@@ -39,12 +45,12 @@ def donor():
 
 
 def test_the_rogues_of_a_donor_are_a_function_of_its_uid_and_record(donor):
-    first = rogue_yield.rogues_of(UID, donor, DONOR_PC, EDGE_PC)
-    again = rogue_yield.rogues_of(UID, donor, DONOR_PC, EDGE_PC)
+    first = rogue_yield.rogues_of(_real_uid(), donor, CENTER_PC, EDGE_PC)
+    again = rogue_yield.rogues_of(_real_uid(), donor, CENTER_PC, EDGE_PC)
     assert [r.event.index for r in first] == [r.event.index for r in again]
     assert [r.planet.mass for r in first] == [r.planet.mass for r in again]
     assert [r.landing.address for r in first] == [r.landing.address for r in again]
-    other = rogue_yield.rogues_of(bytes(reversed(UID)), donor, DONOR_PC, EDGE_PC)
+    other = rogue_yield.rogues_of(bytes(reversed(_real_uid())), donor, CENTER_PC, EDGE_PC)
     assert [r.planet.mass for r in other] != [r.planet.mass for r in first] or [r.landing.position_pc for r in other] != [r.landing.position_pc for r in first]
     assert len({r.event.index for r in first}) == len(first)
     for rogue in first:
@@ -53,7 +59,7 @@ def test_the_rogues_of_a_donor_are_a_function_of_its_uid_and_record(donor):
 
 @pytest.fixture
 def saved(donor, mysql_config, redis_server):
-    address = spherical.sector_address_at(DONOR_PC, EDGE_PC)
+    address = ADDRESS
     sector = SpaceSector("Donor Sector", edge_ly=EDGE_LY)
     sector.add_system(donor, position=(0.0, 0.0, 0.0))
     x, y, z = spherical.sector_position_pc(*address, EDGE_PC)
@@ -70,6 +76,7 @@ def saved(donor, mysql_config, redis_server):
 def test_saving_a_donor_writes_its_rogues_in_the_sectors_where_they_landed(saved, donor):
     conn, sector_id, address = saved
     uid = conn.execute("SELECT uid FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["uid"]
+    assert bytes(uid) == _real_uid()                # the donor was chosen by the ID it is saved with
     rows = conn.execute("SELECT id, uid, sector_id, event_index FROM rogue_planets WHERE donor_uid = ? ORDER BY event_index", (uid,)).fetchall()
     made = rogue_yield.rogues_of(bytes(uid), donor, _donor_position(conn, sector_id), EDGE_PC)
     assert rows and len(rows) == len(made)
