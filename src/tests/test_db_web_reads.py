@@ -10,6 +10,8 @@ Every test here takes the `mysql_config` fixture (see `conftest.py`) --
 skipped, not failed, when no MySQL test server is configured/reachable.
 """
 
+import collections
+
 import pymysql
 import pytest
 
@@ -20,6 +22,15 @@ from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
+
+
+HOST_LOOKUP = "SELECT st.yerkes_class"
+"""str: The start of the statement `system_detail` sends once for each star that has planets."""
+
+MOST_SYSTEM_PAGE_STATEMENTS = 18
+"""int: The statements a system page sends besides its host lookups when it has planets, moons, belts, comets and sector siblings (the 19 a
+page with one host sends are these 18 and the lookup). A statement that is never sent twice cannot grow with the system, so this only catches
+a new statement: whoever adds one raises the number and names it here."""
 
 
 def _save_sector(config, name, system_names):
@@ -40,10 +51,12 @@ class _Statements:
 
     def __init__(self, monkeypatch):
         self.count = 0
+        self.sql = []
         real = store.Connection._run
 
         def run(conn, sql, params):
             self.count += 1
+            self.sql.append(" ".join(sql.split()))
             return real(conn, sql, params)
 
         monkeypatch.setattr(store.Connection, "_run", run)
@@ -146,17 +159,20 @@ def test_sector_and_system_pages_use_a_fixed_number_of_queries(mysql_config, mon
         assert counter.count == small
         assert all(system["stars"] for system in detail["systems"])
 
-        system_id = detail["systems"][0]["id"]
-        # One host lookup per star that has planets (`system_detail`'s `hosts`), so the fixed part is what is left
-        # after those: a system with no planets or moons sends none of them (TEST.249).
-        counter.count = 0
-        page = queryDb.system_detail(conn, system_id)
-        with_planets = counter.count - len({planet["star_id"] for planet in page["planets"]})
-        assert sum(len(planet["moons"]) for planet in page["planets"]) >= 0
+        # TEST.626: a system page's statements depend on what the generator drew (no moons sends no moon statement, no belts no
+        # composition one), so the count differs from system to system and is not compared. What must hold is that no statement is
+        # sent twice, however many planets, moons and belts the system has, except the host lookup, one for each star that has planets.
         lone_id = queryDb.sector_detail(conn, small_id)["systems"][0]["id"]
-        counter.count = 0
-        lone = queryDb.system_detail(conn, lone_id)
-        assert counter.count - len({planet["star_id"] for planet in lone["planets"]}) == with_planets
+        for system_id in [system["id"] for system in detail["systems"]] + [lone_id]:
+            counter.count, counter.sql = 0, []
+            page = queryDb.system_detail(conn, system_id)
+            hosts = len({planet["star_id"] for planet in page["planets"]})
+            repeated = {text: sent for text, sent in collections.Counter(counter.sql).items()
+                        if sent > 1 and not text.startswith(HOST_LOOKUP)}
+            assert not repeated, (system_id, "sent more than once", repeated)
+            lookups = sum(1 for text in counter.sql if text.startswith(HOST_LOOKUP))
+            assert lookups == hosts, (system_id, lookups, hosts)
+            assert counter.count <= MOST_SYSTEM_PAGE_STATEMENTS + hosts, (system_id, counter.count, counter.sql)
 
         counter.count = 0
         rows = queryDb.list_systems(conn, limit=50)

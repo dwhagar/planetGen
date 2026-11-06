@@ -276,6 +276,22 @@ export const NEBULA_KIND = {
   describe: function (item) { return (item.name ? item.name : NEBULA_POINT_TYPES[item.type]); },
 };
 
+// A charted region (a 9-block that holds a generated sector): one Region symbol at its middle, on by default, so the generated space
+// can be found from far out whether or not any world in it is inhabited. The map draws these itself (galaxyregions.js
+// `chartedRegionMarkers`); the kind has no node items, it is the Menu's switch, the legend line and the symbol.
+export const REGION_KIND = {
+  id: "marker-region",
+  label: "Charted regions",
+  title: "Show or hide the Region symbol over each region that holds generated sectors",
+  icon: "region",
+  interest: "region",
+  maxBlock: Infinity,
+  defaultOn: true,
+  source: function () { return []; },
+  rank: function (item) { return item.n || 0; },
+  describe: function (item) { return (item.name || "Charted region") + ", " + item.sectors + (item.sectors === 1 ? " generated sector" : " generated sectors"); },
+};
+
 // The reasons a star system is worth a mark (MAP.305, MAP.303): the client side of `planetgen.db.interests.REASONS`. A
 // system with at least one reason is listed by the nodes' `interests` (blocks of 81 shells and smaller; the server leaves them
 // out of bigger ones), each with its `reasons` ({id: {n, score, tier}}). A reason is

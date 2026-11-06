@@ -138,6 +138,7 @@ export function createSectorStage(host) {
     open.layers.forEach(host.picker.removeLayer);
     if (open.list && open.list.parentNode) open.list.parentNode.removeChild(open.list);
     if (open.badge && open.badge.parentNode) open.badge.parentNode.removeChild(open.badge);
+    if (host.gravity) host.gravity.detach();
     open.sector.dispose();
     selectionRing.hide();
     hoverRing.hide();
@@ -303,6 +304,7 @@ export function createSectorStage(host) {
         accentColor: host.accentColor, pixelRatio: host.pixelRatio(),
       });
       host.scene.add(state.sector.group);
+      if (host.gravity && !ambient) host.gravity.attach({ id: id, group: state.sector.group });
       hiddenKinds.forEach(function (kind) { state.sector.setKindHidden(kind, true); });
       markedKinds.forEach(function (kind) { state.sector.setKindMarked(kind, true); });
       hiddenClasses.forEach(function (c) { state.sector.setStarClassHidden(c, true); });
@@ -375,6 +377,8 @@ export function createSectorStage(host) {
     nebulaSources: function () {
       return open ? open.sector.nebulaSources().filter(function (source) { return source.weight > 0; }) : [];
     },
+    // MAP.392: the open (or coming-near) sector's nebulae and remnants still drawn as a hard sphere or shell (the browser tests read it).
+    hardClouds: function () { return open ? open.sector.hardClouds() : []; },
     // True while a sector is open in place (not one up only for the camera coming near it).
     isOpen: function () { return !!open && !open.ambient; },
     // MAP.152: the sector whose scene is up for the camera coming near it, and how much of it shows.

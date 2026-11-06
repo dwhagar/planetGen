@@ -236,13 +236,13 @@ def _warm_run(args, reason, record):
                     warmphases.start_phase(args.database, warmup.phase_of(steps[index].key))
                 bars.plan(index, plan)
 
-            def on_result(index, _unit, result):
+            def on_result(index, unit, result):
                 if steps[index].key in tally.totals:
                     tally.add(steps[index].key, result)
-                bars.result(result)
+                bars.result(result, unit)
 
             with bars:
-                wrapper.run(RUN_TITLE, steps, on_plan, on_result, database=args.database,
+                wrapper.run(RUN_TITLE, steps, on_plan, on_result, bars.unit_progress, database=args.database,
                             argv=sys.argv[1:], kind=runrecord.MAINTENANCE)
                 for line in tally.finish():
                     bars.say(line)
@@ -289,14 +289,14 @@ def _follow(args):
             bars.say(line)
         bars.plan(index, plan)
 
-    def on_result(index, _unit, result):
+    def on_result(index, unit, result):
         if keys[index] in tally.totals:
             tally.add(keys[index], result)
-        bars.result(result)
+        bars.result(result, unit)
 
     try:
         with bars:
-            wrapper.follow(run_id, on_plan, on_result)
+            wrapper.follow(run_id, on_plan, on_result, bars.unit_progress)
             for line in tally.finish():
                 bars.say(line)
     except (redisqueue.Unavailable, units.RunStopped) as exc:

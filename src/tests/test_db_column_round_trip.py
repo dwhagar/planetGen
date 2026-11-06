@@ -172,7 +172,7 @@ NULL_IN_THIS_GALAXY = {
     # GEN.1069: the sentences of what shaped a belt (none for a belt only the giants' gaps made) and the scatter shares of an outer disk (only an outer disk has them);
     # test_belt_origin_stored.py writes and reads both back. GEN.1070: the scatter tag of a member waits for the scatter step (GEN.1092).
     **{("asteroid_belts", column): CHANCE for column in ("origin_history", "scatter_fates")},
-    ("belt_members", "scatter_tag"): "NULL until the scatter step tags the members (GEN.1092)",
+    ("belt_members", "scatter_tag"): CHANCE,       # GEN.1092: only the members of an outer disk a giant swept are tagged
     **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
@@ -181,7 +181,10 @@ NULL_IN_THIS_GALAXY = {
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
-    ("moons", "rogue_planet_id"): "only a moon of a free planet (test_parent_link)",
+    # A moon of a free planet names its rogue planet; whether this galaxy's rogue planets (the ones its donors threw out, which depend on the
+    # draws of the build) hold a moon is chance, so the column is either written or NULL here (TEST.645; test_parent_link and test_rogue_body_storage
+    # write and read it back).
+    ("moons", "rogue_planet_id"): CHANCE,
     # GEN.764: the seeded galaxy runs no scatter, and its population pass finds no civilization.
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},

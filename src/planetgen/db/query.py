@@ -463,26 +463,6 @@ def count_sectors(conn, quadrants=()):
     return _counted(conn, ["count_sectors", list(quadrants)], exact, estimate)
 
 
-def sectors_facets(conn, quadrants=()):
-    """
-    The option counts for the Sectors table's Quadrant menu: how many sectors
-    each Quadrant (and `"unplaced"`) holds. The menu ignores its own filter,
-    so choosing one Quadrant still shows the others' counts.
-
-    Returns:
-        dict: `{"quadrant": [{"value", "count"}]}` in Quadrant order, only
-            those with sectors.
-    """
-    def exact(c):
-        counts = {row["quadrant"]: row["n"] for row in c.execute(
-            f"SELECT {_SECTOR_QUADRANT_SQL} AS quadrant, COUNT(*) AS n FROM sectors sec GROUP BY quadrant"
-        ).fetchall()}
-        return {"quadrant": [{"value": value, "count": counts[value]}
-                             for value in (*SECTOR_QUADRANTS, "unplaced") if counts.get(value)]}
-
-    return _counted(conn, ["sectors_facets"], exact, lambda c: {"quadrant": []})
-
-
 class _NoSector:
     """Sentinel type for `NO_SECTOR` (below) -- a distinct value from
     `None` (`sector_id` unfiltered) meaning "explicitly filter to

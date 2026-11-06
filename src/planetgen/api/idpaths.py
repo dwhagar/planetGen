@@ -103,6 +103,7 @@ ID_PATHS = {
     "api.system_text": {"id": "system"},
     "api.system_sky_route": {},
     "api.system_sky_band_route": {},
+    "api.sector_gravity": {"sector_id": "sector"},
     "api.create_sector": {"id": "sector"},
     "api.create_system": {"id": "system"},
     "api.update_system": {"id": "system"},
