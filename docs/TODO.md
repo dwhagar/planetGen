@@ -17914,6 +17914,30 @@ clears each one.
   thread.
   Prerequisites: none. Related: TEST.640.
 
+- [ ] **GEN.1301 tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group fails on main: bright_stars and phenomenon_scatter gained uid in GEN.1254 but are in neither the kind_tables uid group nor point_columns.NOT_BODIES (bug)**
+  Planets 1 (as the lane reported, 12:36 AM EST on 2026-11-06, main
+  15e29adb5, clean checkout) found tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group
+  red: the bright_stars and phenomenon_scatter tables gained a uid column in
+  GEN.1254 but are in neither the kind_tables uid group nor
+  point_columns.NOT_BODIES. Do: decide for each table whether it is a
+  body kind (add it to the uid group, with its kind table) or not (add it
+  to NOT_BODIES with the reason), and make the test pass. Lock-free unless
+  a stored value changes. Done: the test passes on current main. Version
+  8.1. Owner: Core 3 (GEN.1254 follow-up). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1254.
+
+- [ ] **GEN.1302 tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not fails on main: sector 1 0 5 differs in 'structure' between the two orders (bug)**
+  Planets 1 (as the lane reported, 12:36 AM EST on 2026-11-06, main
+  15e29adb5, clean checkout) found tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not
+  red: sector 1 0 5 differs in "structure" between the two orders. A sector
+  must come out the same whatever order the backfill reached it in. Do:
+  reproduce on current main, find which stage reads state that the other
+  order has already changed (probably a GEN.1254 follow-up), and fix it at
+  the cause. Lock item if generation output changes (new epoch), else
+  lock-free. Done: the test passes on current main. Version 8.1. Owner:
+  Core 3 (GEN.1254 follow-up). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1254.
+
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
