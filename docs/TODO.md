@@ -17878,6 +17878,20 @@ clears each one.
   main. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.642.
 
+- [ ] **TEST.646 More tests red on main beyond TEST.644: test_parallel_generation (6), test_deferred_sectors (3), test_habitability_fill (2), test_db_check_deep, test_generation_stats (4), test_materials_table, test_sectors_command (2), test_prevalence (asteroid_belt, large_star, habitable_world), test_benchmark_suite, test_estimate_sampling, test_run_job (scatter redraw), test_maintenance (map rebuild), test_no_todo_codes_shown, test_plain_words nav comma (bug)**
+  Aux 2 (as the lane reported, 4:10 AM EST on 2026-11-06, main
+  ab0af2f9d) ran the 90 test files that use capsys and the 116 that touch
+  the logging modules for OPS.105 and found these red on main as well as
+  on the OPS.105 branch (test_habitability_fill's two are Aux 2's own, from
+  GEN.1260 part 2: the band day hours differ after a refresh). Do:
+  reproduce each on current main, find the cause, and fix the test or the
+  code at the cause; never skip or quarantine a test; where a cause is an
+  earlier item's change, say which. Lock-free unless a cause needs a
+  migration or changes generation output. Done: all of them pass on
+  current main. Version 8.1. Owner: Aux 2 after TEST.644. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: TEST.644, TEST.642.
+
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
@@ -18704,24 +18718,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   stagemark.py, warmup.py, warm_progress.py, the generate stages and
   tests. Done: the test passes and every script and command uses the
   table.
-  Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102, OPS.105.
-
-- [ ] **OPS.105 One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls**
-  Boss decided (11-05) that there is one logging codebase for the Python
-  code and the shell scripts. Full text in
-  reports/logging-review-2026-11-05.md, last section "Boss addition
-  (11-05): one logging codebase". Lock-free: it touches no generated
-  content, golden, migration or epoch. Version 8.3. Owner: none yet.
-  Filed by the TODO thread. Do: admin/activity_log.py keeps its own
-  handler and line today, queue/runrecord.py builds records a third way
-  (runrecord.log_text), 11 modules call logging.getLogger directly and
-  146 print() calls write log lines outside the layer. Move all of them
-  onto util/log.py; answers a command prints on purpose (listings and
-  the like) stay and are named in an allowed list that TEST.183 reads.
-  The activity log and its fail2ban filter move together (this is where
-  OPS.97 lands for it). Done: no handler, formatter or log-line print
-  outside the module, and TEST.183 proves it.
-  Prerequisites: OPS.97. Related: OPS.97, TEST.183.
+  Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102.
 
 ## DOC: Documentation
 
