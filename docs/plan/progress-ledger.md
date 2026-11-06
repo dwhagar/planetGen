@@ -2642,3 +2642,4 @@ Baseline: PR #1817.
 | TEST.643 | 8.1 | Physics rectification: citations and the gate's test health |
 | TEST.640 | 8.1 | Physics rectification: citations and the gate's test health |
 | TEST.645 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1301 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
