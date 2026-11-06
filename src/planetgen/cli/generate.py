@@ -2096,7 +2096,7 @@ def main():
     try:
         # A command whose own result goes to stdout (`--output -`) keeps stdout for it; the debug lines go to stderr.
         log.configure(level, debug_file=(args.debug or None), to_stderr=getattr(args, "output", None) == "-",
-                      areas=args.debug_areas, errors_to_stderr=True)
+                      areas=args.debug_areas)
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
     logged = (not getattr(args, "output", None) and args.command not in READ_ONLY_COMMANDS
