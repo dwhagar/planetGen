@@ -14342,6 +14342,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   guard is not. Version 8.1. Owner: none yet. Filed by the TODO thread.
   Prerequisites: none.
 
+- [ ] **GEN.1295 Rogue ages and the rogue stand-ins read the ejection records: the delay (RG2), the closest approach (RK7, MO2, TU3) and the per-star rate (TU1) come from each loss in the architecture, not from drawn distributions**
+  Found when main's burn-down test failed: five burn-down rows
+  (6.88:RG2, 6.87:RK7, 6.112:MO2, 6.86:TU1, 6.86:TU3) said GEN.1111
+  replaces them, and GEN.1111 is closed (the ejection records are built
+  and stored) without replacing them. Do: read the stored ejection
+  record of each lost planet (time after formation, closest approach,
+  scatterer distance) wherever those five stand-ins draw them, retire
+  the five rows with their tests, and check the rogue count and age
+  shares against the census. This changes generated rogue planets, so it
+  is a lock item (epoch). Version 8.1. Owner: Planets 1. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: GEN.1111, GEN.1287, GEN.1288, GEN.1289.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
