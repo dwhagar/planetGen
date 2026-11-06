@@ -6539,6 +6539,18 @@ a.help-mark {
   font-size: 0.875rem;
   text-align: center;
 }
+/* UX.276: the readout under the Sensor view reads as the instruments' line, and an estimate says it is one. */
+.sensor-readout {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-style: italic;
+}
+.sensor-estimate {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
 
 /* UX.174: a system's row in the sector page's Contents opens onto its summary tree under the name. */
 .datatable td .tree-toggle {

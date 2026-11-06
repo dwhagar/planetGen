@@ -173,7 +173,7 @@ def render_phenomenon_view_panel(phenomenon_type, detail):
     return f"""
 <section class="panel" aria-labelledby="phenomrender-heading">
 <div class="panel-header">
-  <h2 id="phenomrender-heading">View</h2>
+  <h2 id="phenomrender-heading">Sensor view</h2>
   <span class="hint">An artist's impression from its properties; drag to turn it.</span>
 </div>
 <div class="phenomrender-viewport" id="phenomrender" data-view="{esc(data)}">
@@ -216,7 +216,7 @@ def render_nebula_view_panel(detail):
     return f"""
 <section class="panel" aria-labelledby="nebulaview-heading">
 <div class="panel-header">
-  <h2 id="nebulaview-heading">View</h2>
+  <h2 id="nebulaview-heading">Sensor view</h2>
   <span class="hint">Its cloud, with the galaxy's brightest stars round it; drag to turn, scroll to zoom.</span>
 </div>
 <div class="phenomrender-viewport" id="nebulaview" data-view="{esc(data)}">
