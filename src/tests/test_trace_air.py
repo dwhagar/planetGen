@@ -67,6 +67,29 @@ def test_a_living_world_gets_trace_gases_and_the_air_keeps_its_total_pressure(wo
     assert all(after.get(gas, 0.0) > 0.0 for gas in trace_air.apply(copy.deepcopy(drawn)))
 
 
+def test_the_molar_mass_density_and_scale_height_are_the_mixture_s_with_its_traces(world):
+    """TEST.616: the three numbers that are the mixture's own follow it to the last digit after the trace gases are added (left as they were before the traces,
+    they differed from the mixture by up to four parts in a hundred million)."""
+    from planetgen.physics import constants
+
+    drawn = None
+    for seed in range(60):
+        other = copy.deepcopy(world)
+        other.mass = world.mass * (1.0 + seed * 1e-3)
+        if trace_air.apply(other):
+            drawn = other
+            break
+    assert drawn is not None
+    air = atmosphere.gas_partials_pa(drawn)
+    total = sum(air.values())
+    from planetgen.physics import gases
+
+    molar = sum(pressure / total * gases.gas(formula).molar_mass for formula, pressure in air.items())
+    assert drawn.atm_molar_density == pytest.approx(molar, rel=1e-12)
+    assert drawn.atm_density == pytest.approx(drawn.atmospheric_pressure * molar / (constants.R * drawn.surface_temperature), rel=1e-12)
+    assert drawn.scale_height == pytest.approx(constants.R * drawn.surface_temperature / (molar * drawn.gravity * constants.EARTH_GRAVITY) / 1000.0, rel=1e-12)
+
+
 def test_the_amounts_sit_in_the_design_brackets(world):
     for seed in range(60):
         other = copy.deepcopy(world)
