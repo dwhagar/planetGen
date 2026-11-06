@@ -206,6 +206,28 @@ def live_worker_count(queue):
     return len(live_workers(queue))
 
 
+def lane_of(queue_name):
+    """
+    The queues one worker started for `queue_name` serves (PERF.245): the maintenance lane's three (`redisqueue.MAINTENANCE_LANE`,
+    one per task type, taken in turn) for any of them, else just the queue itself.
+    """
+    return redisqueue.MAINTENANCE_LANE if queue_name in redisqueue.MAINTENANCE_LANE else (queue_name,)
+
+
+def reserved_places(queue_name):
+    """
+    How many of the host's worker places (`host_worker_cap`) the workers for `queue_name` may not take (PERF.245): the places kept for
+    the short and the long job lanes (`queue.interactive_workers` and `queue.long_workers`). The bulk and maintenance lanes start
+    workers only while the host runs fewer than the cap less these, so a warm-up or a generation run that has used up the host's
+    places never leaves a visitor's search or sector list with no worker to start; the two lanes themselves may use the whole cap.
+    """
+    if queue_name not in (redisqueue.BULK_QUEUE, *redisqueue.MAINTENANCE_LANE):
+        return 0
+    from planetgen.util.settings import get_settings
+    section = get_settings().queue
+    return min(section.interactive_workers + section.long_workers, max(0, host_worker_cap() - 1))
+
+
 def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count=None):
     """
     Starts idle-timeout workers for the waiting jobs of the queue `queue_name`, never more than the queue's cap in
@@ -224,17 +246,18 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
         return 0        # PERF.186: no worker starts while everything is stopped
     url = url or redisqueue.redis_url()
     connection = connection or redisqueue.connect(url)
-    queue = redisqueue.queue(queue_name, connection)
-    waiting = queue.count
+    names = lane_of(queue_name)
+    queue = redisqueue.queue(names[0], connection)
+    waiting = sum(redisqueue.queue(name, connection).count for name in names)
     if not waiting:
         return 0
     if not connection.set(DECIDING_KEY, str(os.getpid()), nx=True, ex=DECIDING_SECONDS):
         return 0            # another caller is counting and starting on this host (PERF.181)
     try:
-        need = _start_missing(queue, queue_name, connection, url, mysql_host, count, waiting)
+        need = _start_missing(queue, names, connection, url, mysql_host, count, waiting)
     finally:
         connection.delete(DECIDING_KEY)
-    if queue_name == redisqueue.MAINTENANCE_QUEUE:
+    if names[0] == redisqueue.MAINTENANCE_QUEUE:
         shed_bulk(connection, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
     return max(0, need)
 
@@ -252,9 +275,10 @@ def registered(connection, queue_names):
             connection.delete(key)
 
 
-def _start_missing(queue, queue_name, connection, url, mysql_host, count, waiting):
-    """The counting and starting of `ensure_workers`, run by the one caller that holds the queue's lock. Returns how many
-    workers it started."""
+def _start_missing(queue, names, connection, url, mysql_host, count, waiting):
+    """The counting and starting of `ensure_workers`, run by the one caller that holds the queue's lock. `names` are the queues
+    one worker serves (`lane_of`; `queue` is the first), `waiting` the jobs on all of them. Returns how many workers it started."""
+    queue_name = names[0]
     starting_key = STARTING_PREFIX + queue_name
     starting = int(connection.get(starting_key) or 0)
     if queue_name == redisqueue.MAINTENANCE_QUEUE:
@@ -269,14 +293,14 @@ def _start_missing(queue, queue_name, connection, url, mysql_host, count, waitin
               f"{max(0, need)} to start", area="queue")
     started = 0
     for _ in range(max(0, need)):
-        running, host_cap = host_worker_processes(), host_worker_cap()
+        running, host_cap = host_worker_processes(), host_worker_cap() - reserved_places(queue_name)
         if running >= host_cap:
             _note_refused(connection, queue_name, running, host_cap)
             break
         connection.incr(starting_key)
         connection.expire(starting_key, STARTING_SECONDS)
         proc = redisqueue.start_detached(
-            redisqueue.worker_argv([queue_name], url, python=sys.executable, burst=False), REPO_DIR)
+            redisqueue.worker_argv(list(names), url, python=sys.executable, burst=False), REPO_DIR)
         started += 1
         log.trace(f"workers for {queue_name}: started worker process {getattr(proc, 'pid', '?')}", area="queue")
     return started
@@ -382,7 +406,8 @@ def maintenance_share(connection, mysql_host=None):
     many places."""
     queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
     busy = sum(1 for worker in live_workers(queue) if worker.get_state() != "idle")
-    return min(maintenance_cap(connection, mysql_host), busy + queue.count)
+    waiting = sum(redisqueue.queue(name, connection).count for name in redisqueue.MAINTENANCE_LANE)
+    return min(maintenance_cap(connection, mysql_host), busy + waiting)
 
 
 def shed_bulk(connection, cap):
