@@ -72,7 +72,7 @@ import sqlalchemy.pool
 from planetgen.admin import activity_log
 from planetgen.db import alembic_runner, chart_ledger, designation_rows, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
-from planetgen.names import object_id as objectId
+from planetgen.names import naming_key as namingKey, object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
@@ -7667,6 +7667,28 @@ def give_system_uid(conn, system_id, uid):
     storage_checksum.mark_rows(conn, "star_systems", [system_id])
 
 
+def keep_charted_name(conn, star_system_id, uid):
+    """
+    GEN.1257: keeps the name an uncharted star's Object ID spells (`naming_key.local_name`, GEN.1255) as the first retired name of the system built
+    round it, reason `charted`, when charting has given the system its own word-salad name. The uncharted name is computed, never stored, so without
+    this an old link, a search or a note naming the star by it would stop finding it; the "Formerly" line shows it and `api.lookup` follows it. Does
+    nothing for `uid` `None` (a system the fill made on its own, never a scatter star), when no naming key is in force (nothing can be spelled), or
+    when the system already keeps that name.
+
+    Returns:
+        str or None: The name kept.
+    """
+    key = namingKey.active_key()
+    if uid is None or key is None:
+        return None
+    old_name = namingKey.local_name(objectUid.from_bytes(bytes(uid)), key)
+    if conn.execute("SELECT 1 FROM designations WHERE designation_kind = 'name' AND designation_name = ? AND object_kind = 'star_systems'"
+                    " AND object_row_id = ? AND reason = 'charted'", (old_name, star_system_id)).fetchone():
+        return old_name
+    designation_rows.retire_name(conn, "star_systems", star_system_id, old_name, "charted")
+    return old_name
+
+
 def mark_bright_star_filled(conn, bright_star_id, star_system_id):
     """Links a pre-placed star to the system its sector's fill built
     around it. A star of a cluster (GEN.359) passes its cluster to every star of the system."""
@@ -7904,6 +7926,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
                 location=_location_for_entry(sector, entry, neighbors),
             )
             _give_scatter_uid(conn, None)
+            keep_charted_name(conn, star_system_id, getattr(entry, "bright_star_uid", None))     # GEN.1257
             if galaxy_position is not None:
                 conn.saved_donors.append((star_system_id, entry.star_system, _galaxy_placement_from_sector_offset(galaxy_position, entry.position)))
             bright_star_id = getattr(entry, "bright_star_id", None)

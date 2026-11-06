@@ -110,7 +110,16 @@ def test_only_the_scatter_tables_are_numbered(conn):
 
 
 def test_a_system_built_round_a_scatter_star_keeps_its_id_and_the_fill_starts_past_the_stars(mysql_config):
+    from planetgen.names import naming_key
     from tests import test_bright_star_scatter as scatter_tests
+    naming_key.set_resolver(lambda: "00AB12CD")     # GEN.1257: charting keeps the name each star's ID spelled
+    try:
+        _chart_and_check(mysql_config, scatter_tests, naming_key)
+    finally:
+        naming_key.set_resolver(None)
+
+
+def _chart_and_check(mysql_config, scatter_tests, naming_key):
     from planetgen.generation import run_galaxy, run_plan
     from planetgen.galaxy.spherical import sector_position_pc
 
@@ -151,5 +160,15 @@ def test_a_system_built_round_a_scatter_star_keeps_its_id_and_the_fill_starts_pa
         assert conn.execute("SELECT COUNT(*) AS n, COUNT(DISTINCT uid) AS m FROM star_systems WHERE sector_id = ?",
                             (sector_id,)).fetchone()["n"] == conn.execute(
             "SELECT COUNT(DISTINCT uid) AS m FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["m"]
+        # GEN.1257: each of those systems kept the name its star's ID spelled as its first retired name, reason `charted`; the fill's own systems did not
+        charted = conn.execute(
+            "SELECT designation_name, object_row_id, reason FROM designations WHERE object_kind = 'star_systems' AND reason = 'charted'").fetchall()
+        by_system = {row["object_row_id"]: row["designation_name"] for row in charted}
+        assert len(by_system) == len(charted)
+        built_ids = {row["id"]: row["system_uid"] for row in conn.execute(
+            "SELECT ss.id, ss.uid AS system_uid FROM bright_stars b JOIN star_systems ss ON ss.id = b.star_system_id WHERE ss.sector_id = ?",
+            (sector_id,)).fetchall()}
+        assert set(by_system) == set(built_ids)
+        assert all(by_system[i] == naming_key.local_name(ou.from_bytes(uid), "00AB12CD") for i, uid in built_ids.items())
     finally:
         conn.close()
