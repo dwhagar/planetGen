@@ -141,10 +141,10 @@ test("a scene's sources are its bodies with a mass; the stars and the self body 
 
 test("the legend names the mode, the range and what the rings and diamonds are, and says when there is nothing", () => {
   const text = S.legendText({ mode: "pull", range: { lo: 1e-6, hi: 1e-2, flat: false }, empty: false });
-  assert.match(text, /Pull/);
-  assert.match(text, /m\/s²/);
+  assert.match(text, /^Pull: 1\.00 × 10⁻⁶ m\/s² to 0\.01 m\/s², this view's own middle 96% of values/);
   assert.match(text, /Hill spheres/);
-  assert.match(text, /Lagrange/);
+  assert.match(text, /Lagrange points L1 to L5, the saddle points where the two pulls cancel/);
+  assert.ok(!/\b(MAP|API|UX|GEN)\.\d+/.test(text), "no TODO code in the words");
   assert.match(S.legendText({ mode: "depth", range: { lo: 1, hi: 1, flat: true }, empty: false }), /no variation/);
   assert.match(S.legendText({ mode: "pull", range: { lo: 0, hi: 0, flat: true }, empty: true }), /no body with a mass/);
 });

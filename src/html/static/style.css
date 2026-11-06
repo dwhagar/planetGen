@@ -3100,6 +3100,11 @@ code {
   font-weight: 600;
   outline: 2px solid var(--accent);
 }
+.gravity-hint {
+  display: block;
+  margin: 0.2rem 0;
+  font-size: 0.8rem;
+}
 .gravity-slab {
   margin: 0 0.4rem;
   font-size: 0.85rem;

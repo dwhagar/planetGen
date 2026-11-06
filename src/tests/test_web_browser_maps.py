@@ -168,7 +168,7 @@ def test_system_map_gravity_layer_draws_the_field_hill_spheres_and_lagrange_poin
     assert "show=gravity" in page.url and "gravity=pull" in page.url, page.url
 
     page.evaluate("document.querySelector('#sysmap-layers button[data-gravity-mode=\"tidal\"]').click()")
-    page.wait_for_function("() => /Tidal/.test(document.querySelector('#sysmap-layer-legend').textContent)", timeout=20000)
+    page.wait_for_function("() => /Stretch/.test(document.querySelector('#sysmap-layer-legend').textContent)", timeout=20000)
     assert "gravity=tidal" in page.url, page.url
 
     # A planet's moon system gets its own field (the planet and its moons), Hill spheres about the planet and points for each moon.

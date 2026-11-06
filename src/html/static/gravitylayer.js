@@ -15,7 +15,19 @@
 // The first half is plain functions (tests/js/gravitylayer.test.mjs); `createGravityController` is the drawing half, a part of the Sector Map's stage (galaxysector.js).
 // No DOM at import. Plain DOM calls only, never markup from strings.
 
-export const MODES = [["pull", "Pull"], ["depth", "Well depth"], ["tidal", "Tidal strength"]];
+// UX.94: numbers are written the way the rest of the site writes them (numberformat.js, the unit ladders): the pull in the reader's unit system (meters per second squared, or feet per
+// second squared with the standard gravity beside it), the others in their scientific units, three figures.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { scientificText, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
+const { formatQuantity } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { LADDERS } = await import(`./unitladders.js${VERSION_QUERY}`);
+
+// UX.94: the modes as the reader sees them: [key (the address's), name, one plain line on what it shows]. The key `tidal` keeps its name in the address and the API.
+export const MODES = [
+  ["pull", "Pull", "How hard gravity tugs on a ship at that spot."],
+  ["depth", "Well depth", "How far down in a gravity well that spot lies: the deeper the well, the harder to climb out of."],
+  ["tidal", "Stretch", "How much gravity pulls a ship apart, nose from tail, at that spot: strongest right beside a dense body."],
+];
 export const MODE_NAMES = MODES.map(function (pair) { return pair[0]; });
 export const UNIT_TEXT = { pull: "m/s²", depth: "m²/s²", tidal: "s⁻²" };
 // Viridis, dark to bright.
@@ -101,11 +113,11 @@ export function stepSlab(slab, delta, zones) {
   return Math.min(zones - 1, Math.max(0, slab + delta));
 }
 
-// Three significant digits and the mode's unit: "1.55e-10 m/s²".
+// Three significant figures and the mode's unit, the way the site writes numbers (UX.36): "1.55 × 10⁻¹⁰ m/s²". The pull follows the reader's unit system.
 export function valueText(mode, value) {
+  if (mode === "pull") return formatQuantity(LADDERS.gravity, value > 0 ? value : 0, { companions: false });
   if (!(value > 0)) return "0 " + UNIT_TEXT[mode];
-  const text = value >= 0.01 && value < 10000 ? String(Number(value.toPrecision(3))) : value.toExponential(2).replace("e+", "e");
-  return text + " " + UNIT_TEXT[mode];
+  return (value >= 0.01 && value < 10000 ? threeFigures(value) : scientificText(value)) + " " + UNIT_TEXT[mode];
 }
 
 // A saddle's place in the scene's frame, parsecs from the sector's center: the galaxy's x and z, and y turned over when the scene runs y the other way.
@@ -117,15 +129,16 @@ export function localPoint(position, center, flipY) {
 export function legendText(state) {
   if (state.failed) return "Gravity: the grid could not be loaded for this sector.";
   if (state.building || !state.grid) return "Gravity: working out this sector's grid. This can take a minute the first time.";
-  const label = MODES.find(function (pair) { return pair[0] === state.mode; })[1];
+  const pair = MODES.find(function (entry) { return entry[0] === state.mode; });
+  const label = pair[1];
   const smooth = state.grid.smooth || { level: 0, span: 0 };
   const where = state.volume ? "all slabs" : "slab " + (state.slab + 1) + " of " + state.grid.zones;
   if (state.range.flat) return label + " (" + where + "): no variation across this sector, so nothing is drawn.";
   const span = valueText(state.mode, state.range.lo) + " to " + valueText(state.mode, state.range.hi);
   const base = state.mode === "depth"
-    ? "Colors show how deep the stars' wells are below the shallowest zone; the galaxy's own slope across the sector (" + valueText(state.mode, smooth.span) + ") is left out."
-    : "Total " + label.toLowerCase() + " " + valueText(state.mode, smooth.level) + " from the smooth galaxy at the center; colors show the variation across this sector.";
-  return label + " (" + where + "): " + span + ", the sector's own 2% to 98%, log scale. " + base;
+    ? "Colors show how deep the stars' wells are below the shallowest zone; the slope of the galaxy's own pull across the sector (" + valueText(state.mode, smooth.span) + ") is left out."
+    : "The galaxy as a whole adds " + valueText(state.mode, smooth.level) + " at the center of the sector; colors show only how the " + label.toLowerCase() + " varies across it.";
+  return label + " (" + where + "): " + span + ", the sector's own middle 96% of values, on a log scale (brighter is more). " + pair[2] + " " + base;
 }
 
 // The drawing half. `deps`: `fetchGrid(sectorId, mode, field) -> Promise<grid | {building: true}>` (field "centered" or "total"), `flipY`, `onChange()` (the URL and the menu follow),
@@ -376,8 +389,12 @@ export function createGravityController(THREE, deps) {
       const modes = MODES.map(function (pair) {
         const b = button(pair[1], function () { controller.setMode(pair[0]); }, "mode");
         b.dataset.gravityMode = pair[0];
+        b.title = pair[2];
         return b;
       });
+      const hint = doc.createElement("span");
+      hint.className = "gravity-hint";
+      container.appendChild(hint);
       const previous = button("Slab −", function () { controller.step(-1); }, "previous");
       const label = doc.createElement("span");
       label.className = "gravity-slab";
@@ -394,6 +411,7 @@ export function createGravityController(THREE, deps) {
       container.appendChild(volumeLabel);
       view = function () {
         modes.forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.gravityMode === state.mode ? "true" : "false"); });
+        hint.textContent = MODES.find(function (pair) { return pair[0] === state.mode; })[2];
         const zones = grid() ? grid().centered.zones : 16;
         label.textContent = state.volume ? "all slabs" : "slab " + (state.slab + 1) + " of " + zones;
         previous.disabled = state.volume || state.slab <= 0;

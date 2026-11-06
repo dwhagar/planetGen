@@ -2097,6 +2097,9 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     <span class="sysmap-legend-life-badge" aria-hidden="true"></span> marks a world that supports life;
     {facility_legend}</li>
     <li>Measure distance, then click two bodies for the real distance between them{wash_hint}.</li>
+    <li>Gravity in the Menu colors the view by the pull, well depth, or stretch of the stars, planets, and moons shown here (brighter is more, on this
+    view's own scale; the Key gives the range and the unit). Dashed rings are Hill spheres, where a body's own gravity wins over its star's. Diamonds
+    are the Lagrange points L1 to L5 of a body and what it orbits: saddle points where the two pulls cancel and a ship could hover.</li>
   </ul>
   <sl-button slot="footer" data-dialog-close>Close</sl-button>
 </sl-dialog>

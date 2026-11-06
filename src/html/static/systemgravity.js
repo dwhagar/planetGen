@@ -13,7 +13,9 @@
 // The colors are the Sector Map layer's (gravitylayer.js): the scene's own 2nd to 98th percentile, log scale, one ramp. The pure functions are exported for
 // tests/js/systemgravity.test.mjs; the controller at the end draws.
 
-import { MODES, MODE_NAMES, UNIT_TEXT, alphaOf, colorRange, rampColor, shade, valueText } from "./gravitylayer.js";
+// Imported with this module's own `?v=` query, like the map script's other siblings, so an update cannot leave a stale copy cached (systemmap.js explains).
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { MODES, MODE_NAMES, UNIT_TEXT, alphaOf, colorRange, rampColor, shade, valueText } = await import(`./gravitylayer.js${VERSION_QUERY}`);
 
 export const BIG_G = 6.6743e-11;
 export const GRID = 140; // cells across the scene's frame
@@ -194,11 +196,11 @@ export function sceneBodies(elements, host) {
 
 export function legendText(state) {
   if (state.empty) return "Gravity: this view has no body with a mass to work the field from.";
-  const label = MODES.find(function (pair) { return pair[0] === state.mode; })[1];
-  if (state.range.flat) return label + ": no variation across this view, so nothing is drawn.";
+  const pair = MODES.find(function (entry) { return entry[0] === state.mode; });
+  if (state.range.flat) return pair[1] + ": no variation across this view, so nothing is drawn.";
   const span = valueText(state.mode, state.range.lo) + " to " + valueText(state.mode, state.range.hi);
-  return label + ": " + span + ", this view's own 2% to 98%, log scale, from the bodies drawn here (the stars, planets and moons of this view, as points; the galaxy's own pull is too small to count). "
-    + "Dashed rings are Hill spheres; diamonds are the Lagrange points L1 to L5 of each body and what it orbits.";
+  return pair[1] + ": " + span + ", this view's own middle 96% of values, on a log scale (brighter is more). " + pair[2]
+    + " Worked out from the stars, planets, and moons shown here. Dashed rings are Hill spheres, where a body's own gravity wins over its star's; diamonds are its Lagrange points L1 to L5, the saddle points where the two pulls cancel.";
 }
 
 function svgElement(doc, name, attrs) {
@@ -343,12 +345,17 @@ export function createSystemGravity(deps) {
         b.textContent = pair[1];
         b.dataset.gravity = "mode";
         b.dataset.gravityMode = pair[0];
+        b.title = pair[2];
         b.addEventListener("click", function () { controller.setMode(pair[0]); });
         container.appendChild(b);
         return b;
       });
+      const hint = doc.createElement("span");
+      hint.className = "gravity-hint";
+      container.appendChild(hint);
       view = function () {
         modes.forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.gravityMode === state.mode ? "true" : "false"); });
+        hint.textContent = MODES.find(function (pair) { return pair[0] === state.mode; })[2];
       };
       view();
     },
