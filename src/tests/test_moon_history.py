@@ -34,7 +34,9 @@ def _systems(seeds=range(16)):
     for seed in seeds:
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
-            yield StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+            config = SystemConfig()
+            config.MOONS = True     # TEST.657: after GEN.962 and GEN.1082 to 1084 a rocky planet has a moon only by a giant impact (1 in 12) or capture, so 16 plain systems held 2 moons
+            yield StarSystem(config, galactic_center_dist_ly=26000.0)
 
 
 def test_the_moon_flexes_the_earth_by_a_terawatt_or_two():

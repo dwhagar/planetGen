@@ -40,8 +40,19 @@ def test_the_zone_never_passes_the_stable_limit_of_the_orbit():
     assert outer == 10.0 * JUPITER_RADIUS_KM
 
 
-def test_the_disk_moons_of_generated_giants_sit_inside_the_zone():
-    """Twelve systems of a sun-like star: every moon born in a giant's disk was born inside 30 planet radii (the tide may carry it out later) (it was 46 to 130 before GEN.1244)."""
+def test_the_disk_moons_of_generated_giants_sit_inside_the_zone(monkeypatch):
+    """Twelve systems of a sun-like star: every moon born in a giant's disk was born inside the zone it was drawn for, whose outer edge is 30 radii of the giant
+    as it was when its moons were made (it was 46 to 130 before GEN.1244; the tide may carry a moon out later). TEST.657: the giant then contracts to its radius at
+    the star's final age (`_settle_to_final_age`), a few percent smaller, so the test reads the zone each giant's moons were drawn in, not its final radius."""
+    zones = {}
+    real = moon_disk_zone.zone_km
+
+    def recording(mass_kg, radius_km, spin_rate_rad_s, low_km, high_km):
+        zone = real(mass_kg, radius_km, spin_rate_rad_s, low_km, high_km)
+        zones[mass_kg] = zone
+        return zone
+
+    monkeypatch.setattr(moon_disk_zone, "zone_km", recording)
     found = 0
     for seed in range(12):
         cfg = SystemConfig()
@@ -55,5 +66,7 @@ def test_the_disk_moons_of_generated_giants_sit_inside_the_zone():
             for moon in planet.moons:
                 if moon.moon_origin == "disk":
                     found += 1
-                    assert getattr(moon, "_birth_distance_au", moon.distance) * constants.AU_TO_KM / planet.radius <= moon_disk_zone.CENTRIFUGAL_RADII * 1.001
+                    outer_km = zones[planet.mass][1]
+                    assert getattr(moon, "_birth_distance_au", moon.distance) * constants.AU_TO_KM <= outer_km * 1.001
+                    assert outer_km <= moon_disk_zone.CENTRIFUGAL_RADII * planet.radius * 1.06     # and the zone is 30 radii of the giant, whose radius has since shrunk by under 6 percent
     assert found > 0
