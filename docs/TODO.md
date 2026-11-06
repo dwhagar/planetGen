@@ -14473,21 +14473,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line is PERF.244.
   Prerequisites: none. Related: PERF.238, PERF.244.
 
-- [ ] **PERF.244 A cheaper per-body air solve: surface_air.solve redraws the outgassed mixture about 8 times per body (14 gas-equilibrium solves per body); warm-start or cache the mixture across the fixed-point iterations**
-  Bug 1 (as the lane reported, about 9:36 PM EST on 2026-11-05), the
-  remainder of PERF.241 after GEN.1282: an O0V all-flags system takes 55
-  s, 75 percent of it in moons at 0.15 s per body, 80 percent of that in
-  surface_air.solve. Do: carry the outgassed mixture across the
-  fixed-point iterations of the air solve (warm start or a cache keyed
-  on its inputs) so a body does one full solve and the later iterations
-  start from it; measure the cost and the output change. A warm start
-  can nudge converged values in the last digits, so this is a lock item
-  (epoch, golden) unless the output is bit-identical. Done: one
-  all-flags O0V system takes under 20 s on a 4 vCPU box, or the report
-  shows by numbers why not and the line moves. Version 8.1. Owner: Bug 1,
-  after GEN.1298. Filed by the TODO thread.
-  Prerequisites: GEN.1282. Related: PERF.241, GEN.1282.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
