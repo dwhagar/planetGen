@@ -2,6 +2,8 @@
 
 Plan (research written 5:20 PM EDT 2026-10-30 as the lane reported; nothing built; two questions for Boss are open in section 10). Tags: [REPO] read in the repo, [C] computed here (script `/mnt/project-files/data/rogue-drift/hill_drift.py`), [S] from a source, [SI] stand-in to register in GEN.725.
 
+**Update (GEN.1289, 2026-11-06):** the smoothed-density Poisson draw of sections 3.3, 5 and 7 (and `galaxy/rogue_density.py`, rows RSM1 to RSM4) is deleted. A rogue is made by a stored donor that threw it out and is put where it lands (`rogue_landing`), and the rogues a sector lacks come from the top-up (`rogue_topup`); no draw reads a smoothed star density. The paragraphs stay as the record of the idea.
+
 ## 1. Short answers
 
 1. **Drift is large.** A planet ejected with a kick of about 3 km/s relative to its star stays within about 0.7 kpc of the star's galactic radius (99 percent, [C]) but spreads along the orbit by roughly 1 kpc per 0.5 Gyr and by tens of kpc after a few Gyr. With ejection times uniform over 0.05 to 10 Gyr ago, the median rogue is about 7 kpc (along the orbit) from where it was ejected, and only 1.5 percent are within 100 pc [C]. A sector is 4 pc [REPO `DEFAULT_SECTOR_EDGE_PC`], so essentially no rogue is anywhere near a sector that holds its donor star.

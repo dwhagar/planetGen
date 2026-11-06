@@ -39,7 +39,7 @@ function withPosition(bookmark, entry) {
   return bookmark;
 }
 const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
-const { singleSource } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { singleSource, sphereSource } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const {
   GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
@@ -831,7 +831,9 @@ export function buildSectorScene(data, options) {
       entryByObject.set(mesh, cloud);
       volumeObjects.push(mesh);
       drawnFor(cloud, mesh);
-      if (cloud.kind === "nebula" && cloud.nebulaId != null && volumeSingles) {
+      // MAP.142 and MAP.392: where the host draws a cloud from points (the analytic sphere is only the fallback of a host that cannot), a nebula
+      // by its id, and every other nebula (one nothing was generated for, one a waiting star lights) and every supernova remnant by its sphere.
+      if (volumeSingles && (cloud.kind === "nebula" || cloud.kind === "supernovaRemnant")) {
         mesh.material.visible = false;
         volumeClouds.push(cloud);
       }
@@ -1033,7 +1035,9 @@ export function buildSectorScene(data, options) {
   function nebulaSources() {
     return volumeClouds.map(function (cloud) {
       var weight = hides(cloud) ? 0 : faded * (cloud.neighbor ? NEIGHBOR_CLOUD_DIM : 1);
-      return singleSource(cloud.nebulaId, { x: cloud.x, y: cloud.y, z: cloud.z, radiusPc: cloud.r }, weight);
+      var sphere = { x: cloud.x, y: cloud.y, z: cloud.z, radiusPc: cloud.r };
+      if (cloud.kind === "nebula" && cloud.nebulaId != null) return singleSource(cloud.nebulaId, sphere, weight);
+      return sphereSource(cloud.family || (cloud.kind === "supernovaRemnant" ? "supernova-remnant" : "diffuse"), sphere, weight);
     });
   }
 
@@ -1071,6 +1075,14 @@ export function buildSectorScene(data, options) {
     setFade: setFade,
     fade: function () { return faded; },
     nebulaSources: nebulaSources,
+    // MAP.392 (for the browser tests): the nebulae and supernova remnants of the scene still drawn as the analytic sphere or shell, `{ kind, name }`.
+    // With a host that draws from points (`volumeSingles`) it is empty: a hard ball or ring for a nebula is the fallback of a host that cannot.
+    hardClouds: function () {
+      return volumeObjects.filter(function (mesh) {
+        var cloud = entryByObject.get(mesh);
+        return mesh.material.visible && cloud && (cloud.kind === "nebula" || cloud.kind === "supernovaRemnant");
+      }).map(function (mesh) { var cloud = entryByObject.get(mesh); return { kind: cloud.kind, name: cloud.name || null }; });
+    },
     dispose: dispose,
   };
 }

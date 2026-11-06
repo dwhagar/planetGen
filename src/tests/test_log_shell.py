@@ -59,3 +59,18 @@ def test_update_sh_prints_its_own_lines_through_the_layer():
     own = [line for line in text.splitlines() if re.match(r'\s*echo "', line)]
     assert own == [], f"update.sh's own lines go through scripts/logrecord.sh: {own}"
     assert all(f"log_stage {n} 9 " in text for n in range(1, 10))
+
+
+def test_the_shell_vocabulary_is_the_modules_and_the_committed_block_is_current():
+    """OPS.104: the severities, the ones that go to stderr, the stage word and the divider are generated from `logrecord`."""
+    text = open(LIBRARY, encoding="utf-8").read()
+    assert logrecord.shell_vocabulary() in text
+    done = subprocess.run(["python3", os.path.join(REPO, "scripts", "build_log_vocabulary.py"), "--check"], capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr
+    shown = _run('echo "$LOG_SEVERITIES|$LOG_STDERR_SEVERITIES|$LOG_STAGE_WORD|$LOG_DIVIDER"').stdout.strip()
+    assert shown == "|".join((" ".join(logrecord.SEVERITIES), " ".join(logrecord.STDERR_SEVERITIES), "Stage", logrecord.DIVIDER))
+
+
+def test_a_severity_the_module_does_not_have_is_an_info_record():
+    done = _run('log_record loud "Placed the sectors"')
+    assert done.stdout.rstrip("\n").endswith("INFO     update: Placed the sectors") and done.stderr == ""

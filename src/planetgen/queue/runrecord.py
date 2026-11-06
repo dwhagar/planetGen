@@ -337,7 +337,7 @@ def busy_message(conn, run_id):
         return f"run {run_id} is running"
     started = record.get("started") or ""
     try:
-        started = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime(float(started)))
+        started = logrecord.local_text(float(started))
     except ValueError:
         started = "at an unknown time"
     return (f"run {run_id} is running ({record.get('title') or 'untitled'}, {record.get('kind') or GENERATION} kind, "
