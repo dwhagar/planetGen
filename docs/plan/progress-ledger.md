@@ -2606,3 +2606,7 @@ Baseline: PR #1817.
 | UX.279 | 8.2 | User features |
 | UX.278 | 8.2 | User features |
 | MAP.398 | 8.1 | Fly-through map |
+| UX.276 | 8.2 | User features |
+| MAP.397 | 8.1 | Fly-through map |
+| GEN.1289 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.499 | 8.1 | Physics rectification: infrared opacity, tides and the class re-sweep |
