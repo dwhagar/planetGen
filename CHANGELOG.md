@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3474] - 2026-11-06
+
+**Headline:** Choosing a globular cluster on the Galaxy Map opens a window on its own stars.
+
+### Changed
+- Clicking a cluster's name on the Galaxy Map now flies to a window on the cluster's sphere, whatever sectors it crosses: only the stars inside the sphere are drawn (the stored ones of the sectors that are filled and, where a sector is not filled yet, the ones the plan placed), the window bar names the cluster, and its button, Escape or Backspace returns the camera to where it was. The cluster's card also has an "Open cluster window" button.
+
+generation-output: unchanged
+
 ## [8.0.3473] - 2026-11-06
 
 **Headline:** A cluster's page lists the stars that belong to it, and a star's page names its cluster.
