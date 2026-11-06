@@ -10097,6 +10097,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Catalog sections 2 and 4.
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
   Plan (TODO) (6:20 PM EST on 2026-11-06): oxygen-air rarity is GEN.1309 (generator side, Planets 1); the heavy and thin oxygen worlds that fall outside the classes are GEN.1306 parts 2 and 3 (Core 4); the temperate oxygen-free ocean worlds go to class F, which GEN.1281 makes anoxic. Judge this item on the count of class M worlds after those.
+  Decision (Boss, 6:22 PM EST on 2026-11-06, option 1): the oxygen window stays as built: classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent. Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
@@ -12109,61 +12110,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lines for is_polluted and pollution_rate_g_s name this item. Owner:
   Star 2.
   Prerequisites: GEN.1068. Related: GEN.1072, GEN.1068, GEN.725.
-
-- [ ] **GEN.1236 Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug)**
-  Found by Core 3's TEST.212 part 1 radiation sweep (as the lane
-  reported, 1:05 AM EDT 2026-11-01), filed by the TODO thread. Two class
-  N planets (7.6 and 3.3 Earth masses, 0.08 AU) have a stored surface
-  temperature of exactly 2000 K, the cap in surface_air, but keep the
-  greenhouse factor computed before the cap (107 and 79). Albedo plus
-  that greenhouse would give about 2370 K and 2600 K, so the stored
-  temperature, the greenhouse factor and the starlight no longer agree.
-  The new sweep test allows this only as "the cap holds, never hotter".
-  Do: find where the 2000 K cap is applied, say whether it is a physical
-  limit (a surface that hot is molten or vaporised and the air then
-  radiates differently) or a numeric guard; if physical, recompute the
-  greenhouse factor from the capped state (or store the cap as a flag)
-  so the three agree; if a guard, remove it. Physics drives, no game
-  cap. Lock work if stored values change (epoch, census). Related:
-  GEN.822, GEN.830, GEN.837 (class N), TEST.212. Owner: none yet.
-  Prerequisites: none.
-  Prerequisites: none.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 5 takes it: the greenhouse and climate chain, one refit with GEN.1304 where it can ride (Air 1, Aux 2, Aux 7 and Bug 2 ended).
-
-- [ ] **GEN.1238 A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug)**
-  Found by Aux 3's GEN.819 twin run (as the lane reported, 1:15 AM EDT
-  2026-11-01 on main b153f0209; 40 seeds), filed by the TODO thread. The
-  Venus twin's N2 is fine (2.9e18 kg against 1.1e19, inside a factor of
-  five), but its median surface is about 3,100 bar and 1,279 K against
-  Venus's 92 bar and 737 K, with CO2 near 4.8e19 kg against about 4.8e20
-  for Venus (so the pressure is not CO2; look for the other gases, water
-  vapour and sulfur, and for a runaway greenhouse that the air fixed
-  point does not bound). Do: print the composition of each of the 40
-  draws, find what carries the 3,100 bar, check the greenhouse and the
-  escape against the published Venus state, and fix the law or register
-  a stand-in in GEN.725. Venus is a plausibility target here, never
-  fixed content. Lock work if stored values change. Related: GEN.819,
-  GEN.1236, GEN.909. Owner: none yet.
-  Prerequisites: none.
-  Prerequisites: none.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 5 takes it: the greenhouse and climate chain, one refit with GEN.1304 where it can ride (Air 1, Aux 2, Aux 7 and Bug 2 ended).
-
-- [ ] **GEN.1240 The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug)**
-  Found by Aux 7's GEN.1238 work (as the lane reported, 6:50 AM EST on
-  2026-11-04), filed by the TODO thread. Once a wet body past the
-  runaway limit starts the air fixed point hot (GEN.1238), the
-  water-rich third of such bodies end as steam worlds of 1e4 to 2e5 bar,
-  but the greenhouse table is held at 1000 bar, so those airs read 700
-  to 1300 K, which is too cool for that column. Do: extend the
-  greenhouse opacity table beyond 1000 bar from the source
-  (collision-induced and pressure-broadened water and CO2 opacity at
-  high pressure; find the source first) or register a stand-in in
-  GEN.725 with tier and tweak level; check Venus (92 bar, 737 K) stays
-  put. Lock work (stored temperature changes). Related: GEN.1238,
-  GEN.974 (cloud albedo). Owner: Aux 7.
-  Prerequisites: GEN.1238.
-  Prerequisites: none.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 5 takes it: the greenhouse and climate chain, one refit with GEN.1304 where it can ride (Air 1, Aux 2, Aux 7 and Bug 2 ended).
 
 - [ ] **GEN.1241 Wire the system body view: the ledger and barycentre function read the typed tables for the system page**
   From Planets 1's GEN.1066 (merged as #4754, 7:11 AM EST on
@@ -16762,6 +16708,7 @@ clears each one.
   here; if the cap at 35 percent is a pile-up, say so and TODO asks Boss.
   Version 8.1. Owner: Planets 1. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.854, GEN.855, GEN.867, GEN.750, GEN.1306, GEN.909.
+  Decision (Boss, 6:22 PM EST on 2026-11-06, option 1): the oxygen window stays as built: classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent. Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
 
 - [ ] **GEN.1310 Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent**
   Found by Core 5 while building GEN.1304 (6:18 PM EST on 2026-11-06 as the
@@ -16811,17 +16758,6 @@ clears each one.
   cost is explained. Version 8.1. Owner: Bug 1 after PERF.241. Filed by
   the TODO thread.
   Prerequisites: none. Related: PERF.241, TEST.656.
-
-- [ ] **TEST.657 Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems")**
-  Found by Tides 1 running the GEN.1190 gate (6:00 PM EST on 2026-11-06, as the lane reported): the same four fail on main without GEN.1190. The
-  moon-history failures say the sampled systems have no planet with moons,
-  which fits the GEN.1082 to GEN.1084 change that moved captured moons to
-  irregulars (fewer regular moons in the sample). Do: decide whether the
-  sample or the zone assertion is stale or the draw lost moons it should
-  have, fix the test or the cause, and name which. Lock-free. Done: the
-  four pass on main. Version 8.1. Owner: Bug 1 (with TEST.656). Filed by
-  the TODO thread.
-  Prerequisites: none. Related: TEST.656, GEN.1082, GEN.1190.
 
 - [ ] **MAP.401 An uncharted sector has an info page showing what is placed in it, with a link to each object's page**
   Boss, 5:11 PM EST on 2026-11-06 (relayed by the coordinator): uncharted
