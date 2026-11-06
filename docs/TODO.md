@@ -18586,24 +18586,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
-- [ ] **OPS.101 Named logs for the unattended long jobs: tiles.log, orbits.log and update.log**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: tiles.log (the nightly whole-map build), orbits.log (the nightly
-  orbit update) and update.log (every line update.sh prints, appended,
-  so a hand run can be read again), all in the log folder, written with
-  the same helper as warmup.log and covered by the same logrotate rule
-  (*.log); smoke keeps its JSON output file. Touches cli/tiles.py,
-  cli/orbits.py, update.sh, util/logpaths.py and the
-  examples/maintenance units if they redirect output. Done: each of the
-  three jobs leaves its own rotating log.
-  Prerequisites: OPS.96.
-
 - [ ] **OPS.102 Debug log: an area column in, the dead logger-name column out**
   Boss decided (11-05) that every log uses the system (local) time with
   its zone, and that logging is unified across the board; the standard
@@ -18640,7 +18622,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   stagemark.py, warmup.py, warm_progress.py, the generate stages and
   tests. Done: the test passes and every script and command uses the
   table.
-  Prerequisites: OPS.101, OPS.102.
+  Prerequisites: OPS.102.
 
 ## DOC: Documentation
 
