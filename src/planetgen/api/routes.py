@@ -38,7 +38,7 @@ from planetgen.db import children as children_db
 from planetgen.api import nav_system, system_sky
 from planetgen.describe import belt_info
 from planetgen.describe.sheet import sheet as object_sheet
-from planetgen.web.lib import skypack
+from planetgen.web.lib import sensor, skypack
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs, pagejobs
@@ -1411,6 +1411,24 @@ def galaxy_nebula_volume_route():
                     "data": base64.b64encode(packed).decode("ascii")})
 
 
+@bp.route("/galaxy/cloud-volume")
+def galaxy_cloud_volume_route():
+    """
+    The points that draw one cloud given by its sphere (MAP.392): `?x=&y=&z=&radius_pc=&family=` (center and radius in parsecs, a family of
+    `galaxy.nebula_blocks.FAMILIES`). The same packed volume as `GET /api/galaxy/nebula-volume` (`{"format", "level", "count", "data"}`) for a nebula
+    or supernova remnant the map cannot ask for by id (a scattered one, one a waiting star lights, a remnant), sampled from the model's density at
+    the sphere. Nothing is stored. A bad number, a family that does not exist or a radius over `nebula_volumes.MAX_SPHERE_RADIUS_PC` is a 400.
+    """
+    try:
+        center = tuple(float(request.args.get(axis, "")) for axis in "xyz")
+        radius = float(request.args.get("radius_pc", ""))
+        packed = nebula_volumes.sphere_volume(get_db(), center, radius, request.args.get("family") or "")
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    count = int.from_bytes(packed[6:10], "little")
+    return jsonify({"format": "NVOL1", "level": packed[5], "count": count, "data": base64.b64encode(packed).decode("ascii")})
+
+
 @bp.route("/galaxy/locate")
 def galaxy_locate_route():
     """
@@ -1915,6 +1933,21 @@ def object_sheet_route(ref):
     try:
         kind, object_id = _body_of(ref)
         return jsonify(object_sheet(get_db(), kind, object_id))
+    except ValueError as exc:  # includes ids.IdError
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/sensor")
+def object_sensor_route(ref):
+    """
+    `GET /api/objects/<ref>/sensor` (UX.275) -- the Sensor view's record of one object (`web/lib/sensor.py`): `v`, `kind`, `id`, `painter` (the
+    painter that draws it, `sphere`, `phenomenon` or `nebula`, `null` for a kind with none yet), `look` (the record that painter reads), `caption`,
+    `estimate` (what the picture guessed), `inputs` (the stored properties it is built from) and `reason` (why a kind has no painter). Built from the
+    stored row and the Object ID seed alone. 404 for a reference that names nothing or a kind with no property sheet.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        return jsonify(sensor.sensor_for(get_db(), kind, object_id))
     except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404
 

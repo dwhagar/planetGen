@@ -547,6 +547,34 @@ def galaxy_nebula_alone_volume(nebula_id):
 galaxy_nebula_alone_volume.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+@bp.route("/galaxy/cloud-volume")
+@page_limit("galaxy_tiles")
+def galaxy_cloud_volume():
+    """
+    The points that draw one cloud given by its sphere (MAP.392): `?x=&y=&z=&radius_pc=&family=`, the packed bytes `static/nebulavolume.js` reads, as
+    `GET /api/galaxy/cloud-volume` sampled them. For the nebulae and remnants the map has no id for. A bad query is a 400 and an API failure a 502,
+    both as `{"error": ...}` JSON.
+    """
+    try:
+        center = [float(request.args.get(axis, "")) for axis in "xyz"]
+        radius = float(request.args.get("radius_pc", ""))
+    except ValueError:
+        return _json_error("x, y, z and radius_pc must be numbers.", 400)
+    try:
+        found = apiclient.get_cloud_volume(db_name(), center[0], center[1], center[2], radius, request.args.get("family") or "")
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching a cloud's volume: {exc}")
+        return _json_error("The cloud could not be loaded. Please try again shortly.", 502)
+    response = Response(base64.b64decode(found["data"]), mimetype="application/octet-stream")
+    response.headers["Cache-Control"] = "private, max-age=3600"      # the points follow the sphere and the galaxy's stored shape
+    return response
+
+
+galaxy_cloud_volume.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/galaxy/system/<uid:system_id>/nearest")
 @page_limit("galaxy_tiles")
 def galaxy_system_nearest(system_id):

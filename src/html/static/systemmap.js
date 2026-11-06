@@ -49,6 +49,7 @@ const { infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
 const { placeBoxes } = await import(`./maplabels.js${VERSION_QUERY}`);
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
+const { renderViewMenu } = await import(`./viewmenu.js${VERSION_QUERY}`);
 
 function classField(el) {
   var cls = el.dataset.class;
@@ -1303,7 +1304,7 @@ function initLayers(root) {
     },
   });
   layers.readUrl(window.location.search);
-  layers.renderMenu(menu);
+  renderViewMenu(layers, menu);
   var legend = document.getElementById("sysmap-layer-legend");
   if (legend) {
     layers.renderLegend(legend);

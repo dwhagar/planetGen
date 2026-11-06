@@ -2,6 +2,151 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3394] - 2026-11-06
+
+**Headline:** The test of a charted region's token now says what the map does: a region with no inhabited worlds carries the Region symbol.
+
+### Fixed
+- **Region token test (MAP.398).** `test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card` said a region without inhabited worlds has no token, which stopped being so when every charted region got the Region symbol (#5208). It now checks that a region with inhabited worlds carries the inhabited token, one without carries the Region symbol, switching Inhabited worlds off leaves its region the Region symbol, and no region is marked twice. No change to the map.
+
+## [8.0.3393] - 2026-11-06
+
+**Headline:** The View menu's search is written and tested, ready for the search box.
+
+### Added
+- **Search over the View menu's entries (UX.279).** `static/viewmenusearch.js` takes the layers' entries and the text typed and says which match
+  (every typed word must start a word of the name, the group's name or a keyword, in any case and order), in the menu's order, with the
+  headings and groups to open and a screen-reader count ("5 matches"). Nothing shows it yet: the search box is UX.281. No look change.
+
+## [8.0.3392] - 2026-11-06
+
+**Headline:** The Sensor registry's text is in American spelling.
+
+### Changed
+- The Sensor registry (`web/lib/sensor.py`) said "surface colour"; it now says "surface color", which the whole-site spelling test (DOC.102) requires. Text only; `generation-output: unchanged`.
+
+## [8.0.3391] - 2026-11-06
+
+**Headline:** The System Map's and the sector page's Menu now fold into headings with counts, real checkboxes and a mark where a switch is not as it starts.
+
+### Added
+- **Shared View menu builder (UX.278).** `static/viewmenu.js` makes the Menu of a map from the layers it has, using the headings each layer
+  declares (UX.277): a fold per heading (Show, Color and fill, Chart and side views, Move and Settings; a map shows only the ones it has
+  layers for), a count in each ("Show 4 of 12 on"), real checkboxes that keep the layers' `data-layer` and `data-*` attributes, an
+  all/some/none box for a group of two or more layers, the word "changed" beside a switch that is not as it starts, and the open or folded
+  state of each heading kept in the browser. A menu of twelve layers or fewer starts open; a longer one folds all but the first heading.
+  The System Map and the sector page use it; the Galaxy Map's Menu is unchanged until UX.280. The search over the entries is UX.279.
+
+## [8.0.3390] - 2026-11-06
+
+**Headline:** The life class rules page is rebuilt with the American spelling DOC.103 gave the rule file, and its test passes again.
+
+### Changed
+
+- `docs/design/habitability/life-class-rules.md` is rebuilt from the rule file (`scripts/build_life_class_rules.py`): one word, "center" for "centre", had changed in the file and not in the page, so `test_life_class_rules_doc::test_the_page_is_the_rule_file_as_built` failed on main.
+
+generation-output: unchanged
+
+## [8.0.3389] - 2026-11-06
+
+**Headline:** The density identity test's notes use the American spelling.
+
+### Changed
+
+- The notes of `test_the_spiral_written_as_components_gives_the_density_it_gave_before` write "disk", not "disc", as DOC.103 asks, so `test_american_spelling` passes for them (TEST.631 follow-up). Words in a docstring only.
+
+generation-output: unchanged
+
+## [8.0.3388] - 2026-11-06
+
+**Headline:** A build no longer dies on a rock whose dayside is hotter than 6000 K.
+
+### Changed
+
+- The vapor over a molten surface (`physics/mixture_lava.py`) is worked out at no more than `MELT_MAX_K`, 6000 K, the top of NASA Glenn's fits of the liquid oxides and of 47 of the 84 gases (GEN.1294). A build had died once with `SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000 K)` for a hot-zone rock whose dayside (`tp_k`) or a white-dwarf planet's exosphere (`ts_k`) was over 6000 K; a rerun passed because it drew a cooler body. The mixture still reports the surface's own temperature, and `species_thermo` still raises for any other call outside its fits. The clamp is a stand-in, row AM95 of the registry (tier 6, tweak level 0).
+- Every surface at or under 6000 K gives the same vapor as before, so no stored value changes; only a body that used to stop the build now has a vapor.
+
+generation-output: unchanged
+
+## [8.0.3387] - 2026-11-06
+
+**Headline:** The update's warm-up progress bar follows the work inside each unit, and a keypress skips the warm-up.
+
+### Changed
+- **OPS.106: update.sh no longer guesses how long a step takes.** The "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are gone; the progress bar says how long is left.
+- **OPS.107: the warm-up bar moves inside a unit.** Sector, system and phenomenon slices report how many objects they have warmed, and the bar, the stage's time left and the whole warm-up's time left count that part of a chunk, so a big galaxy's few large chunks no longer leave the bar at zero until the first one ends. `planetgen warm --follow` shows the same.
+
+### Added
+- **OPS.108: press s during the warm-up to skip it.** update.sh shows the key while a warm-up stage runs (only with a terminal; without one nothing is read and the warm-up runs as before). What was stored is kept and the first visit builds the rest.
+- **OPS.109: the data set download step lists what it keeps by download URL.** Files already stored are shown as one `kept` line for each URL (with the file count), not one line for each file, and the dataset line says the folder they are stored in.
+
+## [8.0.3386] - 2026-11-06
+
+**Headline:** Every kind of object now has a Sensor entry, and `GET /api/objects/<ref>/sensor` returns the record its picture is drawn from.
+
+### Added
+- **The Sensor registry** (`web/lib/sensor.py`, `static/sensorview.js`, UX.275): one table that maps every kind of the property sheet to the look builder and the painter that exist (a star, planet or moon look record, the phenomenon pictures, the nebula cloud), built from the stored row and the Object ID seed alone. A kind no painter draws yet (belt, comet, asteroid field, remnant, cluster, superbubble, facility) says why. A test fails for a kind in the property sheet that has no entry, and one checks that the server's painter list is the script's.
+- **`GET /api/objects/<ref>/sensor`** returns the record (`painter`, `look`, `caption`, `estimate`, `inputs`, `reason`) so the object page, the map's info panel and the Chart and 3D views can read one thing. Additive, no existing route changes. No picture changes yet. `generation-output: unchanged`.
+
+## [8.0.3385] - 2026-11-06
+
+**Headline:** The Galaxy Map no longer draws a ring outline around each group of nebulae.
+
+### Changed
+
+- At the Galaxy level a group of nebulae was a soft blob with a thin ring near its rim, which read as large circle outlines over the disk. The blob is drawn without the ring. This is drawing only: it needs no regeneration and no new data.
+
+## [8.0.3384] - 2026-11-06
+
+**Headline:** The atmosphere stand-in registry names the four tests whose names DOC.103 respelled, and its test passes again.
+
+### Changed
+
+- `docs/design/research/gap-filling-plan.md` rows AM10, AM15, the impactor-escape row and the alumina row named tests by their British spelling (`vapour`, `oxidised`); DOC.103 respelled the tests (`vapor`, `oxidized`) and left the rows, so `test_atmosphere_standin_registry.py::test_a_row_names_a_constant_and_a_test_that_exist` failed in four cases on main since train 10. The rows now name the tests as they are. `stand-in-values.md` and `docs/references/` are rebuilt from the plan.
+
+generation-output: unchanged
+
+## [8.0.3383] - 2026-11-06
+
+**Headline:** The Sector Map draws every nebula and supernova remnant as a soft volume of points, with no hard ball or ring left.
+
+### Changed
+- **Supernova remnants and nebulae with no stored id are drawn from points on the Sector Map.** A remnant used to show as a hard-edged analytic ball and shell, and a scattered nebula or one a waiting star lights as a smooth ball, because only a stored nebula could ask for its points by id (MAP.142). They now ask for the points of their own sphere in the colour of their family, the same sampler and density the stored nebulae use, so they match the Galaxy Map (MAP.392). The analytic sphere stays only as the fallback of a host that cannot draw points.
+- New route `GET /api/galaxy/cloud-volume?x=&y=&z=&radius_pc=&family=` (and the site's `/galaxy/cloud-volume`) returns the packed points of a sphere; additive, no existing route changes. `generation-output: unchanged`.
+
+## [8.0.3382] - 2026-11-06
+
+**Headline:** The density identity test is recorded again for the new star formation history, and passes.
+
+### Changed
+
+- `tests/fixtures/density_identity.json` is recorded again (TEST.631). `test_the_spiral_written_as_components_gives_the_density_it_gave_before` failed in all six cases on main since train 9: GEN.1230 and GEN.1242 (epoch 131) made the thin disc form from an inside-out infall, which moved the ages of each population and so the mean system mass behind the model's units. Checked point by point before the fixture was rewritten: every total density and the halo are the old ones times one number per shape (1.0010 to 1.0014, and 1.0444 for the large four-armed disc), the total mass is unchanged, and only the per-population units and the mix of a place between age groups move. The fixture's `nuclear_disc` is now `nuclear_disk`, the spelling DOC.103 gave the stored name.
+
+generation-output: unchanged
+
+## [8.0.3381] - 2026-11-06
+
+**Headline:** The sky of a system is seen through the dust of its own galaxy's gas, so a small galaxy's sky is no longer smothered by the Milky Way's dust written in fixed parsecs.
+
+### Changed
+- **The sky route, the glow band and the sprites use the dust of the galaxy's own gas.** `api/system_sky.py` builds the stored galaxy's `DustProfile` (`dust_model.dust_for_shape`, VIEW.43) and gives it to the stars (`sky_from_database`, which takes it by default from the stored shape: `sky.default_dust`), the nebula sprites, the glow band and the "wanted" reach. Before, every galaxy had the Milky Way's law in fixed parsecs (9.6 magnitudes per kiloparsec in the plane of the 481 pc test galaxy at its site, 0.05 now). `av_per_kpc_at_sun = 0` still means a dust-free sky.
+- **The glow band's cache key follows the dust tables** (the digest of the profile, `DustProfile.key()`), and `SKY_VERSION` is 4, so every stored sky and band is built again.
+
+## [8.0.3380] - 2026-11-06
+
+**Headline:** A test that hangs past its time limit is now stopped, named and reported, and the test run goes on instead of waiting for hours.
+
+### Fixed
+- The full non-browser run hung twice with every worker idle (1.5 h and 3 h). `pytest-timeout`'s signal fires once and raises in the test; a test that holds a process pool then waits for its children as the `with` block closes (`shutdown(wait=True)`), and a child that is still busy never ends, so the alarm was spent and nothing stopped the wait. Reproduced with a two-child pool that sleeps.
+- New `tests/hang_guard.py` (loaded from `pytest.ini`): a second clock on a thread of its own for every test, over setup, call and teardown. Past the test's limit plus `hang_guard_grace` (120 s) it prints `HUNG TEST <node id> (worker ...)` and kills the worker's child processes, so the wait ends and the timeout is reported as the test's failure; 120 s later, if the test is still running, it ends the worker (`os._exit(70)`), which xdist reports as a crashed worker on that test and replaces.
+- `scripts/test.py` stops a phase that prints nothing for two hours (`PLANETGEN_TEST_IDLE_LIMIT_S`, 0 turns it off), says `HUNG RUN`, and returns exit code 124.
+
+### Added
+- `tests/test_hang_guard.py` (a hung pool is killed and the next test runs; a test stuck on nothing a child can end loses its worker under xdist and the run goes on; no limit, no watch; the process-tree helpers) and three tests of the idle limit in `tests/test_test_runner.py`.
+
+generation-output: unchanged
+TODO items resolved: TEST.621
+
 ## [8.0.3379] - 2026-11-06
 
 **Headline:** Every map layer now declares the View menu heading and search words it belongs under, ready for the grouped menu.

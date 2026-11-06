@@ -539,6 +539,10 @@ export function createLayerRegistry(mode, options) {
     // Asks every menu and legend drawn from this registry to bring itself up to date (an `available` or a
     // `title` changed without a layer being switched).
     refresh: function () { views.forEach(function (refresh) { refresh(); }); },
+    // UX.278: a menu drawn by another module (viewmenu.js) hands its refresh over, one per container, so a layer switching
+    // brings it up to date as it does the menu `renderMenu` draws.
+    headings: HEADINGS.slice(),
+    attachView: function (container, refresh) { views.set(container, refresh); },
     readUrl: readUrl,
     writeUrl: writeUrl,
     legend: legend,
