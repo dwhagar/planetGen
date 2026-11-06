@@ -1,6 +1,6 @@
 # tests/test_train_gate.py
 
-"""the merge train's gate script splits a file list by time, resumes from its results file and tells a red the train caused from a known one."""
+"""The merge train's gate script splits a file list by time, resumes from its results file and tells a red the train caused from a known one."""
 
 import importlib.util
 import pathlib
