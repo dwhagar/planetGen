@@ -17845,19 +17845,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.593.
 
-- [ ] **TEST.641 tests/test_sweep_atmosphere.py::test_the_sweep_holds_planets_of_many_classes_in_every_zone_and_some_moons finds 7 moons where it asks for at least 20 (bug)**
-  Tides 1 (as the lane reported, about 11:23 PM EST on 2026-11-05) found
-  this test red on main after train 11. The likely cause is GEN.962
-  (train 11): rocky planets now hold a massive moon only from a giant
-  impact, so moons per planet fell from about 1.3 to 0.1 and the sweep
-  holds fewer moons. Do: confirm that is the cause, then give the sweep
-  enough moons by widening it (more systems, or a sweep that adds moons
-  of giants) rather than lowering the floor without a reason, and say in
-  the test why the number is what it is. Lock-free, no migration. Done:
-  the test passes on current main. Version 8.1. Owner: Bug 1. Filed by
-  the TODO thread.
-  Prerequisites: none. Related: GEN.962.
-
 - [ ] **TEST.642 tests/test_work_units.py: three tests start a second run in the same process and raise Busy from the ADM.136 guard (a run started inside a run would wait for itself for ever) (bug)**
   The Train Manager (as the lane reported, about 11:24 PM EST on 2026-11-05, main e97e2e2d9) ran tests/test_work_units.py: test_a_second_run_waits_in_line_for_the_first_and_then_runs, test_a_runs_results_do_not_depend_on_the_place_it_started_from and test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for raise planetgen.queue.runrecord.Busy: the run is started by the same process that follows it, so it would wait for itself for ever. That is the ADM.136 guard (#4680) firing on tests that start a second run in the same pytest process. Do: start the first run from a separate process (or a thread that is not the follower) in those tests so the guard stays, and never weaken the guard. Reproduce on current main first. Lock-free, no
   migration. Done: the test passes on current main. Version 8.1. Owner:
@@ -17894,6 +17881,35 @@ clears each one.
   sees the digest change, and the golden is rewritten. Version 8.1. Owner:
   Aux 7. Filed by the TODO thread.
   Prerequisites: TEST.602, TEST.598. Related: TEST.644.
+
+- [ ] **GEN.1303 Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug)**
+  Bug 1 (as the lane reported, 5:21 AM EST on 2026-11-06) found
+  test_sweep_bulk's detail-ranges check red on plain main: 10 sweep bodies
+  (class T and E, G2V and F5V) have envelope_helium and envelope_z None
+  although their envelope share is 1e-6 to 2e-5, so the GEN.1226 fill
+  that stores the envelope for every body skips them. Do: reproduce on
+  current main, find why the fill skips a share this small (a threshold, a
+  branch that returns early, or a class rule), store the envelope helium
+  and metals for every body with an envelope, and keep the stored values
+  physical for a share this small. Lock item if stored values change (new
+  epoch, golden), else lock-free. Done: no body with an envelope share
+  above zero has envelope_helium or envelope_z None, and the sweep
+  detail-ranges check passes. Version 8.1. Owner: Bug 1 after GEN.1298.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1226.
+
+- [ ] **TEST.648 Four tests fail on a registry mismatch: test_solar_system_standin_rows (2) and test_calibration_fence (2) cannot match the SSR9 rows ('surface-ground-types', 'oxidised') and ('atmosphere-m', 'm1'/'m2') after the DOC.103 respelling to 'oxidized' (bug)**
+  Bug 1 (as the lane reported, 5:21 AM EST on 2026-11-06) found
+  test_solar_system_standin_rows (2) and test_calibration_fence (2) red on
+  plain main: the stand-in registry cannot match the SSR9 rows
+  ('surface-ground-types', 'oxidised') and ('atmosphere-m', 'm1' and
+  'm2'). The DOC.103 respelling to American spelling ('oxidized') left old
+  data behind. Do: find the row keys that still use the old spelling or
+  the old name, fix the data and the tests at the cause, and rebuild the
+  generated pages. No code change in generation. Done: the four tests
+  pass on current main. Version 8.1. Owner: Core 5 (DOC.103's owner). Filed
+  by the TODO thread.
+  Prerequisites: none. Related: DOC.103.
 
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
