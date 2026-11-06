@@ -17188,6 +17188,21 @@ clears each one.
   8.1. Owner: none yet (life lane). Filed by the TODO thread from Bug 1.
   Prerequisites: none. Related: GEN.750.
 
+- [ ] **GEN.1308 Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders**
+  Split out of GEN.1092 by Aux 5 (5:40 PM EST as the lane reported) when
+  part B (the display of where an outer disk's mass went, #5357) merged.
+  Do: hand the scatter step's swept shares on (1) the implanted-inner-belt
+  share to the inner belt's mass, (2) the captured_moons share to the
+  irregular-moon pool, replacing the pool's own efficiency draw or
+  checking it against the share (GEN.1083 already moved captured moons
+  to irregulars, so check first what is left), (3) the ejected share to
+  the rogue builders. Physics drives, no game rates; register any
+  stand-in in GEN.725. Lock item (belt masses and moons change). Done:
+  the shares that left an outer disk arrive where they went, and the
+  mass ledger sums exactly in a test. Version 8.1. Owner: Aux 5, after
+  GEN.1085. Filed by the TODO thread from Aux 5.
+  Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
+
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal
