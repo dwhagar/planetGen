@@ -161,7 +161,14 @@ def test_the_link_stage_is_cut_into_static_chunks_that_store_the_same_links(mysq
 
     monkeypatch.setattr(run_galaxy, "LINK_UNIT_SECTORS", 1)
     cut = run_galaxy.expand_link_neighbors(params)
-    assert len(cut.units) == cut.plan["sectors"] == 4
+    # Every saved sector is linked, and a rogue planet in a cell nobody charted has a `sectors` row of its own (GEN.1111 part 7), so the four
+    # saved sectors are the stage's sectors with those.
+    conn = store.get_connection(mysql_config)
+    try:
+        in_all = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+    finally:
+        conn.close()
+    assert len(cut.units) == cut.plan["sectors"] == in_all >= 4
     assert [unit["chunk"] for unit, _cost in cut.units] == [unit["chunk"] for unit, _cost in
                                                            run_galaxy.expand_link_neighbors(params).units]
     conn = store.get_connection(mysql_config)

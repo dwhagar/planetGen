@@ -23,7 +23,7 @@ from planetgen.generation.stats import (
     format_duration,
 )
 from tests import first_fill
-from tests.test_galaxy_gen import _all_sectors, _mysql_argv, _plan_wide_galaxy, _run_cli
+from tests.test_galaxy_gen import _all_sectors, _charted_sectors, _mysql_argv, _plan_wide_galaxy, _run_cli
 
 
 # ---------------------------------------------------------------------------
@@ -325,7 +325,7 @@ def test_a_run_the_disk_cant_hold_warns_and_goes_ahead(mysql_config, monkeypatch
     monkeypatch.setattr(generationStats, "database_disk",
                         lambda conn, host, *a, **k: DiskSpace("/data", 100 * GB, 5 * GB))
     _run_cli(FIRST_THREE + ["--yes"] + _mysql_argv(mysql_config))
-    assert len(_all_sectors(mysql_config)) == 3
+    assert len(_charted_sectors(mysql_config)) == 3
     out = capsys.readouterr().out
     assert "WARNING:" in out and "at least 5.0 GB must stay free" in out
 
@@ -351,7 +351,7 @@ def test_a_terminal_is_asked_first_and_no_stops_the_run(mysql_config, monkeypatc
 
     monkeypatch.setattr("builtins.input", lambda prompt: questions.append(prompt) or "y")
     _run_cli(FIRST_THREE + _mysql_argv(mysql_config))
-    assert len(_all_sectors(mysql_config)) == 3
+    assert len(_charted_sectors(mysql_config)) == 3
 
 
 def test_yes_skips_the_question(mysql_config, monkeypatch):
@@ -359,7 +359,7 @@ def test_yes_skips_the_question(mysql_config, monkeypatch):
     monkeypatch.setattr(run_common, "_interactive", lambda: True)
     monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("asked"))
     _run_cli(FIRST_THREE + ["--yes"] + _mysql_argv(mysql_config))
-    assert len(_all_sectors(mysql_config)) == 3
+    assert len(_charted_sectors(mysql_config)) == 3
 
 
 def test_a_run_records_its_speed_and_the_databases_size(control_config, monkeypatch):
@@ -382,13 +382,13 @@ def test_the_web_neighborhood_can_be_estimated_and_refused(mysql_config, monkeyp
     center = _all_sectors(mysql_config)[0]["id"]
     result = run_galaxy.generate_sector_neighborhood(center, radius_ly=40.0, config=mysql_config, estimate_only=True)
     assert result["generated"] == 0 and result["estimate"]["sectors"] >= 1
-    assert len(_all_sectors(mysql_config)) == 3
+    assert len(_charted_sectors(mysql_config)) == 3
 
     monkeypatch.setattr(generationStats, "database_disk",
                         lambda conn, host, *a, **k: DiskSpace("/data", 100 * GB, 5 * GB))
     with pytest.raises(run_galaxy.GenerationRefused, match="must stay free"):
         run_galaxy.generate_sector_neighborhood(center, radius_ly=40.0, config=mysql_config)
-    assert len(_all_sectors(mysql_config)) == 3
+    assert len(_charted_sectors(mysql_config)) == 3
 
 
 def test_absurd_densities_stay_finite():
