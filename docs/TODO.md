@@ -687,7 +687,7 @@ with `clamp()`.
   (GEN.430). Old letter filters map or go, no shim. Owner: Habitability
   lane B with lane D. Done: every reader shows the same class, a browser
   test filters by class and by colour.
-  Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
+  Prerequisites: DB.90. Related: UX.100, MAP.220, GEN.430.
 
 - [ ] **UX.179 Sitemap entries and an Open Graph image for object pages (optional, can wait)**
   Boss's ask, 12:43 AM EDT 2026-10-24 (message
@@ -9331,60 +9331,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposal item is done when GEN.645 is filed as the design (close it
   with GEN.645).
 
-- [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
-  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
-  then D', relayed by the coordinator): 'Let's go with 3, since we're
-  doing compositions, let's leave out the class designation until planet
-  generation is completed, then fill in the classes based on the
-  atmosphere (even no atmosphere) composition / pressure, average
-  surface temperature, terrestrial composition (i.e. a rocky planet
-  composition), gas composition (for gas giants), same for moons. The
-  reason I did classes the way they are now is because I didn't know how
-  to get the compositions correct.' Proposal and options:
-  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
-  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
-  (the habitable rule). Owner: Habitability lane D unless stated.
-  Implement the rule table of the design item as one pure function over
-  the stored conditions (including no atmosphere), used at generation
-  end, after an edit, and by the maps and search. Done: every planet and
-  moon gets a class from its stored conditions, a test per rule, a sweep
-  over a seeded galaxy that checks every body has exactly one class and
-  the class agrees with its conditions, and the result is identical at
-  any worker count.
-  Prerequisites: none. Related: GEN.645, GEN.646, GEN.643.
-  Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
-  the TODO thread): the Condition-based planet classes lane builds this
-  item (its design draft:
-  /mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md,
-  notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
-  Habitability lane D keeps GEN.645 and GEN.643. This replaces
-  'Habitability lane D' above for the build.
-  Boss, 6:21 PM EDT 2026-10-23: 'oh planet classes will also be classed
-  by their physical properties (size, gravity, etc)'. classify(body)
-  also reads size and surface gravity; the class code carries a size
-  tier (S and V become tiers, not letters, as the class lane reported).
-  Life part (2026-10-09): 11:58 PM EDT 2026-10-23 (as the class lane
-  reported): #2833 merged GEN.92 and the life part of this item: life
-  and pigments now come from stored conditions, the letter life tables
-  are deleted, and more small icy and volcanic worlds can carry life; it
-  took generator epoch 65. The cut-over steps C13 to C15 (classes
-  assigned after generation, once lanes I, J, K and L land) are still
-  open here.
-  Steps C1, C2, C4 (2026-10-09): Found 12:12 AM EDT 2026-10-24 by the
-  TODO thread, which had not recorded it: #2781 merged classify(body)
-  (physics/planet_classes.py with planet_classes.json), the shadow sweep
-  (tests/class_shadow_cli.py) and the class pages from the rules
-  (web/lib/classref.py). Steps C1, C2 and C4 are done; C5 is
-  unconfirmed; C3 merged as #2833; C6 to C16 are filed as GEN.681 to
-  GEN.690, TEST.314 and TEST.315 below.
-  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
-  EDT): Boss told us (9:44 AM EDT 2026-10-31) to build best-fit scoring:
-  the class is still assigned after the body is complete and from the
-  same stored conditions, but classify(body) no longer walks rows in
-  file order; it scores every class by percent match and the best match
-  wins (GEN.1207). The rule that the class is derived from the finished
-  body stands.
-
 - [ ] **GEN.648 The generation request for a habitable world (+habitable_world) runs an ordered ladder of nine adaptations before it gives up: redraw the surface, restrict the planet, more starting water, aquifers, regenerate the planet, adapt the system, add a brighter primary, regenerate the star, then the best result**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
   then D', relayed by the coordinator): 'Let's go with 3, since we're
@@ -9547,28 +9493,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.462.
 
-- [ ] **GEN.685 Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class]**
-  Step C10 of the condition-based classes build (design draft
-  design-drafts/condition-based-classes-2026-10-23.md section 7, from
-  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
-  after generation from the finished body). Filed by the TODO thread at
-  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
-  GEN.647 and GEN.646. Do: the water mass fraction from the origin and
-  the composition (GEN.442, GEN.466, GEN.461); delete the class table.
-  Done: nothing reads WATER_MASS_FRACTION. Owner: Composition J and K.
-  Prerequisites: GEN.466.
-
-- [ ] **GEN.687 Rogue planets get their class from classify; delete choose_rogue_planet_class**
-  Step C12 of the condition-based classes build (design draft
-  design-drafts/condition-based-classes-2026-10-23.md section 7, from
-  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
-  after generation from the finished body). Filed by the TODO thread at
-  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
-  GEN.647 and GEN.646. Do: rogue planets are classified like any body;
-  delete choose_rogue_planet_class. Done: a rogue planet's class equals
-  classify of its stored values. Owner: Composition J.
-  Prerequisites: GEN.558, GEN.682.
-
 - [ ] **GEN.688 Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable**
   Step C13 of the condition-based classes build (design draft
   design-drafts/condition-based-classes-2026-10-23.md section 7, from
@@ -9583,40 +9507,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss 5:49 PM EDT 10-30 (2026-10-30 5:50 PM EDT): Superseded in part:
   +habitable_world and +intelligent_life only tweak probabilities (see
   GEN.1130); the PHI-6 steering is not built.
-  Prerequisites: GEN.681, GEN.682, GEN.684, GEN.685.
-
-- [ ] **GEN.689 The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column**
-  Step C14 of the condition-based classes build (design draft
-  design-drafts/condition-based-classes-2026-10-23.md section 7, from
-  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
-  after generation from the finished body). Filed by the TODO thread at
-  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
-  GEN.647 and GEN.646. Do: classify runs at the end of generation, the
-  validation becomes total and derived, one generator epoch (numbered at
-  merge), and a migration backfills the stored class from stored values
-  where enough exist. Done: every body has exactly one class that agrees
-  with its conditions at any worker count. Owner: Condition-based
-  classes lane with the TODO thread for the epoch.
-  Prerequisites: GEN.681, GEN.682, GEN.684, GEN.685, GEN.686,
-  GEN.687, DB.67, DB.69, DB.70.
-  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
-  EDT): The cut-over rule stays (classify at the end of generation,
-  total and derived). GEN.1207 changes what classify does inside:
-  best-fit instead of first-match, with class_match and runner-up
-  columns in the same kind of migration. If this item is still unbuilt
-  when GEN.1207 is, build the best-fit classifier, not the first-match
-  tree.
-
-- [ ] **GEN.690 Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs**
-  Step C15 of the condition-based classes build (design draft
-  design-drafts/condition-based-classes-2026-10-23.md section 7, from
-  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
-  after generation from the finished body). Filed by the TODO thread at
-  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
-  GEN.647 and GEN.646. Do: delete the five generation tables with no
-  shim and update the golden outputs. Done: no reader of the deleted
-  names is left. Owner: Condition-based classes lane.
-  Prerequisites: GEN.689.
+  Prerequisites: GEN.681, GEN.682, GEN.684.
 
 - [ ] **GEN.707 Register the white dwarf binary stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each**
   Found by Core 4 while merging GEN.271 (#2928, epoch 73), report
@@ -10232,80 +10123,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   expectations are in src/tests/data/prevalence_expectations.json.
   Catalog sections 2 and 4.
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
-
-- [ ] **GEN.862 Design: the life class system, merged as docs/design/habitability/life-classes.md (nine classes, the stage ladder, the ledger, scoring and storage)**
-  Boss (2026-10-28, 7:41 PM EDT): the class system is expanded in 9.5
-  with a life class system, an expansion of the habitable index, because
-  the habitable index then has more dimensions: habitable to what kind
-  of life? Design the life classes (carbon and water based life first,
-  stage-aware: microbial, plants, animals, then sentient), the score
-  each world gets per life class, how the existing habitable index
-  (PHI-6) becomes the near-Earth carbon and water case of it, and where
-  a class is derived from the atmosphere of evolution (GEN.857 to
-  GEN.861). Any life class that is not carbon based is a proposal only
-  until Boss approves it. Done when the design note is checked and Boss
-  has answered its questions.
-  Research (2026-10-09): Boss, 9:10 PM EDT 2026-10-28: moved from 9.5
-  into 8.1 for carbon life. Build in all carbon based life, with what it
-  eats, drinks, breathes and excretes, and a whole life classification
-  system: each class defined by atmosphere type, temperature, pressure
-  and all the planet properties it needs, and by what it consumes and
-  produces. Each planet then says it supports Class ?? life, and has
-  Class ?? life at the ?? stage (the dominant life's chemistry and
-  stage), which also lets us plot how each class changes the atmosphere.
-  Sentient life stays in 9.5 (GEN.864). A design thread (Design carbon
-  life class system) feeds the sub-items; the design may change GEN.875
-  to GEN.884. Non-carbon classes remain proposals (GEN.874).
-  Research (2026-10-09): Boss, 9:12 PM EDT 2026-10-28: open build, no
-  more restrictions on life chemistry; the assumption is that if life is
-  possible it develops (so 'stop at animals' and the carbon-only limit
-  no longer apply to the chemistry; sentient life still waits for 9.5 at
-  today's share of worlds). Earlier proposal-only labels and the
-  animals-at-most cap are void.
-  Research (2026-10-09): Boss answered the four design cards with option
-  1 (9:20 PM EDT): physics decides how far strange-solvent life goes (no
-  hard cap); cold methane worlds use the faster diffusion-limited origin
-  rate; the dominant class is the one with the most food production (the
-  others listed as also supports); classes 1 to 4 with the store,
-  display and chart first, classes 5 to 9 as a second build, both inside
-  8.1. The order of the sub-items is final: GEN.886 (L2), GEN.887 (L3),
-  GEN.888 (L4), GEN.889 (L5), GEN.890 (L6), GEN.891 (L7), GEN.894 (L8),
-  GEN.892 (L11), GEN.893 (L13), UX.237 (L9), API.37 and MAP.345 (L10),
-  TEST.435 (L12). GEN.874 and GEN.885 are folded into this work.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Prerequisites: none. Related: GEN.857, GEN.861.
-
-- [ ] **GEN.863 Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters**
-  Boss (2026-10-28, 7:41 PM EDT): built from the 9.5 design: the
-  habitable index becomes a set of scores, one per life class, kept in a
-  migration with the units registry entries, returned by the API and
-  shown on the planet page and in the map's world filters. The existing
-  single habitable index stays as the near-Earth carbon and water class.
-  Research (2026-10-09): Boss, 9:10 PM EDT 2026-10-28: moved from 9.5
-  into 8.1 for carbon life. Stores Class ?? supported per world and
-  Class ?? life at the ?? stage; the object page, API and map filters
-  show them; the atmosphere stage-aware air (GEN.858) reads the class
-  and stage.
-  Parent of the build items of the life class design: L5 GEN.889 (the store),
-  L9 UX.237 (the page), L10 API.37 and MAP.345 (API and filters).
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
-  AM EDT): Boss wants more than one life type to coexist on a planet
-  (10:05 AM EDT 2026-10-31). The per-class scores built here stay as
-  what could live there; GEN.1209 adds the list of what does live there,
-  with a prevalence each. Do not make life_class_id a single-valued
-  public contract: GEN.1209 adds a list beside it.
-  Prerequisites: GEN.862.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
@@ -12376,54 +12193,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the References menu); this item does not cover the help rewrite.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
-- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed)**
-  Boss approved the class option for the hot thin-air gap (Class M
-  thread, relayed 10:13 AM EDT 2026-10-31); he has not yet named the
-  letter or the class name. Source: the best-fit shadow report
-  /mnt/project-files/reports/class-fit-shadow-2026-10-31.md (GEN.1206):
-  about 1.6 percent of sampled bodies fit no class. Filed by the TODO
-  thread. Waits on Boss for the letter (from the reserve letters R U W X
-  Y Z) and the name. Do, once named: give the class its own full
-  positive conditions in planet_class_fit.json (gravity 1.4 to 2 g or
-  the swept edges, 340 to 1100 K, 1 to 10 kPa, no hydrosphere, with
-  shoulders registered in GEN.725), the page text in the style guide
-  (DOC.83), the class page and its help page, and the rule row for the
-  first-match tree if GEN.1207 has not replaced it yet; the sweep must
-  then list no body under 50 percent in this gap. Feeds GEN.1207 (the
-  best-fit switch); the same epoch. Where we think it belongs (best
-  guess, can move): the Class M research thread.
-  Boss named it (11:04 AM EDT 2026-10-31, via the class thread)
-  (2026-10-31 11:08 AM EDT): the hot thin-air class is Class R,
-  Hothouse. Boss is also moving the class names to a letter plus a
-  number from 1 to 9 for variants (0 is not written), 26 letters with 0
-  to 9 giving 260 possible classes for the 44 needed (30 now plus 14
-  new); the class thread is writing the system that says when a number
-  applies, what it means and how it differs, and will send the items.
-  Build Class R as a letter under that system, not as a separate
-  sub-letter scheme.
-  Replaced by the class code system (11:25 AM EDT 2026-10-31)
-  (2026-10-31 11:25 AM EDT): the hot thin-air gap is now the proposed
-  letter Z (a hot thin-air world) of the class code system (GEN.1220),
-  awaiting Boss to confirm Z; Class R is the Hothouse of the
-  oxygen-water family (digit 0), not this class. Build this item as the
-  Z row of the class-by-domain matrix (GEN.1221), not separately.
-  Letters confirmed (2026-10-31 12:08 PM EDT): Boss confirmed the class
-  letters (11:59 AM EDT 2026-10-31): Y is the sulfuric acid class
-  (swapped with the proposal, because Trek labels a Class Y a Demon
-  world; the definition is ours, the name sounds right for sulfuric
-  acid), U is methane-ethane, X is ammonia-water and Z is the hot
-  thin-air world. Class R is Hothouse. The wait on the letters is
-  cleared.
-  Covered by GEN.1221 and GEN.1207 (Core 4, as the lane reported) (11:59
-  AM EST on 2026-11-05): Class Z (hot thin air, 1.4 to 2 g, 340 to 1100
-  K, 1 to 10 kPa, no ocean) is a full row in GEN.1221 (train 11) and in
-  GEN.1207's class table (claude/core4-gen1207, train 12). No separate
-  build. Retires when GEN.1207 merges. Core 4's sweep of 150 systems
-  (seed 1000): of 36 hot thin dry bodies, 25 are Z at 100 percent, 9 are
-  V, 1 is Z at 70 percent, 1 fits nothing (1.25 g, 379 K, 998 Pa, just
-  under Z's 1.4 g edge).
-  Prerequisites: none. Related: GEN.1207, GEN.1208.
-
 - [ ] **GEN.1213 Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order**
   Boss, 10:54 AM EDT 2026-10-31: in atmospheric composition we need to
   account for our new mix of life on a planet, as each life type
@@ -13240,21 +13009,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same total time is batched into different nights, and the admin's
   fast-forward moves them with the orbits.
   Prerequisites: GEN.139. Related: POP.24, POP.35, POP.30.
-
-- [ ] **GEN.1296 The volatile-bearing branch (i6) of the lava vapor stage raises "no convergence" from gas_equilibrium.solve for carbon at held fO2 when hot and at low pressure (4000 K at 1 bar, 6000 K at 100 bar) (bug)**
-  Aux 7 (as the lane reported, about 7:35 PM EST on 2026-11-05), found
-  while fixing GEN.1294: mixture_lava's volatile-bearing branch (i6) can
-  raise EquilibriumError "no convergence" from gas_equilibrium.solve for
-  carbon at a held oxygen fugacity when the surface is hot and the
-  pressure low (4000 K at 1 bar, 6000 K at 100 bar). The GEN.1294 test
-  skips those draws; no real build has failed on it yet, but a hot lava
-  world that draws i6 could stop a build. Do: reproduce from a seed,
-  find why the solver does not converge there (start values, bounds, a
-  missing phase), fix the solver or the branch without catching and
-  hiding the error, and add a test that no longer skips. A changed
-  generated value is a lock item (epoch). Version 8.1. Owner: Aux 7.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1294.
 
 - [ ] **GEN.1297 values_from_body does not hand day_share_mean to the latitude bands: generation computes every rocky band for a point star while the re-score and API use the star's real angular size (bug)**
   Bug 1 (as the lane reported, about 7:35 PM EST on 2026-11-05):
@@ -14088,37 +13842,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315,
   GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
-
-- [ ] **DB.90 Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild**
-  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
-  then D', relayed by the coordinator): 'Let's go with 3, since we're
-  doing compositions, let's leave out the class designation until planet
-  generation is completed, then fill in the classes based on the
-  atmosphere (even no atmosphere) composition / pressure, average
-  surface temperature, terrestrial composition (i.e. a rocky planet
-  composition), gas composition (for gas giants), same for moons. The
-  reason I did classes the way they are now is because I didn't know how
-  to get the compositions correct.' Proposal and options:
-  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
-  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
-  (the habitable rule). Owner: Habitability lane D unless stated. One
-  column set with its Alembic revision and schema version (testing mode
-  allows it), declared with the other columns, a rebuild for rows under
-  an older epoch, and the edit path (ADM and map editing, 8.6) calls
-  classify again. Done: round trip, migration test, and an edited body
-  changes class when its conditions cross a rule.
-  Prerequisites: GEN.647. Related: GEN.647, DB.69, DB.70.
-  Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
-  the TODO thread): the Condition-based planet classes lane builds this
-  item (its design draft:
-  /mnt/project-files/design-drafts/condition-based-classes-2026-10-23.md,
-  notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
-  Habitability lane D keeps GEN.645 and GEN.643. This replaces
-  'Habitability lane D' above for the build.
-  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
-  EDT): GEN.1207 adds class_match, runner_up_class and runner_up_match
-  beside the stored letter. The reclassification step here must keep all
-  of them true after an edit or a rebuild, not just the letter.
 
 - [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
@@ -16881,7 +16604,7 @@ clears each one.
   changes the letter when another class scores a higher match, and keeps
   it when the same class stays best; the test should assert on the best
   match, and also that class_match and the runner-up are recomputed.
-  Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
+  Prerequisites: ADM.80. Related: TEST.301, DB.90, TEST.176.
 
 - [ ] **TEST.455 A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink**
   Companion of GEN.945, asked by Boss (5:44 PM EDT 2026-10-29). Today
