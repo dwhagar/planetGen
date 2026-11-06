@@ -18,7 +18,7 @@ For one planet:
    (`irregular_orbits.draw_orbit`) drawn again until it is one that stays (`irregular_zone.verdict`), up to `ORBIT_TRIES`.
 
 Nothing about a planet is drawn from the global stream: every number comes from `draw.Stream` keys made of the star's mass and the planet's orbit and mass, so the same planet gets the same
-irregulars. Stand-ins are IW1 to IW4 of `docs/design/research/gap-filling-plan.md` section 6.185.
+irregulars. Stand-ins are IW1 to IW4 of `docs/design/research/gap-filling-plan.md` section 6.190.
 """
 
 import dataclasses
