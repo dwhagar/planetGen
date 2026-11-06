@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3495] - 2026-11-06
+
+**Headline:** The train runner can move a head's stand-in section or citation to a free number in one command, and golden files in a merge conflict are left to the golden step.
+
+### Changed
+
+- `scripts/train.py renumber HEAD OLD NEW` changes a stand-in section (`6.193` to `6.196`) or a citation (`R5136` to `R5140`) in the lines a head added, so a clash found by `collisions` is fixed in seconds instead of by hand.
+- `scripts/train.py merge` takes this branch's side in a conflict in `src/tests/golden/` (the golden step writes those files again).
+
+generation-output: unchanged
+
 ## [8.0.3494] - 2026-11-06
 
 **Headline:** The page of an uncharted sector now lists what is placed in it, each object linked to its own page, and says plainly that the sector is uncharted.
