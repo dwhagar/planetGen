@@ -16782,6 +16782,7 @@ clears each one.
   with no other test moved. Version 8.1. Owner: Train Manager, after
   train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.430.
+  Owner change (TODO) (6:00 PM EST on 2026-11-06): Bug 1 takes the census re-tag (the Train Manager's run is in /mnt/project-files/reports/train12/test600-census-notes-2026-11-06.md); anomalies filed as TEST.656 and PERF.246.
 
 - [ ] **TEST.623 Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark)**
   Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
@@ -16938,6 +16939,49 @@ clears each one.
   mass ledger sums exactly in a test. Version 8.1. Owner: Aux 5, after
   GEN.1085. Filed by the TODO thread from Aux 5.
   Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
+
+- [ ] **TEST.656 Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876**
+  Train Manager census run on main d2b0ba47b (3:30 PM EST on 2026-11-06,
+  as the lane reported), notes
+  /mnt/project-files/reports/train12/test600-census-notes-2026-11-06.md
+  and class-census-after-train12-2026-11-06.md: nine new flags: moon class
+  B at A0V ecosphere (0.208 against 0.0 to 0.055) and A0V hot (0.182
+  against 0.0 to 0.058); G2V cold moon class D 0.894 against 0.519 to
+  0.806; K5V ecosphere moon ceiling unlimited 0.125 against 0.0 to 0.072;
+  M2V cold moon ceiling microbial 0.090 and none 0.910; the M2V hot moon
+  cell has no bodies drawn; and test_prevalence habitable_world-50 0.62
+  against 0.876 (first run, rerun pending). The moon flags follow the
+  regular moon list getting fewer and different moons after GEN.1082 to
+  GEN.1084. Do: for each flag say whether the new share is the physics
+  (captured moons are now irregulars, so regular shares fall) and re-tag
+  the range with the reason, or a defect and file the fix; run each census
+  file alone with `-n 0 -o timeout=6000`. Lock-free. Done: the class
+  census passes on main with every re-tag explained. Version 8.1. Owner:
+  Bug 1 (with TEST.600). Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.600, TEST.430, GEN.1083.
+
+- [ ] **PERF.246 A planet draw takes more than 45 seconds at A0V hot and K0III hot cells in the class census (machine speed or a slow draw)**
+  Train Manager census run (3:30 PM EST on 2026-11-06, as the lane
+  reported): the class census hit its 45 s guard on a planet draw at A0V
+  hot and at K0III hot, which may be only machine speed. Do: time those
+  two cells on a faster machine, profile the draw if it still passes 45 s
+  (the hot-star moon builds of PERF.241 are the likely cost), and either
+  cut the cost where it changes no output or file the lock item. Lock-free
+  to find. Done: no census cell draw passes 45 s on a 4 vCPU box or the
+  cost is explained. Version 8.1. Owner: Bug 1 after PERF.241. Filed by
+  the TODO thread.
+  Prerequisites: none. Related: PERF.241, TEST.656.
+
+- [ ] **TEST.657 Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems")**
+  Found by Tides 1 running the GEN.1190 gate (6:00 PM EST on 2026-11-06, as the lane reported): the same four fail on main without GEN.1190. The
+  moon-history failures say the sampled systems have no planet with moons,
+  which fits the GEN.1082 to GEN.1084 change that moved captured moons to
+  irregulars (fewer regular moons in the sample). Do: decide whether the
+  sample or the zone assertion is stale or the draw lost moons it should
+  have, fix the test or the cause, and name which. Lock-free. Done: the
+  four pass on main. Version 8.1. Owner: Bug 1 (with TEST.656). Filed by
+  the TODO thread.
+  Prerequisites: none. Related: TEST.656, GEN.1082, GEN.1190.
 
 - [ ] **MAP.399 Uncharted placeholder sectors in the Sectors list are named from their Object ID, say they are uncharted and name their region, and show no density (bug)**
   Boss, 5:00 PM EST on 2026-11-06 (relayed by the coordinator): the
