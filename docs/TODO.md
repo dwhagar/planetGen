@@ -17898,6 +17898,20 @@ clears each one.
   Aux 2. Filed by the TODO thread.
   Prerequisites: none.
 
+- [ ] **TEST.644 Four more tests are red on main: test_web_fresh_after_cli (3), test_fingerprint every_table_is_compared, test_db_check (3) and test_galaxy_gen span_mode (bug)**
+  Aux 2 (as the lane reported, 11:58 PM EST on 2026-11-05, main 07192bb4f)
+  found these red on main besides TEST.642 and TEST.643: the three
+  tests in test_web_fresh_after_cli (`[first] = _sectors(...)` gets more
+  than one row, because rogue planets add uncharted sector rows since
+  GEN.1111 part 7), test_fingerprint's every_table_is_compared, the
+  three tests in test_db_check, and test_galaxy_gen's span_mode (the
+  last four not yet checked on main). Do: reproduce each on current main,
+  find the cause, and fix the test or the code at the cause; for the
+  first group count only charted sectors, as TEST.643 did. Lock-free
+  unless a cause needs a migration. Done: all of them pass on current
+  main. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.642, TEST.643.
+
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
