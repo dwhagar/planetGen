@@ -11221,6 +11221,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   giant, belt, small planet, 9.933 Hill radii). The ledger holds both,
   so the GEN.1014 wiring fixes it and removes the expected-fail entry.
   Prerequisites: none. Related: TEST.477, GEN.1014, GEN.1006.
+  Owner (TODO) (5:15 PM EST on 2026-11-06): Core 1 takes it for train 14 (lock).
 
 - [ ] **GEN.1047 Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
@@ -17187,6 +17188,7 @@ clears each one.
   the window, and the 2595 K body is re-classed or explained. Version
   8.1. Owner: none yet (life lane). Filed by the TODO thread from Bug 1.
   Prerequisites: none. Related: GEN.750.
+  Owner (TODO) (5:15 PM EST on 2026-11-06): Bug 1 takes it after PERF.241 (found it; lock).
 
 - [ ] **GEN.1308 Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders**
   Split out of GEN.1092 by Aux 5 (5:40 PM EST as the lane reported) when
