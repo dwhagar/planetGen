@@ -57,6 +57,15 @@ default_python() {
 
 # After install-python-deps.sh: the site runs from the venv it made
 # (OPS.45), so every later step uses that Python.
+# From here on `update.sh` appends every line it prints to `update.log` in the log folder (OPS.101), after the lines it printed before the
+# folder was known (`log_file_begin`). The folder is the code's to say (`config.json`'s `log_dir`), so the new checkout is asked; with no
+# virtual environment yet, or no folder to write, the lines stay on the screen only.
+start_update_log() {
+    local path
+    path="$(cd / && PYTHONPATH="$SCRIPT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" "$VENV/bin/python" -m planetgen.util.logpaths update.log 2>/dev/null)" || return 0
+    log_file_to "$path"
+}
+
 use_site_python() {
     PYTHON="$VENV/bin/python"
 }

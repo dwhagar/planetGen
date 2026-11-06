@@ -57,6 +57,10 @@ Every line `update.sh`, `install.sh` and the scripts they run print is a display
 
 `update.sh` and `install.sh` end with `log_summary` (OPS.100): one line, `=== Update done after 20:53: code 8.0.3440 (schema v214), site reloaded and answering at 07:44:08 EST, cache warm-up (stage 2 of 2, the full warm-up) done in 17:44 ===`, then every warning and error the script printed, repeated with its headline only, or "No warnings during this update." The reload's own lines say "Site reloaded", so "done" appears once, last. The warnings are kept in a file (`log_summary_begin`), so one printed inside `$(...)` or a pipe is kept too.
 
+## The named logs of the long jobs
+
+A job that runs unattended appends each run to a log of its own in the log folder (`log_dir`, `/var/log/planetgen`), all of them `*.log` files covered by the folder's one rotation rule: `warmup.log` (`planetgen warm`, OPS.96), `tiles.log` (the nightly whole-map build) and `orbits.log` (the nightly orbit update) (OPS.101). They are written by Python (`util/joblog.py`, `logpaths.job_log_path`), not by a redirect: a start line that says what started the run (`by hand`, `systemd timer`), the lines the run printed in the display form, and an end line that says how it ended (`finished after 17:44`, `ended with exit status 75`, `ended by Ctrl+C`, `failed: ...`). `update.log` holds every record `update.sh` prints, appended, so a hand run can be read again; the shell keeps the records in a temporary file until the Python environment says where the folder is (`log_file_begin`, `log_file_to`). `smoke` keeps its JSON output file. A log that cannot be written is said once and never stops the job.
+
 ## Stages
 
 One marker, one divider, one wording for each end of a stage. The marker is the one UX.98 built (`util/stagemark.py`): `Stage 4 of 12` for one stage and `Stages 4 to 12 of 12` for a run of them. A stage has these records, all with the field `event` and the numbers `stage` (the first), `stages` (how many there are in all), `count` (when more than one) and `seconds`:

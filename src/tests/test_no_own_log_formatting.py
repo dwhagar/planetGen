@@ -307,6 +307,7 @@ PRINT_ALLOWED = {
     "cli/version_history.py": "Says which version key was recorded: the answer to the command.",
     "galaxy/dials.py": "Prints the generated documentation block when run to rebuild the docs.",
     "physics/mathcheck.py": "Prints the math check report the person asked for.",
+    "util/logpaths.py": "Its main prints the path of a job log for the shell scripts that append to it: the answer to the command.",
     "util/log.py": "The console writer itself, and the three notes it prints before the logger exists.",
     "util/secret_key.py": "Says the key was set: the answer to the command.",
 }
