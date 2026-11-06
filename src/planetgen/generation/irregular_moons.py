@@ -122,6 +122,29 @@ class IrregularSet:
 NO_IRREGULARS = IrregularSet()
 
 
+def take_from_disks(disks, sets):
+    """
+    Takes the mass the planets caught out of the outer disks they caught it from (GEN.1085), so a belt's mass less what its planets hold is what the belt keeps: the stored bodies and the remainder of every
+    `IrregularSet` in `sets` are shared among `disks` (`AsteroidBelt`s) by their primordial mass, and each disk's `mass_kg` falls by its share, never by more than its remainder (the mass its stored members do not
+    hold), so the members it keeps are never short. The mass taken is added to the disk's `captured_mass_kg`, which is not stored: the planets' own sets say what they hold.
+
+    Returns:
+        float: The mass taken, kg.
+    """
+    caught = sum(moon.mass_kg for held in sets for moon in held.moons) + sum(held.remainder_kg for held in sets)
+    total = sum(disk.primordial_mass_earth for disk in disks)
+    if not caught > 0.0 or not total > 0.0:
+        return 0.0
+    taken = 0.0
+    for disk in disks:
+        room = max(disk.mass_kg - sum(member["mass_kg"] for member in disk.members), 0.0)
+        part = min(caught * disk.primordial_mass_earth / total, room)
+        disk.mass_kg -= part
+        disk.captured_mass_kg = disk.captured_mass_kg + part
+        taken += part
+    return taken
+
+
 @dataclass(frozen=True)
 class Source:
     """

@@ -35469,7 +35469,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": "GEN.1305",
           "what": "nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity"
         },
         {
@@ -38493,6 +38493,52 @@
       ],
       "slug": "6-184-stand-ins-of-the-binary-stripped-wolf-rayet-channel",
       "title": "Stand-ins of the binary-stripped Wolf-Rayet channel"
+    },
+    {
+      "key": "6.193",
+      "number": "6.193",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "irregular_moons.take_from_disks: what the planets hold now (stored bodies and remainder, after their own grinding) leaves the disks' present mass, shared by the disks' primordial mass and never more than a disk's remainder; the grinding the captured bodies and the disk each suffered separately is not told apart"
+            ],
+            [
+              "The range it moves in",
+              "the share of the disk is under 1e-6 for a Jupiter"
+            ],
+            [
+              "Where it holds",
+              "outer disks with one or more giants"
+            ],
+            [
+              "What would show it wrong",
+              "a captured population that is a tenth of its disk's present mass"
+            ],
+            [
+              "What replaces it",
+              "the capture taken from the disk at the window and both ground down apart"
+            ],
+            [
+              "Evidence",
+              "conservation of mass: the design asks that \"belt mass minus captured mass is conserved\" (docs/design/systems/captured-asteroid-moons.md section 4.4)"
+            ]
+          ],
+          "id": "CD1",
+          "key": "6.193:CD1",
+          "kind": "D",
+          "slug": "6-193-cd1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "irregular_moons.take_from_disks: what the planets hold now (stored bodies and remainder, after their own grinding) leaves the disks' present mass, shared by the disks' primordial mass and never more than a disk's remainder; the grinding the captured bodies and the disk each suffered separately is not told apart"
+        }
+      ],
+      "slug": "6-193-stand-in-of-the-mass-the-planets-take-from-an-outer-disk",
+      "title": "Stand-in of the mass the planets take from an outer disk"
     },
     {
       "key": "6.192",
