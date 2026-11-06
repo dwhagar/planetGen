@@ -1,6 +1,6 @@
 """What is read off the temperature of every place of a body (GEN.1265).
 
-Schema v214. `planets`, `moons` and `rogue_planets` gain the 25 columns `temp_livable_share` to `temp_site_longest_out_days` (`physics/temperature_coverage.py`): the livable share L of the surface's area
+Schema v217. `planets`, `moons` and `rogue_planets` gain the 25 columns `temp_livable_share` to `temp_site_longest_out_days` (`physics/temperature_coverage.py`): the livable share L of the surface's area
 and time and its two pieces, the Blue, Green, cold and hot shares, the area livable all the time and at least 90 percent of it, whether the livable ground is only the terminator belt,
 the coldest and hottest sample anywhere with where and when, and the best site with its coldest, hottest and mean temperature and its longest spell out of the livable band. The Temperature
 score is made from them (`habitability.temperature_score`). All new columns are NULL here: they are worked out from the stored temperature, spin, orbit, air, sea and ice when a body is
@@ -13,8 +13,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0214"
-down_revision = "0213"
+revision = "0217"
+down_revision = "0216"
 branch_labels = None
 depends_on = None
 
