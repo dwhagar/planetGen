@@ -1,4 +1,0 @@
-**Headline:** A rogue planet is thrown out when the planet architecture says it was, not at a drawn time.
-
-### Changed
-- **GEN.1295 (RG2): the ejection delay is read, not drawn.** A donor's rogue takes the time of the loss from the stored ejection record (`Loss.time_yr`, the disk lifetime of 3 Myr) and a top-up rogue, which has no record, takes the same time. The power-law draw (an even share of each decade from 1 Myr to the parent's age) and its two stand-in rows (RG1, RG2) are gone, with `rogue_age.ejection_delay_gy`, `DELAY_INDEX` and `EJECTION_DELAY_MIN_GY`. Every rogue is now lit by its star for 3 Myr only and is as old as its parent, so the time to drift and cool since the ejection is the parent's age less 3 Myr. A donor's ejection events use one random number fewer each. The closest-approach, scatterer-distance and level-ceiling stand-ins stay: the record holds no closest approach and a top-up rogue has no record.
