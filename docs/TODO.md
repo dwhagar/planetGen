@@ -10209,60 +10209,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Tides 1 takes it: the life chain, after GEN.1190 (Aux 2 ended); Bug 1 holds GEN.1307 separately.
 
-- [ ] **GEN.879 A far-red oxygenic chemistry (chlorophyll d and f) that K and M stars can draw, so the most common stars can have oxygenic life and animals**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 7.1, fix 4. On
-  main an M star can only draw Bacteriochlorophylls, Melanin, Zinc or
-  Retinal and none leads to animals; M dwarfs are about 75 percent of
-  stars. Chl d (Acaryochloris marina, 710 nm), Chl f ([R0760],
-  recalled), [R2344, R4749] and Gale and Wandel
-  (2017) support oxygenic photosynthesis there. Tier T5 for the
-  chemistry, T7 for the efficiency penalty, L3. The single change that
-  adds the most animal-capable worlds. Follows the chemistry-specific
-  energy item so the index can see the benefit. Scope (Boss, 7:41 PM EDT
-  2026-10-28): near-Earth worlds, water and carbon based, stop at
-  animals; sentient life and the life class system wait for 9.5.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): kept; it is Class 1c
-  (far-red). Write it as a class-table row from the start, not as a new
-  entry in the old LIFE_CHEMICALS dictionary.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Prerequisites: GEN.878.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Tides 1 takes it: the life chain, after GEN.1190 (Aux 2 ended); Bug 1 holds GEN.1307 separately.
-
-- [ ] **GEN.880 Chemolithoautotroph producers (H2 methanogens and acetogens, sulfur and iron oxidisers, radiolytic H2) replace Melanin as the producer under ice and in aquifers, with an oxidant budget that caps aphotic animals**
-  Life chemistry review (research thread, 2026-10-28,
-  reports/life-chemistry-review-2026-10-28.md). Section 5 point 1 and 2,
-  fix 5 (full part), 7.1. The generator has no primary producer that
-  works in the dark; the real ones consume H2, H2S or Fe2+ with an
-  oxidant and give off CH4, sulfate and Fe(III), limited by the redox
-  flux from rock and ocean. Sub-ice ocean worlds are capped Microbial
-  unless their oxidant delivery rate is modelled (no Europa O2 flux
-  number from second-hand sources). Shares the gas ledger of GEN.857 and
-  the carbon base of GEN.861. Scope (Boss, 7:41 PM EDT 2026-10-28):
-  near-Earth worlds, water and carbon based, stop at animals; sentient
-  life and the life class system wait for 9.5.
-  Research (2026-10-09): Life class design
-  (docs/design/habitability/life-classes.md, section 11.2; Boss 9:20 PM
-  EDT 2026-10-28, all four design cards option 1): kept; it is Classes 3
-  and 4 with the supply quantities of GEN.887. Write it as class-table
-  rows from the start. Complex cells depend on the class's own oxidant
-  instead of free O2 (GEN.890), after GEN.855 and GEN.750 merge.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Prerequisites: none.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Tides 1 takes it: the life chain, after GEN.1190 (Aux 2 ended); Bug 1 holds GEN.1307 separately.
-
 - [ ] **GEN.881 Retinal becomes a photoheterotroph supplement that needs a carbon fixer, and Melanin becomes the radiotolerance adaptation with dose in its draw, not a radiation food**
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 5, 6.3, fix 7.
@@ -10286,20 +10232,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
   Prerequisites: GEN.876.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Tides 1 takes it: the life chain, after GEN.1190 (Aux 2 ended); Bug 1 holds GEN.1307 separately.
-
-- [ ] **GEN.888 The acid medium model: a sulfuric acid cloud layer and acid pools from the temperature profile and the SO2 and water shares, filling the dead solvent() sulfuric branch**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L4. Nothing in the generator models sulfuric
-  clouds or pools today (no H2SO4 row in the aerosol module). Feeds
-  Classes 5 and 9. Lock turn.
-  Data we hold (2026-10-29 8:55 PM EDT): life_classes.json,
-  life_class_text.json, life_ledger.json, life_supply.json and
-  age_needs.json are in the repo; the population analyses behind the
-  life classes are in reports/life-chemistry-review-2026-10-28-files;
-  the registry holds the life-class stand-in rows (LF*). Catalog
-  sections 3 and 4.
-  Prerequisites: none.
   Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Tides 1 takes it: the life chain, after GEN.1190 (Aux 2 ended); Bug 1 holds GEN.1307 separately.
 
 - [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
@@ -12127,138 +12059,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (claude/core4-gen1207, train 12). No separate build. Retires when
   GEN.1207 merges.
   Prerequisites: none.
-
-- [ ] **GEN.1209 Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence**
-  Boss, 10:05 AM EDT 2026-10-31: let more than one life type exist on a
-  planet, each with a kind (microbes, flora, fauna and so on) and a
-  prevalence, so users know what they will meet; even Earth has several
-  categories of carbon life. Write-up:
-  /mnt/project-files/reports/multi-life-types-per-planet-2026-10-31.md.
-  Filed by the TODO thread. What exists: one living class per body
-  (life_class_id, life_stage, life_animal_grade, the dominant class by
-  food production, GEN.862 chain); suitability scores 0 to 9 for every
-  class the conditions support (life_class_scores, life_class_best,
-  life_class_best_score), which say what could live there, not what
-  does; four kind scores 0 to 9 on planets and moons (life_microbial,
-  life_flora, life_fauna, life_sentient, GEN.649, done), which are
-  already a prevalence per kind but belong to the one living class. The
-  display (one Life paragraph with the kinds, prevalence words and the
-  classes that suit) is UX.237 and PR 4471 and needs no change here
-  beyond reading the new list. Do: (1) Model: a per-body list of living
-  classes, each with stage, animal grade, kind scores and a prevalence
-  share, in a new table or one JSON column (never a column per class);
-  the dominant class stays as the headline, so the 40 or so readers of
-  life_class_id keep working. (2) Generation: after the dominant class
-  is chosen, decide which other supported classes also took hold, from
-  the share of food production, niche overlap, the same solvent and
-  oxidant, and the order of appearance on the evolutionary timeline
-  (GEN.750, done); physics decides, nothing is forced (Boss, 10-30), and
-  a civilization is never forced. (3) Kind scores per class, with the
-  body's four kind scores becoming the combined view of them. (4) The
-  air ledger is keyed by class number, so several living classes need
-  their gas budgets summed (the report names GEN.1013 for this, but
-  GEN.1013 is the overlap-free stars item and is done; Aux 4 or Core 1
-  must name the real ledger item). (5) API and search: a list field
-  instead of the single life_class_id; filters such as has Class 3 life
-  match any living class. (6) Page and map text list each living class
-  with its kinds. Output change with a migration: one epoch, golden,
-  census re-baseline, on a train; stand-ins for the share rules go in
-  GEN.725. Done: a world can store and show two or more living classes
-  with prevalence, the dominant one is unchanged for single-class
-  worlds, and the prevalence census (TEST.435) covers the list. Where we
-  think it belongs (best guess, can move): Aux 2 with Aux 4 for the air
-  ledger.
-  Aux 2 plan (as the lane reported, 10:08 AM EDT 2026-10-31) (2026-10-31
-  10:14 AM EDT): The air ledger items are GEN.862 (design,
-  life-classes.md section 4, life_ledger.json) with GEN.891, GEN.857,
-  GEN.858 and GEN.859 for the gases (physics/life_air.py,
-  biogenic_oxygen.py), not GEN.1013; Aux 4 only needs a sum over living
-  classes where it now takes one. Plan: (1) a child table body_life
-  (body ref, class and variant, stage, animal grade, four kind scores,
-  share of food production) with a migration; the headline columns stay
-  the dominant class and the body's four kind scores become the highest
-  of each kind across classes; the API gets a life_classes list and the
-  life_class filter matches any living class. (2) After the dominant
-  class, every other class whose conditions score above 0 gets its own
-  run of the life timeline from its own first producers; it takes hold
-  only if its stage is reached inside the system age and the final air
-  does not poison it (the existing toxin test). Nothing forced. (3)
-  life_air and biogenic_oxygen sum the classes' fluxes and uptake in
-  timeline order. (4) Page text lists each class with its kinds (UX.237,
-  UX.251). Two PRs, same window as GEN.1147. Questions for Boss: (a) may
-  classes of different solvents live on one body (a water class and an
-  acid or sulfur class), or only classes sharing a solvent as Earth's
-  do; (b) may a minor class reach the sentient kind, or does a
-  civilization stay with the dominant class. Aux 2 recommends (a) only
-  classes sharing a solvent whose conditions both hold, (b) dominant
-  class only. The per-kind readings of GEN.1210 are given per living
-  class once this lands.
-  Boss decided (A.2, B.2, 10:14 AM EDT 2026-10-31) (2026-10-31 10:25 AM
-  EDT): (a) any life classes whose conditions both hold may coexist on
-  one body, including classes of different solvents (a water class and a
-  sulfur or acid class); (b) a minor life class may reach the sentient
-  kind if its stage is reached inside the system age and the final air
-  does not poison it. This replaces Aux 2's recommended limits (same
-  solvent only, dominant class only). Nothing is forced and a
-  civilization is still never forced: each class runs its own timeline,
-  so a sentient minor class exists only when its own stages are reached.
-  The sentient kind score of the body becomes the highest across
-  classes; the civilization code (GEN.864) must say which class built a
-  civilization.
-  Air coupling split out (Boss, 10:54 AM EDT 2026-10-31) (2026-10-31
-  10:56 AM EDT): Step 3 (the air sum over living classes) is now its own
-  item, GEN.1213, built as a separate PR in the same epoch and train as
-  this item; the air of multi-life worlds changes, the air of one-class
-  worlds does not.
-  References design, 2:52 PM EDT (2026-10-31 2:57 PM EDT): The
-  speculative-chemistry help rewrite and per-class links are DOC.92 (R6
-  of the References menu); this item does not cover the help rewrite.
-  Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Tides 1 takes it: the life chain, after GEN.1190 (Aux 2 ended); Bug 1 holds GEN.1307 separately.
-
-- [ ] **GEN.1213 Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order**
-  Boss, 10:54 AM EDT 2026-10-31: in atmospheric composition we need to
-  account for our new mix of life on a planet, as each life type
-  modifies the atmosphere in its own way. Filed by the TODO thread.
-  Overlap checked: the air ledger work (GEN.857 to 859, GEN.891,
-  physics/life_air.py, biogenic_oxygen.py) is done and takes ONE living
-  class; GEN.862 (the design, life-classes.md section 4 and
-  life_ledger.json) is still open; GEN.1209 (several living classes per
-  planet, Aux 2) lists the air sum as step 3 and Aux 4 was told. This
-  item owns the air physics of that step so it is built and tested on
-  its own. Do: (1) the final stored air (gases, partial pressures, the
-  oxygen rise, the methane, carbon dioxide and sulfur, hydrogen and
-  reduced gases) is the result of EVERY living class that took hold, not
-  only the dominant one: each class contributes its own fluxes
-  (produces, consumes, gives off, as in life_ledger.json) over its own
-  timeline from its first producers, and the classes are summed in
-  timeline order, so an earlier class's methane is burned by a later
-  oxygen rise as the single-class code already does; (2) classes can
-  poison each other through the air: the toxin test of each class reads
-  the air the other classes left, so a class takes hold only if the air
-  the earlier classes made does not poison it (the existing toxin test,
-  GEN.1209 step 2); (3) the Life and air through the ages chart (UX.237
-  part 2) and the life-air API route draw the summed history and can
-  show each class's share of every gas; (4) the life readings (GEN.1210)
-  trend and security read the summed air; (5) the single-class air is revisited too (Boss changed his mind, 10:57 AM EDT 2026-10-31): audit the existing single-class calculation (GEN.857 to 859, GEN.891, physics/life_air.py, biogenic_oxygen.py, life_ledger.json) against this vision and fix what does not fit, so a one-class world is no longer guaranteed to keep today's air; report what changed for one-class worlds in the changes note and the census; (6)
-  stand-ins for new coupling rules go in GEN.725 with tier and tweak
-  level. Nothing forced; physics decides. Output change: the air of
-  multi-life worlds, so it rides GEN.1209's epoch and train, as a
-  separate PR. Where we think it belongs (best guess, can move): Aux 2
-  (class timelines) with Aux 4 (air) and Core 1 (ledger owner)
-  reviewing.
-  Boss changed his mind (10:57 AM EDT 2026-10-31) (2026-10-31 10:58 AM
-  EDT): after approving the item as filed, Boss asked to revisit the old
-  single-class air too, to make sure it aligns with the new multi-life
-  vision. So one-class worlds are no longer guaranteed today's air: the
-  plan is PR A = the audit of the single-class calculation plus the
-  summed multi-class ledger, with a short report of what moves for
-  one-class worlds (the oxygen rise timing, methane burning, hydrogen
-  and the toxin test), then PR B of GEN.1209. The earlier test that a
-  one-class list equals today's air becomes a test that any difference
-  from today is one the audit explains and Boss has seen.
-  Prerequisites: GEN.862. Related: GEN.1209, GEN.1210, UX.237.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Tides 1 takes it: the life chain, after GEN.1190 (Aux 2 ended); Bug 1 holds GEN.1307 separately.
 
 - [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
   Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
@@ -16614,7 +16414,7 @@ clears each one.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
-  Prerequisites: TEST.430, GEN.879, GEN.880, GEN.876.
+  Prerequisites: TEST.430, GEN.876.
   Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Tides 1 takes it: the life chain, after GEN.1190 (Aux 2 ended); Bug 1 holds GEN.1307 separately.
 
 - [ ] **TEST.443 Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not**
@@ -16983,28 +16783,6 @@ clears each one.
   the TODO thread.
   Prerequisites: none. Related: TEST.656, GEN.1082, GEN.1190.
 
-- [ ] **MAP.399 Uncharted placeholder sectors in the Sectors list are named from their Object ID, say they are uncharted and name their region, and show no density (bug)**
-  Boss, 5:00 PM EST on 2026-11-06 (relayed by the coordinator): the
-  Sectors list shows 482 rows but the run generated only 107 sectors
-  (the 2,953 systems). The other 375 are uncharted placeholder sectors
-  made by store.uncharted_sector_id (GEN.1111 part 7, store.py near line
-  4010), where drifting rogue planets land in never-charted cells.
-  list_sectors (query.py near line 185) has no chart_ledger filter, so
-  they sort first by distance from the core and read as generated empty
-  sectors (0 systems, 0% density, no region). Boss: use the uncharted
-  name system (the Object ID based names) to name these sectors so the
-  list shows that name and not the raw hex ID; uncharted sectors have no
-  density, say which region they are in, and say they are uncharted. Do:
-  name, label and region in list_sectors and the sector page for a
-  placeholder, no density column value, header counts generated sectors
-  with the uncharted number beside it. A browser test shows a placeholder
-  named, labelled uncharted, with its region and no density. Lock-free.
-  Done: the Sectors list tells generated sectors from uncharted ones as
-  Boss described. Version 8.1. Owner: Planets 1 (GEN.1111 rogue work).
-  Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1111, GEN.1256.
-  Owner change (TODO) (5:35 PM EST on 2026-11-06): Core 1 takes it (Core 1 is free and knows the sector pages and nav); Planets 1 stays for questions on store.uncharted_sector_id and goes to GEN.1299.
-
 - [ ] **MAP.400 The Object index reads only per-sector tables, so the nebula field (109,811 clouds) and the scattered black holes, remnants, magnetars and hypervelocity stars (9.7 million rows) are missing from search, lists, Nearby and the kind table (bug)**
   Boss, 5:08 PM EST on 2026-11-06: do a bugfix run to find out why the
   kind table showed NEBULA 0, SUPERNOVA_REMNANT 0 and BLACK_HOLE 1 when
@@ -17037,7 +16815,7 @@ clears each one.
   to an object page. Lock-free. Done: the placeholder's page lists its
   known objects with working links. Version 8.1. Owner: Planets 1,
   after MAP.399. Filed by the TODO thread.
-  Prerequisites: MAP.399. Related: MAP.400, GEN.1111.
+  Related: MAP.399, MAP.400, GEN.1111.
   Owner change (TODO) (5:35 PM EST on 2026-11-06): Core 1 takes it after MAP.399.
 
 - [ ] **PERF.245 The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types**
