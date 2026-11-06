@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3413] - 2026-11-06
+
+**Headline:** A planet's class is now fitted against a table of conditions by domain, with stored humidity and groundwater, the phase of the world's liquids, and four new classes (Hothouse R, methane-ethane U, sulfuric acid Y, hot thin-air Z).
+
+### Changed
+- **GEN.1221: the class-by-domain matrix.** `planets` and `moons` store `relative_humidity` and `groundwater` (none, reachable or deep), set with the rest of the habitability score. The best-fit class table (`planet_class_fit.json`, shadow only until GEN.1207) now holds every class's conditions by domain, including the hottest and coldest region, the day and night temperature, the wet bulb and the phase of the class's own solvent at the body's temperature and pressure. The ocean-world spread follows the families report: M temperate, H too dry, O too wet, P too cold, and new R Hothouse (too hot), Z hot thin-air world, U methane-ethane (Titan-like) and Y sulfuric acid. Class X (ammonia-water) waits for a stored ammonia-water fraction. The stored class letters do not change yet (GEN.1207 switches them).
+- `physics/phase_gate.py` gives the liquid window of water, carbon dioxide, methane-ethane, sulfuric acid and ammonia-water at a given pressure, and the cold, ideal and hot third of it (registered as PG1). Registry rows DM1 to DM7 record the new constants and shoulders (section 6.183).
+- Migration 0212 adds the two columns. Generator epoch bump (numbered at merge): two new stored columns on every rocky body; no other value moves.
+generation-output: changed
+
 ## [8.0.3412] - 2026-11-06
 
 **Headline:** The big bodies of a Kuiper-type outer disk now belong to the groups the outer giant sorted the disk into (cold, hot, resonant, scattered, crossing, detached), and each sits on the orbit its group gives it.
