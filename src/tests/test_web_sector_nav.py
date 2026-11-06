@@ -1388,7 +1388,7 @@ def test_the_nav_page_says_how_the_course_goes_round_what_it_would_pass_too_clos
     assert "Adjusted Course" in page
     assert ">Kepler</a> and <a" in page and ">Dust Ring</a>" in page and "of 2 objects" in page
     assert "3.25" in page and "0.2" in page and "6.2%" in page
-    assert "Leave on" in page and "Warp travel time, straight and adjusted" in page and "3 years, 6 months" in page
+    assert "Leave on" in page and "Warp travel time by the straight and the adjusted course" in page and "3 years, 6 months" in page
     assert "Passes through Rose Cloud for up to" in page and "4.2e+21 atoms per square centimeter" in page
     assert "short detour, not a proven shortest path" in page
     assert "on straight hops and" in page and "3.9" in page
@@ -1425,7 +1425,7 @@ def test_the_nav_page_says_so_when_nothing_bends_the_course(client, fake):
     fake.nav_adjusted = adjusted
     page = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
     assert "Adjusted Course" in page and "the direct course stands" in page
-    assert "Leave on" not in page and "Warp travel time, straight and adjusted" not in page
+    assert "Leave on" not in page and "Warp travel time by the straight and the adjusted course" not in page
 
 
 def test_a_warning_of_the_planner_is_said_in_words(client, fake):
