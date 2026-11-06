@@ -164,3 +164,74 @@ def test_a_query_of_many_points_is_one_vector_call(galaxy):
     points = np.random.default_rng(1).normal(size=(3, 50000)) * 5000.0
     ax, ay, az = P.acceleration(galaxy, *points)
     assert ax.shape == ay.shape == az.shape == (50000,) and np.all(np.isfinite(ax)) and np.all(np.isfinite(az))
+
+
+# --- TEST.627: where the table is held to the ring sum, the speed at the Sun, the cache, and the stand-in registry ---------------------------------------------------------
+
+TOLERANCE = 0.04
+"""float: The agreement with the independent ring sum the table states: four percent of the circular speed of the stars."""
+
+
+def test_the_table_agrees_with_the_ring_sum_at_the_bulge_the_solar_circle_the_disk_edge_and_beyond_16_kpc(galaxy):
+    """The four places the item names: the bulge (500 pc and 1.5 kpc), the solar circle, the edge of the disk (three scale lengths of the thin disk out and the
+    thick disk's) and past 16 kpc (22 and 30 kpc), each inside `TOLERANCE`."""
+    shape = representation.SHAPE
+    thin = next(d for d in galaxy.disks if d.name == "thin_disk") if any(d.name == "thin_disk" for d in galaxy.disks) else galaxy.disks[0]
+    places = {
+        "bulge": (500.0, 1500.0), "solar circle": (8128.0,),
+        "disk edge": (3.0 * thin.scale_length_pc, 4.5 * thin.scale_length_pc), "beyond 16 kpc": (22000.0, 30000.0),
+    }
+    radii = tuple(r for group in places.values() for r in group)
+    stars_only = dataclasses.replace(galaxy, halo=P.Halo(0.0, 1.0, 1.0), black_hole_solar=0.0)
+    for radius, reference in zip(radii, _ring_speed(shape, radii)):
+        got = float(P.circular_speed_kms(stars_only, radius))
+        assert got / reference == pytest.approx(1.0, abs=TOLERANCE), (radius, got, reference)
+
+
+def test_the_whole_galaxy_turns_at_the_sun_at_the_speed_the_model_gives(galaxy):
+    """The Sun's circular speed of the test galaxy (`representation.SHAPE`) with the stars, the dark halo, and the central hole is 215.8 km/s; the analytic stars
+    alone gave 198.7. The stars-only part of that is held to the ring sum above; the halo and the hole are closed forms, so the whole is the sum in quadrature."""
+    whole = float(P.circular_speed_kms(galaxy, 8128.0))
+    assert whole == pytest.approx(215.8, abs=3.0)
+    assert float(P.circular_speed_kms(dataclasses.replace(galaxy, correction=None), 8128.0)) == pytest.approx(198.7, abs=3.0)
+    stars_only = dataclasses.replace(galaxy, halo=P.Halo(0.0, 1.0, 1.0), black_hole_solar=0.0)
+    dark_only = dataclasses.replace(galaxy, spheres=(), disks=(), correction=None, black_hole_solar=0.0)
+    assert math.hypot(float(P.circular_speed_kms(stars_only, 8128.0)), float(P.circular_speed_kms(dark_only, 8128.0))) == pytest.approx(whole, rel=0.01)
+
+
+def test_the_table_is_built_once_per_galaxy_and_again_only_when_the_galaxy_changes(monkeypatch):
+    """The cache (`for_galaxy`) keeps one `Potential` per shape and halo seed: asking again builds nothing, and a different galaxy builds a new table."""
+    built = []
+    real = T.build
+
+    def counting(*args, **kwargs):
+        built.append(1)
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(T, "build", counting)
+    P._for_galaxy.cache_clear()
+    try:
+        shape = representation.SHAPE
+        first = P.for_galaxy(shape, None)
+        assert len(built) == 1
+        assert P.for_galaxy(shape, None) is first
+        assert P.for_galaxy(shape._replace(components=representation.WITH_COMPONENTS.components), None) is first, "star clusters and satellites do not change the galaxy"
+        assert len(built) == 1
+        other = P.for_galaxy(shape._replace(k_norm=shape.k_norm * 1.1), None)
+        assert other is not first and len(built) == 2, "a different galaxy is a new table"
+    finally:
+        P._for_galaxy.cache_clear()
+
+
+def test_the_registry_records_that_the_analytic_disks_and_spheres_are_the_baseline_since_the_table():
+    """GP1 and GP2 stay in the stand-in registry (the closed forms are still the baseline the table adds to) and say what the table changed; GP3 (the hole's softening)
+    is untouched. The item's wish that they be gone is not what the code is: the closed forms remain."""
+    import os
+
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "docs", "design", "research", "gap-filling-plan.md")
+    with open(path, encoding="utf-8") as handle:
+        rows = {line.split("|")[1].strip(): line for line in handle if line.startswith("| GP")}
+    assert {"GP1", "GP2", "GP3"} <= set(rows)
+    assert "since GEN.1285" in rows["GP1"] and "stellar_table" in rows["GP1"]
+    assert "since GEN.1285" in rows["GP2"] and "stellar_table" in rows["GP2"]
+    assert "since GEN.1285" not in rows["GP3"]

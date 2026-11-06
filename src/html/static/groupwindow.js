@@ -1,6 +1,6 @@
 // html/static/groupwindow.js
 //
-// MAP.222: the group window of the Galaxy Map. Choosing a grouping of things (a nebula with the nebulae that overlap it; later a globular
+// MAP.222: the group window of the Galaxy Map. Choosing a grouping of things (a nebula with the nebulae that overlap it; a globular
 // cluster, MAP.223) flies the camera to frame it and shows that grouping alone: the map draws only what lies inside the window's bounding
 // sphere, whatever sectors the group crosses, and a way back returns to where the camera was. A window is plain data: a kind, a key, a
 // title, a bounding sphere and its members; each kind says how its subject becomes a window and how it is told in words, so a second
@@ -98,4 +98,15 @@ registerKind("nebula", {
     return found;
   },
   noun: (count) => (count === 1 ? "1 nebula" : count + " nebulae"),
+});
+
+// The globular cluster kind (MAP.223): the subject is a cluster of the map's scene data (`{ ref, name, x, y, z, radius_pc }`) and its window is its own
+// sphere, whatever sectors that crosses: the stars the map draws inside it are the cluster's members (the stored ones of the filled sectors and, where a
+// sector is not yet filled, the plan's, drawn from the cluster's King profile), and nothing else is. A cluster has no neighbours to join it.
+registerKind("cluster", {
+  key: (cluster) => cluster.ref,
+  label: (cluster) => cluster.name || "Globular cluster",
+  sphere: (cluster) => ({ x: cluster.x, y: cluster.y, z: cluster.z, radius_pc: cluster.radius_pc }),
+  members: (cluster) => [{ x: cluster.x, y: cluster.y, z: cluster.z, radius_pc: cluster.radius_pc }],
+  noun: () => "a globular cluster",
 });

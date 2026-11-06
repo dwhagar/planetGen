@@ -553,6 +553,7 @@ def _sector_map_html(detail, pick, admin):
         nav_url=page_url("nav"),
         nearby_url=page_url("nearby"),
         pinned={"shell": address[0], "band": address[1], "wedge": address[2], "center_pc": center},
+        clusters=_clusters_reaching(detail),
     )
 
 
@@ -621,6 +622,41 @@ def system_on_galaxy_map(system_id):
     return sector_on_galaxy_map(system["sector_id"])
 
 
+def _clusters_reaching(detail):
+    """MAP.381: the globular clusters whose sphere reaches into the sector's cell, as `galaxy_views._cluster_labels` gives them (name else
+    designation, page, center and radius in parsecs, galaxy frame). The test is the one `phenomena_near_sector` uses: a sphere that holds the
+    whole cell (the cube's half diagonal, or the farthest corner of the real cell)."""
+    from planetgen.galaxy.spherical import sector_cell_vertices_pc
+    from planetgen.web.galaxy_views import _cluster_labels
+
+    if not detail["placed"] or not detail.get("edge_mpc"):
+        return []
+    center = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
+    edge_pc = detail["edge_mpc"] / 1000.0
+    reach = edge_pc * math.sqrt(3) / 2
+    address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
+    if None not in address:
+        for vertex in sector_cell_vertices_pc(*address, edge_pc):
+            reach = max(reach, math.dist(vertex, center))
+    found = [cluster for cluster in _cluster_labels(db_name())
+             if math.dist((cluster["x"], cluster["y"], cluster["z"]), center) <= reach + cluster["radius_pc"]]
+    for cluster in found:
+        cluster["profile"] = _cluster_profile(cluster["ref"])
+    return found
+
+
+def _cluster_profile(ref):
+    """MAP.381: the brightness of a cluster's ball from its middle to its tidal radius (`cluster_profile.surface_profile`, the King model's
+    column density), or `None` when the cluster's record cannot be read, when the ball keeps its fixed fade."""
+    from planetgen.web.lib import cluster_profile
+
+    try:
+        detail = apiclient.get_container(db_name(), ref.split(":", 1)[1])
+    except (apiclient.ApiError, apiclient.NotFoundError):
+        return None
+    return cluster_profile.surface_profile(detail.get("component") or {})
+
+
 @bp.route("/sector/<uid:sector_id>/scene")
 @page_limit("galaxy_tiles")
 def sector_scene(sector_id):
@@ -644,6 +680,7 @@ def sector_scene(sector_id):
         neighbors=_with_bright_stars(detail.get("neighbors")),
         generate=generate_target(current_admin()),
         compress_binaries=request.args.get("binaries") != "real",
+        clusters=_clusters_reaching(detail),
     )
     response = jsonify(scene)
     response.headers["Cache-Control"] = "no-store"

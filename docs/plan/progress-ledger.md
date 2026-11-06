@@ -2679,3 +2679,7 @@ Baseline: PR #1817.
 | VIEW.30 | 8.2 | Bookmarks |
 | VIEW.25 | 8.2 | Bookmarks |
 | GEN.1285 | 8.3 | Orbital update core |
+| TEST.606 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.627 | 8.3 | Orbital update core |
+| MAP.224 | 8.8 | Clusters and satellites on the map |
+| TEST.647 | 8.1 | Physics rectification: citations and the gate's test health |

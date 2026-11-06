@@ -29,7 +29,7 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_HALO_RADIUS_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, BESIDE_ID, BESIDE_SYSTEMS, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site, close_pair_center, DENSE_PAIR_IDS, HOLE_FIELD, FAR_BUBBLE,
-    far_site, halo_site, holes_site,
+    far_site, halo_site, holes_site, FIXTURE_CLUSTERS, SECTOR_CLUSTER, sector_cluster_site,
     map_site, nebula_volume_payload,
 )
 
@@ -6106,6 +6106,90 @@ def test_the_galaxy_maps_course_draws_a_jump_through_unknown_space_red_and_glowi
     assert all(count >= 2 for count in unknown["beads"]), unknown
     assert all(0.0 < opacity <= 0.2 for opacity in unknown["opacity"]), unknown
     assert "key-course-unknown" in page.evaluate(f"() => {keys}")
+
+
+@pytest.mark.viewport(1000, 900)
+def test_galaxy_map_names_a_cluster_by_its_name_or_by_its_designation_while_it_has_none(page, map_site):
+    """MAP.224: the label engine names a globular cluster where it is large enough to read, by its name, else by "Globular cluster" and
+    its Object ID; the Cluster names switch takes the names away and the address keeps it; the galaxy as a whole names none."""
+    _open_galaxy(page, map_site)
+    assert not [label for label in page.evaluate(LABELS) if label["kind"] == "cluster"], "far out nothing is named"
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    unnamed, named = FIXTURE_CLUSTERS
+    for cluster, text in ((unnamed, "Globular cluster FE81000A2B-0000005-001"), (named, "Fixture Ball")):
+        page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})",
+                      [cluster["center_pc"], 110])
+        page.wait_for_function(f"(text) => ({LABELS})().some((label) => label.kind === 'cluster' && label.text === text)", arg=text, timeout=20000)
+    page.click("#galaxymap3d-menu > summary")
+    toggle = page.locator('#galaxymap3d-kinds [data-label="cluster"]')
+    assert toggle.inner_text() == "Cluster names"
+    toggle.click()
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'cluster')")
+    assert "label-cluster" in parse_qs(urlparse(page.url).query).get("hide", [""])[0]
+    toggle.click()
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'cluster')")
+
+
+def _click_cluster_name(page, text):
+    """Clicks a cluster's name where the label engine placed it (as `_click_nebula_name` does for the nebula)."""
+    page.wait_for_function(f"(text) => ({LABELS})().some((label) => label.kind === 'cluster' && label.text === text)", arg=text, timeout=20000)
+    label = page.evaluate(f"(text) => ({LABELS})().find((l) => l.kind === 'cluster' && l.text === text)", text)
+    canvas = page.locator("#galaxymap3d-canvas")
+    canvas.scroll_into_view_if_needed()
+    box = canvas.bounding_box()
+    page.mouse.click(box["x"] + label["left"] + label["width"] / 2, box["y"] + label["top"] + label["height"] / 2)
+
+
+@pytest.mark.viewport(1000, 900)
+def test_choosing_a_cluster_opens_its_window_on_the_cluster_alone_across_the_sectors_it_crosses(page, map_site):
+    """MAP.223: choosing a cluster by its name flies to a window on its sphere (wider than the sectors it crosses, so a window on a sector
+    would cut it): the bar names it, the camera frames its center, only the stars inside the sphere are drawn, and the way back returns."""
+    unnamed = FIXTURE_CLUSTERS[0]
+    assert unnamed["extent_pc"] > EDGE_PC, "the fixture cluster spans more than one sector"
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})", [unnamed["center_pc"], 110])
+    _settle(page)
+    before = _camera(page)
+    everything = page.evaluate(WINDOW)
+    assert everything["window"] is None and everything["total"] > 0
+    _click_cluster_name(page, "Globular cluster FE81000A2B-0000005-001")
+    page.wait_for_function(f"() => ({WINDOW})().window !== null", timeout=20000)
+    opened = page.evaluate(WINDOW)
+    win = opened["window"]
+    assert win["kind"] == "cluster" and win["key"] == "globular_cluster:" + unnamed["uid"]
+    assert win["title"] == "Globular cluster FE81000A2B-0000005-001" and win["summary"] == "a globular cluster"
+    assert math.dist(win["center"], unnamed["center_pc"]) < 1e-6 and abs(win["radiusPc"] - unnamed["extent_pc"]) < 1e-6
+    assert page.locator("#galaxymap3d-window").is_visible()
+    assert opened["drawn"] < opened["total"], "stars outside the cluster's sphere are not drawn"
+    page.click('#galaxymap3d-window [data-action="close-window"]')
+    page.wait_for_function(f"() => ({WINDOW})().window === null", timeout=15000)
+    after = page.evaluate(WINDOW)
+    assert after["drawn"] == after["total"] and not page.locator("#galaxymap3d-window").is_visible()
+    back = _camera(page)
+    assert math.dist(back["target"], before["target"]) < 1.0
+
+
+def test_sector_map_draws_a_cluster_inside_it_and_names_it_by_name_or_designation(page, sector_cluster_site):
+    """MAP.381: a globular cluster whose sphere reaches into the sector is in the sector's scene as a soft cloud at its real radius, named
+    by its name (else its designation) through the label engine, with the Cluster names switch of the Galaxy Map; its card links to its page."""
+    base = sector_cluster_site
+    scene = page.request.get(f"{base}/sector/{SECTOR_ID}/scene").json()
+    clusters = [cloud for cloud in scene["clouds"] if cloud["kind"] == "globularCluster"]
+    assert len(clusters) == 1, scene["clouds"]
+    cluster = clusters[0]
+    assert cluster["name"] == SECTOR_CLUSTER["name"] and cluster["typeLabel"] == "Globular Cluster" and cluster["named"] is True
+    assert cluster["href"].endswith("/object/globular_cluster:" + SECTOR_CLUSTER["uid"]) and cluster["r"] > 0
+    profile = cluster["profile"]    # the King model's column density from the middle to the tidal radius, read from the cluster's component
+    assert len(profile) == 9 and profile[0] == 1.0 and profile[-1] == 0.0 and profile == sorted(profile, reverse=True), profile
+    _open_sector(page, base)
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'cluster' && label.text === 'Fixture Sector Ball')", timeout=20000)
+    _click_cluster_name(page, "Fixture Sector Ball")
+    link = page.locator('a:has-text("View cluster")').first
+    link.wait_for(state="visible", timeout=15000)
+    assert link.get_attribute("href").endswith("/object/globular_cluster:" + SECTOR_CLUSTER["uid"])
+    _open_sector(page, base, "?hide=label-cluster")
+    page.wait_for_timeout(600)
+    assert not [label for label in page.evaluate(LABELS) if label["kind"] == "cluster"]
 
 
 def test_the_galaxy_maps_course_draws_the_course_bent_round_a_keep_out_sphere_in_amber(page, map_site, monkeypatch):
