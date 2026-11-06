@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3476] - 2026-11-06
+
+**Headline:** The Sector Map now draws the globular clusters that reach into the sector and names them.
+
+### Changed
+- A globular cluster whose sphere reaches into a sector is drawn on that sector's map as a soft pale-gold ball at its real radius whose brightness follows the cluster's own King model (its projected density, bright in the crowded middle and fading to nothing at the tidal radius), and named by its name, or by "Globular cluster" and its ID while it has none, with the same Cluster names switch as the Galaxy Map. Clicking its name or the ball opens its card with a link to the cluster's page, and "Globular clusters" is a button in the map's list of kinds to show or hide.
+
+generation-output: unchanged
+
 ## [8.0.3475] - 2026-11-06
 
 **Headline:** The Navigation page test looks for the table caption as it is now worded.
