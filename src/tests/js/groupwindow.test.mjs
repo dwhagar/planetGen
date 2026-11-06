@@ -79,7 +79,7 @@ test("a cluster's window is its own sphere and says what it is (MAP.223)", () =>
   assert.equal(win.title, "Globular cluster FE-1");
   assert.equal(win.summary, "a globular cluster");
   assert.equal(win.count, 1, "a nebula that reaches it does not join");
-  assert.deepEqual(win.centre, [10, 20, 30]);
+  assert.deepEqual(win.center, [10, 20, 30]);
   assert.equal(win.radiusPc, 25);
   assert.ok(G.contains(win, 10, 20, 54) && !G.contains(win, 10, 20, 60));
   assert.equal(G.createWindow("cluster", { ...cluster, name: null }, []).title, "Globular cluster");

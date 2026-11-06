@@ -6143,7 +6143,7 @@ def _click_cluster_name(page, text):
 @pytest.mark.viewport(1000, 900)
 def test_choosing_a_cluster_opens_its_window_on_the_cluster_alone_across_the_sectors_it_crosses(page, map_site):
     """MAP.223: choosing a cluster by its name flies to a window on its sphere (wider than the sectors it crosses, so a window on a sector
-    would cut it): the bar names it, the camera frames its centre, only the stars inside the sphere are drawn, and the way back returns."""
+    would cut it): the bar names it, the camera frames its center, only the stars inside the sphere are drawn, and the way back returns."""
     unnamed = FIXTURE_CLUSTERS[0]
     assert unnamed["extent_pc"] > EDGE_PC, "the fixture cluster spans more than one sector"
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
@@ -6158,7 +6158,7 @@ def test_choosing_a_cluster_opens_its_window_on_the_cluster_alone_across_the_sec
     win = opened["window"]
     assert win["kind"] == "cluster" and win["key"] == "globular_cluster:" + unnamed["uid"]
     assert win["title"] == "Globular cluster FE81000A2B-0000005-001" and win["summary"] == "a globular cluster"
-    assert math.dist(win["centre"], unnamed["center_pc"]) < 1e-6 and abs(win["radiusPc"] - unnamed["extent_pc"]) < 1e-6
+    assert math.dist(win["center"], unnamed["center_pc"]) < 1e-6 and abs(win["radiusPc"] - unnamed["extent_pc"]) < 1e-6
     assert page.locator("#galaxymap3d-window").is_visible()
     assert opened["drawn"] < opened["total"], "stars outside the cluster's sphere are not drawn"
     page.click('#galaxymap3d-window [data-action="close-window"]')
