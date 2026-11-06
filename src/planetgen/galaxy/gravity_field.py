@@ -86,7 +86,8 @@ def field(local, points, pot, which="total"):
     return local + smooth_fields(points, pot)
 
 
-def _tensors(result):
+def tensors(result):
+    """The tidal tensors of a grid's rows as an `(n, 3, 3)` array (symmetric)."""
     t = np.empty((result.shape[0], 3, 3))
     t[:, 0, 0], t[:, 1, 1], t[:, 2, 2] = result[:, T_XX], result[:, T_YY], result[:, T_ZZ]
     t[:, 0, 1] = t[:, 1, 0] = result[:, T_XY]
@@ -95,15 +96,25 @@ def _tensors(result):
     return t
 
 
+def pull_size(result):
+    """The size of the pull, (km/s)^2 per pc, at each row of a grid (`gravity_kernel`'s units)."""
+    return np.sqrt(result[:, PULL_X] ** 2 + result[:, PULL_Y] ** 2 + result[:, PULL_Z] ** 2)
+
+
+def tidal_strength(result):
+    """The largest eigenvalue of the tidal tensor, (km/s)^2 per pc^2, at each row of a grid: the stretch the map's Tidal strength mode draws."""
+    return np.linalg.eigvalsh(tensors(result))[:, 2] if result.shape[0] else np.empty(0)
+
+
 def scalar(result, mode):
     """One number per row of `result` for `mode` (see the module doc), in the mode's SI unit (`UNITS`)."""
     if mode == "pull":
-        return np.sqrt(result[:, PULL_X] ** 2 + result[:, PULL_Y] ** 2 + result[:, PULL_Z] ** 2) * galactic.ACCELERATION_TO_SI
+        return pull_size(result) * galactic.ACCELERATION_TO_SI
     if mode == "depth":
         potential = result[:, POTENTIAL]
         return (potential.max() - potential) * POTENTIAL_TO_SI
     if mode == "tidal":
-        return np.linalg.eigvalsh(_tensors(result))[:, 2] * TENSOR_TO_SI
+        return tidal_strength(result) * TENSOR_TO_SI
     raise ValueError(f"unknown mode {mode!r}; one of {', '.join(MODES)}")
 
 
@@ -113,7 +124,7 @@ def saddles(result, zones):
     their 26 neighbours' and whose tidal tensor has an eigenvalue of each sign, the ones with the smallest pull against their tidal strength first, at most
     `MAX_SADDLES`. Returns a list of `(i, j, k)`.
     """
-    pull = np.sqrt(result[:, PULL_X] ** 2 + result[:, PULL_Y] ** 2 + result[:, PULL_Z] ** 2).reshape(zones, zones, zones)
+    pull = pull_size(result).reshape(zones, zones, zones)
     padded = np.pad(pull, 1, mode="constant", constant_values=np.inf)
     minimum = np.ones(pull.shape, dtype=bool)
     for dx in (-1, 0, 1):
@@ -123,7 +134,7 @@ def saddles(result, zones):
                     neighbor = padded[1 + dx:1 + dx + zones, 1 + dy:1 + dy + zones, 1 + dz:1 + dz + zones]
                     # of two zones with exactly the same pull the one earlier in the order is the minimum, so a tie names one zone, not both
                     minimum &= (pull <= neighbor) if (dx, dy, dz) > (0, 0, 0) else (pull < neighbor)
-    eigenvalues = np.linalg.eigvalsh(_tensors(result)).reshape(zones, zones, zones, 3)
+    eigenvalues = np.linalg.eigvalsh(tensors(result)).reshape(zones, zones, zones, 3)
     indefinite = (eigenvalues[..., 0] < 0.0) & (eigenvalues[..., 2] > 0.0)
     found = np.argwhere(minimum & indefinite)
     if not len(found):

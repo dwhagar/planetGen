@@ -336,12 +336,14 @@ def test_a_nav_course_in_the_system_is_handed_to_the_3d_view_and_listed_under_it
     assert "data-course" not in plain and "sysview3d-course" not in plain
 
 
-def test_a_system_with_facilities_has_a_layer_menu_and_legend_for_the_registry_to_fill():
-    """MAP.217: the map's Menu and legend are containers static/maplayers.js fills; every system has the names (MAP.231) to
-    toggle in the Menu, only one with facilities has a legend line."""
+def test_a_system_has_a_layer_menu_and_legend_for_the_registry_to_fill():
+    """MAP.217: the map's Menu and legend are containers static/maplayers.js fills; every system has the names (MAP.231) and the
+    Gravity layer (MAP.169) to toggle in the Menu, and the legend for the Gravity layer's Key line (facilities add theirs)."""
     system, stars, planets, belts = {"name": "T", "binary_configuration": None}, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], []
     plain = sm.render_system_map_panel(system, stars, planets, belts)
-    assert 'id="sysmap-layers"' in plain and "sysmap-layer-legend" not in plain
+    assert 'id="sysmap-layers"' in plain and 'id="sysmap-layer-legend"' in plain
+    no_stars = sm.render_system_map_panel(system, [], [], [])
+    assert "sysmap-layer-legend" not in no_stars
     facility = {"id": 5, "name": "Dock", "kind": "station", "host_type": "planet", "host_id": 1, "host_name": None,
                 "placement": "orbital", "orbit_distance_km": 4e4, "orbit_period_years": 0.01, "orbital_speed_kms": 3.0,
                 "orbit_phase_deg": 10.0}
@@ -966,3 +968,42 @@ def test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_s
     blue_over_red = lambda hex_colour: int(hex_colour[5:7], 16) - int(hex_colour[1:3], 16)
     assert sun != dwarf and blue_over_red(sun) > blue_over_red(dwarf)
     assert _look_of(html, "moon", 7)["glow"].startswith("#")
+
+
+# --- MAP.169: what the Gravity layer reads ------------------------------------------------
+
+def _scene_tag(html, scene, layer="body"):
+    """The opening tag of the body-marker `<svg>` of `scene`."""
+    return re.search(rf'<svg class="sysmap-svg(?: sysmap-hidden)?" data-scene="{scene}"[^>]*>', html).group(0)
+
+
+def test_gravity_layer_gets_the_masses_the_motion_and_the_mass_a_scene_orbits():
+    moon = _moon(101, 3.8e5, 0.0)
+    moon["mass_kg"] = 7.3e22
+    planet = _planet(1, 10, AU_KM, 0.0, moons=[moon])
+    planet["mass_kg"] = 5.97e24
+    planet["velocity_x_kms"], planet["velocity_y_kms"] = 0.0, 29.8
+    system = {"name": "Gravity Test", "binary_configuration": None}
+    html = sm.render_system_map_panel(system, [_star(10, mass_kg=1.989e30)], [planet], [])
+    assert 'data-kind="star"' in html and 'data-masskg="1.989e+30"' in html
+    marker = re.search(r'<g[^>]*data-kind="planet"[^>]*>', html).group(0)
+    assert 'data-masskg="5.97e+24"' in marker and 'data-vxkms="0.0"' in marker and 'data-vykms="29.8"' in marker
+    assert 'data-hostkg="1.989e+30"' in _scene_tag(html, "system"), "a planet's Hill sphere is set by its star"
+    assert 'data-hostkg="5.97e+24"' in _scene_tag(html, "planet-1"), "a moon's by its planet"
+
+
+def test_gravity_layer_scene_of_a_close_pair_is_hosted_by_both_stars():
+    planet = _planet(1, None, 2 * AU_KM, 0.0)
+    stars = [_star(10, mass_kg=2.0e30), _star(11, mass_kg=1.0e30)]
+    stars[1]["binary_role"] = "secondary"
+    system = {"name": "Pair Test", "binary_configuration": "close", "binary_mutual_position_x_km": 1.0e7,
+              "binary_mutual_position_y_km": 0.0}
+    html = sm.render_system_map_panel(system, stars, [planet], [])
+    assert 'data-hostkg="3e+30"' in _scene_tag(html, "system")
+
+
+def test_gravity_layer_does_not_write_a_mass_a_body_does_not_have():
+    html = sm.render_system_map_panel({"name": "No Mass", "binary_configuration": None}, [_star(10, mass_kg=None)],
+                                      [_planet(1, 10, AU_KM, 0.0)], [])
+    assert "data-hostkg" not in html
+    assert 'data-kind="planet"' in html and "data-masskg" not in re.search(r'<g[^>]*data-kind="planet"[^>]*>', html).group(0)

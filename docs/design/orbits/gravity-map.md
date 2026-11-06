@@ -118,7 +118,7 @@ The plan, to be settled in GEN.198, GEN.199 and PERF.72:
 Built: the rule (MAP.383), kernel (MAP.384), hierarchy and lists (MAP.385), point masses (MAP.386), grid job and cache (MAP.387), and the perf guard
 (PERF.243, `tests/test_perf_gravity_grid.py`: the list fits the pair budget exactly on every machine, the time is held against the machine's own pair rate,
 the 0.25 s ceiling of the densest sector is opt-in with `PLANETGEN_RUN_PERF_BENCHMARK=1`), the endpoint (API.24), and the Sector Map layer (MAP.168,
-`static/gravitylayer.js`). Still open: the System Map layer (MAP.169) and the rest below.
+`static/gravitylayer.js`). and the System Map layer (MAP.169, `static/systemgravity.js`). Still open: the rest below.
 
 **The Sector Map layer (MAP.168).** The View menu's *Gravity* row (off at first; `show=gravity` in the address, with `gravity=pull|depth|tidal` and `gslab=<1..16>|all`) draws
 one slab of the sector's 16 x 16 x 16 grid as colored zones, or every slab thinly. The numbers are the **total** field (Boss, 2026-11-05). The smooth galaxy is 99.9
@@ -127,6 +127,13 @@ percent of the pull and its slope across a sector is 700 to 900 times the stars'
 top), and the Key says so and gives the smooth galaxy's level and its change across the sector. A sector with no variation draws nothing and says that. The saddle
 points show as small white diamonds that can be hovered. No *stars only* switch (Boss, 2026-11-06). Measured on real sector grids in
 `reports/gravity-range-2026-11-06/`.
+
+**The System Map layer (MAP.169).** The same row on the System Map draws the orbital plane of the scene on show: the point-mass field of the stars, planets and moons drawn in it
+(each softened by its own radius; the galaxy's pull is below what a system can show), in the same three modes, colors and Key. The map is a log radial diagram (or one
+linear scale in a moon system), so the picture is turned back into the kilometres each pixel stands for before the field is worked out (`pixelToKm`), and drawn only
+between the first and last orbit, where the scale stands for a distance. The Hill sphere of each planet (by its star, or both stars of a close pair) or moon (by its planet),
+`d (m / 3M)^(1/3)`, is outlined and mapped forward point by point; the five Lagrange points of each such pair (`physics/lagrange_geometry.py`'s geometry, repeated in
+`systemgravity.js` for the page) are marked, L4 ahead along the stored motion. The markers carry `data-masskg`, `data-vxkms`/`data-vykms` and the scene `data-hostkg`.
 
 GEN.198 field evaluator; TEST.131 its tests; PERF.72 cost study; GEN.199
 per-zone grid and cache (phase 2). MAP.167 umbrella; API.24 endpoint;
