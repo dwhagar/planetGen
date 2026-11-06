@@ -2483,7 +2483,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.395 | Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat | none | open |
 | MAP.396 | Sensor pictures for systems and for sectors, regions, galaxies and clusters: a top-down orrery plate and a star-field and gas patch from stored counts | none | open |
 | MAP.397 | Some View menu options show only the word "Forward" and cannot be clicked (bug) | none | open |
-| MAP.398 | test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card fails on main: an extra marker-region token for Zarh Region (bug) | none | open |
+| MAP.398 | test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card fails on main: an extra marker-region token for Zarh Region (bug) | none | done, PR #5256 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -3309,8 +3309,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.275 | Sensor registry and API: one registry of kind, look builder and painter (web/lib/sensor.py, static/sensorview.js) and GET /api/objects/<ref>/sensor, with a test that fails for any kind in describe/sheet.py that has no entry | none | done, PR #5249 |
 | UX.276 | Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels | none | open |
 | UX.277 | Map layer registry fields for the View menu: heading, keywords, common flag and a settings hook, every existing layer given its heading, and a guard test that fails for a layer with none | none | done, PR #5239 |
-| UX.278 | Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default | none | open |
-| UX.279 | Search filter for the View menu: a function with tests that filters entries by name and keywords and opens the matching groups, behind no visible control yet | none | open |
+| UX.278 | Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default | none | done, PR #5252 |
+| UX.279 | Search filter for the View menu: a function with tests that filters entries by name and keywords and opens the matching groups, behind no visible control yet | none | done, PR #5254 |
 | UX.280 | Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list | none | open |
 | UX.281 | View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible | none | open |
 | UX.282 | Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu | none | open |

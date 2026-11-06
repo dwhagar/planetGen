@@ -979,32 +979,6 @@ with `clamp()`.
   by the TODO thread.
   Prerequisites: UX.275. Related: UX.171, UX.130.
 
-- [ ] **UX.278 Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default**
-  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
-  design cards; design
-  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
-  sections 4 and 5). Do: one builder that makes the Menu from the layers
-  each map has, so a map shows only the headings it has layers for and a
-  new layer appears in the right place by declaring a heading; it keeps
-  the existing selectors (data-kind, data-action); counts such as
-  "Points of interest 4 of 12 on"; real checkboxes and details elements,
-  a tri-state group box for families such as the 20 world classes.
-  Switched on for the System Map and the Sector Map layers; not yet for
-  the Galaxy Map hand-written controls (UX.280). Version 8.2. Lock-free,
-  no migration, no epoch. Owner: none yet. Filed by the TODO thread.
-  Prerequisites: UX.277. Related: UX.274.
-
-- [ ] **UX.279 Search filter for the View menu: a function with tests that filters entries by name and keywords and opens the matching groups, behind no visible control yet**
-  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
-  design cards; design
-  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
-  sections 4 and 5). Do: a pure function over the registry (name and
-  keywords, case-insensitive) that returns the matches and the groups to
-  open, with unit tests; the search box that uses it is UX.281. Version
-  8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed by the
-  TODO thread.
-  Prerequisites: UX.277. Related: UX.274.
-
 - [ ] **UX.280 Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list**
   View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
   design cards; design
@@ -1014,7 +988,7 @@ with `clamp()`.
   the selectors the browser tests use; restyle with the console tokens
   (UX.269). Version 8.5. Lock-free, no migration, no epoch. Owner: none
   yet. Filed by the TODO thread.
-  Prerequisites: UX.269, UX.278. Related: UX.274.
+  Prerequisites: UX.269. Related: UX.274.
 
 - [ ] **UX.281 View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible**
   View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
@@ -1027,7 +1001,7 @@ with `clamp()`.
   View); touch targets of at least 44 px, visible focus, state not shown
   by colour alone, reduced motion respected. Version 8.5. Lock-free, no
   migration, no epoch. Owner: none yet. Filed by the TODO thread.
-  Prerequisites: UX.279, UX.280. Related: UX.274.
+  Prerequisites: UX.280. Related: UX.274.
 
 - [ ] **UX.282 Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu**
   View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
@@ -2187,16 +2161,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UX.278; fix it now on the present menu, lock-free. Version 8.1. Owner:
   Core 5. Filed by the TODO thread.
   Prerequisites: none. Related: UX.274, UX.278, MAP.392.
-
-- [ ] **MAP.398 test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card fails on main: an extra marker-region token for Zarh Region (bug)**
-  Core 2 (as the lane reported, about 7:35 PM EST on 2026-11-05): the
-  browser test fails on main with or without UX.278; the Galaxy Map
-  gives an extra marker-region token for Zarh Region (likely from the
-  region point of interest label change MAP.369 or the charted-regions
-  work). Do: find which merge added the token, then fix the code or the
-  test depending on which is wrong, without loosening the test. Version
-  8.1. Owner: Core 2. Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.369, MAP.397.
 
 ## NAV: Navigation and courses
 

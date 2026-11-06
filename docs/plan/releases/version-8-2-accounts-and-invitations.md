@@ -68,8 +68,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | USR.26 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
 | USR.7 | A user-level interface with bookmarks | USR.26 | Bookmarks of any object use NAV.7 references. |
 | UX.265 | Look and theme preference: a look (cockpit, chart, phosphor) times a theme (system, light, dark), stored on the account and in the browser, chosen in Preferences and the gear menu | USR.7 |  |
-| UX.278 | Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default |  |  |
-| UX.279 | Search filter for the View menu: a function with tests that filters entries by name and keywords and opens the matching groups, behind no visible control yet |  |  |
 | UX.276 | Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels |  |  |
 | MAP.394 | Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel | UX.276 |  |
 | MAP.395 | Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat |  |  |
