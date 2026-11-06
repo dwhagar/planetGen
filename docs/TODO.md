@@ -17836,20 +17836,6 @@ clears each one.
   Core 1. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.646 More tests red on main beyond TEST.644: test_parallel_generation (6), test_deferred_sectors (3), test_habitability_fill (2), test_db_check_deep, test_generation_stats (4), test_materials_table, test_sectors_command (2), test_prevalence (asteroid_belt, large_star, habitable_world), test_benchmark_suite, test_estimate_sampling, test_run_job (scatter redraw), test_maintenance (map rebuild), test_no_todo_codes_shown, test_plain_words nav comma (bug)**
-  Aux 2 (as the lane reported, 4:10 AM EST on 2026-11-06, main
-  ab0af2f9d) ran the 90 test files that use capsys and the 116 that touch
-  the logging modules for OPS.105 and found these red on main as well as
-  on the OPS.105 branch (test_habitability_fill's two are Aux 2's own, from
-  GEN.1260 part 2: the band day hours differ after a refresh). Do:
-  reproduce each on current main, find the cause, and fix the test or the
-  code at the cause; never skip or quarantine a test; where a cause is an
-  earlier item's change, say which. Lock-free unless a cause needs a
-  migration or changes generation output. Done: all of them pass on
-  current main. Version 8.1. Owner: Aux 2 after TEST.644. Filed by the
-  TODO thread.
-  Prerequisites: none. Related: TEST.644, TEST.642.
-
 - [ ] **TEST.647 The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock)**
   Aux 2 (as the lane reported, 4:45 AM EST on 2026-11-06, while fixing
   TEST.644) found that the fingerprint table check was red because
