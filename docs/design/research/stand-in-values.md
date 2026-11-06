@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1171 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1173 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 108 | 83 | 23 | 61 | 0 | 275 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 30 | 14 | 5 | 72 | 33 | 154 |
-| All | 643 | 244 | 58 | 182 | 44 | 1171 |
+| T9 | 32 | 14 | 5 | 72 | 33 | 156 |
+| All | 645 | 244 | 58 | 182 | 44 | 1173 |
 
 ## How the labels were given
 
@@ -1523,16 +1523,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NBC11 | P | T2 | L0 | nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity | the form | clouds of 0.01 to 10 solar metallicity, f above 0.25 to 30 percent | a cloud whose molecular share is outside 30 percent of the law | [R5104] read in full (eqs. 35 and 38) | [R5104]; the chi coefficient 0.77 checked against 2.3/3 in its eq. 7; the f form recalled and its half-molecular column (34 solar masses per pc2) is near the 27 of the paper | GEN.1276 | - |
 | NBC12 | P | T6 | L0 | nebula_composition.column_density_msun_pc2: the mean column of a nebula as 4/3 n R of mass 1.4 m_H per hydrogen atom | a factor 2 | uniform spheres | a cloud whose molecular share is far from its column's | a density profile of the cloud | a uniform sphere's mean column; the stored density is the cloud's mean | - | - |
 | NBC13 | P | T6 | L3 | nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind | 0.1 to 0.5 | ring nebulae of WN and WC stars | a measured helium or nitrogen excess of a ring outside the mix | observed ring abundances by host subtype | the observed rings are mostly swept-up gas with a wind-enriched helium and nitrogen (report section 3); the share is argued, not measured | - | no data |
+| NBC14 | D | T9 | L0 | nebula_columns.SPECIES_SHARE 0.05: the share of the hydrogen a phase must hold for `dominant_species` to name it (a wording cut) | 0.02 to 0.2 | the plain-words summary written from the stored numbers (GEN.1276) lists a phase only when it matters | none: it changes a sentence, no number | the full numbers, which are stored | needed output: a sentence has to stop somewhere | - | - |
+| NBC15 | D | T9 | L0 | nebula_columns.GRAIN_NAME_SHARE 0.15: the share of the dust a grain kind must hold for `dominant_species` to name it (a wording cut) | 0.05 to 0.3 | as NBC14 | none: it changes a sentence, no number | the grain shares, which are stored | needed output: a sentence has to stop somewhere | - | - |
 
 ## 6.178 Stand-ins of the progenitor and ejecta of a planetary nebula
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PNE1 | P | T6 | L1 | planetary_nebula_ejecta.MIN_MASS_SOL 0.9: the lightest progenitor of a planetary nebula | 0.85 to 1.2 | a disc of 10 Gy; an older galaxy reaches lighter stars | a measured lightest progenitor, or the track's lifespan against the galaxy's age at the place | the lightest mass whose track ends inside the age of the place | a star must end inside the age of the disc, a little under a solar mass at the track's lifespans; the initial-final relation starts at 0.83 | - | - |
-| PNE2 | P | T4 | L0 | planetary_nebula_ejecta.RGB_MASS_LOSS_SOL 0.2: the mass lost on the red giant branch before the thermally pulsing branch | 0.1 to 0.4 | stars of 1 to 3 solar masses | a mass-loss law on the red giant branch | the star track's own mass at the start of the asymptotic branch (`post_main_sequence`) | [R5098] (read) says the loss on the red giant branch is "perhaps as much as 30% of the star's total mass for the lowest mass stars", which holds 0.2 only as a value for 1 to 2 solar masses; its per-mass numbers are in the on-line tables of [R5100], which could not be read, so the value stays recalled (GEN.1274) | GEN.1276 | - |
-| PNE4 | P | T4 | L0 | planetary_nebula_ejecta.INTERSHELL_HE 0.75, INTERSHELL_O 0.02, INTERSHELL_REST 0.01: the helium, oxygen and neon-22 mass fractions of the dredged intershell (the carbon is 0.22, CS3) | 0.70 to 0.75; 0.01 to 0.05 | intershells of pulsing branch stars | a measured intershell composition | the intershell of a thermally pulsing track | recalled, intershell 70 to 75 percent helium, 20 to 25 percent carbon, about 2 percent oxygen | GEN.1276 | - |
-| PNE5 | P | T6 | L3 | planetary_nebula_ejecta.HBB_CARBON_TO_NITROGEN 0.9: the share of the envelope's carbon hot bottom burning turns into nitrogen | 0.5 to 1.0 | progenitors of 4 solar masses and more at solar metallicity | a surface N/O of a hot-bottom-burning model under log -0.3 at 5 solar masses, or the carbon left over 0.5 | the surface abundances of hot-bottom-burning models by mass and metallicity | set so a 5 solar mass progenitor at solar metallicity is Type I (log N/O 0.1 to 0.3); no source | GEN.1276 | no data |
-| PNE7 | P | T9 | L3 | planetary_nebula_ejecta.CARBON_RICH_TRIES 40: draws of a class K progenitor before the heaviest mass of the window is taken | 10 to 100 | class K | none (a safety limit: at solar metallicity no draw is refused) | none | needed to end the loop; every class K progenitor of the tests came out carbon-rich at the first or second draw | GEN.1276 | no data |
+| PNE2 | P | T4 | L0 | planetary_nebula_ejecta.RGB_MASS_LOSS_SOL 0.2: the mass lost on the red giant branch before the thermally pulsing branch | 0.1 to 0.4 | stars of 1 to 3 solar masses | a mass-loss law on the red giant branch | the star track's own mass at the start of the asymptotic branch (`post_main_sequence`) | [R5098] (read) says the loss on the red giant branch is "perhaps as much as 30% of the star's total mass for the lowest mass stars", which holds 0.2 only as a value for 1 to 2 solar masses; its per-mass numbers are in the on-line tables of [R5100], which could not be read, so the value stays recalled (GEN.1274) | - | - |
+| PNE4 | P | T4 | L0 | planetary_nebula_ejecta.INTERSHELL_HE 0.75, INTERSHELL_O 0.02, INTERSHELL_REST 0.01: the helium, oxygen and neon-22 mass fractions of the dredged intershell (the carbon is 0.22, CS3) | 0.70 to 0.75; 0.01 to 0.05 | intershells of pulsing branch stars | a measured intershell composition | the intershell of a thermally pulsing track | recalled, intershell 70 to 75 percent helium, 20 to 25 percent carbon, about 2 percent oxygen | - | - |
+| PNE5 | P | T6 | L3 | planetary_nebula_ejecta.HBB_CARBON_TO_NITROGEN 0.9: the share of the envelope's carbon hot bottom burning turns into nitrogen | 0.5 to 1.0 | progenitors of 4 solar masses and more at solar metallicity | a surface N/O of a hot-bottom-burning model under log -0.3 at 5 solar masses, or the carbon left over 0.5 | the surface abundances of hot-bottom-burning models by mass and metallicity | set so a 5 solar mass progenitor at solar metallicity is Type I (log N/O 0.1 to 0.3); no source | - | no data |
+| PNE7 | P | T9 | L3 | planetary_nebula_ejecta.CARBON_RICH_TRIES 40: draws of a class K progenitor before the heaviest mass of the window is taken | 10 to 100 | class K | none (a safety limit: at solar metallicity no draw is refused) | none | needed to end the loop; every class K progenitor of the tests came out carbon-rich at the first or second draw | - | no data |
 
 ## 6.180 Stand-ins of the drawing of the system sky
 

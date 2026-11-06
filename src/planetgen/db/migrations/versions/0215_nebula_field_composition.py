@@ -1,6 +1,6 @@
 """The stored composition of the field clouds (GEN.1277).
 
-Schema v213. `nebula_field` gains the columns of `nebula_columns.FIELD_COLUMNS` (the composition columns of `nebulae` without the progenitor mass), FLOAT. The rows already there are filled
+Schema v215. `nebula_field` gains the columns of `nebula_columns.FIELD_COLUMNS` (the composition columns of `nebulae` without the progenitor mass), FLOAT. The rows already there are filled
 from the galaxy's seed and shape: each cell is drawn again (`nebula_field.cell_draw`), which gives the cloud its own density, and `nebula_columns.field_values` works the composition out from it,
 keyed on the cloud's cell and place (`field_key`), so a row reads the same as the `nebulae` row the cloud becomes when a sector stores it (GEN.1276 keys a class M or N nebula the same way). A
 cloud the draw does not give back (a table planned under another seed) is filled from the density `nebula_composition.field_cloud_density_cm3` draws for its key. A column already there is
@@ -13,8 +13,8 @@ from alembic import op
 from planetgen.db import alembic_runner
 from planetgen.db.migrations import helpers
 
-revision = "0213"
-down_revision = "0212"
+revision = "0215"
+down_revision = "0214"
 branch_labels = None
 depends_on = None
 

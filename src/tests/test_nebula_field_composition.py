@@ -5,7 +5,7 @@ GEN.1277: the stored composition of the field clouds (`nebula_field`, `physics/n
 
 * every row `planetgen plan` writes carries a full composition whose fractions add up, and the clouds differ from one another;
 * a cloud's composition is keyed on its cell and place, so the `nebulae` row it becomes when a sector stores it reads the same numbers as its field row (to the FLOAT of the table);
-* migration 0213 fills the rows of a v212 galaxy: from the cell's own draw where the galaxy has its seed and shape, and from the keyed density where it has none, and a second run changes nothing.
+* migration 0215 fills the rows of a v214 galaxy: from the cell's own draw where the galaxy has its seed and shape, and from the keyed density where it has none, and a second run changes nothing.
 """
 
 import importlib
@@ -27,7 +27,7 @@ from tests.test_phenomenon_scatter import _scatter_args
 
 pytestmark = pytest.mark.db
 
-MIGRATION = "planetgen.db.migrations.versions.0213_nebula_field_composition"
+MIGRATION = "planetgen.db.migrations.versions.0215_nebula_field_composition"
 
 
 def test_the_field_columns_are_the_nebula_columns_without_the_progenitor_mass_and_the_classes_are_the_tables():
@@ -108,7 +108,7 @@ def _engine_fill(mysql_config, monkeypatch):
         connection.commit()
 
 
-def test_migration_0213_gives_a_cleared_table_the_numbers_the_plan_wrote_and_a_second_run_changes_nothing(mysql_config, monkeypatch):
+def test_migration_0215_gives_a_cleared_table_the_numbers_the_plan_wrote_and_a_second_run_changes_nothing(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
     run_plan.scatter_phenomena(_scatter_args(mysql_config))
     planned = _table(mysql_config)
@@ -128,8 +128,8 @@ def test_migration_0213_gives_a_cleared_table_the_numbers_the_plan_wrote_and_a_s
 
 
 @pytest.mark.fresh_database
-def test_migration_0213_fills_the_rows_of_a_v212_galaxy_that_has_no_skeleton(mysql_config):
-    load_old_schema(mysql_config, 212)
+def test_migration_0215_fills_the_rows_of_a_v214_galaxy_that_has_no_skeleton(mysql_config):
+    load_old_schema(mysql_config, 214)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert not conn.execute("SHOW COLUMNS FROM nebula_field LIKE 'mass_fraction_h'").fetchall()

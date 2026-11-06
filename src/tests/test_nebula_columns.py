@@ -6,7 +6,7 @@ GEN.1276: the stored composition of a nebula and of a supernova remnant (`physic
 * every class gets a full set of columns whose fractions add up, the same numbers whenever its key is the same, other numbers for another key;
 * a planetary nebula and a remnant store their progenitor's mass, the other nebulae none; a remnant stores its ejecta and swept-up parts;
 * a row inserted through `store.insert_nebula` / `insert_supernova_remnant` carries its composition and the plain-words sentences written from it;
-* migration 0212 fills the rows of a v211 galaxy with the same numbers, and a second run changes nothing.
+* migration 0214 fills the rows of a v213 galaxy with the same numbers, and a second run changes nothing.
 """
 
 import math
@@ -118,8 +118,8 @@ def test_an_inserted_nebula_and_remnant_carry_their_composition(mysql_config):
 
 
 @pytest.mark.fresh_database
-def test_migration_0212_fills_the_rows_of_a_v211_galaxy_with_the_numbers_of_the_model(mysql_config):
-    load_old_schema(mysql_config, 211)
+def test_migration_0214_fills_the_rows_of_a_v213_galaxy_with_the_numbers_of_the_model(mysql_config):
+    load_old_schema(mysql_config, 213)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for column in ("mass_fraction_h", "progenitor_mass_sol"):
