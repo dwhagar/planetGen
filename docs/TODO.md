@@ -697,28 +697,6 @@ with `clamp()`.
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
 
-- [ ] **UX.164 The wipe line reads "Wiped 75 tables (about 1 row)" (bug)**
-  From the generation-log analysis of Boss's run
-  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
-  reported; report reports/generation-log-analysis-2026-10-24.md). P6.
-  Do: make the wipe line report what it really did (tables cleared and
-  rows removed, both real counts), not an estimate of about one row.
-  Related: UX.161 (the main page counts after a reset). Done: a test on
-  the wording against a wiped test database. Owner: Generation-log
-  analysis lane (proposed by the lane).
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 7 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Research (2026-10-09): Lock-free item given to Aux 7 (6:29 PM EDT
-  2026-10-29) after PERF.178/179 merged; taken out of Core 5's chain.
-  Owner: Aux 7.
-  Prerequisites: none.
-
 - [ ] **UX.179 Sitemap entries and an Open Graph image for object pages (optional, can wait)**
   Boss's ask, 12:43 AM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
@@ -1015,22 +993,6 @@ with `clamp()`.
   by the TODO thread.
   Prerequisites: UX.275. Related: UX.171, UX.130.
 
-- [ ] **UX.277 Map layer registry fields for the View menu: heading, keywords, common flag and a settings hook, every existing layer given its heading, and a guard test that fails for a layer with none**
-  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
-  design cards; design
-  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
-  sections 4 and 5). Do: add heading, keywords, common (one of the few
-  most used switches) and a settings hook (for a layer that needs a
-  slider or a filter) to the maplayers.js registry (MAP.217); give every
-  existing layer its heading in one pass (Show, Color and fill, Chart
-  and side views, Move and Settings); a guard test like the
-  unkeyed-layer test fails for a layer with no heading or no keywords.
-  New layers of 8.3 and 8.4 (MAP.307, MAP.312, MAP.193, MAP.235)
-  register with the fields from the start. No look change. Version 8.2.
-  Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
-  thread.
-  Prerequisites: none. Related: MAP.217, UX.274.
-
 - [ ] **UX.278 Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default**
   View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
   design cards; design
@@ -1089,7 +1051,7 @@ with `clamp()`.
   switches and can be tweaked afterwards, placed once every layer has a
   heading (UX.277); Boss chose this for later. Version later. Lock-free,
   no migration, no epoch. Owner: none yet. Filed by the TODO thread.
-  Prerequisites: UX.277, UX.281. Related: UX.274.
+  Prerequisites: UX.281. Related: UX.274.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2094,39 +2056,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The trojan icon had no owner. Owner now: Core 2 (after GEN.1150)
   (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
-
-- [ ] **MAP.369 Region labels still do not show as clickable points of interest that zoom into the charted region (bug)**
-  Boss, 1:03 PM EST on 2026-11-04 (live observation): "right now we're
-  still not showing a region label as a POI that I can click on and zoom
-  in to the region of the galaxy that's been charted." What is on main:
-  the regions chain is built and retired (MAP.314 to MAP.322 named
-  regions, MAP.336 Go to a region, MAP.357 "every far-apart filled
-  region is a point of interest", MAP.356 to MAP.362 in #4393, which
-  added the region points of interest with a zoom link and merged nearby
-  ones). Why Boss may not see it: unknown from the code alone; those
-  items were closed on a browser test over a fixture, and Boss's own
-  galaxy may differ (a region needs a charted cell group that the node
-  payload names, the labels are domain-sliced and budgeted so far
-  regions may be cut, the layer may be off or hidden at his zoom, or a
-  later change such as the node budget or the nebula sprites hides
-  them). Do: (1) open Boss's kind of galaxy (a seeded galaxy with one
-  charted region far from another, then the default view) and find why
-  no region label draws or is clickable: payload (does the node list the
-  region?), layer default, label budget, selection (selectMarkers),
-  z-order under another layer, or a click target too small; (2) fix the
-  cause so that, at the default Galaxy Map view, each charted region far
-  enough from the others shows a label as a point of interest; clicking
-  it flies in to frame the charted part of the region (MAP.336 "frame");
-  (3) a browser test on a galaxy made like Boss's (a region generated
-  through the normal Generate page and a sector run) that the label is
-  present at the default zoom and the click flies in and frames the
-  region; (4) if it works on a fresh galaxy but not on Boss's, ask Boss
-  for the galaxy's region listing (planetgen regions) and check it.
-  Related: MAP.357, MAP.336, MAP.176. Owner Core 2 (Boss's request
-  relayed 1:03 PM EST on 2026-11-04; 8.1, one lock-free item at a time,
-  behind MAP.365 unless Core 2 says it clashes). Filed by the TODO
-  thread.
-  Prerequisites: none.
 
 - [ ] **MAP.374 Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection**
   Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
@@ -18405,24 +18334,6 @@ clears each one.
   thread.
   Prerequisites: none.
 
-- [ ] **TEST.621 The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug)**
-  The Train Manager (as the lane reported, about 3:47 PM EST on
-  2026-11-05, full-suite run on main) saw twice that the non-browser run
-  hung with all workers idle (futex wait, load 0) for 1.5 h and 3 h; the
-  timeout signal did not fire in a worker that has a process pool. Two
-  tests never ran:
-  test_prevalence_life_census::test_the_life_census_raises_no_new_flag
-  and
-  test_prevalence_occurrence::test_the_figures_count_planets_per_star_by_radius_and_period.
-  Do: find which test leaves a worker waiting on a pool (a child that
-  died, a pool not closed), switch the timeout method to thread or add a
-  per-test watchdog that kills the pool children, and make
-  scripts/test.py report a hung run within the limit instead of waiting.
-  Done: a deliberately hung test is killed at its limit with a clear
-  message, and the full run completes. Lock-free. Version 8.1. Owner:
-  Train Manager. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.417.
-
 - [ ] **TEST.623 Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark)**
   Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
   pilot's console default and wants the other two looks, Chart room and
@@ -18484,16 +18395,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: GEN.1285. Related: GEN.115, GEN.725.
 
-- [ ] **TEST.628 A docs test fails when an item's Version line disagrees with the version file its row sits in**
-  Boss approved this at 6:36 PM EST on 2026-11-05 (docs review). Do: for
-  every open item in docs/TODO.md that states "Version N.N" (or lists it
-  in a Version line), check that its row sits in the matching
-  docs/plan/releases/version-*.md file, and fail with the item, the
-  stated version and the file found. Add it to the docs tests that the
-  TODO docs routine runs. Version 8.2. Owner: any lane (lock-free, tests
-  only). Filed by the TODO thread.
-  Prerequisites: none. Related: DOC.105.
-
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal
@@ -18509,16 +18410,6 @@ clears each one.
   sections 4 and 5). Version 8.5. Lock-free, no migration, no epoch.
   Owner: none yet. Filed by the TODO thread.
   Prerequisites: UX.280, UX.281.
-
-- [ ] **TEST.631 test_density_components::test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main (6 cases) (bug)**
-  Tides 1 (as the lane reported, about 7:00 PM EST on 2026-11-05):
-  src/tests/test_density_components.py::test_the_spiral_written_as_components_gives_the_density_it_gave_before
-  fails on unmodified main, 6 cases. Do: find whether the density or the
-  test moved, fix the cause (not by loosening the test), and say which
-  commit broke it. Version 8.1. Lock-free if the fix is in the test or a
-  read path; if it changes generated output, tell TODO and it goes to a
-  train. Owner: Aux 7 after TEST.598 and TEST.602. Filed by the TODO thread.
-  Prerequisites: none.
 
 ## USR: User accounts
 
@@ -20406,49 +20297,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   word. Version 8.7. Filed by the TODO thread.
   Prerequisites: DOC.58, UX.43, DOC.81.
 
-- [ ] **VIEW.43 Dust model built from the galaxy's own gas: planetgen/physics/dust_model.py with the column and layer-thickness tables, and the stand-ins DU1 to DU5**
-  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
-  recommendations, option 1 on all five questions
-  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
-  galaxy's own gas, nearly clear small galaxies are accepted,
-  metallicity by galaxy mass, the gradient per scale length, and a
-  smooth disk first with the central molecular zone as a later item. Do:
-  physics/dust_model.py builds two tables per galaxy, the vertical dust
-  column and the layer thickness against radius, from the ring gas of
-  galaxy.disk_history (GEN.469), the dust-to-gas law and gas metallicity
-  of physics.nebula_composition (GEN.1269, [R5102], rows NBC1 and NBC4)
-  and the equilibrium thickness h = sigma_g^2 / (pi G Sigma_total) with
-  a floor of 40 pc; the extinction per parsec is column / (2 h) x
-  sech^2(z / h), with the visible share f_vis = 0.5 and N_H per A_V of
-  2.21e21 (a supernova-remnant measurement, read and verified; this item adds it to the reference list and writes its [R0123]). dust_av_per_pc gets a table
-  form beside the fixed one; av_per_kpc_at_sun = 0 still means
-  dust-free. Register DU1 to DU5 in GEN.725 with tier and tweak level as
-  the report lists them (a new section number is taken at merge) and
-  replace SKP1 and SKP4. Tests: the Milky Way sized case gives about 1
-  mag per kpc in the plane at the Sun and 0.24 mag through the layer,
-  the small test galaxy about 0.14. Lock-free, no migration, no epoch.
-  Version 8.2. Owner: none yet (Core 3 has the context). Filed by the
-  TODO thread.
-  Prerequisites: none. Related: VIEW.8, VIEW.30, GEN.469, GEN.1269,
-  GEN.725.
-
-- [ ] **VIEW.44 The sky reads the gas-built dust model: galaxy/sky.py, galaxy/sky_band.py and generation/sky_tiers.py take the two tables through the dust dict, and the table hash is in their cache keys**
-  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
-  recommendations, option 1 on all five questions
-  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
-  galaxy's own gas, nearly clear small galaxies are accepted,
-  metallicity by galaxy mass, the gradient per scale length, and a
-  smooth disk first with the central molecular zone as a later item. Do:
-  wire VIEW dust model (the item before this one) into the three callers
-  through the dust= dict; the table hash goes into the cache keys of
-  sky_band and the tier ledger so a changed law rebuilds only what it
-  changes; the default for a galaxy becomes the table. Done: a sky of
-  the small test galaxy is nearly clear (about 0.14 mag per kpc) and a
-  Milky Way sized galaxy keeps about 1. Lock-free, no migration, no
-  epoch (derived sky data only). Version 8.2. Owner: none yet. Filed by
-  the TODO thread.
-  Prerequisites: VIEW.43. Related: VIEW.25, VIEW.8, VIEW.30.
-
 - [ ] **VIEW.45 Re-baseline the HYG calibration test (VIEW.30) for the new dust, in dust-free and default-dust modes, in the small and the Milky Way sized galaxy**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
   recommendations, option 1 on all five questions
@@ -20464,7 +20312,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   default should land close to the dust-free count. Done: the bands and
   the test. Lock-free. Version 8.2. Owner: Core 3. Filed by the TODO
   thread.
-  Prerequisites: VIEW.44, VIEW.30. Related: VIEW.30.
+  Prerequisites: VIEW.30. Related: VIEW.30.
 
 - [ ] **VIEW.46 The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
@@ -20479,7 +20327,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   extinction is checked on a lane machine with datasets. Lock-free, no
   migration, no epoch. Version 8.3. Owner: none yet. Filed by the TODO
   thread.
-  Prerequisites: VIEW.44, GEN.115. Related: GEN.115, VIEW.8.
+  Prerequisites: GEN.115. Related: GEN.115, VIEW.8.
 
 - [ ] **DOC.105 Docs for politics: the help page for borders, contested systems, splits and the map time control, and the design note**
   Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2

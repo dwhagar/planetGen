@@ -2588,3 +2588,11 @@ Baseline: PR #1817.
 | MAP.386 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
 | PERF.243 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
 | MAP.387 | 8.3 | Gravity field evaluator |
+| MAP.369 | 8.1 | Nebula data foundations |
+| UX.164 | 8.1 | Habitability system |
+| TEST.631 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.621 | 8.1 | Physics rectification: citations and the gate's test health |
+| UX.277 | 8.2 | User features |
+| TEST.628 | 8.2 | User features |
+| VIEW.43 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
+| VIEW.44 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
