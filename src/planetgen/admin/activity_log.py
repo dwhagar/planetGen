@@ -202,7 +202,7 @@ def _current_handler():
 def _warn_once(key, message):
     if key not in _warned:
         _warned.add(key)
-        log.warning(message)
+        log.warning(message, stderr=True)
 
 
 def _request_ip():

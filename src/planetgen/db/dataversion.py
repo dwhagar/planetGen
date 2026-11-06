@@ -154,11 +154,11 @@ def bump(database, *tags):
         try:
             _client().delete(key(database))
         except (redis.RedisError, OSError):
-            log.warning(f"warning: the page cache's data versions were not updated ({exc}); "
-                  "cached pages may be stale until Redis answers.")
+            log.warning(f"the page cache's data versions were not updated ({exc}); "
+                        "cached pages may be stale until Redis answers.", stderr=True)
             return False
-        log.warning(f"warning: Redis refused the page cache's data versions ({exc}); every cached page was made stale "
-              "instead. If Redis is out of memory, raise maxmemory.")
+        log.warning(f"Redis refused the page cache's data versions ({exc}); every cached page was made stale "
+                    "instead. If Redis is out of memory, raise maxmemory.", stderr=True)
     # Whatever the page cache cannot serve any more is rebuilt by the warm-up, which starts by itself (PERF.141).
     warmstart.request(database, tags[0])
     return True

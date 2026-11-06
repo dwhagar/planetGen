@@ -167,7 +167,7 @@ def request(database, kind):
         client.set(lock_key(database), pid, xx=True, keepttl=True)
         return "started"
     except (redis.RedisError, OSError) as exc:
-        log.warning(f"warning: the cache warm-up did not start after a {kind!r} change ({exc}); run `planetgen warm`.")
+        log.warning(f"the cache warm-up did not start after a {kind!r} change ({exc}); run `planetgen warm`.", stderr=True)
         return "failed"
 
 

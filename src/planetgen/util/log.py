@@ -351,7 +351,7 @@ class _ConsoleHandler(logging.Handler):
         self._console = console
 
     def emit(self, record):
-        self.write(self.format(record), to_stderr=self.errors_to_stderr and record.levelno >= logging.WARNING)
+        self.write(self.format(record), to_stderr=(self.errors_to_stderr or getattr(record, "stderr", False)) and record.levelno >= logging.WARNING)
 
     def write(self, message, to_stderr=False):
         """One finished line to the console (a line a worker formatted comes through here too). `to_stderr` sends it to stderr
@@ -1351,13 +1351,20 @@ def normal(message, *args, **kwargs):
     _logger.info(message, *args, **kwargs)
 
 
-def warning(message, *args, **kwargs):
+def warning(message, *args, stderr=False, **kwargs):
+    """A warning. `stderr` writes this one to stderr whatever the console is set to: code the web app runs (it configures no console) says
+    its warnings there, so they reach the server's error log and not a stdout that may not exist."""
     kwargs.setdefault("stacklevel", 2)
+    if stderr:
+        kwargs["extra"] = {"stderr": True}
     _logger.warning(message, *args, **kwargs)
 
 
-def error(message, *args, **kwargs):
+def error(message, *args, stderr=False, **kwargs):
+    """An error; see `warning` for `stderr`."""
     kwargs.setdefault("stacklevel", 2)
+    if stderr:
+        kwargs["extra"] = {"stderr": True}
     _logger.error(message, *args, **kwargs)
 
 
