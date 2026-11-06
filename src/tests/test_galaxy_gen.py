@@ -210,6 +210,19 @@ def _run_sector_gen_cli(argv):
         sys.argv = old_argv
 
 
+def _charted_sectors(mysql_config):
+    """The `sectors` rows a fill charted: a rogue planet in a cell nobody charted gets a row of its own that no fill charted (GEN.1111 part 7), so
+    a count of the sectors a run made leaves those out."""
+    conn = _db.get_connection(mysql_config)
+    try:
+        return conn.execute(
+            "SELECT s.id, s.name, s.center_x_pc, s.center_y_pc, s.center_z_pc, s.galactic_radius_pc, s.shell_index, s.band_index, s.wedge_index "
+            "FROM sectors s JOIN chart_ledger c ON c.shell_index = s.shell_index AND c.band_index = s.band_index "
+            "AND c.wedge_index = s.wedge_index ORDER BY s.id").fetchall()
+    finally:
+        conn.close()
+
+
 def _all_sectors(mysql_config):
     """Returns every `sectors` row. `get_connection`'s own `_ensure_schema`
     creates the table if a rejected run never got as far as calling it
