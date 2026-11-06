@@ -16745,6 +16745,57 @@ clears each one.
   TODO thread.
   Prerequisites: none. Related: MAP.401.
 
+- [ ] **MAP.402 Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets**
+  Boss, 6:42 PM EST on 2026-11-06 (relayed by the coordinator). MAP.399 to
+  MAP.401 named and described the placeholder sectors that drifting rogue
+  planets make; the scatter stages (massive stars, bright-star band,
+  phenomena such as black holes, neutron stars, remnants, planetary nebulae,
+  hypervelocity stars, the quasar) put objects into cells nothing was
+  generated in, and those cells are not indexed. Do: during the scatter
+  write the cell of each landing as an uncharted sector (one row per cell,
+  not per object: the 9.7 million scatter rows stay beside the index, per
+  MAP.400's finding that putting them in costs about 3 GB), with a count and
+  the kinds that landed, so the Sectors list, the sector filter (MAP.403)
+  and the uncharted page (MAP.404) can find them; name them with the Object
+  ID naming system as in MAP.399. A new table or column means a migration,
+  so this is a lock item (the Train Manager numbers the migration); the
+  write must retry on deadlock through db/contention.py (DB.113) and not
+  hold the scatter units' transactions long. Done: a scattered run lists
+  every cell holding a scattered object as an uncharted sector, with counts,
+  and the count matches the scatter tables. Version 8.1. Owner: Core 2
+  (MAP.400's author), lock, train 14 or 15.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
+
+- [ ] **MAP.403 Sector filter: charted sectors by default, with all sectors or uncharted only, on the Sectors list and in the search information**
+  Boss, 6:42 PM EST on 2026-11-06 (relayed by the coordinator). Do: a sector
+  filter with three choices (charted only, the default; all sectors;
+  uncharted only) on the Sectors list, remembered in the page's address like
+  the other filters, and the same choice in the search page's information
+  and in the API (an additive parameter, no version bump). The header counts
+  follow the filter (MAP.399 already shows generated and uncharted numbers).
+  Lock-free (web and API). Done: the Sectors list and a search obey the
+  filter, the default hides uncharted sectors, and a browser test covers the
+  three choices at every screen size. Version 8.1. Owner: Core 1
+  (MAP.399/401's author). Works on the placeholder sectors of MAP.399 at
+  once and on every scattered cell after MAP.402.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
+
+- [ ] **MAP.404 Uncharted sector pages show only what is known to be in the sector, each linked to its object page, and display the sector map**
+  Boss, 6:42 PM EST on 2026-11-06 (relayed by the coordinator), building on
+  MAP.401 (#5398, the 'What is placed here' panel). Do: an uncharted
+  sector's page shows only what is known (the stored and scattered objects
+  that lie in it, from MAP.402's rows as well as rogue planets, waiting
+  stars and phenomena), each linked to its object page, and no
+  generated-sector furniture (no density, no star counts, no 'generate'
+  form); and it shows the sector map with those objects drawn where they
+  are. Lock-free (page and map). Done: the page lists every known object
+  with working links and draws the sector map, checked in a browser test at
+  every screen size. Version 8.1. Owner: Core 1, after MAP.403.
+  Filed by the TODO thread.
+  Prerequisites: MAP.403. Related: MAP.399, MAP.400, MAP.401.
+
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
   oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md

@@ -56,6 +56,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched |  |  |
+| MAP.402 | Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets |  |  |
+| MAP.403 | Sector filter: charted sectors by default, with all sectors or uncharted only, on the Sectors list and in the search information |  |  |
+| MAP.404 | Uncharted sector pages show only what is known to be in the sector, each linked to its object page, and display the sector map | MAP.403 |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 
 ### Bugs and flaky tests

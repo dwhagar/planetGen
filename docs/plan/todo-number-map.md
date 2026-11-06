@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.284 |
-| MAP | MAP.402 |
+| MAP | MAP.405 |
 | NAV | NAV.78 |
 | GEN | GEN.1319 |
 | PERF | PERF.247 |
@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.43 |
-| TEST | TEST.659 |
+| TEST | TEST.660 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -4134,6 +4134,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 | none | open |
 | TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") | none | done, PR #5389 |
 | TEST.658 | Train tooling: scripts/train_gate.py, scripts/train.py, scripts/lane_up.sh, the known-red list and gate durations (Train Manager) | none | done, PR #5376 |
+| TEST.659 | Train tooling part 2: train.py renumber and golden conflict handling (Train Manager) | none | done, PR #5401 |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
@@ -4288,6 +4289,9 @@ commit that wrote them. Only the last row is still in the code.
 | 2026-09-30 20:08Z | web-pages #46 to #49 | UX.11, MAP.12, UX.12, MAP.4 |
 | 2026-09-30 20:43Z, 20:48Z | installers #50; windows #54, then #55 | OPS.3; OPS.4 |
 | 2026-10-01 00:07Z | sector-map #55 | MAP.13 |
+| MAP.402 | Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets | none | open |
+| MAP.403 | Sector filter: charted sectors by default, with all sectors or uncharted only, on the Sectors list and in the search information | none | open |
+| MAP.404 | Uncharted sector pages show only what is known to be in the sector, each linked to its object page, and display the sector map | MAP.403 | open |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 
