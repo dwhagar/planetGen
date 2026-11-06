@@ -290,6 +290,13 @@ def _grid_radius_solar(mass_sol, teff_k, envelope):
     zero-temperature mass-radius relation's ratio of the two masses (the shrinking toward the Chandrasekhar mass).
     """
     top = white_dwarf_models.CRYSTAL_MASS_SOL
+    bottom = float(white_dwarf_models.masses_sol()[0])
+    if mass_sol < bottom:
+        try:    # a helium-core white dwarf under the lightest sequence reads that sequence, scaled by the zero-temperature relation's ratio of the two masses
+            return (white_dwarf_models.radius_solar(bottom, teff_k, envelope)
+                    * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(bottom))
+        except sa.StellarAbundanceError:
+            return None
     if mass_sol <= top:
         return white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
     try:

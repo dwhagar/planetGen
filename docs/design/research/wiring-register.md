@@ -194,6 +194,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.126:RN11 | GEN.1201 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |
 | data | planet_class_fit.json | GEN.1207 | the percent-match table of every class; the shadow scorer reads it (GEN.1206) and the best-fit classifier makes it the way a stored letter is decided |
 | module | planetgen.physics.class_fit | GEN.1207 | the percent-match scorer; the shadow scorer in src/tests reads it, the classifier replaces the first-match tree with it |
+| module | planetgen.physics.class_domains | GEN.1207 | the class-by-domain matrix and the quantities of a body that it reads; the fit table and the shadow scorer read it, the best-fit classifier scores a body by domain with it |
+| module | planetgen.physics.phase_gate | GEN.1207 | the liquid window of a family at the body's pressure; the fit table's phase quantities read it, the classifier takes the digit positions (cold, ideal, hot thirds) from it |
 | function | planetgen.physics.class_code.parse_code | GEN.1207 | reads a written class code (M, F2) into its letter and digit; the search filter and the class pages take it with the best-fit classifier, which is the first to write a digit above 0 |
 | column | binary_epoch_unix | by design | the daily orbit update (`store.advance_*`) reads and writes the pair's clock; nothing outside the store needs it |
 | column | binary_next_update_due | by design | the daily orbit update (`store.advance_*`) schedules the pair's next step from it; nothing outside the store needs it |
@@ -321,4 +323,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
 | function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |
+| row | 6.91:SS4 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| row | 6.91:SS11 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| row | 6.91:SS12 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| row | 6.91:SS13 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| row | 6.91:SS14 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
+| module | planetgen.physics.temperature_coverage | GEN.1265 | the temperature score, columns and pages read the coverage of the series (GEN.1264 builds it, GEN.1265 wires it) |
+| row | 6.183:PG1 | GEN.1258 | the phase gate's carbon dioxide fluid window is read when the class-by-domain matrix wires it |
 | function | planetgen.galaxy.spherical.sector_quadrant | DB.112 | the stored quadrant column and this function are deleted together once the migration drops the column |

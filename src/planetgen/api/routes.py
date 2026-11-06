@@ -1689,6 +1689,7 @@ def generate_uncharted_system_job(config, bright_star_id):
                 system = _generate_system(system_config, pc_to_ly(math.sqrt(x * x + y * y + z * z)),
                                           primary_star_params=brightStars.star_params(row), member_tree=plan)
             system_id = store.insert_star_system(conn, system, system_config)
+            store.give_system_uid(conn, system_id, row.get("uid"))      # GEN.1254: the system keeps the Object ID its star has
             store.assign_uids(conn, system_ids=[system_id])
             store.mark_bright_star_filled(conn, bright_star_id, system_id)
             if system.tree_built:

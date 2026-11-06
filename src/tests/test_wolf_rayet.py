@@ -46,8 +46,8 @@ def test_the_phase_is_the_last_third_of_a_myr_and_never_more_than_half_the_super
         start = wolf_rayet.start_gy(mass, t_ms, t_end)
         assert t_ms < start < t_end
         assert t_end - start <= tuning.WR_PHASE_MYR / 1000.0 + 1.0e-12
-    t_ms, t_end = _window(20.0)
-    assert wolf_rayet.start_gy(20.0, t_ms, t_end) is None
+    t_ms, t_end = _window(16.0)    # under the least mass a companion can strip (GEN.995)
+    assert wolf_rayet.start_gy(16.0, t_ms, t_end) is None
 
 
 def test_a_star_is_wolf_rayet_only_in_the_last_stretch_and_only_above_the_threshold():
@@ -289,3 +289,49 @@ def test_a_heavier_wolf_rayet_star_is_brighter_and_the_chance_to_clear_a_floor_f
     light = [wolf_rayet.state(60.0, 12.0, 0.5, 0.0, 1.0, rng)["luminosity_sol"] for _ in range(200)]
     heavy = [wolf_rayet.state(60.0, 35.0, 0.5, 0.0, 1.0, rng)["luminosity_sol"] for _ in range(200)]
     assert min(heavy) > max(light) * 0.8 and sum(heavy) > 2.0 * sum(light)
+
+
+# ---------------------------------------------------------------------------
+# GEN.995: the binary-stripped channel
+# ---------------------------------------------------------------------------
+
+def test_a_star_between_the_binary_and_the_single_star_threshold_is_stripped_at_the_observed_fraction():
+    assert wolf_rayet.binary_threshold_mass_sol() == pytest.approx(18.0)
+    assert wolf_rayet.stripping_chance(25.0) == 1.0 and wolf_rayet.stripping_chance(120.0) == 1.0
+    assert wolf_rayet.stripping_chance(18.5) == pytest.approx(tuning.WR_STRIPPING_FRACTION) == pytest.approx(0.33)
+    assert wolf_rayet.stripping_chance(24.9) == pytest.approx(0.33)
+    assert wolf_rayet.stripping_chance(17.5) == 0.0
+    # the same metallicity law carries both thresholds: at half the Sun's metals the window is 25.2 to 35
+    half = math.log10(0.5)
+    assert wolf_rayet.stripping_chance(wolf_rayet.binary_threshold_mass_sol(half) - 0.1, half) == 0.0
+    assert wolf_rayet.stripping_chance(wolf_rayet.binary_threshold_mass_sol(half) + 0.1, half) == pytest.approx(0.33)
+
+
+def test_a_star_in_the_band_can_become_one_and_a_lighter_star_never_does():
+    t_ms, t_end = _window(20.0)
+    assert wolf_rayet.start_gy(20.0, t_ms, t_end) is not None
+    t_ms, t_end = _window(16.0)
+    assert wolf_rayet.start_gy(16.0, t_ms, t_end) is None
+
+
+def test_about_a_third_of_the_stars_of_twenty_solar_masses_are_wolf_rayet_late_in_their_life():
+    t_ms, t_end = _window(20.0)
+    start = wolf_rayet.start_gy(20.0, t_ms, t_end)
+    age = (start + t_end) / 2.0
+    draw.set_run_seed(995)
+    found = sum(evolution.evolve_star(20.0, age, fe_h=0.0)["yerkes_class"] == wolf_rayet.CLASS for _ in range(600))
+    assert 0.25 < found / 600 < 0.42, found
+    t_ms, t_end = _window(40.0)
+    age = (wolf_rayet.start_gy(40.0, t_ms, t_end) + t_end) / 2.0
+    assert all(evolution.evolve_star(40.0, age, fe_h=0.0)["yerkes_class"] == wolf_rayet.CLASS for _ in range(50))
+
+
+def test_the_bright_windows_of_a_band_star_split_between_the_wolf_rayet_phase_and_the_giant_it_otherwise_stays():
+    from planetgen.generation import star_population
+
+    windows = star_population._evolved_bright_windows(20.0, 1000.0, 0.0)
+    chances = sorted({round(window[2], 3) for window in windows})
+    assert any(chance == pytest.approx(1.0 - tuning.WR_STRIPPING_FRACTION, abs=0.001) for chance in chances), chances
+    # a star over the single-star threshold has no such tail
+    assert all(window[2] != pytest.approx(1.0 - tuning.WR_STRIPPING_FRACTION, abs=0.001)
+               for window in star_population._evolved_bright_windows(40.0, 1000.0, 0.0))
