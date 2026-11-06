@@ -456,15 +456,13 @@ def list_databases():
     return _request("/databases")["items"]
 
 
-def get_sectors(db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False, after=None):
+def get_sectors(db, limit=None, offset=None, sort=None, descending=False, after=None):
     """Returns `GET /api/sectors`'s full paginated envelope
-    (`items`/`total`/`limit`/`offset`, plus `facets` when asked). `sort`,
-    `quadrants` and `facets` are the Sectors table's sort and filter (UX.41); `after` is the sector ID the previous
+    (`items`/`total`/`limit`/`offset`). `sort` is the Sectors table's sort (UX.41); `after` is the sector ID the previous
     page ended on (PERF.137)."""
     _require_db(db)
     params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
               ("order", "desc" if descending else None)]
-    params += [("quadrant", value) for value in quadrants] + [("facets", "1" if facets else None)]
     return _request("/sectors", [(key, value) for key, value in params if value is not None])
 
 
@@ -877,6 +875,13 @@ def get_nebula_volume(db, nebula_id):
     return _request(f"/nebulae/{nebula_id}/volume", {"db": db})
 
 
+def get_cloud_volume(db, x, y, z, radius_pc, family):
+    """Returns `GET /api/galaxy/cloud-volume`'s payload (`format`/`level`/`count`/`data`, the base64 of the packed points that draw one cloud given by
+    its sphere, MAP.392 -- see `db.nebula_volumes.sphere_volume`)."""
+    _require_db(db)
+    return _request("/galaxy/cloud-volume", {"db": db, "x": x, "y": y, "z": z, "radius_pc": radius_pc, "family": family})
+
+
 def get_nebula_surroundings(db, nebula_id):
     """Returns `GET /api/nebulae/<id>/surroundings`' payload: the brightest
     stars round one nebula, for its page's 3D view (MAP.105)."""
@@ -976,6 +981,13 @@ def get_object_sheet(db, ref):
     a star, planet, moon, belt, comet or phenomenon -- see `describe/sheet.py`."""
     _require_db(db)
     return _request(f"/objects/{ref}/sheet", {"db": db})
+
+
+def get_belt_page(db, ref):
+    """Returns `GET /api/objects/<ref>/belt-page`'s dict (`belt`, `bodies`, `bins`, `density_factor`, `totals`), the information page data of an
+    asteroid belt -- see `describe/belt_info.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/belt-page", {"db": db})
 
 
 def get_object_children(db, ref, limit=None, after=None):
@@ -1482,6 +1494,13 @@ def get_sector_facilities(db, sector_id):
     fields."""
     _require_db(db)
     return _request(f"/sectors/{sector_id}/facilities", {"db": db})["items"]
+
+
+def get_sector_gravity(db, sector_id, mode="pull", field="total"):
+    """Returns `GET /api/sectors/<id>/gravity`'s body (API.24): the sector's grid for `mode` and `field`, or, while the grid is being built, the `202` body
+    (`{"status": "accepted", "job_id", "status_url"}`: it has no `values`). Never cached."""
+    _require_db(db)
+    return _request(f"/sectors/{sector_id}/gravity", {"db": db, "mode": mode, "field": field})
 
 
 def get_containers(db, kind=None):

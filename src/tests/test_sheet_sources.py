@@ -79,8 +79,11 @@ def test_each_physics_row_of_a_page_stands_once_with_its_source_beside_it(db_app
     system_id = _save_wide_binary_with_moons(mysql_config)
     physics = {
         "planet": dict(eccentricity=0.05, orbital_inclination_deg=1.2, urey_ratio=0.4, internal_heat_flux_w_m2=0.08,
-                       rotation_period_hours=24.0, axial_tilt_deg=23.4, magnetic_moment_a_m2=8e22),
-        "moon": dict(eccentricity=0.01, urey_ratio=0.3, rotation_period_hours=90.0, axial_tilt_deg=0.5),
+                       rotation_period_hours=24.0, axial_tilt_deg=23.4, magnetic_moment_a_m2=8e22,
+                       ground_type="basaltic", ground_grain="powder", ground_ocean_fraction=0.3, ground_basaltic_fraction=0.5,
+                       ground_clay_fraction=0.2),
+        "moon": dict(eccentricity=0.01, urey_ratio=0.3, rotation_period_hours=90.0, axial_tilt_deg=0.5,
+                     ground_type="ice", ground_grain="slab", ground_ice_fraction=0.9, ground_sulfur_fraction=0.1),
         "star": dict(rotation_period_hours=600.0, axial_tilt_deg=3.0),
     }
     client = db_app.test_client()

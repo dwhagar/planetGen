@@ -15,7 +15,7 @@ correctly rounded and the same in every version, so a galaxy does not depend on 
     d = detmath.dist(a, b)             # the same over the differences of two points
     s = detmath.fsum(masses)           # the exactly rounded sum
 
-`matmul` replaces `@` and `numpy.dot`, whose results depend on the BLAS library installed.
+`matmul` replaces `@` and `numpy.dot`, whose results depend on the BLAS library installed; `dot` is its form for a vector.
 
 `tests/test_reproducible_draws.py` fails on `math.hypot` or `math.dist` anywhere in the package outside `web/` (a
 drawing's last bit does not matter) and the migrations (a revision that has run is never edited), and on `@` and
@@ -73,6 +73,15 @@ the loop over the inner index is cheaper than the larger array."""
 
 _ACCUMULATE_LIMIT = 4_000_000
 """int: The most products `matmul` forms at once; a larger product goes through the loop."""
+
+
+def dot(a, b):
+    """
+    `a @ b` for a vector `b` of length n: two vectors give a float, an array `a` of shape (..., n) gives the array of its dot products with `b`. Summed over
+    n left to right by `matmul`, so it has the same bits.
+    """
+    out = matmul(a, np.asarray(b, dtype=float)[:, None])[..., 0]
+    return float(out) if out.ndim == 0 else out
 
 
 def matmul(a, b):

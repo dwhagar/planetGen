@@ -82,6 +82,8 @@ class RestoreContext:
     role: str = "admin"
     audit: object = None
     environ: object = None
+    database: object = None
+    """`db.store.MySQLConfig` of the galaxy database a part that checks its restore against it uses (the parity part); `None` is the process's own."""
 
 
 class Part:
@@ -92,8 +94,13 @@ class Part:
     label = ""
 
     def dump(self, directory):
-        """Writes this part's files into `directory` (an empty folder)."""
+        """Writes this part's files into `directory` (an empty folder). May return a dict of plain values (numbers, text,
+        booleans) for the manifest to keep as the part's `info`, such as how much the dump covers."""
         raise NotImplementedError
+
+    def check_restorable(self, context):
+        """Called for every part of a restore before anything is backed up or changed: raise `BackupError` to refuse the restore now (the data
+        is busy, a service it needs is down). The default accepts."""
 
     def restore(self, directory, context):
         """Puts the files in `directory` (a hash-checked copy of what `dump` wrote) back. May return a result
@@ -254,6 +261,8 @@ class PartInfo:
     files: list = field(default_factory=list)
     known: bool = True
     """False when this build has no provider for the part."""
+    info: dict = field(default_factory=dict)
+    """What the part said about its dump (`Part.dump`'s return value), as the manifest holds it: the parity part's size and the sectors it covers."""
 
 
 @dataclass
@@ -344,7 +353,7 @@ def take(parts=None, who=None, reason="backup", directory=None, when=None, keep=
                 part_dir = os.path.join(work, name)
                 os.mkdir(part_dir)
                 try:
-                    _PARTS[name].dump(part_dir)
+                    info = _PARTS[name].dump(part_dir)
                 except BackupError:
                     raise
                 except Exception as exc:  # noqa: BLE001 -- name the part, leave nothing behind
@@ -357,8 +366,10 @@ def take(parts=None, who=None, reason="backup", directory=None, when=None, keep=
                         files.append({"path": os.path.relpath(full, part_dir).replace(os.sep, "/"),
                                       "size": size, "sha256": digest})
                 files.sort(key=lambda f: f["path"])
-                manifest["parts"].append({"name": name, "directory": name, "size": sum(f["size"] for f in files),
-                                          "files": files})
+                entry = {"name": name, "directory": name, "size": sum(f["size"] for f in files), "files": files}
+                if isinstance(info, dict) and info:
+                    entry["info"] = info
+                manifest["parts"].append(entry)
             handle, temp = tempfile.mkstemp(prefix=".archive-", dir=folder)
             os.close(handle)
             with tarfile.open(temp, "w:bz2") as tar:
@@ -418,7 +429,8 @@ def _archive_row(folder, name):
     stat = os.stat(path)
     try:
         manifest = _read_manifest(path)
-        parts = [PartInfo(p["name"], int(p.get("size") or 0), list(p.get("files") or []), p["name"] in _PARTS)
+        parts = [PartInfo(p["name"], int(p.get("size") or 0), list(p.get("files") or []), p["name"] in _PARTS,
+                          dict(p["info"]) if isinstance(p.get("info"), dict) else {})
                  for p in manifest["parts"] if isinstance(p, dict) and _PART.match(str(p.get("name", "")))]
         return Archive(name, path, str(manifest.get("taken_at") or ""), str(manifest.get("taken_by") or ""),
                        str(manifest.get("reason") or ""), str(manifest.get("version") or ""), parts, stat.st_size,
@@ -600,6 +612,8 @@ def restore(name, parts=None, context=None, directory=None):
     todo = [p for p in wanted if p in _PARTS]
     if not todo:
         return report
+    for part in todo:
+        _PARTS[part].check_restorable(context)
     report.safety = take(todo, who=context.who, reason=f"before restoring {name}", directory=folder).name
     path = os.path.join(folder, name)
     work = tempfile.mkdtemp(prefix=".restore-", dir=folder)

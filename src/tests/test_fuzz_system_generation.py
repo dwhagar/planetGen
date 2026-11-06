@@ -364,7 +364,7 @@ def check_system(system, cfg=None, *, round_trip=True):
 # Whole-system properties
 # ---------------------------------------------------------------------------
 
-@settings(max_examples=scaled(20))  # TEST.571: 80 examples took over 2900 s; a binary or a multiple draw still costs up to a minute
+@settings(max_examples=scaled(10))  # TEST.571: 80 examples took over 2900 s; a binary or a multiple draw still costs up to a minute (TEST.417, PERF.241: 20 passed 900 s)
 @given(seed=SEEDS, cfg=system_configs())
 def test_random_valid_configs_generate_sane_systems(seed, cfg):
     note(f"config: {cfg.to_dict()}")
@@ -382,20 +382,26 @@ each letter, three tests of a few minutes each per letter in place of one of hou
 HEAVY_SUBCLASSES = (0, 5, 9)
 
 
-def _types_of_class(yerkes, letter):
-    """`[(index, star_type)]` of the star types of one letter and Yerkes class, `index` being the place in the class's whole list of 70 (the seed's)."""
+SUBCLASS_HALVES = (range(0, 5), range(5, 10))
+"""tuple: The subclasses a case of `test_every_star_type_generates_a_sane_system` takes, 0 to 4 or 5 to 9 (TEST.417, PERF.241: ten O-type systems with every flag
+forced on took 15 to 96 seconds each, so the ten together passed the 900 s limit; two cases of five, with the same systems and seeds, do not)."""
+
+
+def _types_of_class(yerkes, letter, subclasses=range(10)):
+    """`[(index, star_type)]` of the star types of one letter and Yerkes class (of the `subclasses` given), `index` being the place in the class's whole list of 70 (the seed's)."""
     every = [t for t in ALL_STAR_TYPES if t[2:] == yerkes]
-    found = [(index, t) for index, t in enumerate(every) if t[0] == letter]
+    found = [(index, t) for index, t in enumerate(every) if t[0] == letter and int(t[1]) in subclasses]
     return [(index, t) for index, t in found if yerkes not in HEAVY_YERKES or int(t[1]) in HEAVY_SUBCLASSES]
 
 
+@pytest.mark.parametrize("half", SUBCLASS_HALVES, ids=["subclasses0-4", "subclasses5-9"])
 @pytest.mark.parametrize("letter", SPECTRAL)
 @pytest.mark.parametrize("yerkes", YERKES)
-def test_every_star_type_generates_a_sane_system(yerkes, letter):
+def test_every_star_type_generates_a_sane_system(yerkes, letter, half):
     """The 10 subclasses of one spectral letter and one Yerkes class (all 70 combinations of a class over its 7 letters), each with every
-    orbit-producing flag forced on (the most bodies, the most chances to break an invariant). A bright giant or supergiant class runs
-    three subclasses of a letter (`HEAVY_YERKES`)."""
-    for index, star_type in _types_of_class(yerkes, letter):
+    orbit-producing flag forced on (the most bodies, the most chances to break an invariant), in two cases of five subclasses. A bright
+    giant or supergiant class runs three subclasses of a letter (`HEAVY_YERKES`)."""
+    for index, star_type in _types_of_class(yerkes, letter, half):
         cfg = SystemConfig()
         cfg.STAR_TYPE = star_type
         cfg.BINARY_SYSTEM = False
@@ -409,7 +415,7 @@ def test_every_star_type_generates_a_sane_system(yerkes, letter):
             raise AssertionError(f"{star_type}: {exc}") from exc
 
 
-@settings(max_examples=scaled(30))
+@settings(max_examples=scaled(12))  # TEST.417, PERF.241: 30 examples passed 900 s (an O-type system costs up to 96 s); the deep profile still draws thousands
 @given(
     seed=SEEDS,
     star_type=st.sampled_from(ALL_STAR_TYPES),
@@ -428,7 +434,7 @@ def test_extreme_orbit_counts(seed, star_type, num_orbits, binary):
     assert len(system.planets) <= min(num_orbits, 10**6)
 
 
-@settings(max_examples=scaled(25))
+@settings(max_examples=scaled(10))  # TEST.417, PERF.241: 25 examples passed 900 s (every flag forced on costs 15 to 96 s a system); the deep profile still draws thousands
 @given(seed=SEEDS, star_type=st.one_of(st.none(), st.sampled_from(ALL_STAR_TYPES)),
        wide=st.sampled_from([None, True, False]))
 def test_every_forced_flag_on_together(seed, star_type, wide):

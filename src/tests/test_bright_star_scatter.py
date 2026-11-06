@@ -352,7 +352,8 @@ def test_band_stars_stay_inside_their_band():
 
 
 def test_backfilled_cells_get_band_stars_in_their_own_cell():
-    addresses = [(2, 0, wedge) for wedge in range(12)] + [(3, 1, wedge) for wedge in range(12)]
+    # TEST.417: shell 2 holds about 120 stars a cell, so three of its cells carry the check (twelve took nine minutes); the thinner shell 3 keeps twelve.
+    addresses = [(2, 0, wedge) for wedge in range(3)] + [(3, 1, wedge) for wedge in range(12)]
     rows = list(brightStars.backfill_cells(SHAPE, addresses, EDGE_PC, E_VALUE, FLOOR, THRESHOLD, 2))
     assert rows
     for row in map(_row_dict, rows):
@@ -930,7 +931,7 @@ def test_topping_up_backfilled_sectors_shows_a_bar_on_the_web(mysql_config, web_
     run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
     assert backfill_bright_stars(mysql_config, sector_position_pc(4, 0, 5, EDGE_PC))["sectors"]
     del web_progress[:]
-    run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", str(FLOOR)))
+    run_plan.add_bright_star_band(_scatter_args(mysql_config, "--band", "--down-to", "400"))   # TEST.417: the first step down is the cheap one, and it reports the same phase
     topping = [report for report in web_progress if report[0] == "Topping up backfilled sectors"]
     assert topping and topping[0][1:] == (0, topping[0][2]) and topping[0][2] > 0
     assert topping[-1][1] == topping[-1][2]

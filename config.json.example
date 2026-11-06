@@ -11,7 +11,8 @@
   "log_dir": "",
   "log_rotation": "auto",
   "settings": {
-    "backups_kept": 20
+    "backups_kept": 20,
+    "backup_parity": true
   },
   "site": {
     "tagline": "",

@@ -6,12 +6,24 @@ import itertools
 import pytest
 
 from planetgen.generation import run_galaxy, run_sector
+from planetgen.db import store as _db
 from planetgen.queue import api_jobs, commands, redisqueue, runrecord
 from tests import first_fill
 from tests.test_galaxy_gen import _all_sectors, _seed_skeleton, _shells
 from tests.sector_support import make_sector
 
 pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans")]
+
+
+def _charted_sectors(config):
+    """The `sectors` rows a fill charted. A rogue planet lands in a cell that may never have been charted and gets a row there that no fill
+    charted (GEN.1111 part 7), so a count of what a job made leaves those out (TEST.610)."""
+    conn = _db.get_connection(config)
+    try:
+        return conn.execute("SELECT s.id FROM sectors s JOIN chart_ledger cl ON cl.shell_index = s.shell_index"
+                            " AND cl.band_index = s.band_index AND cl.wedge_index = s.wedge_index").fetchall()
+    finally:
+        conn.close()
 
 
 @pytest.fixture(autouse=True)
@@ -59,8 +71,8 @@ def test_a_neighborhood_job_runs_its_sectors_through_the_wrapper(mysql_config, c
     result = api_jobs.generate_neighborhood(center, 25.0, mysql_config)
     titles, runs = _titles(conn)
     # TEST.289: this failed once under a gate's four workers with no text; the answer, the sectors and the runs go in the message.
-    saw = (result, len(_all_sectors(mysql_config)), titles, [(run["title"], run["state"]) for run in runs])
-    assert result["generated"] >= 1 and len(_all_sectors(mysql_config)) == 1 + result["generated"], saw
+    saw = (result, len(_charted_sectors(mysql_config)), len(_all_sectors(mysql_config)), titles, [(run["title"], run["state"]) for run in runs])
+    assert result["generated"] >= 1 and len(_charted_sectors(mysql_config)) == 1 + result["generated"], saw
     assert titles[0] == f"Sectors (around sector {center})", saw
     assert titles[-2:] == ["Bright-star backfill", "Sector paths"], saw
     assert {run["state"] for run in runs} == {"done"}, saw
@@ -78,8 +90,8 @@ def test_a_block_job_runs_the_sectors_of_the_block_through_the_wrapper(mysql_con
     assert _all_sectors(mysql_config) == [], "an estimate writes nothing"
     result = api_jobs.generate_block(key, mysql_config)
     titles, runs = _titles(conn)
-    saw = (result, len(_all_sectors(mysql_config)), titles, [(run["title"], run["state"]) for run in runs])
-    assert result["generated"] == estimate["candidates"] == len(_all_sectors(mysql_config)), saw
+    saw = (result, len(_charted_sectors(mysql_config)), len(_all_sectors(mysql_config)), titles, [(run["title"], run["state"]) for run in runs])
+    assert result["generated"] == estimate["candidates"] == len(_charted_sectors(mysql_config)), saw
     assert titles[0] == f"Sectors (block {key})" and titles[-2:] == ["Bright-star backfill", "Sector paths"], saw
     assert {run["state"] for run in runs} == {"done"}, saw
     again = run_galaxy.generate_block(key, config=mysql_config, estimate_only=True)

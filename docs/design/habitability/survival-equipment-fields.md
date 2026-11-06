@@ -274,7 +274,7 @@ Replace `planets.equipment_tier` and `moons.equipment_tier` (TINYINT, 0 to 4) wi
 | `eq_supply`, `eq_supply_rec` | TINYINT 0 to 4 | required and recommended Air Supply level |
 | `eq_shelter`, `eq_shelter_rec` | TINYINT 0 to 2 | required and recommended shelter: 1 shielded shelter, 2 hardened habitat |
 | `shelter_column_g_cm2`, `outside_hours` | DOUBLE | shielding a shelter needs; hours outside a year the listed suit allows (NULL when unlimited) |
-| `band1_mean_k` to `band7_mean_k` and the other `bandN_*` columns, `temp_mean_swing_k` | DOUBLE, K, h, d and a state word | the annual means, the day and night swing, the hours of day and night, the longest polar day and night and the state of each of seven bands of latitude (5.5, GEN.1108); replaced `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k` and `temp_swing_k` |
+| `band1_mean_k` to `band7_mean_k` and the other `bandN_*` columns, `temp_mean_swing_k` | DOUBLE, K, h, d and a state word | the annual means, the day and night swing, the hours of day and night, the longest unbroken day and night and the state of each of seven bands of latitude (5.5, GEN.1108); replaced `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k` and `temp_swing_k` |
 
 Each in its own column so the search can filter it (the rule of section 4 of the index design). New numeric columns go in `db/column_units.py` in the same PR; these are dimensionless levels, like the tier columns they replace. The name and code are computed by `physics/equipment.py` at read time (a pure function of the levels), like `hab_note`.
 

@@ -159,3 +159,69 @@ def test_a_more_aluminous_melt_has_more_aluminium_in_its_vapor():
     low = ml.vapor_pressures(ml.element_potentials({"SiO2": 0.5, "MgO": 0.4, "FeO": 0.08, "Al2O3": 0.01, "CaO": 0.01, "Na2O": 1e-9, "TiO2": 0.001, "K2O": 1e-9}, 2500.0, 0.0), 2500.0)
     high = ml.vapor_pressures(ml.element_potentials({"SiO2": 0.5, "MgO": 0.4, "FeO": 0.08, "Al2O3": 0.04, "CaO": 0.01, "Na2O": 1e-9, "TiO2": 0.001, "K2O": 1e-9}, 2500.0, 0.0), 2500.0)
     assert high["ALO"] / low["ALO"] == pytest.approx(2.0, rel=1e-6)
+
+
+def test_a_surface_hotter_than_the_fits_has_its_vapor_worked_out_at_their_top():
+    """GEN.1294: a build died with `SiO2(L): no thermodynamic fit at 6881 K` for a rock whose dayside was hotter than the 6000 K top of NASA
+    Glenn's fits. The vapor is worked out at `MELT_MAX_K` (row AM95) and the mixture reports the surface's own temperature; nothing under the
+    top changes, and the error itself is still raised by `species_thermo` for anything that asks it for a temperature outside its fits."""
+    assert ml.MELT_MAX_K == species_thermo.SPECIES["SiO2(L)"].range_k[1]
+    for name in ml.LIQUID.values():
+        assert species_thermo.SPECIES[name].range_k[1] >= ml.MELT_MAX_K
+    with pytest.raises(ValueError):
+        species_thermo.SPECIES["SiO2(L)"].g_over_rt(ml.MELT_MAX_K + 1.0)
+
+    def mixture(temperature, group, seed, pressure=10.0):
+        subject = Subject("terrestrial", {**HOT, "ts_k": temperature, "tp_k": temperature, "pressure_bar": pressure})
+        with draw.bound(seed):
+            recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
+            if recipe.binaries.get("i6", (False, None))[0]:
+                return None         # the volatile-bearing branch's carbon solve does not converge this hot (a separate item, GEN.1295)
+            return ml.vapor_mixture(subject, recipe, temperature_name=group)
+
+    for group in ("tp_k", "ts_k"):
+        checked = 0
+        for seed in range(12):
+            top, hot = mixture(ml.MELT_MAX_K, group, seed), mixture(6881.0, group, seed)
+            if top is None:
+                continue
+            checked += 1
+            assert hot.family == "lava" and hot.temperature_k == 6881.0 and top.temperature_k == ml.MELT_MAX_K
+            assert hot.mole_fractions == top.mole_fractions and hot.constants["vapor_pressure_bar"] == top.constants["vapor_pressure_bar"]
+            assert sum(hot.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
+        assert checked >= 3
+    seed = next(seed for seed in range(12) if mixture(5000.0, "tp_k", seed) is not None)
+    cooler = mixture(5000.0, "tp_k", seed)
+    assert cooler.temperature_k == 5000.0 and cooler.mole_fractions != mixture(6881.0, "tp_k", seed).mole_fractions
+
+
+def test_a_surface_pressure_the_buffered_oxygen_fills_is_raised_and_the_carbon_solve_converges():
+    """GEN.1296: the volatile-bearing branch held the oxygen at the redox buffer's fugacity at the surface pressure, and from about 2600 K at a
+    millibar (or 4000 K at a bar) the buffered O2 and O alone fill that pressure, so `gas_equilibrium.solve` had no room for carbon and raised
+    "no convergence" for 282 of 1200 draws of a sweep (row AM96). Where the oxygen takes under `OXYGEN_SHARE_MAX` of the surface pressure the gas
+    is the same as before; where it does not, the gas pressure is what holds the oxygen with a hundredth to spare."""
+    def volatile_bearing(temperature, pressure):
+        subject = Subject("terrestrial", {**HOT, "ts_k": temperature, "tp_k": temperature, "pressure_bar": pressure})
+        for seed in range(60):
+            with draw.bound(seed):
+                recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
+                if recipe.binaries.get("i6", (False, None))[0]:
+                    return subject, recipe, seed
+        raise AssertionError("no volatile-bearing draw in 60 seeds")
+
+    for temperature, pressure in ((4000.0, 1e-3), (3000.0, 1e-3), (6000.0, 1.0), (6881.0, 100.0)):
+        subject, recipe, seed = volatile_bearing(temperature, pressure)
+        with draw.bound(seed):
+            recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
+            result = ml.vapor_mixture(subject, recipe, temperature_name="tp_k")
+        assert result.constants["volatile_bearing"] and sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
+        assert result.mole_fractions["CO"] > 0.0 and result.mole_fractions["CO2"] > 0.0
+    # a feasible case keeps the surface pressure it had: the carbon gas is the solve at that pressure
+    subject, recipe, seed = volatile_bearing(2200.0, 10.0)
+    with draw.bound(seed):
+        recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
+        result = ml.vapor_mixture(subject, recipe, temperature_name="tp_k")
+    redox = recipe.values.get("a4", recipe.values.get("a1"))
+    from planetgen.physics import gas_equilibrium, oxygen_fugacity
+    alone = gas_equilibrium.solve({"C": ml.VOLATILE_BEARING_PER_CARBON}, 2200.0, 10.0, fixed_o2_log_fugacity=oxygen_fugacity.log_fo2(redox, 2200.0))
+    assert alone.mole_fractions["CO2"] / alone.mole_fractions["CO"] == pytest.approx(result.mole_fractions["CO2"] / result.mole_fractions["CO"], rel=1e-6)

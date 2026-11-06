@@ -73,6 +73,31 @@ def test_a_charted_region_is_a_point_of_interest_with_a_link_that_goes_to_it(pag
     assert after < before, (before, after)
 
 
+def test_a_charted_regions_point_of_interest_reads_as_a_label_with_the_regions_name(page, map_site):
+    """MAP.369: at the default view the point of interest of a charted region shows the region's name beside its symbol (the biggest region's,
+    for a group, with the count), inside the map, and a click on it flies in."""
+    page.set_viewport_size({"width": 1280, "height": 800})
+    _open_galaxy(page, map_site)
+    page.wait_for_function(f"() => {CANVAS}.galaxyRegionPois().length > 0", timeout=20000)
+    _settle(page)
+    pois = page.evaluate(POIS)
+    box = _view_box(page, "#galaxymap3d-canvas")
+    shown = page.evaluate("""() => [...document.querySelectorAll('.map-region-poi')].map((el) => {
+        const name = el.querySelector('.map-region-poi-name');
+        const r = el.getBoundingClientRect();
+        return {text: name.textContent, visible: name.getBoundingClientRect().width > 0, left: r.left, right: r.right, top: r.top, bottom: r.bottom};
+    })""")
+    assert [p["name"] for p in pois] == [s["text"] for s in shown] and all(s["text"] for s in shown), (pois, shown)
+    assert all(s["visible"] for s in shown), shown
+    canvas = page.evaluate("() => { const r = document.querySelector('#galaxymap3d-canvas').getBoundingClientRect(); return {l: r.left, r: r.right, t: r.top, b: r.bottom}; }")
+    assert all(canvas["l"] <= s["left"] and s["right"] <= canvas["r"] and canvas["t"] <= s["top"] and s["bottom"] <= canvas["b"] for s in shown), (canvas, shown)
+    before = page.evaluate(f"() => {CANVAS}.galaxyCamera().dist")
+    page.locator(".map-region-poi .map-region-poi-name").first.click()
+    page.wait_for_function(f"() => !{CANVAS}.galaxyMoving()", timeout=60000)
+    _settle(page)
+    assert page.evaluate(f"() => {CANVAS}.galaxyCamera().dist") < before
+
+
 def test_the_goto_box_lists_the_charted_places_when_it_is_empty(page, map_site):
     """MAP.357: a blank Go to box offers the regions with the most generated sectors, each a link."""
     page.set_viewport_size({"width": 1280, "height": 800})

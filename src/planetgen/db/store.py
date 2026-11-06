@@ -70,7 +70,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, chart_ledger, designation_rows, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, chart_ledger, designation_rows, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
@@ -6465,6 +6465,7 @@ def clear_bright_stars(conn):
     scatter leaves tens of millions of rows.
     """
     conn.execute("TRUNCATE TABLE bright_stars")
+    scatter_uids.forget(conn, scatter_uids.STAR_COUNTER)
     scatter_systems.delete_all_member_trees(conn, "bright_stars")
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
@@ -6716,6 +6717,7 @@ def clear_phenomenon_scatter(conn):
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows."""
     conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    scatter_uids.forget(conn, scatter_uids.PHENOMENON_COUNTER)
     scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
     conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
     conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
@@ -6951,7 +6953,10 @@ def insert_phenomenon_scatter(conn, rows, batch_size=5000):
     (`_insert_literal_rows`), which costs about half what the driver's own
     per-value escaping does over tens of millions of rows (PERF.73).
     Returns the rows written."""
-    return _insert_literal_rows(conn, "phenomenon_scatter", PHENOMENON_SCATTER_COLUMNS, rows, batch_size)
+    written = _insert_literal_rows(conn, "phenomenon_scatter", PHENOMENON_SCATTER_COLUMNS, rows, batch_size)
+    if written:
+        scatter_uids.assign(conn, "phenomenon_scatter")     # GEN.1254: the rows just written get their Object IDs
+    return written
 
 
 def drop_phenomenon_scatter_indexes(conn):
@@ -7473,7 +7478,10 @@ def insert_bright_stars(conn, rows, batch_size=10000):
     Returns:
         int: Rows written.
     """
-    return _insert_literal_rows(conn, "bright_stars", BRIGHT_STAR_COLUMNS, rows, batch_size)
+    written = _insert_literal_rows(conn, "bright_stars", BRIGHT_STAR_COLUMNS, rows, batch_size)
+    if written:
+        scatter_uids.assign(conn, "bright_stars")     # GEN.1254: the rows just written get their Object IDs
+    return written
 
 
 def bright_stars_for_sector(conn, shell_index, band_index, wedge_index):
@@ -7508,6 +7516,15 @@ def sector_centers_since(conn, since):
 def filled_sector_addresses(conn):
     """The `(shell, band, wedge)` of every galaxy sector already filled: the cells of the chart ledger (GEN.1127)."""
     return chart_ledger.charted_addresses(conn)
+
+
+def give_system_uid(conn, system_id, uid):
+    """Gives a system that has no Object ID the one it was born with (a scatter star's, GEN.1254), before `assign_uids` numbers its bodies
+    under it. Does nothing for `uid` `None` or a system that has one already."""
+    if uid is None:
+        return
+    conn.execute("UPDATE star_systems SET uid = ? WHERE id = ? AND uid IS NULL", (bytes(uid), system_id))
+    storage_checksum.mark_rows(conn, "star_systems", [system_id])
 
 
 def mark_bright_star_filled(conn, bright_star_id, star_system_id):
@@ -7734,11 +7751,13 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         built_scatter_ids = []
         nearest = sector.all_nearest_neighbors(3)   # PERF.81: one spatial tree, not a distance to every system each
         for entry, neighbors in zip(sector.entries, nearest):
+            _give_scatter_uid(conn, entry)
             star_system_id = insert_star_system(
                 conn, entry.star_system, entry.system_config,
                 sector_id=sector_id, position=entry.position,
                 location=_location_for_entry(sector, entry, neighbors),
             )
+            _give_scatter_uid(conn, None)
             if galaxy_position is not None:
                 conn.saved_donors.append((star_system_id, entry.star_system, _galaxy_placement_from_sector_offset(galaxy_position, entry.position)))
             bright_star_id = getattr(entry, "bright_star_id", None)
@@ -7755,7 +7774,9 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
             if inserter is None:
                 raise ValueError(f"Unknown phenomenon type: {entry.phenomenon_type!r}")
             placement = _galaxy_placement_from_sector_offset(galaxy_position, entry.position)
+            _give_scatter_uid(conn, entry)
             inserter(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
+            _give_scatter_uid(conn, None)
             if getattr(entry, "scatter_id", None) is not None:
                 built_scatter_ids.append(entry.scatter_id)
             _save_progressed(conn)
@@ -7849,6 +7870,15 @@ def _mark_nebula_field_stored(conn, nebula_id, center):
         "UPDATE nebula_field SET is_stored = 1, uid = (SELECT uid FROM nebulae WHERE id = ?)"
         " WHERE cell_i = ? AND cell_j = ? AND cell_k = ? AND center_x_pc = ? AND center_y_pc = ? AND center_z_pc = ?",
         (nebula_id, i, j, k, x, y, z))
+
+
+def _give_scatter_uid(conn, entry):
+    """Hands the issuer the Object ID the next row already has (GEN.1254): the scatter star a pre-placed system is built round
+    (`bright_star_uid`), or the scattered phenomenon (`scatter_uid`) an entry was built from; `None` clears it."""
+    if conn.uid_issuer is None:
+        return
+    uid = None if entry is None else (getattr(entry, "bright_star_uid", None) or getattr(entry, "scatter_uid", None))
+    conn.uid_issuer.given_uid = None if uid is None else bytes(uid)
 
 
 def _sector_object_ids(sector, galaxy_position):
@@ -8839,7 +8869,9 @@ def _uid_issuer_for_sector(conn, sector_id, galaxy_position):
     `set_sector_uid`), or `None` when the sector has no grid address to be
     born in: its rows then take run-time IDs from `assign_uids`."""
     address = _sector_address_of(galaxy_position)
-    return None if address is None else _UidIssuer(sector_id, address)
+    if address is None:
+        return None
+    return _UidIssuer(sector_id, address, scatter_uids.next_star_serial(conn, *address))
 
 
 def set_sector_uid(conn, sector_id):
@@ -8886,12 +8918,16 @@ class _UidIssuer:
     system); `insert_sector` then runs `assign_uids` for the rows with none.
     """
 
-    def __init__(self, sector_id, address):
+    def __init__(self, sector_id, address, first_serial=0):
         self.sector_id = sector_id
         self.address = tuple(address)
         self.complete = True
-        self._next_serial = 0
+        self._next_serial = first_serial
+        """int: Where the sector's own fill starts: past the serials its scatter stars hold (GEN.1254, `scatter_uids`)."""
         self.given_nebula_uid = None
+        self.given_uid = None
+        """bytes or `None`: The next top-level row's own ID, when it has one already: the scatter star a system is built round, or the
+        scattered phenomenon being built (GEN.1254; a row that already has a uid keeps it)."""
         """bytes or `None`: The next nebula's own ID, when it is a field cloud born in another sector (GEN.176)."""
         self._system_uid = {}
         self._rogue_uid = {}
@@ -8915,7 +8951,11 @@ class _UidIssuer:
         if table == "star_systems" or table in PHENOMENON_UID_TABLES:
             if row.get("sector_id") != self.sector_id:
                 return None
-            value = self._top_level()
+            if self.given_uid is not None:
+                uid, self.given_uid = self.given_uid, None
+                value = objectUid.from_bytes(uid)
+            else:
+                value = self._top_level()
             if value is None:
                 return None
             if table == "star_systems":

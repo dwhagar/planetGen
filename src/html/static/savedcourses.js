@@ -14,7 +14,8 @@
 // Every storage read and write is wrapped by the store: with storage blocked there are just no saved courses, and saving says so.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
-const { courseStore, courseKey, recordOf, changesSince } = await import(`./savedcourse.js${VERSION_QUERY}`);
+const { courseKey, recordOf, changesSince, isWaypointCourse } = await import(`./savedcourse.js${VERSION_QUERY}`);
+const Waypoints = await import(`./waypoints.js${VERSION_QUERY}`);
 const { formatDistanceLy } = await import(`./unitladder.js${VERSION_QUERY}`);
 
 // --- Words and links (pure) -------------------------------------------------------
@@ -27,6 +28,7 @@ function stops(count) {
 
 // The line a saved course shows for one of its forms, "direct" or "route" (a course with no route says so).
 export function describeCourse(record, form) {
+  if (isWaypointCourse(record)) return stops(record.stops.length) + ": " + record.stops.map(function (stop) { return stop.name; }).join(", ");
   if (form === "route") {
     if (!record.route) return "No route through known space.";
     const between = Math.max(record.route.path.length - 2, 0);
@@ -40,22 +42,20 @@ export function describeCourse(record, form) {
 
 // The NAV page of a saved course: the course is planned again there and says what has changed.
 export function courseUrl(record) {
+  if (isWaypointCourse(record)) return mapUrl(record);
   return "/nav?from=" + encodeURIComponent(record.from).replace(/%3A/g, ":") + "&to=" + encodeURIComponent(record.to).replace(/%3A/g, ":");
 }
 
 // The Galaxy Map showing the course.
 export function mapUrl(record) {
+  if (isWaypointCourse(record)) return "/galaxy?via=" + record.stops.map(function (stop) { return encodeURIComponent(stop.value).replace(/%3A/g, ":"); }).join(",");
   return "/galaxy?course=" + encodeURIComponent(record.from).replace(/%3A/g, ":") + "," + encodeURIComponent(record.to).replace(/%3A/g, ":");
 }
 
 // --- The store ----------------------------------------------------------------------
 
-function database() {
-  const el = document.querySelector("[data-course-db]");
-  return el ? el.getAttribute("data-course-db") || "" : "";
-}
-
-export const store = courseStore(database);
+// The saved-list store of the courses is the waypoints' own (waypoints.js), which also keeps the courses through waypoints (NAV.58).
+export const store = Waypoints.courses;
 
 function keyOfRecord(record) {
   return courseKey(record);
@@ -155,7 +155,8 @@ function renderList(panel) {
     link.appendChild(el("span", "bookmarks-kind courses-form-text", describeCourse(entry, form)));
     li.appendChild(link);
     const actions = el("span", "bookmarks-actions");
-    FORMS.forEach(function (name) {
+    const through = isWaypointCourse(entry);
+    (through ? [] : FORMS).forEach(function (name) {
       const choose = el("button", "bookmarks-action", name === "direct" ? "Direct" : "Route");
       choose.type = "button";
       choose.setAttribute("aria-pressed", name === form ? "true" : "false");
@@ -172,6 +173,14 @@ function renderList(panel) {
     map.href = mapUrl(entry);
     map.setAttribute("aria-label", "Show " + entry.name + " on the Galaxy Map");
     actions.appendChild(map);
+    if (through) {
+      // NAV.58: its stops become the waypoints, to add, remove, reorder and drag on the Galaxy Map, and save over it.
+      const edit = el("button", "bookmarks-action", "Edit");
+      edit.type = "button";
+      edit.setAttribute("aria-label", "Edit saved course " + entry.name + " as waypoints on the Galaxy Map");
+      edit.addEventListener("click", function () { Waypoints.openAndPlot(entry, "/galaxy"); });
+      actions.appendChild(edit);
+    }
     const renameButton = el("button", "bookmarks-action", "Rename");
     renameButton.type = "button";
     renameButton.setAttribute("aria-label", "Rename saved course " + entry.name);
