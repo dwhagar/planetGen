@@ -67,11 +67,13 @@ class WarmProgress:
         clock (callable): Seconds, monotonic; replaced in tests.
         expected (dict): `{stage key: cost}` the steps are expected to cost, in one worker's seconds, before each is queued
             (`warmup.EXPECTED_SECONDS`); a step queued weighs the cost its plan declares instead.
+        mirror (callable): Also given each line the drawn bars print (they bypass the logging layer), for the warm-up log (OPS.96).
     """
 
-    def __init__(self, keys, say, show=True, rich_bars=False, clock=time.monotonic, expected=None):
+    def __init__(self, keys, say, show=True, rich_bars=False, clock=time.monotonic, expected=None, mirror=None):
         self.keys = list(keys)
         self.say = say
+        self.mirror = mirror
         self.show = show
         self.rich_bars = show and rich_bars
         self.clock = clock
@@ -122,6 +124,8 @@ class WarmProgress:
 
     def _console_say(self, line):
         self.progress.console.print(line, markup=False, highlight=False)
+        if self.mirror is not None:      # the bars' console is not the logging layer: the warm-up log gets the line here (OPS.96)
+            self.mirror(line)
 
     def plan(self, index, plan):
         """Stage `index` has been queued as `plan["units"]` units."""

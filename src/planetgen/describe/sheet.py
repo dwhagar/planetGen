@@ -28,7 +28,7 @@ from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
 from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, outside_hours, regional_temperature,
-                               life_classes, stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
+                               life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -218,7 +218,15 @@ _BODY_GROUPS = (
            ("envelope_helium_fraction", "Helium share of the envelope"), ("envelope_z_fraction", "Heavy-element share of the envelope"),
            ("rock_feo_fraction", "Iron oxide share of the rock"), ("rock_al2o3_fraction", "Alumina share of the rock"),
            ("rock_mg_si_ratio", "Magnesium to silicon ratio of the rock"), ("porosity", "Porosity"),
-           ("carbon_rock", "Carbon-rich rock", FLAG)),
+           ("carbon_rock", "Carbon-rich rock", FLAG),
+           ("ground_type", "Ground type with the largest share", TEXT), ("ground_grain", "Ground grain", TEXT),
+           ("ground_ocean_fraction", "Ground share: ocean"), ("ground_ice_fraction", "Ground share: ice"),
+           ("ground_ultramafic_fraction", "Ground share: ultramafic rock"), ("ground_anorthositic_fraction", "Ground share: anorthositic rock"),
+           ("ground_basaltic_fraction", "Ground share: basalt"), ("ground_felsic_fraction", "Ground share: granitoid rock"),
+           ("ground_intermediate_fraction", "Ground share: intermediate rock"), ("ground_clay_fraction", "Ground share: clay"),
+           ("ground_oxidized_fraction", "Ground share: iron-oxidized ground"), ("ground_metal_fraction", "Ground share: metal"),
+           ("ground_carbon_fraction", "Ground share: carbon"), ("ground_evaporite_fraction", "Ground share: evaporite salts"),
+           ("ground_sulfur_fraction", "Ground share: sulfur")),
     *_rows("atmosphere", ("atmospheric_pressure_pa", "Surface pressure"), ("atm_density", "Air density"),
            ("atm_molar_density", "Mean molar mass of the air"), ("scale_height_km", "Scale height"),
            ("tau_haze", "Haze optical depth"), ("tau_dust", "Dust optical depth"), ("tau_cloud", "Cloud optical depth"),
@@ -527,12 +535,6 @@ _BODY_NOT_SHOWN = {
     "aerosol_draw": "the random draw behind the haze and dust depths; bookkeeping",
     "atmosphere_colour": "shown as the Atmosphere color swatch by the description builder, a color rather than a number",
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
-    **_excuse(("ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
-               "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
-               "ground_oxidized_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
-               "ground_sulfur_fraction", "ground_intermediate_fraction"),
-              "the stored mix of ground types; it feeds the ground dose and the surface rendering, and the page does "
-              "not list it as a row yet"),
     **_excuse(regional_temperature.BAND_COLUMNS,
               "the seven bands of latitude (the rings of a world that turns once an orbit), side by side in the table of the bands: the annual mean, the day and night swing, "
               "the hours of day and night, the longest unbroken day and night and the state of each"),
@@ -810,6 +812,7 @@ _MEAN_SWING = ("temp_mean_swing_k",)
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
+    "ground_type", "ground_grain", *surface_composition.FRACTION_FIELDS,
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",

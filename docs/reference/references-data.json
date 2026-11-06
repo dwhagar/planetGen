@@ -147607,6 +147607,42 @@
    "volume": "446",
    "year": 2006
   },
+  "10.1051/0004-6361:20053842": {
+   "arxiv": "astro-ph/0604427",
+   "authors": [
+    [
+     "Marshall",
+     "D. J."
+    ],
+    [
+     "Robin",
+     "A. C."
+    ],
+    [
+     "Reylé",
+     "C."
+    ],
+    [
+     "Schultheis",
+     "M."
+    ],
+    [
+     "Picaud",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361:20053842",
+   "editors": [],
+   "journal": "A&A",
+   "page": "635",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Modelling the Galactic interstellar extinction distribution in three dimensions",
+   "type": "journal-article",
+   "volume": "453",
+   "year": 2006
+  },
   "10.1051/0004-6361:20054081": {
    "authors": [
     [
@@ -202364,6 +202400,30 @@
    "volume": "57",
    "year": 2005
   },
+  "10.1093/pasj/psv108": {
+   "arxiv": "1511.08877",
+   "authors": [
+    [
+     "Nakanishi",
+     "H."
+    ],
+    [
+     "Sofue",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/pasj/psv108",
+   "editors": [],
+   "journal": "PASJ",
+   "page": "5",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Three-dimensional distribution of the ISM in the Milky Way galaxy. III. The total neutral gas disk",
+   "type": "journal-article",
+   "volume": "68",
+   "year": 2015
+  },
   "10.1093/pasj/psw062": {
    "authors": [
     [
@@ -217748,6 +217808,30 @@
    "publisher": "Oxford University Press (OUP)",
    "src": "crossref",
    "title": "Orbital elements of comet C/1490 Y1 and the Quadrantid shower",
+   "type": "journal-article",
+   "volume": "400",
+   "year": 2009
+  },
+  "10.1111/j.1365-2966.2009.15598.x": {
+   "arxiv": "0903.2057",
+   "authors": [
+    [
+     "GÃ¼ver",
+     "T."
+    ],
+    [
+     "ÃZel",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1365-2966.2009.15598.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "2050",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "The relation between optical extinction and hydrogen column density in the Galaxy",
    "type": "journal-article",
    "volume": "400",
    "year": 2009
@@ -233832,6 +233916,58 @@
    "type": "journal-article",
    "volume": "44",
    "year": 2018
+  },
+  "10.1134/s1063773722100024": {
+   "arxiv": "2302.03871",
+   "authors": [
+    [
+     "Gontcharov",
+     "G. A."
+    ],
+    [
+     "Mosenkov",
+     "A. V."
+    ],
+    [
+     "Savchenko",
+     "S. S."
+    ],
+    [
+     "Il’in",
+     "V. B."
+    ],
+    [
+     "Marchuk",
+     "A. A."
+    ],
+    [
+     "Smirnov",
+     "A. A."
+    ],
+    [
+     "Usachev",
+     "P. A."
+    ],
+    [
+     "Polyakov",
+     "D. M."
+    ],
+    [
+     "Hebdon",
+     "N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1134/s1063773722100024",
+   "editors": [],
+   "journal": "Astron. Lett.",
+   "page": "578",
+   "publisher": "Pleiades Publishing Ltd",
+   "src": "crossref",
+   "title": "A Three-Dimensional Analytical Model of the Interstellar Extinction within the Nearest Kiloparsec",
+   "type": "journal-article",
+   "volume": "48",
+   "year": 2022
   },
   "10.1137/0702016": {
    "authors": [
@@ -269845,6 +269981,34 @@
    "volume": "",
    "year": 2010
   },
+  "10.5047/eps.2013.05.016": {
+   "arxiv": "1305.7137",
+   "authors": [
+    [
+     "Gao",
+     "J."
+    ],
+    [
+     "Li",
+     "A."
+    ],
+    [
+     "Jiang",
+     "B. W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.5047/eps.2013.05.016",
+   "editors": [],
+   "journal": "Earth Planet Sp",
+   "page": "1127",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Modeling the infrared extinction toward the galactic center",
+   "type": "journal-article",
+   "volume": "65",
+   "year": 2013
+  },
   "10.5114/phr.2025.157946": {
    "authors": [
     [
@@ -278270,6 +278434,48 @@
    "volume": "",
    "year": 2026
   },
+  "arXiv:2601.02724": {
+   "arxiv": "2601.02724",
+   "authors": [
+    [
+     "Zhang",
+     "R."
+    ],
+    [
+     "Yuan",
+     "H."
+    ],
+    [
+     "Chen",
+     "B."
+    ],
+    [
+     "Xiang",
+     "M."
+    ],
+    [
+     "Huang",
+     "Y."
+    ],
+    [
+     "Liu",
+     "X."
+    ],
+    [
+     "Liu",
+     "J."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "A Tale of Two Dust Disks in Our Milky Way",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
   "arXiv:2601.16159": {
    "arxiv": "2601.16159",
    "authors": [
@@ -279683,7 +279889,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5130,
+ "id_next": 5136,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -281694,6 +281900,7 @@
   "10.1051/0004-6361:20052801": "R1844",
   "10.1051/0004-6361:20053369": "R0533",
   "10.1051/0004-6361:20053573": "R0453",
+  "10.1051/0004-6361:20053842": "R5135",
   "10.1051/0004-6361:20054081": "R3126",
   "10.1051/0004-6361:20054301": "R1109",
   "10.1051/0004-6361:20054551": "R0918",
@@ -283100,6 +283307,7 @@
   "10.1093/pasj/48.2.275": "R0140",
   "10.1093/pasj/51.4.435": "R4462",
   "10.1093/pasj/57.6.917": "R3235",
+  "10.1093/pasj/psv108": "R5133",
   "10.1093/pasj/psw062": "R4140",
   "10.1093/petrology/19.1.153": "R0161",
   "10.1093/petrology/27.3.745": "R0277",
@@ -283416,6 +283624,7 @@
   "10.1111/j.1365-2966.2009.15463.x": "R3284",
   "10.1111/j.1365-2966.2009.15492.x": "R1741",
   "10.1111/j.1365-2966.2009.15535.x": "R2615",
+  "10.1111/j.1365-2966.2009.15598.x": "R5130",
   "10.1111/j.1365-2966.2009.15613.x": "R2611",
   "10.1111/j.1365-2966.2009.15656.x": "R3711",
   "10.1111/j.1365-2966.2009.15744.x": "R2166",
@@ -283732,6 +283941,7 @@
   "10.1134/s1063773716010023": "R0433",
   "10.1134/s1063773717040028": "R0434",
   "10.1134/s1063773718090050": "R3539",
+  "10.1134/s1063773722100024": "R5132",
   "10.1137/0702016": "R1622",
   "10.1137/0717059": "R3859",
   "10.1137/0911052": "R1072",
@@ -284450,6 +284660,7 @@
   "10.46427/gold2020.1777": "R3029",
   "10.47116/apjcri.2026.10.72": "R3748",
   "10.5038/cutr-nctr-rr-2008-05": "R3173",
+  "10.5047/eps.2013.05.016": "R5134",
   "10.5114/phr.2025.157946": "R2222",
   "10.5194/acp-10-9729-2010": "R2760",
   "10.5194/acp-11-10149-2011": "R2425",
@@ -284616,6 +284827,7 @@
   "arxiv:0902.3995": "R4172",
   "arxiv:0903.0183": "R4298",
   "arxiv:0903.1855": "R4565",
+  "arxiv:0903.2057": "R5130",
   "arxiv:0903.3040": "R4985",
   "arxiv:0903.3554": "R4013",
   "arxiv:0903.4206": "R2821",
@@ -284848,6 +285060,7 @@
   "arxiv:1305.5393": "R3403",
   "arxiv:1305.6607": "R2319",
   "arxiv:1305.6926": "R4065",
+  "arxiv:1305.7137": "R5134",
   "arxiv:1306.0898": "R1106",
   "arxiv:1306.1622": "R3895",
   "arxiv:1306.2130": "R1500",
@@ -285049,6 +285262,7 @@
   "arxiv:1511.07854": "R4352",
   "arxiv:1511.08438": "R0433",
   "arxiv:1511.08804": "R3790",
+  "arxiv:1511.08877": "R5133",
   "arxiv:1512.00625": "R3849",
   "arxiv:1512.01653": "R3836",
   "arxiv:1512.04341": "R4105",
@@ -285666,6 +285880,7 @@
   "arxiv:2301.09930": "R4575",
   "arxiv:2302.00009": "R0354",
   "arxiv:2302.03055": "R3382",
+  "arxiv:2302.03871": "R5132",
   "arxiv:2302.04241": "R4345",
   "arxiv:2302.09082": "R2013",
   "arxiv:2303.00063": "R1153",
@@ -285853,6 +286068,7 @@
   "arxiv:2512.09785": "R1718",
   "arxiv:2512.22685": "R1056",
   "arxiv:2601.00650": "R3422",
+  "arxiv:2601.02724": "R5131",
   "arxiv:2601.16159": "R4981",
   "arxiv:2601.22034": "R0336",
   "arxiv:2602.11923": "R0715",
@@ -285967,6 +286183,7 @@
   "arxiv:astro-ph/0603622": "R4002",
   "arxiv:astro-ph/0603669": "R1108",
   "arxiv:astro-ph/0603682": "R3555",
+  "arxiv:astro-ph/0604427": "R5135",
   "arxiv:astro-ph/0605041": "R4052",
   "arxiv:astro-ph/0605705": "R0331",
   "arxiv:astro-ph/0605725": "R5101",

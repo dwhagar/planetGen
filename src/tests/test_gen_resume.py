@@ -30,7 +30,7 @@ from planetgen.db import store
 from planetgen import tuning
 from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 
-from tests import worker_patches
+from tests import first_fill, worker_patches
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 from tests.test_bright_star_scatter import EDGE_PC, _scatter_args, _seed_galaxy
@@ -74,9 +74,11 @@ NUM_SYSTEMS = 2
 
 MODES = {
     "band": ["--shell", "2", "--band", "0"],
-    "shell": ["--shell", "3"],
-    "span": ["--shells", "2:3", "--bands", "0"],
+    "shell": ["--shell", "1"],
+    "span": ["--shells", "0:1", "--bands", "0"],
 }
+"""dict: The three ways a run names its sectors, each small (12 to 14 sectors, TEST.417: a sector costs about 3 seconds here and each case fills them three times,
+interrupted, resumed and whole; shells 2 and 3 took 30 to 54 sectors and 5 to 15 minutes a case)."""
 
 
 _Interrupted = worker_patches.Interrupted
@@ -104,6 +106,7 @@ def _snapshot(config):
         sectors = conn.execute(
             "SELECT s.shell_index, s.band_index, s.wedge_index, COUNT(DISTINCT s.id) AS sectors,"
             " COUNT(ss.id) - COUNT(b.id) AS systems FROM sectors s"
+            " JOIN chart_ledger cl ON cl.shell_index = s.shell_index AND cl.band_index = s.band_index AND cl.wedge_index = s.wedge_index"
             " LEFT JOIN star_systems ss ON ss.sector_id = s.id"
             " LEFT JOIN bright_stars b ON b.star_system_id = ss.id"
             " GROUP BY s.shell_index, s.band_index, s.wedge_index").fetchall()
@@ -122,6 +125,20 @@ def _snapshot(config):
     by_address = {(row["shell_index"], row["band_index"], row["wedge_index"]): (row["sectors"], row["systems"])
                   for row in sectors}
     return by_address, orphans, unbuilt, dangling
+
+
+def _uncharted(config):
+    """The addresses of sector rows no fill charted: a rogue planet lands in a cell that may never have been charted and gets a row there
+    (GEN.1111 part 7, `store.uncharted_sector_id`). They belong to no fill, so `_snapshot` leaves them out, and a resumed run must still
+    end with the same ones as an uninterrupted run."""
+    conn = store.get_connection(config)
+    try:
+        rows = conn.execute(
+            "SELECT s.shell_index, s.band_index, s.wedge_index FROM sectors s LEFT JOIN chart_ledger cl ON cl.shell_index = s.shell_index"
+            " AND cl.band_index = s.band_index AND cl.wedge_index = s.wedge_index WHERE cl.shell_index IS NULL").fetchall()
+    finally:
+        conn.close()
+    return {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in rows}
 
 
 def _fail_on_call(monkeypatch, tmp_path, owner, name, call_number):
@@ -154,11 +171,13 @@ def _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode
     assert resumed == whole
     assert all(sectors == 1 and systems >= NUM_SYSTEMS for sectors, systems in resumed.values())
     assert (orphans, unbuilt, dangling) == (0, 0, 0)
+    assert _uncharted(mysql_config) == _uncharted(second_mysql_config)
 
 
 @pytest.mark.parametrize("mode", sorted(MODES))
 def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
+    first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about resuming, not the first fill's draw (the same either way, and most of a sector's cost)
     _seed_skeleton(mysql_config, shells=SHELLS)
     with pytest.MonkeyPatch.context() as failing:       # undone alone: the test's own patches hold the inline queue
         calls = _fail_on_call(failing, tmp_path, run_galaxy, "generate_and_save_sector_at", 4)
@@ -177,6 +196,7 @@ def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
     # `record_sector_stats` runs last inside `insert_sector`'s transaction,
     # after the sector, its systems and their bright-star links are written.
+    first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about resuming, not the first fill's draw (the same either way, and most of a sector's cost)
     _seed_skeleton(mysql_config, shells=SHELLS)
     with pytest.MonkeyPatch.context() as failing:
         _fail_on_call(failing, tmp_path, store, "record_sector_stats", 3)
@@ -190,13 +210,14 @@ def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
     _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode)
 
 
-def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_mysql_config):
+def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_mysql_config, monkeypatch):
     # A shell run cut into --limit 4 steps (the operator's own way of
     # stopping partway) ends where one whole run does: the same sectors,
     # each filled once with the same systems of its own (`_snapshot`
     # leaves out the bright stars the earlier steps' backfills placed).
+    first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about resuming, not the first fill's draw (the same either way, and most of a sector's cost)
     _seed_skeleton(mysql_config, shells=SHELLS)
-    total = sum(wedge_count(3, band) for band in (-1, 0, 1))
+    total = sum(wedge_count(1, band) for band in (-1, 0, 1))
     for _ in range(-(-total // 4)):
         run_cli("sectors", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
                            *mysql_argv(mysql_config)])
@@ -252,6 +273,7 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
     # Heavier backfill steps (GEN.187) keep the run's backfill quick; they
     # still reach the skipped sectors next door.
     monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_RING_MASSES_SOL", (5.0, 8.0))
+    first_fill.without_the_deepest_floor(monkeypatch)   # TEST.417: this is about resuming, not the first fill's draw (the same either way, and most of a sector's cost)
     _seed_galaxy(mysql_config)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 1

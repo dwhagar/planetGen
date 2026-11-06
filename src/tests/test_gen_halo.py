@@ -191,10 +191,11 @@ def test_every_cell_at_the_far_edge_and_in_the_halo_can_get_a_bright_star():
 
 def test_the_backfill_draws_stars_in_sparse_cells():
     # At a dense enough setting that a few hundred sparse cells should get
-    # some: before GEN.78 the backfill skipped every one of them.
-    cells = _halo_and_edge_cells(MILKY_WAY)
-    rows = list(brightStars.backfill_cells(MILKY_WAY, cells, EDGE_PC, E_VALUE * 1000.0, 200.0, None, 5))
-    assert rows
+    # some: before GEN.78 the backfill skipped every one of them. (TEST.417: every second cell of the 49,000 at 150 times the density gives
+    # about 390 stars in 386 cells in 15 seconds; 1,000 times the density over all of them gave 5,200 in 4,800 cells in 870 seconds.)
+    cells = _halo_and_edge_cells(MILKY_WAY)[::2]
+    rows = list(brightStars.backfill_cells(MILKY_WAY, cells, EDGE_PC, E_VALUE * 150.0, 200.0, None, 5))
+    assert len({(row[0], row[1], row[2]) for row in rows}) > 100
     assert {(row[0], row[1], row[2]) for row in rows} <= set(cells)
 
 

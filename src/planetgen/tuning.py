@@ -2974,8 +2974,7 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 #   - Saturn-class 20 Earth masses to 1 Jupiter mass, about 0.15;
 #   - Jupiter-mass 1-13 Jupiter masses, about 0.025 per star (under Mroz
 #     et al. 2017's upper limit of 0.25, Nature 548:183).
-# So about 96% of rogues are not gas giants and 4% are (past
-# ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER). The old hand-set rates
+# So about 96% of rogues are not gas giants and 4% are. The old hand-set rates
 # (5, 1, 0.25, 0.25) with a log-uniform mass in each bin gave 91% and 9%,
 # twice the reference's share of gas giants.
 # Above 13 Jupiter masses is a brown dwarf (ROGUE_BROWN_DWARF_*).
@@ -3017,14 +3016,6 @@ words). Source tier T9, tweak level L3 (GEN.725 row 6.86:RT1)."""
 ROGUE_TOPUP_PLACEMENT = 1.0
 """float: The share of the sector's edge, centered on the sector, inside which the top-up places a rogue uniformly (1 is the whole sector). Boss wants to play with it
 (`region-object-store.md` 8.5). Source tier T9, tweak level L3 (GEN.725 row 6.86:RT2)."""
-
-# Above this mass (in Jupiter masses, 10 Earth masses), a generated rogue planet is a giant rather than terrestrial: the mass
-# a core must reach to hold a hydrogen and helium envelope (`GIANT_CORE_CRITICAL_MASS_EARTH`), so a rogue is a giant exactly where
-# a bound planet is (GEN.1133; a bound rocky planet never passes it, and a rogue's rock does not either). Between this and
-# `GIANT_RUNAWAY_MIN_MASS_EARTH` it is an ice giant (class I by its conditions); the rogue's old line of 0.05 (about 16 Earth masses,
-# "where the Solar System's ice giants sit") let 10 to 16 Earth-mass rock come out at up to 17,600 km, past class S.
-ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = (
-    _kg_to_mjup(_mearth_to_kg(GIANT_CORE_CRITICAL_MASS_EARTH)))
 
 # --- Rogue planet surface conditions (rogueSurface; Boss's research,
 # 2026-10-01: [R0606, R1714, R4219], Abbot &
@@ -3087,11 +3078,6 @@ INTERIOR_LIQUIDUS_OFFSET_GPA = 29.102
 INTERIOR_LIQUIDUS_EXPONENT = 0.5337
 """float: `c_l` of the liquidus (the same table)."""
 
-ROGUE_TIDAL_FLUX_RANGE_W_M2 = (1e-4, 1e-2)
-"""tuple: Tidal heating, W/m^2, drawn log-uniformly for a rocky rogue
-that kept a moon (a default: Earth's own tidal dissipation is ~0.007
-W/m^2; a captured moon on an eccentric orbit can add more)."""
-
 ROGUE_GIANT_COOLING_TIME_EXPONENT = -1.3
 """float: Giant planets and brown dwarfs fade as L ~ t^-1.3 ([R0606]:719)."""
 
@@ -3127,28 +3113,6 @@ sits. It fixes one Rosseland mean opacity (kappa = (2/3) g / P) for every
 giant, so a heavier one's photosphere sits deeper, and puts a 1 Mjup,
 4.5 Gyr rogue at ~140 K at 1 bar (Boss's research: 130-170 K)."""
 
-
-ROGUE_HYDROGEN_ENVELOPE_CHANCE = {"terrestrial": 0.1, "sub-neptune": 0.5}
-"""dict: Chance a rocky rogue kept a primordial hydrogen envelope, by
-mass bin -- one ejected before its star could strip it (Stevenson
-1999). Defaults: rare for Earth-mass rogues, common for sub-Neptunes."""
-
-
-
-ROGUE_WATER_RICH_CHANCE = {"terrestrial": 0.35, "sub-neptune": 0.8}
-"""dict: Chance a rocky rogue is water-rich, by mass bin (defaults: ejected
-planets often formed beyond a snow line)."""
-
-
-ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH = 0.3
-"""float: A rocky rogue at least this heavy once held an air (like Earth or
-Venus, unlike the Moon) that has frozen onto its surface as nitrogen and
-carbon dioxide frost (a default); a lighter, dry one is bare rock."""
-
-ROGUE_ACTIVE_HEAT_FLUX_W_M2 = 0.04
-"""float: A rocky rogue whose heat flow reaches this is still geologically
-active (`has_internal_heat`): Earth flows 0.087 W/m^2, Mars about 0.02
-(a default between them). A giant always is."""
 
 # Interstellar object hyperbolic excess speed range, in km/s -- both
 # confirmed interstellar visitors, 1I/'Oumuamua and 2I/Borisov, were
@@ -3393,6 +3357,12 @@ COURSE_ARC_SAMPLE_RAD = 0.05
 """float: The arc of a wrap is checked against the other spheres every this many radians."""
 COURSE_POLYLINE_SAGITTA = 0.01
 """float: The drawn arc of a wrap is cut so that no chord sags from the sphere by more than this fraction of its radius (about 12 segments for a half circle)."""
+
+# NAV.27: the course planner inside a star system (docs/design/orbits/course-avoidance.md section 6).
+COURSE_SYSTEM_WARP_FACTOR = 1
+"""int: The warp factor a course inside a system is flown at when its destination's arrival time is worked out (warp 1 is the slowest of the planning tables, so the destination has moved the most; at warp 1 a planet moves 3% of Mercury's Hill radius while a ship crosses 0.28 AU)."""
+COURSE_SYSTEM_AIM_STEPS = 3
+"""int: The destination of a course inside a system is aimed at where it will be on arrival, a fixed point that converges in 2 to 3 steps (the speed of a planet against the ship's is below 2e-4)."""
 
 # Asteroid field classes (GEN.14, Boss 2026-09-30: "a digit and part
 # of the class"). The letter comes from composition and density, following

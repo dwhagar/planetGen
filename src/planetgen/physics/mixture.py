@@ -16,7 +16,11 @@ Use:
     fractions = mixture.mole_fractions(mix)
 """
 
-from planetgen.physics import atmosphere, gases, species_thermo
+import re
+
+import numpy as np
+
+from planetgen.physics import atmosphere, constants, gases, species_thermo
 
 
 def partial_pressures_pa(body):
@@ -59,16 +63,44 @@ def mean_molar_mass_kg_mol(mixture):
     return sum(fraction * gases.gas(formula).molar_mass for formula, fraction in mole_fractions(mixture).items())
 
 
+def _atoms(formula):
+    """The number of atoms in a molecule written without brackets (`"HC3N"` is 5)."""
+    return sum(int(count or 1) for _symbol, count in re.findall(r"([A-Z][a-z]?)(\d*)", formula))
+
+
+def cp_over_r_without_fit(formula, temperature_k):
+    """
+    The heat capacity at constant pressure over R of a gas that has no NASA Glenn fit (a trace gas such as CH3Cl; stand-in row IR9, GEN.852), at `temperature_k` (a number or an array):
+
+    1. the heat capacities the gas table gives at 100, 300 and 1000 K (`gases.Gas.cp_j_mol_k`), interpolated linearly in temperature and held at the end values beyond them (a polyatomic gas
+       gains heat capacity above 1000 K, so this is low there);
+    2. when the table has none, a rigid-rotor count of the atoms: 5/2 for one, 7/2 for two, and 4 + (3N - 6) / 2 for a molecule of N atoms, half its vibrations awake.
+    """
+    known = sorted((float(t), v / constants.R) for t, v in gases.gas(formula).cp_j_mol_k.items() if v is not None)
+    if known:
+        return np.interp(temperature_k, [t for t, _ in known], [v for _, v in known])
+    atoms = _atoms(formula)
+    return np.full_like(np.asarray(temperature_k, dtype=float), {1: 2.5, 2: 3.5}.get(atoms, 4.0 + 0.5 * (3 * atoms - 6)))
+
+
+def cp_over_r(formula, temperature_k):
+    """The heat capacity over R of a gas at `temperature_k`: its NASA Glenn fit, held at the fit's ends outside it, or `cp_over_r_without_fit` for a gas the fits do not hold."""
+    try:
+        thermo = species_thermo.gas(formula)
+    except KeyError:
+        return cp_over_r_without_fit(formula, temperature_k)
+    low, high = thermo.range_k
+    return thermo.cp_over_r(min(max(temperature_k, low), high))
+
+
 def heat_capacity_ratio(mixture, temperature_k):
     """
     `gamma = cp / (cp - R)` of the mixture at `temperature_k` (mole-fraction mean of the NASA fits' `cp / R`; the temperature is held
-    inside the fits' range, so the cold end of a fit stands in below it).
+    inside the fits' range, so the cold end of a fit stands in below it; a gas with no fit takes `cp_over_r_without_fit`).
     """
-    cp_over_r = 0.0
+    cp_over_r_sum = 0.0
     for formula, fraction in mole_fractions(mixture).items():
         if fraction == 0.0:
             continue
-        thermo = species_thermo.gas(formula)
-        low, high = thermo.range_k
-        cp_over_r += fraction * thermo.cp_over_r(min(max(temperature_k, low), high))
-    return cp_over_r / (cp_over_r - 1.0)
+        cp_over_r_sum += fraction * float(cp_over_r(formula, temperature_k))
+    return cp_over_r_sum / (cp_over_r_sum - 1.0)

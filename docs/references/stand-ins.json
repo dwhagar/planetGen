@@ -25877,44 +25877,6 @@
           "fields": [
             [
               "What it is",
-              "rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays"
-            ],
-            [
-              "The range it moves in",
-              "0.3 to 1"
-            ],
-            [
-              "Where it holds",
-              "moons of ejected planets"
-            ],
-            [
-              "What would show it wrong",
-              "a moon-carrying N-body run whose survivors differ from the rule by more than 20 percent"
-            ],
-            [
-              "What replaces it",
-              "an N-body run with moons (the paper simulates none)"
-            ],
-            [
-              "Evidence",
-              "Huang and Lai Eq. 4: r_moon < f r_min (m_2/m_12)^(1/3), \"a high survival probability requires f ~ 1/2\""
-            ]
-          ],
-          "id": "RK5",
-          "key": "6.87:RK5",
-          "kind": "P",
-          "slug": "6-87-rk5",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L1",
-          "unread": null,
-          "what": "rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
               "rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass)"
             ],
             [
@@ -25923,7 +25885,7 @@
             ],
             [
               "Where it holds",
-              "as RK5, two-planet systems spaced by 2 mutual Hill radii"
+              "the Huang and Lai fiducial run: two-planet systems spaced by 2 mutual Hill radii"
             ],
             [
               "What would show it wrong",
@@ -27539,204 +27501,6 @@
       ],
       "slug": "6-98-stand-ins-of-the-band-winds",
       "title": "Stand-ins of the band winds"
-    },
-    {
-      "key": "6.99",
-      "number": "6.99",
-      "rows": [
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_density.MAIN_BELT cumulative exponents 1.3 (0.4 to 5 km) and 3.0 (5 km up)"
-            ],
-            [
-              "The range it moves in",
-              "2.3 and 4.0 (the cumulative reading) to 1.3 and 3.0"
-            ],
-            [
-              "Where it holds",
-              "main belts"
-            ],
-            [
-              "What would show it wrong",
-              "section 6 of [R2108] defining the index for the cumulative distribution, or counts above 40 km that the law misses by more than a factor of three"
-            ],
-            [
-              "What replaces it",
-              "the exponents read verbatim from section 6, and a law fitted to the debiased counts [R0484]"
-            ],
-            [
-              "Evidence",
-              "the abstract states D^-2.3 and D^-4 and the 530,000 above 1 km; a summary of the PDF says section 6 defines the differential index; the cumulative reading leaves 3 asteroids above 40 km"
-            ]
-          ],
-          "id": "BD1",
-          "key": "6.99:BD1",
-          "kind": "P",
-          "slug": "6-99-bd1",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": "UX.241",
-          "what": "belt_density.MAIN_BELT cumulative exponents 1.3 (0.4 to 5 km) and 3.0 (5 km up)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_density.KUIPER_HOT breaks 1, 121 and 2500 km, exponents 1.0 and 4.35"
-            ],
-            [
-              "The range it moves in",
-              "faint exponent 0.75 to 1.0"
-            ],
-            [
-              "Where it holds",
-              "hot Kuiper belt objects"
-            ],
-            [
-              "What would show it wrong",
-              "a debiased count of hot KBOs above 100 km off by more than a factor of three"
-            ],
-            [
-              "What replaces it",
-              "the DEEP tapered fit parameters [R3241]"
-            ],
-            [
-              "Evidence",
-              "[R1439], alpha 0.87 bright, H_B 7.7 at albedo 0.10; faint side about 1.0"
-            ]
-          ],
-          "id": "BD2",
-          "key": "6.99:BD2",
-          "kind": "P",
-          "slug": "6-99-bd2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": "UX.241",
-          "what": "belt_density.KUIPER_HOT breaks 1, 121 and 2500 km, exponents 1.0 and 4.35"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_density.KUIPER_COLD breaks 1, 175 and 1500 km, exponents 1.0 and 7.5"
-            ],
-            [
-              "The range it moves in",
-              "bright exponent 6 to 8"
-            ],
-            [
-              "Where it holds",
-              "cold classical belts"
-            ],
-            [
-              "What would show it wrong",
-              "the same for the cold population"
-            ],
-            [
-              "What replaces it",
-              "the DEEP tapered fit parameters"
-            ],
-            [
-              "Evidence",
-              "[R1439], alpha 1.5, H_B 6.9 at albedo 0.10"
-            ]
-          ],
-          "id": "BD3",
-          "key": "6.99:BD3",
-          "kind": "P",
-          "slug": "6-99-bd3",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": "UX.241",
-          "what": "belt_density.KUIPER_COLD breaks 1, 175 and 1500 km, exponents 1.0 and 7.5"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_density.DEFAULT_DIAMETERS_KM 1, 10, 100"
-            ],
-            [
-              "The range it moves in",
-              "any set"
-            ],
-            [
-              "Where it holds",
-              "the information page"
-            ],
-            [
-              "What would show it wrong",
-              "Boss asks for another set"
-            ],
-            [
-              "What replaces it",
-              "the page's own choice"
-            ],
-            [
-              "Evidence",
-              "Boss, 4:37 PM EDT 2026-10-30"
-            ]
-          ],
-          "id": "BD4",
-          "key": "6.99:BD4",
-          "kind": "P",
-          "slug": "6-99-bd4",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L0",
-          "unread": "UX.241",
-          "what": "belt_density.DEFAULT_DIAMETERS_KM 1, 10, 100"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_density.BULK_DENSITY_KG_M3 2500"
-            ],
-            [
-              "The range it moves in",
-              "1000 (ice) to 3500"
-            ],
-            [
-              "Where it holds",
-              "the diameter of a mass, where no density is given"
-            ],
-            [
-              "What would show it wrong",
-              "a belt whose bodies have a measured mean density far from this"
-            ],
-            [
-              "What replaces it",
-              "the density of the belt's own composition (the compaction taper)"
-            ],
-            [
-              "Evidence",
-              "belt-evolution.md section 11.1"
-            ]
-          ],
-          "id": "BD5",
-          "key": "6.99:BD5",
-          "kind": "P",
-          "slug": "6-99-bd5",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
-          "unread": null,
-          "what": "belt_density.BULK_DENSITY_KG_M3 2500"
-        }
-      ],
-      "slug": "6-99-stand-ins-of-the-belt-density-factor",
-      "title": "Stand-ins of the belt density factor"
     },
     {
       "key": "6.76",
@@ -30533,7 +30297,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": "GEN.1287",
           "what": "rogue_mass_function.SUPPLY_DIFFERENTIAL_INDEX 3.5, the differential size index q of the supply, dN/dD ~ D^-q, so dN/dlogM ~ M^-0.83"
         },
         {
@@ -30571,96 +30335,12 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": "GEN.1287",
           "what": "rogue_mass_function.MAX_EJECTED_OVER_SCATTERER 1.0, the heaviest body a scatterer ejects as a multiple of its own mass"
         }
       ],
       "slug": "6-110-stand-ins-of-the-masses-of-ejected-bodies",
       "title": "Stand-ins of the masses of ejected bodies"
-    },
-    {
-      "key": "6.111",
-      "number": "6.111",
-      "rows": [
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "rogue_volatiles.HELD_AIR_VERDICTS dense, moderate, tenuous: the shoreline verdicts that count as the body having held an air of its own before it left"
-            ],
-            [
-              "The range it moves in",
-              "trace counted as held, or tenuous not"
-            ],
-            [
-              "Where it holds",
-              "rocky bodies of 0.01 to 10 Earth masses at the orbit they left"
-            ],
-            [
-              "What would show it wrong",
-              "a rogue of Mars's size whose surface shows no frost where the model gives one, or the reverse"
-            ],
-            [
-              "What replaces it",
-              "the outgassing and impact-loss inventory of the body (the volatile budget of GEN.849)"
-            ],
-            [
-              "Evidence",
-              "the verdict names are those of atmosphere_retention.verdict_of ([R4862] shoreline), and where the cut falls is ours"
-            ]
-          ],
-          "id": "EV1",
-          "key": "6.111:EV1",
-          "kind": "P",
-          "slug": "6-111-ev1",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": "GEN.1111",
-          "what": "rogue_volatiles.HELD_AIR_VERDICTS dense, moderate, tenuous: the shoreline verdicts that count as the body having held an air of its own before it left"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "rogue_volatiles.ENVELOPE_LAW_MASS_RANGE_EARTH 1 to 30: the planet masses the radius law of [R2741] was fitted to, a mass outside held at the nearest edge"
-            ],
-            [
-              "The range it moves in",
-              "1 to 20 for the strict fit"
-            ],
-            [
-              "Where it holds",
-              "the gas-giant test of a rogue (is_gas_giant)"
-            ],
-            [
-              "What would show it wrong",
-              "a planet under 1 Earth mass whose envelope the law cannot size, called a giant by the clamp"
-            ],
-            [
-              "What replaces it",
-              "a radius law for envelopes on cores under 1 Earth mass"
-            ],
-            [
-              "Evidence",
-              "the range envelope_escape already uses for the same law; [R2741] Eqs. 1 and 3 (bulk_structure.envelope_radius_earth)"
-            ]
-          ],
-          "id": "EV2",
-          "key": "6.111:EV2",
-          "kind": "B",
-          "slug": "6-111-ev2",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": "GEN.1111",
-          "what": "rogue_volatiles.ENVELOPE_LAW_MASS_RANGE_EARTH 1 to 30: the planet masses the radius law of [R2741] was fitted to, a mass outside held at the nearest edge"
-        }
-      ],
-      "slug": "6-111-stand-ins-of-the-air-and-water-of-ejected-planets",
-      "title": "Stand-ins of the air and water of ejected planets"
     },
     {
       "key": "6.112",
@@ -30713,7 +30393,7 @@
           "fields": [
             [
               "What it is",
-              "rogue_moons.closest_approach_survival: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii"
+              "rogue_moons.closest_approach_hill: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii"
             ],
             [
               "The range it moves in",
@@ -30744,7 +30424,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "rogue_moons.closest_approach_survival: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii"
+          "what": "rogue_moons.closest_approach_hill: the two points joined on a logarithmic axis and held to 0 to 1, so the survival is 1 under 0.003 and 0 over 1.9 mutual Hill radii"
         },
         {
           "burn_down": null,
@@ -30947,56 +30627,6 @@
       ],
       "slug": "6-113-stand-ins-of-the-planets-a-birth-cluster-strips",
       "title": "Stand-ins of the planets a birth cluster strips"
-    },
-    {
-      "key": "6.114",
-      "number": "6.114",
-      "rows": [
-        {
-          "burn_down": [
-            "no data",
-            "-",
-            "no stagnant-lid eruption model yet; the one-box mantle temperature does not discriminate between bodies, so the cut stays a heat flow between Mars and the Earth"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "rogue_radiogenic.ACTIVE_HEAT_FLUX_W_M2 0.04 W/m2: a rocky rogue whose heat flow reaches it is geologically active"
-            ],
-            [
-              "The range it moves in",
-              "0.02 to 0.087"
-            ],
-            [
-              "Where it holds",
-              "rocky rogues of 0.01 to 3 Earth masses"
-            ],
-            [
-              "What would show it wrong",
-              "a model of when a stagnant lid stops erupting that puts the cut far from 0.04 for an Earth-mass body"
-            ],
-            [
-              "What replaces it",
-              "a stagnant-lid eruption model on the interior heat (mantle potential temperature against the solidus at the lid's base)"
-            ],
-            [
-              "Evidence",
-              "between Mars (about 0.02 W/m2, recalled, InSight) and the Earth (0.087, [R3559], recalled); the old ROGUE_ACTIVE_HEAT_FLUX_W_M2, moved here unchanged"
-            ]
-          ],
-          "id": "RY1",
-          "key": "6.114:RY1",
-          "kind": "P",
-          "slug": "6-114-ry1",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
-          "unread": "GEN.1111",
-          "what": "rogue_radiogenic.ACTIVE_HEAT_FLUX_W_M2 0.04 W/m2: a rocky rogue whose heat flow reaches it is geologically active"
-        }
-      ],
-      "slug": "6-114-stand-ins-of-the-radiogenic-heat-of-a-rogue",
-      "title": "Stand-ins of the radiogenic heat of a rogue"
     },
     {
       "key": "6.115",
@@ -34571,6 +34201,204 @@
       "title": "Stand-ins of the composition of a supernova remnant"
     },
     {
+      "key": "6.188",
+      "number": "6.188",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.HYDROGEN_ATOMS_PER_AV_CM2 2.21e21: hydrogen atoms per cm2 for one magnitude of V extinction"
+            ],
+            [
+              "The range it moves in",
+              "2.0e21 to 2.3e21 (1.79e21 in the older ROSAT value)"
+            ],
+            [
+              "Where it holds",
+              "the diffuse gas of the Galaxy at solar metallicity"
+            ],
+            [
+              "What would show it wrong",
+              "an X-ray column and optical extinction sample outside 2.0 to 2.4e21"
+            ],
+            [
+              "What replaces it",
+              "a column per magnitude by metallicity, or a dust mass extinction coefficient and the dust-to-gas law"
+            ],
+            [
+              "Evidence",
+              "[R5130: Eq. 1] READ (full text): N_H = (2.21 +- 0.09)e21 A_V from 22 supernova remnants; agrees with an older supernova-remnant value of 2.22e21 and is 3 sigma above the ROSAT value of 1.79e21 in the same paper"
+            ]
+          ],
+          "id": "DU1",
+          "key": "6.188:DU1",
+          "kind": "D",
+          "slug": "6-188-du1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dust_model.HYDROGEN_ATOMS_PER_AV_CM2 2.21e21: hydrogen atoms per cm2 for one magnitude of V extinction"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.VISIBLE_SHARE 0.5: the share of the gas column that dims the stars a catalogue or a person can use"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "a galaxy whose gas and metals are the disk's own; any radius"
+            ],
+            [
+              "What would show it wrong",
+              "a high-latitude column or a plane extinction per kpc at the Sun that needs a share outside 0.3 to 0.7, or a calibrated naked-eye star count (VIEW.30) that does"
+            ],
+            [
+              "What replaces it",
+              "the share worked out from a clumpy cloud distribution and the gas phases (VIEW.8's nebulae)"
+            ],
+            [
+              "Evidence",
+              "tuned to the measured column through a half layer at the Sun, 0.12 mag ([R5132]: the abstract, from two 3-D dust maps), twice the 0.47 mag the gas column gives for 11.8 solar masses per pc2; the plane at the Sun then reads 1.06 mag per kpc against 0.85 +- 0.20 in [R5132: Table 1] and 0.8 to 1.0 in [R5131]"
+            ]
+          ],
+          "id": "DU2",
+          "key": "6.188:DU2",
+          "kind": "P",
+          "slug": "6-188-du2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "dust_model.VISIBLE_SHARE 0.5: the share of the gas column that dims the stars a catalogue or a person can use"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.GAS_DISPERSION_KMS 9: the velocity dispersion of the neutral gas that sets the layer's scale height sigma^2 / (pi G Sigma)"
+            ],
+            [
+              "The range it moves in",
+              "7 to 11"
+            ],
+            [
+              "Where it holds",
+              "the neutral gas layer of a disk galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a layer thickness at the Sun outside 100 to 150 pc, or a flare at 12 to 13 kpc outside 300 to 700 pc"
+            ],
+            [
+              "What replaces it",
+              "the dispersion by radius and gas phase, or the vertical force of the potential (VIEW.46)"
+            ],
+            [
+              "Evidence",
+              "recalled, not read: the HI of the Galaxy has 7 to 11 km/s. The layer it gives, 113 pc at the Sun and 470 pc at 12.5 kpc, is checked against 125 (+17 -7) pc ([R5135]: abstract) and the thin (340 pc) and thick (1,000 pc) dust disks of [R5131] at 12 to 13 kpc"
+            ]
+          ],
+          "id": "DU3",
+          "key": "6.188:DU3",
+          "kind": "P",
+          "slug": "6-188-du3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "dust_model.GAS_DISPERSION_KMS 9: the velocity dispersion of the neutral gas that sets the layer's scale height sigma^2 / (pi G Sigma)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.LAYER_FLOOR_PC 40: the thinnest layer"
+            ],
+            [
+              "The range it moves in",
+              "20 to 80"
+            ],
+            [
+              "Where it holds",
+              "the inner disk, where the surface density of the disk alone gives a layer of a few pc"
+            ],
+            [
+              "What would show it wrong",
+              "the extinction from the Sun to the Galactic Center outside 25 to 60 mag (moves by a factor of 6 over 20 to 80 pc)"
+            ],
+            [
+              "What replaces it",
+              "the vertical force of the galactic potential, GEN.115 (VIEW.46)"
+            ],
+            [
+              "Evidence",
+              "the thickness of the central molecular zone, a few tens of pc; the sight line to the Galactic Center is A_V 31 to 59 in the literature and 38 to 42 for the model of [R5134]"
+            ]
+          ],
+          "id": "DU4",
+          "key": "6.188:DU4",
+          "kind": "P",
+          "slug": "6-188-du4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "dust_model.LAYER_FLOOR_PC 40: the thinnest layer"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.dust_to_gas_ratio: the dust goes with the metals by the law of [R5102] (row NBC4), the gas metallicity by the gradient of row NBC1"
+            ],
+            [
+              "The range it moves in",
+              "factor 1.6; scatter 0.37 dex"
+            ],
+            [
+              "Where it holds",
+              "12 + log(O/H) 7.1 to 9"
+            ],
+            [
+              "What would show it wrong",
+              "see NBC4; dust-to-gas ratios of the Galaxy by radius ([R5131]: gas-to-dust 60 at 5 kpc to 470 at 14 kpc, about three times the gradient the metals give)"
+            ],
+            [
+              "What replaces it",
+              "the same replacements as NBC4 and NBC1 (GEN.1291 scales the gradient with the galaxy)"
+            ],
+            [
+              "Evidence",
+              "NBC4's reading of [R5102: Table 1]; [R5131] finds the dust falling outward faster than the metals alone give, which this model does not capture"
+            ]
+          ],
+          "id": "DU5",
+          "key": "6.188:DU5",
+          "kind": "D",
+          "slug": "6-188-du5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dust_model.dust_to_gas_ratio: the dust goes with the metals by the law of [R5102] (row NBC4), the gas metallicity by the gradient of row NBC1"
+        }
+      ],
+      "slug": "6-188-stand-ins-of-the-dust-of-a-galaxy-from-its-own-gas",
+      "title": "Stand-ins of the dust of a galaxy from its own gas"
+    },
+    {
       "key": "6.176",
       "number": "6.176",
       "rows": [
@@ -34861,7 +34689,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GAS_GRADIENT_DEX_PER_KPC 0.034: the fall of the Milky Way gas's metallicity with galactic radius, dex per kpc (Boss: its own gradient, not the stars' 0.06)"
         },
         {
@@ -34899,7 +34727,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GAS_SCATTER_DEX 0.14: the scatter of the gas around its gradient, dex"
         },
         {
@@ -34937,7 +34765,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L2",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.SATELLITE_GAS_OFFSETS ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26)): the lowest and highest offset of a satellite's gas [O/H] above the component's [Fe/H], dex, at the SMC and LMC stars"
         },
         {
@@ -34975,7 +34803,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.DUST_BREAK_12LOG 7.96, DUST_HIGH_METALLICITY (2.21, 1.0), DUST_LOW_METALLICITY (0.68, 3.08): the broken power law of the gas-to-dust ratio against 12 + log(O/H)"
         },
         {
@@ -35013,7 +34841,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.MAX_IN_DUST {Mg 0.95, Si 0.95, Fe 0.99, C 0.70, O 0.60}: the most of an element that can sit in dust, as a share of its total"
         },
         {
@@ -35055,7 +34883,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
         },
         {
@@ -35333,7 +35161,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind"
         }
       ],
@@ -40515,7 +40343,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": "GEN.1289",
           "what": "rogue_density.RADIAL_SMOOTH_PC 190: the Gaussian width in galactocentric radius between a donor and an old rogue"
         },
         {
@@ -40553,7 +40381,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": "GEN.1289",
           "what": "rogue_density.VERTICAL_SMOOTH_PC 30: the same in height"
         },
         {
@@ -40591,7 +40419,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1111",
+          "unread": "GEN.1289",
           "what": "rogue_density.YOUNG_AGE_MYR 100: rogues ejected within this long keep the donor's structure; the share is this over the population's history (ejections uniform in time)"
         },
         {
@@ -40629,7 +40457,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1111",
+          "unread": "GEN.1289",
           "what": "rogue_density.RING_STEPS 16: points round a ring (exact for fewer than 16 arms or bar ends), with 3 nodes each in radius and height"
         }
       ],
@@ -41852,44 +41680,6 @@
       "key": "6.117",
       "number": "6.117",
       "rows": [
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_history.GRAND_TACK_SURVIVAL (2e-3, 1e-2) and belt_history.INSTABILITY_SURVIVAL (0.1, 0.5): the share of a belt left after a migration of a giant through it and after an instability alone, drawn log-uniform"
-            ],
-            [
-              "The range it moves in",
-              "one decade each way (as BR4 and BR5 of 6.95)"
-            ],
-            [
-              "Where it holds",
-              "belts of systems with such an event"
-            ],
-            [
-              "What would show it wrong",
-              "a system with the event whose belt is outside the range"
-            ],
-            [
-              "What replaces it",
-              "N-body migration and instability runs with the system's own giants (GEN.1054 origin table)"
-            ],
-            [
-              "Evidence",
-              "[R4603] ([R4603], READ); [R3150] ([R3150], READ)"
-            ]
-          ],
-          "id": "BHS1",
-          "key": "6.117:BHS1",
-          "kind": "P",
-          "slug": "6-117-bhs1",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L1",
-          "unread": null,
-          "what": "belt_history.GRAND_TACK_SURVIVAL (2e-3, 1e-2) and belt_history.INSTABILITY_SURVIVAL (0.1, 0.5): the share of a belt left after a migration of a giant through it and after an instability alone, drawn log-uniform"
-        },
         {
           "burn_down": null,
           "fields": [

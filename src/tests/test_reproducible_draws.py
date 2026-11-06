@@ -182,6 +182,15 @@ def test_matmul_is_the_left_to_right_sum_of_products():
     assert np.allclose(detmath.matmul(a, b), a @ b)
 
 
+def test_dot_is_the_left_to_right_sum_of_products_of_a_vector():   # TEST.620
+    import numpy as np
+    from planetgen.util import detmath
+    assert detmath.dot([0.1, 0.2, 0.3], [1.0, 3.0, 5.0]) == (0.1 * 1.0 + 0.2 * 3.0) + 0.3 * 5.0
+    assert isinstance(detmath.dot([1.0, 2.0, 3.0], [1.0, 1.0, 1.0]), float)
+    rows = np.array([[0.1, 0.2, 0.3], [1.5, -2.5, 3.5]])
+    assert detmath.dot(rows, [1.0, 3.0, 5.0]).tolist() == [(0.1 * 1.0 + 0.2 * 3.0) + 0.3 * 5.0, (1.5 * 1.0 + -2.5 * 3.0) + 3.5 * 5.0]
+
+
 # --- The helpers' recipes ------------------------------------------------------
 
 def test_the_recipes_are_pinned():

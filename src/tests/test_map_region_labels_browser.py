@@ -19,7 +19,7 @@ import pytest
 
 from tests.map_site_support import REGION_FAMILY, REGION_NAMES, charted_regions, map_site  # noqa: F401
 from tests.test_web_browser_fixture_maps import (  # noqa: F401 -- fixtures and the map drivers the lanes' own tests share
-    LABELS, _label_spot, _open_galaxy, _settle, _window_size, gl_browser, page)
+    GALAXY_CANVAS, LABELS, _label_spot, _open_galaxy, _settle, _window_size, gl_browser, page)
 
 pytestmark = pytest.mark.browser
 
@@ -125,6 +125,21 @@ def test_a_click_on_the_family_flies_to_its_block_and_on_a_region_to_the_region(
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
     assert _window_size(page) == 9
+
+
+def test_a_region_point_with_its_name_does_not_cover_a_name_the_map_placed(page, map_site):
+    """MAP.369: the region point carries the region's name and moves up over a family name beside it rather than cover it."""
+    _look(page, map_site, _center(), BIG_NODES)
+    _wait_for_names(page)
+    page.wait_for_selector(".map-region-poi")
+    page.wait_for_timeout(500)
+    family = next(label for label in page.evaluate(LABELS) if label["kind"] == "region")
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    name = (box["x"] + family["left"], box["y"] + family["top"], box["x"] + family["left"] + family["width"], box["y"] + family["top"] + family["height"])
+    pills = page.evaluate("() => [...document.querySelectorAll('.map-region-poi')].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })")
+    assert pills
+    for left, top, right, bottom in pills:
+        assert right <= name[0] or left >= name[2] or bottom <= name[1] or top >= name[3], (name, pills)
 
 
 def test_a_click_on_a_group_of_regions_flies_to_a_block_that_holds_them_all(page, map_site):

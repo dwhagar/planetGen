@@ -89,6 +89,8 @@ def run_restore(args):
         close()
     if report.restored:
         print(f"Restored {', '.join(report.restored)} from {args.archive}. What they replaced is in {report.safety}.")
+        if report.results.get("parity") is not None:
+            print(report.results["parity"])
     for name in report.skipped:
         print(f"skipped: this build has no provider for the {name!r} part; the archive keeps it.", file=sys.stderr)
     if not report.restored and not report.skipped:
