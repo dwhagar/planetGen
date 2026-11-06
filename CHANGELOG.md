@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3396] - 2026-11-06
+
+**Headline:** The Map View menu no longer shows a lone greyed-out "Forward" word: each Forward button stays beside its layer and can always be pressed.
+
+### Fixed
+- In the Menu's "Show on the map" list (Galaxy Map, sector and system maps) the second button of a points-of-interest row, "Forward", could wrap onto a line of its own, away from the layer it belongs to, and was greyed out and not clickable while that layer was hidden. A layer's button and its Forward button are now one row that does not break across lines, and Forward is always enabled: pressing it on a hidden layer shows the layer and draws it in front.
+
 ## [8.0.3395] - 2026-11-06
 
 **Headline:** An object's page shows its Sensor view first, with the "Sensors show ..." line under the picture.
