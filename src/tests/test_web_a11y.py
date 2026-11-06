@@ -451,6 +451,7 @@ def sample_params(site_app, sample_job, sample_run):
         "shell": 40, "band": 0, "wedge": 3,  # web.sector_at: a cell nothing was generated in
         "ref": f"planet:{planet['id']}",  # web.object_page: /object/planet:<id>, a planet's own page
         "belt_ref": belt_ref,  # web.belt_info_page: /object/belt:<id>/belt (a reference that names nothing answers 404, skipped below)
+        "rank": "0001",  # web.belt_member_page: /object/belt:<id>/member/<rank> (the heaviest body a belt keeps; a belt with none answers 404, skipped below)
         "page": 1,
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL
@@ -472,7 +473,7 @@ def sample_params(site_app, sample_job, sample_run):
     }
 
 
-NO_SAMPLE_OBJECT = frozenset({"web.admin_backup", "web.belt_info_page"})
+NO_SAMPLE_OBJECT = frozenset({"web.admin_backup", "web.belt_info_page", "web.belt_member_page"})
 """frozenset: Pages for an object this database may not hold (a backup archive, an asteroid belt), which answer 404 for it; their
 real page is checked in test_web_settings_browser.py."""
 

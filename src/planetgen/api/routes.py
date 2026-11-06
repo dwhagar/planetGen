@@ -37,7 +37,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 from planetgen.db import search_values
 from planetgen.db import children as children_db
 from planetgen.api import gravity as gravity_api, nav_system, system_sky
-from planetgen.describe import belt_info
+from planetgen.describe import belt_info, belt_member_info
 from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.lib import sensor, skypack, tilecache
 from planetgen.web.maps.systemscene import build_scene
@@ -112,7 +112,7 @@ from planetgen.generation import bright_stars as brightStars, limits as generati
 from planetgen import tuning
 from planetgen.admin import maintenance
 from planetgen.population import facility_ratings, facility_suggest, facility_types
-from planetgen.galaxy import objectref as object_ref, scatter_limits, superbubble_field, version_check
+from planetgen.galaxy import objectref as object_ref, object_uid, scatter_limits, superbubble_field, version_check
 from planetgen.galaxy.profile import sector_profile
 from planetgen.galaxy.profile_report import profile_report
 from planetgen.galaxy.resolution import cell_resolution
@@ -1971,6 +1971,24 @@ def object_belt_page_route(ref):
             raise ValueError(f"{ref} is not an asteroid belt")
         return jsonify(belt_info.belt_info(get_db(), object_id))
     except ValueError as exc:  # includes ids.IdError and belt_info.BeltPageNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/belt-members/<rank>")
+def object_belt_member_route(ref, rank):
+    """
+    `GET /api/objects/<ref>/belt-members/<rank>` (GEN.1070) -- one body an asteroid belt keeps individually (`describe/belt_member_info.py`), `rank` written as the
+    designation writes it (hex, at least four digits; 1 is the heaviest): `designation`, `rank`, `member` (the entry the belt's information page lists: mass, diameter, density,
+    `taxon`, composition, `status`, `population`), `orbit` (the six elements with the `closest_distance`, `farthest_distance` and `period`), `share` of the belt's mass, `belt` (its
+    designation, star, where it came from and what shaped it) and the `previous` and `next` designations. Every number is `{value, unit, text}`. 404 for a reference that is
+    not a belt, a rank that is not written canonically, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page).
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "belt":
+            raise ValueError(f"{ref} is not an asteroid belt")
+        return jsonify(belt_member_info.member_info(get_db(), object_id, object_uid.parse_rank(rank)))
+    except ValueError as exc:  # includes ids.IdError and belt_member_info.BeltMemberNotFound
         return jsonify({"error": str(exc)}), 404
 
 

@@ -35,7 +35,7 @@
     <tbody>
       {%- for body in bodies %}
       <tr>
-        <th scope="row"><code>{{ body.designation }}</code></th>
+        <th scope="row"><a href="{{ body.url }}"><code>{{ body.designation }}</code></a></th>
         <td>{{ quantity(body.mass) }}</td>
         <td>{{ quantity(body.diameter) }}</td>
         <td>{{ quantity(body.distance) }}</td>

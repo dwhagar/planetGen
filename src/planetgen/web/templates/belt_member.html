@@ -1,0 +1,62 @@
+{#- One body a belt keeps (/object/belt:<ID>/member/<rank>, web/belt_member_page.py, GEN.1070): its status, mass, size, makeup, orbit and the history of its belt. -#}
+{% extends "base.html" %}
+{% block subhead %}
+<div class="page-subhead">
+  <p class="badges">
+    <span class="badge">{{ member.status.word|capitalize if member.status.word else "Body of an asteroid belt" }}</span>
+    <span class="badge">Designation {{ designation }}</span>
+    {%- if belt.star %}<span class="badge">Goes round {{ belt.star }}</span>{% endif %}
+  </p>
+</div>
+{% endblock %}
+{% block content %}
+<section class="panel" id="member-body" aria-labelledby="member-body-heading">
+  <div class="panel-header"><h2 id="member-body-heading">The body</h2></div>
+  <p>This body has a designation, not a name. It is number {{ member.rank }} by mass among the {{ belt.individual_count }} bodies its belt keeps one by one, and holds
+     {{ "%.3g"|format(share * 100) }} percent of the belt's mass.</p>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      <tr><th scope="row">Belt</th><td><a href="{{ belt_url }}">{{ name }}</a> (<a href="{{ belt_info_url }}">all its bodies</a>)</td></tr>
+      <tr><th scope="row">Shape</th><td>{{ member.status.word or "" }}</td></tr>
+      <tr><th scope="row">Mass</th><td>{{ quantity(member.mass) }}</td></tr>
+      <tr><th scope="row">Diameter</th><td>{{ quantity(member.diameter) }}</td></tr>
+      <tr><th scope="row">Density</th><td>{{ quantity(member.density) }}</td></tr>
+      <tr><th scope="row">Type</th><td>{{ member.analogue }} ({{ member.taxon }})</td></tr>
+      <tr><th scope="row">Made of</th><td>{{ composition_text }}</td></tr>
+      {%- if member.population %}<tr><th scope="row">Orbit group</th><td>{{ member.population|replace("_", " ") }}</td></tr>{% endif %}
+    </tbody>
+  </table></div>
+</section>
+
+<section class="panel" id="member-orbit" aria-labelledby="member-orbit-heading">
+  <div class="panel-header"><h2 id="member-orbit-heading">The orbit</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      <tr><th scope="row">Mean distance</th><td>{{ quantity(orbit.semi_major_axis) }}</td></tr>
+      <tr><th scope="row">Closest</th><td>{{ quantity(orbit.closest_distance) }}</td></tr>
+      <tr><th scope="row">Farthest</th><td>{{ quantity(orbit.farthest_distance) }}</td></tr>
+      <tr><th scope="row">Year</th><td>{{ quantity(orbit.period) }}</td></tr>
+      <tr><th scope="row">Eccentricity</th><td>{{ "%.3g"|format(orbit.eccentricity) }}</td></tr>
+      <tr><th scope="row">Inclination</th><td>{{ quantity(orbit.inclination) }}</td></tr>
+      <tr><th scope="row">Longitude of the ascending node</th><td>{{ quantity(orbit.ascending_node) }}</td></tr>
+      <tr><th scope="row">Argument of the closest point</th><td>{{ quantity(orbit.argument_of_periapsis) }}</td></tr>
+      <tr><th scope="row">Mean anomaly</th><td>{{ quantity(orbit.mean_anomaly) }}</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+{%- if belt.origin or belt.history or belt.history_text %}
+<section class="panel" id="member-history" aria-labelledby="member-history-heading">
+  <div class="panel-header"><h2 id="member-history-heading">The belt it belongs to</h2></div>
+  {%- if belt.origin %}<p>{{ belt.origin }}</p>{% endif %}
+  {%- for sentence in belt.history %}<p>{{ sentence }}</p>{% endfor %}
+  {%- if belt.history_text %}<p>{{ belt.history_text }}</p>{% endif %}
+</section>
+{%- endif %}
+
+<nav class="panel" id="member-neighbours" aria-label="Neighboring bodies of the belt">
+  {%- if previous_url %}<a href="{{ previous_url }}">Heavier: <code>{{ previous }}</code></a>{% endif %}
+  {%- if previous_url and next_url %} &middot; {% endif %}
+  {%- if next_url %}<a href="{{ next_url }}">Lighter: <code>{{ next }}</code></a>{% endif %}
+</nav>
+{% endblock %}

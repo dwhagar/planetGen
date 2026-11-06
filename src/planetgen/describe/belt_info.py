@@ -20,7 +20,7 @@ class BeltPageNotFound(ValueError):
     """No belt has that id."""
 
 
-def _host_star(system, star_id):
+def host_star(system, star_id):
     """The star a belt of the system goes round: the one with that stored id, else the system's primary."""
     stars = [system.star, getattr(system, "secondary_star", None), *getattr(system, "member_stars", [])]
     for star in stars:
@@ -29,7 +29,7 @@ def _host_star(system, star_id):
     return system.star
 
 
-def _belt_of(system, belt_id):
+def belt_of(system, belt_id):
     bodies = [*system.planets, *getattr(system, "secondary_planets", []), *(body for group in (getattr(system, "member_planets", None) or []) for body in group)]
     for body in bodies:
         if getattr(body, "body_type", None) == "a" and getattr(body, "db_id", None) == belt_id:
@@ -65,8 +65,8 @@ def belt_info(conn, belt_id):
     if row is None:
         raise BeltPageNotFound(f"no belt has the id {belt_id}")
     system = store.load_star_system(conn, row["star_system_id"])
-    belt = _belt_of(system, belt_id)
-    star = _host_star(system, row["star_id"])
+    belt = belt_of(system, belt_id)
+    star = host_star(system, row["star_id"])
     object_id = object_uid.from_bytes(row["uid"])
     page = page_data.build(belt_page_record(belt, star, object_id), page_data.stored_bodies(object_id, belt.members))
     page["belt"]["star"] = star.name
