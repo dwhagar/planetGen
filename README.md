@@ -192,10 +192,10 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://zenodo.org/records/6951/files/uv-vis-spectral-atlas-2013-06-24.zip?download=1> as `uv-vis-spectral-atlas-2013-06-24.zip`
 
-### `ir_ktables`: Infrared correlated-k tables of H2O, CO2 and CH4 (ExoMolOP, R1000, line lists POKAZATEL, UCL-4000 and YT34to10)
+### `ir_ktables`: Infrared correlated-k tables of H2O, CO2, CH4, NH3, SO2, H2S, CO and HCN (ExoMolOP, R1000)
 
 - Source: [R0795], ExoMolOP R1000 ARCiS k-tables from exomol.com.
-- Download: 3 files, 1257.8 MB. Kept after setup: `ir_ktables.npz` (the download is deleted once it is reduced).
+- Download: 8 files, 3265.3 MB. Kept after setup: `ir_ktables.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch ir_ktables`.
 - Replaces: the band-strength and wing stand-ins of the gray infrared opacity: plateau opacities per band center of the gas table.
 - With `--disregard-missing-data`: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the tables are read to fit and check it.
@@ -203,6 +203,11 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
   - <https://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_h2o.fits.gz`
   - <https://exomol.com/db/CO2/12C-16O2/UCL-4000/12C-16O2__UCL-4000.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_co2.fits.gz`
   - <https://exomol.com/db/CH4/12C-1H4/YT34to10/12C-1H4__YT34to10.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_ch4.fits.gz`
+  - <https://exomol.com/db/NH3/14N-1H3/CoYuTe/14N-1H3__CoYuTe.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_nh3.fits.gz`
+  - <https://exomol.com/db/SO2/32S-16O2/ExoAmes/32S-16O2__ExoAmes.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_so2.fits.gz`
+  - <https://exomol.com/db/H2S/1H2-32S/AYT2/1H2-32S__AYT2.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_h2s.fits.gz`
+  - <https://exomol.com/db/CO/12C-16O/Li2015/12C-16O__Li2015.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_co.fits.gz`
+  - <https://exomol.com/db/HCN/1H-12C-14N/Harris/1H-12C-14N__Harris.R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_hcn.fits.gz`
 
 ### `ir_cia`: Collision-induced absorption of N2, O2, CO2, H2, He and CH4 pairs (HITRAN CIA, 2011 to 2024 releases)
 
