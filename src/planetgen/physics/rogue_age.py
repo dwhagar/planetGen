@@ -8,28 +8,26 @@ The rogue planets had an age drawn uniformly from 0.1 to 10 Gy (`ROGUE_PLANET_AG
 as old as that star, and it spent the first part of its life lit by it: the age is the parent star's age (from the galaxy's star-formation history), the **ejection delay** is
 how long after formation the planet was thrown out, and **the time since ejection** is the rest (`rogue-planet-review.md` row 10, `rogue-planet-drift.md` section 5). The three
 numbers feed the heat law (a giant's cooling runs from its formation, its stellar heating stopped at the ejection), the tide the star raised until the ejection, and the
-drift (`rogue_drift`, which needs the time since ejection) and the history sentence of the rogue's page. This module draws them; nothing calls it yet (GEN.1111 creates the
-rogue rows).
+drift (`rogue_drift`, which needs the time since ejection) and the history sentence of the rogue's page. This module draws the age and takes the delay from the record.
 
 **The parent's age** is drawn from an `AgeLaw` (`galaxy.age_law`, the star-formation history's rate over the population's age window, GEN.546), so the rogues' ages follow
 the galaxy's star-forming past and not a flat range. The window starts no younger than the shortest ejection delay, since the planet cannot be ejected before it exists.
 
-**The ejection delay** has the density `p(t)` proportional to `t^-DELAY_INDEX` between `EJECTION_DELAY_MIN_GY` and the parent's age: embryos and the planets of a crowded
-disk are thrown out early (within the first few tens of Myr), and planet-planet scattering goes on at every later time with a roughly even share of each decade of time
-([R0747]:580, whose scattering times span 10^6 to 10^9 yr and beyond; recalled, not opened here). Index 1 is that logarithmic spread; 0 would be
-uniform in time. When the ejection record (RP1, GEN.1119) gives the time of the loss itself the delay is read from it (`from_record`) and the index is not used.
+**The ejection delay** is the time of the loss in the planet architecture: `Loss.time_yr`, the disk lifetime (`scatter.DISK_LIFETIME_YR`, 3 Myr), at which the architecture's
+scatter step throws a body out. A donor's rogue reads it from the record (`from_record`); a top-up rogue, which has no donor and no record, takes the same time (`EJECTION_TIME_GY`).
+The delay was a power-law draw before (index 1, an even share of each decade from 1 Myr to the parent's age, [R0747]:580 recalled) and that stand-in (RG2) is gone.
 
-Everything is a pure function of the numbers it is given; the random numbers come from the caller (one uniform number for the parent's age, one for the delay), so the draw is
-the caller's own `draw.py` stream. Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.88.
+Everything is a pure function of the numbers it is given; the random number comes from the caller (one uniform number for the parent's age), so the draw is
+the caller's own `draw.py` stream. The loss time is a stand-in of `scatter` (`docs/design/research/gap-filling-plan.md` section 6.127).
 """
 
 import math
 from dataclasses import dataclass
 
-EJECTION_DELAY_MIN_GY = 1.0e-3
-"""float: The earliest an ejection is placed after formation, Gy (1 Myr: after the gas disk's first stage, the embryos of a crowded disk being thrown out). Source tier T8, tweak level L2."""
-DELAY_INDEX = 1.0
-"""float: `p(t)` proportional to `t^-DELAY_INDEX` for the ejection delay `t`; 1 is an even share of each decade of time, 0 uniform in time. Source tier T8, tweak level L3."""
+from planetgen.physics import scatter
+
+EJECTION_TIME_GY = scatter.DISK_LIFETIME_YR / 1.0e9
+"""float: When the planet architecture throws a body out, Gy after formation (`Loss.time_yr`): the disk lifetime."""
 
 
 class RogueAgeError(ValueError):
@@ -75,29 +73,7 @@ def _unit(u, name):
         raise RogueAgeError(f"{name} must be a number from 0 to 1")
 
 
-def ejection_delay_gy(u, available_gy, minimum_gy=EJECTION_DELAY_MIN_GY, index=DELAY_INDEX):
-    """
-    The ejection delay, Gy, by the inverse cumulative of `p(t)` proportional to `t^-index` between `minimum_gy` and `available_gy`.
-
-    Args:
-        u (float): A uniform random number, 0 to 1.
-        available_gy (float): The longest it can be: the parent's age.
-        minimum_gy (float): The shortest.
-        index (float): The power-law index.
-    """
-    _unit(u, "u")
-    if not minimum_gy > 0.0 or not available_gy > 0.0:
-        raise RogueAgeError("the delays must be positive")
-    if available_gy <= minimum_gy:
-        return available_gy
-    if abs(index - 1.0) < 1e-12:
-        return minimum_gy * (available_gy / minimum_gy) ** u
-    power = 1.0 - index
-    low, high = minimum_gy ** power, available_gy ** power
-    return (low + u * (high - low)) ** (1.0 / power)
-
-
-def draw_age(age_law, u_age, window=None, minimum_gy=EJECTION_DELAY_MIN_GY):
+def draw_age(age_law, u_age, window=None, minimum_gy=EJECTION_TIME_GY):
     """
     The parent's age, Gy, drawn from the star-formation history's `AgeLaw` over its window (or part of it), not younger than `minimum_gy`.
 
@@ -115,21 +91,20 @@ def draw_age(age_law, u_age, window=None, minimum_gy=EJECTION_DELAY_MIN_GY):
     return age_law.sample(low, high, _Fixed(u_age))
 
 
-def rogue_age(age_law, u_age, u_delay, window=None, minimum_gy=EJECTION_DELAY_MIN_GY, index=DELAY_INDEX):
+def rogue_age(age_law, u_age, window=None, delay_gy=EJECTION_TIME_GY):
     """
-    A rogue's age, ejection delay and time since ejection from two uniform random numbers.
+    A rogue's age, ejection delay and time since ejection from one uniform random number.
 
     Args:
-        age_law, window, minimum_gy: As for `draw_age`.
-        u_age, u_delay (float): Uniform random numbers, 0 to 1: the parent's age and the delay.
-        index (float): The delay's power-law index.
+        age_law, window: As for `draw_age`.
+        u_age (float): A uniform random number, 0 to 1: the parent's age.
+        delay_gy (float): The ejection delay, the architecture's loss time by default; the youngest parent is no younger than it.
 
     Returns:
         RogueAge: The three ages.
     """
-    age = draw_age(age_law, u_age, window, minimum_gy)
-    delay = ejection_delay_gy(u_delay, age, minimum_gy, index)
-    return RogueAge(age, delay, age - delay)
+    age = draw_age(age_law, u_age, window, delay_gy)
+    return from_record(age, delay_gy)
 
 
 def from_record(parent_age_gy, ejection_delay_gy_):

@@ -94,6 +94,9 @@ os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
 # A data change never starts the warm-up by itself in a test (PERF.141); tests/test_warm_start.py turns it on.
 os.environ.setdefault("PLANETGEN_WARM_ON_CHANGE", "0")
+# VIEW.25: charting builds the sky tiers by default (`queue.sky_limit` 7.5, half an hour a cell on a real galaxy); a test galaxy would take minutes to
+# walk one, so tests chart without it. A test of the tiers gives its own limit (`--sky-limit`, or `queue.sky_limit` in its settings).
+os.environ.setdefault("PLANETGEN_SKY_LIMIT", "0")
 # PERF.209: the generator battery digest takes about half a minute and the code does not change during a run, so the workers share one copy
 # (kept under a key of every file it reads, so a changed generator works it out again).
 os.environ.setdefault("PLANETGEN_BATTERY_DIGEST_CACHE", os.path.join(tempfile.gettempdir(), "planetgen-battery-digest"))

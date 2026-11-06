@@ -133,3 +133,13 @@ def test_a_captured_link_to_another_system_does_not_parse():
 def test_same_system_ignores_only_the_body_number():
     assert ids.same_system(BELT, PLANET) and ids.same_system(BELT, SYSTEM)
     assert not ids.same_system(BELT, OTHER_SYSTEM_PLANET)
+
+
+def test_parse_rank_reads_the_last_part_of_a_designation_and_nothing_else():
+    """GEN.1070: the address of a member's page carries its rank as the designation writes it."""
+    for rank in (1, 0x42, 0xFFFF, 0x10000, ids.MAX_MEMBER_RANK):
+        assert ids.parse_rank(ids.designation(BELT, rank).rpartition(ids.MEMBER_SEPARATOR)[2]) == rank
+    assert ids.parse_rank("00a2") == 0xA2
+    for bad in ("", "0", "42", "00042", "0000", "GG01", "-001", "0001.0001", "100000000"):
+        with pytest.raises(ValueError):
+            ids.parse_rank(bad)

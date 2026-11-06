@@ -5,6 +5,9 @@
 <div class="page-subhead">
 <p class="badges">
   <span class="badge">Uncharted</span>
+  {%- if region %}
+  <span class="badge">{{ region.name }}</span>
+  {%- endif %}
   <span class="badge">Edge {{ edge_text }}</span>
   {%- if star_count %}
   <span class="badge">{{ star_count }} waiting bright star{{ "" if star_count == 1 else "s" }}</span>
@@ -19,7 +22,7 @@
 </div>
 {% endblock %}
 {% block content %}
-<p class="hint">Nothing has been charted at shell {{ address[0] }}, band {{ address[1] }}, wedge {{ address[2] }}. The profile below is worked out from the galaxy's shape and does not store anything; asking for the sector makes it by the same rules.
+<p class="hint">{{ name }} is an uncharted sector{% if region %} in the {{ region.name }}{% endif %} (designation {{ designation }}). Nothing has been charted at shell {{ address[0] }}, band {{ address[1] }}, wedge {{ address[2] }}. The profile below is worked out from the galaxy's shape and does not store anything; asking for the sector makes it by the same rules.
 {%- if can_generate %} Generate it from the <a href="{{ url_for('web.generate') }}">Generate page</a> with the Address mode.{% endif %}</p>
 {%- if profile %}
 {{ profile_panel(profile) }}

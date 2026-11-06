@@ -11,7 +11,7 @@ import random
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import constants, rogue_topup as rt
+from planetgen.physics import constants, rogue_mass_function, rogue_topup as rt
 
 SUN = constants.SOLAR_MASS_TO_KG
 EARTH = constants.EARTH_MASS_TO_KG
@@ -71,17 +71,24 @@ def test_rogues_already_present_count_against_the_ceiling():
     assert over.room == 0 and over.rogues == ()
 
 
-def test_the_masses_follow_the_existing_bins_mostly_terrestrial_and_a_few_gas_giants():
+def test_the_masses_follow_the_ejected_spectrum_mostly_terrestrial_and_none_over_the_scatterers_mass():
     rng = random.Random(9)
     masses = [rt.draw_mass_earth(rng) for _ in range(20000)]
     bins = [rt.mass_bin_of(m) for m in masses]
-    assert bins.count("terrestrial") / len(bins) > 0.8
+    assert bins.count("terrestrial") / len(bins) > 0.85
     gas = (bins.count("saturn") + bins.count("jupiter")) / len(bins)
-    assert 0.001 < gas < 0.1
-    assert min(masses) >= 0.1 * (1 - 1e-12) and max(masses) <= tuning.ROGUE_PLANET_MASS_BINS["jupiter"][1] * (1 + 1e-12)
-    # the mass function: more bodies at lower mass inside a bin
-    terrestrial = [m for m, b in zip(masses, bins) if b == "terrestrial"]
-    assert sum(1 for m in terrestrial if m < 0.5) > sum(1 for m in terrestrial if m > 1.5)
+    assert 0.001 < gas < 0.05
+    assert bins.count("jupiter") == 0
+    scatterer_earth = rt.SCATTERER_MASS_JUPITER * constants.JUPITER_MASS_TO_KG / constants.EARTH_MASS_TO_KG
+    assert min(masses) >= 0.1 * (1 - 1e-12) and max(masses) <= scatterer_earth * (1 + 1e-12)
+    # the spectrum is rogue_mass_function's: a share of the draws inside a range is its number share
+    low, high = 0.1 * constants.EARTH_MASS_TO_KG, rt.SCATTERER_MASS_JUPITER * constants.JUPITER_MASS_TO_KG
+    share = rogue_mass_function.number_share(0.1 * constants.EARTH_MASS_TO_KG, 2.0 * constants.EARTH_MASS_TO_KG, low, high)
+    assert bins.count("terrestrial") / len(bins) == pytest.approx(share, abs=0.01)
+    # the slope between the Moon-to-Earth and Earth-to-Neptune ranges is the supply's 0.83 (compare 0.96 of the microlensing surveys)
+    inner = sum(1 for m in masses if 0.1 <= m < 1.0)
+    outer = sum(1 for m in masses if 1.0 <= m < 10.0)
+    assert math.log10(inner / outer) == pytest.approx(rogue_mass_function.supply_slope(), abs=0.05)
 
 
 def test_each_rogue_is_placed_uniformly_inside_the_sector_and_a_smaller_share_keeps_to_the_middle():

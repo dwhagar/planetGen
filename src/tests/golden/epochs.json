@@ -795,6 +795,12 @@
       "first_release": "8.0.3410",
       "reason": "Train 11: the class-by-domain matrix, the phase gate and the ammonia-water fraction decide a body's class (GEN.1221, GEN.1258) and the bar on habitable worlds holds on finished bodies (GEN.1250); a bright star and a scattered phenomenon get an Object ID (GEN.1254); the Magellanic Clouds keep the cloud counts their gas holds (GEN.367); the latitude band table's Day/Night rows and longest spells (GEN.1260), the temperature series (GEN.1262 to GEN.1264), the greenhouse table refit (GEN.852), the outer-disk scatter populations and belt members (GEN.1071, GEN.1092), the binary-stripped Wolf-Rayet window (GEN.995), the massive moons of rocky planets (GEN.962) and the molar mass of the trace air state (TEST.585) move the stored bodies.",
       "affects": ["plan", "population", "fill", "scatter"]
+    },
+    {
+      "epoch": 134,
+      "first_release": "8.0.3449",
+      "reason": "Train 12: the stars of a cluster point to it (GEN.359), the galactic potential follows the density model's stars (GEN.1285), a sector holds the systems its profile expects (GEN.1284), the rogue top-up masses and ejection times come from the ejected record (GEN.1287, GEN.1295), the nebula and remnant composition is stored (GEN.1276, GEN.1277), the temperature coverage score and the hours of the bands (GEN.1265, GEN.1266), the best-fit class of every body (GEN.1207), the capture windows and irregular moons of a planet (GEN.1082 to GEN.1084), and the bar holds for every life class body (GEN.1275) move the generated output",
+      "affects": ["plan", "scatter", "fill", "population"]
     }
   ]
 }

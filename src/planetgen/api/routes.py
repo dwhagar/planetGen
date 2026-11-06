@@ -37,7 +37,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 from planetgen.db import search_values
 from planetgen.db import children as children_db
 from planetgen.api import gravity as gravity_api, nav_system, system_sky
-from planetgen.describe import belt_info
+from planetgen.describe import belt_info, belt_member_info
 from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.lib import sensor, skypack, tilecache
 from planetgen.web.maps.systemscene import build_scene
@@ -68,6 +68,7 @@ from planetgen.db.query import (
     SYSTEM_SORTS,
     count_phenomena,
     count_sectors,
+    count_uncharted_sectors,
     is_capped,
     count_systems,
     galaxy_changes,
@@ -112,7 +113,7 @@ from planetgen.generation import bright_stars as brightStars, limits as generati
 from planetgen import tuning
 from planetgen.admin import maintenance
 from planetgen.population import facility_ratings, facility_suggest, facility_types
-from planetgen.galaxy import objectref as object_ref, scatter_limits, superbubble_field, version_check
+from planetgen.galaxy import objectref as object_ref, object_uid, scatter_limits, superbubble_field, version_check
 from planetgen.galaxy.profile import sector_profile
 from planetgen.galaxy.profile_report import profile_report
 from planetgen.galaxy.resolution import cell_resolution
@@ -506,6 +507,8 @@ def sectors():
     table (UX.41) also takes `sort` (`name`, `systems`, `density`,
     `position` or `distance`) with `order=asc|desc`. Each placed item carries `region`, the named region its sector lies in
     (`{"name", "parent"}`, or `None` with no naming key). `total` counts the sectors (`total_capped`: it stopped at 10,000, PERF.77).
+    An uncharted placeholder (`uncharted`, MAP.399: a row a drifting rogue made in a cell nothing was generated in) is named from its cell (`uncharted_sector_view`), keeps its
+    stored designation as `designation`, and carries its region; `uncharted_total` counts them beside `total`.
     `after=<sector ID>` starts the page after that sector in the default order and the `name` and `distance` sorts
     (PERF.137: any page costs the same, and `offset` is ignored); the other sorts ignore it.
     """
@@ -523,10 +526,14 @@ def sectors():
     total = count_sectors(db)
     items = list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after)
     for item in items:
-        item["region"] = region_of(db, (item["center_x_pc"], item["center_y_pc"], item["center_z_pc"]) if item["placed"] else None)
+        if item["uncharted"]:
+            _show_uncharted_sector(db, item)
+        else:
+            item["region"] = region_of(db, (item["center_x_pc"], item["center_y_pc"], item["center_z_pc"]) if item["placed"] else None)
     body = {
         "items": items,
         "total": total,
+        "uncharted_total": count_uncharted_sectors(db),
         "total_capped": is_capped(total),
         "limit": limit,
         "offset": offset,
@@ -544,6 +551,8 @@ def sector_detail(sector_id):
     detail["superbubble"] = superbubble_of(conn, detail)
     detail["region"] = region_of(conn, (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
                                  if detail.get("placed") else None)
+    if detail["uncharted"]:
+        _show_uncharted_sector(conn, detail)
     detail["unresolved"] = unresolved_of(conn, detail)
     detail["scatter_tier"] = scatter_tier_of(conn, detail)
     detail["former_designations"] = ids.former_designations(conn, ids.SECTOR, sector_id)
@@ -1219,6 +1228,27 @@ def region_of(conn, position_pc):
     return None if found is None else region_stats.labels(found["block"], naming_key.active_key(), edge_pc)
 
 
+def uncharted_sector_view(conn, address, designation):
+    """
+    What an uncharted sector (the placeholder row of a cell nothing was generated in, MAP.399, or the cell itself) is called and where it is: `{"name", "region"}`. The name is the
+    cell's address spelled under the galaxy's naming key (`naming_key.uncharted_sector_name`), "Uncharted sector <designation>" with no key; the region is the 9-block that holds the cell,
+    named whether or not any of it is charted (a placeholder lies in a region of the grid whatever has been generated there), `None` with no key.
+    """
+    key = naming_key.active_key()
+    if key is None:
+        return {"name": f"Uncharted sector {designation}", "region": None}
+    edge_pc = galaxy_edge_pc(conn)
+    return {"name": naming_key.uncharted_sector_name(address, key),
+            "region": region_stats.labels(region_stats.region_cell(address), key, edge_pc)}
+
+
+def _show_uncharted_sector(conn, item):
+    """Gives a sector item that is an uncharted placeholder (`uncharted`) its name and region (`uncharted_sector_view`), keeping the stored designation as `designation`."""
+    item["designation"] = item["name"]
+    view = uncharted_sector_view(conn, (item["shell_index"], item["band_index"], item["wedge_index"]), item["name"])
+    item["name"], item["region"] = view["name"], view["region"]
+
+
 def superbubble_of(conn, detail):
     """
     The superbubble a placed sector's center lies in (`sector_detail`'s `superbubble`), or `None`:
@@ -1850,8 +1880,8 @@ def container_detail(printed_id):
 def container_contents(printed_id):
     """
     `GET /api/containers/<object ID>/contents[?limit=]` -- what sits inside a container: `counts` by kind, `total`, and
-    up to `limit` (default 100, at most 500) `items` (`kind`, `id`, `name`) in kind, name order. 404 for an ID that is
-    no container.
+    up to `limit` (default 100, at most 500) `items` (`kind`, `id`, `name`) in kind, name order. A globular cluster
+    lists its own `star`s first and carries `uncharted_stars` (MAP.224). 404 for an ID that is no container.
     """
     conn = get_db()
     try:
@@ -1971,6 +2001,24 @@ def object_belt_page_route(ref):
             raise ValueError(f"{ref} is not an asteroid belt")
         return jsonify(belt_info.belt_info(get_db(), object_id))
     except ValueError as exc:  # includes ids.IdError and belt_info.BeltPageNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/belt-members/<rank>")
+def object_belt_member_route(ref, rank):
+    """
+    `GET /api/objects/<ref>/belt-members/<rank>` (GEN.1070) -- one body an asteroid belt keeps individually (`describe/belt_member_info.py`), `rank` written as the
+    designation writes it (hex, at least four digits; 1 is the heaviest): `designation`, `rank`, `member` (the entry the belt's information page lists: mass, diameter, density,
+    `taxon`, composition, `status`, `population`), `orbit` (the six elements with the `closest_distance`, `farthest_distance` and `period`), `share` of the belt's mass, `belt` (its
+    designation, star, where it came from and what shaped it) and the `previous` and `next` designations. Every number is `{value, unit, text}`. 404 for a reference that is
+    not a belt, a rank that is not written canonically, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page).
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "belt":
+            raise ValueError(f"{ref} is not an asteroid belt")
+        return jsonify(belt_member_info.member_info(get_db(), object_id, object_uid.parse_rank(rank)))
+    except ValueError as exc:  # includes ids.IdError and belt_member_info.BeltMemberNotFound
         return jsonify({"error": str(exc)}), 404
 
 
@@ -2904,7 +2952,7 @@ def galaxy_bright_stars_in_cell():
 def galaxy_uncharted_sector():
     """`GET /api/galaxy/uncharted?shell=&band=&wedge=` -- one sector cell's
     place and what the scatters left in it, for opening a cell nothing was
-    generated in (MAP.162): `designation`, `center_pc`, `edge_pc`,
+    generated in (MAP.162): `designation`, `name` and `region` (`uncharted_sector_view`, MAP.399), `center_pc`, `edge_pc`,
     `sector_id` (the generated sector there, or `null`), `stars` (its
     waiting bright stars, `db.query.bright_stars_in_sector`) and `scattered`
     (its unbuilt scattered phenomena, `db.query.uncharted_sector_contents`).
@@ -2926,6 +2974,7 @@ def galaxy_uncharted_sector():
         raise ApiError(str(err))
     return jsonify({
         "shell_index": shell, "band_index": band, "wedge_index": wedge, "designation": cell["designation"],
+        **uncharted_sector_view(conn, (shell, band, wedge), cell["designation"]),
         "center_pc": cell["cartesian_pc"], "edge_pc": edge_pc, "sector_id": get_sector_id_at(conn, shell, band, wedge),
         **uncharted_sector_contents(conn, shell, band, wedge),
     })

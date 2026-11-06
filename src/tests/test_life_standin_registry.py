@@ -24,6 +24,7 @@ NEEDS_NO_ROW = {
     "tuning.LIFE_SCHEDULE_FIELDS": "the column names of the milestone ages: structure",
     "tuning.LIFE_WORLD_STAGES": "which milestones make a world's life stage: structure",
     "habitability.TIERS": "the four colour names: structure",
+    "habitability.COVERAGE_EDGE_SCORES": "the (share, score) pairs built from the three livable edges (LF63) and the four score levels: structure",
     "habitability.POTENTIALLY_HABITABLE_TIERS": "which colours count as habitable: structure",
     "habitability.LIFE_STAGES": "the names of the four life stages: structure",
     "habitability.CORE_DOMAINS": "the names of the five core domains: structure",

@@ -13,6 +13,7 @@ holds what the builder last wrote (`planetgen warm object-index`); a kind it has
 from planetgen.db import objectindex
 from planetgen.db import query
 from planetgen.db import search_values
+from planetgen.db import uncharted
 from planetgen.galaxy import object_uid
 
 SORTS = {
@@ -25,7 +26,7 @@ SORTS = {
 `_mass` and `_radius`. A list sorted by class, mass or radius holds the objects that have one. A star, planet or moon list also
 sorts by any key of `db.search_values` its kind has (UX.228, `value_sort_keys`); those read the kind's own table."""
 
-VALUE_KINDS = ("star", "planet", "moon")
+VALUE_KINDS = ("star", "planet", "moon", "nebula", "supernova_remnant")
 """tuple: The kinds whose lists take the range filters and sorts of `db.search_values` (UX.228)."""
 
 
@@ -35,8 +36,8 @@ def value_sort_keys(kind):
         return ()
     return tuple(key for key, value in search_values.KEYS.items() if kind in value.entities and key not in SORTS)
 
-KINDS = objectindex.KINDS
-"""tuple: The kinds the lists hold."""
+KINDS = (*objectindex.KINDS, *uncharted.LIST_ONLY_KINDS)
+"""tuple: The kinds the lists hold: the index's, and the kinds only uncharted objects have (`db.uncharted.LIST_ONLY_KINDS`)."""
 
 MAX_LIMIT = 200
 """int: The most rows a page holds."""
@@ -70,7 +71,7 @@ PHYSICS_COLUMNS = {
 and age and a star's spin; a planet's or moon's orbit size, eccentricity, surface temperature, spin, tilt and internal heat flow), read from the kind's table. The lists show
 them; they are not sorts (the index holds no column to order by)."""
 
-_TABLES = {"star": "stars", "planet": "planets", "moon": "moons"}
+_TABLES = {"star": "stars", "planet": "planets", "moon": "moons", "nebula": "nebulae", "supernova_remnant": "supernova_remnants"}
 
 HABITABILITY_COLUMNS = query._tier_columns()
 """tuple: The stored overall score and the six domain tiers (0 Blue to 3 Red) a planet or moon item carries."""
@@ -136,13 +137,25 @@ def _where(kind, sort, name, object_class, sector_id, start=None, descending=Fal
     return where, params
 
 
+def _has_tail(kind, sort, name, sector_id, start, ranges):
+    """Whether the list holds the uncharted objects of `kind` after the charted ones (MAP.400, `db.uncharted`): in the name order with no
+    filter that they cannot meet (they have no name to start with, no sector yet and no stored physical values)."""
+    return (kind in uncharted.TAIL_KINDS and (sort == "name" or kind in uncharted.LIST_ONLY_KINDS) and not name and sector_id is None
+            and not start and not ranges)
+
+
 def count_objects(conn, kind, name=None, object_class=None, sector_id=None, sort="name", ranges=None):
     """How many objects of `kind` the filters leave, counted up to `query.COUNT_FALLBACK_CAP` (a `CappedCount` when
     there are more)."""
-    where, params = _where(kind, sort, name, object_class, sector_id, ranges=ranges)
-    row = conn.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM {_from(kind, ranges, sort)} WHERE {' AND '.join(where)} LIMIT ?) c",
-                       (*params, query.COUNT_FALLBACK_CAP)).fetchone()
-    return query._capped(int(row["n"]))
+    indexed = 0
+    if kind not in uncharted.LIST_ONLY_KINDS:
+        where, params = _where(kind, sort, name, object_class, sector_id, ranges=ranges)
+        row = conn.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM {_from(kind, ranges, sort)} WHERE {' AND '.join(where)} LIMIT ?) c",
+                           (*params, query.COUNT_FALLBACK_CAP)).fetchone()
+        indexed = int(row["n"])
+    if _has_tail(kind, sort, name, sector_id, None, ranges):
+        indexed += uncharted.count(conn, kind, object_class)
+    return query._capped(indexed)
 
 
 def _with_search_values(conn, kind, items, keys):
@@ -202,23 +215,38 @@ def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False,
     if ranges and kind not in VALUE_KINDS:
         raise ValueError(f"a {kind} list takes no range on a physical value")
     limit = min(int(limit), MAX_LIMIT)
+    if kind in uncharted.LIST_ONLY_KINDS:
+        start = None                # nothing here to jump by name in
     value = _value_sort(kind, sort)
     columns = [value.sql(kind, "t")] if value is not None else [f"o.{column}" for column in SORTS[sort]]
     where, params = _where(kind, sort, name, object_class, sector_id, start, descending, ranges)
     source = _from(kind, ranges, sort)
     direction = "DESC" if descending else "ASC"
-    if after:
+    has_tail = _has_tail(kind, sort, name, sector_id, start, ranges)
+    tail_after = None                # where in the uncharted objects the page continues from (`db.uncharted.cursor`)
+    in_tail = kind in uncharted.LIST_ONLY_KINDS
+    if after and has_tail and uncharted.parse_cloud_id(after) is not None:
+        tail_after, in_tail = uncharted.cursor(conn, kind, after), True
+        if tail_after is None:       # a cloud ID that names no field cloud: the list starts from the top
+            in_tail = kind in uncharted.LIST_ONLY_KINDS
+    elif after:
         uid = object_uid.to_bytes(object_uid.parse_id(after))
-        previous = conn.execute(f"SELECT {', '.join(f'{c} AS c{n}' for n, c in enumerate(columns))} FROM {source} "
-                                "WHERE o.kind = ? AND o.uid = ?", (kind, uid)).fetchone()
+        previous = None if in_tail else conn.execute(
+            f"SELECT {', '.join(f'{c} AS c{n}' for n, c in enumerate(columns))} FROM {source} "
+            "WHERE o.kind = ? AND o.uid = ?", (kind, uid)).fetchone()
         if previous is not None:
             condition, keyset = query._keyset_condition(columns, [previous[f"c{n}"] for n in range(len(columns))],
                                                         descending, "o.uid", uid)
             where.append(condition)
             params += keyset
-    order = ", ".join(f"{column} {direction}" for column in [*columns, "o.uid"])
-    rows = conn.execute(f"SELECT {_COLUMNS} FROM {source} WHERE {' AND '.join(where)} ORDER BY {order} LIMIT ?",
-                        (*params, limit + 1)).fetchall()
+        elif has_tail:
+            tail_after = uncharted.cursor(conn, kind, after)
+            in_tail = in_tail or tail_after is not None
+    rows = []
+    if not in_tail:
+        order = ", ".join(f"{column} {direction}" for column in [*columns, "o.uid"])
+        rows = conn.execute(f"SELECT {_COLUMNS} FROM {source} WHERE {' AND '.join(where)} ORDER BY {order} LIMIT ?",
+                            (*params, limit + 1)).fetchall()
     total = count_objects(conn, kind, name, object_class, sector_id, sort, ranges)
     if start and not rows and not after:
         last = list_objects(conn, kind, limit, sort, not descending, None, name, object_class, sector_id)
@@ -229,6 +257,12 @@ def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False,
     if kind in VALUE_KINDS:
         keys = search_values.used(kind, ranges, sort)
         _with_search_values(conn, kind, items, keys)
+    if has_tail and not more:
+        # The charted objects are all listed: the uncharted ones follow (MAP.400), one more than the room left to know whether a page comes after.
+        room = limit - len(items)
+        tail = uncharted.page(conn, kind, room + 1, tail_after, object_class)
+        items += tail[:room]
+        more = len(tail) > room
     page = {"items": items, "next": items[-1]["id"] if more and items else None, "total": total}
     if start:
         page["past_end"] = False

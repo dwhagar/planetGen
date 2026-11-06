@@ -32,7 +32,7 @@ import math
 
 from markupsafe import Markup, escape
 
-from planetgen.physics import brown_dwarf_types, constants as phys, planet_classes, small_body_composition
+from planetgen.physics import brown_dwarf_types, class_fit, constants as phys, planet_classes, small_body_composition
 from planetgen import tuning as pc
 from planetgen.datasets import mamajek_sequence
 from planetgen.datasets.fetch import DataMissing
@@ -198,36 +198,34 @@ def _star_luminosity():
 
 
 def _planet():
-    """The planet and moon classes from the rule rows (`physics/planet_classes.py`, GEN.645): a class is what the finished
-    body's conditions say, so a page gives the rule, not a table of ranges the class was drawn from."""
+    """The planet and moon classes (`physics/planet_classes.py`, GEN.645, GEN.1207): a class is what the finished body's conditions say, so a page gives the conditions
+    of the class, not a table of ranges it was drawn from. Every class has its own conditions and none relies on another having said no (GEN.1208)."""
     classes = {}
     ordered = planet_classes.CLASSES
-    high_gravity = next((rule["min"] for c in ordered if c.letter == "V" for rule in c.when if rule["quantity"] == "gravity_g"), None)
     for cls in sorted(ordered, key=lambda c: c.letter):
+        fit = next(row for row in class_fit.CLASSES if row.letter == cls.letter and row.kind == cls.kind)
+        rule = class_fit.rule_words(fit)
         if cls.letter in classes:     # GEN.1142: T has a giant row and a terrestrial one; the page is the giant row's, with a line for the other
-            classes[cls.letter]["facts"].append(("Also", f"{PLANET_TYPE_LABELS[cls.kind]} bodies that meet: " + "; ".join(planet_classes.rule_words(cls))))
+            classes[cls.letter]["facts"].append(("Also", f"{PLANET_TYPE_LABELS[cls.kind]} bodies that meet: " + "; ".join(rule)))
             continue
-        before = [c.letter for c in ordered if c.kind == cls.kind and ordered.index(c) < ordered.index(cls)]
-        rule = planet_classes.rule_words(cls)
         facts = [
             ("Name", cls.name),
             ("Type", PLANET_TYPE_LABELS[cls.kind]),
-            ("Rule", "; ".join(rule) if rule else "Every " + PLANET_TYPE_LABELS[cls.kind].lower()
-                      + " that no class checked earlier takes"),
-            ("Checked after", ", ".join(before) if before else "Nothing: checked first"),
+            ("Conditions", "; ".join(rule)),
             ("Core class", "Yes" if cls.core else "No"),
         ]
-        if cls.letter == "M":     # GEN.1136: the class above takes over at the high-gravity line
-            facts.append(("Gravity", f"Any gravity up to the {number(high_gravity)} g line of class V (a super-Earth can be a temperate world)"))
         classes[cls.letter] = _entry(cls.letter, cls.name, cls.sentence, facts)
     return {
         "name": "Planet Classes",
         "label": "Planet class",
         "summary": "One letter for what a planet or moon is like, worked out from its finished conditions.",
         "notes": [
-            "A class is never drawn first. Once a planet or moon is complete, its class is the first class in the check "
-            "order whose rule it satisfies.",
-            "A rule can ask about the mass, gravity, temperature, air, water, and starlight. All of its parts must hold.",
+            "A class is never drawn first. Once a planet or moon is complete, it is given the class it fits best. The page "
+            "of a world says how well, for example M 92 percent and O 41 percent.",
+            "A class is the world's state now; a world can change class as its air, water or heat change.",
+            "Each class asks about the mass, gravity, temperature, air, water, and starlight in its own conditions. A condition "
+            "just outside its edge lowers the match instead of ruling the class out. A world that fits no class at all is "
+            "shown with its nearest class at 0 percent.",
             "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",
             "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
@@ -373,11 +371,10 @@ def _black_hole():
 
 def _rogue_planet():
     classes = {}
-    for code, (low, high, rate) in pc.ROGUE_PLANET_MASS_BINS.items():
+    for code, (low, high) in pc.ROGUE_PLANET_MASS_BIN_EDGES_EARTH.items():
         name = ROGUE_MASS_CLASS_NAMES.get(code, _label(code))
         classes[code] = _entry(code, name, f"{name} planets with no star, {number_range(low, high, 'Earth masses')}.", [
             ("Mass", number_range(low, high, "Earth masses")),
-            ("How common", f"About {number(rate)} per star in the galaxy"),
         ])
     low, high = pc.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
     name = ROGUE_MASS_CLASS_NAMES["brown-dwarf"]
@@ -393,9 +390,7 @@ def _rogue_planet():
         "label": "Rogue planet class",
         "summary": "Planets drifting between the stars, by mass.",
         "notes": [
-            f"A rogue planet's mass class is drawn by how common each is (about "
-            f"{number(sum(rate for _low, _high, rate in pc.ROGUE_PLANET_MASS_BINS.values()))} per star in all), "
-            "then its mass within the class.",
+            "A rogue planet's mass class is where its mass falls; lighter planets are thrown out more often than heavier ones.",
         ],
         "classes": classes,
     }

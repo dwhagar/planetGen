@@ -23,6 +23,12 @@ break radius and cluster scale) are stand-ins (registry rows GP1 to GP3 of 6.157
 rotation curve in the literature ([R0496]'s MWPotential2014: a Hernquist-like bulge, a Miyamoto-Nagai disk, an NFW halo) is the same kind of model with
 its parameters fitted, not derived.
 
+**The stars are the density model's, not the stand-ins (GEN.1285).** The profiles above hold the stars of the density model to 25 to 40 percent in the disk, 40-fold
+at the center and several-fold beyond 16 kpc, so a table (`galaxy.stellar_table`, built once with the potential) adds the potential, the pull and the density of
+the difference between the density model and the profiles' own density: the profiles are the closed-form baseline and the table the residual, together the density
+model's field to about 1 percent in the circular speed (held against an independent ring sum in `tests/test_stellar_table.py`). It is the Sun's 208 km/s becoming 224. The
+bar's three axes are averaged round the axis, as `enclosed_mass` averages them.
+
 Units: parsecs, solar masses and km/s. The pull is in (km/s)^2 per pc (`ACCELERATION_TO_SI` turns it into m/s^2); a time in Myr is `KMS_TO_PC_PER_MYR` (1.0227)
 pc per (km/s), the unit a pull times a time gives a speed in. The arrays are numpy arrays, so one call evaluates many points, and the same inputs give the same
 numbers.
@@ -35,7 +41,7 @@ import math
 
 import numpy as np
 
-from planetgen.galaxy import density, enclosed_mass, mass_chain, seed as galaxySeed, shape_draw
+from planetgen.galaxy import density, enclosed_mass, mass_chain, seed as galaxySeed, shape_draw, stellar_table
 from planetgen.physics import constants, unit_registry
 
 G_PC_KMS2_PER_MSUN = constants.G * unit_registry.converter("Msun", "kg")(1.0) / (constants.PARSEC_M * 1.0e6)
@@ -66,6 +72,8 @@ class Potential:
     halo: Halo = Halo(0.0, 1.0, 1.0)
     black_hole_solar: float = 0.0
     softening_pc: float = BLACK_HOLE_SOFTENING_PC
+    correction: object = None
+    """`galaxy.stellar_table.StellarTable` or `None`: the stars of the density model less the analytic profiles' own (GEN.1285), added to the stellar density, the potential and the pull."""
 
     def __post_init__(self):
         for part in (*self.spheres, *self.disks):
@@ -121,6 +129,8 @@ def potential(pot, x, y, z):
         # ln(1 + u) / u -> 1 at the center, so the potential there is -G M_s / r_s.
         ratio = np.where(small, 1.0, np.log1p(np.where(small, 1.0, u)) / np.where(small, 1.0, u))
         total -= big_g * pot.nfw_characteristic_solar / scale * ratio
+    if pot.correction is not None:
+        total += pot.correction.potential(x, y, z)
     return float(total) if total.ndim == 0 else total
 
 
@@ -157,6 +167,9 @@ def acceleration(pot, x, y, z):
         pull = big_g * disk.mass_solar / denominator
         ax, ay = ax - pull * x, ay - pull * y
         az = az - pull * z * (disk.scale_length_pc + root) / root
+    if pot.correction is not None:
+        cx, cy, cz = pot.correction.pull(x, y, z)
+        ax, ay, az = ax + cx, ay + cy, az + cz
     if ax.ndim == 0:
         return float(ax), float(ay), float(az)
     return ax, ay, az
@@ -181,6 +194,8 @@ def stellar_density(pot, x, y, z):
         a = disk.scale_length_pc
         total += (disk.scale_height_pc ** 2 * disk.mass_solar / (4.0 * math.pi)
                   * (a * cylinder2 + (a + 3.0 * s) * (a + s) ** 2) / ((cylinder2 + (a + s) ** 2) ** 2.5 * s ** 3))
+    if pot.correction is not None:
+        total = np.maximum(total + pot.correction.density(x, y, z), 0.0)
     return float(total) if total.ndim == 0 else total
 
 
@@ -221,8 +236,14 @@ def from_shape(shape, galaxy_seed=None):
             parameters = component.parameters
             disks.append(Disk(component.name, component.mass_solar, parameters["scale_length_pc"], parameters["scale_height_pc"]))
     dark = enclosed_mass.dark_halo(shape, galaxy_seed)
-    return Potential(tuple(spheres), tuple(disks), Halo(dark.dark_solar, dark.concentration, dark.virial_radius_pc),
-                     density.central_black_hole_mass_solar(shape))
+    analytic = Potential(tuple(spheres), tuple(disks), Halo(dark.dark_solar, dark.concentration, dark.virial_radius_pc),
+                         density.central_black_hole_mass_solar(shape))
+    scale = 1.0 / (shape.k_norm * density.model_terms(shape)["mass_per_solar"])
+
+    def model(x, y, z):
+        return density.total_density_array(x, y, z, shape) * scale
+
+    return dataclasses.replace(analytic, correction=stellar_table.build(model, lambda x, y, z: stellar_density(analytic, x, y, z), G_PC_KMS2_PER_MSUN))
 
 
 @functools.lru_cache(maxsize=16)

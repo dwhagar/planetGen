@@ -71,7 +71,7 @@ PHENOMENON_TYPE_LABELS = {
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
     "supernova_remnant": "Supernova Remnant",
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
-    "quasar": "Quasar",
+    "quasar": "Quasar", "hypervelocity_star": "Hypervelocity Star",
 }
 """dict: Display labels for `db.query.phenomena_near_sector`'s `type`
 values (the same ones the phenomena list uses)."""
@@ -553,6 +553,7 @@ def _sector_map_html(detail, pick, admin):
         nav_url=page_url("nav"),
         nearby_url=page_url("nearby"),
         pinned={"shell": address[0], "band": address[1], "wedge": address[2], "center_pc": center},
+        clusters=_clusters_reaching(detail),
     )
 
 
@@ -621,6 +622,41 @@ def system_on_galaxy_map(system_id):
     return sector_on_galaxy_map(system["sector_id"])
 
 
+def _clusters_reaching(detail):
+    """MAP.381: the globular clusters whose sphere reaches into the sector's cell, as `galaxy_views._cluster_labels` gives them (name else
+    designation, page, center and radius in parsecs, galaxy frame). The test is the one `phenomena_near_sector` uses: a sphere that holds the
+    whole cell (the cube's half diagonal, or the farthest corner of the real cell)."""
+    from planetgen.galaxy.spherical import sector_cell_vertices_pc
+    from planetgen.web.galaxy_views import _cluster_labels
+
+    if not detail["placed"] or not detail.get("edge_mpc"):
+        return []
+    center = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
+    edge_pc = detail["edge_mpc"] / 1000.0
+    reach = edge_pc * math.sqrt(3) / 2
+    address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
+    if None not in address:
+        for vertex in sector_cell_vertices_pc(*address, edge_pc):
+            reach = max(reach, math.dist(vertex, center))
+    found = [cluster for cluster in _cluster_labels(db_name())
+             if math.dist((cluster["x"], cluster["y"], cluster["z"]), center) <= reach + cluster["radius_pc"]]
+    for cluster in found:
+        cluster["profile"] = _cluster_profile(cluster["ref"])
+    return found
+
+
+def _cluster_profile(ref):
+    """MAP.381: the brightness of a cluster's ball from its middle to its tidal radius (`cluster_profile.surface_profile`, the King model's
+    column density), or `None` when the cluster's record cannot be read, when the ball keeps its fixed fade."""
+    from planetgen.web.lib import cluster_profile
+
+    try:
+        detail = apiclient.get_container(db_name(), ref.split(":", 1)[1])
+    except (apiclient.ApiError, apiclient.NotFoundError):
+        return None
+    return cluster_profile.surface_profile(detail.get("component") or {})
+
+
 @bp.route("/sector/<uid:sector_id>/scene")
 @page_limit("galaxy_tiles")
 def sector_scene(sector_id):
@@ -644,6 +680,7 @@ def sector_scene(sector_id):
         neighbors=_with_bright_stars(detail.get("neighbors")),
         generate=generate_target(current_admin()),
         compress_binaries=request.args.get("binaries") != "real",
+        clusters=_clusters_reaching(detail),
     )
     response = jsonify(scene)
     response.headers["Cache-Control"] = "no-store"
@@ -702,6 +739,9 @@ def sector(sector_id):
 
     g.setdefault("sector_data", {}).pop(sector_id, None)  # a POST above may have changed it
     detail, facilities = _sector_data(sector_id)
+    if detail.get("uncharted"):       # MAP.399: a placeholder row a drifting rogue made in a cell nothing was generated in
+        address = (detail["shell_index"], detail["band_index"], detail["wedge_index"])
+        return _uncharted_page(apiclient.get_uncharted_sector(db_name(), *address), address)
     pick = _pick_mode(request.args)
     _rows, map_systems = _contents(detail, facilities)
     contents = tables.render(CONTENTS_TABLE, request.path, anchor="sector-contents", sector=sector_id)
@@ -762,15 +802,28 @@ def sector_at(shell, band, wedge):
         raise
     if cell.get("sector_id") is not None:
         return redirect(url_for("web.sector", sector_id=cell["sector_id"]), code=302)
+    return _uncharted_page(cell, (shell, band, wedge))
+
+
+def _uncharted_page(cell, address):
+    """
+    The page of a cell nothing was generated in, for `cell` (the answer of `GET /api/galaxy/uncharted`): the cell's name and region (MAP.399), its place, its profile and what charting it
+    would take. A placeholder sector row a drifting rogue made there (`store.uncharted_sector_id`) shows this page too, at its own address.
+    """
+    shell, band, wedge = address
     designation = cell["designation"]
+    name = cell.get("name") or f"Uncharted sector {designation}"
+    region = cell.get("region")
     return render_page(
         "sector_uncharted.html",
-        title=f"Uncharted sector {designation}",
+        title=name,
         section="sectors",
-        breadcrumbs=[crumb("Sectors", "sectors"), crumb(f"Uncharted {designation}")],
-        description=f"Uncharted sector {designation}: what the galaxy's shape says it holds, and what charting it would take.",
+        breadcrumbs=[crumb("Sectors", "sectors"), crumb(name)],
+        description=f"{name}, an uncharted sector{' in ' + region['name'] if region else ''}: what the galaxy's shape says it holds, and what charting it would take.",
         cell=cell,
         designation=designation,
+        name=name,
+        region=region,
         address=(shell, band, wedge),
         edge_text=format_distance_ly(pc_to_ly(cell["edge_pc"])),
         star_count=len(cell.get("stars") or ()),

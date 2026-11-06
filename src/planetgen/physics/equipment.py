@@ -26,7 +26,7 @@ the stored levels alone (`items`, `required_names`, `recommended_names`, `code`,
 from collections import namedtuple
 from dataclasses import replace
 
-from planetgen.physics import constants, habitability, radiation, radiation_belts, regional_temperature
+from planetgen.physics import constants, habitability, radiation, radiation_belts, regional_temperature, temperature_coverage
 from planetgen.physics.protection_limits import RADIATION_STEPS, TOXIC, limit
 
 FIELDS = (
@@ -188,7 +188,7 @@ def _body(world, limits, cold, hot, density, scale):
 def body_at(world, temperature_c, limits=habitability.HUMAN):
     """`(level, kind)` of the Body Protection the ladder lists for `world` at one surface temperature, `temperature_c` (the cold
     and hot ends of a day outside, GEN.768): the world's own pressure, air, gravity and ultraviolet, a steady temperature."""
-    probe = replace(world, temperature_c=temperature_c, flux_variation=0.0)
+    probe = replace(world, temperature_c=temperature_c, flux_variation=0.0, series=None, coverage=None)
     density = best_mix_density_g_l(probe.pressure_kpa, temperature_c)
     scale = limits.pressure[2] / limit("mask_min_kpa")
     required, _ = _body(probe, limits, temperature_c, temperature_c, density, scale)
@@ -404,12 +404,16 @@ def compute(world, limits=habitability.HUMAN):
     supply; with a sealed supply the gas filter and the CO2 scrubber drop out (the person breathes own gas) and the
     dust part stays as seals.
     """
-    cold, hot = habitability.temperature_extremes_c(world)
+    cold, hot = habitability.site_extremes_c(world, limits)       # GEN.1266: the gear is chosen for the best site at its worst hour ...
     density = best_mix_density_g_l(world.pressure_kpa, world.temperature_c)
     scale = limits.pressure[2] / limit("mask_min_kpa")
     required_body, recommended_body = _body(world, limits, cold, hot, density, scale)
     body, kind = _top(required_body)
     body_rec, kind_rec = _top(recommended_body)
+    for extreme in habitability.worst_extremes_c(world, limits):    # ... and the heavier gear the worst places and hours elsewhere call for is recommended
+        level, elsewhere = body_at(world, extreme, limits)
+        if level > max(body, body_rec):
+            body_rec, kind_rec = level, elsewhere
     if body_rec <= body:
         body_rec, kind_rec = 0, "none"
     dust, gas_grade, scrub, sealed_gas = _filters(world)
@@ -628,6 +632,7 @@ def summary(levels):
         "shelter_column_g_cm2": levels.get("shelter_column_g_cm2"),
         "outside_hours": levels.get("outside_hours"), "outside_hours_day": levels.get("outside_hours_day"),
         "outside_hours_limit": levels.get("outside_hours_limit"), "regions": regional_temperature.summary(levels),
+        "temperature_coverage": temperature_coverage.summary(levels),
     }
 
 

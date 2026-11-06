@@ -151,6 +151,6 @@ def test_the_queue_page_shows_the_object_index_by_kind_with_its_size(admin_clien
         html = admin_client.get("/admin/queue").get_data(as_text=True)
     finally:
         client.delete(objectindex.state_key(database))
-    assert state["size_bytes"] == 3 * 1024 * 1024 and [row["kind"] for row in state["kinds"]] == ["system"]
+    assert state["size_bytes"] == 3 * 1024 * 1024 and [row["kind"] for row in state["kinds"]] == ["system", "hypervelocity_star"]   # MAP.400: a kind only uncharted objects have is listed after the index's
     assert 'id="warm-index"' in html and "12,345" in html and "refresh" in html
     assert "Object index (3.0 MB)" in html or "Object index (3 MB)" in html

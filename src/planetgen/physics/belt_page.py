@@ -32,7 +32,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.galaxy import object_uid
-from planetgen.physics import belt_history, belt_ledger, belt_member, body_status, compaction, unit_registry
+from planetgen.physics import belt_history, belt_ledger, belt_member, body_status, compaction, scatter, unit_registry
 from planetgen.physics import small_body_composition as sbc
 from planetgen.util.checks import finite_domain
 from planetgen.util.format import format_number
@@ -78,6 +78,7 @@ class BeltRecord:
         ledger (belt_ledger.Ledger): The stored bodies and the rest (the bodies are `ledger.masses_kg`, heaviest first).
         placements (tuple): A `Placement` for each stored body, in the ledger's order.
         planets (tuple): `(a_au, mass_kg)` of the system's planets, for the zone of each body (Soter's mu).
+        fates (dict or None): For the outer disk of a system with a giant, the share of the disk's mass in each population the scatter step sorted it into (`scatter.scatter_shares`); None for a belt that is not one.
     """
 
     belt_id: int
@@ -89,6 +90,7 @@ class BeltRecord:
     ledger: object
     placements: tuple
     planets: tuple = ()
+    fates: object = None
 
 
 def _q(value, unit):
@@ -187,6 +189,16 @@ def _bodies(record):
                        "margot_pi": state.pi, "agrees": state.pi_agrees},
         })
     return out
+
+
+def fates_list(fates):
+    """
+    Where the mass of an outer disk went, from the scatter step's shares: `[{"population", "share"}]` for each population that holds some, in the order of `scatter.POPULATIONS`
+    (the shares add up to one). Empty for a belt that is not an outer disk.
+    """
+    if not fates:
+        return []
+    return [{"population": key, "share": _q(fates[key], "frac")} for key in scatter.POPULATIONS if fates.get(key, 0.0) > 0.0]
 
 
 def stored_bodies(belt_id, members):
@@ -323,7 +335,8 @@ def build(record, bodies=None):
     in_bins = math.fsum(b["mass"]["value"] for b in bins)
     return {
         "belt": {"designation": object_uid.format_id(record.belt_id), "inner": _q(record.inner_au, "au"), "outer": _q(record.outer_au, "au"),
-                 "mass": _q(ledger.belt_mass_kg, "kg"), "composition": _composition_list(shares)},
+                 "mass": _q(ledger.belt_mass_kg, "kg"), "composition": _composition_list(shares),
+                 "fates": fates_list(record.fates)},
         "bodies": bodies,
         "bins": bins,
         "density_factor": {"by_diameter": factor, "mass": _q(ledger.belt_mass_kg / area, "kg_au2")},
