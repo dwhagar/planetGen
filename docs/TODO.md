@@ -18367,6 +18367,25 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: GEN.1285. Related: GEN.115, GEN.725.
 
+- [ ] **TEST.632 A bulk `plan` command raises DataMissing for the MIST isochrones before the dataset gate refuses: test_datasets_gate and test_disregard_missing_data fail on clean main (bug)**
+  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
+  gate) found tests/test_datasets_gate.py::test_bulk_runs_refuse_and_write_nothing[argv1]
+  and tests/test_disregard_missing_data.py::test_a_bulk_command_refuses_without_the_option_and_goes_ahead_with_it[argv1]
+  (the `plan` command) red on clean main when run with `-n 3`
+  (reports/train11-main-reds-2026-11-05.md, item 9). `DataMissing` for
+  the MIST isochrones is raised from planetgen/galaxy/shape_draw.py
+  plan_shape, density.mean_system_mass_solar, generation/system_mass,
+  stellar_evolution.remnant_formation_time_gy, post_main_sequence.timeline
+  and isochrones.post_main_sequence_grid, before the dataset gate refuses.
+  It passed once in a plain run, so it depends on cache state. Do:
+  reproduce on current main, then make the gate check the datasets a bulk
+  command needs before any of them is read, or make `plan` not read the
+  isochrones; keep the property (a bulk run without the option refuses
+  and writes nothing). Never skip or loosen a test. Lock-free if output
+  is unchanged. Done: both tests pass in a plain run and with `-n 3` on
+  current main. Version 8.1. Owner: Core 1. Filed by the TODO thread.
+  Prerequisites: none.
+
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal
