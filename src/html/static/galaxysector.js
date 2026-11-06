@@ -375,6 +375,8 @@ export function createSectorStage(host) {
     nebulaSources: function () {
       return open ? open.sector.nebulaSources().filter(function (source) { return source.weight > 0; }) : [];
     },
+    // MAP.392: the open (or coming-near) sector's nebulae and remnants still drawn as a hard sphere or shell (the browser tests read it).
+    hardClouds: function () { return open ? open.sector.hardClouds() : []; },
     // True while a sector is open in place (not one up only for the camera coming near it).
     isOpen: function () { return !!open && !open.ambient; },
     // MAP.152: the sector whose scene is up for the camera coming near it, and how much of it shows.

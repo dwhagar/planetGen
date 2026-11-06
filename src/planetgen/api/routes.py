@@ -1411,6 +1411,24 @@ def galaxy_nebula_volume_route():
                     "data": base64.b64encode(packed).decode("ascii")})
 
 
+@bp.route("/galaxy/cloud-volume")
+def galaxy_cloud_volume_route():
+    """
+    The points that draw one cloud given by its sphere (MAP.392): `?x=&y=&z=&radius_pc=&family=` (center and radius in parsecs, a family of
+    `galaxy.nebula_blocks.FAMILIES`). The same packed volume as `GET /api/galaxy/nebula-volume` (`{"format", "level", "count", "data"}`) for a nebula
+    or supernova remnant the map cannot ask for by id (a scattered one, one a waiting star lights, a remnant), sampled from the model's density at
+    the sphere. Nothing is stored. A bad number, a family that does not exist or a radius over `nebula_volumes.MAX_SPHERE_RADIUS_PC` is a 400.
+    """
+    try:
+        center = tuple(float(request.args.get(axis, "")) for axis in "xyz")
+        radius = float(request.args.get("radius_pc", ""))
+        packed = nebula_volumes.sphere_volume(get_db(), center, radius, request.args.get("family") or "")
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    count = int.from_bytes(packed[6:10], "little")
+    return jsonify({"format": "NVOL1", "level": packed[5], "count": count, "data": base64.b64encode(packed).decode("ascii")})
+
+
 @bp.route("/galaxy/locate")
 def galaxy_locate_route():
     """
