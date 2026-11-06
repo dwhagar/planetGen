@@ -243,3 +243,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.190:CW2 | no data | - | no census of another system's giant scatterings is in hand, so one thrown giant pair stands for the instability the hot share was set for; it goes when the scatter step takes the events' number and masses |
 | 6.192:SEP1 | no data | - | L3, hand-tuned against a Hill-sphere packing sweep (125, 27 and 27 sectors at 8,128, 4,000 and 1,500 pc); it goes when a nearest-neighbour distribution from catalogued stars is fitted |
 | 6.189:HC2 | no data | - | L4, a body that fits no class takes the nearest of the ordinary families by the geometric mean of its memberships with a floor of 0.01; no survey says what such a body is called, so the floor and the family list are fitted to keep the stored class defined |
+| 6.18:LF63 | no data | - | the edges of the Temperature score are chosen (the Blue cut by Boss, the others proposed) and no rated catalogue of worlds exists to fit them |
+| 6.18:LF64 | no data | - | no rated catalogue of worlds exists to fit the least Blue share |
+| 6.18:LF65 | no data | - | no rated catalogue of worlds exists to fit the credit of a Yellow sample |

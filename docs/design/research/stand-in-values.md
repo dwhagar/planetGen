@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1188 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1191 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 110 | 85 | 24 | 61 | 0 | 280 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
-| T9 | 35 | 14 | 5 | 76 | 34 | 164 |
-| All | 652 | 248 | 58 | 185 | 45 | 1188 |
+| T9 | 35 | 14 | 5 | 79 | 34 | 167 |
+| All | 652 | 248 | 58 | 188 | 45 | 1191 |
 
 ## How the labels were given
 
@@ -423,6 +423,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LF50 | P | T9 | L3 | tuning.LIFE_STEP_SCALE 1.0: the one factor on every mean | 0.7 to 1.5 | the same | the same test | the same fit | needed output (measured: at 1.0 animals 41 in 100 and a civilization 2 in 100 over star ages of 3 to 13 Gyr) | - | no data |
 | LF51 | T | T7 | L3 | tuning.LIFE_ACTIVATION_ENERGY_EV 0.30: the Boltzmann factor on the rate of every step | 0.2 to 0.8 eV (0.65 eV is the cell's chemistry) | worlds from 250 to 330 K | test_life_timeline.test_a_warm_world_goes_faster_and_a_cold_one_slower_inside_the_range | a rate of evolution measured against temperature | design ([R1571] recalled; lowered from 0.65 so a warm world is not three times faster than the reference) | - | no data |
 | LF52 | P | T6 | L1 | tuning.LIFE_RATE_FACTOR_RANGE (0.25, 2.5) and tuning.LIFE_REFERENCE_TEMPERATURE_K 288 | the range ends | the same | test_life_timeline.test_a_warm_world_goes_faster_and_a_cold_one_slower_inside_the_range | the same | design | - | - |
+| LF63 | P | T9 | L3 | habitability.LIVABLE_YELLOW_EDGE 0.10, habitability.LIVABLE_GREEN_EDGE 0.50 and habitability.LIVABLE_BLUE_EDGE 0.80: the livable share (area and time in the Green band or better) at which the Temperature score reads Yellow, Green and Blue | Yellow edge 0.05 to 0.2, Green edge 0.4 to 0.6, Blue edge 0.7 to 0.9 | the Temperature score read off the temperature of every place (GEN.1265) | a survey of how much of a body's ground and year a visitor needs no suit in, set against what the rating should be called | the same edges fitted to a catalogue of rated worlds | the Blue edge is the lenient one Boss chose at 7:32 PM EST on 2026-11-04 so Earth reads Blue; the Green and Yellow edges are the proposals of reports/temperature-coverage-2026-11-04.md section 4, set on the sweep of GEN.1265 | - | no data |
+| LF64 | P | T9 | L3 | habitability.BLUE_SHARE_MIN 0.30: the share of area and time that must be in the Blue band for the Temperature score to reach Blue | 0.2 to 0.5 | a world that is Green everywhere and Blue almost nowhere reads Green | a rating of such worlds that calls them Blue | the same minimum fitted to a catalogue of rated worlds | planetGen's choice, set on the sweep of GEN.1265 | - | no data |
+| LF65 | P | T9 | L3 | habitability.YELLOW_CREDIT 0.15: how much of a livable sample a Yellow-band sample (a suit or cooling garments make it livable) counts for in the livable share | 0.05 to 0.3 | a world that is Yellow everywhere reads Yellow and not Red | a rating that puts an all-Yellow world lower than Yellow | the same credit fitted to a catalogue of rated worlds | planetGen's choice, set on the sweep of GEN.1265 | - | no data |
 | LF57 | P | T9 | L3 | tuning.LIFE_NPP (chemosynthesis_share 1e-3, light_ratio_max 3, tie_factor 2): the net primary production that picks the class that lives on a world | chemosynthesis share 1e-4 to 1e-2; ratio cap 2 to 5; tie factor 1.5 to 4 | every body with a supported class | the first census (TEST.430) puts the classes at shares the prevalence targets disagree with | the census-fitted values | design (GEN.889, life-classes.md 8.2); the chemosynthesis share is the order of vent and seep estimates against Earth's ocean production (recalled) | - | no data |
 | LF58 | P | T9 | L3 | tuning.LIFE_COMPLEXITY (thresholds complex cells 1e-5, multicellularity 3e-5, A1 1e-4, A2 1e-3, A3 1e-1; oxygen floors A1 0.1, A2 2, A3 6 kPa; full yield at 2 kPa; anaerobic yield 0.11; full complexity 0.3; fauna cap 0, 3, 6, 9; anoxic animal chance 0.03 with donor supply 0.3) | each threshold a factor of 10 either way; floors a factor of 3 | every class that reaches the rung | the first census (TEST.430) shows a rung reached far more or less often than the prevalence targets | the census-fitted values | design (life-classes.md 7.3, GEN.890, GEN.877, GEN.882 to GEN.884); the floors follow [R3084] and [R0689, R0691] (recalled), the anoxic route [R0992, R4803]; set from the first census | - | no data |
 | LF54 | P | T9 | L0 | tuning.LIFE_START_AGE_GYR 0.1, the pace words (tuning.LIFE_PACE_FAST_ABOVE 1.5, tuning.LIFE_PACE_SLOW_BELOW 0.67) | none (labels) | all worlds | test_life_timeline.test_the_pace_is_a_word_for_the_factor | none | needed output | - | - |

@@ -10328,6 +10328,132 @@
           "burn_down": [
             "no data",
             "-",
+            "the edges of the Temperature score are chosen (the Blue cut by Boss, the others proposed) and no rated catalogue of worlds exists to fit them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "habitability.LIVABLE_YELLOW_EDGE 0.10, habitability.LIVABLE_GREEN_EDGE 0.50 and habitability.LIVABLE_BLUE_EDGE 0.80: the livable share (area and time in the Green band or better) at which the Temperature score reads Yellow, Green and Blue"
+            ],
+            [
+              "The range it moves in",
+              "Yellow edge 0.05 to 0.2, Green edge 0.4 to 0.6, Blue edge 0.7 to 0.9"
+            ],
+            [
+              "Where it holds",
+              "the Temperature score read off the temperature of every place (GEN.1265)"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of how much of a body's ground and year a visitor needs no suit in, set against what the rating should be called"
+            ],
+            [
+              "What replaces it",
+              "the same edges fitted to a catalogue of rated worlds"
+            ],
+            [
+              "Evidence",
+              "the Blue edge is the lenient one Boss chose at 7:32 PM EST on 2026-11-04 so Earth reads Blue; the Green and Yellow edges are the proposals of reports/temperature-coverage-2026-11-04.md section 4, set on the sweep of GEN.1265"
+            ]
+          ],
+          "id": "LF63",
+          "key": "6.18:LF63",
+          "kind": "P",
+          "slug": "6-18-lf63",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "habitability.LIVABLE_YELLOW_EDGE 0.10, habitability.LIVABLE_GREEN_EDGE 0.50 and habitability.LIVABLE_BLUE_EDGE 0.80: the livable share (area and time in the Green band or better) at which the Temperature score reads Yellow, Green and Blue"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no rated catalogue of worlds exists to fit the least Blue share"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "habitability.BLUE_SHARE_MIN 0.30: the share of area and time that must be in the Blue band for the Temperature score to reach Blue"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "a world that is Green everywhere and Blue almost nowhere reads Green"
+            ],
+            [
+              "What would show it wrong",
+              "a rating of such worlds that calls them Blue"
+            ],
+            [
+              "What replaces it",
+              "the same minimum fitted to a catalogue of rated worlds"
+            ],
+            [
+              "Evidence",
+              "planetGen's choice, set on the sweep of GEN.1265"
+            ]
+          ],
+          "id": "LF64",
+          "key": "6.18:LF64",
+          "kind": "P",
+          "slug": "6-18-lf64",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "habitability.BLUE_SHARE_MIN 0.30: the share of area and time that must be in the Blue band for the Temperature score to reach Blue"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no rated catalogue of worlds exists to fit the credit of a Yellow sample"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "habitability.YELLOW_CREDIT 0.15: how much of a livable sample a Yellow-band sample (a suit or cooling garments make it livable) counts for in the livable share"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "a world that is Yellow everywhere reads Yellow and not Red"
+            ],
+            [
+              "What would show it wrong",
+              "a rating that puts an all-Yellow world lower than Yellow"
+            ],
+            [
+              "What replaces it",
+              "the same credit fitted to a catalogue of rated worlds"
+            ],
+            [
+              "Evidence",
+              "planetGen's choice, set on the sweep of GEN.1265"
+            ]
+          ],
+          "id": "LF65",
+          "key": "6.18:LF65",
+          "kind": "P",
+          "slug": "6-18-lf65",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "habitability.YELLOW_CREDIT 0.15: how much of a livable sample a Yellow-band sample (a suit or cooling garments make it livable) counts for in the livable share"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
             "fitted to the first census (TEST.430) by design: the prevalence targets are the only calibration, so the rows stay L3 until a measured fraction of worlds with each rung exists"
           ],
           "fields": [
