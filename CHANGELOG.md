@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3481] - 2026-11-06
+
+**Headline:** The stand-in row for the molecular-fraction law now names its constants, so the wiring guard sees they are read.
+
+### Fixed
+- Stand-in row NBC11 (section 6.179) named `nebula_composition.KMT_*`, which the wiring guard read as the name `KMT_` and found unread. It now lists the five constants (`KMT_CHI_COEFFICIENT`, `KMT_CHI_METALLICITY`, `KMT_LOG_TERMS`, `KMT_S_COEFFICIENT`, `KMT_FRACTION_TERMS`) that `molecular_fraction` reads, and its register line is gone. No code changes.
+
+generation-output: unchanged
+
 ## [8.0.3480] - 2026-11-06
 
 **Headline:** The sector gravity data route is now classed in the search-engine indexing matrix as a utility route, so it is never offered for indexing.
