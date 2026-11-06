@@ -159,3 +159,37 @@ def test_a_more_aluminous_melt_has_more_aluminium_in_its_vapor():
     low = ml.vapor_pressures(ml.element_potentials({"SiO2": 0.5, "MgO": 0.4, "FeO": 0.08, "Al2O3": 0.01, "CaO": 0.01, "Na2O": 1e-9, "TiO2": 0.001, "K2O": 1e-9}, 2500.0, 0.0), 2500.0)
     high = ml.vapor_pressures(ml.element_potentials({"SiO2": 0.5, "MgO": 0.4, "FeO": 0.08, "Al2O3": 0.04, "CaO": 0.01, "Na2O": 1e-9, "TiO2": 0.001, "K2O": 1e-9}, 2500.0, 0.0), 2500.0)
     assert high["ALO"] / low["ALO"] == pytest.approx(2.0, rel=1e-6)
+
+
+def test_a_surface_hotter_than_the_fits_has_its_vapor_worked_out_at_their_top():
+    """GEN.1294: a build died with `SiO2(L): no thermodynamic fit at 6881 K` for a rock whose dayside was hotter than the 6000 K top of NASA
+    Glenn's fits. The vapor is worked out at `MELT_MAX_K` (row AM95) and the mixture reports the surface's own temperature; nothing under the
+    top changes, and the error itself is still raised by `species_thermo` for anything that asks it for a temperature outside its fits."""
+    assert ml.MELT_MAX_K == species_thermo.SPECIES["SiO2(L)"].range_k[1]
+    for name in ml.LIQUID.values():
+        assert species_thermo.SPECIES[name].range_k[1] >= ml.MELT_MAX_K
+    with pytest.raises(ValueError):
+        species_thermo.SPECIES["SiO2(L)"].g_over_rt(ml.MELT_MAX_K + 1.0)
+
+    def mixture(temperature, group, seed, pressure=10.0):
+        subject = Subject("terrestrial", {**HOT, "ts_k": temperature, "tp_k": temperature, "pressure_bar": pressure})
+        with draw.bound(seed):
+            recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
+            if recipe.binaries.get("i6", (False, None))[0]:
+                return None         # the volatile-bearing branch's carbon solve does not converge this hot (a separate item, GEN.1295)
+            return ml.vapor_mixture(subject, recipe, temperature_name=group)
+
+    for group in ("tp_k", "ts_k"):
+        checked = 0
+        for seed in range(12):
+            top, hot = mixture(ml.MELT_MAX_K, group, seed), mixture(6881.0, group, seed)
+            if top is None:
+                continue
+            checked += 1
+            assert hot.family == "lava" and hot.temperature_k == 6881.0 and top.temperature_k == ml.MELT_MAX_K
+            assert hot.mole_fractions == top.mole_fractions and hot.constants["vapor_pressure_bar"] == top.constants["vapor_pressure_bar"]
+            assert sum(hot.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
+        assert checked >= 3
+    seed = next(seed for seed in range(12) if mixture(5000.0, "tp_k", seed) is not None)
+    cooler = mixture(5000.0, "tp_k", seed)
+    assert cooler.temperature_k == 5000.0 and cooler.mole_fractions != mixture(6881.0, "tp_k", seed).mole_fractions

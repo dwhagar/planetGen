@@ -14,17 +14,17 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.283 |
-| MAP | MAP.398 |
+| MAP | MAP.399 |
 | NAV | NAV.78 |
-| GEN | GEN.1295 |
-| PERF | PERF.244 |
+| GEN | GEN.1301 |
+| PERF | PERF.245 |
 | DB | DB.113 |
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.632 |
+| TEST | TEST.639 |
 | USR | USR.32 |
-| OPS | OPS.106 |
+| OPS | OPS.110 |
 | DOC | DOC.109 |
 | VIEW | VIEW.47 |
 | POP | POP.52 |
@@ -550,7 +550,7 @@ Parents marked "new parent" had no old number of their own.
 | API.21 | Flask-Limiter puts `Retry-After` on successful responses (bug) | none | done, PR #865 |
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response | none | done, PR #1119 |
 | API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | none | done, PR #1133 |
-| API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | none | open |
+| API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | none | done, PR #5266 |
 | API.25 | A structured description endpoint, and Markdown and wikitext on request only | none | done, PR #1527 |
 | API.26 | Bump API_VERSION for the shell, band and wedge sector address | none | done, PR #3047 |
 | API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed | none | done, PR #1919 |
@@ -2076,12 +2076,18 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1286 | Delete the unread rogue_volatiles and rogue_radiogenic modules (EV1, EV2, RY1), or wire them, since the starless-host planet chain probably supersedes them | none | done, PR #5207 |
 | GEN.1287 | Wire rogue_mass_function into rogue_topup.draw_mass_earth in place of tuning.ROGUE_PLANET_MASS_BINS (RM1, RM2) | none | open |
 | GEN.1288 | cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections | none | open |
-| GEN.1289 | Decide rogue_density (RSM1 to RSM4): wire the smoothed star density into the virtual-donor sector draw, or delete it | none | open |
+| GEN.1289 | Decide rogue_density (RSM1 to RSM4): wire the smoothed star density into the virtual-donor sector draw, or delete it | none | done, PR #5261 |
 | GEN.1290 | Gas and star metallicity depend on the galaxy's stellar mass (the mass-metallicity relation), so small galaxies are metal-poor and dustier-poor | none | open |
 | GEN.1291 | The gas metallicity gradient scales with the galaxy: 0.088 dex per disk scale length in place of 0.034 dex per kpc (row NBC1) | none | open |
 | GEN.1292 | The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later) | none | open |
 | GEN.1293 | The orbital update runs registered steps: another domain (population, politics, trade) registers a step that receives the galaxy time step dt and a named draw stream, and the run calls them in a fixed order | none | open |
-| GEN.1294 | A galaxy build died once with "SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000 K)": some draw asks the magma-ocean fit for a temperature past its range (bug) | none | open |
+| GEN.1294 | A galaxy build died once with "SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000 K)": some draw asks the magma-ocean fit for a temperature past its range (bug) | none | done, PR #5249 |
+| GEN.1295 | Rogue ages and the rogue stand-ins read the ejection records: the delay (RG2), the closest approach (RK7, MO2, TU3) and the per-star rate (TU1) come from each loss in the architecture, not from drawn distributions | none | open |
+| GEN.1296 | The volatile-bearing branch (i6) of the lava vapor stage raises "no convergence" from gas_equilibrium.solve for carbon at held fO2 when hot and at low pressure (4000 K at 1 bar, 6000 K at 100 bar) (bug) | none | open |
+| GEN.1297 | values_from_body does not hand day_share_mean to the latitude bands: generation computes every rocky band for a point star while the re-score and API use the star's real angular size (bug) | none | open |
+| GEN.1298 | Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug) | none | open |
+| GEN.1299 | The planet architecture ejects about 0.1 body per star where the observed free-floating yield is 8 to 42 per star (0.33 Earth masses and up) and 0.8 to 7.5 rocky bodies per star: decide where the yield should come from | none | open |
+| GEN.1300 | After the GEN.1284 fix, placed systems still hold 6 to 8 percent less mass than the density profile expects with the count right: find whether the mass draw or a leftover placement bias holds it | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2249,8 +2255,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly | none | done, PR #1110 |
 | MAP.166 | Galaxy Map "Dimmest star shown" says "every star" only when the view is complete | none | done, PR #1070 |
 | MAP.167 | Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0) | none | open |
-| MAP.168 | The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength | none | open |
-| MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | none | open |
+| MAP.168 | The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength | none | done, PR #5267 |
+| MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | none | done, PR #5274 |
 | MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | none | open |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | none | open |
 | MAP.172 | Nebula cell aggregates in the region pyramid | none | done, PR #2431 |
@@ -2473,12 +2479,13 @@ Parents marked "new parent" had no old number of their own.
 | MAP.389 | Borders on the maps: hard lines on the Sector and System Maps where two owners meet, a soft haze on the Galaxy Map, and a reserved hatch style for contested systems, drawn from the stored owners and cached by the territory epoch | none | open |
 | MAP.390 | Past borders: the Territories layer gets a time control that shows the borders at any stored epoch, from the history rows the step writes | none | open |
 | MAP.391 | The ship page shows the territories crossed: a read of the owners along a vessel's track (borders block nothing) | none | open |
-| MAP.392 | Weird spheres and circle markers still drawn for nebulae (bug) | none | open |
+| MAP.392 | Weird spheres and circle markers still drawn for nebulae (bug) | none | done, PR #5245 |
 | MAP.393 | Chart View fixes: steady coordinate labels, fixed isometric tilt, wedge focus buttons, one Chart View menu group, Charted regions on by default | none | done, PR #5223 |
 | MAP.394 | Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel | none | open |
 | MAP.395 | Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat | none | open |
 | MAP.396 | Sensor pictures for systems and for sectors, regions, galaxies and clusters: a top-down orrery plate and a star-field and gas patch from stored counts | none | open |
-| MAP.397 | Some View menu options show only the word "Forward" and cannot be clicked (bug) | none | open |
+| MAP.397 | Some View menu options show only the word "Forward" and cannot be clicked (bug) | none | done, PR #5260 |
+| MAP.398 | test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card fails on main: an extra marker-region token for Zarh Region (bug) | none | done, PR #5256 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2661,6 +2668,10 @@ Parents marked "new parent" had no old number of their own.
 | OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | none | open |
 | OPS.104 | One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone | none | done, PR #5202 |
 | OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | none | open |
+| OPS.106 | update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed | none | done, PR #5249 |
+| OPS.107 | The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs | none | done, PR #5249 |
+| OPS.108 | A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged | none | done, PR #5249 |
+| OPS.109 | The update.sh data set step lists the kept files by download URL (one "kept URL (n files)" line per URL) and says the folder they are stored in | none | done, PR #5249 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -2902,8 +2913,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.239 | A warm-up with nothing changed costs minutes: decide "already stored" from the cache keys, not by visiting every page | none | done, PR #4978 |
 | PERF.240 | A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug) | none | open |
 | PERF.241 | A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug) | none | open |
-| PERF.242 | Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget | none | open |
+| PERF.242 | Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget | none | done, PR #5273 |
 | PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate | none | done, PR #5227 |
+| PERF.244 | A cheaper per-body air solve: surface_air.solve redraws the outgassed mixture about 8 times per body (14 gas-equilibrium solves per body); warm-start or cache the mixture across the fixed-point iterations | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -3116,7 +3128,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why | none | done, PR #1104 |
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 | open |
 | UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | done, PR #1378 |
-| UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
+| UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | done, PR #5276 |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | done, PR #1299 |
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | done, PR #1315 |
@@ -3297,11 +3309,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.272 | Replace the galaxy quadrants with the names of the charted regions: the galaxy page table, the sectors list, the sector page and /api/sectors show the regions where sectors are charted | none | done, PR #5227 |
 | UX.273 | Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views | none | open |
 | UX.274 | Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps | none | open |
-| UX.275 | Sensor registry and API: one registry of kind, look builder and painter (web/lib/sensor.py, static/sensorview.js) and GET /api/objects/<ref>/sensor, with a test that fails for any kind in describe/sheet.py that has no entry | none | open |
-| UX.276 | Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels | none | open |
+| UX.275 | Sensor registry and API: one registry of kind, look builder and painter (web/lib/sensor.py, static/sensorview.js) and GET /api/objects/<ref>/sensor, with a test that fails for any kind in describe/sheet.py that has no entry | none | done, PR #5249 |
+| UX.276 | Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels | none | done, PR #5258 |
 | UX.277 | Map layer registry fields for the View menu: heading, keywords, common flag and a settings hook, every existing layer given its heading, and a guard test that fails for a layer with none | none | done, PR #5239 |
-| UX.278 | Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default | none | open |
-| UX.279 | Search filter for the View menu: a function with tests that filters entries by name and keywords and opens the matching groups, behind no visible control yet | none | open |
+| UX.278 | Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default | none | done, PR #5252 |
+| UX.279 | Search filter for the View menu: a function with tests that filters entries by name and keywords and opens the matching groups, behind no visible control yet | none | done, PR #5254 |
 | UX.280 | Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list | none | open |
 | UX.281 | View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible | none | open |
 | UX.282 | Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu | none | open |
@@ -3935,8 +3947,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.495 | Designation for captured bodies: the belt-member designation `<belt ID>.<rank hex>` is kept with a parent link, outside-reservoir bodies print `<planet ID>.<rank hex>`; both pure and round-trip through parse_id | none | done, PR #4163 |
 | TEST.496 | test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug) | none | done, PR #4444 |
 | TEST.497 | test_planet_physical_properties e-3 fails on an unseeded star (air pressure 0.99999 Pa against a floor of 1.0), the same cause as TEST.486 (bug) | none | done, PR #4165 |
-| TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | none | open |
-| TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against [R4254, R4255] (central 21, lower 1 sigma 8 over the probed range), the [R3191] Jupiter limit and [R0258]'s 2.5 terrestrial bodies per star | none | open |
+| TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | none | done, PR #5264 |
+| TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against [R4254, R4255] (central 21, lower 1 sigma 8 over the probed range), the [R3191] Jupiter limit and [R0258]'s 2.5 terrestrial bodies per star | none | done, PR #5262 |
 | TEST.500 | test_moon_composition::test_a_disk_moon_gains_ice_past_its_disks_ice_line fails on a clean main (reported by Aux 4 on PR #4184) (bug) | none | done, PR #4230 |
 | TEST.501 | Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out" | none | done, PR #4725 |
 | TEST.502 | test_orbital_motion::test_moon_having_planet_reflex_offset_matches_manual_formula fails on a clean main: settle_orbit moves captured moons without refreshing the planet offset (bug) | none | done, PR #4385 |
@@ -4065,6 +4077,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.625 | Ships and stations tests: position against the course planner, the arrival job, refused orbits, and determinism of generated traffic | none | open |
 | TEST.626 | tests/test_db_web_reads.py::test_sector_and_system_pages_use_a_fixed_number_of_queries fails on plain main (4 of 4 runs) (bug) | none | done, PR #5219 |
 | TEST.627 | Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3 | none | open |
+| TEST.632 | A bulk `plan` command raises DataMissing for the MIST isochrones before the dataset gate refuses: test_datasets_gate and test_disregard_missing_data fail on clean main (bug) | none | done, PR #5265 |
+| TEST.633 | tests/js/galaxynebulae.test.mjs fails on main: "a region's blob is the group's sphere in the colour of its dominant family, with a ring when it holds several" expects blob.ring true (bug) | none | open |
+| TEST.634 | test_web_browser_layout.py::test_controls_do_not_overlap[web.galaxy at 390, 600, 820 and 1280] fails: on /galaxy the Go to button and address input overlap the site search link, Help and Menu (bug) | none | open |
+| TEST.635 | test_web_system_nav_row.py::test_system_buttons_share_one_row fails at 390, 600, 820 and 1280: the system buttons sit on more than one row, two at negative y (bug) | none | open |
+| TEST.636 | test_web_ui_fields_browser.py::test_each_kind_of_field_is_filled_and_submitted fails on desktop and phone, light and dark: strict mode violation, details.search-more > summary resolves to 2 elements (bug) | none | open |
+| TEST.637 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not fails: assert True is False (bug) | none | open |
+| TEST.638 | test_web_admin_menu_fits.py fails for the laptop, phone, short and tablet sizes in light and dark: on web.sector the panel is not at its button, the button at negative y (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |

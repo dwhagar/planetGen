@@ -653,6 +653,34 @@ def sector_scene(sector_id):
 sector_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+GRAVITY_MODES = ("pull", "depth", "tidal")
+"""tuple: The gravity layer's modes (`galaxy.gravity_field.MODES`, repeated here so the page does not import it)."""
+
+
+@bp.route("/sector/<uid:sector_id>/gravity")
+def sector_gravity(sector_id):
+    """
+    The Sector Map's gravity layer data (MAP.168): `GET /api/sectors/<id>/gravity` for `?mode=pull|depth|tidal` and `?field=total|centered|local`, as JSON for the
+    map. A grid still being worked out answers `202` and `{"building": true}`; the map asks again in a few seconds (the API queues one job for it, not one
+    per ask). A mode or field that is not one of those is a `400`.
+    """
+    mode = request.args.get("mode", "pull")
+    field = request.args.get("field", "total")
+    if mode not in GRAVITY_MODES or field not in ("total", "centered", "local"):
+        return jsonify({"error": "mode must be pull, depth or tidal and field total, centered or local"}), 400
+    grid = apiclient.get_sector_gravity(db_name(), sector_id, mode, field)
+    if "values" not in grid:
+        response = jsonify({"building": True})
+        response.status_code = 202
+    else:
+        response = jsonify(grid)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+sector_gravity.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/sector/<uid:sector_id>", methods=["GET", "POST"])
 def sector(sector_id):
     """One sector: badges, Sector Map, Contents (`contents_*` parameters), and

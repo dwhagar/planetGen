@@ -875,6 +875,13 @@ def get_nebula_volume(db, nebula_id):
     return _request(f"/nebulae/{nebula_id}/volume", {"db": db})
 
 
+def get_cloud_volume(db, x, y, z, radius_pc, family):
+    """Returns `GET /api/galaxy/cloud-volume`'s payload (`format`/`level`/`count`/`data`, the base64 of the packed points that draw one cloud given by
+    its sphere, MAP.392 -- see `db.nebula_volumes.sphere_volume`)."""
+    _require_db(db)
+    return _request("/galaxy/cloud-volume", {"db": db, "x": x, "y": y, "z": z, "radius_pc": radius_pc, "family": family})
+
+
 def get_nebula_surroundings(db, nebula_id):
     """Returns `GET /api/nebulae/<id>/surroundings`' payload: the brightest
     stars round one nebula, for its page's 3D view (MAP.105)."""
@@ -1487,6 +1494,13 @@ def get_sector_facilities(db, sector_id):
     fields."""
     _require_db(db)
     return _request(f"/sectors/{sector_id}/facilities", {"db": db})["items"]
+
+
+def get_sector_gravity(db, sector_id, mode="pull", field="total"):
+    """Returns `GET /api/sectors/<id>/gravity`'s body (API.24): the sector's grid for `mode` and `field`, or, while the grid is being built, the `202` body
+    (`{"status": "accepted", "job_id", "status_url"}`: it has no `values`). Never cached."""
+    _require_db(db)
+    return _request(f"/sectors/{sector_id}/gravity", {"db": db, "mode": mode, "field": field})
 
 
 def get_containers(db, kind=None):

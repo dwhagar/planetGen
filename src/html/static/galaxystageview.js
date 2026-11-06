@@ -58,6 +58,7 @@ const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createSectorStage, DEFAULT_HIDDEN_KINDS } = await import(`./galaxysector.js${VERSION_QUERY}`);
 const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
+const { createGravityController } = await import(`./gravitylayer.js${VERSION_QUERY}`);
 const { KINDS } = await import(`./sectorscene.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 const { nearestInDirection } = await import(`./systemstep.js${VERSION_QUERY}`);
@@ -1015,8 +1016,29 @@ export function createStageView(host) {
       title: function () { return "Show or hide the " + pair[1].toLowerCase() + " (" + kindCount(pair[0]) + ")"; },
     });
   });
+  // MAP.168: a sector page's map has the Gravity layer (gravitylayer.js): the sector's grid drawn as colored zones. Its numbers come from the page's /gravity route.
+  const gravity = pinned && host.fetchSectorGravity ? createGravityController(THREE, {
+    flipY: true,
+    fetchGrid: function (sectorId, mode, field) { return host.fetchSectorGravity(sectorId, mode, field); },
+    onChange: function () { layers.refresh(); if (!layersFollowing) writeHiddenToUrl(); },
+    picker: { addLayer: function (layer) { return picker.addLayer(layer); }, removeLayer: function (layer) { picker.removeLayer(layer); } },
+  }) : null;
+  if (gravity) {
+    layers.register({
+      id: "gravity", label: "Gravity", modes: ["sector"], group: "Gravity", heading: "Show",
+      keywords: ["gravity", "pull", "well", "tidal", "field", "zones", "heat map", "saddle", "lagrange"],
+      defaultOn: false, urlKey: "hide", urlKeyOn: "show",
+      title: function () { return "Show or hide the gravity of the sector as colored zones"; },
+      legend: gravity.legend, settings: gravity.settings,
+    });
+  }
   layers.onChange(function (id, on) {
     if (layersFollowing) return;
+    if (id === "gravity") {
+      if (gravity) gravity.setOn(on);
+      writeHiddenToUrl();
+      return;
+    }
     sectorStage.setKindHidden(id, !on);
     writeHiddenToUrl();
   });
@@ -1040,6 +1062,10 @@ export function createStageView(host) {
   function takeLayersFromLocation() {
     readLayersFromLocation();
     sectorStage.setHiddenKinds(KINDS.map(function (pair) { return pair[0]; }).filter(function (kind) { return !layers.isOn(kind); }));
+    if (gravity) {
+      gravity.readUrl(new URLSearchParams(location.search));
+      gravity.setOn(layers.isOn("gravity"));
+    }
   }
 
   // The registry follows the stage (a selection showing its kind).
@@ -1086,6 +1112,7 @@ export function createStageView(host) {
   function writeHiddenToUrl() {
     const params = new URLSearchParams(location.search);
     layers.writeUrl(params);
+    if (gravity) gravity.writeUrl(params);
     const marked = sectorStage.markedKinds();
     if (marked.length) params.set("mark", marked.join(","));
     else params.delete("mark");
@@ -1560,7 +1587,7 @@ export function createStageView(host) {
     pixelRatio: host.pixelRatio || function () { return 1; },
     fetchScene: host.fetchSectorScene, fetchUnchartedScene: host.fetchUnchartedScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
     hideCell: host.hideCell || function () {}, preview: host.preview || null, volumeSingles: host.volumeSingles || null,
-    viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
+    viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged, gravity: gravity,
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
     openSystem: !pinned && host.fetchSystemScene ? openSystemFromAmbient : null,
@@ -4151,6 +4178,7 @@ export function createStageView(host) {
   return {
     // MAP.142: the nebulae of the sector that is up which the map draws from their own points (nebulavolume.singleSource).
     sectorNebulaSources: function () { return sectorStage.nebulaSources(); },
+    sectorHardClouds: function () { return sectorStage.hardClouds(); },
     selectBody: selectBody,
     selectBodyRef: selectBodyRef,
     systemMarkerSource: systemMarkerSource,
