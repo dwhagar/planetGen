@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3379] - 2026-11-06
+
+**Headline:** Every map layer now declares the View menu heading and search words it belongs under, ready for the grouped menu.
+
+### Added
+- **Layer registry fields for the View menu (UX.277).** A layer of the Galaxy, Sector and System Maps (`static/maplayers.js`) now names its
+  `heading` (Show, Color and fill, Chart and side views, or Move and Settings), its `keywords`, a `common` flag for the few most used
+  switches and an optional `settings` hook for a layer that needs a slider or a filter. Every existing layer has its heading and words,
+  and `registry.unheaded()` names any layer without them, which browser tests on the three maps hold empty, so a layer added later cannot
+  skip them. `registry.entries()` hands the menu builder (UX.278) and the search (UX.279) what they need. No look change.
+
 ## [8.0.3378] - 2026-11-05
 
 **Headline:** The dust that dims a galaxy's stars can now be worked out from the galaxy's own gas, so a small galaxy no longer inherits the Milky Way's dust.
