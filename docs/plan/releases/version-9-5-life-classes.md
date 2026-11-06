@@ -20,7 +20,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.864 | Sentient life per life class: sentient species and civilizations draw from the life class scores of a world | GEN.863 | Share of sentient worlds unchanged. |
+| GEN.864 | Sentient life per life class: sentient species and civilizations draw from the life class scores of a world |  | Share of sentient worlds unchanged. |
 
 ## Phase 2: The headline closes
 

@@ -657,7 +657,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.87 | The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug) | none | done, PR #2541 |
 | DB.88 | The vessels table has an Object ID but is not in db/kind_tables.py: test_kind_tables fails on main (bug) | none | done, PR #2545 |
 | DB.89 | Giants store their interior layers: the layer boundaries, the helium share per layer, the core flag, core mass and core composition | none | done, PR #3089 |
-| DB.90 | Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild | none | open |
+| DB.90 | Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild | none | done, PR #5373 |
 | DB.91 | Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech | none | done, PR #2930 |
 | DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | none | done, PR #3221 |
 | DB.93 | Planets and moons store the equipment levels and regional temperatures and drop equipment_tier; the API serves one equipment object | none | done, PR #2766 |
@@ -1434,7 +1434,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.644 | Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree | none | open |
 | GEN.645 | Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91 | none | done, PR #3080 |
 | GEN.646 | Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter | none | done, PR #3729 |
-| GEN.647 | The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons | none | open |
+| GEN.647 | The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons | none | done, PR #5373 |
 | GEN.648 | The generation request for a habitable world (+habitable_world) steers by conditions, not by a class list: redraw water, life, temperature and atmosphere inside their ranges until the PHI-6 overall is Blue or Green | none | open |
 | GEN.649 | The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed | none | done, PR #2930 |
 | GEN.650 | Design: the planet mass law once the class no longer supplies the mass: the isolation mass at the formation distance, the snow line and the host, replacing the class mass ranges of decision 28 (design note, prerequisite of GEN.646) | none | done, PR #2947 |
@@ -1472,12 +1472,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.682 | Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range | none | open |
 | GEN.683 | Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range | none | done, PR #3311 |
 | GEN.684 | Albedo and greenhouse come from the composition; delete the two class ranges | none | open |
-| GEN.685 | Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class] | none | open |
+| GEN.685 | Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class] | none | done, PR #5373 |
 | GEN.686 | Age needs come from the processes; delete age_ranges | none | done, PR #3080 |
-| GEN.687 | Rogue planets get their class from classify; delete choose_rogue_planet_class | none | open |
+| GEN.687 | Rogue planets get their class from classify; delete choose_rogue_planet_class | none | done, PR #5373 |
 | GEN.688 | Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable | none | open |
-| GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | none | open |
-| GEN.690 | Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs | none | open |
+| GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | none | done, PR #5373 |
+| GEN.690 | Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs | none | done, PR #5373 |
 | GEN.691 | The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug) | none | done, PR #3162 |
 | GEN.692 | The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug) | none | done, PR #2799 |
 | GEN.693 | Light-gas escape filter after outgassing: the mixture draw gives a small warm body hydrogen as its main gas | none | done, PR #2862 |
@@ -1649,8 +1649,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.859 | Microbial worlds without O2 keep a capped CO2 and CH4 air: the limit on how much CO2 and CH4 anoxic microbial life leaves in the air | none | done, PR #3783 |
 | GEN.860 | Melanin radiotrophs weighted by radiation dose: the star weight times a dose factor from 0.1 at Earth dose to 1.0 at about 1,000 times Earth dose | none | dropped, absorbed by GEN.881 (Core 1, no melanin table exists in code) |
 | GEN.861 | Chemoautotroph carbon base for retinal and melanin worlds: a primary producer that fixes the carbon those light-only chemistries need | none | dropped, absorbed by GEN.881 and the class store (Core 1) |
-| GEN.862 | Design: the life class system, merged as docs/design/habitability/life-classes.md (nine classes, the stage ladder, the ledger, scoring and storage) | none | open |
-| GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | none | open |
+| GEN.862 | Design: the life class system, merged as docs/design/habitability/life-classes.md (nine classes, the stage ladder, the ledger, scoring and storage) | none | done, PR #5373 |
+| GEN.863 | Life class scores: every world stores its habitability per life class, shown on the object page, the API and the map filters | none | done, PR #5373 |
 | GEN.864 | Sentient life per life class: sentient species and civilizations draw from the life class scores of a world | none | open |
 | GEN.865 | Headline of 9.5: sentient life draws from the life classes, so every sentient world is rated for the kind of life that built it | none | open |
 | GEN.866 | A planet draw around an F5V star at an ecosphere orbit never returns when a large tidally forced moon is generated: the interior heat step size collapses (bug) | none | done, PR #3578 |
@@ -1998,7 +1998,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages | none | open |
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | none | open |
 | GEN.1210 | Life readings: abundance, trend and security for each kind of life (microbes, flora, fauna, sentient), as one pure function over stored values with no new column | none | done, PR #4481 |
-| GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed) | none | open |
+| GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed) | none | done, PR #5373 |
 | GEN.1212 | Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build | none | done, PR #5096 |
 | GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | none | open |
 | GEN.1214 | Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug) | none | done, PR #4436 |
@@ -2083,7 +2083,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1293 | The orbital update runs registered steps: another domain (population, politics, trade) registers a step that receives the galaxy time step dt and a named draw stream, and the run calls them in a fixed order | none | open |
 | GEN.1294 | A galaxy build died once with "SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000 K)": some draw asks the magma-ocean fit for a temperature past its range (bug) | none | done, PR #5249 |
 | GEN.1295 | Rogue ages and the rogue stand-ins read the ejection records: the delay (RG2), the closest approach (RK7, MO2, TU3) and the per-star rate (TU1) come from each loss in the architecture, not from drawn distributions | none | done, PR #5334 |
-| GEN.1296 | The volatile-bearing branch (i6) of the lava vapor stage raises "no convergence" from gas_equilibrium.solve for carbon at held fO2 when hot and at low pressure (4000 K at 1 bar, 6000 K at 100 bar) (bug) | none | open |
+| GEN.1296 | The volatile-bearing branch (i6) of the lava vapor stage raises "no convergence" from gas_equilibrium.solve for carbon at held fO2 when hot and at low pressure (4000 K at 1 bar, 6000 K at 100 bar) (bug) | none | done, PR #5373 |
 | GEN.1297 | values_from_body does not hand day_share_mean to the latitude bands: generation computes every rocky band for a point star while the re-score and API use the star's real angular size (bug) | none | open |
 | GEN.1298 | Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug) | none | open |
 | GEN.1299 | The planet architecture ejects about 0.1 body per star where the observed free-floating yield is 8 to 42 per star (0.33 Earth masses and up) and 0.8 to 7.5 rocky bodies per star: decide where the yield should come from | none | open |
