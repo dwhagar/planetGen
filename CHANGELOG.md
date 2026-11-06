@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3397] - 2026-11-06
+
+**Headline:** The unused smoothed star density for rogue planets is deleted.
+
+### Changed
+- **GEN.1289: `galaxy/rogue_density.py` is deleted.** It was written for a virtual donor that drew a sector's rogues from a smoothed star density. A rogue now comes from a stored donor that threw it out, placed where it lands, and the top-up makes up what a sector lacks, so nothing reads the density. It goes with its tests, stand-in section 6.102 (rows RSM1 to RSM4) and its register lines. Generation output is unchanged.
+
 ## [8.0.3396] - 2026-11-06
 
 **Headline:** The Map View menu no longer shows a lone greyed-out "Forward" word: each Forward button stays beside its layer and can always be pressed.
