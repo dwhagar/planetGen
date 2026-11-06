@@ -24,18 +24,21 @@ done); the time left comes from that overall rate only.
 * With a terminal attached the `rich` bars are drawn (as the maintenance commands and the wipe step do): one for the
   whole warm-up and one for the stage in progress, each with elapsed time, time left and, for the stage, the seconds a
   chunk takes overall and how many run at once. Lines the warm-up logs are printed above the bars.
-* Without one (a log file, cron, a pipe) each chunk leaves a compact line with its number, the nodes or pages it held,
-  its own worker's seconds, the chunks at once, the built and already stored counts so far, the elapsed time and the
-  time left, one line per chunk up to `LOG_CHUNK_LINES` chunks and one per several chunks beyond that (always the last),
-  then a summary line for the stage. A stage of one unit prints its own line, as before.
+* Without one (a log file, cron, a pipe) a stage of several chunks leaves a progress line when a minute and ten
+  percentage points have both passed since the last one (OPS.99), `galaxy-nodes 16% (28 of 180 chunks), 1:56 elapsed, about
+  10:10 left`, with the whole warm-up's time left after it once that is known, then one closing line for the stage that
+  also says how many chunks ran at once and how long a chunk took on its worker. A stage of one unit prints its own line.
 """
 
-import math
 import sys
 import time
 
-LOG_CHUNK_LINES = 20
-"""int: Most chunk lines a stage leaves in a log; a stage of more chunks prints every Nth, and the last."""
+PROGRESS_SECONDS = 60.0
+"""float: Seconds that must pass since a stage's last progress line in a log before the next one (OPS.99)."""
+
+PROGRESS_PERCENT = 10
+"""int: Percentage points a stage must advance since its last progress line in a log before the next one; with `PROGRESS_SECONDS` the rarer of
+the two rules decides, so a stage of hours leaves a line at each tenth and a stage of minutes one a minute."""
 
 MIN_CHUNKS = 5
 """int: Chunks that must be done before a time left is shown (PERF.237): fewer say nothing of how long the rest takes."""
@@ -99,7 +102,8 @@ class WarmProgress:
         self.biggest = 0
         self.started = 0.0
         self.run_started = None
-        self.last_printed = 0
+        self.last_line_at = 0.0
+        self.last_line_percent = 0
 
     def __enter__(self):
         if self.rich_bars:
@@ -143,8 +147,9 @@ class WarmProgress:
         self.sums = {"warmed": 0, "built": 0, "cached": 0, "left_out": 0, "seconds": 0.0}
         self.noun = "items"
         self.biggest = 0
-        self.last_printed = 0
         self.started = self.clock()
+        self.last_line_at = self.started
+        self.last_line_percent = 0
         if self.run_started is None:
             self.run_started = self.started
         cost = float(plan.get("cost") or 0.0)
@@ -246,50 +251,47 @@ class WarmProgress:
                                  left=self._overall_left_text())
         if self.units <= 1:
             self.say(result["line"])
-            if self.show and not self.rich_bars:
-                self.say(self.bar_line(key, finished=True))
             return
         if self.done == self.units:
             self.say(self.summary(key, elapsed))
-            if self.show and not self.rich_bars:
-                self.say(self.bar_line(key, finished=True))
         elif self.show and not self.rich_bars and self._due():
-            self.say(self.chunk_line(key, result, elapsed))
+            self.say(self.progress_line(key, elapsed))
+
+    def _percent(self):
+        return int(100 * min(1.0, self._position() / self.units)) if self.units > 0 else 0
 
     def _due(self):
-        step = max(1, math.ceil(self.units / LOG_CHUNK_LINES))
-        return self.done % step == 0
+        """Whether a progress line is owed: a minute and ten percentage points since the last (`PROGRESS_SECONDS`, `PROGRESS_PERCENT`)."""
+        return (self.clock() - self.last_line_at >= PROGRESS_SECONDS
+                and self._percent() - self.last_line_percent >= PROGRESS_PERCENT)
 
-    def bar_line(self, key, finished=False):
-        """The plain bar at a stage's end: weighted by the steps' cost, with the step count and the whole warm-up's time left."""
-        done = sum(self.weights[:self.index + 1]) if finished else self._weight_done()
-        filled = int(30 * done / sum(self.weights)) if sum(self.weights) else 30
-        left = self._overall_left_text()
-        return (f"[{'#' * filled}{'-' * (30 - filled)}] {self.index + 1}/{len(self.keys)} {key}"
-                + (f", warm-up {left}" if left else ""))
-
-    def chunk_line(self, key, result, elapsed):
+    def progress_line(self, key, elapsed):
         """
-        `galaxy-deep-nodes chunk 12 of 180: this chunk 64 nodes took 38.2 s on its worker; about 10 chunks at once, 3.8 s a
-        chunk overall; so far ..., 7:31 elapsed, about 1:05:00 left`. The time left, from the overall rate, and the chunks at
-        once are left out until `MIN_CHUNKS` chunks are done.
+        `galaxy-nodes 16% (28 of 180 chunks), 1:56 elapsed, about 10:10 left; warm-up about 11:07 left (rough guess)`. The time left, from
+        the overall rate, is left out until `MIN_CHUNKS` chunks are done.
         """
+        self.last_line_at = self.clock()
+        self.last_line_percent = self._percent()
         left = self._stage_left(elapsed)
-        at_once = self._at_once(elapsed)
-        together = ("" if at_once is None else
-                    f"; about {at_once} chunk{'' if at_once == 1 else 's'} at once, {elapsed / self.done:.1f} s a chunk overall")
-        wait = "time left not known yet" if left is None else f"about {clock_text(left)} left"
-        return (f"{key} chunk {self.done} of {self.units}: this chunk {int(result.get('warmed') or 0):,} {self.noun} took "
-                f"{float(result.get('seconds') or 0.0):.1f} s on its worker{together}; so far {self.sums['warmed']:,} "
-                f"{self.noun} ({self.sums['built']:,} built, {self.sums['cached']:,} already stored), "
-                f"{clock_text(elapsed)} elapsed, {wait}")
+        overall = self._overall_left_text()
+        return (f"{key} {self._percent()}% ({self.done} of {self.units} chunks), {clock_text(elapsed)} elapsed"
+                + ("" if left is None else f", about {clock_text(left)} left")
+                + (f"; warm-up {overall}" if overall else ""))
 
     def summary(self, key, elapsed):
-        """The one line a stage of several chunks ends with."""
+        """
+        The one line a stage of several chunks ends with: what it warmed and how long it took, how many chunks ran at once and how long one
+        took on its worker (the figures a progress line leaves out), and where the whole warm-up stands.
+        """
         out = f", {self.sums['left_out']:,} left out" if self.sums["left_out"] else ""
+        at_once = self._at_once(elapsed)
+        together = ("" if at_once is None else
+                    f"; {at_once} chunk{'' if at_once == 1 else 's'} at once, {self.sums['seconds'] / self.done:.1f} s a chunk on its worker")
+        overall = self._overall_left_text()
         return (f"{key}: {self.sums['warmed']:,} {self.noun} warmed ({self.sums['built']:,} built, "
                 f"{self.sums['cached']:,} already stored{out}) in {clock_text(elapsed)} over {self.units} chunks of up "
-                f"to {self.biggest:,} {self.noun}")
+                f"to {self.biggest:,} {self.noun}{together}; step {self.index + 1} of {len(self.keys)}"
+                + (f", warm-up {overall}" if overall and self.index + 1 < len(self.keys) else ""))
 
 
 def stdout_is_terminal():
