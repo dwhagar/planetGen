@@ -11201,28 +11201,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1021).
   Prerequisites: GEN.1021. Related: GEN.1021, GEN.1005, GEN.725.
 
-- [ ] **GEN.1023 Two planets of a close pair in triple seed 208 sit 9.93 mutual Hill radii apart where the generator promises 10 (bug)**
-  Found by Core 3's overlap audit (TEST.477, #4071; relayed 2:04 PM EDT
-  2026-10-30 as the lane reported): a sweep of 864 stored systems (144
-  single, 144 pairs, 288 triples, 192 quadruples, 96 five-star) found no
-  star overlap, stability or Roche failure, and exactly one failure:
-  triple seed 208, two planets of a close pair 9.93 mutual Hill radii
-  apart where the generator promises 10. It is the one expected-fail
-  entry of tests/test_clearance.py. Do: find why the placement lets the
-  pair land under its promised separation (a rounding of the Hill
-  radius, the mass used, or a later change to a planet's mass or orbit
-  after placement), fix the placement, and remove the expected-fail
-  entry. Done: seed 208 passes the audit and the sweep shows no new
-  failure. Note GEN.1014 (P8, the clearance ledger) may fix this by
-  design; if it is done first, close this with it. Owner: none yet; any
-  free lane (Bug 1 is the natural owner). Version 8.1.
-  Cause found (3:30 PM EDT 2026-10-30): Planets 1: a planet after a belt
-  is spaced against the belt only, not the planet before it (seed 208:
-  giant, belt, small planet, 9.933 Hill radii). The ledger holds both,
-  so the GEN.1014 wiring fixes it and removes the expected-fail entry.
-  Prerequisites: none. Related: TEST.477, GEN.1014, GEN.1006.
-  Owner (TODO) (5:15 PM EST on 2026-11-06): Core 1 takes it for train 14 (lock).
-
 - [ ] **GEN.1047 Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
