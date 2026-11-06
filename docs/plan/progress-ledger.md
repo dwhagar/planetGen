@@ -2629,3 +2629,11 @@ Baseline: PR #1817.
 | GEN.1264 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
 | GEN.367 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
 | PERF.238 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| TEST.633 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.635 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.636 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.638 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.614 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.637 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.852 | 8.1 | Physics rectification: infrared opacity, tides and the class re-sweep |
+| GEN.1260 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
