@@ -4355,6 +4355,12 @@ function initGalaxyMap3d(canvasEl, data) {
     // The Menu lists a group's layers together, so the technology bands (registered ahead of the Civilizations kind, which they pre-empt) come
     // after the points of interest.
     var familyOrder = { tech: 1, "class": 2, lifeclass: 3 };
+    // UX.277: the words the View menu's search finds a marker kind by, besides its label: its family, and the plain names of what it marks.
+    var markerKeywords = function (kind) {
+      var family = kind.family === "class" ? ["world class", "planet class", "class"] : kind.family === "lifeclass" ? ["life class", "life"]
+        : kind.family === "tech" ? ["technology", "civilization", "tech"] : kind.interest ? ["point of interest", "interest", "symbol"] : ["marker", "mark"];
+      return family.concat([String(kind.label).toLowerCase(), String(kind.id)]);
+    };
     markerKinds.kinds().map(function (kind, index) { return { kind: kind, index: index }; }).sort(function (p, q) {
       return (familyOrder[p.kind.family] || 0) - (familyOrder[q.kind.family] || 0) || p.index - q.index;
     }).map(function (entry) { return entry.kind; }).forEach(function (kind) {
@@ -4363,6 +4369,7 @@ function initGalaxyMap3d(canvasEl, data) {
         group: kind.family === "class" ? CLASS_GROUP : kind.family === "lifeclass" ? LIFE_CLASS_GROUP : kind.family === "tech" ? TECH_GROUP : kind.interest ? POI_GROUP : "Markers",
         data: { marker: kind.glyph || kind.icon },
         defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+        heading: "Show", keywords: markerKeywords(kind), common: kind.id === "marker-black-hole",
         title: kind.title || "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
       });
     });
@@ -4419,6 +4426,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (glow) {
     stageView.layers.register({
       id: "glow", label: "Unresolved glow", modes: ["galaxy"], group: "Show on the map", data: { glow: "unresolved" },
+      heading: "Show", keywords: ["glow", "unresolved", "faint", "light", "distant stars"],
       defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the soft light of the stars too far away to tell apart",
       legend: null,
@@ -4448,6 +4456,7 @@ function initGalaxyMap3d(canvasEl, data) {
     NEBULA_FAMILIES.forEach(function (family) {
       stageView.layers.register({
         id: "nebulae-" + family, label: NEBULA_FAMILY_LABELS[family], modes: ["galaxy"], group: NEBULA_GROUP,
+        heading: "Show", keywords: ["nebula", "nebulae", "gas", "cloud", family],
         data: { nebulae: family }, defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
         title: "Show or hide the groups of " + NEBULA_FAMILY_LABELS[family].toLowerCase() + " on the map",
         legend: { text: NEBULA_FAMILY_LABELS[family], swatch: nebulaSwatch(family) },
@@ -4455,6 +4464,7 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     stageView.layers.register({
       id: "nebulae-groups", label: "Nebula groups", modes: ["galaxy"], group: NEBULA_GROUP, defaultOn: true, fadedWithSectors: false,
+      heading: "Show", keywords: ["nebula", "nebulae", "groups", "ring"],
       available: function () { return false; },
       legend: function () {
         var any = NEBULA_FAMILIES.some(function (family) { return nebulaFamilyOn[family] !== false; });
@@ -4502,6 +4512,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // Map's) holds them still. The galactic views turn nothing, so it matters only inside a system.
   stageView.layers.register({
     id: "spin", label: "Spin", modes: ["galaxy"], group: "Show on the map", data: { setting: "spin" },
+    heading: "Move and Settings", keywords: ["spin", "turn", "rotate", "rotation", "axis", "still"],
     defaultOn: stageView.spinSwitch.on(), fadedWithSectors: false,
     title: "Let the stars and bodies of an opened system turn slowly on their axes, or hold them still",
     legend: null, keyless: "a setting: it draws nothing of its own",
@@ -4522,6 +4533,7 @@ function initGalaxyMap3d(canvasEl, data) {
     courseForms.forEach(function (item) {
       stageView.layers.register({
         id: item.id, label: item.label, modes: ["galaxy"], group: "Show on the map", data: { course: item.form },
+        heading: "Show", keywords: ["course", "route", "navigation", "nav", item.form],
         defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: item.title,
       });
     });
@@ -4544,6 +4556,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var flagMarkers = [];
   stageView.layers.register({
     id: "waypoints", label: "Waypoint flags", modes: ["galaxy"], group: "Show on the map", data: { waypoints: "flags" },
+    heading: "Show", keywords: ["waypoint", "waypoints", "flag", "flags", "course", "stops"],
     defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
     title: "Show or hide the flags that mark the stops picked for a course with Add waypoint",
   });
@@ -4672,6 +4685,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (bubbleMeshes.length) {
     stageView.layers.register({
       id: "superbubbles", label: "Superbubbles", modes: ["galaxy"], group: "Show on the map", data: { superbubbles: "all" },
+      heading: "Show", keywords: ["superbubble", "bubble", "cavity", "supernova", "local bubble"],
       defaultOn: false, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the faint spheres that mark superbubbles, the cavities the supernovae of young star groups blew in the gas",
     });
@@ -4686,6 +4700,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (regionLayer) {
     stageView.layers.register({
       id: "regions", label: "Charted regions", modes: ["galaxy"], group: "Show on the map", data: { regions: "charted" },
+      heading: "Show", keywords: ["region", "regions", "charted", "generated", "sectors", "known space"],
       defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the soft spheres that mark the regions with generated sectors, colored by how much is charted",
       // MAP.331: while the wireframe cube of the region the view is in is drawn, the legend says what it outlines.
@@ -4926,6 +4941,7 @@ function initGalaxyMap3d(canvasEl, data) {
     LABEL_KINDS.forEach(function (kind) {
       stageView.layers.register({
         id: kind.id, label: kind.label, modes: ["galaxy", "sector"], group: "Labels", data: { label: kind.kind },
+        heading: "Show", keywords: ["names", "label", "labels", kind.kind], common: kind.id === "label-star",
         defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: kind.title,
         keyless: "names laid over the map, not a thing it draws",
       });
