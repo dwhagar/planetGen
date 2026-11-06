@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3430] - 2026-11-06
+
+**Headline:** The tests of the object lists no longer fail now and then for want of a moon in their fixture galaxy.
+
+### Fixed
+- TEST.640: the galaxy that `test_object_list.py`, `test_object_list_values.py`, `test_systems_values.py` and `test_object_index.py` share was drawn afresh each run, and some draws gave no moons, so the tests that read moons failed at random. The three systems are now drawn from fixed streams, and the first stream that gives at least one moon is used, so the galaxy is the same in every run.
+
 ## [8.0.3429] - 2026-11-06
 
 **Headline:** The galaxy-run test counts the sectors the run charted, not the uncharted rows that rogue planets add.
