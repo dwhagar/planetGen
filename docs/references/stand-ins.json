@@ -38697,6 +38697,128 @@
       "title": "Stand-in of how far apart random placement keeps two systems"
     },
     {
+      "key": "6.193",
+      "number": "6.193",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+            ],
+            [
+              "The range it moves in",
+              "the 2:1 resonance (1.59) to the 4:1 (2.52)"
+            ],
+            [
+              "Where it holds",
+              "embryos of 0.1 Earth masses and more in a system with at least one planet"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of a disk of embryos about a giant at 5 AU that leaves the embryos beyond 2 times its orbit on their orbits for the disk's life and after"
+            ],
+            [
+              "What replaces it",
+              "the stirred stretch from a direct integration of the architecture's planets and embryos"
+            ],
+            [
+              "Evidence",
+              "the 3:1 resonance is where the Kirkwood gaps open (a body there is pumped to a planet-crossing orbit); using it as the stirred stretch's edge is ours"
+            ]
+          ],
+          "id": "SM1",
+          "key": "6.193:SM1",
+          "kind": "P",
+          "slug": "6-193-sm1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_architecture.losses: the embryo is scattered by the planet that gives the highest Safronov number at its distance (as for a chain body in a reach band), over the disk lifetime of scatter.DISK_LIFETIME_YR"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "embryos in the stirred stretch"
+            ],
+            [
+              "What would show it wrong",
+              "an architecture where a weaker planet scatters an embryo the strongest does not reach"
+            ],
+            [
+              "What replaces it",
+              "the encounter rates of each planet with the embryo"
+            ],
+            [
+              "Evidence",
+              "the Safronov scatter rule already registered for the reach bands (GEN.1119)"
+            ]
+          ],
+          "id": "SM2",
+          "key": "6.193:SM2",
+          "kind": "P",
+          "slug": "6-193-sm2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planet_architecture.losses: the embryo is scattered by the planet that gives the highest Safronov number at its distance (as for a chain body in a reach band), over the disk lifetime of scatter.DISK_LIFETIME_YR"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_architecture._ROGUE_MIN_KG: an embryo under 0.1 Earth masses is never made a rogue and stays one bound record"
+            ],
+            [
+              "The range it moves in",
+              "the bin edge"
+            ],
+            [
+              "Where it holds",
+              "the generator's rogue classes"
+            ],
+            [
+              "What would show it wrong",
+              "a catalogued rogue of under 0.1 Earth masses"
+            ],
+            [
+              "What replaces it",
+              "the rogue classes below the terrestrial bin"
+            ],
+            [
+              "Evidence",
+              "tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH"
+            ]
+          ],
+          "id": "SM3",
+          "key": "6.193:SM3",
+          "kind": "P",
+          "slug": "6-193-sm3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planet_architecture._ROGUE_MIN_KG: an embryo under 0.1 Earth masses is never made a rogue and stays one bound record"
+        }
+      ],
+      "slug": "6-193-stand-ins-of-the-embryos-the-planets-stir-out-of-a-system",
+      "title": "Stand-ins of the embryos the planets stir out of a system"
+    },
+    {
       "key": "6.182",
       "number": "6.182",
       "rows": [

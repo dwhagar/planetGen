@@ -36,7 +36,7 @@
   "made_on": {
     "astropy": "8.0.2",
     "numpy": "2.5.4",
-    "platform": "Linux-6.18.44-fc-v242-x86_64-with-glibc2.39",
+    "platform": "Linux-6.18.44-fc-v300-x86_64-with-glibc2.39",
     "python": "3.13.17"
   },
   "overall": "e6f95bef4066e3418561596103c3c10afef96dfe22276baf55b123f94d399de1"

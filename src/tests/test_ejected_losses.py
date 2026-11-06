@@ -22,7 +22,7 @@ def test_a_system_keeps_the_architecture_of_its_star_and_reads_its_thrown_bodies
     star, architecture = system.architectures[0]
     assert star is system.star and architecture.planets is not None
     for owner, loss in system.ejected_losses():
-        assert owner is system.star and loss.kind == "thrown" and loss.ejected > 0.0 and loss.perturber_au is not None
+        assert owner is system.star and loss.kind in ("thrown", "sub_minimum") and loss.ejected > 0.0 and loss.perturber_au is not None
 
 
 def test_a_system_with_no_planets_throws_nothing_out():
