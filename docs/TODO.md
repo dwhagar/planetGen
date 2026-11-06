@@ -18048,6 +18048,18 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.593.
 
+- [ ] **TEST.639 tests/test_mass_conversions.py fails on main: physics/dust_model.py has two multiplies or divides by a mass constant that do not go through the unit registry (bug)**
+  The Train Manager (as the lane reported, about 10:55 PM EST on 2026-11-05, train 11 gates) found tests/test_mass_conversions.py red on main: "use unit_registry.converter instead of a multiply or divide by a mass constant: {'physics/dust_model.py': 2}". The dust model came in with VIEW.43. Do: route the two conversions through unit_registry.converter (GEN.568), bit-identical output. Same shape as TEST.619. Reproduce on current main first. Lock-free, no migration. Done:
+  the test passes on current main, in ten runs for the flaky one.
+  Version 8.1. Owner: Core 3. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.619.
+
+- [ ] **TEST.640 tests/test_object_list.py is flaky: the fixture galaxy sometimes has no moons (bug)**
+  The Train Manager (as the lane reported, about 10:55 PM EST on 2026-11-05, train 11 gates) saw test_object_list fail now and then because the fixture galaxy has no moons in that run. Do: make the fixture deterministic (draw.bound or a fixed seed) so it always holds at least one moon, or make the test build the moon it needs; never skip or loosen the test. Reproduce on current main first. Lock-free, no migration. Done:
+  the test passes on current main, in ten runs for the flaky one.
+  Version 8.1. Owner: Core 5. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.619.
+
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
