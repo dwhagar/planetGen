@@ -143,6 +143,11 @@ def apply_class(planet):
     planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
 
 
+def is_life_class(body):
+    """Whether the finished body's class is one that can carry life (`tuning.HABITABLE_PLANET_CLASSES`)."""
+    return body.planet_class in tuning.HABITABLE_PLANET_CLASSES
+
+
 @finite_domain()
 def calculate_orbital_period_years(distance_au, primary_mass_kg):
     """
