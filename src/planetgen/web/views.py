@@ -35,6 +35,14 @@ def _binary_filter(values):
 def _sector_row(sector):
     """One Sectors table row: a list of cells (`lib/datatable.py`)."""
     region = sector.get("region")
+    if sector.get("uncharted"):         # MAP.399: a placeholder a drifting rogue made in a cell nothing was generated in has no systems to count and no density
+        return [
+            {"text": sector["name"], "href": page_url("sector", sector_id=sector["id"])},
+            {"text": "Uncharted"},
+            {"text": "\u2013", "muted": True},
+            {"text": region["name"] if region else "\u2013"},
+            {"text": plain(format_distance_ly(sector.get("galactic_radius_ly")))},
+        ]
     return [
         {"text": sector["name"], "href": page_url("sector", sector_id=sector["id"])},
         {"text": str(sector["system_count"])},
@@ -225,8 +233,9 @@ def sectors():
         title="Sectors",
         section="sectors",
         breadcrumbs=[crumb("Sectors")],
-        description="Every sector in this charted galaxy.",
+        description="Every sector in this charted galaxy, and the uncharted cells rogue planets have landed in.",
         sectors=tables.render(SECTORS_TABLE, request.path, anchor="sectors"),
+        uncharted_total=apiclient.get_sectors(db_name(), limit=1, offset=0).get("uncharted_total", 0),
     )
 
 
