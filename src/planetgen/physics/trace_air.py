@@ -79,15 +79,12 @@ def apply(body):
         partials = {formula: pascal * (1.0 - share) for formula, pascal in partials.items()}
         partials.update({formula: fraction * total for formula, fraction in amounts.items()})
     atmosphere.store_air(body, partials, body.mantle_delta_iw)
-    _refresh_state(body)            # the trace gases shift the mean molar mass, and the density and scale height with it (TEST.617)
+    if amounts:
+        # the trace gases (a part in 1e7 or so) shift the mean molar mass at the eighth digit: the stored molar mass, density and scale height follow the
+        # air they describe (TEST.585: the atmosphere sweep's rules hold them to 1e-9)
+        state = atmosphere_state.air_state(partials, body.surface_temperature, body.gravity * constants.EARTH_GRAVITY)
+        body.atm_molar_density = state.mean_molar_mass_kg_mol
+        body.atm_density = state.density_kg_m3
+        body.scale_height = state.scale_height_m / 1000.0      # km, as `planets` stores it
     envelope_share.fill(body)       # GEN.1226: the trace gases take a share of the air
     return tuple(sorted(amounts))
-
-
-def _refresh_state(body):
-    """Makes the molar density, the density and the scale height of `body` the ones its stored air gives at its surface temperature and gravity: the
-    fixed point stored them from the air before the trace gases, which are heavier or lighter than the rest by parts in a million to a thousand."""
-    state = atmosphere_state.air_state(atmosphere.gas_partials_pa(body), body.surface_temperature, body.gravity * constants.EARTH_GRAVITY)
-    body.atm_molar_density = state.mean_molar_mass_kg_mol
-    body.atm_density = state.density_kg_m3
-    body.scale_height = state.scale_height_m / 1000.0

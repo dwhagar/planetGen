@@ -180,7 +180,9 @@ def contents(conn, container_id, limit=DEFAULT_LIMIT):
 
     Returns:
         dict: `container` (as `get` gives it), `counts` (`{kind: how many}` for each kind with any), `items`
-            (`[{"kind", "id", "name"}]`, at most `limit`) and `total`.
+            (`[{"kind", "id", "name"}]`, at most `limit`) and `total`. A globular cluster also lists its member `star`s
+            (the stars whose `cluster_id` is its component, at most half the limit) and says `uncharted_stars`, how many of
+            its stars the plan has placed that no filled sector has built yet (MAP.224).
 
     Raises:
         ValueError: If there is no such container.
@@ -191,6 +193,16 @@ def contents(conn, container_id, limit=DEFAULT_LIMIT):
     center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
     counts = {}
     items = []
+    uncharted = None
+    if row["kind"] == "globular_cluster" and row["component_id"] is not None:    # MAP.224: the stars that point to the cluster
+        members = conn.execute("SELECT COUNT(*) AS n FROM stars WHERE cluster_id = ?", (row["component_id"],)).fetchone()["n"]
+        if members:
+            counts["star"] = members
+            listed = conn.execute("SELECT id, name FROM stars WHERE cluster_id = ? ORDER BY name, id LIMIT ?",
+                                  (row["component_id"], max(1, limit // 2))).fetchall()
+            items.extend({"kind": "star", "id": item["id"], "name": item["name"]} for item in listed)
+        uncharted = conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE cluster_id = ? AND star_system_id IS NULL",
+                                 (row["component_id"],)).fetchone()["n"]
     for kind, table, extra, position in HELD_TABLES:
         where = extra.removeprefix(" AND ") if extra else ""
         sql, runs = region.region_statement(table, "p.id, p.name", position, center, row["extent_pc"], where=where)
@@ -202,4 +214,7 @@ def contents(conn, container_id, limit=DEFAULT_LIMIT):
         if room > 0:
             listed = conn.execute(f"SELECT id, name FROM ({sql}) AS held ORDER BY name, id LIMIT {int(room)}").fetchall()
             items.extend({"kind": kind, "id": item["id"], "name": item["name"]} for item in listed)
-    return {"container": _public(row), "counts": counts, "items": items, "total": sum(counts.values())}
+    found = {"container": _public(row), "counts": counts, "items": items, "total": sum(counts.values())}
+    if uncharted is not None:
+        found["uncharted_stars"] = uncharted
+    return found

@@ -12,6 +12,7 @@ from types import SimpleNamespace
 import pytest
 
 from planetgen import tuning
+from planetgen.db import store
 from planetgen.generation import run_common, run_galaxy
 from planetgen.generation import stats as generationStats
 from planetgen.generation.stats import GenerationStats, estimate
@@ -138,6 +139,17 @@ def test_the_candidates_of_a_neighbourhood_walk_with_their_distance_in_the_suffi
 FIRST_THREE = ["--shell", "1", "--band", "0", "--limit", "3", "--num-systems", "2"]
 
 
+def _charted_sectors(config):
+    """The `sectors` rows a fill charted: a rogue planet in a cell nobody charted gets a row of its own that no fill charted (GEN.1111 part 7)."""
+    conn = store.get_connection(config)
+    try:
+        return conn.execute("SELECT s.* FROM sectors s JOIN chart_ledger c ON c.shell_index = s.shell_index"
+                            " AND c.band_index = s.band_index AND c.wedge_index = s.wedge_index"
+                            " ORDER BY s.shell_index, s.band_index, s.wedge_index").fetchall()
+    finally:
+        conn.close()
+
+
 def test_a_streamed_shell_run_estimates_from_a_sample_and_generates_every_sector(mysql_config, monkeypatch, capsys):
     _plan_wide_galaxy(mysql_config)
     monkeypatch.setattr(generationStats, "SAMPLE_ABOVE", 1)
@@ -149,7 +161,7 @@ def test_a_streamed_shell_run_estimates_from_a_sample_and_generates_every_sector
     assert _all_sectors(mysql_config) == []
 
     _run_cli(FIRST_THREE + _mysql_argv(mysql_config))
-    assert [(r["shell_index"], r["band_index"], r["wedge_index"]) for r in _all_sectors(mysql_config)] \
+    assert [(r["shell_index"], r["band_index"], r["wedge_index"]) for r in _charted_sectors(mysql_config)] \
         == [(1, 0, 0), (1, 0, 1), (1, 0, 2)]
 
 

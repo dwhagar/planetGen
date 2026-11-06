@@ -56,6 +56,7 @@ def test_the_ground_draw_reads_the_stored_split_and_a_body_saved_before_reads_th
 
 
 def _system():
+    """A system with at least two rocky planets (the first is given a Pluto-like ice, the last a CO2-frost one): with one, the second split would overwrite the first."""
     cfg = SystemConfig()
     cfg.PLANETS = True
     cfg.MAX_PLANETS = True
@@ -63,16 +64,16 @@ def _system():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(hasattr(body, "moons") and body.body_type != "g" for body in system.planets):
+        if sum(1 for body in system.planets if hasattr(body, "moons") and body.body_type != "g") >= 2:
             return system, cfg
-    pytest.fail("no system with a rocky planet in 60 seeds")
+    pytest.fail("no system with two rocky planets in 60 seeds")
 
 
 @pytest.mark.fresh_database
 def test_a_pluto_like_and_a_co2_frost_mars_like_body_keep_their_species_through_the_database(mysql_config):
     system, cfg = _system()
     rocky = [planet for planet in system.planets if hasattr(planet, "moons") and planet.body_type != "g"]
-    pluto, mars = rocky[0], rocky[-1] if len(rocky) > 1 else rocky[0]
+    pluto, mars = rocky[0], rocky[-1]
     split = {pluto: _bulk(0.15, {"N2": 0.97, "CH4": 0.02, "CO": 0.01}), mars: _bulk(0.01, {"CO2": 1.0})}
     for planet, bulk in split.items():
         for field, value in bulk.to_attributes().items():
@@ -87,7 +88,7 @@ def test_a_pluto_like_and_a_co2_frost_mars_like_body_keep_their_species_through_
             for field in ice_species.BODY_FIELDS:
                 assert getattr(index[before.name], field) == pytest.approx(getattr(before, field)), (before.name, field)
         assert index[pluto.name].ice_n2_mass_fraction == pytest.approx(0.15 * 0.97)
-        assert index[mars.name].ice_co2_mass_fraction == pytest.approx(0.01) or mars is pluto
+        assert index[mars.name].ice_co2_mass_fraction == pytest.approx(0.01)
     finally:
         conn.rollback()
         conn.close()

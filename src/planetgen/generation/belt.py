@@ -21,7 +21,7 @@ import functools
 import weakref
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import belt_ledger, belt_mass, belt_origin, belt_page, belt_roster, bulk_draw, radiogenic, small_body_composition
+from planetgen.physics import belt_ledger, belt_mass, belt_origin, belt_page, belt_populations, belt_roster, bulk_draw, radiogenic, small_body_composition
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 from planetgen.util import log
@@ -58,7 +58,7 @@ def format_composition_summary(composition):
     return ", ".join(composition_phrases[:-1]) + f", and {composition_phrases[-1]}"
 
 
-def _star_al26_ratio(system_config, star):
+def star_al26_ratio(system_config, star):
     """The aluminium-26 the star was born with (`radiogenic.star_al26_ratio`); a star with no [Fe/H] or age (a binary's proxy) takes its galaxy's mean."""
     shape = getattr(system_config, "GALAXY_SHAPE", None)
     ratio = radiogenic.star_al26_ratio(star, shape)
@@ -141,6 +141,7 @@ class AsteroidBelt:
     origin_history = ()
     origin_sentence = None
     scatter_fates = None
+    scatter_giant_au = None
     largest_body_km = None
     """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,
@@ -149,7 +150,7 @@ class AsteroidBelt:
     """tuple: What the star's evolution did to the belt, one sentence per event, in order (GEN.1232: `physics/belt_history`, run by `remnant_orbits` for the giant branch and the mass loss). Stored as one
     paragraph (`asteroid_belts.history_text`) and shown on the belt's page; empty for a belt nothing has happened to."""
 
-    def __init__(self, system_config: SystemConfig, star, distance, lower_limit, upper_limit, origin=None, scatter_fates=None): # Added system_config
+    def __init__(self, system_config: SystemConfig, star, distance, lower_limit, upper_limit, origin=None, scatter_fates=None, scatter_giant_au=None): # Added system_config
         """
         Initializes an AsteroidBelt object.
 
@@ -161,6 +162,7 @@ class AsteroidBelt:
             upper_limit (float): The outer boundary of the belt in AU.
             origin (belt_origin.BeltOrigin, optional): Where the belt came from; its mass after the giants is the mass the belt begins to grind from (GEN.1068).
             scatter_fates (dict, optional): The shares of an outer disk in each population after the scatter step (`scatter.scatter_shares`).
+            scatter_giant_au (float, optional): The distance of the giant that swept that disk; the resonant, scattered and crossing members of the disk are placed from it (GEN.1092). Not stored: the members it placed are.
         """
         self.system_config = system_config # Store system_config
         self.distance = distance
@@ -174,8 +176,9 @@ class AsteroidBelt:
             self.primordial_mass_earth, self.cleared_mass_earth, self.scattered_mass_earth = origin.primordial_mass_earth, origin.cleared_earth, origin.scattered_earth
             self.stirred, self.origin_history, self.origin_sentence = origin.stirred, [event.text for event in origin.history], origin.sentence
             self.scatter_fates = scatter_fates
+            self.scatter_giant_au = scatter_giant_au
         log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
-        self.makeup = small_body_composition.draw_belt(distance, star.luminosity, _star_al26_ratio(system_config, star))
+        self.makeup = small_body_composition.draw_belt(distance, star.luminosity, star_al26_ratio(system_config, star))
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]
 
@@ -202,9 +205,11 @@ class AsteroidBelt:
             return []
         ledger = settled.ledger
         stream = draw.Stream(f"belt-members:{self.distance!r}:{self.lower_limit!r}:{star.mass!r}")
-        entries = belt_roster.draw_roster(len(ledger.masses_kg), self.lower_limit, self.upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), stream)
+        populations = None if self.scatter_fates is None else belt_populations.member_weights(self.scatter_fates)
+        entries = belt_roster.draw_roster(len(ledger.masses_kg), self.lower_limit, self.upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), stream,
+                                          populations, self.scatter_giant_au)
         record = belt_page.BeltRecord(None, self.lower_limit, self.upper_limit, units.convert(star.mass, "kg", "Msun"), star.luminosity,
-                                      _star_al26_ratio(self.system_config, star), ledger, tuple(entry.placement for entry in entries))
+                                      star_al26_ratio(self.system_config, star), ledger, tuple(entry.placement for entry in entries))
         rows = []
         for body, entry in zip(belt_page.member_bodies(record), entries):
             composition = body["composition"]
@@ -213,7 +218,7 @@ class AsteroidBelt:
                 "eccentricity": entry.eccentricity, "inclination_deg": entry.inclination_deg, "node_deg": entry.node_deg, "periapsis_deg": entry.periapsis_deg,
                 "anomaly_deg": entry.anomaly_deg, "taxon": body["taxon"], "density_g_cm3": body["density"]["value"] / 1000.0,
                 "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
-                "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": None})
+                "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag})
         return rows
 
     def shorten_to(self, upper_limit):

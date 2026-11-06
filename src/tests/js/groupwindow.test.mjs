@@ -57,15 +57,30 @@ test("framing is the bounds with the margin; no window contains everything; unkn
   assert.deepEqual(f.center, [1, 2, 3]);
   assert.ok(Math.abs(f.radius - 10 * G.FRAME_MARGIN) < 1e-9);
   assert.equal(G.contains(null, 1e9, 0, 0), true);
-  assert.equal(G.createWindow("cluster", cloud(1, 0, 0, 0, 1), []), null);
+  assert.equal(G.createWindow("constellation", cloud(1, 0, 0, 0, 1), []), null);
 });
 
 test("a second kind plugs in", () => {
-  G.registerKind("cluster", {
-    label: (c) => c.name, members: (c) => [c], noun: (n) => n + " clusters",
+  G.registerKind("association", {
+    label: (c) => c.name, members: (c) => [c], noun: (n) => n + " associations",
   });
-  assert.ok(G.kindNames().includes("cluster") && G.kindNames().includes("nebula"));
-  const win = G.createWindow("cluster", cloud(9, 0, 0, 0, 5), []);
+  assert.ok(G.kindNames().includes("association") && G.kindNames().includes("nebula"));
+  const win = G.createWindow("association", cloud(9, 0, 0, 0, 5), []);
+  assert.equal(win.kind, "association");
+  assert.equal(win.summary, "1 associations");
+});
+
+test("a cluster's window is its own sphere and says what it is (MAP.223)", () => {
+  const cluster = { ref: "globular_cluster:FE-1", name: "Globular cluster FE-1", x: 10, y: 20, z: 30, radius_pc: 25 };
+  assert.ok(G.kindNames().includes("cluster"));
+  const win = G.createWindow("cluster", cluster, [cloud(1, 12, 20, 30, 5)]);
   assert.equal(win.kind, "cluster");
-  assert.equal(win.summary, "1 clusters");
+  assert.equal(win.key, "globular_cluster:FE-1");
+  assert.equal(win.title, "Globular cluster FE-1");
+  assert.equal(win.summary, "a globular cluster");
+  assert.equal(win.count, 1, "a nebula that reaches it does not join");
+  assert.deepEqual(win.center, [10, 20, 30]);
+  assert.equal(win.radiusPc, 25);
+  assert.ok(G.contains(win, 10, 20, 54) && !G.contains(win, 10, 20, 60));
+  assert.equal(G.createWindow("cluster", { ...cluster, name: null }, []).title, "Globular cluster");
 });

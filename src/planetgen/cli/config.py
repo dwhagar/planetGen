@@ -68,13 +68,13 @@ def run_check():
         config = settings._read_json_object(logpaths.CONFIG_PATH, "config.json")
         settings.build(config, strict=True)
     except settings.SettingsError as exc:
-        print(f"Settings problem:\n{exc}", file=sys.stderr)
+        log.error(f"Settings problem:\n{exc}")
         return 1
     print("config.json is valid." if os.path.isfile(logpaths.CONFIG_PATH)
           else "There is no config.json: the defaults apply (copy config.json.example to config.json to change them).")
     for stray in unused_files():
-        print(f"note: {stray} is not read any more; config.json is the one file for all configuration "
-              "(move anything you still need into it, then delete the file).")
+        log.normal(f"{stray} is not read any more; config.json is the one file for all configuration "
+                   "(move anything you still need into it, then delete the file).")
     return 0
 
 
@@ -133,8 +133,8 @@ def _open_audit(args):
         from planetgen.db.store import control_mysql_config, get_control_connection, mysql_config_from_args
         conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
     except Exception as exc:  # noqa: BLE001 -- pymysql errors, a missing config, anything: the save still goes ahead
-        print(f"warning: the control database could not be reached ({exc}); the change is in the activity "
-              "log but not in the admin audit table.", file=sys.stderr)
+        log.warning(f"warning: the control database could not be reached ({exc}); the change is in the activity "
+              "log but not in the admin audit table.")
         return None, lambda: None
     who = _actor()
 
@@ -146,7 +146,7 @@ def _open_audit(args):
 
 def _show_result(result, verb):
     for option, message in result.errors.items():
-        print(f"error: {option + ': ' if option else ''}{message}", file=sys.stderr)
+        log.error(f"error: {option + ': ' if option else ''}{message}")
     if result.errors:
         return 1
     if not result.changes:
@@ -155,7 +155,7 @@ def _show_result(result, verb):
     for change in result.changes:
         print(f"{change.path}: {change.shown('old')!r} -> {change.shown('new')!r}")
     for option, variable in result.shadowed.items():
-        print(f"note: {variable} is set in this environment and overrides {option}.")
+        log.normal(f"{variable} is set in this environment and overrides {option}.")
     if result.backup:
         print(f"{verb}. Backup: {result.backup}")
     else:
@@ -163,7 +163,7 @@ def _show_result(result, verb):
     if result.restart:
         print("These need a restart to take effect: " + ", ".join(result.restart))
     for line in result.audit_errors:
-        print(f"warning: audit row not written: {line}", file=sys.stderr)
+        log.warning(f"warning: audit row not written: {line}")
     return 0
 
 
@@ -179,11 +179,11 @@ def run_get(option):
         config = settings._read_json_object(logpaths.CONFIG_PATH, "config.json")
         current = settings.get_settings()
     except (settings.SettingsError, settings_writer.SettingsWriteError) as exc:
-        print(f"Settings problem:\n{exc}", file=sys.stderr)
+        log.error(f"Settings problem:\n{exc}")
         return 1
     rows = [(path, meta) for path, _info, meta in settings.iter_fields() if option in (None, path)]
     if not rows:
-        print(f"error: {option} is not a setting", file=sys.stderr)
+        log.error(f"error: {option} is not a setting")
         return 1
     for path, meta in rows:
         value = settings._lookup(current, path)
@@ -197,7 +197,7 @@ def run_save(args, changes, verb):
     try:
         result = settings_writer.save(changes, _actor(), role="host", audit=audit)
     except settings_writer.SettingsWriteError as exc:
-        print(f"error: {exc}", file=sys.stderr)
+        log.error(f"error: {exc}")
         return 1
     finally:
         close()
@@ -209,7 +209,7 @@ def run_restore(args):
     try:
         result = settings_writer.restore(args.backup, _actor(), role="host", audit=audit)
     except settings_writer.SettingsWriteError as exc:
-        print(f"error: {exc}", file=sys.stderr)
+        log.error(f"error: {exc}")
         return 1
     finally:
         close()
@@ -234,7 +234,7 @@ def main(argv=None):
         add_mysql_connection_args(sub)
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
     if args.command == "check":
         return run_check()
     if args.command == "docs":

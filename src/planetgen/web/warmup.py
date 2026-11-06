@@ -32,6 +32,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.queue import commands
 from planetgen.queue import units as units_module
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
+from planetgen.util import logrecord
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import apiclient, tilecache
 from planetgen.web.lib.tilecache import fetch_nodes, fetch_stage
@@ -122,7 +123,7 @@ class PhaseTally:
             return None
         built, cached, warmed, left_out, seconds = (
             sum(self.totals[family][key] for family in families) for key in ("built", "cached", "warmed", "left_out", "seconds"))
-        head = f"Phase {number} of {len(PHASES)}, {name}"
+        head = f"{logrecord.counting_text('Phase', number, len(PHASES))}, {name}"
         if not warmed and not left_out:
             return f"{head}: nothing to warm."
         if not built and not left_out:

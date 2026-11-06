@@ -4,6 +4,9 @@ started by the wrapper, `planetgen/queue/wrapper.py`, PERF.118).
 The autouse `_run_queue_inline` fixture gives each test a queue and key prefix of its own and runs the waiting units
 in this process when `ensure_workers` is called."""
 
+import socket
+import subprocess
+import sys
 import threading
 
 import pytest
@@ -15,6 +18,26 @@ from planetgen.util.settings import get_settings
 @pytest.fixture
 def conn(redis_server):
     return redisqueue.connect(redis_server)
+
+
+@pytest.fixture
+def other_process():
+    """A live process that is not this one: a run it follows is held by somebody else, so a run that waits for it can wait
+    (a run held by this very process would wait for itself for ever, and the ADM.136 guard refuses it at once)."""
+    process = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(3600)"])
+    try:
+        yield process
+    finally:
+        process.kill()
+        process.wait()
+
+
+def _held_by(conn, other_process, title, kind=runrecord.GENERATION):
+    """Starts a run that holds the machine and says `other_process` follows it, the way a run started from another
+    terminal or another job is."""
+    run_id = runrecord.start_run(conn, title, [runrecord.Stage("test", "T", units=1)], kind=kind)
+    conn.hset(runrecord.run_key(run_id), "owner", f"{socket.gethostname()}:{other_process.pid}")
+    return run_id
 
 
 def _handlers(monkeypatch, **named):
@@ -174,10 +197,10 @@ def test_a_second_run_is_refused_while_one_has_the_machine_when_it_may_not_wait(
     assert runrecord.active_run(conn) == first
 
 
-def test_a_second_run_waits_in_line_for_the_first_and_then_runs(monkeypatch, conn):
+def test_a_second_run_waits_in_line_for_the_first_and_then_runs(monkeypatch, conn, other_process):
     """PERF.153: a generation run that finds the machine taken waits for it instead of failing Busy."""
     _handlers(monkeypatch, test=_square)
-    first = runrecord.start_run(conn, "First", [runrecord.Stage("test", "T", units=1)])
+    first = _held_by(conn, other_process, "First")
     waits = []
     monkeypatch.setattr(wrapper, "report_wait", lambda holder, position: waits.append((holder, position)))
     timer = threading.Timer(1.5, lambda: runrecord.finish_run(conn, first, "done"))
@@ -192,7 +215,7 @@ def test_a_second_run_waits_in_line_for_the_first_and_then_runs(monkeypatch, con
     assert waits[0] == (first, 1) and waits[-1] == (None, None)
 
 
-def test_a_runs_results_do_not_depend_on_the_place_it_started_from(monkeypatch, conn):
+def test_a_runs_results_do_not_depend_on_the_place_it_started_from(monkeypatch, conn, other_process):
     """PERF.154: the waiting list only decides when a run starts. The same steps give the same units, the same results and
     the same stages whether the machine was free, or the run was next in line, or third (the generated sectors
     are a function of the seed and the cut of the work, never of the place in the line)."""
@@ -201,7 +224,7 @@ def test_a_runs_results_do_not_depend_on_the_place_it_started_from(monkeypatch, 
 
     def run_from(ahead):
         """A run that finds the machine held and `ahead` other runs in front of it."""
-        holder = runrecord.start_run(conn, "Holder", [runrecord.Stage("test", "T", units=1)]) if ahead is not None else None
+        holder = _held_by(conn, other_process, "Holder") if ahead is not None else None
         tickets = [runline.join(conn, runline.RUN, f"Ahead {number}") for number in range(ahead or 0)]
         timers = [threading.Timer(1.0 + 0.4 * number, runline.leave, (conn, ticket)) for number, ticket in enumerate(tickets)]
         if holder:
@@ -225,10 +248,20 @@ def test_a_runs_results_do_not_depend_on_the_place_it_started_from(monkeypatch, 
     assert next_in_line == free and third_in_line == free
 
 
-def test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for(monkeypatch, conn):
+def test_a_run_started_inside_a_run_of_the_same_process_is_refused_at_once_not_waited_for(monkeypatch, conn):
+    """ADM.136: a run held by the process that wants to wait for it would wait for itself for ever."""
+    _handlers(monkeypatch, test=_square)
+    monkeypatch.setattr(get_settings().queue, "wait_minutes", 30)
+    first = runrecord.start_run(conn, "First", [runrecord.Stage("test", "T", units=1)])
+    with pytest.raises(runrecord.Busy, match="would wait for itself"):
+        wrapper.run("Second", [_step(1)], lambda index, plan: None, lambda index, unit, result: None)
+    assert runrecord.active_run(conn) == first
+
+
+def test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for(monkeypatch, conn, other_process):
     _handlers(monkeypatch, test=_square)
     monkeypatch.setattr(get_settings().queue, "wait_minutes", 0.03)           # 1.8 seconds
-    first = runrecord.start_run(conn, "First", [runrecord.Stage("test", "T", units=1)])
+    first = _held_by(conn, other_process, "First")
     with pytest.raises(runrecord.Busy) as refused:
         wrapper.run("Second", [_step(1)], lambda index, plan: None, lambda index, unit, result: None)
     assert first in str(refused.value) and "waited" in str(refused.value)
@@ -874,11 +907,13 @@ def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_unit
     assert sectors["units"] >= 1
     db = store.get_connection(mysql_config)
     try:
-        saved = db.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+        # A rogue planet can land in a cell nobody charted; its row (GEN.1111, part 7) is not in the chart ledger and is not a sector the run saved.
+        saved = db.execute("SELECT COUNT(*) AS n FROM sectors s JOIN chart_ledger c ON c.shell_index = s.shell_index"
+                           " AND c.band_index = s.band_index AND c.wedge_index = s.wedge_index").fetchone()["n"]
         paths = db.execute("SELECT COUNT(*) AS n FROM sector_paths").fetchone()["n"]
     finally:
         db.close()
-    assert saved > 0 and out.count("Saved sector '") == saved, "each sector logged once, as it was saved"
+    assert saved > 0 and out.count("Saved sector '") == saved, "each charted sector logged once, as it was saved"
     assert paths > 0 and "Linked " in out
 
 

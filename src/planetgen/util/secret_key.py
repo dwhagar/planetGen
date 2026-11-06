@@ -19,6 +19,7 @@ import os
 import secrets
 import sys
 
+from planetgen.util import log
 from planetgen.util.settings import get_settings, state_dir
 
 FILE_NAME = "secret_key"
@@ -78,7 +79,8 @@ def ensure(configured="", announce=None, path=None):
 
 
 def main():
-    key, kind = ensure(get_settings().secret_key, announce=lambda message: print(message, file=sys.stderr))
+    log.configure(errors_to_stderr=True)
+    key, kind = ensure(get_settings().secret_key, announce=lambda message: log.warning(message))
     if kind == "created":
         print("The secret key is set.")
     elif kind == "ephemeral":

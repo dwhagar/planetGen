@@ -260,6 +260,13 @@ MOON_MIN_MASS_KG = 1.0e20
 MOON_GIANT_PARENT_MAX_MASS_RATIO = 1.0e-3
 MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 
+# GEN.962: a rocky planet's moons come from giant impacts (its regular moons) and capture (the small irregular ones of `captured_moons`), and a planet with no
+# row in the hosting gate's `satellite-share` table holds a massive moon, one of at least ROCKY_MASSIVE_MOON_MASS_RATIO of its mass, in about 1 planet in 12
+# [R5127]. That chance is drawn once for the planet and again after each moon (a further impact), so the count of moons per rocky planet is geometric with this
+# chance; the planet's room and Hill sphere still limit it. Stand-ins of registry section 6.186.
+ROCKY_IMPACT_MOON_CHANCE = 1.0 / 12.0
+ROCKY_MASSIVE_MOON_MASS_RATIO = 0.006
+
 # The water a rocky terrestrial body is born with (GEN.849; `physics/delivered_water`): its class (dry, low, high, rich) comes from the Bern
 # population synthesis law the atmosphere recipes already read (`data/ngpps_formation_water.json`), by its mass and the snow lines it formed
 # at; inside a class the share of its whole mass is log-uniform. The class edges are the model's. The dry class reaches down to
@@ -504,6 +511,13 @@ DEFAULT_HOME_JITTER_LY = 1.0
 # Retry cap for rejection-sampling a new system's random position against
 # every existing system's minimum-separation requirement before giving up.
 SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
+
+SECTOR_HILL_SEPARATION_SHARE = 0.5
+"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192). A galactic Hill
+sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood
+overlaps them freely: the mean spacing of systems is 2.2 pc and the nearest neighbour of the Sun is inside its sphere. Keeping the whole sum apart asks a 4 pc
+sector for spheres that fill 0.6 of its volume, which random placement cannot do, so it ran out of room and kept 85 percent of the systems the profile expects (78 percent
+of the mass). Half the sum holds the expected count (424 of 424 requested in 125 solar-circle sectors)"""
 
 # --- Space Sector Growth Parameters (Poisson-disk placement) ---
 
@@ -820,6 +834,13 @@ WR_MIN_INITIAL_MASS_SOL = 25.0
 WR_THRESHOLD_METALLICITY_EXPONENT = 0.5
 """float: The threshold rises as Z^-0.5: the winds that strip the star weaken with metals [R], so 25 solar masses at
 the Sun's metallicity is 35 at half and 56 at a fifth of it [I]."""
+WR_BINARY_MIN_RATIO = 0.72
+"""float: The least initial mass at which a close companion can strip a star into a Wolf-Rayet star, as a share of `WR_MIN_INITIAL_MASS_SOL` (the single-star threshold): 18 against 25 solar masses
+at the Sun's metallicity, the least initial mass whose stripped helium star is as massive as a Wolf-Rayet spectrum needs (7.5 solar masses; [R4051: Table 1], section 3.2). The same metallicity law as
+the single-star threshold carries it up (18, 24 and 37 solar masses at the Galaxy, the LMC and the SMC are close to it). Stand-in WB1, tier T1, tweak level L0."""
+WR_STRIPPING_FRACTION = 0.33
+"""float: The share of stars in the band between the binary and single-star thresholds that a companion strips into a Wolf-Rayet star: the share of massive stars that exchange mass in a way that
+removes the envelope, 0.33 ([R4051] section 5, below its Eq. 4, quoting the observed interacting fraction). Stand-in WB2, tier T2, tweak level L0."""
 WR_PHASE_MYR = 0.3
 """float: How long a Wolf-Rayet star stays one, Myr (the last stretch of its life) [R]."""
 WR_MAX_SUPERGIANT_SHARE = 0.5
@@ -1067,26 +1088,6 @@ WATER_PER_HYDROGEN_MASS = 8.94
 DISK_MASS_FRACTION_RANGE = (0.01, 0.3)
 DISK_OUTER_RADIUS_RANGE_AU = (10.0, 300.0)
 DISK_DUST_SUBLIMATION_K = 1500.0
-# The cold debris disk of a main-sequence star (GEN.787, physics/debris_disk.py). [R4081] (MNRAS 475, 3046, the
-# Herschel DEBRIS survey; [R4081], sections 2.5 and 3 and Tables 1 and 2 read 2026-10-30): the share of stars with a
-# detected cold disk is F 23.9, G 14.3 and K 13.0 percent (47 disks round 275), M 2.2 percent (89 stars) and, raw, 24 percent for
-# A stars. `DEBRIS_DISK_INCIDENCE` is the share for each mass band, the bands ending at the masses of
-# `DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL` (the last band has no upper mass). The masses are the spectral types'
-# (M under 0.45, K to 0.8, G to 1.04, F to 1.4, A and hotter above); the dust shows no clear dependence on
-# type from late B to M, so a hotter star takes the A figure.
-DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL = (0.45, 0.8, 1.04, 1.4)
-DEBRIS_DISK_INCIDENCE = (0.022, 0.130, 0.143, 0.239, 0.24)
-BLACKBODY_AT_ONE_AU_K = 278.3
-# The dust temperature of a detected disk: the 47 disks of [R4081: Table 1] have blackbody radii from 0.63 to 280 AU with a
-# median of 23 AU (7 to 40 AU for most), which at one solar luminosity is a median of 58 K; the log-normal width 0.45 puts the
-# middle two thirds of Sun-like stars at about 7 to 40 AU (a stand-in fitted to that statement, not a fit to the table).
-DEBRIS_DISK_TEMPERATURE_MEDIAN_K = 58.0
-DEBRIS_DISK_TEMPERATURE_LOG_SIGMA = 0.45
-# The belt lies further out than a blackbody grain would: the paper's 7 to 40 AU blackbody radii "scale to about 40 AU for realistic
-# dust properties", about 1.7 times the median 23 AU. The edges at 0.7 and 1.5 of the belt radius are a design choice (a ring about
-# as wide as it is far out), not read from a source.
-DEBRIS_RADIUS_OVER_BLACKBODY = 1.74
-DEBRIS_DISK_EDGES_OVER_RADIUS = (0.7, 1.5)
 # Companions of a protostar: the multiplicity fraction of Perseus' Class 0
 # (0.57) and Class I (0.23) protostars, [R4379] (ApJ 818:73,
 # [R4379], abstract read 2026-10-17).
@@ -2144,6 +2145,11 @@ PLANET_CLASSES = {
         "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
+    # GEN.1207: the letters of the best-fit classes (GEN.1221, GEN.1258): R hothouse, U methane-ethane, X ammonia-water, Y sulfuric acid, Z hot thin-air.
+    'R': {
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
+    },
     'S': {
         "composition": 'silicate rock over a large iron core',
         "type": 't',
@@ -2153,8 +2159,24 @@ PLANET_CLASSES = {
         "type": 'g',
         "also_type": 't',       # GEN.1142: a terrestrial-kind body under about 10 Earth masses with a hydrogen-dominated air is a gas dwarf too
     },
+    'U': {
+        "composition": 'silicon, iron, magnesium, ice, and hydrocarbons',
+        "type": 't',
+    },
     'V': {
         "composition": 'iron, iridium, tungsten, and nickel',
+        "type": 't',
+    },
+    'X': {
+        "composition": 'silicon, iron, magnesium, water ice, and ammonia',
+        "type": 't',
+    },
+    'Y': {
+        "composition": 'silicon, iron, magnesium, and sulfur',
+        "type": 't',
+    },
+    'Z': {
+        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
 }
@@ -2965,54 +2987,27 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 # estimate). This range covers the terrestrial-to-giant span those
 # surveys probe.
 # Mass bins (Boss's research, 2026-09-30; docs/design/systems/
-# interstellar-object-rates.md): a rogue planet draws a bin by its
-# per-star rate, then a mass inside it. Since GEN.45 the rates and the draw
-# inside a bin both follow one mass function, dN/dlogM ~ M^-0.65 from 0.1
-# Earth masses to 13 Jupiter masses (Boss's research, 2026-10-01, which
-# writes it dN/dM ~ M^-0.65; read per unit mass that would make about 87%
-# of rogues gas giants, against its own aim of keeping them rare, so it is
-# read per logarithm of mass). The total is ROGUE_PLANET_RATE_PER_STAR, 5.8 per
-# star (the bins sum to it). That gives:
-#   - terrestrial 0.1-2 Earth masses, about 5.0 per star (2-10; Johnson
-#     et al. 2020, AJ 160:123; [R3190]:L11);
-#   - sub-Neptune / ice giant 2-20, about 0.64 per star ([R4254, R4255]
-#     find Neptune-mass candidates but give no rate);
-#   - Saturn-class 20 Earth masses to 1 Jupiter mass, about 0.15;
-#   - Jupiter-mass 1-13 Jupiter masses, about 0.025 per star (under Mroz
-#     et al. 2017's upper limit of 0.25, Nature 548:183).
-# So about 96% of rogues are not gas giants and 4% are. The old hand-set rates
-# (5, 1, 0.25, 0.25) with a log-uniform mass in each bin gave 91% and 9%,
-# twice the reference's share of gas giants.
-# Above 13 Jupiter masses is a brown dwarf (ROGUE_BROWN_DWARF_*).
-ROGUE_PLANET_RATE_PER_STAR = 5.8
-ROGUE_PLANET_MASS_FUNCTION_SLOPE = 0.65
-_ROGUE_PLANET_BIN_EDGES_EARTH = {
+# interstellar-object-rates.md): the classes a rogue planet's mass falls in.
+# Terrestrial 0.1-2 Earth masses, sub-Neptune / ice giant 2-20, Saturn-class
+# 20 Earth masses to 1 Jupiter mass, Jupiter-mass 1-13 Jupiter masses. The bins
+# only name a mass; how many rogues there are and how heavy comes from the
+# ejections (the planet architecture's loss records) and, for the top-up, from
+# `rogue_mass_function` (GEN.1287). Above 13 Jupiter masses is a brown dwarf
+# (ROGUE_BROWN_DWARF_*).
+ROGUE_PLANET_MASS_BIN_EDGES_EARTH = {
     "terrestrial": (0.1, 2.0),
     "sub-neptune": (2.0, 20.0),
     "saturn": (20.0, 317.8),
     "jupiter": (317.8, _boundaries.jupiter("deuterium_burning_limit") * 317.8),
 }
-
-
-def _rogue_planet_mass_bins():
-    slope = ROGUE_PLANET_MASS_FUNCTION_SLOPE
-    low_all = min(low for low, _high in _ROGUE_PLANET_BIN_EDGES_EARTH.values())
-    high_all = max(high for _low, high in _ROGUE_PLANET_BIN_EDGES_EARTH.values())
-    total = low_all ** -slope - high_all ** -slope
-    return {name: (low, high, ROGUE_PLANET_RATE_PER_STAR * (low ** -slope - high ** -slope) / total)
-            for name, (low, high) in _ROGUE_PLANET_BIN_EDGES_EARTH.items()}
-
-
-ROGUE_PLANET_MASS_BINS = _rogue_planet_mass_bins()
-"""dict: bin name -> `(min_mass_earth, max_mass_earth, per_star_rate)`.
-The rates' sum is the rogue-planet rate per star (`ROGUE_PLANET_RATE_PER_STAR`)."""
+"""dict: bin name -> `(min_mass_earth, max_mass_earth)`, the classes of a rogue planet's mass."""
 
 ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (_boundaries.jupiter("deuterium_burning_limit"), _boundaries.jupiter("brown_dwarf_upper_limit"))
 """tuple: A free-floating brown dwarf, between the deuterium-burning
 (~13 Mjup) and hydrogen-burning (~80 Mjup) limits. Stored as a
 `rogue_planets` row with `mass_bin = 'brown-dwarf'` (schema v37)."""
 
-ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BINS) + ("brown-dwarf",)
+ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BIN_EDGES_EARTH) + ("brown-dwarf",)
 """tuple: Every `rogue_planets.mass_bin` value."""
 
 ROGUE_LEVEL_CEILINGS = {"None": 0.0, "Few": 2.5, "Normal": 4.3, "Many": 10.0}
@@ -3272,16 +3267,18 @@ SYSTEM_COMET_CHANCE = 0.3
 # the air follow its life: 0.354 where it was 0.402; and 2026-10-29 over 3,000 systems, two seeds of 1,500, after GEN.646 derived the class
 # from the finished body: 0.722, most of it classes Q, P, V and K, which the feature counts as able to carry life while few are habitable
 # by the score; all four remeasured 2026-10-30 over 2,000 systems, seed 11, after trains 3 and 4: habitable_world 0.598, asteroid_belt 0.039 where
-# it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809). A sector or galaxy run's
+# it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809; and all four remeasured 2026-11-05 over 4,000 systems, four seeds of
+# 1,000, after train 10 (TEST.579): asteroid_belt 0.653 where 0.039 stood, because belts are no longer cut by mass (GEN.1068, GEN.1156), habitable_world 0.584,
+# large_star 0.056, planets 0.822). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.598,   # a planet or moon of a class that can carry life (see above)
-    "asteroid_belt": 0.039,     # an asteroid belt
-    "large_star": 0.050,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.809,           # at least one planet or belt
+    "habitable_world": 0.584,   # a planet or moon of a class that can carry life (see above)
+    "asteroid_belt": 0.653,     # an asteroid belt
+    "large_star": 0.056,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.822,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
@@ -3672,6 +3669,27 @@ relative to the solar circle's average (`nebulaField.gas_factor`). The
 young-star tracer climbs twentyfold toward the inner disk; uncapped, the
 inner galaxy would be solid cloud. At 3, an arm crest or the inner disk
 has about a quarter of its volume inside a dark cloud."""
+
+MILKY_WAY_MOLECULAR_GAS_MASS_SOLAR = 1.2e9
+"""float: The Milky Way's molecular gas, solar masses (H2): 1.2e9 in the 8,107 clouds of the CO catalogue [R3102]. The field's cloud
+count is tuned to those 8,107 (`NEBULA_FIELD_KEEP`), so a satellite's cloud count is read against this mass (GEN.367)."""
+
+MILKY_WAY_CATALOGUED_CLOUDS = 8107
+"""int: The molecular clouds catalogued across the Milky Way disk [R3102], the target of `NEBULA_FIELD_KEEP["M"]`."""
+
+SATELLITE_MOLECULAR_GAS_MASS_SOLAR = {"Large Magellanic Cloud": 5.0e7, "Small Magellanic Cloud": 3.2e7}
+"""dict: The molecular gas of the two reference satellites that hold any, solar masses. Large Cloud: about 5e7 in 272 CO clouds with
+X_CO 7e20 [R5128]. Small Cloud: H2 3.2e7 from dust, with X_CO 13e21 over the whole galaxy [R5129]; dust counts gas the CO does not
+trace, so it is the upper end for the clouds. Not the CO-bright mass of the Milky Way's catalogue, but the same order of method."""
+
+SATELLITE_NEBULA_GAS_SCALE = {"Large Magellanic Cloud": 0.435, "Small Magellanic Cloud": 0.724}
+"""dict: STAND-IN (tier T1, tweak L2, GEN.725 rows MG1 and MG2): the factor on a satellite's gas tracer in the nebula field, by the
+satellite's name; a satellite not named here has 1. A satellite's gas follows its young stars' density, and a Cloud's young stars sit
+in a ball out to six half-mass radii, so unscaled the field draws 1,085 giant clouds in the Large Cloud and 340 in the Small (the
+class M clouds it keeps). The Milky Way's 8,107 clouds hold 1.2e9 solar masses of H2, so a satellite holds
+`MILKY_WAY_CATALOGUED_CLOUDS * mass / MILKY_WAY_MOLECULAR_GAS_MASS_SOLAR` of them: 338 for the Large Cloud (272 catalogued above
+the survey's limit [R5128]) and 216 for the Small. The scale is that target over the unscaled count; `tests/test_gen367_cloud_gas.py`
+works both again and holds the scale to them within 15 percent."""
 
 SUPERBUBBLE_CELL_PC = 250.0
 """float: Edge of the superbubble field's columns, parsecs (GEN.254, `superbubble_field`). The design note said 50,

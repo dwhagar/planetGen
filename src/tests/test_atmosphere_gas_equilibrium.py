@@ -150,7 +150,7 @@ def test_water_with_a_trace_of_argon_at_726_k_converges(abundances):
 
 def test_a_nitrogen_gas_with_1e_15_of_everything_else_leaves_the_rarest_elements_out_when_it_will_not_settle_with_them():
     """GEN.819: the late nitrogen leaves an air of N2 with the carbon, hydrogen, oxygen, sulfur and argon at 1e-9 to 1e-16 of it; the Newton step
-    of that gas stalls with all five in ("the element balance is off"), and settles when the two rarest (under `TRACE_ELEMENT_FRACTION`) are out."""
+    of that gas stalls with all five in ("the element balance is off"), and settles when the two rarest (under `TRACE_ELEMENT_FRACTIONS`) are out."""
     abundances = {"H": 3.735440154784931e-16, "Ar": 3.379812146652516e-21, "O": 6.93043683615438e-15, "C": 6.583546815986791e-15,
                   "N": 1.1914940104724934e-05, "S": 6.894484200178456e-20}
     with pytest.raises(ge.EquilibriumError):
@@ -160,17 +160,17 @@ def test_a_nitrogen_gas_with_1e_15_of_everything_else_leaves_the_rarest_elements
     assert "Ar" not in result.moles and "H2S" not in result.moles and "SO2" not in result.moles
 
 
-def test_a_nitrogen_gas_with_2e_11_of_carbon_and_oxygen_settles_with_only_the_nitrogen():
-    """GEN.1282: a moon's air at 502.3 K and 1 bar, nitrogen with carbon and oxygen at 2e-11 of it (above `TRACE_ELEMENT_FRACTION`, so the first cut
-    leaves them in), stalls at a carbon balance 1e5 times its own abundance. The second cut (`TRACE_ELEMENT_FRACTIONS`, 1e-9 of the gas) settles it."""
-    abundances = {"O": 5.111446168826871e-15, "C": 5.111283730028449e-15, "N": 0.00022157693505497162}
+def test_a_nitrogen_gas_with_a_stoichiometric_trace_of_carbon_monoxide_settles_when_the_third_try_drops_it():
+    """TEST.580: a nitrogen air with 2e-11 of carbon and oxygen in the proportion of carbon monoxide at 610.8 K and 1 bar stalls with them in ("the element
+    balance is off"), and their share, against the nitrogen, is above the first trace threshold of 1e-12; the third try (1e-9) leaves them out."""
+    abundances = {"H": 5.827410956717876e-22, "Ar": 2.0396438371618915e-26, "O": 3.1999432444778193e-15, "C": 3.199829766316648e-15,
+                  "N": 0.00016396273364950565, "S": 7.039570359835678e-24}
     with pytest.raises(ge.EquilibriumError):
-        ge._solve(abundances, 502.2999289450794, 1.0000000000000002)
-    result = ge.solve(abundances, 502.2999289450794, 1.0000000000000002)
-    assert result.mole_fractions["N2"] > 0.999999999
-    assert "CO" not in result.moles and "CO2" not in result.moles
+        ge._solve(abundances, 610.8474450477256, 1.0000000000000002)
+    result = ge.solve(abundances, 610.8474450477256, 1.0000000000000002)
+    assert result.mole_fractions["N2"] > 0.999999
 
 
-def test_a_gas_that_stalls_whatever_is_left_out_raises_the_error_of_the_full_gas():
+def test_a_gas_of_an_element_no_species_holds_still_raises():
     with pytest.raises(ge.EquilibriumError):
-        ge.solve({"Zz": 1.0, "N": 1.0}, 1000.0, 1.0)
+        ge.solve({"Og": 1.0, "N": 1e-15}, 610.0, 1.0)

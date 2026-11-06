@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from planetgen.db import gravity_sources, store
-from planetgen.galaxy import gravity_kernel, spherical
+from planetgen.galaxy import gravity_field, gravity_kernel, spherical
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole
@@ -32,6 +32,8 @@ def _save(mysql_config):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         cfg.BINARY_SYSTEM = False
+        cfg.PLANETS = True      # the test is about folding the planets in: the run seed must not draw a bare star
+        cfg.MAX_PLANETS = True
         system = StarSystem(system_config=cfg)
         system.name = f"Gravstar {index}"
         sector.add_system(system, position=(float(index) - 0.5, 0.0, 0.0), system_config=cfg)
@@ -104,9 +106,9 @@ def test_folding_a_systems_bodies_into_one_point_changes_the_field_at_the_zone_s
     explicit = gravity_kernel.fields(zones, positions, masses)
     folded = gravity_kernel.fields(zones, barycenter[None, :], np.array([masses.sum()]))
     star_only = gravity_kernel.fields(zones, star[None, :], np.array([1.0]))
-    folded_error = np.linalg.norm(folded[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_kernel.pull_size(explicit)
-    star_only_error = np.linalg.norm(star_only[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_kernel.pull_size(explicit)
+    folded_error = np.linalg.norm(folded[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_field.pull_size(explicit)
+    star_only_error = np.linalg.norm(star_only[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_field.pull_size(explicit)
     assert folded_error.max() < 1.0e-3
     assert star_only_error.max() > 5.0e-4        # leaving the planets out is the larger error, so they are folded in
     at_the_star = gravity_kernel.fields(zones, star[None, :], np.array([masses.sum()]))
-    assert (np.linalg.norm(at_the_star[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_kernel.pull_size(explicit)).max() < 1.0e-3     # the mass at the star, not the barycenter, is as good
+    assert (np.linalg.norm(at_the_star[:, 0:3] - explicit[:, 0:3], axis=1) / gravity_field.pull_size(explicit)).max() < 1.0e-3     # the mass at the star, not the barycenter, is as good

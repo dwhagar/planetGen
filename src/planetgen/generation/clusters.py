@@ -167,7 +167,7 @@ def generate_clusters(galaxy_seed, count, epoch_unix=0.0, scale=1.0, shape=None)
             cluster's Jacobi radius (GEN.339); `None` takes the shape the seed draws with every lever on Auto (`shape_draw.default_shape`).
 
     Returns:
-        list[Component]: `count` clusters named "Generated cluster 001" and on, in drawing order.
+        list[Component]: `count` clusters in drawing order, with no name: the first fill that touches one names it (GEN.359).
     """
     stream = _stream(galaxy_seed)
     seed_bytes = potential.seed_bytes(galaxy_seed)
@@ -185,7 +185,7 @@ def generate_clusters(galaxy_seed, count, epoch_unix=0.0, scale=1.0, shape=None)
         radius, w0, collapsed = _structure(stream, distance, scale)
         w0 = king.limit_w0(w0, radius, king.jacobi_radius_pc(mass, distance, enclosed_mass.enclosed_mass_solar(shape, seed_bytes, max(distance, 1.0))))
         clusters.append(components.Component(
-            kind="cluster", name=f"Generated cluster {index + 1:03d}", source="generated",
+            kind="cluster", name=None, source="generated",
             center_pc=position, velocity_kms=velocity, epoch_unix=epoch_unix, mass_solar=mass,
             half_mass_radius_pc=radius, profile="king", age_gy=stream.uniform(*tuning.CLUSTER_AGE_RANGE_GY),
             metallicity_fe_h=_fe_h(stream, group), seed=stream.getrandbits(63), king_w0=w0,

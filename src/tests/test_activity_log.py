@@ -13,7 +13,7 @@ import time
 import pytest
 
 from planetgen.admin import activity_log, auth as adminAuth
-from planetgen.util import logpaths
+from planetgen.util import log, logpaths
 
 LINE = re.compile(
     r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4} planetgen\[\d+\]: (?P<cat>[A-Z]+) (?P<action>\S+) '
@@ -174,8 +174,7 @@ def test_existing_but_unwritable_folder_warns(tmp_path, monkeypatch, capsys):
 
     def refuse(*args, **kwargs):
         raise PermissionError(13, "Permission denied")
-    monkeypatch.setattr(activity_log, "_RotatingHandler", refuse)
-    monkeypatch.setattr(activity_log, "_WatchedHandler", refuse)
+    monkeypatch.setattr(log, "file_handler", refuse)
     try:
         activity_log.event("AUTH", "logout")
         activity_log.event("AUTH", "logout")

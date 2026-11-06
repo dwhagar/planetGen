@@ -55,15 +55,11 @@ CONVERGED_FRACTION = 1e-12
 """float: Species rarer than this are not waited for: the trace species of a stiff system jitter at 1e-8 in the Newton step while
 the rest has converged to 1e-12, and they are recomputed exactly from the converged element potentials at the end."""
 
-TRACE_ELEMENT_FRACTION = 1e-12
-"""float: An element rarer than this against the commonest one is left out of a second try when the first does not settle: the
+TRACE_ELEMENT_FRACTIONS = (1e-12, 1e-9)
+"""tuple: An element rarer than the first of these against the commonest one is left out of a second try when the first does not settle: the
 Newton step of a gas that is all one element (a nitrogen air with 1e-15 of everything else) can stall with the rarest elements
-in, and what they would add is below the precision of the rest."""
-
-TRACE_ELEMENT_FRACTIONS = (TRACE_ELEMENT_FRACTION, 1e-9)
-"""tuple: The fractions `solve` tries in turn. A nitrogen gas with 2e-11 of carbon and oxygen (a moon's air at 502 K and 1 bar, found by the
-GEN.1282 profile run) stalls at a carbon balance 1e5 times its own abundance with them in, and settles with only the nitrogen: what they
-would add is below 1e-9 of the gas."""
+in, and what they would add is below the precision of the rest. A third try leaves out those under the second (a nitrogen air with 2e-11 of
+carbon monoxide at 611 K stalls with the carbon and the oxygen in, TEST.580), and what that drops is under a part in a billion."""
 
 MOLES_FLOOR = 1e-290
 """float: The least moles a species is allowed, so that no logarithm is minus infinity."""
@@ -106,27 +102,26 @@ class Equilibrium:
 
 def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
     """
-    The equilibrium gas of `abundances`, tried again without the trace elements (`TRACE_ELEMENT_FRACTION`) when it does not settle
+    The equilibrium gas of `abundances`, tried again without the trace elements (`TRACE_ELEMENT_FRACTIONS`, the rarest first) when it does not settle
     with them in.  See `_solve` for the arguments.
     """
     try:
         return _solve(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
-    except EquilibriumError as first_error:
+    except EquilibriumError as first:
         given = {symbol: float(value) for symbol, value in abundances.items() if value and value > 0}
         if not given:
             raise
-        last_error = None
         tried = len(given)
         for fraction in TRACE_ELEMENT_FRACTIONS:
             kept = {symbol: value for symbol, value in given.items() if value >= fraction * max(given.values())}
             if len(kept) == tried:
-                continue    # nothing more left out than the try before
+                continue
             tried = len(kept)
             try:
                 return _solve(kept, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
-            except EquilibriumError as error:
-                last_error = error
-        raise last_error if last_error is not None else first_error
+            except EquilibriumError:
+                continue
+        raise first
 
 
 def _solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):

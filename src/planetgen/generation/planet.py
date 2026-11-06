@@ -24,7 +24,7 @@ defined separately in `asteroidData`.
 import math
 
 from planetgen import tuning
-from planetgen.generation import habitable_request, prevalence
+from planetgen.generation import habitable_request, irregular_moons, prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
@@ -351,6 +351,7 @@ class Planet(PlanetaryObject):
         self.moon_origin = moon_origin
         self.moon_disk_system = moon_disk_system
         self.moons = []
+        self.irregulars = irregular_moons.NO_IRREGULARS    # the small bodies the planet caught (GEN.1083); `StarSystem` fills them in once the system's belts stand
         # This planet's own reflex-offset "wobble" (schema v20) from its
         # moons' combined pull -- 0.0 by default (no moons yet), recomputed
         # by `planetPhysics.generate_moons` once `self.moons` is populated
@@ -441,7 +442,7 @@ class Planet(PlanetaryObject):
             self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
             planetPhysics.calculate_atmospheric_conditions(self, distance_override)
             planetPhysics.apply_class(self)
-            if not (system_config.HABITABLE_WORLD is False and self.zone == 'e' and habitable_request.meets(self)):
+            if not (system_config.HABITABLE_WORLD is False and (habitable_request.meets(self) or planetPhysics.is_life_class(self))):
                 break
             draw.redrawn("planet.barred_world")
         self._finish_motion_and_moons(primary_mass_kg, moon_count)
@@ -519,6 +520,8 @@ class Planet(PlanetaryObject):
         """Whether a planet left to chance gets moons: an even chance, or for a small body the share of the hosting gate's
         `satellite-share` table for its population and size (GEN.761), moved by the run's moons prevalence (GEN.52)."""
         chance = planetPhysics.satellite_share(self)
+        if chance is None and self.body_type != "g":
+            chance = tuning.ROCKY_IMPACT_MOON_CHANCE    # GEN.962: a rocky planet's massive moon comes from a giant impact
         if prevalence.percent(self.system_config, "moons"):
             return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5 if chance is None else chance)
         return draw.randrange(2) == 1 if chance is None else draw.random() < chance
@@ -528,6 +531,7 @@ class Planet(PlanetaryObject):
         recursively."""
         data["habitable_zone"] = list(self.habitable_zone)
         data["moons"] = [moon.to_dict() for moon in self.moons]
+        data["irregulars"] = self.irregulars.to_dict()
 
     @classmethod
     def from_dict(cls, data, star, system_config):
@@ -553,6 +557,7 @@ class Planet(PlanetaryObject):
     def _decode(self, data):
         # a rogue planet (GEN.1111) has no host and so no habitable zone of one's own
         self.habitable_zone = tuple(data["habitable_zone"]) if data.get("habitable_zone") is not None else None
+        self.irregulars = irregular_moons.IrregularSet.from_dict(data.get("irregulars"))
 
     @property
     def life_class_id(self):

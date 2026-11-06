@@ -39,6 +39,23 @@ def test_every_line_on_stdout_is_an_iso_timestamped_line(debug_console, capsys):
     assert all(ISO_LINE.match(line) for line in lines), lines
 
 
+DEBUG_COLUMNS = re.compile(r"^\S+ (?P<level>[A-Z]+) +(?P<origin>\S+) \[(?P<area>[a-z]+)\] (?P<source>[\w.]+:\d+) (?P<function>\S+) \| (?P<message>.*)$")
+"""re.Pattern: The debug line (OPS.102): time, severity, origin, the area in brackets, source line, function, and the message after a bar."""
+
+
+def test_the_debug_line_names_its_area_and_not_its_logger(debug_console, capsys):
+    """OPS.102: `[draw]`, `[sql]`, `[queue]` is the column to filter on; the logger's name (almost always `planetgen`) is gone."""
+    log.debug("a decision")
+    log.debug("a worker started", area="queue")
+    log.trace("a cache hit", area="cache")
+    draw.random()
+    lines = capsys.readouterr().out.splitlines()
+    found = [DEBUG_COLUMNS.match(line) for line in lines]
+    assert all(found), lines
+    assert [m.group("area") for m in found] == ["decision", "queue", "cache", "draw"]
+    assert not any(" planetgen " in line.split("|")[0] for line in lines), "no logger-name column"
+
+
 def test_draws_on_a_held_stream_are_traced_and_nested_draws_are_one_line(debug_console, capsys):
     stream = draw.Stream("held")
     stream.uniform(1, 2)
@@ -155,7 +172,7 @@ def test_branches_are_logged_only_when_the_branch_area_is_named(monkeypatch, cap
     finally:
         log.configure(log.NORMAL)
     assert not log._branch_active
-    branches = [line for line in out.splitlines() if "planetgen.trace random.py:" in line]
+    branches = [line for line in out.splitlines() if "[branch] random.py:" in line]
     assert any("if max_val <= min_val:" in line and " to line " in line and "max_val=1.0" in line
                for line in branches), branches
     assert any("for _ in range(max_attempts):" in line for line in branches)

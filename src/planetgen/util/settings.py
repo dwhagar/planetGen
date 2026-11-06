@@ -434,6 +434,14 @@ class Queue(_Section):
         label="Long job limit",
         summary="Jobs expected to take longer than this go to the long lane.",
         control="duration")
+    sky_limit: float = opt(
+        7.5, "The limiting magnitude of the sky charting builds for each system's neighbourhood (VIEW.25): when a run charts sectors, the stars a system's "
+        "sky shows to this magnitude are drawn over the 50 parsec cells the new sectors lie in, after the bright-star backfill, so a visitor never waits "
+        "for them. A cell already drawn costs nothing. Fainter limits draw more stars and take longer: 7.5 is a dust-free naked-eye sky, about half an hour "
+        "a cell on one worker. 0 turns it off; otherwise 2 to 9. The command line's --sky-limit overrides it for a run.",
+        env="PLANETGEN_SKY_LIMIT", unit="magnitude", group="speed", ge=0, le=9,
+        label="Sky limit built by charting",
+        summary="How faint the stars charting draws for each system's sky go; 0 builds none.")
     unit_ceiling_seconds: float = opt(
         300, "The longest a unit of a generation stage is expected to run. A stage is cut into units no "
         "longer than this at the default galaxy size; a unit that runs longer is written to the run's log, naming "
@@ -828,7 +836,7 @@ class Settings(_Section):
         choice_labels={"logfmt": "Key and value pairs", "json": "JSON lines"},
         label="Record file form",
         summary="Whether the record file is written as key=value lines or as JSON lines.")
-    log_dir: str = opt("", "The folder of the always-on activity log and of the warm-up log (warmup.log); empty means /var/log/planetgen on Linux, "
+    log_dir: str = opt("", "The folder of the always-on activity log and of the long jobs' logs (warmup.log, tiles.log, orbits.log, update.log); empty means /var/log/planetgen on Linux, "
                        "/Library/Logs/planetgen on macOS.",
                        env="PLANETGEN_LOG_DIR", restart=True, editable=False, group="logging",
                        label="Activity log folder",

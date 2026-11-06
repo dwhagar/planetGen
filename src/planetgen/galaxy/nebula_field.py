@@ -36,6 +36,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula, NEBULA_CLASS_LETTERS
 from planetgen.galaxy.sector import _sample_poisson_count
+from planetgen.physics import nebula_columns
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import detmath
@@ -76,8 +77,9 @@ def _gas_tracer(position_pc, shape):
     formed from is the satellite's own (GEN.528).
     """
     mix = galaxyDensity.population_densities(position_pc, shape)
-    # A satellite galaxy's young stars (GEN.526) formed from its own gas, which no spiral arm of the disk shapes.
-    satellite = max(mix["satellite_young"], 0.0)
+    # A satellite galaxy's young stars (GEN.526) formed from its own gas, which no spiral arm of the disk shapes. A Cloud's gas is
+    # scaled to its molecular mass (GEN.367, `ComponentField.gas_density`).
+    satellite = max(shape.components.gas_density(position_pc), 0.0) if shape.components is not None else 0.0
     arm_cos = galaxyDensity._arm_cosine(position_pc[0], position_pc[1], shape)
     star_contrast = 1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE["young"] * arm_cos
     if star_contrast <= 0.0:
@@ -307,8 +309,8 @@ def field_extent_pc(edge_pc, extents):
 def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc):
     """
     The `nebula_field` rows of field cells with first index `i` inside the cylinder (`field_extent_pc`): tuples
-    `(cell_i, cell_j, cell_k, n, class, radius_ly, x, y, z)` of the kept clouds of `TABLE_CLASSES`, cells in index
-    order.
+    `(cell_i, cell_j, cell_k, n, class, radius_ly, x, y, z, *composition)` of the kept clouds of `TABLE_CLASSES`, cells in index
+    order, the composition the values of `nebula_columns.FIELD_COLUMNS` (GEN.1277), worked out from the cloud's own density and its place.
     """
     edge = tuning.NEBULA_FIELD_CELL_PC
     k_low, k_high = math.floor(-half_height_pc / edge), math.floor(half_height_pc / edge)
@@ -325,4 +327,6 @@ def table_rows(galaxy_seed, shape, i, radius_pc, half_height_pc):
             index = (i, j, k)
             for n, nebula, center in cell_draw(galaxy_seed, shape, index):
                 if nebula.nebula_class in TABLE_CLASSES and cloud_kept(galaxy_seed, index, n, nebula, center, shape):
-                    yield (i, j, k, n, nebula.nebula_class, nebula.radius_ly, *center)
+                    with nebula_columns.in_galaxy(galaxy_seed or FALLBACK_SEED, shape):
+                        composition = nebula_columns.field_values(nebula.nebula_class, nebula.density_cm3, nebula.radius_ly, center)
+                    yield (i, j, k, n, nebula.nebula_class, nebula.radius_ly, *center, *composition)

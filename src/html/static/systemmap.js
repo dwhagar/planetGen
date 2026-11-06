@@ -50,6 +50,7 @@ const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
 const { placeBoxes } = await import(`./maplabels.js${VERSION_QUERY}`);
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
 const { renderViewMenu } = await import(`./viewmenu.js${VERSION_QUERY}`);
+const { createSystemGravity } = await import(`./systemgravity.js${VERSION_QUERY}`);
 
 function classField(el) {
   var cls = el.dataset.class;
@@ -1113,6 +1114,7 @@ function initSystemMap(root) {
       }
     }
     rememberScene(sceneId);
+    root.dispatchEvent(new CustomEvent("sysmap-scene", { detail: { scene: sceneId } }));
 
     clearMeasureSelection();
     layoutLabels(active);
@@ -1303,18 +1305,49 @@ function initLayers(root) {
       Spin.setSwitch(on);
     },
   });
+  // MAP.169: the Gravity layer of the scene on show (systemgravity.js): the orbital plane as a heat map, the Hill spheres and the Lagrange points.
+  var gravity = createSystemGravity({
+    root: root,
+    markerCenter: markerCenterPx,
+    onChange: function () { layers.refresh(); writeLayersToUrl(); },
+  });
+  layers.register({
+    id: "gravity",
+    label: "Gravity",
+    group: "Gravity",
+    heading: "Show",
+    keywords: ["gravity", "pull", "well", "tidal", "field", "heat map", "hill", "sphere", "lagrange", "trojan"],
+    title: "Show or hide the gravity of the bodies in this view as a heat map, with their Hill spheres and Lagrange points",
+    modes: ["system"],
+    defaultOn: false,
+    urlKey: "hide",
+    urlKeyOn: "show",
+    legend: gravity.legend,
+    settings: gravity.settings,
+  });
+  function writeLayersToUrl() {
+    var params = layers.writeUrl(new URLSearchParams(window.location.search));
+    gravity.writeUrl(params);
+    var query = params.toString().replace(/%2C/gi, ",");
+    window.history.replaceState(window.history.state, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
+  }
   layers.readUrl(window.location.search);
+  gravity.readUrl(new URLSearchParams(window.location.search));
+  root.addEventListener("sysmap-scene", function () { gravity.sceneShown(); });
   renderViewMenu(layers, menu);
   var legend = document.getElementById("sysmap-layer-legend");
   if (legend) {
     layers.renderLegend(legend);
   }
   layers.draw(root);
-  layers.onChange(function () {
+  gravity.setOn(layers.isOn("gravity"));
+  layers.onChange(function (id, on) {
     layers.draw(root);
-    var params = layers.writeUrl(new URLSearchParams(window.location.search));
-    var query = params.toString().replace(/%2C/gi, ",");
-    window.history.replaceState(window.history.state, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
+    if (id === "gravity") {
+      gravity.setOn(on);
+      return;
+    }
+    writeLayersToUrl();
   });
   root.__mapLayers = layers; // for the browser tests, which register a layer of their own
 }

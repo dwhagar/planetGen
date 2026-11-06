@@ -118,7 +118,7 @@ class ComponentField:
         held = gate_components(found)
         self.edge_pc = float(edge_pc)
         self.expected_at_density_1 = float(expected_at_density_1)
-        self.names = tuple(c.name for c in held)
+        self.names = tuple(c.key for c in held)
         self.kinds = tuple(c.kind for c in held)
         self.families = tuple(components.family_of(c) for c in held)
         self.fe_h = tuple(c.metallicity_fe_h for c in held)
@@ -266,6 +266,19 @@ class ComponentField:
             for population, share in self.shares[i].items():
                 total[population] += systems * share
         return {population: systems / self.expected_at_density_1 for population, systems in total.items()}
+
+    def gas_density(self, position_pc):
+        """
+        The satellites' young-star density that stands for their gas at `position_pc`, in the units of `densities` (GEN.367): each
+        satellite's `satellite_young` systems, times its `tuning.SATELLITE_NEBULA_GAS_SCALE` (1 for a satellite not named there), so
+        the molecular clouds the nebula field draws follow the gas the Milky Way would hold, not the whole young stellar ball.
+        """
+        total = 0.0
+        for i, systems in self._contributions(position_pc):
+            young = self.shares[i].get("satellite_young", 0.0)
+            if young > 0.0:
+                total += systems * young * tuning.SATELLITE_NEBULA_GAS_SCALE.get(self.names[i], 1.0)
+        return total / self.expected_at_density_1
 
     def relative_density(self, position_pc, kind=None):
         """

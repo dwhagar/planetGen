@@ -34,7 +34,10 @@ from planetgen.physics import gases, unit_registry
 ENTITIES = ("star", "planet", "moon")
 """tuple: The result panels that take numeric keys."""
 
-TABLE_OF = {"star": "stars", "planet": "planets", "moon": "moons"}
+LIST_ENTITIES = ("nebula", "supernova_remnant")
+"""tuple: The kinds whose object lists take numeric keys but that are no panel of the system search (GEN.1276: the composition of a nebula or a remnant)."""
+
+TABLE_OF = {"star": "stars", "planet": "planets", "moon": "moons", "nebula": "nebulae", "supernova_remnant": "supernova_remnants"}
 """dict: The table of each entity."""
 
 GAS_PREFIX = "gas_"
@@ -101,6 +104,37 @@ def _gas(formula):
 
 
 _BODIES = ("planet", "moon")
+_PHENOMENA = ("nebula", "supernova_remnant")
+
+
+def _composition_keys():
+    """The keys of the stored composition of a nebula or a remnant (GEN.1276, `physics/nebula_columns.py`): each is the column of the same name."""
+    from planetgen.physics import nebula_columns
+    labels = {"gas_oh_dex": ("gas_oh", "Metallicity of the gas ([O/H])"), "progenitor_mass_sol": ("progenitor_mass", "Progenitor mass"),
+              "dust_to_gas": ("dust_to_gas", "Dust-to-gas mass ratio"), "dust_to_metals": ("dust_to_metals", "Dust-to-metals mass ratio"),
+              "ionized_share": ("ionized_share", "Ionized share of the hydrogen"), "atomic_share": ("atomic_share", "Atomic share of the hydrogen"),
+              "molecular_share": ("molecular_share", "Molecular share of the hydrogen"),
+              "ejecta_mass_sol": ("ejecta_mass", "Mass of the ejecta"), "swept_mass_sol": ("swept_mass", "Mass of the swept-up gas")}
+    found = []
+    for column in nebula_columns.COLUMNS["supernova_remnants"]:
+        unit = nebula_columns.UNITS[column]
+        entities = _PHENOMENA if column in nebula_columns.COMMON_COLUMNS else ("supernova_remnant",)
+        if column in labels:
+            key, label = labels[column]
+        elif column.startswith("mass_fraction_"):
+            last = column.split("_")[-1]
+            key, label = column, "Mass fraction of the metals" if last == "z" else f"Mass fraction of {last.capitalize()}"
+        elif column.startswith("abundance_"):
+            key, label = column, f"12 + log({column.split('_')[-1].capitalize()}/H) of the gas"
+        elif column.startswith(("ejecta_mass_fraction_", "swept_mass_fraction_")):
+            part, last = column.split("_")[0], column.split("_")[-1]
+            key, label = column, f"Mass fraction of {'the metals' if last == 'z' else last.capitalize()} in the {part if part == 'ejecta' else 'swept-up gas'}"
+        elif column.startswith("grain_"):
+            key, label = column, f"Share of the dust in {column[6:].upper() if column == 'grain_pah' else column[6:]} grains"
+        else:
+            key, label = column, column.replace("_", " ").capitalize()
+        found.append(SearchValue(key, label, entities, column, _same(unit, entities)))
+    return found
 
 
 def _body(key, label, column, unit, entities=_BODIES):
@@ -125,6 +159,7 @@ KEYS = {value.key: value for value in (
     SearchValue("age", "Age", ("star",), "age_gy", {"star": "Gyr"}),
     SearchValue("temperature", "Surface temperature", ("star",), "temperature_k", {"star": "K"}),
     *(_gas(gas.formula) for gas in gases.GASES),
+    *_composition_keys(),
 )}
 """dict: Key -> `SearchValue`, every numeric key the search takes."""
 
@@ -221,7 +256,7 @@ def ranges_from_args(args):
         ValueError: A bound is not a finite number, the least is over the most, or a unit is not one of the quantity.
     """
     found = {}
-    for entity in ENTITIES:
+    for entity in ENTITIES + LIST_ENTITIES:
         for key, value in KEYS.items():
             if entity not in value.entities:
                 continue

@@ -371,6 +371,16 @@ SECTOR_MAP_HELP = """<h3>Moving</h3>
     <li>Translucent clouds are nebulae, asteroid fields and supernova remnants; faint clouds reach in from a
     neighboring sector.</li>
     <li>Faint points are rogue planets; Mark in the Menu makes a kind of object easier to see.</li>
+  </ul>
+  <h3>Gravity</h3>
+  <ul>
+    <li>Turn on Gravity in the Menu to color the sector by its gravity. Pull is how hard gravity tugs on a ship at a spot, Well depth is how far down
+    in a gravity well the spot lies, and Stretch is how much gravity pulls a ship apart, nose from tail. Step through the sector one slab at a time,
+    or show every slab at once.</li>
+    <li>Brighter is more. The colors cover the middle 96% of this sector's own values on a log scale, so the wells of the nearby stars stand out
+    against the pull of the galaxy as a whole, which is far stronger and almost the same everywhere in a sector. The Key gives the range and the unit.</li>
+    <li>A white diamond is a saddle point: a spot between stars where their pulls cancel, so a ship could hover there, though it is still stretched
+    and drifts away if nudged. Hover one for the full pull there.</li>
   </ul>"""
 """The sector page's map (MAP.68): the help dialog (UX.50)."""
 
@@ -471,7 +481,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               near_path="/galaxy/near", locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               uncharted_scene_url=None,
-                              uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
+                              uncharted_phenomenon_url=None, superbubbles=None, clusters=None, nearby_url=None,
                               system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None,
                               nebula_volume_path="/galaxy/nebula-volume", nebula_alone_volume_path="/galaxy/nebula/{id}/volume",
                               cloud_volume_path="/galaxy/cloud-volume"):
@@ -585,6 +595,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             frame parsecs), `sector` and `navUrl`. `None` draws none.
         superbubbles (list or None): The galaxy's superbubbles (GEN.254; `apiclient.get_superbubbles`): `x`, `y`,
             `z` and `radius_pc` each, drawn as faint thin shells under everything else. `None` draws none.
+        clusters (list or None): The galaxy's globular clusters (MAP.224; `web/galaxy_views.py`): `ref`, `name` (its name, else its
+            designation), `named`, `href` (its page), `x`, `y`, `z` and `radius_pc` each, offered to the label engine as the
+            cluster's name. `None` names none.
         made (dict or None): The sectors a generate job made (ADM.31):
             `total`, `points` (their centers, parsecs) and `sectors`
             (`[shell, band, wedge]`), up to a cap. The map rings them and
@@ -612,6 +625,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "course": course,
         "made": made,
         "superbubbles": [[b["x"], b["y"], b["z"], b["radius_pc"]] for b in superbubbles or []],
+        "clusters": list(clusters or []),
         "pick": pick["pick"] if pick else None,
         # The NAV pick the page opened with (static/navpick.js carries on
         # from it): the other end already chosen and where Cancel goes.

@@ -15,7 +15,7 @@ The irregular satellites of the giants are captured small bodies on distant, ecc
 * **The inner edge.** A body whose pericenter `a (1 - e)` lies inside the orbit of the outermost regular moon is removed by collisions with it: 0.013 AU at Jupiter (Callisto), 0.023 at Saturn (Iapetus), 0.004 at Uranus (Oberon).
 
 `zone` gives the limits of a planet; `verdict` says whether a body with given elements stays and, if not, why. A hot planet's zone is empty (`Zone.empty`): its stable limit lies inside its regular moons.
-Stand-ins are IZ1 to IZ3 of `docs/design/research/gap-filling-plan.md` section 6.94. Nothing reads the module yet; the captured-moon draw (GEN.1078 and the wiring items) will.
+Stand-ins are IZ1 to IZ3 of `docs/design/research/gap-filling-plan.md` section 6.94. `generation.irregular_moons` reads it.
 """
 
 from dataclasses import dataclass

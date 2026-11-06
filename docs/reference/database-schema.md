@@ -1418,7 +1418,36 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `roundness_ratio`, `yield_strength_pa`, `binding_energy_j` | DOUBLE | nullable | Added in v199 (GEN.1159, GEN.1178). The mean radius over the round radius of the body (1 or more is round, less is not; `physics/roundness.py`), the whole-body strength of its material mix in Pa, drawn from the range of each material by a quantile from a stream of the body's own seed, and the energy that assembling it releases in J (`physics/binding_energy.py`: two uniform shells for a rocky body with a core, the n = 1 polytrope for a gas giant). `physics/body_strength.py` sets them. A gas giant keeps only `binding_energy_j`; the other two are NULL for it. NULL for a row made before v195; nothing is backfilled. |
 | `planet_type` | VARCHAR(12) | nullable | Added in v206 (GEN.1219). The body type: `terrestrial` (envelope under 0.5 percent of the mass), `transitional` (0.5 to 50 percent, the ice giants among them) or `gas` (50 percent and over), from `envelope_mass_fraction` (`physics/planet_type.py`). The rogue planets keep their own `planet_type` of `t` or `g`. NULL for a row made before v206. |
 | `class_variant` | TINYINT | nullable | Added in v206 (GEN.1220). The digit of the class code, 0 to 9; 0 is not written, so class M with digit 0 is M and class F with digit 2 is F2 (`physics/class_code.py`). NULL for a row made before v206 and for a body with no class. |
+| `relative_humidity` | DOUBLE | nullable | Added in v212 (GEN.1221). The air's water vapor over saturation at the surface temperature, 0.05 to 0.99 (`physics/habitability_world.py`), the number the wet bulb uses. NULL for a row made before v212 and for a giant. |
+| `groundwater` | VARCHAR(10) | nullable | Added in v212 (GEN.1221). `none`, `reachable` or `deep`: the liquid water a body with none at its surface holds underground, reachable when the top of its water layer is within `tuning.AQUIFER_REACH_KM`. NULL for a row made before v212 and for a giant. |
+| `class_match` | DOUBLE | nullable | Added in v218 (GEN.1207). How well the stored class fits the body, 0 to 1: the geometric mean of the memberships of the conditions of the class (`physics/class_fit.py`). 0 when no class fits the body; the stored class is then its nearest. NULL for an Asteroid and for a row made before v218. |
+| `runner_up_class`, `runner_up_match` | CHAR(1), DOUBLE | nullable | Added in v218 (GEN.1207). The class with the next best match and its match; NULL when no other class matches at all, for an Asteroid and for a row made before v218. |
 | `temp_mean_swing_k` | DOUBLE | nullable | Added in v182 (GEN.848), kept in v196 (GEN.1108). The day and night swing of the whole surface, peak to peak, in kelvin of difference: the area-weighted mean of the swings of the seven bands (`band1_swing_k` to `band7_swing_k`). NULL for a gas giant, an unscored body and a row made before v195. |
+| `temp_livable_share` | DOUBLE | nullable | Added in v217 (GEN.1265). L, the share of the surface's area and time a person can be out in without a suit (the Green band, -20 to 45 C, or better; a sample past the wet bulb limit is not livable). NULL for a gas giant and an unscored body. |
+| `temp_livable_area` | DOUBLE | nullable | Added in v217 (GEN.1265). The share of the surface livable at least half of the time. NULL for a gas giant and an unscored body. |
+| `temp_livable_time` | DOUBLE | nullable | Added in v217 (GEN.1265). The mean share of the time that ground is livable. NULL for a gas giant and an unscored body. |
+| `temp_blue_share` | DOUBLE | nullable | Added in v217 (GEN.1265). The share of area and time in the Blue band (0 to 31 C). NULL for a gas giant and an unscored body. |
+| `temp_green_share` | DOUBLE | nullable | Added in v217 (GEN.1265). The share in the Green band and not Blue. NULL for a gas giant and an unscored body. |
+| `temp_cold_share` | DOUBLE | nullable | Added in v217 (GEN.1265). The share below -20 C. NULL for a gas giant and an unscored body. |
+| `temp_hot_share` | DOUBLE | nullable | Added in v217 (GEN.1265). The share above 45 C. NULL for a gas giant and an unscored body. |
+| `temp_area_always` | DOUBLE | nullable | Added in v217 (GEN.1265). The share of the surface livable all the time. NULL for a gas giant and an unscored body. |
+| `temp_area_most` | DOUBLE | nullable | Added in v217 (GEN.1265). The share of the surface livable at least 90 percent of the time. NULL for a gas giant and an unscored body. |
+| `temp_livable_belt_only` | TINYINT | nullable | Added in v217 (GEN.1265). 1 when a world that turns once an orbit is livable only in its terminator belt (the day side and the night side are each under a tenth livable), else 0. NULL for a gas giant and an unscored body. |
+| `temp_coldest_k` | DOUBLE | nullable | Added in v217 (GEN.1265). The coldest sample anywhere in the year, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_coldest_lat_deg` | DOUBLE | nullable | Added in v217 (GEN.1265). Its latitude, degrees. NULL for a gas giant and an unscored body. |
+| `temp_coldest_lon_deg` | DOUBLE | nullable | Added in v217 (GEN.1265). Its longitude, degrees. NULL for a gas giant and an unscored body. |
+| `temp_coldest_day` | DOUBLE | nullable | Added in v217 (GEN.1265). When, days from an equinox. NULL for a gas giant and an unscored body. |
+| `temp_hottest_k` | DOUBLE | nullable | Added in v217 (GEN.1265). The hottest sample anywhere, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_hottest_lat_deg` | DOUBLE | nullable | Added in v217 (GEN.1265). Its latitude. NULL for a gas giant and an unscored body. |
+| `temp_hottest_lon_deg` | DOUBLE | nullable | Added in v217 (GEN.1265). Its longitude. NULL for a gas giant and an unscored body. |
+| `temp_hottest_day` | DOUBLE | nullable | Added in v217 (GEN.1265). When, days from an equinox. NULL for a gas giant and an unscored body. |
+| `temp_site_lat_deg` | DOUBLE | nullable | Added in v217 (GEN.1265). The best site, the cell livable the largest share of the time (a tie goes to the most moderate): its latitude, degrees. NULL for a gas giant and an unscored body. |
+| `temp_site_lon_deg` | DOUBLE | nullable | Added in v217 (GEN.1265). Its longitude, degrees. NULL for a gas giant and an unscored body. |
+| `temp_site_livable_time` | DOUBLE | nullable | Added in v217 (GEN.1265). The share of the time it is livable. NULL for a gas giant and an unscored body. |
+| `temp_site_coldest_k` | DOUBLE | nullable | Added in v217 (GEN.1265). Its coldest sample, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_site_hottest_k` | DOUBLE | nullable | Added in v217 (GEN.1265). Its hottest sample, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_site_mean_k` | DOUBLE | nullable | Added in v217 (GEN.1265). Its mean temperature, kelvin. NULL for a gas giant and an unscored body. |
+| `temp_site_longest_out_days` | DOUBLE | nullable | Added in v217 (GEN.1265). Its longest unbroken spell out of the livable band, days (0 when it is always livable). NULL for a gas giant and an unscored body. |
 | `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The four likelihoods behind microbial life: `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation, each 0 to 1. (v76 also stored `phi_bio`, `phi_cpx` and `phi_tech`; v136 dropped them for the four life scores below.) |
 | `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | Added in v150 (GEN.649). The four life scores, 0 (none) to 9 (abundant), from the evolutionary path the body reached and its surface conditions ([habitability-index.md](../design/habitability/habitability-index.md) section 11). NULL for a gas giant or a body with no score. |
 | `energy_flux_w_m2` | DOUBLE | nullable | Added in v76 (GEN.89). The light or chemical power life can use: 6% of the starlight, or 1% of the body's own heat flow, whichever is more (the heat only, under an ice lid). The one input the score keeps, so the dose refresh can re-score from the row. |
@@ -1483,6 +1512,35 @@ Added in v203 (GEN.1209). The life classes that live on a planet or moon: one ro
 | `life_animal_grade`, `life_complexity` | TINYINT UNSIGNED, DOUBLE | nullable | The grade of the class's animals, 0 to 3, and its complexity index. |
 | `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr` | DOUBLE | nullable | The five ages of the class's schedule, Gyr; `NULL` for a step never reached. |
 | `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | The four kind scores, 0 to 9, that this class gives. |
+
+### `irregular_moons`
+
+Added in v219 (GEN.1084). The small bodies a planet caught from the outer disk and its own feeding zone (`generation/irregular_moons.py`), one row each: every body above 1e16 kg, then more of the next heaviest until 90 percent of the population's mass is held (at most 100). Smaller bodies are a total on `irregular_sets`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` | BIGINT UNSIGNED | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL | UNIQUE with `moon_rank`. |
+| `moon_rank` | INT | NOT NULL | The body's number for its planet (0 is the heaviest when it was built); it stays when a smaller body is lost. |
+| `capture_window` | VARCHAR(10) | NOT NULL | `gas`, `encounter` or `exchange`. |
+| `mass_kg`, `radius_km`, `density_g_cm3` | DOUBLE | NOT NULL | Mass, and the radius and bulk density its composition gives. |
+| `taxon` | VARCHAR(4) | NOT NULL | The class letter of the body at its source. |
+| `source_distance_km`, `ice_loss` | DOUBLE | NOT NULL | Where in the disk it came from, and the share of its water ice that capture removed. |
+| `rock_fraction`, `metal_fraction`, `water_fraction`, `ice_fraction` | DOUBLE | NOT NULL | The shares of its mass. |
+| `distance_km`, `eccentricity`, `inclination_deg`, `ascending_node_deg`, `arg_periapsis_deg`, `mean_anomaly_deg` | DOUBLE | NOT NULL | Its orbit about the planet. |
+
+### `irregular_sets`
+
+Added in v219 (GEN.1084). One row for a planet that has irregular moons (none for one without), with what the stored bodies leave out. It is a table and not columns on `planets` because `planets` has a FULLTEXT key and MySQL rebuilds the whole table for a new column.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` | BIGINT UNSIGNED | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL, UNIQUE | |
+| `remainder_kg` | DOUBLE | NOT NULL | The expected mass of the bodies that are not stored. |
+| `above_floor` | INT | NOT NULL | How many bodies were above the storage floor (1e16 kg). |
+| `lost` | INT | NOT NULL | Stored bodies lost (no orbit that stays, or the zone shrank when the planet moved). |
+| `temporary` | TINYINT(1) | NOT NULL | 1 when the zone can hold temporary captures. |
 
 ### `asteroid_belts`
 
@@ -1641,7 +1699,7 @@ sector-context encounter through v17, unused (always NULL) by
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 (`planetgen phenomenon --sector-id`): this nebula's own galaxy-frame center, in the same Cartesian space `sectors.center_x/y/z_pc` uses -- a sphere (this + `radius_ly`), not a sector-relative offset, since a nebula (up to 200 ly across) is frequently far larger than one sector (default edge 4 pc, ~13 ly) and may overlap several. NULL together: never placed in the galaxy (still the default -- `--sector-id` is optional). See `queryDb.phenomena_near_sector`/`galaxy_placed_phenomena` for how this is read back, and `docs/design/galaxy/galaxy-coordinate-system.md` for the coordinate system itself. |
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
 | `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. Set only when this nebula nests inside a larger cloud. |
-| `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
+| `gas_oh_dex`, `mass_fraction_h`, `_he`, `_z`, `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe`, `abundance_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe`, `ionized_share`, `atomic_share`, `molecular_share`, `dust_to_gas`, `dust_to_metals`, `grain_silicate`, `grain_iron`, `grain_carbon`, `grain_pah`, `grain_ice`, `progenitor_mass_sol` | DOUBLE | nullable | Added in v214 (GEN.1276). The stored composition (`planetgen/physics/nebula_columns.py`): the gas [O/H] (dex); the mass fractions of hydrogen, helium, metals and the seven shown elements (gas and dust together, H + He + Z = 1); 12 + log(X/H) of the gas phase (NULL where the ejecta has no hydrogen); the shares of the hydrogen mass that are ionized, atomic and molecular; the dust mass over the gas mass and over the metal mass; the shares of the dust mass in five grain kinds; and the initial mass of the progenitor star (solar masses, planetary nebulae only). NULL on a row not filled yet. `composition` and `dominant_species` are written from these numbers. |
 
 ### `supernova_remnants`
 
@@ -1669,6 +1727,8 @@ white dwarf).
 | `galactic_orbital_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a supernova remnant is always standalone). Its speed column was dropped in v103 (GEN.336): the speed is the length of `velocity_x/y/z_kms` (a star and a close pair read their system's). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this remnant's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
+| `gas_oh_dex`, `mass_fraction_h`, `_he`, `_z`, `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe`, `abundance_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe`, `ionized_share`, `atomic_share`, `molecular_share`, `dust_to_gas`, `dust_to_metals`, `grain_silicate`, `grain_iron`, `grain_carbon`, `grain_pah`, `grain_ice`, `progenitor_mass_sol` | DOUBLE | nullable | Added in v214 (GEN.1276). As on `nebulae`, ejecta and swept-up gas together; `progenitor_mass_sol` is the initial mass of the exploded star. |
+| `ejecta_mass_sol`, `swept_mass_sol`, `ejecta_mass_fraction_h`, `_he`, `_z`, `swept_mass_fraction_h`, `_he`, `_z` | DOUBLE | nullable | Added in v214 (GEN.1276). The mass thrown out by the explosion and the interstellar mass inside the blast wave (solar masses), and the hydrogen, helium and metal mass fractions of each part (`planetgen/physics/remnant_composition.py`). |
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 
 ### `rogue_planets`
@@ -1946,6 +2006,27 @@ Added in v201 (GEN.1127). One row for each sector cell that has been charted, ke
 | `generator_epoch` | SMALLINT UNSIGNED | nullable | The generator epoch it was charted under; a cell charted under an older epoch is stale. |
 | `charted_at` | TIMESTAMP(3) | NOT NULL | When the fill saved the sector (the old `sector_stats.filled_at`). |
 | `topped_up_at` | TIMESTAMP(3) | nullable | When the rogue top-up of its region run filled the cell (GEN.1120); NULL until it does. A cell keeps one top-up. |
+
+### `sky_tier_draws`
+
+Added in v216 (VIEW.25). One row for each sphere that charting has drawn for a tier of a system's sky (`generation/sky_charting.py`, `generation/sky_tiers.py`): a luminosity band or a mass ring, drawn with the star backfill over the sphere of its reach around the 50 parsec cell of the observer. A cell inside a complete sphere is complete down to the tier's floor without a `sector_stats` row of its own (a sky sphere holds billions of cells); the backfill and the fill settle the ledger's depth into the rows they read (`db/sky_tier_ledger.py`), and `db/sky_sphere.cell_levels` reads it for the sky's `filling`. A draw is committed in batches and goes on from the last one after a stop; only a `complete` row counts. `store.clear_bright_stars` and the by-part scatter reset delete the rows with the stars they drew.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | NOT NULL | Primary key, auto-increment. |
+| `kind` | VARCHAR(12) | NOT NULL | `luminosity` or `mass` (a check). |
+| `band_low`, `band_high` | DOUBLE | NOT NULL, nullable | The band's range, Lsun or solar masses; `band_high` is NULL for the top of a ladder (no ceiling). |
+| `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | NOT NULL | The sphere's center, galactocentric parsecs: the center of the observer's 50 pc cell. |
+| `radius_pc` | DOUBLE | NOT NULL | The sphere's radius: the tier's reach padded by half the cell's diagonal (stand-in SKC3); above zero (a check). |
+| `limit_mag` | DOUBLE | NOT NULL | The limiting magnitude the table was built for. |
+| `stars` | INT UNSIGNED | NOT NULL | Stars written so far. |
+| `seconds` | DOUBLE | NOT NULL | Seconds the draw has taken so far. |
+| `generator_epoch` | SMALLINT UNSIGNED | nullable | The epoch it was drawn under. |
+| `batches_done` | INT UNSIGNED | NOT NULL | Batches written, in the walk's order; a stopped draw goes on from here. |
+| `complete` | TINYINT(1) | NOT NULL | 1 once every batch is in; only these rows count. |
+| `drawn_at` | TIMESTAMP(3) | NOT NULL | When the row was last written. |
+
+The key `uq_sky_tier_draws_cell` is (`kind`, `band_low`, the center, `radius_pc`), so a sphere is found again by what it is.
 
 ### `sector_paths`
 
@@ -2292,6 +2373,7 @@ Migration 0195 adds `roundness_ratio`, `yield_strength_pa` and `binding_energy_j
 
 Migration 0200 adds `density_g_cm3` and `binding_energy_j` (DOUBLE, nullable) to `stars`, `black_holes` and `neutron_stars`; those with `roundness_ratio` and `yield_strength_pa` to `rogue_planets`; and `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa` and `binding_energy_j` to `interstellar_comets`, skipping a column already there. All are NULL after the migration; a row made before v196 gets them when the galaxy is regenerated.
 
+
 Migration 0204 adds `origin_cause`, `co_causes`, `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth`, `stirred`, `origin_history`, `origin_sentence`, `scatter_fates` and `largest_body_km` (nullable) to `asteroid_belts`, the origin a belt carries and the largest body settled with its mass (GEN.1069). A belt made before v201 gets them when the galaxy is regenerated.
 
 ### v189 (GEN.1009): the largest radius and mass of a member
@@ -2317,6 +2399,18 @@ Migration 0194 creates `dark_members`, keyed by `star_system_id` and `member_no`
 ### v202 (GEN.1138): the designations an object stopped having
 
 Migration 0202 creates `designations`, one row for each ID or name an object used to have (docs/design/architecture/designation-history.md). Columns: `designation_kind` (`uid` or `name`, a CHECK), `designation_uid` (BINARY(12), set for an ID) and `designation_name` (VARCHAR(255), set for a name; a CHECK keeps exactly the one that matches the kind), `object_kind` (the table that held the object) and `object_row_id` (its row number, which never changes), `valid_from_epoch` (NULL for the birth designation), `retired_epoch`, `reason` (a CHECK on `collision bump`, `rename`, `regeneration`, `parent change`, `admin renumber`), `gone_epoch` (NULL while the object exists) and `retired_at`. `uq_designations_uid` is unique, so a retired ID can never be given to an object again; `idx_designations_name` and `idx_designations_object` serve the lookup of a past name and the "Formerly" lines. Nothing is backfilled: a designation that changed before the table has no row. A table already there is kept, so a stopped run can be started again.
+
+### v218 (GEN.1207): how well the class fits
+
+Migration 0218 adds `class_match` (DOUBLE), `runner_up_class` (CHAR(1)) and `runner_up_match` (DOUBLE) to `planets`, `moons` and `rogue_planets`, nullable and NULL for a row made before v218, skipping a column already there. The class is the best fit of the finished body, so a stored row is not rescored by the migration: a regenerated galaxy fills them. `class_variant` is 0, or 9 for a world limited by its gravity or air amount.
+
+### v212 (GEN.1221): the relative humidity and the groundwater
+
+Migration 0212 adds `relative_humidity` (DOUBLE) and `groundwater` (VARCHAR(10)) to `planets`, `moons` and `rogue_planets`, nullable and NULL for a row made before v212, skipping a column already there.
+
+### v217 (GEN.1265): what is read off the temperature of every place
+
+Migration 0217 adds the 25 temperature coverage columns `temp_livable_share` to `temp_site_longest_out_days` (nullable; DOUBLE except `temp_livable_belt_only`, TINYINT) to `planets`, `moons` and `rogue_planets` (GEN.1265, `physics/temperature_coverage.py`): the livable share and its pieces, the Blue, Green, cold and hot shares, the extremes and the best site read off the temperature of every place through the year. `planets` and `moons` carry a FULLTEXT key, so each table is rebuilt once with every change in one ALTER. A column already added is skipped, so a stopped run can be started again. All the new columns are NULL after the migration: they are worked out when a body is generated or brought to the epoch, so a regenerated galaxy fills them. The mean and the swing of the seven bands (`band1_mean_k` to `band7_swing_k`) are read off the same series from this epoch.
 
 ### v206 (GEN.1219, GEN.1220, GEN.1226): the body type, the class digit and the envelope share
 
@@ -2556,7 +2650,7 @@ Migration 0128 adds the table `constellations` for the view from a planet ([sky-
 
 ### v127 (DB.61): unnamed clusters and the star-to-cluster link
 
-Migration 0127 makes `galaxy_components.name` nullable, so a cluster nobody has named can be a row; the unique key over `(kind, name)` stays, and since MySQL lets any number of rows hold a NULL in a unique key, it still holds over the named rows. It also adds `cluster_id` (BIGINT UNSIGNED, NULL) to `stars` and `bright_stars`, at the end of each table: a reference to `galaxy_components.id` (`fk_stars_cluster`, `fk_bright_stars_cluster`, cleared if the cluster row is removed) with its own index (`idx_stars_cluster`, `idx_bright_stars_cluster`), so a star can point to its cluster as its parent ([globular-clusters.md](../design/galaxy/globular-clusters.md) has the cluster components). Every existing cluster keeps its name, every star's link is NULL, and nothing writes or reads the link yet. Each star table is rebuilt once in one `ALGORITHM=COPY` statement (a foreign key cannot be added in place with checks on, and `stars` has a FULLTEXT index), which takes time in proportion to its rows; a step already done is skipped, so a stopped run can be started again. The version is detected from `stars.cluster_id`.
+Migration 0127 makes `galaxy_components.name` nullable, so a cluster nobody has named can be a row; the unique key over `(kind, name)` stays, and since MySQL lets any number of rows hold a NULL in a unique key, it still holds over the named rows. It also adds `cluster_id` (BIGINT UNSIGNED, NULL) to `stars` and `bright_stars`, at the end of each table: a reference to `galaxy_components.id` (`fk_stars_cluster`, `fk_bright_stars_cluster`, cleared if the cluster row is removed) with its own index (`idx_stars_cluster`, `idx_bright_stars_cluster`), so a star can point to its cluster as its parent ([globular-clusters.md](../design/galaxy/globular-clusters.md) has the cluster components). Every existing cluster keeps its name and every star's link starts NULL. GEN.359 writes the link: the component pass puts the cluster's `galaxy_components.id` on each `bright_stars` row it places for a cluster (NULL for a field star or a satellite galaxy's star), and a system built around such a star (a sector's fill, or `mark_bright_star_filled` for one uncharted system) gives it to every star of the system; the sky readers (`db/sky_sphere.py`) already read it. A generated cluster is stored with `galaxy_components.name` NULL (GEN.359, `Component.key` is its draws' key, `unnamed-` and its seed in hex); the first fill that touches it sets the name once (`store.name_clusters`: `UPDATE ... WHERE name IS NULL`, the local name of its container Object ID under the naming key, or that name with the sector when another cluster has it), and the container row's name follows. Each star table is rebuilt once in one `ALGORITHM=COPY` statement (a foreign key cannot be added in place with checks on, and `stars` has a FULLTEXT index), which takes time in proportion to its rows; a step already done is skipped, so a stopped run can be started again. The version is detected from `stars.cluster_id`.
 
 ### v126 (DB.39): edit request comments and notices
 
@@ -2754,6 +2848,8 @@ The table was dropped in v91 (DB.32) and made again in v92 on shells (see "v92" 
 ### v83 (DB.24): `nebula_field`
 
 `nebula_field` holds the galaxy's field clouds of classes M and N (giant molecular clouds and dark clouds; P and Q stay implicit in the seed), one row each, written by `planetgen scatter --phenomena` (or `--nebula-field` alone) from the galaxy seed over the 50 pc field cells (`galaxy/nebula_field.py`). Primary key `(cell_i, cell_j, cell_k, n)`: the field cell and the cloud's place in that cell's draw, so a row is found again from the seed alone. `nebula_class` (CHAR(1)), `radius_ly` and `center_x_pc`, `center_y_pc`, `center_z_pc` (DOUBLE, the exact numbers the seed gives) describe the cloud. `uid` (BINARY(12), nullable, indexed) and `is_stored` (TINYINT, default 0) stay empty until a sector's save stores the cloud as a `nebulae` row, which gives it its object ID: working an ID out for every cloud would cost a nebula shape each (about 0.1 s). The table is seed-fixed, emptied by every plan and rebuilt by every phenomena scatter and by `planetgen scatter --nebula-field`; `planetgen clean-nebula-field --apply` drops the clouds the keep rates now reject. The migration only creates the empty table.
+
+**v215 (GEN.1277).** `nebula_field` gains the stored composition of each cloud: the 28 composition columns of `nebulae` without `progenitor_mass_sol` (`gas_oh_dex`, `mass_fraction_h`, `_he`, `_z`, `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe`, `abundance_c` to `abundance_fe`, `ionized_share`, `atomic_share`, `molecular_share`, `dust_to_gas`, `dust_to_metals`, `grain_silicate`, `grain_iron`, `grain_carbon`, `grain_pah`, `grain_ice`), FLOAT, nullable. The key of a cloud's draws is its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes reads the same numbers. Migration 0215 adds the columns and fills the rows from the galaxy's seed and shape. See docs/design/composition/nebula-composition.md section 4.
 
 ### v82 (PERF.68, PERF.70, PERF.74): indexes and `sector_system_counts` for the pages that timed out
 

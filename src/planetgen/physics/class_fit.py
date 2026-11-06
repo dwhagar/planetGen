@@ -13,12 +13,16 @@ own positive conditions (`physics/data/planet_class_fit.json`), each condition i
 * **Condition membership:** 1 inside the edge; across the shoulder beyond it a straight line down to 0; 0 past that. A `min` edge e
   with shoulder s is 1 at e or more, 0 at e - s or less. An `lt` edge e is 1 below e, 0 at e + s or more. `equals` is 0 or 1. A
   quantity the body does not store scores 0.
+* **Domains (GEN.1221):** each quantity belongs to one domain of the class-by-domain matrix (`physics/class_domains.py`); `domain_scores` grades a body in each.
 * **Class match:** the geometric mean of the memberships of the class's conditions, so one condition badly missed pulls the match
   down and a condition missed outright makes it 0.
 * **Best class:** the highest match; a tie goes to the class with more conditions (the narrower description), then to the letter.
 
-Nothing here decides a stored letter yet: the first-match tree still does (GEN.1207 replaces it). `fit` and `best_class` are used
-by the shadow scorer `src/tests/class_fit_cli.py` (GEN.1206).
+`classify` (GEN.1207) is the one that decides a stored class: the best class, its match, the runner-up and its match, and the digit of the class code.
+A body that no class fits (every class has a condition missed outright) is a hole in the class set and is settled in two steps, both stand-ins (GEN.725, section 6.189):
+the conditions of the gravity and the air-amount domains are set aside (`LIMIT_DOMAINS`) and the best class of what is left among the families (`LIMITED_FAMILIES`) is the letter, with the digit 9
+(limited by another domain, `class_code`); a body that still fits no class takes the class it is nearest to (the highest geometric mean with every membership
+lifted to `HOLE_FLOOR`, among the ordinary worlds `NEAREST_FAMILIES`), with a stored match of 0. `fit` and `best_class` are also used by the shadow scorer `src/tests/class_fit_cli.py` (GEN.1206).
 
 Use:
 
@@ -29,9 +33,10 @@ Use:
 import json
 import math
 import os
+from collections import namedtuple
 from collections.abc import Mapping
 
-from planetgen.physics import elements, planet_classes
+from planetgen.physics import class_domains, elements, planet_classes
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_class_fit.json")
 
@@ -70,6 +75,10 @@ def _load():
                 raise FitError(f"class {cls.letter}: condition {condition!r} is not one quantity with one of min, lt or equals")
             if "equals" not in condition and condition["quantity"] not in shoulders:
                 raise FitError(f"class {cls.letter}: {condition['quantity']!r} has no shoulder")
+            try:
+                class_domains.domain_of(condition["quantity"])
+            except KeyError:
+                raise FitError(f"class {cls.letter}: {condition['quantity']!r} belongs to no domain of the class-by-domain matrix") from None
     if len({(c.letter, c.kind) for c in classes}) != len(classes):
         raise FitError("a class letter is used twice for one kind")
     return document, classes
@@ -111,15 +120,20 @@ def membership(condition, found):
     return 0.0 if width <= 0.0 or value >= edge + width else 1.0 - (value - edge) / width
 
 
-def match(cls, found):
-    """The percent match of `cls` for the named quantities `found`, as a fraction (the geometric mean of its memberships)."""
-    total = 0.0
+def match(cls, found, relax=(), floor=0.0):
+    """The percent match of `cls` for the named quantities `found`, as a fraction (the geometric mean of its memberships). The conditions in the domains
+    `relax` are left out (the class is judged on the rest); with a `floor` above 0 every membership is lifted to it, so a missed condition lowers the
+    mean and does not zero it."""
+    total, count = 0.0, 0
     for condition in cls.when:
-        m = membership(condition, found)
+        if relax and class_domains.domain_of(condition["quantity"]) in relax:
+            continue
+        m = max(membership(condition, found), floor)
         if m <= 0.0:
             return 0.0
         total += math.log(m)
-    return math.exp(total / len(cls.when))
+        count += 1
+    return math.exp(total / count) if count else 1.0
 
 
 def passes_gates(cls, found):
@@ -135,15 +149,29 @@ def _found(body):
     if isinstance(body, Mapping) and "body_type" in body and "mass_earth" in body:
         return body
     values = body if isinstance(body, Mapping) else planet_classes.values_from_body(body)
-    return planet_classes.quantities(values)
+    found = planet_classes.quantities(values)
+    found.update(class_domains.derived(values))        # GEN.1221: the regional, day, night, wet-bulb, humidity, groundwater and phase quantities
+    return found
+
+
+def _ranked(found, relax=(), floor=0.0, only=None):
+    scored = [(match(cls, found, relax, floor), cls) for cls in CLASSES if passes_gates(cls, found) and (only is None or cls.letter in only)]
+    scored.sort(key=lambda pair: (-pair[0], -len(pair[1].when), pair[1].letter))
+    return scored
 
 
 def class_scores(body):
     """Every class whose gates the body passes, as a list of `(match, FitClass)` best first (ties: more conditions, then letter)."""
+    return _ranked(_found(body))
+
+
+def domain_scores(body, letter):
+    """`{domain: score}` of a planet, moon or stored-column mapping for the class `letter` (a terrestrial class where both kinds use it), by domain (`class_domains`)."""
     found = _found(body)
-    scored = [(match(cls, found), cls) for cls in CLASSES if passes_gates(cls, found)]
-    scored.sort(key=lambda pair: (-pair[0], -len(pair[1].when), pair[1].letter))
-    return scored
+    for cls in CLASSES:
+        if cls.letter == letter and passes_gates(cls, found):
+            return class_domains.domain_scores(cls, found, membership)
+    raise FitError(f"no class {letter!r} that the body passes the gates of")
 
 
 def scores(body):
@@ -166,3 +194,58 @@ def best_class(body):
     if len(ranked) == 1:
         return best.letter, best_m, None, 0.0
     return best.letter, best_m, ranked[1][1].letter, ranked[1][0]
+
+
+LIMIT_DOMAINS = ("gravity", "air_amount")
+"""tuple: The domains a hole body is judged without (GEN.1207, registry HC1): a body whose class is found only with its gravity and its air amount set aside is limited by
+another domain, digit 9 of the class code."""
+
+HOLE_FLOOR = 0.01
+"""float: The lift of every membership when a body that fits no class takes the class it is nearest to (GEN.1207, registry HC2)."""
+
+NEAREST_FAMILIES = ("M", "R", "P", "O", "H", "F", "G")
+"""tuple: The classes a body that fits none takes its nearest from (registry HC2): the ordinary worlds with air. A class with a narrow window (Y, Z, U, X) or one defined by an edge
+(B, V, K, N, L, E) is never the nearest of a body that missed all of them."""
+
+LIMITED_FAMILIES = ("M", "R", "P", "O", "H", "F", "G", "Y", "U", "X")
+"""tuple: The classes a body can be limited in (`class_code.LETTERS`, less Z): a class defined by its gravity or its air amount (B, V, K, N, Z, L, E) has those conditions as its
+own edges, so setting them aside would match it to everything."""
+
+LIMITED_DIGIT = 9
+"""int: The digit of the class code of a body whose class is found with its gravity and air amount set aside (`class_code.POSITION`, "limited by another domain")."""
+
+Classification = namedtuple("Classification", ("letter", "kind", "match", "runner_up", "runner_up_match", "digit"))
+"""namedtuple: The class of a body: its letter and kind, the match (0 when no class fits it), the runner-up letter (`None` when no other class matches at all) and its
+match, and the digit of the class code (0, or 9 when the body is limited by another domain)."""
+
+
+def classify(body):
+    """
+    The `Classification` of a planet, moon or stored-column mapping: the best class, or for a hole body (see the module note) the class its other domains give
+    with digit 9, or the nearest class with a match of 0.
+
+    Raises:
+        FitError: No class passes the gates of the body.
+    """
+    found = _found(body)
+    if found["body_type"] == planet_classes.TERRESTRIAL and found["pressure_pa"] >= GATE_PRESSURE_PA and found["temperature_k"] is None:
+        raise planet_classes.ClassError("the classes read the mean surface temperature of a world with air, which the body does not store")
+    ranked = _ranked(found)
+    if not ranked:
+        raise FitError("no class passes the gates of the body")
+    digit = 0
+    if ranked[0][0] <= 0.0:
+        relaxed = _ranked(found, relax=LIMIT_DOMAINS, only=LIMITED_FAMILIES)
+        if relaxed and relaxed[0][0] > 0.0:
+            ranked, digit = relaxed, LIMITED_DIGIT
+        else:
+            nearest = _ranked(found, floor=HOLE_FLOOR, only=NEAREST_FAMILIES) or _ranked(found, floor=HOLE_FLOOR)
+            ranked = [(0.0, cls) for _m, cls in nearest]
+    best_m, best = ranked[0]
+    runner = ranked[1] if len(ranked) > 1 and ranked[1][0] > 0.0 else None       # a class that matches 0 percent is no runner-up
+    return Classification(best.letter, best.kind, best_m, None if runner is None else runner[1].letter, 0.0 if runner is None else runner[0], digit)
+
+
+def rule_words(cls):
+    """The conditions of a `FitClass` as a list of plain phrases (`planet_classes.condition_words`)."""
+    return [planet_classes.condition_words(condition) for condition in cls.when]

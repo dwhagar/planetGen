@@ -18,14 +18,14 @@ The two ledgers of the backfill (VIEW.19, reports/system-sky-backfill-cost-2026-
   the stars born lighter than the Sun, which are faint: a ring reaches only as far as `RING_MIN_YIELD` of its stars still show, tens of parsecs.
 
 The bright far bands hold few stars in an enormous number of cells (a 7.5 sky is 3e9 cells in its farthest band), and since VIEW.41 they are drawn by
-blocks (`bright_stars.backfill_sphere`), so they cost the blocks and rows of their sphere, not its cells (`block_visits`). The table is cut by a budget of
+blocks (`bright_stars.luminosity_sphere_batches`), so they cost the blocks and rows of their sphere, not its cells (`block_visits`). The table is cut by a budget of
 those visits (`BLOCK_VISIT_BUDGET`): bands are taken from the 50 Lsun band up while the visits fit, and the rest are listed as `dropped`. The stars of a
 dropped band that the scatter did not pre-place are not stored; the glow band (VIEW.27) carries their light.
 
     curve = extinction_curve(observer_pc)                       # the dust along 48 directions, once per observer
     tiers = build(observer_pc, 7.5, edge_pc, curve=curve)
     tiers.luminosity, tiers.rings, tiers.dropped, visits(tiers)
-    floor_table(tiers, curve, (10, 50, 250, 1000))              # the floor against distance
+    floor_table(tiers, curve, FLOOR_DISTANCES_PC)               # the floor against distance
 """
 
 import collections
@@ -73,8 +73,11 @@ Tier = collections.namedtuple("Tier", "ledger key low high reach_pc cells visits
 masses; `high` may be `None`), `reach_pc` the radius of the sphere it is drawn over, `cells` the cells in that sphere and `visits` what drawing it takes
 (`block_visits` for a luminosity band, a visit to every cell for a ring, whose band is on the cell path)."""
 
-SkyTiers = collections.namedtuple("SkyTiers", "limit_mag observer_pc edge_pc budget luminosity dropped rings")
-"""The table for one observer: the luminosity bands to draw, the bands the budget cut off, the mass rings, and the inputs."""
+SkyTiers = collections.namedtuple("SkyTiers", "limit_mag observer_pc edge_pc budget luminosity dropped rings curve")
+"""The table for one observer: the luminosity bands to draw, the bands the budget cut off, the mass rings, the inputs and the dust `curve` the radii were worked out from (what `floor_table` reads)."""
+
+FLOOR_DISTANCES_PC = (10.0, 50.0, 250.0, 1000.0, 3000.0)
+"""tuple: The distances a run's log gives the sky's floor at (`floor_table`)."""
 
 
 def cells_in_sphere(radius_pc, edge_pc):
@@ -260,7 +263,7 @@ def build(observer_pc, limit_mag, edge_pc, *, visit_budget=BLOCK_VISIT_BUDGET, c
         if radius > 0.0:
             cells = cells_in_sphere(radius, edge_pc)
             rings.append(Tier("mass", low, low, high, radius, cells, cells))
-    return SkyTiers(limit_mag, tuple(observer_pc), edge_pc, visit_budget, tuple(taken), tuple(dropped), tuple(rings))
+    return SkyTiers(limit_mag, tuple(observer_pc), edge_pc, visit_budget, tuple(taken), tuple(dropped), tuple(rings), curve)
 
 
 def floor_table(tiers, curve, distances_pc):

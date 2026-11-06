@@ -14,9 +14,12 @@ or the ledger's length, and the rest of the run's draws are not touched.
 2. **The eccentricity** is a Rayleigh draw whose rms is the width rule of `belt_mass` (the particles' eccentricity from the belt's width, `e = (upper - lower) / (upper + lower)`, the extent
    of the orbits of a belt that stirs itself), cut at `E_MAX`. **The inclination** is a Rayleigh draw with the same rms in radians (`belt_mass`'s `e/I = 1`), cut at `I_MAX_DEG`.
 3. **The angles** (ascending node, argument of periapsis, mean anomaly) are uniform over the circle.
+4. **The population** (GEN.1092). The members of an outer disk that a giant acted on belong to the scatter step's populations (`belt_populations`): each draws one and its semi-major axis,
+   eccentricity and inclination follow from it (cold ones stirred little, resonant ones at the giant's resonances, scattered, crossing and detached ones with their perihelion set), and the
+   tag is stored with the member. A belt without those shares draws as 1 and 2 say and has no tag.
 
 Limits. A belt stirred by a giant has a larger `e` than its width gives (`belt_mass`'s own limit); a body in a resonance or a gap keeps no trace of it here (the gaps the giants
-cleared, `belt_origin`, are not cut out of the solids profile); the bodies do not know the planets near them. Stand-ins MR1 to MR3 of `gap-filling-plan.md` section 6.167.
+cleared, `belt_origin`, are not cut out of the solids profile); the bodies do not know the planets near them. Stand-ins MR1 to MR3 of `gap-filling-plan.md` section 6.182.
 
 Use:
 
@@ -26,7 +29,7 @@ Use:
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import belt_ledger, belt_mass
+from planetgen.physics import belt_ledger, belt_mass, belt_populations
 from planetgen.physics.belt_page import Placement
 from planetgen.util.checks import finite_domain
 
@@ -45,8 +48,8 @@ I_MAX_DEG = 60.0
 E_OVER_I = 1.0
 """float: The ratio of the particles' rms eccentricity to their rms inclination in radians, 1 as `belt_mass` takes it (Wyatt et al.'s `e/I = 1`). [Stand-in MR2, tier T1, tweak L0.]"""
 
-DRAWS_PER_BODY = 8
-"""int: The uniform numbers the stream gives each body: taxon, porosity, semi-major axis, eccentricity, inclination, node, periapsis, anomaly."""
+DRAWS_PER_BODY = 11
+"""int: The uniform numbers the stream gives each body: taxon, porosity, semi-major axis, eccentricity, inclination, node, periapsis, anomaly, then the population and its two choices."""
 
 
 class BeltRosterError(ValueError):
@@ -63,6 +66,7 @@ class Entry:
         eccentricity (float): 0 to `E_MAX`.
         inclination_deg (float): 0 to `I_MAX_DEG`.
         node_deg, periapsis_deg, anomaly_deg (float): Longitude of the ascending node, argument of periapsis and mean anomaly, degrees, 0 to 360.
+        tag (str or None): The scatter population the body belongs to (`belt_populations`), None where the belt has none.
     """
 
     placement: Placement
@@ -71,6 +75,7 @@ class Entry:
     node_deg: float
     periapsis_deg: float
     anomaly_deg: float
+    tag: str | None = None
 
 
 def rms_eccentricity(lower_au, upper_au):
@@ -109,13 +114,15 @@ def semi_major_axis_au(table, u):
 
 
 @finite_domain()
-def draw_roster(count, lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, stream):
+def draw_roster(count, lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, stream, populations=None, giant_au=None):
     """
     The `Entry` of each of `count` stored bodies (rank 1 first) of a belt between `lower_au` and `upper_au`.
 
     Args:
         count (int): How many stored bodies the belt's ledger holds (at most `belt_ledger.LEDGER_MAX_BODIES`).
         stream: An object with `random()` (a `draw.Stream` of the belt's own); `DRAWS_PER_BODY * belt_ledger.LEDGER_MAX_BODIES` draws are taken, whatever `count` is.
+        populations (tuple or None): `(tag, weight)` of the populations that hold members (`belt_populations.member_weights`); None for a belt the scatter step did not act on, whose bodies have no tag.
+        giant_au (float or None): The distance of the giant that swept the disk, for the populations that depend on it (None: all the members are cold).
     """
     if not 0.0 < lower_au < upper_au:
         raise BeltRosterError("the belt needs 0 < lower < upper")
@@ -126,8 +133,11 @@ def draw_roster(count, lower_au, upper_au, star_mass_kg, snow_line_au, metal_rat
     e_rms = rms_eccentricity(lower_au, upper_au)
     i_rms = e_rms / E_OVER_I
     entries = []
-    for u_taxon, u_porosity, u_a, u_e, u_i, u_node, u_peri, u_anomaly in numbers[:count]:
-        inclination = min(math.degrees(rayleigh(u_i, i_rms)), I_MAX_DEG)
-        entries.append(Entry(Placement(semi_major_axis_au(table, u_a), u_taxon, u_porosity), min(rayleigh(u_e, e_rms), E_MAX), inclination,
-                             360.0 * u_node, 360.0 * u_peri, 360.0 * u_anomaly))
+    for u_taxon, u_porosity, u_a, u_e, u_i, u_node, u_peri, u_anomaly, u_pop, u_pa, u_pe in numbers[:count]:
+        a_au, e_scale, e_fixed, tag = semi_major_axis_au(table, u_a), 1.0, None, None
+        if populations is not None:
+            tag, a_au, e_scale, e_fixed = belt_populations.orbit(belt_populations.pick(populations, u_pop), a_au, lower_au, upper_au, giant_au, u_pa, u_pe)
+        inclination = min(math.degrees(rayleigh(u_i, i_rms * (e_scale if e_scale is not None else 1.0))), I_MAX_DEG)
+        eccentricity = e_fixed if e_fixed is not None else min(rayleigh(u_e, e_rms * e_scale), E_MAX)
+        entries.append(Entry(Placement(a_au, u_taxon, u_porosity), eccentricity, inclination, 360.0 * u_node, 360.0 * u_peri, 360.0 * u_anomaly, tag))
     return entries

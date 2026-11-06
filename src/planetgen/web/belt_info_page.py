@@ -13,6 +13,7 @@ from planetgen.web.lib import apiclient
 from . import bp
 from .helpers import crumb, db_name, render_page
 from .item_pages import _crumbs, item_url
+from .belt_member_page import member_url
 
 
 def _quantity(value):
@@ -53,7 +54,7 @@ def belt_info_page(belt_ref):
         belt_url=item_url(ref),
         belt=belt,
         belt_composition=_composition(belt["composition"]),
-        bodies=[{**body, "composition_text": ", ".join(f"{part} {body['composition'][part]['text']}" for part in ("rock", "metal", "water", "ice")
+        bodies=[{**body, "url": member_url(ref, body["designation"]), "composition_text": ", ".join(f"{part} {body['composition'][part]['text']}" for part in ("rock", "metal", "water", "ice")
                                                      if body["composition"][part]["value"] > 0.0)} for body in data["bodies"]],
         bins=[{**row, "composition_text": _composition(row["composition"])} for row in data["bins"]],
         density=data["density_factor"],

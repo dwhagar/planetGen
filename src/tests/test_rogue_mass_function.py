@@ -62,12 +62,6 @@ def test_the_draw_inverts_the_cumulative_number():
     assert sum(m < 2.0 * EARTH for m in masses) / len(masses) == pytest.approx(mf.number_share(lo, 2.0 * EARTH, lo, JUPITER), abs=0.01)
 
 
-def test_the_safronov_cut_comes_from_the_kick_module():
-    sun = constants.SOLAR_MASS_TO_KG
-    assert mf.can_eject(JUPITER, 7.1492e7, sun, 5.2)
-    assert not mf.can_eject(EARTH, 6.371e6, sun, 1.0)
-
-
 def test_bad_inputs_are_refused():
     with pytest.raises(mf.RogueMassFunctionError):
         mf.mass_function(0.0, JUPITER)

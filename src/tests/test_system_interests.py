@@ -701,6 +701,9 @@ def _set_life_classes(conn, system_id, classes):
         conn.execute("UPDATE planets SET life_class = ?, life_class_variant = ?, life_stage = ? WHERE id = ?",
                      (number, variant, "abiogenesis" if number is not None else None, planet_id))
     conn.execute("UPDATE moons SET life_class = NULL, life_class_variant = NULL WHERE star_system_id = ?", (system_id,))
+    # the other classes that live on a generated world are rows of their own (GEN.1209); the fixture system's would add reasons the test did not set
+    conn.execute("DELETE FROM planet_life WHERE planet_id IN (SELECT id FROM planets WHERE star_system_id = ?)", (system_id,))
+    conn.execute("DELETE FROM moon_life WHERE moon_id IN (SELECT id FROM moons WHERE star_system_id = ?)", (system_id,))
     store.recount_habitable_worlds(conn, [system_id])
 
 

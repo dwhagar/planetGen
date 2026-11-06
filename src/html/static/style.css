@@ -3100,6 +3100,11 @@ code {
   font-weight: 600;
   outline: 2px solid var(--accent);
 }
+.gravity-hint {
+  display: block;
+  margin: 0.2rem 0;
+  font-size: 0.8rem;
+}
 .gravity-slab {
   margin: 0 0.4rem;
   font-size: 0.85rem;
@@ -3107,6 +3112,28 @@ code {
 .gravity-volume {
   display: block;
   font-size: 0.85rem;
+}
+
+/* MAP.169: the System Map's Gravity layer: the heat map under the orbits, the Hill spheres and the Lagrange points. */
+.sysmap-gravity-image {
+  pointer-events: none;
+}
+.sysmap-hill {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1px;
+  stroke-dasharray: 4 3;
+  opacity: 0.8;
+}
+.sysmap-lagrange {
+  fill: var(--bg);
+  stroke: var(--text);
+  stroke-width: 1px;
+}
+.sysmap-lagrange-label {
+  fill: var(--text);
+  font-size: 8px;
+  pointer-events: none;
 }
 
 /* The marks of the key lines for what the map draws as shapes. */
@@ -6150,6 +6177,7 @@ p.hint a {
   color: #fff;
 }
 .map-label[data-kind="nebula"] { font-style: italic; }
+.map-label[data-kind="cluster"] { font-style: italic; letter-spacing: 0.02em; }
 .map-label[data-kind="sector"] { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   .map-label { transition: none; }

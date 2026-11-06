@@ -115,7 +115,8 @@ class Dataset:
     `{file name: bytes}` from the verified pieces in `folder`) and a `derive_version` to raise when that function
     changes; the archive pieces are marked `transient` and are removed once derived. `fallback` says in a few words what a
     reader answers with when the files are missing and the run disregards missing data (GEN.599); empty when there is
-    none, and then a missing dataset is refused whatever the run was told.
+    none, and then a missing dataset is refused whatever the run was told. `required` False marks a dataset only a test reads (the real data a generated one is
+    held against, VIEW.30): setup downloads and reports it, but bulk generation does not look for it.
     """
 
     key: str
@@ -128,6 +129,7 @@ class Dataset:
     derive: object = None
     derive_version: int = 1
     fallback: str = ""
+    required: bool = True
 
     def __post_init__(self):
         if not _FILE_NAME.fullmatch(self.key):
