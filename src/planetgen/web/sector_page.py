@@ -805,7 +805,6 @@ def sector_at(shell, band, wedge):
     return _uncharted_page(cell, (shell, band, wedge))
 
 
-<<<<<<< HEAD
 def placed_in_uncharted(cell, stored=None):
     """
     What is placed in an uncharted cell (MAP.401), as rows for the page's table: `{"name", "url", "kind", "details"}`, each linked to its own page. First the objects stored
@@ -850,12 +849,6 @@ def _uncharted_page(cell, address, stored=None):
     The page of a cell nothing was generated in, for `cell` (the answer of `GET /api/galaxy/uncharted`): the cell's name and region (MAP.399), its place, what is placed in it
     (`placed_in_uncharted`, MAP.401), its profile and what charting it would take. A placeholder sector row a drifting rogue made there (`store.uncharted_sector_id`) shows this
     page too, at its own address, with the objects stored in it (`stored`).
-=======
-def _uncharted_page(cell, address):
-    """
-    The page of a cell nothing was generated in, for `cell` (the answer of `GET /api/galaxy/uncharted`): the cell's name and region (MAP.399), its place, its profile and what charting it
-    would take. A placeholder sector row a drifting rogue made there (`store.uncharted_sector_id`) shows this page too, at its own address.
->>>>>>> origin/main
     """
     shell, band, wedge = address
     designation = cell["designation"]
