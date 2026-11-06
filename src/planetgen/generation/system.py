@@ -38,10 +38,11 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, clearance_ledger, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, clearance_ledger, debris_dust, planet_architecture, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
+from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 
 _km_to_au = units.converter("km", "au")
@@ -273,7 +274,7 @@ class StarSystem:
                 system creates (see `Star.calculate_system_perimeter`'s
                 docstring). `None` (the default) leaves every constituent
                 star's Hill-sphere calculation on the radius that holds half of the
-                galaxy's disc stars (`galaxy.scales`) --
+                galaxy's disk stars (`galaxy.scales`) --
                 the correct behavior for a system with no galaxy placement
                 (e.g. `generation/run_sector.py`'s own standalone CLI).
             compact_remnant (BlackHole or NeutronStar, optional): A
@@ -581,21 +582,11 @@ class StarSystem:
             for obj in self.all_planets:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
-                interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
-                planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
-                planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
-                magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
+                self._finish_planet(obj)
                 for moon in obj.moons:
-                    planetPhysics.apply_class(moon)
-                planetLife.apply_life_data(obj)
-                planetLife.decide_flavor_text(obj)
-                for moon in obj.moons:
-                    interior_heat.update_heat(moon)
-                    planetPhysics.refresh_at_final_age(moon)
-                    magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
-                    radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
-                    planetLife.apply_life_data(moon)
-                    planetLife.decide_flavor_text(moon)
+                    self._finish_moon(moon, obj)
+            if self.system_config.HABITABLE_WORLD is False:
+                self._bar_habitable_worlds()
             for obj in self.all_planets:  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
                 if obj.body_type == 'a':
                     continue
@@ -1271,7 +1262,7 @@ class StarSystem:
                 if i > 0:
                     last_planet = planets[i - 1]
                     # The planet architecture (GEN.728, GEN.729, GEN.730) gives each slot its distance and mass: oligarchs
-                    # spaced in mutual Hill radii and thinned by instability, so the gaps are what the disc built
+                    # spaced in mutual Hill radii and thinned by instability, so the gaps are what the disk built
                     # (`validate_system` keeps the stable spacing of the whole). The belts are added afterwards, in the
                     # gaps the planets leave (`_add_belts`, GEN.1068).
                     if last_planet.body_type == 'a':
@@ -1339,7 +1330,7 @@ class StarSystem:
         Adds the belts of `star`'s finished, spaced planets to `bodies` in place (GEN.1068, `belt_birth`): the stretches the chain leaves unfinished, not slots rolled for. It runs once
         `validate_system` has settled the planets, so a belt stands in the gap the planets really leave, and the spacing is checked again with the belts in. A `SLOTS` list names its belts
         itself, `NUM_ORBITS` is the whole count of bodies and `MAX_PLANETS` False the fewest (both give way to `ASTEROID_BELT` True: a belt asked for is added), `ASTEROID_BELT` False has
-        none, `PLANETS` False has no bodies, and a pulsar's disc or a planetary nebula's pair holds none.
+        none, `PLANETS` False has no bodies, and a pulsar's disk or a planetary nebula's pair holds none.
         """
         config = self.system_config
         counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
@@ -1355,10 +1346,33 @@ class StarSystem:
         bodies[:] = sorted([*bodies, *belts], key=lambda body: body.distance)
         self.validate_system(bodies)
         self._trim_to_orbit_ceiling(bodies, orbit_ceiling_au)
+        self._set_debris_disk(bodies, star)
+
+    def _set_debris_disk(self, bodies, star):
+        """
+        The cold debris disk of a main-sequence star (GEN.1071): the dust of its outer-disk belt, when a survey would find it (`debris_dust`). The star's `disk_kind` is then "debris" and the disk's edges are
+        the belt's, so the disk and the belt are one thing; a star without such a belt, or whose belt is too faint, holds none. Where two belts are outer disks the brighter one is the disk.
+        """
+        holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star       # a close pair's circumbinary belt is the pair's: its disk is kept on the primary
+        holder.disk_kind = holder.disk_mass_solar = holder.disk_inner_au = holder.disk_outer_au = None
+        if any(member.yerkes_class not in debris_dust.DEBRIS_CLASSES for member in getattr(star, "stars", [star])):
+            return
+        age_myr, mass_sol = star.age * 1.0e3, _kg_to_msun(remnant_orbits.formation_mass_kg(star))
+        brightest = None
+        for belt in bodies:
+            if belt.body_type != 'a' or belt.origin != "outer-disk" or not belt.mass_kg > 0.0:
+                continue
+            fractional = debris_dust.fractional_luminosity(belt.lower_limit, belt.upper_limit, star.luminosity / constants.SOLAR_LUMINOSITY, age_myr, belt.largest_body_km,
+                                                           _kg_to_mearth(belt.mass_kg), mass_sol)
+            if debris_dust.is_detectable(fractional) and (brightest is None or fractional > brightest[0]):
+                brightest = (fractional, belt)
+        if brightest is not None:
+            belt = brightest[1]
+            holder.disk_kind, holder.disk_inner_au, holder.disk_outer_au = debris_dust.DEBRIS_KIND, belt.lower_limit, belt.upper_limit
 
     def _requested_belt(self, bodies, star, orbit_ceiling_au):
         """
-        The belt a request for one (`ASTEROID_BELT` True) is owed where the planets' chain leaves no stretch for one (a star whose disc, between its orbit floor and its edge, is too
+        The belt a request for one (`ASTEROID_BELT` True) is owed where the planets' chain leaves no stretch for one (a star whose disk, between its orbit floor and its edge, is too
         narrow to hold any): one belt just outside the outermost body (innermost, where the planets fill the room), `ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN` to `_MAX` times as far out as its inner edge, as the
         old slot did. It has no origin, as a belt a `SLOTS` entry names has none. An empty list where the star holds no room for any belt (the request is then unmet).
         """
@@ -1369,7 +1383,7 @@ class StarSystem:
             lower = 0.0
         lower = max(lower, self._orbit_floor_au(star))
         if lower <= 0.0:
-            lower = star.snow_line_au                  # nothing orbits it and nothing bounds it: where the disc's ice begins
+            lower = star.snow_line_au                  # nothing orbits it and nothing bounds it: where the disk's ice begins
         factor = draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
         if lower * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN > orbit_ceiling_au:
             lower = self._orbit_floor_au(star) or star.snow_line_au       # the planets fill the star's room: the belt takes the innermost orbit and the spacing pass moves them out (the outermost are trimmed)
@@ -1407,9 +1421,9 @@ class StarSystem:
         merged `BinaryStarProxy` never sets it), so this is a no-op
         fallback to `system_perimeter` alone in those cases.
 
-        The place's passing systems cut it further (GEN.325): the largest orbit whose expected number of ionising passes
+        The place's passing systems cut it further (GEN.325): the largest orbit whose expected number of ionizing passes
         over the star's age is one (`place_terms.planet_limit_au`), a few hundred AU in the Sun's neighbourhood and a few
-        AU in a nuclear disc. Comets keep their own ceiling (`validation.orbit_ceiling_au`).
+        AU in a nuclear disk. Comets keep their own ceiling (`validation.orbit_ceiling_au`).
 
         Args:
             star (Star): The star to compute this boundary for.
@@ -1909,7 +1923,7 @@ class StarSystem:
             return Planet(self.system_config, star, habitable_zone, distance, moon_count=moon_count, planned_objects=planned_objects)
         for attempt in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
             # A request for a class is left to chance, and then draws a mass log-uniformly over all the masses a planet has (the
-            # architecture's disc makes few ice giants at a cold slot, so chance alone can miss that class for the whole run of draws).
+            # architecture's disk makes few ice giants at a cold slot, so chance alone can miss that class for the whole run of draws).
             given = {}
             if attempt >= tuning.CLASS_REQUEST_FREE_ATTEMPTS:
                 given["mass"] = _mearth_to_kg(math.exp(draw.uniform(*(math.log(m) for m in tuning.CLASS_REQUEST_MASS_EARTH))))
@@ -2119,6 +2133,57 @@ class StarSystem:
             return None
         return "aim" if habitable_request.count(self.all_planets if planets is None else planets) > 0 else "unmet"
 
+    def _finish_planet(self, obj):
+        """The end of a planet's making, after the system is whole (the life data pass): the thermal history, the final-age refresh, the class,
+        the star's induced field, the moons' classes and the planet's own life (a moon's end follows, `_finish_moon`)."""
+        interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
+        planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
+        planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
+        magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
+        for moon in obj.moons:
+            planetPhysics.apply_class(moon)
+        planetLife.apply_life_data(obj)
+        planetLife.decide_flavor_text(obj)
+
+    def _finish_moon(self, moon, obj):
+        """The end of a moon's making (the life data pass), after its parent's (`_finish_planet`)."""
+        interior_heat.update_heat(moon)
+        planetPhysics.refresh_at_final_age(moon)
+        magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
+        radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
+        planetLife.apply_life_data(moon)
+        planetLife.decide_flavor_text(moon)
+
+    def _bar_habitable_worlds(self):
+        """
+        Keeps a system that bars habitable worlds (`HABITABLE_WORLD` False) free of them in its finished bodies (GEN.1250). The first draw of a planet
+        (`Planet.__init__`) is judged before the star's final age, the star's light from every star, and the oxygen a life has built into the air
+        are in, and each can bring a body to the request's conditions (`habitable_request.meets`); so the finished bodies are judged here, and a body
+        that meets them has its air, water, surface, class and spin drawn again (`planets.remake_end_stages`, another draw of the stream of its
+        own) and its end made again, up to `tuning.BARRED_CLASS_MAX_ATTEMPTS` times. A body that still meets them after that keeps its last draw:
+        the honest limit, counted in `StarSystem.barred_world_limit`.
+        """
+        self.barred_world_limit = 0
+        for obj in self.all_planets:
+            if obj.body_type == 'a':
+                continue
+            for body in (obj, *list(obj.moons)):
+                if not habitable_request.meets(body):
+                    continue
+                for attempt in range(1, tuning.BARRED_CLASS_MAX_ATTEMPTS + 1):
+                    draw.redrawn("planet.barred_world_final")
+                    planetPhysics.remake_end_stages(body, obj, attempt)
+                    if body.is_moon:
+                        self._finish_moon(body, obj)
+                    else:
+                        self._finish_planet(obj)
+                        for moon in obj.moons:
+                            self._finish_moon(moon, obj)
+                    if not habitable_request.meets(body):
+                        break
+                else:
+                    self.barred_world_limit += 1
+
     def _settle_to_final_age(self):
         """
         Makes what the star's age touches again, now that it is final (GEN.961, GEN.985, GEN.992; the age only ever rises, once, after the
@@ -2195,11 +2260,11 @@ class StarSystem:
         """
         The planets `star` is to hold and how many bodies the system is to have (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920,
         `physics/planet_architecture.py`): an inner system drawn at the observed share, a chain of oligarchs thinned by dynamical instability,
-        gas giants and migration, all from the star and its disc. The planets of the chain are the system's slots, in order, each with its
+        gas giants and migration, all from the star and its disk. The planets of the chain are the system's slots, in order, each with its
         distance and mass; a system asked to hold more has the next oligarchs out added (`planet_architecture.Plan.seed`).
 
         `PLANETS` False gives no object, `NUM_ORBITS` exactly that many (the first of the chain, then more oligarchs). `MAX_PLANETS` True
-        gives the star an inner system and a starting count two widths of its spread above the mean (the most its disc holds), False the
+        gives the star an inner system and a starting count two widths of its spread above the mean (the most its disk holds), False the
         fewest (none, or one when `PLANETS` is True); a `max_planets` prevalence (GEN.52) scales the chance of the most. Planets inside
         the star's orbit floor (`_orbit_floor_au`) are left out.
 
@@ -2296,5 +2361,6 @@ class StarSystem:
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
 _kg_to_msun = units.converter("kg", "Msun")
+_kg_to_mearth = units.converter("kg", "Mearth")
 _mearth_to_kg = units.converter("Mearth", "kg")
 object_timing.track(StarSystem, "system")

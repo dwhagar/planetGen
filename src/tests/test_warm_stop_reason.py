@@ -39,7 +39,7 @@ def _run_ended_by(monkeypatch, number, before=lambda: None):
 
     monkeypatch.setattr(warm_cli, "_warm_once", warm_once)
     with pytest.raises(SystemExit) as ended:
-        warm_cli.run_warm(SimpleNamespace(on_change=None))
+        warm_cli.run_warm(SimpleNamespace(on_change=None, follow=False))
     return ended.value.code
 
 
@@ -85,16 +85,44 @@ def test_a_sigterm_long_before_the_limit_is_not_blamed_on_it(state, monkeypatch,
     assert "time limit" not in _line(capsys)
 
 
-def test_a_hangup_says_the_terminal_was_closed(state, monkeypatch, capsys):
-    status = _run_ended_by(monkeypatch, signal.SIGHUP)
-    assert status == 129 and "ended by the terminal it ran in was closed (hangup)" in _line(capsys)
+def test_a_hangup_does_not_end_the_warm_up_it_only_lets_go_of_the_terminal(state, monkeypatch):
+    """PERF.235: a lost terminal silences the process's output, says so in the run's log, and the warm-up goes on to its end."""
+    from planetgen.util import log
+    silenced, said, finished = [], [], []
+    monkeypatch.setattr(warm_cli, "_silence", lambda fds=(1, 2): silenced.append(fds))
+    monkeypatch.setattr(log, "normal", said.append)
+    monkeypatch.setattr(warm_cli, "_site_database", lambda: "galaxy")
+
+    def warm_once(_args, reason=None):
+        os.kill(os.getpid(), signal.SIGHUP)
+        os.kill(os.getpid(), signal.SIGHUP)     # a second hangup changes nothing
+        finished.append(True)
+
+    monkeypatch.setattr(warm_cli, "_warm_once", warm_once)
+    warm_cli.run_warm(SimpleNamespace(on_change=None, follow=False))
+    assert finished == [True], "the warm-up ran to its end"
+    assert silenced == [(1, 2)], "standard output and error were pointed away from the closed terminal, once"
+    assert len(said) == 1 and "terminal this warm-up ran in was closed" in said[0] and "planetgen warm --follow" in said[0]
+
+
+def test_silence_points_the_descriptors_at_dev_null(tmp_path):
+    target = os.open(str(tmp_path / "out"), os.O_WRONLY | os.O_CREAT)
+    try:
+        saved = os.dup(target)
+        warm_cli._silence((target,))
+        os.write(target, b"gone")
+        os.dup2(saved, target)
+        os.close(saved)
+    finally:
+        os.close(target)
+    assert (tmp_path / "out").read_bytes() == b""
 
 
 def test_ctrl_c_is_named_and_exits_130(state, monkeypatch, capsys):
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "galaxy")
     monkeypatch.setattr(warm_cli, "_warm_once", lambda _args, reason=None: (_ for _ in ()).throw(KeyboardInterrupt()))
     with pytest.raises(SystemExit) as ended:
-        warm_cli.run_warm(SimpleNamespace(on_change=None))
+        warm_cli.run_warm(SimpleNamespace(on_change=None, follow=False))
     assert ended.value.code == 130 and "ended by Ctrl+C." in _line(capsys)
 
 

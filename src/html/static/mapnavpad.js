@@ -7,7 +7,7 @@
 // galaxy at the top and a moon at the bottom, with named stops that are each
 // a Go to for that scale and a readout of the distance. The map itself stays
 // the stage view's (galaxystageview.js); this only drives its `zoomShare`,
-// `setZoomShare`, `scaleInfo`, `goTo`, `moveCentre`, `resetCentre` and `centre`.
+// `setZoomShare`, `scaleInfo`, `goTo`, `moveCenter`, `resetCenter` and `center`.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const R = await import(`./maplogruler.js${VERSION_QUERY}`);
@@ -92,8 +92,8 @@ export function createNavPad(host, stageView, cross) {
       button.setAttribute("aria-label", "Go to " + words);
       button.textContent = stop.label;
       button.addEventListener("click", function () {
-        const centre = stageView.centre();
-        if (centre) stageView.goTo({ center: centre, dist: stop.pc });
+        const center = stageView.center();
+        if (center) stageView.goTo({ center: center, dist: stop.pc });
       });
       stopsEl.appendChild(button);
       stopButtons[stop.key] = button;
@@ -135,14 +135,14 @@ export function createNavPad(host, stageView, cross) {
   pad.appendChild(star);
 
   const readout = doc.createElement("div");
-  readout.className = "starmap-centre-readout";
+  readout.className = "starmap-center-readout";
   readout.setAttribute("aria-live", "polite");
   readout.hidden = true;
   host.appendChild(readout);
 
   let hideTimer = null;
-  function showCentre() {
-    const point = stageView.centre();
+  function showCenter() {
+    const point = stageView.center();
     if (!point) return;
     readout.textContent = where(point);
     readout.hidden = false;
@@ -161,9 +161,9 @@ export function createNavPad(host, stageView, cross) {
     repeat = null;
   }
   function act(arrow) {
-    if (arrow.name === "reset") stageView.resetCentre();
-    else stageView.moveCentre(arrow.dx * STEP, arrow.dy * STEP);
-    showCentre();
+    if (arrow.name === "reset") stageView.resetCenter();
+    else stageView.moveCenter(arrow.dx * STEP, arrow.dy * STEP);
+    showCenter();
   }
   ARROWS.forEach(function (arrow) {
     const button = doc.createElement("button");
@@ -233,7 +233,7 @@ export function createNavPad(host, stageView, cross) {
     if (!held) slider.value = String(Math.round(stageView.zoomShare() * 1000));
     syncReadout();
     if (!readout.hidden) {
-      const point = stageView.centre();
+      const point = stageView.center();
       if (point) readout.textContent = where(point);
     }
   }

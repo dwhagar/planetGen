@@ -13,7 +13,7 @@ come first served:
   with a sign of life (`ALIVE_SECONDS`), so one that was killed drops out of the line by itself;
 * a **job** (`type` `job`): a Generate page job that finds another job running, waiting for the Generate page's job
   slot (`web/jobs.py`). Its recipe is kept in a private file of the jobs folder (it holds the database environment);
-  the line holds the rest. It starts by itself when the job before it succeeded or was cancelled and is held for an
+  the line holds the rest. It starts by itself when the job before it succeeded or was canceled and is held for an
   admin when that job failed (ADM.123).
 
 The two kinds wait for two different things, so each keeps its own order: a run's turn comes when the runs ahead of it

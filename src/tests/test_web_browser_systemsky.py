@@ -41,7 +41,7 @@ def _packed(report):
         uid=[0], offset_pc=np.array([s[0] for s in stars], dtype=float), velocity_kms=np.zeros((1, 3)),
         dimmed_absolute_magnitude=np.array([s[1] for s in stars], dtype=float), temperature_k=np.array([s[2] for s in stars], dtype=float),
         tier=[next(iter(KIND_CODES))])
-    meta = {"system": "A", "nebulae": [], "report": report, "band": {"key": "k" * 32, "width": WIDTH, "height": HEIGHT, "format": "rgb16f",
+    meta = {"system": "A", "nebulae": [], "report": report, "charted": {"0": ["FE00-0000001-001", "Test Star"]}, "band": {"key": "k" * 32, "width": WIDTH, "height": HEIGHT, "format": "rgb16f",
                                                                       "href": "/system/A/sky/band?limit=7.5"}}
     return pack_sky(sky, EPOCH, 7.5, meta=meta)
 
@@ -126,7 +126,7 @@ SETUP = """async ([options]) => {
     skyUrl: "/system/A/sky", view, sceneEpochUnix: %(epoch)r, storage, onState: (s, n) => notes.push([s.kind, n]),
     setTimeout: (fn, ms) => { window.timers.push([fn, ms]); return window.timers.length; }, clearTimeout: () => {}, ...options,
   });
-  window.sky = sky; window.view = view; window.notes = notes;
+  window.sky = sky; window.view = view; window.notes = notes; window.camera = camera; window.layerOf = () => layer;
   window.shot = (probes, withBlocker) => {
     blocker.visible = !!withBlocker;
     if (layer) layer.update(camera, { years: 0, pixelRatio: 1 });
@@ -205,3 +205,24 @@ def test_a_sky_the_route_refuses_leaves_the_plain_background(browser):
     page.evaluate("() => window.sky.reload()")
     assert page.evaluate("() => window.view.attached()") is False
     assert "no place in the galaxy" in page.evaluate("() => window.notes.at(-1)[1]")
+
+
+def test_a_star_of_the_sky_is_picked_where_it_is_drawn_and_named_and_linked(browser):
+    """VIEW.37: the layer's pick finds the star at the middle of the canvas (where the render draws it), says it is seen as it was about 33 years ago
+    (10 pc of light), names it and links it through the star page template from `meta.charted`; a point away from every star finds nothing."""
+    page = _page(browser, {"filling": False})
+    page.evaluate(SETUP, [{"starUrl": "/object/star:{id}"}])
+    page.evaluate("() => window.sky.reload()")
+    assert page.evaluate("() => window.shot([[0, 0]], false)")[0] > 150
+    size = SIZE
+    found = page.evaluate("(size) => window.layerOf().pick(window.camera, { x: size / 2 + 2, y: size / 2 - 1 }, { width: size, height: size })", size)
+    assert found["title"] == "Test Star" and found["href"] == "/object/star:FE00-0000001-001"
+    assert 32.0 < found["pick"]["tauYears"] < 33.3 and abs(found["pick"]["distancePc"] - 10.0) < 1e-3
+    assert "seen as it was 33 years ago" in " ".join(found["lines"]) and [f[0] for f in found["fields"]] == ["Class", "Distance", "Brightness", "Light"]
+    assert page.evaluate("(size) => window.layerOf().pick(window.camera, { x: 20, y: 20 }, { width: size, height: size })", size) is None
+    on_screen = page.evaluate("(size) => window.layerOf().screenStars(window.camera, { width: size, height: size })", size)
+    assert len(on_screen) == 1 and abs(on_screen[0]["x"] - size / 2) < 1.5 and abs(on_screen[0]["y"] - size / 2) < 1.5
+    unlinked = _page(browser, {"filling": False})
+    unlinked.evaluate(SETUP, [{}])
+    unlinked.evaluate("() => window.sky.reload()")
+    assert unlinked.evaluate("(size) => window.layerOf().pick(window.camera, { x: size / 2, y: size / 2 }, { width: size, height: size })", size)["href"] is None

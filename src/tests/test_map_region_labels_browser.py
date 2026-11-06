@@ -19,7 +19,7 @@ import pytest
 
 from tests.map_site_support import REGION_FAMILY, REGION_NAMES, charted_regions, map_site  # noqa: F401
 from tests.test_web_browser_fixture_maps import (  # noqa: F401 -- fixtures and the map drivers the lanes' own tests share
-    LABELS, _label_spot, _open_galaxy, _settle, _window_size, gl_browser, page)
+    GALAXY_CANVAS, LABELS, _label_spot, _open_galaxy, _settle, _window_size, gl_browser, page)
 
 pytestmark = pytest.mark.browser
 
@@ -36,19 +36,19 @@ NODES_IN = ("() => document.querySelector('#galaxymap3d-canvas').galaxyNodeKeys(
             ".filter((n) => Number(n.key.split('.')[0]) >= 9).every((n) => n.loaded)")
 
 
-def _centre():
+def _center():
     """The middle of the fixture's regions, in pc."""
     regions = list(charted_regions().values())
-    return [sum(region["centre"][axis] for region in regions) / len(regions) for axis in range(3)]
+    return [sum(region["center"][axis] for region in regions) / len(regions) for axis in range(3)]
 
 
-def _look(page, base, centre, distance):
-    """Opens the Galaxy Map looking at `centre` (pc) from `distance` pc, in the orientation the map opens in, and waits for the
+def _look(page, base, center, distance):
+    """Opens the Galaxy Map looking at `center` (pc) from `distance` pc, in the orientation the map opens in, and waits for the
     nodes of 9 sectors and up to be in."""
     _open_galaxy(page, base)
     cam = next(part for part in page.evaluate("location.search").lstrip("?").split("&") if part.startswith("cam="))
     quaternion = cam[len("cam="):].split(",")[4:]
-    _open_galaxy(page, base, "?cam=" + ",".join(str(value) for value in centre + [distance] + quaternion))
+    _open_galaxy(page, base, "?cam=" + ",".join(str(value) for value in center + [distance] + quaternion))
     page.wait_for_function(NODES_IN, timeout=60000)
     page.wait_for_timeout(600)
 
@@ -63,19 +63,19 @@ def _wait_for_names(page, count=1):
 
 def test_far_out_the_family_is_named_once_and_no_region_by_its_own_name(page, map_site):
     for distance in (BIG_NODES, BIGGEST_NODES):
-        _look(page, map_site, _centre(), distance)
+        _look(page, map_site, _center(), distance)
         _wait_for_names(page)
         assert _names(page) == [REGION_FAMILY], (distance, _names(page))
 
 
 def test_closer_each_charted_region_is_named_and_the_family_is_not(page, map_site):
-    _look(page, map_site, _centre(), MIDDLE_NODES)
+    _look(page, map_site, _center(), MIDDLE_NODES)
     _wait_for_names(page, 2)
     assert _names(page) == sorted(REGION_NAMES.values()), _names(page)
 
 
 def test_in_blocks_of_three_sectors_and_below_no_region_is_named(page, map_site):
-    _look(page, map_site, _centre(), FINE_NODES)
+    _look(page, map_site, _center(), FINE_NODES)
     assert _names(page) == []
 
 
@@ -87,7 +87,7 @@ def test_where_nothing_is_charted_no_region_is_named(page, map_site):
 
 
 def test_the_region_names_switch_takes_the_names_away_and_the_address_keeps_it(page, map_site):
-    _look(page, map_site, _centre(), MIDDLE_NODES)
+    _look(page, map_site, _center(), MIDDLE_NODES)
     _wait_for_names(page, 2)
     page.click("#galaxymap3d-menu > summary")
     toggle = page.locator('#galaxymap3d-kinds [data-label="region"]')
@@ -111,14 +111,14 @@ def _bare_spot(page, label):
 
 
 def test_a_click_on_the_family_flies_to_its_block_and_on_a_region_to_the_region(page, map_site):
-    _look(page, map_site, _centre(), BIG_NODES)
+    _look(page, map_site, _center(), BIG_NODES)
     _wait_for_names(page)
     family = next(label for label in page.evaluate(LABELS) if label["kind"] == "region")
     page.mouse.click(*_bare_spot(page, family))
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
     assert _window_size(page) == 81
-    _look(page, map_site, _centre(), MIDDLE_NODES)
+    _look(page, map_site, _center(), MIDDLE_NODES)
     _wait_for_names(page, 2)
     region = next(label for label in page.evaluate(LABELS) if label["kind"] == "region" and label["text"] == REGION_NAMES[(0, 0, 0)])
     page.mouse.click(*_bare_spot(page, region))
@@ -127,8 +127,23 @@ def test_a_click_on_the_family_flies_to_its_block_and_on_a_region_to_the_region(
     assert _window_size(page) == 9
 
 
+def test_a_region_point_with_its_name_does_not_cover_a_name_the_map_placed(page, map_site):
+    """MAP.369: the region point carries the region's name and moves up over a family name beside it rather than cover it."""
+    _look(page, map_site, _center(), BIG_NODES)
+    _wait_for_names(page)
+    page.wait_for_selector(".map-region-poi")
+    page.wait_for_timeout(500)
+    family = next(label for label in page.evaluate(LABELS) if label["kind"] == "region")
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    name = (box["x"] + family["left"], box["y"] + family["top"], box["x"] + family["left"] + family["width"], box["y"] + family["top"] + family["height"])
+    pills = page.evaluate("() => [...document.querySelectorAll('.map-region-poi')].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })")
+    assert pills
+    for left, top, right, bottom in pills:
+        assert right <= name[0] or left >= name[2] or bottom <= name[1] or top >= name[3], (name, pills)
+
+
 def test_a_click_on_a_group_of_regions_flies_to_a_block_that_holds_them_all(page, map_site):
-    _look(page, map_site, _centre(), BIG_NODES)
+    _look(page, map_site, _center(), BIG_NODES)
     _wait_for_names(page)
     page.wait_for_selector(".map-region-poi")
     groups = page.evaluate("() => [...document.querySelectorAll('.map-region-poi')].map((e) => e.querySelector('.map-region-poi-count').textContent)")

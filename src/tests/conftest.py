@@ -635,3 +635,12 @@ def large_spiral_fallback(monkeypatch):
     place things at 8 kpc assume: the fallback seed's own galaxy is a small spiral since the Auto window narrowed (GEN.603)."""
     from planetgen.galaxy import scales
     monkeypatch.setattr(scales, "_drawn_scale_length_pc", lambda _seed: 2600.0)
+
+
+@pytest.fixture(scope="session")
+def rich_galaxy(_mysql_server_available):
+    """A `MySQLConfig` for the one seeded galaxy of `tests/rich_galaxy_support.py`, built once per test process (TEST.417)
+    for every module that takes it; tests must leave it as they found it (roll back)."""
+    from tests.rich_galaxy_support import scratch_rich_galaxy
+    with scratch_rich_galaxy() as config:
+        yield config

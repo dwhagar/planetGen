@@ -1,32 +1,32 @@
 # planetgen/physics/system_bodies.py
 
 """
-The ledger of a whole system: one list of every body with a mass, and the barycentre that includes the belts (GEN.1066; docs/design/systems/system-bodies-ledger.md, belt-evolution.md section 5)
+The ledger of a whole system: one list of every body with a mass, and the barycenter that includes the belts (GEN.1066; docs/design/systems/system-bodies-ledger.md, belt-evolution.md section 5)
 ================================================================================================================================================================================================
 
-Planets, moons, belts and comets each live in their own typed table, so nothing today can answer "what is the total mass of this system" or "where is its barycentre with the belts in it". This module is the pure half of
+Planets, moons, belts and comets each live in their own typed table, so nothing today can answer "what is the total mass of this system" or "where is its barycenter with the belts in it". This module is the pure half of
 the answer: a flat list of `Body` rows (`id`, `parent`, `kind`, `mass_kg`, `radius_km`, `density_kg_m3`, `a_au`, `e`, `i_deg`, `status`, `tier`, `position_au`), the checks that make it a tree, and the sums over it.
 The list itself is a **view** over the typed tables (the design note decides view against table: a view, no new storage), so building the rows from the tables is the wiring, not this module.
 
-1. **One tree, one rule.** The root is the central object (a star). Every other body names the body it orbits (`parent`), and its `position_au` is relative to that parent's centre, as the typed tables store it (the unified-system
+1. **One tree, one rule.** The root is the central object (a star). Every other body names the body it orbits (`parent`), and its `position_au` is relative to that parent's center, as the typed tables store it (the unified-system
    rule: stored relative, derived absolute, `unified-system-barycentre.md`). A body's place in the system frame (the root at the origin) is the sum of the offsets down its chain of parents (`absolute_positions_au`).
 2. **Kinds and who may be whose parent.** `star` (root, or a companion star about another star), `planet` (about a star), `moon` (about a planet, or about a belt member that has a moon), `belt` (about a star; a *container*,
    its own mass is zero and its mass is the sum of its children), `belt_member` (an L1 body of a belt, one row each), `extended` (what is below the L1 cut: the L2 and L3 tiers of a belt as one extended mass, no
-   individual orbit), `comet` (about a star), `ring` (about a planet; one extended mass). An `extended` body and a `ring` with no stored position sit at their parent's centre (a symmetric annulus has its centre of mass
-   at its centre).
+   individual orbit), `comet` (about a star), `ring` (about a planet; one extended mass). An `extended` body and a `ring` with no stored position sit at their parent's center (a symmetric annulus has its center of mass
+   at its center).
 3. **Mass is conserved.** `subtree_mass_kg` of a belt is the sum of its members and its extended mass; `belt_mass_residual` is that against the belt's own mass (the budget `belt_ledger` spends), so a belt whose ledger
    does not add up is found by a number, not a look.
-4. **The barycentre includes everything with a mass.** `barycentre_au` is `sum(m r) / sum(m)` over all bodies in the system frame; the central object sits at minus that, `central_offset_au`. `belt_wobble_au` is how much
+4. **The barycenter includes everything with a mass.** `barycenter_au` is `sum(m r) / sum(m)` over all bodies in the system frame; the central object sits at minus that, `central_offset_au`. `belt_wobble_au` is how much
    the belts move the central object away from where the planets alone put it, the test the design asked for. Every body is a point; an `extended` body is a point at its stored place.
 
 Limits. Positions are the bodies' places at one instant (the caller gives them; `relative_position_au` turns elements and a mean anomaly into one), and the sums are exact for those points; a time series is a caller loop.
-Close binaries (a barycentre as the origin of two stars) keep their own convention in `system_tree.py`; here a companion star is a body about the primary. Nothing calls this yet.
+Close binaries (a barycenter as the origin of two stars) keep their own convention in `system_tree.py`; here a companion star is a body about the primary. Nothing calls this yet.
 
 Use:
 
     rows = [Body(...), ...]                              # from the typed tables
     check(rows)                                          # one root, parents exist, no cycle, kind rules, belts hold no mass of their own
-    b = barycentre_au(rows); offset = central_offset_au(rows)
+    b = barycenter_au(rows); offset = central_offset_au(rows)
     shift = belt_wobble_au(rows)                         # the star's displacement from the belts alone
 """
 
@@ -41,7 +41,7 @@ Body = namedtuple(
     ("id", "parent", "kind", "mass_kg", "radius_km", "density_kg_m3", "a_au", "e", "i_deg", "status", "tier", "position_au"),
     defaults=(None,) * 8,
 )
-"""One row of the ledger. `parent` is the id of the body orbited (None for the root); `position_au` is `(x, y, z)` relative to the parent's centre, or None for a body that sits at its parent's centre."""
+"""One row of the ledger. `parent` is the id of the body orbited (None for the root); `position_au` is `(x, y, z)` relative to the parent's center, or None for a body that sits at its parent's center."""
 
 ROOT_KINDS = ("star",)
 """tuple: Kinds that can be the root."""
@@ -131,7 +131,7 @@ def check(bodies):
 
 
 def absolute_positions_au(bodies):
-    """The place of every body in the system frame (the root's centre at the origin): `{id: (x, y, z)}` in AU, the sum of the offsets down the chain of parents."""
+    """The place of every body in the system frame (the root's center at the origin): `{id: (x, y, z)}` in AU, the sum of the offsets down the chain of parents."""
     order = check(bodies)
     by_id = {body.id: body for body in bodies}
     places = {}
@@ -175,28 +175,28 @@ def belt_mass_residual(bodies, belt_id, belt_mass_kg):
     return (subtree_mass_kg(bodies, belt_id) - belt_mass_kg) / belt_mass_kg
 
 
-def barycentre_au(bodies, without_kinds=()):
+def barycenter_au(bodies, without_kinds=()):
     """
-    The centre of mass of the system in the system frame (the root's centre at the origin), AU: `sum(m r) / sum(m)` over every body whose kind is not in `without_kinds`. A system whose bodies have no mass in this
+    The center of mass of the system in the system frame (the root's center at the origin), AU: `sum(m r) / sum(m)` over every body whose kind is not in `without_kinds`. A system whose bodies have no mass in this
     selection is a `SystemBodiesError`.
     """
     places = absolute_positions_au(bodies)
     chosen = [body for body in bodies if body.kind not in without_kinds]
     mass = math.fsum(body.mass_kg for body in chosen)
     if mass <= 0:
-        raise SystemBodiesError("no mass to take a barycentre of")
+        raise SystemBodiesError("no mass to take a barycenter of")
     return tuple(math.fsum(body.mass_kg * places[body.id][axis] for body in chosen) / mass for axis in range(3))
 
 
 def central_offset_au(bodies, without_kinds=()):
-    """Where the root (the central object) sits relative to the barycentre, AU: minus the barycentre in the system frame."""
-    return tuple(-value for value in barycentre_au(bodies, without_kinds))
+    """Where the root (the central object) sits relative to the barycenter, AU: minus the barycenter in the system frame."""
+    return tuple(-value for value in barycenter_au(bodies, without_kinds))
 
 
 def belt_wobble_au(bodies, kinds=("belt_member", "extended")):
     """
-    How far the belts move the central object: the distance, AU, between where the barycentre puts the root with everything and where it puts it with the bodies of `kinds` (the belts' members and remainders) left out.
-    Belts that are round and centred contribute nothing; a heavy member on one side does.
+    How far the belts move the central object: the distance, AU, between where the barycenter puts the root with everything and where it puts it with the bodies of `kinds` (the belts' members and remainders) left out.
+    Belts that are round and centered contribute nothing; a heavy member on one side does.
     """
     with_belts = central_offset_au(bodies)
     without = central_offset_au(bodies, kinds)

@@ -1,4 +1,4 @@
-"""GEN.1066: the system ledger and the barycentre that includes the belts."""
+"""GEN.1066: the system ledger and the barycenter that includes the belts."""
 
 import math
 
@@ -86,21 +86,21 @@ def test_a_subtree_counts_as_the_sum_of_its_parts_and_the_total_counts_each_body
     assert sb.subtree_mass_kg(rows, "s") == pytest.approx(sb.total_mass_kg(rows))
 
 
-def test_the_barycentre_of_one_planet_is_the_two_body_formula():
+def test_the_barycenter_of_one_planet_is_the_two_body_formula():
     rows = _system()[:2]
     expected = JUPITERISH * 5.0 / (SUN + JUPITERISH)
-    assert sb.barycentre_au(rows) == pytest.approx((expected, 0.0, 0.0), rel=1e-12)
+    assert sb.barycenter_au(rows) == pytest.approx((expected, 0.0, 0.0), rel=1e-12)
     assert sb.central_offset_au(rows) == pytest.approx((-expected, 0.0, 0.0), rel=1e-12)
 
 
-def test_a_moon_moves_the_barycentre_by_its_share_of_the_total_mass():
+def test_a_moon_moves_the_barycenter_by_its_share_of_the_total_mass():
     rows = _system()
     expected_x = (JUPITERISH * 5.0 + 1e23 * 5.0) / (SUN + JUPITERISH + 1e23)
-    assert sb.barycentre_au(rows)[0] == pytest.approx(expected_x, rel=1e-12)
-    assert sb.barycentre_au(rows)[1] == pytest.approx(1e23 * 0.003 / (SUN + JUPITERISH + 1e23), rel=1e-9)
+    assert sb.barycenter_au(rows)[0] == pytest.approx(expected_x, rel=1e-12)
+    assert sb.barycenter_au(rows)[1] == pytest.approx(1e23 * 0.003 / (SUN + JUPITERISH + 1e23), rel=1e-9)
 
 
-def test_a_round_centred_belt_does_not_move_the_star():
+def test_a_round_centered_belt_does_not_move_the_star():
     rows = _system() + _ring_of_members(12, 1e20, 2.7, 3e22)
     assert sb.belt_wobble_au(rows) < 1e-9 * 2.7
     # and the belt's mass is in the total
@@ -113,7 +113,7 @@ def test_one_heavy_member_on_one_side_moves_the_star_by_the_two_body_amount():
     assert sb.belt_wobble_au(rows) == pytest.approx(heavy * 2.7 / (SUN + heavy), rel=1e-12)
 
 
-def test_the_extended_remainder_of_a_belt_sits_at_its_centre_and_does_not_move_the_star_alone():
+def test_the_extended_remainder_of_a_belt_sits_at_its_center_and_does_not_move_the_star_alone():
     rows = [_star(), Body("b", "s", "belt", 0.0), Body("bx", "b", "extended", 4e23, tier="L3")]
     assert sb.belt_wobble_au(rows) == 0.0
 
@@ -129,10 +129,10 @@ def test_the_belt_residual_is_zero_when_the_rows_add_up_and_signed_when_they_do_
         sb.belt_mass_residual(rows, "b", 0.0)
 
 
-def test_no_mass_to_take_a_barycentre_of_is_an_error():
+def test_no_mass_to_take_a_barycenter_of_is_an_error():
     rows = [_star(0.0)]
     with pytest.raises(SystemBodiesError):
-        sb.barycentre_au(rows)
+        sb.barycenter_au(rows)
 
 
 def test_elements_to_a_position():

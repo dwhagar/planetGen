@@ -22,11 +22,11 @@
       "co_fields": ["snow_line_au"],
       "co_text": "Solids also piled up here, at the snow line of the young system, {snow_line_au:.3g} AU."
     },
-    "outer-disc": {
+    "outer-disk": {
       "kind": "formation",
       "label": "cold leftover beyond the last giant",
       "fields": ["inner_au", "outer_au"],
-      "text": "The cold leftover of the disc past {inner_au:.3g} AU: the solids were too sparse and the orbits too slow to build a planet."
+      "text": "The cold leftover of the disk past {inner_au:.3g} AU: the solids were too sparse and the orbits too slow to build a planet."
     },
     "collisional-debris": {
       "kind": "formation",

@@ -816,7 +816,7 @@ def _star_light(luminosity_w, radius_km, temperature_k):
 
 # The phenomena that give off light, each a fixed point of light (their
 # rows carry no luminosity): a quasar outshines everything on the map, an
-# accreting black hole is a hot orange point (its disc, not the hole,
+# accreting black hole is a hot orange point (its disk, not the hole,
 # shines, so its core is not whitened), a neutron star a small blue-white
 # one. A quiescent black hole and an interstellar comet give off no light
 # of their own and keep their spheres; a rogue planet is a faint point of
@@ -932,6 +932,8 @@ _NEBULA_TYPE_COLORS = {
     "planetary": "#5be8c9",
     "dark": "#1c1c24",
 }
+REMNANT_FAMILY = "supernova-remnant"
+"""str: The family (`galaxy.nebula_blocks.FAMILIES`) whose points draw a supernova remnant (MAP.392); a nebula's is its descriptor (`_NEBULA_TYPE_COLORS`)."""
 _NEBULA_TYPE_ALPHA = {
     "diffuse": (0x78, 0x24),
     "emission": (0xB0, 0x40),
@@ -1015,6 +1017,7 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px, brightest_sol
         data["kind"] = "nebula"
         # sectorscene.js swaps the sphere for the nebula's shape (MAP.103).
         data["nebulaId"] = phenomenon["id"]
+        data["family"] = descriptor if descriptor in _NEBULA_TYPE_COLORS else "diffuse"    # which family's points draw it (MAP.392)
         data["coreColor"] = f"{color}{core_alpha:02x}"
         data["edgeColor"] = f"{color}{edge_alpha:02x}"
         data["typeLabel"] = f'{descriptor.capitalize()} Nebula'
@@ -1031,6 +1034,7 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px, brightest_sol
         data["typeLabel"] = f'Neutron Star ({descriptor.replace("-", " ").capitalize()})' if descriptor else "Neutron Star"
     elif phenomenon_type == "supernova_remnant":
         data["kind"] = "supernovaRemnant"
+        data["family"] = REMNANT_FAMILY
         data["typeLabel"] = f'Supernova Remnant ({descriptor.capitalize()})' if descriptor else "Supernova Remnant"
         if phenomenon.get("age_years"):
             # MAP.286: sectorscene.js paints the shell from the age (a young remnant is a thin bright rim, an old one a thick faint one).

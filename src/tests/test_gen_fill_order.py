@@ -1,6 +1,6 @@
 """
 GEN.101: the order a neighbourhood fill generates its sectors in (`planetgen.generation.fill_order`): the sector at
-the centre first, then outward in blocks of four sectors a side along a Hilbert curve, deterministic whatever order the
+the center first, then outward in blocks of four sectors a side along a Hilbert curve, deterministic whatever order the
 candidates come in, and the steps that are not between neighbours counted and reported.
 """
 
@@ -17,7 +17,7 @@ from planetgen.queue import wrapper
 from planetgen.util import log
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
-CENTRES = {"the galactic centre": (0.0, 0.0, 0.0), "off the axis": (1000.0, 200.0, 50.0),
+CENTERS = {"the galactic center": (0.0, 0.0, 0.0), "off the axis": (1000.0, 200.0, 50.0),
            "far out on the axis": (0.0, 0.0, 9000.0)}
 
 
@@ -40,9 +40,9 @@ def test_a_point_outside_the_lattice_is_refused():
         fill_order.hilbert_index((4, 0, 0), 2)
 
 
-@pytest.mark.parametrize("name", CENTRES)
-def test_the_order_holds_every_candidate_once_and_starts_at_the_sector_nearest_the_centre(name):
-    center = CENTRES[name]
+@pytest.mark.parametrize("name", CENTERS)
+def test_the_order_holds_every_candidate_once_and_starts_at_the_sector_nearest_the_center(name):
+    center = CENTERS[name]
     cells = _cells(center, 40.0)
     ordered = fill_order.fill_order(cells, center, EDGE_PC)
     assert sorted(ordered) == sorted(cells)
@@ -50,9 +50,9 @@ def test_the_order_holds_every_candidate_once_and_starts_at_the_sector_nearest_t
     assert ordered[0] == nearest
 
 
-@pytest.mark.parametrize("name", CENTRES)
+@pytest.mark.parametrize("name", CENTERS)
 def test_the_order_does_not_depend_on_the_order_the_candidates_came_in(name):
-    center = CENTRES[name]
+    center = CENTERS[name]
     cells = _cells(center, 40.0)
     shuffled = cells[:]
     random.Random(7).shuffle(shuffled)
@@ -60,9 +60,9 @@ def test_the_order_does_not_depend_on_the_order_the_candidates_came_in(name):
     assert fill_order.fill_order(reversed(cells), center, EDGE_PC) == fill_order.fill_order(cells, center, EDGE_PC)
 
 
-@pytest.mark.parametrize("name", CENTRES)
+@pytest.mark.parametrize("name", CENTERS)
 def test_at_least_95_percent_of_the_steps_of_a_50_pc_ball_are_between_neighbours(name):
-    center = CENTRES[name]
+    center = CENTERS[name]
     ordered = fill_order.fill_order(_cells(center, 50.0), center, EDGE_PC)
     steps, jumps, mean, longest = fill_order.step_statistics(ordered, EDGE_PC)
     assert steps == len(ordered) - 1 > 5000
@@ -70,8 +70,8 @@ def test_at_least_95_percent_of_the_steps_of_a_50_pc_ball_are_between_neighbours
     assert mean > fill_order.JUMP_EDGES and longest >= mean       # a jump is longer than a neighbour step, by definition
 
 
-def test_the_ball_is_filled_from_the_centre_outward_in_blocks():
-    center = CENTRES["off the axis"]
+def test_the_ball_is_filled_from_the_center_outward_in_blocks():
+    center = CENTERS["off the axis"]
     cells = _cells(center, 50.0)
     ordered = fill_order.fill_order(cells, center, EDGE_PC)
     # the nearest tenth of the sectors is, for the most part, among the first tenth to be filled
@@ -96,7 +96,7 @@ def test_a_step_is_a_jump_only_beyond_two_and_a_half_edges():
     assert fill_order.step_statistics(ordered, EDGE_PC) == (3, 1, pytest.approx(6.0), pytest.approx(6.0))
 
 
-def test_the_lattice_puts_the_centre_in_the_middle_of_its_block():
+def test_the_lattice_puts_the_center_in_the_middle_of_its_block():
     assert fill_order.lattice_offset((0.0, 0.0, 0.0), (0.0, 0.0, 0.0), EDGE_PC) == (0, 0, 0)
     assert fill_order.lattice_offset((EDGE_PC * 1.4, -EDGE_PC * 0.6, 0.0), (0.0, 0.0, 0.0), EDGE_PC) == (1, -1, 0)
     block, local = fill_order._block_of((0, 0, 0))

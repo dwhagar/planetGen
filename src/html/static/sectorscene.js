@@ -32,8 +32,14 @@ const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const { mapVar, formatAddress } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
+
+// NAV.49: the entry's place in the galaxy frame (parsecs) on its bookmark, where the map flags it as a waypoint.
+function withPosition(bookmark, entry) {
+  if (bookmark && [entry.x, entry.y, entry.z].every(Number.isFinite)) bookmark.position = [entry.x, entry.y, entry.z];
+  return bookmark;
+}
 const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
-const { singleSource } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { singleSource, sphereSource } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const {
   GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
@@ -71,7 +77,7 @@ export function infoSpec(entry, data, navPick) {
   }
   if (entry.kind) {
     spec.fields = [["Type", entry.typeLabel], ["Radius", entry.radiusText], ["Age", entry.ageText], ["Surface gravity", entry.gravityText], ["Distance", entry.distanceText]];
-    spec.bookmark = endpointBookmark(entry.key, entry.name, entry.href);
+    spec.bookmark = withPosition(endpointBookmark(entry.key, entry.name, entry.href), entry);
     if (navPick) spec.nav = navPick.actionsFor(entry.key, entry.name);
     if (!picking) {
       spec.view = { href: entry.href, label: "View phenomenon →" };
@@ -81,7 +87,7 @@ export function infoSpec(entry, data, navPick) {
   }
   spec.fields = [["Star type", entry.starType], ["Temperature", entry.temp], ["Metallicity [Fe/H]", entry.metallicity],
     ["Octant", entry.quadrant], ["Location", entry.location]];
-  spec.bookmark = endpointBookmark(entry.endpoint, entry.name, entry.href);
+  spec.bookmark = withPosition(endpointBookmark(entry.endpoint, entry.name, entry.href), entry);
   if (navPick) spec.nav = navPick.actionsFor(entry.endpoint, entry.name);
   if (!picking) {
     spec.view = { href: entry.href, label: "View system →" };
@@ -184,7 +190,7 @@ function makeNebulaTexture(coreColor, edgeColor) {
 }
 
 // Reproduces planetgen/web/maps/starmap.py's old (now retired) `_ASTEROID_FIELD_BACKGROUND`
-// -- a soft tan base disc under three dark "clump" splotches -- as three
+// -- a soft tan base disk under three dark "clump" splotches -- as three
 // canvas radial-gradient fills instead of four stacked CSS ones. Not
 // pixel-identical (CSS's own unsized `radial-gradient(circle at X% Y%, ...)`
 // scales each clump to that *element's* own farthest-corner distance from
@@ -478,7 +484,7 @@ function makeCloudVolume(cloud, volume) {
 // `corePx` across in a soft halo `sizePx` across whose strength is `glow`,
 // the core `bright` opaque and whitened toward its middle (by `whiten`, 1
 // unless the entry says otherwise: an accreting black hole's core keeps
-// its disc's orange). planetgen/web/maps/starmap.py works every number out (from the
+// its disk's orange). planetgen/web/maps/starmap.py works every number out (from the
 // star's radius, luminosity and temperature, or a fixed recipe for a
 // phenomenon), with the Galaxy Map's own ranges and halo falloff, so a star
 // looks the same here as on the map the person just left (MAP.203); a
@@ -825,7 +831,9 @@ export function buildSectorScene(data, options) {
       entryByObject.set(mesh, cloud);
       volumeObjects.push(mesh);
       drawnFor(cloud, mesh);
-      if (cloud.kind === "nebula" && cloud.nebulaId != null && volumeSingles) {
+      // MAP.142 and MAP.392: where the host draws a cloud from points (the analytic sphere is only the fallback of a host that cannot), a nebula
+      // by its id, and every other nebula (one nothing was generated for, one a waiting star lights) and every supernova remnant by its sphere.
+      if (volumeSingles && (cloud.kind === "nebula" || cloud.kind === "supernovaRemnant")) {
         mesh.material.visible = false;
         volumeClouds.push(cloud);
       }
@@ -1027,7 +1035,9 @@ export function buildSectorScene(data, options) {
   function nebulaSources() {
     return volumeClouds.map(function (cloud) {
       var weight = hides(cloud) ? 0 : faded * (cloud.neighbor ? NEIGHBOR_CLOUD_DIM : 1);
-      return singleSource(cloud.nebulaId, { x: cloud.x, y: cloud.y, z: cloud.z, radiusPc: cloud.r }, weight);
+      var sphere = { x: cloud.x, y: cloud.y, z: cloud.z, radiusPc: cloud.r };
+      if (cloud.kind === "nebula" && cloud.nebulaId != null) return singleSource(cloud.nebulaId, sphere, weight);
+      return sphereSource(cloud.family || (cloud.kind === "supernovaRemnant" ? "supernova-remnant" : "diffuse"), sphere, weight);
     });
   }
 
@@ -1065,6 +1075,14 @@ export function buildSectorScene(data, options) {
     setFade: setFade,
     fade: function () { return faded; },
     nebulaSources: nebulaSources,
+    // MAP.392 (for the browser tests): the nebulae and supernova remnants of the scene still drawn as the analytic sphere or shell, `{ kind, name }`.
+    // With a host that draws from points (`volumeSingles`) it is empty: a hard ball or ring for a nebula is the fallback of a host that cannot.
+    hardClouds: function () {
+      return volumeObjects.filter(function (mesh) {
+        var cloud = entryByObject.get(mesh);
+        return mesh.material.visible && cloud && (cloud.kind === "nebula" || cloud.kind === "supernovaRemnant");
+      }).map(function (mesh) { var cloud = entryByObject.get(mesh); return { kind: cloud.kind, name: cloud.name || null }; });
+    },
     dispose: dispose,
   };
 }

@@ -6,7 +6,7 @@ time since the ejection give the rogue's position and velocity and so the sector
 
 The velocity of the body relative to its donor is the planet's orbital velocity at the ejection plus the scattering kick (`ejection_events`). The donor
 goes round the galaxy on a circular orbit (`galactic_orbit`), so the rogue's motion from it is the epicyclic drift of `rogue_drift`: the offset along the
-orbit is an angle round the galactic centre (`ring_drift`), which is how a rogue that has gone far lands on the other side of the galaxy's rotation
+orbit is an angle round the galactic center (`ring_drift`), which is how a rogue that has gone far lands on the other side of the galaxy's rotation
 rather than on a straight line. The axes are the galaxy frame's own (`galaxy/frame.py`): outward from the axis, along the rotation (counterclockwise from
 galactic north) and up. The epicyclic constants are those of `rogue_drift.SOLAR_NEIGHBOURHOOD` (a stand-in for every donor's radius, registered with
 its rows in `docs/design/research/gap-filling-plan.md`).
@@ -15,8 +15,9 @@ its rows in `docs/design/research/gap-filling-plan.md`).
 import collections
 import math
 
-from planetgen.galaxy import frame, spherical
+from planetgen.galaxy import frame, galactic_orbit, spherical
 from planetgen.physics import rogue_drift, rogue_kick
+from planetgen.physics.units import pc_to_ly
 from planetgen.util import detmath
 
 Landing = collections.namedtuple("Landing", ("position_pc", "velocity_km_s", "address", "separation_pc"))
@@ -66,3 +67,26 @@ def landing(donor_position_pc, event, edge_pc, circular_speed_km_s, galaxy=rogue
     velocity = _along(local, axes)
     separation = detmath.dist(position, donor_position_pc)
     return Landing(position, velocity, spherical.sector_address_at(position, edge_pc), separation)
+
+
+def placement_of(landing_):
+    """The `placement` dict the store takes (`center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc`) for a `Landing`."""
+    x, y, z = landing_.position_pc
+    return {"center_x_pc": x, "center_y_pc": y, "center_z_pc": z, "galactic_radius_pc": math.sqrt(x * x + y * y + z * z)}
+
+
+def apply_motion(planet, landing_):
+    """
+    Gives a rogue planet the motion the store keeps: its galaxy-frame velocity (`ejecta_velocity_kms`, which `store._free_vector` stores) and the
+    galactic orbit fields of a free object (`galactic_orbit.generate_galactic_orbit_fields` at its distance from the center, the phase its own
+    azimuth, so no draw is made).
+    """
+    x, y, _z = landing_.position_pc
+    distance_ly = pc_to_ly(placement_of(landing_)["galactic_radius_pc"])
+    speed, period, phase, interval = galactic_orbit.generate_galactic_orbit_fields(distance_ly, math.degrees(math.atan2(y, x)) % 360.0)
+    planet.ejecta_velocity_kms = tuple(landing_.velocity_km_s)
+    planet.galactic_orbital_speed_kms = speed
+    planet.galactic_orbital_period_gy = period
+    planet.galactic_orbital_phase_deg = phase
+    planet.galactic_min_update_interval_years = interval
+    return planet

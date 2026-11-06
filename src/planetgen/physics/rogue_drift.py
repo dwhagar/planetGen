@@ -127,7 +127,7 @@ class Drift:
 @dataclass(frozen=True)
 class RingDrift:
     """
-    The same drift with the along-orbit offset as an angle round the galactic centre.
+    The same drift with the along-orbit offset as an angle round the galactic center.
 
     Attributes:
         radial_pc, vertical_pc (float): The offsets outward and up (bounded).
@@ -182,12 +182,12 @@ def drift(kick_km_s, time_myr, galaxy=SOLAR_NEIGHBOURHOOD):
 @finite_domain()
 def ring_drift(kick_km_s, time_myr, galactocentric_radius_pc, galaxy=SOLAR_NEIGHBOURHOOD):
     """
-    The drift with the along-orbit offset as an angle `y / R` round the galactic centre, wrapped to one turn: good for a rogue that has gone far along the orbit, where the
+    The drift with the along-orbit offset as an angle `y / R` round the galactic center, wrapped to one turn: good for a rogue that has gone far along the orbit, where the
     linear offset in pc is an arc.
 
     Args:
         kick_km_s, time_myr, galaxy: As for `drift`.
-        galactocentric_radius_pc (float): The star's distance from the galactic centre.
+        galactocentric_radius_pc (float): The star's distance from the galactic center.
     """
     if not galactocentric_radius_pc > 0.0:
         raise RogueDriftError("the galactocentric radius must be positive")
@@ -199,18 +199,8 @@ def ring_drift(kick_km_s, time_myr, galactocentric_radius_pc, galaxy=SOLAR_NEIGH
     return RingDrift(here.x_pc, here.z_pc, wrapped, int(turns), shift)
 
 
-def donor_offset_pc(kick_km_s, time_myr, galaxy=SOLAR_NEIGHBOURHOOD):
-    """
-    Where the donor star is, relative to the rogue, now: minus the rogue's offset from it. The closed form does not depend on where the star is, so a sector that holds a
-    rogue puts the donor at its position plus this (option D, `rogue-planet-drift.md` section 5).
-    """
-    here = drift(kick_km_s, time_myr, galaxy)
-    return (-here.x_pc, -here.y_pc, -here.z_pc)
 
 
-def along_orbit_speed_pc_myr(v_km_s, galaxy=SOLAR_NEIGHBOURHOOD):
-    """The speed the rogue slides along the orbit at for an along-orbit kick `v_km_s`, pc/Myr (negative: it falls behind for a forward kick)."""
-    return -galaxy.slide_ratio * v_km_s * _KM_S_TO_PC_MYR
 
 
 def kick_from_direction(speed_km_s, direction):

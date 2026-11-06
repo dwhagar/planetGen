@@ -26,6 +26,7 @@ from planetgen.db import sky_sprites, store
 from planetgen.galaxy import potential as galacticPotential
 from planetgen.galaxy import sky, sky_band, sky_sprites as spriteMaker
 from planetgen.generation import sky_tiers
+from planetgen.physics import dust_model
 from planetgen.web.lib import skypack
 
 MAX_SPRITES = 600
@@ -49,9 +50,14 @@ def _band_galaxy_key(info, galaxy_key):
     return f"{galaxy_key}|{hashlib.sha256(repr(shape).encode('utf-8')).hexdigest()[:16]}"
 
 
+def _dust(info):
+    """The dust the galaxy's sky is seen through: that of its own gas (VIEW.44)."""
+    return dust_model.dust_for_shape(info.shape)
+
+
 def band_key(info, galaxy_key, observer, limit):
     """The cache key of the glow image of `observer` (its 50 parsec cell) at `limit`: the band's own key and what turns it into the image; also the name of the file the web layer keeps."""
-    inner = sky_band.cache_key(sky_band.cell_of(observer.position_pc), _band_galaxy_key(info, galaxy_key), limit)
+    inner = sky_band.cache_key(sky_band.cell_of(observer.position_pc), _band_galaxy_key(info, galaxy_key), limit, dust=_dust(info))
     image = f"{inner}|{skypack.SKY_VERSION}|{sky_band.SB_REF}|{sky_band.TINT_TEMPERATURE_K}|{sky_band.EQUIRECT_WIDTH}x{sky_band.EQUIRECT_HEIGHT}|{BAND_FORMAT}"
     return hashlib.sha256(image.encode("utf-8")).hexdigest()[:32]
 
@@ -83,7 +89,7 @@ def build_system_band(conn, system_id, limit=None):
     info, _speed, galaxy_key, observer = _setup(conn, system_id)
     key = band_key(info, galaxy_key, observer, limit)
     full = store.get_galaxy_shape(conn)
-    band = sky_band.band_for(observer.position_pc, full.shape, _band_galaxy_key(info, galaxy_key), _bands, limit)
+    band = sky_band.band_for(observer.position_pc, full.shape, _band_galaxy_key(info, galaxy_key), _bands, limit, dust=_dust(info))
     image = sky_band.equirect(band)
     return {"key": key, "limit": limit, "cell": list(sky_band.cell_of(observer.position_pc)), "width": image.shape[1], "height": image.shape[0],
             "format": BAND_FORMAT, "seconds": round(time.perf_counter() - started, 3), "data": sky_band.to_half_bytes(image)}
@@ -108,15 +114,42 @@ def _observer(conn, system_id, galaxy_key, circular_speed):
     return sky.Observer(position, float(epoch), tuple(float(v) for v in velocity), int(system_id))
 
 
-def _wanted_pc(conn, observer, limit):
+def _wanted_pc(conn, observer, limit, dust=None):
     """How far the stored stars must be complete for this observer and limit: the reach of a star of the galaxy scatter's own floor (`sky_tiers.reach_pc`,
     through the dust of the clearest line of sight), past which the pre-placed scatter alone supplies every star that shows. `None` for a galaxy with no
     scatter level. It ignores the budget that drops a band (`sky_tiers.build`), which costs a minute to work out; VIEW.25 sharpens it."""
     scatter = store.bright_star_scatter_settings(conn)
     if scatter is None or not float(scatter[0]) > 0.0:
         return None
-    curve = sky_tiers.extinction_curve(observer.position_pc)
+    curve = sky_tiers.extinction_curve(observer.position_pc, **(dust or {}))
     return float(sky_tiers.reach_pc(float(scatter[0]), limit, curve))
+
+
+MAX_CHARTED_NAMES = 5000
+"""int: The most charted stars `meta.charted` names (the brightest in the list come first, so a cut takes the faintest)."""
+
+
+def _charted_names(conn, stars):
+    """
+    VIEW.37: the stars of the sky that are charted, by their place in the list: `{"<place>": [printed star ID, name or null]}`. The page links such a
+    star to its own page and says its name when it is picked; a star of the other tiers (scatter, cluster, phenomenon) has no ID to give until
+    GEN.1254 and GEN.1255 land, so it is not here.
+    """
+    places = {}
+    for place, (tier, uid) in enumerate(zip(stars.tier, stars.uid)):
+        if tier == "charted":
+            places[place] = int(str(uid).partition(":")[2])
+    if not places:
+        return {}
+    wanted = sorted(set(places.values()))[:MAX_CHARTED_NAMES]
+    printed = ids.printed_many(conn, "star", wanted)
+    names = {}
+    for start in range(0, len(wanted), 500):
+        chunk = wanted[start:start + 500]
+        marks = ", ".join("?" * len(chunk))
+        for row in conn.execute(f"SELECT id, name FROM stars WHERE id IN ({marks})", tuple(chunk)).fetchall():
+            names[row["id"]] = row["name"]
+    return {str(place): [printed.get(star), names.get(star)] for place, star in places.items() if star in names and printed.get(star)}
 
 
 def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
@@ -143,7 +176,8 @@ def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
     info, circular_speed, galaxy_key, observer = _setup(conn, system_id)
     at_unix = observer.epoch_unix
 
-    stars = sky.sky_from_database(conn, observer, at_unix, limit, galaxy_key, circular_speed)
+    dust = _dust(info)
+    stars = sky.sky_from_database(conn, observer, at_unix, limit, galaxy_key, circular_speed, dust)
     built = stars.report["built_to_pc"]
     objects = sky_sprites.objects_in_sphere(conn, observer.position_pc, spriteMaker.SEARCH_RADIUS_PC)
     printed = {}
@@ -151,11 +185,11 @@ def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
         rows = objects.ident[objects.kind == kind]
         for row, text in ids.printed_many(conn, kind, rows).items():
             printed[(kind, int(row))] = text
-    records, sprite_report = spriteMaker.sprites_from(observer, objects, at_unix, galaxy_key, circular_speed, ids=printed)
+    records, sprite_report = spriteMaker.sprites_from(observer, objects, at_unix, galaxy_key, circular_speed, dust, ids=printed)
     records.sort(key=lambda r: (-r["angularRadiusRad"], r["id"]))
     sprite_report["dropped_for_count"] = max(0, len(records) - MAX_SPRITES)
     records = records[:MAX_SPRITES]
-    wanted = _wanted_pc(conn, observer, limit)
+    wanted = _wanted_pc(conn, observer, limit, dust)
 
     report = {key: stars.report[key] for key in ("limit", "stars_in", "tiers", "excluded_own_system", "no_photometry", "unknown_epoch", "not_formed_yet",
                                                  "other_phase", "unbuilt_velocity", "visible")}
@@ -169,7 +203,8 @@ def build_system_sky(conn, system_id, limit=None, tile_stamp=""):
     printed_system = ids.printed(conn, "system", system_id) or f"system:{system_id}"
     band = {"key": band_key(info, galaxy_key, observer, limit), "width": sky_band.EQUIRECT_WIDTH, "height": sky_band.EQUIRECT_HEIGHT, "format": BAND_FORMAT,
             "href": f"/system/{printed_system}/sky/band?limit={limit:g}"}
-    meta = {"system": printed_system, "version_key": key, "limit": limit, "galaxy": galaxy_key, "nebulae": records, "band": band, "report": report}
+    meta = {"system": printed_system, "version_key": key, "limit": limit, "galaxy": galaxy_key, "nebulae": records, "band": band, "report": report,
+            "charted": _charted_names(conn, stars)}
     packed = skypack.pack_sky(stars, at_unix, limit, observer.velocity_kms, meta=meta)
     return {"system": printed_system, "limit": limit, "epoch_unix": at_unix, "version_key": key, "count": int(len(stars.uid)), "sprites": len(records),
             "report": report, "seconds": round(time.perf_counter() - started, 3), "packed": packed}

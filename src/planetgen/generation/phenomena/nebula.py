@@ -248,7 +248,7 @@ class Nebula(LazySaladName):
         letter = self.nebula_class
         self.age_myr = age_myr if age_myr is not None else draw.uniform(0.0, tuning.NEBULA_CLASS_MAX_AGE_MYR[letter])
         if tuning.NEBULA_CLASSES[letter].get("host_only"):
-            # GEN.243: a Wolf-Rayet ring has the one star at its centre and no photon sizing (its radius is the class's).
+            # GEN.243: a Wolf-Rayet ring has the one star at its center and no photon sizing (its radius is the class's).
             self.hosts = f"{host[0]}{host[1]} x1" if host is not None else f"{wolf_rayet.drawn_type()} x1"
             return
         if host is not None:

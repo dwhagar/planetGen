@@ -21,6 +21,8 @@ import threading
 import time
 import types
 
+import pymysql
+
 from planetgen.queue import commands, progress_rate, units, wrapper
 from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store
 from planetgen.generation import bright_stars as brightStars
@@ -2437,24 +2439,36 @@ def rescore_habitability_unit(params, report):
     a double-star system and the whole score (index, six domains, tiers, equipment, note). For a galaxy generated
     before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts
     agree with the description, which is always worked out from the same conditions when the page is drawn. Nothing but
-    those columns is touched. The unit is one transaction, and the recomputation is the same whenever it is run, so a
-    stopped run is started again and ends in the same place.
+    those columns is touched. The unit is one transaction at READ COMMITTED, and the recomputation is the same whenever it
+    is run, so a stopped run is started again and ends in the same place; so is a unit that hit a deadlock or a lock wait
+    timeout against another worker's range (PERF.228, `store.RETRYABLE_ERRORS`), up to `store.SECTOR_SAVE_ATTEMPTS` times.
 
     Returns:
         dict: `updated`, the bodies updated, and `ids`, how many ids the unit covered (for the bar).
     """
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        updated = 0
-        system_ids = [row["id"] for row in conn.execute(
-            "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
-        for system_id in system_ids:
-            updated += store.refresh_habitability(conn, system_id)
-        store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
-        conn.commit()
-        return {"updated": updated, "ids": params["high"] - params["low"] + 1}
-    finally:
-        conn.close()
+    config = _mysql_config_of(params)
+    for attempt in range(1, store.SECTOR_SAVE_ATTEMPTS + 1):
+        conn = store.get_connection(config)
+        try:
+            conn.commit()           # a connection that just checked the schema has a transaction open, and MySQL refuses the next line inside one
+            conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")   # PERF.228: no gap locks between the ranges of other workers
+            updated = 0
+            system_ids = [row["id"] for row in conn.execute(
+                "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
+            for system_id in system_ids:
+                updated += store.refresh_habitability(conn, system_id)
+            store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
+            conn.commit()
+            return {"updated": updated, "ids": params["high"] - params["low"] + 1}
+        except pymysql.err.OperationalError as exc:
+            if not exc.args or exc.args[0] not in store.RETRYABLE_ERRORS or attempt == store.SECTOR_SAVE_ATTEMPTS:
+                raise
+            conn.rollback()         # the whole unit starts over: it recomputes the same numbers whenever it is run
+            log.debug(f"The re-score of systems {params['low']} to {params['high']} hit MySQL error {exc.args[0]}; "
+                      f"trying again ({attempt}/{store.SECTOR_SAVE_ATTEMPTS - 1}).")
+            time.sleep((0.05 + os.getpid() % 8 * 0.03) * attempt)     # not a draw: the process id spreads the workers
+        finally:
+            conn.close()
 
 
 class HabitabilityFollower(BatchFollower):
@@ -2594,11 +2608,11 @@ def expand_clean_nebula_field(params):
 def clean_nebula_field_unit(params, report):
     """
     The `clean-nebula-field` command's unit (GEN.205): brings an existing galaxy's stored field clouds in line with
-    the current keep rates. Every stored dark nebula that is a field cloud (found in its cell's draw by its centre) is
+    the current keep rates. Every stored dark nebula that is a field cloud (found in its cell's draw by its center) is
     checked against `cloud_kept`; the ones the rule now rejects are counted per class (the dry run, always done first).
     With `apply` they are deleted, which clears the `inside_nebula_id` of everything inside them (the foreign key sets
     it to NULL), and containment is refreshed in the sectors they reached. Nothing else is touched: a nebula with no
-    cell draw at its centre was not made by the field and stays. Drawing `nebula_field` again is the starter's next
+    cell draw at its center was not made by the field and stays. Drawing `nebula_field` again is the starter's next
     command (`draw-nebula-field`).
 
     Returns:

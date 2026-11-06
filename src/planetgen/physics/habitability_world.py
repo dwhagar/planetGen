@@ -10,7 +10,7 @@ section 8):
 
 * **Air.** Total pressure, temperature and gravity as stored; each species
   as a mole fraction of the total (the balance gas counts toward the total
-  only); relative humidity is the water vapour against its saturation
+  only); relative humidity is the water vapor against its saturation
   pressure at that temperature (Magnus formula, clamped to 5 to 99%).
 * **Solvent.** Water when the body has a surface ocean (a Hycean one too) or
   an ocean under its ice; liquid methane when the air holds saturated CH4
@@ -33,8 +33,8 @@ section 8):
 * **Dose.** The stored `surface_dose_msv_yr`, in Sv; the habitat of an ocean
   under ice sees only the ground's.
 * **Water source** (for the base): "liquid" at a surface ocean, "ice" for
-  an icy surface or shell, "vapour" for a steam world, "hydrated" for a dry
-  body with water in its rock, else vapour in the air or none.
+  an icy surface or shell, "vapor" for a steam world, "hydrated" for a dry
+  body with water in its rock, else vapor in the air or none.
 * **Life** (GEN.207). The food rung of Suitability reads the most advanced native
   life as `native_life` (`native_life`): none, microbial, macroscopic (the first
   flora and fauna) or a full biosphere, from the body's life chemistry and the
@@ -78,13 +78,14 @@ BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     *life_scores.FIELDS, "l_solv", "l_chem", "l_ener", "l_rad",
     *equipment.FIELDS, *regional_temperature.FIELDS, *outside_hours.FIELDS, "energy_flux_w_m2", "flux_variation",
+    "relative_humidity", "groundwater",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
 `moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
 dose refresh re-scores a body from its columns alone)."""
 
-SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation"))
-"""tuple: The stored fields `compute` returns (all but the stored energy flux and flux variation)."""
+SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation", "relative_humidity", "groundwater"))
+"""tuple: The stored fields `compute` returns (all but the stored energy flux, flux variation, humidity and groundwater, which `generate` stores as the score's inputs)."""
 
 LIKELIHOOD_FIELDS = ("phi_bio", "phi_cpx")
 """tuple: The microbial and complex-life likelihoods `compute` also returns and `generate` and `rescore` keep on the body
@@ -123,7 +124,7 @@ CHLORIDE_BRINE_CHAOTROPICITY = 200.0
 
 METHANE_SEA_MAX_K = 190.0
 METHANE_SATURATION = 0.98
-"""float: A methane sea needs CH4 at this share of its vapour pressure."""
+"""float: A methane sea needs CH4 at this share of its vapor pressure."""
 
 HYDRATED_MIN_WATER_FRACTION = 1e-5
 
@@ -229,14 +230,14 @@ def native_life(life_class, milestone, has_timeline):
 
 
 def saturation_kpa(temperature_c):
-    """Saturated water vapour pressure over liquid water, kPa (Magnus
+    """Saturated water vapor pressure over liquid water, kPa (Magnus
     formula, 6.1094 hPa at 0 deg C; temperatures clamped to -45 to 60)."""
     t = min(max(temperature_c, -45.0), 60.0)
     return 0.61094 * math.exp(17.625 * t / (t + 243.04))
 
 
 def relative_humidity(values):
-    """The air's water vapour against saturation at the surface temperature,
+    """The air's water vapor against saturation at the surface temperature,
     clamped to 5 to 99% (the range Stull's wet-bulb formula is fitted to)."""
     temperature_c = values["surface_temperature_k"] - constants.CELSIUS_ZERO_K
     share = atmosphere.partial_kpa(values, "h2o") / saturation_kpa(temperature_c)
@@ -258,7 +259,7 @@ def solvent(values):
     temperature = values["surface_temperature_k"]
     methane = atmosphere.partial_kpa(values, "ch4")
     if (methane > 0.0 and temperature <= METHANE_SEA_MAX_K
-            and methane >= METHANE_SATURATION * atmosphere.vapour_pressure_kpa("ch4", temperature)):
+            and methane >= METHANE_SATURATION * atmosphere.vapor_pressure_kpa("ch4", temperature)):
         return "hydrocarbon"
     return None
 
@@ -272,11 +273,11 @@ def water_source(values):
         return "ice"
     if groundwater(values) == "reachable":
         return "aquifer"
-    if state == "vapour":
-        return "vapour"
+    if state == "vapor":
+        return "vapor"
     if (values.get("water_mass_fraction") or 0.0) >= HYDRATED_MIN_WATER_FRACTION:
         return "hydrated"
-    return "vapour" if atmosphere.partial_kpa(values, "h2o") > 0.0 else None
+    return "vapor" if atmosphere.partial_kpa(values, "h2o") > 0.0 else None
 
 
 def air_inventories_kg(values):
@@ -537,5 +538,7 @@ def generate(body, internal_flux_w_m2):
         values, getattr(star, "luminosity", None), getattr(body, "_star_distance_au", None),
         internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0))
     values["energy_flux_w_m2"] = body.energy_flux_w_m2
+    body.relative_humidity = relative_humidity(values)      # GEN.1221: stored, for the wet bulb and the water of a class
+    body.groundwater = groundwater(values)
     for name, value in compute(values, compact_host_name(star)).items():
         setattr(body, name, value)

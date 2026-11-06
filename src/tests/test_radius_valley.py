@@ -12,7 +12,7 @@ from planetgen.physics import envelope_escape, radius_valley as rv
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.util import draw
 
-CENTRE = 0.1
+CENTER = 0.1
 SURVEYS = 24
 
 
@@ -32,9 +32,9 @@ def _compare_mass(target_id, f_env0, field):
 
 def test_a_survey_repeats_on_a_seed_and_finds_a_valley_between_one_and_three_earth_radii():
     with draw.bound(draw.Stream("valley:1")):
-        first = rv.valley_of(rv.triples(rv.survey(CENTRE)))
+        first = rv.valley_of(rv.triples(rv.survey(CENTER)))
     with draw.bound(draw.Stream("valley:1")):
-        second = rv.valley_of(rv.triples(rv.survey(CENTRE)))
+        second = rv.valley_of(rv.triples(rv.survey(CENTER)))
     assert first == second and first is not None
     slope, radius_10d = first
     assert slope < 0 and 1.4 < radius_10d < 2.4
@@ -45,7 +45,7 @@ def test_a_sparse_survey_has_no_valley():
 
 
 def test_the_valley_slope_and_location_follow_the_published_values_across_the_recipe_bracket():
-    for f_env0 in (0.05, CENTRE, 0.2):
+    for f_env0 in (0.05, CENTER, 0.2):
         assert _compare("e1-valley-slope", f_env0, "slope").passed, f_env0
         assert _compare("e1-valley-radius", f_env0, "radius_10d").passed, f_env0
 
@@ -56,7 +56,7 @@ def test_a_weaker_or_stronger_loss_moves_the_valley_out_of_the_published_range()
         old = envelope_escape.ONSET_GY
         envelope_escape.ONSET_GY = onset
         try:
-            assert not _compare("e1-valley-radius", CENTRE, "radius_10d").passed, onset
+            assert not _compare("e1-valley-radius", CENTER, "radius_10d").passed, onset
         finally:
             envelope_escape.ONSET_GY = old
 
@@ -79,14 +79,14 @@ def test_the_valley_against_insolation_and_stellar_mass_follows_berger_2023_acro
     """GEN.722 and GEN.822: the hydro-based loss, with no stellar-mass dependence of its own beyond the star's XUV history, still puts alpha against
     insolation and beta against stellar mass inside the measurements of [R0354] (the paper's two mechanisms are both within 1.1 sigma of
     beta, so the survey cannot choose one; the design note, section 4)."""
-    for f_env0 in (0.05, CENTRE, 0.2):
+    for f_env0 in (0.05, CENTER, 0.2):
         assert _compare_mass("e1-valley-flux-slope", f_env0, "flux_slope").passed, f_env0
         assert _compare_mass("e1-valley-mass-slope", f_env0, "mass_slope").passed, f_env0
 
 
 def test_a_survey_over_a_wider_range_of_hosts_draws_them_from_the_range():
     with draw.bound(draw.Stream("valley:hosts")):
-        found = rv.survey(CENTRE, 400, rv.WIDE_HOST_MASS_RANGE_SOLAR)
+        found = rv.survey(CENTER, 400, rv.WIDE_HOST_MASS_RANGE_SOLAR)
     masses = [c.host_mass_solar for c in found]
     assert min(masses) >= 0.5 and max(masses) <= 1.4 and min(masses) < 0.6 and max(masses) > 1.3
     assert all(c.insolation_earth > 0 and c.radius_earth > 0 for c in found)

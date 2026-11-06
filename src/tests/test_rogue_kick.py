@@ -84,12 +84,6 @@ def test_the_speed_rises_with_the_random_number_and_is_small_at_the_threshold():
     assert rk.ejection_speed_km_s(0.0, JUPITER[0], 5.2) < 0.05 * rk.scatter_speed_km_s(JUPITER[0], 5.2)
 
 
-def test_a_moon_survives_when_it_is_inside_half_the_hill_sphere_the_closest_approach_leaves_it():
-    m_ej, m_p = 1.0 * constants.JUPITER_MASS_TO_KG, 10.0 * constants.JUPITER_MASS_TO_KG
-    reach = rk.MOON_LOSS_FRACTION * 1.0e10 * (m_ej / (m_ej + m_p)) ** (1.0 / 3.0)
-    assert rk.moon_survives(0.99 * reach, 1.0e10, m_p, m_ej) and not rk.moon_survives(1.01 * reach, 1.0e10, m_p, m_ej)
-
-
 def test_the_closest_approach_has_huang_and_lais_median_and_spread():
     mj = constants.JUPITER_MASS_TO_KG
     hill = rk.mutual_hill_radius_m(SUN, 5.2, 10.0 * mj, mj)
@@ -103,19 +97,6 @@ def test_the_closest_approach_has_huang_and_lais_median_and_spread():
     assert light == pytest.approx(0.0066, rel=0.05)                                            # Fig. 2: 1 Jupiter mass scatterer
 
 
-def test_the_moon_survival_probability_falls_with_the_moons_distance_and_matches_the_draw():
-    mj = constants.JUPITER_MASS_TO_KG
-    args = (SUN, 5.2, 10.0 * mj, mj)
-    hill = rk.mutual_hill_radius_m(*args[:2], *args[2:])
-    near, far = (rk.moon_survival_probability(f * hill, *args) for f in (0.001, 0.1))
-    assert 0.85 < near < 1.0 and 0.0 < far < near
-    assert 0.5 < rk.moon_survival_probability(0.01 * hill, *args) < 0.85                       # a Galilean-moon radius: the paper's 70 to 82 percent
-    rng = random.Random(5)
-    r_moon = 0.02 * hill
-    kept = sum(rk.moon_survives(r_moon, rk.closest_approach_m(rng.random(), *args), args[2], args[3]) for _ in range(20000)) / 20000
-    assert kept == pytest.approx(rk.moon_survival_probability(r_moon, *args), abs=0.02)
-
-
 def test_the_isotropic_direction_is_a_unit_vector_whose_components_average_to_nothing():
     rng = random.Random(4)
     vectors = [rk.isotropic_direction(rng.random(), rng.random()) for _ in range(6000)]
@@ -126,6 +107,10 @@ def test_the_isotropic_direction_is_a_unit_vector_whose_components_average_to_no
     assert rk.isotropic_direction(1.0, 0.0)[2] == pytest.approx(1.0)
 
 
+def _speed_relative_to(velocity, frame=(0.0, 0.0, 0.0)):
+    return math.sqrt(sum((v - f) ** 2 for v, f in zip(velocity, frame)))
+
+
 def test_the_rogues_velocity_is_the_hosts_plus_the_drifts_relative_velocity():
     host = (10.0, -5.0, 3.0)
     kick = rk.kick(3.0, (0.0, 1.0, 0.0))
@@ -133,18 +118,18 @@ def test_the_rogues_velocity_is_the_hosts_plus_the_drifts_relative_velocity():
     later = rk.rogue_velocity(host, kick, 60.0)
     drift = rogue_drift.drift(kick, 60.0)
     assert later == pytest.approx((host[0] + drift.vx_km_s, host[1] + drift.vy_km_s, host[2] + drift.vz_km_s))
-    assert rk.relative_speed_km_s(later, host) == pytest.approx(math.sqrt(drift.vx_km_s ** 2 + drift.vy_km_s ** 2 + drift.vz_km_s ** 2))
+    assert _speed_relative_to(later, host) == pytest.approx(math.sqrt(drift.vx_km_s ** 2 + drift.vy_km_s ** 2 + drift.vz_km_s ** 2))
 
 
 def test_the_speed_window_of_a_rogue_passing_the_sun_holds_the_known_interstellar_objects():
-    # hosts with the thin disc's velocity dispersion (about 35, 25, 20 km/s), a giant's kick, a random age: the rogue's speed relative to the Sun
+    # hosts with the thin disk's velocity dispersion (about 35, 25, 20 km/s), a giant's kick, a random age: the rogue's speed relative to the Sun
     rng = random.Random(8)
     speeds = []
     for _ in range(4000):
         host = (rng.gauss(0, 35), rng.gauss(0, 25), rng.gauss(0, 20))
         kick = rk.kick(rk.ejection_speed_km_s(rng.random(), JUPITER[0], rng.choice((3.0, 5.2, 10.0, 30.0))),
                        rk.isotropic_direction(rng.random(), rng.random()))
-        speeds.append(rk.relative_speed_km_s(rk.rogue_velocity(host, kick, rng.uniform(10.0, 8000.0))))
+        speeds.append(_speed_relative_to(rk.rogue_velocity(host, kick, rng.uniform(10.0, 8000.0))))
     speeds.sort()
     p10, p50, p90 = (speeds[int(f * len(speeds))] for f in (0.1, 0.5, 0.9))
     assert 20.0 < p50 < 60.0

@@ -19,15 +19,15 @@ A world is allowed when the room is at least its mass: `room_earth >= mass_earth
 Class M world is terrestrial, so it has the mass of a terrestrial world (`CLASS_M_MASS_EARTH`, a range). `classes_allowed` says which classes the room admits.
 
 The formation gate (inputs named for the planet architecture oligarch chain, `physics/planet_architecture.py`): a trojan grows from the solids in the 1:1 zone of the
-secondary, so the draw needs `solids_in_zone_earth` (the solids the oligarch chain leaves in the secondary's co-orbital feeding zone, Earth masses) and the disc lifetime
-(`disc_lifetime_myr`; the trojan must grow while gas is present, [R0919]). `can_form` is true when the zone holds `FORMATION_EFFICIENCY` times
-the trojan's mass in solids and the disc lasted `MIN_DISC_LIFETIME_MYR`. It is a gate, not a rate: whether a trojan appears is whatever the generated disc allows.
+secondary, so the draw needs `solids_in_zone_earth` (the solids the oligarch chain leaves in the secondary's co-orbital feeding zone, Earth masses) and the disk lifetime
+(`disk_lifetime_myr`; the trojan must grow while gas is present, [R0919]). `can_form` is true when the zone holds `FORMATION_EFFICIENCY` times
+the trojan's mass in solids and the disk lasted `MIN_DISK_LIFETIME_MYR`. It is a gate, not a rate: whether a trojan appears is whatever the generated disk allows.
 
 Use:
 
     room_earth(1.0 * 332946, 318.0)         # a Sun and a Jupiter, in Earth masses
     classes_allowed(332946.0, 318.0)        # {"room_earth": ..., "class_j": True, "class_m": True}
-    can_form(1.0, solids_in_zone_earth=12.0, disc_lifetime_myr=3.0)
+    can_form(1.0, solids_in_zone_earth=12.0, disk_lifetime_myr=3.0)
 """
 
 from planetgen.physics import trojans
@@ -41,8 +41,8 @@ CLASS_M_MASS_EARTH = (0.1, 10.0)
 FORMATION_EFFICIENCY = 0.1
 """float: The share of the solids in the secondary's co-orbital zone that grow into the trojan; the zone must hold `trojan mass / this`. [Stand-in TB3, tier T4, tweak L4.]"""
 
-MIN_DISC_LIFETIME_MYR = 1.0
-"""float: The shortest gas-disc life (Myr) in which a trojan of planet mass can grow beside its secondary. [Stand-in TB4, tier T4, tweak L4.]"""
+MIN_DISK_LIFETIME_MYR = 1.0
+"""float: The shortest gas-disk life (Myr) in which a trojan of planet mass can grow beside its secondary. [Stand-in TB4, tier T4, tweak L4.]"""
 
 CASES = ("star_giant", "star_substellar", "star_star", "planet_moon", "moon_moon")
 
@@ -76,8 +76,8 @@ def fits(host_mass_earth, secondary_mass_earth, trojan_mass_earth, eccentricity=
     return trojans.allows(host_mass_earth, secondary_mass_earth, trojan_mass_earth, eccentricity, inclination_deg)
 
 
-def can_form(trojan_mass_earth, solids_in_zone_earth, disc_lifetime_myr):
-    """The formation gate (TB3, TB4): enough solids in the 1:1 zone and a gas disc that lasted long enough."""
+def can_form(trojan_mass_earth, solids_in_zone_earth, disk_lifetime_myr):
+    """The formation gate (TB3, TB4): enough solids in the 1:1 zone and a gas disk that lasted long enough."""
     if trojan_mass_earth <= 0.0:
         return False
-    return solids_in_zone_earth * FORMATION_EFFICIENCY >= trojan_mass_earth and disc_lifetime_myr >= MIN_DISC_LIFETIME_MYR
+    return solids_in_zone_earth * FORMATION_EFFICIENCY >= trojan_mass_earth and disk_lifetime_myr >= MIN_DISK_LIFETIME_MYR

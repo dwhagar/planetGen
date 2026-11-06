@@ -28,7 +28,7 @@ from planetgen.physics import unit_registry as units
 _m_to_pc = units.converter("m", "pc")
 
 FRAMES = ("galaxy", "sector", "system")
-"""tuple: What a stored position is measured from: the galactic centre, the sector's centre, or the object's star."""
+"""tuple: What a stored position is measured from: the galactic center, the sector's center, or the object's star."""
 
 PARTS = ("point", "mass", "vector", "epoch")
 """tuple: The parts every object must hold: a position, a point mass, a movement vector and the epoch they hold at."""
@@ -198,7 +198,7 @@ ABSOLUTE_WITH_A_PARENT = {
 """dict: Table -> why a table with a parent link stores an absolute position. The rule (TEST.241, section 5 point 3 of
 docs/design/architecture/unified-system-barycentre.md): nothing inside a system stores an absolute sector or galactic position; it
 stores the state parent-relative (about the parent's central object, in the galactic axes, with its epoch), and the
-barycentre is the system's row point. A new entry needs a reason and a way out."""
+barycenter is the system's row point. A new entry needs a reason and a way out."""
 
 _POINT_STEMS = (("center_{}_pc",), ("position_{}_km",), ("position_{}_mpc",), ("offset_{}_au",), ("galaxy_{}_pc",))
 _MASS_COLUMNS = ("mass_kg", "mass_solar", "black_hole_mass_solar")
@@ -236,8 +236,8 @@ def spatial_from_row(layout, row, sector_center_m=(0.0, 0.0, 0.0), star_center_m
     Args:
         layout (PointLayout): The table's layout.
         row (mapping): The row, by column name.
-        sector_center_m (tuple): The sector's centre, galactic metres: the origin of a `sector` frame position.
-        star_center_m (tuple or None): The nearest star's centre, galactic metres: the origin of a `system` frame
+        sector_center_m (tuple): The sector's center, galactic metres: the origin of a `sector` frame position.
+        star_center_m (tuple or None): The nearest star's center, galactic metres: the origin of a `system` frame
             position, which has none without it.
         star_velocity_ms (tuple): The nearest star's velocity, galactic axes, m/s: what a `system` frame velocity is
             measured from.

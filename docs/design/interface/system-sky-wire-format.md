@@ -31,6 +31,7 @@ One file, little-endian. The layout is the docstring of `skypack.py` and is held
 | `galaxy` | names the galaxy the stand-in velocities were drawn for |
 | `nebulae` | the sprite records, below |
 | `band` | the glow image, section 3.2: `{key, width, height, format, href}` |
+| `charted` | the charted stars of the list by their index (the `index` column), section 3.3: `{"<index>": [printed star ID, name or null]}` (VIEW.37). Absent in a list built before it; the page then links nothing |
 | `report` | the tier state and counts, section 4 |
 
 ### 3.1 The sprite records (`meta.nebulae`)
@@ -53,6 +54,10 @@ The nebulae, the supernova remnants and the dark and diffuse clouds that the sys
 
 A record is sent when it is wider than 0.002 rad (SPR1), its explosion has been seen, and it either shines under the limit (`visible`) or dims by at least 0.02 magnitude (SPR2). The counts of what was left out are in `report.sprites`.
 
+### 3.3 The charted stars (`meta.charted`, VIEW.37)
+
+A star of kind 0 (charted) has a page, and the page links it when the star is picked. `meta.charted` maps the star's `index` (as text) to `[printed star ID, name]`; the browser builds the link from the page's `data-sky-star-url` (`/object/star:{id}`). Up to 5,000 stars are named (the brightest first). A scatter, cluster or compact-object star is not here: until GEN.1254 and GEN.1255 give it an Object ID and a name it is told ("Star not yet charted", "Star of a globular cluster") but not linked. The sky's version (`SKY_VERSION` 3) changed with this, so a list stored before it is built again.
+
 ### 3.2 The glow image (`meta.band`, VIEW.13)
 
 The light of the stars too faint to be listed, as one small image the band layer (`skyband.js`, VIEW.34) lays behind the stars. It is not in the packed list: `meta.band.href` (`/system/<id>/sky/band?limit=<limit>`) is its route, and the page asks for it with `&key=<meta.band.key>` so a stored copy is served by name.
@@ -64,7 +69,7 @@ The light of the stars too faint to be listed, as one small image the band layer
 
 The image is 256 by 128 texels (`sky_band.EQUIRECT_WIDTH`, `EQUIRECT_HEIGHT`), equirectangular in the sky's galactic axes, as `skyband.js` `equirectUV` reads it: row 0 at the north pole, column 0 at longitude -180 (longitude is `atan2(y, x)`, latitude `asin(z)`), a texel's value taken at its centre. Each texel is red, green and blue as little-endian half floats (`rgb16f`, 196,608 bytes), linear light in the page's unit: `10^(-0.4 (SB - 22))` for a surface brightness `SB` in V magnitudes per square arcsecond (a texel of 1.0 is 22 mag/arcsec^2, 0 is no light), times the tint of a 4500 K blackbody scaled to a luminance of 1 (red 1.30, green 0.95, blue 0.65; stand-in GLW1). The surface brightness is `sky_band.band_for`'s: the integrated light of the stars fainter than the limit, marched through the galaxy's density and dust from the centre of the observer's 50 parsec cell, so every system in a cell, at one limit, shares one image. It is worked out in the API process the first time (tens of seconds on a galaxy with many clusters) and then kept in memory; the web layer keeps `b<key>.bin` beside the skies and `skycache.clear()` removes it.
 
-`key` is 32 hex characters: a hash of the cell, the galaxy (its seed and the numbers of its shape), the limit, the band's own constants and the image's (size, reference, tint, `SKY_VERSION`). It does not follow the cluster field, which the band reads but the key leaves out; after clusters are regenerated, clear the cache.
+`key` is 32 hex characters: a hash of the cell, the galaxy (its seed and the numbers of its shape), the limit, the dust (the digest of the galaxy's two dust tables, `DustProfile.key()`, VIEW.44), the band's own constants and the image's (size, reference, tint, `SKY_VERSION`). It does not follow the cluster field, which the band reads but the key leaves out; after clusters are regenerated, clear the cache.
 
 ## 4. The report
 

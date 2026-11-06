@@ -34,6 +34,7 @@ file does not hold, and members of the file whose sector is gone. Nothing here r
 """
 
 import math
+from dataclasses import dataclass, field
 
 from planetgen.db import parity_file as pfile, sector_export, storage_checksum
 from planetgen.util import log, rscodec
@@ -513,3 +514,54 @@ def refresh(conn, say=log.normal, limit=None):
         if done % 1000 == 0:
             say(f"Parity: {done:,} of {len(todo):,}.")
     return counts
+
+
+@dataclass
+class Reconciled:
+    """What `reconcile` found and did: `checked` sectors; `healthy` (the record and the rows agree); `recomputed` (the record was behind the
+    database, or unreadable while the sector verifies, and was made again from the rows); `released` (members of the file whose sector is
+    gone); `unprotected` (in no group: protected by their next save, or by `refresh`); `damaged` (`[(sector id, state)]`: rows that do not hash
+    to their stored checksum, or a record that cannot be trusted for them: for `repair-db`, not something parity may paper over)."""
+    checked: int = 0
+    healthy: int = 0
+    recomputed: int = 0
+    released: int = 0
+    unprotected: int = 0
+    damaged: list = field(default_factory=list)
+
+
+def reconcile(conn, parity_store=None, say=log.normal):
+    """
+    Checks a parity file, one that was just put back from a backup for one, against the database, sector by sector, and settles what the
+    stale-record rule (design 5.6, `classify`) settles: a record behind the database is made again from the rows (it is not damage), a record
+    that fails its CRC is made again when the sector verifies, a member whose sector is gone is let go. Damage is only reported, and a
+    sector in no group is only counted.
+
+    Returns:
+        Reconciled: The counts.
+    """
+    parity_store = parity_store or store()
+    ids = [row["id"] for row in conn.execute("SELECT id FROM sectors ORDER BY id").fetchall()]
+    conn.commit()
+    found = Reconciled(checked=len(ids))
+    say(f"Parity: checking {len(ids):,} sector(s) against the parity file.")
+    for done, sector_id in enumerate(ids, 1):
+        state = member_state(conn, sector_id, parity_store)
+        conn.commit()
+        if state == HEALTHY:
+            found.healthy += 1
+        elif state in (RECORD_STALE, PARITY_DAMAGED):
+            if protect_sector(conn, sector_id, parity_store) == UNPROTECTABLE:
+                found.damaged.append((sector_id, state))
+            else:
+                found.recomputed += 1
+        elif state == NOT_PROTECTED:
+            found.unprotected += 1
+        else:
+            found.damaged.append((sector_id, state))
+        if done % 1000 == 0:
+            say(f"Parity: checked {done:,} of {len(ids):,}.")
+    for sector_id in sorted(parity_store.members() - set(ids)):
+        if protect_sector(conn, sector_id, parity_store) == RELEASED:
+            found.released += 1
+    return found

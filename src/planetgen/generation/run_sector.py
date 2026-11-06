@@ -347,6 +347,14 @@ def _build_member(sector, args, local, mass_sol, age_yr, seed, galactic_center_d
     return entry
 
 
+def _member_fe_h(member, galactic_center_dist_ly):
+    """The birth [Fe/H] `_build_member` gives the member's star: its evolution under the member's own seed (the draw is the one the build makes first)."""
+    with draw.bound(member.seed):
+        state = stellar_evolution.evolve_star(member.mass_sol, member.age_yr / 1.0e9, population="young",
+                                              galactic_center_dist_ly=galactic_center_dist_ly)
+    return state["metallicity_fe_h"]
+
+
 def _group_plan(tree):
     """The plan a member's system is built from where its group had decayed: the hierarchy the group left (`None` where
     the member is in no group, or in a live one, whose mates are systems of their own and which builds as any star)."""
@@ -385,7 +393,7 @@ def add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_
 
 def mark_group_star(entry, member, group_member):
     """Records on `entry` the group its star is in: the group's name (the seed of the member that rolled it), its decay age and
-    the star's offset from the group's centre, AU."""
+    the star's offset from the group's center, AU."""
     entry.group_seed = member.seed
     entry.group_decay_age_yr = group_member.decay_age_yr
     entry.group_offset_au = group_member.offset_au
@@ -406,6 +414,9 @@ def _add_members(sector, args, members, center_pc, galactic_center_dist_ly, labe
     for member in members:
         tree = nebula_contents.member_group(member)
         live = nebula_contents.is_live_group(tree)
+        if tree is not None and not live:
+            # TEST.562: the hierarchy a decayed group left is rebuilt from the member's own [Fe/H] (see `member_group`), or its companions are not the stars drawn
+            tree = nebula_contents.member_group(member, fe_h=_member_fe_h(member, galactic_center_dist_ly))
         if live:
             entries.extend(add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_ly, "group-mate"))
         local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, member.position_pc))
@@ -604,6 +615,7 @@ def add_scattered_phenomena(sector, args, fill):
         if entry is None:
             continue
         entry.scatter_id = row["id"]
+        entry.scatter_uid = row.get("uid")      # GEN.1254: what is built keeps the Object ID the row has
         entry.system_seed = row["seed"]
         fill_stages.count(sector, fill_stages.SCATTERED, row["kind"])
         if hasattr(entry, "phenomenon_type"):
@@ -786,6 +798,7 @@ def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
         entry = sector.add_preplaced_system(system, brightStars.local_position_ly(row, fill.center_pc),
                                             system_config=cfg)
         entry.bright_star_id = row["id"]
+        entry.bright_star_uid = row.get("uid")     # GEN.1254: the system keeps the Object ID the star has
         fill_stages.count(sector, fill_stages.PRE_PLACED, "star-system")
 
 
@@ -806,7 +819,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
             from the galactic center, in light-years, threaded down into
             every generated system's Hill-sphere calculation (see
             `Star.calculate_system_perimeter`'s docstring). `None` (the
-            default) falls back to the radius that holds half of the galaxy's disc stars
+            default) falls back to the radius that holds half of the galaxy's disk stars
             (`galaxy.scales.default_galactocentric_ly`) -- the `sector` subcommand (no galaxy context) always
             calls this with the default, so it keeps producing "unplaced"
             sectors.
@@ -888,6 +901,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
             mean = min(sector.expected_system_count() * args.density, sys.float_info.max)
             if fill is not None:
                 mean *= 1.0 - fill.bright_share()
+                mean *= 1.0 - fill.resident_share()      # stage 0 (GEN.1124): what landed here from elsewhere is mass the draw need not make
             args.num_systems = _sample_poisson_count(mean)
 
         total = args.num_systems

@@ -75,8 +75,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.21:BO4 | no data | - | the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays |
 | 6.21:BO6 | no data | - | the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays |
 | 6.21:BO8 | no data | - | the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays |
-| 6.22:CC1 | replace | GEN.962 | the moon rate item (giant-impact and capture frequency) replaces the moon mass floor and function; the satellite mass ratios are a Solar System check, not a source |
-| 6.22:CC2 | replace | GEN.962 | the moon rate item (giant-impact and capture frequency) replaces the moon mass floor and function; the satellite mass ratios are a Solar System check, not a source |
+| 6.22:CC1 | no data | - | GEN.962 built the moon count from giant-impact frequency (rows RM1 to RM3), but no exomoon mass distribution is observed; the mass floor and the mass function stay recalled, with the satellite mass ratios a Solar System check, not a source |
+| 6.22:CC2 | no data | - | GEN.962 built the moon count from giant-impact frequency (rows RM1 to RM3), but no exomoon mass distribution is observed; the mass floor and the mass function stay recalled, with the satellite mass ratios a Solar System check, not a source |
 | 6.22:CC4 | replace | GEN.684 | albedo and greenhouse from the composition (the ground and cloud albedo) delete the regime ranges |
 | 6.22:CC6 | no data | - | the lightest planet is a naming boundary and the habitable-request steering is a user-interface choice; neither is a measured quantity |
 | 6.22:CC10 | no data | - | the lightest planet is a naming boundary and the habitable-request steering is a user-interface choice; neither is a measured quantity |
@@ -126,6 +126,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.70:RO3 | no data | - | no survey measures how often a ring-making comet passes inside a giant's Roche limit |
 | 6.70:RO5 | no data | - | no N-body table of the share of a torn comet that stays in orbit by speed and periapsis is in hand; [R1140] gives a range only |
 | 6.70:RO13 | no data | - | no impact-ejecta experiment on ring ice at ring meteoroid speeds gives the mass yield; the ejecta mass is argued over two decades |
+| 6.70:RO14 | no data | - | no survey of the inner moonlets of giants outside the four of the Solar System is in hand |
+| 6.70:RO16 | no data | - | no impact-ejecta experiment on a small moon's surface gives the kept share of the dust |
 | 6.74:SH3 | no data | - | the pressure a given shoreline ratio allows is not measured as a table: only Mars's 6 mbar and Pluto's 10 micro-bar sit at ratios of 1.8 and 0.78; the caps stay the design note's steps until a survey of thin atmospheres fits them |
 | 6.78:GT3 | replace | GEN.1058 | the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor |
 | 6.96:IO2 | no data | - | fitted with the Jupiter row to the retrograde to prograde split; a capture simulation's width replaces it when one is held |
@@ -139,17 +141,16 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.98:BW2 | no data | - | no measurement of surface winds across the thin-air range (Mars, Pluto, Triton) gives the fade's shape; the first drag-law fit from surface wind data replaces it |
 | 6.98:BW4 | no data | - | tuned to the Earth's mid-latitude surface wind; a boundary-layer drag law on the surface roughness replaces it when the surface roughness is stored |
 | 6.98:BW5 | no data | - | the Earth's night to day wind ratio is the only value held; a stable boundary-layer model replaces it |
-| 6.88:RG2 | replace | GEN.1111 | the ejection records (RP1) give the time of each loss after formation, so the drawn delay distribution is replaced by the architecture's own |
-| 6.87:RK7 | replace | GEN.1111 | the closest approach of each scattering is in the architecture's own ejection record, which replaces the line through three medians |
-| 6.112:MO2 | replace | GEN.1111 | the ejection record gives the real closest approach, so the curve through two printed points is not needed |
-| 6.86:TU1 | replace | GEN.1111 | the rogue research settles the per-star rate of free-floating planets and replaces the level ceilings |
+| 6.88:RG2 | replace | GEN.1295 | the ejection records (RP1) give the time of each loss after formation, so the drawn delay distribution is replaced by the architecture's own |
+| 6.87:RK7 | no data | - | the stored Loss record holds no closest approach (distance, formation distance, time, scatterer orbit and mass, Safronov number, Hill radius only); the curve through three measured points stays until a deterministic closest approach is derived from the scatterer geometry |
+| 6.112:MO2 | no data | - | the stored Loss record holds no closest approach; the curve through two printed points stays until a deterministic closest approach is derived from the scatterer geometry |
+| 6.86:TU1 | no data | - | the level ceilings are the numbers of the Rogues dropdown that Boss sets, a display choice and not a research rate; tier stays |
 | 6.86:TU2 | no data | - | uniform placement is the neutral choice; the smoothed rogue field (GEN.1115) is the only thing that could change it |
-| 6.86:TU3 | replace | GEN.1111 | the ejection records give the scatterer's distance, so the drawn range is replaced by the architecture's own |
+| 6.86:TU3 | no data | - | top-up rogues have no donor and no ejection record by design (apparent origin), so there is no scatterer distance to read; the drawn range stays |
 | 6.108:TF1 | replace | GEN.1103 | a physical source for the mass the Rogues level cannot hold (the unbound remnants of the channels of section 6.103) replaces the stand-in origin |
 | 6.108:TF2 | replace | GEN.1105 | the size-frequency law of the collisional fields sets the largest body and the density of the pieces |
 | 6.108:TF3 | no data | - | nothing measures the spread of a field that was never observed; the dispersion of a real source (IF12) is the only thing that could replace it |
 | 6.108:TF4 | no data | - | the counts and masses are chosen to keep a sector's top-up to a dozen clouds; no measurement exists to replace them |
-| 6.114:RY1 | no data | - | no stagnant-lid eruption model yet; the one-box mantle temperature does not discriminate between bodies, so the cut stays a heat flow between Mars and the Earth |
 | 6.97:BG14 | no data | - | no survey gives the mass of the warm dust of an inner belt well enough to set the least mass a belt keeps; the value is set so the share of main-sequence systems with an inner belt lands near 9 percent, inside the 4 to 14 percent of GEN.1156, and a size law with each belt's own largest body (GEN.566) or a dust survey would replace it |
 | 6.117:BHS3 | no data | - | no source gives the share of a belt (as against a planet system) that a star's sudden mass loss destabilises; the value is set so the white dwarf pollution the model gives is in the observed range, and any N-body run of a belt round a mass-losing star replaces it |
 | 6.118:IP5 | no data | - | no paper gives the gas-drag share against the three-body channel ([R3560] only as an abstract, [R0956] not reached); a gas-drag capture run of the generated envelope replaces it |
@@ -189,6 +190,19 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.161:FM1 | no data | - | the line is the belts' (BG14): no survey measures the dust of a field; it goes where BG14 goes |
 | 6.161:FM2 | no data | - | no model or measurement of the size distribution of the rubble of a planet-planet collision is in hand; the rocky main-belt law stands in until the largest-fragment reading (LS12) |
 | 6.166:IHA1 | no data | - | no measured viscosity of any rocky planet's mantle other than the Earth's is in hand; the prefactor is retuned to hold the reference viscosity, not fitted to a planet |
+| 6.53:DU1 | no data | - | no survey measures the dust of the disks this generator builds; the cut stands where the K, G and F dwarfs together hold a disk as often as the surveys find, and goes when the outer disk's mass and width come from a planetesimal-formation model (filed as GEN.1278) |
+| 6.185:BPO1 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the cold stirring stands until a self-stirring or capture model gives it |
+| 6.185:BPO2 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it |
+| 6.185:BPO3 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it |
+| 6.185:BPO4 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the detached perihelion range stands until a self-stirring or capture model gives it |
+| 6.183:DM1 | no data | - | no survey gives the climate scatter among bodies of one class; the 5 K shoulder of the regional temperature lines is a width of the class fit, chosen so a class edge is not a cliff |
+| 6.183:DM2 | no data | - | no measurement of another world's wet-bulb limit is in hand; the 3 C shoulder is a width of the class fit around the human limit of 31 C |
+| 6.183:DM3 | no data | - | no class reads a humidity edge yet and no survey measures one; the shoulder waits for the first class that does |
+| 6.183:DM5 | no data | - | the edges of classes M, H, O, P and R are the plan's reading of the class definitions; no survey of other worlds fits them, so they stay as fitted to the finished bodies (reports/class-fit-shadow-2026-10-31.md) |
+| 6.183:DM6 | no data | - | no observed hot thin-air world fixes the box of class Z; the edges are the gap in the class table, filled and checked by the shadow sweep |
+| 6.183:DM7 | no data | - | no observed methane-ethane or sulfuric-acid world is in hand beyond Titan and Venus; the ranges of U and Y are read from those two and widened |
+| 6.183:DM8 | no data | - | no ammonia share is measured on an icy body outside the Solar System; the 0.03 shoulder around the 0.1 line of Class 8 is a width of the fit |
+| 6.183:DM9 | no data | - | no ammonia-water ocean is observed; the box of class X is the ideal band of the ammonia-water phase diagram, read from the lab freezing curve |
 | 6.170:RNG2 | no data | - | no measured slope of a dust ring (Jupiter, Uranus, Neptune) is in hand; a dark red-brown ring was wanted and the slope is a picture choice |
 | 6.170:RNG5 | no data | - | no measured albedo of a dust ring is in hand; an educated guess between the ice ring and the dark sooty ones |
 | 6.170:RNG6 | no data | - | display choices (gain, opacity floor and ceiling) of the ring picture; a rendering model that works the light of the ring would replace them |
@@ -198,9 +212,27 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.170:RNG13 | no data | - | no source gives a jet count for Uranus or Neptune; the 5 or 7 bands are needed output |
 | 6.170:RNG18 | no data | - | no source gives a storm count law by rotation or heat flux; the 1 to 4 large storms are the design's |
 | 6.170:RNG19 | no data | - | band contrast and colour are tuned by eye (a methane giant nearly featureless, an ammonia giant strongly banded); the optics of the generated clouds (GEN.422 k-tables) would replace them |
+| `6.3a:`--rogues`` | no data | - | the number behind each word (none, few, normal, many) is a lever of the user; the observed 2 to 10 rogues per star bounds it, and a measured rogue count would replace the ceilings |
 | 6.174:SKB3 | no data | - | the ends of the faint-light table are invented to close it; the share worked from the luminosity function of the generator's own stars would replace them |
 | 6.174:SKB4 | no data | - | the cell, cube map and ray sizes are a picture's needs, chosen so the band is smooth; no source gives them |
-| 6.176:SKT1 | replace | VIEW.41 | the cell visit budget goes when a coarser block draw serves the sparse luminosity bands |
+| 6.174:GLW1 | no data | - | the glow's colour is a blackbody of 4500 K because the band is worked as one V surface brightness and the page needs three channels; the mean colour of the unresolved stars by direction, from the faint-light table's stellar mix, would replace it |
+| 6.176:SKT1 | no data | - | the visit budget is a serving limit chosen so a dust-free sky drops nothing; a coarser block draw for the sparse luminosity bands (a new draw and an epoch, not yet filed) would remove the need for it |
+| 6.176:SKT4 | no data | - | the near-ring mass edges are spaced by hand over the lightest stars the sampler draws; a spacing taken from the mass-luminosity relation would replace them |
+| 6.176:SKT5 | no data | - | the ring yield is a cost set by hand (100 stars drawn for each one that shows, as the heavier rings do); a cost per visible star set by the queue would replace it |
+| 6.176:SKT6 | no data | - | the local mix weighs the young, intermediate and old populations alike, as near the Sun; the populations' densities at the observer, which a caller can pass, would replace it |
+| 6.180:SKD1 | no data | - | the soft knee of the glow image is chosen by eye so the band shows at the faint end and the core does not clip; a display model of the eye's response to surface brightness would replace it |
+| 6.180:SKD2 | no data | - | the grain of the glow is a seeded noise sized by eye; the Poisson variation of the stars under the limit in a cell would replace it |
+| 6.180:SKD4 | no data | - | the sprite glow ramp is chosen by eye, like the stars' own scale; the same display model as SKD1 would replace it |
+| 6.180:SKD5 | no data | - | the stored model ties no orbital plane to the galactic frame, so the Milky Way's plane is drawn in the plane of the orbits; a stored orientation of each system would replace it |
+| 6.181:SKL1 | no data | - | the peak magnitude of the star look is chosen by eye so the faint end shows and the bright end does not clip; a display model of the eye's response fitted to the dark-adapted sky would replace it |
+| 6.181:SKL2 | no data | - | the width of a drawn star and its growth per magnitude are chosen by eye so a bright star looks brighter on a monitor that cannot make it so; the eye's point-spread function would replace them |
+| 6.181:SKL3 | no data | - | the colour a faint star keeps is chosen by eye; the eye's loss of colour vision at low light (the display model of SKL1) would replace it |
+| 6.181:SKL4 | no data | - | the phone's limiting magnitude is set from the plan's count of about 9,000 stars in step with the 15,000 cap; the frame time a phone measures would replace it |
+| 6.181:SKL5 | no data | - | the star caps are the plan's phone count and a laptop's frame time at 60 frames a second; the count the frame time of the page's own machine allows would replace them |
+| 6.181:SKL6 | no data | - | the speed that takes a third light-time pass is where the residual of two passes reaches a pixel of the finest view; no measured star needs a lower one |
+| 6.181:SKL7 | no data | - | the pick reach is chosen so a pixel-sized star can be hit by a mouse; a reach set by the pointer's kind (mouse, pen, touch) would replace it |
+| 6.181:SKL8 | no data | - | the cap on charted names bounds the size of the route's meta; a name carried in the packed list or looked up on a pick would remove the need for it |
+| 6.181:SKL9 | no data | - | the poll interval, poll count and phone width are serving limits so a poll does not hammer the route and ends; the build's own notice of completion would replace the poll |
 | 6.178:PNE5 | no data | - | the hot-bottom-burning carbon to nitrogen share is set so a 5 solar mass progenitor is Type I; no source gives the surface abundances of hot-bottom-burning models by mass and metallicity |
 | 6.178:PNE7 | no data | - | a safety limit that ends the carbon-rich draw loop; no draw is refused at solar metallicity |
 | 6.179:NBC6 | no data | - | the grain kinds and their shares are recalled from Milky Way dust models (Draine and Li, Zubko et al.) and fitted inside the metals; no measured dust composition by nebula class is in hand |

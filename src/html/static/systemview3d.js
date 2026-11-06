@@ -38,6 +38,7 @@ const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERS
 const { fitDistance: framingDistance } = await import(`./flytofit.js${VERSION_QUERY}`);
 const { orbitPath, nodePaths, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
+const { drawnCourse } = await import(`./systemcourse.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const { createLabelLayer } = await import(`./maplabels.js${VERSION_QUERY}`);
@@ -184,8 +185,8 @@ export function buildSystemScene(scene, layout, options) {
   });
 
   // MAP.213: the stars' paths are the orbits of the scene's tree, each child of a node on its own ellipse about the node's
-  // centre of mass, the slot-0 child on the other side of it from the slot-1 child, each at the other's share of the
-  // separation (MAP.136); a sub-pair's centre follows its own path about its parent node's centre.
+  // center of mass, the slot-0 child on the other side of it from the slot-1 child, each at the other's share of the
+  // separation (MAP.136); a sub-pair's center follows its own path about its parent node's center.
   if (scene.stars.length) {
     const colors = {};
     scene.stars.forEach((star) => { colors[star.ref] = colorOf(star); });
@@ -253,6 +254,35 @@ export function buildSystemScene(scene, layout, options) {
     group.add(sphere);
   }
 
+  // NAV.22: the legs of a NAV course that lie in this system (`opts.course`, systemcourse.js), each a line from where the course crosses the
+  // heliopause to the body it is bound for (or the other way), bent clear of what it would pass too close to; a ring marks each end, and a
+  // ring where a moving destination is aimed. Over everything else and never picked.
+  const COURSE_COLOR = 0xffc247;
+  const COURSE_RING_PX = 11;
+  const courseLegs = drawnCourse(opts.course, layout);
+  if (courseLegs.length) {
+    const courseGroup = new THREE.Group();
+    courseGroup.name = "system course";
+    courseGroup.renderOrder = 4;
+    courseLegs.forEach((leg) => {
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(leg.line.map((p) => new THREE.Vector3(p[0], p[1], p[2])));
+      const line = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({ color: COURSE_COLOR, transparent: true, depthTest: false }));
+      line.frustumCulled = false;
+      line.renderOrder = 4;
+      courseGroup.add(line);
+      const ends = [leg.start, leg.end].concat(leg.aimed ? [leg.aimed] : []);
+      const ringGeometry = new THREE.BufferGeometry();
+      ringGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(ends.flat()), 3));
+      const rings = new THREE.Points(ringGeometry, new THREE.PointsMaterial({
+        color: COURSE_COLOR, size: COURSE_RING_PX, sizeAttenuation: false, transparent: true, depthTest: false, depthWrite: false,
+      }));
+      rings.frustumCulled = false;
+      rings.renderOrder = 4;
+      courseGroup.add(rings);
+    });
+    group.add(courseGroup);
+  }
+
   // Moves everything to `years` after the epoch (or to `relative`, the
   // answer of relativeAt, when given).
   function update(years, relative) {
@@ -261,7 +291,7 @@ export function buildSystemScene(scene, layout, options) {
     for (const ref of Object.keys(placed)) {
       const p = placed[ref];
       const entry = byRef[ref];
-      if (!entry) continue;    // a tree node's centre of mass: a point the stars hang from, not a body
+      if (!entry) continue;    // a tree node's center of mass: a point the stars hang from, not a body
       objects[ref].position.set(p[0], p[1], p[2]);
       entry.x = p[0];
       entry.y = p[1];
@@ -363,7 +393,7 @@ export function buildSystemScene(scene, layout, options) {
     });
   }
 
-  // UX.244: the direction from a body to what it orbits (a barycentre: the nearest star), for a tidally locked body to keep its face toward.
+  // UX.244: the direction from a body to what it orbits (a barycenter: the nearest star), for a tidally locked body to keep its face toward.
   function towardParent(entry) {
     const own = objects[entry.ref].position;
     let target = objects[entry.parent];
@@ -423,6 +453,8 @@ export function buildSystemScene(scene, layout, options) {
     trailOpacity: (ref) => (trails[ref] ? trails[ref].material.opacity : null),
     // How far an orbit line reaches from what it goes round, in scene units (null: it has none), for tests.
     trailRadius: (ref) => (trails[ref] ? trailReach(ref) : null),
+    // NAV.22, for the browser tests: the legs of the course drawn (`drawnCourse`), none when no course is asked for.
+    course: courseLegs,
     dispose: dispose };
 }
 
@@ -499,7 +531,7 @@ export function createSystemView(options) {
       built.dispose();
     }
     layout = createLayout(sceneData, state.mode);
-    built = buildSystemScene(sceneData, layout, { years: years });
+    built = buildSystemScene(sceneData, layout, { years: years, course: options.course || null });
     stage.add(built.group);
     labelLayer.clear();
     if (selected) {
@@ -605,6 +637,17 @@ export function createSystemView(options) {
     reach: () => PICK_REACH_PX,
   });
 
+  // VIEW.37: the star of the sky under the pointer, when the sky is on and no body of the system is there; `{ title, lines, href }` or null.
+  function skyStarAt(event) {
+    if (!skyLayer || !skyLayer.pick) return null;
+    const rect = canvasEl.getBoundingClientRect();
+    return skyLayer.pick(camera, { x: event.clientX - rect.left, y: event.clientY - rect.top }, { width: rect.width, height: rect.height });
+  }
+  const skyHoverText = (star) => star.title + ": " + star.lines.join("; ");
+  function skyStarSpec(star) {
+    return { title: star.title, fields: star.fields, view: star.href ? { href: star.href, label: "View star →" } : null };
+  }
+
   const gesture = { distance0: 1 };
   const clampPhi = (phi) => Math.max(MIN_PHI, Math.min(MAX_PHI, phi));
   const control = createPointerControl(canvasEl, {
@@ -625,11 +668,17 @@ export function createSystemView(options) {
     onClick: function (event) {
       const hit = picker.pick(event.clientX, event.clientY);
       select(hit ? hit.entry : null);
+      if (!hit) {
+        const star = skyStarAt(event);    // VIEW.37: nothing of the system there, so a star of the sky
+        if (star) info.show(skyStarSpec(star));
+      }
     },
     onHover: function (event) {
       const hit = picker.pick(event.clientX, event.clientY);
       hovered = hit ? hit.entry : null;
-      tooltip.show(hovered ? hovered.name : "", event.clientX, event.clientY);
+      const star = hit ? null : skyStarAt(event);
+      tooltip.show(hovered ? hovered.name : star ? skyHoverText(star) : "", event.clientX, event.clientY);
+      canvasEl.dataset.skyHover = star ? star.title : "";
     },
     onLeave: function () { hovered = null; tooltip.hide(); },
   });
@@ -731,6 +780,7 @@ export function createSystemView(options) {
       if (options.onMode) options.onMode(layout);
     },
     mode: () => state.mode,
+    course: () => built.course,   // NAV.22, for the browser tests: the legs of the course drawn
     note: () => layout.note,
     reset: reset,
     recenter: recenter,
@@ -771,6 +821,13 @@ export function createSystemView(options) {
     },
     // For the browser tests: what the sky layer holds, or null.
     skyObjects: () => (skyLayer ? skyLayer.objects : null),
+    // For the browser tests (VIEW.37): the sky star at a point of the canvas, `{ title, lines, href, pick }` or null.
+    skyStarAt: (x, y) => {
+      const rect = canvasEl.getBoundingClientRect();
+      return skyLayer && skyLayer.pick ? skyLayer.pick(camera, { x: x, y: y }, { width: rect.width, height: rect.height }) : null;
+    },
+    // For the browser tests: where the sky's brighter stars are on the canvas now, `[{ index, x, y }]` (CSS pixels from its top left).
+    skyStarScreen: () => (skyLayer && skyLayer.screenStars ? skyLayer.screenStars(camera, canvasEl.getBoundingClientRect()) : []),
     dispose: function () {
       disposed = true;
       cancelAnimationFrame(frame);

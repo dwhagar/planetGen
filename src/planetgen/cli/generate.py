@@ -222,7 +222,7 @@ def add_logging_arguments(parser):
                         help="Limit --debug to some kinds of output: " + ", ".join(log.AREAS) + " (comma "
                              "separated; a leading - leaves one out, as in -draw). The default is all of them.")
     parser.add_argument('--record-file', metavar='FILE', default=None,
-                        help="Also write every log line to FILE as a record: one per line, the time in UTC "
+                        help="Also write every log line to FILE as a record: one per line, the time local with its offset "
                              "(PLANETGEN_RECORD_FILE does the same).")
     parser.add_argument('--record-json', action='store_true',
                         help="Write the --record-file records as JSON lines.")
@@ -772,6 +772,9 @@ def add_sectors_arguments(parser):
     parser.add_argument('--unit-sectors', type=int, metavar='N',
                         help="With --around: the most sectors in a unit of work, the retry and resume grain (default "
                              f"{region_run.BLOCK_SECTORS}).")
+    parser.add_argument('--rogues', type=dials.lever("rogues").parse, metavar="{" + ",".join(dials.lever("rogues").choices) + "}",
+                        help="With --around: the Rogues level of the run's top-up (stage 3, after every sector is built), for this run only. Default: the level "
+                             "the galaxy's plan was given (plan --rogues), else normal.")
     parser.add_argument('--max-shell', type=int,
                         help="With neither --shell nor --center-sector (random-start mode): the highest "
                              "shell the randomly chosen starting sector may land in. Default: anywhere "
@@ -854,7 +857,8 @@ def validate_sectors_args(args, parser):
     if getattr(args, "around", None) is not None:
         _validate_around(args, parser)
         return
-    for flag, value in (("--grow-shells", getattr(args, "grow_shells", None)), ("--unit-sectors", getattr(args, "unit_sectors", None))):
+    for flag, value in (("--grow-shells", getattr(args, "grow_shells", None)), ("--unit-sectors", getattr(args, "unit_sectors", None)),
+                        ("--rogues", getattr(args, "rogues", None))):
         if value is not None:
             parser.error(f"{flag} requires --around.")
 
@@ -1141,13 +1145,19 @@ def validate_plan_args(args, parser):
             scatter_limits.check_halo_min_luminosity(args.halo_min_luminosity)
         except ValueError as exc:
             parser.error(f"--halo-min-luminosity: {exc}")
-    # Anything else that still can't be normalized.
+    # Anything else that still can't be normalized. Drawing the shape reads the isochrones (the mean mass of a system), so
+    # the data gate comes first: a plan without them is refused with the datasets' message, not a DataMissing trace (TEST.632).
+    refuse_if_data_missing(args, logger_ready=False, bulk=True)
     try:
         shape, _drawn = shapeDraw.plan_shape(args, args.seed)
     except shapeDraw.ScaleError as exc:
         parser.error(f"mass, size and density: {exc}.")
     except (ArithmeticError, ValueError) as exc:
         parser.error(f"these galaxy shape parameters can't be normalized ({exc}).")
+    except fetch.DataMissing:
+        # Only reached under --disregard-missing-data (the gate above refuses otherwise): the shape cannot be drawn without the
+        # isochrones, so this guard cannot be made; the run itself says what it lacks (TEST.632).
+        return
     if not (math.isfinite(shape.k_norm) and shape.k_norm > 0):
         parser.error(f"these galaxy shape parameters can't be normalized (k_norm={shape.k_norm!r}).")
 
@@ -2028,6 +2038,23 @@ first (GEN.590); `sector` joins them when it makes more than one sector
 (`is_bulk_run`)."""
 
 
+def refuse_if_data_missing(args, logger_ready=True, bulk=None):
+    """
+    GEN.590: applies `--disregard-missing-data` and, for a bulk run, refuses (one line, exit status 1, nothing written) when a
+    downloaded data file is missing; returns the notice lines of a run that goes ahead without some. `logger_ready` is False
+    before `main` has set the logger up; `bulk` says so when `args` carries no command (a plan checked on its own). Called by
+    `main` and by the validation of a command that reads the data before `main` gets to it (`plan` draws the galaxy's shape,
+    TEST.632), so the refusal does not depend on what an earlier call left in a cache.
+    """
+    fetch.set_disregard_missing_data(getattr(args, "disregard_missing_data", False))
+    if not (is_bulk_run(args) if bulk is None else bulk):
+        return []
+    try:
+        return list(run_galaxy.disregard_notice(run_galaxy.require_datasets()))
+    except run_galaxy.DatasetsMissing as exc:
+        _fatal(str(exc), logger_ready=logger_ready)
+
+
 def is_bulk_run(args):
     """Whether this run is a bulk generation the data check must gate."""
     if args.command in BULK_COMMANDS:
@@ -2130,13 +2157,8 @@ def main():
     # start line) when a downloaded data file is missing. The math check is
     # not run here (PERF.170): `update.sh` runs it at every update and the
     # admin page runs it on request.
-    fetch.set_disregard_missing_data(getattr(args, "disregard_missing_data", False))
-    if is_bulk_run(args):
-        try:
-            for line in run_galaxy.disregard_notice(run_galaxy.require_datasets()):
-                log.normal(line)
-        except run_galaxy.DatasetsMissing as exc:
-            _fatal(str(exc))
+    for line in refuse_if_data_missing(args):
+        log.normal(line)
 
     # One start and one finish line per run in the activity log (SEC.28);
     # a `system --output` run writes no database, so it isn't logged, nor
@@ -2172,7 +2194,7 @@ def main():
     except SystemExit as exc:
         # SIGTERM inside a work queue (Cancel) exits with 128 + signal.
         if isinstance(exc.code, int) and exc.code >= 128:
-            status, failure = "interrupted", "cancelled"
+            status, failure = "interrupted", "canceled"
         elif exc.code in (None, 0):
             status = "ok"
         else:
@@ -2199,7 +2221,7 @@ def main():
 def _exit_on_sigterm():
     """
     Makes a SIGTERM (Cancel on the Generate page, `kill`) end the run as `SystemExit(128 + 15)`, so the run's own
-    cleanup runs (its run record ends as cancelled at once, not after the stale time) as Ctrl+C does.
+    cleanup runs (its run record ends as canceled at once, not after the stale time) as Ctrl+C does.
 
     Returns:
         The handler it replaced, to put back when the run ends, or `None` when it is not the main thread.

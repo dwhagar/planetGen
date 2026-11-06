@@ -310,7 +310,7 @@ def reset_database(config, dry_run=False, assume_yes=False):
 
 
 def _stop_on_sigterm():
-    """Makes SIGTERM (Cancel on the Generate page) end the run as cancelled in Redis, as Ctrl+C does."""
+    """Makes SIGTERM (Cancel on the Generate page) end the run as canceled in Redis, as Ctrl+C does."""
     def on_term(_signum, _frame):
         raise KeyboardInterrupt
     signal.signal(signal.SIGTERM, on_term)

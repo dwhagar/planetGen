@@ -45,7 +45,7 @@
     },
     "hydrosphere": {
       "label": "water state",
-      "note": "the stored water state: dry, vapour, ice, ice-covered ocean, surface ocean, brine seep, hycean"
+      "note": "the stored water state: dry, vapor, ice, ice-covered ocean, surface ocean, brine seep, hycean"
     },
     "flux_variation": {
       "label": "variation of starlight over the orbit",

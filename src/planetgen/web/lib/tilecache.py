@@ -482,7 +482,7 @@ def _trim_star(star):
     """One star of a node as the page reads it (MAP.157): the fields in
     `_STAR_KEYS`, `star_type` as its class letter, positions to 3
     decimals, luminosity to 4 and radius to 3 significant digits and
-    temperature to 10 K. No `system_id` when there is none, no `tier` for a star of the disc, the bulge and the rest, no `name`
+    temperature to 10 K. No `system_id` when there is none, no `tier` for a star of the disk, the bulge and the rest, no `name`
     for a star that has none."""
     trimmed = {
         "id": star["id"],
@@ -822,28 +822,28 @@ def fetch_window(db, at, g=DEFAULT_WINDOW):
         apiclient.ApiError / NotFoundError: If the API is needed and fails.
     """
     try:
-        centre = parse_window_key(at)
+        center = parse_window_key(at)
         width = check_width(g)
     except ValueError as exc:
         raise TileRequestError(str(exc))
-    if centre.m > 1:
+    if center.m > 1:
         # Cells bigger than a sector: the stored block totals, in one query.
         stamp = current_stamp(db, cache_dir())["stamp"]
-        return {**get_galaxy_window(db, format_drill_key(centre), width), "stamp": stamp}
+        return {**get_galaxy_window(db, format_drill_key(center), width), "stamp": stamp}
     # The sector edge comes with every stage; the galaxy's is always cached.
     galaxy = fetch_stage(db, None)
     edge_pc = galaxy["edge_pc"]
     stamp = galaxy.get("stamp")
     stages = {}
-    for parent in window_parents(window_cells(centre, edge_pc, width)):
+    for parent in window_parents(window_cells(center, edge_pc, width)):
         key = format_drill_key(parent) if parent else "galaxy"
         stages[key] = galaxy if parent is None else fetch_stage(db, key)
-    return {**crop_stages(centre, width, stages, edge_pc), "stamp": stamp}
+    return {**crop_stages(center, width, stages, edge_pc), "stamp": stamp}
 
 
 NEAR_MAX_EDGES = 4.5
 """float: The farthest `fetch_near` looks, in sector edges: the widest window (11 cells across) holds a point's sector and the cells within
-4.5 edges of it, allowing the half edge between the point and its sector's centre."""
+4.5 edges of it, allowing the half edge between the point and its sector's center."""
 
 
 def fetch_near(db, x, y, z, r):
@@ -860,7 +860,7 @@ def fetch_near(db, x, y, z, r):
     Returns:
         dict: `at` (the key of the sector holding the point, `1.shell.band.wedge`, or `None` outside the grid), `edge_pc`,
             `r` (the radius used), `sectors` (the generated sectors of the cells within the radius of the sector's
-            centre, as a stage lists them: `shell`, `band`, `wedge`, `id`, `name`, `system_count`, `stats`) and `stamp`.
+            center, as a stage lists them: `shell`, `band`, `wedge`, `id`, `name`, `system_count`, `stats`) and `stamp`.
 
     Raises:
         TileRequestError: On a coordinate or radius that is not a finite number.
@@ -886,7 +886,7 @@ def fetch_near(db, x, y, z, r):
     except ValueError:
         return nothing
     key = format_drill_key(DrillBlock(1, shell, band, wedge))
-    # A window is a ball of `g` cells across round the centre cell's own centre, the point up to a half edge from it.
+    # A window is a ball of `g` cells across round the center cell's own center, the point up to a half edge from it.
     width = next((w for w in WINDOW_WIDTHS if w >= 2 * (radius / edge_pc + 1)), WINDOW_WIDTHS[-1])
     window = fetch_window(db, key, width)
     return {"at": key, "edge_pc": edge_pc, "r": radius, "sectors": window.get("sectors") or [], "stamp": window.get("stamp", stamp)}

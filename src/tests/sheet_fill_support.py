@@ -38,13 +38,13 @@ def server_kwargs():
 
 
 SAMPLE_GALACTIC_DISTANCE_LY = 26000.0
-"""float: How far from the galactic centre the sample systems sit (about the Sun's distance): a system the galaxy builds always has a place in it,
+"""float: How far from the galactic center the sample systems sit (about the Sun's distance): a system the galaxy builds always has a place in it,
 and a star's rate of lethal galactic events (`lethal_event_rate_per_gyr`, GEN.785) is worked out from that place, so a sample with none has no rate."""
 
 
 def generate(config, systems, first_seed=1000):
     """Generates and saves `systems` systems into the database `config` points at, system `i` from the run seed
-    `first_seed + i`, each placed `SAMPLE_GALACTIC_DISTANCE_LY` from the galactic centre. Returns the ids of the saved systems."""
+    `first_seed + i`, each placed `SAMPLE_GALACTIC_DISTANCE_LY` from the galactic center. Returns the ids of the saved systems."""
     saved = []
     for index in range(systems):
         draw.set_run_seed(first_seed + index)

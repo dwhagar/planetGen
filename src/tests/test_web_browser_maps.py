@@ -122,6 +122,68 @@ def _expand_info(page):
         button.click()
 
 
+def _gravity_state(page):
+    """What the Gravity layer drew in the scene on show: the heat map's image (a PNG data URL), the Hill sphere rings, the Lagrange diamonds and the Key line."""
+    return page.evaluate("""() => {
+        const body = document.querySelector('#sysmap-root .sysmap-svg:not(.sysmap-orbits-layer):not(.sysmap-hidden)');
+        const orbits = [...document.querySelectorAll('#sysmap-root .sysmap-orbits-layer')].find((l) => l.dataset.scene === body.dataset.scene);
+        const group = orbits.querySelector('.sysmap-gravity-group');
+        const image = group && group.querySelector('image.sysmap-gravity-image');
+        const key = [...document.querySelectorAll('#sysmap-layer-legend .map-layer-legend-line')].find((l) => l.dataset.layer === 'gravity');
+        return {
+            scene: body.dataset.scene,
+            groups: document.querySelectorAll('#sysmap-root .sysmap-gravity-group').length,
+            image: image ? image.getAttribute('href').slice(0, 22) : null,
+            hills: group ? group.querySelectorAll('.sysmap-hill').length : 0,
+            points: group ? group.querySelectorAll('.sysmap-lagrange').length : 0,
+            orbiters: [...body.querySelectorAll('[data-kind="planet"],[data-kind="moon"]')].filter((e) => parseFloat(e.dataset.masskg) > 0 && e.dataset.self !== 'true').length,
+            key: key ? key.textContent : null,
+            legend: document.querySelector('#sysmap-layer-legend').innerHTML.slice(0, 600),
+        };
+    }""")
+
+
+@pytest.mark.viewport(1280, 900)
+def test_system_map_gravity_layer_draws_the_field_hill_spheres_and_lagrange_points(page, base_url, site_app):
+    client = site_app.test_client()
+    target = None
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        whole = re.search(rb'<svg class="sysmap-svg" data-scene="system".*?</svg>', client.get(f"/system/{system['id']}").data, re.S)
+        if whole and re.search(rb'data-kind="planet"[^>]*data-scene="', whole.group(0)):
+            target = system["id"]
+            break
+    assert target, "no generated single-star system has a planet with moons"
+    page.add_init_script("try { window.localStorage.setItem('planetgen.systemView', 'diagram'); } catch (e) {}")
+    _open(page, f"{base_url}/system/{target}", '#sysmap-root[data-ready="true"]')
+    assert _gravity_state(page)["groups"] == 0, "the layer begins off"
+    assert "gravity" not in page.url
+
+    page.evaluate("document.querySelector('#sysmap-layers input[data-layer=\"gravity\"]').click()")
+    page.wait_for_function("() => document.querySelectorAll('#sysmap-root .sysmap-gravity-group').length === 1", timeout=20000)
+    state = _gravity_state(page)
+    assert state["scene"] == "system" and state["image"] == "data:image/png;base64,", state
+    assert state["orbiters"] > 0 and state["hills"] == state["orbiters"], "a Hill sphere for each planet"
+    assert state["points"] > 0 and state["points"] % 5 == 0, "the Lagrange points of each planet"
+    assert state["key"] and "Pull" in state["key"] and "Hill spheres" in state["key"], state
+    assert "show=gravity" in page.url and "gravity=pull" in page.url, page.url
+
+    page.evaluate("document.querySelector('#sysmap-layers button[data-gravity-mode=\"tidal\"]').click()")
+    page.wait_for_function("() => /Stretch/.test(document.querySelector('#sysmap-layer-legend').textContent)", timeout=20000)
+    assert "gravity=tidal" in page.url, page.url
+
+    # A planet's moon system gets its own field (the planet and its moons), Hill spheres about the planet and points for each moon.
+    planet = page.locator('#sysmap-root .sysmap-svg[data-scene="system"] [data-kind="planet"][data-scene]').first
+    moons = planet.get_attribute("data-scene")
+    _click_body(planet)
+    assert _active_scene(page) == moons
+    page.wait_for_function("(scene) => { const g = document.querySelectorAll('#sysmap-root .sysmap-gravity-group'); return g.length === 1 && g[0].closest('svg').dataset.scene === scene; }", arg=moons, timeout=20000)
+    state = _gravity_state(page)
+    assert state["image"] == "data:image/png;base64," and state["hills"] == state["orbiters"] > 0, state
+
+    page.evaluate("document.querySelector('#sysmap-layers input[data-layer=\"gravity\"]').click()")
+    assert _gravity_state(page)["groups"] == 0 and "gravity" not in page.url, page.url
+
+
 @pytest.mark.viewport(1280, 900)  # the planet's info card (MAP.332 sizes it to its content) covers the moons in a window of 800x600
 def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     client = site_app.test_client()
@@ -280,7 +342,7 @@ def test_nebula_page_draws_its_cloud_in_3d(page, base_url, site_app, monkeypatch
     client = site_app.test_client()
     assert client.get(f"/galaxy/nebula/{nebula['id']}/volume").status_code == 200
     assert client.get(f"/galaxy/nebula/{nebula['id']}/surroundings").status_code == 200
-    # A nebula never placed has no centre: it keeps its still drawing.
+    # A nebula never placed has no center: it keeps its still drawing.
     monkeypatch.setattr(apiclient, "get_nebula_surroundings", real_surroundings)
     _open(page, f"{base_url}/phenomenon/nebula/{nebula['id']}", "main")
     page.wait_for_timeout(1500)
@@ -305,8 +367,8 @@ def _query(page):
     parts = [part for part in urlparse(page.url).query.split("&") if part and not part.startswith("cam=")]
     win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
     if win and not any(part.startswith("sector=") for part in parts):
-        centre = win["centre"]
-        parts.insert(0, f"win={centre['m']}.{centre['shell']}.{centre['band']}.{centre['wedge']}")
+        center = win["center"]
+        parts.insert(0, f"win={center['m']}.{center['shell']}.{center['band']}.{center['wedge']}")
     return "&".join(parts)
 
 
@@ -360,7 +422,7 @@ def _descend(page):
     size."""
     before = _state(page)
     win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
-    size = WINDOW_SIZES[1] if not win else WINDOW_SIZES[WINDOW_SIZES.index(win["centre"]["m"]) + 1]
+    size = WINDOW_SIZES[1] if not win else WINDOW_SIZES[WINDOW_SIZES.index(win["center"]["m"]) + 1]
     cell = {"m": size, "shell": 0, "band": 0, "wedge": 0}
     page.evaluate("(cell) => document.querySelector('#galaxymap3d-canvas').galaxyOpenWindow(cell)", cell)
     _wait_settled(page, before)
@@ -382,7 +444,7 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
         if crumbs[-1].startswith("Sector "):
             reached_sector = True
             break
-        # MAP.150: each click opens a window centred on the cell clicked, one size down.
+        # MAP.150: each click opens a window centered on the cell clicked, one size down.
         assert crumbs[-1].startswith("Block "), crumbs
         assert re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.-?\d+\.\d+", query), query
         assert query != steps[-1][0], "the URL names the new stage"
@@ -437,7 +499,7 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
     before = _state(page)
     page.click('#galaxymap3d-controls [data-action="up"]')
     _wait_settled(page, before)
-    # The trail follows the camera (MAP.227): the window above is centred where the camera lands, so its steps need
+    # The trail follows the camera (MAP.227): the window above is centered where the camera lands, so its steps need
     # not be the ones the window below was inside, but there is one fewer.
     assert len(_crumbs(page)) == len(crumbs) - 1 and _crumbs(page)[0] == crumbs[0], "Up drops the last breadcrumb"
 
@@ -459,7 +521,7 @@ def test_galaxy_map_drill_down_by_windows(page, base_url):
         page.locator("#galaxymap3d-crumbs button.crumb").nth(1).click()
     _wait_settled(page)
     # The crumb is the 243-block above where the walk ended, which the clicks may have carried past the first
-    # block's edge: the 3-ary ladder takes more steps than the old one did, each centred on the cell clicked.
+    # block's edge: the 3-ary ladder takes more steps than the old one did, each centered on the cell clicked.
     crumbs = _crumbs(page)
     assert len(crumbs) == 2 and crumbs[0] == "Galaxy" and crumbs[1].endswith("(243)"), crumbs
     before = _state(page)
@@ -787,6 +849,74 @@ def test_system_page_3d_view_offers_the_sky_switch_and_the_status_line(page, bas
     assert page.evaluate("window.localStorage.getItem('planetgen.systemSky')") == "on"
 
 
+def test_system_page_3d_view_says_what_a_sky_star_under_the_pointer_is(page, base_url, site_app):
+    """VIEW.37: with the sky drawn, pointing at one of its stars (where `skyStarScreen` puts it) shows its hover text, "seen as it was N years ago"
+    among it, and a click opens its card. A fixture system whose sky holds no star on the screen has nothing to point at, and the test ends there."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_function("() => { const s = document.getElementById('sysview3d').dataset.skyState; return s && s !== 'loading'; }", timeout=60000)
+    if page.locator("#sysview3d").get_attribute("data-sky-state") not in ("ready", "filling"):
+        return
+    stars = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.skyStarScreen()")
+    if not stars:
+        return
+    box = page.locator("#sysview3d-canvas").bounding_box()
+    star = stars[0]
+    page.mouse.move(box["x"] + star["x"], box["y"] + star["y"])
+    page.wait_for_function("() => document.getElementById('sysview3d-canvas').dataset.skyHover !== ''", timeout=15000)
+    tip = page.locator("#sysview3d-tip")
+    assert "seen as it was" in tip.inner_text()
+
+
+def test_every_layer_of_the_system_map_has_a_view_menu_heading_and_keywords(page, base_url, site_app):
+    """UX.277: the System Map's layers (facilities, body names, spin) name a View menu heading and keywords, and the common switches say so."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    root = "document.querySelector('#sysmap-root').__mapLayers"
+    assert page.evaluate(f"() => {root}.unheaded()") == []
+    entries = {entry["id"]: entry for entry in page.evaluate(f"() => {root}.entries()")}
+    assert set(entries) >= {"facility", "label-body", "spin"}
+    assert entries["spin"]["heading"] == "Move and Settings" and entries["label-body"]["heading"] == "Show" and entries["label-body"]["common"] is True
+
+
+def test_the_system_map_menu_is_the_shared_view_menu_with_headings_counts_and_checkboxes(page, base_url, site_app):
+    """UX.278: the System Map's Menu is made by the shared builder: a fold per heading it has layers for, a count in each,
+    real checkboxes that keep the layers' selectors, the word "changed" where a switch is not as it starts, and the fold kept."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.click("#sysmap-view-diagram")
+    page.click("#sysmap-menu > summary")
+    headings = page.locator("#sysmap-layers details.view-menu-heading")
+    assert headings.evaluate_all("els => els.map(e => e.dataset.heading)") == ["Show", "Move and Settings"]
+    assert headings.evaluate_all("els => els.map(e => e.open)") == [True, True], "a small menu starts open"
+    boxes = page.locator("#sysmap-layers input[type=checkbox][data-layer]")
+    assert boxes.evaluate_all("els => els.map(e => e.dataset.layer)") == ["facility", "label-body", "gravity", "spin"]
+    counts = page.locator("#sysmap-layers summary .view-menu-count")
+    # MAP.169: the Gravity layer begins off, so the Show fold has two of its three on
+    assert counts.nth(0).inner_text() == "2 of 3 on" and counts.nth(1).inner_text() == "1 of 1 on"
+    body = page.locator('#sysmap-layers [data-label="body"]')
+    assert body.is_checked()
+    assert page.locator('#sysmap-layers [data-row="label-body"] .view-menu-changed').is_hidden()
+    body.click()
+    assert not body.is_checked()
+    assert counts.nth(0).inner_text() == "1 of 3 on, 1 changed"
+    assert page.locator('#sysmap-layers [data-row="label-body"] .view-menu-changed').is_visible()
+    assert "label-body" in page.url
+    page.locator('#sysmap-layers details[data-heading="Move and Settings"] > summary').click()
+    page.wait_for_function("() => localStorage.getItem('planetgen.viewMenu.open.system.Move and Settings') === '0'")
+    page.reload(wait_until="load")
+    page.wait_for_selector('#sysmap-root[data-ready="true"]')
+    if page.locator("#sysmap-view-diagram").count():
+        page.click("#sysmap-view-diagram")
+    page.click("#sysmap-menu > summary")
+    assert page.locator('#sysmap-layers details[data-heading="Move and Settings"]').evaluate("e => e.open") is False
+    assert not page.locator('#sysmap-layers [data-label="body"]').is_checked(), "the address keeps the switch"
+
+
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
     system_id, scene = _system_with_planets(site_app.test_client())
     _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
@@ -851,6 +981,41 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     assert page.locator("#sysview3d").is_hidden() and page.locator("#sysmap-diagram").is_visible()
 
 
+def test_system_page_3d_view_draws_a_nav_course_that_lies_in_the_system(page, base_url, site_app, monkeypatch):
+    """NAV.22: a course asked for with `?course=` is drawn in the 3D view as a line from where it crosses the heliopause to its body, with
+    a ring at each end and one where a moving destination is aimed, in both scales, and listed under the view with the way back."""
+    from planetgen.web import nav_page
+
+    system_id, scene = _system_with_planets(site_app.test_client())
+    au_km = 149597870.7
+    heliopause = 120.0 * au_km
+    course = {"navUrl": "/nav?from=system:1&to=planet:9", "legs": [{
+        "kind": "into", "label": "Into the system", "from": "the heliopause", "to": "Fixture World",
+        "points": [[-heliopause, 0.0, 0.0], [-2.0 * au_km, 0.5 * au_km, 0.0], [0.4 * au_km, 0.0, 0.0]],
+        "aimed": [0.45 * au_km, 0.0, 0.0], "length_au": 122.0, "bent": True, "avoided": ["Fixture Giant"]}]}
+    monkeypatch.setattr(nav_page, "system_course", lambda system, from_raw, to_raw: course)
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}?course=system:1,planet:9", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    assert not errors, errors
+    drawn = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.course().map((leg) => ({kind: leg.kind, points: leg.line.length, aimed: !!leg.aimed}))")
+    assert drawn == [{"kind": "into", "points": 2 * 24 + 1, "aimed": True}]
+    note = page.locator("#sysview3d-course").inner_text()
+    assert "Into the system" in note and "Fixture World" in note and "Fixture Giant" in note and "back to the course" in note
+    assert page.locator("#sysview3d-course a").get_attribute("href") == "/nav?from=system:1&to=planet:9"
+    page.select_option("#sysview3d-scale", "true")
+    drawn = page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.course().map((leg) => leg.line.length)")
+    assert drawn == [3]
+    assert not errors, errors
+    # No course asked for: nothing is drawn and no list is made.
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    assert page.evaluate("() => document.getElementById('sysview3d-canvas').systemView.course().length") == 0
+
+
 def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_url, site_app):
     """MAP.287: the 3D system view takes the body look record the System Map takes: a star, planet and moon is drawn
     from its `look` (seeded, composition-led), and once the painters have run a star and a solid world show a painted
@@ -874,7 +1039,7 @@ def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_u
 
 
 def test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others(page, base_url, site_app):
-    """MAP.213: a system of three stars is drawn node by node: the scene's tree puts the inner pair about its centre and the
+    """MAP.213: a system of three stars is drawn node by node: the scene's tree puts the inner pair about its center and the
     third star about the whole, each on its own scale, so the three stars sit apart (none at the middle, on top of another)."""
     import json
     import math
@@ -1186,6 +1351,14 @@ def test_a_ring_on_the_system_map_is_the_planets_own_stored_ring(page, base_url,
             assert 1.0 < ring["in"] < ring["out"], ring
 
 
+def test_every_control_in_the_system_menu_is_a_working_button(page, base_url, site_app):
+    """MAP.397: every visible thing in the system map's Menu list is a heading or an enabled, named button, and pressing each one changes it."""
+    from tests.map_menu_support import check_menu_controls
+    _open_spinning_diagram(page, base_url, site_app)
+    page.click("#sysmap-menu > summary")
+    check_menu_controls(page, "#sysmap-layers")
+
+
 def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url, site_app):
     """MAP.328: the Menu's Spin switch holds every body still (and a reload keeps it so); turning it on again sets them
     turning."""
@@ -1194,9 +1367,9 @@ def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url,
     assert any(b["angle"] != a["angle"] for a, b in zip(moving["first"], moving["second"])), "bodies turn by default"
     page.click("#sysmap-menu > summary")
     button = page.locator('#sysmap-layers [data-setting="spin"]')
-    assert button.get_attribute("aria-pressed") == "true"
+    assert button.is_checked()
     button.click()
-    assert button.get_attribute("aria-pressed") == "false"
+    assert not button.is_checked()
     page.wait_for_timeout(200)
     held = page.evaluate(SPIN_SAMPLE, 500)
     assert [b["angle"] for b in held["second"]] == [a["angle"] for a in held["first"]], "switched off, nothing turns"
@@ -1220,44 +1393,63 @@ def test_reduced_motion_holds_the_bodies_still(page, base_url, site_app):
     assert page.evaluate("() => localStorage.getItem('planetgen.spin')") is None, "the switch itself was not touched"
 
 
+def _systems_with_moons(client, limit=8):
+    """Up to `limit` generated systems that have a planet with moons, each as `(system id, scene)`."""
+    found = []
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        if any(planet["moons"] for planet in scene["planets"]):
+            found.append((system["id"], scene))
+            if len(found) == limit:
+                break
+    return found
+
+
 def test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate(page, base_url, site_app):
     """MAP.328: in the 3D view a body's mesh turns by the angle spin.js gives for the elapsed spin time, about its stored
-    axis; a body with no stored period stays where it is."""
+    axis; a body with no stored period stays where it is. (TEST.575: the first system with moons may have only one body that turns
+    freely, its moons locked, so the test takes the first of the systems with moons that has two.)"""
     import math
-    system_id, scene = _system_with_moons(site_app.test_client())
     page.emulate_media(reduced_motion="no-preference")
-    page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
-    page.wait_for_selector('#sysview3d[data-ready="true"]')
-    got = page.evaluate("""async () => {
-        const view = document.querySelector('#sysview3d-canvas').systemView;
-        const first = view.spins();
-        await new Promise((resolve) => setTimeout(resolve, 900));
-        return {first: first, second: view.spins()};
-    }""")
-    checked = 0
-    for a, b in zip(got["first"], got["second"]):
-        elapsed = b["at"] - a["at"]
-        assert elapsed > 0.2, elapsed
-        dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
-        turned = 2 * math.acos(min(1.0, dot))
-        if a["locked"]:
-            assert turned < 0.02, (a["ref"], turned)      # UX.244: a locked body keeps its face toward what it orbits
-            continue
-        assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
-        checked += a["rate"] > 0
-    assert checked >= 2, ("bodies with a stored period turn", [(a["ref"], a["rate"], a["locked"]) for a in got["first"]])
+    systems = _systems_with_moons(site_app.test_client())
+    assert systems, "no generated system has a planet with moons"
+    seen = []
+    for system_id, _scene in systems:
+        page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
+        page.wait_for_selector('#sysview3d[data-ready="true"]')
+        got = page.evaluate("""async () => {
+            const view = document.querySelector('#sysview3d-canvas').systemView;
+            const first = view.spins();
+            await new Promise((resolve) => setTimeout(resolve, 900));
+            return {first: first, second: view.spins()};
+        }""")
+        checked = 0
+        for a, b in zip(got["first"], got["second"]):
+            elapsed = b["at"] - a["at"]
+            assert elapsed > 0.2, elapsed
+            dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
+            turned = 2 * math.acos(min(1.0, dot))
+            if a["locked"]:
+                assert turned < 0.02, (a["ref"], turned)      # UX.244: a locked body keeps its face toward what it orbits
+                continue
+            assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
+            checked += a["rate"] > 0
+        seen.append((system_id, checked))
+        if checked >= 2:
+            return
+    pytest.fail(f"no system with moons has two bodies that turn freely: {seen}")
 
 
 @pytest.mark.viewport(1280, 900)
 def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base_url):
     """MAP.121: the Menu's step buttons and the keys move the window to the cell beside it at the same level, in one
-    camera move (the address carries it, the trail follows the new centre), and back the other way, without going
+    camera move (the address carries it, the trail follows the new center), and back the other way, without going
     up a level."""
     _open_galaxy(page, base_url)
     size = _descend(page)
     stage = lambda: page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]  # noqa: E731
-    centre = lambda: {k: stage()["centre"][k] for k in ("m", "shell", "band", "wedge")}  # noqa: E731
-    start = centre()
+    center = lambda: {k: stage()["center"][k] for k in ("m", "shell", "band", "wedge")}  # noqa: E731
+    start = center()
     assert start["m"] == size
 
     def enabled():
@@ -1276,7 +1468,7 @@ def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base
     page.click("#galaxymap3d-menu > summary")
     page.click('#galaxymap3d-controls [data-step="out"]')
     _wait_settled(page, before)
-    moved = centre()
+    moved = center()
     assert moved["m"] == size and moved["shell"] == start["shell"] + 1, (start, moved)
     assert _query(page) != before[0] and "cam=" in page.url
     assert abs(len(_crumbs(page)) - crumbs) <= 1, "the trail is the position's, not a level deeper"
@@ -1286,29 +1478,29 @@ def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base
     page.locator("#galaxymap3d-canvas").focus()
     page.keyboard.press("[")
     _wait_settled(page, before)
-    assert centre() == start
+    assert center() == start
 
     # A step the geometry does not allow does nothing: nothing is nearer the core than the core.
     before = _state(page)
     page.keyboard.press("[")
     page.wait_for_timeout(300)
-    assert _state(page) == before and centre() == start
+    assert _state(page) == before and center() == start
 
     # Sideways: from the shell outside the core, round the ring: a step east then west lands on the same cell.
     page.keyboard.press("]")
     _wait_settled(page)
-    ring = centre()
+    ring = center()
     sideways = enabled()
     if sideways["east"]:
         before = _state(page)
         page.keyboard.press("Alt+Shift+ArrowRight")
         _wait_settled(page, before)
-        east = centre()
+        east = center()
         assert east["m"] == size and east["shell"] == ring["shell"] and east != ring, (ring, east)
         before = _state(page)
         page.keyboard.press("Alt+Shift+ArrowLeft")
         _wait_settled(page, before)
-        assert centre() == ring
+        assert center() == ring
     else:
         assert ways["out"]
 
@@ -1338,3 +1530,32 @@ def test_a_locked_moon_in_the_system_map_keeps_its_day_side_toward_its_planet(pa
     for moon in (s for s in spins if s["kind"] == "moon" and s["locked"] and s["toward"]):
         want = (parent["cx"] - moon["cx"], -(parent["cy"] - moon["cy"]))
         assert moon["toward"][0] == pytest.approx(want[0], abs=1e-6) and moon["toward"][1] == pytest.approx(want[1], abs=1e-6), (moon, want)
+
+
+def test_a_system_page_adds_and_removes_a_waypoint(page, base_url, sample_params):
+    """NAV.49: the Nav menu of a system page has Add waypoint, which says the waypoint's place once it is one and keeps it across a
+    reload; the sector page, which has no NAV endpoint, has none."""
+    system_id = sample_params["from_id"]
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    item = page.locator("[data-waypoint-toggle]")
+
+    def open_menu():
+        page.locator("sl-dropdown.nav-menu sl-button").click()
+        item.wait_for(state="visible")
+
+    open_menu()
+    assert item.inner_text() == "Add waypoint"
+    item.click()
+    page.wait_for_function("document.querySelector('[data-waypoint-toggle]').textContent === 'Remove waypoint 1'")
+    stored = page.evaluate("""() => {
+        const key = Object.keys(localStorage).find(k => k.startsWith('planetgen.waypoints.'));
+        return key ? JSON.parse(localStorage.getItem(key)) : [];
+    }""")
+    assert [entry["value"].split(":")[0] for entry in stored] == ["system"] and len(stored) == 1
+    page.reload(wait_until="load")
+    open_menu()
+    assert item.inner_text() == "Remove waypoint 1"
+    item.click()
+    page.wait_for_function("document.querySelector('[data-waypoint-toggle]').textContent === 'Add waypoint'")
+    page.goto(f"{base_url}/sector/{sample_params['sector_id']}", wait_until="load")
+    assert page.locator("[data-waypoint-toggle]").count() == 0

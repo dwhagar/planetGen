@@ -21,7 +21,7 @@ from tests.test_nebula_blocks_db import _store_nebula
 pytestmark = pytest.mark.db
 
 EDGE_PC = float(tuning.DEFAULT_SECTOR_EDGE_PC)
-CENTRE = (805.0, 195.0, 52.0)
+CENTER = (805.0, 195.0, 52.0)
 SEED = bytes([39]) * 16
 SHAPE = toy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0, bulge_amplitude=2.0, arm_count=2,
                   pitch_angle_rad=math.radians(15), arm_amplitude=0.4, structure=structure_draw.draw_structure(SEED))
@@ -42,7 +42,7 @@ def planned(mysql_config):
         if query.get_galaxy_shape(conn, light=True) is None:
             store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8, expected_system_count_at_density_1=2000.0,
                                     config=mysql_config, cell_star_ceiling=1e12, galaxy_seed=SEED)
-        _store_nebula(conn, "C", 65.0, CENTRE)
+        _store_nebula(conn, "C", 65.0, CENTER)
         conn.commit()
     finally:
         conn.close()
@@ -50,7 +50,7 @@ def planned(mysql_config):
 
 
 def _keys(m):
-    chain = drill_chain_of(*sector_address_at(CENTRE, EDGE_PC))
+    chain = drill_chain_of(*sector_address_at(CENTER, EDGE_PC))
     return format_drill_key(next(b for b in chain if b.m == m))
 
 
@@ -104,12 +104,44 @@ def test_one_nebula_alone_is_drawn_with_the_points_its_node_gives_it(planned):
         conn.close()
 
 
+def test_a_cloud_given_by_its_sphere_is_drawn_with_the_points_of_the_stored_nebula_of_that_sphere(planned):
+    """MAP.392: a supernova remnant or a scattered nebula has no id the map can ask for, so it asks for its sphere: the same sampler and density, so a
+    nebula given by its sphere looks the same as the stored one, and a remnant's shell is the shell profile of its family."""
+    from planetgen.physics import units
+
+    conn = store.get_connection(planned)
+    try:
+        row = conn.execute("SELECT id, radius_ly, center_x_pc, center_y_pc, center_z_pc FROM nebulae ORDER BY id DESC LIMIT 1").fetchone()
+        center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        sphere = nebula_volumes.sphere_volume(conn, center, units.ly_to_pc(row["radius_ly"]), "emission", _Model)
+        assert sphere == nebula_volumes.single_nebula_volume(conn, row["id"], _Model)
+        assert sphere == nebula_volumes.sphere_volume(conn, center, units.ly_to_pc(row["radius_ly"]), "emission", _Model)
+        assert len(_points(sphere)) > 20
+        shell = nebula_volumes.sphere_volume(conn, center, units.ly_to_pc(row["radius_ly"]), "supernova-remnant", _Model)
+        assert shell != sphere and len(_points(shell)) > 0, "a remnant is a shell, not the nebula's filled cloud"
+    finally:
+        conn.close()
+
+
+@pytest.mark.parametrize("family, radius, center", [
+    ("galaxy", 10.0, (0.0, 0.0, 0.0)), ("emission", 0.0, (0.0, 0.0, 0.0)), ("emission", -3.0, (0.0, 0.0, 0.0)),
+    ("emission", nebula_volumes.MAX_SPHERE_RADIUS_PC + 1.0, (0.0, 0.0, 0.0)), ("emission", 10.0, (float("nan"), 0.0, 0.0)),
+    ("emission", float("inf"), (0.0, 0.0, 0.0))])
+def test_a_sphere_that_is_no_cloud_is_refused(mysql_config, family, radius, center):
+    conn = store.get_connection(mysql_config)
+    try:
+        with pytest.raises(ValueError):
+            nebula_volumes.sphere_volume(conn, center, radius, family, _Model)
+    finally:
+        conn.close()
+
+
 def test_a_nebula_in_a_galaxy_never_planned_is_header_only(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         if query.get_galaxy_shape(conn, light=True) is not None:
             pytest.skip("this database already holds a plan")
-        nebula_id = _store_nebula(conn, "C", 65.0, CENTRE)
+        nebula_id = _store_nebula(conn, "C", 65.0, CENTER)
         packed = nebula_volumes.single_nebula_volume(conn, nebula_id, _Model)
         assert int.from_bytes(packed[6:10], "little") == 0
     finally:

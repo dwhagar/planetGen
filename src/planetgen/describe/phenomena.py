@@ -206,11 +206,11 @@ def _supernova_remnant(remnant):
                         f"expanding wreckage of a {remnant.progenitor_type} supernova ", _years(remnant.age_years),
                         " ago. It now reaches ", _ly(remnant.radius_ly), " from its center."), _orbit(remnant)]
     children = []
-    centre = remnant.compact_remnant
-    if centre is not None:
-        sentences.append(inline(f"At its center lies the collapsed core of the progenitor star, {centre.name}."))
-        children.append(_compact(centre))
-    elif getattr(remnant, "compact_remnant_name", None):    # a stored remnant: the centre has a page of its own
+    center = remnant.compact_remnant
+    if center is not None:
+        sentences.append(inline(f"At its center lies the collapsed core of the progenitor star, {center.name}."))
+        children.append(_compact(center))
+    elif getattr(remnant, "compact_remnant_name", None):    # a stored remnant: the center has a page of its own
         sentences.append(inline(f"At its center lies the collapsed core of the progenitor star, {remnant.compact_remnant_name}."))
     elif remnant.progenitor_type == "core-collapse":
         sentences.append(inline("Whatever compact remnant the collapse left behind, if any, has not been found in the "

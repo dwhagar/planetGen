@@ -6,7 +6,7 @@ docs/design/systems/weird-worlds.md; docs/design/composition/nightside-collapse-
 
 On a locked planet the day side is lit for ever and the night side never. If the air is thin it carries too little heat round,
 the night side drops below the condensation temperature of the main gas, and the gas freezes onto the dark side until what is
-left is the vapour pressure at the night side's temperature: the air is lost to a nightside cap and the day side is bare.
+left is the vapor pressure at the night side's temperature: the air is lost to a nightside cap and the day side is bare.
 This module answers that, as a pure function of the pressure, the starlight, the gravity and the gas. It draws nothing and
 changes nothing a world stores; the wiring is GEN.1051.
 
@@ -19,7 +19,7 @@ changes nothing a world stores; the wiring is GEN.1051.
    night side receives the share `tau / (2 - tau)` of a quarter of the absorbed flux, `tau = kappa p / (g cos(alpha))`,
    kappa 5e-5 m2/kg, cos(alpha) 0.5, no warmer than the planet's own equilibrium temperature from tau of 1 up [stand-in NC3].
 3. **What is left** (`residual_pressure_pa`). Under the critical pressure the loss feeds on itself (less gas, a colder night side,
-   a lower vapour pressure), so the air does not settle part way; what stays is at most the vapour pressure at the night side's
+   a lower vapor pressure), so the air does not settle part way; what stays is at most the vapor pressure at the night side's
    temperature (`physics/saturation.py`), a tiny share. Because the grey estimate of 2 puts the night side warmer than the 3D runs do,
    the CO2 case scales the night side's temperature by the one factor that makes the fit's critical pressure the point where
    the balance first loses gas, so the two agree at the threshold [stand-in NC4].
@@ -71,7 +71,7 @@ COS_ALPHA = 0.5
 """float: The mean slant of the paper's two-stream estimate (Eq. 10). [Stand-in NC3.]"""
 
 PRESSURE_FLOOR_PA = 1.0e-12
-"""float: The residual below which the gas is counted as all frozen (a vapour pressure of a ten-trillionth of a bar is none)."""
+"""float: The residual below which the gas is counted as all frozen (a vapor pressure of a ten-trillionth of a bar is none)."""
 
 COLLAPSED_BELOW_RETAINED = 0.5
 """float: A world that keeps under this share of its gas is `collapsed`; the share itself is the number a caller should use.
@@ -146,21 +146,21 @@ def night_side_temperature_k(pressure_pa, gravity_ms2, flux_w_m2, albedo=FIT_ALB
     return (share * absorbed / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
 
 
-def _vapour_pa(formula, temperature_k):
-    """The vapour pressure of `formula` at `temperature_k`, Pa (infinite above its critical temperature)."""
+def _vapor_pa(formula, temperature_k):
+    """The vapor pressure of `formula` at `temperature_k`, Pa (infinite above its critical temperature)."""
     return saturation.pressure_pa(formula, max(temperature_k, 1.0e-3))
 
 
 def _loses_gas(formula, pressure_pa, gravity_ms2, flux_w_m2, albedo, scale):
-    """Whether a pure `formula` air at `pressure_pa` is over the vapour pressure at its (scaled) night side."""
+    """Whether a pure `formula` air at `pressure_pa` is over the vapor pressure at its (scaled) night side."""
     night = scale * night_side_temperature_k(pressure_pa, gravity_ms2, flux_w_m2, albedo)
-    return pressure_pa > _vapour_pa(formula, night)
+    return pressure_pa > _vapor_pa(formula, night)
 
 
 def _balance_critical_pa(formula, gravity_ms2, flux_w_m2, albedo, scale, top_pa=1.0e8):
     """
     The pressure under which the balance loses gas, Pa: the lower edge of the window where the night side holds the gas
-    (vapour pressure over the pressure), found by stepping up a decade at a time from the floor and bisecting; `top_pa` where no
+    (vapor pressure over the pressure), found by stepping up a decade at a time from the floor and bisecting; `top_pa` where no
     pressure under it holds, 0 where the floor itself does.
     """
     p = PRESSURE_FLOOR_PA
@@ -189,14 +189,14 @@ def _calibration(gravity_ms2, flux_w_m2, albedo, critical_pa):
 @finite_domain()
 def residual_pressure_pa(formula, pressure_pa, gravity_ms2, flux_w_m2, albedo=FIT_ALBEDO, scale=1.0):
     """
-    The pressure the gas keeps once it has frozen onto the night side, Pa: its vapour pressure at the night side's temperature
+    The pressure the gas keeps once it has frozen onto the night side, Pa: its vapor pressure at the night side's temperature
     under the air it started with, at most that air's pressure. The loss cools the night side further, so this is an upper bound
     and a collapsed world's real residue is smaller still; it is a tiny share of the air for any gas well under its critical pressure.
     """
     if pressure_pa <= 0.0:
         return 0.0
     night = scale * night_side_temperature_k(pressure_pa, gravity_ms2, flux_w_m2, albedo)
-    return min(pressure_pa, _vapour_pa(formula, night))
+    return min(pressure_pa, _vapor_pa(formula, night))
 
 
 @finite_domain()

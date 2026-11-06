@@ -1,4 +1,4 @@
-# Version 8.2: User accounts with email invitations
+# Version 8.2: User accounts, bookmarks and API keys, with the foundations for later versions
 
 Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 [docs/TODO.md](../../TODO.md) is the master file: it holds each item's full text, and its "Plan: versions" section indexes every version.
@@ -9,6 +9,8 @@ Version: 8.2
 Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).
 
 ## Goal
+
+Boss (5:36 PM EST on 2026-11-05): user accounts, bookmarks and API keys are the main features of 8.2; everything else in it is the foundations for later versions (the continuous zoom, tile caching, the settlements design and storage, the gravity grid). The description that follows is the detail of those features.
 
 Two headlines: the continuous zoom (the Galaxy Map rebuilt so one camera drives every scene, MAP.334 to MAP.338, Boss 6:28 PM EDT 2026-10-28) and user accounts. User accounts, with sign-up by an email invitation that only an admin can send (USR.1): roles, SMTP settings, invitations, password emails and owner transfer first, then what a signed-in user gets: bookmarks in the account, API keys, the one-off system page and a home field.
 
@@ -36,8 +38,6 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | UX.179 |  |
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom |  |  |
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off |  |  |
-| VIEW.38 | System sky S20: design note, help text, citations and GEN.725 rows for the system sky |  |  |
-| VIEW.37 | System sky S19: picking and hover text for the sky ('seen as it was N years ago'), with links for charted stars |  |  |
 | VIEW.30 | System sky S12: calibration test against the HYG catalogue on a developer machine: a generated sky has about 9,000 stars at 6.5 | VIEW.25 |  |
 | VIEW.26 | System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI) | VIEW.25 |  |
 | VIEW.25 | System sky S7 (lock): charting builds the sky tiers: when a system is charted, the cells its sky needs are built with the existing backfill | VIEW.19 |  |
@@ -53,35 +53,6 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 |---|---|---|---|
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 | OPS.64 | The version code carries the database schema, generator epoch and API versions as well |  |  |
-| PERF.236 | The prevalence draws with a forced habitable_world are too slow to finish: 600 systems did not finish in 5,000 s (about 0.9 s a system at baseline, several times that forced), and asteroid_belt +30 did not finish in 6,600 s (bug) |  |  |
-| GEN.1275 | The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug) |  |  |
-| PERF.240 | A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug) | GEN.1275 |  |
-| PERF.235 | A dropped terminal ends the warm-up's progress view: add planetgen warm --follow to watch a running warm-up from the run record, and survive a hangup |  |  |
-| DOC.103 | American spelling of stored values and API keys: cancelled, vapour, centre, flavour, ionising, oxidised, disc, link-neighbours |  |  |
-| GEN.1247 | Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug) |  |  |
-| TEST.562 | test_a_member_in_a_decayed_group_is_built_from_the_hierarchy_and_marks_no_group fails on main: 1 star where 2 are expected (bug) |  |  |
-| GEN.1246 | The thin disc infall time scale follows the disc scale length for every galaxy mass, so downsizing is weak (young share 1.4 times higher at 1e10 than at 5e10 solar masses where it was 3): give the time scale its mass dependence from a source |  |  |
-| GEN.1272 | Nebula composition part d: the nebula page, the describe sheet and the Properties sheet show the composition with units and derived marks | GEN.1276, GEN.1277 |  |
-| GEN.1271 | Nebula composition part c: supernova remnants as swept-up gas plus ejecta, checked against Cassiopeia A |  |  |
-| GEN.1277 | Nebula composition part h: store the composition of the field clouds (nebula_field), including the progenitor mass where a cloud has one | GEN.1276 |  |
-| GEN.1276 | Nebula composition part g: store the composition of every nebula and supernova remnant (new columns, progenitor mass, epoch, migration, backfill, units and wiring register) | GEN.1271 |  |
-| GEN.1268 | Nebulae carry a real composition: gas and dust fractions by kind, metals from the place and age, ejecta from the progenitor |  |  |
-| GEN.1267 | A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it |  |  |
-| GEN.1260 | The latitude band table's Day/Night and Longest day/night rows are empty or wrong for slow spinners: rewrite them as a time-stepped spell calculation (bug) |  |  |
-| GEN.1262 | Temperature coverage part 1: the shared illumination series (physics/surface_cycle.py): cosine of the zenith angle per latitude-longitude cell and time step, with GEN.1260's spell search moved onto it | GEN.1260 |  |
-| GEN.1263 | Temperature coverage part 2: the temperature series: one energy balance per cell, anchored so the area-and-time mean equals the stored mean | GEN.1262, GEN.1039, GEN.972 |  |
-| PERF.238 | Temperature coverage cost: the illumination and temperature series must stay about 20 ms a rocky body in bulk generation and in the bring-to-epoch recompute | GEN.1263 |  |
-| GEN.1264 | Temperature coverage part 3: what is read off the series: Blue, Green, cold and hot shares, livable time, coldest and hottest hour, best site, longest spell out of the livable band | GEN.1263 |  |
-| GEN.1265 | Temperature coverage part 4 (lock): the temperature score from the coverage share, the new stored columns, and the migration | GEN.1264 |  |
-| TEST.582 | Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census | GEN.1265 |  |
-| GEN.1266 | Temperature coverage part 5 (lock): gear from the best site with a worst-conditions note, hours outside from the best site with a worst-to-best range, the text and the design doc | GEN.1265 |  |
-| GEN.1259 | A planetless stretch becomes a belt only if enough leftover rocky mass could survive there: check the belt rule of GEN.1068 and GEN.1156 against the physics and the observed belt rates (about two thirds of systems have a belt now, from 4 percent before train 7) |  |  |
-| GEN.1261 | Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken | GEN.1259 |  |
-| GEN.1244 | Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug) |  |  |
-| GEN.1241 | Wire the system body view: the ledger and barycentre function read the typed tables for the system page |  |  |
-| GEN.1240 | The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug) |  |  |
-| GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) |  |  |
-| GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) |  |  |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 
 ## Phase 2: What a signed-in user gets
@@ -96,12 +67,24 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | USR.26 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
 | USR.7 | A user-level interface with bookmarks | USR.26 | Bookmarks of any object use NAV.7 references. |
+| UX.265 | Look and theme preference: a look (cockpit, chart, phosphor) times a theme (system, light, dark), stored on the account and in the browser, chosen in Preferences and the gear menu | USR.7 |  |
+| MAP.394 | Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel |  |  |
+| MAP.395 | Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat |  |  |
+| MAP.396 | Sensor pictures for systems and for sectors, regions, galaxies and clusters: a top-down orrery plate and a star-field and gas patch from stored counts |  |  |
+| TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | MAP.394, MAP.395, MAP.396 |  |
+| DOC.107 | Docs: the Sensor view (what it shows for each kind, the estimate labels, the API route) in the help and the design notes | MAP.394, MAP.395, MAP.396 |  |
+| UX.273 | Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views | MAP.394, MAP.395, MAP.396, TEST.629, DOC.107 |  |
+| UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss |  | Split from UX.43. |
+| UX.131 | Console tokens, type and base template in both themes | UX.130, UX.265 | Split from UX.43. |
 | USR.27 | Admin Users page: list accounts, promote, demote, disable and delete | USR.26 | Split from USR.2. |
 | USR.2 | Accounts with roles: user, moderator, admin and Owner | USR.26, USR.27 | Control schema; no blockers, placed late by priority. |
 | USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
 | USR.8 | Every signed-in user can generate a one-off system | USR.26 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | USR.7, USR.26 | Research suggestion; not requested. |
 | USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | MAP.189 |  |
+| USR.12 | Permission catalogue and one `can()` check: user, moderator, admin and Owner as data | USR.2 | Roles from 8.2 (USR.2 already holds the moderator value) |
+| USR.13 | Moderator role: assign and remove it on the admin accounts page, with the audit entry | USR.12, USR.27 |  |
+| USR.14 | Move every route, page and command from "is admin" checks to permission checks | USR.12 |  |
 
 ### The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28)
 
@@ -121,9 +104,6 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.204 | An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2) |  |  |
-| UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID |  | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
-| UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | UX.143 | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
 
 ### Search by physical values
 
@@ -134,8 +114,28 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.197 | Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain PERF.195, Boss 10:35 PM EDT. |
-| PERF.195 | Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5) | PERF.197 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
+
+### Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources |  | Research; the study is done (reports/perf72-gravity-grid-cost-2026-11-05.md), the note in gravity-map.md is still to be extended. |
+
+### Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| VIEW.4 | Constellation names in the name generator |  | Constellation names from the codec under the naming key, not sliced word lists. Floats: no blockers, can run any time. |
+| VIEW.6 | Settle the handedness of the generated galaxy before mapping real sky coordinates |  | Research: needed before real sky coordinates. |
+| VIEW.1 | View from a planet |  | Research session with Boss. |
+| VIEW.7 | Sky tiers and the backfill cost measurement | VIEW.1 | Research: the sky is about 8% to 10% complete today. |
+| VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | VIEW.1 | Research. |
+| VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law | VIEW.1 | Split from VIEW.2. Extends GEN.416 (the blackbody colour, 9.0). |
+| VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | VIEW.11, VIEW.7 | Split from VIEW.2. |
+| VIEW.13 | Galactic band: the glow of the unresolved stars and dust along each line of sight | VIEW.11, VIEW.8 | Split from VIEW.2. |
+| VIEW.45 | Re-baseline the HYG calibration test (VIEW.30) for the new dust, in dust-free and default-dust modes, in the small and the Milky Way sized galaxy | VIEW.30 |  |
+| GEN.1290 | Gas and star metallicity depend on the galaxy's stellar mass (the mass-metallicity relation), so small galaxies are metal-poor and dustier-poor |  |  |
+| GEN.1291 | The gas metallicity gradient scales with the galaxy: 0.088 dex per disk scale length in place of 0.034 dex per kpc (row NBC1) |  |  |
 
 ## Phase 3: Settlements foundation
 
@@ -150,8 +150,8 @@ The design, storage and draw streams for nation-states, cities and ports on a pl
 | GEN.774 | Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows | POP.16 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
 | POP.25 | Option: how many space-faring governments the galaxy has (a number, or natural), on the Generate page, the CLI, the API and the stored plan | POP.16 | Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2. |
 | DB.104 | Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic | POP.16, DB.103 | Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2. |
-| POP.26 | Generate the requested number of space-faring governments: force civilizations where chance gives too few, hold back extra ones where it gives too many, homeworlds spread apart | POP.25, DB.104, GEN.774 | Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2. |
-| POP.27 | Territories of several worlds and sectors: every government holds a minimum, its homeworld is always inside, and the check is a test | POP.26 | Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2. |
+| POP.26 | Generate toward the requested number of space-faring governments by tilting the odds that a species becomes space-faring (nothing forced, nothing cancelled), homeworlds spread apart, and report what came out | POP.25, DB.104, GEN.774 | Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2. |
+| POP.27 | Territories of several worlds and sectors: every government's homeworld is inside its territory, a government that really reaches only its own system holds one system and the page says why, and the check is a test | POP.26 | Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2. |
 | POP.28 | Show the governments: the option and result on the Generate page and galaxy page, a government page with its worlds, systems and sectors, and the territories overlay legend | POP.27 | Boss, 9:30 PM EDT 2026-10-24: space-faring governments, built back from 9.1, landing in 8.2. |
 | POP.29 | Design: the world population simulation and the trade routes between spaceports (partners, hop runs, the global list, map filters, nearest-route query), with sources and stand-in tiers | POP.16 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | DB.105 | Storage for world population and the global trade route list: tables, Object IDs, column units and the migration | POP.29, DB.103 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |

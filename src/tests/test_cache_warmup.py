@@ -967,9 +967,73 @@ def test_the_progress_bar_counts_families():
     assert lines[3] == "[##############################] 2/2 search"
 
 
-def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):
+def test_follow_says_so_when_no_warm_up_is_running(script, capsys):
+    warm_cli.run_warm(_args("--follow"))
+    assert "No cache warm-up is running." in capsys.readouterr().out
+    assert script.ran == [], "following starts nothing"
+
+
+def test_follow_draws_the_warm_up_that_another_process_runs_and_starts_nothing(script, redis_server, capsys):
+    """PERF.235: `planetgen warm --follow` in a second session watches a running warm-up from its run record to its end."""
+    import threading
+    release = threading.Event()
+    real = warmup.warm_family
+
+    def held(db, family, cap=None, app=None, config=None):
+        release.wait(30)
+        return real(db, family, cap=cap, app=app, config=config)
+
+    errors, seen = [], {}
+
+    def follower():
+        try:
+            warm_cli.run_warm(_args("--follow"))
+        except BaseException as exc:    # noqa: BLE001 -- reported below
+            errors.append(exc)
+
+    def watch_then_release():
+        conn = redisqueue.connect(redis_server)
+        deadline = time.monotonic() + 30
+        while runrecord.active_run(conn, runrecord.MAINTENANCE) is None and time.monotonic() < deadline:
+            time.sleep(0.05)
+        watcher = threading.Thread(target=follower)
+        watcher.start()
+        time.sleep(0.5)
+        seen["waiting"] = watcher.is_alive()        # the follower waits for the held family
+        release.set()
+        watcher.join(60)
+        seen["ended"] = not watcher.is_alive()
+
+    script_family = warmup.warm_family
+    warmup.warm_family = held
+    helper = threading.Thread(target=watch_then_release)
+    try:
+        helper.start()
+        warm_cli._warm_once(_args("lists"))         # the starter: the main thread, which owns the signals
+        helper.join(90)
+    finally:
+        release.set()
+        warmup.warm_family = script_family
+    assert not errors and seen == {"waiting": True, "ended": True}
+    out = capsys.readouterr().out
+    assert out.count("lists: 3 pages warmed") >= 2, "the starter and the follower both print the family's line"
+    assert "Following the cache warm-up" in out and "Cache warm-up done." in out
+    assert [family for family, _cap, _db in script.ran] == ["lists"], "the follower warmed nothing itself"
+
+
+def test_follow_replays_a_finished_run_from_its_record(script, redis_server):
+    warm_cli.run_warm(_args("lists"))
+    conn = redisqueue.connect(redis_server)
+    run_id = runrecord.recent_runs(conn, 1)[0]
+    planned, results = [], []
+    steps = wrapper.follow(run_id, lambda index, plan: planned.append(index),
+                           lambda index, unit, result: results.append((index, result["family"])))
+    assert [step.key for step in steps] == ["lists"] and planned == [0] and results == [(0, "lists")]
+
+
+def test_a_sigterm_ends_the_run_as_canceled_not_stranded(script, redis_server, monkeypatch):
     """SIGTERM (the update guard's cancel, update.sh's timeout) reaches the starter as Ctrl+C does, and the run ends
-    as cancelled in Redis, freeing its place; the command ends with one line and a status, not a traceback (OPS.95)."""
+    as canceled in Redis, freeing its place; the command ends with one line and a status, not a traceback (OPS.95)."""
     import os
     import signal
     original = signal.getsignal(signal.SIGTERM), signal.getsignal(signal.SIGHUP)
@@ -989,7 +1053,7 @@ def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, 
         warm_cli.run_warm(_args("lists"))
     assert stopped.value.code == 130
     conn = redisqueue.connect(redis_server)
-    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "cancelled"
+    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "canceled"
     assert runrecord.active_run(conn, runrecord.MAINTENANCE) is None
 
 

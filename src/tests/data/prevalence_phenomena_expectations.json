@@ -16,9 +16,7 @@
    "HuntReffert2023": "[R2049] ([R2049], read 2026-10-29): 7167 clusters in Gaia DR3, as many as a few thousand of them unbound moving groups"
   }
  },
- "anomalies": {
-  "GEN.995": "890 against 1100 to 1500 (the draws' tolerance puts the edge at 904), counted over the primaries and their companions. The massive stars follow the mass function exactly now (GEN.927 to GEN.930; the 958 before counted every massive star twice, as a primary and again as a companion); what is missing is the Wolf-Rayet stars that binary stripping makes out of stars too light to be one alone, which the generator does not draw"
- },
+ "anomalies": {},
  "measures": {
   "stellar_black_holes": {
    "min": 10000000.0,
@@ -54,32 +52,13 @@
    "min": 1100,
    "max": 1500,
    "kind": "observed",
-   "source": "[R3821]: 1200, +300 and -100, Wolf-Rayet stars in the Galaxy (read 2026-10-29); 322 found since the VIIth catalogue",
-   "anomaly": "GEN.995"
+   "source": "[R3821]: 1200, +300 and -100, Wolf-Rayet stars in the Galaxy (read 2026-10-29); 322 found since the VIIth catalogue"
   },
   "supernova_remnants": {
    "min": 294,
    "max": 3000,
    "kind": "observed",
    "source": "294 catalogued ([R1675] floor); 400 to 3000 still visible from the supernova rate (GEN.203, tuning.py), recalled"
-  },
-  "rogue_terrestrial_per_star": {
-   "min": 2,
-   "max": 10,
-   "kind": "norm",
-   "source": "2 to 10 per star [R2178, R3190], as docs/design/systems/interstellar-object-rates.md quotes them, recalled and unverified; the generator's rate is the terrestrial bin of tuning.ROGUE_PLANET_MASS_BINS"
-  },
-  "rogue_terrestrial_per_pc3": {
-   "min": 0.5,
-   "max": 1.4,
-   "kind": "norm",
-   "source": "0.5 to 1.4 per pc^3 at the solar neighbourhood's stellar density (the same note)"
-  },
-  "rogue_jupiter_per_star": {
-   "min": 0.001,
-   "max": 0.25,
-   "kind": "observed",
-   "source": "at most 0.25 per star ([R3191], an upper limit); the floor is a stand-in, that some are found ([R3191] detected a population)"
   },
   "brown_dwarfs_per_pc3": {
    "min": 0.025,

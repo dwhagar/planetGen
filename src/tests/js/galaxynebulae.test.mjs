@@ -12,25 +12,25 @@ const looks = L.NEBULA_LOOKS;
 const block = { m: 81, shell: 4, band: 1, wedge: 2 };
 
 const region = (key, extra) => Object.assign({
-  key, count: 12, volume_pc3: 5000, centre: [100, 20, 5], radius_pc: 40, shares: { emission: 0.7, reflection: 0.3 }, class: "H",
+  key, count: 12, volume_pc3: 5000, center: [100, 20, 5], radius_pc: 40, shares: { emission: 0.7, reflection: 0.3 }, class: "H",
 }, extra);
 const node = (regions) => ({ key: "81.4.1.2", block, node: { nebula_regions: regions } });
 
-test("a region's blob is the group's sphere in the colour of its dominant family, with a ring when it holds several", () => {
+test("a region's blob is the group's sphere in the colour of its dominant family, and never has a ring (MAP.392)", () => {
   const [blob] = N.regionBlobs([node([region("27.12.3.1")])], looks, null);
   assert.deepEqual([blob.x, blob.y, blob.z, blob.radiusPc, blob.count], [100, 20, 5, 40, 12]);
   assert.equal(blob.key, "27.12.3.1");
   assert.equal(blob.family, "emission");
   assert.deepEqual(blob.block, block);
   assert.deepEqual(blob.color, N.colourOf(looks.emission[0]));
-  assert.equal(blob.ring, true);
+  assert.equal(blob.ring, false, "a group of several has no ring: the circles were not wanted");
   const [one] = N.regionBlobs([node([region("27.1.1.1", { count: 1 })])], looks, null);
   assert.equal(one.ring, false);
 });
 
 test("a malformed group, a repeated key and a hidden family are left out", () => {
   const list = N.regionBlobs([node([
-    region("a"), region("a"), region("b", { centre: null }), region("c", { radius_pc: 0 }), region("d", { count: 0 }),
+    region("a"), region("a"), region("b", { center: null }), region("c", { radius_pc: 0 }), region("d", { count: 0 }),
     region("e", { shares: { dark: 1 } }), region("f", { shares: {} }), null,
   ])], looks, (family) => family !== "dark");
   assert.deepEqual(list.map((b) => b.key), ["a"]);
@@ -87,7 +87,7 @@ test("3,000 candidates: exactly the strongest REGION_BUDGET (300) are drawn, the
   const regions = [];
   for (let i = 0; i < 3000; i++) {
     regions.push(region("27." + i + ".0.0", {
-      centre: [(random() - 0.5) * 20000, (random() - 0.5) * 20000, (random() - 0.5) * 600],
+      center: [(random() - 0.5) * 20000, (random() - 0.5) * 20000, (random() - 0.5) * 600],
       radius_pc: 8 + random() * 120, count: 2 + Math.floor(random() * 300),
       shares: { [N.FAMILIES[i % N.FAMILIES.length]]: 1 },
     }));

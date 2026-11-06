@@ -73,7 +73,7 @@ def test_band_emission_adds_up_to_stefan_boltzmann(temperature):
 def test_band_emission_peaks_where_wien_says_and_takes_any_array_shape():
     power = ir.band_emission(np.array([[288.0, 300.0], [250.0, 3000.0]]))
     assert power.shape == (2, 2, ir.BANDS)
-    peak = ir.CENTRES_CM1[int(np.argmax(power[0, 0] / np.diff(ir.EDGES_CM1)))]
+    peak = ir.CENTERS_CM1[int(np.argmax(power[0, 0] / np.diff(ir.EDGES_CM1)))]
     assert peak == pytest.approx(2.821 * 288.0 / ir.SECOND_RADIATION_CM_K, rel=0.25)          # the exitance per wavenumber peaks at h c nu / k T = 2.821
     assert ir.band_emission(np.array([1.0]))[0].sum() == pytest.approx(ir.band_emission(np.array([5.0]))[0].sum())   # the ends hold
 
@@ -162,8 +162,8 @@ def test_a_lookup_off_the_table_holds_the_edge():
 def test_a_layer_of_a_line_gas_is_opaque_in_its_band_and_clear_elsewhere():
     depth = _depth({"N2": 1.0e5, "CO2": 1.0e3}, 300.0, 1.0e5)
     mean = _mean(depth)
-    line = int(np.argmin(np.abs(ir.CENTRES_CM1 - support.LINE_CENTRE_CM1["CO2"])))
-    far = int(np.argmin(np.abs(ir.CENTRES_CM1 - 3000.0)))
+    line = int(np.argmin(np.abs(ir.CENTERS_CM1 - support.LINE_CENTER_CM1["CO2"])))
+    far = int(np.argmin(np.abs(ir.CENTERS_CM1 - 3000.0)))
     assert depth.shape == (ir.BANDS, ir.GRID_POINTS) and np.all(np.isfinite(depth)) and np.all(depth >= 0.0)
     assert np.all(np.diff(depth, axis=-1) >= -1e-9 * depth.max())
     assert mean[line] > 1.0e3 * mean[far]
@@ -189,41 +189,41 @@ def test_the_water_fraction_of_a_layer_is_water_and_the_rest_is_the_dry_mixture(
     assert sum(prepared.dry.values()) == pytest.approx(1.0) and set(prepared.tabled) == {"H2O", "CO2"}
     dry_layer = ir.layer_depth(prepared, np.array([300.0]), np.array([1.0e5]), np.array([0.0]), np.array([1.0e22]))
     wet_layer = ir.layer_depth(prepared, np.array([300.0]), np.array([1.0e5]), np.array([0.2]), np.array([1.0e22]))
-    h2o = int(np.argmin(np.abs(ir.CENTRES_CM1 - support.LINE_CENTRE_CM1["H2O"])))
-    co2 = int(np.argmin(np.abs(ir.CENTRES_CM1 - support.LINE_CENTRE_CM1["CO2"])))
+    h2o = int(np.argmin(np.abs(ir.CENTERS_CM1 - support.LINE_CENTER_CM1["H2O"])))
+    co2 = int(np.argmin(np.abs(ir.CENTERS_CM1 - support.LINE_CENTER_CM1["CO2"])))
     assert _mean(wet_layer[0])[h2o] > 100.0 * _mean(dry_layer[0])[h2o]
-    assert _mean(wet_layer[0])[co2] < _mean(dry_layer[0])[co2]          # the vapour displaces dry gas
+    assert _mean(wet_layer[0])[co2] < _mean(dry_layer[0])[co2]          # the vapor displaces dry gas
 
 
 def test_adding_carbon_dioxide_to_a_wet_air_adds_to_its_band_and_takes_nothing_from_the_water_band():
     args = (np.array([300.0]), np.array([1.0e5]), np.array([0.2]), np.array([3.0e22]))
     wet = _mean(ir.layer_depth(ir.prepare({"Ar": 8.0e4, "H2O": 2.0e4}), *args)[0])
     both = _mean(ir.layer_depth(ir.prepare({"Ar": 7.0e4, "CO2": 1.0e4, "H2O": 2.0e4}), *args)[0])
-    carbon = int(np.argmin(np.abs(ir.CENTRES_CM1 - support.LINE_CENTRE_CM1["CO2"])))
+    carbon = int(np.argmin(np.abs(ir.CENTERS_CM1 - support.LINE_CENTER_CM1["CO2"])))
     assert both[carbon] > 100.0 * wet[carbon]
     assert np.all(both >= wet * (1.0 - 1.0e-9))
 
 
-# ---- the water vapour continuum ----
+# ---- the water vapor continuum ----
 
 def _continuum(fraction, temperature, pressure_pa=1.0e5):
     column = _molecules_cm2(pressure_pa)
     return ir._continuum_depth(np.array([temperature]), np.array([pressure_pa]), np.array([fraction]), np.array([column]))[0]
 
 
-def test_the_water_continuum_closes_the_window_of_a_humid_air_and_grows_faster_than_the_vapour():
-    window = int(np.argmin(np.abs(ir.CENTRES_CM1 - 1000.0)))
-    assert _continuum(2.0e-3, 288.0)[window] / _continuum(1.0e-3, 288.0)[window] > 2.5          # the self continuum goes as the vapour squared, the foreign as the vapour
-    assert _continuum(4.0e-3, 270.0)[window] > _continuum(4.0e-3, 310.0)[window]          # the same vapour absorbs more when colder
+def test_the_water_continuum_closes_the_window_of_a_humid_air_and_grows_faster_than_the_vapor():
+    window = int(np.argmin(np.abs(ir.CENTERS_CM1 - 1000.0)))
+    assert _continuum(2.0e-3, 288.0)[window] / _continuum(1.0e-3, 288.0)[window] > 2.5          # the self continuum goes as the vapor squared, the foreign as the vapor
+    assert _continuum(4.0e-3, 270.0)[window] > _continuum(4.0e-3, 310.0)[window]          # the same vapor absorbs more when colder
     assert 0.02 < _continuum(1.0e-2, 288.0)[window] < 2.0                                  # a humid window at 10 microns: a tenth of a unit
     assert not _continuum(0.0, 288.0).any()
 
 
 def test_the_water_continuum_is_confined_to_its_nodes_and_never_negative():
     depth = _continuum(0.03, 300.0)
-    outside = (ir.CENTRES_CM1 < 200.0) | (ir.CENTRES_CM1 > 3600.0)
+    outside = (ir.CENTERS_CM1 < 200.0) | (ir.CENTERS_CM1 > 3600.0)
     assert not depth[outside].any() and np.all(depth[~outside] > 0.0) and np.all(np.isfinite(depth))
-    assert _continuum(0.03, 300.0)[int(np.argmin(np.abs(ir.CENTRES_CM1 - 400.0)))] > depth[int(np.argmin(np.abs(ir.CENTRES_CM1 - 1000.0)))]
+    assert _continuum(0.03, 300.0)[int(np.argmin(np.abs(ir.CENTERS_CM1 - 400.0)))] > depth[int(np.argmin(np.abs(ir.CENTERS_CM1 - 1000.0)))]
 
 
 # ---- collision-induced pairs ----
@@ -291,11 +291,20 @@ def test_the_water_wing_adds_to_a_carbon_dioxide_air_and_not_to_a_thin_one():
 # ---- gases without a table ----
 
 def test_a_gas_without_a_table_takes_the_stand_in_path_and_still_absorbs():
-    prepared = ir.prepare({"N2": 1.0e5, "NH3": 1.0e3})
-    assert "NH3" in prepared.standin and prepared.tabled == ()
-    depth = _depth({"N2": 1.0e5, "NH3": 1.0e3}, 300.0, 1.0e5)
+    prepared = ir.prepare({"N2": 1.0e5, "N2O": 1.0e3})
+    assert "N2O" in prepared.standin and prepared.tabled == ()
+    depth = _depth({"N2": 1.0e5, "N2O": 1.0e3}, 300.0, 1.0e5)
     assert depth.shape == (ir.BANDS, ir.GRID_POINTS) and np.all(np.isfinite(depth)) and depth.sum() > 0.0
     assert np.all(np.diff(depth, axis=-1) >= -1e-12)
+
+
+def test_the_five_gases_added_in_gen_852_are_read_from_their_tables():
+    assert set(ir.TABLE_GASES) >= {"NH3", "SO2", "H2S", "CO", "HCN"}
+    for gas in ("NH3", "SO2", "H2S", "CO", "HCN"):
+        prepared = ir.prepare({"N2": 1.0e5, gas: 1.0e3})
+        assert gas in prepared.tabled and gas not in prepared.standin
+        depth = _depth({"N2": 1.0e5, gas: 1.0e3}, 300.0, 1.0e5)
+        assert np.all(np.isfinite(depth)) and depth.sum() > 0.0
 
 
 def test_no_gas_of_the_table_gives_a_nan_or_a_negative_depth():
