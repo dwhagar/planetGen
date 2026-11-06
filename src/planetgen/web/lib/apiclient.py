@@ -990,6 +990,13 @@ def get_belt_page(db, ref):
     return _request(f"/objects/{ref}/belt-page", {"db": db})
 
 
+def get_belt_member(db, ref, rank):
+    """Returns `GET /api/objects/<ref>/belt-members/<rank>`'s dict (`member`, `orbit`, `share`, `belt`, `previous`, `next`), the page data of one body an asteroid belt keeps
+    individually (`rank` as the designation writes it) -- see `describe/belt_member_info.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/belt-members/{rank}", {"db": db})
+
+
 def get_object_children(db, ref, limit=None, after=None):
     """Returns `GET /api/objects/<ref>/children`'s dict (`ref`, `kind`, `total`, `items`, `next`), one keyset page of what
     belongs to an object -- see `db/children.py`."""
