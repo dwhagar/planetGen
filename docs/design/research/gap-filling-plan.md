@@ -1843,18 +1843,9 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | TU5 | P | T6 | L0 | rogue_topup.GALACTOCENTRIC_RADIUS_PC 8000, the galactocentric radius of the ring used for the arc of an apparent origin where the caller gives none | 7500 to 8500 | the Sun's neighbourhood | none (a position input) | the sector's own galactocentric radius | about the Sun's distance from the Galactic centre |
 | TU6 | P | T6 | L1 | rogue_topup.SCATTERER_MASS_JUPITER 1, the mass of the planet that throws a top-up rogue out, the heaviest body it ejects and the scatterer of the ejection speed | 0.3 to 3 | the rogues a top-up makes up from a mass shortfall | a microlensing mass function of free-floating planets that has many more rogues over a Jupiter mass than the ejected spectrum cut at a Jupiter gives (about 0.025 per star at 1 to 13 Jupiter masses, Mroz et al. 2017) | the ejection records of GEN.1119, which give each body's own scatterer | a Jupiter is the scatterer the top-up already used for the kick speed; the heavier ejecta come from an ejection record, not the top-up |
 
-### 6.88 Stand-ins of the rogue planet age (GEN.1112, RP5)
-
-`physics/rogue_age.py` gives a rogue planet's age (the ejecting star's, drawn from the galaxy's star-formation `AgeLaw`), the delay after formation at which it was thrown out (power-law density in time from the shortest delay to the parent's age, an even share of each decade at index 1) and the time since ejection, the three numbers the heat law, the drift and the history sentence need. The ejection record of GEN.1119 replaces the drawn delay with the recorded one (`from_record`). The rogue top-up draws its masses from it (GEN.1287).
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
-|---|---|---|---|---|---|---|---|---|---|
-| RG1 | P | T8 | L2 | rogue_age.EJECTION_DELAY_MIN_GY 0.001 Gy, the earliest ejection after formation | 0.0003 to 0.01 | ejected planets and embryos | an ejection record (GEN.1119) with a large share of ejections earlier than 1 Myr after formation | the delay distribution of the architecture's own ejection records | the gas disc's first Myr is before planets scatter; an educated guess from physics |
-| RG2 | P | T8 | L3 | rogue_age.DELAY_INDEX 1, the ejection delay's density goes as t^-1 | 0 to 2 | the scattering of giants and embryos | ejection records whose delays are not spread evenly over the decades of time | the delay distribution of the ejection records (GEN.1119) | [R0747] give scattering times from 1e6 to 1e9 yr and beyond, recalled; the even spread is ours |
-
 ### 6.127 Stand-ins of the architecture's losses (GEN.1119, RP1)
 
-`physics/scatter.py` (`loss_fates`, `reach_band_au`, `hill_radius_au`) and `planet_architecture.losses` share every body the architecture loses among ejected, collided and bound by the Safronov number of the encounter (design `docs/design/research/rogue-planet-review.md` sections 5 and 7). The Safronov number, the chaotic zone and the Hill radius are textbook laws; the two rows are the weights between the three fates and the time of a disc-era loss. The ejection record they return is what the rogue builder (GEN.1111) and the age module (`rogue_age`, row RG1) read.
+`physics/scatter.py` (`loss_fates`, `reach_band_au`, `hill_radius_au`) and `planet_architecture.losses` share every body the architecture loses among ejected, collided and bound by the Safronov number of the encounter (design `docs/design/research/rogue-planet-review.md` sections 5 and 7). The Safronov number, the chaotic zone and the Hill radius are textbook laws; the two rows are the weights between the three fates and the time of a disc-era loss. The ejection record they return is what the rogue builder (GEN.1111) and the age module (`rogue_age`) read.
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|

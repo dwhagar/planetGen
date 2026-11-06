@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1141 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1139 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -43,9 +43,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T5 | 51 | 19 | 2 | 1 | 0 | 73 |
 | T6 | 101 | 85 | 24 | 57 | 0 | 267 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
-| T8 | 0 | 1 | 1 | 5 | 1 | 8 |
+| T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 26 | 14 | 5 | 67 | 29 | 141 |
-| All | 630 | 242 | 56 | 173 | 40 | 1141 |
+| All | 630 | 242 | 55 | 172 | 40 | 1139 |
 
 ## How the labels were given
 
@@ -1112,13 +1112,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RK6 | P | T1 | L2 | rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass) | 0.06 to 0.12 | the Huang and Lai fiducial run: two-planet systems spaced by 2 mutual Hill radii | a median closest approach outside 0.05 to 0.15 for that setup | the closest approaches of the architecture's own scatterings (GEN.1119) | Huang and Lai Sec. 4.2, Fig. 2 (median 0.089); the 0.089 depends strongly on the planet spacing (0.60 at 2.5, 0.051 at 1) and the inclination (0.0030 at 0.01 R_H/a), which this model does not carry | - | - |
 | RK7 | P | T3 | L3 | rogue_kick.CLOSEST_APPROACH_MASS_INDEX 1.13, the median closest approach goes as the scatterer's mass to this power | 0.8 to 1.5 | scatterers of 1 to 10 Jupiter masses at a mass ratio of 10 | medians at other masses that fall off this line by more than a factor of 2 | the closest approaches of the architecture's own scatterings (GEN.1119) | Huang and Lai Fig. 2: 0.089, 0.034, 0.0066 at 10, 5, 1 Jupiter masses; a line through two ends of three points | - | replace (GEN.1295) |
 | RK8 | P | T1 | L1 | rogue_kick.CLOSEST_APPROACH_SIGMA_LN 2.35, the ln-width of the closest approach | 2.0 to 2.7 | as RK6 | a closest-approach distribution whose 16 to 84 percent range is not within a factor of 5 of the log-normal's | as RK6 | Huang and Lai Sec. 7: 48 percent of runs above 0.1 and 82 percent above 0.01 mutual Hill radii, which a log-normal of median 0.089 matches at 2.3 and 2.4 | - | - |
-
-## 6.88 Stand-ins of the rogue planet age
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| RG1 | P | T8 | L2 | rogue_age.EJECTION_DELAY_MIN_GY 0.001 Gy, the earliest ejection after formation | 0.0003 to 0.01 | ejected planets and embryos | an ejection record (GEN.1119) with a large share of ejections earlier than 1 Myr after formation | the delay distribution of the architecture's own ejection records | the gas disc's first Myr is before planets scatter; an educated guess from physics | - | - |
-| RG2 | P | T8 | L3 | rogue_age.DELAY_INDEX 1, the ejection delay's density goes as t^-1 | 0 to 2 | the scattering of giants and embryos | ejection records whose delays are not spread evenly over the decades of time | the delay distribution of the ejection records (GEN.1119) | [R0747] give scattering times from 1e6 to 1e9 yr and beyond, recalled; the even spread is ours | - | replace (GEN.1295) |
 
 ## 6.89 Stand-ins of the rogue planet drift
 
