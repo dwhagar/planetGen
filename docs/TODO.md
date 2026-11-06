@@ -17898,19 +17898,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1226.
 
-- [ ] **TEST.648 Four tests fail on a registry mismatch: test_solar_system_standin_rows (2) and test_calibration_fence (2) cannot match the SSR9 rows ('surface-ground-types', 'oxidised') and ('atmosphere-m', 'm1'/'m2') after the DOC.103 respelling to 'oxidized' (bug)**
-  Bug 1 (as the lane reported, 5:21 AM EST on 2026-11-06) found
-  test_solar_system_standin_rows (2) and test_calibration_fence (2) red on
-  plain main: the stand-in registry cannot match the SSR9 rows
-  ('surface-ground-types', 'oxidised') and ('atmosphere-m', 'm1' and
-  'm2'). The DOC.103 respelling to American spelling ('oxidized') left old
-  data behind. Do: find the row keys that still use the old spelling or
-  the old name, fix the data and the tests at the cause, and rebuild the
-  generated pages. No code change in generation. Done: the four tests
-  pass on current main. Version 8.1. Owner: Core 5 (DOC.103's owner). Filed
-  by the TODO thread.
-  Prerequisites: none. Related: DOC.103.
-
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
