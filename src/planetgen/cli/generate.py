@@ -222,7 +222,7 @@ def add_logging_arguments(parser):
                         help="Limit --debug to some kinds of output: " + ", ".join(log.AREAS) + " (comma "
                              "separated; a leading - leaves one out, as in -draw). The default is all of them.")
     parser.add_argument('--record-file', metavar='FILE', default=None,
-                        help="Also write every log line to FILE as a record: one per line, the time in UTC "
+                        help="Also write every log line to FILE as a record: one per line, the time local with its offset "
                              "(PLANETGEN_RECORD_FILE does the same).")
     parser.add_argument('--record-json', action='store_true',
                         help="Write the --record-file records as JSON lines.")

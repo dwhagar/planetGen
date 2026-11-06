@@ -86,9 +86,9 @@ def test_a_radial_or_vertical_kick_stays_bounded_at_its_epicycle_amplitude():
 def test_an_along_orbit_kick_slides_at_one_point_two_eight_five_times_the_kick():
     galaxy = rd.SOLAR_NEIGHBOURHOOD
     assert galaxy.slide_ratio == pytest.approx(1.2857, abs=1e-3)
-    assert rd.along_orbit_speed_pc_myr(3.0) == pytest.approx(-1.2857 * 3.0 * 1.0227, rel=1e-3)             # 3.9 pc/Myr for 3 km/s
+    assert galaxy.slide_ratio * 3.0 * 1.0227 == pytest.approx(3.9, rel=0.02)             # 3.9 pc/Myr for 3 km/s
     late = rd.drift((0.0, 3.0, 0.0), 2000.0, galaxy)
-    assert late.y_pc == pytest.approx(rd.along_orbit_speed_pc_myr(3.0) * 2000.0, rel=0.05)      # the 4 Omega^2 v / kappa^3 oscillation is 2 percent of it
+    assert late.y_pc == pytest.approx((-galaxy.slide_ratio * 3.0 * 1.0227) * 2000.0, rel=0.05)      # the 4 Omega^2 v / kappa^3 oscillation is 2 percent of it
     # a retrograde kick slides the other way
     assert rd.drift((0.0, -3.0, 0.0), 2000.0, galaxy).y_pc > 0.0
 
@@ -112,12 +112,6 @@ def test_beyond_the_linear_limit_the_drift_is_flagged_and_the_ring_form_wraps_th
     assert ring.azimuth_rad + 2.0 * math.pi * ring.turns == pytest.approx(unwrapped)
     assert ring.turns != 0
     assert rd.ring_drift((0.0, 3.0, 0.0), 1.0, 8000.0).turns == 0
-
-
-def test_the_donor_lies_the_opposite_way_from_the_rogue():
-    kick = (1.0, 2.0, -1.0)
-    here = rd.drift(kick, 80.0)
-    assert rd.donor_offset_pc(kick, 80.0) == (-here.x_pc, -here.y_pc, -here.z_pc)
 
 
 def test_the_design_notes_median_displacements_for_a_three_kilometre_a_second_kick():

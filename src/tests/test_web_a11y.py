@@ -432,6 +432,12 @@ def sample_params(site_app, sample_job, sample_run):
         bright_star_id = conn.execute("SELECT id FROM bright_stars WHERE seed = ?", (SCATTER_SEED,)).fetchone()["id"]
     finally:
         conn.close()
+    conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
+    try:
+        belt_row = conn.execute("SELECT id FROM asteroid_belts ORDER BY id LIMIT 1").fetchone()
+        belt_ref = f"belt:{pid('belt', belt_row['id'], conn)}" if belt_row else "belt:FE81000A2B-0000005-003"
+    finally:
+        conn.close()
     return {
         "sector_id": sector["id"],
         "system_id": sample_system["id"],
@@ -444,6 +450,7 @@ def sample_params(site_app, sample_job, sample_run):
         "quadrant": "I",
         "shell": 40, "band": 0, "wedge": 3,  # web.sector_at: a cell nothing was generated in
         "ref": f"planet:{planet['id']}",  # web.object_page: /object/planet:<id>, a planet's own page
+        "belt_ref": belt_ref,  # web.belt_info_page: /object/belt:<id>/belt (a reference that names nothing answers 404, skipped below)
         "page": 1,
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL
@@ -465,8 +472,8 @@ def sample_params(site_app, sample_job, sample_run):
     }
 
 
-NO_SAMPLE_OBJECT = frozenset({"web.admin_backup"})
-"""frozenset: Pages for an object this database does not hold (a backup archive), which answer 404 for it; their
+NO_SAMPLE_OBJECT = frozenset({"web.admin_backup", "web.belt_info_page"})
+"""frozenset: Pages for an object this database may not hold (a backup archive, an asteroid belt), which answer 404 for it; their
 real page is checked in test_web_settings_browser.py."""
 
 

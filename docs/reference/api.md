@@ -115,10 +115,7 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
   takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
   `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
-  `position`; ties follow the sort's direction by sector ID), the repeatable filter
-  `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
-  `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
-  filter). `total` counts the sectors that pass the filter; a bad `sort` or
+  `position`; ties follow the sort's direction by sector ID). Each item carries `region`, the named region its sector lies in (`{"name", "parent"}`, UX.231), or `null` for an unplaced sector or a galaxy with no naming key. There is no `quadrant` filter and no `facets` (UX.272: the galaxy's four quadrants are gone from the site; a request that still sends them has them ignored). `total` counts the sectors; a bad `sort` or
   `order` is a 400. `after=<sector ID>` (PERF.137, PERF.208) starts the page after that
   sector in every sort and ignores `offset`, so a page costs the same at any depth: the
   placed sectors are read by the distance index and the unplaced ones after them by name; the
@@ -397,6 +394,13 @@ connectivity to that specific schema rather than the default one.
   the kind's table is either a row or on the registry's `NOT_SHOWN` list with
   its reason. A planet's or moon's sheet also has `bands` (GEN.1108), the seven bands of latitude side by side: `locked`, `bands` (`[{key, label}]`, from the north pole to the south pole, or the day center to the night center of a world that turns once an orbit) and `rows` (`[{key, label, cells}]`: the annual mean, the day and night swing, the hours of day and of night, the longest day and night of the year and the state; a cell is an inline list, empty where the band has none); `null` for a body with no bands. A reference that names nothing, or a kind with no sheet (a
   sector, a system, a phenomenon), is a `404`.
+- `GET /api/objects/<ref>/belt-page` — the information page data of an asteroid belt (UX.241, `describe/belt_info.py`): `belt` (`designation`,
+  `inner`, `outer`, `mass`, the typical `composition` and the `star`), `bodies` (the individually tracked members by designation, heaviest first: mass,
+  diameter, distance, eccentricity, inclination, density, `taxon`, `analogue`, composition shares, the `status` word with Soter's mu, and the `population`
+  of a member the giants scattered), `bins` (the rest of the belt mass by diameter: count, mass, share of the belt, `tier` (`on demand` or `total only`),
+  typical composition and density), `density_factor` (`by_diameter`: the objects per square AU above 1, 10 and 100 km; `mass`: kilograms per square AU)
+  and `totals` (the belt, the listed bodies and the bins, which add up). Every number is `{value, unit, text}`. A new route, so the API version stays; a
+  reference that is not a belt, or names nothing, is a `404`.
 - `GET /api/objects/<ref>/children[?limit=&after=]` — what belongs to an
   object, one keyset page at a time (UX.169, `db/children.py`). A sector holds
   its systems, then the phenomena placed in it; a system its stars, then the

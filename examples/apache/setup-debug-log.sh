@@ -43,7 +43,10 @@
 #      /etc/logrotate.d/planetgen-log (daily or past 100 MB, 30 kept) on
 #      Linux, /etc/newsyslog.d/planetgen-log.conf (daily or past 100 MB,
 #      30 kept) on macOS. While that file exists the program leaves
-#      rotation to the system (logpaths.log_rotation_mode).
+#      rotation to the system (logpaths.log_rotation_mode). The warm-up
+#      log (warmup.log, OPS.96) lives in the same folder, written by
+#      `planetgen warm` itself, and is rotated by the same rule (the
+#      Linux rule matches every *.log there; the macOS file names it).
 #
 # Rotation files that can't be written only warn too. Exits 0 whatever
 # happens to the logs; only running it without root is an error.
@@ -142,6 +145,7 @@ if [[ "$(uname -s)" == Darwin ]]; then
 # (install.sh/update.sh). Edits here are overwritten on the next run.
 # logfilename            [owner:group]              mode count size(KB) when  flags
 $ACTIVITY_LOG  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
+$ACTIVITY_DIR/warmup.log  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
 EOF
     then
         echo "Activity log rotation: /etc/newsyslog.d/planetgen-log.conf (daily or past 100 MB, 30 kept)"

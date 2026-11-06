@@ -6749,6 +6749,21 @@ a.help-mark {
 .map-region-poi:focus-visible {
   background: var(--bg-elevated);
 }
+.map-region-poi-name {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-region-poi-count {
+  /* A badge apart from the name: "Fixture Beez Region" and, beside it, "2" regions in the point. */
+  min-width: 1.2em;
+  padding: 0 0.3em;
+  text-align: center;
+  color: var(--bg-elevated);
+  background: var(--accent);
+  border-radius: 999px;
+}
 .map-region-poi-count:empty {
   display: none;
 }

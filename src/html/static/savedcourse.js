@@ -13,6 +13,8 @@
 //   where there is none (both ends in one system, or no route through known space);
 // - adjusted: the path bent clear of the gravity wells it passes (NAV.6), as the API answers it, or null until a
 //   course has one.
+// Each hop of the route also keeps `unknown_space`, whether it was a jump through unknown space when saved (NAV.39), so opening the
+// course can say that a sector has been filled in since.
 // A course is known by its two ends, in order. A course through waypoints (NAV.58) also has `stops`, the waypoints in order, and is known
 // by all of them; it has no planned legs.
 //
@@ -62,7 +64,7 @@ function routeOf(route) {
   return {
     path: (route.path || []).map(String),
     distance_ly: round(route.distance_ly),
-    hops: (route.hops || []).map(leg),
+    hops: (route.hops || []).map(function (hop) { return Object.assign(leg(hop), { unknown_space: hop.unknown_space === true }); }),
   };
 }
 
@@ -135,6 +137,21 @@ function legChanges(label, was, now) {
   return changes;
 }
 
+// NAV.39: the hops of the same route that were or are now a jump through unknown space. A record saved before the flag was kept has none
+// to compare, and says nothing.
+function unknownSpaceChanges(was, now) {
+  const changes = [];
+  now.forEach(function (hop, index) {
+    const before = was[index];
+    if (!before || typeof before.unknown_space !== "boolean" || before.unknown_space === hop.unknown_space) return;
+    const where = "Hop " + (index + 1) + " of " + now.length;
+    changes.push(hop.unknown_space
+      ? where + " is now a jump through unknown space; it was through known space."
+      : where + " is now through known space; it was a jump through unknown space.");
+  });
+  return changes;
+}
+
 // What differs between `record` and `result`, the answer of `/api/nav` for the same two ends now: a list of
 // sentences, empty when nothing has changed.
 export function changesSince(record, result) {
@@ -147,12 +164,14 @@ export function changesSince(record, result) {
     changes.push("A route through known space exists now: " + now.route.path.length + " stops, " + formatDistanceLy(now.route.distance_ly) + ".");
   } else if (record.route && now.route) {
     const was = record.route.path.join(" ");
-    if (was !== now.route.path.join(" ")) {
+    const samePath = was === now.route.path.join(" ");
+    if (!samePath) {
       const stops = now.route.path.length === record.route.path.length
         ? "still " + now.route.path.length + " stops"
         : now.route.path.length + " stops; it was " + record.route.path.length;
       changes.push("The route now passes through different systems (" + stops + ").");
     }
+    if (samePath) changes.push(...unknownSpaceChanges(record.route.hops, now.route.hops));
     if (differs(record.route.distance_ly, now.route.distance_ly, DISTANCE_EPSILON_LY)) {
       changes.push("The route is now " + formatDistanceLy(now.route.distance_ly) + ", it was " + formatDistanceLy(record.route.distance_ly) + ".");
     }

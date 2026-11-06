@@ -5,6 +5,7 @@ import socket
 import subprocess
 import sys
 import threading
+import time
 
 import pytest
 
@@ -95,7 +96,17 @@ def test_the_live_rate_in_redis_is_the_terminal_bars(conn):
         assert stage["u"] / stage["t"] == pytest.approx(reference.live, rel=1e-9)
 
 
-def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path):
+@pytest.fixture
+def new_york(monkeypatch):
+    """OPS.97: a file line is the computer's local time with its offset, so the test that pins one runs in one zone."""
+    monkeypatch.setenv("TZ", "America/New_York")
+    time.tzset()
+    yield
+    monkeypatch.undo()
+    time.tzset()
+
+
+def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path, new_york):
     run_id = runrecord.start_run(conn, "Fill", [Stage("mass", "Mass", units=1)], now=100.0)
     runrecord.log(conn, run_id, "scatter layer 3 saved", now=101.0, stage=0)
     runrecord.log(conn, run_id, "disk is slow", level="warning", now=102.0)
@@ -108,7 +119,7 @@ def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path
     path = runrecord.write_log_file(conn, run_id, tmp_path / "jobs")
     text = open(path, encoding="utf-8").read()
     assert 'level=warning component=run msg="disk is slow"' in text and text.rstrip().endswith('msg="run done" event=run.done')
-    assert text.splitlines()[0] == 'ts=1970-01-01T00:01:40.000Z level=info component=run msg="run started: Fill" event=run.start'
+    assert text.splitlines()[0] == 'ts=1969-12-31T19:01:40.000-0500 level=info component=run msg="run started: Fill" event=run.start'
     assert [logrecord.parse_file_line(line).message for line in text.splitlines()] == [
         "run started: Fill", "scatter layer 3 saved", "disk is slow", "run done"]
     for n in range(25):

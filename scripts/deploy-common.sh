@@ -675,7 +675,8 @@ finish_update_guard() {
 # AFTER the reload and the health check, and update.sh stays up showing its bar until it ends. Args: the stage's
 # name, then what `planetgen warm` is asked to build (nothing: every phase). Each stage has a time limit,
 # WARM_STAGE_SECONDS (default 4 hours, OPS.95: a first warm-up after a new epoch takes far longer than the 30 minutes it
-# once had; 0 means none), told in the stage's first line; the output also goes to $WARM_MAP_LOG. A stage that fails or
+# once had; 0 means none), told in the stage's first line. The run writes its own record to warmup.log in the log folder (OPS.96: `planetgen warm` appends it
+# itself, in local time with its zone, so nothing here pipes the output through tee and the bars draw on a terminal). A stage that fails or
 # runs out of time only warns, and says that what it stored is kept and how to continue: the first visit builds what it
 # did not.
 WARM_STAGE_DEFAULT_SECONDS=14400
@@ -701,7 +702,6 @@ run_warm_stage() {
         echo "warning: WARM_STAGE_SECONDS=$seconds is not a number of seconds; using $WARM_STAGE_DEFAULT_SECONDS." >&2
         seconds=$WARM_STAGE_DEFAULT_SECONDS
     fi
-    WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
     if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
         # shellcheck source=../examples/apache/apache-identity.sh
         source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
@@ -718,12 +718,11 @@ run_warm_stage() {
     else
         limit_words="no time limit"
     fi
-    echo "Building the site's caches, $name ($limit_words; log: $WARM_MAP_LOG):"
-    (cd / && ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm "$@" --progress \
-        </dev/null 2>&1) | tee "$WARM_MAP_LOG"
-    status=${PIPESTATUS[0]}
+    echo "Building the site's caches, $name ($limit_words; log: warmup.log in the log folder):"
+    (cd / && ${runner[@]+"${runner[@]}"} env "PLANETGEN_WARM_STARTED_BY=update.sh, $name" ${limit[@]+"${limit[@]}"} \
+        "$PYTHON" -m planetgen.cli.generate warm "$@" --progress </dev/null 2>&1) || status=$?
     if (( status != 0 )); then
-        local why="failed with status $status (see $WARM_MAP_LOG)"
+        local why="failed with status $status (see warmup.log in the log folder)"
         (( status == 124 )) && why="ran out of its time limit of $(duration_words "$seconds") (WARM_STAGE_SECONDS; 0 means none)"
         echo "warning: the cache warm-up ($name) did not finish: it $why. What it stored is kept: 'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues where it stopped, and the first visit builds what it did not." >&2
     fi
