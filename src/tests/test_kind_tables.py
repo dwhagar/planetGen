@@ -34,7 +34,9 @@ def test_a_group_names_tables_that_have_its_columns(group, columns):
 
 def test_every_table_with_an_object_id_is_in_the_uid_group():
     with_uid = {name for name, table in TABLES.items() if "uid" in {column.name for column in table.columns}}
-    assert with_uid - set(kind_tables.tables("uid")) <= set(point_columns.NOT_BODIES), "a table with a uid is not in the registry"
+    left_over = with_uid - set(kind_tables.tables("uid"))
+    assert left_over <= set(point_columns.NOT_BODIES) | set(kind_tables.SCATTER_UID_TABLES), f"{sorted(left_over)} carry a uid and are not in the registry"
+    assert set(kind_tables.SCATTER_UID_TABLES) <= with_uid, "a scatter table listed for its uid has none"
 
 
 def test_a_phenomenon_table_is_a_generator_type_and_a_reference_kind():

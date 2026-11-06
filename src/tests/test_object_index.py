@@ -12,21 +12,46 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
+from planetgen.util import draw
 from tests.publicids import pid
 
 pytestmark = pytest.mark.fresh_database
 
 
+GALAXY_SEED = "object-index-galaxy"
+"""str: The prefix of the streams the fixture galaxy is drawn from (TEST.640): the same systems every run."""
+
+MOON_SEARCH_ATTEMPTS = 60
+"""int: How many streams the fixture tries for a galaxy that holds a moon (a draw of three systems often has none, and the first of sixty fixed streams that has one is used)."""
+
+
+def _build_sector(attempt):
+    """The sector of three systems drawn from the stream `attempt` names, and how many moons its planets hold."""
+    sector = SpaceSector("Index Sector", edge_ly=10.0)
+    moons = 0
+    with draw.bound(f"{GALAXY_SEED}-{attempt}"):
+        for index, star_type in enumerate(("G2V", "K5V", "M5V")):
+            config = SystemConfig()
+            config.STAR_TYPE = star_type
+            config.PLANETS = True
+            config.BINARY_SYSTEM = False
+            system = StarSystem(system_config=config)
+            moons += sum(len(getattr(body, "moons", None) or ()) for body in system.all_planets)
+            sector.add_system(system, position=(index + 1.0, 1.0, 1.0), system_config=config)
+    return sector, moons
+
+
 @pytest.fixture
 def galaxy(mysql_config):
-    """A sector of three systems with their planets, moons, belts and comets, a nebula and a facility-less galaxy."""
-    sector = SpaceSector("Index Sector", edge_ly=10.0)
-    for index, star_type in enumerate(("G2V", "K5V", "M5V")):
-        config = SystemConfig()
-        config.STAR_TYPE = star_type
-        config.PLANETS = True
-        config.BINARY_SYSTEM = False
-        sector.add_system(StarSystem(system_config=config), position=(index + 1.0, 1.0, 1.0), system_config=config)
+    """A sector of three systems with their planets, moons, belts and comets, a nebula and a facility-less galaxy. The systems are drawn from
+    fixed streams, and the first stream that gives the galaxy at least one moon is the one used (TEST.640: the tests of the lists read moons, and
+    a draw with none made them fail now and then), so the galaxy is the same in every run."""
+    for attempt in range(MOON_SEARCH_ATTEMPTS):
+        sector, moons = _build_sector(attempt)
+        if moons:
+            break
+    else:
+        pytest.fail(f"none of {MOON_SEARCH_ATTEMPTS} fixed streams gave the fixture galaxy a moon")
     sector_id = store.save_sector(sector, config=mysql_config)
     conn = store.get_connection(mysql_config)
     try:
