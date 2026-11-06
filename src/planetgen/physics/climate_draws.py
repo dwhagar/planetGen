@@ -108,6 +108,10 @@ def from_stored(row, flux_w_m2):
     """
     if not flux_w_m2 or flux_w_m2 <= 0.0:
         return None, None, "no starlight to work from"
+    if row.get("body_type") == "g":
+        # GEN.1059: a giant's scale height is set by its own air, deep and warmed by its own heat, not by the no-air temperature, so the barometric law below
+        # gives it no albedo (every generated giant came out below 0, or "edited"); the row is backfilled (`backfill_draw`), whose G is against the starlight alone
+        return None, None, "a giant's scale height is not the no-air temperature's (its own heat and deep air set it)"
     surface_k = row.get("surface_temperature_k")
     if not surface_k or surface_k <= 0.0:
         return None, None, "no surface temperature"
