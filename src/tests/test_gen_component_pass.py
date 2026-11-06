@@ -312,13 +312,26 @@ def _seed_components(mysql_config, found):
 
 
 def _stored(mysql_config, table):
+    """The rows of `table` without their row number, time stamps and Object ID. The Object ID (GEN.1254) is the row's rank in its sector among the rows written in
+    one call, so it follows the order the units ran in; `_assert_every_row_has_its_own_id` holds it to what it does promise."""
     conn = store.get_connection(mysql_config)
     try:
         return sorted(tuple(str(value) for key, value in row.items()
-                            if key != "id" and not isinstance(value, datetime.datetime))
+                            if key not in ("id", "uid") and not isinstance(value, datetime.datetime))
                       for row in conn.execute(f"SELECT * FROM {table}").fetchall())
     finally:
         conn.close()
+
+
+def _assert_every_row_has_its_own_id(mysql_config, table):
+    """GEN.1254: whatever order the units ran in, every row has an Object ID and no two rows share one."""
+    conn = store.get_connection(mysql_config)
+    try:
+        uids = [row["uid"] for row in conn.execute(f"SELECT uid FROM {table}").fetchall()]
+    finally:
+        conn.close()
+    assert uids and all(uid is not None for uid in uids), f"{table} rows without an Object ID"
+    assert len(set(uids)) == len(uids), f"{table} rows that share an Object ID"
 
 
 @pytest.mark.fresh_database
@@ -360,6 +373,7 @@ def test_a_large_component_is_a_unit_per_slice_that_reports_its_progress_and_add
         for args, _cost in units:
             run_plan.scatter_shells_unit(json.loads(json.dumps(args)), lambda done, estimate: reports.append(
                 (args["key"], done, estimate)))
+        _assert_every_row_has_its_own_id(mysql_config, "bright_stars")
         return _stored(mysql_config, "bright_stars"), reports
 
     stars, reports = run_all(mine)
@@ -399,6 +413,7 @@ def test_a_large_components_phenomena_are_a_unit_per_slice_that_add_up_at_any_or
             conn.close()
         for args, _cost in units:
             run_plan.scatter_phenomena_unit(json.loads(json.dumps(args)), lambda done, estimate: None)
+        _assert_every_row_has_its_own_id(mysql_config, "phenomenon_scatter")
         return _stored(mysql_config, "phenomenon_scatter")
 
     rows = run_all(mine)
