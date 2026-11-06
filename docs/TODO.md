@@ -16783,21 +16783,6 @@ clears each one.
   Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
   Addition (Boss, 6:49 PM EST on 2026-11-06): truly empty uncharted sectors (nothing known to be in them) get their own option when viewing uncharted: show empty sectors or not, default not. It shows on the Sectors list and in the search information with the other sector filter choices, and in the API as an additive parameter.
 
-- [ ] **MAP.404 Uncharted sector pages show only what is known to be in the sector and display the sector map**
-  Boss, 6:42 PM EST on 2026-11-06 (relayed by the coordinator), building on
-  MAP.401 (#5398, the 'What is placed here' panel). Do: an uncharted
-  sector's page shows only what is known (the stored and scattered objects
-  that lie in it, from MAP.402's rows as well as rogue planets, waiting
-  stars and phenomena), each linked to its object page, and no
-  generated-sector furniture (no density, no star counts, no 'generate'
-  form); and it shows the sector map with those objects drawn where they
-  are. Lock-free (page and map). Done: the page lists every known object
-  with working links and draws the sector map, checked in a browser test at
-  every screen size. Version 8.1. Owner: Core 1, first of three, its own PR, no schema (shows what MAP.399/401 and the rogue and phenomenon rows already hold; scattered cells follow with MAP.402). The Needs on MAP.403 is dropped: it does not wait for it.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
-  Addition (Boss, 6:49 PM EST on 2026-11-06): the intro text on the uncharted page does not say "Each links to its own page". Remove that sentence from web/templates/sector_uncharted.html (MAP.401 added it); the rows keep their links, the text does not mention them.
-
 - [ ] **PERF.247 Job queue: a job can declare that it requires another job, so the round robin never picks one that cannot run yet; jobs with no declared dependency still run together**
   Boss, 6:45 PM EST on 2026-11-06 (relayed by the coordinator), following
   PERF.245's fair sharing between task types: the queue must not hand a

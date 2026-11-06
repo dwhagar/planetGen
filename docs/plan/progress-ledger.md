@@ -2727,3 +2727,4 @@ Baseline: PR #1817.
 | GEN.1238 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
 | GEN.1240 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
 | MAP.401 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| MAP.404 | 8.1 | Generate page and directives |
