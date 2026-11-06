@@ -17869,19 +17869,28 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1226.
 
-- [ ] **TEST.649 Five tests are red on clean main: test_api_link_ids, test_atmosphere_state (2) and test_gen_component_pass (2) (bug)**
-  Aux 2 (as the lane reported, 11:34 AM EST on 2026-11-06, clean main)
-  found test_api_link_ids, two tests in test_atmosphere_state and two in
-  test_gen_component_pass failing on main without any change. The Train
-  Manager already fixed test_api_link_ids for the four routes main added
-  (cloud-volume, sensor, belt-page, sector gravity) inside train 12, so
-  check that one against the train first. Do: reproduce each on current
-  main, find the cause, fix the test or the code at the cause, and name
-  the earlier item behind each; never skip a test. Lock-free unless a
-  cause changes generation output. Done: all five pass on current main (or
-  on main after train 12 for the first). Version 8.1. Owner: Core 5. Filed
-  by the TODO thread.
-  Prerequisites: none. Related: TEST.646.
+- [ ] **GEN.1304 The greenhouse table under-warms a temperate wet air after the GEN.852 part 3 refit: the Earth twin sits at 276.0 K instead of 288 K (lock)**
+  Core 5 (as the lane reported, 12:07 PM EST on 2026-11-06, PR #5331)
+  traced two red tests in test_atmosphere_state to GEN.852 part 3
+  (dd63ade1b, the greenhouse table refit to eight gases): the Earth twin
+  at its own fixed point was 288.49 K before and is 276.04 K since, and
+  the runaway test moved the same way (296.1 and 311.0 K at 255 and 285
+  W/m2 absorbed before, 282.8 and 295.7 K now). With the infrared
+  k-tables fetched, the radiative-convective model gives 288.01 K for that
+  air; for the Earth-like air at 239 W/m2 the table is under the model by
+  4.8 K at 400 Pa of vapor, 8.2 K at 1200 Pa and 10.3 K at 2000 Pa, so the
+  table underweights the wet feedback of the temperate branch.
+  test_greenhouse_table passes because its anchor airs sit elsewhere. The
+  tests are right: the design note says the Earth twin stays at 288 K.
+  Do: refit the table with temperate wet anchors (scripts/fit_greenhouse_table.py;
+  the solve step is tens of thousands of model runs), keep the other
+  anchors, add anchors at the temperate wet branch to the table test, and
+  report the table against the model at 400, 1200 and 2000 Pa. Generated
+  temperatures change (new epoch, golden): a lock item. Done: the Earth
+  twin sits at 288 K within the test bound, the runaway test passes, and
+  the two test_atmosphere_state tests pass. Version 8.1. Owner: Core 5.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.852, TEST.649.
 
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
