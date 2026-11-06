@@ -2316,7 +2316,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.221 | Station and vessel icons on the Galaxy Map | none | open |
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | none | done, PR #4856 |
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | none | open |
-| MAP.224 | Cluster pages and the Galaxy Map use the parent link | none | open |
+| MAP.224 | Cluster pages and the Galaxy Map use the parent link | none | done, PR #5339 |
 | MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | done, PR #2031 |
 | MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | none | done, PR #1859 |
 | MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | done, PR #2032 |

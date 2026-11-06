@@ -1487,29 +1487,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   yet filled. Done: choosing a cluster on the Galaxy Map opens its
   window, and a browser test checks the window on a seeded cluster that
   crosses two sectors.
-  Prerequisites: MAP.224. Related: MAP.194.
-
-- [ ] **MAP.224 Cluster pages and the Galaxy Map use the parent link**
-  Split from GEN.209 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The cluster page lists the stars
-  that point to it (and 'not yet charted' for the unfilled part), a
-  star's page names its cluster, and the Galaxy Map and the Sector Map
-  label a cluster by its name, or by its designation while it has none.
-  Done: the page and the labels, and a browser test on a seeded cluster
-  before and after its first sector is filled.
-  Branch (Core 2) (2:35 AM EST on 2026-11-05): Branch
-  claude/core2-map224, head 60f94eab1 (as the lane reported), stacked on
-  the GEN.359 branch (b6df8cbde), so it rides train 12 right after
-  GEN.359, not alone. No epoch of its own, output unchanged, no
-  migration. A globular cluster page lists its own stars (each linked)
-  and says how many more are not yet charted; an unnamed cluster reads
-  Globular cluster plus its ID until the first sector holding one of its
-  stars is filled; a star of a cluster shows Member of: <cluster> in its
-  Location block; the Galaxy Map names clusters when large enough on
-  screen (new Cluster names switch in the Labels group) and a click
-  opens a card linking to the cluster page. The Sector Map has no
-  cluster labels (it draws none): split out as a new item.
-  Prerequisites: GEN.359. Related: GEN.209.
+  Related: MAP.194.
 
 - [ ] **MAP.232 Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters**
   Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
@@ -1987,9 +1965,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   designation with the same switch, click opens the same card with the
   link to the cluster page. Done: a browser test for the label and the
   click; the Menu switch works. Lock-free, no migration. Version 8.8.
-  Prerequisites: MAP.224. Owner: Core 2, after MAP.223. Filed by the
+  Owner: Core 2, after MAP.223. Filed by the
   TODO thread.
-  Prerequisites: MAP.224. Related: MAP.224, MAP.223.
+  Related: MAP.223.
 
 - [ ] **MAP.388 Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon**
   Boss (5:44 PM EST on 2026-11-05) approved 8.8 as 'Deep sky objects'
@@ -2005,7 +1983,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clusters, satellites, nebulae and rare stars of the sky, drawn on the
   maps and reachable by flight). A hand version bump needs Boss's word.
   Version 8.8. Filed by the TODO thread.
-  Prerequisites: MAP.224, MAP.381, GEN.209, MAP.207, MAP.232,
+  Prerequisites: MAP.381, GEN.209, MAP.207, MAP.232,
   GEN.367, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.245, GEN.246,
   GEN.247, GEN.249, GEN.255, GEN.256, GEN.257, MAP.223, MAP.194.
 
@@ -3421,7 +3399,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/data/harris/mwgc.dat and read by nothing (Sources 1
   is building its setup entry); galaxy tables from Courteau, Comeron,
   Pizzella and Munoz are in the VizieR folder. Catalog sections 1 and 3.
-  Prerequisites: MAP.224. Related: GEN.160, GEN.164.
+  Related: GEN.160, GEN.164.
 
 - [ ] **GEN.212 Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update)**
   Math Research (2026-10-14;

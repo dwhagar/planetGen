@@ -2681,3 +2681,4 @@ Baseline: PR #1817.
 | GEN.1285 | 8.3 | Orbital update core |
 | TEST.606 | 8.1 | Physics rectification: citations and the gate's test health |
 | TEST.627 | 8.3 | Orbital update core |
+| MAP.224 | 8.8 | Clusters and satellites on the map |
