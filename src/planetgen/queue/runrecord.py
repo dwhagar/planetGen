@@ -44,7 +44,6 @@ function of what `read_run` returns: `planetgen.queue.runeta`.
 """
 
 import json
-import logging
 import os
 import re
 import secrets
@@ -720,22 +719,13 @@ def is_stale(run, now=None):
     return now - (run["updated"] or run["started"] or now) > max(STALE_FLOOR_SECONDS, 3.0 * longest)
 
 
-class EventHandler(logging.Handler):
+def event_handler(conn, run_id):
     """
-    Writes what the process that follows a run logs at the normal level or above to the run's event stream, so the
-    stream is the run's whole live log (PERF.99): the lines the console shows and the stage and unit events beside
-    them. A Redis that does not answer costs the line, never the run.
+    A handler (`log.callback_handler`) that writes what the process that follows a run logs at the normal level or above to the run's event
+    stream, so the stream is the run's whole live log (PERF.99): the lines the console shows and the stage and unit events beside them.
+    A Redis that does not answer costs the line, never the run. Add it with `log.attach`.
     """
-
-    def __init__(self, conn, run_id):
-        super().__init__(level=logging.INFO)
-        self.conn, self.run_id = conn, run_id
-
-    def emit(self, record):
-        try:
-            log(self.conn, self.run_id, record.getMessage(), level=record.levelname.lower())
-        except Exception:  # noqa: BLE001 -- the line is lost, the run goes on
-            pass
+    return debug_log.callback_handler(lambda message, level: log(conn, run_id, message, level=level))
 
 
 def job_runs(conn, job_id):
@@ -755,5 +745,5 @@ def recent_runs(conn, limit=20):
 
 
 __all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_canceling", "is_stale",
-           "EventHandler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
+           "event_handler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
            "set_stage_plan", "start_run", "stored_conclusion", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]

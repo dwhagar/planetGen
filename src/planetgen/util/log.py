@@ -11,7 +11,8 @@ everywhere.
 only place a record is made from a `logging` call (`record_of`, `get(component)` and the `normal`/`debug`/`warning`/`error` calls) and the only
 place one is written: `LineFormatter` is the one formatter class, with a form for each way a line is written (`FORMS`: the command line's
 `plain` text, the `display` line with the local time and its zone, the `debug` line, the `file` line and the `json` line), and the handlers
-(`_ConsoleHandler`, the debug log, the relay, the record file) are here. `scripts/logrecord.sh` is the shell's copy of the display line, made a
+(`_ConsoleHandler`, the debug log, the relay, the record file) are here, and so are the file handlers of a job's own log (`file_handler`: the warm-up log, the
+activity log) and the handler that hands a run's lines to its live log (`callback_handler`, OPS.105). `scripts/logrecord.sh` is the shell's copy of the display line, made a
 mirror of the module's vocabulary by `scripts/build_log_vocabulary.py`; `tests/test_no_own_log_formatting.py` fails on a formatter or handler
 made anywhere else.
 
@@ -268,9 +269,10 @@ def _debug_formatter():
     return LineFormatter("debug")
 
 
-FORMS = ("plain", "display", "debug", "file", "json")
+FORMS = ("plain", "display", "debug", "file", "json", "raw")
 """tuple: The ways `LineFormatter` writes a record: `plain` (the command line's text without times, UX.122), `display` (local time with its zone,
-UX.121), `debug` (the debug log's line), `file` (logfmt, the time local with its offset) and `json` (JSON Lines)."""
+UX.121), `debug` (the debug log's line), `file` (logfmt, the time local with its offset), `json` (JSON Lines) and `raw` (the message as it is, for a line something else has made whole:
+the activity log's, `syslog_line`)."""
 
 
 class LineFormatter(logging.Formatter):
@@ -295,6 +297,8 @@ class LineFormatter(logging.Formatter):
     def format(self, log_record):
         if self.form == "debug":
             return super().format(log_record)
+        if self.form == "raw":
+            return log_record.getMessage()
         record = record_of(log_record)
         if self.component:
             record.component = self.component
@@ -347,7 +351,7 @@ class _ConsoleHandler(logging.Handler):
         self._console = console
 
     def emit(self, record):
-        self.write(self.format(record), to_stderr=self.errors_to_stderr and record.levelno >= logging.WARNING)
+        self.write(self.format(record), to_stderr=(self.errors_to_stderr or getattr(record, "stderr", False)) and record.levelno >= logging.WARNING)
 
     def write(self, message, to_stderr=False):
         """One finished line to the console (a line a worker formatted comes through here too). `to_stderr` sends it to stderr
@@ -369,19 +373,93 @@ class _ConsoleHandler(logging.Handler):
 _console_handler = _ConsoleHandler()
 
 
-def file_handler(path, form="display", component=None, level=logging.INFO):
+class _CreateModeMixin:
+    """Opens the log file with `create_mode` when it has to be created, rather than the process umask's usual world-readable 0644."""
+
+    def __init__(self, *args, create_mode=None, **kwargs):
+        self.create_mode = create_mode      # before the base class opens the file
+        super().__init__(*args, **kwargs)
+
+    def _open(self):
+        if self.create_mode is None:
+            return super()._open()
+        fd = os.open(self.baseFilename, os.O_WRONLY | os.O_APPEND | os.O_CREAT, self.create_mode)
+        return os.fdopen(fd, "a", encoding=self.encoding or "utf-8")
+
+
+class _WatchedHandler(_CreateModeMixin, logging.handlers.WatchedFileHandler):
+    pass
+
+
+class _RotatingHandler(_CreateModeMixin, logging.handlers.RotatingFileHandler):
+    pass
+
+
+def file_handler(path, form="display", component=None, level=logging.INFO, create_mode=None, rotate=None):
     """
-    A handler that appends to `path` in `form` (`FORMS`; with `component` every line carries that one), reopening the file if a rotation moves it
-    (OPS.104: a job's own log, such as the warm-up log, is made here and not with a handler of its own). Add it with `attach` and take it off
+    A handler that appends to `path` in `form` (`FORMS`; with `component` every line carries that one), reopening the file if a system rotation
+    moves it (OPS.104: a job's own log, such as the warm-up log, is made here and not with a handler of its own). `create_mode` is the mode of a
+    file this has to create; `rotate`, `(bytes, copies)`, makes the program rotate the file itself instead. Add it with `attach` and take it off
     with `detach`.
 
     Raises:
         OSError: The file cannot be opened.
     """
-    handler = logging.handlers.WatchedFileHandler(path, encoding="utf-8")
+    if rotate:
+        handler = _RotatingHandler(path, maxBytes=rotate[0], backupCount=rotate[1], encoding="utf-8", create_mode=create_mode)
+    else:
+        handler = _WatchedHandler(path, encoding="utf-8", create_mode=create_mode)
     handler.setFormatter(LineFormatter(form, component=component))
     handler.setLevel(level)
     return handler
+
+
+class _CallbackHandler(logging.Handler):
+    """Hands each line at `level` or above to `callback(message, severity name)`; a callback that raises costs the line, never the program."""
+
+    def __init__(self, callback, level):
+        super().__init__(level=level)
+        self.callback = callback
+
+    def emit(self, record):
+        try:
+            self.callback(record.getMessage(), record.levelname.lower())
+        except Exception:  # noqa: BLE001 -- the line is lost, the program goes on
+            pass
+
+
+def callback_handler(callback, level=logging.INFO):
+    """A handler that gives `callback(message, severity)` every line logged at `level` or above (the queue run's live log, PERF.99)."""
+    return _CallbackHandler(callback, level)
+
+
+def syslog_line(body, when=None, pid=None):
+    """`2026-10-01T04:00:00-0400 planetgen[1234]: body`: the shape of the activity log's lines (`when` seconds since the epoch, default now; `pid`
+    default this process), the time local with its offset (OPS.97), so a filter such as fail2ban can match it."""
+    stamp = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(time.time() if when is None else when))
+    return f"{stamp} planetgen[{os.getpid() if pid is None else pid}]: {body}"
+
+
+class Sink:
+    """
+    A logger of its own (`planetgen.<name>`) whose lines reach only the handlers attached to it, not the console or the debug log: the activity
+    log's file. `write(line)` logs one finished line (use a `raw` handler).
+    """
+
+    def __init__(self, name):
+        self.logger = logging.getLogger(f"planetgen.{name}")
+        self.logger.propagate = False
+        self.logger.setLevel(logging.INFO)
+
+    def attach(self, handler):
+        self.logger.addHandler(handler)
+
+    def detach(self, handler):
+        self.logger.removeHandler(handler)
+        handler.close()
+
+    def write(self, line):
+        self.logger.info(line)
 
 
 def attach(handler):
@@ -1273,13 +1351,20 @@ def normal(message, *args, **kwargs):
     _logger.info(message, *args, **kwargs)
 
 
-def warning(message, *args, **kwargs):
+def warning(message, *args, stderr=False, **kwargs):
+    """A warning. `stderr` writes this one to stderr whatever the console is set to: code the web app runs (it configures no console) says
+    its warnings there, so they reach the server's error log and not a stdout that may not exist."""
     kwargs.setdefault("stacklevel", 2)
+    if stderr:
+        kwargs["extra"] = {"stderr": True}
     _logger.warning(message, *args, **kwargs)
 
 
-def error(message, *args, **kwargs):
+def error(message, *args, stderr=False, **kwargs):
+    """An error; see `warning` for `stderr`."""
     kwargs.setdefault("stacklevel", 2)
+    if stderr:
+        kwargs["extra"] = {"stderr": True}
     _logger.error(message, *args, **kwargs)
 
 

@@ -13685,7 +13685,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   about 5 times slower there. Lock item: no migration, star positions
   move in every sector with 2 or more systems (golden and census move),
   --affects the system placement of the fill (systems stage and after).
-  Train 12 candidate. The remaining 6 to 8 percent mass gap is GEN.1300.
+  Train 12 candidate. The remaining 6 to 8 percent mass gap is not placement: GEN.1300 found it is the neutron stars and black holes that the profile mean counts and the sector fill makes as phenomena.
   Prerequisites: none. Related: MAP.383, GEN.115, GEN.1300.
 
 - [ ] **GEN.1285 The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3)**
@@ -13755,22 +13755,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until he answers. Version 8.1. Owner: Planets 1. Filed by the TODO
   thread.
   Prerequisites: none. Related: TEST.499, GEN.1111, GEN.1287.
-
-- [ ] **GEN.1300 After the GEN.1284 fix, placed systems still hold 6 to 8 percent less mass than the density profile expects with the count right: find whether the mass draw or a leftover placement bias holds it**
-  Core 3 (as the lane reported, about 9:08 PM EST on 2026-11-05),
-  GEN.1284 follow-up (the item was called GEN.1284b by the lane). With
-  the Hill-separation share at 0.5, 100 percent of the expected systems
-  are placed at the solar circle, 4,000 pc and 1,500 pc but only 92 to 94
-  percent of the expected mass. Do: compare the drawn system mass against
-  the profile per system (mass function and multiplicity draw) and the
-  placement against the cell's expected position distribution (a bias
-  toward low-mass systems in what stays unplaced, or in the order of
-  placement), and fix at the cause or show with numbers that the gap is
-  the intended physics and say why in the density note. A fix changes
-  generated stars, so it is a lock item. Done: the placed mass matches
-  the profile inside the sampling error at the three places, or the note
-  says why not. Version 8.1. Owner: Core 3. Filed by the TODO thread.
-  Prerequisites: GEN.1284. Related: MAP.383, GEN.115.
 
 - [ ] **GEN.1288 cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections**
   Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
@@ -14486,23 +14470,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   30, O3V 1 of 8, G2V 2 of 30), so PERF.242's premise was false and it is
   closed. The line is now: no test over 900 s on 4 vCPU, reached by
   cutting the trials of the hot-star tests (lock-free); the under 20 s
-  line is PERF.244.
+  line was PERF.244, closed without a build (Bug 1 profile, 11-06: no single lever, the gas solver is 19 percent of the time).
   Prerequisites: none. Related: PERF.238, PERF.244.
-
-- [ ] **PERF.244 A cheaper per-body air solve: surface_air.solve redraws the outgassed mixture about 8 times per body (14 gas-equilibrium solves per body); warm-start or cache the mixture across the fixed-point iterations**
-  Bug 1 (as the lane reported, about 9:36 PM EST on 2026-11-05), the
-  remainder of PERF.241 after GEN.1282: an O0V all-flags system takes 55
-  s, 75 percent of it in moons at 0.15 s per body, 80 percent of that in
-  surface_air.solve. Do: carry the outgassed mixture across the
-  fixed-point iterations of the air solve (warm start or a cache keyed
-  on its inputs) so a body does one full solve and the later iterations
-  start from it; measure the cost and the output change. A warm start
-  can nudge converged values in the last digits, so this is a lock item
-  (epoch, golden) unless the output is bit-identical. Done: one
-  all-flags O0V system takes under 20 s on a 4 vCPU box, or the report
-  shows by numbers why not and the line moves. Version 8.1. Owner: Bug 1,
-  after GEN.1298. Filed by the TODO thread.
-  Prerequisites: GEN.1282. Related: PERF.241, GEN.1282.
 
 ## DB: Database and schema
 
@@ -17861,68 +17830,58 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.593.
 
-- [ ] **TEST.639 tests/test_mass_conversions.py fails on main: physics/dust_model.py has two multiplies or divides by a mass constant that do not go through the unit registry (bug)**
-  The Train Manager (as the lane reported, about 10:55 PM EST on 2026-11-05, train 11 gates) found tests/test_mass_conversions.py red on main: "use unit_registry.converter instead of a multiply or divide by a mass constant: {'physics/dust_model.py': 2}". The dust model came in with VIEW.43. Do: route the two conversions through unit_registry.converter (GEN.568), bit-identical output. Same shape as TEST.619. Reproduce on current main first. Lock-free, no migration. Done:
-  the test passes on current main, in ten runs for the flaky one.
-  Version 8.1. Owner: Core 3. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.619.
-
-- [ ] **TEST.641 tests/test_sweep_atmosphere.py::test_the_sweep_holds_planets_of_many_classes_in_every_zone_and_some_moons finds 7 moons where it asks for at least 20 (bug)**
-  Tides 1 (as the lane reported, about 11:23 PM EST on 2026-11-05) found
-  this test red on main after train 11. The likely cause is GEN.962
-  (train 11): rocky planets now hold a massive moon only from a giant
-  impact, so moons per planet fell from about 1.3 to 0.1 and the sweep
-  holds fewer moons. Do: confirm that is the cause, then give the sweep
-  enough moons by widening it (more systems, or a sweep that adds moons
-  of giants) rather than lowering the floor without a reason, and say in
-  the test why the number is what it is. Lock-free, no migration. Done:
-  the test passes on current main. Version 8.1. Owner: Bug 1. Filed by
-  the TODO thread.
-  Prerequisites: none. Related: GEN.962.
-
 - [ ] **TEST.642 tests/test_work_units.py: three tests start a second run in the same process and raise Busy from the ADM.136 guard (a run started inside a run would wait for itself for ever) (bug)**
   The Train Manager (as the lane reported, about 11:24 PM EST on 2026-11-05, main e97e2e2d9) ran tests/test_work_units.py: test_a_second_run_waits_in_line_for_the_first_and_then_runs, test_a_runs_results_do_not_depend_on_the_place_it_started_from and test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for raise planetgen.queue.runrecord.Busy: the run is started by the same process that follows it, so it would wait for itself for ever. That is the ADM.136 guard (#4680) firing on tests that start a second run in the same pytest process. Do: start the first run from a separate process (or a thread that is not the follower) in those tests so the guard stays, and never weaken the guard. Reproduce on current main first. Lock-free, no
   migration. Done: the test passes on current main. Version 8.1. Owner:
   Core 1. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.644 Four more tests are red on main: test_web_fresh_after_cli (3), test_fingerprint every_table_is_compared, test_db_check (3) and test_galaxy_gen span_mode (bug)**
-  Aux 2 (as the lane reported, 11:58 PM EST on 2026-11-05, main 07192bb4f)
-  found these red on main besides TEST.642 and TEST.643: the three
-  tests in test_web_fresh_after_cli (`[first] = _sectors(...)` gets more
-  than one row, because rogue planets add uncharted sector rows since
-  GEN.1111 part 7), test_fingerprint's every_table_is_compared, the
-  three tests in test_db_check, and test_galaxy_gen's span_mode (the
-  last four not yet checked on main). Do: reproduce each on current main,
-  find the cause, and fix the test or the code at the cause; for the
-  first group count only charted sectors, as TEST.643 did. Lock-free
-  unless a cause needs a migration. Done: all of them pass on current
-  main. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.642.
+- [ ] **TEST.646 More tests red on main beyond TEST.644: test_parallel_generation (6), test_deferred_sectors (3), test_habitability_fill (2), test_db_check_deep, test_generation_stats (4), test_materials_table, test_sectors_command (2), test_prevalence (asteroid_belt, large_star, habitable_world), test_benchmark_suite, test_estimate_sampling, test_run_job (scatter redraw), test_maintenance (map rebuild), test_no_todo_codes_shown, test_plain_words nav comma (bug)**
+  Aux 2 (as the lane reported, 4:10 AM EST on 2026-11-06, main
+  ab0af2f9d) ran the 90 test files that use capsys and the 116 that touch
+  the logging modules for OPS.105 and found these red on main as well as
+  on the OPS.105 branch (test_habitability_fill's two are Aux 2's own, from
+  GEN.1260 part 2: the band day hours differ after a refresh). Do:
+  reproduce each on current main, find the cause, and fix the test or the
+  code at the cause; never skip or quarantine a test; where a cause is an
+  earlier item's change, say which. Lock-free unless a cause needs a
+  migration or changes generation output. Done: all of them pass on
+  current main. Version 8.1. Owner: Aux 2 after TEST.644. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: TEST.644, TEST.642.
 
-- [ ] **GEN.1301 tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group fails on main: bright_stars and phenomenon_scatter gained uid in GEN.1254 but are in neither the kind_tables uid group nor point_columns.NOT_BODIES (bug)**
-  Planets 1 (as the lane reported, 12:36 AM EST on 2026-11-06, main
-  15e29adb5, clean checkout) found tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group
-  red: the bright_stars and phenomenon_scatter tables gained a uid column in
-  GEN.1254 but are in neither the kind_tables uid group nor
-  point_columns.NOT_BODIES. Do: decide for each table whether it is a
-  body kind (add it to the uid group, with its kind table) or not (add it
-  to NOT_BODIES with the reason), and make the test pass. Lock-free unless
-  a stored value changes. Done: the test passes on current main. Version
-  8.1. Owner: Core 3 (GEN.1254 follow-up). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1254.
+- [ ] **TEST.647 The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock)**
+  Aux 2 (as the lane reported, 4:45 AM EST on 2026-11-06, while fixing
+  TEST.644) found that the fingerprint table check was red because
+  GEN.1111, GEN.1127 and GEN.1138 added six tables nobody classified.
+  chart_ledger and designations are left out of the fingerprint on
+  purpose; the four rogue_planet child tables are left out with a note in
+  TEST.644. They should be in: a change to a rogue planet's children must
+  change the galaxy's digest. Do: add the four rogue_planet child tables
+  to the fingerprint tree and its leaf, remove the note, and update the
+  table classification. Every digest of a galaxy with a rogue changes, so
+  test_golden_seed goes red until the train's golden rewrite. Lock item
+  (new epoch, golden), after TEST.602 and TEST.598 are on main. Done: the
+  fingerprint covers the four tables, a test changes one child row and
+  sees the digest change, and the golden is rewritten. Version 8.1. Owner:
+  Aux 7. Filed by the TODO thread.
+  Prerequisites: TEST.602, TEST.598. Related: TEST.644.
 
-- [ ] **GEN.1302 tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not fails on main: sector 1 0 5 differs in 'structure' between the two orders (bug)**
-  Planets 1 (as the lane reported, 12:36 AM EST on 2026-11-06, main
-  15e29adb5, clean checkout) found tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not
-  red: sector 1 0 5 differs in "structure" between the two orders. A sector
-  must come out the same whatever order the backfill reached it in. Do:
-  reproduce on current main, find which stage reads state that the other
-  order has already changed (probably a GEN.1254 follow-up), and fix it at
-  the cause. Lock item if generation output changes (new epoch), else
-  lock-free. Done: the test passes on current main. Version 8.1. Owner:
-  Core 3 (GEN.1254 follow-up). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1254.
+- [ ] **GEN.1303 Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug)**
+  Bug 1 (as the lane reported, 5:21 AM EST on 2026-11-06) found
+  test_sweep_bulk's detail-ranges check red on plain main: 10 sweep bodies
+  (class T and E, G2V and F5V) have envelope_helium and envelope_z None
+  although their envelope share is 1e-6 to 2e-5, so the GEN.1226 fill
+  that stores the envelope for every body skips them. Do: reproduce on
+  current main, find why the fill skips a share this small (a threshold, a
+  branch that returns early, or a class rule), store the envelope helium
+  and metals for every body with an envelope, and keep the stored values
+  physical for a share this small. Lock item if stored values change (new
+  epoch, golden), else lock-free. Done: no body with an envelope share
+  above zero has envelope_helium or envelope_z None, and the sweep
+  detail-ranges check passes. Version 8.1. Owner: Bug 1 after GEN.1298.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1226.
 
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
@@ -18750,24 +18709,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   stagemark.py, warmup.py, warm_progress.py, the generate stages and
   tests. Done: the test passes and every script and command uses the
   table.
-  Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102, OPS.105.
-
-- [ ] **OPS.105 One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls**
-  Boss decided (11-05) that there is one logging codebase for the Python
-  code and the shell scripts. Full text in
-  reports/logging-review-2026-11-05.md, last section "Boss addition
-  (11-05): one logging codebase". Lock-free: it touches no generated
-  content, golden, migration or epoch. Version 8.3. Owner: none yet.
-  Filed by the TODO thread. Do: admin/activity_log.py keeps its own
-  handler and line today, queue/runrecord.py builds records a third way
-  (runrecord.log_text), 11 modules call logging.getLogger directly and
-  146 print() calls write log lines outside the layer. Move all of them
-  onto util/log.py; answers a command prints on purpose (listings and
-  the like) stay and are named in an allowed list that TEST.183 reads.
-  The activity log and its fail2ban filter move together (this is where
-  OPS.97 lands for it). Done: no handler, formatter or log-line print
-  outside the module, and TEST.183 proves it.
-  Prerequisites: OPS.97. Related: OPS.97, TEST.183.
+  Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102.
 
 ## DOC: Documentation
 

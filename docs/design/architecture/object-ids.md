@@ -237,6 +237,10 @@ A star of `bright_stars` and a scattered phenomenon of `phenomenon_scatter` have
   kinds `scatstar` and `scatphen`, scope the sector's seven bytes), so a backfill that adds dimmer stars later takes the next numbers and no
   number is given twice. The same rows give the same IDs whatever order they were inserted in, and a cleared scatter (`clear_bright_stars`,
   `clear_phenomenon_scatter`) forgets its counters and starts from serial 0 again.
+  **A scatter serial depends on the run order, by design (GEN.1302):** the rank is within one write, so a sector whose dimmer stars an earlier
+  backfill wrote and whose brighter ones the first fill added numbers them differently from one whose first fill wrote them all at once. The IDs
+  stay unique and never change once issued; `test_order_independence` puts a sector's scatter serials in brightness order before it compares.
+  Run-order-independent scatter IDs (a serial block for each mass ring) would be a new item with an epoch.
 - **Stars and phenomena do not share a counter.** Stars take serials from 0, phenomena from 2^25 (`PHENOMENON_SERIAL_BASE`), 33 million each.
 - **When.** `store.insert_bright_stars` and `store.insert_phenomenon_scatter` call `scatter_uids.assign` when they have written their rows:
   one window query ranks the rows with no `uid` per sector, three joined updates move the counters and write the IDs. A row inserted by other means

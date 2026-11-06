@@ -22,13 +22,13 @@ def test_a_sector_id_is_its_designation_and_needs_no_row():
     assert galaxy_uid.sector_address(uid) == (12, 3, 7)
 
 
-def _sector(name, count, rogue):
+def _sector(name, count, rogue, planets=False):
     sector = SpaceSector(name, edge_ly=11.5)
     for index in range(count):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         cfg.BINARY_SYSTEM = False
-        cfg.PLANETS = False    # a planet may be thrown out and filed as a rogue (GEN.1111), and these tests count the rogues
+        cfg.PLANETS = planets    # a planet may be thrown out and filed as a rogue (GEN.1111), so by default there are none, and these tests count the rogues
         system = StarSystem(system_config=cfg)
         system.name = f"Uidstar {name} {index}"
         sector.add_system(system, position=(float(index), 0.0, 0.0), system_config=cfg)

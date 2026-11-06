@@ -1967,7 +1967,7 @@ def run_fingerprint(args):
     finally:
         conn.close()
     if warning:
-        log.normal(f"Warning: {warning}")
+        log.warning(warning)
     for line in result:
         print(line)
 
@@ -2345,7 +2345,7 @@ def _fatal(message, logger_ready=True, traceback=False):
         else:
             log.error(f"Error: {message}")
     else:
-        print(f"planetgen: error: {message}", file=sys.stderr)
+        log.error(f"planetgen: error: {message}")
         if traceback:
             import traceback as traceback_module
 

@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.283 |
 | MAP | MAP.399 |
 | NAV | NAV.78 |
-| GEN | GEN.1303 |
+| GEN | GEN.1304 |
 | PERF | PERF.245 |
 | DB | DB.113 |
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.646 |
+| TEST | TEST.649 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -2087,9 +2087,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1297 | values_from_body does not hand day_share_mean to the latitude bands: generation computes every rocky band for a point star while the re-score and API use the star's real angular size (bug) | none | open |
 | GEN.1298 | Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug) | none | open |
 | GEN.1299 | The planet architecture ejects about 0.1 body per star where the observed free-floating yield is 8 to 42 per star (0.33 Earth masses and up) and 0.8 to 7.5 rocky bodies per star: decide where the yield should come from | none | open |
-| GEN.1300 | After the GEN.1284 fix, placed systems still hold 6 to 8 percent less mass than the density profile expects with the count right: find whether the mass draw or a leftover placement bias holds it | none | open |
-| GEN.1301 | tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group fails on main: bright_stars and phenomenon_scatter gained uid in GEN.1254 but are in neither the kind_tables uid group nor point_columns.NOT_BODIES (bug) | none | open |
-| GEN.1302 | tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not fails on main: sector 1 0 5 differs in 'structure' between the two orders (bug) | none | open |
+| GEN.1300 | After the GEN.1284 fix, placed systems still hold 6 to 8 percent less mass than the density profile expects with the count right: find whether the mass draw or a leftover placement bias holds it | none | done, PR #5305 |
+| GEN.1301 | tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group fails on main: bright_stars and phenomenon_scatter gained uid in GEN.1254 but are in neither the kind_tables uid group nor point_columns.NOT_BODIES (bug) | none | done, PR #5300 |
+| GEN.1302 | tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not fails on main: sector 1 0 5 differs in 'structure' between the two orders (bug) | none | done, PR #5302 |
+| GEN.1303 | Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2669,7 +2670,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.102 | Debug log: an area column in, the dead logger-name column out | none | open |
 | OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | none | open |
 | OPS.104 | One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone | none | done, PR #5202 |
-| OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | none | open |
+| OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | none | done, PR #5306 |
 | OPS.106 | update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed | none | done, PR #5249 |
 | OPS.107 | The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs | none | done, PR #5249 |
 | OPS.108 | A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged | none | done, PR #5249 |
@@ -2917,7 +2918,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.241 | A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug) | none | open |
 | PERF.242 | Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget | none | done, PR #5273 |
 | PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate | none | done, PR #5227 |
-| PERF.244 | A cheaper per-body air solve: surface_air.solve redraws the outgassed mixture about 8 times per body (14 gas-equilibrium solves per body); warm-start or cache the mixture across the fixed-point iterations | none | open |
+| PERF.244 | A cheaper per-body air solve: surface_air.solve redraws the outgassed mixture about 8 times per body (14 gas-equilibrium solves per body); warm-start or cache the mixture across the fixed-point iterations | none | done, PR #5316 |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -4086,13 +4087,16 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.636 | test_web_ui_fields_browser.py::test_each_kind_of_field_is_filled_and_submitted fails on desktop and phone, light and dark: strict mode violation, details.search-more > summary resolves to 2 elements (bug) | none | done, PR #5279 |
 | TEST.637 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not fails: assert True is False (bug) | none | done, PR #5285 |
 | TEST.638 | test_web_admin_menu_fits.py fails for the laptop, phone, short and tablet sizes in light and dark: on web.sector the panel is not at its button, the button at negative y (bug) | none | done, PR #5281 |
-| TEST.639 | tests/test_mass_conversions.py fails on main: physics/dust_model.py has two multiplies or divides by a mass constant that do not go through the unit registry (bug) | none | open |
+| TEST.639 | tests/test_mass_conversions.py fails on main: physics/dust_model.py has two multiplies or divides by a mass constant that do not go through the unit registry (bug) | none | done, PR #5304 |
 | TEST.640 | tests/test_object_list.py is flaky: the fixture galaxy sometimes has no moons (bug) | none | done, PR #5295 |
-| TEST.641 | tests/test_sweep_atmosphere.py::test_the_sweep_holds_planets_of_many_classes_in_every_zone_and_some_moons finds 7 moons where it asks for at least 20 (bug) | none | open |
+| TEST.641 | tests/test_sweep_atmosphere.py::test_the_sweep_holds_planets_of_many_classes_in_every_zone_and_some_moons finds 7 moons where it asks for at least 20 (bug) | none | done, PR #5311 |
 | TEST.642 | tests/test_work_units.py: three tests start a second run in the same process and raise Busy from the ADM.136 guard (a run started inside a run would wait for itself for ever) (bug) | none | open |
 | TEST.643 | tests/test_work_units.py::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units fails: 36 'Saved sector' lines against 60 saved (bug) | none | done, PR #5292 |
-| TEST.644 | Four more tests are red on main: test_web_fresh_after_cli (3), test_fingerprint every_table_is_compared, test_db_check (3) and test_galaxy_gen span_mode (bug) | none | open |
+| TEST.644 | Four more tests are red on main: test_web_fresh_after_cli (3), test_fingerprint every_table_is_compared, test_db_check (3) and test_galaxy_gen span_mode (bug) | none | done, PR #5308 |
 | TEST.645 | tests/test_db_column_round_trip.py::test_every_column_is_written fails in a combined run and passes alone: moons.rogue_planet_id depends on which rogues the shared galaxy draws (bug) | none | done, PR #5298 |
+| TEST.646 | More tests red on main beyond TEST.644: test_parallel_generation (6), test_deferred_sectors (3), test_habitability_fill (2), test_db_check_deep, test_generation_stats (4), test_materials_table, test_sectors_command (2), test_prevalence (asteroid_belt, large_star, habitable_world), test_benchmark_suite, test_estimate_sampling, test_run_job (scatter redraw), test_maintenance (map rebuild), test_no_todo_codes_shown, test_plain_words nav comma (bug) | none | open |
+| TEST.647 | The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock) | none | open |
+| TEST.648 | Four tests fail on a registry mismatch: test_solar_system_standin_rows (2) and test_calibration_fence (2) cannot match the SSR9 rows ('surface-ground-types', 'oxidised') and ('atmosphere-m', 'm1'/'m2') after the DOC.103 respelling to 'oxidized' (bug) | none | done, PR #5313 |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |

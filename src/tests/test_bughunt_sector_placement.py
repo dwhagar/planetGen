@@ -14,6 +14,8 @@ here -- this is confirming that bound actually holds under real stress,
 not just trusting the source).
 """
 
+import random
+
 import pytest
 
 from planetgen.generation.config import SystemConfig
@@ -23,6 +25,12 @@ from planetgen.generation.system import StarSystem
 from tests.bughunt_support import FUZZ_SEEDS, run_seeded
 
 _SEEDS = FUZZ_SEEDS[:15]
+
+POOL_SIZE = 12
+"""int: How many large systems the module builds, once. A large B3V system takes 13 to 20 s and a large O5V one 1 to 30 s to make (PERF.241), and a
+sector of 12 filled for each of 15 seeds built up to 180 of them (an hour on a 4 vCPU box). What each seed varies is where the systems land, and the
+pairs that meet; the pool of 12 gives every sector a different order of the same 12 sizes, which is what the separation law reads (a system's Hill
+sphere), so the check is made on as many pairs as before."""
 
 
 def _make_large_system(star_type="B3V"):
@@ -36,7 +44,13 @@ def _make_large_system(star_type="B3V"):
     return StarSystem(system_config=cfg)
 
 
-def test_placed_systems_never_violate_required_separation():
+@pytest.fixture(scope="module")
+def large_systems():
+    """`POOL_SIZE` large B3V systems and one large O5V one, made once for the module."""
+    return [_make_large_system() for _ in range(POOL_SIZE)], _make_large_system("O5V")
+
+
+def test_placed_systems_never_violate_required_separation(large_systems):
     """Fill a small sector with large-Hill-sphere systems until it either
     fills up (ValueError, the documented/expected outcome) or a fixed
     attempt cap is reached; whichever happens, every pair that DID get
@@ -44,9 +58,10 @@ def test_placed_systems_never_violate_required_separation():
     def check(seed):
         sector = SpaceSector(name=f"stress-{seed}", edge_ly=50.0)
         placed = 0
+        order = list(large_systems[0])
+        random.Random(seed).shuffle(order)
         try:
-            for _ in range(12):
-                system = _make_large_system()
+            for system in order:
                 sector.add_system(system)
                 placed += 1
         except ValueError:
@@ -67,17 +82,17 @@ def test_placed_systems_never_violate_required_separation():
     run_seeded(check, seeds=_SEEDS)
 
 
-def test_sector_full_raises_clean_value_error_not_hang():
+def test_sector_full_raises_clean_value_error_not_hang(large_systems):
     """A sector far too small for even two large systems must raise the
     documented ValueError quickly, not loop forever or silently accept an
     overlapping placement."""
     import time
 
     sector = SpaceSector(name="tiny", edge_ly=0.001)
-    first = _make_large_system("O5V")
-    sector.add_system(first)
+    pool, hot = large_systems
+    sector.add_system(hot)
 
-    second = _make_large_system("O5V")
+    second = pool[0]
     start = time.monotonic()
     with pytest.raises(ValueError):
         sector.add_system(second)
@@ -85,14 +100,13 @@ def test_sector_full_raises_clean_value_error_not_hang():
     assert elapsed < 10.0, f"add_system exhaustion took {elapsed}s -- expected a fast, bounded failure"
 
 
-def test_explicit_position_bypasses_hill_sphere_check_as_documented():
+def test_explicit_position_bypasses_hill_sphere_check_as_documented(large_systems):
     """An explicit position is documented to skip the automatic
     separation check entirely -- confirms that's still true (a caller
     deliberately placing two systems close together, e.g. a hand-crafted
     scenario, must not be silently blocked)."""
     sector = SpaceSector(name="explicit", edge_ly=100.0)
-    a = _make_large_system("O5V")
-    b = _make_large_system("O5V")
+    a, b = large_systems[1], large_systems[0][1]
     sector.add_system(a, position=(0.0, 0.0, 0.0))
     sector.add_system(b, position=(0.0001, 0.0, 0.0))  # deliberately overlapping
     assert len(sector.entries) == 2

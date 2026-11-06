@@ -22353,7 +22353,7 @@
           "fields": [
             [
               "What it is",
-              "surface-ground-types:oxidised: nanophase hematite 0.50, plagioclase 0.38, diopside 0.04, enstatite 0.03, basalt powder 0.03, olivine 0.02"
+              "surface-ground-types:oxidized: nanophase hematite 0.50, plagioclase 0.38, diopside 0.04, enstatite 0.03, basalt powder 0.03, olivine 0.02"
             ],
             [
               "The range it moves in",
@@ -22384,7 +22384,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "surface-ground-types:oxidised: nanophase hematite 0.50, plagioclase 0.38, diopside 0.04, enstatite 0.03, basalt powder 0.03, olivine 0.02"
+          "what": "surface-ground-types:oxidized: nanophase hematite 0.50, plagioclase 0.38, diopside 0.04, enstatite 0.03, basalt powder 0.03, olivine 0.02"
         }
       ],
       "slug": "6-56-stand-ins-of-the-registered-rows-that-rest-on-a-solar-system-body",

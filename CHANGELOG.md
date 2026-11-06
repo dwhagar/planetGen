@@ -2,6 +2,86 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3439] - 2026-11-06
+
+**Headline:** Four tests that check the Solar System stand-in rows pass again.
+
+### Fixed
+- TEST.648: the stand-in registry row SSR9 still named the ground type `oxidised` after DOC.103 respelled it `oxidized`, so `test_solar_system_standin_rows` could not match it to the registered row. The row's key is respelled, and the generated stand-in page is rebuilt.
+- TEST.648: `tests/data/solar_system_rows.json` still listed the ozone rows `m1` and `m2` of table m, which GEN.524 retired, so `test_calibration_fence` failed on rows that no longer exist. Both entries are removed.
+
+## [8.0.3438] - 2026-11-06
+
+**Headline:** The class-by-class sweep that the consistency tests read holds moons again, so the rules that read a moon have moons to read.
+
+### Changed
+
+- `tests/audit/sweep.py` (TEST.641): after GEN.962 a rocky planet draws a massive moon from a giant impact in 1 planet in 12 and its small moons only by capture, so the sweep's 126 planets (14 in each of three zones round each of three hosts) held 6 moons where they held 91 before it, and `test_the_sweep_holds_planets_of_many_classes_in_every_zone_and_some_moons`, which asks for 20 moons, found 7. The floor is right (the tidal, parent-shadow and moon-air rules need moons to read) and the draw is the one GEN.962 meant, so the sweep now also draws three planets in each zone round each host with four moons asked for (27 planets, 33 moons, each from a stream of its own, so the earlier 126 planets are the planets they were). The sweep holds 153 planets and 39 moons. No rule found a violation among the added bodies; the sweep tests that were red on main (`test_sweep_bulk` envelope helium, and the stand-in row tests) are red on it for the same reasons as before.
+
+generation-output: unchanged
+
+## [8.0.3437] - 2026-11-06
+
+**Headline:** The sector placement stress test builds its twelve large systems once instead of up to 180 times, and finishes in under three minutes.
+
+### Changed
+
+- `test_bughunt_sector_placement.py` built a new large B3V system for each of up to 12 placements in each of 15 seeds (up to 180 systems at 13 to 20 s each) and four large O5V systems (1 to 32 s each), so the file ran for the better part of an hour and hung the partial gate (PERF.241, TEST.417). It builds 12 large B3V systems and one large O5V system once for the module (`large_systems`) and each seed fills its own sector with the 12 in an order of its own. The law under test reads each system's Hill sphere, not what is in the system, so the same pairs of sizes meet in different places and orders; the check on every placed pair, the full-sector `ValueError` and the explicit-position bypass are unchanged.
+
+generation-output: unchanged
+
+## [8.0.3436] - 2026-11-06
+
+**Headline:** Four tests that went red when rogue planets, the chart ledger and the designation history arrived are fixed; no code of the generator changes.
+
+### Changed
+
+- The fingerprint's table check now names every table of the schema: `chart_ledger` and `designations` are left out on purpose (which run charted a cell and when; what edits retired), and the four rogue planet child tables are left out with a note that reading them is a lock item, because it changes every digest of a galaxy with a rogue and so the golden galaxy.
+- The fresh-after-CLI tests count the sectors the CLI charted (the rows in the chart ledger), not the uncharted rows rogue planets create (GEN.1111, part 7), and look for a CLI-added cloud in the sector's own node, since a root node keeps only the biggest clouds and the seed's field clouds (MAP.178) fill it first.
+- The database check's fixture sector has planets again (`_sector(..., planets=True)`): since GEN.1111 the shared helper makes none, so the tests that damage a planet changed nothing.
+
+## [8.0.3435] - 2026-11-06
+
+**Headline:** The activity log, the queue run's live log, the last direct users of Python's logging and the commands' warning and error messages now go through the one logging module.
+
+### Changed
+
+- `util/log.py` makes the activity log's file handler (with its file mode and its own rotation), the run log's handler and the sink the activity lines go to; `admin/activity_log.py` and `queue/runrecord.py` no longer define a handler, and four modules that fetched a logger by name now call `log`. The activity log's lines look as they did after the local-time change (`2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ...`), so the fail2ban filter is unchanged by this.
+- The test that watches for stray formatting now also fails on any handler, formatter or `logging.getLogger` outside `util/log.py`; its list of allowed strays is empty.
+- The warning and error lines of the maintenance commands (accounts, backup, config, generate, lift-lockout, lockouts, maintenance, migrate, reset-jobs, reset-two-factor, version-history, warm-shape, worker) and of the secret key, the login guard, the activity log, the data-version check and the warm-start code were `print(..., file=sys.stderr)`. They now call `log.warning` or `log.error`, so they carry the severity and the time like every other line, and the commands send warnings and errors to stderr and the rest to stdout. The progress lines of `warm-shape` and `version-history` and the notes of `config` are log lines too.
+- A second scan in the same test fails on a `print()` outside the files that print only the answer a command was asked for (each named with its reason), and on any `print(..., file=sys.stderr)` outside `util/log.py`.
+- `log.warning` and `log.error` take `stderr=True` to write one line to stderr whatever the console is set to. The code the web app runs (the activity log, the login guard, the page-cache data versions and the warm-up start) says its warnings that way, so they still reach the server's error log, since the web app configures no console. `generate` keeps its stage marks and errors on stdout.
+
+## [8.0.3434] - 2026-11-06
+
+**Headline:** The dust model converts the solar mass through the unit registry, and the mass-conversion test passes again.
+
+### Changed
+
+- `physics/dust_model.py` (VIEW.43) multiplied and divided by `constants.SOLAR_MASS_TO_KG` by hand in two constants, so `test_mass_conversions.py` was red on main (TEST.639). Both now use `_MSUN_KG`, the registry's `converter("Msun", "kg")(1.0)`, which is the same number (checked equal to the constant), so the dust model's output is bit-identical.
+
+generation-output: unchanged
+
+## [8.0.3433] - 2026-11-06
+
+**Headline:** The order-independence test compares a sector's scatter-born systems without their order-dependent Object ID serials, and passes again.
+
+### Changed
+
+- `test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not` failed on main (GEN.1302): sector 1 0 5 held the same four scatter-born systems in either order, but a scatter row's serial is its brightness rank within the write that made it (`db/scatter_uids`), so the serials of the stars an earlier backfill wrote (0 and 1) and the ones the first fill added (2 and 3) came out in another order than when the first fill wrote all four at once, and every Object ID below them differed. That is by design (`docs/design/architecture/object-ids.md`, "Scatter rows", now says so). `tests/test_order_independence.py` puts each sector's scatter serials in brightness order (`_canonical_scatter_serials`) before it fingerprints, so everything else a sector holds is still compared. Run-order-independent scatter IDs would be a new item (a serial block for each mass ring, with an epoch). No generated value changes.
+
+generation-output: unchanged
+
+## [8.0.3432] - 2026-11-06
+
+**Headline:** The registry test of Object ID tables knows the two scatter tables that carry the ID of the system or phenomenon built from them, and passes again.
+
+### Changed
+
+- `bright_stars` and `phenomenon_scatter` gained a `uid` with GEN.1254 (the Object ID the built system or phenomenon takes over) but were on neither the `uid` group of `db/kind_tables.py` nor `point_columns.NOT_BODIES`, so `test_every_table_with_an_object_id_is_in_the_uid_group` failed on main (GEN.1301). `kind_tables.SCATTER_UID_TABLES` names them: they are not objects of their own (the `uid` group is what `api.ids` resolves) and not `NOT_BODIES` (their point is a source on `point_columns.LAYOUTS`). The test accepts exactly those two and fails if one loses its `uid`. No generated value changes.
+
+generation-output: unchanged
+
 ## [8.0.3431] - 2026-11-06
 
 **Headline:** The column round-trip test no longer fails now and then on whether the test galaxy's rogue planets hold a moon.
