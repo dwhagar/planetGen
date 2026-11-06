@@ -25787,6 +25787,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "rogue_topup.GALACTOCENTRIC_RADIUS_PC 8000, the galactocentric radius of the ring used for the arc of an apparent origin where the caller gives none"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "rogue_topup.SCATTERER_MASS_JUPITER 1, the mass of the planet that throws a top-up rogue out, the heaviest body it ejects and the scatterer of the ejection speed"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 3"
+            ],
+            [
+              "Where it holds",
+              "the rogues a top-up makes up from a mass shortfall"
+            ],
+            [
+              "What would show it wrong",
+              "a microlensing mass function of free-floating planets that has many more rogues over a Jupiter mass than the ejected spectrum cut at a Jupiter gives (about 0.025 per star at 1 to 13 Jupiter masses, Mroz et al. 2017)"
+            ],
+            [
+              "What replaces it",
+              "the ejection records of GEN.1119, which give each body's own scatterer"
+            ],
+            [
+              "Evidence",
+              "a Jupiter is the scatterer the top-up already used for the kick speed; the heavier ejecta come from an ejection record, not the top-up"
+            ]
+          ],
+          "id": "TU6",
+          "key": "6.86:TU6",
+          "kind": "P",
+          "slug": "6-86-tu6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "rogue_topup.SCATTERER_MASS_JUPITER 1, the mass of the planet that throws a top-up rogue out, the heaviest body it ejects and the scatterer of the ejection speed"
         }
       ],
       "slug": "6-86-stand-ins-of-the-rogue-planet-top-up",
@@ -25833,44 +25871,6 @@
           "tweak": "L0",
           "unread": null,
           "what": "rogue_kick.SCATTER_SPEED_KM_S 3, the ejection speed scale of a Jupiter-mass scatterer at 1 AU, km/s; v_c goes as the square root of the scatterer's mass over its distance"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "rogue_kick.EJECTION_SAFRONOV_NUMBER 1, the Safronov number above which a scatterer ejects"
-            ],
-            [
-              "The range it moves in",
-              "0.5 to 2"
-            ],
-            [
-              "Where it holds",
-              "scattering planets"
-            ],
-            [
-              "What would show it wrong",
-              "a scatterer with Theta under 1 that ejects most of what it scatters in an N-body run"
-            ],
-            [
-              "What replaces it",
-              "the scattering simulations read by GEN.1089"
-            ],
-            [
-              "Evidence",
-              "[R1417, R3867] use the same cut, recalled"
-            ]
-          ],
-          "id": "RK2",
-          "key": "6.87:RK2",
-          "kind": "P",
-          "slug": "6-87-rk2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "rogue_kick.EJECTION_SAFRONOV_NUMBER 1, the Safronov number above which a scatterer ejects"
         },
         {
           "burn_down": null,
@@ -30373,7 +30373,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1287",
+          "unread": null,
           "what": "rogue_mass_function.SUPPLY_DIFFERENTIAL_INDEX 3.5, the differential size index q of the supply, dN/dD ~ D^-q, so dN/dlogM ~ M^-0.83"
         },
         {
@@ -30411,7 +30411,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1287",
+          "unread": null,
           "what": "rogue_mass_function.MAX_EJECTED_OVER_SCATTERER 1.0, the heaviest body a scatterer ejects as a multiple of its own mass"
         }
       ],

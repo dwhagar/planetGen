@@ -374,11 +374,10 @@ def _black_hole():
 
 def _rogue_planet():
     classes = {}
-    for code, (low, high, rate) in pc.ROGUE_PLANET_MASS_BINS.items():
+    for code, (low, high) in pc.ROGUE_PLANET_MASS_BIN_EDGES_EARTH.items():
         name = ROGUE_MASS_CLASS_NAMES.get(code, _label(code))
         classes[code] = _entry(code, name, f"{name} planets with no star, {number_range(low, high, 'Earth masses')}.", [
             ("Mass", number_range(low, high, "Earth masses")),
-            ("How common", f"About {number(rate)} per star in the galaxy"),
         ])
     low, high = pc.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
     name = ROGUE_MASS_CLASS_NAMES["brown-dwarf"]
@@ -394,9 +393,7 @@ def _rogue_planet():
         "label": "Rogue planet class",
         "summary": "Planets drifting between the stars, by mass.",
         "notes": [
-            f"A rogue planet's mass class is drawn by how common each is (about "
-            f"{number(sum(rate for _low, _high, rate in pc.ROGUE_PLANET_MASS_BINS.values()))} per star in all), "
-            "then its mass within the class.",
+            "A rogue planet's mass class is where its mass falls; lighter planets are thrown out more often than heavier ones.",
         ],
         "classes": classes,
     }
