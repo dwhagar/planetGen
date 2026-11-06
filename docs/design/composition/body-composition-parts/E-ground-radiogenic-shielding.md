@@ -453,9 +453,9 @@ gypsum,evaporite,CaSO4.2H2O,172.17,2.31,,,,,,,,,,,,,0.901,0.917,0.925,ground,M=C
 calcite,evaporite,CaCO3,100.09,2.71,,,,,,,,,,,,,0.911,0.941,0.946,ground,M=C;rho=Q;alb=C
 kaolinite,clay,Al2Si2O5(OH)4,258.16,2.6,,,,,,,,,,,,,0.687,0.751,0.768,ground,M=C;rho=Q;alb=C
 serpentine,clay,Mg3Si2O5(OH)4,277.11,2.55,,,,,,,,,,,,,0.250,0.267,0.241,ground,M=C;rho=Q;alb=C
-hematite_fine,oxidised,Fe2O3,159.69,5.26,,,,,,,,,,,,,0.092,0.086,0.085,ground,M=C;rho=Q;alb=C
-hematite_lt10um,oxidised,Fe2O3,159.69,5.26,,,,,,,,,,,,,0.041,0.042,0.061,ground,M=C;rho=Q;alb=C
-goethite,oxidised,FeOOH,88.85,4.3,,,,,,,,,,,,,0.030,0.122,0.206,ground,M=C;rho=Q;alb=C
+hematite_fine,oxidized,Fe2O3,159.69,5.26,,,,,,,,,,,,,0.092,0.086,0.085,ground,M=C;rho=Q;alb=C
+hematite_lt10um,oxidized,Fe2O3,159.69,5.26,,,,,,,,,,,,,0.041,0.042,0.061,ground,M=C;rho=Q;alb=C
+goethite,oxidized,FeOOH,88.85,4.3,,,,,,,,,,,,,0.030,0.122,0.206,ground,M=C;rho=Q;alb=C
 ilmenite,metal-bearing,FeTiO3,151.71,4.7,,,,,,,,,,,,,0.055,0.054,0.056,ground,M=C;rho=Q;alb=C
 forsterite,mineral,Mg2SiO4,140.691,3.2266,,,,,,,,,,,,809.17,,,,ground,M=H;rho=H;debye=H
 fayalite,mineral,Fe2SiO4,203.771,4.4021,,,,,,,,,,,,618.70,,,,ground,M=H;rho=H;debye=H

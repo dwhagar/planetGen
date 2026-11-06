@@ -2,6 +2,29 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3441] - 2026-11-06
+
+**Headline:** Tests that went red after train 11 now count charted sectors, match the Object ID and warm signatures, and use American spelling.
+
+### Changed
+
+- `test_parallel_generation.py` (`_systems_per_sector`, `_sector_addresses`) and `test_estimate_sampling.py` count only the sectors a fill charted, by joining `chart_ledger`; a rogue planet in a cell nobody charted has a `sectors` row of its own (GEN.1111 part 7).
+- `test_run_job.py`: a scatter drawn again after `clear-scatter` gets new Object IDs because a sector's serial counter never repeats one (GEN.1254), so the comparison leaves out `uid` as well as `id`.
+- `test_maintenance.py`: the `warm_family` stub accepts `report`, which the warm now passes.
+- Spelling the American-spelling test refuses: `oxidized` in the ground-composition csv rows, and the nav caption "adjusted course". The `moon.disk_full` redraw description no longer carries a bare `(GEN.1244)` code (the codes-not-shown test).
+
+generation-output: unchanged
+
+## [8.0.3440] - 2026-11-06
+
+**Headline:** The test that checks the size estimate per system fills 6 sectors instead of 12, so it builds 240 systems and takes half the time.
+
+### Changed
+
+- `tests/test_generation_size_estimate.py` (PERF.241): the fixture filled 12 sectors of 40 systems (480 systems) and its setup took 807 s on a 4 vCPU machine under load (each xdist worker that ran one of the two tests built it again). It fills 6 sectors (240 systems); the tests compare the bytes added per system with the estimate to within a factor of 1.5, an average that 240 systems fix as well as 480. The assertion on the system count follows.
+
+generation-output: unchanged
+
 ## [8.0.3439] - 2026-11-06
 
 **Headline:** Four tests that check the Solar System stand-in rows pass again.
