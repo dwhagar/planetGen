@@ -596,7 +596,7 @@ NOT_SHOWN = {
                    "velocity_z_kms"), _VECTORS),
         "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
         "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
-        "scatter_fates": "the share of an outer disk in each population after the scatter step, a mapping; the scatter rows come with the scatter step wiring",
+        "scatter_fates": "the share of an outer disk in each population after the scatter step, a mapping; the belt's information page lists the shares (`belt_page.fates_list`)",
     },
     "comet": {
         **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",

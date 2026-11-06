@@ -180,3 +180,20 @@ def test_a_record_that_does_not_hang_together_is_refused():
         bp.build(bp.BeltRecord(BELT_ID, INNER, OUTER, 1.0, LUMINOSITY, AL26, record.ledger, moved, ()))
     with pytest.raises(bp.BeltPageError):
         bp.build(bp.BeltRecord(BELT_ID, INNER, OUTER, 0.0, LUMINOSITY, AL26, record.ledger, record.placements, ()))
+
+
+def test_an_outer_disk_lists_where_its_mass_went_and_the_shares_add_up():
+    """GEN.1092: the scatter step's shares are on the belt's page, in the order of `scatter.POPULATIONS`, only where a population holds some."""
+    from planetgen.physics import scatter
+    fates = scatter.scatter_shares(1.0, 17.0, 30.0, 3.9, 12.0, 15.0, 50.0, instability=1.0)
+    record = _record()
+    page = bp.build(bp.BeltRecord(*[getattr(record, name) for name in ("belt_id", "inner_au", "outer_au", "star_mass_solar", "luminosity_w", "aluminium_26_ratio", "ledger", "placements", "planets")], fates=fates))
+    listed = page["belt"]["fates"]
+    assert [entry["population"] for entry in listed] == [key for key in scatter.POPULATIONS if fates[key] > 0.0]
+    assert sum(entry["share"]["value"] for entry in listed) == pytest.approx(1.0)
+    assert all(entry["share"]["unit"] == "frac" for entry in listed)
+    json.dumps(page)
+
+
+def test_a_belt_that_is_not_an_outer_disk_lists_no_fates():
+    assert bp.build(_record())["belt"]["fates"] == []
