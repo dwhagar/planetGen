@@ -36793,6 +36793,52 @@
       "title": "Stand-ins of the zone the regular moons of a giant form in"
     },
     {
+      "key": "6.183",
+      "number": "6.183",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (required_separation_ly)"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec"
+            ],
+            [
+              "What would show it wrong",
+              "a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum"
+            ],
+            [
+              "What replaces it",
+              "a nearest-neighbour distribution from the solar neighbourhood's catalogued stars"
+            ],
+            [
+              "Evidence",
+              "reports/gen1284-placement-mass-loss-2026-11-05.md"
+            ]
+          ],
+          "id": "SEP1",
+          "key": "6.183:SEP1",
+          "kind": "P",
+          "slug": "6-183-sep1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (required_separation_ly)"
+        }
+      ],
+      "slug": "6-183-stand-in-of-how-far-apart-random-placement-keeps-two-systems",
+      "title": "Stand-in of how far apart random placement keeps two systems"
+    },
+    {
       "key": "6.182",
       "number": "6.182",
       "rows": [

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1140 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1141 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 103 | 84 | 22 | 58 | 0 | 267 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 26 | 14 | 5 | 67 | 29 | 141 |
-| All | 631 | 241 | 54 | 174 | 40 | 1140 |
+| T9 | 26 | 14 | 5 | 68 | 29 | 142 |
+| All | 631 | 241 | 54 | 175 | 40 | 1141 |
 
 ## How the labels were given
 
@@ -1605,6 +1605,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | MD1 | P | T1 | L0 | moon_disc_zone.CENTRIFUGAL_RADII 30: the outer edge of the zone the disc moons form in, in planet radii; the infall of gas and solids is confined inside it | 15 to 50 | giants with a circumplanetary disc; the value was adopted for Jupiter and Saturn | a hydrodynamic or population study of moons forming a good way past 30 planet radii of a giant of another mass, or a mass dependence of the centrifugal radius | a centrifugal radius from the planet's mass, spin and the inflow's angular momentum (the Hill-sphere inflow runs behind [R3922]) | [R3922] Appendix A: "we adopt r_c = 30 R_p" from three-dimensional hydrodynamic runs of the flow within the Hill sphere; its Table 1 puts Callisto at 26.4, Titan at 20.3 and Ganymede at 15.0 planet radii | - | - |
 | MD2 | P | T5 | L0 | moon_disc_zone.corotation_km: the inner edge is the corotation radius `(G M / omega^2)^(1/3)` of the planet's birth spin when that lies inside the outer edge, else the disc reaches in to the clearance of the body | none (the planet's spin is drawn) | giants whose spin is drawn by `planets.draw_birth_spin`; 2.25 planet radii for the Jupiter of the source | a giant whose innermost regular moon sits well inside the corotation radius of its birth spin, or a disc whose cavity is set by something other than the spin | a magnetospheric truncation radius from the planet's field and the disc's accretion rate | [R3922] section 2.4 (the disc truncated "at the corotation radius where the disk gas corotates with the planetary spin"; set I takes about 2.25 planet radii for Jupiter) | - | - |
+
+## 6.183 Stand-in of how far apart random placement keeps two systems
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md | - | - |
 
 ## 6.182 Stand-ins of where a stored belt member lies
 

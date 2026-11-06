@@ -505,6 +505,13 @@ DEFAULT_HOME_JITTER_LY = 1.0
 # every existing system's minimum-separation requirement before giving up.
 SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
 
+SECTOR_HILL_SEPARATION_SHARE = 0.5
+"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.18x). A galactic Hill
+sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood
+overlaps them freely: the mean spacing of systems is 2.2 pc and the nearest neighbour of the Sun is inside its sphere. Keeping the whole sum apart asks a 4 pc
+sector for spheres that fill 0.6 of its volume, which random placement cannot do, so it ran out of room and kept 85 percent of the systems the profile expects (78 percent
+of the mass). Half the sum holds the expected count (424 of 424 requested in 125 solar-circle sectors)"""
+
 # --- Space Sector Growth Parameters (Poisson-disk placement) ---
 
 # Candidate attempts tried around an active point (Bridson's Fast Poisson

@@ -133,12 +133,30 @@ def test_more_massive_star_has_larger_hill_radius():
     assert hill_radius_ly(large_star) > hill_radius_ly(small_star)
 
 
-def test_required_separation_ly_is_sum_of_hill_radii():
+def test_required_separation_ly_is_the_share_of_the_sum_of_hill_radii():
     system_a, _ = make_system(star_type="G2V")
     system_b, _ = make_system(star_type="K3V")
     assert required_separation_ly(system_a, system_b) == pytest.approx(
-        hill_radius_ly(system_a) + hill_radius_ly(system_b)
+        program_constants.SECTOR_HILL_SEPARATION_SHARE * (hill_radius_ly(system_a) + hill_radius_ly(system_b))
     )
+
+
+def test_a_sector_holds_the_systems_a_solar_circle_cube_expects_when_hill_spheres_are_wide(monkeypatch):
+    """
+    GEN.1284: at the solar circle a system's galactic Hill radius is a median 1.3 pc (4.2 ly) in a 13 ly cube that expects seven systems. The whole sum of the radii
+    (8.4 ly) asks for spheres that fill 0.6 of the cube, which placement cannot do, so sectors ran out of room and kept 85 percent of the systems the profile
+    expects. The share of the sum that is asked now places all seven, each pair at least that share apart.
+    """
+    monkeypatch.setattr(spaceSector_module, "hill_radius_ly", lambda obj: 4.2)
+    sector = SpaceSector("Solar Circle Sector", edge_ly=13.046)
+    entries = []
+    for _ in range(7):
+        system, _ = make_system(star_type="K3V")
+        entries.append(sector.add_system(system))
+    assert len(entries) == 7
+    for i, entry in enumerate(entries):
+        for other in entries[i + 1:]:
+            assert entry.distance_to(other) >= program_constants.SECTOR_HILL_SEPARATION_SHARE * 8.4 - 1e-9
 
 
 def test_space_sector_required_separation_ly_static_method_matches_module_function():

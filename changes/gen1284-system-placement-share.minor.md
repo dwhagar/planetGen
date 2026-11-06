@@ -1,0 +1,4 @@
+**Headline:** A sector now holds the systems its profile expects: random placement keeps half the sum of two Hill radii between systems, not the whole sum.
+
+### Changed
+- **Systems were lost to "ran out of room" at the solar circle.** Placement kept two systems the whole sum of their galactic Hill radii apart (a median 1.3 pc each there), which asks for spheres that fill 0.6 of a 4 pc sector and cannot be packed at random, so 25 of 125 solar-circle sectors stopped early and the sample kept 369 of the 424 systems drawn (85 percent of the 440 the profile expects) and 78 percent of the mass. The separation is now `SECTOR_HILL_SEPARATION_SHARE` (0.5, stand-in SEP1 in 6.183) of the sum, which places all 424 and 94 percent of the expected mass in the same sample. Star positions change in every generated sector; the count of systems per sector rises where the old rule truncated.
