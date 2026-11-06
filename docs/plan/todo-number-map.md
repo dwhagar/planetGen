@@ -4124,7 +4124,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.654 | tests/test_sheet_fill.py::test_a_sample_has_no_empty_column_that_applies_and_is_not_filed fails on main: runner_up_class is empty for moons of class D and many planet classes (bug) | none | done, PR #5363 |
 | TEST.655 | tests/test_ice_species.py: a Pluto-like body's ice_n2_mass_fraction reads 0.0 after a database round trip, expected 0.1455 (bug) | none | done, PR #5363 |
 | TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 | none | open |
-| TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") | none | open |
+| TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") | none | done, PR #5389 |
 | TEST.658 | Train tooling: scripts/train_gate.py, scripts/train.py, scripts/lane_up.sh, the known-red list and gate durations (Train Manager) | none | done, PR #5376 |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |

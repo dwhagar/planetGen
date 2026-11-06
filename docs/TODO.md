@@ -16812,17 +16812,6 @@ clears each one.
   the TODO thread.
   Prerequisites: none. Related: PERF.241, TEST.656.
 
-- [ ] **TEST.657 Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems")**
-  Found by Tides 1 running the GEN.1190 gate (6:00 PM EST on 2026-11-06, as the lane reported): the same four fail on main without GEN.1190. The
-  moon-history failures say the sampled systems have no planet with moons,
-  which fits the GEN.1082 to GEN.1084 change that moved captured moons to
-  irregulars (fewer regular moons in the sample). Do: decide whether the
-  sample or the zone assertion is stale or the draw lost moons it should
-  have, fix the test or the cause, and name which. Lock-free. Done: the
-  four pass on main. Version 8.1. Owner: Bug 1 (with TEST.656). Filed by
-  the TODO thread.
-  Prerequisites: none. Related: TEST.656, GEN.1082, GEN.1190.
-
 - [ ] **MAP.401 An uncharted sector has an info page showing what is placed in it, with a link to each object's page**
   Boss, 5:11 PM EST on 2026-11-06 (relayed by the coordinator): uncharted
   sectors should have an info page showing what is known in the sector
