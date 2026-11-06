@@ -56,6 +56,11 @@ def _row(table, kind=None, generator_type=None, *groups):
 
 _PHENOMENON = ("phenomenon", "id_block", "timestamped", "sector_filed")
 
+SCATTER_UID_TABLES = ("bright_stars", "phenomenon_scatter")
+"""tuple: The scatter tables whose rows carry a `uid` (GEN.1254) that is not an object of their own: the Object ID a scatter row hands to the system or the
+phenomenon built from it. They are not in the `uid` group (`api.ids` resolves a uid to the built object's table) and they are not `point_columns.NOT_BODIES`
+(their point is a source of the built object's, on `point_columns.LAYOUTS`)."""
+
 KIND_TABLES = (
     _row("sectors", "sector", None, "id_block", "timestamped"),
     _row("system_configs", None, None, "id_block"),
