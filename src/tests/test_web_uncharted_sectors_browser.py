@@ -93,3 +93,23 @@ def test_the_page_of_a_placeholder_says_it_is_uncharted_and_in_which_region(brow
     finally:
         context.close()
     assert not problems, "\n".join(problems)
+
+
+@pytest.mark.parametrize("scheme", SCHEMES)
+@pytest.mark.parametrize("viewport", sorted(VIEWPORTS))
+def test_the_page_of_a_placeholder_has_a_what_is_placed_here_panel_that_fits_and_passes_axe(browser, axe_source, sectors, server, viewport, scheme):
+    """MAP.401: the panel is there on every placeholder's page, says the sector is uncharted, and fits the screen."""
+    context, page, problems, base_url = _page(browser, server, viewport, scheme)
+    try:
+        name = naming_key.uncharted_sector_name(UNCHARTED[0], KEY)
+        page.goto(base_url + "/sectors", wait_until="load")
+        page.wait_for_selector("#sectors table tbody tr")
+        page.get_by_role("link", name=name).click()
+        page.wait_for_selector("#uncharted-contents")
+        panel = page.locator("#uncharted-contents")
+        assert "What is placed here" in panel.inner_text()
+        assert "uncharted" in panel.inner_text().lower()
+        problems += _overflow(page) + _axe_blocking(page, axe_source)
+    finally:
+        context.close()
+    assert not problems, f"at {viewport}/{scheme}:\n  " + "\n  ".join(problems)
