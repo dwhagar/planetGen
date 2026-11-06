@@ -220,11 +220,11 @@ def _planet():
         "label": "Planet class",
         "summary": "One letter for what a planet or moon is like, worked out from its finished conditions.",
         "notes": [
-            "A class is never drawn first. Once a planet or moon is complete, it is given the class it fits best, and the "
-            "page of a world says how well: for example, M 92 percent, O 41 percent.",
+            "A class is never drawn first. Once a planet or moon is complete, it is given the class it fits best. The page "
+            "of a world says how well, for example M 92 percent and O 41 percent.",
             "A class is the world's state now; a world can change class as its air, water or heat change.",
-            "Each class asks about the mass, gravity, temperature, air, water and starlight in its own conditions. A condition "
-            "just outside its edge lowers the match instead of ruling the class out, and a world that fits no class at all is "
+            "Each class asks about the mass, gravity, temperature, air, water, and starlight in its own conditions. A condition "
+            "just outside its edge lowers the match instead of ruling the class out. A world that fits no class at all is "
             "shown with its nearest class at 0 percent.",
             "Habitable is not a class. It is the overall habitability color (Blue or Green); a world of any class can "
             "score it or not.",

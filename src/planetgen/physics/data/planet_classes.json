@@ -226,7 +226,7 @@
       "letter": "G",
       "name": "Carbon dioxide world",
       "kind": "t",
-      "sentence": "A rocky world with a carbon dioxide air (20 percent or more), warm (under 400 K) and 0.5 to 2 g.",
+      "sentence": "A rocky world with a carbon dioxide air (20 percent or more), warm (under 400 K), and 0.5 to 2 g.",
       "basis": "design"
     },
     {
@@ -247,7 +247,7 @@
       "letter": "M",
       "name": "Temperate world",
       "kind": "t",
-      "sentence": "A temperate world, the Earth-like sweet spot: a mean surface of 275 to 305 K, liquid water over 20 to 80 percent of the surface and 16 to 35 percent oxygen in the air.",
+      "sentence": "A temperate world, the Earth-like sweet spot: 275 to 305 K, liquid water over 20 to 80 percent of the surface, and 16 to 35 percent oxygen.",
       "basis": "design: the rest of the worlds with air"
     },
     {

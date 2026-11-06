@@ -27,7 +27,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, outside_hours, regional_temperature,
+from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, regional_temperature,
                                life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -570,6 +570,10 @@ def _container_not_shown():
     }
 
 
+_COMPOSITION_STORED = {table: _excuse(columns, "the stored composition of the cloud (GEN.1276, GEN.1277); its sheet rows come with the item that wires the composition text")
+                       for table, columns in nebula_columns.COLUMNS.items()}
+"""dict: Table -> the composition columns of a nebula or remnant, each excused until the sheet shows the composition."""
+
 NOT_SHOWN = {
     "star": {
         **_excuse(("id", "uid", "star_system_id", "parent_type", "parent_id", "epoch_unix",
@@ -602,7 +606,7 @@ NOT_SHOWN = {
                    "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     },
     "nebula": _phenomenon_not_shown(
-        "nebula", **{name: _SHAPE for name in ("shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x",
+        "nebula", **_COMPOSITION_STORED["nebulae"], **{name: _SHAPE for name in ("shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x",
                                                "shape_angle_y", "shape_angle_z", "shape_warp_amplitude",
                                                "shape_warp_frequency", "shape_warp_octaves", "shape_noise_seed",
                                                "shape_iso", "shape_scale")}),
@@ -612,7 +616,7 @@ NOT_SHOWN = {
     "black_hole": _phenomenon_not_shown("black_hole"),
     "neutron_star": _phenomenon_not_shown("neutron_star"),
     "supernova_remnant": _phenomenon_not_shown(
-        "supernova_remnant", compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
+        "supernova_remnant", **_COMPOSITION_STORED["supernova_remnants"], compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
         compact_remnant_neutron_star_id="the neutron star it left behind, a link in its contents"),
     "rogue_planet": {
         **{name: reason for name, reason in _BODY_NOT_SHOWN.items()
