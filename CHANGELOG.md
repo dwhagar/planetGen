@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3422] - 2026-11-06
+
+**Headline:** Ammonia, sulphur dioxide, hydrogen sulphide, carbon monoxide and hydrogen cyanide now absorb infrared from line-list tables instead of rough band guesses, so airs holding them warm a planet by their real amount.
+
+### Changed
+
+- **Five more infrared gas tables (GEN.852, part 2).** Setup now also downloads the ExoMol correlated-k tables of NH3 (CoYuTe), SO2 (ExoAmes), H2S (AYT2), CO (Li2015) and HCN (Harris), 340 to 470 MB each, reduced like the first three (so the setup download of the infrared data is about 3.4 GB before it is reduced and deleted). The greenhouse model reads them in place of the plateau-and-wing stand-ins, so a world whose air holds any of these five gets a different surface temperature (a trace of ammonia or sulphur dioxide warms more than the guess did). Worlds without these gases do not change. `./update.sh` re-reduces the infrared tables once. Registry rows IR1 and IR2 updated; the CO far-wing entry is gone.
+- **The greenhouse table is fitted again (GEN.852, part 3).** It reads all eight gases for itself (the five above join water, carbon dioxide and methane), so a volcanic, a cold ammonia or a reducing air gets its own warming. Fitted on about 17,700 airs (the generator's, perturbed copies, designed airs of seven families and 1,805 airs around the airs the tests check); against the model it stands within 2 K on the Earth-like grid, within 5 K on the three giants and 2 percent warm on Venus; the median error on 1,016 fresh generator airs is 1.7 K (0.6 K among the airs under 300 K). The carbon-dioxide doubling test now holds the table to the model's own +0.86 K within 0.3 K instead of the older 1.7 K.
+
+generation-output: changed
+
 ## [8.0.3421] - 2026-11-06
 
 **Headline:** The Magellanic Clouds hold about as many giant molecular clouds as their gas would: the Large Cloud's count falls from 1,085 to 338 and the Small Cloud's from 340 to 216.
