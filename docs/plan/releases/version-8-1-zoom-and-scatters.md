@@ -545,7 +545,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | GEN.862 |  |
 | GEN.1307 | Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug) |  |  |
 | TEST.654 | tests/test_sheet_fill.py::test_a_sample_has_no_empty_column_that_applies_and_is_not_filed fails on main: runner_up_class is empty for moons of class D and many planet classes (bug) |  |  |
-| TEST.655 | tests/test_ice_species.py: a Pluto-like body's ice_n2_mass_fraction reads 0.0 after a database round trip, expected 0.1455 (bug) |  |  |
 
 ### Physics rectification: infrared opacity, tides and the class re-sweep
 
@@ -633,7 +632,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1298 | Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug) |  |  |
 | GEN.1303 | Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug) |  |  |
 | GEN.1304 | The greenhouse table under-warms a temperate wet air after the GEN.852 part 3 refit: the Earth twin sits at 276.0 K instead of 288 K (lock) |  |  |
-| VIEW.47 | Sky charting runs by default: the Generate console, the API job and the setup call the sphere draws and the floor table of VIEW.25 (--sky-limit is opt-in today) |  |  |
 | GEN.1296 | The volatile-bearing branch (i6) of the lava vapor stage raises "no convergence" from gas_equilibrium.solve for carbon at held fO2 when hot and at low pressure (4000 K at 1 bar, 6000 K at 100 bar) (bug) |  |  |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) |  |  |
 | GEN.1299 | The planet architecture ejects about 0.1 body per star where the observed free-floating yield is 8 to 42 per star (0.33 Earth masses and up) and 0.8 to 7.5 rocky bodies per star: decide where the yield should come from |  |  |
