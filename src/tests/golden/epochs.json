@@ -795,6 +795,13 @@
       "first_release": "8.0.3410",
       "reason": "Train 11: the class-by-domain matrix, the phase gate and the ammonia-water fraction decide a body's class (GEN.1221, GEN.1258) and the bar on habitable worlds holds on finished bodies (GEN.1250); a bright star and a scattered phenomenon get an Object ID (GEN.1254); the Magellanic Clouds keep the cloud counts their gas holds (GEN.367); the latitude band table's Day/Night rows and longest spells (GEN.1260), the temperature series (GEN.1262 to GEN.1264), the greenhouse table refit (GEN.852), the outer-disk scatter populations and belt members (GEN.1071, GEN.1092), the binary-stripped Wolf-Rayet window (GEN.995), the massive moons of rocky planets (GEN.962) and the molar mass of the trace air state (TEST.585) move the stored bodies.",
       "affects": ["plan", "population", "fill", "scatter"]
+    },
+    {
+      "epoch": 134,
+      "first_release": null,
+      "pending": true,
+      "reason": "GEN.1256: an object with no star (rogue planet, black hole, neutron star, nebula, remnant, quasar, comet, asteroid field) stores its Object ID in printed form as its name instead of a 19-digit position ID, so the stored names of the rogue planets in the pinned galaxy change shape.",
+      "affects": ["fill"]
     }
   ]
 }

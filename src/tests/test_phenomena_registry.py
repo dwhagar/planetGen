@@ -20,7 +20,7 @@ from planetgen.galaxy import sector as galaxy_sector
 from planetgen.generation import phenomenon_scatter, run_phenomenon, run_sector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts, registry
-from planetgen.names import naming_key, object_id
+from planetgen.names import naming_key
 from planetgen.web.lib import classref
 
 _SOURCE = pathlib.Path(registry.__file__).resolve().parents[2]
@@ -62,14 +62,8 @@ def test_carried_kinds_and_page_classes_resolve():
     assert pages == slugs
 
 
-def test_no_id_code_repeats_and_codes_fit_six_bits():
-    codes = [row.id_code for row in registry.KINDS if row.id_code is not None]
-    assert len(codes) == len(set(codes)) and all(1 <= code < 64 for code in codes)
-
-
 def test_the_existing_lists_are_the_registry():
-    assert object_id.KIND_CODES == registry.id_codes()
-    assert set(naming_key.KINDS) == set(registry.id_codes()) - {"bright-star"} | {"constellation", "region"}
+    assert set(naming_key.KINDS) == {"constellation", "region"}
     assert phenomenon_scatter.SCATTERED_KINDS == registry.kinds(scatter_pass="band-density")
     assert tuple(kind for kind, _t, _f in run_sector.SECTOR_PHENOMENON_KINDS) == registry.kinds(sector_roll=True)
     assert tuning.PHENOMENON_TYPE_CHOICES == registry.phenomenon_types()
@@ -87,14 +81,12 @@ def test_the_density_table_and_the_registry_name_the_same_kinds():
 
 def test_no_place_names_a_kind_the_registry_lacks():
     types = set(registry.phenomenon_types())
-    id_kinds = set(registry.id_codes())
     assert set(galaxy_sector._PHENOMENON_CLASSES_BY_TYPE) == types
     assert set(store._PHENOMENON_INSERTERS) == types
     assert set(run_phenomenon.TYPE_LABELS) == types
-    assert set(store.OBJECT_ID_TABLES) == id_kinds - {"bright-star"}
     assert {kind for kind, _subtype in phenomenon_scatter.SCATTER_CLASSES} <= set(phenomenon_scatter.SCATTERED_KINDS)
     for row in registry.KINDS:
-        assert row.id_code is not None or row.phenomenon_type is not None or row.mode != "scatter" \
+        assert row.phenomenon_type is not None or row.mode != "scatter" \
             or row.scatter_pass in ("bright-star", "wanderer"), row.kind
 
 

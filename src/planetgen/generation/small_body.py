@@ -30,11 +30,11 @@ class SmallBody(LazySaladName, MassObject):
         Args:
             system_config (SystemConfig): The shared SystemConfig object (its settings).
             name (str, optional): An explicit name. Random if omitted, drawn on first read (PERF.43); a given name is
-                kept over an object ID (GEN.64).
+                kept over an Object ID name (GEN.1256).
         """
         self.system_config = system_config
         self._init_salad_name(name)  # drawn on first read (PERF.43)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        self.name_given = bool(name)  # a given name is kept over an Object ID name (GEN.1256)
 
     makeup = None
     """SmallBodyMakeup or None: What it is made of as the draw made it (GEN.442): the grain mixture, the porosity, the bulk

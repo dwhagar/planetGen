@@ -95,8 +95,6 @@ ORDERS = {
             "interstellar_comets", "quasars"),
     "phenomenon_kinds": ("nebulae", "asteroid_fields", "black_holes", "neutron_stars", "supernova_remnants",
                          "rogue_planets", "interstellar_comets", "quasars"),
-    "object_ids": ("rogue_planets", "black_holes", "neutron_stars", "nebulae", "supernova_remnants", "quasars",
-                   "interstellar_comets", "asteroid_fields"),
 }
 """dict: Name -> the tables of a group in the order one reader lists them. A reader that names one gets its group in
 that order; every table of the group must be in it (`tests/test_kind_tables.py` checks the membership)."""

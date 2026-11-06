@@ -384,7 +384,7 @@ class LazySaladName:
     """
     A mix-in whose `name`, when none is given, is a star-list word salad
     drawn on first read (PERF.43). Most placed phenomena are named by their
-    object ID (GEN.64) and never read the salad, which was 4 percent of a
+    Object ID (GEN.1256) and never read the salad, which was 4 percent of a
     sector fill. Construction takes one draw (the name's own seed), so the
     object's other draws don't depend on whether its name is ever read, and
     the name a seed gives is the same whenever it is drawn.

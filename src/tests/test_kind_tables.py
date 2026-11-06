@@ -67,18 +67,13 @@ def test_the_lists_kept_for_their_order_name_the_same_kinds():
     assert all(ROWS[table].kind == kind for kind, table in objectref.TABLES.items() if kind != "sector")
 
 
-def test_the_object_id_kinds_of_the_core_remnants_name_a_remnant_table():
-    assert store.OBJECT_ID_TABLES["black-hole-core"] == store.OBJECT_ID_TABLES["black-hole"] == "black_holes"
-    assert store.OBJECT_ID_TABLES["comet"] == "interstellar_comets"
-
-
 def test_an_unknown_group_is_refused():
     with pytest.raises(ValueError):
         kind_tables.tables("nonsense")
 
 
 ORDER_GROUPS = {"placed": "phenomenon", "timestamped": "timestamped", "containable": "containable",
-                "slow": "phenomenon", "ids": "uid", "phenomenon_kinds": "phenomenon", "object_ids": "phenomenon"}
+                "slow": "phenomenon", "ids": "uid", "phenomenon_kinds": "phenomenon"}
 
 
 @pytest.mark.parametrize("order, group", sorted(ORDER_GROUPS.items()))
@@ -86,7 +81,6 @@ def test_a_named_order_lists_the_tables_of_its_group_once_each(order, group):
     members = set(kind_tables.tables(group))
     named = kind_tables.ORDERS[order]
     assert len(named) == len(set(named))
-    # `object_ids` is the order of the generator types, which every phenomenon table has; the others hold the group.
     assert members <= set(named), (order, members - set(named))
 
 
@@ -100,4 +94,3 @@ def test_a_reader_keeps_the_order_it_had():
     assert store.PLACED_PHENOMENON_TABLES[-1] == "quasars" and store.PHENOMENON_UID_TABLES[4] == "quasars"
     assert store.TIMESTAMPED_TABLES[:2] == ("sectors", "star_systems") and store.TIMESTAMPED_TABLES[-1] == "quasars"
     assert list(ids.OBJECT_TABLES)[6] == "facility" and ids.PHENOMENON_KINDS[0] == "nebula"
-    assert list(store.OBJECT_ID_TABLES)[0] == "rogue-planet"
