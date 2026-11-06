@@ -3109,6 +3109,28 @@ code {
   font-size: 0.85rem;
 }
 
+/* MAP.169: the System Map's Gravity layer: the heat map under the orbits, the Hill spheres and the Lagrange points. */
+.sysmap-gravity-image {
+  pointer-events: none;
+}
+.sysmap-hill {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 1px;
+  stroke-dasharray: 4 3;
+  opacity: 0.8;
+}
+.sysmap-lagrange {
+  fill: var(--bg);
+  stroke: var(--text);
+  stroke-width: 1px;
+}
+.sysmap-lagrange-label {
+  fill: var(--text);
+  font-size: 8px;
+  pointer-events: none;
+}
+
 /* The marks of the key lines for what the map draws as shapes. */
 .map-layer-legend-swatch.map-key-point {
   border-radius: 50%;

@@ -16,6 +16,7 @@ import time
 import numpy as np
 import pytest
 
+from planetgen.galaxy import gravity_field
 from planetgen.galaxy import gravity_kernel as kernel
 from planetgen.galaxy import gravity_tree as tree
 
@@ -80,7 +81,7 @@ def test_the_tree_sum_stays_near_the_exact_sum_in_the_densest_place(dense):
     points = _zones()[::16]                                # 256 zones spread through the sector
     got = tree.fields_at(hierarchy, points).values
     exact = kernel.fields(points, positions, masses)
-    pull = np.linalg.norm(got[:, 0:3] - exact[:, 0:3], axis=1) / kernel.pull_size(exact)
+    pull = np.linalg.norm(got[:, 0:3] - exact[:, 0:3], axis=1) / gravity_field.pull_size(exact)
     assert np.percentile(pull, 95) < 0.005
 
 
