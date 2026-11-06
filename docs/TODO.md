@@ -18586,20 +18586,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
-- [ ] **OPS.102 Debug log: an area column in, the dead logger-name column out**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: the debug line gains [draw], [sql] and [queue] and loses the
-  logger-name column; the tests and bug-hunt scripts that read the line
-  change with it (no shim). Done: the new line format is the only one
-  read anywhere.
-  Prerequisites: none.
-
 - [ ] **OPS.103 One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test**
   Boss decided (11-05) that every log uses the system (local) time with
   its zone, and that logging is unified across the board; the standard

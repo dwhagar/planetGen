@@ -26,8 +26,7 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.102 | Debug log: an area column in, the dead logger-name column out |  |  |
-| OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | OPS.102 |  |
+| OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test |  |  |
 
 ### Nightly maintenance
 
