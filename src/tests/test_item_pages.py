@@ -459,6 +459,10 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
     positions = [names.index(name) for name in wanted]
     assert positions == sorted(positions), names
     assert "Rendered example" not in page
+    panel = page.split('id="item-example"')[1].split("</section>")[0]
+    assert "Sensors show a green haze." in panel and 'class="prose sensor-readout"' in panel, "the readout line sits under the picture (UX.276)"
+    assert page.count("Sensors show a green haze.") == 1, "and nowhere else on the page"
+    assert "Estimate:" in panel and "ground color" in panel and "worked out from the temperature" in panel
     assert page.index('id="location"') < page.index("hab-symbols") < page.index('class="summary inline-links"')
     assert page.index("Life based on carbon") < page.index('id="habitability"') < page.index('id="sheet-atmosphere"') \
         < page.index('id="sheet-composition"') < page.index('id="item-properties"')

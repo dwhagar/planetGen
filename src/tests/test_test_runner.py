@@ -329,3 +329,29 @@ def test_a_phase_says_when_the_machine_cut_its_workers(monkeypatch, capsys):
     seen.clear()
     assert runner.main(["full", "-n", "6", "--no-worker-cap"]) == 0
     assert seen[0][seen[0].index("-n") + 1] == "6" and seen[2][seen[2].index("-n") + 1] == "2"
+
+
+def test_a_phase_that_prints_nothing_past_the_idle_limit_is_stopped_and_named(monkeypatch, capsys):
+    """TEST.621: a hung run is reported within the limit instead of waited on."""
+    import time
+
+    monkeypatch.setenv("PLANETGEN_TEST_IDLE_LIMIT_S", "1")
+    started = time.monotonic()
+    code, counts = runner.run_phase([sys.executable, "-c", "import time; print('started', flush=True); time.sleep(120)"], dict(os.environ))
+    assert code == runner.HUNG_EXIT_CODE
+    assert time.monotonic() - started < 60
+    assert "HUNG RUN" in capsys.readouterr().out
+
+
+def test_a_phase_that_keeps_printing_is_not_stopped_by_the_idle_limit(monkeypatch):
+    monkeypatch.setenv("PLANETGEN_TEST_IDLE_LIMIT_S", "3")
+    code, counts = runner.run_phase([sys.executable, "-c", "import time\nfor n in range(4):\n    print(n, flush=True)\n    time.sleep(1)"],
+                                    dict(os.environ))
+    assert code == 0
+
+
+def test_the_idle_limit_can_be_turned_off(monkeypatch):
+    monkeypatch.setenv("PLANETGEN_TEST_IDLE_LIMIT_S", "0")
+    assert runner.idle_limit() == 0.0
+    monkeypatch.setenv("PLANETGEN_TEST_IDLE_LIMIT_S", "soon")
+    assert runner.idle_limit() == runner.IDLE_LIMIT_S

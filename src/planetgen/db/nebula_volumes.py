@@ -8,6 +8,8 @@ ladder) and the nebulae around it, and has `galaxy.nebula_volume` sample their s
 (`galaxy.nebula_density`). The same key always gives the same bytes for the same database contents; nothing is stored.
 """
 
+import math
+
 from planetgen import tuning
 from planetgen.db import query
 from planetgen.physics import units
@@ -113,6 +115,50 @@ def single_nebula_volume(conn, nebula_id, model=None):
               "radius_pc": units.ly_to_pc(row["radius_ly"]), "family": family_of(cloud)}
     volume = nebula_volume.sample_group(
         [nebula], None, density, model.FORM_LEVEL, model.MAX_DETAIL, nebula_blocks.FAMILIES)
+    return nebula_volume.pack(volume)
+
+
+MAX_SPHERE_RADIUS_PC = 2000.0
+"""float: The biggest sphere `sphere_volume` draws; a request for more is refused (a nebula or remnant is a few hundred parsecs across at most)."""
+
+
+def sphere_volume(conn, center_pc, radius_pc, family, model=None):
+    """
+    The packed points (`nebula_volume.pack`) that draw one cloud given by its sphere (MAP.392): the same sampler and density as `single_nebula_volume`,
+    for a nebula or a supernova remnant that is not stored under an id the map can ask for, such as the scattered ones of a sector nothing was
+    generated in, the nebula a waiting star lights, and every remnant. The points follow the galaxy's density at the sphere, so the cloud has the shape
+    the model gives that place, never a round ball. Nothing is stored.
+
+    Args:
+        conn: An open, read-only connection.
+        center_pc (tuple): `(x, y, z)`, the sphere's center, parsecs.
+        radius_pc (float): The sphere's radius, parsecs.
+        family (str): One of `nebula_blocks.FAMILIES`.
+        model (module, optional): As in `group_volume`.
+
+    Returns:
+        bytes: The packed volume; header-only for a galaxy that has never been planned.
+
+    Raises:
+        ValueError: On a family that does not exist, a radius not over 0 and at most `MAX_SPHERE_RADIUS_PC`, or a center that is not finite.
+    """
+    if family not in nebula_blocks.FAMILIES:
+        raise ValueError(f"no such nebula family: {family!r}")
+    if not (0.0 < radius_pc <= MAX_SPHERE_RADIUS_PC) or not all(math.isfinite(v) for v in center_pc):
+        raise ValueError(f"not a sphere: center {tuple(center_pc)!r}, radius {radius_pc!r}")
+    skeleton = query.get_galaxy_shape(conn)
+    if skeleton is None or skeleton.galaxy_seed is None:
+        return _empty()
+    if model is None:
+        from planetgen.galaxy import nebula_density as model
+    seed, shape = skeleton.galaxy_seed, skeleton.shape
+
+    def density(points, field, detail):
+        return model.density_at(seed, shape, points, field, detail)
+
+    sphere = {"key": "sphere", "x": float(center_pc[0]), "y": float(center_pc[1]), "z": float(center_pc[2]),
+              "radius_pc": float(radius_pc), "family": family}
+    volume = nebula_volume.sample_group([sphere], None, density, model.FORM_LEVEL, model.MAX_DETAIL, nebula_blocks.FAMILIES)
     return nebula_volume.pack(volume)
 
 

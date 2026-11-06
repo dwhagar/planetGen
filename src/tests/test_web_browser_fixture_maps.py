@@ -392,6 +392,8 @@ def test_sector_map_has_no_rogue_planet_marker_button(page, map_site):
 def _open_menu(page):
     if not page.locator("#galaxymap3d-menu").evaluate("m => m.open"):
         page.locator("#galaxymap3d-menu > summary").click()
+    # UX.278: a sector page's Menu folds its headings; the tests that press its switches want them all open.
+    page.locator("#galaxymap3d-kinds details.view-menu-heading").evaluate_all("els => els.forEach(e => { e.open = true; })")
 
 
 POI_LAYERS = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
@@ -416,14 +418,14 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
     before = _shot(page, SECTOR_CANVAS)
     _open_menu(page)
-    buttons = page.locator("#galaxymap3d-kinds button[data-kind]")
-    names = buttons.all_inner_texts()
+    buttons = page.locator("#galaxymap3d-kinds input[data-kind]")
+    names = [b.evaluate("el => el.closest('label').innerText.trim()") for b in buttons.all()]
     assert "Stars" in names and "Rogue planets" in names, names
-    assert [b.get_attribute("aria-pressed") for b in buttons.all()] == [
-        "false" if name == "Rogue planets" else "true" for name in names], "all on but the rogue planets (MAP.137)"
-    stars = page.locator('#galaxymap3d-kinds button[data-kind="star"]')
+    assert [b.is_checked() for b in buttons.all()] == [name != "Rogue planets" for name in names], \
+        "all on but the rogue planets (MAP.137)"
+    stars = page.locator('#galaxymap3d-kinds input[data-kind="star"]')
     stars.click()
-    assert stars.get_attribute("aria-pressed") == "false"
+    assert not stars.is_checked()
     assert "hide=star" in page.url
     page.locator("#galaxymap3d-menu > summary").click()   # the open Menu covers the spot of the star
     page.mouse.click(_x, _y)
@@ -433,10 +435,10 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     # A reload keeps it.
     page.reload()
     page.wait_for_selector(".starmap-sr-list button", state="attached")
-    page.wait_for_selector('#galaxymap3d-kinds button[data-kind="star"]', state="attached")
+    page.wait_for_selector('#galaxymap3d-kinds input[data-kind="star"]', state="attached")
     _open_menu(page)
-    assert page.locator('#galaxymap3d-kinds button[data-kind="star"]').get_attribute("aria-pressed") == "false"
-    page.locator('#galaxymap3d-kinds button[data-kind="star"]').click()
+    assert not page.locator('#galaxymap3d-kinds input[data-kind="star"]').is_checked()
+    page.locator('#galaxymap3d-kinds input[data-kind="star"]').click()
     assert "hide" not in page.url
 
 
@@ -451,32 +453,32 @@ def test_sector_map_a_registered_layer_has_a_menu_button_a_url_key_and_a_legend_
         layers.refresh();
     }""")
     _open_menu(page)
-    button = page.locator('#galaxymap3d-kinds button[data-layer="testLayer"]')
-    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button = page.locator('#galaxymap3d-kinds input[data-layer="testLayer"]')
+    assert button.count() == 1 and button.is_checked()
     legend = page.locator("#galaxymap3d-layer-legend")
     assert "marks the test layer" in legend.inner_text()
     button.click()
-    assert button.get_attribute("aria-pressed") == "false"
+    assert not button.is_checked()
     assert "hide=testLayer" in page.url
     assert "marks the test layer" not in legend.inner_text(), "an off layer has no legend line"
     button.click()
     assert "hide" not in page.url
     assert "marks the test layer" in legend.inner_text()
     # The kinds the sector stage owns still work beside it.
-    assert page.locator('#galaxymap3d-kinds button[data-kind="star"]').get_attribute("aria-pressed") == "true"
+    assert page.locator('#galaxymap3d-kinds input[data-kind="star"]').is_checked()
 
 
 def test_sector_map_show_on_map_shows_a_hidden_kind_again(page, map_site):
     _open_sector(page, map_site, "?contents_type=Rogue+Planet")
     _open_menu(page)
     rogue = next(p for p in PHENOMENA if p["type"] == "rogue_planet")
-    toggle = page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]')
-    assert toggle.get_attribute("aria-pressed") == "false", "rogue planets begin hidden (MAP.137)"
+    toggle = page.locator('#galaxymap3d-kinds input[data-kind="roguePlanet"]')
+    assert not toggle.is_checked(), "rogue planets begin hidden (MAP.137)"
     page.locator("#galaxymap3d-menu > summary").click()  # closed, so its panel isn't over the table
     button = page.locator(f'[data-map-target="rogue_planet:{rogue["id"]}"]')
     button.click()
     assert _info_title(page) == rogue["name"]
-    assert toggle.get_attribute("aria-pressed") == "true", "selecting it shows its kind again"
+    assert toggle.is_checked(), "selecting it shows its kind again"
     assert "show=roguePlanet" in page.url and "hide" not in page.url
 
 
@@ -1619,6 +1621,24 @@ def test_sector_map_draws_its_nebula_from_its_own_points(page, map_site):
     assert volumes and len(volumes[0]["ix"]) > 0
     assert any("/galaxy/nebula/31/volume" in url for url in requests), requests
     assert not any("/shape" in url for url in requests), requests
+
+
+def test_sector_map_draws_a_remnant_and_a_nebula_from_points_and_never_as_a_hard_ball_or_shell(page, map_site):
+    """MAP.392 (Boss: "I'm still seeing the weird spheres / circle markers"): the Sector Map draws every nebula and supernova remnant of the sector from
+    points, the stored nebula by its id and the remnant (which has none) by its sphere (`/galaxy/cloud-volume`), and no analytic ball or shell is
+    left on screen for either; this fails on a nebula or remnant drawn as the sphere fallback."""
+    requests = []
+    page.on("request", lambda request: requests.append(request.url))
+    _open_sector(page, map_site)
+    page.wait_for_function(
+        f"() => {{ const v = ({VOLUMES})(); return v && v.volumes().some((volume) => volume.key.startsWith('sphere:supernova-remnant:')) "
+        "&& v.volumes().some((volume) => volume.key === 'nebula:31'); }", timeout=30000)
+    drawn = page.evaluate(f"() => ({VOLUMES})().volumes().map((volume) => [volume.key, volume.ix.length])")
+    remnant = [entry for entry in drawn if entry[0].startswith("sphere:supernova-remnant:")]
+    assert remnant and all(count > 0 for _, count in remnant), drawn
+    assert any("/galaxy/cloud-volume" in url and "family=supernova-remnant" in url for url in requests), requests
+    assert not any("/shape" in url for url in requests), requests
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyHardClouds()") == [], "no hard sphere or shell"
 
 
 def test_galaxy_map_draws_a_nebula_and_asks_for_no_shape_mesh(page, map_site):
@@ -3348,14 +3368,16 @@ def test_the_charted_regions_are_soft_spheres_at_galactic_scale_colored_by_share
 def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card(page, map_site):
     """MAP.321 c: at galactic scale a region whose list entry has inhabited worlds carries the inhabited symbol at its middle
     (the Menu's Inhabited worlds layer, on by default), in the colour of its best world's tier; picking it shows the region's card with
-    the inhabited line, and a region without any has no token."""
+    the inhabited line. A region without any carries the Region symbol instead (the Menu's Charted regions layer, #5208), and a region
+    already marked by its inhabited token is not marked twice. MAP.398: the test once said a region without inhabited worlds has no token;
+    that stopped being so when the Region symbol came in."""
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
     page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
     found = _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
     tokens = [e for e in found if e["regionKey"]]
-    assert [(e["kind"], e["regionKey"]) for e in tokens] == [("marker-inhabited", "9.0.0.0")], found
-    assert tokens[0]["name"] == "Fixture Beez Region", tokens
+    assert sorted((e["kind"], e["regionKey"]) for e in tokens) == [("marker-inhabited", "9.0.0.0"), ("marker-region", "9.1.0.0")], found
+    assert {e["regionKey"]: e["name"] for e in tokens} == {"9.0.0.0": "Fixture Beez Region", "9.1.0.0": "Fixture Zarh Region"}, tokens
     spot = next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.0.0.0")
     assert spot["visible"]
     box = page.locator(GALAXY_CANVAS).bounding_box()
@@ -3369,13 +3391,16 @@ def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_tha
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     info = page.locator("#galaxymap3d-info").inner_text()
     assert "3 inhabited worlds in 2 systems, best Blue" in info, info
-    # Switching the Inhabited worlds layer off takes the token, and the regions layer off takes it with its sphere.
+    # Switching the Inhabited worlds layer off takes the inhabited token and leaves its region the Region symbol; switching it on again
+    # gives the token back. The regions layer off takes every token with the spheres.
+    def kinds_of_tokens(entries):
+        return sorted((e["kind"], e["regionKey"]) for e in entries if e["regionKey"])
+
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
-    _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
-    assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
+    _markers_until(page, lambda entries: kinds_of_tokens(entries) == [("marker-region", "9.0.0.0"), ("marker-region", "9.1.0.0")])
     page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
-    _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
+    _markers_until(page, lambda entries: kinds_of_tokens(entries) == [("marker-inhabited", "9.0.0.0"), ("marker-region", "9.1.0.0")])
     page.locator('#galaxymap3d-kinds button[data-layer="regions"]').click()
     _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
     assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
@@ -3778,6 +3803,22 @@ def test_the_default_map_marks_a_green_and_a_yellow_world_with_the_reason_listed
         assert wanted in page.locator("#galaxymap3d-info").inner_text()
 
 
+def test_every_control_in_the_galaxy_and_sector_menus_is_a_working_button(page, map_site):
+    """MAP.397: some rows of the Menu showed only the word "Forward" at the start of a line, greyed out and not clickable. Every visible thing
+    in the Menu's "Show on the map" list is a heading or a button that is enabled and named, a Forward button sits right after its layer's
+    button on the same line, and pressing each one changes it, on the Galaxy Map and on a sector."""
+    from tests.map_menu_support import check_menu_controls
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    forwards, seen = check_menu_controls(page, "#galaxymap3d-kinds")
+    assert forwards >= len(POI_LAYERS) and seen > 40, (forwards, seen)
+    _open_sector(page, map_site)
+    page.wait_for_timeout(500)
+    _open_menu(page)
+    check_menu_controls(page, "#galaxymap3d-kinds")
+
+
 def test_the_points_of_interest_menu_group_shows_pulls_forward_or_hides_each_kind_and_remembers_it(page, map_site):
     """MAP.306: the Menu's Points of interest group has a row for each reason, whose second button pulls it forward (drawn over the
     other marks, named first); a crowd takes its strongest member's state; hiding a kind takes its marks away; one row sets every
@@ -3790,7 +3831,7 @@ def test_the_points_of_interest_menu_group_shows_pulls_forward_or_hides_each_kin
     forward = {layer: kinds.locator(f'button[data-forward="{layer}"]') for layer in POI_LAYERS}
     assert all(button.count() == 1 for button in forward.values())
     assert all(forward[layer].get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
-    assert forward["marker-uninhabitable"].is_disabled(), "a hidden row cannot be pulled forward by its own button"
+    assert not forward["marker-uninhabitable"].is_disabled(), "a hidden row's Forward button is there to press (MAP.397)"
     # Pull the gas giants forward: their marks are drawn in front and named first.
     forward["marker-gas-giant"].click()
     assert "front=marker-gas-giant" in page.url
@@ -4890,7 +4931,7 @@ def test_sector_map_highlight_draws_a_phenomenon_kind_larger_and_keeps_it_in_the
     toggle = page.locator('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]')
     assert toggle.get_attribute("aria-pressed") == "false"
     # MAP.137: rogue planets start hidden, and a hidden kind has nothing to highlight; show them first.
-    page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]').click()
+    page.locator('#galaxymap3d-kinds input[data-kind="roguePlanet"]').click()
     page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
     # The shots are taken with the Menu closed: its panel hangs over the map.
     page.locator("#galaxymap3d-menu").evaluate("m => { m.open = false; }")

@@ -44,7 +44,6 @@ from planetgen.web.lib.fmt import (
     esc, format_number, format_distance_ly, inside_text, linkify_nearest, nearest_systems_html,
     runaway_text,
 )
-from planetgen.web.maps.galaxymap import sector_quadrant
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, parts_of, plain
 from planetgen.web.maps.galaxymap3d import (
     initial_node_request, node_bounds_pc, render_galaxy_map3d_panel, view_radius_bounds,
@@ -681,7 +680,6 @@ def sector(sector_id):
 
     map_html = _sector_map_html(detail, pick, admin)
 
-    quadrant = sector_quadrant(detail["center_x_pc"], detail["center_y_pc"]) if detail["placed"] else None
     system_count = len(detail["systems"])
     phenomenon_count = len(detail.get("phenomena") or [])
 
@@ -701,7 +699,6 @@ def sector(sector_id):
         star_count=detail.get("star_count"),
         debris=debris_html(detail.get("interstellar_debris_count")),
         phenomenon_count=phenomenon_count,
-        quadrant=quadrant,
         galaxy_url=galaxy_map_url(detail),
         bookmark=sector_bookmark(detail, sector_id),
         map_html=trusted_html(map_html),

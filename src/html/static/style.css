@@ -3409,14 +3409,19 @@ code {
   gap: 0.3rem;
 }
 
+/* MAP.397: a layer's button and its Forward button are one row that does not break across lines. */
+.galaxy-kinds .galaxy-kinds-row {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  white-space: nowrap;
+}
+
 .galaxy-kinds .map-forward-toggle {
   margin-left: -0.35rem;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-}
-
-.galaxy-kinds .map-forward-toggle:disabled {
-  opacity: 0.45;
 }
 
 .galaxy-sub > summary {
@@ -3480,6 +3485,78 @@ code {
 .galaxy-kinds-heading {
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+/* UX.278: the View menu the shared builder (viewmenu.js) draws: a fold per heading with its count, real checkboxes in rows, a group box
+   for a family, and the word "changed" (not colour alone) where a layer is not as it starts. */
+.galaxy-kinds .view-menu {
+  flex: 0 0 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.view-menu-heading > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  min-height: 2.75rem;
+  align-content: center;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.view-menu-count,
+.view-menu-changed {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.view-menu-group {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0.4rem;
+}
+
+.view-menu-group-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.5rem;
+  min-height: 2.75rem;
+  font-size: 0.85rem;
+}
+
+.view-menu-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.6rem;
+  min-height: 2.75rem;
+}
+
+.view-menu-item,
+.view-menu-forward {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  cursor: pointer;
+}
+
+.view-menu-differs .view-menu-label {
+  font-weight: 600;
+}
+
+.view-menu-settings:empty {
+  display: none;
+}
+
+.view-menu input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
 }
 
 /* MAP.256, MAP.288: the Galaxy Map's selection panel is a popup inside the map's window (static/mappick.js,
@@ -6467,6 +6544,18 @@ a.help-mark {
   font-size: 0.875rem;
   text-align: center;
 }
+/* UX.276: the readout under the Sensor view reads as the instruments' line, and an estimate says it is one. */
+.sensor-readout {
+  margin: 0.5rem 0 0;
+  text-align: center;
+  font-style: italic;
+}
+.sensor-estimate {
+  margin: 0.25rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
 
 /* UX.174: a system's row in the sector page's Contents opens onto its summary tree under the name. */
 .datatable td .tree-toggle {
@@ -6748,6 +6837,21 @@ a.help-mark {
 .map-region-poi:hover,
 .map-region-poi:focus-visible {
   background: var(--bg-elevated);
+}
+.map-region-poi-name {
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.map-region-poi-count {
+  /* A badge apart from the name: "Fixture Beez Region" and, beside it, "2" regions in the point. */
+  min-width: 1.2em;
+  padding: 0 0.3em;
+  text-align: center;
+  color: var(--bg-elevated);
+  background: var(--accent);
+  border-radius: 999px;
 }
 .map-region-poi-count:empty {
   display: none;

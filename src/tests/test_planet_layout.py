@@ -55,10 +55,11 @@ def test_the_descriptions_blocks_are_sorted_into_their_sections():
     blocks = [model.facts("Planet", []), model.prose("description", "It is temperate."), model.composition("Atmosphere", [], "air"),
               model.ratings({"name": "PHI-6", "score": 0.8, "tier": "Green"}, [], []), model.facts("Radiation", []),
               model.facts("Survival equipment", []), model.prose("life-class", "Class 1a life lives here."), model.prose("life", "Life looks green."),
-              model.prose("timeline", "Old."), model.prose("milestone", "Latest."), model.prose("flavor", "Sensors show.")]
+              model.prose("timeline", "Old."), model.prose("milestone", "Latest."), model.prose("flavor", "Sensors show."), model.prose("depth", "It is deep.")]
     parts = planet_layout.split_blocks(blocks)
     assert [b["type"] for b in parts["phi6"]] == ["ratings", "facts", "facts"]
-    assert [b["role"] for b in parts["life"]] == ["life"] and [b["role"] for b in parts["rest"]] == ["flavor"]
+    assert [b["role"] for b in parts["life"]] == ["life"] and [b["role"] for b in parts["rest"]] == ["depth"]
+    assert [b["role"] for b in parts["flavor"]] == ["flavor"], "the Sensors line goes under the Sensor view (UX.276), not in the notes"
 
 
 def test_the_sky_colour_row_comes_out_of_the_bodys_facts_table():

@@ -49,6 +49,7 @@ const { infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
 const { placeBoxes } = await import(`./maplabels.js${VERSION_QUERY}`);
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
+const { renderViewMenu } = await import(`./viewmenu.js${VERSION_QUERY}`);
 
 function classField(el) {
   var cls = el.dataset.class;
@@ -1255,6 +1256,9 @@ function initLayers(root) {
     id: "facility",
     label: "Facilities",
     group: "Show on the map",
+    heading: "Show",
+    keywords: ["facility", "facilities", "station", "base", "dock"],
+    common: true,
     title: "Show or hide the facilities",
     modes: ["system"],
     urlKey: "hide",
@@ -1270,6 +1274,9 @@ function initLayers(root) {
     id: "label-body",
     label: "Body names",
     group: "Labels",
+    heading: "Show",
+    keywords: ["names", "label", "labels", "body", "bodies", "planet", "moon", "star"],
+    common: true,
     title: "Show or hide the names of the stars, planets, moons and other bodies",
     modes: ["system"],
     urlKey: "hide",
@@ -1286,6 +1293,8 @@ function initLayers(root) {
     id: "spin",
     label: "Spin",
     group: "View",
+    heading: "Move and Settings",
+    keywords: ["spin", "turn", "rotate", "rotation", "axis", "still"],
     title: "Let the bodies turn slowly on their axes, or hold them still",
     modes: ["system"],
     defaultOn: Spin.switchedOn(),
@@ -1295,7 +1304,7 @@ function initLayers(root) {
     },
   });
   layers.readUrl(window.location.search);
-  layers.renderMenu(menu);
+  renderViewMenu(layers, menu);
   var legend = document.getElementById("sysmap-layer-legend");
   if (legend) {
     layers.renderLegend(legend);

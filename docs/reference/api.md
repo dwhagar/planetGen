@@ -115,10 +115,7 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
   takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
   `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
-  `position`; ties follow the sort's direction by sector ID), the repeatable filter
-  `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
-  `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
-  filter). `total` counts the sectors that pass the filter; a bad `sort` or
+  `position`; ties follow the sort's direction by sector ID). Each item carries `region`, the named region its sector lies in (`{"name", "parent"}`, UX.231), or `null` for an unplaced sector or a galaxy with no naming key. There is no `quadrant` filter and no `facets` (UX.272: the galaxy's four quadrants are gone from the site; a request that still sends them has them ignored). `total` counts the sectors; a bad `sort` or
   `order` is a 400. `after=<sector ID>` (PERF.137, PERF.208) starts the page after that
   sector in every sort and ignores `offset`, so a page costs the same at any depth: the
   placed sectors are read by the distance index and the unplaced ones after them by name; the
@@ -385,6 +382,7 @@ connectivity to that specific schema rather than the default one.
   carries `keep_out_in_system`, the same object for a course inside its own system: `max(10 R_star, sqrt(L / (4 pi F)))`.
   `queryDb.resolve_object`,
   `planetgen.galaxy.objectref` and `static/objectref.js` hold the logic.
+- `GET /api/objects/<ref>/sensor` — the Sensor view's record of one object (UX.275, `web/lib/sensor.py`): `v` (the record's version), `kind`, `id`, `painter` (which painter draws it: `sphere`, a star, planet or moon look record as a lit sphere; `phenomenon`, a neutron star, black hole, quasar, rogue planet or interstellar comet in 3D; `nebula`, a cloud from its points; `null` for a kind no painter draws yet), `look` (the record that painter reads, `null` with no painter), `caption`, `estimate` (what the picture guessed, such as the surface colour of a world with no stored ground mixture), `inputs` (the stored properties it is built from) and `reason` (why a kind has no painter; a facility has none before 9.3). Built from the stored row and the Object ID seed alone, so the same object gives the same record. Every kind of the property sheet has an entry, and a test fails for one that does not. A reference that names nothing, or a kind with no sheet, is a `404`.
 - `GET /api/objects/<ref>/sheet` — the property sheet of a star, planet, moon,
   belt, comet, facility (UX.183, with a `ratings` group) or standalone phenomenon (UX.168, UX.175, `describe/sheet.py`):
   `kind` and `groups` (`identity`, `orbit`, `physical`, `rotation`,

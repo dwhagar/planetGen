@@ -782,7 +782,7 @@ def test_api_listing_limit_clamps(app, fuzz_db, limit, expected):
 _PAGE_ROUTES = [
     ("/", "sectors_page"), ("/", "standalone_page"), ("/sectors", "sectors_page"),
     ("/systems", "standalone_page"), ("/phenomena", "page"), ("/sector/{sector}", "contents_page"),
-    ("/galaxy?quadrant=I", "page"), ("/search?q=a", "sectors_page"), ("/search?q=a", "systems_page"),
+    ("/galaxy", "page"), ("/search?q=a", "sectors_page"), ("/search?q=a", "systems_page"),
     ("/search?q=a", "planets_page"), ("/admin", "keys_page"), ("/admin/stats", "names_page"),
     ("/species", "species_page"), ("/species?spacefaring=1", "species_page"),
     ("/polities", "polities_page"),  # TEST.51
