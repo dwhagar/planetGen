@@ -34,13 +34,9 @@ import collections
 import dataclasses
 import functools
 import itertools
-import os
-import time
-
-import pymysql
 
 from planetgen import tuning
-from planetgen.db import scatter_systems, store
+from planetgen.db import contention, scatter_systems, store
 from planetgen.generation import multistar, phenomenon_scatter
 from planetgen.physics import imf, remnant_mass
 from planetgen.physics import stellar_evolution as evolution, unit_registry as units
@@ -261,37 +257,35 @@ def insert_bright_stars(conn, rows, epoch_unix=None, batch_size=10000):
                   lambda c, batch: store.insert_bright_stars(c, batch, batch_size), epoch_unix, batch_size)
 
 
-def write_committed(conn, write, rows, epoch_unix):
+def write_committed(conn, write, rows, epoch_unix, label="Scatter write"):
     """
     Writes one batch of scatter rows and commits it, starting the batch over after a deadlock or lock wait timeout (the scatter writers' ID
     step, `scatter_uids.assign`, reads every row of the table that has no ID yet, so workers writing at once meet on each other's rows). The
-    batch is READ COMMITTED, so its reads take no gap locks. A batch is the whole transaction, so a rollback takes back exactly it and the retry
-    writes the same rows with the same IDs: they rank by luminosity and seed, not by the order the rows landed.
+    retries, their waits and the exclusive grant after the eighth failed try are `db.contention.run_with_retries`'; the gate is `scatter-ids`.
+    The batch is READ COMMITTED, so its reads take no gap locks. A batch is the whole transaction, so a rollback takes back exactly it and the
+    retry writes the same rows with the same IDs: they rank by luminosity and seed, not by the order the rows landed.
 
     Args:
         conn (Connection): Open, with no uncommitted work of the caller's (it is committed first).
         write (callable): `insert_bright_stars` or `insert_phenomenon_scatter`.
         rows (list): The batch, kept whole for a retry.
         epoch_unix (float): As the writers take it.
+        label (str): What the log calls the batch.
 
     Returns:
         Written: What `write` reported for the batch that landed.
 
     Raises:
-        pymysql.err.OperationalError: Any other error, or a deadlock that persists for `store.SECTOR_SAVE_ATTEMPTS` tries.
+        pymysql.err.OperationalError: Any other error, or a deadlock that persists through the granted try.
     """
-    for attempt in range(1, store.SECTOR_SAVE_ATTEMPTS + 1):
-        conn.commit()           # a connection that just read has a transaction open, and MySQL refuses the next line inside one
-        conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
-        try:
-            written = write(conn, rows, epoch_unix)
-            conn.commit()
-            return written
-        except pymysql.err.OperationalError as exc:
-            conn.rollback()
-            if not exc.args or exc.args[0] not in store.RETRYABLE_ERRORS or attempt == store.SECTOR_SAVE_ATTEMPTS:
-                raise
-            time.sleep((0.05 + os.getpid() % 8 * 0.03) * attempt)     # not a draw: the process id spreads the workers
+    def attempt(c):
+        c.commit()          # a connection that just read has a transaction open, and MySQL refuses the next line inside one
+        c.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+        written = write(c, rows, epoch_unix)
+        c.commit()
+        return written
+
+    return contention.run_with_retries(conn, attempt, gate="scatter-ids", label=label)
 
 
 def insert_phenomenon_scatter(conn, rows, epoch_unix=None, batch_size=5000):
