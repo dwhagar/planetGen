@@ -16771,6 +16771,86 @@ clears each one.
   Owner: Core 5, after GEN.1304. Filed by the TODO thread.
   Prerequisites: GEN.1304. Related: GEN.1236, GEN.1240, GEN.1238.
 
+- [ ] **GEN.1311 Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves**
+  Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). scripts/stand_in_sensitivity.py parses the numeric ranges from the
+  stand-in registry (GEN.725) for the in-scope rows only (the 355 rows that
+  feed a class quantity: mass law, architecture, radius valley, envelope
+  cut, bulk composition and water, the star's light and tracks, orbit
+  elements, greenhouse and cloud optics, tidal and interior heat, seasonal
+  swing, day and night, band winds, atmosphere mixture, retention, redox,
+  dry-body carbon, surface liquids, the oxygen build-up), overrides one
+  constant at a time (module constant, tuning value or data-file entry) in a
+  context manager, regenerates a fixed sample and records how far gravity,
+  mean temperature, pressure, gas shares, ocean cover, band temperatures and
+  wet bulb move. It uses draw.py with fixed sub-streams and flags a row
+  whose change alters the draw count (measured on a distribution, not a
+  paired sample). It lists the rows it cannot override (no numeric range,
+  JSON recipe tables). Lock-free, no generated value changes. Done: the
+  harness runs a screening pass on a small sample and lists the overridable
+  and non-overridable rows.
+  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.725, GEN.1306, TEST.430.
+
+- [ ] **GEN.1312 Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix**
+  Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Screening pass first (low and high only, 5 systems) to drop the rows that
+  move nothing, then the full pass on the rest, on the same bodies as the
+  matrix report. Hours of a lane machine with the datasets; TODO picks the
+  machine when part 1 is merged. Lock-free. Done: the matrix is stored (rows
+  by class quantities, with the draw-count flags) and the run time is
+  reported.
+  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Prerequisites: GEN.1311. Related: GEN.725, GEN.1306, TEST.430.
+
+- [ ] **GEN.1313 Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths**
+  Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Per quantity: width = root sum of squares of the column of the matrix; a
+  T1 to T3 range is used as printed, a T4 to T8 range widened by 1.5 and a
+  T9 range by 2 (stand-ins with registry rows of their own); shoulder = 2
+  sigma of the width; cap at half the gap between a class edge and the next
+  class edge on the same quantity (report where the cap binds: a missing
+  class, not a place for a fudge). The file holds per quantity the width,
+  the five stand-ins that contribute most with their variance share, the
+  tier and tweak of the width (T6 L0 to start), the sample and the epoch it
+  was built at. A script rebuilds it and a test fails when the file differs,
+  as for stand-in-values.md. Lock-free (nothing reads it yet). Done: Boss
+  can read the table before anything moves.
+  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Prerequisites: GEN.1312. Related: GEN.725, GEN.1306, TEST.430.
+
+- [ ] **GEN.1314 Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored**
+  Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). The linear shoulder stays (no new code shape), its width per quantity
+  comes from the table. The CF1 to CF7 and DM1 to DM8 hand shoulders are
+  replaced, not kept beside it (no backward-compat shims). Generator epoch,
+  goldens and TEST.430 re-baseline; letters near edges move. Needs the
+  oxygen window as ruled (option 1, unchanged). Lock item. Done: the class
+  census passes on the re-baselined ranges and each moved letter is
+  explained.
+  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430.
+
+- [ ] **GEN.1315 Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters)**
+  Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Same train as GEN.1314. Lock item. Done: the habitable count by threshold,
+  the barred-world loop and the +habitable_world request read the stored
+  match and the search filters offer it.
+  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Prerequisites: GEN.1314. Related: GEN.725, GEN.1306, TEST.430.
+
+- [ ] **GEN.1316 Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge**
+  Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). The ranking report (reports/stand-in-reliability-ranking-2026-11-06.md)
+  gains a column for the share of the fudge of each quantity so research
+  goes to the stand-in that buys the most reduction; the class docs and
+  pages say what the fudge is (the model's uncertainty, not the world's
+  variety). Lock-free. Done: the column and the pages are built from the
+  table.
+  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430.
+
+- [ ] **GEN.1317 Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed**
+  Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Boss, 6:28 PM EST on 2026-11-06: make the system check the data against
+  the epoch during update, and if the epoch has changed regenerate the fudge
+  table automatically. update.sh checks the generator epoch and the registry hash against the table header and rebuilds it automatically when they differ. The table is a derived file in PLANETGEN_DATA_DIR (not committed), the build is deterministic, a committed fixture serves the tests, and a stale or missing table makes generation refuse, as GEN.590 does. The regeneration is the sensitivity run (hours on a lane machine), so the design must say how update does it (a fast mode on the stored matrix when only a constant's value changed, a background job otherwise, never blocking the web site for hours) and state the run time. Lock item: touches update.sh and the epoch, in the same train as GEN.1314 and GEN.1315 (order: parts 1, 2, 3 first; 4, 5 and 7 in one train after 3). Done: after an epoch change update rebuilds the table, and a test covers a stale epoch stamp.
+  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430.
+
 - [ ] **TEST.656 Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876**
   Train Manager census run on main d2b0ba47b (3:30 PM EST on 2026-11-06,
   as the lane reported), notes
