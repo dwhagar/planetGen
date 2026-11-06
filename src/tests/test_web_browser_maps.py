@@ -1254,6 +1254,14 @@ def test_a_ring_on_the_system_map_is_the_planets_own_stored_ring(page, base_url,
             assert 1.0 < ring["in"] < ring["out"], ring
 
 
+def test_every_control_in_the_system_menu_is_a_working_button(page, base_url, site_app):
+    """MAP.397: every visible thing in the system map's Menu list is a heading or an enabled, named button, and pressing each one changes it."""
+    from tests.map_menu_support import check_menu_controls
+    _open_spinning_diagram(page, base_url, site_app)
+    page.click("#sysmap-menu > summary")
+    check_menu_controls(page, "#sysmap-layers")
+
+
 def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url, site_app):
     """MAP.328: the Menu's Spin switch holds every body still (and a reload keeps it so); turning it on again sets them
     turning."""
