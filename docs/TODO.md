@@ -1210,7 +1210,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   come from those thresholds, and the legend names the scale in use. See
   docs/design/orbits/gravity-map.md.
   Headline: 9.0 (the gravity map).
-  Prerequisites: GEN.199, MAP.168, MAP.169, UX.94, API.24. Related:
+  Prerequisites: GEN.199, MAP.169, UX.94. Related:
   GEN.105, NAV.6.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
   newer note wins, report todo-contradictions-2026-10-18.md): the title
@@ -1248,21 +1248,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   smooth galaxy at the zone. Owner: Tides 1 (builds MAP.168, MAP.169 and
   API.24 on that chain)
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
-
-- [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
-  Done: the Sector Map Menu has a Gravity layer with three modes; each
-  zone of the shown slab is a translucent colour on a log scale with a
-  colour-blind-safe ramp (transparency by strength, no fill above 50%
-  opacity as for MAP.131, so stars and routes stay readable); the slab
-  buttons step through the sector, a transparent-volume view shows every
-  slab, Lagrange and saddle points are marked and pickable, and the
-  colour choice is kept in the URL. It uses the one mapping engine and
-  the API.24 grid; a browser test checks the layer draws, switches mode
-  and keeps the URL.
-  Scope after the review (2026-10-16 review): the gravity layer's data
-  and drawing (zones, three modes, Lagrange points); its Menu entry, URL
-  key and legend come from the layer registry.
-  Prerequisites: API.24. Related: MAP.167, MAP.131.
 
 - [ ] **MAP.169 The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres**
   Done: the System Map has the same Gravity layer on the system's
@@ -15702,15 +15687,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   region uses the same shapes as the admin region tools.
   Prerequisites: API.18, GEN.302.
 
-- [ ] **API.24 GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON**
-  Done: the endpoint returns a sector's grid (GEN.199) for one mode
-  (pull, well depth or tidal strength), as a compact array with the zone
-  size, the origin, the unit and the Lagrange or saddle points, with the
-  usual API scopes and logging (API.15), queued with the 202 behaviour
-  when the grid has to be built; documented in the API docs and the
-  compatibility data.
-  Prerequisite: GEN.199. Related: MAP.167.
-
 - [ ] **API.28 Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
@@ -18002,18 +17978,6 @@ clears each one.
   Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
-- [ ] **TEST.498 A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star**
-  Boss, 4:57 PM EDT 2026-10-30. Test: draw matched planets with and
-  without a host (same seed inputs where possible) and assert the rogue
-  and bound versions go through the same code path (no rogue-only
-  generator), carry the same columns and moon-system fields, and differ
-  only in the rogue note, the missing host and the quantities that
-  depend on starlight (the equilibrium temperature is the internal and
-  ambient value). Lock-free (test). Where we think it belongs (best
-  guess, can move): Core 1, built with train 8 so the train gate
-  carries it.
-  Prerequisites: GEN.1111.
-
 - [ ] **TEST.550 Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug)**
   Train 8 (#4655, merged 11:59 PM EDT 2026-10-31 by GitHub's stamp) left
   five prevalence census tests red on main on purpose: their baselines
@@ -18331,6 +18295,20 @@ clears each one.
   whenever a ships module changes.
   Prerequisites: USR.29, POP.11, MAP.391. Related: USR.10.
 
+- [ ] **TEST.633 tests/js/galaxynebulae.test.mjs fails on main: "a region's blob is the group's sphere in the colour of its dominant family, with a ring when it holds several" expects blob.ring true (bug)**
+  Tides 1 (as the lane reported, about 8:44 PM EST on 2026-11-05) found
+  test_js_unit[galaxynebulae.test.mjs] red on plain main; the TODO thread
+  reproduced it with node --test on main 29fe528f8: line 26 expects
+  blob.ring to be true for a group of 12 nebulae and the blob has none.
+  The likely cause is MAP.392 (#5212, Core 4), which drew the nebula
+  group blobs without the ring outline and left the test saying the
+  ring is there. Do: decide from the code whether the ring should be
+  gone (then the test, its title and the one-nebula case follow it) or
+  came back by mistake (then the code does), fix at the cause, never
+  skip or loosen the test. Lock-free, JS only. Done: the test passes on
+  current main. Version 8.1. Owner: Core 4. Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.392.
+
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
@@ -18339,25 +18317,6 @@ clears each one.
   rows GP1 to GP3 are gone from GEN.725. Version 8.3. Owner: Tides 1.
   Filed by the TODO thread.
   Prerequisites: GEN.1285. Related: GEN.115, GEN.725.
-
-- [ ] **TEST.632 A bulk `plan` command raises DataMissing for the MIST isochrones before the dataset gate refuses: test_datasets_gate and test_disregard_missing_data fail on clean main (bug)**
-  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
-  gate) found tests/test_datasets_gate.py::test_bulk_runs_refuse_and_write_nothing[argv1]
-  and tests/test_disregard_missing_data.py::test_a_bulk_command_refuses_without_the_option_and_goes_ahead_with_it[argv1]
-  (the `plan` command) red on clean main when run with `-n 3`
-  (reports/train11-main-reds-2026-11-05.md, item 9). `DataMissing` for
-  the MIST isochrones is raised from planetgen/galaxy/shape_draw.py
-  plan_shape, density.mean_system_mass_solar, generation/system_mass,
-  stellar_evolution.remnant_formation_time_gy, post_main_sequence.timeline
-  and isochrones.post_main_sequence_grid, before the dataset gate refuses.
-  It passed once in a plain run, so it depends on cache state. Do:
-  reproduce on current main, then make the gate check the datasets a bulk
-  command needs before any of them is read, or make `plan` not read the
-  isochrones; keep the property (a bulk run without the option refuses
-  and writes nothing). Never skip or loosen a test. Lock-free if output
-  is unchanged. Done: both tests pass in a plain run and with `-n 3` on
-  current main. Version 8.1. Owner: Core 1. Filed by the TODO thread.
-  Prerequisites: none.
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
