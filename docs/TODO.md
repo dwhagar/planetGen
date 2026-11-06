@@ -14470,7 +14470,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   30, O3V 1 of 8, G2V 2 of 30), so PERF.242's premise was false and it is
   closed. The line is now: no test over 900 s on 4 vCPU, reached by
   cutting the trials of the hot-star tests (lock-free); the under 20 s
-  line is PERF.244.
+  line was PERF.244, closed without a build (Bug 1 profile, 11-06: no single lever, the gas solver is 19 percent of the time).
   Prerequisites: none. Related: PERF.238, PERF.244.
 
 ## DB: Database and schema
