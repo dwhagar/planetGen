@@ -35439,7 +35439,7 @@
           "fields": [
             [
               "What it is",
-              "nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity"
+              "nebula_composition.KMT_CHI_COEFFICIENT 0.77, nebula_composition.KMT_CHI_METALLICITY (3.1, 0.365), nebula_composition.KMT_LOG_TERMS (0.6, 0.01), nebula_composition.KMT_S_COEFFICIENT 0.04, nebula_composition.KMT_FRACTION_TERMS (0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity"
             ],
             [
               "The range it moves in",
@@ -35469,8 +35469,8 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
-          "what": "nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity"
+          "unread": null,
+          "what": "nebula_composition.KMT_CHI_COEFFICIENT 0.77, nebula_composition.KMT_CHI_METALLICITY (3.1, 0.365), nebula_composition.KMT_LOG_TERMS (0.6, 0.01), nebula_composition.KMT_S_COEFFICIENT 0.04, nebula_composition.KMT_FRACTION_TERMS (0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity"
         },
         {
           "burn_down": null,
