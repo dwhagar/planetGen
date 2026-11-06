@@ -384,14 +384,6 @@ with `clamp()`.
   otherwise.
   Prerequisite: UX.45. Related: UX.47.
 
-- [ ] **UX.94 Gravity map wording: the legend, the mode names and the Map help text**
-  Done: the legend names the unit (metric or Customary through the UX.36
-  number formatting), the three modes have plain in-universe names with
-  a one-line explanation each, the Map help dialog explains what the
-  colours mean and what a saddle point is, and no TODO code appears in
-  any of it (UX.93, done).
-  Prerequisites: none. Related: MAP.167.
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -1210,7 +1202,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   come from those thresholds, and the legend names the scale in use. See
   docs/design/orbits/gravity-map.md.
   Headline: 9.0 (the gravity map).
-  Prerequisites: GEN.199, UX.94. Related:
+  Prerequisites: GEN.199. Related:
   GEN.105, NAV.6.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
   newer note wins, report todo-contradictions-2026-10-18.md): the title
@@ -18271,7 +18263,8 @@ clears each one.
   arithmetic (a float order difference) or a value is rounded at
   storage. Say which and fix at the cause; a tolerance may be set only
   to the stated precision of the stored column. Done: the test passes on
-  current main. Owner: Aux 2. Do: reproduce on current main first (a
+  current main. Owner: Tides 1 (moved from Aux 2 by the TODO thread, 9:58
+  PM EST on 2026-11-05, no start was reported by Aux 2). Do: reproduce on current main first (a
   merge since may have fixed it), fix at the cause with the property
   kept, never skip or loosen a test. Lock-free if output is unchanged;
   tell the TODO thread if values change. Version 8.1. Filed by the TODO
