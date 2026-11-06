@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3446] - 2026-11-06
+
+**Headline:** The debug log line names its area in brackets, so a debug log can be filtered by it.
+
+### Changed
+
+- The debug line is now `2026-10-23T17:29:42.729-0400 DEBUG    worker.py[2142] [draw] random.py:688 random | roll draw.random() -> 0.31` (OPS.102): the area (`[draw]`, `[sql]`, `[queue]`, `[web]`, `[decision]`, `[cache]`, `[branch]`) replaces the logger-name column, which was almost always `planetgen` (or `planetgen.trace`). The format is the only one written and read: `test_debug_mode.py` reads the new columns, and `docs/reference/cli.md` and the logging standard show them.
+- The debug form of the formatter derives the area of a record no filter stamped, so a handler made outside `configure` cannot fail on a missing field.
+
+generation-output: unchanged
+
 ## [8.0.3445] - 2026-11-06
 
 **Headline:** The nightly whole-map build, the nightly orbit update and update.sh each leave a log of their own in the log folder.
