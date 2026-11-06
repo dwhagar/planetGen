@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3399] - 2026-11-06
+
+**Headline:** A test now checks that a rogue planet and a planet of one mass are made by one code path and stored the same way.
+
+### Changed
+- TEST.498: a rogue planet and a bound planet of the same mass are compared on the attributes they carry, the columns and kinds of value they store, the moon class and the class table; they differ only in the star's light, the liquid surface, the cloud layer and (through the class) the strength of a solid body. Nothing derives from `Planet`, so no rogue-only generator can exist unnoticed.
+
 ## [8.0.3398] - 2026-11-06
 
 **Headline:** The rogue yield per star is now checked against the microlensing census and the terrestrial scale.
