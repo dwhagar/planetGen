@@ -16679,6 +16679,31 @@ clears each one.
   GEN.1085. Filed by the TODO thread from Aux 5.
   Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
 
+- [ ] **DB.113 The generate run stops at stage 7 (Scatter the massive stars) on a MySQL deadlock (error 1213) in unit 11, with 15 workers (bug)**
+  Boss, 6:23 PM EST on 2026-11-06 (relayed by the coordinator), live
+  crash, top priority: a new-galaxy run (seed 85E412740CFE74538A553096CC454179,
+  PlanetGen 8.0.3486, job-20261106-223708-10bf.log) stopped at 6:12 PM EST
+  on 2026-11-06 after 2,017 s: "Stage 7 of 14 failed after 149 s: RunStopped:
+  unit 11 of stage Massive stars failed: OperationalError: (1213, 'Deadlock
+  found when trying to get lock; try restarting transaction')", 15 workers
+  running (peak 5.7 GB of workers, MySQL 1.7 GB). Units 1 to 10 had finished
+  (shells 167 to 208, 48 to 64 stars each) and the stage was at 4 percent
+  (20 of 65,536 shells). The stage unit hit a lock fight between parallel
+  writers and the run stopped at once instead of retrying. Do: (1) find
+  the statements that deadlock (the stage's unit write: scatter rows,
+  name registry rows, or the Object index rows, in sorted key order; read
+  SHOW ENGINE INNODB STATUS and the deadlock log on a run with 15 workers,
+  or reproduce on a smaller galaxy with many workers); (2) fix the cause
+  (a consistent lock order, no gap locks, smaller transactions) and also
+  make a unit that loses a deadlock (1213) or a lock wait (1205) start over
+  a few times before it fails the stage, as save_sector and the run_galaxy
+  draw already do; (3) add a test with two or more writers on the same
+  stage tables. Lock-free (no generated value changes). Done: a 15-worker
+  run passes stage 7 and a unit that loses a deadlock is retried. Version
+  8.1. Owner: the investigation thread "Fix massive-star scatter deadlock
+  crash" (Bug lane). Filed by the TODO thread.
+  Prerequisites: none. Related: DB.40, DB.41, PERF.245.
+
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
   oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md
