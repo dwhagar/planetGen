@@ -34505,7 +34505,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "VIEW.25",
+          "unread": null,
           "what": "sky_tiers.BLOCK_VISIT_SECONDS 4e-5: what the sphere draw spends on a row or a block, one worker, warm, in the far bands that hold most of the visits"
         },
         {
@@ -34633,6 +34633,82 @@
           "tweak": "L3",
           "unread": null,
           "what": "sky_tiers.LOCAL_MIX: the young, intermediate and old populations weigh alike in the share of a ring's stars that show, as near the Sun, where the halo and the bulge are a thousandth of the stars"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sky_charting.CELL_PAD_PC (half the diagonal of the 50 parsec observer cell, 43.3 pc): how far a tier's sphere is drawn past its reach, so every point of the cell is inside it"
+            ],
+            [
+              "The range it moves in",
+              "none (the geometry of the cell)"
+            ],
+            [
+              "Where it holds",
+              "the sky is built for the centre of the 50 parsec cell, and an observer anywhere in the cell must see a complete sky"
+            ],
+            [
+              "What would show it wrong",
+              "the cell size changing (sky_band.CELL_PC)"
+            ],
+            [
+              "What replaces it",
+              "a sky drawn exactly for each system instead of for its cell"
+            ],
+            [
+              "Evidence",
+              "geometry of the cell, VIEW.25"
+            ]
+          ],
+          "id": "SKT7",
+          "key": "6.176:SKT7",
+          "kind": "D",
+          "slug": "6-176-skt7",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "sky_charting.CELL_PAD_PC (half the diagonal of the 50 parsec observer cell, 43.3 pc): how far a tier's sphere is drawn past its reach, so every point of the cell is inside it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "run_galaxy.SKY_SECTOR_SECONDS 6e-5: the seconds a backfilled sector costs in the queue's bar, which turns a sky unit's predicted seconds into the bar's unit of sectors"
+            ],
+            [
+              "The range it moves in",
+              "2e-5 to 3e-4"
+            ],
+            [
+              "Where it holds",
+              "the backfill's measured cost a sector, on the scale of SKT3; only the bar's pace depends on it"
+            ],
+            [
+              "What would show it wrong",
+              "a bar that runs far ahead of or behind a sky unit's real time"
+            ],
+            [
+              "What replaces it",
+              "a time measured on the production worker"
+            ],
+            [
+              "Evidence",
+              "VIEW.41 report section 3, VIEW.25; SKY_WRITE_FACTOR 4.6 multiplies the walk's predicted seconds, because locking and writing the cells cost more than finding them (a full galaxy's 7.5 cell: 1,826 s measured, 398 s predicted)"
+            ]
+          ],
+          "id": "SKT8",
+          "key": "6.176:SKT8",
+          "kind": "P",
+          "slug": "6-176-skt8",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "run_galaxy.SKY_SECTOR_SECONDS 6e-5: the seconds a backfilled sector costs in the queue's bar, which turns a sky unit's predicted seconds into the bar's unit of sectors"
         }
       ],
       "slug": "6-176-stand-ins-of-the-sky-tier-table",

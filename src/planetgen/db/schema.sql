@@ -4800,6 +4800,38 @@ CREATE TABLE IF NOT EXISTS chart_ledger (
 
 
 -- ---------------------------------------------------------------------
+-- sky_tier_draws (v216, VIEW.25): the spheres the sky tiers have drawn. Charting draws the stars a system's sky needs (`generation/sky_tiers.py`: luminosity bands of 50 Lsun and up,
+-- mass rings under it) over spheres centered on the system's 50 parsec cell (the cell the glow band is kept for) with the star backfill, and records each sphere here: `kind` (luminosity or mass),
+-- the band's range (`band_low`, `band_high`: Lsun for a band, solar masses for a ring; NULL for no upper edge), the center and `radius_pc` (padded by the cell's half diagonal so every system in the cell
+-- is covered), the limiting magnitude it was built for, the stars written, the seconds it took and the generator epoch. A cell inside a sphere is complete down to the tier's floor with no
+-- `sector_stats` row of its own (a sky sphere holds billions of cells); `db/sky_tier_ledger.py` reads the rows, and the backfill and the fill settle a sector's level from them before they draw.
+-- One row for each kind, band, cell and radius: a deeper sky of the same cell is a row of its own, wider (the cells inside the older sphere are not drawn again). A sphere is drawn in
+-- batches of cells, each committed with the count of batches done (`batches_done`), so a stopped draw goes on from there; `complete` is 1 once the last batch is in, and only then does the sphere count.
+CREATE TABLE IF NOT EXISTS sky_tier_draws (
+    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    kind             VARCHAR(12) NOT NULL,
+    band_low         DOUBLE NOT NULL,
+    band_high        DOUBLE NULL,
+    center_x_pc      DOUBLE NOT NULL,
+    center_y_pc      DOUBLE NOT NULL,
+    center_z_pc      DOUBLE NOT NULL,
+    radius_pc        DOUBLE NOT NULL,
+    limit_mag        DOUBLE NOT NULL,
+    stars            INT UNSIGNED NOT NULL DEFAULT 0,
+    seconds          DOUBLE NOT NULL DEFAULT 0,
+    generator_epoch  SMALLINT UNSIGNED NULL,
+    batches_done     INT UNSIGNED NOT NULL DEFAULT 0,
+    complete         TINYINT(1) NOT NULL DEFAULT 1,
+    drawn_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    CONSTRAINT chk_sky_tier_draws_kind CHECK (kind IN ('luminosity', 'mass')),
+    CONSTRAINT chk_sky_tier_draws_radius CHECK (radius_pc >= 0),
+    UNIQUE KEY uq_sky_tier_draws_cell (kind, band_low, center_x_pc, center_y_pc, center_z_pc, radius_pc),
+    KEY idx_sky_tier_draws_kind (kind, band_low)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
 -- sector_paths and sector_path_knots (v62, GEN.123): the path a body with
 -- no closed orbit takes through its sector (`physics/sector_path.py`), as
 -- cubic Hermite spline knots. One `sector_paths` row per body

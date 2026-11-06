@@ -309,6 +309,32 @@ bright_stars = sa.Table(
 )
 
 
+sky_tier_draws = sa.Table(
+    'sky_tier_draws',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('kind', sa.String(12), nullable=False),
+    sa.Column('band_low', mysql.DOUBLE(), nullable=False),
+    sa.Column('band_high', mysql.DOUBLE(), nullable=True),
+    sa.Column('center_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('radius_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('limit_mag', mysql.DOUBLE(), nullable=False),
+    sa.Column('stars', mysql.INTEGER(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('seconds', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('batches_done', mysql.INTEGER(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('complete', mysql.TINYINT(1), server_default=sa.text("'1'"), nullable=False),
+    sa.Column('drawn_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('idx_sky_tier_draws_kind', 'kind', 'band_low'),
+    sa.UniqueConstraint('kind', 'band_low', 'center_x_pc', 'center_y_pc', 'center_z_pc', 'radius_pc', name='uq_sky_tier_draws_cell'),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'luminosity',_utf8mb4'mass'))", name='chk_sky_tier_draws_kind'),
+    sa.CheckConstraint('(`radius_pc` >= 0)', name='chk_sky_tier_draws_radius'),
+    mysql_engine="InnoDB",
+)
+
+
 change_plan_ops = sa.Table(
     'change_plan_ops',
     metadata,
