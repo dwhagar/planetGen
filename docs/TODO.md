@@ -17201,6 +17201,19 @@ clears each one.
   current main. Version 8.1. Owner: Core 3. Filed by the TODO thread.
   Prerequisites: none.
 
+- [ ] **TEST.653 tests/test_web_seo.py::test_every_web_page_is_classified_on_purpose fails on main: web.sector_gravity (MAP.168) is missing from the indexing matrix in web/seo.py (bug)**
+  Aux 5 found it red on main (2:40 PM EST as the lane reported) while
+  testing GEN.1070 part 2, and says it is not its change. The Sector Map
+  Gravity layer (MAP.168, #5267) added the JSON-only route
+  web.sector_gravity (it carries json_only = True in sector_page.py) and
+  did not classify it in the indexing matrix. Do: classify web.sector_gravity
+  in web/seo.py on purpose (a utility or private JSON route, not indexed),
+  run test_web_seo.py, and say in the changes note why. Lock-free, test
+  and a one-line matrix entry, no migration. Done: the test is green on
+  main. Version 8.1. Owner: Tides 1 (gravity layer). Filed by the TODO
+  thread.
+  Prerequisites: none. Related: MAP.168.
+
 - [ ] **VIEW.47 Sky charting runs by default: the Generate console, the API job and the setup call the sphere draws and the floor table of VIEW.25 (--sky-limit is opt-in today)**
   VIEW.25 (train 12, #5333) charts the sky tiers only when a run is given
   --sky-limit, so generation output did not change. Do: decide with

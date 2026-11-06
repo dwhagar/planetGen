@@ -620,6 +620,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.634 | test_web_browser_layout.py::test_controls_do_not_overlap[web.galaxy at 390, 600, 820 and 1280] fails: on /galaxy the Go to button and address input overlap the site search link, Help and Menu (bug) |  |  |
 | TEST.642 | tests/test_work_units.py: three tests start a second run in the same process and raise Busy from the ADM.136 guard (a run started inside a run would wait for itself for ever) (bug) |  |  |
 | TEST.650 | tests/test_gen_reach_groups.py case 3 fails on main: the expected star count is 873.8 where the test wants over 1000 (bug) |  |  |
+| TEST.653 | tests/test_web_seo.py::test_every_web_page_is_classified_on_purpose fails on main: web.sector_gravity (MAP.168) is missing from the indexing matrix in web/seo.py (bug) |  |  |
 | TEST.600 | Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12) |  |  |
 | TEST.591 | test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug) |  |  |
 
