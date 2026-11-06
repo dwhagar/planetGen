@@ -181,7 +181,10 @@ def _rows(mysql_config, sql):
 
 
 def _sectors(mysql_config):
-    return _rows(mysql_config, "SELECT id, name, center_x_pc FROM sectors ORDER BY id")
+    """The sectors the CLI charted. A rogue planet that lands in a cell nobody charted gets a row of its own (GEN.1111, part 7), kept out of the chart
+    ledger: it is no sector the CLI placed."""
+    return _rows(mysql_config, "SELECT s.id, s.name, s.center_x_pc FROM sectors s JOIN chart_ledger c ON c.shell_index = s.shell_index"
+                               " AND c.band_index = s.band_index AND c.wedge_index = s.wedge_index ORDER BY s.id")
 
 
 def _sector_node_keys(mysql_config):
@@ -304,11 +307,12 @@ def test_sector_page_and_nodes_show_a_phenomenon_the_cli_added(site, mysql_confi
     _generate(mysql_config, "sectors", "--shell", "0", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
     page_url = f"/sector/{pid('sector', first['id'])}"
-    nodes_url = f"/galaxy/nodes?keys={ROOTS}"
+    # The sector's own node: a root node keeps only the biggest clouds, and the seed's field clouds (MAP.178) fill it before a small named one (TEST.644).
+    nodes_url = "/galaxy/nodes?keys=" + _sector_node_keys(mysql_config)[0]
     before = site.html(page_url)
     warm = node_payload(site.get(nodes_url))
     assert "Shell Cloud" not in before
-    # The plan and the sector are drawn unseeded, so a nebula of the draw may sit in the root nodes (TEST.257):
+    # The plan and the sector are drawn unseeded, so a nebula of the draw may sit in the node (TEST.257):
     # what the test checks is that the cloud the CLI adds appears, and nothing else changes.
     drawn = sorted(cloud["name"] for node in warm["nodes"].values() for cloud in node["clouds"])
     assert "Shell Cloud" not in drawn
