@@ -33,6 +33,14 @@ test("a map that fills its window is 95% of the window (MAP.350)", () => {
   assert.equal(F.fillHeight(1056, { covered: 56 }), 950, "95% of what a header at the top of the window leaves");
 });
 
+test("a map with a row above it that stays in view is the share of the window less the row (TEST.634)", () => {
+  assert.equal(F.fillHeight(1000, { above: 40 }), 950 - 40, "the row and the map are the block that is 95% of the window");
+  assert.equal(F.fillHeight(1056, { covered: 56, above: 40 }), 950 - 40);
+  assert.equal(F.fillHeight(1000, { above: -5 }), 950, "a row above that measures less than nothing takes nothing");
+  assert.equal(F.fillHeight(1000, { above: NaN }), 950);
+  assert.equal(F.fillHeight(400, { above: 100 }), F.MIN_HEIGHT_PX, "a short window keeps the least");
+});
+
 test("the margin above a filling map is half of what it leaves", () => {
   assert.equal(F.fillBuffer(1000, 950, 0), 25);
   assert.equal(F.fillBuffer(1056, 950, 56), 25);
@@ -112,5 +120,62 @@ test("a pointer press and the wheel also leave the page where it is", () => {
     watcher.refit();
     assert.equal(scrolls.length, 0, type);
     watcher.stop();
+  }
+});
+
+// A page whose map has a row above it (the Galaxy Map's Go to row, TEST.634): the row sits 40 px above the map, the map's top is 700 px down the page.
+function rowAndMap(rowHeight) {
+  const state = { rowHeight: rowHeight };
+  const row = { getBoundingClientRect: () => ({ top: 660 - window.scrollY, height: state.rowHeight, bottom: 660 + state.rowHeight - window.scrollY }) };
+  const view = {
+    style: { height: "" },
+    getBoundingClientRect: () => {
+      const height = parseInt(view.style.height, 10) || 500;
+      return { top: 700 - window.scrollY, height: height, bottom: 700 + height - window.scrollY };
+    },
+    closest: () => null,
+  };
+  return { row, view, state };
+}
+
+test("the row and the map are the block that fills the window, and the page rests with the row at the buffer (TEST.634)", () => {
+  F.forgetReader();
+  const original = { scrollTo: window.scrollTo, scrollY: window.scrollY, innerHeight: window.innerHeight };
+  window.scrollY = 0;
+  window.innerHeight = 1000;
+  document.documentElement.scrollHeight = 3000;
+  window.scrollTo = (x, y) => { window.scrollY = y; };
+  const { row, view } = rowAndMap(40);
+  const watcher = F.watchWindowFit(view, null, { fill: true, block: row });
+  try {
+    assert.equal(parseInt(view.style.height, 10), 950 - 40, "the map is the row's height shorter");
+    const blockHeight = 40 + 910;
+    const buffer = Math.round((1000 - blockHeight) / 2);
+    assert.equal(window.scrollY, 660 - buffer, "the row's top, not the map's, is at the buffer");
+    assert.ok(row.getBoundingClientRect().top >= buffer - 1, "the row is in view");
+  } finally {
+    watcher.stop();
+    Object.assign(window, original);
+  }
+});
+
+test("a row that is not shown leaves the map to fill the window alone (TEST.634)", () => {
+  F.forgetReader();
+  const original = { scrollTo: window.scrollTo, scrollY: window.scrollY, innerHeight: window.innerHeight };
+  window.scrollY = 0;
+  window.innerHeight = 1000;
+  document.documentElement.scrollHeight = 3000;
+  window.scrollTo = (x, y) => { window.scrollY = y; };
+  const { row, view, state } = rowAndMap(0);
+  const watcher = F.watchWindowFit(view, null, { fill: true, block: () => row });
+  try {
+    assert.equal(parseInt(view.style.height, 10), 950, "a hidden row has no height");
+    assert.equal(window.scrollY, 700 - 25, "the map's own top is at the buffer");
+    state.rowHeight = 40;                                  // the row is shown
+    watcher.refit();
+    assert.equal(parseInt(view.style.height, 10), 910, "the map gives the row its room");
+  } finally {
+    watcher.stop();
+    Object.assign(window, original);
   }
 });

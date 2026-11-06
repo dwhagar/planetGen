@@ -1,7 +1,8 @@
 """
-MAP.350: the Galaxy Map window fills the browser window: the map is always 95% of the window's height (less a held header), recomputed on
-resize, the page rests with the map centered in the window, and once the reader scrolls the page it is left where they put it. A short window
-keeps the least height.
+MAP.350, TEST.634: the Galaxy Map window fills the browser window: the Go to row and the map form a block that is always 95% of the window's
+height (less a held header), so the map is as much shorter as the row is tall; it is recomputed on resize, the page rests with the block
+centered in the window and so with the row in view under the header, and once the reader scrolls the page it is left where they put it.
+A short window keeps the least height.
 
 Skipped without Playwright, Chromium or WebGL, like the other map browser tests.
 """
@@ -16,7 +17,10 @@ FILL_SHARE = 0.95
 MIN_HEIGHT_PX = 320
 RECT = """() => { const r = document.querySelector('.galaxymap3d-panel .starmap-viewport').getBoundingClientRect();
     const h = document.querySelector('header'); const sticky = h && ['fixed', 'sticky'].includes(getComputedStyle(h).position);
-    return {top: r.top, bottom: r.bottom, height: r.height, inner: innerHeight, scrollY: scrollY, covered: sticky ? h.getBoundingClientRect().bottom : 0}; }"""
+    const row = document.querySelector('#galaxymap3d-address'); const q = row ? row.getBoundingClientRect() : null;
+    const shown = q && q.height > 0;
+    return {top: r.top, bottom: r.bottom, height: r.height, inner: innerHeight, scrollY: scrollY, covered: sticky ? h.getBoundingClientRect().bottom : 0,
+            rowTop: shown ? q.top : r.top, rowHeight: shown ? q.height : 0}; }"""
 
 
 def _rested(page, expected_inner):
@@ -38,9 +42,11 @@ def test_the_map_is_ninety_five_percent_of_the_window(page, map_site, size):
     _settle(page)
     rect = _rested(page, size[1])
     assert rect["covered"] > 0, "the fixture's page holds its header at the top of the window"
-    assert abs(rect["height"] - FILL_SHARE * (size[1] - rect["covered"])) <= 1, rect
-    margin = (size[1] - rect["covered"] - rect["height"]) / 2
-    assert abs(rect["top"] - (rect["covered"] + margin)) <= 2, rect
+    assert rect["rowHeight"] > 0, "the Go to row is shown above the map"
+    block = rect["bottom"] - rect["rowTop"]
+    assert abs(block - FILL_SHARE * (size[1] - rect["covered"])) <= 1, rect
+    margin = (size[1] - rect["covered"] - block) / 2
+    assert abs(rect["rowTop"] - (rect["covered"] + margin)) <= 2, rect
     assert abs(rect["bottom"] - (size[1] - margin)) <= 3, rect
     assert page.locator(GALAXY_CANVAS).bounding_box()["height"] > rect["height"] - 2, "the canvas fills the window"
 
@@ -51,7 +57,7 @@ def test_a_short_window_keeps_the_least_height_and_the_page_still_rests_with_the
     _settle(page)
     rect = _rested(page, 330)
     assert rect["height"] == pytest.approx(MIN_HEIGHT_PX, abs=1), rect
-    assert rect["top"] >= rect["covered"] - 2, rect
+    assert rect["rowTop"] >= rect["covered"] - 2, rect
 
 
 def test_a_page_the_reader_has_scrolled_is_left_where_they_put_it(page, map_site):
@@ -64,4 +70,4 @@ def test_a_page_the_reader_has_scrolled_is_left_where_they_put_it(page, map_site
     page.set_viewport_size({"width": 1600, "height": 880})
     rect = _rested(page, 880)
     assert rect["scrollY"] == 0 and rect["top"] > rect["covered"] + 50, rect
-    assert abs(rect["height"] - FILL_SHARE * (880 - rect["covered"])) <= 1, rect
+    assert abs(rect["bottom"] - rect["rowTop"] - FILL_SHARE * (880 - rect["covered"])) <= 1, rect
