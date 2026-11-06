@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1191 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1192 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 110 | 85 | 24 | 61 | 0 | 280 |
+| T6 | 111 | 85 | 24 | 61 | 0 | 281 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 652 | 248 | 58 | 188 | 45 | 1191 |
+| All | 653 | 248 | 58 | 188 | 45 | 1192 |
 
 ## How the labels were given
 
@@ -1529,6 +1529,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NBC13 | P | T6 | L3 | nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind | 0.1 to 0.5 | ring nebulae of WN and WC stars | a measured helium or nitrogen excess of a ring outside the mix | observed ring abundances by host subtype | the observed rings are mostly swept-up gas with a wind-enriched helium and nitrogen (report section 3); the share is argued, not measured | - | no data |
 | NBC14 | D | T9 | L0 | nebula_columns.SPECIES_SHARE 0.05: the share of the hydrogen a phase must hold for `dominant_species` to name it (a wording cut) | 0.02 to 0.2 | the plain-words summary written from the stored numbers (GEN.1276) lists a phase only when it matters | none: it changes a sentence, no number | the full numbers, which are stored | needed output: a sentence has to stop somewhere | - | - |
 | NBC15 | D | T9 | L0 | nebula_columns.GRAIN_NAME_SHARE 0.15: the share of the dust a grain kind must hold for `dominant_species` to name it (a wording cut) | 0.05 to 0.3 | as NBC14 | none: it changes a sentence, no number | the grain shares, which are stored | needed output: a sentence has to stop somewhere | - | - |
+| NBC16 | P | T6 | L0 | nebula_composition.GAS_OH_MAX_DEX 0.7: the highest [O/H] the gas of a place can have, dex (the gradient is capped; a galaxy with a very wide disk would otherwise put the gas several dex above solar) | 0.5 to 1.0 | the inner Milky Way disk; a galaxy whose reference radius is a few times the Milky Way's | an H II region in the inner disk with [O/H] above +0.7 | the gas metallicity from the galaxy's own chemical-evolution model | the gradient at the center of the Milky Way (+0.28) plus three times the scatter (0.42), a recalled bound for the inner disk, not a measurement | - | - |
 
 ## 6.178 Stand-ins of the progenitor and ejecta of a planetary nebula
 
