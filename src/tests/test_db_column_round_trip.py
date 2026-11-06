@@ -174,9 +174,9 @@ NULL_IN_THIS_GALAXY = {
     **{("asteroid_belts", column): CHANCE for column in ("origin_history", "scatter_fates")},
     ("belt_members", "scatter_tag"): CHANCE,       # GEN.1092: only the members of an outer disk a giant swept are tagged
     # GEN.1084: only a giant of a star with an outer disk keeps irregular moons (test_irregular_moons_stored.py writes and reads them back)
-    **{("irregular_sets", column): CHANCE for column in ("remainder_kg", "above_floor", "lost", "temporary")},
+    **{("irregular_sets", column): CHANCE for column in ("id", "planet_id", "remainder_kg", "above_floor", "lost", "temporary")},
     **{("irregular_moons", column): CHANCE for column in (
-        "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
+        "id", "planet_id", "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
         "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")},
     **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
        for column in ("formed_at", "origin_event_id")},
@@ -186,7 +186,7 @@ NULL_IN_THIS_GALAXY = {
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
-    ("moons", "rogue_planet_id"): "only a moon of a free planet (test_parent_link)",
+    ("moons", "rogue_planet_id"): CHANCE,       # only a moon of a free planet (test_parent_link); the draws decide whether this small galaxy has one
     # GEN.764: the seeded galaxy runs no scatter, and its population pass finds no civilization.
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
@@ -223,6 +223,11 @@ NEVER_READ = {
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
+    # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py); no page or API line shows them yet.
+    **{("irregular_moons", column): "stored by GEN.1084; the page and the API line for the irregular moons follow" for column in (
+        "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
+        "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")},
+    ("irregular_sets", "id"): "child row id",
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
        for column in ("storage_checksum", "parity_dirty")},
     ("stars", "cluster_id"): "read when a star's cluster is shown (DB.61 adds the column only)",
