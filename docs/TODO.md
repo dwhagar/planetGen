@@ -14399,6 +14399,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fast-forward moves them with the orbits.
   Prerequisites: GEN.139. Related: POP.24, POP.35, POP.30.
 
+- [ ] **GEN.1294 A galaxy build died once with "SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000 K)": some draw asks the magma-ocean fit for a temperature past its range (bug)**
+  Aux 5 (as the lane reported, about 7:15 PM EST on 2026-11-05): while
+  testing the GEN.1082 to GEN.1084 stack, one galaxy build stopped with
+  "SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000
+  K)" and passed on a rerun, so a draw can ask the magma-ocean (liquid
+  silicate) fit for a temperature above its range. Do: find which stage
+  asks for 6881 K (likely a very hot surface or magma ocean on a
+  close-in planet), reproduce it from the seed, and either clamp the
+  call to the fit range with a registered stand-in (GEN.725, tier and
+  tweak level) or extend the fit from the data; never catch and hide the
+  error. A changed generated value is a lock item (epoch); a pure range
+  guard is not. Version 8.1. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
