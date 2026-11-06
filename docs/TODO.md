@@ -16796,6 +16796,29 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
 
+- [ ] **PERF.247 Job queue: a job can declare that it requires another job, so the round robin never picks one that cannot run yet; jobs with no declared dependency still run together**
+  Boss, 6:45 PM EST on 2026-11-06 (relayed by the coordinator), following
+  PERF.245's fair sharing between task types: the queue must not hand a
+  worker a job that cannot run because it depends on a previous job, and
+  this guards against running tasks in the wrong order. Do: add an
+  optional requires (one or more job ids or task-type stages) to a job's
+  declaration; the dispatcher skips a job whose requirements are not done
+  (and leaves it queued, not failed), shows it as waiting on those jobs in
+  the run record and log, and a requirement that failed or was stopped
+  fails or stops its dependants with a clear line instead of waiting
+  forever. Only declared dependencies block: jobs that can run
+  concurrently (they do not touch each other's data or read data that is
+  not there yet) stay allowed to run together, so the stages that
+  already run in parallel are not serialised. Declare the dependencies
+  that exist today (for example indexing after a stage's rows are written,
+  the sky charting after the scatter) and test for a dependant that waits,
+  a failed requirement, and two independent jobs running together.
+  Lock-free (queue only; no generated value changes). Done: a job with a
+  requirement is never started before it is done, and independent jobs
+  still overlap. Version 8.1. Owner: Core 4 (PERF.245's queue work), after
+  PERF.245. Filed by the TODO thread.
+  Prerequisites: PERF.245. Related: PERF.245, DB.113.
+
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
   oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md
