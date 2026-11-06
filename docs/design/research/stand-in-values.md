@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1192 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1194 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 111 | 85 | 24 | 61 | 0 | 281 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
-| T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 653 | 248 | 58 | 188 | 45 | 1192 |
+| T9 | 36 | 14 | 5 | 80 | 34 | 169 |
+| All | 654 | 248 | 58 | 189 | 45 | 1194 |
 
 ## How the labels were given
 
@@ -1524,7 +1524,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NBC8 | P | T2 | L1 | nebula_composition.CLASSES survival of S (silicate 0.39, iron 0.60, carbon 0.5, PAH 0.1): the share of interstellar dust that lives through a non-radiative shock | silicate 0.3 to 0.5; iron 0.5 to 0.7 | a shell remnant in the Milky Way or the Clouds | a destroyed share of the grains of a remnant outside these | a shock-by-shock destruction model | 61 percent of Si-rich and 40 percent of Fe-rich grains destroyed in 16 LMC remnants [R5109] (abstract read); carbon and PAH are stand-ins | - | - |
 | NBC9 | P | T6 | L3 | nebula_composition.CLASSES survival of B (0.7), V (0.5) and of the ejecta classes R, T, U, W (0.2): the share of the dust that lives on | 0.1 to 0.9 | warm ionized gas, old radiative remnants, fresh ejecta dust | a measured dust share of an old remnant or a Type Ia ejecta | the destruction literature (the ejecta rule of report section 11 is GEN.1271's) | recalled: sputtering in a cooling shell removes about half; reverse-shock models leave 12 to 40 percent of the ejecta dust [R5110, R5111] | - | no data |
 | NBC10 | P | T6 | L3 | nebula_composition.PHASES: the ionized, atomic and molecular shares of the hydrogen of every class (A and B tier T5, tweak L1) | each share 0.05 to 0.2 | one nebula of the class | a measured ionized share of a class outside the row | observed phase fractions by class | the Stromgren sphere (C, D, E, X), the warm neutral and ionized medium (A, B), a molecular envelope on a planetary nebula; recalled | - | no data |
-| NBC11 | P | T2 | L0 | nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity | the form | clouds of 0.01 to 10 solar metallicity, f above 0.25 to 30 percent | a cloud whose molecular share is outside 30 percent of the law | [R5104] read in full (eqs. 35 and 38) | [R5104]; the chi coefficient 0.77 checked against 2.3/3 in its eq. 7; the f form recalled and its half-molecular column (34 solar masses per pc2) is near the 27 of the paper | GEN.1276 | - |
+| NBC11 | P | T2 | L0 | nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity | the form | clouds of 0.01 to 10 solar metallicity, f above 0.25 to 30 percent | a cloud whose molecular share is outside 30 percent of the law | [R5104] read in full (eqs. 35 and 38) | [R5104]; the chi coefficient 0.77 checked against 2.3/3 in its eq. 7; the f form recalled and its half-molecular column (34 solar masses per pc2) is near the 27 of the paper | GEN.1305 | - |
 | NBC12 | P | T6 | L0 | nebula_composition.column_density_msun_pc2: the mean column of a nebula as 4/3 n R of mass 1.4 m_H per hydrogen atom | a factor 2 | uniform spheres | a cloud whose molecular share is far from its column's | a density profile of the cloud | a uniform sphere's mean column; the stored density is the cloud's mean | - | - |
 | NBC13 | P | T6 | L3 | nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind | 0.1 to 0.5 | ring nebulae of WN and WC stars | a measured helium or nitrogen excess of a ring outside the mix | observed ring abundances by host subtype | the observed rings are mostly swept-up gas with a wind-enriched helium and nitrogen (report section 3); the share is argued, not measured | - | no data |
 | NBC14 | D | T9 | L0 | nebula_columns.SPECIES_SHARE 0.05: the share of the hydrogen a phase must hold for `dominant_species` to name it (a wording cut) | 0.02 to 0.2 | the plain-words summary written from the stored numbers (GEN.1276) lists a phase only when it matters | none: it changes a sentence, no number | the full numbers, which are stored | needed output: a sentence has to stop somewhere | - | - |
@@ -1668,6 +1668,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | WB1 | P | T1 | L0 | tuning.WR_BINARY_MIN_RATIO 0.72: the least initial mass at which a companion can strip a star into a Wolf-Rayet star, as a share of the single-star threshold (18 against 25 solar masses at the Sun's metallicity, carried up by the same metallicity law as the threshold) | 0.6 to 0.85 | primaries of 15 to 40 solar masses with a close companion, at the Galaxy's metallicity; at lower metallicity the law is the single-star threshold's own | a spectroscopic survey of Wolf-Rayet stars in binaries whose primaries began below 18 solar masses, or the 18 / 24 / 37 solar mass trend of the Galaxy, LMC and SMC failing to follow Z to the minus one half | the stripped-star mass from a binary evolution grid by metallicity, period and mass ratio (the MESA grid of the source) | [R4051: Table 1] and section 3.2: the least initial mass 18 solar masses for the Galaxy, from the 7.5 solar mass least stripped helium star of a Wolf-Rayet spectrum | - | - |
 | WB2 | P | T2 | L0 | tuning.WR_STRIPPING_FRACTION 0.33: the share of stars between the binary and the single-star threshold that a companion strips into a Wolf-Rayet star | 0.2 to 0.5 | the same band, near solar metallicity | an observed binary-stripped to single-star Wolf-Rayet ratio far from 0.25 to 0.4 in the Galaxy, or a population synthesis of interacting binaries giving another stripped share | a stripping chance from the period and mass-ratio law of the member trees (the share of close binaries that transfer mass in a way that strips the envelope) | [R4051] section 5, below its Eq. 4: the stripping efficiency 0.33 it takes from the observed interacting fraction (read, quoted by the paper, not re-derived) | - | - |
+
+## 6.193 Stand-ins of the anoxic world
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| AW1 | P | T9 | L3 | class F gravity edge 1.4 g (`planet_class_fit.json`, F `gravity_g lt 1.4`; 2.0 g before): F stops where the heavy thin-air class Z starts, so an anoxic air of 1.4 g or more is Z (hot, thin) or V (2 g or more) | 1.2 to 1.75 g | anoxic worlds with air at 273 to 400 K | a sweep where the edge moves bodies of class Z or V into F at 1.75 g (15 of 1448 changed letter, 7 of Z, against 6 at 1.4 g) | the gravity edges of Z and V fixed from the heavy-world physics of GEN.1136 | GEN.1281 class sweep, 1448 bodies from three seeds of 150 systems | - | - |
+| AW2 | P | T9 | L0 | class F carbon dioxide edge 20 percent (`share_co2 lt 0.2`): the edge class G starts at (`share_co2 min 0.2`), so an anoxic air with a fifth carbon dioxide is G and the rest is F | none (the edge of G) | anoxic worlds with air at 273 to 400 K | a carbon-dioxide air that is better read as F | the carbon-dioxide edge of G once the greenhouse classes are fitted | the G row of the same file; GEN.1207 | - | - |
 
 ## 6.192 Stand-in of how far apart random placement keeps two systems
 

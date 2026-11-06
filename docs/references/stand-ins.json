@@ -35469,7 +35469,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": "GEN.1305",
           "what": "nebula_composition.KMT_* (0.77, 3.1, 0.365, 0.6, 0.01, 0.04, 0.75, 0.25): the molecular fraction of a cold neutral cloud from its column density and metallicity"
         },
         {
@@ -38493,6 +38493,90 @@
       ],
       "slug": "6-184-stand-ins-of-the-binary-stripped-wolf-rayet-channel",
       "title": "Stand-ins of the binary-stripped Wolf-Rayet channel"
+    },
+    {
+      "key": "6.193",
+      "number": "6.193",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class F gravity edge 1.4 g (planet_class_fit.json, F gravity_g lt 1.4; 2.0 g before): F stops where the heavy thin-air class Z starts, so an anoxic air of 1.4 g or more is Z (hot, thin) or V (2 g or more)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 1.75 g"
+            ],
+            [
+              "Where it holds",
+              "anoxic worlds with air at 273 to 400 K"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep where the edge moves bodies of class Z or V into F at 1.75 g (15 of 1448 changed letter, 7 of Z, against 6 at 1.4 g)"
+            ],
+            [
+              "What replaces it",
+              "the gravity edges of Z and V fixed from the heavy-world physics of GEN.1136"
+            ],
+            [
+              "Evidence",
+              "GEN.1281 class sweep, 1448 bodies from three seeds of 150 systems"
+            ]
+          ],
+          "id": "AW1",
+          "key": "6.193:AW1",
+          "kind": "P",
+          "slug": "6-193-aw1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "class F gravity edge 1.4 g (planet_class_fit.json, F gravity_g lt 1.4; 2.0 g before): F stops where the heavy thin-air class Z starts, so an anoxic air of 1.4 g or more is Z (hot, thin) or V (2 g or more)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class F carbon dioxide edge 20 percent (share_co2 lt 0.2): the edge class G starts at (share_co2 min 0.2), so an anoxic air with a fifth carbon dioxide is G and the rest is F"
+            ],
+            [
+              "The range it moves in",
+              "none (the edge of G)"
+            ],
+            [
+              "Where it holds",
+              "anoxic worlds with air at 273 to 400 K"
+            ],
+            [
+              "What would show it wrong",
+              "a carbon-dioxide air that is better read as F"
+            ],
+            [
+              "What replaces it",
+              "the carbon-dioxide edge of G once the greenhouse classes are fitted"
+            ],
+            [
+              "Evidence",
+              "the G row of the same file; GEN.1207"
+            ]
+          ],
+          "id": "AW2",
+          "key": "6.193:AW2",
+          "kind": "P",
+          "slug": "6-193-aw2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class F carbon dioxide edge 20 percent (share_co2 lt 0.2): the edge class G starts at (share_co2 min 0.2), so an anoxic air with a fifth carbon dioxide is G and the rest is F"
+        }
+      ],
+      "slug": "6-193-stand-ins-of-the-anoxic-world",
+      "title": "Stand-ins of the anoxic world"
     },
     {
       "key": "6.192",
