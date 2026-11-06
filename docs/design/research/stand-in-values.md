@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1192 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1199 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 161 | 17 | 10 | 1 | 0 | 189 |
+| T1 | 163 | 17 | 10 | 1 | 0 | 191 |
 | T2 | 122 | 50 | 1 | 1 | 0 | 174 |
-| T3 | 85 | 42 | 7 | 9 | 0 | 143 |
+| T3 | 86 | 42 | 7 | 9 | 0 | 144 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
-| T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 111 | 85 | 24 | 61 | 0 | 281 |
+| T5 | 52 | 21 | 3 | 1 | 0 | 77 |
+| T6 | 114 | 85 | 24 | 61 | 0 | 284 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 653 | 248 | 58 | 188 | 45 | 1192 |
+| All | 660 | 248 | 58 | 188 | 45 | 1199 |
 
 ## How the labels were given
 
@@ -1674,6 +1674,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md | - | no data |
+
+## 6.193 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| WL1 | P | T1 | L0 | tuning.WD_ONE_CORE_MASS_FRACTIONS oxygen 0.55 and neon 0.30: the core of an oxygen-neon white dwarf | 0.50 to 0.60 and 0.25 to 0.35 | every oxygen-neon core, whatever its mass | a profile of a core of 1.05 to 1.3 solar masses whose mean oxygen or neon differs by more than 0.05 | a core composition by mass from the progenitor's carbon-burning model | R0627 Sect. 2.2 verbatim: "~55% 16O, ~30% 20Ne"; one value for all four models | - | - |
+| WL2 | P | T6 | L0 | tuning.WD_ONE_CORE_MASS_FRACTIONS trace 0.15: the remainder (22Ne, 23Na, 24Mg) held as one share | 0.10 to 0.20 | the same | a split of the remainder by element | the element-by-element core of the same models | the paper names the elements and gives no share | - | - |
+| WL3 | P | T3 | L0 | tuning.WD_ONE_HELIUM_MASS_BY_WD_MASS_SOL: the helium layer mass (solar masses) of the four models, straight in its log between them and held outside 1.10 to 1.29 | a factor of 2 either way outside the models | oxygen-neon white dwarfs of 1.05 to 1.35 solar masses | a helium layer from a model of 1.05 or 1.33 solar masses | models across 1.05 to 1.33 | R0627 Sect. 2.2: 3.24e-4 and 1.82e-4 solar masses read for 1.10 and 1.16; the last two (0.78e-4 and 0.21e-4) are assigned to 1.23 and 1.29 by the order of a garbled line | - | - |
+| WL4 | P | T1 | L0 | tuning.WD_ONE_HYDROGEN_MASS_SOL 1e-6: the hydrogen envelope (solar masses) of a hydrogen-atmosphere oxygen-neon white dwarf | none | ultra-massive white dwarfs | an envelope model of a lighter oxygen-neon star | a hydrogen envelope by mass from the progenitor's mass loss | R0627: "the maximum expected hydrogen envelope of about 1e-6 solar masses", called quite uncertain | - | - |
+| WL5 | P | T6 | L0 | tuning.WD_HELIUM_CORE_HYDROGEN_FRACTIONS: the hydrogen envelope of a helium-core white dwarf as a share of its mass, 2e-2 at 0.15 and 1e-3 at 0.45 solar masses, straight in its log | 5e-3 to 5e-2 at 0.15; 3e-4 to 3e-3 at 0.45 | hydrogen-atmosphere helium-core white dwarfs | an envelope mass from a helium-core evolution model of 0.2 or 0.3 solar masses that differs by more than a factor of 3 | the envelope mass of helium-core cooling sequences (not opened) | an educated guess from physics: a helium-core star is a hydrogen shell source's remnant that keeps a thick envelope; the papers were not read | - | - |
+| WL6 | P | T5 | L0 | tuning.WD_THIN_HYDROGEN_FRACTION 1e-10: the hydrogen of a helium-atmosphere white dwarf of either kind | none | non-DA white dwarfs | none: the same case as the downloaded sequences' thin envelope | none | datasets/white_dwarf_models thin case | - | - |
+| WL7 | P | T6 | L0 | stellar_composition._grid_radius_solar: a helium-core white dwarf reads the lightest carbon-oxygen sequence and an oxygen-neon one the 1.30 sequence, both scaled by the zero-temperature mass-radius ratio, so a helium-core star has the radius of a thin-envelope carbon-oxygen one | up to 20 percent for the lightest helium-core stars | white dwarfs under 0.20 or over 1.30 solar masses, and helium-core stars at any mass | a helium-core cooling sequence whose radius at 0.2 solar masses and 10,000 K differs from the scaled one by more than 5 percent | helium-core and oxygen-neon cooling sequences | educated guess; the thicker hydrogen envelope of a helium-core star makes it larger than the scaling gives | - | - |
 
 ## 6.182 Stand-ins of where a stored belt member lies
 

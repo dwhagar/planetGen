@@ -260,13 +260,17 @@ def test_the_atmosphere_shares_follow_the_measured_one():
     assert sum(shares) / 600 == pytest.approx(tuning.STELLAR_WD_DA_SHARE, abs=0.05)
 
 
-def test_a_helium_core_or_oxygen_neon_white_dwarf_has_no_layers_and_says_so():
+def test_a_helium_core_or_oxygen_neon_white_dwarf_has_layers_from_its_own_core_and_says_the_radius_is_open():
     light = sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 0.3, "x", teff_k=9000.0)
-    assert light.detail["core"] == "helium" and light.detail["layers"] is None
+    assert light.detail["core"] == "helium"
+    layers = light.detail["layers"]
+    assert layers["carbon"] == layers["oxygen"] == layers["neon"] == 0.0 and layers["helium"] + layers["hydrogen"] == pytest.approx(1.0)
     assert 0.003 < light.detail["radius_solar"] < 0.05      # lighter than the lightest sequence: that sequence, scaled by the zero-temperature relation's ratio of the masses
     heavy = sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 1.2, "x", teff_k=9000.0)
-    assert heavy.detail["core"] == "oxygen-neon" and heavy.detail["layers"] is None
-    assert any("helium-core or oxygen-neon" in item for item in heavy.open_items)
+    assert heavy.detail["core"] == "oxygen-neon"
+    assert heavy.detail["layers"]["neon"] > 0.2 and heavy.detail["layers"]["carbon"] == 0.0
+    assert sum(heavy.detail["layers"].values()) == pytest.approx(1.0)
+    assert any("radius of a helium-core or oxygen-neon" in item for item in heavy.open_items)
     assert sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 1.6, "x", teff_k=9000.0).detail["radius_solar"] is None
 
 

@@ -38545,6 +38545,280 @@
       "title": "Stand-in of how far apart random placement keeps two systems"
     },
     {
+      "key": "6.193",
+      "number": "6.193",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_ONE_CORE_MASS_FRACTIONS oxygen 0.55 and neon 0.30: the core of an oxygen-neon white dwarf"
+            ],
+            [
+              "The range it moves in",
+              "0.50 to 0.60 and 0.25 to 0.35"
+            ],
+            [
+              "Where it holds",
+              "every oxygen-neon core, whatever its mass"
+            ],
+            [
+              "What would show it wrong",
+              "a profile of a core of 1.05 to 1.3 solar masses whose mean oxygen or neon differs by more than 0.05"
+            ],
+            [
+              "What replaces it",
+              "a core composition by mass from the progenitor's carbon-burning model"
+            ],
+            [
+              "Evidence",
+              "R0627 Sect. 2.2 verbatim: \"~55% 16O, ~30% 20Ne\"; one value for all four models"
+            ]
+          ],
+          "id": "WL1",
+          "key": "6.193:WL1",
+          "kind": "P",
+          "slug": "6-193-wl1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WD_ONE_CORE_MASS_FRACTIONS oxygen 0.55 and neon 0.30: the core of an oxygen-neon white dwarf"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_ONE_CORE_MASS_FRACTIONS trace 0.15: the remainder (22Ne, 23Na, 24Mg) held as one share"
+            ],
+            [
+              "The range it moves in",
+              "0.10 to 0.20"
+            ],
+            [
+              "Where it holds",
+              "the same"
+            ],
+            [
+              "What would show it wrong",
+              "a split of the remainder by element"
+            ],
+            [
+              "What replaces it",
+              "the element-by-element core of the same models"
+            ],
+            [
+              "Evidence",
+              "the paper names the elements and gives no share"
+            ]
+          ],
+          "id": "WL2",
+          "key": "6.193:WL2",
+          "kind": "P",
+          "slug": "6-193-wl2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WD_ONE_CORE_MASS_FRACTIONS trace 0.15: the remainder (22Ne, 23Na, 24Mg) held as one share"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_ONE_HELIUM_MASS_BY_WD_MASS_SOL: the helium layer mass (solar masses) of the four models, straight in its log between them and held outside 1.10 to 1.29"
+            ],
+            [
+              "The range it moves in",
+              "a factor of 2 either way outside the models"
+            ],
+            [
+              "Where it holds",
+              "oxygen-neon white dwarfs of 1.05 to 1.35 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a helium layer from a model of 1.05 or 1.33 solar masses"
+            ],
+            [
+              "What replaces it",
+              "models across 1.05 to 1.33"
+            ],
+            [
+              "Evidence",
+              "R0627 Sect. 2.2: 3.24e-4 and 1.82e-4 solar masses read for 1.10 and 1.16; the last two (0.78e-4 and 0.21e-4) are assigned to 1.23 and 1.29 by the order of a garbled line"
+            ]
+          ],
+          "id": "WL3",
+          "key": "6.193:WL3",
+          "kind": "P",
+          "slug": "6-193-wl3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WD_ONE_HELIUM_MASS_BY_WD_MASS_SOL: the helium layer mass (solar masses) of the four models, straight in its log between them and held outside 1.10 to 1.29"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_ONE_HYDROGEN_MASS_SOL 1e-6: the hydrogen envelope (solar masses) of a hydrogen-atmosphere oxygen-neon white dwarf"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "ultra-massive white dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "an envelope model of a lighter oxygen-neon star"
+            ],
+            [
+              "What replaces it",
+              "a hydrogen envelope by mass from the progenitor's mass loss"
+            ],
+            [
+              "Evidence",
+              "R0627: \"the maximum expected hydrogen envelope of about 1e-6 solar masses\", called quite uncertain"
+            ]
+          ],
+          "id": "WL4",
+          "key": "6.193:WL4",
+          "kind": "P",
+          "slug": "6-193-wl4",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WD_ONE_HYDROGEN_MASS_SOL 1e-6: the hydrogen envelope (solar masses) of a hydrogen-atmosphere oxygen-neon white dwarf"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_HELIUM_CORE_HYDROGEN_FRACTIONS: the hydrogen envelope of a helium-core white dwarf as a share of its mass, 2e-2 at 0.15 and 1e-3 at 0.45 solar masses, straight in its log"
+            ],
+            [
+              "The range it moves in",
+              "5e-3 to 5e-2 at 0.15; 3e-4 to 3e-3 at 0.45"
+            ],
+            [
+              "Where it holds",
+              "hydrogen-atmosphere helium-core white dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "an envelope mass from a helium-core evolution model of 0.2 or 0.3 solar masses that differs by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the envelope mass of helium-core cooling sequences (not opened)"
+            ],
+            [
+              "Evidence",
+              "an educated guess from physics: a helium-core star is a hydrogen shell source's remnant that keeps a thick envelope; the papers were not read"
+            ]
+          ],
+          "id": "WL5",
+          "key": "6.193:WL5",
+          "kind": "P",
+          "slug": "6-193-wl5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WD_HELIUM_CORE_HYDROGEN_FRACTIONS: the hydrogen envelope of a helium-core white dwarf as a share of its mass, 2e-2 at 0.15 and 1e-3 at 0.45 solar masses, straight in its log"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_THIN_HYDROGEN_FRACTION 1e-10: the hydrogen of a helium-atmosphere white dwarf of either kind"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "non-DA white dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "none: the same case as the downloaded sequences' thin envelope"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "datasets/white_dwarf_models thin case"
+            ]
+          ],
+          "id": "WL6",
+          "key": "6.193:WL6",
+          "kind": "P",
+          "slug": "6-193-wl6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WD_THIN_HYDROGEN_FRACTION 1e-10: the hydrogen of a helium-atmosphere white dwarf of either kind"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "stellar_composition._grid_radius_solar: a helium-core white dwarf reads the lightest carbon-oxygen sequence and an oxygen-neon one the 1.30 sequence, both scaled by the zero-temperature mass-radius ratio, so a helium-core star has the radius of a thin-envelope carbon-oxygen one"
+            ],
+            [
+              "The range it moves in",
+              "up to 20 percent for the lightest helium-core stars"
+            ],
+            [
+              "Where it holds",
+              "white dwarfs under 0.20 or over 1.30 solar masses, and helium-core stars at any mass"
+            ],
+            [
+              "What would show it wrong",
+              "a helium-core cooling sequence whose radius at 0.2 solar masses and 10,000 K differs from the scaled one by more than 5 percent"
+            ],
+            [
+              "What replaces it",
+              "helium-core and oxygen-neon cooling sequences"
+            ],
+            [
+              "Evidence",
+              "educated guess; the thicker hydrogen envelope of a helium-core star makes it larger than the scaling gives"
+            ]
+          ],
+          "id": "WL7",
+          "key": "6.193:WL7",
+          "kind": "P",
+          "slug": "6-193-wl7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "stellar_composition._grid_radius_solar: a helium-core white dwarf reads the lightest carbon-oxygen sequence and an oxygen-neon one the 1.30 sequence, both scaled by the zero-temperature mass-radius ratio, so a helium-core star has the radius of a thin-envelope carbon-oxygen one"
+        }
+      ],
+      "slug": "6-193-stand-ins-of-the-layers-of-helium-core-and-oxygen-neon-white-dwarfs",
+      "title": "Stand-ins of the layers of helium-core and oxygen-neon white dwarfs"
+    },
+    {
       "key": "6.182",
       "number": "6.182",
       "rows": [
