@@ -561,11 +561,11 @@ def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=t
         sleep(units.POLL_SECONDS)
 
 
-def follow(run_id, on_plan, on_result, url=None, on_stage_done=None):
+def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done=None):
     """
     Follows a run this process did not start, from the run record alone (PERF.235): the steps are read from the record, and for each
     stage it waits for the plan, tells the caller (`on_plan(index, plan)`), and follows the units' results (`on_result(index, unit,
-    result)`) to the end, the results already stored first. It starts nothing, queues nothing and does not say the run is alive (the process
+    result)`, and `on_progress(index, unit, done, estimate)` for the units still working) to the end, the results already stored first. It starts nothing, queues nothing and does not say the run is alive (the process
     that started it does), so it can be started and stopped at any time without changing the run.
 
     Returns:
@@ -587,7 +587,9 @@ def follow(run_id, on_plan, on_result, url=None, on_stage_done=None):
         on_plan(index, plan)
         if plan["units"]:
             units.follow_stage(conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
-                               None, None, touch=False)
+                               None if on_progress is None else
+                               (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
+                               None, touch=False)
         conclusion = None
         if commands.spec(steps[index].kind).conclude is not None:
             conclusion = _await_conclusion(conn, run_id, index, None, touch=False)
