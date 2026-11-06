@@ -33,17 +33,8 @@ import numpy as np
 from numba import njit
 
 from planetgen.galaxy import gravity_kernel
+from planetgen.galaxy.gravity_settings import LEAF_PC, MAX_THETA, MIN_THETA, PAIR_BUDGET, THETA_STEP
 
-LEAF_PC = 0.5
-"""float: The edge of a leaf cell, parsecs: the finest grain the far sources are aggregated at (PERF.72: with whole 4 pc sectors as leaves a dense sector costs ten times more)."""
-MIN_THETA = 0.3
-"""float: The smallest opening angle `choose_theta` tries."""
-MAX_THETA = 0.7
-"""float: The largest opening angle that is allowed (1.0 gives 4 to 5 percent errors, PERF.72)."""
-THETA_STEP = 0.05
-"""float: The step `choose_theta` raises the opening angle by."""
-PAIR_BUDGET = 50_000_000
-"""int: The point-source pairs one target's list may cost with its points (about 0.1 s on four cores, PERF.72)."""
 HALF_DIAGONAL = math.sqrt(3.0) / 2.0
 """float: A cube's half-diagonal over its edge."""
 _BITS = 21

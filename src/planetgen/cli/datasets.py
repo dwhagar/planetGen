@@ -50,6 +50,19 @@ def _piece_line(state, piece, reason=""):
     return f"    {state:<8} {piece.url}" + (f" ({reason})" if reason else "")
 
 
+def _result_lines(pieces):
+    """The lines for what happened to a dataset's files: one for each file fetched or failed, and the files kept grouped by the
+    download URL they came from (the URL, and how many files when it is more than one), not one line for each file."""
+    lines, kept = [], {}
+    for handled in pieces:
+        if handled.state == "kept":
+            kept[handled.piece.url] = kept.get(handled.piece.url, 0) + 1
+        else:
+            lines.append(_piece_line(handled.state, handled.piece, handled.reason))
+    lines.extend(f"    {'kept':<8} {url}" + (f" ({count} files)" if count > 1 else "") for url, count in kept.items())
+    return lines
+
+
 class _Bars:
     """
     One bar per file while it downloads (the name, the bytes done of the total, the speed and the time left, in the style of the generation
@@ -191,9 +204,9 @@ def main(argv=None):
             absent += 1
             log.normal(_line(dataset, True, "; ".join(result.reasons)) + _CONSEQUENCE.format(dataset.replaces))
         else:
-            log.normal(_line(dataset, False, f"{result.status} ({len(dataset.pieces)} files, {fetch.folder(dataset)})"))
-        for handled in result.pieces:
-            log.normal(_piece_line(handled.state, handled.piece, handled.reason))
+            log.normal(_line(dataset, False, f"{result.status} ({len(dataset.pieces)} files, stored in {fetch.folder(dataset)})"))
+        for line in _result_lines(result.pieces):
+            log.normal(line)
     return 1 if absent else 0
 
 

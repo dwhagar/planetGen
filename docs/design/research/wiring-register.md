@@ -25,8 +25,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
-| function | planetgen.galaxy.gravity_kernel.pull_size | MAP.168 | the size of the pull of a grid, which the Sector Map layer draws in the Pull mode |
-| function | planetgen.galaxy.gravity_kernel.tidal_strength | MAP.168 | the largest eigenvalue of the tidal tensor of a grid, which the Sector Map layer draws in the Tidal strength mode |
+| function | planetgen.galaxy.gravity_kernel.pull_size | MAP.169 | the size of the pull of a grid, which the System Map layer (MAP.169) is to draw in the Pull mode, or MAP.169 deletes it |
+| function | planetgen.galaxy.gravity_kernel.tidal_strength | MAP.169 | the largest eigenvalue of the tidal tensor of a grid, which the System Map layer (MAP.169) is to draw in the Tidal strength mode, or MAP.169 deletes it |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
@@ -132,11 +132,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.96:IO2 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
 | row | 6.96:IO3 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
 | row | 6.96:IO4 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
-| module | planetgen.galaxy.rogue_density | GEN.1289 | the smoothed star density a rogue is drawn from (lock-free, GEN.1115); the virtual-donor sector draw takes its Poisson mean from it and the low-zoom map reads `old_density` |
-| row | 6.102:RSM1 | GEN.1289 | `rogue_density.RADIAL_SMOOTH_PC`, read when the wiring step lands |
-| row | 6.102:RSM2 | GEN.1289 | `rogue_density.VERTICAL_SMOOTH_PC`, read when the wiring step lands |
-| row | 6.102:RSM3 | GEN.1289 | `rogue_density.YOUNG_AGE_MYR`, read when the wiring step lands |
-| row | 6.102:RSM4 | GEN.1289 | `rogue_density.RING_STEPS`, read when the wiring step lands |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
 | function | planetgen.physics.belt_ledger.draw_ledger | GEN.1105 | read by `field_mass` for the stored bodies of a collision field; the field member rows wire it, and the belt member rows (GEN.1069) read the ledger `solve_belt` settles |
 | function | planetgen.physics.belt_ledger.draw_ledger | GEN.1105 | read by `field_mass` for the stored bodies of a collision field; the field member rows wire it, and the belt member rows (GEN.1070) read the ledger `solve_belt` settles |
@@ -320,22 +315,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.178:PNE4 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE5 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE7 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
-| module | planetgen.physics.nebula_composition | GEN.1276 | the composition item writes the values of each nebula and remnant at generation and backfill from `makeup(...).values()`, with `gas_oh` for the place; GEN.1277 does the same for the field clouds through `field_cloud_density_cm3` |
-| row | 6.179:NBC1 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC2 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC3 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC4 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC5 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC6 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | row | 6.179:NBC11 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC13 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| function | planetgen.physics.nebula_composition.gas_oh | GEN.1276 | the composition item writes the values of each nebula and remnant with `gas_oh` for the oxygen-hydrogen share |
+| function | planetgen.physics.nebula_composition.field_cloud_density_cm3 | GEN.1276 | the composition item draws the density of a field cloud (classes M and N) from its cell key |
 | module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
 | data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |
 | function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
 | function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |
-| module | planetgen.physics.dust_model | VIEW.44 | the dust of a galaxy from its own gas; the sky route, the glow band and the tier ledger build a `DustProfile` and pass it in the `dust=` dict |
-| row | 6.188:DU1 | VIEW.44 | `dust_model.HYDROGEN_ATOMS_PER_AV_CM2`, read when the sky reads the profile |
-| row | 6.188:DU2 | VIEW.44 | `dust_model.VISIBLE_SHARE`, read when the sky reads the profile |
-| row | 6.188:DU4 | VIEW.46 | `dust_model.LAYER_FLOOR_PC`, replaced by the vertical force of the potential |
 | function | planetgen.galaxy.spherical.sector_quadrant | DB.112 | the stored quadrant column and this function are deleted together once the migration drops the column |

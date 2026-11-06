@@ -2,6 +2,194 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3403] - 2026-11-06
+
+**Headline:** The nebula blob test says what the map does: a group of nebulae has no ring.
+
+### Changed
+- `tests/js/galaxynebulae.test.mjs` expected a ring on a group of several nebulae; the code has drawn none since MAP.392 (the circles were not wanted), so the test and its title now say a group of 12 and a single nebula both have no ring (TEST.633). Test only; `generation-output: unchanged`.
+
+## [8.0.3402] - 2026-11-06
+
+**Headline:** The Sector Map has a Gravity layer in the View menu that colors the sector's zones by pull, well depth or tidal strength and shows the saddle points between wells.
+
+### Added
+- **The Gravity layer (MAP.168).** Off at first. Turn it on in the View menu's *Show* group to draw one slab of the sector's 16 x 16 x 16 grid as colored zones (step through the slabs, or show every slab thinly), and choose pull, well depth or tidal strength. The numbers are the total field, the generated stars with the smooth galaxy added. Because the smooth galaxy is 99.9 percent of the pull, the colors are stretched over the sector's own 2nd to 98th percentile on a log scale with the galaxy held at the sector's center, so the local stars' wells show; the Key states the range, the unit and the smooth galaxy's level. Saddle points show as small diamonds that can be hovered. The layer, mode and slab are kept in the address (`show=gravity&gravity=pull&gslab=9`). A sector's grid that is not worked out yet shows a note while the job runs.
+- **`field=centered` on `GET /api/sectors/<id>/gravity`, and a `smooth` block in its answer.** `centered` is the stars' field with the smooth galaxy held at the sector's center, so the colors of a map show what the stars add; `smooth` gives the smooth galaxy's level at the center and how far it changes across the sector.
+- **`GET /sector/<id>/gravity`** on the web pages, which the map reads (never cached).
+
+## [8.0.3401] - 2026-11-06
+
+**Headline:** A sector's gravity grid is now available from the API, as the pull, the well depth or the tidal strength of each of its 4,096 zones.
+
+### Added
+- **`GET /api/sectors/<id>/gravity` (API.24).** Answers one number per zone of the sector's 16 x 16 x 16 grid for the mode asked (pull in m/s^2, well depth in m^2/s^2, tidal strength in 1/s^2), with the zone size, the corner of the grid, the range, the saddle zones between wells and the stamp of the grid. The default is the total field (the generated stars with the smooth galaxy added); `field=local` gives the stars' own field, which the smooth galaxy otherwise swamps in the pull. A grid that is not worked out yet, or that a moved star made stale, is queued as a job and the route answers 202 with its status URL.
+
+### Changed
+- **The part of the gravity grid job that needs no compiled code moved out of it.** The sector reach, the cache stamp and the zone centers are in `db/gravity_stamp.py`, and the hierarchy's settings in `galaxy/gravity_settings.py`, so the web app can tell whether a grid is cached without importing numba. Grids already cached keep their files (the stamp is the same).
+
+## [8.0.3400] - 2026-11-06
+
+**Headline:** `planetgen plan` without the downloaded star data is now refused by the data gate with its usual message, instead of failing with a missing-isochrone trace.
+
+### Fixed
+- Checking the arguments of the `plan` command draws the galaxy's shape, which reads the MIST isochrones (the mean mass of a system), and that check ran before the data gate in `main`. With the data missing the command died with `DataMissing` and a traceback; the gate's message ("isochrones (SC1) ... nothing was generated") only showed when an earlier call in the same process had cached the mean masses, which is why `test_datasets_gate` and `test_disregard_missing_data` failed with `-n 3` and passed in a plain run.
+- `generate.refuse_if_data_missing` now holds the gate (the `--disregard-missing-data` setting, the refusal of a bulk run, the notice lines of a run that goes on), `main` calls it as before, and the `plan` validation calls it before it draws the shape. Under `--disregard-missing-data` the shape guard is skipped when the isochrones are missing, since it cannot be made; the run itself says what it lacks. A bulk run without the option still refuses and writes nothing.
+
+### Added
+- `test_a_plan_in_a_new_process_is_refused_by_the_gate_and_not_by_a_missing_isochrone_trace` (a fresh process, no cache; it failed before the fix).
+
+generation-output: unchanged
+TODO items resolved: TEST.632
+
+## [8.0.3399] - 2026-11-06
+
+**Headline:** A test now checks that a rogue planet and a planet of one mass are made by one code path and stored the same way.
+
+### Changed
+- TEST.498: a rogue planet and a bound planet of the same mass are compared on the attributes they carry, the columns and kinds of value they store, the moon class and the class table; they differ only in the star's light, the liquid surface, the cloud layer and (through the class) the strength of a solid body. Nothing derives from `Planet`, so no rogue-only generator can exist unnoticed.
+
+## [8.0.3398] - 2026-11-06
+
+**Headline:** The rogue yield per star is now checked against the microlensing census and the terrestrial scale.
+
+### Added
+- **TEST.499: a calibration test for the rogue yield.** `tests/test_rogue_yield_calibration.py` measures the bodies the planet architecture ejects per star (about 0.11 of 0.33 Earth masses or more, 0.085 of 0.1 to 10 Earth masses) against the microlensing band of 8 to 42 per star and the terrestrial band of 0.8 to 7.5, and checks that the Rogues level ceilings reach the bands. The donor check is a strict expected failure: the architecture alone is far below both bands and the top-up makes up the rest. The numbers are in `reports/rogue-yield-calibration-2026-11-06.md`.
+
+## [8.0.3397] - 2026-11-06
+
+**Headline:** The unused smoothed star density for rogue planets is deleted.
+
+### Changed
+- **GEN.1289: `galaxy/rogue_density.py` is deleted.** It was written for a virtual donor that drew a sector's rogues from a smoothed star density. A rogue now comes from a stored donor that threw it out, placed where it lands, and the top-up makes up what a sector lacks, so nothing reads the density. It goes with its tests, stand-in section 6.102 (rows RSM1 to RSM4) and its register lines. Generation output is unchanged.
+
+## [8.0.3396] - 2026-11-06
+
+**Headline:** The Map View menu no longer shows a lone greyed-out "Forward" word: each Forward button stays beside its layer and can always be pressed.
+
+### Fixed
+- In the Menu's "Show on the map" list (Galaxy Map, sector and system maps) the second button of a points-of-interest row, "Forward", could wrap onto a line of its own, away from the layer it belongs to, and was greyed out and not clickable while that layer was hidden. A layer's button and its Forward button are now one row that does not break across lines, and Forward is always enabled: pressing it on a hidden layer shows the layer and draws it in front.
+
+## [8.0.3395] - 2026-11-06
+
+**Headline:** An object's page shows its Sensor view first, with the "Sensors show ..." line under the picture.
+
+### Changed
+- **The Sensor view panel of the object page** (UX.276): the picture of a star, planet or moon is now chosen through the Sensor registry (`web/lib/sensor.py`, UX.275), and the "Sensors show ..." line of the description sits under it instead of in the notes further down. Where the picture guessed an input (a world's ground color or a giant's cloud-top color, worked out from the temperature because no ground mixture or cloud chemistry is stored) the panel says it is an estimate and why.
+- The picture on a phenomenon's page (a neutron star, black hole, quasar, rogue planet, interstellar comet or nebula) is headed "Sensor view" instead of "View". A belt or a comet of a system has no picture yet, and so no panel. `generation-output: unchanged`.
+
+## [8.0.3394] - 2026-11-06
+
+**Headline:** The test of a charted region's token now says what the map does: a region with no inhabited worlds carries the Region symbol.
+
+### Fixed
+- **Region token test (MAP.398).** `test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card` said a region without inhabited worlds has no token, which stopped being so when every charted region got the Region symbol (#5208). It now checks that a region with inhabited worlds carries the inhabited token, one without carries the Region symbol, switching Inhabited worlds off leaves its region the Region symbol, and no region is marked twice. No change to the map.
+
+## [8.0.3393] - 2026-11-06
+
+**Headline:** The View menu's search is written and tested, ready for the search box.
+
+### Added
+- **Search over the View menu's entries (UX.279).** `static/viewmenusearch.js` takes the layers' entries and the text typed and says which match
+  (every typed word must start a word of the name, the group's name or a keyword, in any case and order), in the menu's order, with the
+  headings and groups to open and a screen-reader count ("5 matches"). Nothing shows it yet: the search box is UX.281. No look change.
+
+## [8.0.3392] - 2026-11-06
+
+**Headline:** The Sensor registry's text is in American spelling.
+
+### Changed
+- The Sensor registry (`web/lib/sensor.py`) said "surface colour"; it now says "surface color", which the whole-site spelling test (DOC.102) requires. Text only; `generation-output: unchanged`.
+
+## [8.0.3391] - 2026-11-06
+
+**Headline:** The System Map's and the sector page's Menu now fold into headings with counts, real checkboxes and a mark where a switch is not as it starts.
+
+### Added
+- **Shared View menu builder (UX.278).** `static/viewmenu.js` makes the Menu of a map from the layers it has, using the headings each layer
+  declares (UX.277): a fold per heading (Show, Color and fill, Chart and side views, Move and Settings; a map shows only the ones it has
+  layers for), a count in each ("Show 4 of 12 on"), real checkboxes that keep the layers' `data-layer` and `data-*` attributes, an
+  all/some/none box for a group of two or more layers, the word "changed" beside a switch that is not as it starts, and the open or folded
+  state of each heading kept in the browser. A menu of twelve layers or fewer starts open; a longer one folds all but the first heading.
+  The System Map and the sector page use it; the Galaxy Map's Menu is unchanged until UX.280. The search over the entries is UX.279.
+
+## [8.0.3390] - 2026-11-06
+
+**Headline:** The life class rules page is rebuilt with the American spelling DOC.103 gave the rule file, and its test passes again.
+
+### Changed
+
+- `docs/design/habitability/life-class-rules.md` is rebuilt from the rule file (`scripts/build_life_class_rules.py`): one word, "center" for "centre", had changed in the file and not in the page, so `test_life_class_rules_doc::test_the_page_is_the_rule_file_as_built` failed on main.
+
+generation-output: unchanged
+
+## [8.0.3389] - 2026-11-06
+
+**Headline:** The density identity test's notes use the American spelling.
+
+### Changed
+
+- The notes of `test_the_spiral_written_as_components_gives_the_density_it_gave_before` write "disk", not "disc", as DOC.103 asks, so `test_american_spelling` passes for them (TEST.631 follow-up). Words in a docstring only.
+
+generation-output: unchanged
+
+## [8.0.3388] - 2026-11-06
+
+**Headline:** A build no longer dies on a rock whose dayside is hotter than 6000 K.
+
+### Changed
+
+- The vapor over a molten surface (`physics/mixture_lava.py`) is worked out at no more than `MELT_MAX_K`, 6000 K, the top of NASA Glenn's fits of the liquid oxides and of 47 of the 84 gases (GEN.1294). A build had died once with `SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000 K)` for a hot-zone rock whose dayside (`tp_k`) or a white-dwarf planet's exosphere (`ts_k`) was over 6000 K; a rerun passed because it drew a cooler body. The mixture still reports the surface's own temperature, and `species_thermo` still raises for any other call outside its fits. The clamp is a stand-in, row AM95 of the registry (tier 6, tweak level 0).
+- Every surface at or under 6000 K gives the same vapor as before, so no stored value changes; only a body that used to stop the build now has a vapor.
+
+generation-output: unchanged
+
+## [8.0.3387] - 2026-11-06
+
+**Headline:** The update's warm-up progress bar follows the work inside each unit, and a keypress skips the warm-up.
+
+### Changed
+- **OPS.106: update.sh no longer guesses how long a step takes.** The "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are gone; the progress bar says how long is left.
+- **OPS.107: the warm-up bar moves inside a unit.** Sector, system and phenomenon slices report how many objects they have warmed, and the bar, the stage's time left and the whole warm-up's time left count that part of a chunk, so a big galaxy's few large chunks no longer leave the bar at zero until the first one ends. `planetgen warm --follow` shows the same.
+
+### Added
+- **OPS.108: press s during the warm-up to skip it.** update.sh shows the key while a warm-up stage runs (only with a terminal; without one nothing is read and the warm-up runs as before). What was stored is kept and the first visit builds the rest.
+- **OPS.109: the data set download step lists what it keeps by download URL.** Files already stored are shown as one `kept` line for each URL (with the file count), not one line for each file, and the dataset line says the folder they are stored in.
+
+## [8.0.3386] - 2026-11-06
+
+**Headline:** Every kind of object now has a Sensor entry, and `GET /api/objects/<ref>/sensor` returns the record its picture is drawn from.
+
+### Added
+- **The Sensor registry** (`web/lib/sensor.py`, `static/sensorview.js`, UX.275): one table that maps every kind of the property sheet to the look builder and the painter that exist (a star, planet or moon look record, the phenomenon pictures, the nebula cloud), built from the stored row and the Object ID seed alone. A kind no painter draws yet (belt, comet, asteroid field, remnant, cluster, superbubble, facility) says why. A test fails for a kind in the property sheet that has no entry, and one checks that the server's painter list is the script's.
+- **`GET /api/objects/<ref>/sensor`** returns the record (`painter`, `look`, `caption`, `estimate`, `inputs`, `reason`) so the object page, the map's info panel and the Chart and 3D views can read one thing. Additive, no existing route changes. No picture changes yet. `generation-output: unchanged`.
+
+## [8.0.3385] - 2026-11-06
+
+**Headline:** The Galaxy Map no longer draws a ring outline around each group of nebulae.
+
+### Changed
+
+- At the Galaxy level a group of nebulae was a soft blob with a thin ring near its rim, which read as large circle outlines over the disk. The blob is drawn without the ring. This is drawing only: it needs no regeneration and no new data.
+
+## [8.0.3384] - 2026-11-06
+
+**Headline:** The atmosphere stand-in registry names the four tests whose names DOC.103 respelled, and its test passes again.
+
+### Changed
+
+- `docs/design/research/gap-filling-plan.md` rows AM10, AM15, the impactor-escape row and the alumina row named tests by their British spelling (`vapour`, `oxidised`); DOC.103 respelled the tests (`vapor`, `oxidized`) and left the rows, so `test_atmosphere_standin_registry.py::test_a_row_names_a_constant_and_a_test_that_exist` failed in four cases on main since train 10. The rows now name the tests as they are. `stand-in-values.md` and `docs/references/` are rebuilt from the plan.
+
+generation-output: unchanged
+
+## [8.0.3383] - 2026-11-06
+
+**Headline:** The Sector Map draws every nebula and supernova remnant as a soft volume of points, with no hard ball or ring left.
+
+### Changed
+- **Supernova remnants and nebulae with no stored id are drawn from points on the Sector Map.** A remnant used to show as a hard-edged analytic ball and shell, and a scattered nebula or one a waiting star lights as a smooth ball, because only a stored nebula could ask for its points by id (MAP.142). They now ask for the points of their own sphere in the colour of their family, the same sampler and density the stored nebulae use, so they match the Galaxy Map (MAP.392). The analytic sphere stays only as the fallback of a host that cannot draw points.
+- New route `GET /api/galaxy/cloud-volume?x=&y=&z=&radius_pc=&family=` (and the site's `/galaxy/cloud-volume`) returns the packed points of a sphere; additive, no existing route changes. `generation-output: unchanged`.
+
 ## [8.0.3382] - 2026-11-06
 
 **Headline:** The density identity test is recorded again for the new star formation history, and passes.

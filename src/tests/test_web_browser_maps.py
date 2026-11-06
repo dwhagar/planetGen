@@ -820,6 +820,40 @@ def test_every_layer_of_the_system_map_has_a_view_menu_heading_and_keywords(page
     assert entries["spin"]["heading"] == "Move and Settings" and entries["label-body"]["heading"] == "Show" and entries["label-body"]["common"] is True
 
 
+def test_the_system_map_menu_is_the_shared_view_menu_with_headings_counts_and_checkboxes(page, base_url, site_app):
+    """UX.278: the System Map's Menu is made by the shared builder: a fold per heading it has layers for, a count in each,
+    real checkboxes that keep the layers' selectors, the word "changed" where a switch is not as it starts, and the fold kept."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.click("#sysmap-view-diagram")
+    page.click("#sysmap-menu > summary")
+    headings = page.locator("#sysmap-layers details.view-menu-heading")
+    assert headings.evaluate_all("els => els.map(e => e.dataset.heading)") == ["Show", "Move and Settings"]
+    assert headings.evaluate_all("els => els.map(e => e.open)") == [True, True], "a small menu starts open"
+    boxes = page.locator("#sysmap-layers input[type=checkbox][data-layer]")
+    assert boxes.evaluate_all("els => els.map(e => e.dataset.layer)") == ["facility", "label-body", "spin"]
+    counts = page.locator("#sysmap-layers summary .view-menu-count")
+    assert counts.nth(0).inner_text() == "2 of 2 on" and counts.nth(1).inner_text() == "1 of 1 on"
+    body = page.locator('#sysmap-layers [data-label="body"]')
+    assert body.is_checked()
+    assert page.locator('#sysmap-layers [data-row="label-body"] .view-menu-changed').is_hidden()
+    body.click()
+    assert not body.is_checked()
+    assert counts.nth(0).inner_text() == "1 of 2 on, 1 changed"
+    assert page.locator('#sysmap-layers [data-row="label-body"] .view-menu-changed').is_visible()
+    assert "label-body" in page.url
+    page.locator('#sysmap-layers details[data-heading="Move and Settings"] > summary').click()
+    page.wait_for_function("() => localStorage.getItem('planetgen.viewMenu.open.system.Move and Settings') === '0'")
+    page.reload(wait_until="load")
+    page.wait_for_selector('#sysmap-root[data-ready="true"]')
+    if page.locator("#sysmap-view-diagram").count():
+        page.click("#sysmap-view-diagram")
+    page.click("#sysmap-menu > summary")
+    assert page.locator('#sysmap-layers details[data-heading="Move and Settings"]').evaluate("e => e.open") is False
+    assert not page.locator('#sysmap-layers [data-label="body"]').is_checked(), "the address keeps the switch"
+
+
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
     system_id, scene = _system_with_planets(site_app.test_client())
     _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
@@ -1254,6 +1288,14 @@ def test_a_ring_on_the_system_map_is_the_planets_own_stored_ring(page, base_url,
             assert 1.0 < ring["in"] < ring["out"], ring
 
 
+def test_every_control_in_the_system_menu_is_a_working_button(page, base_url, site_app):
+    """MAP.397: every visible thing in the system map's Menu list is a heading or an enabled, named button, and pressing each one changes it."""
+    from tests.map_menu_support import check_menu_controls
+    _open_spinning_diagram(page, base_url, site_app)
+    page.click("#sysmap-menu > summary")
+    check_menu_controls(page, "#sysmap-layers")
+
+
 def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url, site_app):
     """MAP.328: the Menu's Spin switch holds every body still (and a reload keeps it so); turning it on again sets them
     turning."""
@@ -1262,9 +1304,9 @@ def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url,
     assert any(b["angle"] != a["angle"] for a, b in zip(moving["first"], moving["second"])), "bodies turn by default"
     page.click("#sysmap-menu > summary")
     button = page.locator('#sysmap-layers [data-setting="spin"]')
-    assert button.get_attribute("aria-pressed") == "true"
+    assert button.is_checked()
     button.click()
-    assert button.get_attribute("aria-pressed") == "false"
+    assert not button.is_checked()
     page.wait_for_timeout(200)
     held = page.evaluate(SPIN_SAMPLE, 500)
     assert [b["angle"] for b in held["second"]] == [a["angle"] for a in held["first"]], "switched off, nothing turns"

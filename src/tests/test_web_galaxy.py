@@ -751,6 +751,36 @@ def test_nebula_volume_endpoint_serves_the_packed_bytes(client, fake, monkeypatc
     assert resp.status_code == 502 and "error" in resp.get_json()
 
 
+def test_cloud_volume_endpoint_serves_the_packed_bytes_of_a_sphere(client, fake, monkeypatch):
+    """MAP.392: `/galaxy/cloud-volume` hands the browser the decoded bytes the API sampled at a sphere, cacheable; a query that is no sphere is a 400,
+    an API refusal or failure a 502, as JSON."""
+    import base64
+
+    calls = []
+
+    def fake_volume(db, x, y, z, radius_pc, family):
+        calls.append((db, x, y, z, radius_pc, family))
+        return {"format": "NVOL1", "level": 2, "count": 0, "data": base64.b64encode(b"NVOL\x01\x02").decode("ascii")}
+
+    monkeypatch.setattr(apiclient, "get_cloud_volume", fake_volume)
+    resp = client.get("/galaxy/cloud-volume?x=1&y=-2.5&z=3&radius_pc=4&family=supernova-remnant")
+    assert resp.status_code == 200 and resp.data == b"NVOL\x01\x02"
+    assert "max-age" in resp.headers["Cache-Control"]
+    assert calls == [(DB, 1.0, -2.5, 3.0, 4.0, "supernova-remnant")]
+
+    for query in ("", "x=1&y=2&z=3", "x=a&y=2&z=3&radius_pc=4", "x=1&y=2&z=3&radius_pc=four"):
+        resp = client.get("/galaxy/cloud-volume?" + query)
+        assert resp.status_code == 400 and "error" in resp.get_json(), query
+    assert len(calls) == 1, "a bad query never reaches the API"
+
+    def refused(db, x, y, z, radius_pc, family):
+        raise apiclient.ApiError("radius_pc must be above 0")
+
+    monkeypatch.setattr(apiclient, "get_cloud_volume", refused)
+    resp = client.get("/galaxy/cloud-volume?x=1&y=2&z=3&radius_pc=4&family=diffuse")
+    assert resp.status_code == 502 and "error" in resp.get_json()
+
+
 def test_nebula_surroundings_endpoint_passes_the_stars_through(client, fake, monkeypatch):
     calls = []
 
