@@ -38,6 +38,7 @@ const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERS
 const { fitDistance: framingDistance } = await import(`./flytofit.js${VERSION_QUERY}`);
 const { orbitPath, nodePaths, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
+const { drawnCourse } = await import(`./systemcourse.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const { createLabelLayer } = await import(`./maplabels.js${VERSION_QUERY}`);
@@ -253,6 +254,35 @@ export function buildSystemScene(scene, layout, options) {
     group.add(sphere);
   }
 
+  // NAV.22: the legs of a NAV course that lie in this system (`opts.course`, systemcourse.js), each a line from where the course crosses the
+  // heliopause to the body it is bound for (or the other way), bent clear of what it would pass too close to; a ring marks each end, and a
+  // ring where a moving destination is aimed. Over everything else and never picked.
+  const COURSE_COLOR = 0xffc247;
+  const COURSE_RING_PX = 11;
+  const courseLegs = drawnCourse(opts.course, layout);
+  if (courseLegs.length) {
+    const courseGroup = new THREE.Group();
+    courseGroup.name = "system course";
+    courseGroup.renderOrder = 4;
+    courseLegs.forEach((leg) => {
+      const lineGeometry = new THREE.BufferGeometry().setFromPoints(leg.line.map((p) => new THREE.Vector3(p[0], p[1], p[2])));
+      const line = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({ color: COURSE_COLOR, transparent: true, depthTest: false }));
+      line.frustumCulled = false;
+      line.renderOrder = 4;
+      courseGroup.add(line);
+      const ends = [leg.start, leg.end].concat(leg.aimed ? [leg.aimed] : []);
+      const ringGeometry = new THREE.BufferGeometry();
+      ringGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(ends.flat()), 3));
+      const rings = new THREE.Points(ringGeometry, new THREE.PointsMaterial({
+        color: COURSE_COLOR, size: COURSE_RING_PX, sizeAttenuation: false, transparent: true, depthTest: false, depthWrite: false,
+      }));
+      rings.frustumCulled = false;
+      rings.renderOrder = 4;
+      courseGroup.add(rings);
+    });
+    group.add(courseGroup);
+  }
+
   // Moves everything to `years` after the epoch (or to `relative`, the
   // answer of relativeAt, when given).
   function update(years, relative) {
@@ -423,6 +453,8 @@ export function buildSystemScene(scene, layout, options) {
     trailOpacity: (ref) => (trails[ref] ? trails[ref].material.opacity : null),
     // How far an orbit line reaches from what it goes round, in scene units (null: it has none), for tests.
     trailRadius: (ref) => (trails[ref] ? trailReach(ref) : null),
+    // NAV.22, for the browser tests: the legs of the course drawn (`drawnCourse`), none when no course is asked for.
+    course: courseLegs,
     dispose: dispose };
 }
 
@@ -499,7 +531,7 @@ export function createSystemView(options) {
       built.dispose();
     }
     layout = createLayout(sceneData, state.mode);
-    built = buildSystemScene(sceneData, layout, { years: years });
+    built = buildSystemScene(sceneData, layout, { years: years, course: options.course || null });
     stage.add(built.group);
     labelLayer.clear();
     if (selected) {
@@ -748,6 +780,7 @@ export function createSystemView(options) {
       if (options.onMode) options.onMode(layout);
     },
     mode: () => state.mode,
+    course: () => built.course,   // NAV.22, for the browser tests: the legs of the course drawn
     note: () => layout.note,
     reset: reset,
     recenter: recenter,

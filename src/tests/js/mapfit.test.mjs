@@ -71,3 +71,46 @@ test("watching a box sets its maximum width and follows the window (UX.142)", ()
   assert.equal(parseInt(view.style.maxWidth, 10), F.fitWidth(500, 5 / 3, { covered: 0 }));
   watcher.stop();
 });
+
+test("a filling map scrolls the page to itself once, and not after the reader has pressed a key (TEST.599)", () => {
+  F.forgetReader();
+  const scrolls = [];
+  const original = { scrollTo: window.scrollTo, scrollY: window.scrollY };
+  window.scrollY = 0;
+  document.documentElement.scrollHeight = 3000;
+  window.scrollTo = (x, y) => { scrolls.push(y); window.scrollY = y; };
+  const view = { style: { height: "" }, getBoundingClientRect: () => ({ top: 700 - window.scrollY, height: 500, bottom: 1200 - window.scrollY }), closest: () => null };
+  const watcher = F.watchWindowFit(view, null, { fill: true });
+  try {
+    assert.equal(scrolls.length, 1, "the page is scrolled to the map when it is watched");
+    window.scrollY = 0;                                  // the page is back at the top, as a reader who has not touched it leaves it
+    window.dispatchEvent(new Event("keydown"));          // a Tab to the skip link at the top of the page
+    watcher.refit();
+    assert.equal(scrolls.length, 1, "the page is left where the reader's key left it");
+    const later = F.watchWindowFit(view, null, { fill: true });          // a map built after the key (the 3D view, when its data has come)
+    assert.equal(scrolls.length, 1, "a map built after the reader's key does not scroll the page either");
+    later.stop();
+  } finally {
+    watcher.stop();
+    window.scrollTo = original.scrollTo;
+    window.scrollY = original.scrollY;
+  }
+});
+
+test("a pointer press and the wheel also leave the page where it is", () => {
+  for (const type of ["pointerdown", "wheel", "touchstart"]) {
+    F.forgetReader();
+    const scrolls = [];
+    window.scrollY = 0;
+    document.documentElement.scrollHeight = 3000;
+    window.scrollTo = (x, y) => { scrolls.push(y); window.scrollY = y; };
+    const view = { style: { height: "" }, getBoundingClientRect: () => ({ top: 700 - window.scrollY, height: 500, bottom: 1200 - window.scrollY }), closest: () => null };
+    const watcher = F.watchWindowFit(view, null, { fill: true });
+    scrolls.length = 0;
+    window.scrollY = 0;
+    window.dispatchEvent(new Event(type));
+    watcher.refit();
+    assert.equal(scrolls.length, 0, type);
+    watcher.stop();
+  }
+});

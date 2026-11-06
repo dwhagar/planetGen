@@ -91,14 +91,11 @@ STANDALONE = [{"id": 1000 + i, "name": f"Drifting {i:03d}", "is_binary": i % 2, 
                "sector_id": None, "sector_name": None, "quadrant": None} for i in range(130)]
 
 
-def _fake_sectors(db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False):
-    rows = [row for row in SECTORS if not quadrants or ("I" if row["center_x_pc"] > 0 else "II") in quadrants
-            or ("unplaced" in quadrants and not row["placed"])]
+def _fake_sectors(db, limit=None, offset=None, sort=None, descending=False):
+    rows = list(SECTORS)
     key = {"name": "name", "systems": "system_count", "distance": "galactic_radius_ly"}.get(sort or "distance", "name")
     rows = sorted(rows, key=lambda row: (row[key], row["name"]), reverse=bool(descending))
     body = {"items": rows[offset:offset + limit], "total": len(rows), "limit": limit, "offset": offset}
-    if facets:
-        body["facets"] = {"quadrant": [{"value": "I", "count": 65}, {"value": "II", "count": 65}]}
     return body
 
 

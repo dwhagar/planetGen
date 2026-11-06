@@ -18,7 +18,6 @@ from planetgen.web.lib.fmt import (
     format_density, format_distance_ly, format_luminosity_sol, format_members, format_number, format_mass_solar,
     measured_html)
 from planetgen.web.scatter_members_view import members_view
-from planetgen.web.maps.galaxymap import sector_quadrant
 
 from planetgen.api.limiter import page_limit
 
@@ -35,37 +34,29 @@ def _binary_filter(values):
 
 def _sector_row(sector):
     """One Sectors table row: a list of cells (`lib/datatable.py`)."""
-    quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"]) if sector["placed"] else None
+    region = sector.get("region")
     return [
         {"text": sector["name"], "href": page_url("sector", sector_id=sector["id"])},
         {"text": str(sector["system_count"])},
         {"text": plain(format_density(sector["edge_ly"], sector["system_count"]))},
-        {"text": f"Quadrant {quadrant}", "href": page_url("galaxy", quadrant=quadrant)} if quadrant
-        else {"text": "Unplaced", "muted": True},
+        ({"text": region["name"] if region else "\u2013"} if sector["placed"] else {"text": "Unplaced", "muted": True}),
         {"text": plain(format_distance_ly(sector.get("galactic_radius_ly")))},
     ]
 
 
 def _sectors_load(state, limit, offset, want_facets, after=None):
     envelope = apiclient.get_sectors(
-        db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending,
-        quadrants=state.filters["quadrant"], facets=want_facets)
-    facets = None
-    if want_facets:
-        facets = {"quadrant": [
-            {"value": option["value"],
-             "label": "Unplaced" if option["value"] == "unplaced" else f"Quadrant {option['value']}",
-             "count": option["count"]} for option in envelope["facets"]["quadrant"]]}
+        db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending)
     items = envelope["items"]
-    return Result([_sector_row(sector) for sector in items], envelope["total"], facets,
+    return Result([_sector_row(sector) for sector in items], envelope["total"], None,
                   envelope.get("total_capped", False), items[-1]["id"] if items else None)
 
 
 SECTORS_TABLE = tables.register(Table(
     "sectors", "Sectors",
     [Column("name", "Name"), Column("systems", "Systems"), Column("density", "Density"),
-     Column("position", "Galaxy Position"), Column("distance", "Distance from core")],
-    _sectors_load, facets=[Facet("quadrant", "Quadrant")], prefix="sectors_", default_sort="distance",
+     Column("region", "Region", sortable=False), Column("distance", "Distance from core")],
+    _sectors_load, prefix="sectors_", default_sort="distance",
     noun=("sector", "sectors"), keyset=True,
 ))
 

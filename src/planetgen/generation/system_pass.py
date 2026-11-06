@@ -108,6 +108,7 @@ def run(sector, args, entries, galactic_center_dist_ly=None):
         scatter_id = getattr(entry, "scatter_id", None)
         if scatter_id is not None:
             new_entry.scatter_id = scatter_id
+            new_entry.scatter_uid = getattr(entry, "scatter_uid", None)
         fill_stages.count(sector, fill_stages.SYSTEM_PASS, f"{key}:system")
         made.append(new_entry)
     return made

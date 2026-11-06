@@ -54,9 +54,8 @@ def test_the_kernel_joins_stretches_that_touch_and_cuts_them_to_the_phase():
 
 
 def test_a_track_with_a_missing_sample_takes_the_array_path(monkeypatch):
-    line = pm.timeline(3.0, 0.0)
-    line._light = None
-    line._plans = None
+    cached = pm.timeline(3.0, 0.0)
+    line = pm.Timeline(cached.mass_sol, cached.fe_h, cached.main_sequence_gy, cached.windows)   # not the cached one: it keeps the holed light it is given (TEST.612)
     real = pm.isochrones.post_main_sequence_light
 
     def holed(mass, fe_h):
@@ -120,3 +119,18 @@ def test_the_fraction_is_the_sum_over_every_cell_and_star_as_it_was_worked_out_b
 def test_the_birth_track_pieces_are_the_ones_the_prune_reads():
     # `_outside_window` reads the pieces of `alpha_tracks.track_segments`; a star with a second piece (the thick disk's) is checked too.
     assert any(len(alpha_tracks.track_segments(fe_h)) > 1 for fe_h in (-2.0, -1.2, -0.4, 0.0, 0.07, 0.25))
+
+
+def test_the_missing_sample_test_leaves_the_cached_timeline_alone():   # TEST.612
+    """`pm.timeline` is cached, so a test that gives its timeline a holed track must use a copy: the next test to ask for the same star got the hole.
+    Each order of the two tests that met here is run on its own, in a fresh process."""
+    import os
+    import subprocess
+    import sys
+    here = os.path.dirname(os.path.abspath(__file__))
+    holed = "tests/test_bright_measure_exactness.py::test_a_track_with_a_missing_sample_takes_the_array_path"
+    exact = "tests/test_post_main_sequence.py::test_the_bright_pieces_are_exactly_the_ages_the_star_is_that_bright"
+    for order in ((holed, exact), (exact, holed)):
+        done = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider", *order], cwd=os.path.dirname(here),
+                              capture_output=True, text=True)
+        assert done.returncode == 0, (order, done.stdout[-1500:])

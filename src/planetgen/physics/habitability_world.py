@@ -55,7 +55,7 @@ plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma 
 import math
 
 from planetgen import tuning
-from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature
+from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature, temperature_coverage
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -77,14 +77,15 @@ CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
 BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     *life_scores.FIELDS, "l_solv", "l_chem", "l_ener", "l_rad",
-    *equipment.FIELDS, *regional_temperature.FIELDS, *outside_hours.FIELDS, "energy_flux_w_m2", "flux_variation",
+    *equipment.FIELDS, *regional_temperature.FIELDS, *temperature_coverage.FIELDS, *outside_hours.FIELDS, "energy_flux_w_m2", "flux_variation",
+    "relative_humidity", "groundwater",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
 `moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
 dose refresh re-scores a body from its columns alone)."""
 
-SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation"))
-"""tuple: The stored fields `compute` returns (all but the stored energy flux and flux variation)."""
+SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation", "relative_humidity", "groundwater"))
+"""tuple: The stored fields `compute` returns (all but the stored energy flux, flux variation, humidity and groundwater, which `generate` stores as the score's inputs)."""
 
 LIKELIHOOD_FIELDS = ("phi_bio", "phi_cpx")
 """tuple: The microbial and complex-life likelihoods `compute` also returns and `generate` and `rescore` keep on the body
@@ -176,11 +177,18 @@ def values_from_body(body):
         "magnetic_moment_a_m2": getattr(body, "magnetic_moment_a_m2", None),
         "rotation_period_hours": getattr(body, "rotation_period_hours", None),
         "daylight_hours": getattr(body, "daylight_hours", None),
+        "day_share_mean": getattr(body, "day_share_mean", None),                 # the angular radius of the star the bands' day lengths are worked with (a rescore reads the column)
+        "solar_day_hours": getattr(body, "solar_day_hours", None),
+        "days_per_year": getattr(body, "days_per_year", None),                  # GEN.1265: with the solar day they give the year of the star a moon is lit through
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
         "period_years": getattr(body, "period", None),
         "ring_inner_km": getattr(body, "ring_inner_km", None),                    # GEN.1055 R8: the ring shades the latitude bands behind it
         "ring_outer_km": getattr(body, "ring_outer_km", None),
         "ring_optical_depth": getattr(body, "ring_optical_depth", None),
+        "bond_albedo": getattr(body, "bond_albedo", None),                         # GEN.1265: the temperature of every place is worked from these
+        "greenhouse_factor": getattr(body, "greenhouse_factor", None),
+        "ground_ocean_fraction": getattr(body, "ground_ocean_fraction", None),
+        "ground_ice_fraction": getattr(body, "ground_ice_fraction", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
         "native_life": native_life(getattr(body, "life_class", None), getattr(body, "life_stage", None),
@@ -348,13 +356,16 @@ def world_from(values, lethal_host=None):
         air = atmosphere.gas_partials_pa(values)
         for formula in protection_limits.TOXIC:
             gases.setdefault(formula, air.get(formula, 0.0) / (1000.0 * pressure_kpa))
+    humidity = relative_humidity(values)
+    series = temperature_coverage.series_of_values(values)      # GEN.1265: the Temperature domain is scored from the temperature of every place
     return habitability.World(
         pressure_kpa=pressure_kpa,
+        series=series, coverage=temperature_coverage.coverage_of_values(values, humidity),
         temperature_c=values["surface_temperature_k"] - constants.CELSIUS_ZERO_K,
         gases=gases,
         gravity_ms2=(values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY,
         flux_variation=values.get("flux_variation") or 0.0,
-        relative_humidity=relative_humidity(values),
+        relative_humidity=humidity,
         solvent=medium,
         water_activity=activity,
         chaotropicity_kj_kg=CHLORIDE_BRINE_CHAOTROPICITY * (1.0 - activity) if aqueous and brine else 0.0,
@@ -418,6 +429,7 @@ def compute(values, compact_host=None):
         out[f"tier_{domain}"] = TIER_INDEX[colour]
     out.update(equipment.compute(world))
     out.update(regional_temperature.compute(values))
+    out.update(temperature_coverage.fields(world.coverage))
     out.update(outside_hours.fields(world, out, {**values, **out}))
     return out
 
@@ -537,5 +549,7 @@ def generate(body, internal_flux_w_m2):
         values, getattr(star, "luminosity", None), getattr(body, "_star_distance_au", None),
         internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0))
     values["energy_flux_w_m2"] = body.energy_flux_w_m2
+    body.relative_humidity = relative_humidity(values)      # GEN.1221: stored, for the wet bulb and the water of a class
+    body.groundwater = groundwater(values)
     for name, value in compute(values, compact_host_name(star)).items():
         setattr(body, name, value)

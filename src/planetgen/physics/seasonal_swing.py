@@ -83,6 +83,7 @@ from dataclasses import dataclass, replace
 import numpy as np
 
 from planetgen.physics import climate_branches, constants, habitability, regional_temperature, surface_cycle
+from planetgen.util import detmath
 
 STEPS = 96
 """int: Equal steps of time (mean anomaly) in the year. Source tier T6, tweak level L0 (numerical)."""
@@ -320,6 +321,9 @@ MANY_TURNS = 24
 in the day) has `surface_cycle.CELL_COLUMNS`. Source tier T6, tweak level L0 (numerical)."""
 FINE = {"columns": surface_cycle.CELL_COLUMNS, "samples_per_day": 24, "steps_per_year": surface_cycle.STEPS_PER_YEAR, "max_steps": 6000}
 """dict: The keyword arguments of `temperature_series` for the fine resolution, which the default is checked against (it costs three to ten times as much)."""
+CEILING_MARGIN = 1.05
+"""float: No place of the series is hotter than the fourth root of the hottest light a cell gets over its emission, times this (the passes of a hot airless body overshoot and overflow
+without it). Source tier T6, tweak level L0 (numerical)."""
 ICE_OUTER_PASSES = 2
 """int: The times the ice cover is laid again from the cell means the temperatures give. Source tier T6, tweak level L0 (numerical)."""
 
@@ -449,9 +453,9 @@ def _anderson(step, start):
         used = min(count, ANDERSON_DEPTH)
         if used:
             matrix = delta_f[:used]
-            gram = matrix @ matrix.T
-            gamma = np.linalg.solve(gram + (1.0e-10 * np.trace(gram) + 1.0e-30) * np.eye(used), matrix @ change)
-            mixed = current_g - gamma @ delta_g[:used]
+            gram = detmath.matmul(matrix, matrix.T)
+            gamma = np.linalg.solve(gram + (1.0e-10 * np.trace(gram) + 1.0e-30) * np.eye(used), detmath.matmul(matrix, change[:, None])[:, 0])
+            mixed = current_g - detmath.matmul(gamma, delta_g[:used])
         else:
             mixed = current_g
         state = np.maximum(mixed.reshape(shape), FLOOR_K)
@@ -548,6 +552,9 @@ def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_
         # slope costs passes, not accuracy.
         inverse = 1.0 / ((4.0 * emission * steady ** 3 + carried)[:, :, None] + capacity_term)
         coupling_denominator = 1.0 - carried * np.sum(weight * inverse, axis=(0, 1))
+        # No place can be hotter than the one that sends the hottest light it ever gets straight back out: a hot airless body with a short day (GEN.1265) overshoots otherwise,
+        # the fourth power overflows and the whole series is not a number.
+        ceiling = CEILING_MARGIN * (float(np.max(forcing)) / emission) ** 0.25
 
         def step(temperature):
             spectrum = np.fft.rfft(temperature, axis=2)
@@ -555,7 +562,7 @@ def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_
             residual = spectrum_forcing - np.fft.rfft(emission * temperature ** 4, axis=2) - carried * (spectrum - world[None, None, :]) - capacity_term * spectrum
             coupling = np.sum(weight * residual * inverse, axis=(0, 1)) / coupling_denominator
             change = np.fft.irfft((residual + carried * coupling[None, None, :]) * inverse, n=steps, axis=2)
-            return np.maximum(temperature + change, FLOOR_K)
+            return np.clip(temperature + change, FLOOR_K, ceiling)
 
         return _anderson(step, state)
 

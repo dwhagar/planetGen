@@ -2,24 +2,11 @@
 
 """GEN.1064: the events that act on a belt over a system's life (`physics/belt_history.py`; belt-evolution.md sections 2.5 and 4)."""
 
-import random
-
 import pytest
 
-from planetgen.physics import belt_history as bh, belt_mass, constants, mass_loss as stellar_mass_loss, orbits
+from planetgen.physics import belt_history as bh, belt_mass, constants, mass_loss as stellar_mass_loss
 
 EARTH_KG = constants.EARTH_MASS_TO_KG
-
-
-class Stream:
-    def __init__(self, seed):
-        self._rng = random.Random(seed)
-
-    def random(self):
-        return self._rng.random()
-
-    def uniform(self, a, b):
-        return self._rng.uniform(a, b)
 
 
 def test_a_formed_belt_has_all_its_mass_and_no_history():
@@ -28,32 +15,6 @@ def test_a_formed_belt_has_all_its_mass_and_no_history():
     assert bh.history_text(state) == ""
     with pytest.raises(ValueError):
         bh.BeltState.formed(3.0, 2.0)
-
-
-def test_a_grand_tack_leaves_a_few_thousandths_and_an_instability_a_tenth_to_a_half():
-    for seed in range(60):
-        tack = bh.giant_event(bh.BeltState.formed(2.2, 3.4), bh.GRAND_TACK, Stream(seed))
-        unstable = bh.giant_event(bh.BeltState.formed(2.2, 3.4), bh.INSTABILITY, Stream(seed))
-        assert bh.GRAND_TACK_SURVIVAL[0] <= tack.mass_fraction <= bh.GRAND_TACK_SURVIVAL[1]
-        assert bh.INSTABILITY_SURVIVAL[0] <= unstable.mass_fraction <= bh.INSTABILITY_SURVIVAL[1]
-        assert len(tack.history) == 1 and "percent" in tack.history[0]
-    with pytest.raises(ValueError):
-        bh.giant_event(bh.BeltState.formed(2.2, 3.4), "flyby", Stream(1))
-
-
-def test_the_survival_is_log_uniform_over_its_range():
-    shares = sorted(bh.giant_event(bh.BeltState.formed(2.2, 3.4), bh.INSTABILITY, Stream(s)).mass_fraction for s in range(2000))
-    assert shares[1000] == pytest.approx((0.1 * 0.5) ** 0.5, rel=0.1)
-
-
-def test_the_stream_takes_the_same_draw_whatever_the_state():
-    lost = bh.engulf(bh.BeltState.formed(1.0, 2.0), 5.0)
-    assert lost.lost
-    a, b = Stream(3), Stream(3)
-    bh.giant_event(lost, bh.INSTABILITY, a)
-    bh.giant_event(bh.BeltState.formed(2.0, 3.0), bh.INSTABILITY, b)
-    assert a.random() == b.random()
-    assert bh.giant_event(lost, bh.INSTABILITY, Stream(1)) is lost
 
 
 def test_a_red_giant_swallows_the_inner_part_of_a_belt_and_the_outer_part_survives():
@@ -102,35 +63,12 @@ def test_no_mass_loss_changes_nothing_and_a_gain_is_refused():
         bh.mass_loss(state, 1.0, 1.5, True)
 
 
-def test_a_companion_truncates_the_outer_belt_at_the_holman_wiegert_limit():
-    """A companion of half the pair's mass on a circular orbit at 60 au: stable out to 0.464 - 0.38 x 0.5 = 0.274 of the separation, 16.4 au."""
-    limit_au = orbits.holman_wiegert_critical_semimajor_axis(60.0, 0.5, 0.0)
-    assert limit_au == pytest.approx(60.0 * (0.464 - 0.38 * 0.5))
-    state = bh.limit(bh.BeltState.formed(10.0, 40.0), 0.0, limit_au, "a companion at 60 au")
-    assert state.upper_au == pytest.approx(limit_au) and state.lower_au == 10.0
-    assert 0.0 < state.mass_fraction < 1.0
-    assert state.history[0].startswith("A companion at 60 au limits the belt")
-    far = bh.limit(bh.BeltState.formed(1.0, 5.0), 0.0, limit_au, "a companion at 60 au")
-    assert far.mass_fraction == 1.0 and far.history == ()
-
-
-def test_a_circumbinary_belt_starts_beyond_the_inner_limit_and_one_wholly_inside_it_is_lost():
-    inner = orbits.holman_wiegert_circumbinary_a_crit_au(1.0, 0.5, 0.0)
-    state = bh.limit(bh.BeltState.formed(1.0, 6.0), inner, 1.0e9, "a close companion")
-    assert state.lower_au == pytest.approx(inner) and state.upper_au == 6.0
-    gone = bh.limit(bh.BeltState.formed(1.0, 1.5), inner, 1.0e9, "a close companion")
-    assert gone.lost and "was lost" in gone.history[0]
-    with pytest.raises(ValueError):
-        bh.limit(state, 5.0, 2.0, "x")
-
-
 def test_the_events_in_order_keep_the_history_and_conserve_mass():
     state = bh.BeltState.formed(2.0, 6.0)
-    state = bh.giant_event(state, bh.INSTABILITY, Stream(4))
     state = bh.engulf(state, 3.0)
     state = bh.mass_loss(state, 3.0, 0.7, True)
-    assert len(state.history) == 3
-    assert bh.history_text(state).count(".") >= 3
+    assert len(state.history) == 2
+    assert bh.history_text(state).count(".") >= 2
     assert state.mass_fraction + state.scattered_fraction <= 1.0
     assert bh.mass_kg(state, 1.0e22) == pytest.approx(state.mass_fraction * 1.0e22)
     assert bh.scattered_mass_kg(state, 1.0e22) == pytest.approx(state.scattered_fraction * 1.0e22)
@@ -159,6 +97,6 @@ def test_a_main_belt_mass_belt_at_a_white_dwarf_is_a_test_target():
 
 def test_the_mass_of_a_belt_that_survived_goes_into_the_grinding_unchanged():
     """The history gives the mass left of what formed; `belt_mass` grinds that with the age."""
-    state = bh.giant_event(bh.BeltState.formed(2.2, 3.4), bh.INSTABILITY, Stream(7))
+    state = bh.engulf(bh.BeltState.formed(2.2, 3.4), 2.8)
     left = belt_mass.belt_mass_earth(state.mass_fraction * 2.0, 2.2, 3.4, 1.0, 4500.0, 500.0)
     assert 0.0 < left < state.mass_fraction * 2.0

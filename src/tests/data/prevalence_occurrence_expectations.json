@@ -1,5 +1,6 @@
 {
  "anomalies": {
+  "GEN.1068": "Trains 8 and 9 (epochs 130 and 131, merged 11:59 PM EDT 10-31 and 4:10 PM EST 11-04) moved the planets and belts of a system (belt birth GEN.1068 b, the clearance ledger GEN.1014, the giants chain GEN.819 to GEN.824) against the observed occurrence bands. Train 10 (epoch 132) moved K stars to 0.040 giants of 2 to 8 AU a star against a band from 0.056.",
   "GEN.728": "The giant-planet and planets-per-star rates of the planet architecture (GEN.728, wired on train 4, epoch 126) against the observed bands; Planets 1 tunes the architecture toward them, so the gap is carried by GEN.728."
  },
  "errors": {
@@ -54,6 +55,7 @@
      "source": "planets of 0.5 to 1.5 Earth radii in the conservative habitable zone of stars of 4800 to 6300 K (the two extremes of the extrapolation, 0.37 and 0.60, are the band's ends) ([R0572]; READ, T1)"
     },
     "giants_2_8_au": {
+     "anomaly": "GEN.1068",
      "kind": "observed",
      "max": 0.2283,
      "min": 0.0556,
@@ -72,6 +74,7 @@
      "source": "stars with at least one planet of radius 1 Earth radius or more and period under 400 days ([R4898]; READ, T1)"
     },
     "inner_multiplicity": {
+     "anomaly": "GEN.1068",
      "kind": "observed",
      "max": 3.8428,
      "min": 2.1572,
@@ -95,6 +98,7 @@
   "K": {
    "measures": {
     "giants_2_8_au": {
+     "anomaly": "GEN.1068",
      "kind": "observed",
      "max": 0.2283,
      "min": 0.0556,

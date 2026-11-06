@@ -294,6 +294,22 @@ def single_nebula_volume_payload(nebula_id):
             "data": base64.b64encode(packed).decode("ascii")}
 
 
+def cloud_volume_payload(x, y, z, radius_pc, family):
+    """What `GET /api/galaxy/cloud-volume` answers on the fixture site: the cloud with that sphere sampled alone by the real sampler from the
+    stand-in density (MAP.392)."""
+    import base64
+
+    from planetgen.galaxy import nebula_blocks, nebula_volume
+    from tests import nebula_density_stand_in as stand_in
+
+    volume = nebula_volume.sample_group(
+        [{"x": float(x), "y": float(y), "z": float(z), "radius_pc": float(radius_pc), "family": family}], None,
+        stand_in.density, stand_in.FORM_LEVEL, stand_in.MAX_DETAIL, nebula_blocks.FAMILIES)
+    packed = nebula_volume.pack(volume)
+    return {"format": "NVOL1", "level": packed[5], "count": int.from_bytes(packed[6:10], "little"),
+            "data": base64.b64encode(packed).decode("ascii")}
+
+
 def _point(kind, mass_solar, **fields):
     """A fixture point as a node lists it: its mass and the luminosity of a star of it (MAP.208), and its
     own light as a small number."""
@@ -407,6 +423,38 @@ LIFE_FIELD = [
 """The fixture systems with a world with life (the `life`, `sentient` and `civilization` reasons, MAP.311): life in Fixture Eden, Fixture Rest,
 Fixture Rock and Fixture Jove, sentient life in Fixture Rest and Fixture Jove, a civilization in Fixture Rest (Industrial, level 2.1), Fixture Dawn
 (Gravitic, 4.8; two of them) and Fixture Ember (its species not drawn yet, so no band; MAP.344)."""
+
+
+GRAVITY_ZONES = 16
+"""int: The zones along one side of the fixture's gravity grid (the real grid's)."""
+
+
+def gravity_payload(mode="pull", field="total"):
+    """
+    The body of `GET /api/sectors/<id>/gravity` for the fixture sector (MAP.168): a 16-zone grid with one well at its middle and one saddle point
+    beside it, in the answer's shape (`api.gravity.payload`), with no database. The `total` field adds a large even slope to the stars' wells
+    (the smooth galaxy), so a test sees that the colors come from the `centered` field and the numbers from the `total`.
+    """
+    zones = GRAVITY_ZONES
+    center = _sector_center_pc(*next(s[1:4] for s in SECTORS if s[0] == SECTOR_ID))
+    edge = EDGE_PC
+    values = []
+    for i in range(zones):
+        for j in range(zones):
+            for k in range(zones):
+                d = math.dist((i, j, k), (7.5, 7.5, 7.5)) + 0.5
+                well = 1.0 / (d * d)
+                slope = 1000.0 * (i + j + k) if field == "total" else 0.0
+                values.append(float(f"{well + slope:.4g}"))
+    return {
+        "mode": mode, "field": field, "unit": {"pull": "m/s^2", "depth": "m^2/s^2", "tidal": "1/s^2"}[mode], "zones": zones,
+        "zone_edge_pc": edge / zones, "edge_pc": edge, "center_pc": list(center), "origin_pc": [c - edge / 2.0 for c in center],
+        "order": "x-major", "values": values, "minimum": min(values), "maximum": max(values),
+        "smooth": {"level": 0.0, "span": 1000.0 * 3 * (zones - 1) if field == "total" else 0.0},
+        "saddles": [{"zone": [11, 7, 7], "position_pc": [center[0] + (11.5 - zones / 2) * edge / zones,
+                                                        center[1] + (7.5 - zones / 2) * edge / zones, center[2] + (7.5 - zones / 2) * edge / zones]}],
+        "stamp": "fixture",
+    }
 
 
 def interests_of(worlds, giants, barren=(), classes=(), life=()):
@@ -1012,6 +1060,9 @@ class FixtureApi:
     def get_nebula_volume(self, db, nebula_id):
         return single_nebula_volume_payload(nebula_id)
 
+    def get_cloud_volume(self, db, x, y, z, radius_pc, family):
+        return cloud_volume_payload(x, y, z, radius_pc, family)
+
     def get_sector(self, db, sector_id):
         if int(sector_id) not in [s[0] for s in SECTORS]:
             raise apiclient.NotFoundError(f"No such sector: {sector_id}")
@@ -1019,6 +1070,12 @@ class FixtureApi:
 
     def get_sector_facilities(self, db, sector_id):
         return []
+
+    def get_sector_gravity(self, db, sector_id, mode="pull", field="total"):
+        """`GET /api/sectors/<id>/gravity` for the fixture sector (MAP.168): `gravity_payload`'s grid; the other sectors have none."""
+        if int(sector_id) != SECTOR_ID:
+            raise apiclient.NotFoundError(f"No such sector: {sector_id}")
+        return gravity_payload(mode, field)
 
     def get_system_scene(self, db, system_id):
         return system_scene_payload(system_id)
@@ -1064,8 +1121,8 @@ class FixtureApi:
 
 _APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
-              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_system_scene",
-              "get_uncharted_sector", "get_system", "get_galaxy_charted_regions")
+              "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_cloud_volume", "get_system_scene",
+              "get_uncharted_sector", "get_system", "get_galaxy_charted_regions", "get_sector_gravity")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window")
 
 

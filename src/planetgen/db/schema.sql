@@ -1523,12 +1523,15 @@
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
+-- v212 (GEN.1221): `planets` and `moons` keep the relative humidity of the air (`relative_humidity`, DOUBLE, 0.05 to 0.99) and the groundwater of the body (`groundwater`, VARCHAR(10): none, reachable
+--   or deep; `physics/habitability_world.py`), which the class-by-domain matrix reads (`physics/class_domains.py`); `rogue_planets` keep them too. NULL for a row made before v212.
 -- v206 (GEN.1219, GEN.1220, GEN.1226): `planets` and `moons` keep the body type (`planet_type`, VARCHAR(12): terrestrial, transitional or gas, from the envelope share
 --   of the mass, `physics/planet_type.py`) and the digit of the class code (`class_variant`, TINYINT 0 to 9, 0 not written; `physics/class_code.py`). The
 --   `envelope_mass_fraction` that was there holds the true share of a hydrogen-rich air for every rocky body (`physics/envelope_share.py`). NULL for a row made before v206.
 -- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
 -- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v200, which gets them when the galaxy is regenerated.
+-- v213 (GEN.1254): `bright_stars` and `phenomenon_scatter` gain `uid` (BINARY(12), unique, NULL until given), the Object ID of the scatter row: its birth sector, a serial that is its rank in that sector (brightest first, stars from 0 and phenomena from the upper half of the serial space) and body number 0. The scatter writers give it as they write (`db/scatter_uids.py`, counters `scatstar` and `scatphen` in `id_counters`), and a system built round a scatter star and a built scatter phenomenon keep it. NULL for a row made before v205, and the regenerated scatter replaces it.
 -- v204 (GEN.1069): `asteroid_belts` keep where the belt came from and its history: `origin_cause` (VARCHAR(24)), `co_causes`, `origin_history` and `scatter_fates` (JSON text), `origin_sentence` (TEXT), `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` (DOUBLE), `stirred` (TINYINT(1)) and `largest_body_km` (DOUBLE, the largest body Dc settled with the mass). NULL for a row made before v201 or a belt made without an origin; the regenerated galaxy replaces it.
 -- v209 (GEN.1070): the table `belt_members` keeps the stored bodies of a belt (the ledger's cut), one row each, with mass, radius, orbit, taxon, density, composition shares, status word and Soter's mu; `member_rank` 1 is the heaviest and names the body (`<belt ID>.<rank in hex>`). A belt saved before v209 has none until the galaxy is regenerated.
 -- v210 (GEN.1232): `asteroid_belts.history_text` (TEXT, NULL), what the star's evolution did to the belt (engulfed in part by the giant branch, thrown inward by the mass loss, `physics/belt_history.py`), as one paragraph
@@ -2477,6 +2480,31 @@ CREATE TABLE IF NOT EXISTS planets (
     band7_longest_night_days    DOUBLE,
     band7_state                 VARCHAR(24),
     temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
+    temp_livable_share          DOUBLE,  -- v212 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v212: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v212: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v212: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v212: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v212: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v212: the share above 45 C
+    temp_area_always            DOUBLE,  -- v212: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v212: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v212: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v212: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v212: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v212: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v212: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v212: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v212: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v212: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v212: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v212: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
@@ -2487,6 +2515,8 @@ CREATE TABLE IF NOT EXISTS planets (
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
     planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
+    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
+    groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2557,11 +2587,11 @@ CREATE TABLE IF NOT EXISTS planets (
     surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
     surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
     surface_liquid_methane_mol    DOUBLE,  -- v205 (GEN.1218b): the methane of a methane, ethane or nitrogen sea, mole fraction (NULL: another liquid)
-    surface_liquid_ethane_mol     DOUBLE,  -- v205: its ethane, mole fraction
-    surface_liquid_nitrogen_mol   DOUBLE,  -- v205: its dissolved nitrogen, mole fraction
-    surface_liquid_salt_wt  DOUBLE,  -- v205: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
-    surface_liquid_2              VARCHAR(32),  -- v205: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
-    surface_liquid_2_fraction     DOUBLE,  -- v205: the share of the surface it covers
+    surface_liquid_ethane_mol     DOUBLE,  -- v212: its ethane, mole fraction
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v212: its dissolved nitrogen, mole fraction
+    surface_liquid_salt_wt  DOUBLE,  -- v212: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
+    surface_liquid_2              VARCHAR(32),  -- v212: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_2_fraction     DOUBLE,  -- v212: the share of the surface it covers
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2920,6 +2950,31 @@ CREATE TABLE IF NOT EXISTS moons (
     band7_longest_night_days    DOUBLE,
     band7_state                 VARCHAR(24),
     temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
+    temp_livable_share          DOUBLE,  -- v212 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v212: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v212: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v212: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v212: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v212: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v212: the share above 45 C
+    temp_area_always            DOUBLE,  -- v212: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v212: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v212: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v212: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v212: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v212: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v212: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v212: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v212: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v212: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v212: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v212: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
@@ -2930,6 +2985,8 @@ CREATE TABLE IF NOT EXISTS moons (
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
     planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
+    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
+    groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -2995,11 +3052,11 @@ CREATE TABLE IF NOT EXISTS moons (
     surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
     surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
     surface_liquid_methane_mol    DOUBLE,  -- v205 (GEN.1218b): the methane of a methane, ethane or nitrogen sea, mole fraction (NULL: another liquid)
-    surface_liquid_ethane_mol     DOUBLE,  -- v205: its ethane, mole fraction
-    surface_liquid_nitrogen_mol   DOUBLE,  -- v205: its dissolved nitrogen, mole fraction
-    surface_liquid_salt_wt  DOUBLE,  -- v205: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
-    surface_liquid_2              VARCHAR(32),  -- v205: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
-    surface_liquid_2_fraction     DOUBLE,  -- v205: the share of the surface it covers
+    surface_liquid_ethane_mol     DOUBLE,  -- v212: its ethane, mole fraction
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v212: its dissolved nitrogen, mole fraction
+    surface_liquid_salt_wt  DOUBLE,  -- v212: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
+    surface_liquid_2              VARCHAR(32),  -- v212: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_2_fraction     DOUBLE,  -- v212: the share of the surface it covers
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -4083,6 +4140,31 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     band7_longest_night_days    DOUBLE,  -- v207 (GEN.1111)
     band7_state                 VARCHAR(24),  -- v207 (GEN.1111)
     temp_mean_swing_k           DOUBLE,  -- v207 (GEN.1111)
+    temp_livable_share          DOUBLE,  -- v212 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v212: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v212: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v212: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v212: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v212: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v212: the share above 45 C
+    temp_area_always            DOUBLE,  -- v212: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v212: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v212: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v212: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v212: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v212: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v212: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v212: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v212: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v212: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v212: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v212: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v207 (GEN.1111)
     outside_hours_limit         VARCHAR(16),  -- v207 (GEN.1111)
     day_night_state             VARCHAR(24),  -- v207 (GEN.1111)
@@ -4151,6 +4233,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     surface_liquid_2              VARCHAR(32),  -- v207 (GEN.1111)
     surface_liquid_2_fraction     DOUBLE,  -- v207 (GEN.1111)
     class_variant                 TINYINT,  -- v207 (GEN.1111)
+    relative_humidity             DOUBLE,  -- v212 (GEN.1221)
+    groundwater                   VARCHAR(10),  -- v212 (GEN.1221)
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)
@@ -4632,7 +4716,9 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     cluster_id           BIGINT UNSIGNED,  -- v127 (DB.61): the cluster this star belongs to, NULL for a field star
     rotation_period_hours DOUBLE,  -- v185 (GEN.846): the spin period in hours, NULL on a row made before v185
     nuclear_arrival_age_gy DOUBLE,  -- v198 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
+    uid                  BINARY(12) NULL,  -- v213 (GEN.1254): the star's Object ID, given when the scatter writes it, see the header comment
 
+    UNIQUE KEY uq_bright_stars_uid (uid),
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
@@ -4852,7 +4938,9 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     next_update_due      DOUBLE,  -- v93 (GEN.223): see header comment
     member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
     system_mass_solar    DOUBLE,
+    uid                  BINARY(12) NULL,  -- v213 (GEN.1254): the phenomenon's Object ID, given when the scatter writes it, see the header comment
 
+    UNIQUE KEY uq_phenomenon_scatter_uid (uid),
     KEY idx_phenomenon_scatter_address (shell_index, band_index, wedge_index),
     KEY idx_phenomenon_scatter_next_update_due (next_update_due),
     KEY idx_phenomenon_scatter_class (kind, subtype, mass_solar),  -- v82 (PERF.68): see header comment

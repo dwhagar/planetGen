@@ -37,6 +37,12 @@ MELT_MIN_K = 1400.0
 """float: The least surface temperature of a molten surface ([R2380]'s range starts here); a hotter-zone body below it
 outgasses and is not a lava world."""
 
+MELT_MAX_K = 6000.0
+"""float: The hottest temperature the vapor over a melt is worked out at (GEN.1294): the top of NASA Glenn's fits of the liquid oxides and of
+47 of the 84 gases of the species table (`species_thermo`), above which `species_thermo` raises. A surface hotter than this (a dayside of a rock
+next to a hot star, or a white-dwarf planet's exosphere) has its vapor worked out at this temperature, and the mixture reports the surface's own.
+A stand-in: registry row AM95 (tier 6, tweak level 0)."""
+
 SUPERCOOLED_BELOW_K = 1000.0
 """float: How far below its melting point a liquid's fit is used (a lava world's surface is at least `MELT_MIN_K`)."""
 
@@ -71,6 +77,13 @@ models of the bulk silicate Earth melt with an ideal solution and find them agre
 not named among the sensitive ones and its condensation temperature the same for the dry and the wet melt (read in the abstract only;
 the paper and its Al2O3 value are not opened). The alkalis are the exception that `ALKALI_ACTIVITY_COEFFICIENT` carries. The research
 item that replaces it is the melt activity model of GEN.499."""
+
+OXYGEN_SHARE_MAX = 0.99
+"""float: The largest share of the gas pressure over a melt that its held oxygen (O2 and O at the buffer's fugacity) may take in the carbon solve
+of a volatile-bearing body (GEN.1296). The buffered oxygen fills the pressure when it reaches it: the solve then has no room for carbon and does not
+converge (checked from 0.8 to 1.2 of the pressure, at six temperatures between 2600 and 6000 K and three redox states: it converges for every
+share under 1 and fails for every share of 1 and over). A surface pressure lower than the oxygen holds is raised to what holds it, as the gas over a
+melt cannot be thinner than the melt's own oxygen. A stand-in: registry row AM96 (tier 6, tweak level 0)."""
 
 VOLATILE_BEARING_PER_CARBON = 1.0
 """float: Moles of carbon the volatile-bearing gas is computed for (only its CO2 to CO ratio matters)."""
@@ -155,6 +168,7 @@ def vapor_mixture(subject, recipe, *, temperature_name="tp_k", oxides_wt_percent
         temperature = subject["ts_k"]
     if temperature < MELT_MIN_K:
         raise MixtureError(f"a surface at {temperature:g} K is not molten (the vapor over a melt is taken from {MELT_MIN_K:g} K)")
+    chemistry_k = min(temperature, MELT_MAX_K)
     redox = recipe.values.get("a4", recipe.values.get("a1"))
     if redox is None:
         raise MixtureError("no redox row applies to the melt")
@@ -162,16 +176,17 @@ def vapor_mixture(subject, recipe, *, temperature_name="tp_k", oxides_wt_percent
     gamma = bracket(constants, "alkali_activity_coefficient", ALKALI_ACTIVITY_COEFFICIENT)
     coefficient = {"Na2O": gamma, "K2O": gamma, "Al2O3": ALUMINA_ACTIVITY_COEFFICIENT}
     activities = {oxide: value * coefficient.get(oxide, 1.0) for oxide, value in fractions.items()}
-    potentials = element_potentials(activities, temperature, redox)
-    pressures = vapor_pressures(potentials, temperature)
+    potentials = element_potentials(activities, chemistry_k, redox)
+    pressures = vapor_pressures(potentials, chemistry_k)
     constants["vapor_pressure_bar"] = sum(pressures.values())
     volatile_bearing = recipe.binaries.get("i6", (False, None))[0]
     if volatile_bearing:
         require(subject, ("pressure_bar",))
-        volatile = gas_equilibrium.solve({"C": VOLATILE_BEARING_PER_CARBON}, temperature, subject["pressure_bar"],
-                                         fixed_o2_log_fugacity=fo2.log_fo2(redox, temperature))
+        gas_pressure = max(subject["pressure_bar"], (pressures.get("O2", 0.0) + pressures.get("O", 0.0)) / OXYGEN_SHARE_MAX)
+        volatile = gas_equilibrium.solve({"C": VOLATILE_BEARING_PER_CARBON}, chemistry_k, gas_pressure,
+                                         fixed_o2_log_fugacity=fo2.log_fo2(redox, chemistry_k))
         for name, fraction in volatile.mole_fractions.items():
-            pressures[name] = pressures.get(name, 0.0) + fraction * subject["pressure_bar"]
+            pressures[name] = pressures.get(name, 0.0) + fraction * gas_pressure
         constants["volatile_bearing"] = True
     total = sum(pressures.values())
     equilibrium = gas_equilibrium.Equilibrium(

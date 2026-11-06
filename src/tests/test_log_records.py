@@ -1,5 +1,6 @@
 """UX.122: the command line's log lines go through the logging layer, and a record file holds the same lines as records."""
 
+import re
 import argparse
 
 import pytest
@@ -36,7 +37,7 @@ def test_a_record_file_holds_each_line_as_a_record_the_console_text_is_the_plain
     assert [(r.severity, r.component, r.message) for r in records] == [
         ("info", "test_log_records", "Placed 12 sectors"), ("error", "test_log_records", "Error: no such sector")]
     assert capsys.readouterr().out.splitlines() == [logrecord.plain_line(r) for r in records]
-    assert all(line.startswith("ts=") and "Z level=" in line for line in path.read_text().splitlines())
+    assert all(re.match(r"^ts=\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}[+-]\d{4} level=", line) for line in path.read_text().splitlines())
 
 
 def test_a_debug_run_puts_its_debug_lines_in_the_record_file_too(tmp_path):

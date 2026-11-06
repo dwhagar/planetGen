@@ -41,11 +41,11 @@ TOP = frozenset({
 LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena", "web.lists", "web.object_list"})
 DETAIL = frozenset({
     "web.system", "web.sector", "web.sector_at", "web.phenomenon", "web.uncharted_phenomenon", "web.uncharted_star",
-    "web.object_page",
+    "web.object_page", "web.belt_info_page",
 })
 OTHER_PUBLIC_UTILITY = frozenset({
     "web.search", "web.nav", "web.nav_chart", "web.nearby", "web.table_data",
-    "web.galaxy_locate", "web.galaxy_status", "web.galaxy_system_nearest", "web.galaxy_regions", "web.galaxy_near", "web.galaxy_nebula_surroundings", "web.galaxy_nebula_volume", "web.galaxy_nebula_alone_volume", "web.galaxy_stage", "web.galaxy_territories",
+    "web.galaxy_locate", "web.galaxy_status", "web.galaxy_system_nearest", "web.galaxy_regions", "web.galaxy_near", "web.galaxy_nebula_surroundings", "web.galaxy_nebula_volume", "web.galaxy_nebula_alone_volume", "web.galaxy_cloud_volume", "web.galaxy_stage", "web.galaxy_territories",
     "web.galaxy_nodes", "web.galaxy_uncharted_scene", "web.galaxy_window", "web.sector_on_galaxy_map",
     "web.sector_scene", "web.system_on_galaxy_map", "web.system_scene", "web.system_sky", "web.system_sky_band", "web.old_page", "web.object_tree",
 })

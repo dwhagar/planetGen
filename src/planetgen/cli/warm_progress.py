@@ -13,6 +13,10 @@ test galaxy), so the long object steps move it as far as they take, not one step
 while a later step has not been queued yet, and says so. No time left is shown for the stage or the whole warm-up from
 fewer than `MIN_CHUNKS` chunks (PERF.237): the first results are the first of the workers that run side by side.
 
+A unit that reports how far it has got (`unit_progress`: the node chunks and the object slices say so as they work) moves the
+bars between the chunk ends too: its fraction counts as that share of a chunk done, for the stage's position, the cost done
+and the time left, so a stage of a few big chunks (a big galaxy) is not still at zero until the first one ends.
+
 The seconds a chunk reports are its own worker's. Several chunks run at once, so the line also says how many (the
 chunks' own seconds added up over the elapsed time) and how long a chunk takes overall (the elapsed time over the chunks
 done); the time left comes from that overall rate only.
@@ -67,11 +71,13 @@ class WarmProgress:
         clock (callable): Seconds, monotonic; replaced in tests.
         expected (dict): `{stage key: cost}` the steps are expected to cost, in one worker's seconds, before each is queued
             (`warmup.EXPECTED_SECONDS`); a step queued weighs the cost its plan declares instead.
+        mirror (callable): Also given each line the drawn bars print (they bypass the logging layer), for the warm-up log (OPS.96).
     """
 
-    def __init__(self, keys, say, show=True, rich_bars=False, clock=time.monotonic, expected=None):
+    def __init__(self, keys, say, show=True, rich_bars=False, clock=time.monotonic, expected=None, mirror=None):
         self.keys = list(keys)
         self.say = say
+        self.mirror = mirror
         self.show = show
         self.rich_bars = show and rich_bars
         self.clock = clock
@@ -87,6 +93,8 @@ class WarmProgress:
         self.units = 0
         self.done = 0
         self.sums = {}
+        self.inflight = {}
+        """dict[int, float]: Unit number to the fraction (0 to 1) of it done, for the units of the current stage that have reported."""
         self.noun = "items"
         self.biggest = 0
         self.started = 0.0
@@ -122,6 +130,8 @@ class WarmProgress:
 
     def _console_say(self, line):
         self.progress.console.print(line, markup=False, highlight=False)
+        if self.mirror is not None:      # the bars' console is not the logging layer: the warm-up log gets the line here (OPS.96)
+            self.mirror(line)
 
     def plan(self, index, plan):
         """Stage `index` has been queued as `plan["units"]` units."""
@@ -129,6 +139,7 @@ class WarmProgress:
         self.queued = max(self.queued, index + 1)
         self.units = int(plan.get("units") or 0)
         self.done = 0
+        self.inflight = {}
         self.sums = {"warmed": 0, "built": 0, "cached": 0, "left_out": 0, "seconds": 0.0}
         self.noun = "items"
         self.biggest = 0
@@ -156,17 +167,36 @@ class WarmProgress:
 
     def _weight_done(self):
         """The cost of the steps before this one and the share of this one's that its chunks have done."""
-        share = self.done / self.units if self.units > 1 else 0.0
+        share = min(1.0, self._position() / self.units) if self.units > 0 else 0.0
         return sum(self.weights[:self.index]) + self.weights[self.index] * share
 
+    def _position(self):
+        """Chunks done, with the share of each chunk that reported a part of itself (`unit_progress`) added."""
+        return self.done + sum(self.inflight.values())
+
     def _enough(self):
-        return self.done >= MIN_CHUNKS
+        return self._position() >= MIN_CHUNKS
+
+    def unit_progress(self, index, unit, done, estimate):
+        """Unit `unit` of stage `index` has done `done` of `estimate` of its work (`wrapper.run`'s `on_progress`); moves the bars."""
+        if index != self.index or estimate is None or estimate <= 0:
+            return
+        fraction = max(0.0, min(1.0, float(done) / float(estimate)))
+        if fraction <= self.inflight.get(unit, 0.0):
+            return
+        self.inflight[unit] = fraction
+        if self.progress is not None:
+            elapsed = self.clock() - self.started
+            stage_left = self._stage_left(elapsed)
+            self.progress.update(self.task, completed=min(self._position(), self.units),
+                                 left="" if stage_left is None else f"about {clock_text(stage_left)} left")
+            self.progress.update(self.overall, completed=self._weight_done(), left=self._overall_left_text())
 
     def _stage_left(self, elapsed):
         """Seconds the stage still takes at the rate it has run at (`None` while too few chunks are done to say)."""
         if not self._enough() or elapsed < MIN_SECONDS:
             return None
-        return elapsed / self.done * (self.units - self.done)
+        return elapsed / self._position() * (self.units - self._position())
 
     def _at_once(self, elapsed):
         """How many chunks run side by side: the chunks' own seconds added up over the elapsed time (`None` if unknown)."""
@@ -194,10 +224,11 @@ class WarmProgress:
             return ""
         return f"about {clock_text(left)} left" + (" (rough guess)" if self.rough() else "")
 
-    def result(self, result):
-        """One unit of the current stage finished with `result`; prints what that calls for."""
+    def result(self, result, unit=None):
+        """One unit (number `unit`) of the current stage finished with `result`; prints what that calls for."""
         key = self.keys[self.index]
         self.done += 1
+        self.inflight.pop(unit, None)
         for name in ("warmed", "built", "cached", "left_out"):
             self.sums[name] += int(result.get(name) or 0)
         self.sums["seconds"] += float(result.get("seconds") or 0.0)
@@ -211,7 +242,7 @@ class WarmProgress:
                 self.task, completed=self.done, description=self._description(),
                 left="" if stage_left is None else f"about {clock_text(stage_left)} left",
                 rate="" if at_once is None else f"{elapsed / self.done:.1f} s/chunk overall, {at_once} at once")
-            self.progress.update(self.overall, completed=self._weight_done() if self.units > 1 else sum(self.weights[:self.index + 1]),
+            self.progress.update(self.overall, completed=self._weight_done(),
                                  left=self._overall_left_text())
         if self.units <= 1:
             self.say(result["line"])

@@ -162,9 +162,9 @@ _DISK_LABELS = {"post-agb": "Circumbinary post-AGB"}
 
 
 def _star_disk_text(star):
-    if star.disk_mass_solar is None:    # a debris disk (GEN.787): its dust light is measured, its mass is not
+    if star.disk_mass_solar is None:    # a debris disk (GEN.1071): the dust of the star's outer belt, whose bodies are the belt's
         return inline(_DISK_LABELS.get(star.disk_kind) or star.disk_kind.replace("-", " ").capitalize(), " disk, from ",
-                      _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
+                      _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", the dust of the outer belt")
     return inline(_DISK_LABELS.get(star.disk_kind) or star.disk_kind.replace("-", " ").capitalize(), " disk of ",
                   _mass_solar(star.disk_mass_solar), ", from ",
                   _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
@@ -516,6 +516,13 @@ def _equipment_block(planet):
     if day is not None:
         cause = outside_hours.LIMIT_WORDS.get(limit, limit)
         rows.append(fact("outside-hours-day", "Hours outside in a day", _held("h", day, shown="time"), f", set by {cause}"))
+    if getattr(planet, "temp_site_coldest_k", None) is not None:           # GEN.1266: the temperatures the gear is chosen for, and the worst of the world
+        rows.append(fact("best-site-range", "Best site, coldest to hottest hour", _kelvin(planet.temp_site_coldest_k), " to ", _kelvin(planet.temp_site_hottest_k)))
+        rows.append(fact("worst-range", "Worst conditions anywhere", _kelvin(planet.temp_coldest_k), " to ", _kelvin(planet.temp_hottest_k)))
+        if planet.temp_site_longest_out_days:
+            rows.append(fact("longest-indoors", "Longest stay indoors at the best site", _held("d", planet.temp_site_longest_out_days, shown="time")))
+        if planet.temp_livable_belt_only:
+            rows.append(fact("belt-only", "Where a person can live", "Only the terminator belt"))
     return facts("Survival equipment", rows) if rows else None
 
 

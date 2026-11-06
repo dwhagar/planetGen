@@ -311,7 +311,7 @@ if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
 else
     UPDATE_STEP="building what the reload and the health check need (cache warm-up, stage 1)"
     run_warm_stage "stage 1 of 2, what the reload and the health check need" opening
-    echo "The update steps are finished: waiting ${UPDATE_SETTLE_SECONDS:-5} seconds before reloading the site."
+    log_info "The update steps are finished: waiting ${UPDATE_SETTLE_SECONDS:-5} seconds before reloading the site."
     sleep "${UPDATE_SETTLE_SECONDS:-5}"
     UPDATE_STEP="reloading what serves the site and checking that it answers /api/health"
     reload_status=0

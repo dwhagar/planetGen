@@ -317,6 +317,27 @@ def age_moved(body):
     return drawn is not None and body.star.age - drawn > AGE_SETTLE_TOLERANCE * max(drawn, 0.1)
 
 
+def remake_end_stages(body, planet, attempt=0):
+    """
+    Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`, and the bar on
+    habitable worlds, GEN.1250). `planet` is the body itself for a planet and the parent for a moon. `attempt` 0 is the draw `refinish_rocky` always
+    made; a later attempt is another draw of the same step, for a body that came out with the conditions a system that bars habitable worlds
+    keeps off (`StarSystem._bar_habitable_worlds`).
+    """
+    stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
+                         f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}"
+                         + (f":bar{attempt}" if attempt else ""))
+    with draw.bound(stream):
+        if body.is_moon:
+            calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
+            apply_class(body)
+            generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
+        else:
+            calculate_atmospheric_conditions(body)
+            apply_class(body)
+            generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
+
+
 def refinish_rocky(planet):
     """
     Makes a rocky planet's end stages again at the star's final age, and its moons' (GEN.992, found by GEN.986): the air, the water and the
@@ -343,17 +364,7 @@ def refinish_rocky(planet):
     for body in bodies():
         if not age_moved(body):
             continue
-        stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
-                             f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}")
-        with draw.bound(stream):
-            if body.is_moon:
-                calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
-                apply_class(body)
-                generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
-            else:
-                calculate_atmospheric_conditions(body)
-                apply_class(body)
-                generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
+        remake_end_stages(body, planet)
         body._age_drawn = body.star.age
         made += 1
     if made:  # GEN.767: the spin and period changed, the moons' day and night shares follow (no draws)
@@ -1045,6 +1056,12 @@ def generate_moons(planet, moon_count=None):
     if limit_mass_kg <= tuning.MOON_MIN_MASS_KG:
         return
     parent_is_giant = planet.body_type == "g"
+    # GEN.962: a rocky planet (no row in the `satellite-share` table, not a giant) holds massive moons from giant impacts at a rate of its own; its other moons
+    # are the captured ones of `captured_moons`
+    impact_moons = not parent_is_giant and hosting_gate.satellite_share(hosting_host(planet)) is None
+    impact_floor_kg = tuning.ROCKY_MASSIVE_MOON_MASS_RATIO * planet.mass if impact_moons else None
+    # a massive moon is often denser or lighter than its parent can hold (the radius limit), so its draws are repeated further before the slot is given up
+    rejection_limit = MOON_REJECTION_LIMIT * 4 if impact_moons else MOON_REJECTION_LIMIT
 
     low_orbit, high_orbit = moon_orbit_bounds_km(planet)
     total_orbit_distance = low_orbit
@@ -1065,7 +1082,7 @@ def generate_moons(planet, moon_count=None):
         if moon_count is not None and len(planet.moons) >= moon_count:
             break
 
-        moon_mass = planet_kind.draw_moon_mass_kg(planet.mass, parent_is_giant, limit_mass_kg)
+        moon_mass = planet_kind.draw_moon_mass_kg(planet.mass, parent_is_giant, limit_mass_kg, impact_floor_kg)
         if moon_mass is None:
             break
 
@@ -1106,12 +1123,14 @@ def generate_moons(planet, moon_count=None):
         if new_moon.radius > limit_radius_km:    # denser or lighter than the parent could hold; its slot stays open
             draw.redrawn("moon.too_large")
             rejected += 1
-            if rejected >= MOON_REJECTION_LIMIT:
+            if rejected >= rejection_limit:
                 break
             continue
         rejected = 0
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
+        if impact_moons and moon_count is None and draw.random() >= tuning.ROCKY_IMPACT_MOON_CHANCE:    # GEN.962: a further impact, or no more
+            break
 
     if planet.moons:
         # This planet's own reflex-offset "wobble" (schema v20) from the

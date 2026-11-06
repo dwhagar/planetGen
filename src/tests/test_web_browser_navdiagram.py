@@ -210,7 +210,7 @@ def test_the_page_says_a_link_is_a_neighbour_relation_and_not_a_travel_lane(brow
         legend = page.evaluate("() => document.querySelector('.nav-diagram-legend').textContent")
     finally:
         context.close()
-    assert "neighbour relation, not a travel lane" in text and "Neighbour (not a travel lane)" in legend
+    assert "neighbor relation, not a travel lane" in text and "Neighbor (not a travel lane)" in legend
 
 
 @pytest.mark.parametrize("width,size", [(320, "narrow"), (700, "middle"), (1280, "wide")])

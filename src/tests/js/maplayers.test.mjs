@@ -270,7 +270,17 @@ test("the Menu gives a forward layer a second button and the group one row that 
   front.click();
   assert.equal(reg.stateOf("poi-a"), "forward");
   assert.equal(container.querySelector('button[data-forward="poi-a"]').getAttribute("aria-pressed"), "true");
-  assert.equal(container.querySelector('button[data-forward="poi-b"]').disabled, true, "a hidden layer cannot be pulled forward by its row");
+  // MAP.397: a hidden layer's Forward button is there to press (pulling forward shows it), and sits in one row with its layer's button.
+  const hidden = container.querySelector('button[data-forward="poi-b"]');
+  assert.equal(hidden.disabled, false);
+  assert.equal(hidden.parentNode.className, "galaxy-kinds-row");
+  assert.deepEqual(hidden.parentNode.querySelectorAll("button").map((b) => b.dataset.layer || b.dataset.forward), ["poi-b", "poi-b"]);
+  assert.equal(container.querySelector('button[data-layer="plain"]').parentNode, container, "a layer with no Forward button is not in a row");
+  assert.equal(reg.isOn("poi-b"), false);
+  hidden.click();
+  assert.deepEqual([reg.isOn("poi-b"), reg.stateOf("poi-b")], [true, "forward"]);
+  reg.setPulled("poi-b", false);
+  reg.setOn("poi-b", false);
   container.querySelector('button[data-bulk="forward"]').click();
   assert.deepEqual(["poi-a", "poi-b"].map((id) => reg.stateOf(id)), ["forward", "forward"]);
   container.querySelector('button[data-bulk="hidden"]').click();
@@ -294,6 +304,28 @@ test("a key line shows while its thing is drawn, and a layer with no line, legen
   assert.deepEqual(reg.legend().map((line) => line.id), ["star", "key-glow"]);
   assert.throws(() => reg.registerKey({ id: "key-glow", text: "again", drawn: () => true }), /already registered/);
   assert.throws(() => reg.registerKey({ id: "x", text: "no drawn" }), /drawn/);
+});
+
+test("a layer declares its View menu heading, keywords, a common flag and a settings hook, and one with no heading or keywords is named by unheaded() (UX.277)", () => {
+  const reg = L.createLayerRegistry("galaxy");
+  assert.deepEqual(L.HEADINGS, ["Show", "Color and fill", "Chart and side views", "Move and Settings"]);
+  reg.register({ id: "stars", label: "Stars", heading: "Show", keywords: ["star", "sun"], common: true });
+  const hook = () => {};
+  reg.register({ id: "grid", label: "Cell grid", heading: "Color and fill", keywords: ["grid", "cells"], settings: hook });
+  reg.register({ id: "plain", label: "Plain" });
+  reg.register({ id: "nowords", label: "No words", heading: "Show", keywords: [] });
+  reg.register({ id: "blankwords", label: "Blank words", heading: "Show", keywords: ["  "] });
+  reg.register({ id: "noheading", label: "No heading", keywords: ["x"] });
+  reg.register({ id: "badheading", label: "Bad heading", heading: "Elsewhere", keywords: ["x"] });
+  reg.register({ id: "othermap", label: "Other map", modes: ["system"] });
+  assert.deepEqual(reg.unheaded(), ["plain", "nowords", "blankwords", "noheading", "badheading"], "only the map's own layers, each with what it lacks");
+  assert.deepEqual(reg.entries().slice(0, 2), [
+    { id: "stars", label: "Stars", heading: "Show", group: null, keywords: ["star", "sun"], common: true, settings: null },
+    { id: "grid", label: "Cell grid", heading: "Color and fill", group: null, keywords: ["grid", "cells"], common: false, settings: hook },
+  ]);
+  assert.equal(reg.get("plain").common, false, "common is false unless a layer says it is one of the few most used");
+  assert.throws(() => reg.register({ id: "w", label: "W", keywords: "star" }), /keywords is a list of strings/);
+  assert.throws(() => reg.register({ id: "w", label: "W", settings: "slider" }), /settings is a function/);
 });
 
 test("the key follows what is drawn, and a collapsible legend is a Key that folds away (MAP.234)", () => {

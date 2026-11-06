@@ -28,7 +28,7 @@ from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
 from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, outside_hours, regional_temperature,
-                               life_classes, stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
+                               life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -218,7 +218,15 @@ _BODY_GROUPS = (
            ("envelope_helium_fraction", "Helium share of the envelope"), ("envelope_z_fraction", "Heavy-element share of the envelope"),
            ("rock_feo_fraction", "Iron oxide share of the rock"), ("rock_al2o3_fraction", "Alumina share of the rock"),
            ("rock_mg_si_ratio", "Magnesium to silicon ratio of the rock"), ("porosity", "Porosity"),
-           ("carbon_rock", "Carbon-rich rock", FLAG)),
+           ("carbon_rock", "Carbon-rich rock", FLAG),
+           ("ground_type", "Ground type with the largest share", TEXT), ("ground_grain", "Ground grain", TEXT),
+           ("ground_ocean_fraction", "Ground share: ocean"), ("ground_ice_fraction", "Ground share: ice"),
+           ("ground_ultramafic_fraction", "Ground share: ultramafic rock"), ("ground_anorthositic_fraction", "Ground share: anorthositic rock"),
+           ("ground_basaltic_fraction", "Ground share: basalt"), ("ground_felsic_fraction", "Ground share: granitoid rock"),
+           ("ground_intermediate_fraction", "Ground share: intermediate rock"), ("ground_clay_fraction", "Ground share: clay"),
+           ("ground_oxidized_fraction", "Ground share: iron-oxidized ground"), ("ground_metal_fraction", "Ground share: metal"),
+           ("ground_carbon_fraction", "Ground share: carbon"), ("ground_evaporite_fraction", "Ground share: evaporite salts"),
+           ("ground_sulfur_fraction", "Ground share: sulfur")),
     *_rows("atmosphere", ("atmospheric_pressure_pa", "Surface pressure"), ("atm_density", "Air density"),
            ("atm_molar_density", "Mean molar mass of the air"), ("scale_height_km", "Scale height"),
            ("tau_haze", "Haze optical depth"), ("tau_dust", "Dust optical depth"), ("tau_cloud", "Cloud optical depth"),
@@ -226,9 +234,14 @@ _BODY_GROUPS = (
            ("ozone_loss_flag", "Ozone layer lost", FLAG)),
     *_rows("climate", ("bond_albedo", "Bond albedo"), ("greenhouse_factor", "Greenhouse factor"),
            ("surface_temperature_k", "Mean surface temperature"),
-           ("temp_mean_swing_k", "Day and night swing, whole surface (hottest to coldest)"), ("energy_flux_w_m2", "Stellar energy received"),
+           ("temp_mean_swing_k", "Day and night swing, whole surface (hottest to coldest)"),
+           ("temp_livable_share", "Livable share of the surface and the year (no suit needed)"), ("temp_livable_area", "Surface livable at least half of the year"),
+           ("temp_site_coldest_k", "Best site, coldest hour"), ("temp_site_hottest_k", "Best site, hottest hour"),
+           ("temp_coldest_k", "Coldest place and hour anywhere"), ("temp_hottest_k", "Hottest place and hour anywhere"),
+           ("energy_flux_w_m2", "Stellar energy received"),
            ("flux_variation", "Seasonal variation of that energy, peak to peak")),
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
+           ("relative_humidity", "Relative humidity of the surface air"), ("groundwater", "Groundwater (liquid water underground)", TEXT),
            ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
            ("surface_liquid", "Surface liquid", TEXT), ("surface_liquid_fraction", "Surface under that liquid"),
@@ -526,15 +539,14 @@ _BODY_NOT_SHOWN = {
     "aerosol_draw": "the random draw behind the haze and dust depths; bookkeeping",
     "atmosphere_colour": "shown as the Atmosphere color swatch by the description builder, a color rather than a number",
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
-    **_excuse(("ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
-               "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
-               "ground_oxidized_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
-               "ground_sulfur_fraction", "ground_intermediate_fraction"),
-              "the stored mix of ground types; it feeds the ground dose and the surface rendering, and the page does "
-              "not list it as a row yet"),
     **_excuse(regional_temperature.BAND_COLUMNS,
               "the seven bands of latitude (the rings of a world that turns once an orbit), side by side in the table of the bands: the annual mean, the day and night swing, "
               "the hours of day and night, the longest unbroken day and night and the state of each"),
+    **_excuse(("temp_livable_time", "temp_blue_share", "temp_green_share", "temp_cold_share", "temp_hot_share", "temp_area_always", "temp_area_most", "temp_livable_belt_only",
+               "temp_coldest_lat_deg", "temp_coldest_lon_deg", "temp_coldest_day", "temp_hottest_lat_deg", "temp_hottest_lon_deg", "temp_hottest_day",
+               "temp_site_lat_deg", "temp_site_lon_deg", "temp_site_livable_time", "temp_site_mean_k", "temp_site_longest_out_days"),
+              "what is read off the temperature of every place through the year: the shares in each band, where and when the extremes are and the best site; the "
+              "livable share, the best site's extremes and the world's own are rows of the climate table, the rest is in the text of the Temperature row and the API"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
@@ -806,9 +818,12 @@ AIRLESS_CLASSES = frozenset("CDS")
 _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa",
                "helium_depletion", "has_helium_shell", "envelope_helium_fraction", "envelope_z_fraction")
 _MEAN_SWING = ("temp_mean_swing_k",)
+_COVERAGE_ROWS = ("temp_livable_share", "temp_livable_area", "temp_site_coldest_k", "temp_site_hottest_k", "temp_coldest_k", "temp_hottest_k")
+"""tuple: The columns of what is read off the temperature of every place that the climate table shows (GEN.1265); a giant has none."""
 _SURFACE = (
-    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
+    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
+    "ground_type", "ground_grain", *surface_composition.FRACTION_FIELDS,
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
@@ -816,7 +831,7 @@ _SURFACE = (
     "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
     "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
     "c_k0_ppm", "c_th0_ppm", "c_u0_ppm", "al26_ratio", "urey_ratio", "internal_heat_flux_w_m2", "mantle_eta0_pa_s",
-    "mantle_activation_kj_mol", *_MEAN_SWING,
+    "mantle_activation_kj_mol", *_MEAN_SWING, *_COVERAGE_ROWS,
     "life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
     "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
     "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
