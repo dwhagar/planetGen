@@ -2188,6 +2188,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 5. Filed by the TODO thread.
   Prerequisites: none. Related: UX.274, UX.278, MAP.392.
 
+- [ ] **MAP.398 test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card fails on main: an extra marker-region token for Zarh Region (bug)**
+  Core 2 (as the lane reported, about 7:35 PM EST on 2026-11-05): the
+  browser test fails on main with or without UX.278; the Galaxy Map
+  gives an extra marker-region token for Zarh Region (likely from the
+  region point of interest label change MAP.369 or the charted-regions
+  work). Do: find which merge added the token, then fix the code or the
+  test depending on which is wrong, without loosening the test. Version
+  8.1. Owner: Core 2. Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.369, MAP.397.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -14295,17 +14305,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fast-forward moves them with the orbits.
   Prerequisites: GEN.139. Related: POP.24, POP.35, POP.30.
 
-- [ ] **GEN.1295 Rogue ages and the rogue stand-ins read the ejection records: the delay (RG2), the closest approach (RK7, MO2, TU3) and the per-star rate (TU1) come from each loss in the architecture, not from drawn distributions**
+- [ ] **GEN.1295 Rogue delay (RG2): donor rogues read the stored ejection time and the top-up uses the same 3 Myr, not a drawn delay distribution**
   Found when main's burn-down test failed: five burn-down rows
   (6.88:RG2, 6.87:RK7, 6.112:MO2, 6.86:TU1, 6.86:TU3) said GEN.1111
   replaces them, and GEN.1111 is closed (the ejection records are built
-  and stored) without replacing them. Do: read the stored ejection
-  record of each lost planet (time after formation, closest approach,
-  scatterer distance) wherever those five stand-ins draw them, retire
-  the five rows with their tests, and check the rogue count and age
-  shares against the census. This changes generated rogue planets, so it
-  is a lock item (epoch). Version 8.1. Owner: Planets 1. Filed by the
-  TODO thread.
+  and stored) without replacing them. Do (narrowed by Planets 1 and TODO, 6:40 PM EST on 2026-11-05, after reading the stored Loss record, which holds no closest approach and has no record for top-up rogues): donor rogues read time_yr from their Loss record instead of drawing a delay, the top-up uses the same 3 Myr, retire the stand-in row 6.88:RG2 and its test, and check the rogue age shares against the census. The other four rows (RK7, MO2, TU3, TU1) became no data in the burn-down register. This changes generated rogue planets, so it is a lock item (epoch). Version 8.1. Owner: Planets 1. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1111, GEN.1287, GEN.1288, GEN.1289.
 
 - [ ] **GEN.1296 The volatile-bearing branch (i6) of the lava vapor stage raises "no convergence" from gas_equilibrium.solve for carbon at held fO2 when hot and at low pressure (4000 K at 1 bar, 6000 K at 100 bar) (bug)**
@@ -14322,6 +14326,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated value is a lock item (epoch). Version 8.1. Owner: Aux 7.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1294.
+
+- [ ] **GEN.1297 values_from_body does not hand day_share_mean to the latitude bands: generation computes every rocky band for a point star while the re-score and API use the star's real angular size (bug)**
+  Bug 1 (as the lane reported, about 7:35 PM EST on 2026-11-05):
+  test_habitability_fill fails in 2 cases on main because
+  values_from_body does not pass day_share_mean to the latitude bands.
+  Fix is a one-line change in PR #5251, head 0064f2cbd (claude branch of
+  Bug 1), generation-output changed. It is a lock item: slot it into
+  train 13 with GEN.1282 (merge it into the train, never alone). Do: the
+  train adds the epoch with --affects and rewrites the golden files.
+  Version 8.1. Owner: Bug 1. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1282, GEN.1283.
+
+- [ ] **GEN.1298 Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug)**
+  Bug 1 (as the lane reported, about 7:35 PM EST on 2026-11-05): a
+  generated body holds a life class whose solvent it does not allow;
+  this is a generation defect in the life pass (likely the ammonia-water
+  fraction the class check reads against the stored value, see
+  GEN.1258). Do: reproduce from the seed, find which stage assigns the
+  class, fix the stage (never the test), and check the life census. A
+  changed generated value is a lock item (epoch). Version 8.1. Owner:
+  Bug 1 after GEN.1282, or Aux 2 if it frees first. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: GEN.1258, GEN.915.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
