@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3392] - 2026-11-06
+
+**Headline:** The Sensor registry's text is in American spelling.
+
+### Changed
+- The Sensor registry (`web/lib/sensor.py`) said "surface colour"; it now says "surface color", which the whole-site spelling test (DOC.102) requires. Text only; `generation-output: unchanged`.
+
 ## [8.0.3391] - 2026-11-06
 
 **Headline:** The System Map's and the sector page's Menu now fold into headings with counts, real checkboxes and a mark where a switch is not as it starts.
