@@ -13077,6 +13077,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Generation output changes (lock item, train 13 or the next train after
   GEN.1207). Version 8.1. Owner: Core 4. Filed by the TODO thread.
   Prerequisites: GEN.1207.
+  Decision (Boss, 5:34 PM EST on 2026-11-06): option 1, class F becomes the Anoxic world; built by Core 4 as PR #5348 for train 13.
 
 - [ ] **GEN.1282 Settle orbit spacing before any atmosphere is solved, so a planet pushed outward by space_orbits is built once, not twice (about 60 percent of the cost of a hot O star system)**
   Bug 1's profile of PERF.241 (as the lane reported, about 4:35 PM EST
@@ -13139,6 +13140,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none. Related: TEST.499, GEN.1111, GEN.1287.
   Decision (Boss, 5:30 PM EST on 2026-11-06, Q2 option 1): the architecture carries the free-floating yield. Keep the deleted sub-minimum bodies as ejected mass or small rogues so the donors alone enter the observed bands; the top-up (GEN.1287) then only fills any gap and the expected failure in test_rogue_yield_calibration becomes a plain test. Lock item with an epoch. Owner: Planets 1 builds it now (physics drives, no game rates; stand-ins registered).
+  Decision refined (Boss, 5:35 PM EST on 2026-11-06, GEN.1299.1): after Planets 1 measured that the donors alone reach the terrestrial band (0.8 to 7.5 per star) but not the microlensing floor (at most about 5.7 per star above 0.33 Earth masses even if every non-planet body were ejected), build the terrestrial part only: eject the embryo-class bodies the giants' reach and Safronov fates assign, count the sub-minimum and merge-lost bodies as small rogues, turn the expected failure into a plain test of the terrestrial band, and leave the microlensing band to the Rogues level top-up (GEN.1287), saying so in the rogue design note.
 
 - [ ] **GEN.1288 cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections**
   Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
