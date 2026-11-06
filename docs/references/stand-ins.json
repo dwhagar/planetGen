@@ -26745,7 +26745,7 @@
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L1",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "seasonal_swing.OCEAN_EDDY_DIFFUSIVITY_M2_S 2.5e-4, how fast the sea mixes heat down: the depth a cycle of period P reaches is sqrt(kappa P / pi), 50 m for a year and 2.6 m for a day"
         },
         {
@@ -27011,7 +27011,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "seasonal_swing.TEMPERATURE_MAX_STEPS 1500, SAMPLES_PER_DAY 8, STEPS_PER_YEAR 120, FEW_COLUMNS 4 from MANY_TURNS 24, NONLINEAR_PASSES 30, NONLINEAR_TOLERANCE_K 1.0, ANDERSON_DEPTH 6, EMISSION_PASSES 5, EMISSION_TOLERANCE_K 1.0, MIN_EMISSIVITY 0.02, ICE_OUTER_PASSES 2 (the resolution and the stopping rules of the temperature series, set in PERF.238 so a median body takes 26 ms; FINE is the check)"
         },
         {
@@ -27049,7 +27049,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "temperature_coverage.MOST_OF_THE_TIME 0.5 and NEARLY_ALWAYS 0.9 (a place is in the livable area when it is livable at least half the time; the research note's 90 percent for the area livable nearly always)"
         },
         {
@@ -27087,7 +27087,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "temperature_coverage.DAY_SIDE_DEG 60 and NIGHT_SIDE_DEG 120 (the day side is within 60 degrees of the point under the star of a world that turns once an orbit, the night side beyond 120, the terminator belt between: a quarter, a half and a quarter of the surface)"
         },
         {
@@ -27125,7 +27125,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1265",
+          "unread": null,
           "what": "temperature_coverage.TIE_TOLERANCE 1e-3 (cells whose livable time is within a tenth of a percent of the best tie for the best site, the more moderate winning)"
         },
         {
