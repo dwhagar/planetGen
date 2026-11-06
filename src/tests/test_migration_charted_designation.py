@@ -16,7 +16,7 @@ def _insert(conn, reason):
 
 
 def test_a_v220_database_takes_the_charted_reason_once_migrated(mysql_config):
-    load_old_schema(mysql_config, 213)
+    load_old_schema(mysql_config, 220)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         with pytest.raises(Exception):
