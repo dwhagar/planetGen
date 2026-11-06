@@ -289,9 +289,28 @@ var CLOUD_KIND_RECIPES = {
   },
 };
 
+// MAP.381: the colour stops of a globular cluster's ball from the cluster's own profile: `profile` is the King model's column density from
+// the middle (1) to the tidal radius (0) in equal steps (planetgen/web/lib/cluster_profile.py). A star-field's light follows the column
+// density, shown on a square-root scale (a display choice, so the outer halo reads on a dark scene); the brightest point has the alpha
+// of the fixed fade's middle. Returns null when there is no profile (the ball keeps the fixed fade).
+export var CLUSTER_BALL_PEAK_ALPHA = 0.82;
+export function clusterBallStops(profile) {
+  if (!Array.isArray(profile) || profile.length < 2 || !profile.every(function (v) { return Number.isFinite(v) && v >= 0; })) return null;
+  var last = profile.length - 1;
+  return profile.map(function (value, i) {
+    var alpha = CLUSTER_BALL_PEAK_ALPHA * Math.sqrt(Math.min(1, value));
+    var warmth = Math.round(244 - 30 * (i / last));    // the middle is paler, the halo more gold
+    return [i / last, "rgba(255," + warmth + "," + Math.round(216 - 70 * (i / last)) + "," + alpha.toFixed(3) + ")"];
+  });
+}
+
 function textureForCloud(cloud) {
   if (cloud.kind === "nebula") {
     return makeNebulaTexture(cloud.coreColor, cloud.edgeColor);
+  }
+  if (cloud.kind === "globularCluster") {
+    var stops = clusterBallStops(cloud.profile);
+    if (stops) return makeSimpleRadialTexture(128, stops);
   }
   var recipe = CLOUD_KIND_RECIPES[cloud.kind];
   return recipe ? recipe(cloud.grainColor) : makeNebulaTexture("#c9a8e090", "#c9a8e030");

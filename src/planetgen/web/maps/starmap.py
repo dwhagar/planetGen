@@ -1189,7 +1189,7 @@ def map_scene_data(
                 "named": cluster["named"], "typeLabel": "Globular Cluster",
                 "radiusText": format_distance_ly(pc_to_ly(cluster["radius_pc"])),
                 "distanceText": f"{format_distance_ly(pc_to_ly(math.sqrt(sum((v / 1000.0) ** 2 for v in offset_mpc))))} from sector center",
-                "href": cluster["href"], "key": cluster["ref"],
+                "href": cluster["href"], "key": cluster["ref"], "profile": cluster.get("profile"),
             })
             extent_radii_px.append(math.sqrt(x_px * x_px + y_px * y_px + z_px * z_px) + radius_px)
 

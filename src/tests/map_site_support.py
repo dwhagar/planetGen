@@ -168,6 +168,10 @@ SECTOR_CLUSTER = {"id": 3, "uid": "FE81000A2B-0000005-003", "kind": "globular_cl
                   "center_pc": [3.5, 2.0, 0.0], "extent_pc": 1.5}
 """MAP.381: a fixture cluster inside the first sector (`sector_cluster_site` serves it; the other sites have none there)."""
 
+CLUSTER_COMPONENT = {"mass_solar": 2.0e5, "age_gy": 11.0, "metallicity_fe_h": -1.2, "half_mass_radius_pc": 4.0, "tidal_radius_pc": 40.0,
+                     "king_w0": 7, "core_collapsed": False}
+"""MAP.381: the `component` the fixture cluster's container record carries (the ball's King profile is made from it)."""
+
 
 NEBULA_OVER_THE_FIELD = {
     "type": "nebula", "id": 802, "name": "Fixture Pall", "descriptor": "dark", "class": "D",
@@ -909,6 +913,13 @@ class FixtureApi:
         found = [dict(cluster) for cluster in FIXTURE_CLUSTERS]
         return found + [dict(SECTOR_CLUSTER)] if self.sector_cluster else found
 
+    def get_container(self, db, printed_id):
+        """One fixture cluster with the `component` the container API gives (MAP.381: the ball's profile reads it)."""
+        for cluster in [*FIXTURE_CLUSTERS, SECTOR_CLUSTER]:
+            if cluster["uid"] == printed_id:
+                return dict(cluster, component=dict(CLUSTER_COMPONENT))
+        raise apiclient.NotFoundError(f"no container {printed_id}")
+
     def get_polities(self, db, limit=None, offset=None):
         if self.far:
             return {"items": [{"id": 1, "name": "Far Dominion", "color": "#cc6633", "government": "Republic", "system_count": len(FAR_OWNED_PC)}],
@@ -1137,7 +1148,7 @@ class FixtureApi:
         return cell
 
 
-_APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
+_APICLIENT = ("get_territories", "get_galaxy_made", "get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "get_container", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_galaxy_nebula_cover", "get_galaxy_nebula_volume", "get_nebula_volume", "get_cloud_volume", "get_system_scene",
               "get_uncharted_sector", "get_system", "get_galaxy_charted_regions", "get_sector_gravity")

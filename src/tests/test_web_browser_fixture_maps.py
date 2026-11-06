@@ -6179,6 +6179,8 @@ def test_sector_map_draws_a_cluster_inside_it_and_names_it_by_name_or_designatio
     cluster = clusters[0]
     assert cluster["name"] == SECTOR_CLUSTER["name"] and cluster["typeLabel"] == "Globular Cluster" and cluster["named"] is True
     assert cluster["href"].endswith("/object/globular_cluster:" + SECTOR_CLUSTER["uid"]) and cluster["r"] > 0
+    profile = cluster["profile"]    # the King model's column density from the middle to the tidal radius, read from the cluster's component
+    assert len(profile) == 9 and profile[0] == 1.0 and profile[-1] == 0.0 and profile == sorted(profile, reverse=True), profile
     _open_sector(page, base)
     page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'cluster' && label.text === 'Fixture Sector Ball')", timeout=20000)
     _click_cluster_name(page, "Fixture Sector Ball")

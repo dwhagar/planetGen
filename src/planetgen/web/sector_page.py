@@ -624,7 +624,7 @@ def system_on_galaxy_map(system_id):
 
 def _clusters_reaching(detail):
     """MAP.381: the globular clusters whose sphere reaches into the sector's cell, as `galaxy_views._cluster_labels` gives them (name else
-    designation, page, centre and radius in parsecs, galaxy frame). The test is the one `phenomena_near_sector` uses: a sphere that holds the
+    designation, page, center and radius in parsecs, galaxy frame). The test is the one `phenomena_near_sector` uses: a sphere that holds the
     whole cell (the cube's half diagonal, or the farthest corner of the real cell)."""
     from planetgen.galaxy.spherical import sector_cell_vertices_pc
     from planetgen.web.galaxy_views import _cluster_labels
@@ -638,8 +638,23 @@ def _clusters_reaching(detail):
     if None not in address:
         for vertex in sector_cell_vertices_pc(*address, edge_pc):
             reach = max(reach, math.dist(vertex, center))
-    return [cluster for cluster in _cluster_labels(db_name())
-            if math.dist((cluster["x"], cluster["y"], cluster["z"]), center) <= reach + cluster["radius_pc"]]
+    found = [cluster for cluster in _cluster_labels(db_name())
+             if math.dist((cluster["x"], cluster["y"], cluster["z"]), center) <= reach + cluster["radius_pc"]]
+    for cluster in found:
+        cluster["profile"] = _cluster_profile(cluster["ref"])
+    return found
+
+
+def _cluster_profile(ref):
+    """MAP.381: the brightness of a cluster's ball from its middle to its tidal radius (`cluster_profile.surface_profile`, the King model's
+    column density), or `None` when the cluster's record cannot be read, when the ball keeps its fixed fade."""
+    from planetgen.web.lib import cluster_profile
+
+    try:
+        detail = apiclient.get_container(db_name(), ref.split(":", 1)[1])
+    except (apiclient.ApiError, apiclient.NotFoundError):
+        return None
+    return cluster_profile.surface_profile(detail.get("component") or {})
 
 
 @bp.route("/sector/<uid:sector_id>/scene")
