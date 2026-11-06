@@ -17900,18 +17900,6 @@ clears each one.
   main. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.642.
 
-- [ ] **GEN.1302 tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not fails on main: sector 1 0 5 differs in 'structure' between the two orders (bug)**
-  Planets 1 (as the lane reported, 12:36 AM EST on 2026-11-06, main
-  15e29adb5, clean checkout) found tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not
-  red: sector 1 0 5 differs in "structure" between the two orders. A sector
-  must come out the same whatever order the backfill reached it in. Do:
-  reproduce on current main, find which stage reads state that the other
-  order has already changed (probably a GEN.1254 follow-up), and fix it at
-  the cause. Lock item if generation output changes (new epoch), else
-  lock-free. Done: the test passes on current main. Version 8.1. Owner:
-  Core 3 (GEN.1254 follow-up). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1254.
-
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
