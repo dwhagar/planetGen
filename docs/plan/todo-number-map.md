@@ -1972,8 +1972,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1182 | Sourced scale height of young stars: the 'observed about 50 pc' figure has no source in anything read and no CO velocity dispersion reaches it | none | done, report gen1182 (sourced Milky Way band 35 to 70 pc; kept in GEN.1188) |
 | GEN.1183 | Ice-type strength ratios (IT1 to IT3) become a ratio-by-temperature table from [R1190: Table 2] instead of constants | none | done, PR #4383 |
 | GEN.1184 | Rock strength follows olivine creep in the roundness temperature rules, and the hot rubble strength RN9 is re-tiered to olivine creep at about 1300 K | none | done, PR #4359 |
-| GEN.1185 | Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned | none | open |
-| GEN.1186 | Small evidence updates to registered stand-ins from the strength papers review | none | open |
+| GEN.1185 | Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned | none | done, PR #5347 |
+| GEN.1186 | Small evidence updates to registered stand-ins from the strength papers review | none | done, PR #5347 |
 | GEN.1187 | Strength constants still without a source: ammonia dihydrate 1993 constants, the melt factor, Andrade creep, ice grain-boundary-sliding laws and the ice phase boundary table | none | done, report gen1187 (GEN.1190) |
 | GEN.1188 | Record the sources of the 6.5 km/s molecular gas dispersion and pin the Milky Way young-star scale height test to the sourced band of 35 to 70 pc | none | done, PR #4364 |
 | GEN.1189 | Greenhouse refit method: the refit table is blind to the methane share of a hydrogen air and a dense carbon dioxide air is 2 to 8 percent warm, so find a better fit than one L-BFGS network | GEN.1032 | open |
