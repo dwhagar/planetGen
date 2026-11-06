@@ -473,6 +473,10 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     state = {"mass_sol": mass_sol, "radius_km": None, "lifespan_gy": t_end, "metallicity_fe_h": fe_h}
 
     wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_end, track) if massive else None
+    if wr_start is not None:
+        chance = wolf_rayet.stripping_chance(mass_sol, track)
+        if chance < 1.0 and rng.random() >= chance:    # GEN.995: a companion strips a star lighter than the single-star threshold only at a chance
+            wr_start = None
     young = pre_main_sequence.state(mass_sol, age_gy * 1.0e9, track)
     if young is not None:
         # GEN.242: still contracting, a protostar (Class 0 and I) or a pre-main-sequence star.

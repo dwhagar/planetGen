@@ -342,6 +342,25 @@ def generate_block(block_key, config, disregard_missing_data=False):
     return run_galaxy.generate_block(block_key, config=config)
 
 
+def build_gravity_grid(sector_id, config, folder):
+    """The queued body of `GET /api/sectors/<id>/gravity` when the grid is not cached (API.24; a module-level function so a worker can import it by name):
+    works the sector's local field out (`db.gravity_grid.grid`, which imports numba, so only here) and stores it in `folder`.
+
+    Returns:
+        dict: `sector_id`, `stamp` (the key of the file) and `built` (false when another job had stored it already).
+    """
+    from planetgen.db import gravity_grid, store
+    from planetgen.galaxy import potential
+    conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
+    try:
+        info = store.get_galaxy_shape(conn, light=True)
+        pot = potential.current() if info is None else potential.for_galaxy(info.shape, info.galaxy_seed)
+        result = gravity_grid.grid(conn, sector_id, folder, pot=pot)
+    finally:
+        conn.close()
+    return {"sector_id": sector_id, "stamp": result.stamp, "built": not result.hit}
+
+
 def empty_sector(sector_id, config):
     """The first half of `regenerate_sector` (GEN.845): deletes the galaxy-placed sector with what was born in it
     (`db.edits.empty_sector`: the row stays when objects born elsewhere are filed in it) and says what to make again.

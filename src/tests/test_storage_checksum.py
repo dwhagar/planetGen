@@ -285,6 +285,7 @@ WRITERS = {
     ("db/store.py", "_rank_chain"): SET_NAME,
     ("db/store.py", "rename_body"): SET_NAME,
     ("db/store.py", "rename_phenomenon"): SET_NAME,
+    ("db/store.py", "give_system_uid"): MARKS,
     ("db/store.py", "rename_star_system"): MARKS,
     ("db/store.py", "rename_star"): MARKS,
     ("db/store.py", "reserve_sector_name"): MARKS,

@@ -135,7 +135,7 @@ KINDS = (
          "About 3,000 in the Galaxy [R1675]; a core-collapse remnant may hold a compact core."),
     Kind("rogue-planet", "small-body", "built", None, "none", "component", None, False,
          None, "planet", (), 1, "rogue-planet", None, "rogue-planet",
-         "Made by the system that threw it out (GEN.1111, ejection_events and rogue_yield) and saved where it landed; no rate of its own."),
+         "Made by the system that threw it out (ejection_events and rogue_yield) and saved where it landed; no rate of its own."),
     Kind("brown-dwarf", "small-body", "built", "brown-dwarf", "stellar density", "fill", None, True,
          _P + "build_brown_dwarf", "brown-dwarf", (), None, None, None, "rogue-planet",
          "0.025 to 0.035 per pc^3 [R2374]; saved as a `rogue_planets` row of the brown-dwarf bin."),

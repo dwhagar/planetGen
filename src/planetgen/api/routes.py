@@ -29,15 +29,17 @@ separate, write-capable database account -- see `docs/reference/api.md`'s
 
 import base64
 import math
+import time
 
 import pymysql
 from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.db import search_values
 from planetgen.db import children as children_db
-from planetgen.api import nav_system, system_sky
+from planetgen.api import gravity as gravity_api, nav_system, system_sky
+from planetgen.describe import belt_info
 from planetgen.describe.sheet import sheet as object_sheet
-from planetgen.web.lib import skypack
+from planetgen.web.lib import sensor, skypack, tilecache
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs, pagejobs
@@ -82,7 +84,6 @@ from planetgen.db.query import (
     galaxy_window,
     list_phenomena,
     phenomena_facets,
-    sectors_facets,
     systems_facets,
     list_sectors,
     list_systems,
@@ -119,7 +120,7 @@ from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.profile import profile_at
-from planetgen.galaxy import drill, spherical
+from planetgen.galaxy import drill, gravity_field, potential as galacticPotential, spherical
 from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
@@ -503,9 +504,8 @@ def sectors():
     """
     The sectors, nearest the galactic core first, paginated. The Sectors
     table (UX.41) also takes `sort` (`name`, `systems`, `density`,
-    `position` or `distance`) with `order=asc|desc`, the repeatable filter
-    `quadrant` (`I`-`IV`, `unplaced`) and `facets=1` for the Quadrant menu's
-    option counts (`facets`). `total` counts the sectors that pass the filter (`total_capped`: it stopped at 10,000, PERF.77).
+    `position` or `distance`) with `order=asc|desc`. Each placed item carries `region`, the named region its sector lies in
+    (`{"name", "parent"}`, or `None` with no naming key). `total` counts the sectors (`total_capped`: it stopped at 10,000, PERF.77).
     `after=<sector ID>` starts the page after that sector in the default order and the `name` and `distance` sorts
     (PERF.137: any page costs the same, and `offset` is ignored); the other sorts ignore it.
     """
@@ -514,24 +514,23 @@ def sectors():
     descending = False
     if request.args.get("sort") or request.args.get("order"):
         sort, descending = _parse_sort(request.args, SECTOR_SORTS)
-    quadrants = [v for v in request.args.getlist("quadrant") if v]
     db = get_db()
     after = None
     if request.args.get("after"):
         after = ids.row_id(db, "sector", request.args["after"])
         if after is None:
             raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
-    total = count_sectors(db, quadrants=quadrants)
+    total = count_sectors(db)
+    items = list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after)
+    for item in items:
+        item["region"] = region_of(db, (item["center_x_pc"], item["center_y_pc"], item["center_z_pc"]) if item["placed"] else None)
     body = {
-        "items": list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending,
-                              quadrants=quadrants, after=after),
+        "items": items,
         "total": total,
         "total_capped": is_capped(total),
         "limit": limit,
         "offset": offset,
     }
-    if request.args.get("facets") == "1":
-        body["facets"] = sectors_facets(db, quadrants=quadrants)
     return jsonify(body)
 
 
@@ -591,7 +590,7 @@ def systems():
     for the filter menus' option counts (`facets`: `placement`, `binary`,
     `octant`). `total` counts the systems that pass the filters. `after=<system ID>` starts the page after that system in the
     sort instead of skipping `offset` rows (PERF.75, PERF.206: page 40,000 costs what page 1 does, in the name, sector
-    and octant sorts; a list filtered by star type or sector reads by `offset`). `from=<text>` is the
+    and octant sorts; a list filtered by sector reads by `offset`; a star type filter pages by key too, PERF.219). `from=<text>` is the
     jump-by-value box (PERF.75): with the `name` sort the list begins at the first name from that text on (a letter, or
     the start of a name), with the `sector` sort at the first sector from it on, in the sort's direction; `total`
     counts the systems from there and `offset` and `after` count from there too. The other sorts ignore it.
@@ -1413,6 +1412,24 @@ def galaxy_nebula_volume_route():
                     "data": base64.b64encode(packed).decode("ascii")})
 
 
+@bp.route("/galaxy/cloud-volume")
+def galaxy_cloud_volume_route():
+    """
+    The points that draw one cloud given by its sphere (MAP.392): `?x=&y=&z=&radius_pc=&family=` (center and radius in parsecs, a family of
+    `galaxy.nebula_blocks.FAMILIES`). The same packed volume as `GET /api/galaxy/nebula-volume` (`{"format", "level", "count", "data"}`) for a nebula
+    or supernova remnant the map cannot ask for by id (a scattered one, one a waiting star lights, a remnant), sampled from the model's density at
+    the sphere. Nothing is stored. A bad number, a family that does not exist or a radius over `nebula_volumes.MAX_SPHERE_RADIUS_PC` is a 400.
+    """
+    try:
+        center = tuple(float(request.args.get(axis, "")) for axis in "xyz")
+        radius = float(request.args.get("radius_pc", ""))
+        packed = nebula_volumes.sphere_volume(get_db(), center, radius, request.args.get("family") or "")
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    count = int.from_bytes(packed[6:10], "little")
+    return jsonify({"format": "NVOL1", "level": packed[5], "count": count, "data": base64.b64encode(packed).decode("ascii")})
+
+
 @bp.route("/galaxy/locate")
 def galaxy_locate_route():
     """
@@ -1591,7 +1608,10 @@ def object_list(kind):
     name from this one on, with `sort=name` only; `past_end` is true when none lies at or past it and the last page
     is answered). Answers `items`
     (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
-    `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
+    `placed`; a star, planet or moon item also carries its stored physics values, UX.187: the star's `temperature_k`, `luminosity_w`, `age_gy`
+    and `rotation_period_hours`, and the planet's or moon's `distance_km`, `eccentricity`, `surface_temperature_k`, `rotation_period_hours`,
+    `axial_tilt_deg` and `internal_heat_flux_w_m2`, each null where none is stored; the whole sheet is `GET /api/objects/<ref>/sheet`),
+    `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
     that is not an object ID, a `from` with another sort, or a `sector_id` that is not a sector ID.
     """
     sort, descending = _parse_sort(request.args, [*objectlist.SORTS, *objectlist.value_sort_keys(kind)])
@@ -1669,6 +1689,7 @@ def generate_uncharted_system_job(config, bright_star_id):
                 system = _generate_system(system_config, pc_to_ly(math.sqrt(x * x + y * y + z * z)),
                                           primary_star_params=brightStars.star_params(row), member_tree=plan)
             system_id = store.insert_star_system(conn, system, system_config)
+            store.give_system_uid(conn, system_id, row.get("uid"))      # GEN.1254: the system keeps the Object ID its star has
             store.assign_uids(conn, system_ids=[system_id])
             store.mark_bright_star_filled(conn, bright_star_id, system_id)
             if system.tree_built:
@@ -1915,6 +1936,41 @@ def object_sheet_route(ref):
         kind, object_id = _body_of(ref)
         return jsonify(object_sheet(get_db(), kind, object_id))
     except ValueError as exc:  # includes ids.IdError
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/sensor")
+def object_sensor_route(ref):
+    """
+    `GET /api/objects/<ref>/sensor` (UX.275) -- the Sensor view's record of one object (`web/lib/sensor.py`): `v`, `kind`, `id`, `painter` (the
+    painter that draws it, `sphere`, `phenomenon` or `nebula`, `null` for a kind with none yet), `look` (the record that painter reads), `caption`,
+    `estimate` (what the picture guessed), `inputs` (the stored properties it is built from) and `reason` (why a kind has no painter). Built from the
+    stored row and the Object ID seed alone. 404 for a reference that names nothing or a kind with no property sheet.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        return jsonify(sensor.sensor_for(get_db(), kind, object_id))
+    except ValueError as exc:  # includes ids.IdError
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/belt-page")
+def object_belt_page_route(ref):
+    """
+    `GET /api/objects/<ref>/belt-page` (UX.241) -- the information page data of an asteroid belt (`describe/belt_info.py`, `physics/belt_page.py`):
+    `belt` (its `designation`, `inner`, `outer`, `mass`, typical `composition` and the `star` it goes round), `bodies` (the individually tracked
+    members by designation, heaviest first, each with its mass, diameter, distance, eccentricity, inclination, density, `taxon` and `analogue`,
+    composition shares, `status` word and Soter's mu, and the `population` of a member the giants scattered), `bins` (the rest of the belt's
+    mass by diameter: count, mass, share, whether the bodies are drawn on demand or a total only, typical composition and density),
+    `density_factor` (`by_diameter`, the objects per square AU above each diameter, and the `mass` per square AU) and `totals` (the belt, the
+    listed bodies and the bins, which add up). Every number is `{value, unit, text}`. 404 for a reference that is not a belt.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "belt":
+            raise ValueError(f"{ref} is not an asteroid belt")
+        return jsonify(belt_info.belt_info(get_db(), object_id))
+    except ValueError as exc:  # includes ids.IdError and belt_info.BeltPageNotFound
         return jsonify({"error": str(exc)}), 404
 
 
@@ -2769,6 +2825,60 @@ def sector_facilities(sector_id):
     if db.execute("SELECT 1 FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
         raise ApiError(f"no such sector: {sector_id}", status_code=404)
     return jsonify({"items": facilities_in_sector(db, sector_id)})
+
+
+_gravity_jobs = {}
+"""dict: `(database, sector, stamp) -> (job_id, queued_at)`: the grid jobs this process queued lately, so a map that asks again while the job runs does not queue a second."""
+GRAVITY_JOB_REUSE_SECONDS = 600
+"""int: How long a queued grid job is taken to still be running."""
+
+
+@bp.route("/sectors/<uid:sector_id>/gravity")
+def sector_gravity(sector_id):
+    """
+    `GET /api/sectors/<id>/gravity?mode=pull|depth|tidal[&field=total|centered|local]` -- the per-zone gravity grid of a sector (API.24, `api/gravity.py`; the grid is
+    MAP.387's, the sector cut into 16 x 16 x 16 zones of the sector's own edge): one scalar per zone, `values`, with the zone size, the `origin_pc` corner, the
+    `unit`, the range, the `saddle` zones where the pull is nearly nothing and the tidal tensor has both signs, and the grid's `stamp`. `mode` is the pull in
+    m/s^2 (the default), the well depth in m^2/s^2 or the tidal strength in 1/s^2; `field` is the `total` field (the generated stars and the smooth galaxy, the
+    default), the `centered` one (the smooth galaxy fixed at the sector's center, which the map colours by) or the `local` one (the generated stars less the smooth galaxy's own stars). A grid that is not worked out yet (or went stale when a star moved)
+    is queued as a job: `202` with the job's `status_url`, ask again when it is done; `503` when no cache folder is available or no queue answers. A mode or
+    field that is not one of those is a `400`, an unknown sector a `404`, a galaxy with no shape yet a `409`.
+    """
+    mode = request.args.get("mode", "pull")
+    field = request.args.get("field", "total")
+    if mode not in gravity_field.MODES:
+        raise ApiError(f"mode must be one of {', '.join(gravity_field.MODES)}")
+    if field not in gravity_api.FIELDS:
+        raise ApiError(f"field must be one of {', '.join(gravity_api.FIELDS)}")
+    conn = get_db()
+    info = get_galaxy_shape(conn, light=True)
+    if info is None:
+        raise ApiError("the galaxy has no shape yet", status_code=409)
+    folder = gravity_api.directory(tilecache.cache_dir())
+    if folder is None:
+        raise ApiError("the gravity map needs the cache folder (config.json's tile_cache), and none is writable", status_code=503)
+    pot = galacticPotential.for_galaxy(info.shape, info.galaxy_seed)
+    try:
+        local, stamp = gravity_api.read_grid(conn, sector_id, pot, folder)
+    except ValueError as exc:
+        raise ApiError(str(exc), status_code=404)
+    if local is not None:
+        return jsonify({"sector_id": sector_id, **gravity_api.payload(conn, sector_id, pot, local, stamp, mode, field)})
+    config = _resolve_requested_db_config()
+    key = (getattr(config, "database", None), sector_id, stamp)
+    now = time.monotonic()
+    queued = _gravity_jobs.get(key)
+    if queued is None or now - queued[1] > GRAVITY_JOB_REUSE_SECONDS:
+        try:
+            job_id = api_jobs.submit(api_jobs.build_gravity_grid, sector_id, config, folder, expected_seconds=30)
+        except api_jobs.NoQueue as exc:
+            raise ApiError(str(exc), status_code=503)
+        _gravity_jobs[key] = (job_id, now)
+        for old in [k for k, v in _gravity_jobs.items() if now - v[1] > GRAVITY_JOB_REUSE_SECONDS]:
+            del _gravity_jobs[old]
+    else:
+        job_id = queued[0]
+    return accepted(job_id)
 
 
 @bp.route("/galaxy/bright-stars")

@@ -112,3 +112,13 @@ test("the inhabited text is singular for one and says nothing without a tier or 
   assert.equal(R.inhabitedText({ worlds: 2, systems: 1, tier: 2 }), "2 inhabited worlds in 1 system, best Yellow");
   assert.equal(R.inhabitedText(null), "");
 });
+
+test("every charted region gets a Region symbol while its sphere shows, inhabited or not, unless its token already stands", () => {
+  const blobs = R.regionBlobs([region("a", 0.2), region("b", 0.2, { inhabited: inhabited() })]);
+  const kind = { id: "marker-region", describe: () => "" };
+  assert.equal(R.chartedRegionMarkers(kind, blobs, alwaysLook, yes, no).length, 2);
+  assert.equal(R.chartedRegionMarkers(kind, blobs, alwaysLook, yes, (blob) => blob.key === "b").length, 1);
+  assert.equal(R.chartedRegionMarkers(kind, blobs, () => ({ alpha: 0 }), yes, no).length, 0);
+  const [first] = R.chartedRegionMarkers(kind, blobs, alwaysLook, yes, no);
+  assert.deepEqual([first.item.regionKey, first.item.sectors, first.item.x], ["a", 3, 100]);
+});

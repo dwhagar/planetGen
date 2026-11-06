@@ -328,6 +328,9 @@ class _Visitor:
         self.client = app.test_client()
         self.pages = 0
         self.failed = []
+        self.report = None
+        """callable or None: `report(done, estimate)` of the unit this visitor warms for (a slice of an object family says how many of its
+        objects are warmed, so the warm-up's progress moves inside a unit, not only when one ends)."""
         self.skipped_answers = 0
         """int: Answers of the slices `_warm_objects` found current and did not visit (PERF.239); they count as already cached."""
         self._hits, self._misses = apiclient.cache_stats["hits"], apiclient.cache_stats["misses"]
@@ -431,9 +434,11 @@ def _warm_objects(visitor, cap, fetch, pages, noun, window=None):
         visitor.skipped_answers += answers
     else:
         with cache.recording() if cache is not None else contextlib.nullcontext() as recorded:
-            for row in rows:
+            for number, row in enumerate(rows, 1):
                 for page in pages(row):
                     visitor.visit(page)
+                if visitor.report is not None:
+                    visitor.report(number, len(rows))
         if cache is not None and rows and len(visitor.failed) == failed:
             cache.save_slice(visitor.db, name, recorded)
     left_out = max(0, visitor.total - len(rows)) if window is None else window["left_out"]
@@ -479,7 +484,7 @@ _WARMERS = {"cluster-field": _warm_cluster_field, "galaxy-map": _warm_galaxy_map
             "systems": _warm_systems, "phenomena": _warm_phenomena, "search": _warm_search}
 
 
-def warm_family(db, family, cap=None, app=None, config=None, window=None):
+def warm_family(db, family, cap=None, app=None, config=None, window=None, report=None):
     """
     Warms one family inline.
 
@@ -491,6 +496,7 @@ def warm_family(db, family, cap=None, app=None, config=None, window=None):
         config (MySQLConfig, optional): The database to build the app on when `app` is not given.
         window (dict, optional): For an object family, the slice of its listing to warm (`{"offset", "count", "left_out"}`): one
             unit of the family's stage (PERF.180). Without it the whole listing up to the cap.
+        report (callable, optional): `report(done, estimate)`, called as the objects of a slice are warmed (the unit's progress).
 
     Returns:
         dict: `family`, `warmed`, `noun`, `cached` (answers that were already cached), `built`, `left_out` (objects
@@ -504,6 +510,7 @@ def warm_family(db, family, cap=None, app=None, config=None, window=None):
     started = time.monotonic()
     app = app or build_app(config)
     visitor = _Visitor(app, db)
+    visitor.report = report
     with app.test_request_context("/"):
         result = _WARMERS[family](visitor, cap, **({} if window is None else {"window": window}))
     seconds = time.monotonic() - started
@@ -516,12 +523,13 @@ def warm_family(db, family, cap=None, app=None, config=None, window=None):
     return result
 
 
-def _warm_unit(family, args):
+def _warm_unit(family, args, report=None):
     """One family's unit of a warm run: warms it and leaves a line in the activity log, the result's line of it. A unit that is a
     slice of an object family (`args["offset"]`, PERF.180) leaves no line of its own: the stage's `finish` leaves one for all."""
     window = None if "offset" not in args else {key: args[key] for key in ("offset", "count", "left_out")}
     try:
-        result = warm_family(args["database"], family, args.get("cap"), **({} if window is None else {"window": window}))
+        result = warm_family(args["database"], family, args.get("cap"),
+                             **({} if window is None else {"window": window, "report": report}))
     except Exception as exc:
         activity_log.event("GEN", "warm.failed", db=args["database"], family=family, error=str(exc)[:300])
         raise
@@ -551,17 +559,17 @@ def warm_lists_unit(args, report):
 
 def warm_sectors_unit(args, report):
     """The unit of the `warm-sectors` command: every sector page, up to `args["cap"]`."""
-    return _warm_unit("sectors", args)
+    return _warm_unit("sectors", args, report)
 
 
 def warm_systems_unit(args, report):
     """The unit of the `warm-systems` command: every system page, up to `args["cap"]`."""
-    return _warm_unit("systems", args)
+    return _warm_unit("systems", args, report)
 
 
 def warm_phenomena_unit(args, report):
     """The unit of the `warm-phenomena` command: every phenomenon page, up to `args["cap"]`."""
-    return _warm_unit("phenomena", args)
+    return _warm_unit("phenomena", args, report)
 
 
 def warm_search_unit(args, report):
