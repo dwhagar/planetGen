@@ -1,7 +1,7 @@
 // html/static/skysphere.js
 //
 // VIEW.33 (S15 of the System Sky plan, reports/system-sky-from-the-system-2026-11-04.md): the stars of the sky a system sees, drawn as one
-// points object centred on the camera. The list is a packed sky (skypack.js, VIEW.29): offsets from the observer in parsecs at the list's
+// points object centered on the camera. The list is a packed sky (skypack.js, VIEW.29): offsets from the observer in parsecs at the list's
 // own time, each star's velocity relative to the observer, its dimmed absolute magnitude and its temperature. The vertex shader does the
 // rest every frame, so the orbit clock runs the sky:
 //

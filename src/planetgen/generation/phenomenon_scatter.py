@@ -326,8 +326,8 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
     band_count = len(bands)
     wedges = np.array([spherical.wedge_count(shell_index, int(band)) for band in bands], dtype=np.int64)
     volume = np.array([bright_stars.volume_ratio(shell_index, int(band), edge_pc) for band in bands])
-    centres = [spherical.band_center_pc(shell_index, int(band), edge_pc) for band in bands]
-    plane, z_mid = np.array([c[0] for c in centres]), np.array([c[1] for c in centres])
+    centers = [spherical.band_center_pc(shell_index, int(band), edge_pc) for band in bands]
+    plane, z_mid = np.array([c[0] for c in centers]), np.array([c[1] for c in centers])
     colat = [spherical.band_colatitude_bounds(shell_index, int(band)) for band in bands]
     cos_north, cos_south = np.cos([c[0] for c in colat]), np.cos([c[1] for c in colat])
     bin_angle = (np.arange(bins) + 0.5) * (2.0 * math.pi / bins)
@@ -496,7 +496,7 @@ def shell_expected_by_class(shape, shell_index, high_band, edge_pc, expected_at_
 
 
 def _expectation_factor(shape, kind, subtype, plane, z):
-    """What a class's rate per star is multiplied by at a band centre `plane` and `z` parsecs out (the progress bar's
+    """What a class's rate per star is multiplied by at a band center `plane` and `z` parsecs out (the progress bar's
     estimate of `_band_rows`): the remnant factors of a neutron star or black hole, the gas fraction of a supernova
     remnant (GEN.236), the old stars' share of a planetary nebula (GEN.528), the young population's share of the stars
     for a class that follows it (GEN.278)."""

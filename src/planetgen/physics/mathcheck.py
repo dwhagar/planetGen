@@ -293,7 +293,7 @@ def _schwarzschild_radius_km(mass_solar):
 
 
 SUN_REFERENCE_RADIUS_PC = 8128.0
-"""float: The Sun's distance from the galactic centre, 8.128 kpc (the Gaia rotation curve fit; GEN.144 made it the one named
+"""float: The Sun's distance from the galactic center, 8.128 kpc (the Gaia rotation curve fit; GEN.144 made it the one named
 value for the Milky Way plausibility tests, the 8.2 kpc of the GRAVITY result and the 7.91 kpc of the old constant
 are not kept): the radius the Sun's own galactic orbit is checked at. A test reference only; no generation reads a Sun
 position (GEN.404)."""
@@ -398,7 +398,7 @@ def _reference_checks():
         Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0] in the Milky Way's measured shape",
               lambda: _reference_galactic_orbit(gc_ly)[0], 225.0, 0.15,
               "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; [R5073]); the Milky Way's measured shape's potential "
-              "(the Hernquist and Miyamoto-Nagai matches of GP1 to GP3 are stand-ins) gives about 208 km/s",
+              "(the Hernquist and Miyamoto-Nagai matches of GP1 to GP3 are stand-ins, their residual from the density model tabulated by GEN.1285; 208 km/s before the table) gives about 224 km/s",
               unit="km/s"),
         Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1] in the Milky Way's measured shape",
               lambda: _reference_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.15,
@@ -419,11 +419,11 @@ def _reference_checks():
               lambda: math.log10(_nuclear_structure()["density_1pc_solar_pc3"]), math.log10(2.9e5), math.log10(3.0),
               "nuclear cluster mass density 1e5-5e5 M_sun/pc^3 at 1 pc, within a factor 3 ("
               "recalled, low confidence); log10 of M_sun/pc^3", mode="abs"),
-        Check("galaxy_nuclear_disc_mass_200pc", "reference", "galaxyDensity.model_terms(reference shape)",
-              lambda: _nuclear_structure()["disc_mass_200pc_solar"], 1.0e9, 0.3,
+        Check("galaxy_nuclear_disk_mass_200pc", "reference", "galaxyDensity.model_terms(reference shape)",
+              lambda: _nuclear_structure()["disk_mass_200pc_solar"], 1.0e9, 0.3,
               "nuclear stellar disk about 1e9 M_sun inside 200 pc ([R2577]; recalled)", unit="M_sun"),
-        Check("galaxy_nuclear_disc_scale_height", "reference", "galaxyDensity.model_terms(reference shape)",
-              lambda: _nuclear_structure()["disc_height_pc"], 37.5, 0.2,
+        Check("galaxy_nuclear_disk_scale_height", "reference", "galaxyDensity.model_terms(reference shape)",
+              lambda: _nuclear_structure()["disk_height_pc"], 37.5, 0.2,
               "nuclear stellar disk scale height 30-45 pc ([R4152]; recalled)", unit="pc"),
         Check("galaxy_core_gas_inflow", "reference", "coreGas.core_gas(reference shape)",
               lambda: coreGas.core_gas(_reference_galaxy_shape()).inflow_msun_yr, 0.8, 0.3,
@@ -641,7 +641,7 @@ def _shell_layout_failures():
 def _wedge_rule_violations():
     """Bands whose wedge count is not 6*m with m a product of 2, 3, 5 and 7 only, caps and the
     core that are not one cell, bands that do not match their mirror image, and bands whose
-    wedge arc at the band's centre strays outside 0.7-1.4 edges (shell 1 is hand cut)."""
+    wedge arc at the band's center strays outside 0.7-1.4 edges (shell 1 is hand cut)."""
     violations = 0
     for shell in _grid_shells(40, 211)[1:]:
         for band in _grid_bands(shell, 11):
@@ -741,7 +741,7 @@ def _reference_galactic_orbit(distance_ly):
 
 
 def _nuclear_structure():
-    """The default galaxy's nuclear cluster and disc in physical units (GEN.280): the model's mass units are
+    """The default galaxy's nuclear cluster and disk in physical units (GEN.280): the model's mass units are
     systems at the galaxy's mean system mass each (GEN.545), a unit of raw density is the systems a sector holds at
     density 1 per cubic parsec, and `k_norm` turns the raw units into relative density."""
     shape = _reference_galaxy_shape()
@@ -749,14 +749,14 @@ def _nuclear_structure():
     edge_pc = units.ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
     per_unit = (shape.k_norm * spaceSector.SpaceSector(name="mathcheck-nuclear", edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY)
                 .expected_system_count() / edge_pc ** 3 * galaxyDensity.mean_system_mass_solar(shape))
-    length = terms["nuclear_disc_length_pc"]
+    length = terms["nuclear_disk_length_pc"]
     inside_200 = 1.0 - (1.0 + 200.0 / length) * math.exp(-200.0 / length)
     return {
         "cluster_mass_solar": terms["nuclear_cluster_mass"] * per_unit,
         "half_light_radius_pc": 1.8153 * terms["nuclear_cluster_scale_pc"],
         "density_1pc_solar_pc3": galaxyDensity._nuclear_cluster(1.0, terms) * per_unit,
-        "disc_mass_200pc_solar": terms["nuclear_disc_mass"] * inside_200 * per_unit,
-        "disc_height_pc": terms["nuclear_disc_height_pc"],
+        "disk_mass_200pc_solar": terms["nuclear_disk_mass"] * inside_200 * per_unit,
+        "disk_height_pc": terms["nuclear_disk_height_pc"],
     }
 
 
@@ -772,7 +772,7 @@ def _stellar_mass_held_error():
     shape = _reference_galaxy_shape()
     terms = galaxyDensity.model_terms(shape)
     numerical = (sum(galaxyDensity.integrated_masses(shape, steps=60).values()) + terms["nuclear_cluster_mass"]
-                 + terms["nuclear_disc_mass"] + galaxyDensity.halo_mass(shape))
+                 + terms["nuclear_disk_mass"] + galaxyDensity.halo_mass(shape))
     systems_per_unit = shape.k_norm * pc.LOCAL_STELLAR_DENSITY_LY3 / units.ly_to_pc(1.0) ** 3
     return numerical * systems_per_unit * galaxyDensity.mean_system_mass_solar(shape) / shape.structure.stellar_mass_solar
 
@@ -899,7 +899,7 @@ def _invariant_checks():
 # TEST.66: distributions
 # ---------------------------------------------------------------------------
 
-CHABRIER_CENTRE_SOL = 0.079
+CHABRIER_CENTER_SOL = 0.079
 """float: [R0705: Table 2], Galactic disk, individual stars: the solar mass at which the log-normal peaks -- written out
 here, not read from `tuning`, so a changed constant fails the check."""
 
@@ -915,7 +915,7 @@ CHABRIER_HIGH_SLOPE = 2.3
 
 def _chabrier_cdf(m):
     """The fraction of [R0705] individual stars between 0.08 and 150 M_sun that lie below `m` M_sun."""
-    u_c, sigma = math.log10(CHABRIER_CENTRE_SOL), CHABRIER_WIDTH_DEX
+    u_c, sigma = math.log10(CHABRIER_CENTER_SOL), CHABRIER_WIDTH_DEX
 
     def bell(a, b):
         # integral of exp(-(log10 M - u_c)^2 / (2 sigma^2)) dM / M

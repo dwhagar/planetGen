@@ -4,7 +4,7 @@
 // same points and the same layer, nebulavolumelayer.js, that draw it on the Galaxy Map and the Sector Map: soft splats that fade
 // unevenly toward an irregular edge) with the brightest stars of the galaxy round it, dimmed, there only for reference
 // (`GET /galaxy/nebula/<id>/surroundings`, which also says where the nebula is). The scene is in the galaxy's own frame, in parsecs,
-// and the camera turns round the nebula's centre. Drag turns the view, the wheel (or pinch) zooms, and it turns slowly by itself
+// and the camera turns round the nebula's center. Drag turns the view, the wheel (or pinch) zooms, and it turns slowly by itself
 // until the visitor touches it, unless they prefer reduced motion. The panel's still drawing stays until this swaps in the canvas,
 // and stays for good without WebGL (or a float render target, which the layer needs), for a nebula never placed in the galaxy, or when
 // a fetch fails.
@@ -114,7 +114,7 @@ function start(view, around) {
   }
   var source = singleSource(view.nebulaId, { x: center[0], y: center[1], z: center[2], radiusPc: radius }, 1);
 
-  // The reference stars sit at their offsets from the nebula's centre, the group at the centre.
+  // The reference stars sit at their offsets from the nebula's center, the group at the center.
   var stars = starPoints(around.stars || []);
   stars.position.set(center[0], center[1], center[2]);
   scene.add(stars);

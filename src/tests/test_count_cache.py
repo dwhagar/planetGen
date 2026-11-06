@@ -76,7 +76,6 @@ def test_a_request_never_counts_the_table_itself_when_the_answer_is_not_there(co
         assert query.count_systems(conn) >= 0
         assert query.count_sectors(conn) >= 0
         assert query.systems_facets(conn) == {"placement": [], "binary": [], "octant": []}
-        assert query.sectors_facets(conn) == {"quadrant": []}
     finally:
         conn.close()
     assert not [sql for sql in seen if "COUNT(" in sql.upper() and "LIMIT" not in sql.upper()

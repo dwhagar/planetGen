@@ -254,8 +254,8 @@ reads."""
 MODEL_TERM_FIELDS = (
     "thick_disk_amplitude", "thick_disk_scale_length_pc", "thick_disk_scale_height_pc",
     "bulge_scale_y_pc", "bulge_scale_z_pc", "bar_cos", "bar_sin",
-    "nuclear_cluster_mass", "nuclear_cluster_scale_pc", "nuclear_cluster_softening_pc", "nuclear_disc_mass",
-    "nuclear_disc_length_pc", "nuclear_disc_height_pc", "nuclear_disc_density",
+    "nuclear_cluster_mass", "nuclear_cluster_scale_pc", "nuclear_cluster_softening_pc", "nuclear_disk_mass",
+    "nuclear_disk_length_pc", "nuclear_disk_height_pc", "nuclear_disk_density",
     "halo_amplitude", "halo_core_pc", "halo_break_pc", "halo_axis_ratio", "halo_inner_slope", "halo_outer_slope",
 )
 """The `galaxy.density.model_terms` and `halo_terms` it reads too (the thick
@@ -371,6 +371,16 @@ SECTOR_MAP_HELP = """<h3>Moving</h3>
     <li>Translucent clouds are nebulae, asteroid fields and supernova remnants; faint clouds reach in from a
     neighboring sector.</li>
     <li>Faint points are rogue planets; Mark in the Menu makes a kind of object easier to see.</li>
+  </ul>
+  <h3>Gravity</h3>
+  <ul>
+    <li>Turn on Gravity in the Menu to color the sector by its gravity. Pull is how hard gravity tugs on a ship at a spot, Well depth is how far down
+    in a gravity well the spot lies, and Stretch is how much gravity pulls a ship apart, nose from tail. Step through the sector one slab at a time,
+    or show every slab at once.</li>
+    <li>Brighter is more. The colors cover the middle 96% of this sector's own values on a log scale, so the wells of the nearby stars stand out
+    against the pull of the galaxy as a whole, which is far stronger and almost the same everywhere in a sector. The Key gives the range and the unit.</li>
+    <li>A white diamond is a saddle point: a spot between stars where their pulls cancel, so a ship could hover there, though it is still stretched
+    and drifts away if nudged. Hover one for the full pull there.</li>
   </ul>"""
 """The sector page's map (MAP.68): the help dialog (UX.50)."""
 
@@ -444,7 +454,7 @@ def _course_readout_html(course):
     stops and the map's rings select each other (`static/coursediagram.js`).
     """
     readout = course.get("readout") or {}
-    has_hops = bool(course.get("direct"))
+    has_hops = bool(course.get("direct") or course.get("directs"))
     key = ['<li><span class="course-key-route" aria-hidden="true"></span> '
            + ("Route via adjacent systems" if has_hops else "Course (the direct line is the route)") + "</li>"]
     if has_hops:
@@ -473,7 +483,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               uncharted_scene_url=None,
                               uncharted_phenomenon_url=None, superbubbles=None, clusters=None, nearby_url=None,
                               system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None,
-                              nebula_volume_path="/galaxy/nebula-volume", nebula_alone_volume_path="/galaxy/nebula/{id}/volume"):
+                              nebula_volume_path="/galaxy/nebula-volume", nebula_alone_volume_path="/galaxy/nebula/{id}/volume",
+                              cloud_volume_path="/galaxy/cloud-volume"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -545,6 +556,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             map draws the nebulae of a node from (`static/nebulavolume.js`, `static/nebulavolumelayer.js`) once one is wide enough.
         nebula_alone_volume_path (str): The endpoint of one nebula's points (`/galaxy/nebula/{id}/volume`, `{id}` where the nebula's id goes, MAP.142),
             which an opened sector draws each of its nebulae from, by the same layer, in place of a sphere (MAP.142 part 4: the per-ID shape mesh is gone).
+        cloud_volume_path (str): The endpoint of the points of one cloud given by its sphere (`/galaxy/cloud-volume?x=&y=&z=&radius_pc=&family=`, MAP.392),
+            which an opened sector draws every supernova remnant and every nebula it has no id for (a scattered one, one a waiting star lights) from.
         uncharted_scene_url (str, optional): The scene endpoint of a sector
             nothing was generated in (`/galaxy/uncharted/{shell}/{band}/{wedge}/scene`),
             which the map opens in place with an "Uncharted" mark when it
@@ -572,7 +585,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             the panel shows none.
         pinned (dict or None): A sector page's map (MAP.68): the one
             sector it is locked to, `{"shell", "band", "wedge", "center_pc"}`
-            (`center_pc`: its centre in the galaxy frame). The panel then
+            (`center_pc`: its center in the galaxy frame). The panel then
             opens that sector in place, with no steps, breadcrumb, address
             or history of its own (the page has its own title, bookmark
             and banners), and a click on another sector opens that
@@ -586,7 +599,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             designation), `named`, `href` (its page), `x`, `y`, `z` and `radius_pc` each, offered to the label engine as the
             cluster's name. `None` names none.
         made (dict or None): The sectors a generate job made (ADM.31):
-            `total`, `points` (their centres, parsecs) and `sectors`
+            `total`, `points` (their centers, parsecs) and `sectors`
             (`[shell, band, wedge]`), up to a cap. The map rings them and
             opens on the smallest stage holding them. `None` shows none.
 
@@ -606,6 +619,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "territoryPath": territory_path,
         "nebulaVolumePath": nebula_volume_path,
         "nebulaAloneVolumePath": nebula_alone_volume_path,
+        "cloudVolumePath": cloud_volume_path,
         "regionsPath": regions_path,
         "systemNearestPath": system_nearest_path,
         "course": course,
@@ -678,12 +692,21 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     if course and course.get("points"):
         ends = [course["points"][0]["name"], course["points"][-1]["name"]]
         stops = len(course["points"]) - 2
-        course_hint = (
-            '<p class="hint">Showing the course from <strong>' + _escape(ends[0]) + "</strong> to <strong>"
-            + _escape(ends[1]) + "</strong>"
-            + (f" ({stops} stop{'s' if stops != 1 else ''} on the way)" if stops else "")
-            + ' &middot; <a href="' + _escape(course["navUrl"]) + '">back to NAV</a></p>'
-        ) + _course_readout_html(course)
+        if course.get("via"):
+            # NAV.49: the course through the visitor's waypoints; the Waypoints menu (static/waypoints.js) clears or changes them.
+            count = len(course.get("waypoints") or [])
+            course_hint = (
+                '<p class="hint">Showing the course through your <strong>' + f"{count} waypoints</strong>, from <strong>"
+                + _escape(ends[0]) + "</strong> to <strong>" + _escape(ends[1]) + "</strong>"
+                + ' &middot; <a href="' + _escape(course["navUrl"]) + '">NAV for the first and the last</a></p>'
+            ) + _course_readout_html(course)
+        else:
+            course_hint = (
+                '<p class="hint">Showing the course from <strong>' + _escape(ends[0]) + "</strong> to <strong>"
+                + _escape(ends[1]) + "</strong>"
+                + (f" ({stops} stop{'s' if stops != 1 else ''} on the way)" if stops else "")
+                + ' &middot; <a href="' + _escape(course["navUrl"]) + '">back to NAV</a></p>'
+            ) + _course_readout_html(course)
     elif course and course.get("sector"):
         course_hint = (
             '<p class="hint">That whole course sits inside <strong>' + _escape(course["sector"]["name"])
@@ -776,6 +799,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
              title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
     <div class="bookmarks-panel" data-bookmarks-panel></div>
   </details>
+  <details class="bookmarks-menu waypoints-menu" data-waypoints-menu>
+    <summary class="starmap-btn" data-icon="waypoints"
+             title="The stops picked for a course with a star system's or object's Add waypoint button">Waypoints<span data-waypoints-count></span></summary>
+    <div class="bookmarks-panel" data-waypoints-panel></div>
+  </details>
 """
 
     return f"""
@@ -793,7 +821,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
      aria-label="Interactive Galaxy Map. Arrow keys move among the parts you can pick and Enter takes
      one; Escape or Backspace goes one step back out
      and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view about the center marked in the middle of the map, and the wheel zooms toward what is under the pointer; Shift-click or right-click makes the point you click the new center, Alt and the arrow keys move it, and C centers the view on what is selected. Alt, Shift and the arrow keys, or the Menu's step buttons, move the map to the neighbouring region at the same level (north, south, west, east), and [ and ] go in toward the core and out from it."></canvas>
-<div class="starmap-centre" id="galaxymap3d-centre" aria-hidden="true" title="The center the view turns and zooms about"></div>
+<div class="starmap-center" id="galaxymap3d-center" aria-hidden="true" title="The center the view turns and zooms about"></div>
 {where_block}{legend_block}
 <div class="map-corner-stack" id="galaxymap3d-corner-stack">
 <div class="map-layer-legend" id="galaxymap3d-layer-legend" hidden></div>
@@ -824,17 +852,26 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Move the center the view turns and zooms about to what is selected, or the middle of the view (C)">Center on selection</button>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
+    <details class="galaxy-sub" id="galaxymap3d-chart">
+      <summary>Chart View</summary>
     <button type="button" class="starmap-btn" data-action="plane-view" data-icon="plane-view" aria-pressed="false"
-            title="Tilt the map and lay a grid on a plane through a 60 degree wedge of the galaxy, with rings at round distances (around the selection when there is one)">Plane view</button>
+            title="Switch between the 3D View (the default) and the Chart View: a fixed isometric view of a 60 degree wedge of the galaxy with a grid of rings on a plane, around the selection when there is one">Chart View</button>
+    <div class="galaxy-menu-wedges" role="group" aria-label="Wedge">
+    <button type="button" class="starmap-btn" data-action="plane-wedge-prev" data-icon="plane-wedge" disabled
+            title="Make the wedge on the clockwise side the focus (the view moves to it)">Previous wedge</button>
+    <button type="button" class="starmap-btn" data-action="plane-wedge-next" data-icon="plane-wedge" disabled
+            title="Make the wedge on the counterclockwise side the focus (the view moves to it)">Next wedge</button>
+    </div>
     <button type="button" class="starmap-btn" data-action="plane-midplane" data-icon="plane-midplane" aria-pressed="false" disabled
-            title="Lay the plane view's grid in the galaxy's midplane (height 0) instead of through the middle of the view">Plane at galactic midplane</button>
+            title="Lay the Chart View's grid in the galaxy's midplane (height 0) instead of through the middle of the view">Grid at galactic midplane</button>
     <button type="button" class="starmap-btn" data-action="plane-stems" data-icon="plane-stems" aria-pressed="true" disabled
-            title="Show or hide the stems from stars down to the plane view's grid plane">Stems</button>
+            title="Show or hide the stems from stars down to the Chart View's grid plane">Stems</button>
     <label class="galaxy-menu-stretch" title="Draw heights above and below the plane this many times taller than true; the grid says so">Stem height
       <input type="range" id="galaxymap3d-plane-stretch" min="1" max="10" step="1" value="1" disabled aria-valuetext="true height">
       <output id="galaxymap3d-plane-stretch-out" for="galaxymap3d-plane-stretch">true</output></label>
     <button type="button" class="starmap-btn" data-action="side-strip" data-icon="side-strip" aria-pressed="false"
-            title="Show the stars of a 60 degree wedge edge-on: distance from the galactic centre across, height up and down. Picking a star in either view selects it in both">Side strip</button>
+            title="Show the stars of a 60 degree wedge edge-on: distance from the galactic center across, height up and down. Picking a star in either view selects it in both">Side strip</button>
+    </details>
     <button type="button" class="starmap-btn" data-action="cell-grid" data-icon="cell-grid" aria-pressed="false"
             title="Draw the cells of this step (blocks, then sectors) as a grid over the map">Cell grid</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"

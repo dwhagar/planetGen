@@ -69,6 +69,19 @@ def charted_addresses(conn):
             for r in conn.execute("SELECT shell_index, band_index, wedge_index FROM chart_ledger").fetchall()}
 
 
+def charted_among(conn, addresses):
+    """The cells of `addresses` that are charted (VIEW.25 reads a few hundred at a time, by the primary key)."""
+    found = set()
+    keys = sorted({(int(a[0]), int(a[1]), int(a[2])) for a in addresses})
+    for start in range(0, len(keys), 500):
+        chunk = keys[start:start + 500]
+        marks = ", ".join("(?, ?, ?)" for _ in chunk)
+        for row in conn.execute(f"SELECT shell_index, band_index, wedge_index FROM chart_ledger WHERE (shell_index, band_index, wedge_index) IN ({marks})",
+                                tuple(value for key in chunk for value in key)).fetchall():
+            found.add((row["shell_index"], row["band_index"], row["wedge_index"]))
+    return found
+
+
 def count(conn):
     """How many cells are charted."""
     return conn.execute("SELECT COUNT(*) AS n FROM chart_ledger").fetchone()["n"]

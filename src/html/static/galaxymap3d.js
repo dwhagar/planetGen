@@ -25,7 +25,7 @@
 // The galaxy's sector grid is drawn as blocks of whole sectors, one
 // drill-down stage at a time (./galaxystageview.js, rules in
 // ./galaxystages.js): the whole galaxy's blocks, then for each block
-// clicked the window of blocks one size down centred on it, ... down to a
+// clicked the window of blocks one size down centered on it, ... down to a
 // window of sectors (MAP.150, MAP.151). Every view can be
 // turned and zoomed within limits; the whole galaxy has no grid lines
 // drawn on it, so its stars and spiral show through. Density is computed right here from the galaxy's own
@@ -57,10 +57,12 @@ const {
   neighbourBlock, sectorAddressAt, sectorDesignation,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
+const Waypoints = await import(`./waypoints.js${VERSION_QUERY}`);
 const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
 const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
 const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
+const { renderViewMenu } = await import(`./viewmenu.js${VERSION_QUERY}`);
 const superbubble = await import(`./superbubble.js${VERSION_QUERY}`);
 const { connectCourseDiagram } = await import(`./coursediagram.js${VERSION_QUERY}`);
 const { courseRuns, createHopGlow, makeGlowTexture } = await import(`./coursehops.js${VERSION_QUERY}`);
@@ -68,7 +70,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, NEBULA_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
+  BLACK_HOLE_KIND, NEBULA_KIND, REGION_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { NAMED_LIMIT } = await import(`./labelbudget.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
@@ -90,11 +92,12 @@ const {
   GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, UNCHARTED_FAR_GLSL, UNCHARTED_FAR_KEEP, massRampShare,
   unchartedKeep, phenomenonLuminositySol, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
-const { nodeCut, parseNodeKey, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
+const { formatNodeKey, geometry, nodeCut, parseNodeKey, projectedSize, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
 const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuffer.js${VERSION_QUERY}`);
+const { keptShare, rankShare, rankStars, referencePx } = await import(`./starthin.js${VERSION_QUERY}`);
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
-const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
+const { regionBlobs, regionLook, chartedText, regionMarkers, chartedRegionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
 const { blackHoleDensityPx, labelBufferPx, regionLanding } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
@@ -102,7 +105,7 @@ const {
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
-const { sourceOf: nebulaVolumeSource, singleIdOf, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { sourceOf: nebulaVolumeSource, singleIdOf, sphereOf, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
 const { createLevelProgress } = await import(`./levelprogress.js${VERSION_QUERY}`);
@@ -183,6 +186,9 @@ export function mapControlHandlers(ctx) {
       button.setAttribute("aria-pressed", String(on));
       ctx.setPlaneView(on);
     },
+    // MAP.376: the wedge on either side becomes the focus.
+    "plane-wedge-prev": function () { if (ctx.stepPlaneWedge) ctx.stepPlaneWedge(-1); },
+    "plane-wedge-next": function () { if (ctx.stepPlaneWedge) ctx.stepPlaneWedge(1); },
     "plane-stems": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
@@ -253,7 +259,7 @@ var restingHint = (infoPanel() && infoPanel().element && infoPanel().element.tex
 var REGION_BLOCK_MAX = 9;
 
 // MAP.315: the charted region a point lies in, set once the map has its nodes: regionLookup(x, y, z) resolves to
-// {name, parent, block, extent, parentBlock} (the 9-block with its extent {centre, radius} in pc, and its 81-block family,
+// {name, parent, block, extent, parentBlock} (the 9-block with its extent {center, radius} in pc, and its 81-block family,
 // with their names) or null, and regionOpener.region(region) frames the region's extent (a block's window when the node
 // has none) and regionOpener.block(block) flies the camera to a block.
 var regionLookup = null;
@@ -514,6 +520,8 @@ function phenomenonUrl(cloud) {
 function phenomenonActions(item) {
   var endpoint = item.type + ":" + item.id;
   var spec = { bookmark: endpointBookmark(endpoint, item.name, sceneData.phenomenonUrl ? phenomenonUrl(item) : null) };
+  // NAV.49: where the Waypoint flag goes on the map.
+  if (spec.bookmark && [item.x, item.y, item.z].every(Number.isFinite)) spec.bookmark.position = [item.x, item.y, item.z];
   // Not while choosing a NAV endpoint (NAV.30): it would leave the course.
   if (sceneData.phenomenonUrl && !navPick.active()) {
     // A scattered point that nothing has built has no record of its own: its page is the scatter row's
@@ -559,7 +567,7 @@ function showRegionInfo(blob) {
 // Flies to a charted region of the regions layer: its window, the camera framing its extent (MAP.319).
 function openRegionBlob(blob) {
   if (!regionOpener) return;
-  regionOpener.region({ block: blob.block, name: blob.name, extent: { centre: [blob.x, blob.y, blob.z], radius: blob.radiusPc } });
+  regionOpener.region({ block: blob.block, name: blob.name, extent: { center: [blob.x, blob.y, blob.z], radius: blob.radiusPc } });
 }
 
 function cloudFacts(cloud) {
@@ -762,6 +770,8 @@ function showStarInfo(star, nearby) {
     spec.view = { href: systemPage, label: "View system →" };
     // MAP.122: the ☆ saves the star's system (a star in unmade space has no system to keep).
     spec.bookmark = endpointBookmark("system:" + star.system_id, star.name || "Star system", systemPage);
+    // NAV.49: where the Waypoint flag goes on the map.
+    if (spec.bookmark) spec.bookmark.position = [star.x, star.y, star.z];
   }
   if (nearby) {
     spec.after = [nearby];
@@ -979,9 +989,9 @@ function initGalaxyMap3d(canvasEl, data) {
     scene.children.forEach(function (child) {
       if (child !== group && child.visible && !child.isLight) { child.visible = false; hidden.push(child); }
     });
-    // The offset of the system from the eye, worked out as (centre - target) - back so no step of a double at the galaxy's size is in it.
-    group.position.set((frame.centre[0] - target.x - eyeBack.x) * scale, (frame.centre[1] - target.y - eyeBack.y) * scale,
-      (frame.centre[2] - target.z - eyeBack.z) * scale);
+    // The offset of the system from the eye, worked out as (center - target) - back so no step of a double at the galaxy's size is in it.
+    group.position.set((frame.center[0] - target.x - eyeBack.x) * scale, (frame.center[1] - target.y - eyeBack.y) * scale,
+      (frame.center[2] - target.z - eyeBack.z) * scale);
     group.scale.multiplyScalar(scale);
     camera.position.copy(DEEP_CLEAR);
     camera.near = Math.min(BASE_NEAR, dist * 1e-3) * scale;
@@ -1047,7 +1057,7 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // The middle of a cell given as bounds (radius, colatitude, longitude), in the galaxy's frame.
-  function cellCentre(b) {
+  function cellCenter(b) {
     var r = (b.r0 + b.r1) / 2;
     var c = (b.c0 + b.c1) / 2;
     var t = (b.t0 + b.t1) / 2;
@@ -1070,7 +1080,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (nebulaLayer) nebulaLayer.setVisible(!hiddenCell && !groupWindow);
     if (nebulaVolumes) {
       nebulaVolumes.setVisible(!hiddenCell);
-      nebulaVolumes.setClip(groupWindow ? { centre: groupWindow.centre, radiusPc: groupWindow.radiusPc } : null);
+      nebulaVolumes.setClip(groupWindow ? { center: groupWindow.center, radiusPc: groupWindow.radiusPc } : null);
     }
     if (markerLayer) markerLayer.setOutsideShare(hiddenCell ? SECTOR_OUTSIDE_SHARE : 1);    // MAP.341: the marks dim as the stars do
     if (sectorFrame) sectorFrame.set(hiddenCell);
@@ -1104,7 +1114,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (!made) return false;
     if (!groupWindow) {
       var scale = stageView.scaleInfo();
-      windowReturn = stageView.centre() && scale ? { center: stageView.centre(), dist: scale.dist } : null;
+      windowReturn = stageView.center() && scale ? { center: stageView.center(), dist: scale.dist } : null;
     }
     groupWindow = made;
     refreshWindowView();
@@ -2123,7 +2133,10 @@ function initGalaxyMap3d(canvasEl, data) {
     colours: NEBULA_FAMILIES.map(function (family) { return nebulaFamilyColour(family, NEBULA_LOOKS); }),
     fetchBytes: function (key) {
       var alone = singleIdOf(key);
-      var url = alone !== null ? String(data.nebulaAloneVolumePath).replace("{id}", encodeURIComponent(alone))
+      var sphere = sphereOf(key);
+      var url = sphere !== null ? data.cloudVolumePath + "?x=" + sphere.x + "&y=" + sphere.y + "&z=" + sphere.z + "&radius_pc=" + sphere.radiusPc
+          + "&family=" + encodeURIComponent(sphere.family)
+        : alone !== null ? String(data.nebulaAloneVolumePath).replace("{id}", encodeURIComponent(alone))
         : data.nebulaVolumePath + "?key=" + encodeURIComponent(key);
       return fetch(url).then(function (response) {
         if (!response.ok) throw new Error(url + " returned " + response.status);
@@ -2228,6 +2241,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // is in (within REGION_POI_REACH of its radii of its middle) gets none: its sectors and stars are the points there.
   var REGION_POI_REACH = 2.5;
   var REGION_POI_MERGE_PX = 48;
+  // MAP.369: a point carries its region's name, so two points are one when their boxes would touch: this far apart across, or less, and no
+  // farther than REGION_POI_MERGE_PX down.
+  var REGION_POI_MERGE_ACROSS_PX = 130;
   var regionPoiLayer = null;
   var regionPoiEls = new Map();
   var regionPoiGroups = [];
@@ -2248,7 +2264,10 @@ function initGalaxyMap3d(canvasEl, data) {
     items.sort(function (a, b) { return (b.blob.sectorCount - a.blob.sectorCount) || (a.blob.key < b.blob.key ? -1 : 1); });
     var groups = [];
     items.forEach(function (item) {
-      var home = groups.find(function (group) { return Math.hypot(group.x - item.x, group.y - item.y) <= REGION_POI_MERGE_PX; });
+      var home = groups.find(function (group) {
+        return Math.abs(group.x - item.x) <= REGION_POI_MERGE_ACROSS_PX && Math.abs(group.y - item.y) <= REGION_POI_MERGE_PX / 2 ||
+          Math.hypot(group.x - item.x, group.y - item.y) <= REGION_POI_MERGE_PX;
+      });
       if (home) home.members.push(item.blob);
       else groups.push({ x: item.x, y: item.y, head: item.blob, members: [item.blob] });
     });
@@ -2257,11 +2276,11 @@ function initGalaxyMap3d(canvasEl, data) {
   // The sphere that holds every region of a group: its middle is the members' mean, its radius reaches the farthest member's far side.
   function regionGroupExtent(group) {
     var n = group.members.length;
-    var centre = [0, 0, 0];
-    group.members.forEach(function (blob) { centre[0] += blob.x / n; centre[1] += blob.y / n; centre[2] += blob.z / n; });
+    var center = [0, 0, 0];
+    group.members.forEach(function (blob) { center[0] += blob.x / n; center[1] += blob.y / n; center[2] += blob.z / n; });
     var radius = 0;
-    group.members.forEach(function (blob) { radius = Math.max(radius, Math.hypot(blob.x - centre[0], blob.y - centre[1], blob.z - centre[2]) + blob.radiusPc); });
-    return { centre: centre, radius: radius };
+    group.members.forEach(function (blob) { radius = Math.max(radius, Math.hypot(blob.x - center[0], blob.y - center[1], blob.z - center[2]) + blob.radiusPc); });
+    return { center: center, radius: radius };
   }
   function openRegionGroup(group) {
     if (group.members.length === 1) {
@@ -2316,9 +2335,12 @@ function initGalaxyMap3d(canvasEl, data) {
         var use = document.createElementNS("http://www.w3.org/2000/svg", "use");
         use.setAttribute("href", new URL("poi/region.svg" + VERSION_QUERY + "#poi", import.meta.url).href);
         symbol.appendChild(use);
+        // MAP.369: the point reads as a label: the region's name beside its symbol (the head region's, for a group), then the count.
+        var label = document.createElement("span");
+        label.className = "map-region-poi-name";
         var count = document.createElement("span");
         count.className = "map-region-poi-count";
-        el.append(symbol, count);
+        el.append(symbol, label, count);
         el.addEventListener("click", function () {
           var mine = regionPoiGroups.find(function (g) { return g.head.key === key; });
           if (mine) openRegionGroup(mine);
@@ -2333,6 +2355,7 @@ function initGalaxyMap3d(canvasEl, data) {
         : name + " (" + group.head.sectorCount + " sectors): go to the region";
       el.title = text;
       el.setAttribute("aria-label", text);
+      el.querySelector(".map-region-poi-name").textContent = name;
       el.querySelector(".map-region-poi-count").textContent = many ? String(group.members.length) : "";
       el.hidden = false;
       el.style.left = group.x.toFixed(1) + "px";
@@ -2342,6 +2365,34 @@ function initGalaxyMap3d(canvasEl, data) {
       if (seen.has(key)) return;
       el.remove();
       regionPoiEls.delete(key);
+    });
+  }
+  // MAP.369: a region point lies above its region's middle, where a name the label engine placed (a family's, a region's) may be; it moves up
+  // over that name's top edge rather than cover it, whatever order the two were placed in. Worked out against the names as they stand.
+  var POI_NUDGE_GAP_PX = 4;
+  var poiNudgeSignature = "";
+  function nudgeRegionPois() {
+    if (!regionPoiLayer || !regionPoiGroups.length || !galaxyLabels) return;
+    var names = galaxyLabels.shown().filter(function (label) { return label.kind === "region"; });
+    var signature = regionPoiGroups.map(function (group) { return group.head.key + "@" + group.x.toFixed(0) + "," + group.y.toFixed(0); }).join(";")
+      + "|" + names.map(function (label) { return label.id + "@" + label.left + "," + label.top; }).join(";");
+    if (signature === poiNudgeSignature) return;
+    poiNudgeSignature = signature;
+    regionPoiGroups.forEach(function (group) {
+      var el = regionPoiEls.get(group.head.key);
+      if (!el) return;
+      var width = el.offsetWidth;
+      var height = el.offsetHeight;
+      var left = group.x - width / 2;
+      var bottom = group.y - 16;    // the point's own offset (style.css .map-region-poi)
+      var lift = 0;
+      names.forEach(function (label) {
+        var across = label.left < left + width && left < label.left + label.width;
+        var down = label.top < bottom - lift && bottom - lift - height < label.top + label.height;
+        if (across && down) lift = bottom - label.top + POI_NUDGE_GAP_PX;
+      });
+      lift = Math.min(lift, Math.max(bottom - height, 0));    // never above the top of the map
+      el.style.marginTop = lift ? "-" + lift.toFixed(1) + "px" : "";
     });
   }
   canvasEl.galaxyRegionPois = function () {
@@ -2578,6 +2629,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // starList's order; redone when the camera moves or the stars change.
   var starShares = new Float32Array(0);
   var starShareSignature = "";
+  var starThinningOn = true;
   function updateStarShares() {
     var n = starList.length;
     var signature = starSetVersion + "," + n + "," + camera.position.x + "," + camera.position.y + "," + camera.position.z;
@@ -2588,8 +2640,21 @@ function initGalaxyMap3d(canvasEl, data) {
     if (starShares.length !== n) {
       starShares = new Float32Array(n);
     }
-    var weigh = drawnSettled ? weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled) : null;
+    var cameraAt = camera.position.toArray();
+    var weigh = drawnSettled ? weightCalculator(cameraAt, NODE_EDGE_PC, focalPixels(), drawnSettled) : null;
     var byNode = new Map();
+    // MAP.366: the share of its list each capped node keeps against the nodes of the view (static/starthin.js).
+    var kept = new Map();
+    var cappedSizes = [];
+    for (var j = 0; j < n; j++) {
+      var tile = starFadeList[j];
+      if (tile && tile.capped && !kept.has(tile)) {
+        kept.set(tile, projectedSize(tile.block, cameraAt, NODE_EDGE_PC, focalPixels()));
+        cappedSizes.push(kept.get(tile));
+      }
+    }
+    var reference = referencePx(cappedSizes);
+    kept.forEach(function (px, tile) { kept.set(tile, keptShare(px, reference)); });
     for (var i = 0; i < n; i++) {
       var fade = starFadeList[i];
       var share = 1;
@@ -2598,6 +2663,9 @@ function initGalaxyMap3d(canvasEl, data) {
         if (share === undefined) {
           share = starShare(fade, weigh);
           byNode.set(fade, share);
+        }
+        if (starThinningOn && fade.capped && starList[i].nodeRank !== undefined) {
+          share *= rankShare(starList[i].nodeRank, fade.listed, kept.get(fade));
         }
       }
       starShares[i] = share;
@@ -2703,6 +2771,45 @@ function initGalaxyMap3d(canvasEl, data) {
     return { limit: limit, goal: magGoal, target: magTarget, onScreen: magOnScreen, count: starList.length, stars: shares, ramp: RAMP, focus: nearUniforms.nearD.value, e: e[0] };
   };
 
+  // For tests (MAP.366): what each node on screen lists and shows, by node: its key and size on screen (pixels), the
+  // distance of its box's center, the stars it lists, and how many of them show (the sum of their opacity: the
+  // node's share times the limiting magnitude's), so a test compares nodes at one distance.
+  canvasEl.galaxyNodeStars = function () {
+    var absolute = starPoints.geometry.getAttribute("starAbsMag");
+    var tierMag = starPoints.geometry.getAttribute("starTierMag");
+    var limit = starMaterial.uniforms.magLimit.value;
+    var camAt = camera.position.toArray();
+    var found = new Map();
+    var cut = neededNodes();
+    var weigh = weightCalculator(camAt, NODE_EDGE_PC, focalPixels(), drawnSettled || undefined);
+    starList.forEach(function (star, i) {
+      var fade = starFadeList[i];
+      if (!fade) return;
+      var entry = found.get(fade);
+      if (!entry) {
+        var geo = geometry(fade.block, NODE_EDGE_PC);
+        var center = [0, 1, 2].map(function (a) { return (geo.lo[a] + geo.hi[a]) / 2; });
+        var nodeKey = formatNodeKey(fade.block);
+        entry = {
+          key: nodeKey, level: fade.block.m, listed: 0, shown: 0, weight: weigh(fade.block),
+          opened: cut.expanded.has(nodeKey), settled: !!(drawnSettled && drawnSettled.has(nodeKey)),
+          px: projectedSize(fade.block, camAt, NODE_EDGE_PC, focalPixels()),
+          distance: Math.hypot(center[0] - camAt[0], center[1] - camAt[1], center[2] - camAt[2]),
+        };
+        found.set(fade, entry);
+      }
+      var d = Math.sqrt(Math.pow(star.x - camAt[0], 2) + Math.pow(star.y - camAt[1], 2) + Math.pow(star.z - camAt[2], 2));
+      var m = apparentMagnitude(absolute.array[i], d) + tierMag.array[i];
+      entry.listed += 1;
+      entry.faint = Math.max(entry.faint === undefined ? -Infinity : entry.faint, star.phenomenon ? -Infinity : m);
+      entry.brightListed = (entry.brightListed || 0) + (star.generated || star.phenomenon ? 0 : 1);
+      entry.generatedListed = (entry.generatedListed || 0) + (star.generated ? 1 : 0);
+      entry.shown += starShares[i] * Math.min(1, Math.max(0, (limit - m) / RAMP));
+      if (starShares[i] * Math.min(1, Math.max(0, (limit - m) / RAMP)) > 0.5) entry.shownFaint = Math.max(entry.shownFaint === undefined ? -Infinity : entry.shownFaint, m);
+    });
+    return Array.from(found.values());
+  };
+
   // For tests (MAP.149): the near field the shaders were given (the
   // camera-to-focus distance, the focus's radius, the center of the block
   // the camera is inside or null), the camera and its target, and the
@@ -2758,10 +2865,19 @@ function initGalaxyMap3d(canvasEl, data) {
     starMaterial.uniforms.magOn.value = on ? 1 : 0;
   };
 
+  // For tests (MAP.366): switches the density rule of static/starthin.js off (every star at its node's share) to compare the picture
+  // with and without it.
+  canvasEl.galaxyStarThinning = function (on) {
+    starThinningOn = !!on;
+    starShareSignature = "";
+  };
+
   // For tests: the frame the stars are drawn from and the farthest star
   // from it, in the points' own (offset) coordinates.
   // For tests (MAP.267): how the star buffer was filled: syncs so far, stars written and moved in all, and the last
   // sync's own figures (chunks added and removed, stars kept untouched, written, moved, in all, and its milliseconds).
+  // MAP.392, for the browser tests: the nebulae and supernova remnants of the open sector still drawn as a hard sphere or shell ([] when all are points).
+  canvasEl.galaxyHardClouds = function () { return stageView.sectorHardClouds(); };
   canvasEl.galaxyStarFill = function () {
     return { syncs: starSync.syncs, written: starSync.written, moved: starSync.moved, last: starSync.last,
       capacity: starCapacity, count: starList.length };
@@ -2873,6 +2989,15 @@ function initGalaxyMap3d(canvasEl, data) {
     return node.allStars;
   }
 
+  // MAP.366: the node's stars ranked by luminosity (`nodeRank` on each, static/starthin.js), once per node, and whether its
+  // lists reached their cap: `{ listed, capped }`.
+  function nodeThinning(node, block) {
+    if (!node.thinning) {
+      Object.defineProperty(node, "thinning", { value: rankStars(nodeStars(node), block) });
+    }
+    return node.thinning;
+  }
+
   // MAP.123: whether the star filters (classes hidden, dimmest star shown)
   // let `star` through. Phenomena are never filtered here: they have their
   // own kind toggles.
@@ -2948,6 +3073,9 @@ function initGalaxyMap3d(canvasEl, data) {
       }
       var node = getNode(key);
       var fade = { block: parseNodeKey(key) };
+      var thin = nodeThinning(node, fade.block);
+      fade.listed = thin.listed;
+      fade.capped = thin.capped;
       var entries = [];
       nodeStars(node).forEach(function (star) {
         if (starShown(star)) {
@@ -3544,6 +3672,10 @@ function initGalaxyMap3d(canvasEl, data) {
   var courseRings = [];
   var courseSelected = null;
   var courseGlows = null;
+  // NAV.23: the course's three forms, each its own group of lines so the Menu can show or hide it; NAV.21: every point of the three, flat
+  // [x, y, z, ...] in parsecs, which the opening view is fitted round.
+  var courseLines = null;
+  var courseFitPoints = [];
   var COURSE_RING_PX = 11;
   var COURSE_LABEL_PX = 13;
 
@@ -3554,38 +3686,53 @@ function initGalaxyMap3d(canvasEl, data) {
     var courseGroup = new THREE.Group();
     courseGroup.renderOrder = 4;
     scene.add(courseGroup);
+    courseLines = { route: new THREE.Group(), direct: new THREE.Group(), adjusted: new THREE.Group() };
+    Object.keys(courseLines).forEach(function (form) { courseGroup.add(courseLines[form]); });
     var linePoints = course.points.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
+    course.points.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
     // MAP.240: a line is an object at its first stop with offsets from it.
     // NAV.36: a hop through unknown space is drawn on its own, red, dashed and glowing; the known hops make solid runs.
     var unknownColor = mapVar("--error", "#d64545");
     courseRuns(course.points).forEach(function (run) {
       var runPoints = linePoints.slice(run.from, run.to + 1);
       if (!run.unknown) {
-        courseGroup.add(lineFrom(runPoints, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })));
+        courseLines.route.add(lineFrom(runPoints, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })));
         return;
       }
       var hopLength = runPoints[0].distanceTo(runPoints[1]);
-      courseGroup.add(lineFrom(runPoints, new THREE.LineDashedMaterial({
+      courseLines.route.add(lineFrom(runPoints, new THREE.LineDashedMaterial({
         color: new THREE.Color(unknownColor), depthTest: false, transparent: true, dashSize: hopLength / 24, gapSize: hopLength / 48,
       }), true));
       courseGlows = courseGlows || { texture: makeGlowTexture(THREE, unknownColor), list: [] };
       var glow = createHopGlow(THREE, runPoints[0], runPoints[1], courseGlows.texture);
       glow.group.renderOrder = 3;
-      courseGroup.add(glow.group);
+      courseLines.route.add(glow.group);
       courseGlows.list.push(glow);
     });
     // NAV.20: with stops on the way, the straight line from the start to the
     // end is drawn apart from the route, dashed and muted.
-    if (course.direct && course.direct.length === 2) {
-      var directPoints = course.direct.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
-      courseGroup.add(lineFrom(directPoints, new THREE.LineDashedMaterial({
+    // NAV.49: a course through waypoints has the straight line of each leg (`directs`).
+    var directPairs = course.directs && course.directs.length ? course.directs : course.direct && course.direct.length === 2 ? [course.direct] : [];
+    directPairs.forEach(function (pair) {
+      var directPoints = pair.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
+      directPoints.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
+      courseLines.direct.add(lineFrom(directPoints, new THREE.LineDashedMaterial({
         color: new THREE.Color(0x9aa3b8), depthTest: false, transparent: true,
         dashSize: directPoints[0].distanceTo(directPoints[1]) / 60,
         gapSize: directPoints[0].distanceTo(directPoints[1]) / 120,
       }), true));
-    }
+    });
+    // NAV.28: the course bent round keep-out spheres, one polyline for each line that bends, over the route in amber.
+    var bentColor = mapVar("--tier-yellow", "#d9a400");
+    (course.adjusted || []).forEach(function (line) {
+      if (line.length < 2) return;
+      line.forEach(function (point) { courseFitPoints.push(point.x, point.y, point.z); });
+      courseLines.adjusted.add(lineFrom(line.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); }),
+        new THREE.LineBasicMaterial({ color: new THREE.Color(bentColor), depthTest: false, transparent: true })));
+    });
     course.points.forEach(function (point, n) {
-      var ends = n === 0 || n === course.points.length - 1;
+      // NAV.49: a waypoint is ringed and named like an end.
+      var ends = n === 0 || n === course.points.length - 1 || point.role === "waypoint";
       var ring = new THREE.Sprite(new THREE.SpriteMaterial({
         map: highlightTexture, transparent: true, depthWrite: false, depthTest: false,
         sizeAttenuation: false, opacity: ends ? 1 : 0.7,
@@ -3614,7 +3761,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Superbubbles (GEN.254) --------------------------------------------------------
   //
   // The cavities the supernovae of OB associations blow in the gas (the Local Bubble
-  // is one), from the galaxy's seed: the page embeds each one's centre and radius in
+  // is one), from the galaxy's seed: the page embeds each one's center and radius in
   // galaxy-frame parsecs. Each is drawn as its sphere (MAP.236, superbubble.js): a faint fill and a
   // crisp rim where the sphere meets the line of sight, under everything else and never picked. No
   // molecular cloud lies inside one.
@@ -3623,7 +3770,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var bubbleMaterial = null;
   var bubbleMeshes = [];
   if (bubbles.length) {
-    // MAP.240: one object for each bubble, at its centre, so no vertex is more than the radius from its origin.
+    // MAP.240: one object for each bubble, at its center, so no vertex is more than the radius from its origin.
     bubbleMaterial = new THREE.ShaderMaterial({
       uniforms: {
         color: { value: new THREE.Vector3().fromArray(superbubble.colorComponents(bubbleLook.color)) },
@@ -3660,7 +3807,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Sectors a generate job made (ADM.31) ---------------------------------------
   //
   // With ?made=<since>,<until> (the job page's "Show on Galaxy Map") the page
-  // embeds the centres and addresses of the sectors that run made, up to a
+  // embeds the centers and addresses of the sectors that run made, up to a
   // cap. They are ringed in one points object, over everything else and never
   // picked, and the map opens on the smallest stage holding them (the same
   // fit a NAV course gets), unless the URL names a stage itself.
@@ -3711,7 +3858,7 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // NAV.69: the stop of the course that is selected: its ring is bigger and solid, and the course diagram beside the map (coursediagram.js) marks
-  // the same stop, whichever of the two the visitor clicked. `fly` also centres the map on it, keeping the zoom.
+  // the same stop, whichever of the two the visitor clicked. `fly` also centers the map on it, keeping the zoom.
   function selectCourseStop(index, fly) {
     if (!course || !(index >= 0 && index < course.points.length)) return false;
     courseSelected = index;
@@ -3728,7 +3875,7 @@ function initGalaxyMap3d(canvasEl, data) {
     canvasEl.dispatchEvent(new CustomEvent("galaxycoursestop", { detail: { index: index, name: point.name, url: point.url || null } }));
     return true;
   }
-  // For the diagram's clicks and the browser tests: selects stop `index` of the course and centres the map on it.
+  // For the diagram's clicks and the browser tests: selects stop `index` of the course and centers the map on it.
   canvasEl.galaxyCourseSelect = function (index) { return selectCourseStop(index, true); };
   // For the browser tests: the index of the selected stop, or null.
   canvasEl.galaxyCourseSelected = function () { return courseSelected; };
@@ -3737,6 +3884,12 @@ function initGalaxyMap3d(canvasEl, data) {
     return course ? course.points.map(function (point) { return { name: point.name, x: point.x, y: point.y, z: point.z }; }) : [];
   };
   // NAV.36, for the browser tests: how many hops are drawn as jumps through unknown space and how many glow sprites show now.
+  // NAV.23, for the browser tests: which forms of the course are drawn, `{route, direct, adjusted}` (a form the course has none of is left out).
+  canvasEl.galaxyCourseForms = function () {
+    var shown = {};
+    if (courseLines) Object.keys(courseLines).forEach(function (form) { if (courseLines[form].children.length) shown[form] = courseLines[form].visible; });
+    return shown;
+  };
   canvasEl.galaxyCourseUnknown = function () {
     var list = courseGlows ? courseGlows.list : [];
     return {
@@ -3847,7 +4000,8 @@ function initGalaxyMap3d(canvasEl, data) {
     kindsEl.hidden = false;
     kindsEl.appendChild(kindsLayersEl);
     if (drawKindLayers) drawKindLayers();
-    else drawKindLayers = stageView.layers.renderMenu(kindsLayersEl);
+    // UX.278: a sector page's Menu is the shared View menu (viewmenu.js); the Galaxy Map's stays as it was until UX.280.
+    else drawKindLayers = data.pinned ? renderViewMenu(stageView.layers, kindsLayersEl) : stageView.layers.renderMenu(kindsLayersEl);
     if (!kinds.length) {
       rebuildStarFilters();
       return;
@@ -4008,6 +4162,8 @@ function initGalaxyMap3d(canvasEl, data) {
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
     accentColor: accentColor, canGenerate: !!data.generate, courseSectors: courseSectors,
+    // NAV.21: with a course, the view opens fitted round every point of it (the route, the direct line and the adjusted lines).
+    courseFit: courseFitPoints.length >= 6 ? function () { return courseFitPoints; } : null,
     blockScene: localBlockScene,
     makeBlockMesh: makeBlockMesh,
     // MAP.131: the blocks' color modes, the legend of the chosen one and the
@@ -4129,6 +4285,16 @@ function initGalaxyMap3d(canvasEl, data) {
           return response.json();
         });
     } : null,
+    // MAP.168: the open sector's gravity grid (the sector page's /gravity route) for a mode and field; {building: true} while the grid is being worked out.
+    fetchSectorGravity: sceneData.sectorUrl && data.pinned ? function (id, mode, field) {
+      var path = sectorUrl(id).split("?")[0] + "/gravity?mode=" + encodeURIComponent(mode) + "&field=" + encodeURIComponent(field);
+      return fetch(path, { headers: { Accept: "application/json" } })
+        .then(function (response) {
+          if (response.status === 202) return { building: true };
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          return response.json();
+        });
+    } : null,
     // The scene of a cell nothing was generated in (MAP.162), from its address.
     fetchUnchartedScene: sceneData.unchartedSceneUrl ? function (at) {
       var path = String(sceneData.unchartedSceneUrl).replace("{shell}", encodeURIComponent(at.shell))
@@ -4204,6 +4370,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
     markerKinds.register(NEBULA_KIND);
+    markerKinds.register(REGION_KIND);
     MAP_INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
     markerLayer = createMarkerLayer(scene, camera, canvasEl, "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
@@ -4216,6 +4383,12 @@ function initGalaxyMap3d(canvasEl, data) {
     // The Menu lists a group's layers together, so the technology bands (registered ahead of the Civilizations kind, which they pre-empt) come
     // after the points of interest.
     var familyOrder = { tech: 1, "class": 2, lifeclass: 3 };
+    // UX.277: the words the View menu's search finds a marker kind by, besides its label: its family, and the plain names of what it marks.
+    var markerKeywords = function (kind) {
+      var family = kind.family === "class" ? ["world class", "planet class", "class"] : kind.family === "lifeclass" ? ["life class", "life"]
+        : kind.family === "tech" ? ["technology", "civilization", "tech"] : kind.interest ? ["point of interest", "interest", "symbol"] : ["marker", "mark"];
+      return family.concat([String(kind.label).toLowerCase(), String(kind.id)]);
+    };
     markerKinds.kinds().map(function (kind, index) { return { kind: kind, index: index }; }).sort(function (p, q) {
       return (familyOrder[p.kind.family] || 0) - (familyOrder[q.kind.family] || 0) || p.index - q.index;
     }).map(function (entry) { return entry.kind; }).forEach(function (kind) {
@@ -4224,6 +4397,7 @@ function initGalaxyMap3d(canvasEl, data) {
         group: kind.family === "class" ? CLASS_GROUP : kind.family === "lifeclass" ? LIFE_CLASS_GROUP : kind.family === "tech" ? TECH_GROUP : kind.interest ? POI_GROUP : "Markers",
         data: { marker: kind.glyph || kind.icon },
         defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+        heading: "Show", keywords: markerKeywords(kind), common: kind.id === "marker-black-hole",
         title: kind.title || "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
       });
     });
@@ -4251,7 +4425,7 @@ function initGalaxyMap3d(canvasEl, data) {
       // The sector across a wall is the one the shared step helper finds (galaxyprisms.neighbourBlock, as the arrow keys use).
       neighbour: function (wall) {
         if (!hiddenCell) return null;
-        var middle = cellCentre(hiddenCell);
+        var middle = cellCenter(hiddenCell);
         var here = sectorAddressAt(middle[0], middle[1], middle[2], edgePc);
         var found = neighbourBlock({ m: 1, shell: here.shell, band: here.band, wedge: here.wedge }, wall.dir, edgePc);
         return found && stageOfSector(found.shell, found.band, found.wedge) ? { shell: found.shell, band: found.band, wedge: found.wedge } : null;
@@ -4280,6 +4454,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (glow) {
     stageView.layers.register({
       id: "glow", label: "Unresolved glow", modes: ["galaxy"], group: "Show on the map", data: { glow: "unresolved" },
+      heading: "Show", keywords: ["glow", "unresolved", "faint", "light", "distant stars"],
       defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the soft light of the stars too far away to tell apart",
       legend: null,
@@ -4309,6 +4484,7 @@ function initGalaxyMap3d(canvasEl, data) {
     NEBULA_FAMILIES.forEach(function (family) {
       stageView.layers.register({
         id: "nebulae-" + family, label: NEBULA_FAMILY_LABELS[family], modes: ["galaxy"], group: NEBULA_GROUP,
+        heading: "Show", keywords: ["nebula", "nebulae", "gas", "cloud", family],
         data: { nebulae: family }, defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
         title: "Show or hide the groups of " + NEBULA_FAMILY_LABELS[family].toLowerCase() + " on the map",
         legend: { text: NEBULA_FAMILY_LABELS[family], swatch: nebulaSwatch(family) },
@@ -4316,6 +4492,7 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     stageView.layers.register({
       id: "nebulae-groups", label: "Nebula groups", modes: ["galaxy"], group: NEBULA_GROUP, defaultOn: true, fadedWithSectors: false,
+      heading: "Show", keywords: ["nebula", "nebulae", "groups", "ring"],
       available: function () { return false; },
       legend: function () {
         var any = NEBULA_FAMILIES.some(function (family) { return nebulaFamilyOn[family] !== false; });
@@ -4363,6 +4540,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // Map's) holds them still. The galactic views turn nothing, so it matters only inside a system.
   stageView.layers.register({
     id: "spin", label: "Spin", modes: ["galaxy"], group: "Show on the map", data: { setting: "spin" },
+    heading: "Move and Settings", keywords: ["spin", "turn", "rotate", "rotation", "axis", "still"],
     defaultOn: stageView.spinSwitch.on(), fadedWithSectors: false,
     title: "Let the stars and bodies of an opened system turn slowly on their axes, or hold them still",
     legend: null, keyless: "a setting: it draws nothing of its own",
@@ -4371,10 +4549,171 @@ function initGalaxyMap3d(canvasEl, data) {
   stageView.layers.onChange(function (id, on) {
     if (id === "spin") stageView.spinSwitch.set(on);
   });
+  // NAV.23: the forms of a NAV course are layers of the Menu, all shown: the route through its stops, the direct line from the start to
+  // the end, and the course bent round keep-out spheres. A saved course opens here (the Saved Courses list on the NAV page), and the
+  // visitor switches between its forms; the address keeps the choice.
+  if (courseLines) {
+    var courseForms = [
+      { form: "route", id: "course-route", label: "Course: route", title: "Show or hide the course through each of its stops" },
+      { form: "direct", id: "course-direct", label: "Course: direct line", title: "Show or hide the straight line from the start to the end of the course" },
+      { form: "adjusted", id: "course-adjusted", label: "Course: adjusted", title: "Show or hide the course bent round the keep-out spheres it would pass too close to" },
+    ].filter(function (item) { return courseLines[item.form].children.length > 0; });
+    courseForms.forEach(function (item) {
+      stageView.layers.register({
+        id: item.id, label: item.label, modes: ["galaxy"], group: "Show on the map", data: { course: item.form },
+        heading: "Show", keywords: ["course", "route", "navigation", "nav", item.form],
+        defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: item.title,
+      });
+    });
+    stageView.readLayersFromLocation();
+    stageView.layers.refresh();
+    var showCourseForms = function () {
+      courseForms.forEach(function (item) { courseLines[item.form].visible = stageView.layers.isOn(item.id); });
+    };
+    showCourseForms();
+    stageView.layers.onChange(function (id) {
+      if (id.indexOf("course-") === 0) showCourseForms();
+    });
+  }
+  // NAV.49: a flag, numbered in the order the waypoints were picked, at each waypoint whose place the map knows: the one its card gave
+  // when it was picked here, or the one the plotted course through them has. A layer of the Menu, shown unless the visitor hides it. The
+  // same scene serves every level of the map (the whole galaxy, a block, an opened sector or system) and a sector's own page.
+  var waypointFlags = new THREE.Group();
+  waypointFlags.renderOrder = 5;
+  scene.add(waypointFlags);
+  var flagMarkers = [];
+  stageView.layers.register({
+    id: "waypoints", label: "Waypoint flags", modes: ["galaxy"], group: "Show on the map", data: { waypoints: "flags" },
+    heading: "Show", keywords: ["waypoint", "waypoints", "flag", "flags", "course", "stops"],
+    defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+    title: "Show or hide the flags that mark the stops picked for a course with Add waypoint",
+  });
+  stageView.readLayersFromLocation();
+  stageView.layers.refresh();
+  stageView.layers.registerKey({
+    id: "key-waypoints", layer: "waypoints", text: "Flag and number: a waypoint, numbered in the order picked", swatchClass: "map-key-waypoint",
+    drawn: function () { return stageView.layers.isOn("waypoints") && flagMarkers.length > 0; },
+  });
+  function waypointSpots() {
+    var entries = Waypoints.list();
+    // The plotted course knows where its waypoints are, whichever card they were picked from.
+    var plotted = course && course.via && course.waypoints && course.waypoints.length === entries.length ? course.waypoints : null;
+    var spots = [];
+    entries.forEach(function (entry, n) {
+      var at = plotted ? course.points[plotted[n]] : null;
+      if (at) spots.push({ n: n + 1, x: at.x, y: at.y, z: at.z });
+      else if (entry.position) spots.push({ n: n + 1, x: entry.position[0], y: entry.position[1], z: entry.position[2] });
+    });
+    return spots;
+  }
+  function drawWaypointFlags() {
+    flagMarkers.forEach(function (marker) { marker.sprite.material.map.dispose(); marker.sprite.material.dispose(); waypointFlags.remove(marker.sprite); });
+    courseMarkers = courseMarkers.filter(function (marker) { return flagMarkers.indexOf(marker) < 0; });
+    flagMarkers = waypointSpots().map(function (spot) {
+      var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: makeLabelTexture("\u2691 " + spot.n, accentColor), transparent: true, depthWrite: false, depthTest: false, sizeAttenuation: false,
+      }));
+      sprite.position.set(spot.x, spot.y, spot.z);
+      waypointFlags.add(sprite);
+      return { sprite: sprite, px: COURSE_LABEL_PX, label: true, number: spot.n };
+    });
+    courseMarkers = courseMarkers.concat(flagMarkers);
+    waypointFlags.visible = stageView.layers.isOn("waypoints");
+    stageView.layers.refreshKey();
+  }
+  drawWaypointFlags();
+  Waypoints.ready.then(drawWaypointFlags);
+  Waypoints.onChange(drawWaypointFlags);
+  stageView.layers.onChange(function (id) {
+    if (id === "waypoints") waypointFlags.visible = stageView.layers.isOn("waypoints");
+  });
+  // NAV.58: a flag is dragged onto a star system to put that system in the waypoint's place (the course is planned again through the new
+  // list). Registered ahead of the map's own pointer handlers, as the course rings' are; a flag on a ringed stop leaves the plain click to
+  // the ring (select the stop, open its page) and takes the drag.
+  var FLAG_GRAB_PX = 18;
+  var FLAG_DRAG_PX = 6;
+  var flagDrag = null;
+  var flagVector = new THREE.Vector3();
+  function flagAt(event) {
+    if (!waypointFlags.visible) return null;
+    camera.updateMatrixWorld();   // the view may have moved since the last frame was drawn
+    var rect = canvasEl.getBoundingClientRect();
+    var found = null;
+    var best = FLAG_GRAB_PX;
+    flagMarkers.forEach(function (marker) {
+      var at = marker.sprite.position;
+      flagVector.set(at.x, at.y, at.z).project(camera);
+      if (flagVector.z > 1) return;
+      var dx = (flagVector.x + 1) / 2 * rect.width + rect.left - event.clientX;
+      var dy = (1 - flagVector.y) / 2 * rect.height + rect.top - event.clientY;
+      var distance = Math.sqrt(dx * dx + dy * dy);
+      if (distance < best) { best = distance; found = marker; }
+    });
+    return found;
+  }
+  // What a drop at the pointer lands on: a star system, or a phenomenon with a NAV endpoint, as a waypoint entry, or null. The same
+  // picker as a click reads, so what can be picked there (a star of the map, of an opened sector or of a system, a nebula) can be dropped on.
+  var NOT_DROPPED_ON = { choices: true, regions: true, "nebula-groups": true, markers: true };
+  function dropTarget(event) {
+    var hit = picker.pick(event.clientX, event.clientY, function (layer) { return !NOT_DROPPED_ON[layer.name]; });
+    var item = hit && hit.entry;
+    if (!item || typeof item !== "object") return null;
+    var value = item.system_id != null ? "system:" + item.system_id
+      : typeof item.endpoint === "string" ? item.endpoint
+      : typeof item.key === "string" && item.kind ? item.key
+      : item.type && item.id != null && !item.scattered ? item.type + ":" + item.id : null;
+    var url = item.href || (item.system_id != null && sceneData.systemUrl ? String(sceneData.systemUrl).replace("{id}", encodeURIComponent(item.system_id)) : null)
+      || (item.type && sceneData.phenomenonUrl ? phenomenonUrl(item) : null);
+    var entry = { name: item.name || "", value: value, kind: value ? value.split(":")[0] : "", url: url };
+    if ([item.x, item.y, item.z].every(Number.isFinite)) entry.position = [item.x, item.y, item.z];
+    return Waypoints.isWaypoint(entry) ? entry : null;
+  }
+  canvasEl.addEventListener("pointerdown", function (event) {
+    var marker = event.button === 0 ? flagAt(event) : null;
+    flagDrag = marker ? { marker: marker, x: event.clientX, y: event.clientY, active: false } : null;
+    // On a ringed stop the ring's own handler ends the event; elsewhere it is ended here, or the map would turn under the drag.
+    if (flagDrag && !(typeof ringAt === "function" && ringAt(event))) event.stopImmediatePropagation();
+  }, true);
+  canvasEl.addEventListener("pointermove", function (event) {
+    if (!flagDrag) return;
+    if (!flagDrag.active && Math.abs(event.clientX - flagDrag.x) + Math.abs(event.clientY - flagDrag.y) >= FLAG_DRAG_PX) {
+      flagDrag.active = true;
+      try { canvasEl.setPointerCapture(event.pointerId); } catch (err) { /* a synthetic pointer: the drag still works */ }
+    }
+    if (flagDrag.active) {
+      event.stopImmediatePropagation();
+      canvasEl.style.cursor = dropTarget(event) ? "copy" : "grabbing";
+    }
+  }, true);
+  canvasEl.addEventListener("pointerup", function (event) {
+    if (!flagDrag) return;
+    var drag = flagDrag;
+    flagDrag = null;
+    canvasEl.style.cursor = "";
+    if (!drag.active) return;
+    event.stopImmediatePropagation();
+    var entry = Waypoints.list()[drag.marker.number - 1];
+    var target = dropTarget(event);
+    if (!entry || !target || target.value === entry.value) return;
+    if (Waypoints.find(target.value)) {
+      window.alert((target.name || "That place") + " is already a waypoint.");
+      return;
+    }
+    Waypoints.replace(entry.value, target).then(function (result) { if (!result.ok) window.alert(result.reason); });
+  }, true);
+  canvasEl.addEventListener("pointercancel", function () { flagDrag = null; canvasEl.style.cursor = ""; }, true);
+  // For the browser tests: the flags drawn, `[number, x, y, z]` each.
+  canvasEl.galaxyWaypointFlags = function () {
+    return waypointFlags.visible ? flagMarkers.map(function (marker) {
+      var at = marker.sprite.position;
+      return [marker.number, at.x, at.y, at.z];
+    }) : [];
+  };
   // The superbubbles are a layer of the Menu, off unless the visitor shows them.
   if (bubbleMeshes.length) {
     stageView.layers.register({
       id: "superbubbles", label: "Superbubbles", modes: ["galaxy"], group: "Show on the map", data: { superbubbles: "all" },
+      heading: "Show", keywords: ["superbubble", "bubble", "cavity", "supernova", "local bubble"],
       defaultOn: false, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the faint spheres that mark superbubbles, the cavities the supernovae of young star groups blew in the gas",
     });
@@ -4389,6 +4728,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (regionLayer) {
     stageView.layers.register({
       id: "regions", label: "Charted regions", modes: ["galaxy"], group: "Show on the map", data: { regions: "charted" },
+      heading: "Show", keywords: ["region", "regions", "charted", "generated", "sectors", "known space"],
       defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the soft spheres that mark the regions with generated sectors, colored by how much is charted",
       // MAP.331: while the wireframe cube of the region the view is in is drawn, the legend says what it outlines.
@@ -4466,7 +4806,7 @@ function initGalaxyMap3d(canvasEl, data) {
   regionOpener = {
     region: function (region) {
       if (region.extent) {
-        stageView.goTo({ region: { block: region.block, center: region.extent.centre, radius: region.extent.radius }, label: region.name || null });
+        stageView.goTo({ region: { block: region.block, center: region.extent.center, radius: region.extent.radius }, label: region.name || null });
       } else {
         stageView.goTo({ block: region.block });
       }
@@ -4610,12 +4950,15 @@ function initGalaxyMap3d(canvasEl, data) {
       });
     }
     if (course) {
-      layers.registerKey({ id: "key-course", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return true; } });
+      layers.registerKey({ id: "key-course", layer: "course-route", text: "Line: the course, through every stop", swatchClass: "map-key-course", drawn: function () { return stageView.layers.isOn("course-route"); } });
       if (course.points.some(function (point) { return point.hopUnknown; })) {
-        layers.registerKey({ id: "key-course-unknown", text: "Red dashed glowing line: a jump through unknown space", swatchClass: "map-key-course-unknown", drawn: function () { return true; } });
+        layers.registerKey({ id: "key-course-unknown", layer: "course-route", text: "Red dashed glowing line: a jump through unknown space", swatchClass: "map-key-course-unknown", drawn: function () { return stageView.layers.isOn("course-route"); } });
       }
-      if (course.direct && course.direct.length === 2) {
-        layers.registerKey({ id: "key-direct", text: "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return true; } });
+      if ((course.adjusted || []).length) {
+        layers.registerKey({ id: "key-course-bent", layer: "course-adjusted", text: "Amber line: the course bent round a keep-out sphere", swatchClass: "map-key-bent", drawn: function () { return stageView.layers.isOn("course-adjusted"); } });
+      }
+      if (courseLines && courseLines.direct.children.length) {
+        layers.registerKey({ id: "key-direct", layer: "course-direct", text: course.via ? "Dashed line: the direct line of each leg, waypoint to waypoint" : "Dashed line: the direct line from the start to the end", swatchClass: "map-key-direct", drawn: function () { return stageView.layers.isOn("course-direct"); } });
       }
     }
   })();
@@ -4626,6 +4969,7 @@ function initGalaxyMap3d(canvasEl, data) {
     LABEL_KINDS.forEach(function (kind) {
       stageView.layers.register({
         id: kind.id, label: kind.label, modes: ["galaxy", "sector"], group: "Labels", data: { label: kind.kind },
+        heading: "Show", keywords: ["names", "label", "labels", kind.kind], common: kind.id === "label-star",
         defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: kind.title,
         keyless: "names laid over the map, not a thing it draws",
       });
@@ -4716,7 +5060,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var chosen = selectMarkers({
       budget: sectorOpen ? SECTOR_MARKER_BUDGET : undefined,
       near: nearFieldRule({
-        centre: [target.x, target.y, target.z], distance: camera.position.distanceTo(target),
+        center: [target.x, target.y, target.z], distance: camera.position.distanceTo(target),
         width: canvasEl.clientWidth || 1, height: canvasEl.clientHeight || 1, densityPx: blackHoleDensityPx(densityStorage),
       }),
       kinds: markerKinds.kinds(),
@@ -4749,6 +5093,17 @@ function initGalaxyMap3d(canvasEl, data) {
           });
         }));
     }
+    // Every charted region (one with a generated sector) carries the Region symbol while its sphere shows, whether or not a world in it is
+    // inhabited; a region that already has its inhabited token is not marked twice.
+    if (regionLayer && regionsOn && !hiddenCell && stageView.layers.isOn(REGION_KIND.id)) {
+      var regionHere = camera.position.toArray();
+      var regionFocal = focalPixels();
+      var regionTaken = chosen.filter(function (entry) { return entry.item.regionKey; });
+      chosen = chosen.concat(chartedRegionMarkers(markerKinds.get(REGION_KIND.id), regionBlobList,
+        function (blob) { return regionLook(blob, regionHere, regionFocal); },
+        function (blob) { return markerFrustum.containsPoint(markerPoint.set(blob.x, blob.y, blob.z)); },
+        function (blob) { return regionTaken.some(function (entry) { return entry.item.regionKey === blob.key; }); }));
+    }
     // MAP.306: a symbol of a reason pulled forward is drawn over the others and named first, whatever level it is drawn at.
     chosen.forEach(function (entry) {
       if (!entry.pulled && entry.kind.interest && stageView.layers.isPulled(entry.kind.id)) entry.pulled = true;
@@ -4769,16 +5124,16 @@ function initGalaxyMap3d(canvasEl, data) {
   var lastBodyEntries = null;
   function bodyHandoffSource() {
     var source = stageView.systemMarkerSource();
-    if (!source || !source.centre) {
+    if (!source || !source.center) {
       bodyHandoff.update(0, 0, false);
       return null;
     }
-    var distance = Math.hypot(camera.position.x - source.centre[0], camera.position.y - source.centre[1], camera.position.z - source.centre[2]);
+    var distance = Math.hypot(camera.position.x - source.center[0], camera.position.y - source.center[1], camera.position.z - source.center[2]);
     return bodyHandoff.update(distance, source.radiusPc, true) ? source : null;
   }
   canvasEl.__bodyMarkersOn = function () { return bodyHandoff.isOn(); };
   // MAP.200: the on-map zoom slider and direction star.
-  if (viewport) navPad = createNavPad(viewport, stageView, document.getElementById("galaxymap3d-centre"));
+  if (viewport) navPad = createNavPad(viewport, stageView, document.getElementById("galaxymap3d-center"));
 
   // --- Pointer and keys ------------------------------------------------------
   //
@@ -5187,7 +5542,7 @@ function initGalaxyMap3d(canvasEl, data) {
       point.set(star.x, star.y, star.z).project(camera);
       var x = (point.x + 1) / 2 * width;
       var y = (1 - point.y) / 2 * height;
-      return { id: star.id, system_id: star.system_id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y,
+      return { id: star.id, system_id: star.system_id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y, world: [star.x, star.y, star.z],
         visible: point.z > -1 && point.z < 1 && x >= 0 && x <= width && y >= 0 && y <= height };
     });
   };
@@ -5317,11 +5672,21 @@ function initGalaxyMap3d(canvasEl, data) {
       // the galaxy's midplane instead of through the focus.
       setPlaneView: function (on) {
         planeView.set(on);
-        stageView.planeTilt(on);
-        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
+        stageView.planeTilt(on, planeView.wedgeAngle());
+        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "[data-action='plane-wedge-prev']", "[data-action='plane-wedge-next']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
           var control = document.querySelector(selector);
           if (control) control.disabled = !on;
         });
+      },
+      // MAP.376: the next wedge (60 degrees round the galactic center) becomes the focus: the grid moves to it and the camera flies to
+      // its middle line at the radius it looked at, keeping the isometric view.
+      stepPlaneWedge: function (direction) {
+        if (!planeView.isOn()) return;
+        var angle = planeView.wedgeAngle() + direction * Math.PI / 3;
+        planeView.setWedgeAngle(angle);
+        var radius = Math.hypot(target.x, target.y);
+        if (radius < 1e-6) radius = Math.max(1, 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+        stageView.planeTilt(true, planeView.wedgeAngle(), [radius * Math.cos(angle), radius * Math.sin(angle), target.z]);
       },
       setPlaneMidplane: function (on) { planeView.setMidplane(on); },
       setPlaneStems: function (on) { planeView.setStems(on); },
@@ -5426,7 +5791,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (panel) {
       panel.hint(navPick.active()
         ? navPick.bannerParts("object")[0] + ": zoom out or in to find it, then click it."
-        : "NAV pick cancelled.", false);
+        : "NAV pick canceled.", false);
     }
   }
 
@@ -5560,8 +5925,8 @@ function initGalaxyMap3d(canvasEl, data) {
         lastBodyEntries = handoffSource.entries;    // a new scale rebuilds the bodies, a new system brings its own
         if (bodiesOn) markersDirty = true;
       }
-      if (handoffSource && handoffSource.centre) {
-        var handoffDistance = Math.hypot(camera.position.x - handoffSource.centre[0], camera.position.y - handoffSource.centre[1], camera.position.z - handoffSource.centre[2]);
+      if (handoffSource && handoffSource.center) {
+        var handoffDistance = Math.hypot(camera.position.x - handoffSource.center[0], camera.position.y - handoffSource.center[1], camera.position.z - handoffSource.center[2]);
         if (bodyHandoff.update(handoffDistance, handoffSource.radiusPc, true) !== bodiesOn) markersDirty = true;
       } else if (bodiesOn) {
         bodyHandoff.update(0, 0, false);
@@ -5573,6 +5938,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (sectorFrame) sectorFrame.update();
     planeView.update();
     if (galaxyLabels) galaxyLabels.update(now, false);
+    nudgeRegionPois();
     renderFrame();
   })();
 }

@@ -76,13 +76,13 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     try:
         star = conn.execute("SELECT snow_line_km, luminosity_w FROM stars WHERE star_system_id = ?", (system_id,)).fetchone()
         # the migration is frozen at the 170 K it was written with (the generator moved to 182 K in GEN.950): an older galaxy keeps its line
-        centre_km = math.sqrt(star["luminosity_w"] / (16.0 * math.pi * constants.STEFAN_BOLTZMANN_CONSTANT)) / 170.0 ** 2 / 1000.0
-        assert star["snow_line_km"] == pytest.approx(centre_km, rel=1e-9)
+        center_km = math.sqrt(star["luminosity_w"] / (16.0 * math.pi * constants.STEFAN_BOLTZMANN_CONSTANT)) / 170.0 ** 2 / 1000.0
+        assert star["snow_line_km"] == pytest.approx(center_km, rel=1e-9)
         planets = conn.execute("SELECT id, distance_km, born_beyond_snow_line FROM planets WHERE star_system_id = ?",
                                (system_id,)).fetchall()
         assert planets
         for planet in planets:
-            assert bool(planet["born_beyond_snow_line"]) == (planet["distance_km"] >= centre_km)
+            assert bool(planet["born_beyond_snow_line"]) == (planet["distance_km"] >= center_km)
         moons = conn.execute(
             "SELECT m.born_beyond_snow_line AS moon, p.born_beyond_snow_line AS planet FROM moons m JOIN planets p ON p.id = m.planet_id"
             " WHERE m.star_system_id = ?", (system_id,)).fetchall()

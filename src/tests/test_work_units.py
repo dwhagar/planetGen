@@ -162,7 +162,7 @@ def test_an_interrupt_in_the_starter_cancels_the_run_and_frees_the_machine(monke
     with pytest.raises(KeyboardInterrupt):
         wrapper.run("T", [_step(2)], lambda index, plan: None, lambda index, unit, result: None)
     run = runrecord.read_run(conn, runrecord.recent_runs(conn)[0])
-    assert run["state"] == "cancelled" and runrecord.active_run(conn) is None
+    assert run["state"] == "canceled" and runrecord.active_run(conn) is None
 
 
 def test_a_second_run_is_refused_while_one_has_the_machine_when_it_may_not_wait(monkeypatch, conn):
@@ -874,11 +874,13 @@ def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_unit
     assert sectors["units"] >= 1
     db = store.get_connection(mysql_config)
     try:
-        saved = db.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+        # A rogue planet can land in a cell nobody charted; its row (GEN.1111, part 7) is not in the chart ledger and is not a sector the run saved.
+        saved = db.execute("SELECT COUNT(*) AS n FROM sectors s JOIN chart_ledger c ON c.shell_index = s.shell_index"
+                           " AND c.band_index = s.band_index AND c.wedge_index = s.wedge_index").fetchone()["n"]
         paths = db.execute("SELECT COUNT(*) AS n FROM sector_paths").fetchone()["n"]
     finally:
         db.close()
-    assert saved > 0 and out.count("Saved sector '") == saved, "each sector logged once, as it was saved"
+    assert saved > 0 and out.count("Saved sector '") == saved, "each charted sector logged once, as it was saved"
     assert paths > 0 and "Linked " in out
 
 

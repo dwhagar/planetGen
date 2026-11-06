@@ -372,7 +372,7 @@ function enhance(root) {
     if (!job) {
       return;
     }
-    const failed = job.state === "failed" || job.state === "cancelled";
+    const failed = job.state === "failed" || job.state === "canceled";
     const bar = jobPart("bar");
     if (job.percent == null) {
       bar.removeAttribute("value");

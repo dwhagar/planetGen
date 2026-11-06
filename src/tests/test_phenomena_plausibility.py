@@ -146,7 +146,7 @@ def _base_record(phenomenon_type, **overrides):
             "radius_ly": sedov_taylor_radius_ly(_SUPERNOVA_AGE_YEARS, 1.0),
             "progenitor_type": "core-collapse", "has_compact_remnant": True,
         },
-        "rogue-planet": {"mass_kg": 1e27, "radius_km": 70000.0, "planet_type": "g", "planet_class": "J"},
+        "rogue-planet": {"mass_kg": 5e28, "radius_km": 70000.0, "planet_type": "g", "planet_class": None},   # a free-floating brown dwarf
         "comet": {"nucleus_diameter_km": 1.0, "velocity_kms": 40.0, "is_active": True},
         "asteroid-field": {"density": "typical", "radius_ly": 0.5, "field_class": "B4",
                            "composition_family": "carbonaceous"},
@@ -255,9 +255,9 @@ def test_check_hard_invariants_flags_type_ia_with_compact_remnant():
     assert any("Type Ia" in issue for issue in issues)
 
 
-def test_check_hard_invariants_flags_rogue_planet_type_mismatch():
-    issues = pp.check_hard_invariants(_base_record("rogue-planet", mass_kg=1e20, planet_type="g"))
-    assert any("planet_type" in issue for issue in issues)
+def test_check_hard_invariants_flags_a_rogue_planet_that_is_not_a_brown_dwarf():
+    issues = pp.check_hard_invariants(_base_record("rogue-planet", mass_kg=1e25, planet_type="t"))
+    assert any("planet_type" in issue for issue in issues) and any("mass" in issue for issue in issues)
 
 
 def test_check_hard_invariants_flags_comet_velocity_out_of_range():

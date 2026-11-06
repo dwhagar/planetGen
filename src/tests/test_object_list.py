@@ -115,8 +115,8 @@ def test_a_planet_or_moon_item_carries_its_stored_habitability(indexed):
 
 
 def test_a_star_planet_or_moon_item_carries_its_stored_physics_values(indexed):
-    """UX.187: a star's temperature, luminosity and age and a planet's or moon's orbit size, eccentricity and surface
-    temperature come from the kind's own table, as stored; the other kinds carry none."""
+    """UX.187: a star's temperature, luminosity, age and spin and a planet's or moon's orbit size, eccentricity, surface
+    temperature, spin, tilt and internal heat flow come from the kind's own table, as stored; the other kinds carry none."""
     config, _sector = indexed
     for kind, table in (("star", "stars"), ("planet", "planets"), ("moon", "moons")):
         columns = objectlist.PHYSICS_COLUMNS[kind]

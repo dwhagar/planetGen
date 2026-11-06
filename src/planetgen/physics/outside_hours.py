@@ -27,16 +27,16 @@ Use:
     hours, limit = outside_hours.outside_hours_day(world, levels, daylight_hours, days_per_year, temperatures)
 
 A body's stored columns give the inputs (`for_body`): the equipment levels `equipment.compute` lists, the stored `daylight_hours`
-(GEN.767) and the day's coldest and hottest temperature from the cycle of the light (`habitability.temperature_extremes_c`)
-widened by half the stored day-night swing of the equator band (`band4_swing_k`). A tidally locked world has no day of its own: a person stays in the
-terminator belt, where the star sits on the horizon for the whole 24-hour shift (`LOCKED_BELT_LIGHT_HOURS`) at the belt's stored
-temperature (`band4_mean_k`, the middle ring).
+(GEN.767) and the coldest and hottest hour of the best site through the year (`habitability.site_extremes_c`, GEN.1266: the cell of the world livable the largest share of the time,
+read off the temperature of every place, `temperature_coverage`). A tidally locked world has no day of its own: a person stays in the
+terminator belt, where the star sits on the horizon for the whole 24-hour shift (`LOCKED_BELT_LIGHT_HOURS`) at the belt's real range, its coldest and hottest sample (the stored
+`band4_mean_k`, the middle ring, when the world has no series).
 """
 
 import math
 from collections import namedtuple
 
-from planetgen.physics import constants, equipment, habitability, regional_temperature
+from planetgen.physics import constants, equipment, habitability, regional_temperature, temperature_coverage
 from planetgen.physics.protection_limits import GARMENTS, limit, supply_hours
 
 LIMITS = ("daylight", "dose", "heat", "cold", "air", "uv", "vehicle")
@@ -80,7 +80,7 @@ def _resistance(garment, pressure_kpa, temperature_k):
 
 
 def saturation_kpa(temperature_k):
-    """The saturation vapour pressure of water at `temperature_k`, kPa (Magnus, over water above 0 C and over ice below)."""
+    """The saturation vapor pressure of water at `temperature_k`, kPa (Magnus, over water above 0 C and over ice below)."""
     celsius = temperature_k - constants.CELSIUS_ZERO_K
     if celsius >= 0.0:
         return 0.61094 * math.exp(17.625 * celsius / (celsius + 243.04))
@@ -88,8 +88,8 @@ def saturation_kpa(temperature_k):
 
 
 def _sweat_w(garment, pressure_kpa, temperature_k, relative_humidity):
-    """What the evaporation of sweat can carry away, W (ISO 7933): the vapour pressure between the wet skin and the air over
-    the vapour resistance of the garment and the film (the Lewis relation ties the film's to its convection), at most what
+    """What the evaporation of sweat can carry away, W (ISO 7933): the vapor pressure between the wet skin and the air over
+    the vapor resistance of the garment and the film (the Lewis relation ties the film's to its convection), at most what
     the body can sweat; none inside a sealed garment (the sweat has nowhere to go)."""
     if garment.sealed:
         return 0.0
@@ -228,18 +228,23 @@ def for_body(world, levels, values):
     rotation, period = values.get("rotation_period_hours"), values.get("period_years")
     if not rotation or not period:
         return None, None
+    read = habitability.temperature_coverage(world)
     if regional_temperature.is_locked(rotation, period):
-        belt = values.get(regional_temperature.column(MIDDLE_BAND, "mean_k"))
-        if not belt:
-            return None, None
+        belt = read.sectors[temperature_coverage.SECTORS[1]] if read.sectors else None       # GEN.1266: the terminator belt's real range
+        if belt is not None:
+            temperatures = Temperatures(belt[1], belt[2])
+        else:
+            mean = values.get(regional_temperature.column(MIDDLE_BAND, "mean_k"))
+            if not mean:
+                return None, None
+            temperatures = Temperatures(mean, mean)
         days = work_days_per_year(rotation, period, locked=True)
-        return outside_hours_day(world, levels, LOCKED_BELT_LIGHT_HOURS, days, Temperatures(belt, belt))
+        return outside_hours_day(world, levels, LOCKED_BELT_LIGHT_HOURS, days, temperatures)
     daylight = values.get("daylight_hours")
     if daylight is None:
         return None, None
-    cold_c, hot_c = habitability.temperature_extremes_c(world)
-    half_swing = (values.get(regional_temperature.column(MIDDLE_BAND, "swing_k")) or 0.0) / 2.0
-    temperatures = Temperatures(cold_c + constants.CELSIUS_ZERO_K - half_swing, hot_c + constants.CELSIUS_ZERO_K + half_swing)
+    cold_c, hot_c = habitability.site_extremes_c(world)         # GEN.1266: the best site's own coldest and hottest hour through the year
+    temperatures = Temperatures(cold_c + constants.CELSIUS_ZERO_K, hot_c + constants.CELSIUS_ZERO_K)
     return outside_hours_day(world, levels, daylight, work_days_per_year(rotation, period), temperatures)
 
 

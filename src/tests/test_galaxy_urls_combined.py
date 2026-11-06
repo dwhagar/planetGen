@@ -73,7 +73,7 @@ def test_drill_parameters_are_left_to_the_browser(client, fake, query):
     assert _scene_without_volatile(html) == plain
 
 
-@pytest.mark.parametrize("extra", ["quadrant=II", "quadrant=II&page=2", "quadrant=nonsense&page=-4",
+@pytest.mark.parametrize("extra", ["quadrant=II", "page=2", "quadrant=nonsense&page=-4",
                                    "pick=from&to=system:1", "course=system:1"])
 def test_drill_parameters_with_the_servers_own(client, fake, extra):
     html = _assert_clean_page(client.get(f"/galaxy?at=243.7.14.0&p=1,2&sector=R5.L1.S20&{extra}"))

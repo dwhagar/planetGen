@@ -159,7 +159,7 @@ def test_a_cloud_class_s_contents_and_summary_write_their_formulas_out():
     assert dict(dark["facts"])["Contents"] == "H<sub>2</sub>, He, CO, PAHs, silicates"
     assert _plain(dark["summary"]) == "Dark nebula: H2, He, CO, PAHs, silicates."
     emission = class_entry("nebula", "D")
-    assert "H<sup>+</sup>, e<sup>−</sup>, O<sup>2+</sup>, N<sup>+</sup> and S<sup>+</sup>" in emission["summary"]
+    assert "H<sup>+</sup>, e<sup>−</sup>, O<sup>2+</sup>, N<sup>+</sup>, and S<sup>+</sup>" in emission["summary"]
 
 
 def test_a_nebula_page_s_dominant_species_and_a_species_limit_keep_their_formulas():

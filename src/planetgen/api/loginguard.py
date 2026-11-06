@@ -25,8 +25,6 @@ protection.
 and audit rows are still written.
 """
 
-import sys
-
 from flask import current_app, jsonify, request
 
 from planetgen.admin import activity_log, auth, throttle
@@ -48,8 +46,7 @@ _warned = set()
 def _warn_once(key, message):
     if key not in _warned:
         _warned.add(key)
-        print(message, file=sys.stderr)
-        log.error(message)
+        log.error(message, stderr=True)
 
 
 def allowlist():
@@ -108,7 +105,7 @@ def record_failure_row(action, username, admin_user_id=None):
         auth.record_login_failure(get_control_db(), action, username,
                                        ip=activity_log.clean_ip(request.remote_addr), admin_user_id=admin_user_id)
     except Exception as exc:  # noqa: BLE001
-        log.error(f"Could not record {action} for {username!r} in admin_audit_log: {exc}")
+        log.error(f"Could not record {action} for {username!r} in admin_audit_log: {exc}", stderr=True)
 
 
 class LoginGuard:

@@ -27,7 +27,7 @@ periapsis, mean anomaly). `position_km` is the object's position relative
 to what it goes round, as stored; the scene's frame has the system's
 barycenter (a single star: the star) at the origin, except a wide binary,
 whose second star orbits the first and whose own bodies orbit each star. A close pair that hangs below another orbit
-of the tree (a third star far out) has its bodies go round `node:N`, the pair's centre of mass, not the barycenter.
+of the tree (a third star far out) has its bodies go round `node:N`, the pair's center of mass, not the barycenter.
 
 `tree` (GEN.311) is the stored tree of orbits the stars hang in: `nodes` (`physics.system_tree.OrbitNode` as dicts,
 each the relative orbit of its slot-1 child about its slot-0 child, with its own epoch), `members` (one per star: `ref`,
@@ -87,8 +87,8 @@ def _orbit(row, around):
 
 
 def _pair_around(tree, stars):
-    """What a close pair's own bodies go round: the pair's centre of mass. That is the barycenter when the pair is the root
-    of the tree of orbits, else the node it hangs in (`node:N`), which a further star holds the pair's centre away from the
+    """What a close pair's own bodies go round: the pair's center of mass. That is the barycenter when the pair is the root
+    of the tree of orbits, else the node it hangs in (`node:N`), which a further star holds the pair's center away from the
     barycenter of."""
     roles = {f"star:{star['id']}": star["role"] for star in stars}
     nodes = {member["parent_node_no"] for member in tree["members"] if roles.get(member["ref"]) in ("primary", "secondary")}
@@ -101,7 +101,7 @@ def _pair_around(tree, stars):
 
 def _star_around(planet_or_belt, stars, system, pair_around="barycenter"):
     """What a planet or belt goes round: its own star in a wide binary, a
-    single-star system or a further star of the tree (GEN.332), else the close pair's centre of mass."""
+    single-star system or a further star of the tree (GEN.332), else the close pair's center of mass."""
     star_id = planet_or_belt.get("star_id")
     if system["binary_configuration"] == "close" and not any(
             s["id"] == star_id and s["role"] == "member" for s in stars):    # a member star's own planets (GEN.332)

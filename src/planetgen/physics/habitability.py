@@ -32,7 +32,7 @@ from planetgen.physics.protection_limits import limit
 
 ARMSTRONG_KPA = limit("armstrong_kpa")
 """float: Water boils at body temperature below this, and
-the saturated water vapour in the lungs takes this much of any breath."""
+the saturated water vapor in the lungs takes this much of any breath."""
 
 INSPIRED_O2_MIN_KPA = limit("inspired_o2_min_kpa")
 """float: Least inspired O2 for consciousness (SaO2 above 75%)."""
@@ -89,7 +89,7 @@ TEMPERATURE_BAND = (limit("cold_outer_c"), limit("cold_suit_c"), limit("cold_clo
 (ordinary clothing or cooling garments), Yellow -50 (eutectic brines) to
 122 (the limit of carbon-based life, [R4295]; the PHI-4 doc's Red
 edge), Red beyond. A wet bulb at or above 31 deg C makes Blue or Green
-Yellow (see `temperature_score`)."""
+Yellow (per sample, `temperature_coverage.coverage`)."""
 
 DOSE_BAND = (None, None, None, None, limit("dose_blue_sv_yr"), limit("dose_green_sv_yr"), limit("dose_yellow_sv_yr"),
              limit("dose_outer_sv_yr"))
@@ -227,6 +227,10 @@ higher in Gy than this says, which no world near the 10 Gy/yr line notices."""
 CO_TOX_KPA = 0.01
 CO2_TOX_KPA = 2.0
 """float: T_metazoa's CO and CO2 scales, kPa (the Xenobiology doc)."""
+H2S_TOX_KPA = 0.002
+SO2_TOX_KPA = 0.001
+"""float: T_metazoa's hydrogen sulfide and sulfur dioxide scales, kPa (GEN.1253): twice the chronic limit of `GAS_LIMITS_KPA`, which is how CO (0.01 against 0.005)
+and CO2 (2.0 against 0.93) sit against theirs. Source tier T6, tweak level L1 (registry LF22)."""
 
 METAZOA_O2_LOW_KPA = 8.0
 METAZOA_O2_HIGH_KPA = 50.0
@@ -249,7 +253,9 @@ class World:
     at its surface (`"none"`, `"reachable"` within `tuning.AQUIFER_REACH_KM` of the surface, or `"deep"`, GEN.654). The three dose parts (the cosmic rays
     with the heliosphere's multiplier, the stellar particles and the ground, Sv/yr; `None` when unknown, then the whole
     dose counts as cosmic rays), the dipole's `cutoff_gv`, the DNA-weighted `uv_index` and the airborne `dust_mg_m3` (`None` when unknown) are what the survival
-    equipment (`physics/equipment.py`) reads beyond the score's own inputs."""
+    equipment (`physics/equipment.py`) reads beyond the score's own inputs. `series` is the temperature of every place of the world through its year
+    (`temperature_coverage.series_of_values`) and `coverage` what is read off it for the human visitor (`temperature_coverage.Coverage`): the Temperature domain is scored from them (GEN.1265).
+    A world with neither has the one `temperature_c` everywhere and always."""
     pressure_kpa: float
     temperature_c: float
     gases: dict
@@ -276,6 +282,8 @@ class World:
     cutoff_gv: float = 0.0
     uv_index: float = 0.0
     dust_mg_m3: float = None
+    series: object = None
+    coverage: object = None
 
     def partial_kpa(self, gas):
         return self.gases.get(gas, 0.0) * self.pressure_kpa
@@ -376,13 +384,80 @@ def temperature_extremes_c(world):
     return kelvin * (1.0 - f / 2.0) ** 0.25 - 273.15, kelvin * (1.0 + f / 2.0) ** 0.25 - 273.15
 
 
-def temperature_score(world, limits=HUMAN):
-    """Pressure's partner: the worse of the cycle's cold and hot extremes (they are one value for a lone star)."""
-    cold, hot = temperature_extremes_c(world)
-    score = min(band_score(cold, limits.temperature), band_score(hot, limits.temperature))
-    if -20.0 <= hot <= 50.0 and wet_bulb_c(hot, world.relative_humidity) >= limits.wet_bulb:
-        score = min(score, 0.75 - 1e-9)  # an uncompensable wet bulb needs cooling garments: Yellow
+LIVABLE_YELLOW_EDGE = 0.10
+LIVABLE_GREEN_EDGE = 0.50
+LIVABLE_BLUE_EDGE = 0.80
+"""float: The livable share (the area and the time a visitor needs no suit in, the Green band or better) at which the Temperature score is the Yellow edge (0.4), the Green edge (0.75) and
+Blue (1.0), and linear between them and down to 0 at none. The Blue cut is the lenient one Boss chose (7:32 PM EST 11-04, "near 0.8") so Earth reads Blue; the Green and Yellow edges
+are the report's proposals (`reports/temperature-coverage-2026-11-04.md`, section 4, option S2). Source tier T9, tweak level L3 (set on the sweep of GEN.1265, GEN.725)."""
+
+BLUE_SHARE_MIN = 0.30
+"""float: The share of the area and time that must be in the Blue band for the score to reach Blue: below it the score is held under 1 in proportion (a world that is Green everywhere and
+Blue almost nowhere is Green). Source tier T9, tweak level L3 (set on the sweep of GEN.1265, GEN.725)."""
+
+YELLOW_CREDIT = 0.15
+"""float: How much of a livable sample a Yellow-band one (a suit or cooling garments make it livable, -50 to -20 C, 45 to 122 C, or a wet bulb past the limit) counts for in the share the score
+is read from, so a world that is Yellow everywhere (hot, cold or humid) is Yellow and not Red, as the bands always made it; only Red-band samples count for nothing. A world with no Green
+anywhere reaches the Yellow edge (0.4) at 0.1 and is 0.44 with this. Source tier T9, tweak level L3 (set on the sweep of GEN.1265, GEN.725; 0 would score a suit-only world Red)."""
+
+COVERAGE_EDGE_SCORES = ((0.0, 0.0), (LIVABLE_YELLOW_EDGE, _EDGE_SCORES[1]), (LIVABLE_GREEN_EDGE, _EDGE_SCORES[2]), (LIVABLE_BLUE_EDGE, _EDGE_SCORES[3]))
+"""tuple: The `(livable share, score)` points the coverage score runs through."""
+
+
+def coverage_score(livable_share, blue_share, belt_only=False, yellow_share=0.0):
+    """
+    The Temperature score of a world from the share of its area and time a visitor can be out in without a suit (`livable_share`, the Green band or better, wet bulb rule applied
+    per sample) and the share in the Blue band (`blue_share`), GEN.1265: `COVERAGE_EDGE_SCORES` read by linear interpolation, so the geometric mean of `overall_score` still works. The
+    samples that need a suit (`yellow_share`) count for `YELLOW_CREDIT` of a livable one. Blue also needs `blue_share` of `BLUE_SHARE_MIN`: the score rises toward 1 with it. A world
+    livable only in its terminator belt (`belt_only`) is held to Yellow, whatever the share.
+    """
+    livable_share = min(livable_share + YELLOW_CREDIT * yellow_share, 1.0)
+    score = 0.0
+    for (x0, s0), (x1, s1) in zip(COVERAGE_EDGE_SCORES, COVERAGE_EDGE_SCORES[1:]):
+        if livable_share <= x1:
+            score = s0 + (s1 - s0) * (livable_share - x0) / (x1 - x0)
+            break
+    else:
+        score = COVERAGE_EDGE_SCORES[-1][1]
+    if blue_share < BLUE_SHARE_MIN:
+        score = min(score, _EDGE_SCORES[2] + (_EDGE_SCORES[3] - _EDGE_SCORES[2]) * blue_share / BLUE_SHARE_MIN * (1.0 - 1e-9))
+    if belt_only:
+        score = min(score, _EDGE_SCORES[2] - 1e-9)       # Yellow: livable only in the terminator belt
     return score
+
+
+def temperature_coverage(world, limits=HUMAN):
+    """The `temperature_coverage.Coverage` of `world` for a visitor with `limits`: the one the world holds when it has it and the limits are the human ones, else read off its series
+    (or its one temperature, `temperature_coverage.still_series`) against the visitor's bands and wet bulb."""
+    from planetgen.physics import temperature_coverage as coverage
+    if world.coverage is not None and limits.temperature == HUMAN.temperature and limits.wet_bulb == HUMAN.wet_bulb:
+        return world.coverage
+    series = world.series if world.series is not None else coverage.still_series(world.temperature_c + 273.15)
+    return coverage.coverage(series, world.relative_humidity, limits.temperature, limits.wet_bulb)
+
+
+def site_extremes_c(world, limits=HUMAN):
+    """
+    `(coldest, hottest)` deg C of the best site of `world` for a visitor with `limits` (the cell livable the largest share of the time, its coldest and hottest sample through
+    the year, GEN.1266): the temperatures the required gear is chosen for. A world with one temperature everywhere has the one value.
+    """
+    site = temperature_coverage(world, limits).best_site
+    return site.coldest_k - 273.15, site.hottest_k - 273.15
+
+
+def worst_extremes_c(world, limits=HUMAN):
+    """`(coldest, hottest)` deg C of the coldest and hottest sample anywhere on `world` in a year (GEN.1266): the worst conditions elsewhere, which the heavier gear is recommended for."""
+    read = temperature_coverage(world, limits)
+    return read.coldest.temperature_k - 273.15, read.hottest.temperature_k - 273.15
+
+
+def temperature_score(world, limits=HUMAN):
+    """Pressure's partner (GEN.1265): `coverage_score` of the share of the world's area and time that is livable and the share that is Blue, read off the temperature of every place
+    through the year (`World.series`); a world livable only in its terminator belt is Yellow. The old mean-based score (the worse of the cold and hot extremes) is gone, so the score can
+    rise as well as fall: a cold-mean world with a warm region is livable there."""
+    from planetgen.physics import temperature_coverage as coverage
+    read = temperature_coverage(world, limits)
+    return coverage_score(read.livable_share, read.blue, coverage.belt_only(read), read.yellow)
 
 
 def inspired_o2_kpa(world, limits=HUMAN):
@@ -495,10 +570,10 @@ FOOD_SCORE = {"none": 0.2, "microbial": 0.5, "macroscopic": 0.85, "biosphere": 1
 (chemosynthetic mats), Green (bryophytes, invertebrates; whose chemistry may not suit a
 person) and Blue (forest canopies, complex food webs). planetGen's numbers, one per tier."""
 
-WATER_ACCESS_SCORE = {"liquid": 0.9, "ice": 0.6, "aquifer": 0.6, "hydrated": 0.25, "vapour": 0.2, None: 0.0}
+WATER_ACCESS_SCORE = {"liquid": 0.9, "ice": 0.6, "aquifer": 0.6, "hydrated": 0.25, "vapor": 0.2, None: 0.0}
 """dict: The water rung by the most accessible water (`World.water_source`): Table 2's Green
 (rivers, lakes and rain), Yellow (glacial ice, subglacial liquid, an aquifer within reach of a drill),
-Red (perchlorate brine, hydrated minerals, vapour). Fresh liquid water that is also Blue Water Chemistry is Blue (1)."""
+Red (perchlorate brine, hydrated minerals, vapor). Fresh liquid water that is also Blue Water Chemistry is Blue (1)."""
 
 YELLOW_FLOOR = 0.4
 """float: The lowest score of Yellow: where a domain that cannot make the overall Red is held in the mean."""
@@ -659,8 +734,10 @@ def phi_bio(world):
 
 
 def toxin_factor(world):
-    """The share of animal life that carbon monoxide and carbon dioxide leave (the toxic terms of `t_metazoa`): 1 for clean air."""
-    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("CO2") / CO2_TOX_KPA) ** 2))
+    """The share of animal life that carbon monoxide, carbon dioxide, hydrogen sulfide and sulfur dioxide leave (the toxic terms of `t_metazoa`; the last two
+    are the air an acid-eating life makes, GEN.1253): 1 for clean air."""
+    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("CO2") / CO2_TOX_KPA) ** 2)
+            * math.exp(-(world.partial_kpa("H2S") / H2S_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("SO2") / SO2_TOX_KPA) ** 2))
 
 
 def t_metazoa(world):

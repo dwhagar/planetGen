@@ -78,6 +78,7 @@ def test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree(make_da
     _generate(config, monkeypatch)
     conn = _connection(config)
     try:
+        # A sector made only for a landed rogue planet (`store.uncharted_sector_id`, GEN.1111) has a leaf of its residents (TEST.602).
         sectors = conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE shell_index IS NOT NULL").fetchone()["n"]
         assert sectors >= 8
         assert conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE leaf_digest IS NULL"

@@ -242,8 +242,7 @@ def test_the_log_setup_never_stops_an_install_or_update():
     for script in ("install.sh", "update.sh"):
         with open(os.path.join(REPO_DIR, script), encoding="utf-8") as f:
             text = f.read()
-        warns = 'log_warning "' if script == "update.sh" else 'echo "warning:'      # update.sh speaks through the logging layer (UX.123)
-        assert f'setup-debug-log.sh" \\\n    || {warns}' in text, script
+        assert 'setup-debug-log.sh" \\\n    || log_warning "' in text, script
     # Only running it without root, or with no Python at all, is an error.
     assert _code_lines("setup-debug-log.sh").count("exit 1") == 2
 
@@ -761,7 +760,7 @@ def _run_warm_stage(tmp_path, body, seconds=None):
     fake.write_text("#!/bin/bash\n" + body)
     fake.chmod(0o755)
     script = (f'SCRIPT_DIR="{tmp_path}"; source "{REPO_DIR}/scripts/deploy-common.sh"; PYTHON="{fake}"; '
-              f'WARM_MAP_LOG="{tmp_path}/warm.log"; run_warm_stage "stage 2 of 2, the full warm-up"; echo "returned $?"')
+              f'run_warm_stage 2 2 "the full warm-up"; echo "returned $?"')
     env = {key: value for key, value in os.environ.items() if key != "WARM_STAGE_SECONDS"}
     if seconds is not None:
         env["WARM_STAGE_SECONDS"] = str(seconds)
@@ -783,6 +782,15 @@ def test_the_warm_stage_has_four_hours_by_default_and_the_first_line_says_so(tmp
     first = proc.stdout.splitlines()[0]
     assert "time limit 4 hours, WARM_STAGE_SECONDS sets it" in first and "log:" in first
     assert "limit seen: 14400" in proc.stdout and "returned 0" in proc.stdout and proc.stderr == ""
+
+
+def test_the_warm_stage_tells_the_run_what_started_it_and_pipes_nothing_through_tee(tmp_path):
+    """OPS.96: `planetgen warm` writes warmup.log itself, so the stage names itself to the run and the output is not piped (the bars draw)."""
+    proc, _took = _run_warm_stage(tmp_path, 'echo "started by: $PLANETGEN_WARM_STARTED_BY"\n')
+    assert "started by: update.sh, part 2 of 2, the full warm-up" in proc.stdout
+    assert "log: warmup.log in the log folder" in proc.stdout.splitlines()[0]
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    assert "tee" not in common.split("run_warm_stage() {")[1].split("\n}\n")[0] and "WARM_MAP_LOG" not in common
 
 
 def test_a_stage_that_runs_past_a_short_limit_is_ended_and_says_so_and_that_stored_work_is_kept(tmp_path):
@@ -1063,12 +1071,12 @@ def test_the_warm_up_runs_in_two_stages_around_the_reload():
     reload and the health check, with the update guard released so the site is open while the update waits for it."""
     update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
     common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
-    stage1 = update.index('run_warm_stage "stage 1 of 2')
+    stage1 = update.index('run_warm_stage 1 2 ')
     reload = update.index("reload_web_if_running ||")
-    stage2 = update.index('run_warm_stage "stage 2 of 2')
+    stage2 = update.index('run_warm_stage 2 2 ')
     assert update.index("check_app_imports") < stage1 < reload < stage2
     assert update.index('update_guard end --pid "$$" && UPDATE_GUARD_HELD=0') < stage2
-    assert 'run_warm_stage "stage 1 of 2, what the reload and the health check need" opening' in update
+    assert 'run_warm_stage 1 2 "what the reload and the health check need" opening' in update
     assert "--progress" in common and "--opening-done" not in common
     assert 'sleep "${HEALTH_SETTLE_SECONDS:-10}"' in common
 
@@ -1078,12 +1086,11 @@ def test_run_warm_stage_shows_the_bar_and_never_fails_the_update(tmp_path):
     script = f"""
 source {common}
 SCRIPT_DIR={tmp_path}
-WARM_MAP_LOG={tmp_path}/warm.log
 fake={tmp_path}/fake.sh
 printf '#!/bin/bash\necho "args: $*"\necho "[###---] 1/2 lists"\nexit 3\n' > $fake
 chmod +x $fake
 PYTHON=$fake
-run_warm_stage "stage 1 of 2" opening
+run_warm_stage 1 2 "what the reload needs" opening
 echo "returned $?"
 """
     result = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)

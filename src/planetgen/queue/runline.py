@@ -13,7 +13,7 @@ come first served:
   with a sign of life (`ALIVE_SECONDS`), so one that was killed drops out of the line by itself;
 * a **job** (`type` `job`): a Generate page job that finds another job running, waiting for the Generate page's job
   slot (`web/jobs.py`). Its recipe is kept in a private file of the jobs folder (it holds the database environment);
-  the line holds the rest. It starts by itself when the job before it succeeded or was cancelled and is held for an
+  the line holds the rest. It starts by itself when the job before it succeeded or was canceled and is held for an
   admin when that job failed (ADM.123).
 
 The two kinds wait for two different things, so each keeps its own order: a run's turn comes when the runs ahead of it
@@ -33,12 +33,12 @@ Keys (`runrecord.PREFIX` first):
 * `line:<ticket>:alive`  a run's sign of life.
 """
 
-import logging
 import secrets
 import time
 import traceback
 
 from planetgen.queue import runrecord
+from planetgen.util import log
 from planetgen.util.settings import get_settings
 
 RUN = "run"
@@ -262,7 +262,7 @@ def start_when_free(conn, take, limit_seconds, on_wait=None, kind=runrecord.GENE
             else:
                 last = runrecord.Busy(runrecord.busy_message(conn, holder))
             if nested_guard and holder and runrecord.followed_here(conn, holder):
-                logging.getLogger("planetgen").error("A run was started inside a run of the same process; where from:\n"
+                log.error("A run was started inside a run of the same process; where from:\n"
                                                      + "".join(traceback.format_stack(limit=25)))
                 raise runrecord.Busy(f"{runrecord.busy_message(conn, holder)}; this run is started by the same process "
                                      f"that follows it, so it would wait for itself for ever (a run started inside a run)")

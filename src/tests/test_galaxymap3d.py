@@ -127,7 +127,7 @@ def test_the_panel_holds_the_side_strip_closed_with_its_menu_button():
     assert strip.split(">", 1)[0].endswith("hidden") and "data-strip-close" in strip
 
 
-def test_the_panel_carries_the_superbubbles_as_centre_and_radius():
+def test_the_panel_carries_the_superbubbles_as_center_and_radius():
     """GEN.254: `[x, y, z, radius]` each, galaxy-frame parsecs; none when the page gives none."""
     bubbles = [{"x": 100.5, "y": -20.0, "z": 3.0, "radius_pc": 250.0}, {"x": 1.0, "y": 2.0, "z": 3.0, "radius_pc": 60.0}]
     html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(), superbubbles=bubbles)
@@ -340,3 +340,16 @@ def test_stars_are_not_part_of_the_near_field():
     assert "NEAR_FIELD_GLSL" not in star_vertex_shader
     assert "nearD" not in star_vertex_shader
     assert "nearFieldVisible" not in source
+
+
+def test_the_sector_map_help_explains_the_gravity_layer_in_plain_words():
+    """UX.94: what the three modes mean, what the colors cover, and what a saddle point is, with no item code in it."""
+    import re
+
+    from planetgen.web.maps import galaxymap3d as gm
+
+    text = gm.SECTOR_MAP_HELP
+    assert "<h3>Gravity</h3>" in text
+    for word in ("Pull is how hard gravity tugs", "Well depth", "Stretch", "middle 96%", "log scale", "saddle point", "pulls cancel"):
+        assert word in text, word
+    assert not re.search(r"\b(MAP|API|UX|GEN)\.\d+", text)

@@ -20,11 +20,11 @@ and moon in a system after all of them have been generated.
 """
 
 import math
-import re
 
-from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
+from planetgen.generation import irregular_moons
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics import orbits
@@ -124,24 +124,28 @@ def _giant_mass_for_radius_kg(radius_km, star_mass_kg):
 
 def apply_class(planet):
     """
-    Sets the class of a finished planet or moon from its stored conditions (GEN.689, `planet_classes.classify`), with the description
-    text of that class (the composition text is written from the stored fractions, GEN.430). Called when the body is built (so a
-    request can test it) and again once the system is final (the seasonal swing of its starlight, `flux_variation`, is known only then).
+    Sets the class of a finished planet or moon from its stored conditions (GEN.689, `planet_classes.classify`; the composition text is
+    written from the stored fractions, GEN.430). Called when the body is built (so a request can test it) and again once the system is
+    final (the seasonal swing of its starlight, `flux_variation`, is known only then). The words that describe a class are read at view
+    time (`physics/planet_class_text.py`); a body keeps none (GEN.1212).
     """
     planet.planet_class = None
+    planet.class_variant = planet.class_match = planet.runner_up_class = planet.runner_up_match = None
+    planet_type.fill(planet)            # GEN.1219: terrestrial, transitional or gas, from the envelope share (GEN.1226)
     body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
-    planet.planet_class = planet_classes.classify(planet)
-    if planet.planet_class is None:
-        # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
-        planet.description = planet_classes.ASTEROID.sentence
-        return
+    detail = planet_classes.classify_detail(planet)
+    if detail is None:
+        return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
+    planet.planet_class = detail.letter
     body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
-    data = tuning.PLANET_CLASSES[planet.planet_class]
-    planet.description = data["description"]
-    if planet.is_moon:
-        # Class descriptions are authored generically (e.g. "shields the inner planets"); a moon knows it's a moon.
-        planet.description = re.sub(r'\bplanets\b', 'moons', planet.description)
-        planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
+    # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
+    planet.class_variant, planet.class_match = detail.digit, detail.match
+    planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
+
+
+def is_life_class(body):
+    """Whether the finished body's class is one that can carry life (`tuning.HABITABLE_PLANET_CLASSES`)."""
+    return body.planet_class in tuning.HABITABLE_PLANET_CLASSES
 
 
 @finite_domain()
@@ -260,7 +264,6 @@ def generate_planet_properties(planet, zone_override=None):
     planet.atm_molar_density = None
     planet.scale_height = None
     planet.planet_class = None
-    planet.description = None
 
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     # GEN.459: the potassium, thorium, uranium and aluminium-26 the interior heat and the ground's dose both read (a stored draw of the
@@ -323,6 +326,27 @@ def age_moved(body):
     return drawn is not None and body.star.age - drawn > AGE_SETTLE_TOLERANCE * max(drawn, 0.1)
 
 
+def remake_end_stages(body, planet, attempt=0):
+    """
+    Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`, and the bar on
+    habitable worlds, GEN.1250). `planet` is the body itself for a planet and the parent for a moon. `attempt` 0 is the draw `refinish_rocky` always
+    made; a later attempt is another draw of the same step, for a body that came out with the conditions a system that bars habitable worlds
+    keeps off (`StarSystem._bar_habitable_worlds`).
+    """
+    stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
+                         f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}"
+                         + (f":bar{attempt}" if attempt else ""))
+    with draw.bound(stream):
+        if body.is_moon:
+            calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
+            apply_class(body)
+            generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
+        else:
+            calculate_atmospheric_conditions(body)
+            apply_class(body)
+            generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
+
+
 def refinish_rocky(planet):
     """
     Makes a rocky planet's end stages again at the star's final age, and its moons' (GEN.992, found by GEN.986): the air, the water and the
@@ -349,17 +373,7 @@ def refinish_rocky(planet):
     for body in bodies():
         if not age_moved(body):
             continue
-        stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
-                             f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}")
-        with draw.bound(stream):
-            if body.is_moon:
-                calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
-                apply_class(body)
-                generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
-            else:
-                calculate_atmospheric_conditions(body)
-                apply_class(body)
-                generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
+        remake_end_stages(body, planet)
         body._age_drawn = body.star.age
         made += 1
     if made:  # GEN.767: the spin and period changed, the moons' day and night shares follow (no draws)
@@ -491,7 +505,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     Makes the air of the planet or moon and the surface temperature it gives (GEN.411, GEN.422; `surface_air`).
 
     The Bond albedo is drawn from the range of the body's regime (`climate_draws.albedo_range`); the heat the interior has carried out (`interior_heat.update_heat`) says how much
-    of the body's volatiles has reached the surface (`surface_pressure`); the water it holds is the reservoir its air's water vapour
+    of the body's volatiles has reached the surface (`surface_pressure`); the water it holds is the reservoir its air's water vapor
     stands in contact with; and the mixture, the pressure with the freeze-out, the density, the scale height, the greenhouse and the
     temperature are solved together (`surface_air.solve`). A body that holds no air, and a body whose air is lost, have the temperature the
     starlight alone gives.
@@ -504,6 +518,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         host_eccentricity (float, optional): For a moon, its parent planet's eccentricity, which the light it gets goes by (GEN.727);
                                              kept on the moon (`Planet.host_eccentricity`) and left as it was when not given.
     """
+    envelope_share.restore(planet)      # GEN.1226: the drawn fractions, before the air is solved again (the air share is put in again at the end)
     if host_eccentricity is not None:
         planet.host_eccentricity = host_eccentricity
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
@@ -522,7 +537,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     surface_temperature_no_atmosphere = climate_draws.equilibrium_temperature_k(albedo, solar_output_at_orbit)
 
     # GEN.699: the heat the interior has carried out (no draws), which the degassing of the air follows; GEN.88: the surface water, drawn
-    # before the air because the ocean is the reservoir the air's water vapour and its carbonate cycle stand in contact with.
+    # before the air because the ocean is the reservoir the air's water vapor and its carbonate cycle stand in contact with.
     magnetism.update_exposure(planet, distance)     # GEN.86: the star's XUV and flares at this distance (no draws); the water loss reads it
     heat = interior_heat.update_heat(planet)
     giant = planet.body_type == "g"
@@ -581,6 +596,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     surface_composition.generate_surface(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
+    # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
+    envelope_share.fill(planet)
 
 
 def _past_runaway_with_water(planet, starlight_w_m2, surface_w):
@@ -588,7 +605,7 @@ def _past_runaway_with_water(planet, starlight_w_m2, surface_w):
     Whether the body holds surface water under starlight past its runaway greenhouse limit (GEN.1238): an effective flux (in the Sun's at the
     Earth, `starlight_w_m2` over `RUNAWAY_FLUX_REFERENCE_W_M2`) above `orbits.runaway_greenhouse_flux` of the star's temperature and the body's mass,
     the limit the water-loss history already follows (`runaway_history`, GEN.639). Past it no ocean can stand, but the air's fixed point has two
-    answers there (a cool air with a few bar of vapour, whose greenhouse the table gives no limit to, and the steam air that holds the water),
+    answers there (a cool air with a few bar of vapor, whose greenhouse the table gives no limit to, and the steam air that holds the water),
     and which one it finds depends on where it starts, so a body past the limit starts hot and finds the steam one; a body below it, or with no
     water, starts from the airless temperature as before. No draw.
     """
@@ -618,6 +635,7 @@ def refresh_at_final_age(body):
         surface_composition.generate_surface(body)
         if surface_composition.mix_of(body) != ground:
             radiation.update_ground_dose(body)
+    envelope_share.fill(body)       # GEN.1226: the air may have changed with the water and the ground; the share follows the final air
     habitability_world.generate(body, flux)
 
 
@@ -978,7 +996,7 @@ def moon_orbit_bounds_km(planet):
 
 
 def moon_stable_limit_km(planet, moon_eccentricity=0.0):
-    """The farthest semi-major axis, km from `planet`'s centre, a moon of this eccentricity keeps ([R1138]: the
+    """The farthest semi-major axis, km from `planet`'s center, a moon of this eccentricity keeps ([R1138]: the
     fit is for the semi-major axis, and the moon's own eccentricity lowers it)."""
     return clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0,
                                            moon_eccentricity or 0.0)[1]
@@ -1003,6 +1021,7 @@ def drop_unstable_moons(planet):
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept
+    irregular_moons.keep_stable(planet)      # the irregular moons are held to the same zone (GEN.1084); they do not count in the return, no reflex offset comes of them
     return dropped
 
 
@@ -1047,6 +1066,12 @@ def generate_moons(planet, moon_count=None):
     if limit_mass_kg <= tuning.MOON_MIN_MASS_KG:
         return
     parent_is_giant = planet.body_type == "g"
+    # GEN.962: a rocky planet (no row in the `satellite-share` table, not a giant) holds massive moons from giant impacts at a rate of its own; its other moons
+    # are the captured ones of `captured_moons`
+    impact_moons = not parent_is_giant and hosting_gate.satellite_share(hosting_host(planet)) is None
+    impact_floor_kg = tuning.ROCKY_MASSIVE_MOON_MASS_RATIO * planet.mass if impact_moons else None
+    # a massive moon is often denser or lighter than its parent can hold (the radius limit), so its draws are repeated further before the slot is given up
+    rejection_limit = MOON_REJECTION_LIMIT * 4 if impact_moons else MOON_REJECTION_LIMIT
 
     low_orbit, high_orbit = moon_orbit_bounds_km(planet)
     total_orbit_distance = low_orbit
@@ -1060,12 +1085,14 @@ def generate_moons(planet, moon_count=None):
     # can't be imported here at module level without a circular import.
     from planetgen.generation.planet import Planet
 
+    disk_zone = (moon_disk_zone.zone_km(planet.mass, planet.radius, (getattr(planet, "_birth_spin", None) or (None,))[0], low_orbit, high_orbit)
+                 if disk_system is not None else None)
     rejected = 0
     while total_orbit_distance < high_orbit and total_orbit_distance < _au_to_km(planet.distance):
         if moon_count is not None and len(planet.moons) >= moon_count:
             break
 
-        moon_mass = planet_kind.draw_moon_mass_kg(planet.mass, parent_is_giant, limit_mass_kg)
+        moon_mass = planet_kind.draw_moon_mass_kg(planet.mass, parent_is_giant, limit_mass_kg, impact_floor_kg)
         if moon_mass is None:
             break
 
@@ -1086,10 +1113,19 @@ def generate_moons(planet, moon_count=None):
         # (`body_spin.evolve`) -- stops real tidal-locking
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
-        moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
+        # GEN.714, GEN.1244: the origin comes first and the orbit follows from it; a moon of the disk forms inside the disk's zone (`moon_disk_zone`), the rest anywhere a moon can stay
+        origin = moon_composition.draw_origin(parent_kind, moon_mass)
+        span_low, span_high = total_orbit_distance, high_orbit
+        if origin == "disk" and disk_zone is not None:
+            span_low, span_high = max(total_orbit_distance, disk_zone[0]), min(high_orbit, disk_zone[1])
+            if span_low >= span_high:    # the disk has no room left past the last moon
+                draw.redrawn("moon.disk_full")
+                rejected += 1
+                if rejected >= MOON_REJECTION_LIMIT:
+                    break
+                continue
+        moon_distance_km = math.exp(draw.uniform(math.log(span_low), math.log(span_high)))
         moon_distance = _km_to_au(moon_distance_km)
-        # GEN.714: the origin comes first and the orbit follows from it
-        origin = moon_composition.draw_origin(parent_kind).row.name
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           mass=moon_mass, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
@@ -1097,12 +1133,14 @@ def generate_moons(planet, moon_count=None):
         if new_moon.radius > limit_radius_km:    # denser or lighter than the parent could hold; its slot stays open
             draw.redrawn("moon.too_large")
             rejected += 1
-            if rejected >= MOON_REJECTION_LIMIT:
+            if rejected >= rejection_limit:
                 break
             continue
         rejected = 0
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
+        if impact_moons and moon_count is None and draw.random() >= tuning.ROCKY_IMPACT_MOON_CHANCE:    # GEN.962: a further impact, or no more
+            break
 
     if planet.moons:
         # This planet's own reflex-offset "wobble" (schema v20) from the

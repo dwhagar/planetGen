@@ -21,6 +21,8 @@ Neighbour galaxies, more than one galaxy in the database and the intergalactic f
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies |  | Research: stage 1 of GEN.9. |
+| GEN.1292 | The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later) | VIEW.46 |  |
+| UX.282 | Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu | UX.281 |  |
 | GEN.164 | Synthetic globular-cluster systems for generated galaxies | GEN.387 | Globular-cluster chain. |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | GEN.157 | Research. |
 | MAP.374 | Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection |  | Later; no lane. |
@@ -43,7 +45,6 @@ The leftover offset-paged queries, checked one by one; nothing in 8.1 waits on i
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.219 | The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target |  | PERF.137 audit follow-up |
 
 ### Upstream follow-ups
 

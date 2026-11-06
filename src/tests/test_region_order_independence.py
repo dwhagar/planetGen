@@ -30,7 +30,7 @@ pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans", "red
 REGION_A = ("30", "0", "0")
 REGION_B = ("33", "0", "0")
 RADIUS = "3"
-"""str: Two spheres of 3 pc whose centres are 3 pc apart: each about half inside the other."""
+"""str: Two spheres of 3 pc whose centers are 3 pc apart: each about half inside the other."""
 
 
 def _chart(config, around, monkeypatch):

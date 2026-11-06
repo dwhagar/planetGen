@@ -83,9 +83,9 @@ def test_the_reduced_table_has_the_bands_the_temperatures_and_the_line():
     assert k.shape == (129, 3, len(support.PRESSURES_BAR), 10)
     assert list(temperature) == [100.0, 300.0, 1000.0]          # 2500 K is above T_MAX_K
     edges = ir_ktables.BAND_EDGES_CM1
-    centre = (edges[1:] + edges[:-1]) / 2.0
-    line = int(np.argmin(np.abs(centre - support.LINE_CENTRE_CM1["CO2"])))
-    far = int(np.argmin(np.abs(centre - 3000.0)))
+    center = (edges[1:] + edges[:-1]) / 2.0
+    line = int(np.argmin(np.abs(center - support.LINE_CENTER_CM1["CO2"])))
+    far = int(np.argmin(np.abs(center - 3000.0)))
     assert k[line, 1, -1, -1] > 1e4 * k[far, 1, -1, -1]
     assert np.all(k[..., 1:] >= k[..., :-1] * (1.0 - 1e-6))          # g sorted by strength
     assert k[line, 1, -1, -1] > k[line, 1, 0, -1]                    # the fixture's pressure law
@@ -145,7 +145,7 @@ def test_the_archives_are_replaced_by_one_compact_file_each(cache):
     assert sorted(path.name for path in (cache / "ir_ktables").iterdir()) == [".derived.json", "ir_ktables.npz"]
     assert sorted(path.name for path in (cache / "ir_cia").iterdir()) == [".derived.json", "ir_cia.npz"]
     with np.load(cache / "ir_ktables" / "ir_ktables.npz") as data:
-        assert sorted(data.files) == sorted(["g", "weights", "edges_cm1", "temperature_k", "pressure_bar", "k_H2O", "k_CO2", "k_CH4"])
+        assert sorted(data.files) == sorted(["g", "weights", "edges_cm1", "temperature_k", "pressure_bar", "k_H2O", "k_CO2", "k_CH4", "k_NH3", "k_SO2", "k_H2S", "k_CO", "k_HCN"])
         assert data["k_H2O"].shape == (129, 3, 5, 10)
     with np.load(cache / "ir_cia" / "ir_cia.npz") as data:
         assert sorted(data.files) == sorted(f"{kind}_{pair}" for kind in ("temperature", "k") for pair in hitran_cia.FILES)

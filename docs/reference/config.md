@@ -148,10 +148,24 @@ the state folder (`/var/lib/planetGen/state`, `PLANETGEN_STATE_DIR` moves it), m
 `manifest.json` (format 1, time, who, why, the version and, per part, its folder,
 sizes and SHA-256) and one folder per part: `settings/` (a copy of `config.json`,
 secrets included, which is why the archive is private and its download is for the
-Owner) now, and `control/` (the control database) and `parity/` (the DB repair
-parity data) when those parts arrive in 9.0. A save on the settings page takes an
-archive of the settings part alone; `python3 -m planetgen.cli.backup take` takes
-every part.
+Owner) and `parity/` (DB.40: a copy of the sector repair file, `sector-parity.pgpr`,
+taken with the file locked against every save and cut at its last whole record; the
+manifest keeps its size, the sectors it covers and the groups as the part's `info`;
+the option `settings.backup_parity`, on by default, switches it off for a very large
+galaxy), and `control/` (the control database) when that part arrives in 9.0. A save on
+the settings page takes an archive of the settings part alone; `python3 -m
+planetgen.cli.backup take` takes every part. A parity copy is refused, with the
+reason, when the live file is damaged behind its last record (`planetgen repair-db`
+makes it again from the database).
+
+`python3 -m planetgen.cli.backup restore --part parity ARCHIVE` puts the copy back (DB.41). It is refused, before
+anything is backed up or changed, while a save is writing parity, when the galaxy database cannot be reached, and when
+the part is empty or its file is damaged. Otherwise a safety archive of the live file is taken, the copy is written
+beside the live file, synced and renamed over it, and then it is checked against the database (the check of DB.8, with the
+stale-record rule of DB.9): a record that no longer matches the rows because the database changed since the backup is made
+again from the rows and is not damage, a member whose sector is gone is let go, and the result says how many sectors the
+copy holds no record of (unprotected until their next save or `planetgen refresh-parity`) and which sectors are damaged
+(for `planetgen repair-db`).
 
 Retention is the option `settings.backups_kept`: the newest archives are kept, the
 rest deleted, but never the newest archive that holds every part. A restore verifies
@@ -255,9 +269,10 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `log_file` | Debug log file | text | /var/log/planetgen.log | after a restart | command line only | `PLANETGEN_LOG_FILE` | Where the debug log goes. |
 | `record_file` | Record file | text | empty | after a restart | command line only | `PLANETGEN_RECORD_FILE` | A file every log line of a planetgen command is also written to as a record: one per line, the time in UTC. Empty writes none; the --record-file option does the same for one command. |
 | `record_format` | Record file form | "logfmt" or "json" | logfmt | after a restart | command line only | `PLANETGEN_RECORD_FORMAT` | The form of the record file's lines: logfmt (key=value) or json (one object per line). |
-| `log_dir` | Activity log folder | text | empty | after a restart | command line only | `PLANETGEN_LOG_DIR` | The folder of the always-on activity log; empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS. |
+| `log_dir` | Activity log folder | text | empty | after a restart | command line only | `PLANETGEN_LOG_DIR` | The folder of the always-on activity log and of the long jobs' logs (warmup.log, tiles.log, orbits.log, update.log); empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS. |
 | `log_rotation` | Log rotation | "auto", "system", or "app" | auto | after a restart | command line only | none | How the activity log is rotated: system (logrotate or newsyslog), app (the program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else app). |
 | `settings.backups_kept` | Settings backups kept | whole number (backups) | 20 | at once | any admin | none | How many backup archives are kept. One is made just before every settings save, restore or import replaces the file, and by Back up now; the oldest is deleted once there are more than this, but never the newest archive that holds every part. |
+| `settings.backup_parity` | Back up the repair file | true or false | true | at once | any admin | none | Put a copy of the sector repair file (the parity file) in every full backup archive, so a galaxy whose live repair file is lost can still be repaired from a backup. The copy is as big as the file (about 7 percent of the sectors' size); switch it off for a very large galaxy. The settings backup made before each save never holds it. |
 | `site.tagline` | Tagline | text | empty | at once | any admin | none | A short line shown under the home page's heading and used as the description of pages that give none of their own. |
 | `site.language` | Language | text | en | at once | any admin | none | The pages' language as a code (en, de, en-GB): the `lang` of every page and the Open Graph locale. |
 | `web.title_template` | Page title format | text | {title} - {site_name} | at once | any admin | none | How a page's title is written in the browser tab and in search results; {title} is the page's own title and {site_name} the site name. |
@@ -305,6 +320,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `queue.max_host_workers` | Most workers on this host | whole number (workers) | 0 | at once | any admin | none | The most worker processes planetgen may run on this host at once, every queue and command together: a start that would pass it is refused and said in the log. 0 sizes it from the host: 60 percent of its memory in workers of 300 MB each, no more than four per core, and never fewer than the cores plus four. It stops a burst of requests, or several commands starting workers together, from filling the memory and getting MySQL killed. |
 | `queue.long_workers` | Workers for long jobs | whole number (workers) | 1 | at once | any admin | none | How many workers run the jobs expected to take longer than the long job limit (a neighbourhood or a large settle, which can run for hours). They have a lane of their own so a long job can never hold the workers kept for short ones. |
 | `queue.long_job_seconds` | Long job limit | number (seconds) | 60 | at once | any admin | none | A job expected to take longer than this goes to the long lane. A job with no estimate counts as short. |
+| `queue.sky_limit` | Sky limit built by charting | number (magnitude) | 7.5 | at once | any admin | `PLANETGEN_SKY_LIMIT` | The limiting magnitude of the sky charting builds for each system's neighbourhood (VIEW.25): when a run charts sectors, the stars a system's sky shows to this magnitude are drawn over the 50 parsec cells the new sectors lie in, after the bright-star backfill, so a visitor never waits for them. A cell already drawn costs nothing. Fainter limits draw more stars and take longer: 7.5 is a dust-free naked-eye sky, about half an hour a cell on one worker. 0 turns it off; otherwise 2 to 9. The command line's --sky-limit overrides it for a run. |
 | `queue.unit_ceiling_seconds` | Unit length ceiling | number (seconds) | 300 | at once | any admin | none | The longest a unit of a generation stage is expected to run. A stage is cut into units no longer than this at the default galaxy size; a unit that runs longer is written to the run's log, naming the stage. A stage that is one unit by nature is not held to it. A unit this long is also the most a worker waits to hand its place to a lane that needs it. |
 | `queue.wait_minutes` | Longest wait for a run | number (minutes) | 60 | at once | any admin | none | How long a generation run, or an API job that generates sectors, waits in line when another generation run holds the machine, before it fails naming that run (0 does not wait). |
 | `queue.max_waiting` | Waiting list length | whole number (entries) | 8 | at once | any admin | none | How many entries the one waiting list holds: generation runs and API jobs that wait for the machine, and Generate page jobs that wait for the running job. One more than this is refused, naming the list. |
@@ -362,7 +378,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `debug` | Debug mode. When true, every part of planetGen writes everything it decides: each `planetgen` command (and each other command: `python3 -m planetgen.cli.*`) writes every decision, random draw (with its source line and the probabilities it refers to), SQL statement, run, stage, unit, worker and cache event to **stdout**, with an ISO timestamp to the millisecond, and the same lines go to `log_file` along with the `html/` pages', the API's and the workers' (every web request, API call and admin access check, and every error with its traceback). The lines of the queue workers that do a run's work are relayed to the stdout of the command that started the run, as they are written. A job the Generate page starts shows them in its job log. The output is large (a single system writes about 265 KB) and the run takes a quarter to two thirds longer, so `install.sh`/`update.sh` install a logrotate config for the file (daily, or past 100 MB; 7 compressed copies kept); `debug_areas` limits what is written. A command whose result goes to stdout (`--output -`) writes its debug lines to stderr; `--quiet` still silences the console. The web interface never shows tracebacks on its pages, debug or not; with debug on, a 500 page says the traceback is in the debug log. See `../src/planetgen/util/log.py`. Equivalent to `PLANETGEN_DEBUG` (`1` on, `0` off). |
 | `debug_areas` | Limits debug mode to some areas: `decision`, `draw`, `sql`, `queue`, `cache`, `web`, `lib` (comma separated; a leading `-` leaves one out, as in `-draw`). Empty, the default, writes everything but `branch`, which logs every conditional jump in planetGen's own code (hundreds of thousands of lines for one system, about 15 times the run time) and is written only when named (`branch`, or `all,branch`). Equivalent to `PLANETGEN_DEBUG_AREAS` and to `--debug-areas`. |
 | `log_file` | Where the debug log goes; default `/var/log/planetgen.log`. With `debug` on, `install.sh`/`update.sh` create it (owned by Apache's user and group, mode 0660) and point the logrotate config at it. A login user who runs the generator from a shell must be in Apache's group (`sudo usermod -aG www-data <user>`, then log in again) to append to it; root can always write to it. A process that can't open it carries on without a debug log and prints one warning to stderr. Equivalent to `PLANETGEN_LOG_FILE`. |
-| `log_dir` | The folder of the always-on **activity log** (`planetgen.log`; see [The activity log](#the-activity-log) below). Empty (the default) means the platform's standard place: `/var/log/planetgen` on Linux, `/Library/Logs/planetgen` on macOS. `install.sh`/`update.sh` create it (root and Apache's group, mode 2770; the file Apache's user and group, mode 0660). Equivalent to `PLANETGEN_LOG_DIR`. |
+| `log_dir` | The folder of the always-on **activity log** (`planetgen.log`; see [The activity log](#the-activity-log) below) and of the **warm-up log** (`warmup.log`, OPS.96: `planetgen warm` appends every cache warm-up to it itself, in local time with its zone, a line at the start and one at the end). Empty (the default) means the platform's standard place: `/var/log/planetgen` on Linux, `/Library/Logs/planetgen` on macOS. `install.sh`/`update.sh` create it (root and Apache's group, mode 2770; the file Apache's user and group, mode 0660). Equivalent to `PLANETGEN_LOG_DIR`. |
 | `log_rotation` | How the activity log is rotated: `"auto"` (the default), `"system"` or `"app"`. `"system"` leaves it to logrotate or newsyslog (the program reopens the file after it is moved); `"app"` makes the program rotate it itself (100 MB per file, 30 old copies). `"auto"` means `"system"` where `install.sh`/`update.sh` installed `/etc/logrotate.d/planetgen-log` or `/etc/newsyslog.d/planetgen-log.conf`, else `"app"`. No environment variable. |
 | `mysql.host`/`mysql.port`/`mysql.user`/`mysql.password`/`mysql.database` | The one MySQL connection every entry point uses -- the generation CLIs, `install.sh`/`planetgen.cli.migrate`, and the Flask API's reads and writes alike (see `planetgen.db.store.MySQLConfig`). There's no separate write-capable override: give this account whatever grants the most demanding caller needs. Equivalent to `PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE`. |
 | `mysql.statement_timeout_seconds` | The longest any one statement on the web interface's and API's read-only connections may run, in seconds (default 10; 0 turns the limit off). Uses MySQL's `MAX_EXECUTION_TIME`. A query stopped by it gives a 504 "Took too long" page, or a `QUERY_TIMEOUT` error from the API, instead of holding a web worker until Apache's request timeout. Generation, migrations and admin writes are never limited. Separately, the web interface's and API's control-database connections wait at most 5 seconds for a row another transaction has locked (`WEB_LOCK_WAIT_SECONDS` in `tuning.py`, not an option); a login or session refresh then goes ahead without noting its last-login time, and other requests answer a 503 "Busy" page or API error that retries by itself. |
@@ -394,11 +410,11 @@ Every line has the same shape, so a tool such as fail2ban can match it
 ([`deployment/fail2ban.md`](../deployment/fail2ban.md) has a ready filter and jail):
 
 ```text
-2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
-2026-10-01T08:00:09Z planetgen[1234]: DB sector.update ip=203.0.113.5 user="boss" target=sector:42 detail="{'name': 'Home'}"
+2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
+2026-10-01T04:00:09-0400 planetgen[1234]: DB sector.update ip=203.0.113.5 user="boss" target=sector:42 detail="{'name': 'Home'}"
 ```
 
-That is: the time in UTC, `planetgen[<process id>]:`, the category, the
+That is: the time local with the offset of its zone, `planetgen[<process id>]:`, the category, the
 event, `ip=` (the client address, or `-` with none, as on the command
 line), `user=` (always quoted; the admin, the username as typed, or the
 login name that ran a command; `-` when nobody), then any further

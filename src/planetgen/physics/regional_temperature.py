@@ -11,7 +11,7 @@ bands of `physics/latitude_bands.py` (the equator band, three on each side of it
 `band1` (north pole) to `band7` (south pole) the stored columns are `bandN_mean_k`, `bandN_swing_k`, `bandN_day_hours`,
 `bandN_night_hours`, `bandN_longest_day_days`, `bandN_longest_night_days` and `bandN_state` (`column`), and the world's mean
 swing is `temp_mean_swing_k`. A tidally locked world has no latitude day: its seven bands are the rings from the point under
-its star to the point away from it (`band1` the day centre, `band7` the night centre), with no hours.
+its star to the point away from it (`band1` the day center, `band7` the night center), with no hours.
 
 * **Temperatures**: each band takes the annual-mean insolation of its band on a circular orbit for the stored axial tilt
   (`band_insolation`), turned into a temperature by the fourth-root law and scaled so the area-weighted mean of the bands is the
@@ -42,11 +42,11 @@ BAND_COUNT = 7
 
 BAND_FIELDS = ("mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state")
 """tuple: What is stored for each band: the mean temperature (K), the day and night swing, peak to peak (K), the hours of day and of night in a solar day, the longest
-polar day and night of the year (days) at the poleward edge, and the state word."""
+unbroken day and night of the year (days, GEN.1260) at the poleward edge, and the state word."""
 
 
 def column(number, field):
-    """The stored column of band `number` (1, the north pole, to 7, the south pole; for a locked world 1 the day centre to 7 the night centre) and `field` of `BAND_FIELDS`."""
+    """The stored column of band `number` (1, the north pole, to 7, the south pole; for a locked world 1 the day center to 7 the night center) and `field` of `BAND_FIELDS`."""
     return f"band{number}_{field}"
 
 
@@ -168,11 +168,17 @@ def compute(values):
     mean share of the time the star is up, `day_share_mean`, from which the angular radius of the star is worked out. Everything is
     `None` for a body without a temperature or a rotation period.
     """
-    from planetgen.physics import latitude_bands       # here: it reads this module's laws
+    from planetgen.physics import latitude_bands, temperature_coverage       # here: they read this module's laws
     out = dict.fromkeys(FIELDS)
     bands = latitude_bands.compute(values, latitude_bands.alpha_deg_of(values))
     if not bands:
         return out
+    series = temperature_coverage.series_of_values(values)
+    if series is not None and math.isfinite(series.solar_days) != (bands[0].state in latitude_bands.RING_STATES):
+        series = None            # the series and the bands disagree on whether the star stands still in the sky (a moon held by its planet): the bands keep their own
+    if series is not None:       # GEN.1265: the mean and the swing of a band are read off the temperature of every place, so the bands agree with the Temperature score
+        bands = [latitude_bands.with_climate(band, mean, swing) if math.isfinite(mean) else band
+                 for band, (mean, swing) in zip(bands, temperature_coverage.band_climate(series))]
     for number, band in enumerate(bands, 1):
         for field in BAND_FIELDS:
             out[column(number, field)] = getattr(band, field)
@@ -182,7 +188,7 @@ def compute(values):
 
 def summary(values):
     """
-    The regions object the API serves (`None` for a body that has none): `bands`, the seven bands from the north pole to the south pole (the day centre to the night centre
+    The regions object the API serves (`None` for a body that has none): `bands`, the seven bands from the north pole to the south pole (the day center to the night center
     for a world that turns once an orbit), each `{"name", "mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state"}` with the
     fields the body has, and `mean_swing_k`. Names are `latitude_bands.NAMES`, or `RING_NAMES` for a locked world.
     """

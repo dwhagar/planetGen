@@ -1,6 +1,6 @@
 # tests/test_dwarf_population.py
 
-"""GEN.1090: the dwarf planets of a belt or outer disc, from its mass and size law (`physics/dwarf_population.py`; belt-origins.md section 5)."""
+"""GEN.1090: the dwarf planets of a belt or outer disk, from its mass and size law (`physics/dwarf_population.py`; belt-origins.md section 5)."""
 
 import math
 import random
@@ -118,7 +118,7 @@ def test_the_main_belt_is_a_test_target():
 
 
 def test_the_kuiper_belt_is_a_test_target():
-    """Targets and never inputs. The design note's 15 to 20 dwarf candidates of a Kuiper-type disc are the strongest icy bodies (the top of the strength range turns round at about 1e20 kg); at the median
+    """Targets and never inputs. The design note's 15 to 20 dwarf candidates of a Kuiper-type disk are the strongest icy bodies (the top of the strength range turns round at about 1e20 kg); at the median
     strength the engine turns bodies of a few 1e19 kg round (Mimas is round at 3.8e19 kg), and the count is a few hundred."""
     strong = bs.round_mass_for(1.0, quantile=1.0)
     assert 17.5 / 3.0 < bl.count_above(bl.ICY_LAW, KUIPER_BELT_KG, strong) < 17.5 * 3.0

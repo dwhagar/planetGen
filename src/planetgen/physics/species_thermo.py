@@ -6,7 +6,7 @@ Thermodynamics of the gases and condensed phases of the atmosphere chemistry (GE
 
 The one source of free energies for every equilibrium the atmosphere chain computes: the outgassing speciation over a
 mantle of a given oxygen fugacity (`physics/outgassing.py`), the giant-planet and brown-dwarf chemistry (GEN.454), the
-lava-world vapour (GEN.499) and the buffer reactions of `physics/oxygen_fugacity.py`. It holds the NASA Glenn 9-coefficient
+lava-world vapor (GEN.499) and the buffer reactions of `physics/oxygen_fugacity.py`. It holds the NASA Glenn 9-coefficient
 fits ([R2968], NASA/TP-2002-211556) of 87 species: ideal gases and a few condensed phases, each with
 its elements, its molar mass and the temperature intervals of its fit.
 

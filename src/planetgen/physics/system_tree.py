@@ -4,17 +4,17 @@
 Where the members of a multi-star system are at any time (GEN.265), computed
 from the tree's stored orbits and never written back.
 
-A scattered system is one point in space, its barycentre (the row's position,
+A scattered system is one point in space, its barycenter (the row's position,
 velocity and epoch columns, `system_mass_solar` as its mass), and a tree of
 orbits (`scatter_nodes`). Node `n` is the relative orbit of the child in slot 1
 about the child in slot 0; a child is a member or another node. Its mean anomaly
 at time `t` is `mean_anomaly_deg + 360 fmod(t - epoch_unix, period) / period` (mod 360), so
-the nightly update, which only moves the barycentre, never has to write a node
+the nightly update, which only moves the barycenter, never has to write a node
 or a member row.
 
-A node's two children sit either side of the node's own centre in proportion to
+A node's two children sit either side of the node's own center in proportion to
 the other's mass (slot 0 at `-r m1 / (m0 + m1)`, slot 1 at `+r m0 / (m0 + m1)`);
-a member's offset from the barycentre is the sum of those along its ancestors.
+a member's offset from the barycenter is the sum of those along its ancestors.
 The members of a `group` node (a young system that is not hierarchical) carry an
 offset and a velocity of their own and fly straight from the node's epoch.
 
@@ -57,7 +57,7 @@ class OrbitNode:
 @dataclass(frozen=True)
 class TreeMember:
     """One stored member: a child of node `parent_node_no` in `slot`. A member of a `group` node also has an offset
-    from the node's centre (AU) and a velocity (km/s)."""
+    from the node's center (AU) and a velocity (km/s)."""
     member_no: int
     parent_node_no: int
     slot: int
@@ -90,7 +90,7 @@ def _scaled(vector, factor):
 
 def star_offsets_au(masses_solar, slots, nodes, unix, dark=()):
     """
-    The offsets from the barycentre, in AU, of the stars of a system with a tree of `nodes`, in the order of
+    The offsets from the barycenter, in AU, of the stars of a system with a tree of `nodes`, in the order of
     `masses_solar` and `slots` (`(node_no, slot)` for each star: the child of that node it is), at `unix`. `dark` lists the
     members that are not stars, `(mass_solar, (node_no, slot))` each (GEN.1013): they weigh in the tree and are left out of
     the offsets returned.
@@ -104,7 +104,7 @@ def star_offsets_au(masses_solar, slots, nodes, unix, dark=()):
 
 def member_offsets_au(members, nodes, unix):
     """
-    Every member's position at `unix` relative to the system's barycentre, in AU, as `{member_no: (x, y, z)}`.
+    Every member's position at `unix` relative to the system's barycenter, in AU, as `{member_no: (x, y, z)}`.
 
     Args:
         members (iterable of TreeMember): All the members of the system.
@@ -123,21 +123,21 @@ def member_offsets_au(members, nodes, unix):
     roots = [node for node in nodes if node.parent_node_no is None]
     if len(roots) != 1:
         raise ValueError(f"a tree has exactly one root node, found {len(roots)}")
-    centres = {roots[0].node_no: (0.0, 0.0, 0.0)}   # each node's centre of mass relative to the barycentre
+    centers = {roots[0].node_no: (0.0, 0.0, 0.0)}   # each node's center of mass relative to the barycenter
     offsets = {}
     pending = [roots[0]]
     while pending:
         node = pending.pop()
-        centre = centres[node.node_no]
+        center = centers[node.node_no]
         slots = children.get(node.node_no, {})
         if node.kind == "group":
             for kind, child in slots.values():
                 if kind == "node":
-                    centres[child.node_no] = centre
+                    centers[child.node_no] = center
                     pending.append(child)
                 else:
                     fly = tuple(c * (unix - node.epoch_unix) * _KM_PER_S_TO_AU_PER_S for c in (child.velocity_kms or (0.0, 0.0, 0.0)))
-                    offsets[child.member_no] = _add(centre, _add(child.offset_au or (0.0, 0.0, 0.0), fly))
+                    offsets[child.member_no] = _add(center, _add(child.offset_au or (0.0, 0.0, 0.0), fly))
             continue
         low, high = slots.get(0), slots.get(1)
         if low is None or high is None:
@@ -147,9 +147,9 @@ def member_offsets_au(members, nodes, unix):
         total = mass_low + mass_high
         places = ((low, _scaled(relative, -mass_high / total)), (high, _scaled(relative, mass_low / total)))
         for (kind, child), shift in places:
-            place = _add(centre, shift)
+            place = _add(center, shift)
             if kind == "node":
-                centres[child.node_no] = place
+                centers[child.node_no] = place
                 pending.append(child)
             else:
                 offsets[child.member_no] = place

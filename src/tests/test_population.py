@@ -173,7 +173,86 @@ def _gets_a_species(conn, system_id):
 
 _CIVILIZED_POOL = []
 """list: Generated `(system, config)` pairs with a technological civilization, kept for the run: a forced civilization needs a sunlit sea
-and an oxygen air (life class 1, GEN.889), about one system in thirteen, so each test draws from the pool before it generates another."""
+and an oxygen air (life class 1, GEN.889), about one system in eight to thirteen, so each test draws from the pool before it generates another."""
+
+_SCAN = {"next": None, "tried": set()}
+"""dict: Where this process's search for civilized systems has got to (`next`, a candidate number) and the numbers it has made."""
+
+
+def _fingerprint():
+    """A name for the generator as it stands: the sizes and times of every source file of the package. A change to any of them gives the
+    candidates new numbers' outcomes, so the seeds `_known_seeds` keeps are looked up under the name and not carried over."""
+    import hashlib
+    import pathlib
+    root = pathlib.Path(__import__("planetgen").__file__).parent
+    digest = hashlib.sha1()
+    for path in sorted(root.rglob("*.py")):
+        info = path.stat()
+        digest.update(f"{path.relative_to(root)}:{info.st_size}:{info.st_mtime_ns}\n".encode())
+    return digest.hexdigest()[:16]
+
+
+def _seed_file():
+    import pathlib
+    import tempfile
+    return pathlib.Path(tempfile.gettempdir()) / f"planetgen-civilized-seeds-{_fingerprint()}.json"
+
+
+def _known_seeds():
+    """The candidate numbers an earlier test process found a civilization in, with this generator (TEST.417)."""
+    import json
+    try:
+        return [int(number) for number in json.loads(_seed_file().read_text())["seeds"]]
+    except (OSError, ValueError, KeyError, TypeError):
+        return []
+
+
+def _remember_seed(number):
+    """Adds a candidate number to the file the other worker processes read; written whole and moved into place, so a reader never sees half."""
+    import json
+    import os
+    path = _seed_file()
+    seeds = sorted(set(_known_seeds()) | {number})
+    scratch = path.with_name(f"{path.name}.{os.getpid()}")
+    try:
+        scratch.write_text(json.dumps({"seeds": seeds}))
+        os.replace(scratch, path)
+    except OSError:
+        pass        # the file only saves time
+
+
+def _candidate(number):
+    """The system of candidate `number`: the same each time (every draw is bound to a stream seeded from the number), so the numbers an earlier
+    process found a civilization in make a civilization again."""
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.INTELLIGENT_LIFE = True
+    cfg.HABITABLE_WORLD = True
+    cfg.BINARY_SYSTEM = False
+    with draw.bound(f"civilized-pool:{number}"):
+        system = StarSystem(system_config=cfg)
+    return system, cfg
+
+
+def _has_civilization(system):
+    return any(getattr(p, "life_stage", None) == "technological_civilization" for p in system.planets)
+
+
+def _next_candidate_number():
+    """A number to try: one an earlier process found a civilization in and this one has not made, else the next of a run of numbers
+    this process owns (a worker process of a parallel run starts a thousand numbers on from the one before, so no two search alike)."""
+    import os
+    if _SCAN["next"] is None:
+        worker = os.environ.get("PYTEST_XDIST_WORKER", "gw0")
+        _SCAN["next"] = 1000 * int(worker[2:] or 0) if worker.startswith("gw") and worker[2:].isdigit() else 0
+    for number in _known_seeds():
+        if number not in _SCAN["tried"]:
+            return number
+    number = _SCAN["next"]
+    while number in _SCAN["tried"]:
+        number += 1
+    _SCAN["next"] = number + 1
+    return number
 
 
 def _civilized_candidates():
@@ -184,13 +263,11 @@ def _civilized_candidates():
             yield _CIVILIZED_POOL[index]
             index += 1
             continue
-        cfg = SystemConfig()
-        cfg.STAR_TYPE = "G2V"
-        cfg.INTELLIGENT_LIFE = True
-        cfg.HABITABLE_WORLD = True
-        cfg.BINARY_SYSTEM = False
-        system = StarSystem(system_config=cfg)
-        if any(getattr(p, "life_stage", None) == "technological_civilization" for p in system.planets):
+        number = _next_candidate_number()
+        _SCAN["tried"].add(number)
+        system, cfg = _candidate(number)
+        if _has_civilization(system):
+            _remember_seed(number)
             _CIVILIZED_POOL.append((system, cfg))
             yield _CIVILIZED_POOL[-1]
             index += 1

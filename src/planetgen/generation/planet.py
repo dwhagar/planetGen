@@ -24,9 +24,9 @@ defined separately in `asteroidData`.
 import math
 
 from planetgen import tuning
-from planetgen.generation import habitable_request, prevalence
+from planetgen.generation import habitable_request, irregular_moons, prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
@@ -75,7 +75,6 @@ class Planet(PlanetaryObject):
         is_moon (bool): True if the object is a moon, False otherwise.
         moons (list): A list of `Planet` objects representing the moons of this planet.
         zone (str): The orbital zone of the planet ('h' for hot, 'e' for ecosphere, 'c' for cold).
-        description (str): A text description of the planet's class.
         atm_molar_density (float): The molar density of the atmosphere.
         gravity (float): The surface gravity of the planet in g's.
         atm_density (float): The density of the atmosphere.
@@ -195,13 +194,13 @@ class Planet(PlanetaryObject):
         life_age_abiogenesis_gyr ... life_age_technological_civilization_gyr (float or None): The age at which the
                                   world's pace reaches each milestone (`tuning.LIFE_SCHEDULE_FIELDS`, Gy; set by
                                   `life.apply_life_data` with the pace, `None` without one).
-        flavor_key (str or None): The flavour line `life.decide_flavor_text` drew, as `category:index` into the
-                                  `tuning` flavour lists (`flavor_text` reads it).
+        flavor_key (str or None): The flavor line `life.decide_flavor_text` drew, as `category:index` into the
+                                  `tuning` flavor lists (`flavor_text` reads it).
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
     SERIALIZABLE_FIELDS = [
-        "is_moon", "zone", "description", "atm_molar_density", "gravity",
+        "is_moon", "zone", "atm_molar_density", "gravity",
         "atm_density", "surface_temperature", "density", "atmospheric_pressure",
         "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
@@ -236,6 +235,7 @@ class Planet(PlanetaryObject):
         *aerosols.BODY_FIELDS,
         *body_colour.BODY_FIELDS,
         *body_strength.FIELDS,
+        *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
         "born_beyond_snow_line", "host_eccentricity",
     ]
@@ -325,7 +325,7 @@ class Planet(PlanetaryObject):
                                                the star (`generate_moons`
                                                passes the parent planet's own
                                                `mass` here).
-            formation_distance_au (float, optional): Where the planet formed, AU, when that is not where it orbits (a pulsar's disc planet
+            formation_distance_au (float, optional): Where the planet formed, AU, when that is not where it orbits (a pulsar's disk planet
                                          formed in the volatile-poor debris of a disrupted star, so inside any snow line); it sets
                                          whether the planet is ice-rich or dry (`bulk_draw.origin_of`). Defaults to the distance.
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
@@ -343,6 +343,7 @@ class Planet(PlanetaryObject):
         self.moon_origin = moon_origin
         self.moon_disk_system = moon_disk_system
         self.moons = []
+        self.irregulars = irregular_moons.NO_IRREGULARS    # the small bodies the planet caught (GEN.1083); `StarSystem` fills them in once the system's belts stand
         # This planet's own reflex-offset "wobble" (schema v20) from its
         # moons' combined pull -- 0.0 by default (no moons yet), recomputed
         # by `planetPhysics.generate_moons` once `self.moons` is populated
@@ -354,7 +355,6 @@ class Planet(PlanetaryObject):
         # GEN.458: whether it formed beyond its star's snow line; `StarSystem` sets it once the orbits are final
         # (a moon takes its planet's), and it stays None for a planet whose host has no snow line to compare.
         self.born_beyond_snow_line = None
-        self.description = None
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None
@@ -406,7 +406,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.FIELDS + planet_type.FIELDS + class_code.FIELDS:
             setattr(self, field, None)
         setattr(self, atmosphere.GAS_FIELD, {})
 
@@ -432,7 +432,7 @@ class Planet(PlanetaryObject):
             planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
             planetPhysics.calculate_atmospheric_conditions(self, distance_override)
             planetPhysics.apply_class(self)
-            if not (system_config.HABITABLE_WORLD is False and self.zone == 'e' and habitable_request.meets(self)):
+            if not (system_config.HABITABLE_WORLD is False and (habitable_request.meets(self) or planetPhysics.is_life_class(self))):
                 break
             draw.redrawn("planet.barred_world")
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
@@ -485,6 +485,8 @@ class Planet(PlanetaryObject):
         """Whether a planet left to chance gets moons: an even chance, or for a small body the share of the hosting gate's
         `satellite-share` table for its population and size (GEN.761), moved by the run's moons prevalence (GEN.52)."""
         chance = planetPhysics.satellite_share(self)
+        if chance is None and self.body_type != "g":
+            chance = tuning.ROCKY_IMPACT_MOON_CHANCE    # GEN.962: a rocky planet's massive moon comes from a giant impact
         if prevalence.percent(self.system_config, "moons"):
             return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5 if chance is None else chance)
         return draw.randrange(2) == 1 if chance is None else draw.random() < chance
@@ -494,6 +496,7 @@ class Planet(PlanetaryObject):
         recursively."""
         data["habitable_zone"] = list(self.habitable_zone)
         data["moons"] = [moon.to_dict() for moon in self.moons]
+        data["irregulars"] = self.irregulars.to_dict()
 
     @classmethod
     def from_dict(cls, data, star, system_config):
@@ -517,7 +520,9 @@ class Planet(PlanetaryObject):
         return planet
 
     def _decode(self, data):
-        self.habitable_zone = tuple(data["habitable_zone"])
+        # a rogue planet (GEN.1111) has no host and so no habitable zone of one's own
+        self.habitable_zone = tuple(data["habitable_zone"]) if data.get("habitable_zone") is not None else None
+        self.irregulars = irregular_moons.IrregularSet.from_dict(data.get("irregulars"))
 
     @property
     def life_class_id(self):
@@ -532,7 +537,7 @@ class Planet(PlanetaryObject):
 
     @property
     def flavor_text(self):
-        """The flavour line `flavor_key` names (`life.flavor_line`), or `None`."""
+        """The flavor line `flavor_key` names (`life.flavor_line`), or `None`."""
         from planetgen.generation import life
         return life.flavor_line(self.flavor_key)
 

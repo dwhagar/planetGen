@@ -164,7 +164,8 @@ def tree_context():
     pages and habitability page its summary line links into."""
     return TreeContext(
         item_url=item_url, tree_url=lambda ref: page_url("object_tree", ref=ref), class_url=class_url,
-        sprite_url=static_url("icons.svg"), help_url=page_url("habitability_levels"), static_url=static_url)
+        sprite_url=static_url("icons.svg"), help_url=page_url("habitability_levels"), static_url=static_url,
+        belt_url=lambda ref: page_url("belt_info_page", belt_ref=ref))
 
 
 def tree_response(ref):
@@ -259,7 +260,7 @@ def sheet_view(sheet):
 def bands_view(sheet):
     """
     The table of the seven bands of a planet or moon (GEN.1108) as the page draws it: `{"caption", "columns": [label], "rows": [{"label", "cells": [html]}]}`, the bands as columns
-    (north pole to south pole, or day centre to night centre for a world that turns once an orbit) and the figures of each as rows, a cell with nothing in it a dash.
+    (north pole to south pole, or day center to night center for a world that turns once an orbit) and the figures of each as rows, a cell with nothing in it a dash.
     `None` for a body with no bands.
     """
     table = sheet.get("bands")
@@ -350,6 +351,10 @@ def planet_sections(name, row, sheet, species, piece, readings=()):
         return None if group is None else {**group, "rows": [r for r in group["rows"] if not drop(r["key"])]}
 
     atmosphere = without("atmosphere", lambda key: key.startswith("p_"))
+    colour = planet_layout.atmosphere_colour_fact(piece["blocks"] if piece else [])
+    if colour is not None:        # the sky colour (GEN.420) is a row of the description's facts table, which the page drops
+        colour_row = {"key": colour["key"], "label": colour["label"], "html": trusted_html(inline_html(colour["value"])), "stored": True, "source": None}
+        atmosphere = {**(atmosphere or {"key": "atmosphere", "label": "Atmosphere"}), "rows": [colour_row, *(atmosphere["rows"] if atmosphere else [])]}
     composition = without("composition", lambda key: key in planet_layout.MASS_SHARED_KEYS)
     phi6 = without("habitability", lambda key: False)
     return {
@@ -358,6 +363,7 @@ def planet_sections(name, row, sheet, species, piece, readings=()):
         "life_class": life_class_with_links(row, readings),
         "civilization": [trusted_html(sentence) for sentence in planet_layout.civilization_sentences(row, species)],
         "notes": trusted_html(blocks_html(parts["rest"], _ref_link)),
+        "readout": trusted_html(blocks_html(parts["flavor"], _ref_link)),      # "Sensors show ...", under the Sensor view (UX.276)
         "phi6_blocks": trusted_html(blocks_html(parts["phi6"], _ref_link)),
         "phi6": phi6 if phi6 and phi6["rows"] else None,
         "atmosphere": atmosphere if atmosphere and atmosphere["rows"] else None,
@@ -621,14 +627,14 @@ def _container_contents_html(listing):
 
 
 def _container_facts(container, found, listing):
-    """The About text of a cluster or a superbubble (UX.184): what it is, where its centre lies, a cluster's mass, age
+    """The About text of a cluster or a superbubble (UX.184): what it is, where its center lies, a cluster's mass, age
     and metallicity, and what sits inside it, as HTML."""
     kind = found["kind"]
     lines = [f"<p>This is {_CONTAINER_WORDS[kind]}. Its sphere is {container['extent_pc']:,.0f} parsecs "
              "in radius.</p>"]
-    centre = found["positions"]["galaxy_pc"]
-    if centre:
-        lines.append("<p>Its center lies at (" + ", ".join(f"{value:,.0f}" for value in centre)
+    center = found["positions"]["galaxy_pc"]
+    if center:
+        lines.append("<p>Its center lies at (" + ", ".join(f"{value:,.0f}" for value in center)
                      + ") parsecs in the galaxy frame.</p>")
     component = container.get("component")
     if component:
@@ -750,6 +756,7 @@ def render_item(kind, printed_id):
         admin=current_admin(),
         edit=admin,
         object_ref=ref,
+        belt_info_url=page_url("belt_info_page", belt_ref=ref) if kind == "belt" else None,
     )
 
 

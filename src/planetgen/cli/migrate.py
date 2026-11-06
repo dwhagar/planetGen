@@ -190,9 +190,9 @@ def close_site_for_the_sector_switch(config, write=print):
 def _update_guard(config, yes):
     """
     OPS.41 and OPS.53 for a migration run by hand: when there is something to migrate and `update.sh` is not
-    running it (it holds the guard already), list the running work and ask before cancelling it, close the site
+    running it (it holds the guard already), list the running work and ask before canceling it, close the site
     for the migration and open it again when it has finished. A failure leaves the site closed (the message says
-    how to open it). Exits with status 1, having changed nothing, when the work is not cancelled.
+    how to open it). Exits with status 1, having changed nothing, when the work is not canceled.
     """
     if updateguard.inside_update():
         yield
@@ -234,7 +234,7 @@ def main():
                              "and change nothing.")
     log.add_debug_arguments(parser)
     args = parser.parse_args()
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
 
     config = mysql_config_from_args(args)
 
@@ -242,7 +242,7 @@ def main():
         try:
             version, pending = schema_status(config)
         except Exception as exc:
-            print(f"error: {exc}", file=sys.stderr)
+            log.error(f"error: {exc}")
             sys.exit(1)
         print(version, SCHEMA_VERSION, pending, config.database)
         return
@@ -252,7 +252,7 @@ def main():
         try:
             version = _migrate_with_progress(config)
         except Exception as exc:
-            print(f"error: {exc}", file=sys.stderr)
+            log.error(f"error: {exc}")
             sys.exit(1)
 
         if version == SCHEMA_VERSION:
@@ -272,7 +272,7 @@ def main():
         try:
             seeded = auth.bootstrap_control_schema(control_mysql_config(config))
         except Exception as exc:
-            print(f"error: could not set up the control schema ({exc}).", file=sys.stderr)
+            log.error(f"error: could not set up the control schema ({exc}).")
             sys.exit(1)
         if seeded is not None:
             print_initial_admin_login(*seeded)

@@ -63,7 +63,7 @@ def test_the_group_share_is_the_registry_default():
     assert abs(groups - runs * share) < 4 * sigma
 
 
-def test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest(always_a_group):
+def test_a_group_is_one_node_of_flying_members_around_a_barycenter_at_rest(always_a_group):
     sizes = set()
     for seed in range(60):
         tree = _tree(seed, 2.0e3)

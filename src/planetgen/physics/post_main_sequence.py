@@ -32,7 +32,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.datasets import evolved_tracks, isochrones
-from planetgen.physics import bright_piece_kernel, giant_branch, ms_lifetime, remnant_mass
+from planetgen.physics import giant_branch, ms_lifetime, remnant_mass
 
 SUBGIANT = "subgiant"
 GIANT = "giant"
@@ -184,6 +184,7 @@ class Timeline:
         if plan is None:
             plan = self._plans[skip] = self._plan(skip, len(frac))
         windows, ranged, lows, highs, f_starts, f_ends = plan
+        from planetgen.physics import bright_piece_kernel   # here, not at the top: it imports numba, which the web app must never (OPS.42, TEST.608)
         counts, starts, ends = bright_piece_kernel.bright_ranges(frac, log_l, floor, lows, highs, f_starts, f_ends)
         starts, ends = starts.tolist(), ends.tolist()
         pieces = []

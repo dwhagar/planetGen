@@ -1,7 +1,7 @@
 # planetgen/physics/rprocess_enrichment.py
 
 """
-The thorium-to-uranium enrichment of a star's gas from the disc's history (GEN.663, docs/design/composition/radioisotope-tuning.md section 2)
+The thorium-to-uranium enrichment of a star's gas from the disk's history (GEN.663, docs/design/composition/radioisotope-tuning.md section 2)
 ===========================================================================================================================================
 
 Row o4 of the atmosphere recipes needs the factor `F` of the thorium-to-uranium ratio of the gas a star formed from:
@@ -13,18 +13,18 @@ what the decay of the earlier ejecta did to the ratio before the star formed: th
 uranium-238 (4.468 Gyr), so gas enriched long before the star formed is thorium-rich.
 
 The row used a constant r-process input over a duration `T` of 3 to 13 Gyr, calibrated on one Solar System datum. This module
-takes the input from the disc's own history instead:
+takes the input from the disk's own history instead:
 
 1. **The sources.** The r-process input at time `t` is the star formation `SFR(t - tau)` convolved with a delay-time law
-   `1/tau` from `TAU_MIN_GY` to the age of the disc (neutron star mergers, [R2010, R4101]). The slope 1
+   `1/tau` from `TAU_MIN_GY` to the age of the disk (neutron star mergers, [R2010, R4101]). The slope 1
    and the 30 Myr floor are RECALLED, a stand-in: the delay law is the one number that shapes `F` and is labelled in the gap
    plan registry. Setting `TAU_MIN_GY` to nothing larger than a time step gives prompt sources (collapsars).
-2. **The star formation** is the disc's (`galaxy.disk_history`, GEN.469), so a galaxy that formed its stars early gives thorium-rich
+2. **The star formation** is the disk's (`galaxy.disk_history`, GEN.469), so a galaxy that formed its stars early gives thorium-rich
    gas to the stars that form late and a galaxy that forms them now does not.
 3. **The decay.** Ejecta of time `t'` have decayed by `exp(-l (t_b - t'))` when a star forms at `t_b`; `F` is the ratio of the
    thorium-232 to the uranium-238 that is left, summed over the input.
 
-Left out: the gas before the disc began (the halo and thick disc ejecta), so the factor is a lower bound for old stars; and the
+Left out: the gas before the disk began (the halo and thick disk ejecta), so the factor is a lower bound for old stars; and the
 variation with galactocentric radius. The Solar System datum (CI chondrites at about 4.5 Gyr need an effective constant input of
 6.5 Gyr) is a test point and not an input.
 """
@@ -96,16 +96,16 @@ def source_rate(times_gy, star_formation, tau_min_gy=None):
 
 def th_u_factor(times_gy, star_formation, birth_gy, tau_min_gy=None):
     """
-    The factor `F` of a star born `birth_gy` after the disc began.
+    The factor `F` of a star born `birth_gy` after the disk began.
 
     Args:
-        times_gy (sequence): Increasing times since the disc began, from 0 to its age.
-        star_formation (sequence): The disc's star formation at those times.
+        times_gy (sequence): Increasing times since the disk began, from 0 to its age.
+        star_formation (sequence): The disk's star formation at those times.
         birth_gy (float): When the star formed, on the same clock.
         tau_min_gy (float, optional): The shortest merger delay.
 
     Returns:
-        float: `F`, at least 1 and at most that of an input of the whole disc life. Zero birth time (no earlier input) gives 1.
+        float: `F`, at least 1 and at most that of an input of the whole disk life. Zero birth time (no earlier input) gives 1.
     """
     times = np.asarray(times_gy, dtype=float)
     birth = min(max(float(birth_gy), 0.0), float(times[-1]))
@@ -124,8 +124,8 @@ def th_u_factor(times_gy, star_formation, birth_gy, tau_min_gy=None):
 
 def th_u_factor_of_history(history, host_age_gy, tau_min_gy=None):
     """
-    The factor `F` of a star of age `host_age_gy` in the disc of a `galaxy.disk_history.DiskHistory`: the disc began
-    `history.age_gy[0]` ago, and the star formed `host_age_gy` ago (older than the disc is held at the disc's start).
+    The factor `F` of a star of age `host_age_gy` in the disk of a `galaxy.disk_history.DiskHistory`: the disk began
+    `history.age_gy[0]` ago, and the star formed `host_age_gy` ago (older than the disk is held at the disk's start).
     """
     span = float(history.age_gy[0])
     times = span - np.asarray(history.age_gy, dtype=float)
@@ -135,7 +135,7 @@ def th_u_factor_of_history(history, host_age_gy, tau_min_gy=None):
 
 @functools.lru_cache(maxsize=4096)
 def th_u_factor_of_shape(shape, host_age_gy):
-    """The factor `F` of a star of age `host_age_gy` in the thin disc of the galaxy of this `GalaxyShape` (`th_u_factor_of_history` of its
+    """The factor `F` of a star of age `host_age_gy` in the thin disk of the galaxy of this `GalaxyShape` (`th_u_factor_of_history` of its
     `galaxy.disk_history.history_of`), cached because every planet and moon of a star asks for it."""
     from planetgen.galaxy import disk_history
     return th_u_factor_of_history(disk_history.history_of(shape), host_age_gy)
@@ -144,7 +144,7 @@ def th_u_factor_of_shape(shape, host_age_gy):
 @functools.lru_cache(maxsize=64)
 def typical_th_u_factor(shape):
     """The factor `F` of a typical star of the galaxy of this shape, for a body with no host star (a rogue planet): that of the star born when
-    half of the disc's stars had formed (the median of its star formation, the rings summed as `th_u_factor_of_history` does)."""
+    half of the disk's stars had formed (the median of its star formation, the rings summed as `th_u_factor_of_history` does)."""
     from planetgen.galaxy import disk_history
     history = disk_history.history_of(shape)
     span = float(history.age_gy[0])

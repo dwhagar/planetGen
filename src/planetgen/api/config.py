@@ -32,14 +32,12 @@ request rate exceed the configured limit by roughly a factor of the
 worker count.
 """
 
-import logging
 
-from planetgen.util import secret_key
+from planetgen.util import log, secret_key
 from planetgen.db.store import MySQLConfig, control_mysql_config
 from planetgen.util.settings import get_settings
 
 _settings = get_settings()
-log = logging.getLogger(__name__)
 
 
 def _secret_key():

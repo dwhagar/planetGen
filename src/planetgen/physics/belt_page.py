@@ -72,7 +72,7 @@ class BeltRecord:
     What the page needs of a belt.
 
     Attributes:
-        belt_id (int): The belt's object ID (its body in the system).
+        belt_id (int or None): The belt's object ID (its body in the system); None for a belt not yet stored, whose members then have no designation.
         inner_au, outer_au (float): The belt's limits.
         star_mass_solar, luminosity_w, aluminium_26_ratio (float): The star's.
         ledger (belt_ledger.Ledger): The stored bodies and the rest (the bodies are `ledger.masses_kg`, heaviest first).
@@ -129,14 +129,16 @@ def _composition_list(shares):
             for t, s in sorted(shares.items(), key=lambda item: -item[1]) if s >= MIN_SHARE]
 
 
-def _check(record):
+def _check(record, placed=True):
     ledger = record.ledger
     if not 0.0 < record.inner_au < record.outer_au:
         raise BeltPageError("the belt needs 0 < inner < outer")
-    if len(record.placements) != len(ledger.masses_kg):
-        raise BeltPageError("one placement for each stored body")
     if not (record.star_mass_solar > 0.0 and record.luminosity_w > 0.0):
         raise BeltPageError("the star's mass and luminosity must be positive")
+    if not placed:
+        return
+    if len(record.placements) != len(ledger.masses_kg):
+        raise BeltPageError("one placement for each stored body")
     for placement in record.placements:
         if not record.inner_au <= placement.distance_au <= record.outer_au:
             raise BeltPageError("a stored body lies outside its belt")
@@ -152,6 +154,12 @@ def _member(record, mass_kg, placement):
     return dataclasses.replace(member, mass_kg=mass_kg, radius_km=radius_km), True
 
 
+def member_bodies(record):
+    """The entry of each stored body of the belt (the `bodies` block of the page) for a `BeltRecord`, without the size table: what the belt's member rows store (GEN.1070)."""
+    _check(record)
+    return _bodies(record)
+
+
 def _bodies(record):
     ledger = record.ledger
     pairs = [_member(record, m, p) for m, p in zip(ledger.masses_kg, record.placements)]
@@ -164,7 +172,7 @@ def _bodies(record):
         state = body_status.status(member.mass_kg, ice, placement.distance_au, record.star_mass_solar, others)
         out.append({
             "rank": rank,
-            "designation": object_uid.designation(record.belt_id, rank),
+            "designation": None if record.belt_id is None else object_uid.designation(record.belt_id, rank),
             "mass": _q(member.mass_kg, "kg"),
             "diameter": _q(2.0 * member.radius_km, "km"),
             "distance": _q(placement.distance_au, "au"),
@@ -177,6 +185,33 @@ def _bodies(record):
                             "water": _q(member.makeup.water, "frac"), "ice": _q(member.makeup.ice, "frac")},
             "status": {"word": state.word, "soter_mu": None if state.mu is None or math.isinf(state.mu) else state.mu, "roundness": state.roundness,
                        "margot_pi": state.pi, "agrees": state.pi_agrees},
+        })
+    return out
+
+
+def stored_bodies(belt_id, members):
+    """
+    The `bodies` block over the members a belt was saved with (the dicts of `AsteroidBelt.members`, heaviest first), so the page shows what is stored and not a second draw: the same entries as
+    `build` makes, with the orbit's eccentricity and inclination and the population a scattered member belongs to (GEN.1092) where they are stored. A member the belt holds no status for says none.
+    """
+    out = []
+    for member in members:
+        taxon = member["taxon"]
+        out.append({
+            "rank": member["rank"],
+            "designation": None if belt_id is None else object_uid.designation(belt_id, member["rank"]),
+            "mass": _q(member["mass_kg"], "kg"),
+            "diameter": _q(2.0 * member["radius_km"], "km"),
+            "distance": _q(member["distance_au"], "au"),
+            "eccentricity": member["eccentricity"],
+            "inclination": _q(member["inclination_deg"], "deg"),
+            "density": _q(member["density_g_cm3"] * 1000.0, "kg_m3"),
+            "taxon": taxon,
+            "analogue": sbc.TAXON_DATA[taxon].analogue,
+            "composition": {"rock": _q(member["rock_fraction"], "frac"), "metal": _q(member["metal_fraction"], "frac"),
+                            "water": _q(member["water_fraction"], "frac"), "ice": _q(member["ice_fraction"], "frac")},
+            "status": {"word": member["status"], "soter_mu": member["soter_mu"]},
+            "population": member.get("scatter_tag"),
         })
     return out
 
@@ -260,17 +295,23 @@ def _count_above(record, bodies, diameter_km, scale, smallest_km, smallest_kg):
 
 
 @finite_domain()
-def build(record):
+def build(record, bodies=None):
     """
     The page data of a belt (see the module text): `{"belt", "bodies", "bins", "density_factor", "totals"}`.
+
+    Args:
+        record (BeltRecord): The belt.
+        bodies (list, optional): The `bodies` block when the caller already has it, as `stored_bodies` gives it for a belt read back from the store; the record's placements are then not used
+            (a scattered member may lie beyond the belt's limits) and the bodies are not drawn again.
 
     Raises:
         BeltPageError: A record that does not hang together.
         compaction.OutOfRange: A stored body over `compaction.TAPER_END_KG` (for the structure solver).
     """
-    _check(record)
+    _check(record, placed=bodies is None)
     ledger = record.ledger
-    bodies = _bodies(record)
+    if bodies is None:
+        bodies = _bodies(record)
     smallest, smallest_kg = _smallest_stored(ledger, bodies)
     raw_bins = _raw_bins(ledger, smallest, smallest_kg)
     scale = _scale(ledger, raw_bins)

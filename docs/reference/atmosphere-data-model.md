@@ -137,7 +137,7 @@ stand-in ground albedo until the ground's reflectance is stored.
 ## 8. Limits
 
 The infrared band and wing opacities are stand-ins until real line data are in (`physics/infrared_opacity.py`); the stored water
-vapour is taken as it is, with no condensation above the surface; the closure's pressure exponent is 2 for every air. The haze yield
+vapor is taken as it is, with no condensation above the surface; the closure's pressure exponent is 2 for every air. The haze yield
 is a labelled placeholder (stand-in AT.n7) and the dust and haze spectra come from similar materials (stand-in AD2), both in
 [stand-in-values.md](../design/research/stand-in-values.md); the ozone fit for a star hotter than G0V is labelled in the gap plan
 ([gap-filling-plan.md](../design/research/gap-filling-plan.md)).

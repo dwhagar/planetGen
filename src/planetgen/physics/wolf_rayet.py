@@ -36,6 +36,21 @@ def threshold_mass_sol(fe_h=None):
     return tuning.WR_MIN_INITIAL_MASS_SOL * metals ** -tuning.WR_THRESHOLD_METALLICITY_EXPONENT
 
 
+def binary_threshold_mass_sol(fe_h=None):
+    """The least initial mass at which a companion can strip a star into a Wolf-Rayet star at this [Fe/H] (the Sun's when None), solar masses (GEN.995)."""
+    return threshold_mass_sol(fe_h) * tuning.WR_BINARY_MIN_RATIO
+
+
+def stripping_chance(mass_sol, fe_h=None):
+    """
+    The chance a star of this initial mass ends as a Wolf-Rayet star (GEN.995): 1 at or above the single-star threshold, where its own wind strips it; `tuning.WR_STRIPPING_FRACTION` between
+    `binary_threshold_mass_sol` and that, where only a close companion can ([R4051] section 5: the binary-stripped channel adds about a fifth to the single-star count in the Galaxy); 0 below.
+    """
+    if mass_sol >= threshold_mass_sol(fe_h):
+        return 1.0
+    return tuning.WR_STRIPPING_FRACTION if mass_sol >= binary_threshold_mass_sol(fe_h) else 0.0
+
+
 def phase_gy(supergiant_window_gy):
     """How long the phase lasts in a star whose supergiant window is this long, Gy."""
     return min(tuning.WR_PHASE_MYR / MYR_PER_GY, tuning.WR_MAX_SUPERGIANT_SHARE * supergiant_window_gy)
@@ -43,10 +58,10 @@ def phase_gy(supergiant_window_gy):
 
 def start_gy(mass_sol, main_sequence_gy, end_gy, fe_h=None):
     """
-    The age a star of this initial mass becomes Wolf-Rayet, Gy, or None when it never does. `end_gy` is where its
-    supergiant window (and so its life) ends.
+    The age a star of this initial mass becomes Wolf-Rayet, Gy, or None when it never does (below the least mass a companion can strip). `end_gy` is where its
+    supergiant window (and so its life) ends. A star between the binary and the single-star thresholds becomes one only at `stripping_chance`; the caller draws it.
     """
-    if mass_sol < threshold_mass_sol(fe_h):
+    if mass_sol < binary_threshold_mass_sol(fe_h):
         return None
     return end_gy - phase_gy(end_gy - main_sequence_gy)
 

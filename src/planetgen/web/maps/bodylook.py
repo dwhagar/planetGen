@@ -6,7 +6,7 @@ paint it, built here from the stored row so the page never parses a label.
 
 `systemmap.py` puts it on each marker as `data-look`; `static/bodytexture.js` and `static/solidpaint.js` turn it
 plus `seed` into a texture. A field with no stored value is left out (not zero), so the page can tell "unknown"
-from "none"; the painters fall back to the plain tinted disc for anything missing.
+from "none"; the painters fall back to the plain tinted disk for anything missing.
 
 Fields (all optional but `v`, `kind`, `body`, `seed`):
 
@@ -44,7 +44,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     roundness   the roundness ratio of a solid body (GEN.1158, GEN.1159): its radius over the radius at which its weight beats
                 its strength, 1 or more round; under 1 the body is drawn as a lump (MAP.279, `static/lumpymesh.js`); left out
                 when none is stored
-    hydro       `hydrosphere` (dry, vapour, ice, ice-covered ocean, surface ocean, brine seep, hycean)
+    hydro       `hydrosphere` (dry, vapor, ice, ice-covered ocean, surface ocean, brine seep, hycean)
     ocean       fraction of the surface under ocean, 0 to 1
     land        fraction of the surface above sea level, 0 to 1
     oceanClass  ice-sealed, chloride brine, acid sulfate, soda or neutral
@@ -375,7 +375,7 @@ def planet_look(planet, kind="planet"):
 
 
 def star_surface_color(star):
-    """The colour of a star's disc: that of its model atmosphere (`stellar_library.star_colour`, GEN.971: the spectrum the sky colour
+    """The colour of a star's disk: that of its model atmosphere (`stellar_library.star_colour`, GEN.971: the spectrum the sky colour
     assumes for the star, so the two agree) at its effective temperature and surface gravity, else the spectral-letter colour."""
     temperature_k = star.get("temperature_k")
     if temperature_k and temperature_k > 0:

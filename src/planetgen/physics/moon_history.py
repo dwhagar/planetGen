@@ -4,7 +4,7 @@
 The history of a planet's moons under its tide, applied to the bodies (GEN.959)
 ===============================================================================
 
-`planet_kind` and `generate_moons` give a planet's moons the distances they were *born* at (a regular moon's disc, a captured one's catch). This pass
+`planet_kind` and `generate_moons` give a planet's moons the distances they were *born* at (a regular moon's disk, a captured one's catch). This pass
 runs the history that `moon_orbits.evolve` integrates from those distances and the planet's birth spin to the age of the star, with the star's tide and
 the thermal tide of the air on the planet's spin in the same sum (`body_spin`, GEN.957), and puts the result on the bodies:
 

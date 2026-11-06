@@ -68,7 +68,14 @@ CHILD_TABLES = (
     ("moon_life_class_scores", "moon_id", "moons"),
     ("planet_life", "planet_id", "planets"),
     ("moon_life", "moon_id", "moons"),
+    ("rogue_planet_reflection_spectrum", "rogue_planet_id", "rogue_planets"),
+    ("rogue_planet_interior_layers", "rogue_planet_id", "rogue_planets"),
+    ("rogue_planet_gases", "rogue_planet_id", "rogue_planets"),
+    ("rogue_planet_life_class_scores", "rogue_planet_id", "rogue_planets"),
     ("asteroid_belt_composition", "belt_id", "asteroid_belts"),
+    ("belt_members", "belt_id", "asteroid_belts"),
+    ("irregular_sets", "planet_id", "planets"),
+    ("irregular_moons", "planet_id", "planets"),
     ("comet_composition", "comet_id", "comets"),
     ("interstellar_comet_composition", "comet_id", "interstellar_comets"),
     ("asteroid_field_composition", "field_id", "asteroid_fields"),
@@ -94,9 +101,10 @@ SECTIONS = {
     "sector": ("sectors",),
     "system": ("star_systems", "orbit_nodes", "dark_members"),
     "star": ("stars", "black_holes", "neutron_stars"),
-    "planet": ("planets", "planet_reflection_spectrum", "planet_interior_layers", "planet_gases", "planet_life_class_scores", "planet_life", "rogue_planets"),
+    "planet": ("planets", "planet_reflection_spectrum", "planet_interior_layers", "planet_gases", "planet_life_class_scores", "planet_life", "irregular_sets", "irregular_moons",
+               "rogue_planets", "rogue_planet_reflection_spectrum", "rogue_planet_interior_layers", "rogue_planet_gases", "rogue_planet_life_class_scores"),
     "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_gases", "moon_life_class_scores", "moon_life"),
-    "belt": ("asteroid_belts", "asteroid_belt_composition", "asteroid_fields", "asteroid_field_composition"),
+    "belt": ("asteroid_belts", "asteroid_belt_composition", "belt_members", "asteroid_fields", "asteroid_field_composition"),
     "comet": ("comets", "comet_composition", "interstellar_comets", "interstellar_comet_composition"),
     "phenomenon": ("nebulae", "nebula_shape_balls", "supernova_remnants", "quasars", "bright_stars",
                    "phenomenon_scatter"),
@@ -108,10 +116,11 @@ SECTIONS = {
 _SECTION_OF = {table: name for name, tables in SECTIONS.items() for table in tables}
 
 LEFT_OUT_TABLES = frozenset({
+    "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs", "scatter_epochs",
     "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "scatter_members", "scatter_nodes", "sector_system_counts", "system_interests", "nebula_field", "galaxy_components", "object_timing_stats", "object_timing_samples", "species", "facility_types", "facility_type_fields", "facility_field_values", "polities", "system_owners", "population_state",
-    "system_configs", "system_config_slots", "galaxy_block_stats", "galaxy_block_lights", "region_stats", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state", "orbital_events", "orbital_event_bodies",
+    "system_configs", "system_config_slots", "galaxy_block_stats", "galaxy_block_lights", "region_stats", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "designations", "chart_ledger", "sky_tier_draws", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state", "orbital_events", "orbital_event_bodies",
 })
 """frozenset: Tables a fingerprint doesn't read as content (see the module
 docstring; a system configuration counts through the systems that use
@@ -127,7 +136,7 @@ LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due",
 
 LEFT_OUT_TABLE_COLUMNS = {
     "star_systems": frozenset({"location"}),
-    "sectors": frozenset({"leaf_digest"}),
+    "sectors": frozenset({"leaf_digest", "content_leaf"}),
     "galaxy_shape": frozenset({"version_key", "planetgen_version", "python_version", "platform", "generator_epoch",
                                "fp_spec", "battery_digest", "battery_cases"}),
 }

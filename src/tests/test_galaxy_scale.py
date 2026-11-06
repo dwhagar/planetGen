@@ -54,7 +54,7 @@ def test_the_same_seed_at_twice_the_mass_keeps_its_residuals():
                        / shape_draw.size_median_kpc(8.0e9)) / shape_draw.size_sigma_ln(8.0e9)
     assert z_light == pytest.approx(z_heavy, abs=1e-9)
     assert heavy.disk_scale_length_pc > light.disk_scale_length_pc
-    # the thick disc's residual in sigma is the seed's own too
+    # the thick disk's residual in sigma is the seed's own too
     assert drawn_light.structure.thick_height_ratio == pytest.approx(drawn_heavy.structure.thick_height_ratio)
 
 
@@ -102,7 +102,7 @@ def test_the_size_set_twice_is_refused():
 
 def test_a_solved_value_outside_its_range_is_refused():
     with pytest.raises(shape_draw.ScaleError, match="outside"):
-        _plan(mass=6.0e9, density=1.0e-7)       # a disc far longer than the 8250 pc ceiling
+        _plan(mass=6.0e9, density=1.0e-7)       # a disk far longer than the 8250 pc ceiling
     with pytest.raises(shape_draw.ScaleError):
         _plan(disk_scale_length=1500.0, density=1.0e9)   # a mass no galaxy of the table reaches
 
@@ -157,11 +157,11 @@ def test_a_halo_pin_is_refused_for_a_galaxy_with_no_halo():
         _plan(mass=1.0e8, stellar_halo_share=0.1)
 
 
-def test_the_halo_report_names_the_halo_and_warns_of_a_disc_it_could_not_hold():
+def test_the_halo_report_names_the_halo_and_warns_of_a_disk_it_could_not_hold():
     _shape, drawn = _plan()
     line, warning = shape_draw.halo_report(drawn)
     assert line.startswith("Halo: ") and "virial radius" in line and warning is None
-    _shape, pinned = _plan(mass=6.0e9, disk_scale_length=100.0)     # a disc a tenth of the usual size in its halo
+    _shape, pinned = _plan(mass=6.0e9, disk_scale_length=100.0)     # a disk a tenth of the usual size in its halo
     assert "below the usual" in shape_draw.halo_report(pinned)[1]
     _shape, light = _plan(mass=1.0e6, disk_scale_length=100.0)
     assert shape_draw.halo_report(light) == (

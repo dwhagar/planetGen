@@ -40,7 +40,7 @@ SOSSI_FE_INTERCEPT = -1.530
 """float: [R4154] equation 4: log10(FeO1.5/FeO) = SLOPE dIW + INTERCEPT."""
 
 # [R1951: Table 1]: m = m0 + m1 P + m2 P^2 + m3 P^3 + m4 sqrt(P), P in GPa, for the parameters a b c d
-# (face-centred cubic and body-centred cubic iron) and e f g h (hcp iron).
+# (face-centered cubic and body-centered cubic iron) and e f g h (hcp iron).
 _FCC = {
     "a": (6.844864, 1.175691e-1, 1.143873e-3, 0.0, 0.0),
     "b": (5.791364e-4, -2.891434e-4, -2.737171e-7, 0.0, 0.0),

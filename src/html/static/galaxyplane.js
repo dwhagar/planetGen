@@ -139,15 +139,15 @@ export function createPlaneView(options) {
   if (parent) parent.appendChild(labelBox);
 
   const state = {
-    on: false, midplane: false, centreAngle: -Math.PI / 2, selected: null,
+    on: false, midplane: false, centerAngle: -Math.PI / 2, selected: null,
     built: null, step: 0, ringCount: 0, labels: [], planeZ: 0, around: "galactic center",
-    stemsOn: true, stretch: 1, coordLabels: [],
+    stemsOn: true, stretch: 1, coordLabels: [], labelPool: new Map(),
     stemCount: 0, stemShortestPx: null, stemMs: 0, stemRuns: 0, stemChosenAt: -1e9, stemKinds: { selected: 0, named: 0, pointer: 0, bright: 0 },
   };
   const point = new THREE.Vector3();
 
   function setWedgeToward(target) {
-    if (Math.hypot(target[0], target[1]) > 1e-6) state.centreAngle = Math.atan2(target[1], target[0]);
+    if (Math.hypot(target[0], target[1]) > 1e-6) state.centerAngle = Math.atan2(target[1], target[0]);
   }
 
   function planeHeight(target) {
@@ -162,6 +162,7 @@ export function createPlaneView(options) {
     });
     state.coordLabels.forEach(function (label) { label.el.remove(); });
     state.coordLabels = [];
+    state.labelPool = new Map();
     state.stemCount = 0;
     state.stemKinds = { selected: 0, named: 0, pointer: 0, bright: 0 };
   }
@@ -302,18 +303,30 @@ export function createPlaneView(options) {
     fill(extensions, extra, extraColors);
     fill(beads, beadAt, beadColors);
     // The coordinate labels, rebuilt with the stems: the selection first, then the names and the pointer's stars.
-    state.coordLabels.forEach(function (label) { label.el.remove(); });
+    // An element is kept for as long as its star is labelled (keyed by its place), so a rebuild never removes and re-adds a label (which
+    // blinked it for a frame); only the stars that drop out lose theirs.
+    const kept = new Map();
     state.coordLabels = labelled.map(function (entry) {
-      const el = document.createElement("div");
-      el.className = "map-label map-plane-coords";
-      el.dataset.kind = "plane-coords";
-      if (entry.item.strong) el.dataset.selected = "";
       const at = [entry.item.x, entry.item.y, entry.item.z];
+      const key = `${at[0]},${at[1]},${at[2]}`;
+      const old = state.labelPool.get(key);
+      const el = old ? old.el : document.createElement("div");
+      if (!old) {
+        el.className = "map-label map-plane-coords";
+        el.dataset.kind = "plane-coords";
+        el.style.opacity = "0";
+        labelBox.appendChild(el);
+      }
+      if (entry.item.strong) el.dataset.selected = "";
+      else delete el.dataset.selected;
       const text = coordinateText(at, entry.item.strong);
-      el.textContent = text;
-      labelBox.appendChild(el);
-      return { el: el, text: text, world: [entry.item.x, entry.item.y, entry.top], star: at, selected: !!entry.item.strong };
+      if (el.textContent !== text) el.textContent = text;
+      const label = { el: el, text: text, world: [entry.item.x, entry.item.y, entry.top], star: at, selected: !!entry.item.strong };
+      kept.set(key, label);
+      return label;
     });
+    state.labelPool.forEach(function (label, key) { if (!kept.has(key)) label.el.remove(); });
+    state.labelPool = kept;
     note.textContent = noteText();
     state.stemCount = chosen.length;
     state.stemKinds = kinds;
@@ -324,7 +337,7 @@ export function createPlaneView(options) {
   }
 
   function insideWedge(x, y) {
-    return Math.abs(wrap(Math.atan2(y, x) - state.centreAngle)) <= half + 1e-9;
+    return Math.abs(wrap(Math.atan2(y, x) - state.centerAngle)) <= half + 1e-9;
   }
 
   function clear() {
@@ -359,7 +372,7 @@ export function createPlaneView(options) {
     const ringVerts = [];
     const edgeVerts = [];
     const local = (x, y) => [x - anchor[0], y - anchor[1], 0];
-    const inWedge = (x, y) => Math.abs(wrap(Math.atan2(y, x) - state.centreAngle)) <= half + 1e-9;
+    const inWedge = (x, y) => Math.abs(wrap(Math.atan2(y, x) - state.centerAngle)) <= half + 1e-9;
     const reach = span * 1.5;
     const around = state.selected ? [state.selected[0], state.selected[1]] : [0, 0];
     state.around = state.selected ? "the selection" : "galactic center";
@@ -376,18 +389,18 @@ export function createPlaneView(options) {
         let previous = null;
         const count = Math.max(2, Math.ceil((2 * half) / arcStep));
         for (let i = 0; i <= count; i += 1) {
-          const angle = state.centreAngle - half + (2 * half * i) / count;
+          const angle = state.centerAngle - half + (2 * half * i) / count;
           const p = local(r * Math.cos(angle), r * Math.sin(angle));
           if (previous) ringVerts.push(...previous, ...p);
           previous = p;
         }
-        pushLabel(distanceLabel(r), r * Math.cos(state.centreAngle), r * Math.sin(state.centreAngle), z);
+        pushLabel(distanceLabel(r), r * Math.cos(state.centerAngle), r * Math.sin(state.centerAngle), z);
         state.ringCount += 1;
       }
       const near = Math.max(0, radius - reach);
       const far = radius + reach;
       for (const sign of [-1, 1]) {
-        const angle = state.centreAngle + sign * half;
+        const angle = state.centerAngle + sign * half;
         edgeVerts.push(...local(near * Math.cos(angle), near * Math.sin(angle)), ...local(far * Math.cos(angle), far * Math.sin(angle)));
       }
     } else {
@@ -416,14 +429,14 @@ export function createPlaneView(options) {
       const far = Math.hypot(around[0], around[1]) + reach;
       const near = Math.max(0, Math.hypot(around[0], around[1]) - reach);
       for (const sign of [-1, 1]) {
-        const angle = state.centreAngle + sign * half;
+        const angle = state.centerAngle + sign * half;
         edgeVerts.push(...local(near * Math.cos(angle), near * Math.sin(angle)), ...local(far * Math.cos(angle), far * Math.sin(angle)));
       }
     }
     rings.geometry.setAttribute("position", new THREE.Float32BufferAttribute(ringVerts, 3));
     edges.geometry.setAttribute("position", new THREE.Float32BufferAttribute(edgeVerts, 3));
     state.segments = ringVerts.length / 6 + edgeVerts.length / 6;
-    state.built = { target: target.slice(), span: span, midplane: state.midplane, selected: state.selected ? state.selected.slice() : null, angle: state.centreAngle, anchor: anchor };
+    state.built = { target: target.slice(), span: span, midplane: state.midplane, selected: state.selected ? state.selected.slice() : null, angle: state.centerAngle, anchor: anchor };
     state.stemChosenAt = -1e9;
   }
 
@@ -432,7 +445,7 @@ export function createPlaneView(options) {
     if (!built) return true;
     const span = Math.max(1e-9, spanNow());
     if (roundStep(span / RINGS_ACROSS) !== state.step) return true;
-    if (built.midplane !== state.midplane || built.angle !== state.centreAngle) return true;
+    if (built.midplane !== state.midplane || built.angle !== state.centerAngle) return true;
     const was = built.selected;
     const now = state.selected;
     if ((was === null) !== (now === null)) return true;
@@ -459,15 +472,15 @@ export function createPlaneView(options) {
     const target = focus();
     if (!target) return;
     // The wedge stays where it was while the focus stays inside it, and swings round to the focus when it leaves.
-    if (Math.abs(wrap(Math.atan2(target[1], target[0]) - state.centreAngle)) > half && Math.hypot(target[0], target[1]) > 1e-6) {
+    if (Math.abs(wrap(Math.atan2(target[1], target[0]) - state.centerAngle)) > half && Math.hypot(target[0], target[1]) > 1e-6) {
       setWedgeToward(target);
     }
     if (stale(target)) build(target);
-    placeLabels();
     const now = performance.now();
     if (!note.isConnected) labelBox.appendChild(note);
     note.textContent = noteText();
     if (now - state.stemChosenAt >= STEM_EVERY_MS) buildStems(target, now);
+    placeLabels();    // after the stems, so a label is placed in the frame it is made
   }
 
   function set(on) {
@@ -489,7 +502,7 @@ export function createPlaneView(options) {
     for (let i = 0; i < position.count; i += 1) {
       const x = position.getX(i) + group.position.x;
       const y = position.getY(i) + group.position.y;
-      widest = Math.max(widest, Math.abs(wrap(Math.atan2(y, x) - state.centreAngle)));
+      widest = Math.max(widest, Math.abs(wrap(Math.atan2(y, x) - state.centerAngle)));
     }
     return (widest * 180) / Math.PI;
   }
@@ -504,7 +517,7 @@ export function createPlaneView(options) {
       stems: state.stemCount, stemShortestPx: state.stemShortestPx === Infinity ? null : state.stemShortestPx, stemKinds: Object.assign({}, state.stemKinds), stemMs: state.stemMs, stemBudget: STEM_BUDGET,
       stemPositions: stems.geometry.getAttribute("position") ? Array.from(stems.geometry.getAttribute("position").array) : [],
       on: state.on, midplane: state.midplane, planeZ: state.planeZ, step: state.step, rings: state.ringCount, segments: state.segments || 0,
-      wedgeDeg: WEDGE_DEG, centreDeg: (state.centreAngle * 180) / Math.PI, around: state.around, anchor: group.position.toArray(),
+      wedgeDeg: WEDGE_DEG, centerDeg: (state.centerAngle * 180) / Math.PI, around: state.around, anchor: group.position.toArray(),
       labels: state.labels.map(function (label) { return { text: label.text, world: label.world.slice(), shown: label.el.style.opacity === "0.9" }; }),
       visible: group.visible,
     };
@@ -513,6 +526,9 @@ export function createPlaneView(options) {
   return {
     set: set,
     isOn: function () { return state.on; },
+    // MAP.376: the wedge chosen by its middle line (radians from +x); the grid is rebuilt about it.
+    setWedgeAngle: function (angle) { state.centerAngle = wrap(angle); state.stemChosenAt = -1e9; },
+    wedgeAngle: function () { return state.centerAngle; },
     setMidplane: function (on) { state.midplane = !!on; },
     isMidplane: function () { return state.midplane; },
     select: function (at) { state.selected = at ? [at[0], at[1], at[2]] : null; state.stemChosenAt = -1e9; },

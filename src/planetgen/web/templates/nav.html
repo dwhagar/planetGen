@@ -19,6 +19,7 @@
 {%- endmacro %}
 {% block head %}
 <script type="module" src="{{ static_url('boxfit.js') }}"></script>
+<script type="module" src="{{ static_url('savedcourses.js') }}"></script>
 {%- if bookmark_pick or bookmark_changes %}
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {%- endif %}
@@ -142,8 +143,73 @@
     {%- if galaxy_map_url %}
     <a class="btn btn-small" href="{{ galaxy_map_url }}">Show on Galaxy Map</a>
     {%- endif %}
+    {%- for link in system_view_links %}
+    <a class="btn btn-small" href="{{ link.url }}">{{ link.label }}</a>
+    {%- endfor %}
+    {#- NAV.4: kept in this browser (static/savedcourses.js); hidden until the script has wired it. -#}
+    <span data-course-save data-course-db="{{ course_db }}" data-course-result="{{ course_json }}" hidden>
+      <button type="button" class="btn btn-small" data-course-save-button>Save course</button>
+    </span>
   </p>
+  <p class="hint" data-course-status hidden></p>
+  <ul data-course-changes hidden></ul>
 </section>
+{#- NAV.28: the course bent round what the straight line would pass too close to. -#}
+{%- if adjusted_view %}
+<section class="panel" aria-labelledby="adjusted-heading">
+  <h2 id="adjusted-heading">Adjusted Course</h2>
+  {%- if adjusted_view.bent %}
+  <p>The straight line passes inside the keep-out sphere of {{ adjusted_view.around|length }} object{{ "" if adjusted_view.around|length == 1 else "s" }}, so the course goes round
+    {% for item in adjusted_view.around -%}
+    {{ "" if loop.first else ((" and " if adjusted_view.around|length == 2 else ", and ") if loop.last else ", ") }}
+    {%- if item.url %}<a href="{{ item.url }}">{{ item.name }}</a>{% else %}{{ item.name }}{% endif %}
+    {%- endfor %}.
+    It is a short detour, not a proven shortest path.</p>
+  <div class="table-scroll"><table>
+    <tbody>
+      {%- for label, text in adjusted_view.rows %}
+      <tr><td>{{ label }}</td><td>{{ text }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- if adjusted_view.times %}
+  <div class="table-scroll"><table>
+    <caption>Warp travel time by the straight and the adjusted course</caption>
+    <thead><tr><th scope="col">Warp Factor</th><th scope="col">Straight</th><th scope="col">Adjusted</th></tr></thead>
+    <tbody>
+      {%- for row in adjusted_view.times %}
+      <tr><td>{{ row.label }}</td><td>{{ row.straight }}</td><td>{{ row.adjusted }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+  {%- elif not adjusted_view.warnings %}
+  <p class="hint">Nothing on the straight line comes close enough to bend the course, so the direct course stands.</p>
+  {%- endif %}
+  {%- if adjusted_view.aimed and not adjusted_view.bent %}
+  <div class="table-scroll"><table>
+    <tbody>
+      {%- for label, text in adjusted_view.rows %}
+      <tr><td>{{ label }}</td><td>{{ text }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+  {%- for text in adjusted_view.warnings %}
+  <p class="hint">{{ text }}</p>
+  {%- endfor %}
+  {%- if adjusted_view.through %}
+  <ul>
+    {%- for item in adjusted_view.through %}
+    <li>{{ item.text }}</li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+  {%- if adjusted_view.route_text %}
+  <p>{{ adjusted_view.route_text }}</p>
+  {%- endif %}
+</section>
+{%- endif %}
 {%- if bookmark_changes %}
 {#- Either end swapped for a bookmark (NAV.40); hidden while no bookmark
     can be used. -#}
@@ -268,4 +334,10 @@
   </details>
 </section>
 {%- endif %}
+{#- NAV.18: the saved courses, kept in this browser (static/savedcourses.js); hidden until wired. -#}
+<section class="panel" aria-labelledby="courses-heading" data-courses-list data-course-db="{{ course_db }}" hidden>
+  <h2 id="courses-heading" tabindex="-1">Saved Courses</h2>
+  <p class="hint">Saved in this browser, with both forms of each course: the direct line and the route.</p>
+  <div data-courses-panel class="bookmarks-panel"></div>
+</section>
 {% endblock %}

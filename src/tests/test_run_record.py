@@ -5,6 +5,7 @@ import socket
 import subprocess
 import sys
 import threading
+import time
 
 import pytest
 
@@ -95,7 +96,17 @@ def test_the_live_rate_in_redis_is_the_terminal_bars(conn):
         assert stage["u"] / stage["t"] == pytest.approx(reference.live, rel=1e-9)
 
 
-def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path):
+@pytest.fixture
+def new_york(monkeypatch):
+    """OPS.97: a file line is the computer's local time with its offset, so the test that pins one runs in one zone."""
+    monkeypatch.setenv("TZ", "America/New_York")
+    time.tzset()
+    yield
+    monkeypatch.undo()
+    time.tzset()
+
+
+def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path, new_york):
     run_id = runrecord.start_run(conn, "Fill", [Stage("mass", "Mass", units=1)], now=100.0)
     runrecord.log(conn, run_id, "scatter layer 3 saved", now=101.0, stage=0)
     runrecord.log(conn, run_id, "disk is slow", level="warning", now=102.0)
@@ -107,8 +118,8 @@ def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path
     runrecord.finish_run(conn, run_id, "done", now=103.0)
     path = runrecord.write_log_file(conn, run_id, tmp_path / "jobs")
     text = open(path, encoding="utf-8").read()
-    assert 'level=warning component=run msg="disk is slow"' in text and text.rstrip().endswith('msg="run done" event=run.done')
-    assert text.splitlines()[0] == 'ts=1970-01-01T00:01:40.000Z level=info component=run msg="run started: Fill" event=run.start'
+    assert 'level=warning component=queue msg="disk is slow"' in text and text.rstrip().endswith('msg="run done" event=run.done')
+    assert text.splitlines()[0] == 'ts=1969-12-31T19:01:40.000-0500 level=info component=queue msg="run started: Fill" event=run.start'
     assert [logrecord.parse_file_line(line).message for line in text.splitlines()] == [
         "run started: Fill", "scatter layer 3 saved", "disk is slow", "run done"]
     for n in range(25):
@@ -119,10 +130,10 @@ def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path
 
 def test_cancel_marks_the_run_and_a_finished_run_expires_later(conn):
     run_id = runrecord.start_run(conn, "Fill", _stages(), now=0.0)
-    assert not runrecord.is_cancelling(conn, run_id)
-    assert runrecord.request_cancel(conn, run_id, now=1.0) and runrecord.is_cancelling(conn, run_id)
-    assert runrecord.read_run(conn, run_id)["state"] == "cancelling"
-    assert runrecord.finish_run(conn, run_id, "cancelled", now=2.0)
+    assert not runrecord.is_canceling(conn, run_id)
+    assert runrecord.request_cancel(conn, run_id, now=1.0) and runrecord.is_canceling(conn, run_id)
+    assert runrecord.read_run(conn, run_id)["state"] == "canceling"
+    assert runrecord.finish_run(conn, run_id, "canceled", now=2.0)
     assert not runrecord.request_cancel(conn, run_id)
     assert 0 < conn.ttl(runrecord.run_key(run_id)) <= runrecord.KEEP_SECONDS
     assert conn.ttl(runrecord.stage_key(run_id, 0)) > 0 and conn.ttl(runrecord.events_key(run_id)) > 0
@@ -262,7 +273,7 @@ def test_a_run_whose_process_was_killed_no_longer_makes_the_next_run_busy(conn):
     assert runrecord.active_run(conn) == second
     old = runrecord.read_run(conn, first)
     assert old["state"] == "failed" and "was gone" in old["error"]
-    assert runrecord.is_cancelling(conn, first) is False and runrecord.finish_run(conn, first, "done") is False
+    assert runrecord.is_canceling(conn, first) is False and runrecord.finish_run(conn, first, "done") is False
 
 
 def test_a_run_whose_process_lives_keeps_the_machine_even_when_its_sign_of_life_lapsed(conn):

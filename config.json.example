@@ -11,7 +11,8 @@
   "log_dir": "",
   "log_rotation": "auto",
   "settings": {
-    "backups_kept": 20
+    "backups_kept": 20,
+    "backup_parity": true
   },
   "site": {
     "tagline": "",
@@ -75,6 +76,7 @@
     "max_host_workers": 0,
     "long_workers": 1,
     "long_job_seconds": 60.0,
+    "sky_limit": 7.5,
     "unit_ceiling_seconds": 300.0,
     "wait_minutes": 60.0,
     "max_waiting": 8

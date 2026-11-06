@@ -45,7 +45,7 @@ MILKY_WAY_SATELLITES = (
 def sun_frame(frame_radius_pc, frame_angle_rad):
     """`(sun, ex, ey, ez)`: the Sun's position in the galaxy frame and the unit vectors of the galactic coordinates there.
 
-    `ex` points from the Sun to the galactic centre (longitude 0, latitude 0), `ey` towards longitude 90 degrees (the
+    `ex` points from the Sun to the galactic center (longitude 0, latitude 0), `ey` towards longitude 90 degrees (the
     direction the disk turns) and `ez` along the galaxy frame's +z. Those three form a left-handed set, so a proper
     galactic frame has its north pole towards -z: `satellite_position_pc` takes a latitude `b` as a height of
     `-sin(b)` in the galaxy frame.
@@ -56,7 +56,7 @@ def sun_frame(frame_radius_pc, frame_angle_rad):
 
 
 def satellite_position_pc(longitude_deg, latitude_deg, distance_pc, frame_radius_pc, frame_angle_rad):
-    """The position in the galaxy frame (pc, the galactic centre at the origin) of an object seen from the Sun at this
+    """The position in the galaxy frame (pc, the galactic center at the origin) of an object seen from the Sun at this
     galactic longitude and latitude and this distance."""
     sun, ex, ey, ez = sun_frame(frame_radius_pc, frame_angle_rad)
     longitude, latitude = math.radians(longitude_deg), -math.radians(latitude_deg)
@@ -76,7 +76,7 @@ def place_reference_satellites(galaxy_seed, frame_radius_pc, frame_angle_rad, ep
     Args:
         galaxy_seed (bytes or int): The galaxy's seed, from which each satellite's own seed (the one its stars are drawn
             from) comes.
-        frame_radius_pc (float): The catalogue's observer's distance from the galactic centre in this galaxy's frame (the reference radius).
+        frame_radius_pc (float): The catalogue's observer's distance from the galactic center in this galaxy's frame (the reference radius).
         frame_angle_rad (float): The Sun's azimuth in that frame.
         epoch_unix (float): When the positions hold.
         scale (float): How much larger than the Milky Way the galaxy is, by its disk scale length: the satellites'

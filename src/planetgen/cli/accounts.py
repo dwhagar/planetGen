@@ -29,11 +29,11 @@ def main(argv=None):
     add_mysql_connection_args(parser)
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
     try:
         conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
     except pymysql.MySQLError as exc:
-        print(f"error: could not open the control database ({exc}).", file=sys.stderr)
+        log.error(f"error: could not open the control database ({exc}).")
         return 1
     try:
         try:

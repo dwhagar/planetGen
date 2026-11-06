@@ -29,6 +29,7 @@ import redis
 
 from planetgen.admin import updateguard
 from planetgen.queue import redisclient
+from planetgen.util import log
 
 MAX_ROUNDS = 5
 """int: The most warm-up runs one automatic start makes; changes that keep arriving wait for the next request."""
@@ -166,8 +167,7 @@ def request(database, kind):
         client.set(lock_key(database), pid, xx=True, keepttl=True)
         return "started"
     except (redis.RedisError, OSError) as exc:
-        print(f"warning: the cache warm-up did not start after a {kind!r} change ({exc}); run `planetgen warm`.",
-              file=sys.stderr)
+        log.warning(f"the cache warm-up did not start after a {kind!r} change ({exc}); run `planetgen warm`.", stderr=True)
         return "failed"
 
 

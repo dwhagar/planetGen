@@ -202,11 +202,11 @@ def test_update_sh_build_failure_only_warns(tmp_path):
     fake.chmod(0o755)
     result = _deploy_common_shell(str(fake), 'build_reference_pages; echo "failed=$REFERENCE_PAGES_FAILED"')
     assert result.returncode == 0, result.stderr
-    assert "failed=1" in result.stdout and "warning: the References pages could not be built" in result.stderr
+    assert "failed=1" in result.stdout and "the References pages could not be built" in result.stderr
 
 
 def test_update_script_builds_the_pages_in_step_3_and_repeats_a_failure_at_the_end():
     text = (ROOT / "update.sh").read_text(encoding="utf-8")
-    step3 = text.split('UPDATE_STEP="step 3/9')[1].split('UPDATE_STEP="step 4/9')[0]
+    step3 = text.split("log_stage 3 9")[1].split("log_stage 4 9")[0]
     assert "build_reference_pages" in step3
     assert 'REFERENCE_PAGES_FAILED' in text.split("DATASETS_MISSING")[-1]

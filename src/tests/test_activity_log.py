@@ -8,14 +8,15 @@ the sign-in lines and audit rows SEC.20 writes through it.
 import os
 import re
 import stat
+import time
 
 import pytest
 
 from planetgen.admin import activity_log, auth as adminAuth
-from planetgen.util import logpaths
+from planetgen.util import log, logpaths
 
 LINE = re.compile(
-    r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ planetgen\[\d+\]: (?P<cat>[A-Z]+) (?P<action>\S+) '
+    r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d[+-]\d{4} planetgen\[\d+\]: (?P<cat>[A-Z]+) (?P<action>\S+) '
     r'ip=(?P<ip>\S+) user="(?P<user>(?:[^"\\]|\\.)*)"(?P<rest>.*)$'
 )
 """The documented line shape (docs/reference/config.md)."""
@@ -49,12 +50,19 @@ def _lines_but_api(folder):
 
 # --- line format --------------------------------------------------------------
 
-def test_line_shape():
+def test_line_shape(monkeypatch):
+    """OPS.97: the time is the computer's local time with the offset of its zone."""
+    monkeypatch.setenv("TZ", "America/New_York")
+    time.tzset()
     line = activity_log.format_line("AUTH", "login.failed", ip="203.0.113.5", user="admin",
                                    when=1790000000, pid=1234)
-    assert line == '2026-09-21T14:13:20Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"'
-    assert LINE.match(line)
-    assert FAIL2BAN.match(line.split(" ", 1)[1]).group("host") == "203.0.113.5"
+    try:
+        assert line == '2026-09-21T10:13:20-0400 planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"'
+        assert LINE.match(line)
+        assert FAIL2BAN.match(line.split(" ", 1)[1]).group("host") == "203.0.113.5"
+    finally:
+        monkeypatch.undo()
+        time.tzset()
 
 
 def test_missing_ip_and_user_are_dashes():
@@ -166,8 +174,7 @@ def test_existing_but_unwritable_folder_warns(tmp_path, monkeypatch, capsys):
 
     def refuse(*args, **kwargs):
         raise PermissionError(13, "Permission denied")
-    monkeypatch.setattr(activity_log, "_RotatingHandler", refuse)
-    monkeypatch.setattr(activity_log, "_WatchedHandler", refuse)
+    monkeypatch.setattr(log, "file_handler", refuse)
     try:
         activity_log.event("AUTH", "logout")
         activity_log.event("AUTH", "logout")

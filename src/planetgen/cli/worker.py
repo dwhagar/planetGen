@@ -163,12 +163,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     log.set_component("worker")
     os.environ.pop(progress_file.ENV_VAR, None)     # a worker serves many runs; the progress file is its starter's
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
     try:
         updateguard.refuse_while_updating("A worker")     # OPS.53: the workers take no job during an update
     except updateguard.UpdateRunning as exc:
         log.debug("worker not started: %s", exc, area="queue")
-        print(exc, file=sys.stderr)
+        log.error(exc)
         return updateguard.EX_TEMPFAIL
     log.debug("worker starts: queues %s, %s, release %s", args.queues, "burst" if args.burst else
               f"idle exit after {args.idle_seconds} s", _version.__version__, area="queue")

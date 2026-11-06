@@ -140,11 +140,11 @@ def test_stems_drop_from_chosen_stars_to_the_plane_inside_the_wedge_within_the_b
     assert plane["stemShortestPx"] >= 2, "a stem shorter than 2 px is skipped"
     ends = _stem_ends(plane)
     assert len(ends) == plane["stems"]
-    centre = math.radians(plane["centreDeg"])
+    center = math.radians(plane["centerDeg"])
     for top, foot in ends:
         assert top[:2] == pytest.approx(foot[:2], abs=1e-3), "a stem is straight up from its shadow"
         assert foot[2] == pytest.approx(plane["planeZ"], abs=1e-3) and top[2] != pytest.approx(foot[2], abs=1e-6)
-        offset = abs((math.atan2(top[1], top[0]) - centre + math.pi) % (2 * math.pi) - math.pi)
+        offset = abs((math.atan2(top[1], top[0]) - center + math.pi) % (2 * math.pi) - math.pi)
         assert math.degrees(offset) <= 30.01, "stems live inside the 60 degree wedge"
     kinds = plane["stemKinds"]
     assert kinds["bright"] > 0 and sum(kinds.values()) == plane["stems"]

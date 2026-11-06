@@ -13,7 +13,7 @@ order, appends every step's output to `<job dir>/output.log`, and keeps
 `<job dir>/state.json` current, so the page can show which step is
 running and how the job ended:
 
-    {"status": "running" | "succeeded" | "failed" | "cancelled",
+    {"status": "running" | "succeeded" | "failed" | "canceled",
      "pid": 1234, "step": 2, "started_at": ..., "finished_at": ...,
      "exit_code": 0, "error": "..."}
 
@@ -23,7 +23,7 @@ job's id, so the page can tell a live job from one whose worker died.
 It stops at the first step that fails. The page's Cancel button writes a
 `cancel` file into the job directory; this checks for it while a step
 runs, stops the step and every process it started, and marks the job
-cancelled. (A file rather than RQ's stop command: that kills the worker's
+canceled. (A file rather than RQ's stop command: that kills the worker's
 work horse and would leave the step and its processes running.) SIGTERM
 does the same (a server shutting down, on POSIX).
 When it is done it frees the job lock in Redis (`jobs.release_lock`), if the lock is still
@@ -425,17 +425,17 @@ def run(job_dir):
              "finished_at": None, "exit_code": None, "error": None}
     _write_json(state_path, state)
 
-    current = {"proc": None, "cancelled": False}
+    current = {"proc": None, "canceled": False}
     cancel_path = os.path.join(job_dir, CANCEL_NAME)
 
     def _on_term(signum, frame):
-        current["cancelled"] = True
+        current["canceled"] = True
         _stop_tree(current["proc"])
 
     def _cancel_requested():
-        if not current["cancelled"] and os.path.exists(cancel_path):
-            current["cancelled"] = True
-        return current["cancelled"]
+        if not current["canceled"] and os.path.exists(cancel_path):
+            current["canceled"] = True
+        return current["canceled"]
 
     signal.signal(signal.SIGTERM, _on_term)
     signal.signal(signal.SIGINT, _on_term)
@@ -510,16 +510,16 @@ def run(job_dir):
                 else:
                     mark(logrecord.stage_record(
                         logrecord.STAGE_FAILED, "job", first, total, seconds=took, count=count,
-                        reason="cancelled" if current["cancelled"] else f"exited with status {code}"))
+                        reason="canceled" if current["canceled"] else f"exited with status {code}"))
                 state["exit_code"] = code
-                if current["cancelled"]:
+                if current["canceled"]:
                     break
                 if code != 0:
                     state["status"] = "failed"
                     state["error"] = f"{step['label']} exited with status {code}."
                     break
-        if current["cancelled"]:
-            state["status"] = "cancelled"
+        if current["canceled"]:
+            state["status"] = "canceled"
             state["error"] = "Canceled by an admin."
         elif state["status"] == "running":
             state["status"] = "succeeded"

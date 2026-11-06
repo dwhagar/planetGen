@@ -34,7 +34,7 @@ def test_the_subhalo_count_is_the_laws():
     assert satellites.subhalo_count_above(0.001) > satellites.subhalo_count_above(0.01)
 
 
-def test_occupation_follows_the_erf_about_its_centre():
+def test_occupation_follows_the_erf_about_its_center():
     assert satellites.occupation_probability(5.0e5) == 0.0
     assert satellites.occupation_probability(satellites.OCCUPATION_M50_SOLAR) == pytest.approx(0.5)
     assert satellites.occupation_probability(3.0e8) == pytest.approx(1.0, abs=1e-6)

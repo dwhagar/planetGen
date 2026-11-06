@@ -65,11 +65,11 @@ function inhabitedOf(found) {
 export function regionBlobs(regions) {
   const found = [];
   (regions || []).forEach((region) => {
-    if (!region || !region.centre || !(region.radius > 0)) return;
+    if (!region || !region.center || !(region.radius > 0)) return;
     found.push({
       key: region.key,
       block: { m: region.m, shell: region.shell, band: region.band, wedge: region.wedge },
-      x: region.centre[0], y: region.centre[1], z: region.centre[2], radiusPc: region.radius,
+      x: region.center[0], y: region.center[1], z: region.center[2], radiusPc: region.radius,
       share: region.share, color: shareColor(region.share), name: region.name || null, parent: region.parent || null,
       sectorCount: region.sector_count, capacity: region.capacity, inhabited: inhabitedOf(region.inhabited),
     });
@@ -135,6 +135,23 @@ export function regionMarkers(kind, blobs, look, inView, covered) {
     };
     if (blob.inhabited.tier !== null) item.tier = blob.inhabited.tier;
     found.push({ kind: regionKind(kind), item });
+  });
+  return found;
+}
+
+// The Region symbol of every charted region (a region with a generated sector) whose sphere is drawn: one marker item for each blob
+// of `blobs`, unless `skip(blob)` (an inhabited token or a system's own mark already stands for it). Same arguments as `regionMarkers`.
+export function chartedRegionMarkers(kind, blobs, look, inView, skip) {
+  const found = [];
+  (blobs || []).forEach((blob) => {
+    if (!(blob.sectorCount > 0) || !(look(blob).alpha >= REGION_TOKEN_MIN_ALPHA) || !inView(blob) || skip(blob)) return;
+    found.push({
+      kind,
+      item: {
+        key: "region-mark:" + blob.key, id: "region-mark:" + blob.key, name: blob.name, x: blob.x, y: blob.y, z: blob.z,
+        n: blob.sectorCount, sectors: blob.sectorCount, regionKey: blob.key,
+      },
+    });
   });
   return found;
 }

@@ -42,7 +42,6 @@ these:
   call it as a global.
 """
 
-import logging
 
 from flask import current_app, g, render_template, request, url_for
 from markupsafe import Markup
@@ -50,6 +49,7 @@ from markupsafe import Markup
 from planetgen.web.lib import apiclient, autolink, help_registry
 from planetgen.api.authz import session_cookie_name
 from planetgen.web.lib.pagination import render_pagination
+from planetgen.util import log
 from planetgen.web.lib import reference_urls
 from planetgen.web.lib.reference_urls import reference_path
 
@@ -296,5 +296,5 @@ def _with_help_links(html):
     try:
         return autolink.link_page(html, help_registry.terms(), lambda term: page_url(term.endpoint, **term.values), request.path)
     except Exception:    # a missing link must never take a page down
-        logging.getLogger(__name__).exception("the help links could not be added to %s", request.path)
+        log.exception("the help links could not be added to %s", request.path)
         return html
