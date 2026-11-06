@@ -23,6 +23,21 @@
   </table></div>
 </section>
 
+{%- if belt.fates %}
+<section class="panel" id="belt-fates" aria-labelledby="belt-fates-heading">
+  <div class="panel-header"><h2 id="belt-fates-heading">Where the disk's mass went</h2></div>
+  <p>The outermost giant sorted the mass of this outer disk into these groups. The shares add up to the whole disk. Some of it never stayed in the belt: it was thrown out of the system, parked beside the giant, put in the inner belt or caught as moons.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Group</th><th scope="col">Share of the disk</th></tr></thead>
+    <tbody>
+      {%- for fate in belt.fates %}
+      <tr><th scope="row">{{ fate.population|replace("_", " ")|capitalize }}</th><td>{{ quantity(fate.share) }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
+
 <section class="panel" id="belt-bodies" aria-labelledby="belt-bodies-heading">
   <div class="panel-header"><h2 id="belt-bodies-heading">Bodies kept one by one</h2></div>
   {%- if bodies %}

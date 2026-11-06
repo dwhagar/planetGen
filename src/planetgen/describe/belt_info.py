@@ -51,7 +51,7 @@ def belt_page_record(belt, star, object_id):
     law = belt_ledger.ICY_LAW if belt.distance >= star.snow_line_au else belt_ledger.ROCKY_LAW
     ledger = belt_ledger.Ledger(masses, belt_mass, max(belt_mass - sum(masses), 0.0), len(masses), False, law)
     return page_data.BeltRecord(object_id, belt.lower_limit, belt.upper_limit, units.convert(star.mass, "kg", "Msun"), star.luminosity,
-                                _al26_ratio(belt.system_config, star), ledger, ())
+                                _al26_ratio(belt.system_config, star), ledger, (), fates=belt.scatter_fates)
 
 
 def belt_info(conn, belt_id):
