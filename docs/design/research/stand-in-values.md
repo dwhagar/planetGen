@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1192 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1195 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 111 | 85 | 24 | 61 | 0 | 281 |
+| T6 | 113 | 86 | 24 | 61 | 0 | 284 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 653 | 248 | 58 | 188 | 45 | 1192 |
+| All | 655 | 249 | 58 | 188 | 45 | 1195 |
 
 ## How the labels were given
 
@@ -1674,6 +1674,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md | - | no data |
+
+## 6.193 Stand-ins of the embryos the planets stir out of a system
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SM1 | P | T6 | L1 | planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it | the 2:1 resonance (1.59) to the 4:1 (2.52) | embryos of 0.1 Earth masses and more in a system with at least one planet | an N-body run of a disk of embryos about a giant at 5 AU that leaves the embryos beyond 2 times its orbit on their orbits for the disk's life and after | the stirred stretch from a direct integration of the architecture's planets and embryos | the 3:1 resonance is where the Kirkwood gaps open (a body there is pumped to a planet-crossing orbit); using it as the stirred stretch's edge is ours | - | - |
+| SM2 | P | T6 | L0 | planet_architecture.losses: the embryo is scattered by the planet that gives the highest Safronov number at its distance (as for a chain body in a reach band), over the disk lifetime of `scatter.DISK_LIFETIME_YR` | none | embryos in the stirred stretch | an architecture where a weaker planet scatters an embryo the strongest does not reach | the encounter rates of each planet with the embryo | the Safronov scatter rule already registered for the reach bands (GEN.1119) | - | - |
+| SM3 | P | T6 | L0 | planet_architecture._ROGUE_MIN_KG: an embryo under 0.1 Earth masses is never made a rogue and stays one bound record | the bin edge | the generator's rogue classes | a catalogued rogue of under 0.1 Earth masses | the rogue classes below the terrestrial bin | `tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH` | - | - |
 
 ## 6.182 Stand-ins of where a stored belt member lies
 

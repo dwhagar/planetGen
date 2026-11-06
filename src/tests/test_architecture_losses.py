@@ -97,14 +97,32 @@ def test_a_planet_a_hot_jupiter_sweeps_up_collides_instead_of_leaving_because_th
 def test_chain_bodies_a_giant_reaches_are_classed_and_the_rest_stay_bound_as_one_record():
     giant = seed(5.0, 300.0, 30.0, True)
     width = scatter.zone_half_width_au(5.0, 300.0, 1.0)
-    reached = (5.0 + 0.5 * width, 0.05 * EARTH)
-    far = [(40.0 + i, 0.02 * EARTH) for i in range(7)]
+    reached = (5.0 + 0.5 * width, 0.15 * EARTH)
+    far = [(40.0 + i, 0.15 * EARTH) for i in range(7)]
     arch = architecture_of([giant], lost_of(small=tuple([reached] + far)))
     result = pa.losses(arch)
     assert [(l.kind, l.count) for l in result] == [("sub_minimum", 1), ("sub_minimum", 7)]
     assert result[0].ejected > 0.9 and result[0].perturber_au == 5.0
     assert (result[1].ejected, result[1].collided, result[1].bound) == (0.0, 0.0, 1.0)
-    assert result[1].mass_kg == pytest.approx(7 * 0.02 * EARTH)
+    assert result[1].mass_kg == pytest.approx(7 * 0.15 * EARTH)
+
+
+def test_an_embryo_between_the_three_to_one_resonances_of_the_planets_is_stirred_and_one_beyond_or_under_a_rogues_least_mass_is_not():
+    giant = seed(5.0, 300.0, 30.0, True)
+    low, high = scatter.reach_band_au(5.0, 5.0, 300.0, 1.0)
+    resonance = 3.0 ** (2.0 / 3.0)
+    stirred = (high * 1.5, 0.2 * EARTH)                     # outside the chaotic zone, inside the 3:1 resonance
+    beyond = (high * resonance * 1.2, 0.2 * EARTH)          # outside the 3:1 resonance
+    within = (low / 1.5, 0.2 * EARTH)                       # inside, inside the inner 3:1 resonance
+    tiny = (high * 1.5, 0.05 * EARTH)                       # under a rogue's least mass
+    arch = architecture_of([giant], lost_of(small=(stirred, beyond, within, tiny)))
+    result = pa.losses(arch)
+    scattered = [l for l in result if l.distance_au is not None]
+    assert sorted(l.distance_au for l in scattered) == sorted([stirred[0], within[0]])
+    assert all(l.perturber_au == 5.0 and l.ejected > 0.0 for l in scattered)
+    (free,) = [l for l in result if l.distance_au is None]
+    assert free.count == 2 and free.bound == 1.0
+    assert free.mass_kg == pytest.approx(0.25 * EARTH)
 
 
 def test_the_merges_are_a_collision_that_keeps_the_lost_mass():
@@ -123,9 +141,9 @@ def test_the_mass_a_planets_core_cap_cuts_off_is_a_collision_that_keeps_the_mass
 def test_the_ejection_yield_counts_expected_bodies_above_a_mass_floor():
     heavy = seed(1.57, 300.0, 30.0, True)
     light = seed(1.59, 80.0, 20.0, True)
-    arch = architecture_of([heavy], lost_of(thrown=((light, heavy),), small=((1.6, 0.05 * EARTH),)))
+    arch = architecture_of([heavy], lost_of(thrown=((light, heavy),), small=((1.6, 0.15 * EARTH),)))
     count_all, mass_all = pa.ejection_yield(arch)
-    count_planets, mass_planets = pa.ejection_yield(arch, 0.1)
+    count_planets, mass_planets = pa.ejection_yield(arch, 1.0)
     assert count_all > count_planets > 0.7
     assert mass_planets == pytest.approx(80.0 * pa.losses(arch)[0].ejected)
     assert mass_all > mass_planets
@@ -155,17 +173,17 @@ def test_a_star_without_a_giant_ejects_next_to_nothing_and_one_with_giants_eject
     giant_free = [a for a in stars if not any(p.runaway for p in a.planets) and not a.lost.thrown and not a.lost.swept]
     rich = [a for a in stars if a.lost.thrown or a.lost.swept]
     assert giant_free and rich
-    free_mass = sum(pa.ejection_yield(a)[1] for a in giant_free) / len(giant_free)
-    assert free_mass < 1e-3
-    rich_mass = sum(pa.ejection_yield(a)[1] for a in rich) / len(rich)
+    free_mass = sum(pa.ejection_yield(a, 1.0)[1] for a in giant_free) / len(giant_free)
+    assert free_mass < 1e-3                           # no planet-sized body leaves (the stirred embryos are under an Earth mass, GEN.1299)
+    rich_mass = sum(pa.ejection_yield(a, 1.0)[1] for a in rich) / len(rich)
     assert rich_mass > 10.0 * max(free_mass, 1e-6)
 
 
-def test_the_yield_per_star_is_reported_and_is_far_below_the_flat_rate():
+def test_the_yield_per_star_is_reported_and_reaches_the_terrestrial_band_but_not_the_flat_rate():
     stars = built(1.0, 300)
     planets = sum(pa.ejection_yield(a, 0.1)[0] for a in stars) / len(stars)
     mass = sum(pa.ejection_yield(a, 0.1)[1] for a in stars) / len(stars)
-    # The architecture alone throws out well under one planet per star (the review report measures about 0.2): the rest of the free-floating
-    # population is not made by it (docs/design/research/rogue-planet-review.md).
-    assert 0.0 < planets < 1.0
+    # The architecture throws out the thrown planets and the embryos its planets stir (GEN.1299): a few bodies per star of 0.1 Earth masses and up, in the rocky
+    # free-floating band of [R0258] (0.8 to 7.5) and far under the microlensing census (docs/design/research/rogue-planet-review.md).
+    assert 0.5 < planets < 7.5
     assert mass > 0.0

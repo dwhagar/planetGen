@@ -10,14 +10,11 @@ The planet architecture throws out bodies; those are the rogues of the stored do
 * [R0258] (Barclay et al.): 2.5 rocky free-floating bodies per star (embryos thrown out of a Mars- to Earth-mass range). The band is 0.8 to 7.5, a factor of three either way.
 
 The observations are loose, so the bands are wide. The check counts what the architecture itself ejects, per star of the generator's own mass function, and what the Rogues levels let the
-top-up bring a sector to. The donors alone fall far below both bands (about 0.1 body per star): the top-up, set by Boss's levels, makes up the rest. The test of the donor yield is a strict
-expected failure, so it starts failing (and says so) the day the architecture's yield enters the bands; the finding is in
-`/mnt/project-files/reports/rogue-yield-calibration-2026-11-06.md`.
+top-up bring a sector to. The donors reach the terrestrial band (GEN.1299: the embryos below the planet minimum are ejected by the planets that stir them) and stay under the microlensing band; the top-up,
+set by Boss's levels, makes up the rest of it. The finding is in `/mnt/project-files/reports/rogue-yield-calibration-2026-11-06.md`.
 """
 
 import random
-
-import pytest
 
 from planetgen import tuning
 from planetgen.physics import constants, imf, planet_architecture as pa
@@ -56,17 +53,16 @@ def _donor_yields():
     return micro / STARS, terrestrial / STARS
 
 
-def test_the_donors_alone_leave_far_fewer_rogues_than_observed_and_are_not_zero():
-    micro, terrestrial = _donor_yields()
-    assert 0.0 < micro < 1.0 and 0.0 < terrestrial < 1.0
-    assert micro < MICROLENSING_BAND[0] and terrestrial < TERRESTRIAL_BAND[0]
-
-
-@pytest.mark.xfail(strict=True, reason="TEST.499 finding: the architecture ejects about 0.1 body per star, under both observed bands; the top-up makes up the difference")
-def test_the_donor_yield_per_star_is_inside_the_observed_bands():
-    micro, terrestrial = _donor_yields()
-    assert MICROLENSING_BAND[0] <= micro <= MICROLENSING_BAND[1]
+def test_the_donor_yield_is_inside_the_terrestrial_band():
+    """GEN.1299: the embryos left below the planet minimum, stirred by the planets' resonances, are the rocky rogues of [R0258]."""
+    _, terrestrial = _donor_yields()
     assert TERRESTRIAL_BAND[0] <= terrestrial <= TERRESTRIAL_BAND[1]
+
+
+def test_the_donors_leave_the_microlensing_band_to_the_rogues_level_top_up():
+    """The embryos are small: the microlensing range (0.33 Earth masses and up) stays under its band, and the top-up (GEN.1287) makes up the rest."""
+    micro, _ = _donor_yields()
+    assert 0.0 < micro < MICROLENSING_BAND[0]
 
 
 def test_the_rogues_level_ceilings_reach_the_bands():

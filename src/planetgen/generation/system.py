@@ -2314,13 +2314,13 @@ class StarSystem:
 
     def ejected_losses(self):
         """
-        What the planet architecture of each star of this system threw out, as `(star, Loss)` pairs (GEN.1119, GEN.1111): the `thrown` losses of the
+        What the planet architecture of each star of this system threw out, as `(star, Loss)` pairs (GEN.1119, GEN.1111): the `thrown` and `sub_minimum` losses of the
         plan each star's kept planets were built from, with the share of each that ends ejected (`Loss.ejected`). Empty for a system rebuilt from
         storage (`from_dict` has no plan; a donor's rogues are made and saved when it is generated) and for a star with no plan.
         """
         found = []
         for star, architecture in getattr(self, "architectures", ()):
-            found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind == "thrown" and loss.ejected > 0.0)
+            found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind in ("thrown", "sub_minimum") and loss.ejected > 0.0)
         return found
 
     def _plan_architecture(self, star, orbit_ceiling_au):
