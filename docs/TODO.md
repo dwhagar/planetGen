@@ -11201,27 +11201,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1021).
   Prerequisites: GEN.1021. Related: GEN.1021, GEN.1005, GEN.725.
 
-- [ ] **GEN.1023 Two planets of a close pair in triple seed 208 sit 9.93 mutual Hill radii apart where the generator promises 10 (bug)**
-  Found by Core 3's overlap audit (TEST.477, #4071; relayed 2:04 PM EDT
-  2026-10-30 as the lane reported): a sweep of 864 stored systems (144
-  single, 144 pairs, 288 triples, 192 quadruples, 96 five-star) found no
-  star overlap, stability or Roche failure, and exactly one failure:
-  triple seed 208, two planets of a close pair 9.93 mutual Hill radii
-  apart where the generator promises 10. It is the one expected-fail
-  entry of tests/test_clearance.py. Do: find why the placement lets the
-  pair land under its promised separation (a rounding of the Hill
-  radius, the mass used, or a later change to a planet's mass or orbit
-  after placement), fix the placement, and remove the expected-fail
-  entry. Done: seed 208 passes the audit and the sweep shows no new
-  failure. Note GEN.1014 (P8, the clearance ledger) may fix this by
-  design; if it is done first, close this with it. Owner: none yet; any
-  free lane (Bug 1 is the natural owner). Version 8.1.
-  Cause found (3:30 PM EDT 2026-10-30): Planets 1: a planet after a belt
-  is spaced against the belt only, not the planet before it (seed 208:
-  giant, belt, small planet, 9.933 Hill radii). The ledger holds both,
-  so the GEN.1014 wiring fixes it and removes the expected-fail entry.
-  Prerequisites: none. Related: TEST.477, GEN.1014, GEN.1006.
-
 - [ ] **GEN.1047 Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -13159,6 +13138,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until he answers. Version 8.1. Owner: Planets 1. Filed by the TODO
   thread.
   Prerequisites: none. Related: TEST.499, GEN.1111, GEN.1287.
+  Decision (Boss, 5:30 PM EST on 2026-11-06, Q2 option 1): the architecture carries the free-floating yield. Keep the deleted sub-minimum bodies as ejected mass or small rogues so the donors alone enter the observed bands; the top-up (GEN.1287) then only fills any gap and the expected failure in test_rogue_yield_calibration becomes a plain test. Lock item with an epoch. Owner: Planets 1 builds it now (physics drives, no game rates; stand-ins registered).
 
 - [ ] **GEN.1288 cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections**
   Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
@@ -17111,12 +17091,7 @@ clears each one.
   Done: the test passes alone on current main. Version 8.1. Owner: Core 2.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.593.
-
-- [ ] **TEST.642 tests/test_work_units.py: three tests start a second run in the same process and raise Busy from the ADM.136 guard (a run started inside a run would wait for itself for ever) (bug)**
-  The Train Manager (as the lane reported, about 11:24 PM EST on 2026-11-05, main e97e2e2d9) ran tests/test_work_units.py: test_a_second_run_waits_in_line_for_the_first_and_then_runs, test_a_runs_results_do_not_depend_on_the_place_it_started_from and test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for raise planetgen.queue.runrecord.Busy: the run is started by the same process that follows it, so it would wait for itself for ever. That is the ADM.136 guard (#4680) firing on tests that start a second run in the same pytest process. Do: start the first run from a separate process (or a thread that is not the follower) in those tests so the guard stays, and never weaken the guard. Reproduce on current main first. Lock-free, no
-  migration. Done: the test passes on current main. Version 8.1. Owner:
-  Core 1. Filed by the TODO thread.
-  Prerequisites: none.
+  Decision (Boss, 5:30 PM EST on 2026-11-06, Q3 option 1): the Go to row plus the map form the block that fills the window; the 95 percent rule applies to the block and the page aligns to the row's top, so the map is about 40 px shorter and the row stays visible. Core 2 builds it and adjusts the mapfit.js unit tests and the MAP.350 browser tests; the layout test is not loosened.
 
 - [ ] **GEN.1303 Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug)**
   Bug 1 (as the lane reported, 5:21 AM EST on 2026-11-06) found
@@ -17187,6 +17162,7 @@ clears each one.
   the window, and the 2595 K body is re-classed or explained. Version
   8.1. Owner: none yet (life lane). Filed by the TODO thread from Bug 1.
   Prerequisites: none. Related: GEN.750.
+  Owner (TODO) (5:15 PM EST on 2026-11-06): Bug 1 takes it after PERF.241 (found it; lock).
 
 - [ ] **GEN.1308 Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders**
   Split out of GEN.1092 by Aux 5 (5:40 PM EST as the lane reported) when
@@ -17223,6 +17199,7 @@ clears each one.
   Boss described. Version 8.1. Owner: Planets 1 (GEN.1111 rogue work).
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1111, GEN.1256.
+  Owner change (TODO) (5:35 PM EST on 2026-11-06): Core 1 takes it (Core 1 is free and knows the sector pages and nav); Planets 1 stays for questions on store.uncharted_sector_id and goes to GEN.1299.
 
 - [ ] **MAP.400 The Object index reads only per-sector tables, so the nebula field (109,811 clouds) and the scattered black holes, remnants, magnetars and hypervelocity stars (9.7 million rows) are missing from search, lists, Nearby and the kind table (bug)**
   Boss, 5:08 PM EST on 2026-11-06: do a bugfix run to find out why the
@@ -17243,6 +17220,22 @@ clears each one.
   thread.
   Prerequisites: none. Related: MAP.399, PERF.245.
 
+- [ ] **MAP.401 An uncharted sector has an info page showing what is placed in it, with a link to each object's page**
+  Boss, 5:11 PM EST on 2026-11-06 (relayed by the coordinator): uncharted
+  sectors should have an info page showing what is known in the sector
+  (what is placed) with links to each object page in the uncharted
+  sector. Do: the page for a placeholder sector (MAP.399 names it) lists
+  the rogue planets, black holes, remnants, nebula clouds and other
+  scattered objects placed in its cell, each linked to its own object
+  page, and says plainly that the sector is uncharted and what that
+  means (nothing generated here yet). Reads phenomenon_scatter,
+  nebula_field and the rogue rows by cell; a browser test follows a link
+  to an object page. Lock-free. Done: the placeholder's page lists its
+  known objects with working links. Version 8.1. Owner: Planets 1,
+  after MAP.399. Filed by the TODO thread.
+  Prerequisites: MAP.399. Related: MAP.400, GEN.1111.
+  Owner change (TODO) (5:35 PM EST on 2026-11-06): Core 1 takes it after MAP.399.
+
 - [ ] **PERF.245 The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types**
   Boss, 5:08 PM EST on 2026-11-06: the warm-up takes all workers, so
   indexing and things like searches and sector lists fail to get a
@@ -17255,6 +17248,7 @@ clears each one.
   sector list answer while the warm-up runs. Version 8.1. Owner: Core 2.
   Filed by the TODO thread.
   Prerequisites: none. Related: MAP.400, PERF.241.
+  Addition (Boss, 5:30 PM EST on 2026-11-06, Q6 option 1): fold in keeping the app loaded in the warm-up worker (the open PERF idea from the warm-up timings); Core 4 measures first and keeps it only if it gains. Owner changed (TODO): Core 4 (Core 4 found the shared FIFO maintenance queue and the normal-priority whole-map build).
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
