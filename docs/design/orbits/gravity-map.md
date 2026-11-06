@@ -1,12 +1,12 @@
 # Gravity map: the field of a sector as a heat map
 
-**Status (2026-10-15):** decided; not built. GEN.198, GEN.199, PERF.72, TEST.131 and MAP.167 to MAP.170 are open. This is the feature of the 9.1 headline.
+**Status (2026-10-15):** decided; not built. GEN.198, GEN.199, PERF.72, TEST.131 and MAP.167 to MAP.170 are open. This is the third phase of 9.0 (Boss folded 9.1 into 9.0 on 2026-11-05).
 
 Boss (2026-10-10 20:57Z): the orbits are worked out from point-mass
 vectors, so show "a gravitational map of a sector, probably using colors
 and calculating it per zone ... the gravitational gradients of the vector
 field as kind of a heat map of the inside of the sector". Foundations are
-phase 2; the feature roll-out is phase 3 and the seminal feature of 9.1 (Boss moved it from 9.0 on 2026-10-16).
+phase 2; the feature roll-out is phase 3 and phase 3 of 9.0 (9.1 was folded into 9.0 on 2026-11-05; its foundations are built in 8.2, 8.3 and 8.5).
 
 ## What is drawn
 
@@ -28,19 +28,34 @@ are marked.
 - **Zones.** A sector (edge 4 pc, `DEFAULT_SECTOR_EDGE_PC`) is cut into
   equal zones; the default is 16 per edge (0.25 pc), a setting. The field
   is sampled at each zone's centre.
-- **Sources.** Every point mass in the sector and its neighbours: stars,
-  planets, moons, compact objects and stand-alone facilities with a mass
-  (the same influence set as GEN.109's Hill-sphere rule), plus the galaxy's
-  own smooth potential (GEN.115) as the background, joined by the rule in
-  "The smooth galaxy and the generated stars" below (MAP.383). Plummer
-  softening keeps a zone that holds a source finite.
+- **Sources.** Every point mass in the sector and its neighbours: **one per
+  star system** (its stars, planets and moons together at the system's place,
+  which changes the field at a zone's size by under 0.1 percent; MAP.386,
+  `db/gravity_sources.py`), stand-alone black holes and neutron stars (the
+  same table the orbital update reads); rogue planets, comets and asteroid
+  fields are below the tolerance and left out. The System Map's orbital-plane
+  version reads the bodies themselves (MAP.169). The galaxy's own smooth
+  potential (GEN.115) is the background, joined by the rule in "The smooth
+  galaxy and the generated stars" below (MAP.383). Plummer softening keeps a
+  zone that holds a source finite.
 - **Near and far.** Sources close to a zone are summed exactly; distant
-  ones are summed as one aggregate per region (mass and centre of mass,
-  re-using the MAP.151 region pyramid), the way a tree code does. The
-  cost study (PERF.72) fixes the split and checks it against the exact sum.
-- **Cache.** The grid is derived data, cached like the Galaxy Map tiles and
-  thrown away when the orbital update (GEN.105) moves the sources; it is
-  never part of the galaxy itself, so it needs no galaxy-table migration.
+  ones are summed as one point per cell (mass and centre of mass) of a
+  hierarchy with 0.5 pc leaf cells, the way a tree code does
+  (MAP.385, `galaxy/gravity_tree.py`; the MAP.151 region is the data window and
+  holds no masses). The cost study (PERF.72) fixes the split, the opening
+  angle (0.3 to 0.7, chosen to a pair budget) and checks it against the exact
+  sum; the kernel is `galaxy/gravity_kernel.py` (MAP.384).
+- **Cache.** One file per sector in a cache directory (`galaxy/gravity_cache.py`,
+  MAP.387), keyed by a stamp of the rule, the settings, the potential and, for
+  every sector within 4 edges, its `modified_at` and its rows' count and latest
+  `modified_at`. The orbital update (GEN.105) writes the rows it moves, so a
+  moved star changes the stamp of the grids that reach its sector and of no
+  other, and the next read works only those out again. The file holds the
+  *local* field (generated stars less the smooth galaxy's own stars, 16^3 zones,
+  ten float32 values each: the pull, the potential and the tidal tensor); the
+  reader adds the smooth galaxy at the zone. The job is `db/gravity_grid.py` (it
+  imports numba, so a worker runs it; the web app reads the files and never
+  imports it). Derived data: never part of the galaxy, no migration.
 - **Slices and volumes.** The map shows one slab (a plane slice) at a time
   and can show the whole volume as transparent layers; on the System Map it
   is the orbital plane.
@@ -100,8 +115,12 @@ The plan, to be settled in GEN.198, GEN.199 and PERF.72:
 
 ## Items
 
+Built: the rule (MAP.383), kernel (MAP.384), hierarchy and lists (MAP.385), point masses (MAP.386), grid job and cache (MAP.387), and the perf guard
+(PERF.243, `tests/test_perf_gravity_grid.py`: the list fits the pair budget exactly on every machine, the time is held against the machine's own pair rate,
+the 0.25 s ceiling of the densest sector is opt-in with `PLANETGEN_RUN_PERF_BENCHMARK=1`). Still open: the layers and the API below.
+
 GEN.198 field evaluator; TEST.131 its tests; PERF.72 cost study; GEN.199
 per-zone grid and cache (phase 2). MAP.167 umbrella; API.24 endpoint;
 MAP.168 Sector Map layer; MAP.169 System Map layer; UX.94 wording and
-legend (phase 3, the 9.1 headline). MAP.170 Galaxy Map layer (phase 3+).
+legend (phase 3, phase 3 of 9.0). MAP.170 Galaxy Map layer (phase 3+).
 Course planning (NAV.6) does not use the evaluator: it plans around keep-out spheres.

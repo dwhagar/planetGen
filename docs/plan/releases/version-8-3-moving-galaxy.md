@@ -27,6 +27,10 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls |  |  |
+| OPS.106 | update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed |  |  |
+| OPS.107 | The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs |  |  |
+| OPS.108 | A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged |  |  |
+| OPS.109 | The update.sh data set step lists the kept files by download URL (one "kept URL (n files)" line per URL) and says the folder they are stored in |  |  |
 | OPS.98 | A time on every line of every script and command |  |  |
 | OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh |  |  |
 | OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | OPS.98 |  |
@@ -72,8 +76,9 @@ N-body influence, collisions, encounters and the Quantity class.
 | GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded |  | Split from GEN.115. |
 | GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | GEN.139 | Split from GEN.115. |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.339, GEN.340 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
-| VIEW.46 | The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes | VIEW.44, GEN.115 |  |
+| VIEW.46 | The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes | GEN.115 |  |
 | GEN.1285 | The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3) |  |  |
+| TEST.627 | Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3 | GEN.1285 |  |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | GEN.340 |  |
 | GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter |  | Split from GEN.109. |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs |  | Split from GEN.109. |
@@ -119,7 +124,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential |  | Gravity map foundation (Boss 2026-10-10). |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
-| MAP.387 | Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field |  |  |
 | API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | GEN.199 |  |
 
 ### What moved in the last update

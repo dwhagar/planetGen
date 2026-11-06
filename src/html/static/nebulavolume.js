@@ -174,6 +174,24 @@ export function singleSource(id, sphere, weight) {
   };
 }
 
+// MAP.392: a source for one cloud given by its sphere (a scattered nebula, one a waiting star lights, a supernova remnant: the map has no id for
+// them): `GET /galaxy/cloud-volume?x=&y=&z=&radius_pc=&family=` samples the model's density at the sphere. Its key holds the sphere to the thousandth
+// of a parsec (`sphere:<family>:<x>,<y>,<z>,<radius>`), so the same cloud is one request however often the scene is built.
+export function sphereSource(family, sphere, weight) {
+  const at = (value) => Number(value).toFixed(3);
+  return {
+    key: `sphere:${family}:${at(sphere.x)},${at(sphere.y)},${at(sphere.z)},${at(sphere.radiusPc)}`, single: true, block: null,
+    weight: Math.min(1, Math.max(0, weight === undefined ? 1 : weight)),
+    reaches: [{ x: sphere.x, y: sphere.y, z: sphere.z, radiusPc: sphere.radiusPc }],
+  };
+}
+
+// The `{ family, x, y, z, radiusPc }` of a sphere source's key (`sphere:<family>:<x>,<y>,<z>,<radius>`), or null for any other key.
+export function sphereOf(key) {
+  const found = typeof key === "string" && /^sphere:([a-z-]+):(-?[\d.]+),(-?[\d.]+),(-?[\d.]+),([\d.]+)$/.exec(key);
+  return found ? { family: found[1], x: Number(found[2]), y: Number(found[3]), z: Number(found[4]), radiusPc: Number(found[5]) } : null;
+}
+
 // The id of a single source's key (`nebula:<id>`), or null for a node key.
 export function singleIdOf(key) {
   return typeof key === "string" && key.indexOf("nebula:") === 0 ? key.slice("nebula:".length) : null;

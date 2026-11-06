@@ -195,7 +195,13 @@ def test_the_spiral_written_as_components_gives_the_density_it_gave_before(name)
     mass of a system at every age): every total density, the halo, the bulge and the nuclear terms are the old ones times one number
     per shape (0.9941 to 0.9944, checked point by point before the fixture was rewritten, the total mass unchanged), and the
     per-population units follow the mean system mass at each population's ages (young about 1.03 to 1.11 times, intermediate 1.02 to
-    1.08, old 0.99), which also shifts the mix of a place between the age groups."""
+    1.08, old 0.99), which also shifts the mix of a place between the age groups. It was made again for GEN.1230 and GEN.1242 (epoch 131: the thin disk forms
+    its stars from an inside-out infall, not from the halo's stellar growth, which moved the ages and so the mean system mass of each
+    population): every total density and the halo are the old ones times one number per shape (1.0010 to 1.0014 for the five shapes
+    that share the reference disk, 1.0444 for the large four-armed disk, checked point by point before the fixture was rewritten, the total
+    mass unchanged), and the per-population units follow the new star formation history (the large disk's young units fall from 19 to
+    1.3 times the reference disk's, which the halo-growth history had made too young). The fixture's `nuclear_disk` is `nuclear_disk`
+    since DOC.103's American spelling of stored names."""
     with open(IDENTITY, encoding="utf-8") as handle:
         data = json.load(handle)
     shape, wanted = IDENTITY_SHAPES[name](), data["shapes"][name]

@@ -196,8 +196,8 @@ Headline features (Boss, 2026-10-16, 1:07 PM EDT): 8.1 infinite zoom
 (MAP.146) and the new generate scatters (GEN.301), 8.2 user accounts with
 sign-up by an email invitation only an admin can send (USR.1), 8.3 the
 orbital update system (GEN.105), 8.5 courses that bend around gravity wells
-(NAV.59), 8.6 edit everything (ADM.57), 9.1 the view from a planet (VIEW.18),
-with the gravity map (MAP.167) as the second feature,
+(NAV.59), 8.6 edit everything (ADM.57), 9.0 phase 2 the view from a planet (VIEW.18),
+with the gravity map (MAP.167) as the third phase,
 10.0 roles and permissions with user edit requests and moderators
 (USR.25, Boss 1:43 PM EDT). 9.0 composition and the atmosphere colour (GEN.421, Boss,
 11:25 PM EDT: the seminal feature of 9.0; 11:58 PM EDT: composition of every
@@ -209,10 +209,10 @@ feature. Boss (5:44 PM EST on 2026-11-05) approved 8.7 (Full help for all pages)
 (VIEW.18), the gravity map (MAP.167) and the dynamic population and trade
 are now phases 2 and 3 of 9.0 (the dynamic population and trade moved to 9.2 at 6:00 PM EST on 2026-11-05), and 9.2 onward keep their numbers. Reorganized (Boss, 5:15 PM EST on 2026-11-05) against the open
 items: 8.4 is now New worlds and the first settlements, and the gravity map
-(MAP.167, the second feature of 9.1) is built across 8.2 (grid foundations
+(MAP.167, the third phase of 9.0) is built across 8.2 (grid foundations
 MAP.383 to MAP.386, PERF.72, PERF.243), 8.3 (GEN.198, GEN.199, MAP.387,
 API.24), 8.5 (the Sector and System Map layers MAP.168, MAP.169, UX.94) and
-9.1 (the parent and the optional Galaxy Map layer MAP.170); nothing of it
+9.0 (the parent and the optional Galaxy Map layer MAP.170); nothing of it
 lands in 8.1. A
 headline feature carries a `Headline: VERSION (name).` line in its item;
 `scripts/build_todo_docs.py` reads it and shows, in every plan page, each
@@ -697,28 +697,6 @@ with `clamp()`.
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
 
-- [ ] **UX.164 The wipe line reads "Wiped 75 tables (about 1 row)" (bug)**
-  From the generation-log analysis of Boss's run
-  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
-  reported; report reports/generation-log-analysis-2026-10-24.md). P6.
-  Do: make the wipe line report what it really did (tables cleared and
-  rows removed, both real counts), not an estimate of about one row.
-  Related: UX.161 (the main page counts after a reset). Done: a test on
-  the wording against a wiped test database. Owner: Generation-log
-  analysis lane (proposed by the lane).
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 7 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Research (2026-10-09): Lock-free item given to Aux 7 (6:29 PM EDT
-  2026-10-29) after PERF.178/179 merged; taken out of Core 5's chain.
-  Owner: Aux 7.
-  Prerequisites: none.
-
 - [ ] **UX.179 Sitemap entries and an Open Graph image for object pages (optional, can wait)**
   Boss's ask, 12:43 AM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
@@ -827,7 +805,7 @@ with `clamp()`.
   lane (galaxy projection survey, report section 8, method 'all-sky').
   Do: a page that draws the sky as seen from a chosen star on a
   projection of the sphere; it shares its data with the System View sky
-  (VIEW.19 to VIEW.40) and the 9.1 sky chart (VIEW.15). Done: decided
+  (VIEW.19 to VIEW.40) and the 9.0 sky chart (VIEW.15). Done: decided
   when it is scheduled. Not scheduled, no owner. Goal #3241. Filed by
   the TODO thread.
   Prerequisites: none.
@@ -957,6 +935,123 @@ with `clamp()`.
   Done: the page, the route, the units on every number, and the page
   tests.
   Prerequisites: POP.50, POP.51. Related: POP.24.
+
+- [ ] **UX.273 Sensor (Rendered) view for every item: a rendered picture of the selected item, painted from its stored properties and Object ID seed**
+  Boss asked for it with the Chart View fixes (PR 5208, 6:40 PM EST on
+  2026-11-05, as the lane reported) and answered the design questions
+  at 6:46 PM EST on 2026-11-05, option 1 on all four: S1 every kind in
+  the property sheet gets a Sensor view (facilities wait for 9.3); S2
+  the object page first panel plus the map info panel on selection; S3
+  the framework and the already-painted kinds in 8.2, the data polish
+  (MAP.280 to MAP.284) stays in 9.0 phase 1; S4 a short "Sensors show
+  ..." readout line under the picture. Design:
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md.
+  Umbrella: done when the sub-items are done. Version 8.2. Owner: none
+  yet. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.143, UX.275, UX.276, MAP.394, MAP.395, MAP.396, TEST.629, DOC.107.
+
+- [ ] **UX.274 Streamline the View menu: one Menu grouped by task with search, counts and a reset row, the same builder on the Galaxy, Sector and System Maps**
+  Boss asked for it after the Chart View menu group of PR 5208 (6:40 PM
+  EST on 2026-11-05, as the lane reported) and answered the design
+  cards at 6:50 PM EST on 2026-11-05, option 1 on all four: one Menu
+  grouped by task with search, counts and a reset row; the same shared
+  builder on all three maps; the foundation (registry fields, shared
+  builder, guard test) in 8.2 so the 8.3 and 8.4 layers use it; the
+  Galaxy Map rewiring and the search box in 8.5 beside UX.269; named
+  presets later. Design:
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md.
+  Umbrella: done when the sub-items are done. Version 8.5. Owner: none
+  yet. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.269, UX.277, UX.278, UX.279, UX.280, UX.281, TEST.630, DOC.108.
+
+- [ ] **UX.275 Sensor registry and API: one registry of kind, look builder and painter (web/lib/sensor.py, static/sensorview.js) and GET /api/objects/<ref>/sensor, with a test that fails for any kind in describe/sheet.py that has no entry**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: one registry that maps every kind of the property sheet to the
+  look builder and painter that exist (bodylook.py, bodyview.js,
+  phenomenonrender.js), built from the stored row and the Object ID seed
+  alone (never a cached sky), the API route that returns the look JSON
+  so the Chart and 3D views can reuse it, and a guard test like the
+  property sheet one: a kind with no entry fails. Facilities have no
+  picture before 9.3. Version 8.2. Lock-free, no migration, no epoch.
+  Owner: none yet. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.171, MAP.270.
+
+- [ ] **UX.276 Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: rename the rendered example of the star, planet and moon pages
+  (UX.171) to Sensor view and make it the first panel of every kind that
+  has an entry in the registry; add the short readout line under the
+  picture, "Sensors show ...", from the text hook that exists in
+  describe/; where an input is not stored (cloud cover before 9.0,
+  ground colour before 8.4) the panel says estimate and the picture uses
+  today's fallback. Same look tokens as the pilot console (UX.130).
+  Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
+  by the TODO thread.
+  Prerequisites: UX.275. Related: UX.171, UX.130.
+
+- [ ] **UX.278 Shared View menu builder for the Galaxy, Sector and System Maps: DOM calls only, headings with counts, collapse state kept in the visitor preferences, and a mark where a setting differs from its default**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: one builder that makes the Menu from the layers
+  each map has, so a map shows only the headings it has layers for and a
+  new layer appears in the right place by declaring a heading; it keeps
+  the existing selectors (data-kind, data-action); counts such as
+  "Points of interest 4 of 12 on"; real checkboxes and details elements,
+  a tri-state group box for families such as the 20 world classes.
+  Switched on for the System Map and the Sector Map layers; not yet for
+  the Galaxy Map hand-written controls (UX.280). Version 8.2. Lock-free,
+  no migration, no epoch. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.277. Related: UX.274.
+
+- [ ] **UX.279 Search filter for the View menu: a function with tests that filters entries by name and keywords and opens the matching groups, behind no visible control yet**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: a pure function over the registry (name and
+  keywords, case-insensitive) that returns the matches and the groups to
+  open, with unit tests; the search box that uses it is UX.281. Version
+  8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed by the
+  TODO thread.
+  Prerequisites: UX.277. Related: UX.274.
+
+- [ ] **UX.280 Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: move the hand-written controls of
+  galaxymap3d.py onto the builder (UX.278) under the four headings; keep
+  the selectors the browser tests use; restyle with the console tokens
+  (UX.269). Version 8.5. Lock-free, no migration, no epoch. Owner: none
+  yet. Filed by the TODO thread.
+  Prerequisites: UX.269, UX.278. Related: UX.274.
+
+- [ ] **UX.281 View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: the search box ("Find a setting") over UX.279
+  with the matches announced to screen readers ("5 matches"), the Reset
+  to default row that appears only when a setting differs, the common
+  row at the top of Show (stars, nebulae, labels, black holes, Chart
+  View); touch targets of at least 44 px, visible focus, state not shown
+  by colour alone, reduced motion respected. Version 8.5. Lock-free, no
+  migration, no epoch. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.279, UX.280. Related: UX.274.
+
+- [ ] **UX.282 Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Do: three or four presets that each set many
+  switches and can be tweaked afterwards, placed once every layer has a
+  heading (UX.277); Boss chose this for later. Version later. Lock-free,
+  no migration, no epoch. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.281. Related: UX.274.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1197,10 +1292,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (MAP.387) and the route (API.24), because they ride on the orbital
   update and the galaxy potential (GEN.115); 8.5 holds the Sector and
   System Map layers and the wording (MAP.168, MAP.169, UX.94), because
-  courses around gravity wells use them; 9.1 keeps this parent and the
+  courses around gravity wells use them; 9.0 keeps this parent and the
   optional Galaxy Map layer (MAP.170). Nothing of it lands in 8.1: only
   generation aspects that directly impact 8.1 do. The 8.2 items read
   stars already generated and change no generated output.
+  Boss decision (6:36 PM EST on 2026-11-05): the gravity map shows the
+  TOTAL field: the generated stars plus the smooth galaxy added (the
+  local-only option is not offered). The cache from MAP.384 to MAP.387
+  holds the local part per sector and galaxy/gravity_cache.py adds the
+  smooth galaxy at the zone. Owner: Tides 1 (builds MAP.168, MAP.169 and
+  API.24 on that chain)
   Design: [docs/design/orbits/gravity-map.md](design/orbits/gravity-map.md)
 
 - [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
@@ -1956,67 +2057,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
 
-- [ ] **MAP.366 Galaxy Map stars vanish in square, tile-shaped chunks while a neighbouring chunk at the same distance stays (bug)**
-  Boss, 1:03 PM EST on 2026-11-04 (live observation): "how we cut stars
-  off instead of the view ... one segment of stars would disappear but
-  another one right next to it would stay there and they're about the
-  same distance away. It would make the star map look like it was
-  missing these square chunks of the tiles. I understand that tiles have
-  to do that but can you investigate and see if there is a way to make
-  what is visible a little more consistent when you're at the same
-  view?" He will send screenshots after train 10 is done to check
-  whether it is still true. Do: (1) reproduce on a seeded galaxy: fly to
-  a view where two neighbouring nodes at about the same distance differ
-  in what is drawn (the per-node cut in the node budget and the star
-  fade, NODE_CUT_CONFIG maxNodes, the block hand-down to children, the
-  per-node star limit); (2) find the rule that cuts a whole node's stars
-  while its neighbour keeps them (a budget spent in node order, a
-  distance test on the node centre rather than the star, a tile fetched
-  later than its neighbour); (3) change the rule so what is shown
-  depends on the star and the view, not on which tile it sits in: cut by
-  star brightness or distance for the whole view (one global threshold),
-  keep the cut smooth over tile borders, and fade rather than drop; (4)
-  a browser test with a seeded galaxy that two adjacent nodes at the
-  same distance show the same share of stars, and that the visible count
-  follows a smooth rule as the camera moves. Owner Core 2 (Boss's
-  request relayed 1:03 PM EST on 2026-11-04; 8.1, one lock-free item at
-  a time, behind MAP.365 unless Core 2 says it clashes). Filed by the
-  TODO thread.
-  Prerequisites: none.
-
-- [ ] **MAP.369 Region labels still do not show as clickable points of interest that zoom into the charted region (bug)**
-  Boss, 1:03 PM EST on 2026-11-04 (live observation): "right now we're
-  still not showing a region label as a POI that I can click on and zoom
-  in to the region of the galaxy that's been charted." What is on main:
-  the regions chain is built and retired (MAP.314 to MAP.322 named
-  regions, MAP.336 Go to a region, MAP.357 "every far-apart filled
-  region is a point of interest", MAP.356 to MAP.362 in #4393, which
-  added the region points of interest with a zoom link and merged nearby
-  ones). Why Boss may not see it: unknown from the code alone; those
-  items were closed on a browser test over a fixture, and Boss's own
-  galaxy may differ (a region needs a charted cell group that the node
-  payload names, the labels are domain-sliced and budgeted so far
-  regions may be cut, the layer may be off or hidden at his zoom, or a
-  later change such as the node budget or the nebula sprites hides
-  them). Do: (1) open Boss's kind of galaxy (a seeded galaxy with one
-  charted region far from another, then the default view) and find why
-  no region label draws or is clickable: payload (does the node list the
-  region?), layer default, label budget, selection (selectMarkers),
-  z-order under another layer, or a click target too small; (2) fix the
-  cause so that, at the default Galaxy Map view, each charted region far
-  enough from the others shows a label as a point of interest; clicking
-  it flies in to frame the charted part of the region (MAP.336 "frame");
-  (3) a browser test on a galaxy made like Boss's (a region generated
-  through the normal Generate page and a sector run) that the label is
-  present at the default zoom and the click flies in and frames the
-  region; (4) if it works on a fresh galaxy but not on Boss's, ask Boss
-  for the galaxy's region listing (planetgen regions) and check it.
-  Related: MAP.357, MAP.336, MAP.176. Owner Core 2 (Boss's request
-  relayed 1:03 PM EST on 2026-11-04; 8.1, one lock-free item at a time,
-  behind MAP.365 unless Core 2 says it clashes). Filed by the TODO
-  thread.
-  Prerequisites: none.
-
 - [ ] **MAP.374 Later: a brightness-versus-temperature chart (Hertzsprung-Russell style) linked to the Galaxy Map by selection**
   Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
   lane (galaxy projection survey, report section 8). Do: a chart of
@@ -2034,41 +2074,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (a soft marker sized by its real radius) and label it by name or
   designation with the same switch, click opens the same card with the
   link to the cluster page. Done: a browser test for the label and the
-  click; the Menu switch works. Lock-free, no migration. Version 8.1.
+  click; the Menu switch works. Lock-free, no migration. Version 8.8.
   Prerequisites: MAP.224. Owner: Core 2, after MAP.223. Filed by the
   TODO thread.
   Prerequisites: MAP.224. Related: MAP.224, MAP.223.
-
-- [ ] **MAP.386 Gravity grid point mass per system: barycentre and total mass, planets and moons folded in, while the System Map keeps the bodies**
-  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
-  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
-  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
-  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
-  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
-  against the exact sum; the kernel is numba and runs as a cached job
-  because the web app never imports numba; planets and moons fold into
-  their system's mass. Do: the rule and its code, with a test that the
-  folded field is within 0.1 percent of the explicit sum at 0.25 pc.
-  Done: the test passes. Lock-free until wired. Owner: Tides 1. Filed by
-  the TODO thread.
-  Prerequisites: none. Related: MAP.167, PERF.72.
-
-- [ ] **MAP.387 Gravity grid cache and stamps: a grid cache keyed by the source stamp in the near region and per-cell stamps in the far field**
-  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
-  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
-  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
-  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
-  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
-  against the exact sum; the kernel is numba and runs as a cached job
-  because the web app never imports numba; planets and moons fold into
-  their system's mass. Do: the cache as derived data only (no
-  galaxy-table migration), rebuilt on a threshold-based move, a job
-  queue for volume views, a slab on request. Done: a second request of
-  an unchanged sector reads the cache and a changed source stamp
-  rebuilds it, with tests. Lock-free (derived data only) unless it needs
-  a migration, then tell the TODO thread. Owner: Tides 1. Filed by the
-  TODO thread.
-  Prerequisites: MAP.385. Related: MAP.167, PERF.72.
 
 - [ ] **MAP.388 Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon**
   Boss (5:44 PM EST on 2026-11-05) approved 8.8 as 'Deep sky objects'
@@ -2144,6 +2153,54 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   informs and never refuses a course. Done: the read, the ship page row,
   and tests for a course across two territories.
   Prerequisites: NAV.77, USR.29. Related: USR.10.
+
+- [ ] **MAP.394 Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: the info panel shows the Sensor view of the selected object from
+  the registry, with the readout line; the maps keep their own symbols
+  and the Sensor view does not become a third map mode. Version 8.2.
+  Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
+  thread.
+  Prerequisites: UX.275, UX.276.
+
+- [ ] **MAP.395 Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: add the three pictures to the registry from stored data (belt
+  composition and count; comet composition, activity and distance to the
+  nearest star; rogue planet heat flux); belts and comets show "no
+  example yet" today. Version 8.2. Lock-free, no migration, no epoch.
+  Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.275.
+
+- [ ] **MAP.396 Sensor pictures for systems and for sectors, regions, galaxies and clusters: a top-down orrery plate and a star-field and gas patch from stored counts**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Do: the system plate reuses the System Map orbits (stars sized and
+  coloured, planets on their orbits); the sector, region, galaxy and
+  cluster picture is a star field and gas patch from stored counts,
+  nebulae, type and size. Stored data only, no cached sky. Version 8.2.
+  Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
+  thread.
+  Prerequisites: UX.275.
+
+- [ ] **MAP.397 Some View menu options show only the word "Forward" and cannot be clicked (bug)**
+  Boss (6:50 PM EST on 2026-11-05, as the lane reported): in the Map
+  View menu, some options just say the word "Forward" and are not
+  clickable. Likely the "pull forward" second button of the points of
+  interest rows (or a hand-written control) rendered as plain text; the
+  cause is not yet known. Do: find which menu rows show only "Forward",
+  why they are not interactive (markup, a disabled state with no
+  explanation, or a missing handler), fix them on the Galaxy, Sector and
+  System Maps, and add a browser test that every visible menu control is
+  a working button or checkbox. It may fold into the shared builder of
+  UX.278; fix it now on the present menu, lock-free. Version 8.1. Owner:
+  Core 5. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.274, UX.278, MAP.392.
 
 ## NAV: Navigation and courses
 
@@ -3419,7 +3476,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zone is thrown away only when a source passes its own threshold, the
   same event that sets its next update due time (GEN.106). PERF.72 sets
   the multiples.
-  Prerequisites: GEN.198, PERF.72, MAP.386, MAP.387. Related: GEN.105, PERF.72, MAP.167.
+  Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -10038,7 +10095,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   how a gas giant (hydrogen and helium fuel, its icy moons and rings),
   an icy moon, a comet swarm, a metallic asteroid (type M), a
   carbonaceous one (type C) and a silicate one (type S) score; (4) what
-  is fixed until 9.1 and what the nightly update may change later
+  is fixed until 9.2 and what the nightly update may change later
   (mining depletes). Sources: asteroid taxon composition literature and
   meteorite compositions, with GEN.725 tier labels for every invented
   number. Done: the design is in the docs with sources and stand-in
@@ -10099,8 +10156,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dilute core), its internal heat reads the layer structure, and the
   description says what the interior is. Done: a Jupiter-like, a
   Saturn-like and a hot giant sample change their field and text with
-  their interior, and the six columns have readers. Version 8.4, phase
-  1. Owner: Aux 3 (bulk composition), after GEN.733. Rules: no
+  their interior, and the six columns have readers. Version 8.1.
+  Owner: Aux 3 (bulk composition), after GEN.733. Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772);
   draws through draw.py; a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -10126,7 +10183,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing reads. Escape and retention (GEN.738) read them instead of
   recomputing, and a planet inside a large magnetopause loses less.
   Done: two planets differing only in field strength retain different
-  atmospheres, test-pinned. Version 8.4, phase 1. Owner: Aux 2 or Aux 5.
+  atmospheres, test-pinned. Version 8.1. Owner: Aux 2 or Aux 5.
   Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
@@ -10152,7 +10209,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dose and the PHI-6 radiation component read the flare irradiation
   index and the magnetopause size. Done: a flare-active star's planet
   shows a higher dose than a quiet star's at the same distance. Version
-  8.4, phase 1. Owner: Aux 2. Rules: no backward-compat shims; every
+  8.1, phase 1. Owner: Aux 2. Rules: no backward-compat shims; every
   number has a unit or scale (GEN.772); a changed generated value
   carries `tests.golden_update --reason ... --affects <stage>` and the
   next epoch; tests are `scripts/test.py changed --resume`.
@@ -10175,7 +10232,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
   issue). mixture_subject.py recomputes its own XUV index. Read the
   stored one and delete the duplicate (no shim). Done: one XUV
-  implementation, with the tests green. Version 8.4, phase 1. Owner: Aux
+  implementation, with the tests green. Version 8.1. Owner: Aux
   8. Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
@@ -10196,7 +10253,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the XUV saturation to the rotation period (the activity-rotation
   relation), and let the stored values feed GEN.804 and GEN.805. Done: a
   fast rotator has a higher flare rate than a slow one of the same mass,
-  and the six columns have readers. Version 8.4, phase 1. Owner: Core 4
+  and the six columns have readers. Version 8.1. Owner: Core 4
   (stars). Rules: no backward-compat shims; every number has a unit or
   scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -10219,7 +10276,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by nothing. Let it raise the UV dose reaching the surface, which
   limits the life stage and lightens the sky and ground look. Done: a
   world whose ozone is lost shows the higher UV dose and the lower life
-  score. Version 8.4, phase 1. Owner: Aux 2. Rules: no backward-compat
+  score. Version 8.1. Owner: Aux 2. Rules: no backward-compat
   shims; every number has a unit or scale (GEN.772); a changed generated
   value carries `tests.golden_update --reason ... --affects <stage>` and
   the next epoch; tests are `scripts/test.py changed --resume`.
@@ -10860,7 +10917,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flag (carbon-star abundances exist in the composition code). Do:
   later, with Bug 1's age work; cheap flags once the post-main-sequence
   tracks land. Not in the long-term epoch unless Bug 1 says it is cheap.
-  Owner: none yet (Bug 1 later). Version 8.4.
+  Owner: none yet (Bug 1 later). Version 8.1.
   Owner (full build) (2026-10-29 8:30 PM EDT): Star 2 (new lane,
   proposed by TODO). This replaces any earlier owner line (pool,
   unowned, retired lane or 'after 8.1'). If it is already started
@@ -10933,7 +10990,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no licence, "not yet fully verified"). Do: read the tables into the
   colour path for giants. Stand-in tier Verified (L0) once read. Owner:
   Air 1 (after GEN.850/851; the same atmosphere opacity data path).
-  Version 8.4.
+  Version 8.1.
   Data we hold (2026-10-29 8:55 PM EDT): AD1 methane and ammonia tables
   are held in /mnt/project-files/data/ad1-methane ([R2265]
   k-tables at 100, 198, 296 K, PDS gbat_0001, NMSU
@@ -14104,8 +14161,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.383, GEN.115.
 
 - [ ] **GEN.1285 The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3)**
-  Tides 1 (as the lane reported, about 5:27 PM EST on 2026-11-05;
-  reports/map383-background-rule-2026-11-05.md): the stellar mass the
+  Measured by Tides 1 (as the lane reported, about 6:35 PM EST on
+  2026-11-05; reports/gen1285-potential-fit-2026-11-05.md): the potential
+  holds 25 to 40 percent too little stellar density through the disk (1
+  to 10 kpc) and too little in the bulge beyond 700 pc, has a 40 times
+  cusp at the centre, and 2 to 20 times too much beyond 16 kpc; masses
+  are right. With the model's own stars the rotation curve rises 9
+  percent at the Sun's radius and 25 to 27 percent at 1 to 4 kpc. Chosen
+  fix (build only, no epoch needed to build): tabulate the stellar
+  potential of the density model once per galaxy by a ring sum on a log
+  (R, z) grid, cached and interpolated, which removes stand-ins GP1 to
+  GP3. NOT lock-free: the circular speed feeds galactic_orbit and the
+  cluster generators, so every generated velocity changes; it is a lock
+  item (epoch) for the next open train.
+  Earlier note (about 5:27 PM EST; reports/map383-background-rule-2026-11-05.md): the stellar mass the
   smooth potential (GEN.115) carries differs from the stellar density
   the density model generates from, by -15 percent at the solar circle
   and +19 percent in the bulge, so the background rule of MAP.383
@@ -14239,6 +14308,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same total time is batched into different nights, and the admin's
   fast-forward moves them with the orbits.
   Prerequisites: GEN.139. Related: POP.24, POP.35, POP.30.
+
+- [ ] **GEN.1294 A galaxy build died once with "SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000 K)": some draw asks the magma-ocean fit for a temperature past its range (bug)**
+  Aux 5 (as the lane reported, about 7:15 PM EST on 2026-11-05): while
+  testing the GEN.1082 to GEN.1084 stack, one galaxy build stopped with
+  "SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000
+  K)" and passed on a rerun, so a draw can ask the magma-ocean (liquid
+  silicate) fit for a temperature above its range. Do: find which stage
+  asks for 6881 K (likely a very hot surface or magma ocean on a
+  close-in planet), reproduce it from the seed, and either clamp the
+  call to the fit range with a registered stand-in (GEN.725, tier and
+  tweak level) or extend the fit from the data; never catch and hide the
+  error. A changed generated value is a lock item (epoch); a pure range
+  guard is not. Version 8.1. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **GEN.1295 Rogue ages and the rogue stand-ins read the ejection records: the delay (RG2), the closest approach (RK7, MO2, TU3) and the per-star rate (TU1) come from each loss in the architecture, not from drawn distributions**
+  Found when main's burn-down test failed: five burn-down rows
+  (6.88:RG2, 6.87:RK7, 6.112:MO2, 6.86:TU1, 6.86:TU3) said GEN.1111
+  replaces them, and GEN.1111 is closed (the ejection records are built
+  and stored) without replacing them. Do: read the stored ejection
+  record of each lost planet (time after formation, closest approach,
+  scatterer distance) wherever those five stand-ins draw them, retire
+  the five rows with their tests, and check the rogue count and age
+  shares against the census. This changes generated rogue planets, so it
+  is a lock item (epoch). Version 8.1. Owner: Planets 1. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: GEN.1111, GEN.1287, GEN.1288, GEN.1289.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -14514,7 +14610,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them where generation cost matters (the run page and `planetgen
   stats`) or stop recording them, and delete the tables with a migration
   if so. Done: either a reader with a test, or the recording, the tables
-  and the fingerprint entry gone. Version 8.2, phase 2. Owner: Aux 16
+  and the fingerprint entry gone. Version 8.9, phase 2. Owner: Aux 16
   (Performance). Rules: no backward-compat shims; every number has a
   unit or scale (GEN.772); draws through draw.py; a changed generated
   value carries `tests.golden_update --reason ... --affects <stage>` and
@@ -14536,7 +14632,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   issue). Do what PERF.196 decided: either a reader on the run page and
   `planetgen stats` with a test, or the recording, the two tables, a
   migration dropping them and the db/fingerprint.py entry gone (no
-  shim). Done: as decided, tests green. Version 8.2, phase 2. Owner: Aux
+  shim). Done: as decided, tests green. Version 8.9, phase 2. Owner: Aux
   16. Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
@@ -14618,7 +14714,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   run through the wrapper, once per cell (no second queue entry while
   one is waiting), the page shows queued and then opens the sector when
   the run finishes; visitors who are not admins still queue nothing.
-  Version 8.2. Owner: none yet (Core 5 is the natural owner); follows
+  Version 8.9. Owner: none yet (Core 5 is the natural owner); follows
   PERF.149.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
@@ -14628,16 +14724,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EST on 2026-11-05): not a foundation of anything; it fits generating
   anywhere and takes load off 8.2.
   Prerequisites: none. Related: PERF.149.
-
-- [ ] **PERF.219 The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target**
-  Left over from the PERF.137 audit
-  (reports/limit-offset-final-audit-perf137-2026-10-31.md): the name
-  sort is already keyset, the filter plus the sector or octant sort is
-  not. Also residual and smaller: planetgen planets and moons with a
-  class or radius filter and no cursor (CLI only), and a hand-typed deep
-  offset on the Phenomena list. Measure on a real MySQL at a full galaxy
-  before and after.
-  Prerequisites: none.
 
 - [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
   Boss (2026-10-31, 6:01 PM EDT, as the coordinator relayed): the
@@ -14850,22 +14936,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item with the generator epoch, after the item above. Done: see the
   item above. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
   Prerequisites: GEN.1282. Related: PERF.241.
-
-- [ ] **PERF.243 Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate**
-  Tides 1's PERF.72 study (as the lane reported, about 4:59 PM EST on
-  2026-11-05; reports/perf72-gravity-grid-cost-2026-11-05.md, section
-  8): use a tree sum with 0.5 pc leaf cells and opening angle 0.5 (0.3
-  in sparse places, never 1.0); a core sector grid costs about 0.1 s, a
-  solar-neighbourhood one under 1 ms, pull error about 0.15 percent
-  against the exact sum; the kernel is numba and runs as a cached job
-  because the web app never imports numba; planets and moons fold into
-  their system's mass. Do: a test that the densest-place sector grid
-  stays under 0.25 s with the pair budget of the hierarchy item, and a
-  reference file for the lane-machine pair rate so a slow machine is
-  recognised (the test scales its limit by it). Done: the test passes on
-  the reference machine and skips with a stated reason on none.
-  Lock-free. Owner: Tides 1. Filed by the TODO thread.
-  Prerequisites: MAP.385. Related: MAP.167, PERF.72.
 
 ## DB: Database and schema
 
@@ -15356,6 +15426,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   guard and the storage checksum list pass, and nothing writes vessel
   rows yet.
   Prerequisites: NAV.4. Related: USR.29, POP.21.
+
+- [ ] **DB.112 Drop the stored sector quadrant column and the unused quadrant filter code in db/query.py (migration)**
+  Follow-up of the item that replaces the quadrants with the charted
+  region names (Boss, 6:17 PM EST on 2026-11-05: quadrants are useless).
+  Once nothing reads the quadrant, remove the stored quadrant column on
+  sectors (added with the sector count and density by PERF.208), its
+  index, its writes in the sector fill and the unused quadrant filter
+  code in db/query.py. Lock item: a migration, the old-schema fixture
+  and the storage checksum list change. Done: the migration, the column
+  gone from the schema and the models, the filter code deleted, and the
+  number guard and old-schema tests pass.
+  Prerequisites: UX.272. Related: PERF.208.
 
 ## API: The JSON API
 
@@ -16673,7 +16755,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   counts as a generation run. Done: a test that reproduces the holder
   state found, and a New galaxy job that starts after the stale holder
   is cleared. Lock-free, generation output unchanged. Owner: the thread
-  that built #4675 (session on the data check). Version 8.1.
+  that built #4675 (session on the data check). Version 8.9.
   Partial fix merged (#4680) (2026-10-31 9:40 PM EDT): wrapper.run now
   passes nested_guard=True to runline.start_when_free, so a run started
   inside a run that the same process follows fails at once with Busy
@@ -18246,24 +18328,6 @@ clears each one.
   thread.
   Prerequisites: none.
 
-- [ ] **TEST.621 The non-browser test run hangs with every worker idle for hours; pytest-timeout's signal does not fire in a worker that holds a process pool (bug)**
-  The Train Manager (as the lane reported, about 3:47 PM EST on
-  2026-11-05, full-suite run on main) saw twice that the non-browser run
-  hung with all workers idle (futex wait, load 0) for 1.5 h and 3 h; the
-  timeout signal did not fire in a worker that has a process pool. Two
-  tests never ran:
-  test_prevalence_life_census::test_the_life_census_raises_no_new_flag
-  and
-  test_prevalence_occurrence::test_the_figures_count_planets_per_star_by_radius_and_period.
-  Do: find which test leaves a worker waiting on a pool (a child that
-  died, a pool not closed), switch the timeout method to thread or add a
-  per-test watchdog that kills the pool children, and make
-  scripts/test.py report a hung run within the limit instead of waiting.
-  Done: a deliberately hung test is killed at its limit with a clear
-  message, and the full run completes. Lock-free. Version 8.1. Owner:
-  Train Manager. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.417.
-
 - [ ] **TEST.623 Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark)**
   Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
   pilot's console default and wants the other two looks, Chart room and
@@ -18315,6 +18379,31 @@ clears each one.
   same galaxy and seed. Done: the file runs in the changed-files gate
   whenever a ships module changes.
   Prerequisites: USR.29, POP.11, MAP.391. Related: USR.10.
+
+- [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
+  Do: the tabulated potential matches a direct ring sum of the density
+  model at the solar circle, the bulge, the disk edge and beyond 16 kpc
+  inside the stated tolerance; the circular speed at the Sun matches the
+  model; the cache is rebuilt only when the galaxy changes; stand-in
+  rows GP1 to GP3 are gone from GEN.725. Version 8.3. Owner: Tides 1.
+  Filed by the TODO thread.
+  Prerequisites: GEN.1285. Related: GEN.115, GEN.725.
+
+- [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
+  by the TODO thread.
+  Prerequisites: UX.276, MAP.394, MAP.395, MAP.396.
+
+- [ ] **TEST.630 Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Version 8.5. Lock-free, no migration, no epoch.
+  Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.280, UX.281.
 
 ## USR: User accounts
 
@@ -19014,7 +19103,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   moves from UTC to local time. Full text and the files touched are in
   reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
   and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
   that takes the warm-up and update.sh code). Filed by the TODO thread.
   Do: planetgen warm and the other commands print display lines with the
   time whenever output is not a terminal; the roughly 108 plain echo
@@ -19033,7 +19122,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   moves from UTC to local time. Full text and the files touched are in
   reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
   and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
   that takes the warm-up and update.sh code). Filed by the TODO thread.
   Do: with no tee the warm-up's output stays a terminal, so the bars
   draw; in a log or pipe, one progress line a minute (and one per 10%,
@@ -19050,7 +19139,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   moves from UTC to local time. Full text and the files touched are in
   reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
   and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
   that takes the warm-up and update.sh code). Filed by the TODO thread.
   Do: one shared shell helper (log_summary) in scripts/logrecord.sh
   prints the duration, code version, migration, the time the site was
@@ -19069,7 +19158,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   moves from UTC to local time. Full text and the files touched are in
   reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
   and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
   that takes the warm-up and update.sh code). Filed by the TODO thread.
   Do: tiles.log (the nightly whole-map build), orbits.log (the nightly
   orbit update) and update.log (every line update.sh prints, appended,
@@ -19087,7 +19176,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   moves from UTC to local time. Full text and the files touched are in
   reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
   and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
   that takes the warm-up and update.sh code). Filed by the TODO thread.
   Do: the debug line gains [draw], [sql] and [queue] and loses the
   logger-name column; the tests and bug-hunt scripts that read the line
@@ -19101,7 +19190,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   moves from UTC to local time. Full text and the files touched are in
   reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
   and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.2. Owner: none yet (the lane
+  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
   that takes the warm-up and update.sh code). Filed by the TODO thread.
   Do: a Counting section in the logging standard: 'Stage N of M' for the
   top-level steps of a script or run, 'Part N of M' for the runs inside
@@ -19124,7 +19213,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   code and the shell scripts. Full text in
   reports/logging-review-2026-11-05.md, last section "Boss addition
   (11-05): one logging codebase". Lock-free: it touches no generated
-  content, golden, migration or epoch. Version 8.2. Owner: none yet.
+  content, golden, migration or epoch. Version 8.3. Owner: none yet.
   Filed by the TODO thread. Do: admin/activity_log.py keeps its own
   handler and line today, queue/runrecord.py builds records a third way
   (runrecord.log_text), 11 modules call logging.getLogger directly and
@@ -19135,6 +19224,47 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   OPS.97 lands for it). Done: no handler, formatter or log-line print
   outside the module, and TEST.183 proves it.
   Prerequisites: OPS.97. Related: OPS.97, TEST.183.
+
+- [ ] **OPS.106 update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed**
+  Boss (7:20 PM EST on 2026-11-05, as the lane reported): drop the
+  duration guesses from the update.sh output (scripts/deploy-common.sh).
+  Do: remove every text that promises how long a step takes; the
+  progress bars and the measured time left (OPS.99) stay. Version 8.3.
+  Lock-free, no migration, no epoch. Owner: the project thread building
+  it on claude/project-thread-a1n0vp. Filed by the TODO thread.
+  Prerequisites: none. Related: OPS.99.
+
+- [ ] **OPS.107 The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs**
+  Boss (7:20 PM EST on 2026-11-05, as the lane reported): the warm-up
+  bar and time left jump because a unit reports only when it finishes.
+  Do: finer progress reports inside a unit of sectors, systems or
+  phenomena, counted by WarmProgress, so the bar and the time left
+  follow the work; test that a long unit moves the bar before it ends.
+  Version 8.3. Lock-free, no migration, no epoch. Owner: the project
+  thread building it on claude/project-thread-a1n0vp. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: OPS.99.
+
+- [ ] **OPS.108 A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged**
+  Boss (about 7:25 PM EST on 2026-11-05, as the lane reported): during
+  the warm-up step of update.sh a keypress should skip the warm-up. Do:
+  show the key on screen while the warm-up runs; read it only when stdin
+  is a terminal; the skip ends the warm-up cleanly (the site still
+  starts, the warm-up is simply not finished, and the closing summary of
+  OPS.100 says it was skipped); without a terminal nothing changes; a
+  test with a pseudo-terminal. Version 8.3. Lock-free, no migration, no
+  epoch. Owner: the project thread building OPS.106 and OPS.107 on
+  claude/project-thread-a1n0vp. Filed by the TODO thread.
+  Prerequisites: none. Related: OPS.99, OPS.100, OPS.107.
+
+- [ ] **OPS.109 The update.sh data set step lists the kept files by download URL (one "kept URL (n files)" line per URL) and says the folder they are stored in**
+  Boss (about 7:25 PM EST on 2026-11-05, as the lane reported): the data
+  set step of update.sh should list the files it kept grouped by
+  download URL, one "kept URL (n files)" line per URL, and say which
+  folder they are stored in. Version 8.3. Lock-free, no migration, no
+  epoch. Owner: the project thread building OPS.106 to OPS.108 (PR
+  5243). Filed by the TODO thread.
+  Prerequisites: none. Related: OPS.99, OPS.100.
 
 ## DOC: Documentation
 
@@ -19837,7 +19967,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /api/systems/<id>/sky/band?limit= (JSON, base64). SKY_VERSION is 2.
   The first band per 50 pc cell can take tens of seconds (full galaxy
   shape load), then it is cached. Wire format section 3.2. This item
-  stays open for the full 9.1 version (the planet's own sky, VIEW.14
+  stays open for the full 9.0 version (the planet's own sky, VIEW.14
   onward).
   Prerequisites: VIEW.11, VIEW.8. Related: VIEW.2.
 
@@ -19902,7 +20032,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   planet (VIEW.2) and the picture of the view with constellations
   (VIEW.3), which carry the sky catalogue, the photometry library, the
   galactic band, the horizon and the constellations beneath them, on the
-  sky data and research of 8.9 and the atmosphere colour of 9.0.
+  sky data and research of 8.2 and the atmosphere colour of 9.0.
   Headline: 9.0 (the view from a planet: the sky from any planet or
   moon, with real constellations, rendered as a picture). A hand version
   bump needs Boss's word.
@@ -20043,8 +20173,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   scatter and fill lane (Core 3 or Star 2). Lock-free, no migration.
   Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3): a lighter
   8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8, VIEW.11,
-  VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its 9.1 twin
-  where noted, build it so the 9.1 item can reuse it); the limiting
+  VIEW.12 and VIEW.13 STAY in 9.0 and this part overlaps its 9.0 twin
+  where noted, build it so the 9.0 item can reuse it); the limiting
   magnitude is a setting with default 7.5, lower on phones; missing
   stars are built when a system is charted, no visit job. Goal #4907.
   Filed by the TODO thread.
@@ -20088,8 +20218,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   beyond what S7 does for a newly charted sector. Done: tests.
   Lock-free, no migration. Boss decided at 5:29 PM EST on 2026-11-04
   (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and glow only;
-  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part
-  overlaps its 9.1 twin where noted, build it so the 9.1 item can reuse
+  VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.0 and this part
+  overlaps its 9.0 twin where noted, build it so the 9.0 item can reuse
   it); the limiting magnitude is a setting with default 7.5, lower on
   phones; missing stars are built when a system is charted, no visit
   job. Goal #4907. Filed by the TODO thread.
@@ -20107,8 +20237,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   is fetched at setup. Done: the test and the band. Lock-free, no
   migration. Boss decided at 5:29 PM EST on 2026-11-04 (1.2, 2.1, 3.3):
   a lighter 8.2 backdrop (stored stars and glow only; VIEW.7, VIEW.8,
-  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1 and this part overlaps its
-  9.1 twin where noted, build it so the 9.1 item can reuse it); the
+  VIEW.11, VIEW.12 and VIEW.13 STAY in 9.0 and this part overlaps its
+  9.1 twin where noted, build it so the 9.0 item can reuse it); the
   limiting magnitude is a setting with default 7.5, lower on phones;
   missing stars are built when a system is charted, no visit job. Goal
   #4907. Filed by the TODO thread.
@@ -20148,8 +20278,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the aberration of the observer's own motion, off by default. Done: a
   shader test. Lock-free, no migration. Boss decided at 5:29 PM EST on
   2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
-  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
-  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.0
+  and this part overlaps its 9.0 twin where noted, build it so the 9.0
   item can reuse it); the limiting magnitude is a setting with default
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
@@ -20165,8 +20295,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   star points into this sky as the camera enters a system. Done: browser
   test. Lock-free, no migration. Boss decided at 5:29 PM EST on
   2026-11-04 (1.2, 2.1, 3.3): a lighter 8.2 backdrop (stored stars and
-  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.1
-  and this part overlaps its 9.1 twin where noted, build it so the 9.1
+  glow only; VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 STAY in 9.0
+  and this part overlaps its 9.0 twin where noted, build it so the 9.0
   item can reuse it); the limiting magnitude is a setting with default
   7.5, lower on phones; missing stars are built when a system is
   charted, no visit job. Goal #4907. Filed by the TODO thread.
@@ -20202,49 +20332,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   word. Version 8.7. Filed by the TODO thread.
   Prerequisites: DOC.58, UX.43, DOC.81.
 
-- [ ] **VIEW.43 Dust model built from the galaxy's own gas: planetgen/physics/dust_model.py with the column and layer-thickness tables, and the stand-ins DU1 to DU5**
-  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
-  recommendations, option 1 on all five questions
-  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
-  galaxy's own gas, nearly clear small galaxies are accepted,
-  metallicity by galaxy mass, the gradient per scale length, and a
-  smooth disk first with the central molecular zone as a later item. Do:
-  physics/dust_model.py builds two tables per galaxy, the vertical dust
-  column and the layer thickness against radius, from the ring gas of
-  galaxy.disk_history (GEN.469), the dust-to-gas law and gas metallicity
-  of physics.nebula_composition (GEN.1269, [R5102], rows NBC1 and NBC4)
-  and the equilibrium thickness h = sigma_g^2 / (pi G Sigma_total) with
-  a floor of 40 pc; the extinction per parsec is column / (2 h) x
-  sech^2(z / h), with the visible share f_vis = 0.5 and N_H per A_V of
-  2.21e21 (a supernova-remnant measurement, arXiv 0903.2057, read and verified; this item adds it to the reference list and writes its [R0123]). dust_av_per_pc gets a table
-  form beside the fixed one; av_per_kpc_at_sun = 0 still means
-  dust-free. Register DU1 to DU5 in GEN.725 with tier and tweak level as
-  the report lists them (a new section number is taken at merge) and
-  replace SKP1 and SKP4. Tests: the Milky Way sized case gives about 1
-  mag per kpc in the plane at the Sun and 0.24 mag through the layer,
-  the small test galaxy about 0.14. Lock-free, no migration, no epoch.
-  Version 8.2. Owner: none yet (Core 3 has the context). Filed by the
-  TODO thread.
-  Prerequisites: none. Related: VIEW.8, VIEW.30, GEN.469, GEN.1269,
-  GEN.725.
-
-- [ ] **VIEW.44 The sky reads the gas-built dust model: galaxy/sky.py, galaxy/sky_band.py and generation/sky_tiers.py take the two tables through the dust dict, and the table hash is in their cache keys**
-  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
-  recommendations, option 1 on all five questions
-  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
-  galaxy's own gas, nearly clear small galaxies are accepted,
-  metallicity by galaxy mass, the gradient per scale length, and a
-  smooth disk first with the central molecular zone as a later item. Do:
-  wire VIEW dust model (the item before this one) into the three callers
-  through the dust= dict; the table hash goes into the cache keys of
-  sky_band and the tier ledger so a changed law rebuilds only what it
-  changes; the default for a galaxy becomes the table. Done: a sky of
-  the small test galaxy is nearly clear (about 0.14 mag per kpc) and a
-  Milky Way sized galaxy keeps about 1. Lock-free, no migration, no
-  epoch (derived sky data only). Version 8.2. Owner: none yet. Filed by
-  the TODO thread.
-  Prerequisites: VIEW.43. Related: VIEW.25, VIEW.8, VIEW.30.
-
 - [ ] **VIEW.45 Re-baseline the HYG calibration test (VIEW.30) for the new dust, in dust-free and default-dust modes, in the small and the Milky Way sized galaxy**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
   recommendations, option 1 on all five questions
@@ -20260,7 +20347,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   default should land close to the dust-free count. Done: the bands and
   the test. Lock-free. Version 8.2. Owner: Core 3. Filed by the TODO
   thread.
-  Prerequisites: VIEW.44, VIEW.30. Related: VIEW.30.
+  Prerequisites: VIEW.30. Related: VIEW.30.
 
 - [ ] **VIEW.46 The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
@@ -20275,7 +20362,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   extinction is checked on a lane machine with datasets. Lock-free, no
   migration, no epoch. Version 8.3. Owner: none yet. Filed by the TODO
   thread.
-  Prerequisites: VIEW.44, GEN.115. Related: GEN.115, VIEW.8.
+  Prerequisites: GEN.115. Related: GEN.115, VIEW.8.
 
 - [ ] **DOC.105 Docs for politics: the help page for borders, contested systems, splits and the map time control, and the design note**
   Boss (cards answered 6:00 PM EST on 2026-11-05) approved the 9.2
@@ -20313,6 +20400,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   flow carried by ship, the icon cluster size). Done: both pages, linked
   from the Help menu, and the help coverage test passes.
   Prerequisites: TEST.625. Related: USR.10.
+
+- [ ] **DOC.107 Docs: the Sensor view (what it shows for each kind, the estimate labels, the API route) in the help and the design notes**
+  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
+  proposal
+  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
+  Version 8.2. Lock-free, no migration, no epoch. Owner: none yet. Filed
+  by the TODO thread.
+  Prerequisites: UX.276, MAP.394, MAP.395, MAP.396.
+
+- [ ] **DOC.108 Docs: the View menu (headings, search, reset, how a layer declares its heading) in the help and the design notes**
+  View menu (Boss, 6:50 PM EST on 2026-11-05, option 1 on all four
+  design cards; design
+  /mnt/project-files/design-drafts/view-menu-many-options-ux274-2026-11-05.md
+  sections 4 and 5). Version 8.5. Lock-free, no migration, no epoch.
+  Owner: none yet. Filed by the TODO thread.
+  Prerequisites: UX.280, UX.281.
 
 ## POP: Population and politics
 
@@ -20916,7 +21019,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   set by the habitability scores (Suitability, the food score from Flora
   and Fauna, the land area), the tech band and the civilization's age,
   one closed form per world with a seeded noise draw, so a later dynamic
-  version (9.1) can step it in time; (2) which civilizations trade:
+  version (9.2) can step it in time; (2) which civilizations trade:
   spaceport owners only (POP.21, tech from the settlements design), the
   largest by population first; (3) the partner rule (a gravity model:
   demand rises with the two populations and falls with distance, a cap
@@ -20932,7 +21035,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   spaceport with routes, and the nearest point on any route's path where
   someone could put themselves in the way: the nearest system on a hop
   path and the nearest point on a hop segment); (7) what is fixed until
-  9.1 makes it dynamic. Done: the design is in the docs with its sources
+  9.2 makes it dynamic. Done: the design is in the docs with its sources
   and its stand-in list, and every later item of the tree cites it.
   Owner: a research thread with Core 2 for the map parts. Version 8.2,
   phase 3. Rules: draws through draw.py (GEN.774 streams); a PR that
@@ -21165,7 +21268,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   applies habitability changes (a world whose conditions change loses or
   gains capacity) and records the change. Done: a world's population
   follows its capacity across 100 simulated nights, and rerunning the
-  same nights gives the same numbers. Version 9.0, phase 4. Owner: Core
+  same nights gives the same numbers. Version 9.2, phase 4. Owner: Core
   5 style. Rules: draws through draw.py; a PR that changes drawn output
   carries `tests.golden_update --reason ... --affects population` and
   the next epoch; every number has a unit or scale (GEN.772) and a
@@ -21189,7 +21292,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   whose owners are at war once 9.2 lands, and keeps the global list and
   the map filters current. An admin-edited route is never changed. Done:
   a test with a new port adds a route and a destroyed port closes one,
-  and the map layer shows the change. Version 9.0, phase 4. Owner: Core
+  and the map layer shows the change. Version 9.2, phase 4. Owner: Core
   5 style with Core 2. Rules: draws through draw.py; a PR that changes
   drawn output carries `tests.golden_update --reason ... --affects
   population` and the next epoch; every number has a unit or scale

@@ -113,6 +113,14 @@ def _params(phenomenon_type, detail):
             "seed": bodylook.seed_for("interstellar_comet", detail.get("id"))}, caption
 
 
+def view_params(phenomenon_type, detail):
+    """`(parameters, caption)` of a rendered type (`view_kind` is `"render"`), the record `static/phenomenonrender.js` paints and the line under
+    it; the Sensor registry (`web/lib/sensor.py`, UX.275) reads the same pair. `KeyError`-free for the five rendered types, `ValueError` for any other."""
+    if phenomenon_type not in _RENDERED:
+        raise ValueError(f"{phenomenon_type!r} has no rendered view")
+    return _params(phenomenon_type, detail)
+
+
 _STILL_COLORS = {
     "neutron_star": "#cfe8ff", "black_hole": "#ffb070", "quasar": "#fff3d6",
     "rogue_planet": "#5a6878", "interstellar_comet": "#a8d0e0",

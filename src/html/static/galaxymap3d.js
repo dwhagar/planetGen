@@ -69,7 +69,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, NEBULA_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
+  BLACK_HOLE_KIND, NEBULA_KIND, REGION_KIND, NEBULA_POINT_TYPES, INTEREST_KINDS, MAP_INTEREST_KINDS, interestLines, MARKER_BUDGET, MARKER_PX, SECTOR_MARKER_BUDGET, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, nearFieldRule, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { NAMED_LIMIT } = await import(`./labelbudget.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
@@ -91,11 +91,12 @@ const {
   GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, UNCHARTED_FAR_GLSL, UNCHARTED_FAR_KEEP, massRampShare,
   unchartedKeep, phenomenonLuminositySol, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
-const { nodeCut, parseNodeKey, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
+const { formatNodeKey, geometry, nodeCut, parseNodeKey, projectedSize, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
 const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuffer.js${VERSION_QUERY}`);
+const { keptShare, rankShare, rankStars, referencePx } = await import(`./starthin.js${VERSION_QUERY}`);
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
-const { regionBlobs, regionLook, chartedText, regionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
+const { regionBlobs, regionLook, chartedText, regionMarkers, chartedRegionMarkers, inhabitedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
 const { blackHoleDensityPx, labelBufferPx, regionLanding } = await import(`./mappreferences.js${VERSION_QUERY}`);
 const {
   regionBlobs: nebulaRegionBlobs, regionLook: nebulaRegionLook, cutToBudget: cutNebulaRegions, FAMILIES: NEBULA_FAMILIES,
@@ -103,7 +104,7 @@ const {
 } = await import(`./galaxynebulae.js${VERSION_QUERY}`);
 const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const GROUP_WINDOW = await import(`./groupwindow.js${VERSION_QUERY}`);
-const { sourceOf: nebulaVolumeSource, singleIdOf, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
+const { sourceOf: nebulaVolumeSource, singleIdOf, sphereOf, NEBULA_TINT_GLSL } = await import(`./nebulavolume.js${VERSION_QUERY}`);
 const { createNebulaVolumeLayer } = await import(`./nebulavolumelayer.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode, readNodeBody } = await import(`./tilepack.js${VERSION_QUERY}`);
 const { createLevelProgress } = await import(`./levelprogress.js${VERSION_QUERY}`);
@@ -184,6 +185,9 @@ export function mapControlHandlers(ctx) {
       button.setAttribute("aria-pressed", String(on));
       ctx.setPlaneView(on);
     },
+    // MAP.376: the wedge on either side becomes the focus.
+    "plane-wedge-prev": function () { if (ctx.stepPlaneWedge) ctx.stepPlaneWedge(-1); },
+    "plane-wedge-next": function () { if (ctx.stepPlaneWedge) ctx.stepPlaneWedge(1); },
     "plane-stems": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
@@ -2117,7 +2121,10 @@ function initGalaxyMap3d(canvasEl, data) {
     colours: NEBULA_FAMILIES.map(function (family) { return nebulaFamilyColour(family, NEBULA_LOOKS); }),
     fetchBytes: function (key) {
       var alone = singleIdOf(key);
-      var url = alone !== null ? String(data.nebulaAloneVolumePath).replace("{id}", encodeURIComponent(alone))
+      var sphere = sphereOf(key);
+      var url = sphere !== null ? data.cloudVolumePath + "?x=" + sphere.x + "&y=" + sphere.y + "&z=" + sphere.z + "&radius_pc=" + sphere.radiusPc
+          + "&family=" + encodeURIComponent(sphere.family)
+        : alone !== null ? String(data.nebulaAloneVolumePath).replace("{id}", encodeURIComponent(alone))
         : data.nebulaVolumePath + "?key=" + encodeURIComponent(key);
       return fetch(url).then(function (response) {
         if (!response.ok) throw new Error(url + " returned " + response.status);
@@ -2222,6 +2229,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // is in (within REGION_POI_REACH of its radii of its middle) gets none: its sectors and stars are the points there.
   var REGION_POI_REACH = 2.5;
   var REGION_POI_MERGE_PX = 48;
+  // MAP.369: a point carries its region's name, so two points are one when their boxes would touch: this far apart across, or less, and no
+  // farther than REGION_POI_MERGE_PX down.
+  var REGION_POI_MERGE_ACROSS_PX = 130;
   var regionPoiLayer = null;
   var regionPoiEls = new Map();
   var regionPoiGroups = [];
@@ -2242,7 +2252,10 @@ function initGalaxyMap3d(canvasEl, data) {
     items.sort(function (a, b) { return (b.blob.sectorCount - a.blob.sectorCount) || (a.blob.key < b.blob.key ? -1 : 1); });
     var groups = [];
     items.forEach(function (item) {
-      var home = groups.find(function (group) { return Math.hypot(group.x - item.x, group.y - item.y) <= REGION_POI_MERGE_PX; });
+      var home = groups.find(function (group) {
+        return Math.abs(group.x - item.x) <= REGION_POI_MERGE_ACROSS_PX && Math.abs(group.y - item.y) <= REGION_POI_MERGE_PX / 2 ||
+          Math.hypot(group.x - item.x, group.y - item.y) <= REGION_POI_MERGE_PX;
+      });
       if (home) home.members.push(item.blob);
       else groups.push({ x: item.x, y: item.y, head: item.blob, members: [item.blob] });
     });
@@ -2310,9 +2323,12 @@ function initGalaxyMap3d(canvasEl, data) {
         var use = document.createElementNS("http://www.w3.org/2000/svg", "use");
         use.setAttribute("href", new URL("poi/region.svg" + VERSION_QUERY + "#poi", import.meta.url).href);
         symbol.appendChild(use);
+        // MAP.369: the point reads as a label: the region's name beside its symbol (the head region's, for a group), then the count.
+        var label = document.createElement("span");
+        label.className = "map-region-poi-name";
         var count = document.createElement("span");
         count.className = "map-region-poi-count";
-        el.append(symbol, count);
+        el.append(symbol, label, count);
         el.addEventListener("click", function () {
           var mine = regionPoiGroups.find(function (g) { return g.head.key === key; });
           if (mine) openRegionGroup(mine);
@@ -2327,6 +2343,7 @@ function initGalaxyMap3d(canvasEl, data) {
         : name + " (" + group.head.sectorCount + " sectors): go to the region";
       el.title = text;
       el.setAttribute("aria-label", text);
+      el.querySelector(".map-region-poi-name").textContent = name;
       el.querySelector(".map-region-poi-count").textContent = many ? String(group.members.length) : "";
       el.hidden = false;
       el.style.left = group.x.toFixed(1) + "px";
@@ -2336,6 +2353,34 @@ function initGalaxyMap3d(canvasEl, data) {
       if (seen.has(key)) return;
       el.remove();
       regionPoiEls.delete(key);
+    });
+  }
+  // MAP.369: a region point lies above its region's middle, where a name the label engine placed (a family's, a region's) may be; it moves up
+  // over that name's top edge rather than cover it, whatever order the two were placed in. Worked out against the names as they stand.
+  var POI_NUDGE_GAP_PX = 4;
+  var poiNudgeSignature = "";
+  function nudgeRegionPois() {
+    if (!regionPoiLayer || !regionPoiGroups.length || !galaxyLabels) return;
+    var names = galaxyLabels.shown().filter(function (label) { return label.kind === "region"; });
+    var signature = regionPoiGroups.map(function (group) { return group.head.key + "@" + group.x.toFixed(0) + "," + group.y.toFixed(0); }).join(";")
+      + "|" + names.map(function (label) { return label.id + "@" + label.left + "," + label.top; }).join(";");
+    if (signature === poiNudgeSignature) return;
+    poiNudgeSignature = signature;
+    regionPoiGroups.forEach(function (group) {
+      var el = regionPoiEls.get(group.head.key);
+      if (!el) return;
+      var width = el.offsetWidth;
+      var height = el.offsetHeight;
+      var left = group.x - width / 2;
+      var bottom = group.y - 16;    // the point's own offset (style.css .map-region-poi)
+      var lift = 0;
+      names.forEach(function (label) {
+        var across = label.left < left + width && left < label.left + label.width;
+        var down = label.top < bottom - lift && bottom - lift - height < label.top + label.height;
+        if (across && down) lift = bottom - label.top + POI_NUDGE_GAP_PX;
+      });
+      lift = Math.min(lift, Math.max(bottom - height, 0));    // never above the top of the map
+      el.style.marginTop = lift ? "-" + lift.toFixed(1) + "px" : "";
     });
   }
   canvasEl.galaxyRegionPois = function () {
@@ -2572,6 +2617,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // starList's order; redone when the camera moves or the stars change.
   var starShares = new Float32Array(0);
   var starShareSignature = "";
+  var starThinningOn = true;
   function updateStarShares() {
     var n = starList.length;
     var signature = starSetVersion + "," + n + "," + camera.position.x + "," + camera.position.y + "," + camera.position.z;
@@ -2582,8 +2628,21 @@ function initGalaxyMap3d(canvasEl, data) {
     if (starShares.length !== n) {
       starShares = new Float32Array(n);
     }
-    var weigh = drawnSettled ? weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled) : null;
+    var cameraAt = camera.position.toArray();
+    var weigh = drawnSettled ? weightCalculator(cameraAt, NODE_EDGE_PC, focalPixels(), drawnSettled) : null;
     var byNode = new Map();
+    // MAP.366: the share of its list each capped node keeps against the nodes of the view (static/starthin.js).
+    var kept = new Map();
+    var cappedSizes = [];
+    for (var j = 0; j < n; j++) {
+      var tile = starFadeList[j];
+      if (tile && tile.capped && !kept.has(tile)) {
+        kept.set(tile, projectedSize(tile.block, cameraAt, NODE_EDGE_PC, focalPixels()));
+        cappedSizes.push(kept.get(tile));
+      }
+    }
+    var reference = referencePx(cappedSizes);
+    kept.forEach(function (px, tile) { kept.set(tile, keptShare(px, reference)); });
     for (var i = 0; i < n; i++) {
       var fade = starFadeList[i];
       var share = 1;
@@ -2592,6 +2651,9 @@ function initGalaxyMap3d(canvasEl, data) {
         if (share === undefined) {
           share = starShare(fade, weigh);
           byNode.set(fade, share);
+        }
+        if (starThinningOn && fade.capped && starList[i].nodeRank !== undefined) {
+          share *= rankShare(starList[i].nodeRank, fade.listed, kept.get(fade));
         }
       }
       starShares[i] = share;
@@ -2697,6 +2759,45 @@ function initGalaxyMap3d(canvasEl, data) {
     return { limit: limit, goal: magGoal, target: magTarget, onScreen: magOnScreen, count: starList.length, stars: shares, ramp: RAMP, focus: nearUniforms.nearD.value, e: e[0] };
   };
 
+  // For tests (MAP.366): what each node on screen lists and shows, by node: its key and size on screen (pixels), the
+  // distance of its box's center, the stars it lists, and how many of them show (the sum of their opacity: the
+  // node's share times the limiting magnitude's), so a test compares nodes at one distance.
+  canvasEl.galaxyNodeStars = function () {
+    var absolute = starPoints.geometry.getAttribute("starAbsMag");
+    var tierMag = starPoints.geometry.getAttribute("starTierMag");
+    var limit = starMaterial.uniforms.magLimit.value;
+    var camAt = camera.position.toArray();
+    var found = new Map();
+    var cut = neededNodes();
+    var weigh = weightCalculator(camAt, NODE_EDGE_PC, focalPixels(), drawnSettled || undefined);
+    starList.forEach(function (star, i) {
+      var fade = starFadeList[i];
+      if (!fade) return;
+      var entry = found.get(fade);
+      if (!entry) {
+        var geo = geometry(fade.block, NODE_EDGE_PC);
+        var center = [0, 1, 2].map(function (a) { return (geo.lo[a] + geo.hi[a]) / 2; });
+        var nodeKey = formatNodeKey(fade.block);
+        entry = {
+          key: nodeKey, level: fade.block.m, listed: 0, shown: 0, weight: weigh(fade.block),
+          opened: cut.expanded.has(nodeKey), settled: !!(drawnSettled && drawnSettled.has(nodeKey)),
+          px: projectedSize(fade.block, camAt, NODE_EDGE_PC, focalPixels()),
+          distance: Math.hypot(center[0] - camAt[0], center[1] - camAt[1], center[2] - camAt[2]),
+        };
+        found.set(fade, entry);
+      }
+      var d = Math.sqrt(Math.pow(star.x - camAt[0], 2) + Math.pow(star.y - camAt[1], 2) + Math.pow(star.z - camAt[2], 2));
+      var m = apparentMagnitude(absolute.array[i], d) + tierMag.array[i];
+      entry.listed += 1;
+      entry.faint = Math.max(entry.faint === undefined ? -Infinity : entry.faint, star.phenomenon ? -Infinity : m);
+      entry.brightListed = (entry.brightListed || 0) + (star.generated || star.phenomenon ? 0 : 1);
+      entry.generatedListed = (entry.generatedListed || 0) + (star.generated ? 1 : 0);
+      entry.shown += starShares[i] * Math.min(1, Math.max(0, (limit - m) / RAMP));
+      if (starShares[i] * Math.min(1, Math.max(0, (limit - m) / RAMP)) > 0.5) entry.shownFaint = Math.max(entry.shownFaint === undefined ? -Infinity : entry.shownFaint, m);
+    });
+    return Array.from(found.values());
+  };
+
   // For tests (MAP.149): the near field the shaders were given (the
   // camera-to-focus distance, the focus's radius, the center of the block
   // the camera is inside or null), the camera and its target, and the
@@ -2752,10 +2853,19 @@ function initGalaxyMap3d(canvasEl, data) {
     starMaterial.uniforms.magOn.value = on ? 1 : 0;
   };
 
+  // For tests (MAP.366): switches the density rule of static/starthin.js off (every star at its node's share) to compare the picture
+  // with and without it.
+  canvasEl.galaxyStarThinning = function (on) {
+    starThinningOn = !!on;
+    starShareSignature = "";
+  };
+
   // For tests: the frame the stars are drawn from and the farthest star
   // from it, in the points' own (offset) coordinates.
   // For tests (MAP.267): how the star buffer was filled: syncs so far, stars written and moved in all, and the last
   // sync's own figures (chunks added and removed, stars kept untouched, written, moved, in all, and its milliseconds).
+  // MAP.392, for the browser tests: the nebulae and supernova remnants of the open sector still drawn as a hard sphere or shell ([] when all are points).
+  canvasEl.galaxyHardClouds = function () { return stageView.sectorHardClouds(); };
   canvasEl.galaxyStarFill = function () {
     return { syncs: starSync.syncs, written: starSync.written, moved: starSync.moved, last: starSync.last,
       capacity: starCapacity, count: starList.length };
@@ -2867,6 +2977,15 @@ function initGalaxyMap3d(canvasEl, data) {
     return node.allStars;
   }
 
+  // MAP.366: the node's stars ranked by luminosity (`nodeRank` on each, static/starthin.js), once per node, and whether its
+  // lists reached their cap: `{ listed, capped }`.
+  function nodeThinning(node, block) {
+    if (!node.thinning) {
+      Object.defineProperty(node, "thinning", { value: rankStars(nodeStars(node), block) });
+    }
+    return node.thinning;
+  }
+
   // MAP.123: whether the star filters (classes hidden, dimmest star shown)
   // let `star` through. Phenomena are never filtered here: they have their
   // own kind toggles.
@@ -2942,6 +3061,9 @@ function initGalaxyMap3d(canvasEl, data) {
       }
       var node = getNode(key);
       var fade = { block: parseNodeKey(key) };
+      var thin = nodeThinning(node, fade.block);
+      fade.listed = thin.listed;
+      fade.capped = thin.capped;
       var entries = [];
       nodeStars(node).forEach(function (star) {
         if (starShown(star)) {
@@ -4225,6 +4347,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
     markerKinds.register(NEBULA_KIND);
+    markerKinds.register(REGION_KIND);
     MAP_INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
     markerLayer = createMarkerLayer(scene, camera, canvasEl, "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
@@ -4237,6 +4360,12 @@ function initGalaxyMap3d(canvasEl, data) {
     // The Menu lists a group's layers together, so the technology bands (registered ahead of the Civilizations kind, which they pre-empt) come
     // after the points of interest.
     var familyOrder = { tech: 1, "class": 2, lifeclass: 3 };
+    // UX.277: the words the View menu's search finds a marker kind by, besides its label: its family, and the plain names of what it marks.
+    var markerKeywords = function (kind) {
+      var family = kind.family === "class" ? ["world class", "planet class", "class"] : kind.family === "lifeclass" ? ["life class", "life"]
+        : kind.family === "tech" ? ["technology", "civilization", "tech"] : kind.interest ? ["point of interest", "interest", "symbol"] : ["marker", "mark"];
+      return family.concat([String(kind.label).toLowerCase(), String(kind.id)]);
+    };
     markerKinds.kinds().map(function (kind, index) { return { kind: kind, index: index }; }).sort(function (p, q) {
       return (familyOrder[p.kind.family] || 0) - (familyOrder[q.kind.family] || 0) || p.index - q.index;
     }).map(function (entry) { return entry.kind; }).forEach(function (kind) {
@@ -4245,6 +4374,7 @@ function initGalaxyMap3d(canvasEl, data) {
         group: kind.family === "class" ? CLASS_GROUP : kind.family === "lifeclass" ? LIFE_CLASS_GROUP : kind.family === "tech" ? TECH_GROUP : kind.interest ? POI_GROUP : "Markers",
         data: { marker: kind.glyph || kind.icon },
         defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+        heading: "Show", keywords: markerKeywords(kind), common: kind.id === "marker-black-hole",
         title: kind.title || "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
       });
     });
@@ -4301,6 +4431,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (glow) {
     stageView.layers.register({
       id: "glow", label: "Unresolved glow", modes: ["galaxy"], group: "Show on the map", data: { glow: "unresolved" },
+      heading: "Show", keywords: ["glow", "unresolved", "faint", "light", "distant stars"],
       defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the soft light of the stars too far away to tell apart",
       legend: null,
@@ -4330,6 +4461,7 @@ function initGalaxyMap3d(canvasEl, data) {
     NEBULA_FAMILIES.forEach(function (family) {
       stageView.layers.register({
         id: "nebulae-" + family, label: NEBULA_FAMILY_LABELS[family], modes: ["galaxy"], group: NEBULA_GROUP,
+        heading: "Show", keywords: ["nebula", "nebulae", "gas", "cloud", family],
         data: { nebulae: family }, defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
         title: "Show or hide the groups of " + NEBULA_FAMILY_LABELS[family].toLowerCase() + " on the map",
         legend: { text: NEBULA_FAMILY_LABELS[family], swatch: nebulaSwatch(family) },
@@ -4337,6 +4469,7 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     stageView.layers.register({
       id: "nebulae-groups", label: "Nebula groups", modes: ["galaxy"], group: NEBULA_GROUP, defaultOn: true, fadedWithSectors: false,
+      heading: "Show", keywords: ["nebula", "nebulae", "groups", "ring"],
       available: function () { return false; },
       legend: function () {
         var any = NEBULA_FAMILIES.some(function (family) { return nebulaFamilyOn[family] !== false; });
@@ -4384,6 +4517,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // Map's) holds them still. The galactic views turn nothing, so it matters only inside a system.
   stageView.layers.register({
     id: "spin", label: "Spin", modes: ["galaxy"], group: "Show on the map", data: { setting: "spin" },
+    heading: "Move and Settings", keywords: ["spin", "turn", "rotate", "rotation", "axis", "still"],
     defaultOn: stageView.spinSwitch.on(), fadedWithSectors: false,
     title: "Let the stars and bodies of an opened system turn slowly on their axes, or hold them still",
     legend: null, keyless: "a setting: it draws nothing of its own",
@@ -4404,6 +4538,7 @@ function initGalaxyMap3d(canvasEl, data) {
     courseForms.forEach(function (item) {
       stageView.layers.register({
         id: item.id, label: item.label, modes: ["galaxy"], group: "Show on the map", data: { course: item.form },
+        heading: "Show", keywords: ["course", "route", "navigation", "nav", item.form],
         defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: item.title,
       });
     });
@@ -4426,6 +4561,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var flagMarkers = [];
   stageView.layers.register({
     id: "waypoints", label: "Waypoint flags", modes: ["galaxy"], group: "Show on the map", data: { waypoints: "flags" },
+    heading: "Show", keywords: ["waypoint", "waypoints", "flag", "flags", "course", "stops"],
     defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
     title: "Show or hide the flags that mark the stops picked for a course with Add waypoint",
   });
@@ -4554,6 +4690,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (bubbleMeshes.length) {
     stageView.layers.register({
       id: "superbubbles", label: "Superbubbles", modes: ["galaxy"], group: "Show on the map", data: { superbubbles: "all" },
+      heading: "Show", keywords: ["superbubble", "bubble", "cavity", "supernova", "local bubble"],
       defaultOn: false, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the faint spheres that mark superbubbles, the cavities the supernovae of young star groups blew in the gas",
     });
@@ -4568,6 +4705,7 @@ function initGalaxyMap3d(canvasEl, data) {
   if (regionLayer) {
     stageView.layers.register({
       id: "regions", label: "Charted regions", modes: ["galaxy"], group: "Show on the map", data: { regions: "charted" },
+      heading: "Show", keywords: ["region", "regions", "charted", "generated", "sectors", "known space"],
       defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the soft spheres that mark the regions with generated sectors, colored by how much is charted",
       // MAP.331: while the wireframe cube of the region the view is in is drawn, the legend says what it outlines.
@@ -4808,6 +4946,7 @@ function initGalaxyMap3d(canvasEl, data) {
     LABEL_KINDS.forEach(function (kind) {
       stageView.layers.register({
         id: kind.id, label: kind.label, modes: ["galaxy", "sector"], group: "Labels", data: { label: kind.kind },
+        heading: "Show", keywords: ["names", "label", "labels", kind.kind], common: kind.id === "label-star",
         defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: kind.title,
         keyless: "names laid over the map, not a thing it draws",
       });
@@ -4930,6 +5069,17 @@ function initGalaxyMap3d(canvasEl, data) {
             return Math.hypot(entry.item.x - blob.x, entry.item.y - blob.y, entry.item.z - blob.z) <= blob.radiusPc;
           });
         }));
+    }
+    // Every charted region (one with a generated sector) carries the Region symbol while its sphere shows, whether or not a world in it is
+    // inhabited; a region that already has its inhabited token is not marked twice.
+    if (regionLayer && regionsOn && !hiddenCell && stageView.layers.isOn(REGION_KIND.id)) {
+      var regionHere = camera.position.toArray();
+      var regionFocal = focalPixels();
+      var regionTaken = chosen.filter(function (entry) { return entry.item.regionKey; });
+      chosen = chosen.concat(chartedRegionMarkers(markerKinds.get(REGION_KIND.id), regionBlobList,
+        function (blob) { return regionLook(blob, regionHere, regionFocal); },
+        function (blob) { return markerFrustum.containsPoint(markerPoint.set(blob.x, blob.y, blob.z)); },
+        function (blob) { return regionTaken.some(function (entry) { return entry.item.regionKey === blob.key; }); }));
     }
     // MAP.306: a symbol of a reason pulled forward is drawn over the others and named first, whatever level it is drawn at.
     chosen.forEach(function (entry) {
@@ -5483,11 +5633,21 @@ function initGalaxyMap3d(canvasEl, data) {
       // the galaxy's midplane instead of through the focus.
       setPlaneView: function (on) {
         planeView.set(on);
-        stageView.planeTilt(on);
-        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
+        stageView.planeTilt(on, planeView.wedgeAngle());
+        ["[data-action='plane-midplane']", "[data-action='plane-stems']", "[data-action='plane-wedge-prev']", "[data-action='plane-wedge-next']", "#galaxymap3d-plane-stretch"].forEach(function (selector) {
           var control = document.querySelector(selector);
           if (control) control.disabled = !on;
         });
+      },
+      // MAP.376: the next wedge (60 degrees round the galactic center) becomes the focus: the grid moves to it and the camera flies to
+      // its middle line at the radius it looked at, keeping the isometric view.
+      stepPlaneWedge: function (direction) {
+        if (!planeView.isOn()) return;
+        var angle = planeView.wedgeAngle() + direction * Math.PI / 3;
+        planeView.setWedgeAngle(angle);
+        var radius = Math.hypot(target.x, target.y);
+        if (radius < 1e-6) radius = Math.max(1, 2 * orbit.radius * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+        stageView.planeTilt(true, planeView.wedgeAngle(), [radius * Math.cos(angle), radius * Math.sin(angle), target.z]);
       },
       setPlaneMidplane: function (on) { planeView.setMidplane(on); },
       setPlaneStems: function (on) { planeView.setStems(on); },
@@ -5739,6 +5899,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (sectorFrame) sectorFrame.update();
     planeView.update();
     if (galaxyLabels) galaxyLabels.update(now, false);
+    nudgeRegionPois();
     renderFrame();
   })();
 }

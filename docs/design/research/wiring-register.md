@@ -25,8 +25,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
-| module | planetgen.galaxy.gravity_tree | MAP.387 | the cell hierarchy and interaction lists of the gravity map's sector grid (and `fields_at`, which runs them with the kernel), read by the grid job and cache of MAP.387 |
-| module | planetgen.galaxy.gravity_kernel | MAP.387 | the gravity map's field kernel (pull, potential, tidal tensor of point masses), read by `gravity_tree.fields_at` (MAP.385) |
+| function | planetgen.galaxy.gravity_kernel.pull_size | MAP.168 | the size of the pull of a grid, which the Sector Map layer draws in the Pull mode |
+| function | planetgen.galaxy.gravity_kernel.tidal_strength | MAP.168 | the largest eigenvalue of the tidal tensor of a grid, which the Sector Map layer draws in the Tidal strength mode |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
@@ -316,17 +316,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.178:PNE4 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE5 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.178:PNE7 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
-| module | planetgen.physics.nebula_composition | GEN.1276 | the composition item writes the values of each nebula and remnant at generation and backfill from `makeup(...).values()`, with `gas_oh` for the place; GEN.1277 does the same for the field clouds through `field_cloud_density_cm3` |
-| row | 6.179:NBC1 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC2 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC3 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC4 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC5 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC6 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
 | row | 6.179:NBC11 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| row | 6.179:NBC13 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
+| function | planetgen.physics.nebula_composition.gas_oh | GEN.1276 | the composition item writes the values of each nebula and remnant with `gas_oh` for the oxygen-hydrogen share |
+| function | planetgen.physics.nebula_composition.field_cloud_density_cm3 | GEN.1276 | the composition item draws the density of a field cloud (classes M and N) from its cell key |
 | module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
 | data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |
 | function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
 | function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |
+| function | planetgen.galaxy.spherical.sector_quadrant | DB.112 | the stored quadrant column and this function are deleted together once the migration drops the column |

@@ -809,6 +809,17 @@ def test_system_page_3d_view_says_what_a_sky_star_under_the_pointer_is(page, bas
     assert "seen as it was" in tip.inner_text()
 
 
+def test_every_layer_of_the_system_map_has_a_view_menu_heading_and_keywords(page, base_url, site_app):
+    """UX.277: the System Map's layers (facilities, body names, spin) name a View menu heading and keywords, and the common switches say so."""
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    root = "document.querySelector('#sysmap-root').__mapLayers"
+    assert page.evaluate(f"() => {root}.unheaded()") == []
+    entries = {entry["id"]: entry for entry in page.evaluate(f"() => {root}.entries()")}
+    assert set(entries) >= {"facility", "label-body", "spin"}
+    assert entries["spin"]["heading"] == "Move and Settings" and entries["label-body"]["heading"] == "Show" and entries["label-body"]["common"] is True
+
+
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
     system_id, scene = _system_with_planets(site_app.test_client())
     _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')

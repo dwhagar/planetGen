@@ -2580,3 +2580,20 @@ Baseline: PR #1817.
 | MAP.385 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
 | OPS.96 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
 | OPS.97 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| PERF.219 | later | Paging audit |
+| TEST.626 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.393 | 8.5 | Console look: icons and the maps' chrome |
+| MAP.366 | 8.1 | Nebula data foundations |
+| UX.272 | 8.1 | Interface update |
+| MAP.386 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| PERF.243 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| MAP.387 | 8.3 | Gravity field evaluator |
+| MAP.369 | 8.1 | Nebula data foundations |
+| UX.164 | 8.1 | Habitability system |
+| TEST.631 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.621 | 8.1 | Physics rectification: citations and the gate's test health |
+| UX.277 | 8.2 | User features |
+| TEST.628 | 8.2 | User features |
+| VIEW.43 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
+| VIEW.44 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
+| MAP.392 | 8.1 | Fly-through map |

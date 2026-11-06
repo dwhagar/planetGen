@@ -3113,7 +3113,7 @@
             ],
             [
               "What would show it wrong",
-              "test_atmosphere_mixture_lava::test_the_vapour_pressure_over_the_melt_is_kites_within_a_factor_of_four_from_2000_to_2500_k"
+              "test_atmosphere_mixture_lava::test_the_vapor_pressure_over_the_melt_is_kites_within_a_factor_of_four_from_2000_to_2500_k"
             ],
             [
               "What replaces it",
@@ -3303,7 +3303,7 @@
             ],
             [
               "What would show it wrong",
-              "test_atmosphere_mixture_rocky::test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent"
+              "test_atmosphere_mixture_rocky::test_an_earth_like_oxidized_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent"
             ],
             [
               "What replaces it",
@@ -4253,7 +4253,7 @@
             ],
             [
               "What would show it wrong",
-              "test_impact_history::test_the_impactor_vapour_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets"
+              "test_impact_history::test_the_impactor_vapor_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets"
             ],
             [
               "What replaces it",
@@ -4519,7 +4519,7 @@
             ],
             [
               "What would show it wrong",
-              "test_atmosphere_mixture_lava::test_a_more_aluminous_melt_has_more_aluminium_in_its_vapour"
+              "test_atmosphere_mixture_lava::test_a_more_aluminous_melt_has_more_aluminium_in_its_vapor"
             ],
             [
               "What replaces it",
@@ -25547,7 +25547,7 @@
         {
           "burn_down": [
             "replace",
-            "GEN.1111",
+            "GEN.1295",
             "the rogue research settles the per-star rate of free-floating planets and replaces the level ceilings"
           ],
           "fields": [
@@ -25631,7 +25631,7 @@
         {
           "burn_down": [
             "replace",
-            "GEN.1111",
+            "GEN.1295",
             "the ejection records give the scatterer's distance, so the drawn range is replaced by the architecture's own"
           ],
           "fields": [
@@ -25947,7 +25947,7 @@
         {
           "burn_down": [
             "replace",
-            "GEN.1111",
+            "GEN.1295",
             "the closest approach of each scattering is in the architecture's own ejection record, which replaces the line through three medians"
           ],
           "fields": [
@@ -26073,7 +26073,7 @@
         {
           "burn_down": [
             "replace",
-            "GEN.1111",
+            "GEN.1295",
             "the ejection records (RP1) give the time of each loss after formation, so the drawn delay distribution is replaced by the architecture's own"
           ],
           "fields": [
@@ -30003,7 +30003,7 @@
         {
           "burn_down": [
             "replace",
-            "GEN.1111",
+            "GEN.1295",
             "the ejection record gives the real closest approach, so the curve through two printed points is not needed"
           ],
           "fields": [
@@ -33695,6 +33695,204 @@
       "title": "Stand-ins of the composition of a supernova remnant"
     },
     {
+      "key": "6.188",
+      "number": "6.188",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.HYDROGEN_ATOMS_PER_AV_CM2 2.21e21: hydrogen atoms per cm2 for one magnitude of V extinction"
+            ],
+            [
+              "The range it moves in",
+              "2.0e21 to 2.3e21 (1.79e21 in the older ROSAT value)"
+            ],
+            [
+              "Where it holds",
+              "the diffuse gas of the Galaxy at solar metallicity"
+            ],
+            [
+              "What would show it wrong",
+              "an X-ray column and optical extinction sample outside 2.0 to 2.4e21"
+            ],
+            [
+              "What replaces it",
+              "a column per magnitude by metallicity, or a dust mass extinction coefficient and the dust-to-gas law"
+            ],
+            [
+              "Evidence",
+              "[R5130: Eq. 1] READ (full text): N_H = (2.21 +- 0.09)e21 A_V from 22 supernova remnants; agrees with an older supernova-remnant value of 2.22e21 and is 3 sigma above the ROSAT value of 1.79e21 in the same paper"
+            ]
+          ],
+          "id": "DU1",
+          "key": "6.188:DU1",
+          "kind": "D",
+          "slug": "6-188-du1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dust_model.HYDROGEN_ATOMS_PER_AV_CM2 2.21e21: hydrogen atoms per cm2 for one magnitude of V extinction"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.VISIBLE_SHARE 0.5: the share of the gas column that dims the stars a catalogue or a person can use"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "a galaxy whose gas and metals are the disk's own; any radius"
+            ],
+            [
+              "What would show it wrong",
+              "a high-latitude column or a plane extinction per kpc at the Sun that needs a share outside 0.3 to 0.7, or a calibrated naked-eye star count (VIEW.30) that does"
+            ],
+            [
+              "What replaces it",
+              "the share worked out from a clumpy cloud distribution and the gas phases (VIEW.8's nebulae)"
+            ],
+            [
+              "Evidence",
+              "tuned to the measured column through a half layer at the Sun, 0.12 mag ([R5132]: the abstract, from two 3-D dust maps), twice the 0.47 mag the gas column gives for 11.8 solar masses per pc2; the plane at the Sun then reads 1.06 mag per kpc against 0.85 +- 0.20 in [R5132: Table 1] and 0.8 to 1.0 in [R5131]"
+            ]
+          ],
+          "id": "DU2",
+          "key": "6.188:DU2",
+          "kind": "P",
+          "slug": "6-188-du2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "dust_model.VISIBLE_SHARE 0.5: the share of the gas column that dims the stars a catalogue or a person can use"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.GAS_DISPERSION_KMS 9: the velocity dispersion of the neutral gas that sets the layer's scale height sigma^2 / (pi G Sigma)"
+            ],
+            [
+              "The range it moves in",
+              "7 to 11"
+            ],
+            [
+              "Where it holds",
+              "the neutral gas layer of a disk galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a layer thickness at the Sun outside 100 to 150 pc, or a flare at 12 to 13 kpc outside 300 to 700 pc"
+            ],
+            [
+              "What replaces it",
+              "the dispersion by radius and gas phase, or the vertical force of the potential (VIEW.46)"
+            ],
+            [
+              "Evidence",
+              "recalled, not read: the HI of the Galaxy has 7 to 11 km/s. The layer it gives, 113 pc at the Sun and 470 pc at 12.5 kpc, is checked against 125 (+17 -7) pc ([R5135]: abstract) and the thin (340 pc) and thick (1,000 pc) dust disks of [R5131] at 12 to 13 kpc"
+            ]
+          ],
+          "id": "DU3",
+          "key": "6.188:DU3",
+          "kind": "P",
+          "slug": "6-188-du3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "dust_model.GAS_DISPERSION_KMS 9: the velocity dispersion of the neutral gas that sets the layer's scale height sigma^2 / (pi G Sigma)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.LAYER_FLOOR_PC 40: the thinnest layer"
+            ],
+            [
+              "The range it moves in",
+              "20 to 80"
+            ],
+            [
+              "Where it holds",
+              "the inner disk, where the surface density of the disk alone gives a layer of a few pc"
+            ],
+            [
+              "What would show it wrong",
+              "the extinction from the Sun to the Galactic Center outside 25 to 60 mag (moves by a factor of 6 over 20 to 80 pc)"
+            ],
+            [
+              "What replaces it",
+              "the vertical force of the galactic potential, GEN.115 (VIEW.46)"
+            ],
+            [
+              "Evidence",
+              "the thickness of the central molecular zone, a few tens of pc; the sight line to the Galactic Center is A_V 31 to 59 in the literature and 38 to 42 for the model of [R5134]"
+            ]
+          ],
+          "id": "DU4",
+          "key": "6.188:DU4",
+          "kind": "P",
+          "slug": "6-188-du4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "dust_model.LAYER_FLOOR_PC 40: the thinnest layer"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dust_model.dust_to_gas_ratio: the dust goes with the metals by the law of [R5102] (row NBC4), the gas metallicity by the gradient of row NBC1"
+            ],
+            [
+              "The range it moves in",
+              "factor 1.6; scatter 0.37 dex"
+            ],
+            [
+              "Where it holds",
+              "12 + log(O/H) 7.1 to 9"
+            ],
+            [
+              "What would show it wrong",
+              "see NBC4; dust-to-gas ratios of the Galaxy by radius ([R5131]: gas-to-dust 60 at 5 kpc to 470 at 14 kpc, about three times the gradient the metals give)"
+            ],
+            [
+              "What replaces it",
+              "the same replacements as NBC4 and NBC1 (GEN.1291 scales the gradient with the galaxy)"
+            ],
+            [
+              "Evidence",
+              "NBC4's reading of [R5102: Table 1]; [R5131] finds the dust falling outward faster than the metals alone give, which this model does not capture"
+            ]
+          ],
+          "id": "DU5",
+          "key": "6.188:DU5",
+          "kind": "D",
+          "slug": "6-188-du5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dust_model.dust_to_gas_ratio: the dust goes with the metals by the law of [R5102] (row NBC4), the gas metallicity by the gradient of row NBC1"
+        }
+      ],
+      "slug": "6-188-stand-ins-of-the-dust-of-a-galaxy-from-its-own-gas",
+      "title": "Stand-ins of the dust of a galaxy from its own gas"
+    },
+    {
       "key": "6.176",
       "number": "6.176",
       "rows": [
@@ -33985,7 +34183,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GAS_GRADIENT_DEX_PER_KPC 0.034: the fall of the Milky Way gas's metallicity with galactic radius, dex per kpc (Boss: its own gradient, not the stars' 0.06)"
         },
         {
@@ -34023,7 +34221,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GAS_SCATTER_DEX 0.14: the scatter of the gas around its gradient, dex"
         },
         {
@@ -34061,7 +34259,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L2",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.SATELLITE_GAS_OFFSETS ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26)): the lowest and highest offset of a satellite's gas [O/H] above the component's [Fe/H], dex, at the SMC and LMC stars"
         },
         {
@@ -34099,7 +34297,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.DUST_BREAK_12LOG 7.96, DUST_HIGH_METALLICITY (2.21, 1.0), DUST_LOW_METALLICITY (0.68, 3.08): the broken power law of the gas-to-dust ratio against 12 + log(O/H)"
         },
         {
@@ -34137,7 +34335,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.MAX_IN_DUST {Mg 0.95, Si 0.95, Fe 0.99, C 0.70, O 0.60}: the most of an element that can sit in dust, as a share of its total"
         },
         {
@@ -34179,7 +34377,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.GRAINS and GRAIN_MIXES: the element content of five grain kinds (magnesium silicate, iron, carbon, PAH, ice) and the share of the dust mass in each, by mix"
         },
         {
@@ -34457,7 +34655,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind"
         }
       ],

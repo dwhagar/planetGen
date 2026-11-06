@@ -501,3 +501,14 @@ def test_the_bars_follow_a_download_and_take_the_bar_away_when_it_ends(cache):
     bars = datasets_cli._Bars(rich.console.Console(file=io.StringIO(), force_terminal=True, width=100))
     result = fetch.fetch(dataset, opener=_serve(dataset, payload), progress=bars)
     assert result.status == "fetched" and not bars._tasks
+
+
+def test_kept_files_are_listed_by_download_url_not_one_line_each():
+    from types import SimpleNamespace as N
+    from planetgen.cli import datasets as cli
+
+    def done(state, url):
+        return N(state=state, piece=N(url=url), reason="")
+    lines = cli._result_lines([done("kept", "https://a/x.zip"), done("kept", "https://a/x.zip"), done("kept", "https://b/y.csv"),
+                               done("fetched", "https://c/z.dat")])
+    assert lines == ["    fetched  https://c/z.dat", "    kept     https://a/x.zip (2 files)", "    kept     https://b/y.csv"]

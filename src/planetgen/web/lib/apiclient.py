@@ -456,15 +456,13 @@ def list_databases():
     return _request("/databases")["items"]
 
 
-def get_sectors(db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False, after=None):
+def get_sectors(db, limit=None, offset=None, sort=None, descending=False, after=None):
     """Returns `GET /api/sectors`'s full paginated envelope
-    (`items`/`total`/`limit`/`offset`, plus `facets` when asked). `sort`,
-    `quadrants` and `facets` are the Sectors table's sort and filter (UX.41); `after` is the sector ID the previous
+    (`items`/`total`/`limit`/`offset`). `sort` is the Sectors table's sort (UX.41); `after` is the sector ID the previous
     page ended on (PERF.137)."""
     _require_db(db)
     params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
               ("order", "desc" if descending else None)]
-    params += [("quadrant", value) for value in quadrants] + [("facets", "1" if facets else None)]
     return _request("/sectors", [(key, value) for key, value in params if value is not None])
 
 
@@ -875,6 +873,13 @@ def get_nebula_volume(db, nebula_id):
     one nebula alone, MAP.142 -- see `db.nebula_volumes.single_nebula_volume`)."""
     _require_db(db)
     return _request(f"/nebulae/{nebula_id}/volume", {"db": db})
+
+
+def get_cloud_volume(db, x, y, z, radius_pc, family):
+    """Returns `GET /api/galaxy/cloud-volume`'s payload (`format`/`level`/`count`/`data`, the base64 of the packed points that draw one cloud given by
+    its sphere, MAP.392 -- see `db.nebula_volumes.sphere_volume`)."""
+    _require_db(db)
+    return _request("/galaxy/cloud-volume", {"db": db, "x": x, "y": y, "z": z, "radius_pc": radius_pc, "family": family})
 
 
 def get_nebula_surroundings(db, nebula_id):

@@ -2,6 +2,155 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3385] - 2026-11-06
+
+**Headline:** The Galaxy Map no longer draws a ring outline around each group of nebulae.
+
+### Changed
+
+- At the Galaxy level a group of nebulae was a soft blob with a thin ring near its rim, which read as large circle outlines over the disk. The blob is drawn without the ring. This is drawing only: it needs no regeneration and no new data.
+
+## [8.0.3384] - 2026-11-06
+
+**Headline:** The atmosphere stand-in registry names the four tests whose names DOC.103 respelled, and its test passes again.
+
+### Changed
+
+- `docs/design/research/gap-filling-plan.md` rows AM10, AM15, the impactor-escape row and the alumina row named tests by their British spelling (`vapour`, `oxidised`); DOC.103 respelled the tests (`vapor`, `oxidized`) and left the rows, so `test_atmosphere_standin_registry.py::test_a_row_names_a_constant_and_a_test_that_exist` failed in four cases on main since train 10. The rows now name the tests as they are. `stand-in-values.md` and `docs/references/` are rebuilt from the plan.
+
+generation-output: unchanged
+
+## [8.0.3383] - 2026-11-06
+
+**Headline:** The Sector Map draws every nebula and supernova remnant as a soft volume of points, with no hard ball or ring left.
+
+### Changed
+- **Supernova remnants and nebulae with no stored id are drawn from points on the Sector Map.** A remnant used to show as a hard-edged analytic ball and shell, and a scattered nebula or one a waiting star lights as a smooth ball, because only a stored nebula could ask for its points by id (MAP.142). They now ask for the points of their own sphere in the colour of their family, the same sampler and density the stored nebulae use, so they match the Galaxy Map (MAP.392). The analytic sphere stays only as the fallback of a host that cannot draw points.
+- New route `GET /api/galaxy/cloud-volume?x=&y=&z=&radius_pc=&family=` (and the site's `/galaxy/cloud-volume`) returns the packed points of a sphere; additive, no existing route changes. `generation-output: unchanged`.
+
+## [8.0.3382] - 2026-11-06
+
+**Headline:** The density identity test is recorded again for the new star formation history, and passes.
+
+### Changed
+
+- `tests/fixtures/density_identity.json` is recorded again (TEST.631). `test_the_spiral_written_as_components_gives_the_density_it_gave_before` failed in all six cases on main since train 9: GEN.1230 and GEN.1242 (epoch 131) made the thin disc form from an inside-out infall, which moved the ages of each population and so the mean system mass behind the model's units. Checked point by point before the fixture was rewritten: every total density and the halo are the old ones times one number per shape (1.0010 to 1.0014, and 1.0444 for the large four-armed disc), the total mass is unchanged, and only the per-population units and the mix of a place between age groups move. The fixture's `nuclear_disc` is now `nuclear_disk`, the spelling DOC.103 gave the stored name.
+
+generation-output: unchanged
+
+## [8.0.3381] - 2026-11-06
+
+**Headline:** The sky of a system is seen through the dust of its own galaxy's gas, so a small galaxy's sky is no longer smothered by the Milky Way's dust written in fixed parsecs.
+
+### Changed
+- **The sky route, the glow band and the sprites use the dust of the galaxy's own gas.** `api/system_sky.py` builds the stored galaxy's `DustProfile` (`dust_model.dust_for_shape`, VIEW.43) and gives it to the stars (`sky_from_database`, which takes it by default from the stored shape: `sky.default_dust`), the nebula sprites, the glow band and the "wanted" reach. Before, every galaxy had the Milky Way's law in fixed parsecs (9.6 magnitudes per kiloparsec in the plane of the 481 pc test galaxy at its site, 0.05 now). `av_per_kpc_at_sun = 0` still means a dust-free sky.
+- **The glow band's cache key follows the dust tables** (the digest of the profile, `DustProfile.key()`), and `SKY_VERSION` is 4, so every stored sky and band is built again.
+
+## [8.0.3380] - 2026-11-06
+
+**Headline:** A test that hangs past its time limit is now stopped, named and reported, and the test run goes on instead of waiting for hours.
+
+### Fixed
+- The full non-browser run hung twice with every worker idle (1.5 h and 3 h). `pytest-timeout`'s signal fires once and raises in the test; a test that holds a process pool then waits for its children as the `with` block closes (`shutdown(wait=True)`), and a child that is still busy never ends, so the alarm was spent and nothing stopped the wait. Reproduced with a two-child pool that sleeps.
+- New `tests/hang_guard.py` (loaded from `pytest.ini`): a second clock on a thread of its own for every test, over setup, call and teardown. Past the test's limit plus `hang_guard_grace` (120 s) it prints `HUNG TEST <node id> (worker ...)` and kills the worker's child processes, so the wait ends and the timeout is reported as the test's failure; 120 s later, if the test is still running, it ends the worker (`os._exit(70)`), which xdist reports as a crashed worker on that test and replaces.
+- `scripts/test.py` stops a phase that prints nothing for two hours (`PLANETGEN_TEST_IDLE_LIMIT_S`, 0 turns it off), says `HUNG RUN`, and returns exit code 124.
+
+### Added
+- `tests/test_hang_guard.py` (a hung pool is killed and the next test runs; a test stuck on nothing a child can end loses its worker under xdist and the run goes on; no limit, no watch; the process-tree helpers) and three tests of the idle limit in `tests/test_test_runner.py`.
+
+generation-output: unchanged
+TODO items resolved: TEST.621
+
+## [8.0.3379] - 2026-11-06
+
+**Headline:** Every map layer now declares the View menu heading and search words it belongs under, ready for the grouped menu.
+
+### Added
+- **Layer registry fields for the View menu (UX.277).** A layer of the Galaxy, Sector and System Maps (`static/maplayers.js`) now names its
+  `heading` (Show, Color and fill, Chart and side views, or Move and Settings), its `keywords`, a `common` flag for the few most used
+  switches and an optional `settings` hook for a layer that needs a slider or a filter. Every existing layer has its heading and words,
+  and `registry.unheaded()` names any layer without them, which browser tests on the three maps hold empty, so a layer added later cannot
+  skip them. `registry.entries()` hands the menu builder (UX.278) and the search (UX.279) what they need. No look change.
+
+## [8.0.3378] - 2026-11-05
+
+**Headline:** The dust that dims a galaxy's stars can now be worked out from the galaxy's own gas, so a small galaxy no longer inherits the Milky Way's dust.
+
+### Changed
+
+- `physics/dust_model.py` (VIEW.43) works out the dust of a galaxy from the gas of every ring of its disk (GEN.469), the metals of that gas (GEN.1269 and the dust-to-gas law of [R5102]) and the thickness a gas layer has in the disk's own gravity. It gives two tables, the extinction through the whole layer and the layer's scale height, against radius. The extinction per parsec is the column over twice the height times sech squared of the height above the plane. One constant comes from a measurement (2.21e21 hydrogen atoms per magnitude, [R5130]) and one is tuned (a half of the gas column dims the stars a catalogue can use).
+- In a galaxy shaped like the Milky Way it gives 1.06 magnitudes a kpc in the plane at the Sun and 0.24 magnitudes through the layer, and about 39 magnitudes from the Sun to the Galactic Center; the fixed law gave 2.3. A galaxy of the test galaxy's size gives 0.14 magnitudes a kpc where the fixed law gave 9.6.
+- `sky_photometry.dust_av_per_pc` takes the table form (`profile=`) beside the fixed law; `av_per_kpc_at_sun=0` still means no dust. Nothing reads the profile yet: the sky route, the glow band and the tier ledger take it in VIEW.44, so the sky is unchanged by this note.
+- Five stand-in rows, DU1 to DU5 (section 6.188 of the registry), and five references ([R5130] to [R5134]).
+
+generation-output: unchanged
+
+## [8.0.3377] - 2026-11-05
+
+**Headline:** A charted region's point of interest on the Galaxy Map now shows the region's name, so it reads as a label that can be clicked to fly in.
+
+### Fixed
+- **Region points of interest were a bare symbol (MAP.369).** The point drawn for each charted region at the galactic view held only a
+  hexagon (and a count when regions were merged), with the name only in the tooltip, so Boss saw no region label. The point now shows
+  the region's name beside its symbol (the biggest region's name for a merged group, with the count as a badge), and points whose
+  names would run into each other merge sooner. A click still flies in and frames the region, or the group.
+
+## [8.0.3376] - 2026-11-05
+
+**Headline:** A new docs test fails when an item's Version line in the TODO page disagrees with the version file its row sits in.
+
+### Added
+- `tests/test_todo_docs.py` checks that the last `Version 8.2.` style line in an item's text in `docs/TODO.md` names the version whose file (`docs/plan/releases/version-*.md`) holds the item's row, and fails with the item, the version it states and the file found. It reads only an item's own statement (a capital `Version`, a number, then a full stop, comma or similar), not sentences that mention another version.
+
+## [8.0.3375] - 2026-11-05
+
+**Headline:** The MAP.366 design note writes its date in the form the citation test accepts.
+
+### Changed
+- The star-density section of `docs/design/interface/zoom-star-visibility.md` now says "on 2026-11-04" instead of a clock time with "EST 2026", which the citation test read as a source name. Documentation only; `generation-output: unchanged`.
+
+## [8.0.3374] - 2026-11-05
+
+**Headline:** The galaxy pages name the regions where sectors are charted instead of four quadrants.
+
+### Changed
+- **Quadrants are gone from the Galaxy page, the Sectors list and the sector page.** The Galaxy page's Quadrants table is now a Charted regions table (name, the family it belongs to, sectors charted and share charted, most charted first). The Sectors list shows each sector's region in place of its quadrant and no longer has a quadrant menu or a position sort. A sector page says which region it lies in. `GET /api/sectors` no longer takes `quadrant` or `facets` and each item carries its `region`. Systems still show their octant within the sector, which is a different thing.
+
+## [8.0.3373] - 2026-11-05
+
+**Headline:** The Galaxy Map's Chart View holds still, keeps its labels steady and lets you step from wedge to wedge.
+
+### Fixed
+- **The coordinate labels in the Chart View (the old Plane view) blinked.** They were removed and made again a few times a second; each now stays while its star is labelled and is placed in the frame it is made.
+- **The Chart View had no Region symbol for generated space.** Every region that holds a generated sector now carries the Region symbol while its sphere shows, a "Charted regions" switch under Points of interest, on by default (before, only a region with an inhabited world had a mark).
+
+### Changed
+- **The Plane view is now the Chart View**, a fixed isometric view looking outward along its 60 degree wedge, and its controls sit together in one Chart View group in the Menu, with Previous wedge and Next wedge buttons: the chosen wedge becomes the focus and the view flies to it.
+
+## [8.0.3372] - 2026-11-05
+
+**Headline:** The Galaxy Map keeps the density of stars in a tile that reached its star cap near that of the bigger tiles beside it, so the star map no longer shows square chunks of thin and thick.
+
+### Changed
+
+- **MAP.366.** Boss saw square chunks missing from the star map while a tile at about the same distance kept its stars. The cause: every block tile lists at most 96 bright and 96 generated stars however big it is on screen, and the 1,200-tile cut leaves tiles from a fifth to the whole of the biggest on screen side by side (in the large test galaxy, tiles at one distance differ up to 7 times in size, so the dense tiles are 7 to 38 times as thick in stars per square pixel as the thin ones). The page now keeps a tile that reached its cap to a share of its list that holds its density near that of the bigger capped tiles in the view (the 0.6 quantile of their sizes on screen; never under 30 percent of the list), fading the dimmer stars of the tile out by rank as the camera moves instead of dropping them. A tile under the cap lists every star it has and is untouched, and so are black holes, pulsars and quasars. The spread of density among capped tiles falls from 7 to 38 times to 3 to 12 times in the test galaxy, at the cost of 12 to 29 percent of the stars shown. The numbers are in `src/html/static/starthin.js` (`DENSITY_FLOOR`, `REFERENCE_QUANTILE`) for tuning. Page only; no stored value changes.
+
+generation-output: unchanged
+
+## [8.0.3371] - 2026-11-05
+
+**Headline:** The test that counts a system page's database statements no longer fails when a generated system has no moons.
+
+### Fixed
+- `test_sector_and_system_pages_use_a_fixed_number_of_queries` compared the statement count of two randomly generated systems, but a system with no moons sends three fewer statements (moon gases, class scores and life), and one with no belts sends one fewer, so it failed on most runs. It now checks that no statement is sent twice however many planets, moons and belts a system has (the host lookup, once for each star that has planets, excepted) and bounds the rest at 18, so a new statement has to be named.
+
+## [8.0.3370] - 2026-11-05
+
+**Headline:** The Systems list with a star type filter now pages by key in the sector and octant sorts, so a deep page costs what the first one does.
+
+### Changed
+- `GET /api/systems` (and the Systems list behind it, `planetgen systems`) with `star_type` set and the `sector` or `octant` sort now starts a page after the system named by `after` instead of skipping rows with `offset`. The star type is one more condition inside each sector or octant of the walk that the unfiltered list already used. Measured on MySQL with 2,000,000 systems and 2,800,000 stars, a G-type filter: a page after a system in the middle of the list went from 11 to 18 s down to 8 to 20 ms. The pages and their order are unchanged. An `offset` page of the octant sort with a star type reads as before (about 20 s at that size; the web table and the API carry `after`).
+
 ## [8.0.3369] - 2026-11-05
 
 **Headline:** Every log now writes the computer's local time with its zone; no log form writes UTC any more.
