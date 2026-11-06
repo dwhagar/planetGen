@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3483] - 2026-11-06
+
+**Headline:** The information page of an outer disk now says where the disk's mass went: how much stayed cold or got stirred, sits in a resonance, was scattered, thrown out, parked beside the giant, put in the inner belt or caught as moons.
+
+### Added
+- **Where the disk's mass went (GEN.1092).** The page of an outer disk (`/object/belt:<ID>/belt`) has a table of the groups the outermost giant sorted the disk into, each with its share of the disk, adding up to the whole. `GET /api/objects/<ref>/belt-page` carries it as `belt.fates` (a list of `{population, share}`, empty for a belt that is not an outer disk), a new field on an existing route, so the API version does not change.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1092 stays open until the shares that left the disk are handed to the inner belt, the moons and the rogue builders).
+
 ## [8.0.3482] - 2026-11-06
 
 **Headline:** The life-class tests of the system interests set the classes of their fixture system completely, so a minor class the generator drew there no longer adds a reason the test did not ask for.
