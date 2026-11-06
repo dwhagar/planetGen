@@ -40,14 +40,6 @@ def _a_world_with_life(**overrides):
     pytest.fail("no generated world with a life class")
 
 
-def _no_draw(monkeypatch):
-    def refuse(*_args, **_kwargs):
-        raise AssertionError("a draw was made")
-    for name in ("random", "uniform", "randrange", "randint", "choice", "choices", "shuffle", "sample", "gauss", "gamma",
-                 "dirichlet", "getrandbits"):
-        monkeypatch.setattr(draw, name, refuse)
-
-
 def _ages(body):
     return tuple(getattr(body, field) for field in evolution.SCHEDULE_FIELDS)
 
@@ -99,12 +91,14 @@ def test_a_body_no_class_supports_loses_the_pace_it_had(monkeypatch):
     assert all(getattr(body, field) is None for field in evolution.SCHEDULE_FIELDS)
 
 
-def test_an_edit_keeps_the_class_and_the_pace_while_they_still_fit(monkeypatch):
+def test_an_edit_keeps_the_class_and_the_pace_while_they_still_fit():
+    """The run's stream does not move (`apply_life_data`): the draws an edit makes again (the trace gases, a giant's heat) come from streams of the body's own."""
     body = _a_world_with_life()
     before = (body.life_class_id, body.evolutionary_pace, body.life_stage, body.life_milestone_age_gyr,
               body.life_system_age_gyr, *(getattr(body, field) for field in evolution.SCHEDULE_FIELDS))
-    _no_draw(monkeypatch)
+    run_state = draw.getstate()
     validation.reapply_life(body)
+    assert draw.getstate() == run_state, "an edit moved the run's stream"
     after = (body.life_class_id, body.evolutionary_pace, body.life_stage, body.life_milestone_age_gyr,
              body.life_system_age_gyr, *(getattr(body, field) for field in evolution.SCHEDULE_FIELDS))
     assert after == before
@@ -127,6 +121,34 @@ def test_an_edit_draws_a_class_again_only_when_the_old_one_no_longer_fits(monkey
         assert body.evolutionary_pace in tuning.EVOLUTIONARY_TIMELINES
         assert _in_order(_ages(body))
         assert body.reflection_spectrum_visible == (life_classes.describe(body.life_class_id).life["reflection_spectrum_visible"] or None)
+
+
+def test_a_class_whose_own_air_takes_its_solvent_does_not_live_on_the_world(monkeypatch):
+    """GEN.1298: the greenhouse gas the dominant class draws down can leave it no liquid (an ammonia-water sea frozen below its eutectic); the class is
+    not kept then (it is for a donor it used up, TEST.486): the world is made again from the body as it was, without that class."""
+    body = _a_world_with_life()
+    old = body.life_class_id
+    real = life_classes.score_classes
+    scored = [0]
+    real_apply = planet_life._apply
+
+    def a_pass(*args, **kwargs):
+        scored[0] = 0
+        return real_apply(*args, **kwargs)
+
+    def frozen_after_the_air(*args, **kwargs):
+        scored[0] += 1
+        found = real(*args, **kwargs)
+        if scored[0] > 1 and old in found:      # the first scoring of a pass is the body as it stands; the next ones are of the air the life made
+            found[old] = life_classes.ClassScore(old, 0.0, {"solvent": 0.0}, ["solvent"], [], [])
+        return found
+
+    monkeypatch.setattr(planet_life, "_apply", a_pass)
+    monkeypatch.setattr(planet_life.life_classes, "score_classes", frozen_after_the_air)
+    planet_life.apply_life_data(body)
+    assert body.life_class_id != old, "the class kept a world its own air took the solvent of"
+    assert body.life_class_id is None or body.evolutionary_pace in tuning.EVOLUTIONARY_TIMELINES
+    assert body.life_class_id is None or _in_order(_ages(body))
 
 
 def test_a_class_that_breathes_oxygen_but_makes_none_stops_at_photosynthesis_in_an_air_without_it():
