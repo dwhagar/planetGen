@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.634 |
+| TEST | TEST.639 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -4078,6 +4078,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.627 | Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3 | none | open |
 | TEST.632 | A bulk `plan` command raises DataMissing for the MIST isochrones before the dataset gate refuses: test_datasets_gate and test_disregard_missing_data fail on clean main (bug) | none | done, PR #5265 |
 | TEST.633 | tests/js/galaxynebulae.test.mjs fails on main: "a region's blob is the group's sphere in the colour of its dominant family, with a ring when it holds several" expects blob.ring true (bug) | none | open |
+| TEST.634 | test_web_browser_layout.py::test_controls_do_not_overlap[web.galaxy at 390, 600, 820 and 1280] fails: on /galaxy the Go to button and address input overlap the site search link, Help and Menu (bug) | none | open |
+| TEST.635 | test_web_system_nav_row.py::test_system_buttons_share_one_row fails at 390, 600, 820 and 1280: the system buttons sit on more than one row, two at negative y (bug) | none | open |
+| TEST.636 | test_web_ui_fields_browser.py::test_each_kind_of_field_is_filled_and_submitted fails on desktop and phone, light and dark: strict mode violation, details.search-more > summary resolves to 2 elements (bug) | none | open |
+| TEST.637 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not fails: assert True is False (bug) | none | open |
+| TEST.638 | test_web_admin_menu_fits.py fails for the laptop, phone, short and tablet sizes in light and dark: on web.sector the panel is not at its button, the button at negative y (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |

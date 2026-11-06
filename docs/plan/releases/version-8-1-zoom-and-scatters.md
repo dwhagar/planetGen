@@ -632,6 +632,11 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.616 | tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug) |  |  |
 | TEST.614 | tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug) |  |  |
 | TEST.633 | tests/js/galaxynebulae.test.mjs fails on main: "a region's blob is the group's sphere in the colour of its dominant family, with a ring when it holds several" expects blob.ring true (bug) |  |  |
+| TEST.634 | test_web_browser_layout.py::test_controls_do_not_overlap[web.galaxy at 390, 600, 820 and 1280] fails: on /galaxy the Go to button and address input overlap the site search link, Help and Menu (bug) |  |  |
+| TEST.635 | test_web_system_nav_row.py::test_system_buttons_share_one_row fails at 390, 600, 820 and 1280: the system buttons sit on more than one row, two at negative y (bug) |  |  |
+| TEST.636 | test_web_ui_fields_browser.py::test_each_kind_of_field_is_filled_and_submitted fails on desktop and phone, light and dark: strict mode violation, details.search-more > summary resolves to 2 elements (bug) |  |  |
+| TEST.637 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not fails: assert True is False (bug) |  |  |
+| TEST.638 | test_web_admin_menu_fits.py fails for the laptop, phone, short and tablet sizes in light and dark: on web.sector the panel is not at its button, the button at negative y (bug) |  |  |
 | TEST.606 | The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug) |  |  |
 | TEST.602 | test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug) |  |  |
 | VIEW.42 | The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug) |  |  |
