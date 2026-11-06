@@ -55,12 +55,15 @@ class Entry:
 
 def _star(conn, row):
     look = bodylook.star_look(row)
-    return {"look": look, "caption": bodylook.look_note(look), "estimate": _estimates(look)}
+    return {"look": look, "caption": bodylook.look_note(look), "estimate": estimates_of(look)}
 
 
-def _estimates(look):
-    """What the picture guessed: a colour from temperature alone (no stored ground mixture) is an estimate."""
-    return ["surface colour"] if look.get("quality") == "estimate" else []
+def estimates_of(look):
+    """What the picture guessed (UX.276): a world's ground color, or a giant's cloud-top color, worked out from temperature alone because no
+    ground mixture or cloud chemistry is stored, is an estimate; the panel says so. Cloud cover is not drawn before 9.0, so it is not listed."""
+    if look.get("quality") != "estimate":
+        return []
+    return ["cloud-top color"] if look.get("body") == "gas" else ["ground color"]
 
 
 def _with_air(conn, kind, row):
@@ -82,7 +85,7 @@ def _planet(kind):
         if kind == "planet":      # the gaps its moons dig in a ring
             row["moons"] = [dict(moon) for moon in conn.execute("SELECT * FROM moons WHERE planet_id = ?", (row["id"],)).fetchall()]
         look = bodylook.planet_look(row, kind)
-        return {"look": look, "caption": bodylook.look_note(look), "estimate": _estimates(look)}
+        return {"look": look, "caption": bodylook.look_note(look), "estimate": estimates_of(look)}
     return build
 
 

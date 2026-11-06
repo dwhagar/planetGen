@@ -260,6 +260,13 @@ MOON_MIN_MASS_KG = 1.0e20
 MOON_GIANT_PARENT_MAX_MASS_RATIO = 1.0e-3
 MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 
+# GEN.962: a rocky planet's moons come from giant impacts (its regular moons) and capture (the small irregular ones of `captured_moons`), and a planet with no
+# row in the hosting gate's `satellite-share` table holds a massive moon, one of at least ROCKY_MASSIVE_MOON_MASS_RATIO of its mass, in about 1 planet in 12
+# [R5127]. That chance is drawn once for the planet and again after each moon (a further impact), so the count of moons per rocky planet is geometric with this
+# chance; the planet's room and Hill sphere still limit it. Stand-ins of registry section 6.186.
+ROCKY_IMPACT_MOON_CHANCE = 1.0 / 12.0
+ROCKY_MASSIVE_MOON_MASS_RATIO = 0.006
+
 # The water a rocky terrestrial body is born with (GEN.849; `physics/delivered_water`): its class (dry, low, high, rich) comes from the Bern
 # population synthesis law the atmosphere recipes already read (`data/ngpps_formation_water.json`), by its mass and the snow lines it formed
 # at; inside a class the share of its whole mass is log-uniform. The class edges are the model's. The dry class reaches down to
@@ -820,6 +827,13 @@ WR_MIN_INITIAL_MASS_SOL = 25.0
 WR_THRESHOLD_METALLICITY_EXPONENT = 0.5
 """float: The threshold rises as Z^-0.5: the winds that strip the star weaken with metals [R], so 25 solar masses at
 the Sun's metallicity is 35 at half and 56 at a fifth of it [I]."""
+WR_BINARY_MIN_RATIO = 0.72
+"""float: The least initial mass at which a close companion can strip a star into a Wolf-Rayet star, as a share of `WR_MIN_INITIAL_MASS_SOL` (the single-star threshold): 18 against 25 solar masses
+at the Sun's metallicity, the least initial mass whose stripped helium star is as massive as a Wolf-Rayet spectrum needs (7.5 solar masses; [R4051: Table 1], section 3.2). The same metallicity law as
+the single-star threshold carries it up (18, 24 and 37 solar masses at the Galaxy, the LMC and the SMC are close to it). Stand-in WB1, tier T1, tweak level L0."""
+WR_STRIPPING_FRACTION = 0.33
+"""float: The share of stars in the band between the binary and single-star thresholds that a companion strips into a Wolf-Rayet star: the share of massive stars that exchange mass in a way that
+removes the envelope, 0.33 ([R4051] section 5, below its Eq. 4, quoting the observed interacting fraction). Stand-in WB2, tier T2, tweak level L0."""
 WR_PHASE_MYR = 0.3
 """float: How long a Wolf-Rayet star stays one, Myr (the last stretch of its life) [R]."""
 WR_MAX_SUPERGIANT_SHARE = 0.5
@@ -1067,26 +1081,6 @@ WATER_PER_HYDROGEN_MASS = 8.94
 DISK_MASS_FRACTION_RANGE = (0.01, 0.3)
 DISK_OUTER_RADIUS_RANGE_AU = (10.0, 300.0)
 DISK_DUST_SUBLIMATION_K = 1500.0
-# The cold debris disk of a main-sequence star (GEN.787, physics/debris_disk.py). [R4081] (MNRAS 475, 3046, the
-# Herschel DEBRIS survey; [R4081], sections 2.5 and 3 and Tables 1 and 2 read 2026-10-30): the share of stars with a
-# detected cold disk is F 23.9, G 14.3 and K 13.0 percent (47 disks round 275), M 2.2 percent (89 stars) and, raw, 24 percent for
-# A stars. `DEBRIS_DISK_INCIDENCE` is the share for each mass band, the bands ending at the masses of
-# `DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL` (the last band has no upper mass). The masses are the spectral types'
-# (M under 0.45, K to 0.8, G to 1.04, F to 1.4, A and hotter above); the dust shows no clear dependence on
-# type from late B to M, so a hotter star takes the A figure.
-DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL = (0.45, 0.8, 1.04, 1.4)
-DEBRIS_DISK_INCIDENCE = (0.022, 0.130, 0.143, 0.239, 0.24)
-BLACKBODY_AT_ONE_AU_K = 278.3
-# The dust temperature of a detected disk: the 47 disks of [R4081: Table 1] have blackbody radii from 0.63 to 280 AU with a
-# median of 23 AU (7 to 40 AU for most), which at one solar luminosity is a median of 58 K; the log-normal width 0.45 puts the
-# middle two thirds of Sun-like stars at about 7 to 40 AU (a stand-in fitted to that statement, not a fit to the table).
-DEBRIS_DISK_TEMPERATURE_MEDIAN_K = 58.0
-DEBRIS_DISK_TEMPERATURE_LOG_SIGMA = 0.45
-# The belt lies further out than a blackbody grain would: the paper's 7 to 40 AU blackbody radii "scale to about 40 AU for realistic
-# dust properties", about 1.7 times the median 23 AU. The edges at 0.7 and 1.5 of the belt radius are a design choice (a ring about
-# as wide as it is far out), not read from a source.
-DEBRIS_RADIUS_OVER_BLACKBODY = 1.74
-DEBRIS_DISK_EDGES_OVER_RADIUS = (0.7, 1.5)
 # Companions of a protostar: the multiplicity fraction of Perseus' Class 0
 # (0.57) and Class I (0.23) protostars, [R4379] (ApJ 818:73,
 # [R4379], abstract read 2026-10-17).
@@ -3645,6 +3639,27 @@ relative to the solar circle's average (`nebulaField.gas_factor`). The
 young-star tracer climbs twentyfold toward the inner disk; uncapped, the
 inner galaxy would be solid cloud. At 3, an arm crest or the inner disk
 has about a quarter of its volume inside a dark cloud."""
+
+MILKY_WAY_MOLECULAR_GAS_MASS_SOLAR = 1.2e9
+"""float: The Milky Way's molecular gas, solar masses (H2): 1.2e9 in the 8,107 clouds of the CO catalogue [R3102]. The field's cloud
+count is tuned to those 8,107 (`NEBULA_FIELD_KEEP`), so a satellite's cloud count is read against this mass (GEN.367)."""
+
+MILKY_WAY_CATALOGUED_CLOUDS = 8107
+"""int: The molecular clouds catalogued across the Milky Way disk [R3102], the target of `NEBULA_FIELD_KEEP["M"]`."""
+
+SATELLITE_MOLECULAR_GAS_MASS_SOLAR = {"Large Magellanic Cloud": 5.0e7, "Small Magellanic Cloud": 3.2e7}
+"""dict: The molecular gas of the two reference satellites that hold any, solar masses. Large Cloud: about 5e7 in 272 CO clouds with
+X_CO 7e20 [R5128]. Small Cloud: H2 3.2e7 from dust, with X_CO 13e21 over the whole galaxy [R5129]; dust counts gas the CO does not
+trace, so it is the upper end for the clouds. Not the CO-bright mass of the Milky Way's catalogue, but the same order of method."""
+
+SATELLITE_NEBULA_GAS_SCALE = {"Large Magellanic Cloud": 0.435, "Small Magellanic Cloud": 0.724}
+"""dict: STAND-IN (tier T1, tweak L2, GEN.725 rows MG1 and MG2): the factor on a satellite's gas tracer in the nebula field, by the
+satellite's name; a satellite not named here has 1. A satellite's gas follows its young stars' density, and a Cloud's young stars sit
+in a ball out to six half-mass radii, so unscaled the field draws 1,085 giant clouds in the Large Cloud and 340 in the Small (the
+class M clouds it keeps). The Milky Way's 8,107 clouds hold 1.2e9 solar masses of H2, so a satellite holds
+`MILKY_WAY_CATALOGUED_CLOUDS * mass / MILKY_WAY_MOLECULAR_GAS_MASS_SOLAR` of them: 338 for the Large Cloud (272 catalogued above
+the survey's limit [R5128]) and 216 for the Small. The scale is that target over the unscaled count; `tests/test_gen367_cloud_gas.py`
+works both again and holds the scale to them within 15 percent."""
 
 SUPERBUBBLE_CELL_PC = 250.0
 """float: Edge of the superbubble field's columns, parsecs (GEN.254, `superbubble_field`). The design note said 50,

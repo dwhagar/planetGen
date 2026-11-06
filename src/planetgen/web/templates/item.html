@@ -101,6 +101,8 @@
     <button type="button" class="btn btn-small btn-secondary body-view-spin" data-spin aria-pressed="true" hidden>Spin</button>
     {%- if example.note %}<figcaption>{{ example.note }}.</figcaption>{% endif %}
   </figure>
+  {%- if planet and planet.readout %}<div class="prose sensor-readout">{{ planet.readout }}</div>{% endif %}
+  {%- if example.estimate %}<p class="sensor-estimate"><strong>Estimate:</strong> the {{ example.estimate|join(" and the ") }} {{ "is" if example.estimate|length == 1 else "are" }} worked out from the temperature, because {{ "it is" if example.estimate|length == 1 else "they are" }} not stored for this {{ kind_label|lower }}.</p>{% endif %}
 </section>
 {%- endif %}
 {{ day_counter_panel(day_counter) if day_counter else "" }}

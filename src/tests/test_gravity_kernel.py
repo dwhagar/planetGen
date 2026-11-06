@@ -8,6 +8,7 @@ differences of itself, and for its determinism.
 import numpy as np
 import pytest
 
+from planetgen.galaxy import gravity_field
 from planetgen.galaxy import gravity_kernel as kernel
 from planetgen.galaxy import potential
 
@@ -49,7 +50,7 @@ def test_one_point_mass_gives_the_closed_forms():
     assert out[0, kernel.T_YY] == pytest.approx(-G * 2.0 / 27.0, rel=1e-12)
     assert out[0, kernel.T_ZZ] == pytest.approx(-G * 2.0 / 27.0, rel=1e-12)
     assert out[1, kernel.PULL_Y] == pytest.approx(-G * 2.0 / 4.0, rel=1e-12)
-    assert kernel.tidal_strength(out)[0] == pytest.approx(2.0 * G * 2.0 / 27.0, rel=1e-12)
+    assert gravity_field.tidal_strength(out)[0] == pytest.approx(2.0 * G * 2.0 / 27.0, rel=1e-12)
 
 
 def test_the_pull_is_the_gradient_of_the_potential_and_the_tensor_that_of_the_pull():
@@ -63,7 +64,7 @@ def test_the_pull_is_the_gradient_of_the_potential_and_the_tensor_that_of_the_pu
         up, down = kernel.fields(points + step, positions, masses, 0.01), kernel.fields(points - step, positions, masses, 0.01)
         np.testing.assert_allclose(-(up[:, kernel.POTENTIAL] - down[:, kernel.POTENTIAL]) / (2 * h), base[:, axis], rtol=1e-6, atol=1e-9)
         gradient = (up[:, 0:3] - down[:, 0:3]) / (2 * h)       # d a_i / d x_axis
-        np.testing.assert_allclose(gradient, kernel.tensors(base)[:, :, axis], rtol=1e-5, atol=1e-8)
+        np.testing.assert_allclose(gradient, gravity_field.tensors(base)[:, :, axis], rtol=1e-5, atol=1e-8)
 
 
 def test_the_tidal_tensor_has_no_trace_away_from_the_sources():

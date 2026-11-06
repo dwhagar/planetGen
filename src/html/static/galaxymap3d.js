@@ -62,6 +62,7 @@ const { createSectorFrame } = await import(`./sectorframe.js${VERSION_QUERY}`);
 const { cellEdgePoints, parseSectorDesignation, sectorStage: stageOfSector } = await import(`./galaxystages.js${VERSION_QUERY}`);
 const { objectIdOf } = await import(`./findplace.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
+const { renderViewMenu } = await import(`./viewmenu.js${VERSION_QUERY}`);
 const superbubble = await import(`./superbubble.js${VERSION_QUERY}`);
 const { connectCourseDiagram } = await import(`./coursediagram.js${VERSION_QUERY}`);
 const { courseRuns, createHopGlow, makeGlowTexture } = await import(`./coursehops.js${VERSION_QUERY}`);
@@ -3988,7 +3989,8 @@ function initGalaxyMap3d(canvasEl, data) {
     kindsEl.hidden = false;
     kindsEl.appendChild(kindsLayersEl);
     if (drawKindLayers) drawKindLayers();
-    else drawKindLayers = stageView.layers.renderMenu(kindsLayersEl);
+    // UX.278: a sector page's Menu is the shared View menu (viewmenu.js); the Galaxy Map's stays as it was until UX.280.
+    else drawKindLayers = data.pinned ? renderViewMenu(stageView.layers, kindsLayersEl) : stageView.layers.renderMenu(kindsLayersEl);
     if (!kinds.length) {
       rebuildStarFilters();
       return;
@@ -4269,6 +4271,16 @@ function initGalaxyMap3d(canvasEl, data) {
           if (!response.ok) {
             throw new Error("HTTP " + response.status);
           }
+          return response.json();
+        });
+    } : null,
+    // MAP.168: the open sector's gravity grid (the sector page's /gravity route) for a mode and field; {building: true} while the grid is being worked out.
+    fetchSectorGravity: sceneData.sectorUrl && data.pinned ? function (id, mode, field) {
+      var path = sectorUrl(id).split("?")[0] + "/gravity?mode=" + encodeURIComponent(mode) + "&field=" + encodeURIComponent(field);
+      return fetch(path, { headers: { Accept: "application/json" } })
+        .then(function (response) {
+          if (response.status === 202) return { building: true };
+          if (!response.ok) throw new Error("HTTP " + response.status);
           return response.json();
         });
     } : null,

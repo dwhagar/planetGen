@@ -371,6 +371,16 @@ SECTOR_MAP_HELP = """<h3>Moving</h3>
     <li>Translucent clouds are nebulae, asteroid fields and supernova remnants; faint clouds reach in from a
     neighboring sector.</li>
     <li>Faint points are rogue planets; Mark in the Menu makes a kind of object easier to see.</li>
+  </ul>
+  <h3>Gravity</h3>
+  <ul>
+    <li>Turn on Gravity in the Menu to color the sector by its gravity. Pull is how hard gravity tugs on a ship at a spot, Well depth is how far down
+    in a gravity well the spot lies, and Stretch is how much gravity pulls a ship apart, nose from tail. Step through the sector one slab at a time,
+    or show every slab at once.</li>
+    <li>Brighter is more. The colors cover the middle 96% of this sector's own values on a log scale, so the wells of the nearby stars stand out
+    against the pull of the galaxy as a whole, which is far stronger and almost the same everywhere in a sector. The Key gives the range and the unit.</li>
+    <li>A white diamond is a saddle point: a spot between stars where their pulls cancel, so a ship could hover there, though it is still stretched
+    and drifts away if nudged. Hover one for the full pull there.</li>
   </ul>"""
 """The sector page's map (MAP.68): the help dialog (UX.50)."""
 
