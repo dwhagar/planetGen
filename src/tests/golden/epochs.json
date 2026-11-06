@@ -801,6 +801,13 @@
       "first_release": "8.0.3449",
       "reason": "Train 12: the stars of a cluster point to it (GEN.359), the galactic potential follows the density model's stars (GEN.1285), a sector holds the systems its profile expects (GEN.1284), the rogue top-up masses and ejection times come from the ejected record (GEN.1287, GEN.1295), the nebula and remnant composition is stored (GEN.1276, GEN.1277), the temperature coverage score and the hours of the bands (GEN.1265, GEN.1266), the best-fit class of every body (GEN.1207), the capture windows and irregular moons of a planet (GEN.1082 to GEN.1084), and the bar holds for every life class body (GEN.1275) move the generated output",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 135,
+      "first_release": null,
+      "pending": true,
+      "reason": "GEN.1288: the planets a birth cluster unbinds leave the system and become rogues",
+      "affects": ["fill"]
     }
   ]
 }
