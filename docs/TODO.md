@@ -17861,12 +17861,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.593.
 
-- [ ] **TEST.639 tests/test_mass_conversions.py fails on main: physics/dust_model.py has two multiplies or divides by a mass constant that do not go through the unit registry (bug)**
-  The Train Manager (as the lane reported, about 10:55 PM EST on 2026-11-05, train 11 gates) found tests/test_mass_conversions.py red on main: "use unit_registry.converter instead of a multiply or divide by a mass constant: {'physics/dust_model.py': 2}". The dust model came in with VIEW.43. Do: route the two conversions through unit_registry.converter (GEN.568), bit-identical output. Same shape as TEST.619. Reproduce on current main first. Lock-free, no migration. Done:
-  the test passes on current main, in ten runs for the flaky one.
-  Version 8.1. Owner: Core 3. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.619.
-
 - [ ] **TEST.641 tests/test_sweep_atmosphere.py::test_the_sweep_holds_planets_of_many_classes_in_every_zone_and_some_moons finds 7 moons where it asks for at least 20 (bug)**
   Tides 1 (as the lane reported, about 11:23 PM EST on 2026-11-05) found
   this test red on main after train 11. The likely cause is GEN.962
