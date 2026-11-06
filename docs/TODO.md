@@ -17193,23 +17193,6 @@ clears each one.
   Core 1. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.647 The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock)**
-  Aux 2 (as the lane reported, 4:45 AM EST on 2026-11-06, while fixing
-  TEST.644) found that the fingerprint table check was red because
-  GEN.1111, GEN.1127 and GEN.1138 added six tables nobody classified.
-  chart_ledger and designations are left out of the fingerprint on
-  purpose; the four rogue_planet child tables are left out with a note in
-  TEST.644. They should be in: a change to a rogue planet's children must
-  change the galaxy's digest. Do: add the four rogue_planet child tables
-  to the fingerprint tree and its leaf, remove the note, and update the
-  table classification. Every digest of a galaxy with a rogue changes, so
-  test_golden_seed goes red until the train's golden rewrite. Lock item
-  (new epoch, golden), after TEST.602 and TEST.598 are on main. Done: the
-  fingerprint covers the four tables, a test changes one child row and
-  sees the digest change, and the golden is rewritten. Version 8.1. Owner:
-  Aux 7. Filed by the TODO thread.
-  Prerequisites: TEST.598. Related: TEST.644.
-
 - [ ] **GEN.1303 Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug)**
   Bug 1 (as the lane reported, 5:21 AM EST on 2026-11-06) found
   test_sweep_bulk's detail-ranges check red on plain main: 10 sweep bodies

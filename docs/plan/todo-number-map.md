@@ -2316,7 +2316,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.221 | Station and vessel icons on the Galaxy Map | none | open |
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | none | done, PR #4856 |
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | none | open |
-| MAP.224 | Cluster pages and the Galaxy Map use the parent link | none | done, PR #5339 |
+| MAP.224 | Cluster pages and the Galaxy Map use the parent link | none | done, PR #5340 |
 | MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | done, PR #2031 |
 | MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | none | done, PR #1859 |
 | MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | done, PR #2032 |
@@ -4098,7 +4098,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.644 | Four more tests are red on main: test_web_fresh_after_cli (3), test_fingerprint every_table_is_compared, test_db_check (3) and test_galaxy_gen span_mode (bug) | none | done, PR #5308 |
 | TEST.645 | tests/test_db_column_round_trip.py::test_every_column_is_written fails in a combined run and passes alone: moons.rogue_planet_id depends on which rogues the shared galaxy draws (bug) | none | done, PR #5298 |
 | TEST.646 | More tests red on main beyond TEST.644: test_parallel_generation (6), test_deferred_sectors (3), test_habitability_fill (2), test_db_check_deep, test_generation_stats (4), test_materials_table, test_sectors_command (2), test_prevalence (asteroid_belt, large_star, habitable_world), test_benchmark_suite, test_estimate_sampling, test_run_job (scatter redraw), test_maintenance (map rebuild), test_no_todo_codes_shown, test_plain_words nav comma (bug) | none | done, PR #5319 |
-| TEST.647 | The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock) | none | open |
+| TEST.647 | The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock) | none | done, PR #5340 |
 | TEST.648 | Four tests fail on a registry mismatch: test_solar_system_standin_rows (2) and test_calibration_fence (2) cannot match the SSR9 rows ('surface-ground-types', 'oxidised') and ('atmosphere-m', 'm1'/'m2') after the DOC.103 respelling to 'oxidized' (bug) | none | done, PR #5313 |
 | TEST.650 | tests/test_gen_reach_groups.py case 3 fails on main: the expected star count is 873.8 where the test wants over 1000 (bug) | none | open |
 | TEST.651 | tests/test_web_sector_nav.py::test_the_nav_page_says_how_the_course_goes_round fails on main: the page lacks the 'Leave on' course text (bug) | none | open |
