@@ -117,6 +117,10 @@ _EMPTY_TABLE_ROWS = {
         "INSERT INTO rogue_planet_gases (rogue_planet_id, gas, partial_pa) VALUES (1, 'N2', 1.0)"),
     "rogue_planet_life_class_scores": (
         "INSERT INTO rogue_planet_life_class_scores (rogue_planet_id, life_class, score) VALUES (1, '1', 5)"),
+    # VIEW.25: a draw of a sky tier is written by the charting step, which the seeded galaxy has not run.
+    "sky_tier_draws": (
+        "INSERT INTO sky_tier_draws (kind, band_low, band_high, center_x_pc, center_y_pc, center_z_pc, radius_pc, limit_mag)"
+        " VALUES ('luminosity', 0, 1, 0, 0, 0, 10, 8)"),
     "phenomenon_scatter": (
         "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc,"
         " position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, 'neutron-star', 0, 0, 0, 1)"),

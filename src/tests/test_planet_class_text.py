@@ -23,7 +23,7 @@ def test_a_moon_reads_moon_where_the_text_says_planet():
 
 def test_an_unknown_class_is_refused():
     with pytest.raises(planet_class_text.PlanetClassTextError):
-        planet_class_text.description("Z")
+        planet_class_text.description("Q")
 
 
 def test_descriptions_follow_the_plain_words_guide():

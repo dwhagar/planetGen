@@ -35,10 +35,11 @@ after argument parsing. Every other module just does
 command a debug run. A debug run writes every decision it makes to
 **stdout**, one line each, in one format:
 
-    2026-10-23T17:29:42.729-0400 DEBUG    worker.py[2142] draw.random() ... | roll draw.random() -> 0.31
+    2026-10-23T17:29:42.729-0400 DEBUG    worker.py[2142] [draw] random.py:688 random | roll draw.random() -> 0.31
 
 (ISO time to the millisecond with the UTC offset, severity, the process
-and, for a thread other than the main one, its name, the logger, the
+and, for a thread other than the main one, its name, the area in brackets
+(`[draw]`, `[sql]`, `[queue]`: the one thing to filter on, OPS.102), the
 source line that logged it, and the message). The lines of the worker
 processes that do a run's work reach the command's stdout too, as they
 are written: a unit that is running in a work-queue worker (whose own
@@ -259,7 +260,7 @@ class _AreaFilter(logging.Filter):
         return area in DEFAULT_AREAS if _areas is None else area in _areas
 
 
-_DEBUG_LOG_FORMAT = ("%(asctime)s %(levelname)-8s %(origin)s %(name)s "
+_DEBUG_LOG_FORMAT = ("%(asctime)s %(levelname)-8s %(origin)s [%(area)s] "
                      "%(filename)s:%(lineno)d %(funcName)s | %(message)s")
 _origin_filter = _OriginFilter()
 _area_filter = _AreaFilter()
@@ -296,6 +297,8 @@ class LineFormatter(logging.Formatter):
 
     def format(self, log_record):
         if self.form == "debug":
+            if not hasattr(log_record, "area"):
+                log_record.area = _area_of(log_record)        # a record no filter has stamped (a handler made outside `configure`)
             return super().format(log_record)
         if self.form == "raw":
             return log_record.getMessage()
@@ -316,18 +319,13 @@ class LineFormatter(logging.Formatter):
 
 def record_of(log_record):
     """The `logrecord.Record` of a standard `logging.LogRecord`: its level as a severity, the logger's name (less a leading
-    `planetgen.`; for the program's own logger the module that logged) as the component, the fields `get` attached, and its time."""
+    `planetgen.`, or for the program's own logger the source file that logged it, found in the component table, OPS.103) as the component, the fields `get` attached, and its time."""
     level = log_record.levelno
     severity = "debug"
     for name in logrecord.SEVERITIES:
         if level >= logrecord.LOGGING_LEVELS[name]:
             severity = name
-    component = log_record.name.removeprefix("planetgen.").lower() or "planetgen"
-    if component == "planetgen" and getattr(log_record, "module", None):
-        component = log_record.module.lower()          # the program's own logger: the module that logged is the component
-    component = re.sub(r"[^a-z0-9_.-]", "_", component)[:24]
-    if not logrecord.COMPONENT_PATTERN.match(component):
-        component = "planetgen"
+    component = logrecord.component_of(log_record.name, getattr(log_record, "pathname", ""))
     return logrecord.Record.at(log_record.created, severity, component, log_record.getMessage(),
                      **getattr(log_record, "fields", {}))
 
@@ -517,7 +515,23 @@ def _attach_record_file(level):
     _record_handler = handler
 
 
-def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, areas=None, errors_to_stderr=False):
+def times_on_console(to_stderr=False):
+    """
+    Whether the console's lines carry the time (OPS.98): on a terminal they are plain, and when the output goes to a pipe or a file (a log, `tee`,
+    an update run) every line is a display line with the local time, its zone, the severity and the component, so a log that is read hours later
+    says when each line was written. `PLANETGEN_LOG_TIMES` overrides: `always` or `never`; anything else (or nothing) is `auto`, the rule above.
+    """
+    wanted = os.environ.get("PLANETGEN_LOG_TIMES", "auto").strip().lower()
+    if wanted in ("always", "never"):
+        return wanted == "always"
+    stream = sys.stderr if to_stderr else sys.stdout
+    try:
+        return not stream.isatty()
+    except (AttributeError, ValueError):
+        return True
+
+
+def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, areas=None, errors_to_stderr=False, times_when_piped=False):
     """
     (Re)configures the shared logger for the given console severity `level`
     (`SILENT`/`NORMAL`/`DEBUG`). `debug_file`, if given, is opened as an
@@ -541,6 +555,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
         to_stderr (bool): Write the console's lines to stderr, for a command whose own result goes to stdout.
         errors_to_stderr (bool): Write the lines of `warning` severity and above to stderr and the rest to stdout, as a standalone
             command's own messages go (UX.122).
+        times_when_piped (bool): A command line's lines carry the time and the severity when its output is not a terminal (`times_on_console`).
         areas (str | None): The areas debug output is limited to (`parse_areas`); `None` takes `PLANETGEN_DEBUG_AREAS`,
             then `config.json`'s `"debug_areas"`, then every area.
     """
@@ -553,7 +568,10 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
 
     set_areas(areas if areas is not None else _configured_areas())
     console_level = _LEVELS[level]
-    formatter = _debug_formatter() if level == DEBUG else LineFormatter("plain")
+    if level == DEBUG:
+        formatter = _debug_formatter()
+    else:
+        formatter = LineFormatter("display" if times_when_piped and times_on_console(to_stderr) else "plain")
     _console_handler.setFormatter(formatter)
     _console_handler.setLevel(console_level)
     _console_handler.to_stderr = to_stderr
@@ -661,7 +679,7 @@ def apply_debug_arguments(args, parser=None, errors_to_stderr=False):
                 raise
             parser.error(f"--debug-areas: {exc}")
     apply_record_arguments(args)
-    configure(DEBUG if wanted else NORMAL, areas=areas, errors_to_stderr=errors_to_stderr)
+    configure(DEBUG if wanted else NORMAL, areas=areas, errors_to_stderr=errors_to_stderr, times_when_piped=True)
 
 
 _SECRET_OPTIONS = ("--mysql-password",)
@@ -1330,8 +1348,8 @@ def get(component):
     Raises:
         ValueError: A component name that is not allowed.
     """
-    if not logrecord.COMPONENT_PATTERN.match(component):
-        raise ValueError(f"component {component!r} is not a short lower-case name (a-z, 0-9, _ . -)")
+    if component not in logrecord.COMPONENTS:
+        raise ValueError(f"component {component!r} is not in the component table ({', '.join(logrecord.COMPONENTS)})")
     return Logger(component)
 
 

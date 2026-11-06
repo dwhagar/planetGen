@@ -206,8 +206,9 @@ def galaxy(mysql_config):
         _earthlike(conn, earth)
         _earthlike(conn, hot, surface_temperature_k=423.15, atmospheric_pressure_pa=3_000_000.0,
                    surface_dose_msv_yr=40_000.0, p_o2_kpa=150.0, p_n2_kpa=2850.0, p_h2o_kpa=20.0)
+        # a day of 24 hours on an untilted year: every place stays hot (the spin this row was generated with, a 43-year orbit tilted 56 degrees, lets its winters pass through the livable band, GEN.1265)
         _earthlike(conn, harsh, surface_temperature_k=550.0, atmospheric_pressure_pa=101325.0,
-                   surface_dose_msv_yr=5_000_000.0)
+                   surface_dose_msv_yr=5_000_000.0, rotation_period_hours=24.0, period_years=1.0, axial_tilt_deg=0.0, solar_day_hours=24.0, days_per_year=365.25)
         humans = _species(conn, earth, system_id, "Terrans", 5.0)
         hot_ones = _species(conn, hot, system_id, "Scalders", 5.0)
         conn.commit()

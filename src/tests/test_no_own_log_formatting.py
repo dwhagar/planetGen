@@ -307,6 +307,7 @@ PRINT_ALLOWED = {
     "cli/version_history.py": "Says which version key was recorded: the answer to the command.",
     "galaxy/dials.py": "Prints the generated documentation block when run to rebuild the docs.",
     "physics/mathcheck.py": "Prints the math check report the person asked for.",
+    "util/logpaths.py": "Its main prints the path of a job log for the shell scripts that append to it: the answer to the command.",
     "util/log.py": "The console writer itself, and the three notes it prints before the logger exists.",
     "util/secret_key.py": "Says the key was set: the answer to the command.",
 }
@@ -365,3 +366,208 @@ def test_every_printing_file_is_still_printing_and_has_a_reason():
 ])
 def test_the_print_scan_finds_a_print_and_where_it_writes(source, found):
     assert find_prints(source) == found
+
+
+# --- one wording for counting, one table of components (OPS.103) ------------------------------------------------------
+
+REPO = os.path.join(PACKAGE, "..", "..")
+
+COUNTING_MAKERS = ("util/logrecord.py", "util/stagemark.py")
+"""tuple: The modules that make a "Stage 4 of 12" (relative to the package): the only places that may write one out."""
+
+COUNT = re.compile(r"\b(?:stages?|parts?|phases?)\s+(?:\d+|\{[^{}]*\}|%[ds]|\$\{?\w+\}?)\s+(?:of|to)\s+(?:\d+|\{[^{}]*\}|%[ds]|\$\{?\w+\}?)", re.IGNORECASE)
+"""re.Pattern: A hand-made count: a counting word, a number or a placeholder, "of" or "to", and a number or a placeholder."""
+
+SHELL_COUNT_MAKERS = ("scripts/logrecord.sh",)
+"""tuple: The shell file (relative to the repository) that makes a count; it holds `log_stage` and `log_count`."""
+
+
+def _text_of(node):
+    """The text of a string node; a placeholder `{}` stands for each value of an f-string."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return node.value
+    return "".join(part.value if isinstance(part, ast.Constant) else "{}" for part in node.values)
+
+
+def find_own_counting(source, filename="<source>"):
+    """`[(line, text)]`: every string (not a docstring) in `source` that words a count by hand ("stage 1 of 2", f"Part {n} of {m}")."""
+    tree = ast.parse(source, filename)
+    docstrings = {id(node.value) for node in ast.walk(tree) if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant)}
+    inside_f = {id(part) for node in ast.walk(tree) if isinstance(node, ast.JoinedStr) for part in node.values}
+    found = []
+    for node in ast.walk(tree):
+        if id(node) in docstrings or id(node) in inside_f:
+            continue
+        if isinstance(node, (ast.Constant, ast.JoinedStr)):
+            text = _text_of(node) if isinstance(node, ast.JoinedStr) or isinstance(node.value, str) else ""
+            if COUNT.search(text):
+                found.append((node.lineno, text[:60]))
+    return sorted(found)
+
+
+def test_no_module_words_a_count_by_hand():
+    stray = []
+    for relative, path in _modules():
+        if relative in COUNTING_MAKERS:
+            continue
+        with open(path, encoding="utf-8") as handle:
+            stray += [f"{relative}:{line} {text!r}" for line, text in find_own_counting(handle.read(), path)]
+    assert not stray, (
+        "These strings word a count themselves. A count is `logrecord.counting_text(word, number, total)` (Stage, Part or Phase), or a stage "
+        "record from `logrecord.stage_record` (logging standard, \"Counting\"):\n  " + "\n  ".join(stray))
+
+
+def _shell_files():
+    names = ["update.sh", "install.sh"]
+    for folder in ("scripts", os.path.join("examples", "apache")):
+        for name in sorted(os.listdir(os.path.join(REPO, folder))):
+            if name.endswith(".sh"):
+                names.append(os.path.join(folder, name))
+    return [name.replace(os.sep, "/") for name in names]
+
+
+def find_own_shell_counting(text):
+    """`[(line, text)]`: the lines of shell `text` (comments left out) that word a count by hand."""
+    return [(number, line.strip()[:60]) for number, line in enumerate(text.splitlines(), 1)
+            if not line.lstrip().startswith("#") and COUNT.search(line)]
+
+
+def test_no_shell_script_words_a_count_by_hand():
+    stray = []
+    for name in _shell_files():
+        if name in SHELL_COUNT_MAKERS:
+            continue
+        with open(os.path.join(REPO, name), encoding="utf-8") as handle:
+            stray += [f"{name}:{number} {text!r}" for number, text in find_own_shell_counting(handle.read())]
+    assert not stray, (
+        "These shell lines word a count themselves. Use `log_stage N M label` for a stage and `$(log_count Part N M)` for the rest "
+        "(scripts/logrecord.sh):\n  " + "\n  ".join(stray))
+
+
+@pytest.mark.parametrize("source, found", [
+    ("log.info('Stage 1 of 2')\n", 1),
+    ("log.info(f'stage {n} of {m}: x')\n", 1),
+    ("log.info('Part %d of %d' % (a, b))\n", 1),
+    ("log.info('Phase 2 of 5, built-levels')\n", 1),
+    ("log.info('Stages 4 to 6 of 12')\n", 1),
+    ("def f():\n    '''Stage 3 of a region run.'''\n    return 'the part of the map'\n", 0),
+    ("log.info('28 of 180 chunks')\n", 0),
+    ("log.info(logrecord.counting_text('Part', 1, 2))\n", 0),
+])
+def test_the_counting_scan_finds_a_hand_made_count(source, found):
+    assert len(find_own_counting(source)) == found
+
+
+@pytest.mark.parametrize("text, found", [
+    ('UPDATE_STEP="stage 1 of 9, pulling"\n', 1),
+    ('echo "Part $i of $n"\n', 1),
+    ('# stage 1 of 9 is the first\nlog_stage 1 9 "x"\n', 0),
+    ('log_info "$(log_count Part 1 2)"\n', 0),
+])
+def test_the_shell_counting_scan_finds_a_hand_made_count(text, found):
+    assert len(find_own_shell_counting(text)) == found
+
+
+COMPONENT_STAGE_ARGUMENT = {"stage_record": 1, "JobLog": 1}
+"""dict: The calls that take a component, and the position of the argument (counted from 0)."""
+
+RECORD_MAKERS = {"now": 1, "at": 2}
+"""dict: `Record.now(severity, component, ...)` and `Record.at(moment, severity, component, ...)`, and the position of the component."""
+
+
+def find_component_literals(source, filename="<source>"):
+    """`[(line, name)]`: every component named as a string in `source`: an argument of `stage_record`, `JobLog`, `Record.now/at`,
+    `LineFormatter(component=...)`, `log.get(...)`, any `component=` keyword, or a module-level `COMPONENT = "..."`."""
+    tree = ast.parse(source, filename)
+    found = []
+
+    def literal(node):
+        return node.value if isinstance(node, ast.Constant) and isinstance(node.value, str) else None
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == "COMPONENT" for t in node.targets):
+            if literal(node.value) is not None:
+                found.append((node.lineno, node.value.value))
+        if not isinstance(node, ast.Call):
+            continue
+        func = node.func
+        name = func.attr if isinstance(func, ast.Attribute) else func.id if isinstance(func, ast.Name) else ""
+        owner = ast.unparse(func.value) if isinstance(func, ast.Attribute) else ""
+        position = COMPONENT_STAGE_ARGUMENT.get(name)
+        if name in RECORD_MAKERS and owner.endswith("Record"):
+            position = RECORD_MAKERS[name]
+        if name == "get" and owner in ("log", "util_log", "logging_layer"):
+            position = 0
+        if position is not None and len(node.args) > position and literal(node.args[position]) is not None:
+            found.append((node.lineno, node.args[position].value))
+        for keyword in node.keywords:
+            if keyword.arg == "component" and literal(keyword.value) is not None:
+                found.append((node.lineno, keyword.value.value))
+    return sorted(found)
+
+
+SHELL_COMPONENT = re.compile(r"""LOG_COMPONENT=(?:"\$\{LOG_COMPONENT:-([A-Za-z0-9_-]+)\}"|"?([A-Za-z0-9_-]+)"?)""")
+"""re.Pattern: A shell script naming its component: `LOG_COMPONENT=swap` or `LOG_COMPONENT="${LOG_COMPONENT:-swap}"`."""
+
+
+def find_shell_components(text):
+    """`[(line, name)]`: the components the lines of shell `text` (comments left out) name."""
+    return [(number, match.group(1) or match.group(2)) for number, line in enumerate(text.splitlines(), 1)
+            if not line.lstrip().startswith("#") for match in SHELL_COMPONENT.finditer(line)]
+
+
+def test_every_component_named_in_python_is_in_the_table():
+    from planetgen.util import logrecord
+    stray = []
+    for relative, path in _modules():
+        with open(path, encoding="utf-8") as handle:
+            stray += [f"{relative}:{line} {name!r}" for line, name in find_component_literals(handle.read(), path)
+                      if name not in logrecord.COMPONENTS]
+    assert not stray, (
+        "These name a component that is not in `logrecord.COMPONENTS`. Use a name from the table, or add the new component to it with what "
+        "writes under it (logging standard, \"Components\"):\n  " + "\n  ".join(stray))
+
+
+def test_every_component_named_in_a_shell_script_is_in_the_table():
+    from planetgen.util import logrecord
+    stray = []
+    for name in _shell_files():
+        if name in SHELL_COUNT_MAKERS:
+            continue
+        with open(os.path.join(REPO, name), encoding="utf-8") as handle:
+            stray += [f"{name}:{number} {component!r}" for number, component in find_shell_components(handle.read())
+                      if component not in logrecord.COMPONENTS]
+    assert not stray, "These shell scripts name a component that is not in `logrecord.COMPONENTS`:\n  " + "\n  ".join(stray)
+
+
+def test_the_scans_find_a_component_named_as_a_literal():
+    found = find_component_literals(
+        "COMPONENT = 'warm'\n"
+        "mark = logrecord.stage_record(logrecord.STAGE_START, 'generate', 1, 2)\n"
+        "with joblog.JobLog('a.log', 'tiles', 'x'):\n    pass\n"
+        "logrecord.Record.now('info', 'queue', 'm')\n"
+        "logrecord.Record.at(0.0, 'info', 'web', 'm')\n"
+        "LineFormatter('file', component='job')\n"
+        "log.get('lib')\n"
+        "other.get('nope')\n")
+    assert [name for _line, name in found] == ["warm", "generate", "tiles", "queue", "web", "job", "lib"]
+    assert [name for _line, name in find_shell_components('LOG_COMPONENT=update\nLOG_COMPONENT="${LOG_COMPONENT:-swap}"\n# LOG_COMPONENT=x\n')] \
+        == ["update", "swap"]
+
+
+@pytest.mark.parametrize("logger, path", [
+    ("planetgen", ""),
+    ("planetgen.generation.stages", "/x/planetgen/generation/stages.py"),
+    ("planetgen.queue.runrecord", "/x/planetgen/queue/runrecord.py"),
+    ("planetgen.web.warmup", "/x/planetgen/web/warmup.py"),
+    ("planetgen.cli.tiles", "/x/planetgen/cli/tiles.py"),
+    ("planetgen.physics.atmosphere", "/x/planetgen/physics/atmosphere.py"),
+    ("planetgen.layer-test", ""),
+    ("urllib3.connectionpool", "/usr/lib/urllib3/connectionpool.py"),
+    ("", ""),
+])
+def test_record_of_always_returns_a_name_from_the_table(logger, path):
+    import logging
+    from planetgen.util import log, logrecord
+    entry = logging.LogRecord(logger, logging.INFO, path, 1, "a message", None, None)
+    assert log.record_of(entry).component in logrecord.COMPONENTS

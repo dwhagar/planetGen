@@ -560,8 +560,51 @@ def expand_backfill_bright_stars(params):
     size = max(BACKFILL_UNIT_CELLS, -(-len(addresses) // BACKFILL_UNITS_MAX))
     units = [({"database": params["database"], "items": [[*address, todo[address]] for address in addresses[start:start + size]]},
               float(len(addresses[start:start + size]))) for start in range(0, len(addresses), size)]
-    return commands.Expansion(units or [({"database": params["database"], "items": []}, 1.0)],
-                              {"sectors": len(addresses), **({} if skip is None else {"skip": skip})})
+    sky = _sky_units(params, centers) if params.get("sky_limit") is not None and centers else []
+    return commands.Expansion((units or [({"database": params["database"], "items": []}, 1.0)]) + sky,
+                              {"sectors": len(addresses), **({"sky_cells": len(sky)} if sky else {}), **({} if skip is None else {"skip": skip})})
+
+
+SKY_SECTOR_SECONDS = 6.0e-5
+"""float: What drawing a sector costs the bar of the backfill (the draw is about 0.06 ms a sector, `BACKFILL_UNIT_CELLS`): a sky unit's predicted seconds are turned into the bar's
+unit of sectors with it."""
+
+SKY_WRITE_FACTOR = 4.6
+"""float: How many times the walk's predicted seconds (`sky_tiers.BLOCK_VISIT_SECONDS` a visit) a sky unit really takes: locking and writing the cells costs more than finding them. Measured on a full default galaxy,
+one 7.5 observer cell 2,500 pc from the center, one worker: 1,826 s against 398 s predicted."""
+
+
+def _sky_units(params, centers):
+    """
+    The units that draw the sky tiers (VIEW.25) of the observer cells the new sectors lie in: one unit for each 50 parsec cell (`sky_charting.observer_cell`) that the ledger does not hold all
+    of, drawn tier by tier from the top down (the order a cell's depth is recorded in) and, since one sky draw runs at a time in the galaxy (`sky_charting.DrawLock`), in one piece. A unit's
+    cost is the predicted seconds of its tiers (`sky_tiers.visits`) in the bar's unit of sectors.
+    """
+    from planetgen.db import sky_tier_ledger
+    from planetgen.generation import sky_charting, sky_tiers
+    limit = float(params["sky_limit"])
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        if skeleton is None:
+            return []
+        limits, _seed = run_plan._scatter_limits_and_seed(conn, skeleton)
+        ledger = sky_tier_ledger.read(conn)
+    finally:
+        conn.close()
+    cells = {}
+    for center in centers:
+        cell, center = sky_charting.observer_cell(center)
+        cells[cell] = center
+    units = []
+    for cell in sorted(cells):
+        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits)
+        owed = [tier for tier in (*tiers.luminosity, *tiers.rings)
+                if not ledger.drawn(tier.ledger, float(tier.low), tier.high, center, sky_charting.padded_radius(tier))]
+        if owed:
+            seconds = sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS * SKY_WRITE_FACTOR
+            units.append(({"database": params["database"], "sky": {"center": list(center), "limit": limit}}, max(seconds / SKY_SECTOR_SECONDS, 1.0)))
+    return units
 
 
 def backfill_bright_stars_unit(unit_args, report):
@@ -574,6 +617,8 @@ def backfill_bright_stars_unit(unit_args, report):
         dict: `sectors` (drawn), `stars` (placed), `visited` (the chunk's sectors) and `shells`, the stars placed per
             shell and kind (`shell index as text` -> `[[label, plural, count], ...]`, for the starter's lines).
     """
+    if unit_args.get("sky") is not None:
+        return _sky_unit(unit_args, report)
     items = unit_args["items"]
     targets = {tuple(item[:3]): item[3] for item in items}
     conn = store.get_connection(_mysql_config_of(unit_args))
@@ -601,6 +646,31 @@ def backfill_bright_stars_unit(unit_args, report):
                        for shell, types in shells.items()}}
 
 
+def _sky_unit(unit_args, report):
+    """
+    The unit of one observer cell's sky tiers (VIEW.25, `sky_charting.chart`): every tier the ledger does not hold, from the top down, each in committed batches; a tier stopped part way
+    goes on from its last batch. `report(done, total)` counts the tiers.
+
+    Returns:
+        dict: As `backfill_bright_stars_unit`, with `sectors` 0, `stars` the stars drawn, `visited` 0, no `shells`, and `sky`: `stars`, `seconds`, `spheres` (tiers drawn) and `cell`.
+    """
+    from planetgen.generation import sky_charting
+    sky = unit_args["sky"]
+    conn = store.get_connection(_mysql_config_of(unit_args))
+    try:
+        steps_done = [0]
+        # a tier is the progress step; `chart` draws tiers one after another, so a batch tick is the only call it makes between them
+        result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=lambda batches, cells, stars: report(steps_done[0], steps_done[0] + 1))
+    except BaseException:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+    drawn = [item for item in result["tiers"] if not item.skipped]
+    return {"sectors": 0, "stars": result["stars"], "visited": 0, "shells": {},
+            "sky": {"stars": result["stars"], "seconds": result["seconds"], "spheres": len(drawn), "cell": list(result["cell"])}}
+
+
 class BackfillFollower(followed.Follower):
     """
     The bright-star backfill of a run on the queue (PERF.108): the wrapper selects the `scatter-backfill` command from
@@ -625,16 +695,22 @@ class BackfillFollower(followed.Follower):
         self.started_at, self.center_pc = started_at, center_pc
         self.summary = {"sectors": 0, "stars": 0}
         self.shells = {}
+        self.sky = []
         self.bar = None
 
     def params(self):
+        from planetgen.generation import sky_charting
+        sky_limit = sky_charting.limit_of(self.args)
         return {"since": since_param(self.started_at),
-                **({} if self.center_pc is None else {"center_pc": list(self.center_pc)})}
+                **({} if self.center_pc is None else {"center_pc": list(self.center_pc)}),
+                **({} if sky_limit is None else {"sky_limit": sky_limit})}
 
     def on_plan(self, plan):
         if plan["detail"].get("skip"):
             log.normal(f"Nothing to backfill: {plan['detail']['skip']}.")
             return
+        if plan["detail"].get("sky_cells"):
+            log.normal(f"Drawing the sky tiers of {plan['detail']['sky_cells']} observer cell(s) after the sectors' backfill (VIEW.25).")
         log.normal("Backfilling the bright stars out from the edge of the run...")
         self.bar = self.hold(steps.Step("Bright-star backfill (sectors)", "backfill", 1, args=self.args,
                                         progress=self.progress, workers=self.workers))
@@ -643,6 +719,8 @@ class BackfillFollower(followed.Follower):
     def on_result(self, unit, result):
         self.summary["sectors"] += result["sectors"]
         self.summary["stars"] += result["stars"]
+        if result.get("sky"):
+            self.sky.append(result["sky"])
         for shell, types in result["shells"].items():
             counts = self.shells.setdefault(int(shell), collections.Counter())
             for label, plural, count in types:
@@ -657,6 +735,11 @@ class BackfillFollower(followed.Follower):
         run_plan.log_shells("Bright-star backfill", self.shells)
         stages.note(sectors=self.summary["sectors"], objects=self.summary["stars"])
         log.normal(f"Backfilled {self.summary['stars']:,} bright stars in {self.summary['sectors']:,} sectors.")
+        if self.sky:
+            stars, seconds = sum(item["stars"] for item in self.sky), sum(item["seconds"] for item in self.sky)
+            sectors = max(self.summary["sectors"], 1)
+            log.normal(f"Sky tiers: {stars:,} bright stars in {sum(item['spheres'] for item in self.sky):,} spheres around {len(self.sky)} observer cell(s), "
+                       f"{seconds:,.0f} s of drawing ({seconds / sectors * 1000:.1f} ms a backfilled sector).")
 
 
 def _backfill_on_queue(args, started_at, center_pc=None):

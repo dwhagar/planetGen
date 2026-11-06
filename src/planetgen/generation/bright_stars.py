@@ -289,8 +289,9 @@ def rotation_period_hours(seed, params):
                                                params["age_gy"], params["yerkes_class"])
 
 
-def _row(shell_index, band_index, wedge, point, population, params, rng):
-    """One star in `store.BRIGHT_STAR_COLUMNS` order."""
+def _row(shell_index, band_index, wedge, point, population, params, rng, cluster_id=None):
+    """One star in `store.BRIGHT_STAR_COLUMNS` order. `cluster_id` is the `galaxy_components` row of the cluster the star belongs to
+    (GEN.359), `None` for a field star."""
     x, y, z = point
     seed = rng.getrandbits(63)
     return (
@@ -300,7 +301,7 @@ def _row(shell_index, band_index, wedge, point, population, params, rng):
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
         params["age_gy"], _finite_or_none(params["lifespan_gy"]), params["initial_mass_sol"],
         _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(params),
-        rotation_period_hours(seed, params), params.get("nuclear_arrival_age_gy"),
+        rotation_period_hours(seed, params), params.get("nuclear_arrival_age_gy"), cluster_id,
     )
 
 
@@ -777,7 +778,7 @@ def _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1, rng, 
     yield from draw_placed(placed, pass_bands, rng, on_progress, base, age_laws_of(shape))
 
 
-def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=None, fe_h_peaks=None):
+def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=None, fe_h_peaks=None, cluster_id=None):
     """
     The rows of stars already placed: each one's type and luminosity drawn from `rng`, population by population and
     tier by tier (GEN.322, GEN.324).
@@ -790,6 +791,7 @@ def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=No
         age_laws (dict, optional): `age_laws_of` the galaxy; the ages are spread evenly without it.
         fe_h_peaks (tuple, optional): The [Fe/H] distribution of the component the stars belong to, for the populations
             in the gate (`component_field.fe_h_peaks_of`, GEN.662); the generic cluster's or satellite's without it.
+        cluster_id (int, optional): The `galaxy_components` row of the cluster the stars belong to, written on each row (GEN.359).
     """
     total_placed = sum(len(spots) for spots in placed.values())
     drawn = 0
@@ -805,7 +807,7 @@ def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=No
                 drawn += 1
                 if on_progress is not None:
                     on_progress(base + (total_placed + drawn) / 2, base + total_placed)
-                yield _row(shell_index, band_index, wedge, point, population, params, rng)
+                yield _row(shell_index, band_index, wedge, point, population, params, rng, cluster_id)
 
 
 def pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range, age_laws=None):
@@ -1461,6 +1463,22 @@ def backfill_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order, cell by cell in no particular order.
     """
+    for addresses, work in luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, min_luminosity_sol,
+                                                     max_luminosity_sol, seed, mass_range=mass_range, memo=memo):
+        yield from backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol,
+                                  seed, mass_range=mass_range, memo=work)
+
+
+def luminosity_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
+                              mass_range=None, memo=None):
+    """
+    The cells of a sphere that the luminosity band `[min_luminosity_sol, max_luminosity_sol)` has anything to draw in (`backfill_sphere`'s walk), a few hundred at a time with
+    the memo that holds their blocks, for a caller that draws them itself (VIEW.25 gives each cell its own ceiling and mass cap). `mass_range` is the widest the caller will
+    draw with: a cell drawn with a narrower one holds no more candidates than the walk found.
+
+    Yields:
+        tuple: `(addresses, memo)`; pass the memo to `backfill_cells`.
+    """
     bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
     age_laws = age_laws_of(shape)
     shared = {} if memo is None else memo
@@ -1468,10 +1486,7 @@ def backfill_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1,
     of_band = _band_shares(shared, shares_key, [(k, low, high) for k, low, high in bands],
                            lambda low, high, population: bright_band_fraction(low, high, population, mass_range, age_laws))
     paths = [(k, of_band[k], mass_range) for k, _, _ in bands]
-    for addresses, work in _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths,
-                                           {shares_key: shared[shares_key]}):
-        yield from backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol,
-                                  seed, mass_range=mass_range, memo=work)
+    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, {shares_key: shared[shares_key]})
 
 
 def backfill_mass_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
@@ -1487,6 +1502,14 @@ def backfill_mass_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_densi
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
+    for addresses, work in mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
+                                               max_luminosity_sol, seed, edges, memo=memo):
+        yield from backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
+                                       max_luminosity_sol, seed, edges, memo=work)
+
+
+def mass_sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol, max_luminosity_sol, seed, edges, memo=None):
+    """`luminosity_sphere_batches` for a mass ring: the cells of the sphere that `backfill_mass_cells` has anything to draw in, with their memo."""
     bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
     age_laws = age_laws_of(shape)
     shared = {} if memo is None else memo
@@ -1495,10 +1518,7 @@ def backfill_mass_sphere(shape, center_pc, radius_pc, edge_pc, expected_at_densi
                            lambda low, high, population: mass_band_fraction(low, high, max_luminosity_sol, population,
                                                                             age_laws))
     paths = [(f"m{low:g}", of_band[(low, high)], (max_luminosity_sol, high)) for low, high in bands]
-    for addresses, work in _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths,
-                                           {shares_key: shared[shares_key]}):
-        yield from backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
-                                       max_luminosity_sol, seed, edges, memo=work)
+    yield from _sphere_batches(shape, center_pc, radius_pc, edge_pc, expected_at_density_1, seed, paths, {shares_key: shared[shares_key]})
 
 
 def star_params(row):
