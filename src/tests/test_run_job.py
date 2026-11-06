@@ -164,7 +164,8 @@ def test_a_job_that_clears_a_scatter_draws_it_again_instead_of_refusing(mysql_co
     job.run_job(_job_args(mysql_config, [("clear-scatter", ["--luminosity"]), ("scatter", ["--luminosity", *FLOOR])]))
     again = _stars(mysql_config)
     assert [star["id"] for star in again[:1]] == [star["id"] for star in first[:1]]      # the massive stars were left alone
-    without_ids = lambda stars: [{key: value for key, value in star.items() if key != "id"} for star in stars]
+    # An Object ID's serial continues its sector's counter and never repeats (GEN.1254), so the stars drawn again get new `id`s and new `uid`s
+    without_ids = lambda stars: [{key: value for key, value in star.items() if key not in ("id", "uid")} for star in stars]
     assert without_ids(again) == without_ids(first)         # the bright stars are drawn again, the same, under new ids
 
 
