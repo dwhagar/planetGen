@@ -17869,6 +17869,20 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1226.
 
+- [ ] **TEST.649 Five tests are red on clean main: test_api_link_ids, test_atmosphere_state (2) and test_gen_component_pass (2) (bug)**
+  Aux 2 (as the lane reported, 11:34 AM EST on 2026-11-06, clean main)
+  found test_api_link_ids, two tests in test_atmosphere_state and two in
+  test_gen_component_pass failing on main without any change. The Train
+  Manager already fixed test_api_link_ids for the four routes main added
+  (cloud-volume, sensor, belt-page, sector gravity) inside train 12, so
+  check that one against the train first. Do: reproduce each on current
+  main, find the cause, fix the test or the code at the cause, and name
+  the earlier item behind each; never skip a test. Lock-free unless a
+  cause changes generation output. Done: all five pass on current main (or
+  on main after train 12 for the first). Version 8.1. Owner: Core 5. Filed
+  by the TODO thread.
+  Prerequisites: none. Related: TEST.646.
+
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
@@ -18585,30 +18599,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.103 One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: a Counting section in the logging standard: 'Stage N of M' for the
-  top-level steps of a script or run, 'Part N of M' for the runs inside
-  one, 'Phase N of M' for a named group inside a run, family names for
-  the warm-up's pieces, and 'chunk' shown only as a count. The six
-  severities and the component names (update, install, warm, tiles,
-  orbits, generate, queue, web, job) in one table; every divider is the
-  same === ... === record. Applied to update.sh, install.sh, warm,
-  tiles, orbits, generate and the queue run page. An enforcement test
-  (an extension of TEST.183) fails on a hand-made 'stage 1 of 2' or a
-  component not in the table. Built last, because it names what the
-  others produce. Touches logging-standard.md, logrecord.py,
-  stagemark.py, warmup.py, warm_progress.py, the generate stages and
-  tests. Done: the test passes and every script and command uses the
-  table.
-  Prerequisites: OPS.102.
 
 ## DOC: Documentation
 
