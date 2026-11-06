@@ -174,8 +174,11 @@ class Heat:
 
     @property
     def own_w(self):
-        """The heat flowing out that is not the tide's: the radiogenic and the primordial."""
-        return max(self.total_w - self.tidal_w, 0.0)
+        """The heat flowing out that is not the tide's: the radiogenic and the primordial. With a tide it is never less than the radiogenic: a mantle
+        still warming under a great tide conducts a little less than it is given (a negative primordial term), and the heat the body makes itself does not
+        vanish with it (GEN.1190: with a softer partial melt a 1.2 Earth-mass planet at e = 0.015 ended 1 percent under its tide and its own heat read 0)."""
+        own = max(self.total_w - self.tidal_w, 0.0)
+        return max(own, self.radiogenic_w) if self.tidal_w > 0.0 else own
 
     @property
     def own_flux_w_m2(self):

@@ -176,7 +176,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.155:LR5 | no data | - | the milestone each kind spreads after is a hand-picked reading of the life timeline; the stored schedule of the world replaces it where there is one |
 | 6.126:RN3 | no data | - | no measured strength of ice with rock grains above 56 percent solids by volume; a measured curve replaces the extrapolated leg from 0.56 to the rock strength at 1 |
 | 6.126:RN5 | no data | - | no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it |
-| 6.129:IT6 | no data | - | the 1993 ammonia-water constants of Durham, Kirby and Stern are not in hand; they replace the three interpolated points |
 | 6.129:IT9 | no data | - | no measurement of the ammonia share at which a water ice mix takes the dihydrate's strength |
 | 6.59:CK1 | replace | GEN.1021 | the N2 and Ar trapping shares are tuned to the one comet measured (67P); a second comet's N2 or Ar per water replaces them |
 | 6.59:CK2 | replace | GEN.1021 | the OCS and SO2 trapping shares are tuned to the one comet measured (67P); a second comet's sulfur species replace them |
