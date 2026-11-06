@@ -1,0 +1,6 @@
+{
+ "tests/test_gen_reach_groups.py": "TEST.650: shell 3 expected stars 873 against 1000, red on main",
+ "tests/test_web_sector_nav.py": "TEST.651: 'Leave on' course text, red on main",
+ "tests/test_wording_agrees_with_the_index.py": "TEST.652: life timeline on a body with phi_bio 0, red on main",
+ "tests/test_work_units.py": "TEST.642: Busy from the ADM.136 guard, red on main"
+}

@@ -27,8 +27,9 @@ an object with no sector is found like any other. The `sectors` table is not rea
 are never loaded for the whole sphere: only a per-system count is, and the bodies of the systems that fall on the
 requested page are read afterwards.
 
-What has not been generated yet is counted, never listed and never filled: the pre-placed bright stars and the
-scatter objects (`bright_stars` and `phenomenon_scatter` rows whose system or object is not built).
+What has not been generated yet is never filled. The pre-placed bright stars (`bright_stars` rows whose system is not built) are counted and
+not listed. The scattered phenomena (`phenomenon_scatter` rows whose object is not built) and the field clouds (`nebula_field`) are listed
+beside the stored ones (MAP.400, `db.uncharted`), each with the page of its scatter row where it has one.
 
 The dense core (NAV.61, design note section 6.5): a sphere's cost follows the rows inside it, and the core holds 15
 systems per cubic parsec, so a 50 pc sphere there holds millions. Before any row is read, `_rows_in_reach` counts what
@@ -41,7 +42,7 @@ stopping at the first sphere that holds K, so it is cheap wherever the place is.
 import heapq
 import math
 
-from planetgen.db import query, region, search_values
+from planetgen.db import query, region, search_values, uncharted
 from planetgen.galaxy import objectref as object_ref
 from planetgen.util import detmath
 
@@ -68,8 +69,9 @@ BODY_KINDS = ("star", "planet", "moon", "belt", "comet")
 """tuple: The kinds read from a system's own tables, in the order they sort
 under their system."""
 
-SEARCH_KINDS = ("system",) + BODY_KINDS + (FACILITY_KIND,) + object_ref.PHENOMENON_KINDS
-"""tuple: Every kind the search can return (and filter on)."""
+SEARCH_KINDS = ("system",) + BODY_KINDS + (FACILITY_KIND,) + object_ref.PHENOMENON_KINDS + uncharted.LIST_ONLY_KINDS
+"""tuple: Every kind the search can return (and filter on). A hypervelocity star has no page of its own until its sector is built
+(`db.uncharted`), so it is found as an uncharted object only."""
 
 _CHUNK = 500
 """int: Ids per `IN (...)` list."""
@@ -208,19 +210,15 @@ def _sector_names(conn, sector_ids):
 
 
 def _unbuilt(conn, center, distance):
-    """`{kind: count}` of what lies in the sphere and is not generated yet: pre-placed bright stars (`bright_star`)
-    and the scatter objects not built (their phenomenon kind), read by the same statement on the scatter tables."""
+    """`{kind: count}` of what lies in the sphere and is not generated yet and not listed: the pre-placed bright stars (`bright_star`). The
+    scatter objects are listed (MAP.400, `db.uncharted.within`)."""
     position = ("p.position_x_mpc / 1000.0", "p.position_y_mpc / 1000.0", "p.position_z_mpc / 1000.0")
+    columns = "'bright_star' AS kind, " + ", ".join(f"{axis} AS {name}" for axis, name in zip(position, ("x", "y", "z")))
+    sql, _runs = region.region_statement("bright_stars", columns, position, center, distance, "p.star_system_id IS NULL")
     counts = {}
-    runs = None
-    for table, kind, built in (("bright_stars", None, "p.star_system_id IS NULL"),
-                               ("phenomenon_scatter", "p.kind", "p.built_at IS NULL")):
-        columns = ("'bright_star'" if kind is None else kind) + " AS kind, " + ", ".join(
-            f"{axis} AS {name}" for axis, name in zip(position, ("x", "y", "z")))
-        sql, runs = region.region_statement(table, columns, position, center, distance, built, runs)
-        for row in conn.execute(sql).fetchall():
-            if detmath.dist(center, (row["x"], row["y"], row["z"])) <= distance:
-                counts[row["kind"]] = counts.get(row["kind"], 0) + 1
+    for row in conn.execute(sql).fetchall():
+        if detmath.dist(center, (row["x"], row["y"], row["z"])) <= distance:
+            counts[row["kind"]] = counts.get(row["kind"], 0) + 1
     return counts
 
 
@@ -353,6 +351,12 @@ def _phenomena(conn, center, distance, kinds):
     return found
 
 
+def _phenomenon_rank(kind):
+    """Where a phenomenon kind sorts among the others at one distance: its place in `PHENOMENON_KINDS`, the kinds only uncharted objects have after."""
+    kinds = object_ref.PHENOMENON_KINDS + uncharted.LIST_ONLY_KINDS
+    return kinds.index(kind)
+
+
 def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, offset=0, stars=None, ranges=None, value_sort=None):
     """
     Everything generated within `distance_pc` of a place, nearest first.
@@ -376,10 +380,9 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
         dict: `place` (`ref`, `kind`, `name`, `point_pc`), `distance_pc`,
             `total` (rows over all pages), `by_kind` (`{kind: count}`),
             `limit`, `offset`, `not_generated` (`{kind: count}` of the pre-placed
-            bright stars, `bright_star`, and scatter objects in the sphere that are not
-            built yet; counted, never listed), `not_generated_total`, and `rows`: each `ref`, `kind`, `id`, `name`,
+            bright stars, `bright_star`, in the sphere that are not built yet; counted, never listed), `not_generated_total`, and `rows`: each `ref`, `kind`, `id`, `name`,
             `parent` (`ref`, `kind`, `name`, or `None`), `system_id` (the system
-            it is in or is, else `None`), `distance_pc` and, on a `system` row, `star_count`; with `ranges` or `value_sort` a row of that
+            it is in or is, else `None`), `distance_pc`, on an uncharted phenomenon (MAP.400: a scattered row or a field cloud no sector has stored) `uncharted` true, `scatter_id` (its row of `phenomenon_scatter`, `None` for a field cloud) and a `ref` of `None`, and, on a `system` row, `star_count`; with `ranges` or `value_sort` a row of that
             kind also has `values`, `{key: {value, unit, symbol}}` (UX.228).
             The place itself is left out when it is a system or a phenomenon (a
             planet or moon is not removed from its own system's bodies).
@@ -430,8 +433,10 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
     for away, kind, object_id, name, _parent, _point in phenomena:
         if place["kind"] == kind and place["id"] == object_id:
             continue
-        entries.append((away, 3 + object_ref.PHENOMENON_KINDS.index(kind), object_id, "phenomenon",
-                        (kind, name)))
+        entries.append((away, 3 + _phenomenon_rank(kind), object_id, "phenomenon", (kind, name)))
+    for away, kind, printed_id, name, _point, scatter_id in uncharted.within(conn, center, distance, wanted) if stars is None else []:
+        # An uncharted object sorts after the stored phenomena of its kind at the same distance (the half step), by its printed ID.
+        entries.append((away, 3 + _phenomenon_rank(kind) + 0.5, printed_id, "uncharted", (kind, name, scatter_id)))
     entries.sort(key=lambda entry: entry[:3])
 
     by_kind = {}
@@ -444,7 +449,7 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
                 by_kind[kind] = by_kind.get(kind, 0) + count
         else:
             size = 1
-            kind = entry[3] if entry[3] != "phenomenon" else entry[4][0]
+            kind = entry[3] if entry[3] not in ("phenomenon", "uncharted") else entry[4][0]
             by_kind[kind] = by_kind.get(kind, 0) + 1
         sizes.append(size)
     total = sum(sizes)
@@ -484,13 +489,18 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
                 parent = dict(parent, name=labels.get(object_ref.parse(parent["ref"])[1], (None, None))[0])
             made = [(FACILITY_KIND, object_id, extra[0], parent)]
             home = (object_ref.parse(extra[1]["ref"])[1] if extra[1] and extra[1]["kind"] == "system" else None)
+        elif what == "uncharted":
+            made = [(extra[0], object_id, extra[1], None, extra[2])]
+            home = None
         else:
             made = [(extra[0], object_id, extra[1], None)]
             home = None
-        for kind, row_id, name, parent in made:
+        for kind, row_id, name, parent, *scattered in made:
             if offset <= position < offset + limit:
                 row = {"ref": _ref(kind, row_id), "kind": kind, "id": row_id, "name": name,
                        "parent": parent, "system_id": home, "distance_pc": away}
+                if what == "uncharted":     # no stored object yet: no reference to open, and the scatter row's page when it has one
+                    row.update({"ref": None, "uncharted": True, "scatter_id": scattered[0]})
                 if kind == "system":
                     row["star_count"] = star_counts.get(row_id, 0)
                 rows.append(row)

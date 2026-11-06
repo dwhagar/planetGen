@@ -92,14 +92,14 @@
   </div>
   {%- if warm.index_kinds %}
   <h3 id="warm-index-heading">Object index{% if warm.index_size %} ({{ warm.index_size }}){% endif %}</h3>
-  <p class="hint">Kept first in the cache budget: the tile cache gets what it leaves.</p>
+  <p class="hint">Kept first in the cache budget: the tile cache gets what it leaves. Rows are the objects a sector has stored. Uncharted objects (the scattered black holes, remnants, planetary nebulae and hypervelocity stars, and the field clouds) are not in the index: the lists, search and Nearby read them from their own tables, so the two columns add up to what the map draws.</p>
   <div class="table-scroll" tabindex="0">
   <table id="warm-index">
     <caption class="sr-only">The object index, by kind of object</caption>
-    <thead><tr><th scope="col">Kind</th><th scope="col">Rows</th><th scope="col">Last run</th><th scope="col">Ended</th></tr></thead>
+    <thead><tr><th scope="col">Kind</th><th scope="col">Rows</th><th scope="col">Uncharted</th><th scope="col">Last run</th><th scope="col">Ended</th></tr></thead>
     <tbody>
     {%- for row in warm.index_kinds %}
-      <tr><th scope="row"><code>{{ row.kind }}</code></th><td>{{ row.rows_text }}</td><td>{{ row.mode }}</td><td>{{ row.built }}</td></tr>
+      <tr><th scope="row"><code>{{ row.kind }}</code></th><td>{{ row.rows_text }}</td><td>{{ row.uncharted_text }}</td><td>{{ row.mode or '' }}</td><td>{{ row.built }}</td></tr>
     {%- endfor %}
     </tbody>
   </table>

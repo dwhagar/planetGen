@@ -211,3 +211,26 @@ def test_the_heat_of_a_rocky_planet_changes_its_temperature_under_a_star_by_less
     earth = climate_draws.equilibrium_temperature_k(0.3, 1361.0)
     assert climate_draws.equilibrium_temperature_k(0.3, 1361.0, 0.09) == pytest.approx(earth, rel=1e-3)
     assert climate_draws.equilibrium_temperature_k(0.3, 1361.0, 0.0) == earth, "no internal heat is the old value exactly"
+
+
+@pytest.mark.parametrize("mass_earth", [5.0, 12.0, 20.0, 50.0, 95.0, 150.0, 300.0, 600.0, 1500.0, 4000.0])
+def test_a_giants_stored_pair_and_its_backfill_both_reproduce_its_temperature_at_every_mass(host_star, mass_earth):
+    """GEN.1059: a giant radiates its own heat as well (GEN.816), which is inside its stored G (GEN.1030), so the pair reads the temperature back from the
+    starlight alone. A row without the pair cannot be inverted from its scale height (`from_stored` says so) and its backfill, whose G is worked out from
+    the stored temperature, reproduces it too."""
+    found = 0
+    for zone in ("h", "c", "e"):
+        for seed in range(2):
+            with draw.bound(seed):
+                planet = Planet(SystemConfig(), host_star, host_star.habitable_zone, plausibility.distance_for_zone(host_star, zone),
+                                mass=mass_earth * constants.EARTH_MASS_TO_KG, zone_override=zone, moon_count=0)
+            if planet.body_type != "g":
+                continue
+            found += 1
+            flux = _flux(planet, host_star)
+            assert climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux) == pytest.approx(planet.surface_temperature, rel=TOLERANCE)
+            row = _stored_row(planet)
+            assert climate_draws.from_stored(row, flux)[0] is None and "giant" in climate_draws.from_stored(row, flux)[2]
+            albedo, factor = climate_draws.backfill_draw(row, flux, f"giant:{mass_earth}:{zone}:{seed}")
+            assert climate_draws.surface_temperature_k(albedo, factor, flux) == pytest.approx(planet.surface_temperature, rel=TOLERANCE)
+    assert found or mass_earth < 50.0                     # a body of 5 to 20 Earth masses is a giant only some of the time

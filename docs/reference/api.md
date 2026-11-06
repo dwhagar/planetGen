@@ -209,7 +209,7 @@ connectivity to that specific schema rather than the default one.
   `system_mass_solar` (the mass the point carries, `null` for a single star): the stored
   members of a star that has company (UX.114).
 - `GET /api/object-lists/<kind>` — one keyset page of the objects of a kind from the object index (UX.141): `kind` is
-  `system`, `star`, `planet`, `moon`, `belt`, `comet`, `facility` or a phenomenon type. `sort` (`name`, the default,
+  `system`, `star`, `planet`, `moon`, `belt`, `comet`, `facility`, a phenomenon type or `hypervelocity_star`. `sort` (`name`, the default,
   `class`, `mass` or `radius`; the last three list the objects that have one) with `order` (`asc` or `desc`), `limit`
   (50 by default, 200 at most), `after=<object ID>` (the `next` of the previous page; there is no `offset`), `name`
   (names starting with it, case not significant), `class` (exactly this class), `sector_id` and `from` (begin a
@@ -217,7 +217,13 @@ connectivity to that specific schema rather than the default one.
   answered). Answers `items`
   (`kind`, `id` the printed object ID, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`,
   `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100; a star's also `temperature_k`, `luminosity_w` and `age_gy`, a planet's or moon's `distance_km` (its orbit size), `eccentricity` and `surface_temperature_k`, as stored, `null` where the row holds none, UX.187), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
-  what `planetgen warm object-index` last wrote, so a kind it has not been built for lists nothing. 400 for an unknown
+  what `planetgen warm object-index` last wrote, so a kind it has not been built for lists nothing. MAP.400: the objects no sector has stored yet are not
+  in the index (the scattered black holes, neutron stars, remnants, planetary nebulae, hypervelocity stars and the quasar of `phenomenon_scatter`, 9.7 million
+  rows on the test galaxy, and the field clouds of `nebula_field`), so a `name`-sorted list of their kind reads them from their own tables after the charted
+  ones, field clouds first (in the order of their key), then scattered rows (by row id), and `total` counts them. Such an item also has `uncharted` true and
+  `scatter_id` (its row of `phenomenon_scatter`, whose page is `/uncharted-phenomenon/<id>`; `null` for a field cloud, whose `id` is `field-<i>.<j>.<k>.<n>`
+  and which has no page). They are left out under a `name`, `sector_id`, range or `from` filter and under a sort by class, mass or radius (they have no name,
+  sector or stored values yet), a `class` filter keeps those of that descriptor, and `hypervelocity_star` (a system once its sector is built) lists only them. 400 for an unknown
   kind, sort or order, a `limit` that is not a number, a `sector_id` that is not a sector ID, a `from` under another sort, or an `after` that is not an object ID
   (`objectlist.list_objects`). UX.228: a `star`, `planet` or `moon` list takes the numeric keys of `GET /api/search` (UX.226,
   `db.search_values.KEYS`) as well: `sort=<key>` (`gravity`, `surface_temperature`, `orbit_distance`, `luminosity`, `moon_count`, ...; every
@@ -337,8 +343,11 @@ connectivity to that specific schema rather than the default one.
   of the three at most) lists only that kind's bodies that have the value, ordered by it and nearest first among equals; it is a 400 with `nearest`, with
   a range on another kind, or with a key the kind does not have. The answer also carries `total`, `by_kind`, and
   `not_generated` (`{kind: count}`, with `not_generated_total`): the
-  pre-placed bright stars (`bright_star`) and scatter objects in the sphere
-  that are not built yet, counted and never listed; the search never
+  pre-placed bright stars (`bright_star`) in the sphere that are not built
+  yet, counted and never listed. The scattered phenomena and field clouds that
+  no sector has stored (MAP.400, `db.uncharted`) are listed, with `uncharted`
+  true, `scatter_id` (their row of `phenomenon_scatter`, `null` for a field
+  cloud) and a `ref` of `null`, since there is no stored object to open yet. The search never
   generates and never reads the sectors (NAV.60: it reads each table by its
   cell key). `nearest=K` (NAV.61) asks for the nearest K rows instead: the
   search tries 2, 4, 8, 16 and 32 pc and stops at the first sphere that

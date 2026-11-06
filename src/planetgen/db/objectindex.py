@@ -30,7 +30,7 @@ import time
 
 import redis
 
-from planetgen.db import query
+from planetgen.db import query, uncharted
 from planetgen.galaxy import objectref
 from planetgen.physics import constants
 from planetgen.queue import redisclient
@@ -314,6 +314,10 @@ def _client():
 SIZE_FIELD = "_size_bytes"
 """str: The hash field that holds the table's size when the last run ended."""
 
+UNCHARTED_FIELD = "_uncharted"
+"""str: The hash field that holds how many uncharted objects each kind had when the last run ended (MAP.400, `db.uncharted`): the objects the
+index leaves out and the lists read beside it, shown with the index's rows so that a kind's counts add up to what the map draws."""
+
 
 def recorded(database):
     """Kind -> the record of its last run (`{"mode", "since", "built_at", "rows", "seconds"}`); `{}` without Redis."""
@@ -325,7 +329,7 @@ def recorded(database):
         return {}
     state = {}
     for kind, text in raw.items():
-        if kind == SIZE_FIELD:
+        if kind in (SIZE_FIELD, UNCHARTED_FIELD):
             continue
         try:
             state[kind] = json.loads(text)
@@ -340,6 +344,14 @@ def recorded_size(database):
         return int(_client().hget(state_key(database), SIZE_FIELD) or 0)
     except (redis.RedisError, OSError, ValueError):
         return 0
+
+
+def recorded_uncharted(database):
+    """`{kind: how many}` uncharted objects when the last run ended (`db.uncharted.counts`), `{}` without a record."""
+    try:
+        return {kind: int(count) for kind, count in json.loads(_client().hget(state_key(database), UNCHARTED_FIELD) or "{}").items()}
+    except (redis.RedisError, OSError, ValueError, AttributeError):
+        return {}
 
 
 def reserved_bytes():
@@ -364,6 +376,7 @@ def _remember(conn, database, kind, mode, since, rows, outcome):
         pipe = _client().pipeline(transaction=True)
         pipe.hset(state_key(database), kind, json.dumps(record))
         pipe.hset(state_key(database), SIZE_FIELD, size_bytes(conn))
+        pipe.hset(state_key(database), UNCHARTED_FIELD, json.dumps(uncharted.counts(conn)))
         pipe.execute()
     except (redis.RedisError, OSError):
         pass
