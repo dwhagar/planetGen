@@ -23,40 +23,40 @@ def _run(chunks, show=True, each=40.0, own=38.0, cost=None, expected=None):
     return lines
 
 
-def test_every_chunk_says_its_number_and_the_total():
+def test_a_progress_line_comes_when_a_minute_and_ten_percent_have_passed():
+    """OPS.99: a chunk every 40 s of a stage of 8 is a line every two chunks (80 s, 25 points), not one per chunk."""
     lines = _run(8)
-    assert lines[0].startswith("galaxy-deep-nodes chunk 1 of 8: this chunk 64 nodes took 38.0 s on its worker; so far 64 nodes "
-                               "(64 built, 0 already stored), 0:40 elapsed, ")
-    assert lines[2].startswith("galaxy-deep-nodes chunk 3 of 8")
-    assert lines[-2] == ("galaxy-deep-nodes: 512 nodes warmed (512 built, 0 already stored) in 5:20 over 8 chunks of up "
-                         "to 64 nodes")
-    assert lines[-1].startswith("[##############################] 2/2 galaxy-deep-nodes")
+    progress = [line for line in lines if "%" in line]
+    assert progress[0] == "galaxy-deep-nodes 25% (2 of 8 chunks), 1:20 elapsed"
+    assert len(progress) == 3 and progress[2].startswith("galaxy-deep-nodes 75% (6 of 8 chunks)")
+    assert lines[-1] == ("galaxy-deep-nodes: 512 nodes warmed (512 built, 0 already stored) in 5:20 over 8 chunks of up to 64 nodes; "
+                         "1 chunk at once, 38.0 s a chunk on its worker; family 2 of 2")
 
 
 def test_no_time_left_is_shown_from_fewer_than_a_few_chunks():
     """PERF.237: the first chunks are the first of the workers that run side by side; they say nothing of the rest."""
     lines = _run(8)
-    few = [line for line in lines if " chunk " in line][:warm_progress.MIN_CHUNKS - 1]
-    assert len(few) == warm_progress.MIN_CHUNKS - 1
-    assert all(line.endswith("time left not known yet") and " at once" not in line for line in few)
-    fifth = lines[warm_progress.MIN_CHUNKS - 1]
-    assert fifth.startswith(f"galaxy-deep-nodes chunk {warm_progress.MIN_CHUNKS} of 8") and fifth.endswith("about 2:00 left")
+    first = next(line for line in lines if "%" in line)
+    assert "left" not in first and "2 of 8" in first
+    later = [line for line in lines if "%" in line][-1]
+    assert "4:00 elapsed, about 1:20 left" in later
 
 
-def test_a_chunk_line_says_how_many_chunks_run_at_once_and_the_overall_seconds_a_chunk_takes():
-    """PERF.237: ten workers each take 37 s a chunk, so a chunk is done every 3.7 s overall, and the time left comes from that."""
+def test_the_closing_line_says_how_many_chunks_run_at_once_and_how_long_a_chunk_takes_on_its_worker():
+    """PERF.237: ten workers each take 37 s a chunk, so a chunk is done every 3.7 s overall. The progress line leaves that out; the stage's last line has it."""
     lines = _run(40, each=3.7, own=37.0)
-    line = next(line for line in lines if line.startswith("galaxy-deep-nodes chunk 20 of 40"))
-    assert "this chunk 64 nodes took 37.0 s on its worker; about 10 chunks at once, 3.7 s a chunk overall;" in line
-    assert line.endswith("1:14 elapsed, about 1:14 left")
+    assert lines[-1].endswith("; 10 chunks at once, 37.0 s a chunk on its worker; family 2 of 2")
+    assert not any("at once" in line for line in lines[:-1])
 
 
 def test_a_long_stage_leaves_a_bounded_number_of_lines():
-    lines = _run(180)
-    chunk_lines = [line for line in lines if " chunk " in line]
-    assert 10 <= len(chunk_lines) <= warm_progress.LOG_CHUNK_LINES
-    assert chunk_lines[0].startswith("galaxy-deep-nodes chunk 9 of 180")
-    assert "180 chunks" in lines[-2]
+    """A stage of 180 chunks that takes ten minutes is a line a minute at most, and a stage that takes hours one at each tenth."""
+    quick = _run(180, each=3.0)
+    assert 8 <= len([line for line in quick if "%" in line]) <= 10
+    slow = _run(180, each=60.0)
+    progress = [line for line in slow if "%" in line]
+    assert 8 <= len(progress) <= 10 and progress[0].startswith("galaxy-deep-nodes 10% (18 of 180 chunks)")
+    assert "180 chunks" in slow[-1]
 
 
 def test_a_stage_of_one_unit_prints_its_own_line_once():
@@ -64,7 +64,7 @@ def test_a_stage_of_one_unit_prints_its_own_line_once():
     progress = warm_progress.WarmProgress(["lists", "search"], lines.append, show=True, expected={"lists": 1.0, "search": 1.0})
     progress.plan(0, {"units": 1, "cost": 1.0})
     progress.result({"line": "lists: 20 pages warmed"})
-    assert lines == ["lists: 20 pages warmed", "[###############---------------] 1/2 lists"]
+    assert lines == ["lists: 20 pages warmed"]
 
 
 def test_without_progress_only_the_summary_is_left():
@@ -119,16 +119,6 @@ def test_the_whole_warm_up_shows_no_time_left_from_fewer_than_a_few_chunks():
         now[0] += 10.0
         progress.result(_chunk(seconds=10.0))
     assert progress.overall_left() is None and progress._overall_left_text() == ""
-
-
-def test_the_plain_bar_at_a_stages_end_is_weighted_by_cost():
-    now = [0.0]
-    lines = []
-    progress = warm_progress.WarmProgress(["lists", "systems"], lines.append, show=True, clock=lambda: now[0],
-                                          expected={"lists": 100.0, "systems": 900.0})
-    progress.plan(0, {"units": 1, "cost": 100.0})
-    progress.result({"line": "lists: 20 pages warmed"})
-    assert lines[-1] == "[###---------------------------] 1/2 lists"      # a tenth of the cost, not a half
 
 
 def test_clock_text():

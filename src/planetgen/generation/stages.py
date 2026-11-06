@@ -359,10 +359,10 @@ def _say_end(record, seconds, reason=None):
         return
     offset, job_total = _numbering()
     if reason is None:
-        mark = logrecord.stage_record(logrecord.STAGE_FINISH, "stages", offset + record["n"], job_total, seconds=seconds)
+        mark = logrecord.stage_record(logrecord.STAGE_FINISH, "generate", offset + record["n"], job_total, seconds=seconds)
         log.normal(mark.message, extra={"fields": mark.fields})
     else:
-        mark = logrecord.stage_record(logrecord.STAGE_FAILED, "stages", offset + record["n"], job_total, seconds=seconds,
+        mark = logrecord.stage_record(logrecord.STAGE_FAILED, "generate", offset + record["n"], job_total, seconds=seconds,
                                       reason=reason)
         log.error(mark.message, extra={"fields": mark.fields})
 
@@ -456,7 +456,7 @@ def overall_progress(now=None):
     if overall is None:
         return None
     elapsed = (time.perf_counter() if now is None else now) - overall["t0"]
-    description = f"Whole job (stage {min(max(_state['next'], 1), len(_state['stages']))} of {len(_state['stages'])})"
+    description = f"Whole job ({logrecord.counting_text('Stage', min(max(_state['next'], 1), len(_state['stages'])), len(_state['stages']))})"
     estimate = overall["estimate"]
     if estimate is None:
         estimate = _average_estimate(elapsed)
@@ -556,10 +556,10 @@ def _announce(index, skipped=None, queued=False):
         _state["open"] = record
     offset, job_total = _numbering()
     if skipped:
-        mark = logrecord.stage_record(logrecord.STAGE_SKIPPED, "stages", offset + index + 1, job_total, stage.label,
+        mark = logrecord.stage_record(logrecord.STAGE_SKIPPED, "generate", offset + index + 1, job_total, stage.label,
                                       reason=skipped)
     elif not _under_banner():
-        mark = logrecord.stage_record(logrecord.STAGE_START, "stages", offset + index + 1, job_total, stage.label)
+        mark = logrecord.stage_record(logrecord.STAGE_START, "generate", offset + index + 1, job_total, stage.label)
     else:
         mark = None
     if mark is not None:        # the console draws it as the one divider, the record file holds it with its fields

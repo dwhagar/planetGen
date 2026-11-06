@@ -2,6 +2,89 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3448] - 2026-11-06
+
+**Headline:** The tests that the component pass gives the same stars in any unit order no longer fail on the new Object IDs.
+
+### Fixed
+- TEST.649: `test_gen_component_pass.py` compared whole stored rows of the scattered stars and phenomena between two orders of the units, and since GEN.1254 a row carries an Object ID whose serial is the row's rank in its sector among the rows written in one call, so it follows the order the units ran in. The comparison leaves the Object ID out, and each run now checks that every row has an Object ID and that no two rows share one.
+
+## [8.0.3447] - 2026-11-06
+
+**Headline:** Every log line says where it is with one of three words, Stage, Part or Phase, and every line names its component from one table.
+
+### Changed
+
+- A count is worded in one place (OPS.103): `Stage N of M` for the top-level steps of an update, an install or a generate job, `Part N of M` for the runs inside one (the update's two warm-up runs), and `Phase N of M` for a named group inside a run (the warm-up's phases). The warm-up's families are named, and its progress counts them as `family 2 of 2`. `chunk` is only ever a count of pieces of work. `update.sh` words the warm-up runs `part 1 of 2` and `part 2 of 2` (they were `stage 1` and `stage 2`, which collided with the update's own stages), the queue page and the cluster-field messages use the same wording, and the update guard's failed step reads `stage 4 of 9, checking the generator's math`, set by `log_stage` itself.
+- The component of a record is one of the names in `logrecord.COMPONENTS` and nothing else (`update`, `install`, `warm`, `tiles`, `orbits`, `generate`, `queue`, `web`, `job`, `activity`, `command`, `lib`, `logs`, `permissions`, `cache-dir`, `swap`, `python-deps`). `Record` refuses another name, `logrecord.component_of` finds the one a logger or a source file belongs to, and the shell scripts take their list from the same table. The queue run page's records now say `queue` (they said `run`), and a library's own log lines say `lib`.
+- `test_no_own_log_formatting.py` (TEST.183) fails on a hand-made count in a Python module or a shell script, and on a component named as a literal that is not in the table.
+- `docs/design/operations/logging-standard.md` has a "Counting" section and a "Components" table.
+
+generation-output: unchanged
+
+## [8.0.3446] - 2026-11-06
+
+**Headline:** The debug log line names its area in brackets, so a debug log can be filtered by it.
+
+### Changed
+
+- The debug line is now `2026-10-23T17:29:42.729-0400 DEBUG    worker.py[2142] [draw] random.py:688 random | roll draw.random() -> 0.31` (OPS.102): the area (`[draw]`, `[sql]`, `[queue]`, `[web]`, `[decision]`, `[cache]`, `[branch]`) replaces the logger-name column, which was almost always `planetgen` (or `planetgen.trace`). The format is the only one written and read: `test_debug_mode.py` reads the new columns, and `docs/reference/cli.md` and the logging standard show them.
+- The debug form of the formatter derives the area of a record no filter stamped, so a handler made outside `configure` cannot fail on a missing field.
+
+generation-output: unchanged
+
+## [8.0.3445] - 2026-11-06
+
+**Headline:** The nightly whole-map build, the nightly orbit update and update.sh each leave a log of their own in the log folder.
+
+### Changed
+
+- `planetgen tiles` (the nightly whole-map build) appends each run to `tiles.log` and `planetgen orbits` (the nightly orbit update) to `orbits.log`, in the log folder next to `warmup.log` (OPS.101). A run is a start line that says what started it (`by hand` or `systemd timer`), the lines it printed with their time, zone, severity and component, and an end line (`finished after 17:44`, `ended with exit status 75`, `ended by Ctrl+C`, `failed: ...`). The shared writer is `util/joblog.py` (`JobLog`); `warmup.log`'s `RunLog` is built on it; `logpaths.job_log_path` names the four logs.
+- `update.sh` appends every line it prints to `update.log`: the shell keeps the records from the start in a temporary file and writes them to the log folder once the Python environment says where it is (`log_file_begin`, `log_file_to`; `python -m planetgen.util.logpaths update.log` prints the path).
+- All four are `*.log` files of the folder, so the one logrotate rule covers them; the macOS newsyslog file lists the three new ones. A log that cannot be written is said once and never stops the job. `smoke` keeps its JSON output file. The maintenance units needed no change (journald still holds their output).
+- `test_settings.py` names `PLANETGEN_LOG_TIMES` (OPS.98's switch), which the check of variables the code reads had not been told about, and the generated settings files carry the new `log_dir` text.
+
+generation-output: unchanged
+
+## [8.0.3444] - 2026-11-06
+
+**Headline:** The warm-up in a log leaves one progress line a minute at most, not one per chunk.
+
+### Changed
+
+- `planetgen warm` without a terminal (a log, `tee`, the background warm-up, `--follow` into a file) prints a stage's progress as `galaxy-nodes 16% (28 of 180 chunks), 1:56 elapsed, about 10:10 left; warm-up about 11:07 left (rough guess)`, and only when a minute and ten percentage points have both passed since the last one (OPS.99), so a stage of hours leaves a line at each tenth and a stage of minutes one a minute. The old line per chunk, with its nine facts, and the ASCII bar line after each stage are gone.
+- A stage's closing line carries what the chunk lines used to: how many chunks ran at once and how long one took on its worker, and `step 2 of 5` with the whole warm-up's time left. A stage of one unit prints its own line only.
+- With a terminal the `rich` bars are unchanged (update.sh shows them now that nothing pipes the warm-up through `tee`, OPS.96).
+
+generation-output: unchanged
+
+## [8.0.3443] - 2026-11-06
+
+**Headline:** Every line the update and install scripts print now carries a time, and both end with a summary that repeats their warnings.
+
+### Changed
+
+- `update.sh`, `install.sh` and the scripts they run (`scripts/deploy-common.sh`, `install-python-deps.sh`, `enable-swap.sh`, `examples/apache/setup-debug-log.sh`, `set-permissions.sh`, `create-cache-dir.sh`) print through `scripts/logrecord.sh`: about 200 plain `echo` lines became `log_info`, `log_notice`, `log_warning` and `log_error` records with a local time, its zone, a severity and a component (OPS.98). A heredoc of instructions or a tool's output goes through the new `log_lines`; `git fetch` and `git reset` run quiet. `install.sh`'s `== n/8 ==` headers are `Stage n of 8` dividers.
+- A command line's output that is not a terminal (a pipe, a file, `tee`, an update run) is now display lines with the time, not bare text: `log.apply_debug_arguments` asks for it and `log.times_on_console` decides; a terminal keeps the plain text. `PLANETGEN_LOG_TIMES=always` or `never` overrides.
+- `update.sh` and `install.sh` end with `log_summary`: how long it took, the code version, the schema, when the site was reloaded and answered, the warm-up result, then every warning raised, repeated with its headline (OPS.100). The reload's "Done." lines are "Site reloaded: ..." so "done" appears once, last. Long warnings (the health check, the warm-up) are a headline and an indented fix line.
+- `docs/design/operations/logging-standard.md` has a section for the shell scripts and the summary; `test_log_shell.py` fails a bare `echo` in these scripts and tests `log_lines`, `log_duration` and `log_summary`.
+
+generation-output: unchanged
+
+## [8.0.3442] - 2026-11-06
+
+**Headline:** Tests that went red after train 11 now count charted sectors, match the Object ID and warm signatures, and use American spelling.
+
+### Changed
+
+- `test_parallel_generation.py` (`_systems_per_sector`, `_sector_addresses`) and `test_estimate_sampling.py` count only the sectors a fill charted, by joining `chart_ledger`; a rogue planet in a cell nobody charted has a `sectors` row of its own (GEN.1111 part 7).
+- `test_generation_stats.py`, `test_sectors_command.py` count charted sectors through a new `_charted_sectors` in `test_galaxy_gen.py`; `test_since_commands.py` compares the link stage's sector count with the `sectors` rows, which include those of rogue planets.
+- `test_run_job.py`: a scatter drawn again after `clear-scatter` gets new Object IDs because a sector's serial counter never repeats one (GEN.1254), so the comparison leaves out `uid` as well as `id`.
+- `test_maintenance.py`: the `warm_family` stub accepts `report`, which the warm now passes.
+- Spelling the American-spelling test refuses: `oxidized` in the ground-composition csv rows, and the nav caption "adjusted course". The `moon.disk_full` redraw description no longer carries a bare `(GEN.1244)` code (the codes-not-shown test).
+
+generation-output: unchanged
+
 ## [8.0.3441] - 2026-11-06
 
 **Headline:** Tests that went red after train 11 now count charted sectors, match the Object ID and warm signatures, and use American spelling.

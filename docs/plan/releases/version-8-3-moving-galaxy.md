@@ -26,12 +26,6 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.98 | A time on every line of every script and command |  |  |
-| OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh |  |  |
-| OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | OPS.98 |  |
-| OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log |  |  |
-| OPS.102 | Debug log: an area column in, the dead logger-name column out |  |  |
-| OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | OPS.98, OPS.99, OPS.100, OPS.101, OPS.102 |  |
 
 ### Nightly maintenance
 

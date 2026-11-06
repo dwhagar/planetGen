@@ -17869,6 +17869,29 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1226.
 
+- [ ] **GEN.1304 The greenhouse table under-warms a temperate wet air after the GEN.852 part 3 refit: the Earth twin sits at 276.0 K instead of 288 K (lock)**
+  Core 5 (as the lane reported, 12:07 PM EST on 2026-11-06, PR #5331)
+  traced two red tests in test_atmosphere_state to GEN.852 part 3
+  (dd63ade1b, the greenhouse table refit to eight gases): the Earth twin
+  at its own fixed point was 288.49 K before and is 276.04 K since, and
+  the runaway test moved the same way (296.1 and 311.0 K at 255 and 285
+  W/m2 absorbed before, 282.8 and 295.7 K now). With the infrared
+  k-tables fetched, the radiative-convective model gives 288.01 K for that
+  air; for the Earth-like air at 239 W/m2 the table is under the model by
+  4.8 K at 400 Pa of vapor, 8.2 K at 1200 Pa and 10.3 K at 2000 Pa, so the
+  table underweights the wet feedback of the temperate branch.
+  test_greenhouse_table passes because its anchor airs sit elsewhere. The
+  tests are right: the design note says the Earth twin stays at 288 K.
+  Do: refit the table with temperate wet anchors (scripts/fit_greenhouse_table.py;
+  the solve step is tens of thousands of model runs), keep the other
+  anchors, add anchors at the temperate wet branch to the table test, and
+  report the table against the model at 400, 1200 and 2000 Pa. Generated
+  temperatures change (new epoch, golden): a lock item. Done: the Earth
+  twin sits at 288 K within the test bound, the runaway test passes, and
+  the two test_atmosphere_state tests pass. Version 8.1. Owner: Core 5.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.852, TEST.649.
+
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
@@ -18585,117 +18608,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.98 A time on every line of every script and command**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: planetgen warm and the other commands print display lines with the
-  time whenever output is not a terminal; the roughly 108 plain echo
-  lines in scripts/deploy-common.sh and those in install.sh,
-  install-python-deps.sh, enable-swap.sh, setup-debug-log.sh,
-  set-permissions.sh and create-cache-dir.sh move to log_info,
-  log_warning and log_error. Shares deploy-common.sh, update.sh and
-  test_deploy_scripts.py with the closing-summary item: one branch or in
-  order. Touches those scripts, test_deploy_scripts.py and
-  test_log_shell.py. Done: every line a script prints carries a time.
-  Prerequisites: OPS.97.
-
-- [ ] **OPS.99 Compact warm-up progress by time, and the progress bars back inside update.sh**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: with no tee the warm-up's output stays a terminal, so the bars
-  draw; in a log or pipe, one progress line a minute (and one per 10%,
-  whichever is rarer) with percent, chunks, elapsed and time left;
-  worker seconds and chunks-at-once move into the family's closing line;
-  --follow shows the same. Touches cli/warm_progress.py, cli/warm.py and
-  tests. Done: update.sh shows bars in a terminal and a quiet progress
-  line in a log.
-  Prerequisites: OPS.96.
-
-- [ ] **OPS.100 A closing summary for update.sh and install.sh, with warnings repeated**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: one shared shell helper (log_summary) in scripts/logrecord.sh
-  prints the duration, code version, migration, the time the site was
-  reloaded and passed the health check, the warm-up result, and every
-  warning raised, repeated at the end. The reload's Done lines become
-  'Site reloaded: running the new code' so Done appears once, last. Long
-  warnings (the 330-character warm-up warning) become a headline plus
-  indented fix lines. Shares files with the time-on-every-line item.
-  Touches update.sh, install.sh, scripts/logrecord.sh, deploy-common.sh
-  and tests. Done: both scripts end with the summary.
-  Prerequisites: OPS.98.
-
-- [ ] **OPS.101 Named logs for the unattended long jobs: tiles.log, orbits.log and update.log**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: tiles.log (the nightly whole-map build), orbits.log (the nightly
-  orbit update) and update.log (every line update.sh prints, appended,
-  so a hand run can be read again), all in the log folder, written with
-  the same helper as warmup.log and covered by the same logrotate rule
-  (*.log); smoke keeps its JSON output file. Touches cli/tiles.py,
-  cli/orbits.py, update.sh, util/logpaths.py and the
-  examples/maintenance units if they redirect output. Done: each of the
-  three jobs leaves its own rotating log.
-  Prerequisites: OPS.96.
-
-- [ ] **OPS.102 Debug log: an area column in, the dead logger-name column out**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: the debug line gains [draw], [sql] and [queue] and loses the
-  logger-name column; the tests and bug-hunt scripts that read the line
-  change with it (no shim). Done: the new line format is the only one
-  read anywhere.
-  Prerequisites: none.
-
-- [ ] **OPS.103 One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: a Counting section in the logging standard: 'Stage N of M' for the
-  top-level steps of a script or run, 'Part N of M' for the runs inside
-  one, 'Phase N of M' for a named group inside a run, family names for
-  the warm-up's pieces, and 'chunk' shown only as a count. The six
-  severities and the component names (update, install, warm, tiles,
-  orbits, generate, queue, web, job) in one table; every divider is the
-  same === ... === record. Applied to update.sh, install.sh, warm,
-  tiles, orbits, generate and the queue run page. An enforcement test
-  (an extension of TEST.183) fails on a hand-made 'stage 1 of 2' or a
-  component not in the table. Built last, because it names what the
-  others produce. Touches logging-standard.md, logrecord.py,
-  stagemark.py, warmup.py, warm_progress.py, the generate stages and
-  tests. Done: the test passes and every script and command uses the
-  table.
-  Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102.
 
 ## DOC: Documentation
 
