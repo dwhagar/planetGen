@@ -60,9 +60,8 @@ Showing courses on the maps and bending them around keep-out spheres.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.168 | The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength | API.24 |  |
-| MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | MAP.168 |  |
-| UX.94 | Gravity map wording: the legend, the mode names and the Map help text | MAP.168 |  |
+| MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres |  |  |
+| UX.94 | Gravity map wording: the legend, the mode names and the Map help text |  |  |
 
 ### Console look: icons and the maps' chrome
 

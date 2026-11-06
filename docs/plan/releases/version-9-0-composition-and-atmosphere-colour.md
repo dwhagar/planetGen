@@ -66,5 +66,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | MAP.168 | Later; only if PERF.72 says it is cheap. |
-| MAP.167 | Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0) | GEN.199, MAP.168, MAP.169, UX.94, API.24 | Seminal feature of 9.0 (Boss 2026-10-10). Parent. |
+| MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional |  | Later; only if PERF.72 says it is cheap. |
+| MAP.167 | Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0) | GEN.199, MAP.169, UX.94 | Seminal feature of 9.0 (Boss 2026-10-10). Parent. |
