@@ -199,7 +199,7 @@ def test_the_spiral_written_as_components_gives_the_density_it_gave_before(name)
     its stars from an inside-out infall, not from the halo's stellar growth, which moved the ages and so the mean system mass of each
     population): every total density and the halo are the old ones times one number per shape (1.0010 to 1.0014 for the five shapes
     that share the reference disc, 1.0444 for the large four-armed disc, checked point by point before the fixture was rewritten, the total
-    mass unchanged), and the per-population units follow the new star formation history (the large disc's young units fall from 13 to
+    mass unchanged), and the per-population units follow the new star formation history (the large disc's young units fall from 19 to
     1.3 times the reference disc's, which the halo-growth history had made too young). The fixture's `nuclear_disc` is `nuclear_disk`
     since DOC.103's American spelling of stored names."""
     with open(IDENTITY, encoding="utf-8") as handle:
