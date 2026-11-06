@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3407] - 2026-11-06
+
+**Headline:** The search page form test opens the fold it means, not both.
+
+### Fixed
+- **Search page fields test (TEST.636).** `test_each_kind_of_field_is_filled_and_submitted` clicked `details.search-more > summary`, which has matched two folds ("Search by object and size" and "Search by physical values") since the physical-value boxes came in. It now opens the size fold, which holds the boxes the test fills. No change to the page.
+
 ## [8.0.3406] - 2026-11-06
 
 **Headline:** The test that the system page's buttons share one row reads them in one step, so the page's own scroll to the System Map no longer makes it fail.
