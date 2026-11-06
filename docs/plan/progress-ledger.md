@@ -2603,3 +2603,6 @@ Baseline: PR #1817.
 | OPS.107 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
 | OPS.108 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
 | OPS.109 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| UX.279 | 8.2 | User features |
+| UX.278 | 8.2 | User features |
+| MAP.398 | 8.1 | Fly-through map |

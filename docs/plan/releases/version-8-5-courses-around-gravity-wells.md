@@ -69,11 +69,11 @@ Showing courses on the maps and bending them around keep-out spheres.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.269 | Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only | UX.268 |  |
-| UX.280 | Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list | UX.269, UX.278 |  |
-| UX.281 | View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible | UX.279, UX.280 |  |
+| UX.280 | Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list | UX.269 |  |
+| UX.281 | View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible | UX.280 |  |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | UX.280, UX.281 |  |
 | DOC.108 | Docs: the View menu (headings, search, reset, how a layer declares its heading) in the help and the design notes | UX.280, UX.281 |  |
-| UX.274 | Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps | UX.278, UX.279, UX.280, UX.281, TEST.630, DOC.108 |  |
+| UX.274 | Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps | UX.280, UX.281, TEST.630, DOC.108 |  |
 
 ### Edit everything foundations: aspects and the recipe schema (spread back from 8.6)
 
