@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3451] - 2026-11-06
+
+**Headline:** The forced-prevalence tests draw fewer systems per case so every case ends inside the 900 second test limit; no generated output changes.
+
+### Changed
+- **Forced-prevalence test samples (PERF.236).** The measured-feature and comet cases of the prevalence tests drew 200 systems each and the cases that force a habitable world (about 8.6 seconds a system) ran past the 900 second limit. The samples are now 140 systems, 100 for the comet and binary cases, and 50 for a forced habitable world, each with the tolerance recomputed for its own count; the slowest case now takes about 700 seconds. Five cases still fail for reasons of substance that other items own: the stale belt base share (TEST.579) and the habitable-world bar (GEN.1275).
+
+generation-output: unchanged
+
+TODO items resolved: PERF.236.
+
 ## [8.0.3450] - 2026-11-06
 
 **Headline:** The galaxy fingerprint and its stored tree now count every rogue planet, wherever it landed, so two builds that differ in a rogue's air, layers or spectrum no longer compare equal.
