@@ -183,7 +183,7 @@ def apparent_history(rng, age_law, dispersion, radius_pc):
     The draws, in order: the age and time since ejection, the scatterer's distance, the ejection speed, the direction and the host's velocity (the
     rogue top-up and the lighter asteroid-field top-up, GEN.1126, share it).
     """
-    ages = rogue_age.rogue_age(age_law, rng.random(), rng.random())
+    ages = rogue_age.rogue_age(age_law, rng.random())
     low, high = SCATTERER_AU_RANGE
     scatter_au = low * (high / low) ** rng.random()
     speed = rogue_kick.ejection_speed_km_s(rng.random(), _SCATTERER_KG, scatter_au)

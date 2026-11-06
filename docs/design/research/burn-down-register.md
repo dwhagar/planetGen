@@ -141,7 +141,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.98:BW2 | no data | - | no measurement of surface winds across the thin-air range (Mars, Pluto, Triton) gives the fade's shape; the first drag-law fit from surface wind data replaces it |
 | 6.98:BW4 | no data | - | tuned to the Earth's mid-latitude surface wind; a boundary-layer drag law on the surface roughness replaces it when the surface roughness is stored |
 | 6.98:BW5 | no data | - | the Earth's night to day wind ratio is the only value held; a stable boundary-layer model replaces it |
-| 6.88:RG2 | replace | GEN.1295 | the ejection records (RP1) give the time of each loss after formation, so the drawn delay distribution is replaced by the architecture's own |
 | 6.87:RK7 | no data | - | the stored Loss record holds no closest approach (distance, formation distance, time, scatterer orbit and mass, Safronov number, Hill radius only); the curve through three measured points stays until a deterministic closest approach is derived from the scatterer geometry |
 | 6.112:MO2 | no data | - | the stored Loss record holds no closest approach; the curve through two printed points stays until a deterministic closest approach is derived from the scatterer geometry |
 | 6.86:TU1 | no data | - | the level ceilings are the numbers of the Rogues dropdown that Boss sets, a display choice and not a research rate; tier stays |
