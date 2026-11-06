@@ -329,5 +329,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.91:SS13 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
 | row | 6.91:SS14 | GEN.1265 | a constant of the seasonal swing series, read when the temperature score wires the coverage series |
 | module | planetgen.physics.temperature_coverage | GEN.1265 | the temperature score, columns and pages read the coverage of the series (GEN.1264 builds it, GEN.1265 wires it) |
-| row | 6.183:PG1 | GEN.1207 | the phase gate's carbon dioxide fluid window is read when the class-by-domain matrix wires it |
+| row | 6.183:PG1 | GEN.1281 | the phase gate's carbon dioxide fluid window is read when the class-by-domain matrix wires it |
 | function | planetgen.galaxy.spherical.sector_quadrant | DB.112 | the stored quadrant column and this function are deleted together once the migration drops the column |
