@@ -543,6 +543,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) |  |  |
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | GEN.862 |  |
 | GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | GEN.862 |  |
+| GEN.1307 | Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug) |  |  |
 
 ### Physics rectification: infrared opacity, tides and the class re-sweep
 

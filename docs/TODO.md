@@ -17275,6 +17275,22 @@ clears each one.
   after GEN.1281. Filed by the TODO thread.
   Prerequisites: GEN.1281. Related: GEN.909, GEN.822.
 
+- [ ] **GEN.1307 Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug)**
+  Found by Bug 1 while fixing TEST.652: a 2595 K vapor world with stored
+  Class 5a life (sulfuric-acid clouds aloft, score 2) is given animals.
+  The 5a rule has no surface-temperature window, so a body whose whole
+  deck is far hotter than any cloud layer can hold life gets the same
+  tier as a Venus-like cool cloud layer. Do: check the 5a rule against
+  the finished body's cloud-layer temperature and pressure (physics
+  drives, not a game rate), give the cloud layer the window it needs
+  (the layer's own temperature, not the surface), and say in the life
+  timeline text where the life lives. Register any stand-in in GEN.725.
+  Lock item if stored life changes. Done: a measure over generated
+  bodies shows no animals or higher tier where the cloud layer is outside
+  the window, and the 2595 K body is re-classed or explained. Version
+  8.1. Owner: none yet (life lane). Filed by the TODO thread from Bug 1.
+  Prerequisites: none. Related: GEN.750, TEST.652.
+
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal
