@@ -29,7 +29,7 @@ Rules (docs/design/architecture/unified-unit-quantity.md, Boss's cards Q3 and Q4
 import dataclasses
 
 from planetgen import tuning
-from planetgen.physics import constants, unit_registry
+from planetgen.physics import constants, nebula_columns, unit_registry
 
 _msun_to_kg = unit_registry.converter("Msun", "kg")
 _yr_to_s = unit_registry.converter("yr", "s")
@@ -568,6 +568,8 @@ TABLES = {
         "pc": ("center_x_pc", "center_y_pc", "center_z_pc"),
         "key": ("cell_key",),
         "flag": ("is_stored",),
+        "dex": tuple(c for c in nebula_columns.FIELD_COLUMNS if nebula_columns.UNITS[c] == "dex"),
+        "ratio": tuple(c for c in nebula_columns.FIELD_COLUMNS if nebula_columns.UNITS[c] == "ratio"),
     },
     "nebula_shape_balls": {
         "id": ("nebula_id",),
@@ -593,10 +595,13 @@ TABLES = {
         "ratio": (
             "shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_warp_amplitude", "shape_warp_frequency",
             "shape_iso", "shape_scale",
+            "mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "mass_fraction_c", "mass_fraction_n", "mass_fraction_o", "mass_fraction_ne", "mass_fraction_s", "mass_fraction_ar", "mass_fraction_fe", "ionized_share", "atomic_share", "molecular_share", "dust_to_gas", "dust_to_metals", "grain_silicate", "grain_iron", "grain_carbon", "grain_pah", "grain_ice",
         ),
         "rad": ("shape_angle_x", "shape_angle_y", "shape_angle_z"),
         "index": ("shape_warp_octaves",),
         "seed": ("shape_noise_seed",),
+        "dex": ("gas_oh_dex", "abundance_c", "abundance_n", "abundance_o", "abundance_ne", "abundance_s", "abundance_ar", "abundance_fe",),
+        "Msun": ("progenitor_mass_sol",),
     },
     "neutron_stars": {
         "id": ("id", "star_id", "sector_id", "inside_nebula_id", "inside_remnant_id", "parent_id"),
@@ -1039,6 +1044,9 @@ TABLES = {
         "key": ("cell_key",),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "kg": ("mass_kg",),
+        "ratio": ("mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "mass_fraction_c", "mass_fraction_n", "mass_fraction_o", "mass_fraction_ne", "mass_fraction_s", "mass_fraction_ar", "mass_fraction_fe", "ionized_share", "atomic_share", "molecular_share", "dust_to_gas", "dust_to_metals", "grain_silicate", "grain_iron", "grain_carbon", "grain_pah", "grain_ice", "ejecta_mass_fraction_h", "ejecta_mass_fraction_he", "ejecta_mass_fraction_z", "swept_mass_fraction_h", "swept_mass_fraction_he", "swept_mass_fraction_z",),
+        "dex": ("gas_oh_dex", "abundance_c", "abundance_n", "abundance_o", "abundance_ne", "abundance_s", "abundance_ar", "abundance_fe",),
+        "Msun": ("progenitor_mass_sol", "ejecta_mass_sol", "swept_mass_sol",),
     },
     "system_config_slots": {
         "id": ("id", "config_id"),

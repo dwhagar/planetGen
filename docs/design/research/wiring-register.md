@@ -306,16 +306,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.sky_band.face_lookup | by design | the nearest-pixel lookup of the cube map: the reference the bilinear `face_bilinear` that makes the page's image is tested against (test_sky_band), and the CPU twin of the band shader's lookup |
 | function | planetgen.generation.bright_stars.backfill_sphere | VIEW.25 | charting draws each luminosity band of the tier table over its sphere with this |
 | function | planetgen.generation.bright_stars.backfill_mass_sphere | VIEW.25 | charting draws each mass ring of the tier table over its sphere with this |
-| module | planetgen.physics.planetary_nebula_ejecta | GEN.1276 | the composition item writes the progenitor mass and the ejecta values of each planetary nebula from `progenitor(...).values()` at generation and backfill |
-| row | 6.178:PNE2 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
-| row | 6.178:PNE4 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
-| row | 6.178:PNE5 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
-| row | 6.178:PNE7 | GEN.1276 | read through progenitor() when the composition item writes the planetary nebula values |
 | row | 6.179:NBC11 | GEN.1276 | read through nebula_composition.makeup() and gas_oh() when the composition item writes the values |
-| function | planetgen.physics.nebula_composition.gas_oh | GEN.1276 | the composition item writes the values of each nebula and remnant with `gas_oh` for the oxygen-hydrogen share |
-| function | planetgen.physics.nebula_composition.field_cloud_density_cm3 | GEN.1276 | the composition item draws the density of a field cloud (classes M and N) from its cell key |
-| module | planetgen.physics.remnant_composition | GEN.1276 | the ejecta and swept-up gas of a supernova remnant and its progenitor's mass; the stored composition of nebulae and remnants (GEN.1276) writes them at generation, and the nebula page and the describe sheet (GEN.1272) show them |
-| data | remnant_yields.json | GEN.1276 | read by `physics/remnant_composition.py` only |
 | function | planetgen.generation.sky_tiers.floor_table | VIEW.25 | the charting step reads the floor against distance to say which cells the tiers still owe |
 | function | planetgen.physics.light_travel.apparent_position_of | by design | the one-body form of the law, which the tests hold the array form (retarded_offsets) to |
 | function | planetgen.physics.light_travel.curvature_bound_m | by design | the bound the light-travel tests hold the straight-line law to over a light time |

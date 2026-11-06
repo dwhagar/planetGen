@@ -35151,6 +35151,82 @@
           "tweak": "L3",
           "unread": null,
           "what": "nebula_composition.WIND_SHARE_OF_RING 0.3: the share of a Wolf-Rayet ring's mass that is the host star's wind"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_columns.SPECIES_SHARE 0.05: the share of the hydrogen a phase must hold for dominant_species to name it (a wording cut)"
+            ],
+            [
+              "The range it moves in",
+              "0.02 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "the plain-words summary written from the stored numbers (GEN.1276) lists a phase only when it matters"
+            ],
+            [
+              "What would show it wrong",
+              "none: it changes a sentence, no number"
+            ],
+            [
+              "What replaces it",
+              "the full numbers, which are stored"
+            ],
+            [
+              "Evidence",
+              "needed output: a sentence has to stop somewhere"
+            ]
+          ],
+          "id": "NBC14",
+          "key": "6.179:NBC14",
+          "kind": "D",
+          "slug": "6-179-nbc14",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_columns.SPECIES_SHARE 0.05: the share of the hydrogen a phase must hold for dominant_species to name it (a wording cut)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_columns.GRAIN_NAME_SHARE 0.15: the share of the dust a grain kind must hold for dominant_species to name it (a wording cut)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "as NBC14"
+            ],
+            [
+              "What would show it wrong",
+              "none: it changes a sentence, no number"
+            ],
+            [
+              "What replaces it",
+              "the grain shares, which are stored"
+            ],
+            [
+              "Evidence",
+              "needed output: a sentence has to stop somewhere"
+            ]
+          ],
+          "id": "NBC15",
+          "key": "6.179:NBC15",
+          "kind": "D",
+          "slug": "6-179-nbc15",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_columns.GRAIN_NAME_SHARE 0.15: the share of the dust a grain kind must hold for dominant_species to name it (a wording cut)"
         }
       ],
       "slug": "6-179-stand-ins-of-the-composition-of-a-nebula",
@@ -35233,7 +35309,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "planetary_nebula_ejecta.RGB_MASS_LOSS_SOL 0.2: the mass lost on the red giant branch before the thermally pulsing branch"
         },
         {
@@ -35271,7 +35347,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "planetary_nebula_ejecta.INTERSHELL_HE 0.75, INTERSHELL_O 0.02, INTERSHELL_REST 0.01: the helium, oxygen and neon-22 mass fractions of the dredged intershell (the carbon is 0.22, CS3)"
         },
         {
@@ -35313,7 +35389,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "planetary_nebula_ejecta.HBB_CARBON_TO_NITROGEN 0.9: the share of the envelope's carbon hot bottom burning turns into nitrogen"
         },
         {
@@ -35355,7 +35431,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1276",
+          "unread": null,
           "what": "planetary_nebula_ejecta.CARBON_RICH_TRIES 40: draws of a class K progenitor before the heaviest mass of the window is taken"
         }
       ],
