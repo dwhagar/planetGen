@@ -1317,8 +1317,9 @@ class StarSystem:
         counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
         if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)):
             return
+        scatter = next((architecture.disk_scatter for planned, architecture in getattr(self, "architectures", ()) if planned is star), 1.0)     # the disk the planets grew in (GEN.1261)
         belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star),
-                                 instability=capture_windows.instability_level(self.capture_windows(star)))
+                                 instability=capture_windows.instability_level(self.capture_windows(star)), disk_scatter=scatter)
         if not belts and config.ASTEROID_BELT is True and not any(body.body_type == 'a' for body in bodies):
             belts = self._requested_belt(bodies, star, orbit_ceiling_au)
         if not belts:
