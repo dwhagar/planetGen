@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3490] - 2026-11-06
+
+**Headline:** The Sectors list now tells the cells rogue planets landed in from generated sectors: they are named from their cell, marked uncharted, placed in their region and given no density.
+
+### Changed
+- A sector row a drifting rogue planet made in a cell nothing was generated in (`store.uncharted_sector_id`) is an uncharted placeholder (no cell in the chart ledger). `GET /api/sectors` and `GET /api/sectors/<id>` mark it `uncharted`, name it from its cell under the naming key (`naming_key.uncharted_sector_name`: two words, never the raw hex designation, which stays as `designation`), and give it its `region`, named whether or not any of that region is charted. `GET /api/galaxy/uncharted` carries the same `name` and `region`. `GET /api/sectors` adds `uncharted_total`.
+- The Sectors page lists a placeholder as "Uncharted" in the Systems column with no density, and the header counts the generated sectors with the uncharted number beside it. A placeholder's page is the uncharted-sector page, with its name, an Uncharted badge and its region.
+- New tests: `test_uncharted_sector_rows.py` (database and API) and `test_web_uncharted_sectors_browser.py` (browser, with the accessibility and phone-fit checks).
+
+generation-output: unchanged
+
+## [8.0.3489] - 2026-11-06
+
+**Headline:** The merge train's gate, number checks and machine start-up are scripts in the repository, so a restart or a second machine no longer loses them.
+
+### Changed
+
+- `scripts/train_gate.py` lists the test files a train reaches, splits them over several machines by their last durations, runs them one at a time with a results file that a restart resumes from, and reports only the failures that `scripts/data/known_reds.json` (the failures present on a clean main) does not explain.
+- `scripts/train.py` merges a train's heads in stacking order, shows the next migration, epoch, stand-in section and citation numbers, finds a number claimed by two heads or already taken on main, and runs the rebuild, golden and final checks.
+- `scripts/lane_up.sh` starts Redis and MySQL after a restart and sets the test variables.
+
+generation-output: unchanged
+
+## [8.0.3488] - 2026-11-06
+
+**Headline:** On the Galaxy Map the Go to row and the map are one block that fills the window, so the page rests with the row in view under the header and the map is about 40 px shorter.
+
+### Fixed
+
+- The Galaxy Map scrolled itself to the map when it loaded (MAP.350), which left the Go to row (the address box and its button) above the window under the held header, over the site search link, Help and Menu; the layout test `test_controls_do_not_overlap[web.galaxy]` failed at 390, 600, 820 and 1280 px for it (TEST.634). `mapfit.js` now takes a block: the row and the map together are 95 percent of the window (less the held header), the map is the row's height shorter, and the page aligns to the row's top. A row that is not shown leaves the map to fill the window alone, as before, and the sector page's map has no row.
+
+### Changed
+
+- `tests/js/mapfit.test.mjs` and the MAP.350 browser tests (`test_web_browser_map_window.py`, the Galaxy Map window geometry test) measure the block; the layout test is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3487] - 2026-11-06
+
+**Headline:** The waiting-in-line tests hold the machine with a run another process follows, so the guard against a run waiting for itself stays as it is.
+
+### Changed
+
+- `test_work_units.py`: the three tests that make a second run wait for the first (`..._waits_in_line_...`, `..._do_not_depend_on_the_place_it_started_from`, `..._gives_up_after_the_wait_bound_...`) started the first run in the test's own process, which the ADM.136 guard (`nested_guard` in `runline.start_when_free`) refuses at once with `Busy`, as it should: a run started inside a run of the same process would wait for itself for ever. The first run is now held by a run that a live second process follows (`other_process`, `_held_by`), which is what a run from another terminal or job looks like. The guard is unchanged.
+- New test: a run started inside a run of the same process is refused at once, naming that it would wait for itself, even when the wait bound is thirty minutes.
+
+generation-output: unchanged
+
 ## [8.0.3486] - 2026-11-06
 
 **Headline:** The property sheet no longer lists a missing runner-up class as a gap where only one class fits the body.

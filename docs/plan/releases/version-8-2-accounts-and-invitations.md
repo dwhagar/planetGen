@@ -22,6 +22,7 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml |  |  |
 | USR.26 | Roles in sessions, API keys and route guards; the Owner rules; the accounts CLI |  | Split from USR.2. |
 | USR.3 | SMTP settings in the admin config | USR.26 |  |
 | USR.28 | Account tokens: one issue-and-redeem library for invite, first-password, reset, email-change and owner-transfer links |  | Foundation found in the review. |

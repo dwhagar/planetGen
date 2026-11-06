@@ -2693,6 +2693,25 @@ Baseline: PR #1817.
 | TEST.653 | 8.1 | Physics rectification: citations and the gate's test health |
 | GEN.1305 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.580 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.658 | 8.1 | Physics rectification: citations and the gate's test health |
 | TEST.655 | 8.1 | Physics rectification: life classes, chemistries and their pages |
 | VIEW.47 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.654 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| TEST.642 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1023 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.647 | 8.1 | Consistency |
+| GEN.690 | 8.1 | Consistency |
+| GEN.689 | 8.1 | Consistency |
+| GEN.687 | 8.1 | Consistency |
+| GEN.685 | 8.1 | Consistency |
+| DB.90 | 8.1 | Consistency |
+| GEN.862 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| GEN.863 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| GEN.1211 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1296 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| MAP.399 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.879 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| GEN.880 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| GEN.888 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| GEN.1209 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| GEN.1213 | 8.1 | Physics rectification: life classes, chemistries and their pages |

@@ -25,22 +25,25 @@ export function fitHeight(windowHeight, top, below, options) {
 }
 
 // MAP.350: the height of a map that fills its browser window: `FILL_SHARE` (95%) of the window's height less what a header held at the top
-// of the window covers (`options.covered`, pixels), kept at or above `min`.
+// of the window covers (`options.covered`, pixels), kept at or above `min`. TEST.634: when the map has a row of its own above it that stays in view (the
+// Galaxy Map's Go to row), the row and the map are the block that fills the window, so the map is the share less the `options.above` pixels the row
+// (and what lies between it and the map) takes.
 export function fillHeight(windowHeight, options) {
   const min = options && options.min !== undefined ? options.min : MIN_HEIGHT_PX;
   const share = options && options.share !== undefined ? options.share : FILL_SHARE;
   const covered = options && Number.isFinite(options.covered) ? options.covered : 0;
-  const room = (windowHeight - covered) * share;
+  const above = options && Number.isFinite(options.above) ? Math.max(0, options.above) : 0;
+  const room = (windowHeight - covered) * share - above;
   return Math.max(min, Math.round(Number.isFinite(room) ? room : min));
 }
 
-// The margin above (and below) a map of `height` pixels in a window `windowHeight` tall under `covered` pixels of header: half of what the map leaves.
+// The margin above (and below) a map, or a block of a row and a map, of `height` pixels in a window `windowHeight` tall under `covered` pixels of header: half of what it leaves.
 export function fillBuffer(windowHeight, height, covered) {
   const room = (windowHeight - (Number.isFinite(covered) ? covered : 0) - height) / 2;
   return Number.isFinite(room) ? Math.max(0, Math.round(room)) : 0;
 }
 
-// MAP.350: where to scroll the page (pixels down it) so a map whose top edge is `top` pixels down the page has `buffer` pixels of window
+// MAP.350: where to scroll the page (pixels down it) so a map (TEST.634: or the block of a row and a map) whose top edge is `top` pixels down the page has `buffer` pixels of window
 // above it under what a header held at the top of the window covers, or null when it is there already (or the page cannot be scrolled that far; `maxScroll` is the farthest it goes).
 export function alignScroll(top, scrollY, maxScroll, options) {
   const buffer = options && options.buffer !== undefined ? options.buffer : 0;
@@ -67,7 +70,9 @@ export function forgetReader() {
 // Sets `view.style.height` to the fitting height now, when the window is resized and when the page above the view
 // changes height (a notice, wrapped crumbs). `below` is the element after the view (or null). Returns {refit, stop}.
 // MAP.350: with `options.fill` the view is 95% of the window's height (less what a held header covers), with the rest split above and below it, and the page is scrolled
-// so it sits there, once it has loaded and as what is above it settles, until the reader takes the page over: scrolls it, or presses a key, a mouse button or a finger on it (TEST.599: a
+// so it sits there. TEST.634: with `options.block` (an element above the view, or a function that gives it) the block from that element's top to the view's bottom is what
+// fills the window: the view is that much shorter by the height of what lies above it in the block, and the page rests with the block's top (the row) at the buffer, so
+// the row is not left under the held header. A block that is not shown (a `hidden` row has no height) is left out, and the view fills the window alone. The page is scrolled there once it has loaded and as what is above it settles, until the reader takes the page over: scrolls it, or presses a key, a mouse button or a finger on it (TEST.599: a
 // Tab to the skip link at the top of the page was followed by a scroll to the map, which left the focused skip link above the window).
 export function watchWindowFit(view, below, options) {
   let busy = false;
@@ -81,13 +86,27 @@ export function watchWindowFit(view, below, options) {
     const position = window.getComputedStyle(header).position;
     return position === "fixed" || position === "sticky" ? Math.round(header.getBoundingClientRect().bottom) : 0;
   }
+  // The block's top row, as a rectangle, or null when there is none or it is not shown.
+  function blockRect() {
+    const element = options && (typeof options.block === "function" ? options.block() : options.block);
+    if (!element || !element.getBoundingClientRect) return null;
+    const rect = element.getBoundingClientRect();
+    return rect.height > 0 ? rect : null;
+  }
+  // How far the view's top lies below the block's top: the height of the row and what is between it and the view.
+  function above() {
+    const row = blockRect();
+    return row ? Math.max(0, view.getBoundingClientRect().top - row.top) : 0;
+  }
   function align() {
     if (!fill || readerScrolled || readerActed) return;
     const doc = document.documentElement;
     const rect = view.getBoundingClientRect();
+    const row = blockRect();
+    const start = row ? Math.min(row.top, rect.top) : rect.top;
     const hidden = covered();
-    const buffer = fillBuffer(window.innerHeight, rect.height, hidden);
-    const to = alignScroll(rect.top + (window.scrollY || 0), window.scrollY || 0, Math.max(0, doc.scrollHeight - window.innerHeight), Object.assign({}, options, { covered: hidden, buffer: buffer }));
+    const buffer = fillBuffer(window.innerHeight, rect.bottom - start, hidden);
+    const to = alignScroll(start + (window.scrollY || 0), window.scrollY || 0, Math.max(0, doc.scrollHeight - window.innerHeight), Object.assign({}, options, { covered: hidden, buffer: buffer }));
     if (to === null) return;
     ourScroll = true;
     window.scrollTo(0, to);
@@ -100,7 +119,7 @@ export function watchWindowFit(view, below, options) {
       const rect = view.getBoundingClientRect();
       const top = rect.top + (window.scrollY || 0);
       const under = below ? below.getBoundingClientRect().height : 0;
-      const height = fill ? fillHeight(window.innerHeight, Object.assign({}, options, { covered: covered() })) : fitHeight(window.innerHeight, top, under, options);
+      const height = fill ? fillHeight(window.innerHeight, Object.assign({}, options, { covered: covered(), above: above() })) : fitHeight(window.innerHeight, top, under, options);
       const wanted = height + "px";
       if (view.style.height !== wanted) view.style.height = wanted;
       align();
@@ -119,6 +138,8 @@ export function watchWindowFit(view, below, options) {
     observer = new ResizeObserver(refit);
     if (page) observer.observe(page);
     if (below) observer.observe(below);
+    const row = options && (typeof options.block === "function" ? options.block() : options.block);
+    if (row && row.getBoundingClientRect) observer.observe(row);
     if (fill && document.querySelector("header")) observer.observe(document.querySelector("header"));
   }
   window.addEventListener("resize", refit);

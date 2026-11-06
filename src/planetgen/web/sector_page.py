@@ -739,6 +739,9 @@ def sector(sector_id):
 
     g.setdefault("sector_data", {}).pop(sector_id, None)  # a POST above may have changed it
     detail, facilities = _sector_data(sector_id)
+    if detail.get("uncharted"):       # MAP.399: a placeholder row a drifting rogue made in a cell nothing was generated in
+        address = (detail["shell_index"], detail["band_index"], detail["wedge_index"])
+        return _uncharted_page(apiclient.get_uncharted_sector(db_name(), *address), address)
     pick = _pick_mode(request.args)
     _rows, map_systems = _contents(detail, facilities)
     contents = tables.render(CONTENTS_TABLE, request.path, anchor="sector-contents", sector=sector_id)
@@ -799,15 +802,28 @@ def sector_at(shell, band, wedge):
         raise
     if cell.get("sector_id") is not None:
         return redirect(url_for("web.sector", sector_id=cell["sector_id"]), code=302)
+    return _uncharted_page(cell, (shell, band, wedge))
+
+
+def _uncharted_page(cell, address):
+    """
+    The page of a cell nothing was generated in, for `cell` (the answer of `GET /api/galaxy/uncharted`): the cell's name and region (MAP.399), its place, its profile and what charting it
+    would take. A placeholder sector row a drifting rogue made there (`store.uncharted_sector_id`) shows this page too, at its own address.
+    """
+    shell, band, wedge = address
     designation = cell["designation"]
+    name = cell.get("name") or f"Uncharted sector {designation}"
+    region = cell.get("region")
     return render_page(
         "sector_uncharted.html",
-        title=f"Uncharted sector {designation}",
+        title=name,
         section="sectors",
-        breadcrumbs=[crumb("Sectors", "sectors"), crumb(f"Uncharted {designation}")],
-        description=f"Uncharted sector {designation}: what the galaxy's shape says it holds, and what charting it would take.",
+        breadcrumbs=[crumb("Sectors", "sectors"), crumb(name)],
+        description=f"{name}, an uncharted sector{' in ' + region['name'] if region else ''}: what the galaxy's shape says it holds, and what charting it would take.",
         cell=cell,
         designation=designation,
+        name=name,
+        region=region,
         address=(shell, band, wedge),
         edge_text=format_distance_ly(pc_to_ly(cell["edge_pc"])),
         star_count=len(cell.get("stars") or ()),

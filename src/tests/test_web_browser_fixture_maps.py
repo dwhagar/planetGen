@@ -5333,6 +5333,7 @@ GEOMETRY = """() => {
     return {
         view: box(".galaxymap3d-panel .starmap-viewport"), canvas: box("#galaxymap3d-canvas"),
         controls: box("#galaxymap3d-controls"), column: box(".galaxymap3d-panel .starmap-layout"),
+        row: document.querySelector("#galaxymap3d-address") ? box("#galaxymap3d-address") : null,
         buffer: [canvas.width, canvas.height], dpr: devicePixelRatio, scrollWidth: document.documentElement.scrollWidth,
         inner: [innerWidth, innerHeight],
     };
@@ -5341,9 +5342,9 @@ GEOMETRY = """() => {
 
 @pytest.mark.parametrize("width,height", [(1000, 900), (1280, 720), (390, 700)])
 def test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves(page, map_site, width, height):
-    """MAP.291, MAP.350: the map's window is as wide as its column and 95% of the browser window's height less the header it
-    leaves covered (at least 320 px; the rest of the window is split above and below it), with no fixed aspect ratio, and the
-    canvas's drawing buffer follows it."""
+    """MAP.291, MAP.350, TEST.634: the map's window is as wide as its column and, with the Go to row above it, the block they form is
+    95% of the browser window's height less the header it leaves covered (the map at least 320 px; the rest of the window is split
+    above and below the block), with no fixed aspect ratio, and the canvas's drawing buffer follows it."""
     page.set_viewport_size({"width": width, "height": height})
     _open_galaxy(page, map_site)
     g = page.evaluate(GEOMETRY)
@@ -5351,7 +5352,10 @@ def test_galaxy_map_window_fills_the_page_width_and_the_height_the_window_leaves
     assert g["canvas"]["width"] == pytest.approx(g["view"]["width"], abs=1) and g["canvas"]["height"] == pytest.approx(g["view"]["height"], abs=1)
     assert g["buffer"] == [round(g["canvas"]["width"] * g["dpr"]), round(g["canvas"]["height"] * g["dpr"])], g
     covered = page.evaluate("() => document.querySelector('header').getBoundingClientRect().bottom")
-    assert g["view"]["height"] == pytest.approx(max(320, round((height - covered) * 0.95)), abs=1), (g, covered)
+    row = g["row"] if g["row"] and g["row"]["height"] > 0 else None
+    above = g["view"]["top"] - row["top"] if row else 0
+    assert row, "the Go to row is shown above the map"
+    assert g["view"]["height"] == pytest.approx(max(320, round((height - covered) * 0.95 - above)), abs=1), (g, covered)
     assert g["scrollWidth"] <= width, g
 
 
