@@ -52,11 +52,11 @@ def events(donor_uid, donor, losses, rng=draw, first_index=0):
         for _body in range(loss.count):
             mass_kg = loss.mass_kg / loss.count
             core_kg = loss.core_kg / loss.count
-            u_fate, u_delay, u_speed, u_cos, u_phi, u_orbit_cos, u_orbit_phi, u_moons = (rng.random() for _ in range(8))
+            u_fate, u_speed, u_cos, u_phi, u_orbit_cos, u_orbit_phi, u_moons = (rng.random() for _ in range(7))
             event_index, index = index, index + 1
             if u_fate >= loss.ejected:
                 continue
-            delay_gy = rogue_age.ejection_delay_gy(u_delay, donor.age)
+            delay_gy = min(loss.time_yr / 1.0e9, donor.age)
             ages = rogue_age.from_record(donor.age, delay_gy)
             speed = rogue_kick.ejection_speed_km_s(u_speed, loss.perturber_mass_kg, loss.perturber_au, mass_kg)
             kick = rogue_kick.kick(speed, rogue_kick.isotropic_direction(u_cos, u_phi))

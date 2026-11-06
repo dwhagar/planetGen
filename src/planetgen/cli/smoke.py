@@ -148,7 +148,7 @@ def run_smoke(args):
         entries = _entries(job_dir)
         if code != 0:
             with open(os.path.join(job_dir, "state.json"), "r", encoding="utf-8") as f:
-                print(f"The smoke job failed: {json.load(f).get('error')}\nIts log: {os.path.join(job_dir, 'output.log')}")
+                log.error(f"The smoke job failed: {json.load(f).get('error')}\nIts log: {os.path.join(job_dir, 'output.log')}")
             args.keep = True
             return 2
         over = over_budget(entries, budgets)

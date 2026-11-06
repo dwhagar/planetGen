@@ -108,3 +108,22 @@ def test_the_api_takes_the_search_ranges_and_refuses_a_bad_one(indexed, client):
                 "sort=gravity"):
         assert client.get(f"/api/object-lists/star?{bad}").status_code == 400, bad
     assert client.get("/api/object-lists/belt?star_min_luminosity=1").status_code == 200       # another kind's parameters are not this list's
+
+
+def test_the_nebula_list_filters_and_sorts_by_the_stored_composition(indexed, client):  # noqa: F811
+    """GEN.1276: a nebula's stored composition is searchable like a star's values."""
+    config, _sector = indexed
+    conn = store.get_connection(config)
+    try:
+        row = dict(conn.execute("SELECT id, mass_fraction_h, mass_fraction_he, dust_to_gas, gas_oh_dex FROM nebulae").fetchone())
+    finally:
+        conn.close()
+    assert row["mass_fraction_h"] is not None and row["dust_to_gas"] is not None
+    items, _pages, total = _walk(config, "nebula", 5, sort="mass_fraction_h")
+    assert total == 1 and items[0]["values"]["mass_fraction_h"]["value"] == pytest.approx(row["mass_fraction_h"])
+    kept, _pages, kept_total = _walk(config, "nebula", 5, ranges={"mass_fraction_h": (row["mass_fraction_h"] - 0.01, row["mass_fraction_h"] + 0.01, "ratio")})
+    assert kept_total == 1
+    nothing, _pages, none_total = _walk(config, "nebula", 5, ranges={"mass_fraction_h": (row["mass_fraction_h"] + 0.1, None, "ratio")})
+    assert nothing == [] and none_total == 0
+    body = client.get("/api/object-lists/nebula", query_string={"nebula_min_dust_to_gas": 0.0, "sort": "dust_to_gas"}).get_json()
+    assert body["total"] == 1, body

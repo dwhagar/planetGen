@@ -36,11 +36,11 @@ JANUARY = _ms(2027, 1, 5, 18, 40, 0, 7)
 
 RECORDS = [
     logrecord.Record(OCTOBER, "info", "generate", "Placed the sectors", {"count": 12, "elapsed": 1.5}),
-    logrecord.Record(OCTOBER, "debug", "draw", "", {}),
+    logrecord.Record(OCTOBER, "debug", "generate", "", {}),
     logrecord.Record(OCTOBER, "warning", "queue", 'He said "stop" = now \\ then', {"who": 'a "b" c', "n": 0}),
     logrecord.Record(OCTOBER, "error", "web", "two\nlines\tand a tab\x01", {"path": "/admin/log?x=1&y=2"}),
     logrecord.Record(OCTOBER, "notice", "update", "Zeta ζ and   separator", {"flag": True, "off": False}),
-    logrecord.Record(OCTOBER, "critical", "db", "x", {"text_number": "12", "text_float": "1.5", "text_true": "true",
+    logrecord.Record(OCTOBER, "critical", "command", "x", {"text_number": "12", "text_float": "1.5", "text_true": "true",
                                                       "text_empty": "", "text_dash": "-"}),
     logrecord.Record(JANUARY, "info", "generate", "A winter record", {"big": 10 ** 12, "tiny": 1e-07, "whole": 3.0}),
 ]
@@ -114,7 +114,7 @@ def test_a_stage_has_one_wording_for_start_finish_and_failure_and_one_divider():
 
 
 def test_a_skipped_stage_says_why_in_the_same_divider():
-    skipped = logrecord.stage_record(logrecord.STAGE_SKIPPED, "stages", 4, 9, "Scatter the massive stars", reason="no layers")
+    skipped = logrecord.stage_record(logrecord.STAGE_SKIPPED, "generate", 4, 9, "Scatter the massive stars", reason="no layers")
     assert skipped.message == "Stage 4 of 9: Scatter the massive stars -- skipped: no layers"
     assert skipped.severity == "info" and skipped.fields == {"event": "stage.skipped", "stage": 4, "stages": 9}
     assert logrecord.plain_line(skipped) == "=== Stage 4 of 9: Scatter the massive stars -- skipped: no layers ==="
@@ -172,7 +172,7 @@ def _handler(formatter):
 
 
 def test_a_logger_takes_fields_and_a_handler_writes_the_file_line_the_screen_line_and_the_json_line():
-    log = planetgen_log.get("layer-test")
+    log = planetgen_log.get("warm")
     file_handler, file_out = _handler(planetgen_log.LineFormatter("file"))
     json_handler, json_out = _handler(planetgen_log.LineFormatter("json"))
     screen_handler, screen_out = _handler(planetgen_log.LineFormatter("display", NEW_YORK))
@@ -194,8 +194,8 @@ def test_a_logger_takes_fields_and_a_handler_writes_the_file_line_the_screen_lin
         logger.setLevel(old_level)
     records = [logrecord.parse_file_line(line) for line in file_out.getvalue().splitlines()]
     assert [(r.severity, r.component, r.message) for r in records] == [
-        ("info", "layer-test", "Placed the sectors"), ("notice", "layer-test", "A notice"),
-        ("warning", "layer-test", "Slow disk"), ("info", "layer-test", "Stage 4 of 12: Scatter")]
+        ("info", "warm", "Placed the sectors"), ("notice", "warm", "A notice"),
+        ("warning", "warm", "Slow disk"), ("info", "warm", "Stage 4 of 12: Scatter")]
     assert records[0].fields == {"count": 12, "elapsed": 1.5} and records[3].fields["event"] == "stage.start"
     assert [logrecord.parse_json_line(line) for line in json_out.getvalue().splitlines()] == records
     assert screen_out.getvalue().splitlines() == [logrecord.display_line(r, NEW_YORK) for r in records]
@@ -210,24 +210,26 @@ def test_a_field_may_be_named_like_an_argument_of_the_logging_calls():
 
 
 def test_a_logger_refuses_a_field_a_file_line_could_not_hold_and_a_bad_component():
-    log = planetgen_log.get("layer-test")
+    log = planetgen_log.get("warm")
     log.logger.setLevel(logging.DEBUG)
     with pytest.raises(ValueError):
         log.info("x", msg="y")
     with pytest.raises(ValueError):
         planetgen_log.get("Bad Name")
+    with pytest.raises(ValueError):
+        planetgen_log.get("layer-test")         # a well-formed name that the component table does not have (OPS.103)
 
 
 def test_a_standard_log_record_from_any_logger_becomes_a_record():
     log_record = logging.LogRecord("planetgen.queue.units", logging.WARNING, "f.py", 1, "Unit %s slow", ("7",), None)
     record = planetgen_log.record_of(log_record)
-    assert (record.severity, record.component, record.message) == ("warning", "queue.units", "Unit 7 slow")
+    assert (record.severity, record.component, record.message) == ("warning", "queue", "Unit 7 slow")
     odd = planetgen_log.record_of(logging.LogRecord("urllib3.connectionpool", 5, "f.py", 1, "x", None, None))
-    assert (odd.severity, odd.component) == ("debug", "urllib3.connectionpool")
+    assert (odd.severity, odd.component) == ("debug", "lib")
 
 
 def test_the_formatter_set_has_one_class_with_a_form_for_each_way_a_line_is_written():
-    assert planetgen_log.FORMS == ("plain", "display", "debug", "file", "json")
+    assert planetgen_log.FORMS == ("plain", "display", "debug", "file", "json", "raw")
     with pytest.raises(ValueError):
         planetgen_log.LineFormatter("loud")
     log_record = logging.LogRecord("planetgen.queue", logging.INFO, "queue.py", 12, "Unit %s done", ("7",), None)
@@ -248,3 +250,9 @@ def test_winter_time_has_the_winter_offset_and_the_old_utc_form_is_refused():
 def test_a_time_in_seconds_is_written_as_the_display_line_writes_it():
     assert logrecord.local_text(OCTOBER / 1000) == "2026-10-24 14:40:00 EDT"
     assert logrecord.local_text(JANUARY / 1000) == "2027-01-05 13:40:00 EST"
+
+
+def test_the_raw_form_is_the_message_as_it_is_and_a_syslog_line_has_the_time_the_process_and_the_body():
+    log_record = logging.LogRecord("planetgen.activity", logging.INFO, "a.py", 1, "AUTH login.failed ip=203.0.113.5", None, None)
+    assert planetgen_log.LineFormatter("raw").format(log_record) == "AUTH login.failed ip=203.0.113.5"
+    assert planetgen_log.syslog_line("AUTH x", JANUARY / 1000, 1234) == "2027-01-05T13:40:00-0500 planetgen[1234]: AUTH x"

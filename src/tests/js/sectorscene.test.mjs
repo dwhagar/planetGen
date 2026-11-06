@@ -263,3 +263,15 @@ test("without volumeSingles a scene lists no nebula sources", () => {
   const { sector } = build();
   assert.deepEqual(sector.nebulaSources(), []);
 });
+
+test("a cluster's ball takes its brightness from the King profile it is given, and keeps the fixed fade without one (MAP.381)", () => {
+  const stops = SS.clusterBallStops([1, 0.6, 0.25, 0.05, 0]);
+  assert.equal(stops.length, 5);
+  assert.deepEqual(stops.map((s) => s[0]), [0, 0.25, 0.5, 0.75, 1], "equal steps from the middle to the tidal radius");
+  const alphas = stops.map((s) => Number(s[1].match(/,([\d.]+)\)$/)[1]));
+  assert.equal(alphas[0], SS.CLUSTER_BALL_PEAK_ALPHA);
+  assert.equal(alphas[4], 0, "no light at the limb");
+  assert.ok(alphas.every((a, i) => i === 0 || a <= alphas[i - 1]), "never brighter outward");
+  assert.ok(alphas[1] > 0.6 * alphas[0], "the square-root scale lifts the halo");
+  for (const bad of [null, undefined, [], [1], [1, NaN], [1, -0.1], "profile"]) assert.equal(SS.clusterBallStops(bad), null);
+});

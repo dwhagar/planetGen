@@ -52,7 +52,7 @@ def test_the_generator_rows_read_the_table():
     assert tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER == (boundaries.jupiter("deuterium_burning_limit"),
                                                            boundaries.jupiter("brown_dwarf_upper_limit"))
     assert planet_mass._BROWN_DWARF_LIMIT_KG == boundaries.kg("deuterium_burning_limit")
-    assert boundaries.jupiter("deuterium_burning_limit") * 317.8 == tuning._ROGUE_PLANET_BIN_EDGES_EARTH["jupiter"][1]
+    assert boundaries.jupiter("deuterium_burning_limit") * 317.8 == tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH["jupiter"][1]
 
 
 def test_the_star_class_edges_are_one_table_that_the_companion_code_reads():

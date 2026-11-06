@@ -3484,7 +3484,7 @@ def resolve_object(conn, kind, object_id):
     else:
         table = object_ref.TABLES[kind]
         columns = {
-            "star": "name, star_system_id",
+            "star": "name, star_system_id, cluster_id",
             "planet": f"name, star_system_id, star_id, position_x_km, position_y_km, position_z_km, {_tiers('')}",
             "moon": "name, star_system_id, planet_id, rogue_planet_id, star_id, position_x_km, position_y_km, "
                     f"position_z_km, {_tiers('')}",
@@ -3527,6 +3527,12 @@ def resolve_object(conn, kind, object_id):
     }
     if kind in ("planet", "moon"):
         found.update({column: row[column] for column in _tier_columns()})
+    if kind == "star" and row["cluster_id"] is not None:    # MAP.224: the cluster a star belongs to, once the plan has built it
+        holder = conn.execute("SELECT id, name FROM galaxy_containers WHERE component_id = ? AND kind = 'globular_cluster'",
+                              (row["cluster_id"],)).fetchone()
+        if holder is not None:
+            found["cluster"] = {"ref": object_ref.format("globular_cluster", holder["id"]), "kind": "globular_cluster",
+                                "name": holder["name"]}
     if kind == "star":
         found["keep_out_in_system"] = keep_out_radius(conn, kind, object_id, scale="system")._asdict()    # NAV.54
     return found

@@ -47,25 +47,31 @@
 
 set -euo pipefail
 
+# The lines this script prints are log records (OPS.98): a time, a severity and a component on every one.
+LOG_COMPONENT="${LOG_COMPONENT:-permissions}"
+export LOG_COMPONENT
+# shellcheck source=scripts/logrecord.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../../scripts/logrecord.sh"
+
 INSTALL_DIR="${1:-/var/lib/planetGen}"
 STATE_DIR="${2:-$INSTALL_DIR/state}"
 
 if [[ $EUID -ne 0 ]]; then
-    echo "error: must be run as root (needs chown/chgrp), e.g.:" >&2
-    echo "  sudo $0 $*" >&2
+    log_error "must be run as root (needs chown/chgrp), e.g.:"
+    log_error "  sudo $0 $*"
     exit 1
 fi
 
 if [[ ! -d "$INSTALL_DIR" ]]; then
-    echo "error: install directory not found: $INSTALL_DIR" >&2
+    log_error "install directory not found: $INSTALL_DIR"
     exit 1
 fi
 
 if [[ ! -d "$INSTALL_DIR/src/html" ]]; then
-    echo "error: $INSTALL_DIR doesn't look like a planetGen checkout (no src/html); nothing was changed." >&2
+    log_error "$INSTALL_DIR doesn't look like a planetGen checkout (no src/html); nothing was changed."
     if [[ -f "$INSTALL_DIR/wsgi.py" ]]; then
-        echo "  This takes the checkout (/var/lib/planetGen), not src/html. An update.sh that was already" >&2
-        echo "  running when it pulled this change still passes src/html: run ./update.sh again." >&2
+        log_error "  This takes the checkout (/var/lib/planetGen), not src/html. An update.sh that was already"
+        log_error "  running when it pulled this change still passes src/html: run ./update.sh again."
     fi
     exit 1
 fi
@@ -74,14 +80,14 @@ fi
 source "$(dirname "${BASH_SOURCE[0]}")/apache-identity.sh"
 
 if ! read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACHE_GROUP:-}" ]]; then
-    echo "error: couldn't work out Apache's user and group (see above); nothing was changed." >&2
+    log_error "couldn't work out Apache's user and group (see above); nothing was changed."
     exit 1
 fi
 
-echo "Detected Apache identity: user=$APACHE_USER group=$APACHE_GROUP"
-echo "Applying permissions to:"
-echo "  install: $INSTALL_DIR"
-echo "  state:   $STATE_DIR"
+log_info "Detected Apache identity: user=$APACHE_USER group=$APACHE_GROUP"
+log_info "Applying permissions to:"
+log_info "  install: $INSTALL_DIR"
+log_info "  state:   $STATE_DIR"
 
 apply_permissions() {
     local dir="$1"
@@ -94,7 +100,7 @@ apply_permissions() {
     find "$dir" -type f \( -name '*.py' -o -name '*.sh' \) -exec chmod 750 {} +
     local py_count
     py_count="$(find "$dir" -type f -name '*.py' | wc -l | tr -d ' ')"  # BSD wc pads
-    echo "  $dir: owned by $APACHE_USER:$APACHE_GROUP, $py_count .py file(s) executable (owner+group)"
+    log_info "  $dir: owned by $APACHE_USER:$APACHE_GROUP, $py_count .py file(s) executable (owner+group)"
 }
 
 # The state directory first, so the walk below covers it when it is inside
@@ -115,4 +121,4 @@ if [[ -d "$STATE_DIR/backups" ]]; then
     find "$STATE_DIR/backups" -type f -exec chmod 600 {} +
 fi
 
-echo "Done."
+log_info "Done."

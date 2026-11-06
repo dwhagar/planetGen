@@ -86,22 +86,28 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+export LOG_COMPONENT=install
+# shellcheck source=scripts/logrecord.sh
+source "$SCRIPT_DIR/scripts/logrecord.sh"
+log_summary_begin
+trap log_summary_forget EXIT
+
 SKIP_DATABASE=0
 case "${1:-}" in
     "") ;;
     --skip-database) SKIP_DATABASE=1 ;;
     *)
-        echo "error: unknown argument '$1' (expected nothing or --skip-database)." >&2
+        log_error "unknown argument '$1' (expected nothing or --skip-database)."
         exit 1 ;;
 esac
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HTML_DIR="$SCRIPT_DIR/src/html"
 NLTK_DATA_DIR="${PLANETGEN_NLTK_DATA_DIR:-/usr/local/share/nltk_data}"
 
 if [[ $EUID -ne 0 ]]; then
-    echo "error: must be run as root, e.g.:" >&2
-    echo "  sudo $0" >&2
+    log_error "must be run as root, e.g.:"
+    log_error "  sudo $0"
     exit 1
 fi
 
@@ -110,28 +116,27 @@ source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 PYTHON="${PYTHON:-$(default_python)}"
 if [[ -z "$PYTHON" ]]; then
-    echo "error: no python3/python found on PATH." >&2
+    log_error "no python3/python found on PATH."
     exit 1
 fi
 
 warn_if_no_swap
 
-echo "== 1/8: Installing the Python package and its libraries =="
+log_stage 1 8 "Installing the Python package and its libraries"
 # planetGen's own virtual environment (OPS.45); see that script for the
 # details. PYTHON is the interpreter it is made from.
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh"
 use_site_python
 
-echo
-echo "== 2/8: Migrating the configured MySQL database to the current schema =="
+log_stage 2 8 "Migrating the configured MySQL database to the current schema"
 if (( SKIP_DATABASE )); then
-    echo "Skipped (--skip-database). Run sudo ./update.sh once the database is set up."
+    log_info "Skipped (--skip-database). Run sudo ./update.sh once the database is set up."
+    INSTALL_NOTE="database not migrated (--skip-database)"
 else
     migrate_or_reset_db
 fi
 
-echo
-echo "== 3/8: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR and the static data sets =="
+log_stage 3 8 "Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR and the static data sets"
 # Skipped when it's already there (scripts/deploy-common.sh).
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
@@ -141,8 +146,7 @@ if (( ! SKIP_DATABASE )); then
     offer_population_pass
 fi
 
-echo
-echo "== 4/8: Making the web app's Python files and the shell scripts executable =="
+log_stage 4 8 "Making the web app's Python files and the shell scripts executable"
 # No -maxdepth: every *.py under src/html/, at any subdirectory depth,
 # needs this -- a previous version of this line was restricted to the top
 # level only, which silently left the pages' modules
@@ -158,8 +162,7 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 # later doesn't need this list updated to be covered.
 find "$SCRIPT_DIR" -name '*.sh' -exec chmod +x {} +
 
-echo
-echo "== 5/8: Enabling Apache's wsgi, headers and deflate modules (macOS: the gunicorn daemon) =="
+log_stage 5 8 "Enabling Apache's wsgi, headers and deflate modules (macOS: the gunicorn daemon)"
 # Installs mod_wsgi (libapache2-mod-wsgi-py3) if it's missing, and
 # enables whichever of the three aren't already (scripts/deploy-common.sh).
 APACHE_NEEDS_RESTART=0
@@ -169,33 +172,28 @@ else
     ensure_apache_modules
 fi
 
-echo
-echo "== 6/8: Setting ownership/permissions: the checkout belongs to Apache's user =="
+log_stage 6 8 "Setting ownership/permissions: the checkout belongs to Apache's user"
 # Includes config.json (DB password, secret_key): the web user's, mode 640.
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
-echo
-echo "== 7/8: Creating the Galaxy Map tile cache directory =="
+log_stage 7 8 "Creating the Galaxy Map tile cache directory"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 
-echo
-echo "== 8/8: Setting up the debug log and its rotation =="
+log_stage 8 8 "Setting up the debug log and its rotation"
 # The logs never stop an install (OPS.5): setup-debug-log.sh warns, with
 # the commands that fix it, for anything it can't set up itself.
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
-    || echo "warning: the log setup didn't finish (see above); the install carries on." >&2
+    || log_warning "the log setup didn't finish (see above); the install carries on."
 
-echo
-echo "Checking that the web app imports:"
+log_info "Checking that the web app imports:"
 check_app_imports
 
-echo
-echo "Checking the Redis server (config.json's redis.url):"
+log_info "Checking the Redis server (config.json's redis.url):"
 ensure_redis
 check_redis_settings
 
 if is_macos; then
-    cat <<EOF
+    log_lines notice <<EOF
 
 ------------------------------------------------------------------------
 Install steps complete. gunicorn serves the site on 127.0.0.1:8000
@@ -218,7 +216,7 @@ See docs/deployment/macos.md for the details.
 ------------------------------------------------------------------------
 EOF
 elif [[ ! -f /etc/apache2/sites-available/planetgen.conf ]]; then
-    cat <<EOF
+    log_lines notice <<EOF
 
 ------------------------------------------------------------------------
 Install steps complete. One manual step remains -- create the Apache2
@@ -244,10 +242,9 @@ See docs/deployment/apache.md and docs/reference/html-interface.md for more deta
 ------------------------------------------------------------------------
 EOF
 else
-    echo
-    echo "Done. (/etc/apache2/sites-available/planetgen.conf already exists --"
-    echo "not touching it; reload Apache yourself if this update needs it:"
-    echo "  sudo systemctl reload apache2)"
+    log_info "Done. (/etc/apache2/sites-available/planetgen.conf already exists --"
+    log_info "not touching it; reload Apache yourself if this update needs it:"
+    log_info "  sudo systemctl reload apache2)"
 
     # install.sh/update.sh deliberately never overwrite an existing site
     # file (ServerName/TLS/logging are the admin's own edits), so a site
@@ -256,7 +253,7 @@ else
     # `/<name>.py` bookmarks from reaching the app's 301 to the page
     # that replaced them (Apache answers 404 itself instead).
     if grep -q 'ScriptAliasMatch' /etc/apache2/sites-available/planetgen.conf 2>/dev/null; then
-        cat <<'EOF'
+        log_lines notice <<'EOF'
 
 ------------------------------------------------------------------------
 NOTE: /etc/apache2/sites-available/planetgen.conf still has the old CGI
@@ -278,3 +275,7 @@ examples/apache/planetgen.conf.example, then:
 EOF
     fi
 fi
+
+# The last thing on the screen (OPS.100): how long it took, what it installed, and every warning raised, repeated.
+CODE_VERSION="$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' "$SCRIPT_DIR/src/planetgen/_version.py" | head -n 1)"
+log_summary "Install" "code ${CODE_VERSION:-unknown}, libraries in $VENV${INSTALL_NOTE:+, $INSTALL_NOTE}"

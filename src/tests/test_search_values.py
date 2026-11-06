@@ -36,6 +36,18 @@ def _search(config, ranges=None, sorts=None):
         conn.close()
 
 
+def _between(values):
+    """A bound that sits between two stored values (the widest gap in the middle half), never on one: a bound on a stored value
+    goes through a unit and back and may land a rounding error either side of it, which is the converter's business, not the
+    search's, and which a galaxy with other bodies in it would show as a failure of the search."""
+    values = sorted(set(values))
+    assert len(values) > 3
+    quarter = len(values) // 4
+    pairs = [(values[i + 1] - values[i], i) for i in range(quarter, len(values) - quarter - 1)] or [(values[1] - values[0], 0)]
+    _, at = max(pairs)
+    return (values[at] + values[at + 1]) / 2
+
+
 def _get(base_url, **params):
     url = f"{base_url}/api/search?{urllib.parse.urlencode(params, doseq=True)}"
     try:
@@ -139,11 +151,11 @@ def test_a_range_returns_exactly_the_bodies_whose_stored_value_is_in_it(scored_g
 def test_the_bounds_may_be_given_in_another_unit_of_the_same_kind(scored_galaxy):
     bodies = [b for b in _rows(scored_galaxy.config, "planets", ["atmospheric_pressure_pa"]) if b["atmospheric_pressure_pa"]]
     assert bodies
-    middle = sorted(b["atmospheric_pressure_pa"] for b in bodies)[len(bodies) // 2]
+    middle = _between(b["atmospheric_pressure_pa"] for b in bodies)
     in_bar = _search(scored_galaxy.config, ranges={"planet": {"surface_pressure": (middle / 1e5, None, "bar")}})
     in_kpa = _search(scored_galaxy.config, ranges={"planet": {"surface_pressure": (middle / 1e3, None, "kPa")}})
     names = lambda answer: sorted(r["name"] for r in answer["results"]["planets"]["rows"])
-    assert names(in_bar) == names(in_kpa) == sorted(b["name"] for b in bodies if b["atmospheric_pressure_pa"] >= middle * (1 - 1e-12))
+    assert names(in_bar) == names(in_kpa) == sorted(b["name"] for b in bodies if b["atmospheric_pressure_pa"] >= middle)
     first = in_kpa["results"]["planets"]["rows"][0]["values"]["surface_pressure"]
     assert first["unit"] == "kPa" and first["symbol"] == "kPa"
 
@@ -191,7 +203,7 @@ def test_a_sort_by_a_gas_reads_the_air_and_a_body_without_the_gas_has_none(score
         conn.close()
     if not rows:
         pytest.skip("the sample galaxy has no planet with nitrogen")
-    middle = sorted(r["pa"] for r in rows)[len(rows) // 2]
+    middle = _between(r["pa"] for r in rows)
     want = {r["name"] for r in rows if r["pa"] >= middle}
     got = _search(scored_galaxy.config, ranges={"planet": {"gas_N2": (middle / 1e5, None, "bar")}})["results"]["planets"]["rows"]
     assert {r["name"] for r in got} == want

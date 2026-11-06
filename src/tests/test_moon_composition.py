@@ -33,13 +33,13 @@ def test_open_rows_share_the_probability_equally():
     subject = pt.Subject(mc.GIANT, {"has_ring": 1, "roche_ratio": 2.0})
     assert [p for _row, p in mc.ORIGIN_TABLE.probabilities(subject)] == pytest.approx([1 / 3] * 3)
     with draw.bound(1):
-        seen = {mc.draw_origin(mc.GIANT, has_ring=True, roche_ratio=2.0).row.name for _ in range(120)}
+        seen = {mc.draw_origin(mc.GIANT, 1e15, has_ring=True, roche_ratio=2.0) for _ in range(120)}
     assert seen == {"disk", "ring", "captured"}
 
 
 def test_a_bad_parent_kind_is_refused():
     with pytest.raises(ValueError):
-        mc.draw_origin("moon")
+        mc.draw_origin("moon", 1e20)
 
 
 def test_the_parent_kind_from_envelope_and_mass():
@@ -195,13 +195,15 @@ def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it()
                 for moon in planet.moons:
                     assert moon.moon_origin in mc.ORIGINS
                     origins.setdefault(moon.moon_origin, []).append(moon.orbital_inclination_deg)
-    assert "captured" in origins and ("disk" in origins or "impact" in origins)
+    # GEN.1083: a captured moon of a planet is mostly one of its irregular moons now, so the regular list holds few or none; the draw itself is checked below
+    assert "disk" in origins or "impact" in origins
     for origin, values in origins.items():
         if origin == "captured":
             assert not any(low < i < high for i in values)
         else:
             assert all(i <= constants.MOON_ORBITAL_INCLINATION_MAX_DEG for i in values)
-    assert any(i > 130.0 for i in origins["captured"])
+    with draw.bound(21):
+        assert any(i > 130.0 for i in [mc.draw_inclination_deg("captured") for _ in range(200)] + origins.get("captured", []))
 
 
 def _disk_ice_sides(moons):

@@ -398,7 +398,7 @@ def _reference_checks():
         Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0] in the Milky Way's measured shape",
               lambda: _reference_galactic_orbit(gc_ly)[0], 225.0, 0.15,
               "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; [R5073]); the Milky Way's measured shape's potential "
-              "(the Hernquist and Miyamoto-Nagai matches of GP1 to GP3 are stand-ins) gives about 208 km/s",
+              "(the Hernquist and Miyamoto-Nagai matches of GP1 to GP3 are stand-ins, their residual from the density model tabulated by GEN.1285; 208 km/s before the table) gives about 224 km/s",
               unit="km/s"),
         Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1] in the Milky Way's measured shape",
               lambda: _reference_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.15,

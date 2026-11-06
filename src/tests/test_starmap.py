@@ -702,3 +702,19 @@ def test_a_scattered_phenomenons_light_follows_its_mass_in_an_uncharted_scene():
     clouds = {c["kind"]: c for c in _uncharted_scene(contents)["clouds"]}
     assert _size_keys(clouds["neutronStar"]["light"]) == _size_keys(_star_light_of_mass(1.4))
     assert clouds["blackHoleQuiescent"]["light"]["sizePx"] < _star_light_of_mass(10.0)["sizePx"]
+
+
+def test_a_cluster_reaching_into_the_sector_is_a_cloud_at_its_real_radius_and_one_that_does_not_fit_is_dropped():
+    """MAP.381: `map_scene_data(clusters=...)` draws each cluster as a cloud of kind `globularCluster` at its offset from the sector's center
+    (galaxy frame, no rotation) and its radius, named by the name it is given, linking to its page."""
+    center = (500.0, 200.0, -100.0)
+    cluster = {"ref": "globular_cluster:FE-1", "name": "Globular cluster FE-1", "named": False, "href": "/object/globular_cluster:FE-1",
+               "x": 501.0, "y": 200.0, "z": -100.0, "radius_pc": 2.0}
+    scene = map_scene_data(_link, 4000.0, (3, 0, 7), center, [], clusters=[cluster])
+    clouds = [cloud for cloud in scene["clouds"] if cloud["kind"] == "globularCluster"]
+    assert len(clouds) == 1
+    cloud = clouds[0]
+    assert cloud["name"] == "Globular cluster FE-1" and cloud["named"] is False and cloud["typeLabel"] == "Globular Cluster"
+    assert cloud["href"] == "/object/globular_cluster:FE-1" and cloud["key"] == "globular_cluster:FE-1"
+    assert cloud["x"] > 0 and abs(cloud["y"]) < 1e-9 and abs(cloud["z"]) < 1e-9 and cloud["r"] > 0       # 1 pc along +x of the center
+    assert map_scene_data(_link, 4000.0, (3, 0, 7), None, [], clusters=[cluster])["clouds"] == []        # no place, no offset

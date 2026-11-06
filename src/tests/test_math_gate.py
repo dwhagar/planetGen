@@ -155,7 +155,7 @@ def test_update_sh_check_math_failure_only_warns(tmp_path):
         str(fake), 'check_math; echo "failed=$MATH_CHECK_FAILED"; POPULATION=1 offer_population_pass')
     assert result.returncode == 0, result.stderr
     assert "failed=1" in result.stdout
-    assert "warning: the math check failed" in result.stderr
+    assert "the math check failed" in result.stderr
     assert "Skipping the population pass: the math check failed." in result.stdout
 
 

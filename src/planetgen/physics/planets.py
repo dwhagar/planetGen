@@ -24,6 +24,7 @@ import math
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
+from planetgen.generation import irregular_moons
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics import orbits
@@ -129,14 +130,22 @@ def apply_class(planet):
     time (`physics/planet_class_text.py`); a body keeps none (GEN.1212).
     """
     planet.planet_class = None
-    planet.class_variant = None
+    planet.class_variant = planet.class_match = planet.runner_up_class = planet.runner_up_match = None
     planet_type.fill(planet)            # GEN.1219: terrestrial, transitional or gas, from the envelope share (GEN.1226)
     body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
-    planet.planet_class = planet_classes.classify(planet)
-    if planet.planet_class is None:
+    detail = planet_classes.classify_detail(planet)
+    if detail is None:
         return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
+    planet.planet_class = detail.letter
     body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
-    planet.class_variant = class_code.DIGITS[0]     # GEN.1220: the digit of the class code; the best-fit classifier (GEN.1207) gives 1 to 4
+    # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
+    planet.class_variant, planet.class_match = detail.digit, detail.match
+    planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
+
+
+def is_life_class(body):
+    """Whether the finished body's class is one that can carry life (`tuning.HABITABLE_PLANET_CLASSES`)."""
+    return body.planet_class in tuning.HABITABLE_PLANET_CLASSES
 
 
 @finite_domain()
@@ -1012,6 +1021,7 @@ def drop_unstable_moons(planet):
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept
+    irregular_moons.keep_stable(planet)      # the irregular moons are held to the same zone (GEN.1084); they do not count in the return, no reflex offset comes of them
     return dropped
 
 
@@ -1104,7 +1114,7 @@ def generate_moons(planet, moon_count=None):
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
         # GEN.714, GEN.1244: the origin comes first and the orbit follows from it; a moon of the disk forms inside the disk's zone (`moon_disk_zone`), the rest anywhere a moon can stay
-        origin = moon_composition.draw_origin(parent_kind).row.name
+        origin = moon_composition.draw_origin(parent_kind, moon_mass)
         span_low, span_high = total_orbit_distance, high_orbit
         if origin == "disk" and disk_zone is not None:
             span_low, span_high = max(total_orbit_distance, disk_zone[0]), min(high_orbit, disk_zone[1])

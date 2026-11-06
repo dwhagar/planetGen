@@ -27,7 +27,7 @@ A record is a time, a severity, a component, a message and fields.
 
 - **Time:** whole milliseconds since the epoch, written as the computer's local time with the offset of its zone everywhere (OPS.97, Boss 11-05; it was UTC in a file before): a file line carries `2026-10-24T14:40:00.123-0400`, the display labels the zone by name (`2026-10-24 14:40:00 EDT`), and the offset keeps a line read in January and one read in July unambiguous. No form writes UTC.
 - **Severity:** the RFC 5424 levels, in this order: `debug`, `info`, `notice`, `warning`, `error`, `critical` (syslog numbers 7 to 2). They map to Python's `logging` levels one to one (`NOTICE` is 25, named by the module). The three old console modes keep working on top: silent shows `error` and above, normal `info` and above, debug everything.
-- **Component:** a short lower-case name of the part of the program that wrote the record (`generate`, `queue`, `web`, `update`; `a-z`, digits, `_`, `.`, `-`, at most 24 characters). In `logging` it is the logger's name after `planetgen.`.
+- **Component:** a short lower-case name of the part of the program that wrote the record, always one of the names in the table under "Components" below (OPS.103; `a-z`, digits, `_`, `.`, `-`, at most 24 characters). A record with any other name is refused. In `logging` it is the logger's name after `planetgen.` when that is in the table, else the one the source file belongs to.
 - **Message:** one line of text for a person. The message is a sentence of the kind the program already prints; it carries no timestamp, severity or component of its own.
 - **Fields:** ordered `key=value` pairs for numbers and names a tool may want (a count, an elapsed time, a run id). Names are lower-case `a-z`, digits and `_`; a value is a string, an integer, a finite number or a boolean. `ts`, `level`, `component` and `msg` belong to the record and cannot be field names. A field is never a substitute for the message: the message reads whole without them.
 
@@ -49,7 +49,17 @@ A value is bare when it is a number, `true`, `false` or a word with no space, qu
 2026-10-24 14:40:00 EDT INFO     generate: Placed the sectors (count=12)
 ```
 
-The time in local time with its zone, the severity, the component, the message, and the fields in the file line's own form. The command line's ordinary text is `plain_line`: the message alone, or `warning: message` for `warning` and above, and no time (the program's text for a person who is not hunting a bug, as today). `--debug` and the web log use the full line. The same record drawn by the file, the JSON and the display forms carries the same time, severity, component, message and fields; the tests read each file line back and check the display of the record read back is the display of the record.
+The time in local time with its zone, the severity, the component, the message, and the fields in the file line's own form. The command line's ordinary text is `plain_line`: the message alone, or `warning: message` for `warning` and above, and no time (the program's text for a person who is not hunting a bug, as today) when the output is a terminal. When a command's output is not a terminal (a pipe, a file, `tee`, an update run) every line is a display line with its time (OPS.98; `log.times_on_console`; `PLANETGEN_LOG_TIMES=always` or `never` overrides the rule), so a log read hours later says when each line was written. `--debug` and the web log use the full line. The same record drawn by the file, the JSON and the display forms carries the same time, severity, component, message and fields; the tests read each file line back and check the display of the record read back is the display of the record.
+
+## The shell scripts and the closing summary
+
+Every line `update.sh`, `install.sh` and the scripts they run print is a display record from `scripts/logrecord.sh` (OPS.98): `log_info`, `log_notice`, `log_warning` and `log_error`, `log_stage` for the divider, `log_lines` for a heredoc of instructions or the output of a tool. A script that is run alone takes its component from `LOG_COMPONENT` (`logs`, `permissions`, `cache-dir`, `swap`, `python-deps`); the update and the install export theirs, so the pieces they run write under it. A bare `echo "text"` in these scripts fails `test_log_shell.py`, except where it returns a value to a caller. A warning's first line is a headline; the lines under it start with two spaces and are the fix.
+
+`update.sh` and `install.sh` end with `log_summary` (OPS.100): one line, `=== Update done after 20:53: code 8.0.3440 (schema v214), site reloaded and answering at 07:44:08 EST, cache warm-up (stage 2 of 2, the full warm-up) done in 17:44 ===`, then every warning and error the script printed, repeated with its headline only, or "No warnings during this update." The reload's own lines say "Site reloaded", so "done" appears once, last. The warnings are kept in a file (`log_summary_begin`), so one printed inside `$(...)` or a pipe is kept too.
+
+## The named logs of the long jobs
+
+A job that runs unattended appends each run to a log of its own in the log folder (`log_dir`, `/var/log/planetgen`), all of them `*.log` files covered by the folder's one rotation rule: `warmup.log` (`planetgen warm`, OPS.96), `tiles.log` (the nightly whole-map build) and `orbits.log` (the nightly orbit update) (OPS.101). They are written by Python (`util/joblog.py`, `logpaths.job_log_path`), not by a redirect: a start line that says what started the run (`by hand`, `systemd timer`), the lines the run printed in the display form, and an end line that says how it ended (`finished after 17:44`, `ended with exit status 75`, `ended by Ctrl+C`, `failed: ...`). `update.log` holds every record `update.sh` prints, appended, so a hand run can be read again; the shell keeps the records in a temporary file until the Python environment says where the folder is (`log_file_begin`, `log_file_to`). `smoke` keeps its JSON output file. A log that cannot be written is said once and never stops the job.
 
 ## Stages
 
@@ -64,17 +74,53 @@ One marker, one divider, one wording for each end of a stage. The marker is the 
 
 The display draws each of them as the same divider, `=== message ===`, with nothing after it, and the command line's ordinary text does the same, so a downloaded log and the screen agree. A failure is always `error`, always carries the reason, and the run's own failure line is the same record with the run's error as the reason.
 
+## Counting
+
+Three words say where a script or a run is, and no other word counts (OPS.103):
+
+| Word | Counts | Example |
+|---|---|---|
+| `Stage N of M` | the top-level steps of a script or a run: `update.sh`, `install.sh`, a generate job | `Stage 4 of 9: Checking the generator's math` |
+| `Part N of M` | the runs inside one stage | the warm-up's two runs after the update's reload: `Part 1 of 2` |
+| `Phase N of M` | a named group inside a run | the warm-up's `Phase 2 of 5, built-levels` |
+
+A family of the warm-up is named, not numbered (`family 2 of 2` is a count of families, not a stage). `chunk` is only a count of pieces of work (`28 of 180 chunks`), never a position in the run. A count is made in one place: `logrecord.counting_text(word, number, total)` and `logrecord.stage_record` in Python, `log_stage` and `log_count` in the shell scripts. The enforcement test (TEST.183, `src/tests/test_no_own_log_formatting.py`) reads every Python module and shell script and fails on a string that words a count by hand (`"stage 1 of 2"`, `f"Part {n} of {m}"`).
+
+## Components
+
+The component of a record is one of these names and nothing else. `Record` refuses another, `logrecord.component_of` finds the one a logger or a source file belongs to (a library's logger is `lib`), and the shell scripts take theirs from the same table (`LOG_COMPONENTS` in `scripts/logrecord.sh`, generated). The same test fails on a component literal that is not here (`stage_record`, `JobLog`, `Record.now`/`Record.at`, `LineFormatter(component=...)`, `log.get`, a module's `COMPONENT`, a script's `LOG_COMPONENT`). A new component is added here, with what writes under it, in the change that adds it.
+
+| Component | What writes under it |
+|---|---|
+| `update` | `update.sh`, the update of an installed site |
+| `install` | `install.sh`, the first install |
+| `warm` | `planetgen warm`: the cache warm-up, its progress and its log |
+| `tiles` | `planetgen tiles`: the nightly whole-map build |
+| `orbits` | `planetgen orbits`: the nightly orbit update |
+| `generate` | the generator: `planetgen generate` and its stages, the physics and the galaxy code a run calls |
+| `queue` | the work queue: runs, units, workers and the machine's lease |
+| `web` | the web app and the API: requests, pages, the admin pages |
+| `job` | the Generate page's job runner, which runs a job's steps as processes |
+| `activity` | the always-on activity log (`AUTH`, `AUTHZ`, `DB`, `GEN` events) |
+| `command` | any other command line tool: `migrate`, `accounts`, `backup`, `config`, `query` and the rest |
+| `lib` | another library's own log lines (Flask, urllib3, ...) that the debug log picks up |
+| `logs` | `examples/apache/setup-debug-log.sh`: the log files and their rotation |
+| `permissions` | `examples/apache/set-permissions.sh`: ownership and permissions |
+| `cache-dir` | `examples/apache/create-cache-dir.sh`: the cache, jobs and state folders |
+| `swap` | `scripts/enable-swap.sh`: the swap file |
+| `python-deps` | `scripts/install-python-deps.sh`: the virtual environment and its libraries |
+
 ## Rules for a place that writes a log
 
 1. Make a record through `log.get(component)` (`planetgen/util/log.py`; Python's `logging` underneath, so handlers and levels keep working) or `Record`/`stage_record`; do not format a line by hand. `util/log.py` is the one module that makes and writes a line (OPS.104): `util/logrecord.py` holds the record and its lines (file, JSON, display, plain), and `log.LineFormatter` is the one formatter class, with a form for each (`plain`, `display`, `debug`, `file`, `json`). A shell script prints the display line through `scripts/logrecord.sh` (UX.123; `tests/test_log_shell.py` checks its lines against `logrecord.display_line`).
 2. Put the sentence in the message and the numbers a tool may want in fields; do not write a number only in the message when a tool would want it.
 3. Never put a secret, a password, a key or a token in a message or a field (the settings writer's `(changed)` form for secrets stays).
 4. The time is taken when the record is made, in the process that made it; a record relayed from a worker keeps its time.
-5. A new output path that formats its own lines, and a formatter class or handler made outside `util/log.py`, fails a test (TEST.183, `src/tests/test_no_own_log_formatting.py`): the test reads every module under `planetgen/` as a syntax tree and finds each print, write or logger call whose text is built with a time call or a hand-drawn divider; each such place is required to go through the layer or to be named in `ALLOWED` with its reason.
+5. A new output path that formats its own lines, and a formatter class or handler made outside `util/log.py`, fails a test (TEST.183, `src/tests/test_no_own_log_formatting.py`): the test reads every module under `planetgen/` as a syntax tree and finds each print, write or logger call whose text is built with a time call or a hand-drawn divider; each such place is required to go through the layer or to be named in `ALLOWED` with its reason. A second scan (OPS.105) fails on a `print()` in any file not named in `PRINT_ALLOWED` and on any `print(..., file=sys.stderr)` outside `util/log.py`: a progress, status, warning or error line goes through `log.normal`, `log.warning` or `log.error`, and only the answer a command was asked for (a listing, a report, a count, a prompt) may print.
 6. No work after a progress block may run longer than the bar threshold (`tuning.PROGRESS_BAR_SECONDS`) without a `Step` of its own (DOC.80, PERF.189). The cases found were `refresh_block_lights` and `record_phenomenon_scatter*`, which ran after the scatter's last step and printed nothing, so a run looked hung. A checklist for new work that follows a scatter or a fill: (a) give it a `Step` with a kind in `steps.STEP_KINDS`; (b) when it works in units, advance the bar once per unit and write a log line before it starts, at each phase and about every `tuning.PROGRESS_LOG_SECONDS`; (c) read big tables a slice at a time and write what is complete as it completes, so its memory does not grow with the galaxy (PERF.187); (d) a step the smoke run (`python -m planetgen.cli.smoke`) sees has a memory budget in `tuning.SMOKE_STEP_BUDGET_MB`.
 
 ## Open points for the items that follow
 
-- **The activity log's shape (UX.122).** Its lines are matched by fail2ban filters installed by `update.sh`, so they cannot change form silently. Decided (UX.122): its line stays as a fourth writing of the same idea (the time local with its offset first, then the category and event, then `ip=` and `user=` in their present order), because the filters match that form; `tests/test_activity_log.py` holds it to the filter patterns (`format_line` against the failregex), so it cannot drift from the tools.
-- **Debug lines.** The debug mode keeps its richer columns (source file and line, process id) as a display variant of the same record, with the file, line and area as fields; the debug file is then a file of records like any other.
+- **The activity log's shape (UX.122).** Its lines are matched by fail2ban filters installed by `update.sh`, so they cannot change form silently. Decided (UX.122): its line stays as a fourth writing of the same idea (`log.syslog_line`, written by a `raw` handler of `util/log.py`, OPS.105) (the time local with its offset first, then the category and event, then `ip=` and `user=` in their present order), because the filters match that form; `tests/test_activity_log.py` holds it to the filter patterns (`format_line` against the failregex), so it cannot drift from the tools.
+- **Debug lines.** The debug mode keeps its richer columns (source file and line, process id) as a display variant of the same record, with the file, line and area as fields; the debug file is then a file of records like any other. The debug line reads `time severity origin [area] file:line function | message` (OPS.102): the area (`[draw]`, `[sql]`, `[queue]`, `[web]`, `[decision]`) is the column to filter on, and the logger's name, which was almost always `planetgen`, is gone; every handler that writes the line carries the filter that stamps the area, and the formatter derives it for a record that has none.
 - **A job's subprocess output.** The job runner appends whatever a step printed. Where a command still prints directly (the interactive prompts, the data listings of `query`, `config`, `backup`, `queue`, `maintenance` and `accounts`, whose output is the answer asked for and not a log), that text is carried as the message of a record of component `job`, one record per line, with the job runner's own dividers as stage records.

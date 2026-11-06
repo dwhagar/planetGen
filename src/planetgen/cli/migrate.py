@@ -234,7 +234,7 @@ def main():
                              "and change nothing.")
     log.add_debug_arguments(parser)
     args = parser.parse_args()
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
 
     config = mysql_config_from_args(args)
 
@@ -242,7 +242,7 @@ def main():
         try:
             version, pending = schema_status(config)
         except Exception as exc:
-            print(f"error: {exc}", file=sys.stderr)
+            log.error(f"error: {exc}")
             sys.exit(1)
         print(version, SCHEMA_VERSION, pending, config.database)
         return
@@ -252,7 +252,7 @@ def main():
         try:
             version = _migrate_with_progress(config)
         except Exception as exc:
-            print(f"error: {exc}", file=sys.stderr)
+            log.error(f"error: {exc}")
             sys.exit(1)
 
         if version == SCHEMA_VERSION:
@@ -272,7 +272,7 @@ def main():
         try:
             seeded = auth.bootstrap_control_schema(control_mysql_config(config))
         except Exception as exc:
-            print(f"error: could not set up the control schema ({exc}).", file=sys.stderr)
+            log.error(f"error: could not set up the control schema ({exc}).")
             sys.exit(1)
         if seeded is not None:
             print_initial_admin_login(*seeded)

@@ -2644,3 +2644,48 @@ Baseline: PR #1817.
 | TEST.645 | 8.1 | Physics rectification: citations and the gate's test health |
 | GEN.1301 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | GEN.1302 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.639 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1300 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| OPS.105 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| TEST.644 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.641 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.648 | 8.1 | Physics rectification: citations and the gate's test health |
+| PERF.244 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.646 | 8.1 | Physics rectification: citations and the gate's test health |
+| OPS.98 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.100 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.99 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.101 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.102 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.103 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| TEST.649 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1084 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1083 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1082 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| TEST.579 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| GEN.1207 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| TEST.602 | 8.1 | Physics rectification: citations and the gate's test health |
+| VIEW.42 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.598 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1284 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1287 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.359 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1295 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1265 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.1266 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.1275 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.1276 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.1277 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| VIEW.30 | 8.2 | Bookmarks |
+| VIEW.25 | 8.2 | Bookmarks |
+| GEN.1285 | 8.3 | Orbital update core |
+| TEST.606 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.627 | 8.3 | Orbital update core |
+| MAP.224 | 8.8 | Clusters and satellites on the map |
+| TEST.647 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.651 | 8.1 | Physics rectification: citations and the gate's test health |
+| MAP.381 | 8.8 | Clusters and satellites on the map |
+| MAP.223 | 8.8 | Zoom windows |
+| TEST.652 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1186 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
+| GEN.1185 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
