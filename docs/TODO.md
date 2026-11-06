@@ -13138,6 +13138,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until he answers. Version 8.1. Owner: Planets 1. Filed by the TODO
   thread.
   Prerequisites: none. Related: TEST.499, GEN.1111, GEN.1287.
+  Decision (Boss, 5:30 PM EST on 2026-11-06, Q2 option 1): the architecture carries the free-floating yield. Keep the deleted sub-minimum bodies as ejected mass or small rogues so the donors alone enter the observed bands; the top-up (GEN.1287) then only fills any gap and the expected failure in test_rogue_yield_calibration becomes a plain test. Lock item with an epoch. Owner: Planets 1 builds it now (physics drives, no game rates; stand-ins registered).
 
 - [ ] **GEN.1288 cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections**
   Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
@@ -17090,6 +17091,7 @@ clears each one.
   Done: the test passes alone on current main. Version 8.1. Owner: Core 2.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.593.
+  Decision (Boss, 5:30 PM EST on 2026-11-06, Q3 option 1): the Go to row plus the map form the block that fills the window; the 95 percent rule applies to the block and the page aligns to the row's top, so the map is about 40 px shorter and the row stays visible. Core 2 builds it and adjusts the mapfit.js unit tests and the MAP.350 browser tests; the layout test is not loosened.
 
 - [ ] **GEN.1303 Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug)**
   Bug 1 (as the lane reported, 5:21 AM EST on 2026-11-06) found
@@ -17197,6 +17199,7 @@ clears each one.
   Boss described. Version 8.1. Owner: Planets 1 (GEN.1111 rogue work).
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1111, GEN.1256.
+  Owner change (TODO) (5:35 PM EST on 2026-11-06): Core 1 takes it (Core 1 is free and knows the sector pages and nav); Planets 1 stays for questions on store.uncharted_sector_id and goes to GEN.1299.
 
 - [ ] **MAP.400 The Object index reads only per-sector tables, so the nebula field (109,811 clouds) and the scattered black holes, remnants, magnetars and hypervelocity stars (9.7 million rows) are missing from search, lists, Nearby and the kind table (bug)**
   Boss, 5:08 PM EST on 2026-11-06: do a bugfix run to find out why the
@@ -17231,6 +17234,7 @@ clears each one.
   known objects with working links. Version 8.1. Owner: Planets 1,
   after MAP.399. Filed by the TODO thread.
   Prerequisites: MAP.399. Related: MAP.400, GEN.1111.
+  Owner change (TODO) (5:35 PM EST on 2026-11-06): Core 1 takes it after MAP.399.
 
 - [ ] **PERF.245 The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types**
   Boss, 5:08 PM EST on 2026-11-06: the warm-up takes all workers, so
@@ -17244,6 +17248,7 @@ clears each one.
   sector list answer while the warm-up runs. Version 8.1. Owner: Core 2.
   Filed by the TODO thread.
   Prerequisites: none. Related: MAP.400, PERF.241.
+  Addition (Boss, 5:30 PM EST on 2026-11-06, Q6 option 1): fold in keeping the app loaded in the warm-up worker (the open PERF idea from the warm-up timings); Core 4 measures first and keeps it only if it gains. Owner changed (TODO): Core 4 (Core 4 found the shared FIFO maintenance queue and the normal-priority whole-map build).
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
