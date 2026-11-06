@@ -14074,7 +14074,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the bulge, or the note says why not. A fix changes generated
   stars, so it is a lock item (epoch). Version 8.1. Owner: Core 3. Filed
   by the TODO thread.
-  Prerequisites: none. Related: MAP.383, GEN.115.
+  Cause found and fix built (Core 3, as the lane reported, about 9:08 PM
+  EST on 2026-11-05; reports/gen1284-placement-mass-loss-2026-11-05.md):
+  random placement keeps two systems the whole sum of their galactic Hill
+  radii apart (median 1.3 pc at the solar circle), which asks a 4 pc cube
+  for spheres filling 0.6 of it; placement cannot pack that, and the
+  sector stops at the first system with no room ("ran out of room"; the
+  one-system minimum plays no part). Placed: solar circle 84 percent of
+  expected systems (78 percent of mass), 4,000 pc 44 percent (35
+  percent), 1,500 pc 20 percent (18 percent). Fix: branch
+  claude/gen1284-mass-deficit, head 078b115b1,
+  SECTOR_HILL_SEPARATION_SHARE = 0.5, stand-in SEP1 in section 6.183
+  (renumber at merge). After: 100 percent of systems and 92 to 94 percent
+  of mass at all three places. The inner disk grows to about 5 times as
+  many systems (1,407 to 6,993 in the same 27 sectors) and generates
+  about 5 times slower there. Lock item: no migration, star positions
+  move in every sector with 2 or more systems (golden and census move),
+  --affects the system placement of the fill (systems stage and after).
+  Train 12 candidate. The remaining 6 to 8 percent mass gap is GEN.1300.
+  Prerequisites: none. Related: MAP.383, GEN.115, GEN.1300.
 
 - [ ] **GEN.1285 The smooth potential's stellar density differs from the galaxy density model: -15 percent at the solar circle and +19 percent in the bulge (stand-ins GP1 to GP3)**
   Measured by Tides 1 (as the lane reported, about 6:35 PM EST on
@@ -14143,6 +14161,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until he answers. Version 8.1. Owner: Planets 1. Filed by the TODO
   thread.
   Prerequisites: none. Related: TEST.499, GEN.1111, GEN.1287.
+
+- [ ] **GEN.1300 After the GEN.1284 fix, placed systems still hold 6 to 8 percent less mass than the density profile expects with the count right: find whether the mass draw or a leftover placement bias holds it**
+  Core 3 (as the lane reported, about 9:08 PM EST on 2026-11-05),
+  GEN.1284 follow-up (the item was called GEN.1284b by the lane). With
+  the Hill-separation share at 0.5, 100 percent of the expected systems
+  are placed at the solar circle, 4,000 pc and 1,500 pc but only 92 to 94
+  percent of the expected mass. Do: compare the drawn system mass against
+  the profile per system (mass function and multiplicity draw) and the
+  placement against the cell's expected position distribution (a bias
+  toward low-mass systems in what stays unplaced, or in the order of
+  placement), and fix at the cause or show with numbers that the gap is
+  the intended physics and say why in the density note. A fix changes
+  generated stars, so it is a lock item. Done: the placed mass matches
+  the profile inside the sampling error at the three places, or the note
+  says why not. Version 8.1. Owner: Core 3. Filed by the TODO thread.
+  Prerequisites: GEN.1284. Related: MAP.383, GEN.115.
 
 - [ ] **GEN.1288 cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections**
   Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
@@ -14855,8 +14889,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   search), and cut the cost where it changes no output; where a cut
   would change values, file it as a lock item with the epoch. In
   parallel the tests build fewer systems where the property allows
-  (TEST.417 style). Done: no test times out at 900 s on a 4 vCPU box and
-  one all-flags O0V system takes under 20 s. Related: PERF.238,
+  (TEST.417 style). Done: no test times out at 900 s on a 4 vCPU box
+  (the line "one all-flags O0V system takes under 20 s" moved to
+  PERF.244, see below). Related: PERF.238,
   TEST.417, TEST.571. Lock-free for the test parts. Version 8.1. Owner:
   Bug 1. Filed by the TODO thread.
   Profile done (Bug 1, as the lane reported) (4:38 PM EST on
@@ -14869,25 +14904,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   give only 10 to 20 percent. Bug 1 meanwhile cuts the system counts of
   the timing-out tests where the property allows, in small PRs. The
   prevalence feature_moves tests on the list are PERF.236, already in
-  train 12. PERF.241 stays open until GEN.1282 and PERF.242 land.
-  Prerequisites: none. Related: PERF.238.
+  train 12. PERF.241 stays open until GEN.1282 lands and the hot-star
+  tests are cut.
+  Rescoped (Bug 1, as the lane reported, about 9:36 PM EST on
+  2026-11-05, TODO accepted): with GEN.1282 an O0V all-flags system takes
+  55 s (about 380 s before) and builds 89 planets and about 186 moons;
+  75 percent of the time is moons at 0.15 s per body, and 80 percent of
+  that is surface_air.solve redrawing the outgassed mixture about 8
+  times per body (14 gas-equilibrium solves per body); an O5V all-flags
+  system takes about 80 s. Hot-star ecosphere draws do succeed (O5V 1 of
+  30, O3V 1 of 8, G2V 2 of 30), so PERF.242's premise was false and it is
+  closed. The line is now: no test over 900 s on 4 vCPU, reached by
+  cutting the trials of the hot-star tests (lock-free); the under 20 s
+  line is PERF.244.
+  Prerequisites: none. Related: PERF.238, PERF.244.
 
-- [ ] **PERF.242 Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget**
-  Bug 1's profile of PERF.241 (as the lane reported, about 4:35 PM EST
-  on 2026-11-05; reports/perf241-all-flags-o0v-profile-2026-11-05.md):
-  the forced habitable world makes the placement loop draw the whole
-  system 8 times and spend the 60-planet request budget. Gas equilibrium
-  (29,800 solves of 7 ms, none repeated) is 54 percent of the unprofiled
-  time, so a cache gains nothing and a warm start of the Newton loop
-  gains 10 to 20 percent without changing output. Do: say from the
-  physics which draws can be skipped for a star where no habitable world
-  can exist (a hot O or B star's habitable zone is far out and
-  short-lived: the forced flag cannot be met before the star leaves the
-  main sequence), short-circuit those, and warm-start the Newton solve
-  where bits are unchanged. Output changes for forced-flag draws: lock
-  item with the generator epoch, after the item above. Done: see the
-  item above. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
-  Prerequisites: GEN.1282. Related: PERF.241.
+- [ ] **PERF.244 A cheaper per-body air solve: surface_air.solve redraws the outgassed mixture about 8 times per body (14 gas-equilibrium solves per body); warm-start or cache the mixture across the fixed-point iterations**
+  Bug 1 (as the lane reported, about 9:36 PM EST on 2026-11-05), the
+  remainder of PERF.241 after GEN.1282: an O0V all-flags system takes 55
+  s, 75 percent of it in moons at 0.15 s per body, 80 percent of that in
+  surface_air.solve. Do: carry the outgassed mixture across the
+  fixed-point iterations of the air solve (warm start or a cache keyed
+  on its inputs) so a body does one full solve and the later iterations
+  start from it; measure the cost and the output change. A warm start
+  can nudge converged values in the last digits, so this is a lock item
+  (epoch, golden) unless the output is bit-identical. Done: one
+  all-flags O0V system takes under 20 s on a 4 vCPU box, or the report
+  shows by numbers why not and the line moves. Version 8.1. Owner: Bug 1,
+  after GEN.1298. Filed by the TODO thread.
+  Prerequisites: GEN.1282. Related: PERF.241, GEN.1282.
 
 ## DB: Database and schema
 
@@ -18308,6 +18353,61 @@ clears each one.
   skip or loosen the test. Lock-free, JS only. Done: the test passes on
   current main. Version 8.1. Owner: Core 4. Filed by the TODO thread.
   Prerequisites: none. Related: MAP.392.
+
+- [ ] **TEST.634 test_web_browser_layout.py::test_controls_do_not_overlap[web.galaxy at 390, 600, 820 and 1280] fails: on /galaxy the Go to button and address input overlap the site search link, Help and Menu (bug)**
+  The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
+  47 failures, 39 of them failing alone) found tests/test_web_browser_layout.py::test_controls_do_not_overlap for the page web.galaxy at widths 390, 600, 820 and 1280 (4 cases): the Go to button and its address input overlap the site search link, Help and the Menu. It was
+  measured on main e6939031f, so it may be fixed or flaky under load
+  since. Do: reproduce on current main first (run the test alone); if it
+  still fails, find the change that broke it (bisect) and fix at the
+  cause, a layout test never loosened to pass. Lock-free, no migration.
+  Done: the test passes alone on current main. Version 8.1. Owner: Core 2.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.593.
+
+- [ ] **TEST.635 test_web_system_nav_row.py::test_system_buttons_share_one_row fails at 390, 600, 820 and 1280: the system buttons sit on more than one row, two at negative y (bug)**
+  The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
+  47 failures, 39 of them failing alone) found tests/test_web_system_nav_row.py::test_system_buttons_share_one_row at widths 390, 600, 820 and 1280 (the -3 cases, 4 in all): the system buttons are on more than one row, two buttons at negative y. It was
+  measured on main e6939031f, so it may be fixed or flaky under load
+  since. Do: reproduce on current main first (run the test alone); if it
+  still fails, find the change that broke it (bisect) and fix at the
+  cause, a layout test never loosened to pass. Lock-free, no migration.
+  Done: the test passes alone on current main. Version 8.1. Owner: Core 5.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.593.
+
+- [ ] **TEST.636 test_web_ui_fields_browser.py::test_each_kind_of_field_is_filled_and_submitted fails on desktop and phone, light and dark: strict mode violation, details.search-more > summary resolves to 2 elements (bug)**
+  The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
+  47 failures, 39 of them failing alone) found tests/test_web_ui_fields_browser.py::test_each_kind_of_field_is_filled_and_submitted (desktop and phone by light and dark, 4 cases): Playwright strict mode violation, the locator details.search-more > summary matches 2 elements. It was
+  measured on main e6939031f, so it may be fixed or flaky under load
+  since. Do: reproduce on current main first (run the test alone); if it
+  still fails, find the change that broke it (bisect) and fix at the
+  cause, a layout test never loosened to pass. Lock-free, no migration.
+  Done: the test passes alone on current main. Version 8.1. Owner: Core 2.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.593.
+
+- [ ] **TEST.637 test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not fails: assert True is False (bug)**
+  The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
+  47 failures, 39 of them failing alone) found tests/test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not: assert True is False (the same test TEST.593 fixed in #5079, so a later change broke it again). It was
+  measured on main e6939031f, so it may be fixed or flaky under load
+  since. Do: reproduce on current main first (run the test alone); if it
+  still fails, find the change that broke it (bisect) and fix at the
+  cause, a layout test never loosened to pass. Lock-free, no migration.
+  Done: the test passes alone on current main. Version 8.1. Owner: Core 5.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.593.
+
+- [ ] **TEST.638 test_web_admin_menu_fits.py fails for the laptop, phone, short and tablet sizes in light and dark: on web.sector the panel is not at its button, the button at negative y (bug)**
+  The browser test run of 11-05 (as the lane reported, about 9:28 PM EST,
+  47 failures, 39 of them failing alone) found tests/test_web_admin_menu_fits.py (laptop, phone, short and tablet by light and dark, 8 cases): on web.sector the admin panel is not at its button; the button is at a negative y. It was
+  measured on main e6939031f, so it may be fixed or flaky under load
+  since. Do: reproduce on current main first (run the test alone); if it
+  still fails, find the change that broke it (bisect) and fix at the
+  cause, a layout test never loosened to pass. Lock-free, no migration.
+  Done: the test passes alone on current main. Version 8.1. Owner: Core 1.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.593.
 
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density

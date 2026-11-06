@@ -632,6 +632,11 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.616 | tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug) |  |  |
 | TEST.614 | tests/test_prevalence.py::test_resolve_keeps_forced_flags_and_the_forcing_rules fails: HABITABLE_WORLD is True but the test expects None (bug) |  |  |
 | TEST.633 | tests/js/galaxynebulae.test.mjs fails on main: "a region's blob is the group's sphere in the colour of its dominant family, with a ring when it holds several" expects blob.ring true (bug) |  |  |
+| TEST.634 | test_web_browser_layout.py::test_controls_do_not_overlap[web.galaxy at 390, 600, 820 and 1280] fails: on /galaxy the Go to button and address input overlap the site search link, Help and Menu (bug) |  |  |
+| TEST.635 | test_web_system_nav_row.py::test_system_buttons_share_one_row fails at 390, 600, 820 and 1280: the system buttons sit on more than one row, two at negative y (bug) |  |  |
+| TEST.636 | test_web_ui_fields_browser.py::test_each_kind_of_field_is_filled_and_submitted fails on desktop and phone, light and dark: strict mode violation, details.search-more > summary resolves to 2 elements (bug) |  |  |
+| TEST.637 | test_web_page_toc.py::test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not fails: assert True is False (bug) |  |  |
+| TEST.638 | test_web_admin_menu_fits.py fails for the laptop, phone, short and tablet sizes in light and dark: on web.sector the panel is not at its button, the button at negative y (bug) |  |  |
 | TEST.606 | The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug) |  |  |
 | TEST.602 | test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug) |  |  |
 | VIEW.42 | The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug) |  |  |
@@ -644,12 +649,13 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages |  |  |
-| PERF.242 | Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget | GEN.1282 |  |
+| PERF.244 | A cheaper per-body air solve: surface_air.solve redraws the outgassed mixture about 8 times per body (14 gas-equilibrium solves per body); warm-start or cache the mixture across the fixed-point iterations | GEN.1282 |  |
 | GEN.1282 | Settle orbit spacing before any atmosphere is solved, so a planet pushed outward by space_orbits is built once, not twice (about 60 percent of the cost of a hot O star system) |  |  |
 | GEN.1297 | values_from_body does not hand day_share_mean to the latitude bands: generation computes every rocky band for a point star while the re-score and API use the star's real angular size (bug) |  |  |
 | GEN.1298 | Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug) |  |  |
 | GEN.1296 | The volatile-bearing branch (i6) of the lava vapor stage raises "no convergence" from gas_equilibrium.solve for carbon at held fO2 when hot and at low pressure (4000 K at 1 bar, 6000 K at 100 bar) (bug) |  |  |
 | GEN.1284 | Generated systems hold less mass than the density profile expects: 78 percent in a solar-circle sample (bug) |  |  |
+| GEN.1300 | After the GEN.1284 fix, placed systems still hold 6 to 8 percent less mass than the density profile expects with the count right: find whether the mass draw or a leftover placement bias holds it | GEN.1284 |  |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) |  |  |
 | GEN.1287 | Wire rogue_mass_function into rogue_topup.draw_mass_earth in place of tuning.ROGUE_PLANET_MASS_BINS (RM1, RM2) |  |  |
 | GEN.1299 | The planet architecture ejects about 0.1 body per star where the observed free-floating yield is 8 to 42 per star (0.33 Earth masses and up) and 0.8 to 7.5 rocky bodies per star: decide where the yield should come from |  |  |

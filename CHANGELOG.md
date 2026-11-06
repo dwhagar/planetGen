@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3403] - 2026-11-06
+
+**Headline:** The nebula blob test says what the map does: a group of nebulae has no ring.
+
+### Changed
+- `tests/js/galaxynebulae.test.mjs` expected a ring on a group of several nebulae; the code has drawn none since MAP.392 (the circles were not wanted), so the test and its title now say a group of 12 and a single nebula both have no ring (TEST.633). Test only; `generation-output: unchanged`.
+
 ## [8.0.3402] - 2026-11-06
 
 **Headline:** The Sector Map has a Gravity layer in the View menu that colors the sector's zones by pull, well depth or tidal strength and shows the saddle points between wells.
