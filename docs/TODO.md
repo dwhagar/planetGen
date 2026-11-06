@@ -17293,6 +17293,21 @@ clears each one.
   TODO thread.
   Prerequisites: none. Related: GEN.1276, GEN.1277.
 
+- [ ] **GEN.1306 Planet class matrix edges left after GEN.1281: cold air worlds, hot anoxic worlds, the 1 kPa and 10 kPa clamp edges, heavy oxygen ocean worlds, thin-air oxygen worlds**
+  Core 4 measured the class matrix on 1448 generated bodies while building
+  GEN.1281 and found gaps outside that item. Do, one part each, smallest
+  first: (1) the Z and K pressure edges miss bodies at exactly 10,000 Pa
+  and 1,000 Pa (CO2 air clamp edges); (2) heavy oxygen ocean worlds at
+  1.25 to 2 g fall between M/H/O/P/R (stop at 1.25 g) and V (starts at
+  2 g); (3) thin-air oxygen worlds at 1 kPa; (4) cold worlds 233 to 273 K
+  with air have no class; (5) hot anoxic worlds above 400 K at 10 kPa.
+  Each part reads the physics (conditions and the finished body), not a
+  game rate, and registers any stand-in in GEN.725. Lock item (class
+  letters change). Done: a 1448-body measure shows each gap closed or a
+  stated reason it stays at nearest class. Version 8.1. Owner: Core 4,
+  after GEN.1281. Filed by the TODO thread.
+  Prerequisites: GEN.1281. Related: GEN.909, GEN.822.
+
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal
