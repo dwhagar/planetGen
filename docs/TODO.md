@@ -17200,6 +17200,17 @@ clears each one.
   8.1. Owner: none yet (life lane). Filed by the TODO thread from Bug 1.
   Prerequisites: none. Related: GEN.750.
 
+- [ ] **TEST.654 tests/test_sheet_fill.py::test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies fails on main (bug)**
+  Aux 5 found it red on plain main (5:10 PM EST as the lane reported)
+  while testing GEN.1092 part B, and says it is not its change. The test
+  checks that every body kind whose property sheet says tide applies
+  stores a tide. Do: say which commit turned it red (bisect the one test
+  file), which item owns it, and either fix the test with the reason or
+  fix the code that stopped storing the tide. Lock-free unless stored
+  values change. Done: the test is green on main with a note of the
+  cause. Version 8.1. Owner: Tides 1 (tides). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.842.
+
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal
