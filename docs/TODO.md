@@ -17906,6 +17906,20 @@ clears each one.
   main. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.642.
 
+- [ ] **TEST.645 tests/test_db_column_round_trip.py::test_every_column_is_written fails in a combined run and passes alone: moons.rogue_planet_id depends on which rogues the shared galaxy draws (bug)**
+  Aux 7 (as the lane reported, 12:13 AM EST on 2026-11-06, head
+  d391accb4) saw test_every_column_is_written fail once in a combined
+  run with "moons.rogue_planet_id written after all; drop from
+  NULL_IN_THIS_GALAXY", and pass alone on the same head (3 minutes). The
+  test depends on which rogue planets the shared test galaxy draws. Do:
+  make the test not depend on the draw: build the galaxy it needs so the
+  column is always written or always null, or drive the column list from
+  what the test galaxy provably holds; then run it alone and inside the
+  combined run. Lock-free, no migration. Done: the test passes alone and
+  in the combined run. Version 8.1. Owner: Core 5. Filed by the TODO
+  thread.
+  Prerequisites: none. Related: TEST.640.
+
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
   model at the solar circle, the bulge, the disk edge and beyond 16 kpc
