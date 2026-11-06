@@ -25584,9 +25584,9 @@
       "rows": [
         {
           "burn_down": [
-            "replace",
-            "GEN.1295",
-            "the rogue research settles the per-star rate of free-floating planets and replaces the level ceilings"
+            "no data",
+            "-",
+            "the level ceilings are the numbers of the Rogues dropdown that Boss sets, a display choice and not a research rate; tier stays"
           ],
           "fields": [
             [
@@ -25668,9 +25668,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1295",
-            "the ejection records give the scatterer's distance, so the drawn range is replaced by the architecture's own"
+            "no data",
+            "-",
+            "top-up rogues have no donor and no ejection record by design (apparent origin), so there is no scatterer distance to read; the drawn range stays"
           ],
           "fields": [
             [
@@ -25984,9 +25984,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1295",
-            "the closest approach of each scattering is in the architecture's own ejection record, which replaces the line through three medians"
+            "no data",
+            "-",
+            "the stored Loss record holds no closest approach (distance, formation distance, time, scatterer orbit and mass, Safronov number, Hill radius only); the curve through three measured points stays until a deterministic closest approach is derived from the scatterer geometry"
           ],
           "fields": [
             [
@@ -30040,9 +30040,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1295",
-            "the ejection record gives the real closest approach, so the curve through two printed points is not needed"
+            "no data",
+            "-",
+            "the stored Loss record holds no closest approach; the curve through two printed points stays until a deterministic closest approach is derived from the scatterer geometry"
           ],
           "fields": [
             [
