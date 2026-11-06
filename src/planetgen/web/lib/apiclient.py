@@ -1496,6 +1496,13 @@ def get_sector_facilities(db, sector_id):
     return _request(f"/sectors/{sector_id}/facilities", {"db": db})["items"]
 
 
+def get_sector_gravity(db, sector_id, mode="pull", field="total"):
+    """Returns `GET /api/sectors/<id>/gravity`'s body (API.24): the sector's grid for `mode` and `field`, or, while the grid is being built, the `202` body
+    (`{"status": "accepted", "job_id", "status_url"}`: it has no `values`). Never cached."""
+    _require_db(db)
+    return _request(f"/sectors/{sector_id}/gravity", {"db": db, "mode": mode, "field": field})
+
+
 def get_containers(db, kind=None):
     """Returns `GET /api/containers`'s `containers`: every stored globular cluster and superbubble (or those of `kind`)."""
     _require_db(db)

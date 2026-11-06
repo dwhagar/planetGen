@@ -4274,6 +4274,16 @@ function initGalaxyMap3d(canvasEl, data) {
           return response.json();
         });
     } : null,
+    // MAP.168: the open sector's gravity grid (the sector page's /gravity route) for a mode and field; {building: true} while the grid is being worked out.
+    fetchSectorGravity: sceneData.sectorUrl && data.pinned ? function (id, mode, field) {
+      var path = sectorUrl(id).split("?")[0] + "/gravity?mode=" + encodeURIComponent(mode) + "&field=" + encodeURIComponent(field);
+      return fetch(path, { headers: { Accept: "application/json" } })
+        .then(function (response) {
+          if (response.status === 202) return { building: true };
+          if (!response.ok) throw new Error("HTTP " + response.status);
+          return response.json();
+        });
+    } : null,
     // The scene of a cell nothing was generated in (MAP.162), from its address.
     fetchUnchartedScene: sceneData.unchartedSceneUrl ? function (at) {
       var path = String(sceneData.unchartedSceneUrl).replace("{shell}", encodeURIComponent(at.shell))
