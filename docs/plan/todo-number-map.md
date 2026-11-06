@@ -2667,7 +2667,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh | none | done, PR #5324 |
 | OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | none | done, PR #5322 |
 | OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log | none | done, PR #5326 |
-| OPS.102 | Debug log: an area column in, the dead logger-name column out | none | open |
+| OPS.102 | Debug log: an area column in, the dead logger-name column out | none | done, PR #5328 |
 | OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | none | open |
 | OPS.104 | One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone | none | done, PR #5202 |
 | OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | none | done, PR #5306 |
