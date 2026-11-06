@@ -5,7 +5,7 @@ TEST.181: a sector's contents do not depend on the order sectors were generated 
 GEN.306, GEN.307). The same small set of sectors is generated in two orders and at one worker and four, and the
 fingerprints of the set (GEN.58 over the canonical encoder of GEN.304) are compared:
 
-- sectors that share an ID cell get their collision numbers by address, not by which saved first (GEN.307);
+- sectors that draw the same point hold different Object ID names whichever saved first (GEN.307, GEN.1256);
 - a sector reached by the bright-star backfill holds the same stars whichever sector the run reached first;
 - the same sectors at one worker and four are the same sectors.
 

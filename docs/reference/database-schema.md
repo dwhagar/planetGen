@@ -720,7 +720,7 @@ planet, standalone black hole or neutron star, nebula, supernova remnant
 and its collapsed core, quasar, interstellar comet or asteroid field)
 stores its Object ID (`uid`, `galaxy/object_uid.py`) in its printed form,
 such as `FE81000A2B-0000005-000`, as its `name`, instead of the rules below:
-the INSERT that gives the row its `uid` writes it, and migration 0214
+the INSERT that gives the row its `uid` writes it, and migration 0221
 rewrote the 19-digit position IDs it replaced. The API shows these names
 as local names under the naming key. These names never go through
 `system_name_registry`. A name given

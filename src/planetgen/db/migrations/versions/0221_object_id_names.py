@@ -1,6 +1,6 @@
 """The Object ID is the stored name of an object with no star (GEN.1256).
 
-Schema v214. No column changes. The objects named by their position ID (GEN.64) take their Object ID (GEN.171, `galaxy/object_uid.py`) as
+Schema v221. No column changes. The objects named by their position ID (GEN.64) take their Object ID (GEN.171, `galaxy/object_uid.py`) as
 the stored `name`, in its printed form (`FE81000A2B-0000005-000`): `rogue_planets`, `black_holes`, `neutron_stars`, `nebulae`,
 `supernova_remnants`, `quasars`, `interstellar_comets` and `asteroid_fields`. The API shows these by their local name (`names/naming_key.py`)
 and the galaxy's naming key, as before. A row with no `uid` keeps its name. Every step skips work already done, so a stopped run can be started again.
@@ -10,8 +10,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0214"
-down_revision = "0213"
+revision = "0221"
+down_revision = "0220"
 branch_labels = None
 depends_on = None
 
