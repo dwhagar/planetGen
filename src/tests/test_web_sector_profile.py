@@ -44,7 +44,7 @@ def _profile(unresolved=None, seconds=3.0, superbubble=None, charted_sector_id=N
 
 def _uncharted(sector_id=None):
     return {"shell_index": 40, "band_index": 0, "wedge_index": 3, "designation": "ABC", "center_pc": [160.0, 0.0, 0.0],
-            "edge_pc": 4.0, "sector_id": sector_id, "stars": [{"id": 1}], "scattered": []}
+            "edge_pc": 4.0, "sector_id": sector_id, "stars": [{"id": 1, "star_type": "G2", "luminosity_sol": 1.0}], "scattered": []}
 
 
 @pytest.fixture
