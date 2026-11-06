@@ -9846,39 +9846,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: DB.106, GEN.798. Related: GEN.477, PERF.125, PERF.120.
 
-- [ ] **GEN.801 Wire the giant-planet interior outputs into the field, the heat and the description (G3)**
-  Unused stored values audit (the "Find stored values nothing uses"
-  thread, report reports/unused-stored-values-audit-2026-10-24.md,
-  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
-  Boss's 10:16 PM EDT instruction to file every stored or calculated
-  value nothing uses that is not already in the works. None of it is a
-  wrong number on a page today. G3. physics/giant_interior.py stores
-  interior_kind, dilute_core_mass_earth, metallization_pressure_gpa,
-  helium_depletion, has_helium_shell and interior_layers; only
-  core_mass_earth has a reader. Do: a giant's dipole moment and class
-  come from the metallic-hydrogen shell (outer radius of metallization,
-  dilute core), its internal heat reads the layer structure, and the
-  description says what the interior is. Done: a Jupiter-like, a
-  Saturn-like and a hot giant sample change their field and text with
-  their interior, and the six columns have readers. Version 8.1.
-  Owner: Aux 3 (bulk composition), after GEN.733. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  draws through draw.py; a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`; stand-ins get
-  GEN.725 registry rows.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): [R1429] giant radii are
-  transcribed in full (physics/giant_radius_tables.py); [R2741, R4881] enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Prerequisites: GEN.809. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
-  Owner change (TODO) (6:08 PM EST on 2026-11-06, efficiency hand-off, Planets 1 queue empty): Planets 1 takes it (the giant column with GEN.1299's follow-ups); Aux 2 and Aux 3 are retired.
-
 - [ ] **GEN.804 Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1)**
   Unused stored values audit chain
   (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
@@ -10558,41 +10525,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it closes with it.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
-- [ ] **GEN.968 Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.743 into a lock-free part and a wiring part. Do:
-  integrate the Tolman-Oppenheimer-Volkoff equations over the 21 tables
-  on disk for radius and layers across a mass sweep, tested against
-  NICER radii (secondary sources accepted). Changes no generated output,
-  so it merges freely and a lane waiting for a train can do it. Every
-  stand-in it adds gets a GEN.725 registry row with tier and tweak level
-  (L0 to L4). Owner: Star 2 (new lane, proposed by TODO). Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): 21 neutron star equations of
-  state [R2834] and 20 outer-crust models [R4028]
-  are downloaded at setup and read by tests only
-  (datasets/neutron_star_matter.py); Bedard white dwarf sequences are
-  carbon-oxygen only. Catalog sections 1 and 2.
-  Prerequisites: none. Related: GEN.743.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 2 takes it: star physics wiring (Star 2 retired; lock-free halves GEN.968 and GEN.970 first, then the wiring halves as one stellar window).
-
-- [ ] **GEN.970 Stellar spectra (a): a spectral library entry (BT-Settl, MUSCLES for M dwarfs) and a lookup by temperature, gravity and activity, with tests on the Sun and an M dwarf**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.745 into a lock-free part and a wiring part. Do: a setup
-  catalogue entry for the spectral library (licence note left to Boss),
-  a lookup by Teff, gravity and activity, and tests that give the Sun's
-  and an M dwarf's UV band shares. Changes no generated output, so it
-  merges freely and a lane waiting for a train can do it. Every stand-in
-  it adds gets a GEN.725 registry row with tier and tweak level (L0 to
-  L4). Owner: Star 2 (new lane, proposed by TODO). Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No stellar spectral library is
-  held (BT-Settl and MUSCLES need a setup entry); MIST gives Teff, log g
-  and luminosity; brown_dwarf_teff_map.json is in the repo. Catalog
-  sections 2 and 5.
-  Prerequisites: none. Related: GEN.745.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 2 takes it: star physics wiring (Star 2 retired; lock-free halves GEN.968 and GEN.970 first, then the wiring halves as one stellar window).
-
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
   secondary sources accepted by default; registered stand-ins allowed).
@@ -11053,21 +10985,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1047. Related: GEN.1033.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
   Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 1 takes it: the oddity wiring chain as one stacked PR (modules by Planets 1, Aux 7, Core 4 and Aux 3 are in the repo), then TEST.492 once.
-
-- [ ] **GEN.1059 The GEN.412 inversion of a stored giant row ignores the giant's own heat, so its stored albedo and greenhouse factor no longer reproduce its temperature from starlight alone (bug)**
-  Found by Aux 5 on TEST.484 (relayed 4:20 PM EDT 2026-10-30 as the lane
-  reported). Since GEN.816 a giant carries its own internal heat; the
-  inversion that recovers the albedo or the greenhouse factor from a
-  stored giant row (GEN.412) does not include it. Do: include the
-  internal heat in the inversion (or store the factors it needs), with a
-  round-trip test (draw a giant, invert, reproduce its temperature).
-  Done: the round trip holds for giants of every mass; it may change
-  outputs, so a lock turn if so. Owner: Aux 2 (assigned by TODO, while
-  in the giant column with GEN.1030/1033). Version 8.1.
-  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
-  coordinator at 3:21 PM EDT; owner is now Aux 2.
-  Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
-  Owner change (TODO) (6:08 PM EST on 2026-11-06, efficiency hand-off, Planets 1 queue empty): Planets 1 takes it (the giant column with GEN.1299's follow-ups); Aux 2 and Aux 3 are retired.
 
 - [ ] **GEN.1068 Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py)**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
