@@ -96,4 +96,8 @@ Commit each file came from:
 - v210: train 10 (GEN.1232a belt history text, before DOC.103 American spelling; the train schema before the sweep)
 - v211: GEN.1221 (humidity and groundwater, before the next change; train 10 schema at bf93bc352)
 - v212: train 11 after GEN.1221's migration 0212 (humidity and groundwater), before GEN.1254 scatter Object IDs
-- v213: GEN.1207 best-fit classes (train 11 schema after GEN.1254 scatter Object IDs), before migration 0214 class_match
+- v213: train 12 after GEN.1254's migration 0213 (scatter Object IDs), before GEN.1276 nebula composition (0214)
+- v214: train 12 after GEN.1276's migration 0214 (nebula composition), before GEN.1277 nebula field composition (0215)
+- v215: train 12 after GEN.1277's migration 0215 (nebula field composition), before VIEW.25 sky tier draws (0216)
+- v216: train 12 after VIEW.25's migration 0216 (sky tier draws), before GEN.1265 temperature coverage (0217)
+- v217: train 12 after GEN.1265's migration 0217 (temperature coverage), before GEN.1207 best-fit classes (0218)

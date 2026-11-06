@@ -1,7 +1,7 @@
 """How well the class fits a body (GEN.1207).
 
-Schema v214. `planets`, `moons` and `rogue_planets` gain `class_match` (DOUBLE, the percent match of the stored class as a fraction, 0 when no class fits the body and
-the stored one is the nearest), `runner_up_class` (CHAR(1), the next best class) and `runner_up_match` (DOUBLE). All three are NULL here: a row made before v214 gets them
+Schema v218. `planets`, `moons` and `rogue_planets` gain `class_match` (DOUBLE, the percent match of the stored class as a fraction, 0 when no class fits the body and
+the stored one is the nearest), `runner_up_class` (CHAR(1), the next best class) and `runner_up_match` (DOUBLE). All three are NULL here: a row made before v218 gets them
 when the galaxy is regenerated, because the best-fit classifier reads the finished body and a stored letter is not rescored by a migration. A column already there is
 skipped, so a stopped run can be started again.
 """
@@ -11,8 +11,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0214"
-down_revision = "0213"
+revision = "0218"
+down_revision = "0217"
 branch_labels = None
 depends_on = None
 
