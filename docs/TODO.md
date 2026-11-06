@@ -18586,23 +18586,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
-- [ ] **OPS.99 Compact warm-up progress by time, and the progress bars back inside update.sh**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: with no tee the warm-up's output stays a terminal, so the bars
-  draw; in a log or pipe, one progress line a minute (and one per 10%,
-  whichever is rarer) with percent, chunks, elapsed and time left;
-  worker seconds and chunks-at-once move into the family's closing line;
-  --follow shows the same. Touches cli/warm_progress.py, cli/warm.py and
-  tests. Done: update.sh shows bars in a terminal and a quiet progress
-  line in a log.
-  Prerequisites: OPS.96.
-
 - [ ] **OPS.101 Named logs for the unattended long jobs: tiles.log, orbits.log and update.log**
   Boss decided (11-05) that every log uses the system (local) time with
   its zone, and that logging is unified across the board; the standard
@@ -18657,7 +18640,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   stagemark.py, warmup.py, warm_progress.py, the generate stages and
   tests. Done: the test passes and every script and command uses the
   table.
-  Prerequisites: OPS.99, OPS.101, OPS.102.
+  Prerequisites: OPS.101, OPS.102.
 
 ## DOC: Documentation
 

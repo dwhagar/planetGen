@@ -2664,7 +2664,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.96 | warmup.log in the log folder, written by planetgen warm itself, local time with zone | none | done, PR #5207 |
 | OPS.97 | Local time with its zone in every log form (the standard changes from UTC), including the activity log and its fail2ban filter | none | done, PR #5207 |
 | OPS.98 | A time on every line of every script and command | none | done, PR #5322 |
-| OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh | none | open |
+| OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh | none | done, PR #5324 |
 | OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | none | done, PR #5322 |
 | OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log | none | open |
 | OPS.102 | Debug log: an area column in, the dead logger-name column out | none | open |
