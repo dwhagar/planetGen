@@ -1,6 +1,6 @@
 """A name kept when charting names a star (GEN.1257).
 
-Schema v221. `designations.reason` takes a sixth value, `charted`: an uncharted star has a name its Object ID spells (a local name, GEN.1255) that is computed and never
+Schema v222. `designations.reason` takes a sixth value, `charted`: an uncharted star has a name its Object ID spells (a local name, GEN.1255) that is computed and never
 stored, and when charting gives the star its own word-salad name the spelled name is kept as the first retired name of its system, so the "Formerly" line shows it and a
 search for it finds the system. The CHECK (`chk_designations_reason`) is replaced by one that lists the six reasons. No row changes.
 """
@@ -8,8 +8,8 @@ search for it finds the system. The CHECK (`chk_designations_reason`) is replace
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0221"
-down_revision = "0220"
+revision = "0222"
+down_revision = "0221"
 branch_labels = None
 depends_on = None
 
