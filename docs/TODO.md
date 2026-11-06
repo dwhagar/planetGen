@@ -19276,6 +19276,15 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   claude/project-thread-a1n0vp. Filed by the TODO thread.
   Prerequisites: none. Related: OPS.99, OPS.100, OPS.107.
 
+- [ ] **OPS.109 The update.sh data set step lists the kept files by download URL (one "kept URL (n files)" line per URL) and says the folder they are stored in**
+  Boss (about 7:25 PM EST on 2026-11-05, as the lane reported): the data
+  set step of update.sh should list the files it kept grouped by
+  download URL, one "kept URL (n files)" line per URL, and say which
+  folder they are stored in. Version 8.3. Lock-free, no migration, no
+  epoch. Owner: the project thread building OPS.106 to OPS.108 (PR
+  5243). Filed by the TODO thread.
+  Prerequisites: none. Related: OPS.99, OPS.100.
+
 ## DOC: Documentation
 
 - [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**

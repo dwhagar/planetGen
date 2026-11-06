@@ -30,6 +30,7 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | OPS.106 | update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed |  |  |
 | OPS.107 | The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs |  |  |
 | OPS.108 | A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged |  |  |
+| OPS.109 | The update.sh data set step lists the kept files by download URL (one "kept URL (n files)" line per URL) and says the folder they are stored in |  |  |
 | OPS.98 | A time on every line of every script and command |  |  |
 | OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh |  |  |
 | OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | OPS.98 |  |
