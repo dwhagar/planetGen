@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3455] - 2026-11-06
+
+**Headline:** A planet's or moon's class is now the one it fits best, with the match stored and shown ("It fits class M 92 percent and class O 41 percent"), and the five new classes R, U, X, Y and Z are in use.
+
+### Changed
+- **GEN.1207: the best-fit classifier replaces the first-match tree.** Every class has its own conditions (`planet_class_fit.json`); the stored class is the one with the highest percent match, a tie going to the class with more conditions and then to the letter. `planets`, `moons` and `rogue_planets` store `class_match`, `runner_up_class` and `runner_up_match` (migration 0213). The classes R (Hothouse), U (methane-ethane), X (ammonia-water), Y (sulfuric acid) and Z (hot thin-air) now name bodies; Q and W stay free.
+- A body that fits no class (1.7 percent of a 775-body sample: temperate, 1.4 to 1.9 g, about 10 kPa, no oxygen) is settled in two steps, both registered in section 6.189: a family class it fits with its gravity and air amount set aside gets the digit 9; a body that still fits nothing gets its nearest ordinary class with a match of 0. The digits 1 to 4 of the F, G, U, X and Y families wait for their ideal bands.
+- The class pages state conditions instead of a check order, the planet page says how well the class fits, and the wording about age and stage is gone (GEN.1208: "A class is the world's state now; a world can change class as its air, water or heat change."). `tests/class_fit_cli.py` is now the class sweep. Generator epoch bump (numbered at merge): the stored letters of the edge bodies change.
+generation-output: changed
+
 ## [8.0.3454] - 2026-11-06
 
 **Headline:** The small captured moons of a planet are now saved with the galaxy and read back, and they are lost when the planet moves in and its stable zone shrinks.
