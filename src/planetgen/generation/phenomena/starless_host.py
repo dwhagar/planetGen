@@ -90,6 +90,14 @@ def ejected_moon_limit_km(loss, planet_mass_kg, donor_mass_kg, u, eccentricity=0
     return rogue_moons.moon_limit_km(loss.hill_radius_au * constants.AU_TO_KM, fraction, r_min_km, planet_mass_kg, loss.perturber_mass_kg)
 
 
+def stripped_moon_limit_km(loss):
+    """
+    The widest orbit a moon of a body its birth cluster pulled off (`Loss` of kind `stripped`, GEN.1288) can have and still be with it, km: the Domingos fraction of the body's own Hill radius at the loss
+    (`Loss.hill_radius_au`). A distant encounter takes the planet with its moons, so nothing is cut inside that window as a close scattering cuts it (`ejected_moon_limit_km`).
+    """
+    return loss.hill_radius_au * constants.AU_TO_KM * clearance_ledger.moon_hill_fraction(0.0)[0]
+
+
 def host_of(donor, event):
     """The `StarlessHost` of the rogue an `ejection_events.EjectionEvent` made: the donor with the rogue's age."""
     return StarlessHost(donor, event.age_gy)

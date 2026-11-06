@@ -21,7 +21,7 @@ DONOR_UID = bytes(range(1, 13))
 
 def _event():
     return ejection_events.EjectionEvent(DONOR_UID.hex(), 0, 3.0 * EARTH_KG, 2.0 * EARTH_KG, 5.0, 5.0, 3.0, 3000.0 * EARTH_KG, True, 1.0, 2.0, 1.5,
-                                         (8.0, -3.0, 2.0), (4.0, 5.0, -1.0), 2.0e6)
+                                         (8.0, -3.0, 2.0), (4.0, 5.0, -1.0), 2.0e6, "thrown")
 
 
 def _rogue(seed, mass_earth, moons):

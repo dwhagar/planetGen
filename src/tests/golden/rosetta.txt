@@ -788,6 +788,7 @@
 "AMBIENT_DENSITY_CM3":null,
 "ASTEROID_BELT":null,
 "BINARY_SYSTEM":null,
+"CLUSTER_HISTORY":null,
 "COMETS":null,
 "FE_H_PEAKS":null,
 "GALAXY_SHAPE":null,

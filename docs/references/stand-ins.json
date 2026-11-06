@@ -30827,15 +30827,15 @@
           "fields": [
             [
               "What it is",
-              "cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to every orbit"
+              "cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to the pieces of a history in which the orbit is soft (unbinding_epoch_myr); a harder piece unbinds nothing"
             ],
             [
               "The range it moves in",
-              "a factor of a few either way for hard planets"
+              "the soft boundary (circular speed under V) by a factor of two"
             ],
             [
               "Where it holds",
-              "planets soft against the cluster (circular speed under V, soft); a harder orbit is overestimated by a factor the paper does not give"
+              "planets soft against the cluster (circular speed under V, soft); a harder orbit is less easily unbound than the formula says, by a factor the paper does not give, so none is unbound"
             ],
             [
               "What would show it wrong",
@@ -30856,9 +30856,9 @@
           "slug": "6-113-cu1",
           "tier": "T3",
           "tier_code": "T3",
-          "tweak": "L1",
+          "tweak": "L0",
           "unread": null,
-          "what": "cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to every orbit"
+          "what": "cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to the pieces of a history in which the orbit is soft (unbinding_epoch_myr); a harder piece unbinds nothing"
         },
         {
           "burn_down": null,
@@ -30935,6 +30935,158 @@
           "tweak": "L1",
           "unread": null,
           "what": "cluster_unbinding.half_mass_density: the density the planet sees is the half-mass density 3 M / (8 pi r_h^3) for the whole life of the cluster"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cluster_unbinding.history_of: a cluster's life from the end of its disk (3 Myr) to its age is cut into HISTORY_PIECES 8 equal pieces, each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
+            ],
+            [
+              "The range it moves in",
+              "4 to 16 pieces; the expansion factor 5 to 10"
+            ],
+            [
+              "Where it holds",
+              "clusters of the generated kind (a radius that grows linearly to its present value in 100 Myr)"
+            ],
+            [
+              "What would show it wrong",
+              "the stored birth radius and mass of the cluster"
+            ],
+            [
+              "What replaces it",
+              "the cluster's own birth radius and mass history stored with it"
+            ],
+            [
+              "Evidence",
+              "the radius law of open_cluster_evolution.half_mass_radii_pc; the mid-point factor and the piece count are ours"
+            ]
+          ],
+          "id": "CU4",
+          "key": "6.113:CU4",
+          "kind": "P",
+          "slug": "6-113-cu4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cluster_unbinding.history_of: a cluster's life from the end of its disk (3 Myr) to its age is cut into HISTORY_PIECES 8 equal pieces, each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cluster_unbinding.VIRIAL_OVER_HALF_MASS 1.30 and virial_dispersion_km_s: the one-axis dispersion of a cluster in virial equilibrium is sqrt(G M / (6 r_vir)) with the virial radius 1.30 half-mass radii (a Plummer sphere: 16 / (3 pi) / 1.305)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "a cluster in virial equilibrium with a Plummer profile (the catalogue clusters are Kings)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dispersion of a cluster far from this"
+            ],
+            [
+              "What replaces it",
+              "the stored velocity dispersion of the cluster"
+            ],
+            [
+              "Evidence",
+              "the virial theorem for a Plummer sphere (our derivation)"
+            ]
+          ],
+          "id": "CU5",
+          "key": "6.113:CU5",
+          "kind": "B",
+          "slug": "6-113-cu5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cluster_unbinding.VIRIAL_OVER_HALF_MASS 1.30 and virial_dispersion_km_s: the one-axis dispersion of a cluster in virial equilibrium is sqrt(G M / (6 r_vir)) with the virial radius 1.30 half-mass radii (a Plummer sphere: 16 / (3 pi) / 1.305)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cluster_unbinding.UNBINDING_KICK_OVER_CIRCULAR sqrt(2) - 1: a planet the cluster unbinds leaves its star at this multiple of its circular speed (the impulse that just lifts it to the escape speed, sqrt(2) times the circular one); the orbital velocity is added, so the rogue leaves near the escape speed"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 1"
+            ],
+            [
+              "Where it holds",
+              "every planet pulled off (the cross section of [R4184] is for a change of the binding energy by its own size)"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of unbinding encounters with a speed at infinity far from the escape speed"
+            ],
+            [
+              "What replaces it",
+              "the speed at infinity from the energy the encounter gave"
+            ],
+            [
+              "Evidence",
+              "the energy balance (our derivation)"
+            ]
+          ],
+          "id": "CU6",
+          "key": "6.113:CU6",
+          "kind": "P",
+          "slug": "6-113-cu6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cluster_unbinding.UNBINDING_KICK_OVER_CIRCULAR sqrt(2) - 1: a planet the cluster unbinds leaves its star at this multiple of its circular speed (the impulse that just lifts it to the escape speed, sqrt(2) times the circular one); the orbital velocity is added, so the rogue leaves near the escape speed"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "starless_host.stripped_moon_limit_km: a planet pulled off by a distant encounter keeps its moons out to the Domingos fraction of its own Hill radius at the loss (no close-approach cut as a scattering gives)"
+            ],
+            [
+              "The range it moves in",
+              "the fraction 0.3 to 0.6 of the Hill radius"
+            ],
+            [
+              "Where it holds",
+              "moons of a planet unbound by a passing star"
+            ],
+            [
+              "What would show it wrong",
+              "a moon system stripped by an unbinding encounter"
+            ],
+            [
+              "What replaces it",
+              "the moons' stability under the encounter"
+            ],
+            [
+              "Evidence",
+              "the Hill-sphere argument (our reading)"
+            ]
+          ],
+          "id": "CU7",
+          "key": "6.113:CU7",
+          "kind": "P",
+          "slug": "6-113-cu7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "starless_host.stripped_moon_limit_km: a planet pulled off by a distant encounter keeps its moons out to the Domingos fraction of its own Hill radius at the loss (no close-approach cut as a scattering gives)"
         }
       ],
       "slug": "6-113-stand-ins-of-the-planets-a-birth-cluster-strips",

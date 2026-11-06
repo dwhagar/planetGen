@@ -24,7 +24,7 @@ def seed(distance, mass_earth, core_earth, runaway, migrated=False, formed=None)
 
 
 def lost_of(**kwargs):
-    base = dict(chain_mass_kg=0.0, merge_debris_kg=0.0, merges=0, capped_kg=0.0, capped=0, small=(), swept=(), thrown=(), snow_line_au=2.7, star_mass_kg=SUN)
+    base = dict(chain_mass_kg=0.0, merge_debris_kg=0.0, merges=0, capped_kg=0.0, capped=0, small=(), swept=(), thrown=(), snow_line_au=2.7, star_mass_kg=SUN, stripped=())
     base.update(kwargs)
     return pa.Lost(**base)
 

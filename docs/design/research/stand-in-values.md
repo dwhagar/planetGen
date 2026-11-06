@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1192 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1196 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 161 | 17 | 10 | 1 | 0 | 189 |
 | T2 | 122 | 50 | 1 | 1 | 0 | 174 |
-| T3 | 85 | 42 | 7 | 9 | 0 | 143 |
+| T3 | 87 | 41 | 7 | 9 | 0 | 144 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 111 | 85 | 24 | 61 | 0 | 281 |
+| T6 | 113 | 86 | 24 | 61 | 0 | 284 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 653 | 248 | 58 | 188 | 45 | 1192 |
+| All | 657 | 248 | 58 | 188 | 45 | 1196 |
 
 ## How the labels were given
 
@@ -1318,9 +1318,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| CU1 | B | T3 | L1 | cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to every orbit | a factor of a few either way for hard planets | planets soft against the cluster (circular speed under V, `soft`); a harder orbit is overestimated by a factor the paper does not give | an N-body unbinding rate for a planet at 5 to 30 AU in a cluster of 1 km/s that is far below the formula | the cross sections of the N-body encounters for hard orbits | [R4184] eqs. 36 and 37, read | - | - |
+| CU1 | B | T3 | L0 | cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to the pieces of a history in which the orbit is soft (`unbinding_epoch_myr`); a harder piece unbinds nothing | the soft boundary (circular speed under V) by a factor of two | planets soft against the cluster (circular speed under V, `soft`); a harder orbit is less easily unbound than the formula says, by a factor the paper does not give, so none is unbound | an N-body unbinding rate for a planet at 5 to 30 AU in a cluster of 1 km/s that is far below the formula | the cross sections of the N-body encounters for hard orbits | [R4184] eqs. 36 and 37, read | - | - |
 | CU2 | B | T2 | L0 | cluster_unbinding.relative_speed_km_s: sqrt(6) times the one-axis dispersion, the rms relative speed of two stars from a Maxwellian | none | a cluster in virial equilibrium with isotropic motions | a cluster with a measured relative speed far from sqrt(6) sigma | the speed of encounters from the cluster's velocity distribution | the sum of two independent Maxwellians (our derivation) | - | - |
 | CU3 | P | T6 | L1 | cluster_unbinding.half_mass_density: the density the planet sees is the half-mass density 3 M / (8 pi r_h^3) for the whole life of the cluster | the density at 0.5 to 2 r_h | the encounters of planets in the half-mass region; the core is denser | a cluster where the unbound fraction of planets measured by radius shows no gradient | the density at the planet's own position from the cluster's profile (`king`) | the half-mass density is the usual single number for a cluster; the weighting is ours | - | - |
+| CU4 | P | T6 | L1 | cluster_unbinding.history_of: a cluster's life from the end of its disk (3 Myr) to its age is cut into HISTORY_PIECES 8 equal pieces, each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of `tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE` over `OPEN_CLUSTER_EXPANSION_AGE_GY` | 4 to 16 pieces; the expansion factor 5 to 10 | clusters of the generated kind (a radius that grows linearly to its present value in 100 Myr) | the stored birth radius and mass of the cluster | the cluster's own birth radius and mass history stored with it | the radius law of `open_cluster_evolution.half_mass_radii_pc`; the mid-point factor and the piece count are ours | - | - |
+| CU5 | B | T3 | L0 | cluster_unbinding.VIRIAL_OVER_HALF_MASS 1.30 and virial_dispersion_km_s: the one-axis dispersion of a cluster in virial equilibrium is sqrt(G M / (6 r_vir)) with the virial radius 1.30 half-mass radii (a Plummer sphere: 16 / (3 pi) / 1.305) | 1.2 to 1.5 | a cluster in virial equilibrium with a Plummer profile (the catalogue clusters are Kings) | a measured dispersion of a cluster far from this | the stored velocity dispersion of the cluster | the virial theorem for a Plummer sphere (our derivation) | - | - |
+| CU6 | P | T6 | L0 | cluster_unbinding.UNBINDING_KICK_OVER_CIRCULAR sqrt(2) - 1: a planet the cluster unbinds leaves its star at this multiple of its circular speed (the impulse that just lifts it to the escape speed, sqrt(2) times the circular one); the orbital velocity is added, so the rogue leaves near the escape speed | 0.2 to 1 | every planet pulled off (the cross section of [R4184] is for a change of the binding energy by its own size) | an N-body run of unbinding encounters with a speed at infinity far from the escape speed | the speed at infinity from the energy the encounter gave | the energy balance (our derivation) | - | - |
+| CU7 | P | T6 | L0 | starless_host.stripped_moon_limit_km: a planet pulled off by a distant encounter keeps its moons out to the Domingos fraction of its own Hill radius at the loss (no close-approach cut as a scattering gives) | the fraction 0.3 to 0.6 of the Hill radius | moons of a planet unbound by a passing star | a moon system stripped by an unbinding encounter | the moons' stability under the encounter | the Hill-sphere argument (our reading) | - | - |
 
 ## 6.115 Stand-ins of the composition of a belt member
 

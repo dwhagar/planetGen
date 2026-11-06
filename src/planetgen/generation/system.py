@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, debris_dust, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -2315,13 +2315,30 @@ class StarSystem:
     def ejected_losses(self):
         """
         What the planet architecture of each star of this system threw out, as `(star, Loss)` pairs (GEN.1119, GEN.1111): the `thrown` losses of the
-        plan each star's kept planets were built from, with the share of each that ends ejected (`Loss.ejected`). Empty for a system rebuilt from
+        plan (and the `stripped` ones, the planets its birth cluster pulled off, GEN.1288) each star's kept planets were built from, with the share of each that ends ejected (`Loss.ejected`). Empty for a system rebuilt from
         storage (`from_dict` has no plan; a donor's rogues are made and saved when it is generated) and for a star with no plan.
         """
         found = []
         for star, architecture in getattr(self, "architectures", ()):
-            found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind == "thrown" and loss.ejected > 0.0)
+            found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind in ("thrown", "stripped") and loss.ejected > 0.0)
         return found
+
+    def _strip_by_cluster(self, star, architecture):
+        """
+        `architecture` without the planets the star's birth cluster pulled off (GEN.1288, `physics/cluster_unbinding.py`): a star with a `CLUSTER_HISTORY` (the cluster's density and speed through its life) gives each planet a draw,
+        and the planet whose draw the history unbinds (`unbinding_epoch_myr`) is taken out and recorded as a loss (`planet_architecture.strip`), so it leaves the system and is made again as a rogue. Every planet takes its draw
+        whether or not it can be stripped, so the stream is the same each time. A system with its planets asked for by count (`NUM_ORBITS`) or by slot (`SLOTS`) is left as asked.
+        """
+        history = getattr(self.system_config, "CLUSTER_HISTORY", None)
+        config = self.system_config
+        if not history or config.NUM_ORBITS is not None or config.SLOTS:
+            return architecture
+        stripped = []
+        for seed in architecture.planets:
+            epoch_myr = cluster_unbinding.unbinding_epoch_myr(seed.distance_au, _kg_to_msun(star.mass), history, draw.random())
+            if epoch_myr is not None:
+                stripped.append((seed, epoch_myr * 1.0e6))
+        return planet_architecture.strip(architecture, stripped)
 
     def _plan_architecture(self, star, orbit_ceiling_au):
         """
@@ -2358,13 +2375,13 @@ class StarSystem:
             floor_au = self._orbit_floor_au(star)
             if floor_au > 0.0:
                 architecture = architecture._replace(planets=tuple(s for s in architecture.planets if s.distance_au >= floor_au))
-            return planet_architecture.Plan(architecture, star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au)
+            return planet_architecture.Plan(self._strip_by_cluster(star, architecture), star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au)
 
         def built(maximum=False):
             return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au)
 
         if config.PLANETS is False:
-            return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0, planet_architecture.Lost(0.0, 0.0, 0, 0.0, 0, (), (), (), 0.0, 0.0)), 0), 0
+            return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0, planet_architecture.Lost(0.0, 0.0, 0, 0.0, 0, (), (), (), 0.0, 0.0, ())), 0), 0
         minimum = 1 if config.PLANETS is True else 0
         if config.NUM_ORBITS is not None:
             return plan_of(built(), config.NUM_ORBITS), config.NUM_ORBITS
