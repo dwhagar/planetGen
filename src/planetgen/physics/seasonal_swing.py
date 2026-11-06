@@ -83,6 +83,7 @@ from dataclasses import dataclass, replace
 import numpy as np
 
 from planetgen.physics import climate_branches, constants, habitability, regional_temperature, surface_cycle
+from planetgen.util import detmath
 
 STEPS = 96
 """int: Equal steps of time (mean anomaly) in the year. Source tier T6, tweak level L0 (numerical)."""
@@ -449,9 +450,9 @@ def _anderson(step, start):
         used = min(count, ANDERSON_DEPTH)
         if used:
             matrix = delta_f[:used]
-            gram = matrix @ matrix.T
-            gamma = np.linalg.solve(gram + (1.0e-10 * np.trace(gram) + 1.0e-30) * np.eye(used), matrix @ change)
-            mixed = current_g - gamma @ delta_g[:used]
+            gram = detmath.matmul(matrix, matrix.T)
+            gamma = np.linalg.solve(gram + (1.0e-10 * np.trace(gram) + 1.0e-30) * np.eye(used), detmath.matmul(matrix, change[:, None])[:, 0])
+            mixed = current_g - detmath.matmul(gamma, delta_g[:used])
         else:
             mixed = current_g
         state = np.maximum(mixed.reshape(shape), FLOOR_K)
