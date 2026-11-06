@@ -132,6 +132,20 @@ def _has_territories(db):
         return False
 
 
+def _cluster_labels(db):
+    """MAP.224: the galaxy's globular clusters as the Galaxy Map names them: the cluster's name, else its designation (the kind and
+    its printed Object ID) while it has none, where it lies and the page it opens. Empty when the API cannot say."""
+    from planetgen.web.item_pages import cluster_name
+
+    try:
+        found = apiclient.get_containers(db, "globular_cluster")
+    except apiclient.ApiError:
+        return []
+    return [{"ref": "globular_cluster:" + c["uid"], "name": cluster_name(c["name"], c["uid"]), "named": bool(c["name"]),
+             "href": page_url("object_page", ref="globular_cluster:" + c["uid"]),
+             "x": c["center_pc"][0], "y": c["center_pc"][1], "z": c["center_pc"][2], "radius_pc": c["extent_pc"]} for c in found]
+
+
 @bp.route("/galaxy")
 @page_limit("galaxy")
 def galaxy():
@@ -172,6 +186,7 @@ def galaxy():
         uncharted_scene_url=uncharted_scene_url_template(),
         uncharted_phenomenon_url=uncharted_phenomenon_url_template(),
         superbubbles=apiclient.get_superbubbles(db),
+        clusters=_cluster_labels(db),
     )
 
     regions = apiclient.get_galaxy_charted_regions(db)["regions"]

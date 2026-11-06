@@ -83,7 +83,12 @@ def _crumbs(found, name):
     return crumbs
 
 
-def location(parents, inside):
+def cluster_name(name, printed_id):
+    """MAP.224: a globular cluster is called by its name, or by its designation (the kind and its printed Object ID) while it has none."""
+    return name or f"{KIND_LABELS['globular_cluster']} {printed_id}"
+
+
+def location(parents, inside, cluster=None):
     """
     The Location block (UX.144): the places above an item as links, and the cloud it sits inside. The galaxy is left out
     (UX.200: it is the galaxy anyway), and a star that shares the name of the system above it is listed once, as the system.
@@ -91,6 +96,7 @@ def location(parents, inside):
     Args:
         parents (list[dict]): The API's parent chain (`ref`, `kind`, `name`), galaxy first.
         inside (dict or None): The detail's `inside` (`type`, `id`, `name`), or `None` in open space.
+        cluster (dict or None): The detail's `cluster` (`ref`, `name`) of a star that belongs to a globular cluster (MAP.224).
     """
     chain = []
     for parent in parents:
@@ -100,7 +106,11 @@ def location(parents, inside):
             continue
         chain.append({"label": parent["name"], "url": item_url(parent["ref"])})
     cloud = None if not inside else {"name": inside["name"], "url": own_page_url(inside["type"], inside["id"])}
-    return {"chain": chain, "inside": cloud}
+    member = None
+    if cluster:
+        printed = cluster["ref"].partition(":")[2]
+        member = {"name": cluster_name(cluster.get("name"), printed), "url": item_url(cluster["ref"])}
+    return {"chain": chain, "inside": cloud, "cluster": member}
 
 
 def sector_location(sector_id, sector_name, inside):
@@ -113,7 +123,7 @@ def sector_location(sector_id, sector_name, inside):
 
 
 CONTENT_LABELS = {
-    "system": "Star systems", "nebula": "Nebulae", "supernova_remnant": "Supernova remnants",
+    "star": "Stars of the cluster", "system": "Star systems", "nebula": "Nebulae", "supernova_remnant": "Supernova remnants",
     "asteroid_field": "Asteroid fields", "rogue_planet": "Rogue planets", "interstellar_comet": "Interstellar comets",
     "black_hole": "Black holes", "neutron_star": "Neutron stars",
 }
@@ -582,6 +592,16 @@ _CONTAINER_WORDS = {
     "superbubble": "a superbubble, a cavity that supernovae and stellar winds have blown in the gas",
 }
 
+def _content_url(kind, printed_id):
+    """Where an item of a container's list opens: a star on its item page, the rest as a phenomenon or a system."""
+    return item_url(f"star:{printed_id}") if kind == "star" else own_page_url(kind, printed_id)
+
+
+def _content_name(kind, printed_id):
+    """What a listed thing with no name is called."""
+    return f"{kind.replace('_', ' ').capitalize()} {printed_id}"
+
+
 def _container_contents_html(listing):
     """The "What is inside it" lists of a container (UX.184), one linked list per kind, as HTML."""
     shown = {}
@@ -592,11 +612,15 @@ def _container_contents_html(listing):
         count = listing["counts"].get(kind)
         if not count:
             continue
-        links = "".join(f'<li><a href="{esc(own_page_url(kind, item["id"]))}">{esc(item["name"])}</a></li>'
+        links = "".join(f'<li><a href="{esc(_content_url(kind, item["id"]))}">{esc(item["name"] or _content_name(kind, item["id"]))}</a></li>'
                         for item in shown.get(kind, []))
         more = count - len(shown.get(kind, []))
         tail = f"<li><em>and {more:,} more</em></li>" if more > 0 else ""
         parts.append(f"<h3>{esc(label)} ({count:,})</h3><ul>{links}{tail}</ul>")
+    uncharted = listing.get("uncharted_stars")
+    if uncharted:    # MAP.224: the stars the plan has placed in a cluster whose sector no one has filled yet
+        parts.append(f"<p class=\"cluster-uncharted\">{uncharted:,} more {'star' if uncharted == 1 else 'stars'} of the cluster "
+                     f"{'is' if uncharted == 1 else 'are'} not yet charted.</p>")
     if not parts:
         return "<p>Nothing the galaxy stores lies inside it.</p>"
     return "<h3>What is inside it</h3>" + "".join(parts)
@@ -628,7 +652,7 @@ def _container_page(db, kind, printed_id, found):
     ref = f"{kind}:{printed_id}"
     container = apiclient.get_container(db, printed_id)
     listing = apiclient.get_container_contents(db, printed_id)
-    name = found["name"] or f"{KIND_LABELS[kind]} {printed_id}"
+    name = cluster_name(found["name"], printed_id) if kind == "globular_cluster" else found["name"] or f"{KIND_LABELS[kind]} {printed_id}"
     return render_page(
         "item.html",
         title=name,
@@ -720,7 +744,7 @@ def render_item(kind, printed_id):
         **({"planet": planet_sections(name, row, sheet, species, piece, life_readings_view(db, kind, printed_id, row))} if kind in ("planet", "moon") else {}),
         tree=tree,
         tree_marks=tree_has_marks(children),
-        location=location(chain_parents, detail.get("inside")),
+        location=location(chain_parents, detail.get("inside"), found.get("cluster")),
         previous=previous,
         following=following,
         system_url=page_url("system", system_id=system_id),

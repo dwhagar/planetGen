@@ -29,7 +29,7 @@ from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_HALO_RADIUS_PC, DENSE_POINTS, LIFE_FIELD, EDGE_PC, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
     BARREN_FIELD, BESIDE_ID, BESIDE_SYSTEMS, GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site, close_pair_center, DENSE_PAIR_IDS, HOLE_FIELD, FAR_BUBBLE,
-    far_site, halo_site, holes_site,
+    far_site, halo_site, holes_site, FIXTURE_CLUSTERS,
     map_site, nebula_volume_payload,
 )
 
@@ -6106,6 +6106,28 @@ def test_the_galaxy_maps_course_draws_a_jump_through_unknown_space_red_and_glowi
     assert all(count >= 2 for count in unknown["beads"]), unknown
     assert all(0.0 < opacity <= 0.2 for opacity in unknown["opacity"]), unknown
     assert "key-course-unknown" in page.evaluate(f"() => {keys}")
+
+
+@pytest.mark.viewport(1000, 900)
+def test_galaxy_map_names_a_cluster_by_its_name_or_by_its_designation_while_it_has_none(page, map_site):
+    """MAP.224: the label engine names a globular cluster where it is large enough to read, by its name, else by "Globular cluster" and
+    its Object ID; the Cluster names switch takes the names away and the address keeps it; the galaxy as a whole names none."""
+    _open_galaxy(page, map_site)
+    assert not [label for label in page.evaluate(LABELS) if label["kind"] == "cluster"], "far out nothing is named"
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    unnamed, named = FIXTURE_CLUSTERS
+    for cluster, text in ((unnamed, "Globular cluster FE81000A2B-0000005-001"), (named, "Fixture Ball")):
+        page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyGoTo({center: c, radius: r})",
+                      [cluster["center_pc"], 110])
+        page.wait_for_function(f"(text) => ({LABELS})().some((label) => label.kind === 'cluster' && label.text === text)", arg=text, timeout=20000)
+    page.click("#galaxymap3d-menu > summary")
+    toggle = page.locator('#galaxymap3d-kinds [data-label="cluster"]')
+    assert toggle.inner_text() == "Cluster names"
+    toggle.click()
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'cluster')")
+    assert "label-cluster" in parse_qs(urlparse(page.url).query).get("hide", [""])[0]
+    toggle.click()
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'cluster')")
 
 
 def test_the_galaxy_maps_course_draws_the_course_bent_round_a_keep_out_sphere_in_amber(page, map_site, monkeypatch):

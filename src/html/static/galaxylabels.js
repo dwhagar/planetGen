@@ -4,7 +4,8 @@
 // engine (maplabels.js) from what it already holds: sectors (a generated sector in view, by name), systems (the
 // named stars of the sector open or being come up to), the bodies of the system open (a planet or moon once it is
 // a few pixels across, from the far view of its sector down to the planet itself) and nebulae (their name, else their type and designation,
-// where the nebula is large enough on screen to read). Each kind is a layer of the registry (maplayers.js), so the
+// where the nebula is large enough on screen to read) and globular clusters (MAP.224: their name, else the kind and Object ID, where the
+// cluster is large enough to read). Each kind is a layer of the registry (maplayers.js), so the
 // Menu's "Labels" group, the URL's `hide` list and the legend come from the same declaration as every other layer.
 //
 // What a kind names comes from a `sources` object the map gives: sectors(), systems() and nebulae(), each a list of
@@ -29,16 +30,17 @@ export const LABEL_KINDS = [
   { id: "label-object", kind: "object", label: "Object names", title: "Show or hide the names of the other named objects in view: comets, rogue planets, black holes, neutron stars and the rest" },
   { id: "label-world", kind: "world", label: "World names", title: "Show or hide the names of the habitable-world markers the map draws" },
   { id: "label-nebula", kind: "nebula", label: "Nebula names", title: "Show or hide the names of nebulae and remnants" },
+  { id: "label-cluster", kind: "cluster", label: "Cluster names", title: "Show or hide the names of globular clusters, by designation while a cluster has no name" },
 ];
 
 // The size (pixels across) a thing needs before its name is shown, and the width past which its name goes (the
 // camera is inside it, or it fills the view).
-export const MIN_PIXELS = { sector: 36, nebula: 48, body: 6 };
-export const MAX_PIXELS = { sector: 900, nebula: 1400 };
+export const MIN_PIXELS = { sector: 36, nebula: 48, body: 6, cluster: 40 };
+export const MAX_PIXELS = { sector: 900, nebula: 1400, cluster: 1400 };
 // The share of the label budget (labelbudget.js, MAP.317) a kind of name draws on when its source does not say: a source
 // may give an item its own `slice` ({domain, category, and the domain's numbers}). A sector stands for its region and
 // is named first (the coarse structure), the rest take their place by share.
-const DOMAIN = { region: "region", nebula: "nebula", body: "uninhabited", sector: "region", system: "star", star: "star", object: "uninhabited", world: "inhabited" };
+const DOMAIN = { region: "region", nebula: "nebula", cluster: "nebula", body: "uninhabited", sector: "region", system: "star", star: "star", object: "uninhabited", world: "inhabited" };
 // Priority of a name chosen by the budget: the chosen first-ranked takes FIRST_PRIORITY and each next one a step less.
 const FIRST_PRIORITY = 10000;
 const REFRESH_MS = 120;
@@ -112,7 +114,7 @@ export function createGalaxyLabels(options) {
     // The numbers a kind's things are ranked by when the source gives no `slice` of its own.
     function defaultsOf(kind, item, depth, pixels) {
       if (kind === "system" || kind === "star") return { luminositySol: item.luminositySol || 0 };
-      if (kind === "nebula") return { volume: Math.pow(Math.max(pixels || 0, 1) * depth, 3) };
+      if (kind === "nebula" || kind === "cluster") return { volume: Math.pow(Math.max(pixels || 0, 1) * depth, 3) };
       if (kind === "object") return { category: "star-like", mass: item.luminositySol || 0 };
       if (kind === "body") return { category: "world", size: item.sizePc || 0 };
       if (kind === "sector") return { shareCharted: 0 };
@@ -124,11 +126,12 @@ export function createGalaxyLabels(options) {
       if (kind === "system" || kind === "star") return slice.luminositySol;
       if (kind === "object") return slice.mass;
       if (kind === "body") return slice.mass || slice.size;
-      if (kind === "nebula") return slice.volume;
+      if (kind === "nebula" || kind === "cluster") return slice.volume;
       return undefined;
     }
     if (sources.regions && layers.isOn("label-region")) offer("region", sources.regions());
     if (layers.isOn("label-nebula")) offer("nebula", sources.nebulae());
+    if (sources.clusters && layers.isOn("label-cluster")) offer("cluster", sources.clusters());
     if (layers.isOn("label-body")) offer("body", sources.bodies());
     if (layers.isOn("label-sector")) offer("sector", sources.sectors());
     if (layers.isOn("label-system")) offer("system", sources.systems());

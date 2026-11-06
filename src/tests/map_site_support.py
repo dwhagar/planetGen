@@ -155,6 +155,15 @@ NEBULA_CLOUD = {
 from its shape mesh once the view is on that block (MAP.103)."""
 
 
+FIXTURE_CLUSTERS = (
+    {"id": 1, "uid": "FE81000A2B-0000005-001", "kind": "globular_cluster", "name": None, "component_id": 1,
+     "center_pc": [STAR_FIELD_CENTER_PC[0] + 70.0, STAR_FIELD_CENTER_PC[1] + 40.0, STAR_FIELD_CENTER_PC[2] + 5.0], "extent_pc": 25.0},
+    {"id": 2, "uid": "FE81000A2B-0000005-002", "kind": "globular_cluster", "name": "Fixture Ball", "component_id": 2,
+     "center_pc": [STAR_FIELD_CENTER_PC[0] - 80.0, STAR_FIELD_CENTER_PC[1] - 60.0, STAR_FIELD_CENTER_PC[2]], "extent_pc": 25.0},
+)
+"""MAP.224: two fixture globular clusters beside the star field, one with no name yet and one named (the `/api/containers` rows)."""
+
+
 NEBULA_OVER_THE_FIELD = {
     "type": "nebula", "id": 802, "name": "Fixture Pall", "descriptor": "dark", "class": "D",
     "radius_pc": 14.0, "x": STAR_FIELD_CENTER_PC[0], "y": STAR_FIELD_CENTER_PC[1], "z": STAR_FIELD_CENTER_PC[2],
@@ -889,7 +898,7 @@ class FixtureApi:
         return [dict(zip(("x", "y", "z", "radius_pc"), FAR_BUBBLE))] if self.far else []
 
     def get_containers(self, db, kind=None):
-        return []
+        return [dict(cluster) for cluster in FIXTURE_CLUSTERS] if kind == "globular_cluster" else []
 
     def get_polities(self, db, limit=None, offset=None):
         if self.far:
