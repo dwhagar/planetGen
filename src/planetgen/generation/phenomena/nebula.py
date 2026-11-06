@@ -205,7 +205,7 @@ class Nebula(LazySaladName):
         # A draft name: `store.insert_nebula` reserves it through the
         # system-name registry (v40), which may decorate it.
         self._init_salad_name(name)  # drawn on first read (PERF.43)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        self.name_given = bool(name)  # a given name is kept over an Object ID name (GEN.1256)
 
         if nebula_class is not None:
             if nebula_class not in NEBULA_CLASS_LETTERS:

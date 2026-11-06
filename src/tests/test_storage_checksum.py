@@ -282,7 +282,6 @@ WRITERS = {
     ("db/storage_checksum.py", "_mark"): MARKS,
     ("db/store.py", "_rename_comets"): PARENT,
     ("db/store.py", "_rename_bodies_with_prefix"): SET_NAME,
-    ("db/store.py", "_rank_chain"): SET_NAME,
     ("db/store.py", "rename_body"): SET_NAME,
     ("db/store.py", "rename_phenomenon"): SET_NAME,
     ("db/store.py", "give_system_uid"): MARKS,

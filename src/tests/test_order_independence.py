@@ -5,7 +5,7 @@ TEST.181: a sector's contents do not depend on the order sectors were generated 
 GEN.306, GEN.307). The same small set of sectors is generated in two orders and at one worker and four, and the
 fingerprints of the set (GEN.58 over the canonical encoder of GEN.304) are compared:
 
-- sectors that share an ID cell get their collision numbers by address, not by which saved first (GEN.307);
+- sectors that draw the same point hold different Object ID names whichever saved first (GEN.307, GEN.1256);
 - a sector reached by the bright-star backfill holds the same stars whichever sector the run reached first;
 - the same sectors at one worker and four are the same sectors.
 
@@ -20,11 +20,10 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.galaxy import object_uid as objectUid
-from planetgen.names import object_id as objectId
 from planetgen.util import draw
 
 from tests.test_galaxy_gen import _plan_wide_galaxy
-from tests.test_object_id import _POSITION
+from tests.test_object_id_names import _POSITION
 from tests.test_parallel_generation import GALAXY_SEED, _run, make_database  # noqa: F401 -- a fixture
 
 pytestmark = pytest.mark.db
@@ -171,10 +170,10 @@ def _save_rogue_planets(config, order):
         store.save_sector(sector, config=config, galaxy_position=position)
 
 
-def test_sectors_sharing_an_id_cell_come_out_the_same_in_either_order(make_database):
-    """Three sectors whose rogue planets share one ID: the collision numbers follow the addresses (GEN.307), and the
-    whole stored sector, not only the number, is the same whichever saved first."""
-    results, collisions = [], []
+def test_sectors_that_draw_one_point_come_out_the_same_in_either_order(make_database):
+    """Three sectors whose rogue planets sit at one point: each planet's name is its own Object ID (GEN.1256), and the whole
+    stored sector, not only the name, is the same whichever saved first."""
+    results, names = [], []
     for order in ((0, 1, 2), (2, 1, 0)):
         config = make_database()
         _save_rogue_planets(config, order)
@@ -186,8 +185,8 @@ def test_sectors_sharing_an_id_cell_come_out_the_same_in_either_order(make_datab
                                 ).fetchall()
         finally:
             conn.close()
-        collisions.append({row["wedge_index"]: objectId.collision(int(row["name"], 16)) for row in rows})
-    assert collisions[0] == collisions[1] == {0: 0, 1: 1, 2: 2}
+        names.append({row["wedge_index"]: row["name"] for row in rows})
+    assert names[0] == names[1] and len(set(names[0].values())) == 3
     _assert_same(*results)
 
 

@@ -1,68 +1,16 @@
-# Interstellar object IDs (GEN.64)
+# Interstellar object IDs (GEN.64, replaced by GEN.1256)
 
-**Built (Boss, 2026-10-09 22:39Z):** the `uid` column is an 80-bit birth-location ID (the first layout; the default is 96 bits, `BINARY(12)`, Boss, 2026-10-15, see intergalactic-and-halo-contents.md and numeric-precision-audit.md) (GEN.170 layout, DB.20 schema v78 with the sector fill giving the IDs; GEN.172, GEN.176 and API.23 are built too; design in [object-id-options.md](object-id-options.md)). GEN.69's hash scheme is gone; GEN.64's position IDs are only the names of interstellar objects, and a bright-sweep system no longer keeps its position ID as its `uid`.
+**Built (Boss, 2026-10-09 22:39Z):** the `uid` column is an 80-bit birth-location ID (the first layout; the default is 96 bits, `BINARY(12)`, Boss, 2026-10-15, see intergalactic-and-halo-contents.md and numeric-precision-audit.md) (GEN.170 layout, DB.20 schema v78 with the sector fill giving the IDs; GEN.172, GEN.176 and API.23 are built too; design in [object-id-options.md](object-id-options.md)).
 
-Boss, 2026-10-02: every object in sector space that isn't a generated
-star system gets a unique ID built from where it sits, and that ID, in
-hex, is its name. This covers rogue planets, standalone black holes and
-neutron stars, nebulae, supernova remnants and their collapsed cores,
-quasars, interstellar comets and asteroid fields. Star systems keep
-their generated names, including one built around a bright-sweep star,
-which was once known by its position ID (GEN.72) but is named by the registry, and the stars, planets and moons inside any system are named from
-the system as before (`<ID> A`, `<ID> II`).
-
-## Layout
-
-76 bits, printed as 19 uppercase hex digits (`objectId.format_id`):
-
-| Bits | Field | Size | Meaning |
-|------|-------|------|---------|
-| 75-70 | type | 6 | `objectId.KIND_CODES`: 1 rogue planet, 2 black hole, 3 neutron star, 4 nebula, 5 supernova remnant, 6 quasar, 7 interstellar comet, 8 asteroid field, 9 bright-sweep system, 10 remnant core (black hole), 11 remnant core (neutron star). 0 and 12-63 unused. |
-| 69-67 | unit | 3 | 0 mpc, 1 cpc, 2 pc, 3 kpc, 4 Mpc, 5 Gpc. 6 and 7 unused. |
-| 66-48 | distance | 19 | 0 to 524,287 in that unit: the smallest unit the distance fits in. |
-| 47-26 | bearing | 22 | 0-360 degrees in 2^22 steps. |
-| 25-4 | mark | 22 | 0-360 degrees in 2^22 steps. |
-| 3-0 | collision | 4 | 0-15: tells apart up to sixteen objects of one type at one position. |
-
-Bearing and mark are the galactic-frame course from the core to the
-object (`navigation.course_between`), the same "bearing mark mark" the
-NAV page uses. Boss first picked a 64-bit layout over a 35-bit one
-(1-degree angles, 0-999 distance), which would have given millions of
-objects the same ID, then (06:44Z) added the 2-bit collision number in
-place of bumping the mark and 2 more type bits so remnant cores get
-their own type, and (06:48Z) 2 more bits each for distance, bearing
-and mark and 2 more for the collision number.
-
-## Resolution and collisions
-
-One position covers about 0.0008 x 0.0008 x 0.001 pc at 500 pc from
-the core, 0.012 x 0.012 x 1 pc at 8 kpc and 0.022 x 0.022 x 1 pc at
-15 kpc. Two
-objects of one type can still sit closer than that.
-`_db._claim_object_ids` gives the first one, in generation order,
-collision number 0 and each later one the next number
-(`objectId.bump`), checking its own table, so the result doesn't depend
-on which worker saves first. A seventeenth object at one position moves on one
-mark step with collision number 0. Measured on 20 dense sectors at ring
-700 (about 2.8 kpc out), the 68-bit draft gave 29 of 16,526 rogue
-planets (0.18%) collision number 1; the 76-bit layout gives none. Distance is the coarse axis
-(1 pc steps past 5.2 kpc), so more bits, if ever needed, should go to
-distance first.
+**GEN.1256 (Boss, 2026-11-04, answers 1, 1, 1, 1):** the 76-bit position ID of GEN.64 is gone. Every object that is not a generated star system (a rogue planet, standalone black hole or neutron star, nebula, supernova remnant and its collapsed core, quasar, interstellar comet or asteroid field) keeps its Object ID (`uid`, `galaxy/object_uid.py`) in its printed form (`FE81000A2B-0000005-000`) as the stored `name`, and the API shows it by its local name (GEN.1255) with the birth sector beside it. The position-ID layout, its type codes, the collision chain and `_claim_object_ids` were removed with no alias. Star systems keep their generated names, and the stars, planets and moons inside any system are named from the system as before (`<ID> A`, `<ID> II`).
 
 ## Where it applies
 
-- `insert_sector` claims IDs for every phenomenon and remnant core of a
-  galaxy-placed sector in one pass, before the name registry sees the
-  rest, so these objects never touch `system_name_registry`. A
-  bright-sweep system goes through the registry like any system.
-- A standalone save with a galaxy position (`planetgen phenomenon
-  --sector-id`) claims its ID the same way.
+- `insert_sector` marks every phenomenon and remnant core of a galaxy-placed sector as named by its Object ID (`store._name_by_object_id`, `PENDING_ID_NAME`); the INSERT that gives the row its `uid` writes the printed ID as its `name` (`store._named_by_uid`), so these objects never touch `system_name_registry`. A bright-sweep system goes through the registry like any system.
+- A standalone save with a galaxy position (`planetgen phenomenon --sector-id`) takes its name in `assign_uids`.
 - A name given by hand (`--name`) is kept.
-- An object with no galaxy position (`planetgen sector`, a
-  `phenomenon` with no sector) keeps its generated name or designation,
-  and its core stays `<remnant> Core`.
-- Rows saved before this keep their names; GEN.39 already calls for a
-  fresh galaxy.
+- An object with no galaxy position (`planetgen sector`, a `phenomenon` with no sector) keeps its generated name or designation, and its core stays `<remnant> Core`.
+- Migration `object_id_names` rewrote the 19-digit names of an older galaxy from the row's `uid`; a row with no `uid` kept its name.
 
 ## Planned: an ID for everything, and names from IDs
 
@@ -135,23 +83,9 @@ What this item does not do: it adds the functions, the version and the tests. Us
 phenomena, and showing the name and sector on pages, the API and search are GEN.1256, GEN.1257, UX.259
 and API.38.
 
-### Names shown for IDs (GEN.71)
+### Names shown for IDs (GEN.71, GEN.1256)
 
-The `name` column of a codec-named object keeps its 19-digit hex ID (the
-identity, and what `_claim_object_ids` checks for collisions). Every JSON
-answer of the API passes through `api/naming.NamingJSONProvider`, which
-replaces a `name` that is such an ID with its codec name under the
-galaxy's key (the kind comes from the ID's own type bits, so a remnant
-core and a black hole name themselves correctly; a bright-sweep system's
-ID is not renamed). The pages call the API in-process, so the maps,
-lists, info panels and the nebula page all show the codec name. The key
-is read once per request (cached 5 s per process, dropped when an admin
-changes it) and `query.galaxy_content_state` mixes it into its `base`, so
-a key change refreshes the tile and page caches. With no key drawn, or in
-the CLI, the ID is shown. Lists sorted by name order by the ID, which
-groups the kinds. `naming_key.stored_name_for` turns a typed codec name
-back into its ID for a search that wants it. The wide-pair rule (never
-"A I"; test in `test_body_names.py`) was already in force from GEN.62.
+The `name` column of a codec-named object keeps its printed Object ID (the identity). Every JSON answer of the API passes through `api/naming.NamingJSONProvider`, which replaces a `name` that is such an ID with its local name under the galaxy's key (`naming_key.local_name`) and adds `name_sector`, the birth sector's 14 hex digits, beside it. The pages call the API in-process, so the maps, lists, info panels and the nebula page all show the local name. The key is read once per request (cached 5 s per process, dropped when an admin changes it) and `query.galaxy_content_state` mixes it into its `base`, so a key change refreshes the tile and page caches, and nothing is stored in words, so a key change renames all at once. With no key drawn, or in the CLI, the ID is shown. Lists sorted by name order by the printed ID, that is by birth sector and then serial. `GET /api/lookup?text=` accepts a printed ID, or a local name followed by its sector (`Banhunm Finkap, sector 00FA0FFFE9E240`, `naming_key.uid_of_typed_name`); a local name without its sector is ambiguous and finds nothing by itself. The wide-pair rule (never "A I"; test in `test_body_names.py`) was already in force from GEN.62.
 
 ### Unique IDs for every object (GEN.69 and GEN.170, schema v78)
 

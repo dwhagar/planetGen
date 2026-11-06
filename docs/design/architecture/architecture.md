@@ -302,7 +302,6 @@ How generated things are named.
 | [`bodies.py`](../../../src/planetgen/names/bodies.py) | Derived names for the stars, planets and moons inside one star system. |
 | [`gated_phoneme_codec.py`](../../../src/planetgen/names/gated_phoneme_codec.py) | A reversible, deterministic codec from hexadecimal identifiers to pronounceable names. |
 | [`naming_key.py`](../../../src/planetgen/names/naming_key.py) | The naming key (GEN.70; docs/design/architecture/object-ids.md, "Planned" step 3). |
-| [`object_id.py`](../../../src/planetgen/names/object_id.py) | The 76-bit position ID every interstellar object is named by (GEN.64). |
 | [`uniqueness.py`](../../../src/planetgen/names/uniqueness.py) | Name-uniqueness decoration -- pure functions, no database access. |
 | [`wordlists.py`](../../../src/planetgen/names/wordlists.py) | The data for the procedural name generator: base names, prefixes, suffixes and syllables. |
 | [`wordsalad.py`](../../../src/planetgen/names/wordsalad.py) | The syllable and phoneme-salad name generator, its validity checks, and sector names. |
