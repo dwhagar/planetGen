@@ -2692,3 +2692,4 @@ Baseline: PR #1817.
 | TEST.650 | 8.1 | Physics rectification: citations and the gate's test health |
 | TEST.653 | 8.1 | Physics rectification: citations and the gate's test health |
 | GEN.1305 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.580 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |

@@ -16998,38 +16998,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.580 Four test groups are red on main: test_gen_cloud_at_generation (3), test_gen_kind_factors (halo versus disk planets), test_burn_down_register (6.170 rows for MAP.275), test_gen_magellanic_classes (supernova factor 0.92 not above 1.0) (bug)**
-  Core 1, 6:38 PM EST on 2026-11-04 (as the lane reported), found these
-  red on main while building GEN.367 and says none are its own. Do: for
-  each, find the commit that turned it red (git bisect on the one test
-  file), say which item owns it, and either fix the test with the reason
-  or fix the code. test_burn_down_register: the 6.170 rows from MAP.275
-  have L3 or L4 tweak levels with no burn-down line (the register rule
-  from the stand-in tiers); add the lines or lower the level with a
-  source. test_gen_magellanic_classes: the supernova factor 0.92 must
-  read above 1.0 by the test's own claim; decide whether the factor or
-  the claim is stale. Done: the four green on main with a note of the
-  cause of each. Proposed owner: Bug 1 after TEST.579. Filed by the TODO
-  thread.
-  Owner (TODO thread) (8:20 PM EST on 2026-11-04): Tides 1 takes the
-  nebula group (census_nebula_wholesphere, emission_members,
-  hosted_nebula_rows); Bug 1 keeps the life-class tests (split from Bug
-  1).
-  Owner change (TODO) (5:40 AM EST on 2026-11-05): Core 5 takes the
-  non-nebula groups from Bug 1, who is carrying GEN.962, GEN.1275,
-  PERF.240, TEST.579 and PERF.236: test_gen_kind_factors (halo versus
-  disk planets), test_gen_magellanic_classes (the 0.92 supernova
-  factor), and any 6.170 rows left in test_burn_down_register (TEST.587
-  added lines for the sky and glow rows only). The nebula group stays
-  with Tides 1. The train 10 gate shows kind factors red on main too, so
-  check first whether train 10 changes it.
-  Groups merged (TODO) (9:58 AM EST on 2026-11-05): Nebula group merged
-  by Tides 1 (#5025). Non-nebula groups merged by Core 5 (#5086, #5087:
-  burn-down lines, Magellanic supernova claim, halo planet count). Left:
-  the life-class tests (test_system_interests), Bug 1's. This item
-  closes when those are green on main.
-  Prerequisites: none. Related: TEST.579, GEN.367.
-
 - [ ] **TEST.582 Temperature coverage sweep: set the Blue cut and the Green and Yellow edges on a sweep that includes cold-mean worlds with warm regions and hot-mean worlds with cool regions, then re-baseline the TEST.430 prevalence census**
   Boss, 7:32 PM EST on 2026-11-04, decided the temperature coverage plan
   (reports/temperature-coverage-2026-11-04.md, section 9). Do: sweep the
