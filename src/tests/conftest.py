@@ -357,6 +357,15 @@ FAST_PASSWORD_HASH_PARAMETERS = (8, 1, 1)
 
 
 @pytest.fixture(autouse=True)
+def _plain_command_lines(monkeypatch):
+    """A command's lines carry the time when its output is not a terminal (OPS.98), and a test's captured output never is one, so every
+    test that reads a command's text would have to skip a time in front of it. They get the plain line instead, as on a terminal;
+    `test_log_records.py` and `test_log_shell.py` test the timed form with `PLANETGEN_LOG_TIMES` set (or removed) in the test itself."""
+    monkeypatch.setenv("PLANETGEN_LOG_TIMES", "never")
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _fast_password_hashing(request, monkeypatch):
     """Every login, credential change and seeded admin user runs Argon2id at
     19 MiB and two passes in production (`adminAuth.hash_parameters`, SEC.32),

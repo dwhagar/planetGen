@@ -58,18 +58,24 @@
 
 set -euo pipefail
 
+# The lines this script prints are log records (OPS.98): a time, a severity and a component on every one.
+LOG_COMPONENT="${LOG_COMPONENT:-logs}"
+export LOG_COMPONENT
+# shellcheck source=scripts/logrecord.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../../scripts/logrecord.sh"
+
 APACHE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$APACHE_DIR/../.." && pwd)"
 
 if [[ $EUID -ne 0 ]]; then
-    echo "error: must be run as root (writes to /var/log and /etc/logrotate.d), e.g.:" >&2
-    echo "  sudo $0" >&2
+    log_error "must be run as root (writes to /var/log and /etc/logrotate.d), e.g.:"
+    log_error "  sudo $0"
     exit 1
 fi
 
 PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
 if [[ -z "$PYTHON" ]]; then
-    echo "error: no python3/python found on PATH." >&2
+    log_error "no python3/python found on PATH."
     exit 1
 fi
 
@@ -98,9 +104,9 @@ print(logpaths.activity_log_path(config))
 PY
 then
     rm -f "$SETTINGS"
-    echo "warning: couldn't work out where the logs go (see above), so they and their rotation" >&2
-    echo "  were not set up. Check config.json's \"log_file\" and \"log_dir\" (each a path, or leave" >&2
-    echo "  them out for the defaults), then run sudo ./update.sh again." >&2
+    log_warning "couldn't work out where the logs go (see above), so they and their rotation"
+    log_warning "  were not set up. Check config.json's \"log_file\" and \"log_dir\" (each a path, or leave"
+    log_warning "  them out for the defaults), then run sudo ./update.sh again."
     exit 0
 fi
 { read -r _debug_on LOG_FILE; read -r ACTIVITY_LOG; } < "$SETTINGS"
@@ -110,14 +116,18 @@ ACTIVITY_DIR="$(dirname "$ACTIVITY_LOG")"
 # shellcheck source=examples/apache/apache-identity.sh
 source "$APACHE_DIR/apache-identity.sh"
 if ! read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACHE_GROUP:-}" ]]; then
-    echo "warning: couldn't work out Apache's user and group (see above), so the logs were not set up." >&2
-    echo "  Install the web server (sudo apt install apache2), then run sudo ./update.sh again." >&2
+    log_warning "couldn't work out Apache's user and group (see above), so the logs were not set up."
+    log_warning "  Install the web server (sudo apt install apache2), then run sudo ./update.sh again."
     exit 0
 fi
 
 # Both log files, their folders, owners and modes, and whether Apache's
 # user and group can really write them; it only ever warns.
-"$PYTHON" -I "$APACHE_DIR/log-locations.py" "$REPO_DIR" "$APACHE_USER" "$APACHE_GROUP" || true
+# The helper is plain Python that prints plain lines; each one is made a log record here (OPS.98): what it says is info, what it warns is a warning.
+LOCATIONS_WARNINGS="$(mktemp)"
+"$PYTHON" -I "$APACHE_DIR/log-locations.py" "$REPO_DIR" "$APACHE_USER" "$APACHE_GROUP" 2> "$LOCATIONS_WARNINGS" | log_lines info || true
+sed 's/^warning: //' "$LOCATIONS_WARNINGS" | log_lines warning
+rm -f "$LOCATIONS_WARNINGS"
 
 # Writes stdin to a rotation config file, mode 0644, or warns (a
 # read-only /etc, say) and carries on. Returns 1 when it couldn't.
@@ -129,8 +139,8 @@ write_rotation_conf() {
         && chmod 0644 "$target" 2>/dev/null; then
         return 0
     fi
-    echo "warning: couldn't write $target, so the logs it covers won't be rotated." >&2
-    echo "  Fix it by making $(dirname "$target") writable for root, then run sudo ./update.sh again." >&2
+    log_warning "couldn't write $target, so the logs it covers won't be rotated."
+    log_warning "  Fix it by making $(dirname "$target") writable for root, then run sudo ./update.sh again."
     return 1
 }
 
@@ -148,7 +158,7 @@ $ACTIVITY_LOG  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
 $ACTIVITY_DIR/warmup.log  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
 EOF
     then
-        echo "Activity log rotation: /etc/newsyslog.d/planetgen-log.conf (daily or past 100 MB, 30 kept)"
+        log_info "Activity log rotation: /etc/newsyslog.d/planetgen-log.conf (daily or past 100 MB, 30 kept)"
     fi
 
     # newsyslog: owner:group, mode, copies kept, size in KB, no time
@@ -160,7 +170,7 @@ EOF
 $LOG_FILE  $APACHE_USER:$APACHE_GROUP  660  7  102400  *  Z
 EOF
     then
-        echo "Log rotation: /etc/newsyslog.d/planetgen.conf (past 100 MB, 7 kept)"
+        log_info "Log rotation: /etc/newsyslog.d/planetgen.conf (past 100 MB, 7 kept)"
     fi
     exit 0
 fi
@@ -184,7 +194,7 @@ $LOG_FILE {
 }
 EOF
 then
-    echo "Log rotation: /etc/logrotate.d/planetgen (daily or past 100 MB, 7 kept)"
+    log_info "Log rotation: /etc/logrotate.d/planetgen (daily or past 100 MB, 7 kept)"
 fi
 
 # The activity log: kept longer (30 copies) since it is the record of
@@ -209,7 +219,7 @@ $ACTIVITY_DIR/*.log {
 }
 EOF
 then
-    echo "Activity log rotation: /etc/logrotate.d/planetgen-log (daily or past 100 MB, 30 kept)"
+    log_info "Activity log rotation: /etc/logrotate.d/planetgen-log (daily or past 100 MB, 30 kept)"
 fi
 
 if [[ -d /etc/cron.hourly ]]; then
@@ -224,15 +234,15 @@ exec logrotate /etc/logrotate.d/planetgen-log
 EOF
     then
         chmod 0755 /etc/cron.hourly/planetgen-logrotate
-        echo "Hourly size check: /etc/cron.hourly/planetgen-logrotate"
+        log_info "Hourly size check: /etc/cron.hourly/planetgen-logrotate"
     fi
 fi
 
 if ! command -v logrotate >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
-    echo "Installing logrotate (not found)..."
+    log_info "Installing logrotate (not found)..."
     apt-get install -y logrotate >/dev/null || true
 fi
 if ! command -v logrotate >/dev/null 2>&1; then
-    echo "warning: logrotate isn't installed, so the debug log won't be rotated." >&2
-    echo "  Install it with: sudo apt install logrotate" >&2
+    log_warning "logrotate isn't installed, so the debug log won't be rotated."
+    log_warning "  Install it with: sudo apt install logrotate"
 fi

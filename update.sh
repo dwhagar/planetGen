@@ -128,7 +128,9 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=scripts/logrecord.sh
+export LOG_COMPONENT=update
 source "$SCRIPT_DIR/scripts/logrecord.sh"
+log_summary_begin
 
 ANSWER_YES=()
 RESET_JOBS=0
@@ -200,20 +202,20 @@ if [[ "$branch" == "HEAD" ]]; then
 fi
 
 before="$(git rev-parse HEAD)"
-git fetch origin "$branch"
+git fetch --quiet origin "$branch"
 # `reset --hard` rather than `pull`: forces every tracked file to match
 # origin's branch tip regardless of local commits or uncommitted edits,
 # instead of failing on diverged history or a dirty working tree. Only
 # touches tracked files -- unlike `git clean`, it never removes untracked
 # files, so config.json (gitignored) and anything else local survives.
-git reset --hard "origin/$branch"
+git reset --hard --quiet "origin/$branch"
 after="$(git rev-parse HEAD)"
 
 if [[ "$before" == "$after" ]]; then
     log_info "Already up to date ($before)."
 else
     log_info "Updated $before..$after:"
-    git log --oneline "$before..$after"
+    git log --oneline "$before..$after" | log_lines info
 fi
 ensure_update_guard
 # The scripts below are run directly, so this comes before any of them.
@@ -226,7 +228,6 @@ source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 warn_if_no_swap
 
-echo
 UPDATE_STEP="step 2/9, checking the Python libraries"
 log_stage 2 9 "Checking the Python libraries"
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
@@ -237,26 +238,22 @@ ensure_update_guard required
 resolve_api_health || { log_error "set api_base_url in config.json, then run the update again."; exit 1; }
 log_info "The API address (api_base_url in config.json) is ${API_HEALTH_URL%/health}; the update asks only that address."
 
-echo
 UPDATE_STEP="step 3/9, checking the NLTK words corpus and the downloaded data"
 log_stage 3 9 "Checking the NLTK 'words' corpus and the downloaded data sets"
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
 build_reference_pages
 
-echo
 UPDATE_STEP="step 4/9, checking the generator's math"
 log_stage 4 9 "Checking the generator's math"
 check_math
 
-echo
 UPDATE_STEP="step 5/9, migrating the database"
 log_stage 5 9 "Migrating the configured MySQL database to the current schema"
 migrate_or_reset_db
 record_version_key
 warm_shape_means
 
-echo
 UPDATE_STEP="step 6/9, checking Apache's modules"
 log_stage 6 9 "Checking Apache's modules (macOS: the gunicorn daemon)"
 APACHE_NEEDS_RESTART=0
@@ -266,12 +263,10 @@ else
     ensure_apache_modules
 fi
 
-echo
 UPDATE_STEP="step 7/9, setting ownership and permissions"
 log_stage 7 9 "Setting ownership/permissions: the checkout belongs to Apache's user"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
-echo
 UPDATE_STEP="step 8/9, checking the cache, jobs and log locations"
 log_stage 8 9 "Checking the cache, jobs and debug log locations"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
@@ -283,17 +278,14 @@ PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
 # Set the secret key if none is (never printed); as Apache's user so the web app can read it.
 set_secret_key
 
-echo
 UPDATE_STEP="step 9/9, checking that the web app imports"
 log_stage 9 9 "Checking that the web app imports"
 check_app_imports
 
-echo
 log_info "Checking the Redis server (config.json's redis.url):"
 ensure_redis
 check_redis_settings
 
-echo
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     log_warning "the math check failed (step 4): charted data may be wrong until it is fixed."
@@ -307,7 +299,8 @@ fi
 log_info "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
 log_info "  planetgen population && planetgen territories"
 if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
-    log_notice "Done. Nothing new was pulled."
+    log_notice "Nothing new was pulled."
+    SITE_NOTE="nothing new was pulled"
 else
     UPDATE_STEP="building what the reload and the health check need (cache warm-up, stage 1)"
     run_warm_stage "stage 1 of 2, what the reload and the health check need" opening
@@ -318,20 +311,24 @@ else
     reload_web_if_running || reload_status=$?
     if (( reload_status == 0 )); then
         if (( APACHE_NEEDS_RESTART )); then
-            log_notice "Done. mod_wsgi was just installed, so Apache was restarted to load it."
+            log_notice "Site reloaded: mod_wsgi was just installed, so Apache was restarted to load it."
+            SITE_NOTE="site reloaded (Apache restarted for the new mod_wsgi) and answering at $(date '+%H:%M:%S %Z')"
         else
-            log_notice "Done. The site is running the new code."
+            log_notice "Site reloaded: running the new code."
+            SITE_NOTE="site reloaded and answering at $(date '+%H:%M:%S %Z')"
         fi
     elif (( reload_status == 1 )); then
-        log_error "Done, but the site was not reloaded cleanly (see the warning above); the old code may still be serving."
+        log_error "The site was not reloaded cleanly (see the warning above); the old code may still be serving."
         print_reload_commands >&2
         exit 1
     elif (( reload_status == 3 )); then
         # The migration finished (step 5) and the reload itself succeeded: only the probe got no good answer, which
         # can be the address's fault (another virtual host, no https listener) as much as the app's. The site opens.
         log_warning "the site was reloaded but /api/health did not answer well (see the warning above); the database is migrated and current, so the site is opened. Check it by hand."
+        SITE_NOTE="site reloaded at $(date '+%H:%M:%S %Z'), /api/health did not answer well"
     else
-        log_notice "Done. Nothing that serves the site is running, so nothing was reloaded. When it is, run:"
+        log_notice "Nothing that serves the site is running, so nothing was reloaded. When it is, run:"
+        SITE_NOTE="nothing that serves the site is running"
         print_reload_commands
     fi
 fi
@@ -342,6 +339,9 @@ fi
 if (( UPDATE_GUARD_HELD )); then
     update_guard end --pid "$$" && UPDATE_GUARD_HELD=0
 fi
-echo
 UPDATE_STEP="building the site's caches (cache warm-up, stage 2)"
 run_warm_stage "stage 2 of 2, the full warm-up"
+
+# The last thing on the screen (OPS.100): how long it took, what it brought, and every warning raised, repeated.
+CODE_VERSION="$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' "$SCRIPT_DIR/src/planetgen/_version.py" | head -n 1)"
+log_summary "Update" "code ${CODE_VERSION:-unknown} (schema v${DB_SCHEMA_VERSION:-unknown}), ${SITE_NOTE:-the site was not reloaded}, ${WARM_RESULT:-no cache warm-up}"
