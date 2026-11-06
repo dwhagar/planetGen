@@ -16724,6 +16724,7 @@ clears each one.
   #5392. Filed by the TODO thread.
   Prerequisites: DB.113. Related: DB.113.
   Extension (Boss, 6:33 PM EST on 2026-11-06): the backfill and sky-charting writes use the same mechanism as DB.113 (dynamic retries with adaptive backoff, the needs flag, the grant after the 8th failed try, all logged), not a second copy of the retry code.
+  Plan (coordinator, 6:35 PM EST on 2026-11-06): DB.113's PR #5392 adds db/contention.py with run_with_retries (adaptive backoff, the needs flag, the grant after the 8th failed try). Here: restructure the backfill and sky-charting writes so the whole transaction is one retry attempt (every write that shares the transaction with the ID step moves inside the function that run_with_retries repeats, with no state kept between attempts), then call run_with_retries there. A real MySQL two-writer test is needed before merge.
 
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
