@@ -21,9 +21,12 @@ from planetgen.physics import atmosphere, constants, gases, planet_classes as pc
 EARTH = {
     "body_type": "t", "mass_kg": constants.EARTH_MASS_TO_KG, "gravity_g": 1.0, "surface_temperature_k": 288.0,
     "atmospheric_pressure_pa": 101325.0, "hydrosphere": "surface ocean", "ocean_fraction": 0.7,
-    "water_mass_fraction": 2.3e-4, "flux_variation": 0.0,
+    "water_mass_fraction": 2.3e-4, "flux_variation": 0.0, "relative_humidity": 0.6, "groundwater": "none",
     atmosphere.GAS_FIELD: {"O2": 21200.0, "N2": 78800.0, "Ar": 900.0, "CO2": 40.0},
 }
+for _number in range(1, pc.BAND_COUNT + 1):     # the seven latitude bands of Earth's mean, each swinging 10 K
+    EARTH[f"band{_number}_mean_k"] = 288.0
+    EARTH[f"band{_number}_swing_k"] = 10.0
 
 
 def put_kpa(values, gas, kpa):
@@ -45,6 +48,10 @@ def body(**changes):
             put_kpa(values, name[2:-4], value)
         else:
             values[name] = value
+    if "surface_temperature_k" in changes:      # the latitude bands follow the mean (GEN.1221 reads the regional, day and night temperatures)
+        for number in range(1, pc.BAND_COUNT + 1):
+            values.setdefault(f"band{number}_mean_k", None)
+            values[f"band{number}_mean_k"] = changes.get(f"band{number}_mean_k", values["surface_temperature_k"])
     return values
 
 
@@ -74,13 +81,13 @@ CASES = {
     "L": body(p_co2_kpa=3.0, p_o2_kpa=10.0, gravity_g=0.9),
     "K": body(atmospheric_pressure_pa=500.0, surface_temperature_k=300.0, hydrosphere="dry", gravity_g=0.4,
               p_o2_kpa=0.0, p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=0.5),
-    "P": body(surface_temperature_k=250.0, hydrosphere="ice", ocean_fraction=0.4, atmospheric_pressure_pa=6000.0),
+    "P": body(surface_temperature_k=250.0, hydrosphere="ice", ocean_fraction=0.4, band1_mean_k=235.0, band4_mean_k=276.0),
     "B": body(gravity_g=0.3, mass_earth=0.04, surface_temperature_k=450.0, hydrosphere="dry", ocean_fraction=0.0),
     "E": body(surface_temperature_k=200.0, hydrosphere="ice", ocean_fraction=0.5, atmospheric_pressure_pa=6000.0),
     "F": no_oxygen(surface_temperature_k=300.0, share_ch4=0.2, share_co2=0.5, p_n2_kpa=10.0, p_ar_kpa=0.0),
     "G": body(share_co2=0.5, p_o2_kpa=0.0),
-    "O": body(ocean_fraction=0.97),
-    "H": body(ocean_fraction=0.02, hydrosphere="dry"),
+    "O": body(ocean_fraction=0.97, surface_temperature_k=305.0, relative_humidity=0.55),
+    "H": body(ocean_fraction=0.02, hydrosphere="dry", surface_temperature_k=300.0, relative_humidity=0.2, groundwater="reachable"),
     "M": body(),
 }
 

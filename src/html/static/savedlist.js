@@ -17,12 +17,12 @@
 // - keyOf(entry): the string an entry is known by, or null when it is not an entry of this kind;
 // - build(entry): the form that is saved (default: the entry as given);
 // - max: the most entries there can be;
-// - words: {invalid, full, blocked}, the reasons `add` gives (full may be a function of max);
+// - words: {invalid, full, blocked, duplicate}, the reasons `add` and `replace` give (full may be a function of max);
 // - stamp: a function giving what to record with every new entry (the galaxy instance stamp UX.46 needs, as
 //   `entry.stamp`), or nothing.
 //
 // Reads (`list`, `find`) answer at once from what was last loaded; `ready` settles when the first load has. Writes
-// (`add`, `rename`, `remove`) read the stored list again first, so a change made elsewhere is never overwritten, then
+// (`add`, `rename`, `remove`, `move`, `replace`, `setAll`) read the stored list again first, so a change made elsewhere is never overwritten, then
 // save, and answer when the backend has. `onChange` is called after every change, here or elsewhere.
 
 export const CHANGE_EVENT = "planetgen-saved-change";
@@ -76,6 +76,7 @@ export function createStore({ backend, keyOf, build, max, words, stamp }) {
     invalid: "That can't be saved.",
     full: function (most) { return "The list is full (" + most + " at most); delete one first."; },
     blocked: "This browser isn't letting the site save.",
+    duplicate: "That is already in the list.",
   }, words || {});
   const listeners = [];
   let entries = [];
@@ -166,6 +167,58 @@ export function createStore({ backend, keyOf, build, max, words, stamp }) {
         const index = indexOf(entries, key);
         if (index < 0) return false;
         return keep(entries.filter(function (_entry, n) { return n !== index; }));
+      });
+    },
+    // True when the entry known by `key` has moved `by` places (negative: earlier) in the list, kept inside it.
+    move: function (key, by) {
+      return enqueue(async function () {
+        await reload();
+        const index = indexOf(entries, key);
+        const to = Math.max(0, Math.min(entries.length - 1, index + by));
+        if (index < 0 || to === index) return false;
+        const next = entries.slice();
+        const moved = next.splice(index, 1)[0];
+        next.splice(to, 0, moved);
+        return keep(next);
+      });
+    },
+    // Makes the list exactly `given` (each made as `add` makes it; the ones that are not entries, or are repeated, are left out, and
+    // no more than `max` are kept) in one write: {ok, count} or {ok: false, reason}.
+    setAll: function (given) {
+      return enqueue(async function () {
+        const seen = {};
+        const next = [];
+        given.forEach(function (entry) {
+          const key = keyOf(entry);
+          if (key === null || seen[key] || next.length >= max) return;
+          seen[key] = true;
+          const saved = build ? build(entry) : Object.assign({}, entry);
+          const mark = stamp ? stamp() : null;
+          if (mark != null) saved.stamp = mark;
+          next.push(saved);
+        });
+        if (!(await keep(next))) return { ok: false, reason: reasons.blocked };
+        return { ok: true, count: next.length };
+      });
+    },
+    // Puts `entry` (made as `add` makes it) in the place of the entry known by `key`: {ok, entry} or {ok: false, reason}. The new
+    // entry may be known by another key, but not by one already in the list.
+    replace: function (key, entry) {
+      return enqueue(async function () {
+        const newKey = keyOf(entry);
+        if (newKey === null) return { ok: false, reason: reasons.invalid };
+        await reload();
+        const index = indexOf(entries, key);
+        if (index < 0) return { ok: false, reason: reasons.invalid };
+        const other = indexOf(entries, newKey);
+        if (other >= 0 && other !== index) return { ok: false, reason: reasons.duplicate };
+        const saved = build ? build(entry) : Object.assign({}, entry);
+        const mark = stamp ? stamp() : null;
+        if (mark != null) saved.stamp = mark;
+        const next = entries.slice();
+        next[index] = saved;
+        if (!(await keep(next))) return { ok: false, reason: reasons.blocked };
+        return { ok: true, entry: saved };
       });
     },
     // Calls `fn` after every change, here or elsewhere.

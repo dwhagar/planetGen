@@ -138,7 +138,7 @@ BAND_SWINGS = tuple(f"band{number}_swing_k" for number in BAND_NUMBERS)
 BAND_HOURS = tuple(f"band{number}_{part}_hours" for number in BAND_NUMBERS for part in ("day", "night"))
 """tuple: The hours of day and of night in a solar day at each band."""
 BAND_LONGEST_DAYS = tuple(f"band{number}_longest_{part}_days" for number in BAND_NUMBERS for part in ("day", "night"))
-"""tuple: The longest polar day and night of the year at the poleward edge of each band, days."""
+"""tuple: The longest unbroken day and night of the year (GEN.1260) at the poleward edge of each band, days."""
 
 REGIONAL_TEMPERATURES = (*BAND_TEMPERATURES, *BAND_SWINGS, "temp_mean_swing_k")
 """tuple: The regional temperatures and the day and night swing on `planets` and `moons` (GEN.656, GEN.1108), kelvin."""
@@ -513,7 +513,7 @@ TABLES = {
         "mg-si": ("rock_mg_si_ratio",),
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "frac": (
-            "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover",
+            "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover", "relative_humidity",
             "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "ice_co2_mass_fraction", "ice_ch4_mass_fraction", "ice_nh3_mass_fraction", "ice_n2_mass_fraction", "ice_so2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_other_mass_fraction", "envelope_mass_fraction",
             "rock_feo_fraction", "rock_al2o3_fraction", "envelope_helium_fraction", "envelope_z_fraction", "porosity",
             "ring_ice_fraction",
@@ -785,7 +785,7 @@ TABLES = {
         "mg-si": ("rock_mg_si_ratio",),
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "frac": (
-            "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover",
+            "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover", "relative_humidity",
             "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "ice_co2_mass_fraction", "ice_ch4_mass_fraction", "ice_nh3_mass_fraction", "ice_n2_mass_fraction", "ice_so2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_other_mass_fraction", "envelope_mass_fraction",
             "rock_feo_fraction", "rock_al2o3_fraction", "envelope_helium_fraction", "envelope_z_fraction", "porosity",
             "ring_ice_fraction",
@@ -1125,7 +1125,7 @@ ROGUE_BODY_UNITS = {
         "d": ("band1_longest_day_days", "band1_longest_night_days", "band2_longest_day_days", "band2_longest_night_days", "band3_longest_day_days", "band3_longest_night_days", "band4_longest_day_days", "band4_longest_night_days", "band5_longest_day_days", "band5_longest_night_days", "band6_longest_day_days", "band6_longest_night_days", "band7_longest_day_days", "band7_longest_night_days",),
         "K": ("band1_mean_k", "band2_mean_k", "band3_mean_k", "band4_mean_k", "band5_mean_k", "band6_mean_k", "band7_mean_k",),
         "dK": ("band1_swing_k", "band2_swing_k", "band3_swing_k", "band4_swing_k", "band5_swing_k", "band6_swing_k", "band7_swing_k", "temp_mean_swing_k",),
-        "frac": ("bond_albedo", "cloud_cover", "day_share_equator", "day_share_mean", "days_per_year", "envelope_helium_fraction", "envelope_mass_fraction", "envelope_z_fraction", "flux_variation", "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_carbon_fraction", "ground_clay_fraction", "ground_evaporite_fraction", "ground_felsic_fraction", "ground_ice_fraction", "ground_intermediate_fraction", "ground_metal_fraction", "ground_ocean_fraction", "ground_oxidized_fraction", "ground_sulfur_fraction", "ground_ultramafic_fraction", "helium_depletion", "ice_ch4_mass_fraction", "ice_co2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_mass_fraction", "ice_n2_mass_fraction", "ice_nh3_mass_fraction", "ice_other_mass_fraction", "ice_so2_mass_fraction", "land_fraction", "metal_mass_fraction", "moon_disk_f_inf", "ocean_fraction", "parent_shadow_share", "porosity", "rock_al2o3_fraction", "rock_feo_fraction", "rock_mass_fraction", "surface_liquid_fraction", "urey_ratio", "water_mass_fraction", "surface_liquid_methane_mol", "surface_liquid_ethane_mol", "surface_liquid_nitrogen_mol", "surface_liquid_2_fraction",),
+        "frac": ("bond_albedo", "cloud_cover", "day_share_equator", "day_share_mean", "days_per_year", "envelope_helium_fraction", "envelope_mass_fraction", "envelope_z_fraction", "flux_variation", "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_carbon_fraction", "ground_clay_fraction", "ground_evaporite_fraction", "ground_felsic_fraction", "ground_ice_fraction", "ground_intermediate_fraction", "ground_metal_fraction", "ground_ocean_fraction", "ground_oxidized_fraction", "ground_sulfur_fraction", "ground_ultramafic_fraction", "helium_depletion", "ice_ch4_mass_fraction", "ice_co2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_mass_fraction", "ice_n2_mass_fraction", "ice_nh3_mass_fraction", "ice_other_mass_fraction", "ice_so2_mass_fraction", "land_fraction", "metal_mass_fraction", "moon_disk_f_inf", "ocean_fraction", "parent_shadow_share", "porosity", "rock_al2o3_fraction", "rock_feo_fraction", "rock_mass_fraction", "surface_liquid_fraction", "urey_ratio", "water_mass_fraction", "surface_liquid_methane_mol", "surface_liquid_ethane_mol", "surface_liquid_nitrogen_mol", "surface_liquid_2_fraction", "relative_humidity",),
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm",),
         "flag": ("carbon_rock", "has_helium_shell", "ozone_loss_flag",),
         "Mearth": ("core_mass_earth", "dilute_core_mass_earth",),

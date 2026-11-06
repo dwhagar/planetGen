@@ -374,12 +374,17 @@ def _progress(conn, run_id, stage):
 
 
 def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure=None, clock=time.monotonic,
-                 sleep=time.sleep, on_debug=None):
+                 sleep=time.sleep, on_debug=None, touch=True):
     """
     Follows stage `stage` of the run until its `units` units are done: calls `on_result(unit, result)` once for
     each as it finishes and `on_progress(unit, done, estimate)` for those still working, and `ensure()` every
     `ENSURE_SECONDS` (starting workers, replacing dead ones), and `on_debug()` at every poll and when the stage ends
     (a debug run prints the lines its workers relayed, `planetgen.util.log.RelayReader`).
+
+    Args:
+        touch (bool): Whether this process says the run is alive (`runrecord.touch`) at every poll. The process that
+            started the run does; one that only watches it (`wrapper.follow`, PERF.235) does not, so a run whose own
+            process is gone is not taken for a live one on its account.
 
     Raises:
         RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was canceled).
@@ -396,7 +401,8 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             seen.update(ordered)
 
     while True:
-        runrecord.touch(conn, run_id)
+        if touch:
+            runrecord.touch(conn, run_id)
         drain()
         if on_debug is not None:
             on_debug()

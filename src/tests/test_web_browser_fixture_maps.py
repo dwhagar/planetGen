@@ -392,6 +392,8 @@ def test_sector_map_has_no_rogue_planet_marker_button(page, map_site):
 def _open_menu(page):
     if not page.locator("#galaxymap3d-menu").evaluate("m => m.open"):
         page.locator("#galaxymap3d-menu > summary").click()
+    # UX.278: a sector page's Menu folds its headings; the tests that press its switches want them all open.
+    page.locator("#galaxymap3d-kinds details.view-menu-heading").evaluate_all("els => els.forEach(e => { e.open = true; })")
 
 
 POI_LAYERS = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
@@ -416,14 +418,14 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
     before = _shot(page, SECTOR_CANVAS)
     _open_menu(page)
-    buttons = page.locator("#galaxymap3d-kinds button[data-kind]")
-    names = buttons.all_inner_texts()
+    buttons = page.locator("#galaxymap3d-kinds input[data-kind]")
+    names = [b.evaluate("el => el.closest('label').innerText.trim()") for b in buttons.all()]
     assert "Stars" in names and "Rogue planets" in names, names
-    assert [b.get_attribute("aria-pressed") for b in buttons.all()] == [
-        "false" if name == "Rogue planets" else "true" for name in names], "all on but the rogue planets (MAP.137)"
-    stars = page.locator('#galaxymap3d-kinds button[data-kind="star"]')
+    assert [b.is_checked() for b in buttons.all()] == [name != "Rogue planets" for name in names], \
+        "all on but the rogue planets (MAP.137)"
+    stars = page.locator('#galaxymap3d-kinds input[data-kind="star"]')
     stars.click()
-    assert stars.get_attribute("aria-pressed") == "false"
+    assert not stars.is_checked()
     assert "hide=star" in page.url
     page.locator("#galaxymap3d-menu > summary").click()   # the open Menu covers the spot of the star
     page.mouse.click(_x, _y)
@@ -433,10 +435,10 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     # A reload keeps it.
     page.reload()
     page.wait_for_selector(".starmap-sr-list button", state="attached")
-    page.wait_for_selector('#galaxymap3d-kinds button[data-kind="star"]', state="attached")
+    page.wait_for_selector('#galaxymap3d-kinds input[data-kind="star"]', state="attached")
     _open_menu(page)
-    assert page.locator('#galaxymap3d-kinds button[data-kind="star"]').get_attribute("aria-pressed") == "false"
-    page.locator('#galaxymap3d-kinds button[data-kind="star"]').click()
+    assert not page.locator('#galaxymap3d-kinds input[data-kind="star"]').is_checked()
+    page.locator('#galaxymap3d-kinds input[data-kind="star"]').click()
     assert "hide" not in page.url
 
 
@@ -451,32 +453,32 @@ def test_sector_map_a_registered_layer_has_a_menu_button_a_url_key_and_a_legend_
         layers.refresh();
     }""")
     _open_menu(page)
-    button = page.locator('#galaxymap3d-kinds button[data-layer="testLayer"]')
-    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button = page.locator('#galaxymap3d-kinds input[data-layer="testLayer"]')
+    assert button.count() == 1 and button.is_checked()
     legend = page.locator("#galaxymap3d-layer-legend")
     assert "marks the test layer" in legend.inner_text()
     button.click()
-    assert button.get_attribute("aria-pressed") == "false"
+    assert not button.is_checked()
     assert "hide=testLayer" in page.url
     assert "marks the test layer" not in legend.inner_text(), "an off layer has no legend line"
     button.click()
     assert "hide" not in page.url
     assert "marks the test layer" in legend.inner_text()
     # The kinds the sector stage owns still work beside it.
-    assert page.locator('#galaxymap3d-kinds button[data-kind="star"]').get_attribute("aria-pressed") == "true"
+    assert page.locator('#galaxymap3d-kinds input[data-kind="star"]').is_checked()
 
 
 def test_sector_map_show_on_map_shows_a_hidden_kind_again(page, map_site):
     _open_sector(page, map_site, "?contents_type=Rogue+Planet")
     _open_menu(page)
     rogue = next(p for p in PHENOMENA if p["type"] == "rogue_planet")
-    toggle = page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]')
-    assert toggle.get_attribute("aria-pressed") == "false", "rogue planets begin hidden (MAP.137)"
+    toggle = page.locator('#galaxymap3d-kinds input[data-kind="roguePlanet"]')
+    assert not toggle.is_checked(), "rogue planets begin hidden (MAP.137)"
     page.locator("#galaxymap3d-menu > summary").click()  # closed, so its panel isn't over the table
     button = page.locator(f'[data-map-target="rogue_planet:{rogue["id"]}"]')
     button.click()
     assert _info_title(page) == rogue["name"]
-    assert toggle.get_attribute("aria-pressed") == "true", "selecting it shows its kind again"
+    assert toggle.is_checked(), "selecting it shows its kind again"
     assert "show=roguePlanet" in page.url and "hide" not in page.url
 
 
@@ -1621,6 +1623,24 @@ def test_sector_map_draws_its_nebula_from_its_own_points(page, map_site):
     assert not any("/shape" in url for url in requests), requests
 
 
+def test_sector_map_draws_a_remnant_and_a_nebula_from_points_and_never_as_a_hard_ball_or_shell(page, map_site):
+    """MAP.392 (Boss: "I'm still seeing the weird spheres / circle markers"): the Sector Map draws every nebula and supernova remnant of the sector from
+    points, the stored nebula by its id and the remnant (which has none) by its sphere (`/galaxy/cloud-volume`), and no analytic ball or shell is
+    left on screen for either; this fails on a nebula or remnant drawn as the sphere fallback."""
+    requests = []
+    page.on("request", lambda request: requests.append(request.url))
+    _open_sector(page, map_site)
+    page.wait_for_function(
+        f"() => {{ const v = ({VOLUMES})(); return v && v.volumes().some((volume) => volume.key.startsWith('sphere:supernova-remnant:')) "
+        "&& v.volumes().some((volume) => volume.key === 'nebula:31'); }", timeout=30000)
+    drawn = page.evaluate(f"() => ({VOLUMES})().volumes().map((volume) => [volume.key, volume.ix.length])")
+    remnant = [entry for entry in drawn if entry[0].startswith("sphere:supernova-remnant:")]
+    assert remnant and all(count > 0 for _, count in remnant), drawn
+    assert any("/galaxy/cloud-volume" in url and "family=supernova-remnant" in url for url in requests), requests
+    assert not any("/shape" in url for url in requests), requests
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyHardClouds()") == [], "no hard sphere or shell"
+
+
 def test_galaxy_map_draws_a_nebula_and_asks_for_no_shape_mesh(page, map_site):
     """MAP.103, MAP.142 part 4: a nebula big enough on screen is drawn (from its points or as a sprite), and the map asks the site for no
     per-nebula shape mesh any more."""
@@ -1638,8 +1658,18 @@ def test_galaxy_map_draws_a_field_cloud_as_a_sprite_that_is_not_pickable_labelle
     no stored shape to fetch, no page to open and no name to label."""
     requests = []
     page.on("request", lambda request: requests.append(request.url))
+    # TEST.575: the sprite is on screen for only a frame or two while the window settles, so polling the count can miss it. An observer
+    # that stays set once the count has been above 0 records it, and the wait is on that mark.
+    page.add_init_script("""
+        new MutationObserver((records) => {
+            for (const record of records) {
+                const value = record.target.getAttribute('data-field-clouds');
+                if (value !== null && value !== '0') document.documentElement.setAttribute('data-field-seen', value);
+            }
+        }).observe(document, {subtree: true, attributes: true, attributeFilter: ['data-field-clouds']});
+    """)
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
-    page.locator("#galaxymap3d-canvas:not([data-field-clouds='0'])").wait_for(state="attached", timeout=40000)
+    page.locator("html[data-field-seen]").wait_for(state="attached", timeout=40000)
     page.wait_for_timeout(1500)
     assert not any("field-1.2.3.4" in url for url in requests), [url for url in requests if "field" in url]
     assert not any("/shape" in url for url in requests)
@@ -1827,6 +1857,10 @@ def test_sector_map_names_its_systems_through_the_label_engine_with_the_system_n
     picking), with no text sprites in the scene; the System names switch (the address's `hide`) takes them away."""
     _open_sector(page, map_site)
     page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'system')")
+    # TEST.597: the page opens at once but its nodes arrive one level at a time (243, 81, 27, 9); a block is drawn whole until its
+    # children are in hand (galaxynodecut.js settledExpanded), and a whole block names its region or family (regionlabels.js) for the
+    # two to four seconds that takes. The labels are read once the nodes are in and those names have gone.
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'region')", timeout=30000)
     shown = page.evaluate(LABELS)
     assert all(label["kind"] in ("system", "sector") for label in shown), shown
     rects = page.evaluate("() => [...document.querySelectorAll('.map-label')].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })")
@@ -3334,14 +3368,16 @@ def test_the_charted_regions_are_soft_spheres_at_galactic_scale_colored_by_share
 def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card(page, map_site):
     """MAP.321 c: at galactic scale a region whose list entry has inhabited worlds carries the inhabited symbol at its middle
     (the Menu's Inhabited worlds layer, on by default), in the colour of its best world's tier; picking it shows the region's card with
-    the inhabited line, and a region without any has no token."""
+    the inhabited line. A region without any carries the Region symbol instead (the Menu's Charted regions layer, #5208), and a region
+    already marked by its inhabited token is not marked twice. MAP.398: the test once said a region without inhabited worlds has no token;
+    that stopped being so when the Region symbol came in."""
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
     page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
     found = _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
     tokens = [e for e in found if e["regionKey"]]
-    assert [(e["kind"], e["regionKey"]) for e in tokens] == [("marker-inhabited", "9.0.0.0")], found
-    assert tokens[0]["name"] == "Fixture Beez Region", tokens
+    assert sorted((e["kind"], e["regionKey"]) for e in tokens) == [("marker-inhabited", "9.0.0.0"), ("marker-region", "9.1.0.0")], found
+    assert {e["regionKey"]: e["name"] for e in tokens} == {"9.0.0.0": "Fixture Beez Region", "9.1.0.0": "Fixture Zarh Region"}, tokens
     spot = next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.0.0.0")
     assert spot["visible"]
     box = page.locator(GALAXY_CANVAS).bounding_box()
@@ -3355,13 +3391,16 @@ def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_tha
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     info = page.locator("#galaxymap3d-info").inner_text()
     assert "3 inhabited worlds in 2 systems, best Blue" in info, info
-    # Switching the Inhabited worlds layer off takes the token, and the regions layer off takes it with its sphere.
+    # Switching the Inhabited worlds layer off takes the inhabited token and leaves its region the Region symbol; switching it on again
+    # gives the token back. The regions layer off takes every token with the spheres.
+    def kinds_of_tokens(entries):
+        return sorted((e["kind"], e["regionKey"]) for e in entries if e["regionKey"])
+
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
-    _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
-    assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
+    _markers_until(page, lambda entries: kinds_of_tokens(entries) == [("marker-region", "9.0.0.0"), ("marker-region", "9.1.0.0")])
     page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
-    _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
+    _markers_until(page, lambda entries: kinds_of_tokens(entries) == [("marker-inhabited", "9.0.0.0"), ("marker-region", "9.1.0.0")])
     page.locator('#galaxymap3d-kinds button[data-layer="regions"]').click()
     _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
     assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
@@ -3540,11 +3579,12 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-gas-giant"]')
     _poi_layers(page, "marker-gas-giant")
     assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
-    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-gas-giant" for e in entries))
+    # The marks come in as the nodes do (TEST.575): wait for all of them, not for the first.
+    found = _markers_until(page, lambda entries: giants <= {e["name"] for e in entries if e["kind"] == "marker-gas-giant"}, seconds=40)
     assert {e["name"] for e in found if e["kind"] == "marker-gas-giant"} == giants
     assert not [e for e in found if e["kind"] == "marker-habitable"]
     page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
-    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    found = _markers_until(page, lambda entries: worlds <= {e["name"] for e in entries if e["kind"] == "marker-habitable"}, seconds=40)
     marks = [e["name"] for e in found if e["kind"] in ("marker-habitable", "marker-gas-giant")]
     assert sorted(marks) == sorted(giants | worlds), marks    # Fixture Eden once, though it has both reasons
     page.locator("#galaxymap3d-menu > summary").click()
@@ -3763,6 +3803,22 @@ def test_the_default_map_marks_a_green_and_a_yellow_world_with_the_reason_listed
         assert wanted in page.locator("#galaxymap3d-info").inner_text()
 
 
+def test_every_control_in_the_galaxy_and_sector_menus_is_a_working_button(page, map_site):
+    """MAP.397: some rows of the Menu showed only the word "Forward" at the start of a line, greyed out and not clickable. Every visible thing
+    in the Menu's "Show on the map" list is a heading or a button that is enabled and named, a Forward button sits right after its layer's
+    button on the same line, and pressing each one changes it, on the Galaxy Map and on a sector."""
+    from tests.map_menu_support import check_menu_controls
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    forwards, seen = check_menu_controls(page, "#galaxymap3d-kinds")
+    assert forwards >= len(POI_LAYERS) and seen > 40, (forwards, seen)
+    _open_sector(page, map_site)
+    page.wait_for_timeout(500)
+    _open_menu(page)
+    check_menu_controls(page, "#galaxymap3d-kinds")
+
+
 def test_the_points_of_interest_menu_group_shows_pulls_forward_or_hides_each_kind_and_remembers_it(page, map_site):
     """MAP.306: the Menu's Points of interest group has a row for each reason, whose second button pulls it forward (drawn over the
     other marks, named first); a crowd takes its strongest member's state; hiding a kind takes its marks away; one row sets every
@@ -3775,7 +3831,7 @@ def test_the_points_of_interest_menu_group_shows_pulls_forward_or_hides_each_kin
     forward = {layer: kinds.locator(f'button[data-forward="{layer}"]') for layer in POI_LAYERS}
     assert all(button.count() == 1 for button in forward.values())
     assert all(forward[layer].get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
-    assert forward["marker-uninhabitable"].is_disabled(), "a hidden row cannot be pulled forward by its own button"
+    assert not forward["marker-uninhabitable"].is_disabled(), "a hidden row's Forward button is there to press (MAP.397)"
     # Pull the gas giants forward: their marks are drawn in front and named first.
     forward["marker-gas-giant"].click()
     assert "front=marker-gas-giant" in page.url
@@ -4875,7 +4931,7 @@ def test_sector_map_highlight_draws_a_phenomenon_kind_larger_and_keeps_it_in_the
     toggle = page.locator('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]')
     assert toggle.get_attribute("aria-pressed") == "false"
     # MAP.137: rogue planets start hidden, and a hidden kind has nothing to highlight; show them first.
-    page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]').click()
+    page.locator('#galaxymap3d-kinds input[data-kind="roguePlanet"]').click()
     page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
     # The shots are taken with the Menu closed: its panel hangs over the map.
     page.locator("#galaxymap3d-menu").evaluate("m => { m.open = false; }")
@@ -6003,6 +6059,29 @@ def test_the_course_diagram_and_the_maps_course_select_each_other(page, map_site
     page.wait_for_url(re.compile(r"/system/702"))
 
 
+def test_a_course_inside_one_sector_is_drawn_in_the_open_sector(page, map_site, monkeypatch):
+    """NAV.22: a course that stays in one sector opens that sector with the course's line, rings and names drawn in it, as a course
+    across the galaxy has them."""
+    from planetgen.web import nav_page
+
+    course = _course_through_the_fixture_systems()
+    shell, band, wedge = next((sh, b, w) for _id, sh, b, w, name in SECTORS if name == "Fixture Prime")
+    course["scope"] = "sector"
+    course["sector"] = {"id": SECTOR_ID, "name": "Fixture Prime", "shell": shell, "band": band, "wedge": wedge}
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda from_raw, to_raw: course)
+    page.set_viewport_size(VIEWPORT)
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    _open_galaxy(page, map_site, "?course=system:701,system:704")
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    assert not errors, errors
+    camera = page.evaluate(f"() => {canvas}.galaxyCamera()")
+    assert math.dist(camera["target"], _sector_center_pc(shell, band, wedge)) < 0.5, "the map opens on the sector holding the course"
+    assert [stop["name"] for stop in page.evaluate(f"() => {canvas}.galaxyCourseStops()")] == [p["name"] for p in course["points"]]
+    forms = page.evaluate(f"() => {canvas}.galaxyCourseForms()")
+    assert forms.get("route") is True and forms.get("direct") is True
+
+
 def test_the_galaxy_maps_course_draws_a_jump_through_unknown_space_red_and_glowing(page, map_site, monkeypatch):
     """NAV.36: a hop through unknown space is drawn apart on the Galaxy Map's course, as a row of glow sprites along it, and the key says
     what it is; a course with no such hop has neither."""
@@ -6221,3 +6300,287 @@ def test_two_waypoints_plot_a_course_that_stays_until_they_are_cleared(page, map
     menu.get_by_role("button", name="Clear all").click()
     page.wait_for_function(drawn(0))
     assert "via=" not in page.url and _waypoints(page) == []
+
+
+def test_a_waypoint_is_flagged_on_the_galaxy_map_where_its_card_was_picked(page, map_site):
+    """NAV.49: a waypoint added from a star's card is flagged, numbered, at the star on the Galaxy Map; the Waypoint flags layer hides the
+    flags and the key line follows; removing the waypoint takes its flag."""
+    _open_sector(page, map_site)
+    _x, _y, first = _click_a_star(page)
+    start_id = next(i for i, n, *_rest in SYSTEMS if n == first)
+    page.locator("#galaxymap3d-info .map-info-waypoint").click()
+    page.wait_for_function("document.querySelector('#galaxymap3d-info .map-info-waypoint').getAttribute('aria-label').startsWith('Remove waypoint 1')")
+    stored = _waypoints(page)
+    assert len(stored) == 1 and len(stored[0]["position"]) == 3, stored
+
+    _open_galaxy(page, map_site)
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    flags = page.evaluate(f"() => {canvas}.galaxyWaypointFlags()")
+    assert [flag[0] for flag in flags] == [1]
+    assert flags[0][1:] == pytest.approx(stored[0]["position"])
+    drawn = f"{canvas}.__mapLayers.keys().filter((k) => k.drawn).map((k) => k.id)"
+    assert "key-waypoints" in page.evaluate(f"() => {drawn}")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('waypoints', false)")
+    assert page.evaluate(f"() => {canvas}.galaxyWaypointFlags()") == []
+    assert "key-waypoints" not in page.evaluate(f"() => {drawn}")
+    page.evaluate(f"() => {canvas}.__mapLayers.setOn('waypoints', true)")
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    menu.get_by_role("button", name=f"Remove waypoint 1, {first}").click()
+    assert page.evaluate(f"() => {canvas}.galaxyWaypointFlags()") == []
+    assert start_id
+
+
+# --- NAV.58: edit a course -----------------------------------------------------------------------------------------------
+
+def _plotted_course(monkeypatch):
+    """Makes the Galaxy Map's course through waypoints the fixture course whatever the waypoints are, and lists what it was asked for."""
+    from planetgen.web import nav_page
+
+    through = _course_through_the_fixture_systems()
+    through.update({"via": True, "waypoints": [0, 2, 3], "direct": None, "navUrl": "/nav?from=system:701&to=system:704",
+                    "directs": [[through["points"][0], through["points"][2]], [through["points"][2], through["points"][3]]]})
+    through["points"][2]["role"] = "waypoint"
+    asked = []
+    monkeypatch.setattr(nav_page, "galaxy_course_through", lambda raws: asked.append(raws) or through)
+    return asked
+
+
+def _via(page):
+    return page.evaluate("() => new URLSearchParams(location.search).get('via')")
+
+
+def _wait_via(page, wanted):
+    page.wait_for_function("(wanted) => (new URLSearchParams(location.search).get('via') || '') === wanted", arg=wanted, timeout=30000)
+
+
+def test_each_edit_of_the_waypoints_plans_the_course_again(page, map_site, monkeypatch):
+    """NAV.58: with the course through the waypoints on the map, moving a waypoint earlier or later, removing one and adding one each plan
+    the course again through the new list, the Waypoints menu comes back open, and the course goes when fewer than two are left."""
+    asked = _plotted_course(monkeypatch)
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    names = [(f"system:{system[0]}", system[1]) for system in SYSTEMS if system[0] in (701, 703, 704)]
+    first, second, third = (name for _ref, name in names)
+    _set_waypoints(page, names)
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    menu.get_by_role("link", name="Plot the course").click()
+    _wait_via(page, "system:701,system:703,system:704")
+
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    menu.get_by_role("button", name=f"Move waypoint 3, {third}, earlier").click()
+    _wait_via(page, "system:701,system:704,system:703")
+    assert asked[-1] == ["system:701", "system:704", "system:703"]
+    assert [entry["value"] for entry in _waypoints(page)] == ["system:701", "system:704", "system:703"]
+    menu = page.locator("[data-waypoints-menu]")
+    page.wait_for_function("() => document.querySelector('[data-waypoints-menu]').open", timeout=20000)   # the menu comes back open
+    first_row = menu.locator("[data-waypoints-panel] li").first
+    assert first_row.get_by_role("button", name=f"Move waypoint 1, {first}, earlier").is_disabled()
+    assert menu.locator("[data-waypoints-panel] li").last.get_by_role("button", name=f"Move waypoint 3, {second}, later").is_disabled()
+
+    menu.get_by_role("button", name=f"Remove waypoint 1, {first}").click()
+    _wait_via(page, "system:704,system:703")
+    assert asked[-1] == ["system:704", "system:703"]
+
+    # A waypoint added elsewhere (another tab, or a card) is planned in too.
+    page.wait_for_function("() => document.querySelector('[data-waypoints-panel]').textContent.includes('2. ')", timeout=20000)   # the new page's menu is wired
+    _set_waypoints(page, [("system:704", third), ("system:703", second), ("system:701", first)])
+    _wait_via(page, "system:704,system:703,system:701")
+    assert asked[-1] == ["system:704", "system:703", "system:701"]
+
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click() if not menu.evaluate("(m) => m.open") else None
+    menu.get_by_role("button", name=f"Remove waypoint 3, {first}").click()
+    _wait_via(page, "system:704,system:703")
+    menu = page.locator("[data-waypoints-menu]")
+    menu.get_by_role("button", name=f"Remove waypoint 2, {second}").click()
+    _wait_via(page, "")
+    assert [entry["value"] for entry in _waypoints(page)] == ["system:704"]
+
+
+def _saved_courses(page):
+    return page.evaluate("""() => {
+        const key = Object.keys(localStorage).find(k => k.startsWith('planetgen.courses.'));
+        return key ? JSON.parse(localStorage.getItem(key)) : [];
+    }""")
+
+
+def test_the_waypoints_are_saved_as_a_course_over_another_or_opened_again(page, map_site, monkeypatch):
+    """NAV.58: Save as new course asks for a name and keeps the stops in order; once the waypoints are changed Save over takes the saved
+    course's place (name and place in the list kept); a second Save as new makes another; and Open on a saved course puts its stops back as
+    the waypoints and plots the course through them."""
+    _plotted_course(monkeypatch)
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    names = [(f"system:{system[0]}", system[1]) for system in SYSTEMS if system[0] in (701, 703, 704)]
+    third = names[2][1]
+    _set_waypoints(page, names)
+    answers = []
+    page.on("dialog", lambda dialog: (answers.append((dialog.type, dialog.message)), dialog.accept(answers_text.pop(0) if dialog.type == "prompt" else None)))
+    answers_text = ["Round trip"]
+    menu = page.locator("[data-waypoints-menu]")
+    menu.locator("summary").click()
+    menu.get_by_role("button", name="Save as new course").click()
+    page.wait_for_function("() => document.querySelector('[data-waypoints-panel]').textContent.includes('Saved as')")
+    saved = _saved_courses(page)
+    assert [course["name"] for course in saved] == ["Round trip"]
+    assert [stop["value"] for stop in saved[0]["stops"]] == ["system:701", "system:703", "system:704"]
+    assert saved[0]["from"] == "system:701" and saved[0]["to"] == "system:704"
+    assert answers[0][0] == "prompt"
+    assert menu.get_by_role("button", name="Save as new course").count() == 0, "saved already: nothing to save again"
+
+    menu.get_by_role("button", name=f"Move waypoint 3, {third}, earlier").click()
+    over = menu.get_by_role("button", name="Save over “Round trip”")
+    over.wait_for()
+    over.click()
+    page.wait_for_function("() => document.querySelector('[data-waypoints-panel]').textContent.includes('Saved as')")
+    saved = _saved_courses(page)
+    assert [course["name"] for course in saved] == ["Round trip"], "over the saved course, not beside it"
+    assert [stop["value"] for stop in saved[0]["stops"]] == ["system:701", "system:704", "system:703"]
+
+    # Another arrangement saved as a new course sits beside it.
+    menu.get_by_role("button", name=f"Move waypoint 3, {names[1][1]}, earlier").click()
+    answers_text.append("Other way")
+    menu.get_by_role("button", name="Save as new course").click()
+    page.wait_for_function("() => document.querySelector('[data-waypoints-panel]').textContent.includes('Other way')")
+    assert [course["name"] for course in _saved_courses(page)] == ["Round trip", "Other way"]
+
+    # Clear all, then open the first again: its stops are the waypoints and the course is plotted through them.
+    menu.get_by_role("button", name="Clear all").click()
+    assert _waypoints(page) == []
+    menu.locator("summary").click() if not menu.evaluate("(m) => m.open") else None
+    menu.get_by_role("button", name="Open saved course Round trip as the waypoints").click()
+    _wait_via(page, "system:701,system:704,system:703")
+    assert [entry["value"] for entry in _waypoints(page)] == ["system:701", "system:704", "system:703"]
+
+
+def test_a_flag_dragged_onto_another_star_puts_that_system_in_its_place(page, dense_site):
+    """NAV.58: a waypoint's flag on the Galaxy Map is dragged onto another star system and that system becomes the waypoint (same place in
+    the course, new flag position); a drop on nothing, or on its own star, changes nothing."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    stars = _visible_stars(page)
+    # Two stars of different systems, each with room round it: the pointer on one finds that one and nothing else.
+    alone = [s for s in stars if s["system_id"] is not None and all(abs(s["x"] - o["x"]) + abs(s["y"] - o["y"]) > 40 for o in stars if o is not s)]
+    start = alone[0]
+    target = next(s for s in alone if s["system_id"] != start["system_id"])
+    canvas = "document.querySelector('#galaxymap3d-canvas')"
+    page.evaluate("""([ref, position]) => {
+        const db = document.querySelector('[data-bookmark-db]').getAttribute('data-bookmark-db');
+        const key = 'planetgen.waypoints.' + db;
+        localStorage.setItem(key, JSON.stringify([{name: 'Dragged', kind: 'system', value: ref, position, created: new Date().toISOString()}]));
+        window.dispatchEvent(new CustomEvent('planetgen-saved-change', {detail: {key}}));
+    }""", [f"system:{start['system_id']}", start["world"]])
+    page.wait_for_function(f"() => {canvas}.galaxyWaypointFlags().length === 1")
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+
+    def at(star):
+        return (box["x"] + star["x"], box["y"] + star["y"])
+
+    def drag(source, goal):
+        page.mouse.move(*source)
+        page.mouse.down()
+        page.mouse.move((source[0] + goal[0]) / 2, (source[1] + goal[1]) / 2, steps=5)
+        page.mouse.move(*goal, steps=5)
+        page.mouse.up()
+
+    flag = at(start)
+    gaps = [(box["x"] + x, box["y"] + y) for x in range(40, int(box["width"]) - 40, 53) for y in range(60, int(box["height"]) - 40, 47)
+            if all(abs(x - o["x"]) + abs(y - o["y"]) > 40 for o in stars)]
+    free = _free_of_panels(page, [list(spot) for spot in gaps])
+    assert free, "a spot of the map is free of its panels and of stars"
+    drag(flag, free[0])
+    assert [entry["value"] for entry in _waypoints(page)] == [f"system:{start['system_id']}"], "dropped on nothing"
+    drag(flag, flag)
+    assert [entry["value"] for entry in _waypoints(page)] == [f"system:{start['system_id']}"], "dropped where it was"
+
+    drag(flag, at(target))
+    page.wait_for_function("(wanted) => JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k => k.startsWith('planetgen.waypoints.'))))[0].value === wanted",
+                           arg=f"system:{target['system_id']}")
+    stored = _waypoints(page)
+    assert len(stored) == 1 and stored[0]["position"] == pytest.approx(target["world"])
+    flags = page.evaluate(f"() => {canvas}.galaxyWaypointFlags()")
+    assert [flag_[0] for flag_ in flags] == [1] and flags[0][1:] == pytest.approx(target["world"])
+
+
+def test_a_field_cloud_sprite_hands_over_to_the_density_volume_and_something_is_drawn_for_it_at_steady_state(page, map_site):
+    """MAP.382: the field cloud sprite (MAP.178) is the stand-in for a cloud until the nebula volume layer (MAP.365) draws the same region from the model's
+    density, so it is on screen for a few frames when its node arrives and then gives way (`opacity * (1 - covered)`); that is by design. What must hold 5 s
+    after the sprite was first seen is that the cloud is not left undrawn: the volume layer draws, or the sprite is still there."""
+    page.add_init_script("""
+        new MutationObserver((records) => {
+            for (const record of records) {
+                const value = record.target.getAttribute('data-field-clouds');
+                if (value !== null && value !== '0') document.documentElement.setAttribute('data-field-seen', value);
+            }
+        }).observe(document, {subtree: true, attributes: true, attributeFilter: ['data-field-clouds']});
+    """)
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.locator("html[data-field-seen]").wait_for(state="attached", timeout=40000)
+    page.wait_for_timeout(5000)
+    state = page.evaluate("""() => { const c = document.querySelector('#galaxymap3d-canvas'); const v = c.__mapNebulaVolumes;
+        return {sprites: Number(c.dataset.fieldClouds), volumes: v ? v.drawn() : 0}; }""")
+    assert state["sprites"] > 0 or state["volumes"] > 0, state
+
+
+# --- The Gravity layer (MAP.168) ------------------------------------------------------
+
+
+def test_sector_gravity_route_answers_the_grid_and_refuses_what_it_does_not_know(map_site):
+    import urllib.error
+    import urllib.request
+
+    def ask(query):
+        try:
+            with urllib.request.urlopen(f"{map_site}/sector/{SECTOR_ID}/gravity{query}") as response:
+                return response.status, response.headers.get("Cache-Control"), json.loads(response.read())
+        except urllib.error.HTTPError as error:
+            return error.code, error.headers.get("Cache-Control"), json.loads(error.read())
+
+    status, cache, body = ask("?mode=tidal&field=centered")
+    assert status == 200 and cache == "no-store"
+    assert body["mode"] == "tidal" and body["field"] == "centered" and body["zones"] == 16 and len(body["values"]) == 16 ** 3
+    assert ask("")[2]["field"] == "total", "the field defaults to the total"
+    assert ask("?mode=speed")[0] == 400 and ask("?field=nothing")[0] == 400
+
+
+def _gravity_toggle(page):
+    return page.locator('#galaxymap3d-kinds input[data-layer="gravity"]')
+
+
+def test_sector_map_gravity_layer_draws_switches_mode_and_keeps_the_address(page, map_site):
+    _open_sector(page, map_site)
+    _open_menu(page)
+    toggle = _gravity_toggle(page)
+    assert toggle.count() == 1 and not toggle.is_checked(), "the layer begins off"
+    assert "gravity" not in page.url
+    before = _shot(page, SECTOR_CANVAS)
+    toggle.click()
+    legend = page.locator("#galaxymap3d-layer-legend")
+    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('Pull')", timeout=20000)
+    assert "gravity=pull" in page.url and "gslab=" in page.url, page.url
+    assert "m/s" in legend.inner_text(), "the legend names the unit"
+    assert _shot(page, SECTOR_CANVAS) != before, "the gravity slab draws over the map"
+    drawn = _shot(page, SECTOR_CANVAS)
+    page.locator('button[data-gravity-mode="tidal"]').click()
+    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('Stretch')", timeout=20000)
+    assert "gravity=tidal" in page.url
+    page.locator('button[data-gravity="next"]').click()
+    assert "gslab=10" in page.url, page.url
+    page.locator('input[data-gravity="volume"]').check()
+    assert "gslab=all" in page.url, page.url
+    assert _shot(page, SECTOR_CANVAS) != drawn, "every slab drawn is not the one slab"
+    toggle.click()
+    assert "gravity" not in page.url and "gslab" not in page.url, page.url
+    assert "Stretch" not in legend.inner_text(), "an off layer has no legend line"
+
+
+def test_sector_map_gravity_layer_opens_from_the_address(page, map_site):
+    _open_sector(page, map_site, "?show=gravity&gravity=depth&gslab=3")
+    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('depth')", timeout=20000)
+    assert "gravity=depth" in page.url and "gslab=3" in page.url, page.url
+    _open_menu(page)
+    assert _gravity_toggle(page).is_checked()
+    assert page.locator('button[data-gravity-mode="depth"]').get_attribute("aria-pressed") == "true"

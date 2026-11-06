@@ -132,7 +132,7 @@ have first words of their own. Inside a sector a local name is exact (the spelli
 differ in the second.
 
 What this item does not do: it adds the functions, the version and the tests. Using the local name for rogue planets and the other
-phenomena, giving scatter rows an Object ID, and showing the name and sector on pages, the API and search are GEN.1256, GEN.1257, UX.259
+phenomena, and showing the name and sector on pages, the API and search are GEN.1256, GEN.1257, UX.259
 and API.38.
 
 ### Names shown for IDs (GEN.71)
@@ -224,3 +224,28 @@ key change first.
 
 A bright star placed by the backfill shows its ID until its sector is
 generated, and only then gets its name.
+
+## Scatter rows (GEN.1254)
+
+A star of `bright_stars` and a scattered phenomenon of `phenomenon_scatter` have an Object ID from the moment the scatter writes them: `uid`
+(`BINARY(12)`, unique, NULL for a row made before migration 0213). It is the ID the object keeps when its sector is charted. The module is
+`db/scatter_uids.py`.
+
+- **Birth sector and body.** The row's own sector, body number 0, serial kind generated.
+- **Serial.** The row's rank in its sector among the rows written in the same call, brightest first (`luminosity_w` of a star,
+  `map_luminosity_sol` of a phenomenon), then the row's `seed`, then its row number. The rank continues from the sector's counter (`id_counters`
+  kinds `scatstar` and `scatphen`, scope the sector's seven bytes), so a backfill that adds dimmer stars later takes the next numbers and no
+  number is given twice. The same rows give the same IDs whatever order they were inserted in, and a cleared scatter (`clear_bright_stars`,
+  `clear_phenomenon_scatter`) forgets its counters and starts from serial 0 again.
+- **Stars and phenomena do not share a counter.** Stars take serials from 0, phenomena from 2^25 (`PHENOMENON_SERIAL_BASE`), 33 million each.
+- **When.** `store.insert_bright_stars` and `store.insert_phenomenon_scatter` call `scatter_uids.assign` when they have written their rows:
+  one window query ranks the rows with no `uid` per sector, three joined updates move the counters and write the IDs. A row inserted by other means
+  stays NULL (NULLs do not collide in the unique index) until a writer runs.
+- **The fill.** A sector's fill starts its own serials past the stars' counter (`_UidIssuer`, `scatter_uids.next_star_serial`), so a system the
+  fill makes is never given a serial a scatter star holds. A system built round a scatter star takes the star's `uid` (`entry.bright_star_uid`), a built
+  scattered phenomenon takes its row's (`entry.scatter_uid`), and `POST /api/uncharted-systems/<id>/generate` does the same. The old ID of a
+  deleted system comes back when its star is built again.
+- **Not done here.** The row number of an uncharted star is still in its URL and its page title; naming from the ID is GEN.1255's codec, applied to
+  these rows by GEN.1256 and GEN.1257.
+- **Cost.** The column and its unique index, about 24 bytes a row: 0.65 GB at 26.9 million rows, 5.3 GB at 220 million. The rank is an extra pass
+  over the rows a call wrote, not over the table.

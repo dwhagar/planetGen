@@ -141,7 +141,7 @@ export function createPlaneView(options) {
   const state = {
     on: false, midplane: false, centerAngle: -Math.PI / 2, selected: null,
     built: null, step: 0, ringCount: 0, labels: [], planeZ: 0, around: "galactic center",
-    stemsOn: true, stretch: 1, coordLabels: [],
+    stemsOn: true, stretch: 1, coordLabels: [], labelPool: new Map(),
     stemCount: 0, stemShortestPx: null, stemMs: 0, stemRuns: 0, stemChosenAt: -1e9, stemKinds: { selected: 0, named: 0, pointer: 0, bright: 0 },
   };
   const point = new THREE.Vector3();
@@ -162,6 +162,7 @@ export function createPlaneView(options) {
     });
     state.coordLabels.forEach(function (label) { label.el.remove(); });
     state.coordLabels = [];
+    state.labelPool = new Map();
     state.stemCount = 0;
     state.stemKinds = { selected: 0, named: 0, pointer: 0, bright: 0 };
   }
@@ -302,18 +303,30 @@ export function createPlaneView(options) {
     fill(extensions, extra, extraColors);
     fill(beads, beadAt, beadColors);
     // The coordinate labels, rebuilt with the stems: the selection first, then the names and the pointer's stars.
-    state.coordLabels.forEach(function (label) { label.el.remove(); });
+    // An element is kept for as long as its star is labelled (keyed by its place), so a rebuild never removes and re-adds a label (which
+    // blinked it for a frame); only the stars that drop out lose theirs.
+    const kept = new Map();
     state.coordLabels = labelled.map(function (entry) {
-      const el = document.createElement("div");
-      el.className = "map-label map-plane-coords";
-      el.dataset.kind = "plane-coords";
-      if (entry.item.strong) el.dataset.selected = "";
       const at = [entry.item.x, entry.item.y, entry.item.z];
+      const key = `${at[0]},${at[1]},${at[2]}`;
+      const old = state.labelPool.get(key);
+      const el = old ? old.el : document.createElement("div");
+      if (!old) {
+        el.className = "map-label map-plane-coords";
+        el.dataset.kind = "plane-coords";
+        el.style.opacity = "0";
+        labelBox.appendChild(el);
+      }
+      if (entry.item.strong) el.dataset.selected = "";
+      else delete el.dataset.selected;
       const text = coordinateText(at, entry.item.strong);
-      el.textContent = text;
-      labelBox.appendChild(el);
-      return { el: el, text: text, world: [entry.item.x, entry.item.y, entry.top], star: at, selected: !!entry.item.strong };
+      if (el.textContent !== text) el.textContent = text;
+      const label = { el: el, text: text, world: [entry.item.x, entry.item.y, entry.top], star: at, selected: !!entry.item.strong };
+      kept.set(key, label);
+      return label;
     });
+    state.labelPool.forEach(function (label, key) { if (!kept.has(key)) label.el.remove(); });
+    state.labelPool = kept;
     note.textContent = noteText();
     state.stemCount = chosen.length;
     state.stemKinds = kinds;
@@ -463,11 +476,11 @@ export function createPlaneView(options) {
       setWedgeToward(target);
     }
     if (stale(target)) build(target);
-    placeLabels();
     const now = performance.now();
     if (!note.isConnected) labelBox.appendChild(note);
     note.textContent = noteText();
     if (now - state.stemChosenAt >= STEM_EVERY_MS) buildStems(target, now);
+    placeLabels();    // after the stems, so a label is placed in the frame it is made
   }
 
   function set(on) {
@@ -513,6 +526,9 @@ export function createPlaneView(options) {
   return {
     set: set,
     isOn: function () { return state.on; },
+    // MAP.376: the wedge chosen by its middle line (radians from +x); the grid is rebuilt about it.
+    setWedgeAngle: function (angle) { state.centerAngle = wrap(angle); state.stemChosenAt = -1e9; },
+    wedgeAngle: function () { return state.centerAngle; },
     setMidplane: function (on) { state.midplane = !!on; },
     isMidplane: function () { return state.midplane; },
     select: function (at) { state.selected = at ? [at[0], at[1], at[2]] : null; state.stemChosenAt = -1e9; },

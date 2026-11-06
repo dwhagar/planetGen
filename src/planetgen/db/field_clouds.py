@@ -19,6 +19,7 @@ from planetgen import tuning
 from planetgen.db import region
 from planetgen.galaxy import nebula_field
 from planetgen.physics.units import ly_to_pc
+from planetgen.util import detmath
 
 MAX_REACH_PC = 700.0
 """float: The widest a node's circumscribed sphere (half its diagonal plus the biggest cloud's radius) may be for it to list field clouds, parsecs.
@@ -48,7 +49,7 @@ def field_clouds_in_box(conn, lo, hi, max_clouds):
         and `field` (`True`), largest first, ties by the row's key; `[]` for a box wider than `MAX_REACH_PC`.
     """
     center = tuple((a + b) / 2.0 for a, b in zip(lo, hi))
-    reach = 0.5 * math.dist(lo, hi) + nebula_field.MAX_CLOUD_RADIUS_PC
+    reach = 0.5 * detmath.dist(lo, hi) + nebula_field.MAX_CLOUD_RADIUS_PC
     if reach > MAX_REACH_PC:
         return []
     clouds = []

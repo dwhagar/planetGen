@@ -135,3 +135,49 @@ def test_clock_text():
     assert warm_progress.clock_text(65) == "1:05"
     assert warm_progress.clock_text(3912) == "1:05:12"
     assert warm_progress.clock_text(None) == "?"
+
+
+def test_a_unit_that_reports_part_of_itself_moves_the_stage_and_the_whole_warm_up():
+    now = [0.0]
+    progress = warm_progress.WarmProgress(["systems", "search"], lambda line: None, show=True, clock=lambda: now[0],
+                                          expected={"systems": 100.0, "search": 100.0})
+    progress.plan(0, {"units": 4, "cost": 100.0})
+    now[0] = 10.0
+    for unit in range(4):
+        progress.unit_progress(0, unit, 25, 100)        # four big chunks, each a quarter done: one chunk's worth
+    assert progress._position() == 1.0
+    assert progress._weight_done() == 25.0
+    assert progress.overall_left() is None               # one chunk's worth is too little to say how long the rest takes
+    for unit in range(4):
+        progress.unit_progress(0, unit, 75, 100)        # three chunks' worth
+        progress.unit_progress(0, unit, 50, 100)        # a report that goes backwards changes nothing
+    now[0] = 30.0
+    for unit in range(4):
+        progress.unit_progress(0, unit, 100, 100)
+    assert progress._weight_done() == 100.0
+
+
+def test_a_finished_unit_counts_whole_and_its_partial_report_is_dropped():
+    now = [0.0]
+    progress = warm_progress.WarmProgress(["systems"], lambda line: None, show=True, clock=lambda: now[0],
+                                          expected={"systems": 100.0})
+    progress.plan(0, {"units": 2, "cost": 100.0})
+    progress.unit_progress(0, 0, 90, 100)
+    now[0] = 5.0
+    progress.result(_chunk(), 0)
+    assert progress._position() == 1.0 and progress._weight_done() == 50.0
+    progress.unit_progress(1, 1, 50, 100)                # another stage's report is not ours
+    progress.unit_progress(0, 1, 50, 0)                  # a unit that has no estimate says nothing
+    assert progress._position() == 1.0
+
+
+def test_the_time_left_uses_the_parts_of_the_chunks_that_have_reported():
+    now = [0.0]
+    progress = warm_progress.WarmProgress(["systems"], lambda line: None, show=True, clock=lambda: now[0],
+                                          expected={"systems": 100.0})
+    progress.plan(0, {"units": 20, "cost": 100.0})
+    now[0] = 100.0
+    for unit in range(10):
+        progress.unit_progress(0, unit, 50, 100)         # ten chunks half done: five chunks' worth in 100 s
+    assert progress._stage_left(100.0) == 100.0 / 5.0 * 15.0
+    assert progress.overall_left() == 100.0 * 75.0 / 25.0
