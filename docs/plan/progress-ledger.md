@@ -2681,3 +2681,18 @@ Baseline: PR #1817.
 | GEN.1285 | 8.3 | Orbital update core |
 | TEST.606 | 8.1 | Physics rectification: citations and the gate's test health |
 | TEST.627 | 8.3 | Orbital update core |
+| MAP.224 | 8.8 | Clusters and satellites on the map |
+| TEST.647 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.651 | 8.1 | Physics rectification: citations and the gate's test health |
+| MAP.381 | 8.8 | Clusters and satellites on the map |
+| MAP.223 | 8.8 | Zoom windows |
+| TEST.652 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1186 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
+| GEN.1185 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
+| TEST.650 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.653 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1305 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.580 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.655 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| VIEW.47 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.654 | 8.1 | Physics rectification: life classes, chemistries and their pages |

@@ -9,6 +9,7 @@ VIEW.25: charting builds the sky tiers (`generation/sky_charting.py`, `db/sky_ti
 * the rings follow the luminosity bands, each cell as it stands.
 """
 
+import json
 import math
 
 import pytest
@@ -245,6 +246,9 @@ def test_the_queue_draws_the_sky_tiers_of_each_observer_cell_once(galaxy, mysql_
     conn.commit()                                                       # a new snapshot: the unit wrote through its own connection
     assert result["sky"]["spheres"] == 2 and result["stars"] == result["sky"]["stars"] == len(new_stars(conn, before))
     assert len(ledger_module.read(conn).draws) == 2
+    floors = result["sky"]["floors"]                                  # VIEW.47: the unit reports the floor against distance, whole enough to cross the queue as JSON
+    assert [row["distance_pc"] for row in floors] == list(sky_tiers.FLOOR_DISTANCES_PC)
+    assert floors == json.loads(json.dumps(floors)) and floors[0]["floor_sol"] < floors[-1]["floor_sol"]
     assert run_galaxy._sky_units(params, [SPHERE_CENTER]) == []
 
 
@@ -253,7 +257,7 @@ def test_a_charted_cell_is_built_out_to_its_spheres_and_a_half_chart_is_not(gala
     conn = galaxy
     top = store.bright_star_mass_limit(conn)
     center = tuple(sky_band.cell_center(sky_band.cell_of(SPHERE_CENTER)))
-    tiers = sky_tiers.SkyTiers(7.5, SPHERE_CENTER, EDGE_PC, 0.0, (), (), ())
+    tiers = sky_tiers.SkyTiers(7.5, SPHERE_CENTER, EDGE_PC, 0.0, (), (), (), None)
     bands = tiers._replace(luminosity=(a_tier(low=sky_tiers.RING_TOP_SOL, high=THRESHOLD),), rings=(), dropped=())
     toy = tiers._replace(luminosity=bands.luminosity, rings=(a_tier("mass", low=min(sky_tiers.ring_edges()), high=top),), dropped=())
     assert sky_charting.built_to_pc(conn, center) == 0.0

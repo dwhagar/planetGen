@@ -397,12 +397,19 @@ connectivity to that specific schema rather than the default one.
   its reason. A planet's or moon's sheet also has `bands` (GEN.1108), the seven bands of latitude side by side: `locked`, `bands` (`[{key, label}]`, from the north pole to the south pole, or the day center to the night center of a world that turns once an orbit) and `rows` (`[{key, label, cells}]`: the annual mean, the day and night swing, the hours of day and of night, the longest day and night of the year and the state; a cell is an inline list, empty where the band has none); `null` for a body with no bands. A reference that names nothing, or a kind with no sheet (a
   sector, a system, a phenomenon), is a `404`.
 - `GET /api/objects/<ref>/belt-page` — the information page data of an asteroid belt (UX.241, `describe/belt_info.py`): `belt` (`designation`,
-  `inner`, `outer`, `mass`, the typical `composition` and the `star`), `bodies` (the individually tracked members by designation, heaviest first: mass,
+  `inner`, `outer`, `mass`, the typical `composition`, the `star` and, for an outer disk, the `fates` of its mass: the share in each group the giant sorted it into, GEN.1092), `bodies` (the individually tracked members by designation, heaviest first: mass,
   diameter, distance, eccentricity, inclination, density, `taxon`, `analogue`, composition shares, the `status` word with Soter's mu, and the `population`
   of a member the giants scattered), `bins` (the rest of the belt mass by diameter: count, mass, share of the belt, `tier` (`on demand` or `total only`),
   typical composition and density), `density_factor` (`by_diameter`: the objects per square AU above 1, 10 and 100 km; `mass`: kilograms per square AU)
   and `totals` (the belt, the listed bodies and the bins, which add up). Every number is `{value, unit, text}`. A new route, so the API version stays; a
   reference that is not a belt, or names nothing, is a `404`.
+- `GET /api/objects/<ref>/belt-members/<rank>` — one body an asteroid belt keeps individually (GEN.1070, `describe/belt_member_info.py`), `rank` written as the
+  designation writes it (hex, at least four digits; 1 is the heaviest): `designation`, `rank`, `member` (the entry of `bodies` in the belt's information page:
+  mass, diameter, density, `taxon`, composition, `status`, `population`), `orbit` (`semi_major_axis`, `eccentricity`, `inclination`, `ascending_node`,
+  `argument_of_periapsis`, `mean_anomaly`, and the `closest_distance`, `farthest_distance` and `period` they and the star's mass give), `share` of the belt's mass,
+  `belt` (its `designation`, `star`, `origin` and `history` sentences, `history_text` and `individual_count`) and the `previous` (heavier) and `next` (lighter)
+  designations. Every number is `{value, unit, text}`. A new route, so the API version stays. A reference that is not a belt, a rank not written as the
+  designation writes it, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page yet) is a `404`.
 - `GET /api/objects/<ref>/children[?limit=&after=]` — what belongs to an
   object, one keyset page at a time (UX.169, `db/children.py`). A sector holds
   its systems, then the phenomena placed in it; a system its stars, then the

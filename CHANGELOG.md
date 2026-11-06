@@ -2,6 +2,163 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3486] - 2026-11-06
+
+**Headline:** The property sheet no longer lists a missing runner-up class as a gap where only one class fits the body.
+
+### Changed
+- The "Runner-up class" row of a planet or moon applies only where a second class fits the body at more than 0 percent, which is the rule the classifier already follows; where one class fits, the row is empty and the match is 0. The sheet-fill test that counted those bodies as gaps (TEST.654) passes again.
+
+generation-output: unchanged
+
+## [8.0.3485] - 2026-11-06
+
+**Headline:** The ice-species storage test now picks a system with two rocky planets, so its Pluto-like body is no longer overwritten by the CO2-frost one.
+
+### Fixed
+- `test_a_pluto_like_and_a_co2_frost_mars_like_body_keep_their_species_through_the_database` gave the first rocky planet a Pluto-like split and the last one a CO2-frost split, but took the first system of 60 seeds that had any rocky planet. When that system had one (the draw moved after the stored-composition and rogue work), both splits went to the same body, the second overwrote the first and the stored N2 amount read 0.0. Nothing was lost between the generated body and the stored row; the search now needs two rocky planets. No generator change.
+
+generation-output: unchanged
+
+## [8.0.3484] - 2026-11-06
+
+**Headline:** A run that charts the sky now says how faint a star its stored sky shows at each distance, and the unused whole-sphere draw wrappers are gone.
+
+### Changed
+- Sky charting already runs by default (`queue.sky_limit` 7.5, set by VIEW.25), so a generation run, the API job and the setup call all draw the sky tiers of the observer cells they touch. The run log now ends the "Sky tiers" line with the sky's floor at 10, 50, 250, 1000 and 3000 parsecs (`sky_tiers.floor_table`): the dimmest star the stored sky shows there through the least dust of any direction, and whether the table draws it.
+- `bright_stars.backfill_sphere` and `backfill_mass_sphere` are removed. Charting draws each batch of a sphere itself (`luminosity_sphere_batches`, `mass_sphere_batches` with `backfill_cells` and `backfill_mass_cells`) because each cell has its own ceiling; the tests keep the same two helpers.
+
+generation-output: unchanged
+
+## [8.0.3483] - 2026-11-06
+
+**Headline:** The information page of an outer disk now says where the disk's mass went: how much stayed cold or got stirred, sits in a resonance, was scattered, thrown out, parked beside the giant, put in the inner belt or caught as moons.
+
+### Added
+- **Where the disk's mass went (GEN.1092).** The page of an outer disk (`/object/belt:<ID>/belt`) has a table of the groups the outermost giant sorted the disk into, each with its share of the disk, adding up to the whole. `GET /api/objects/<ref>/belt-page` carries it as `belt.fates` (a list of `{population, share}`, empty for a belt that is not an outer disk), a new field on an existing route, so the API version does not change.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1092 stays open until the shares that left the disk are handed to the inner belt, the moons and the rogue builders).
+
+## [8.0.3482] - 2026-11-06
+
+**Headline:** The life-class tests of the system interests set the classes of their fixture system completely, so a minor class the generator drew there no longer adds a reason the test did not ask for.
+
+### Changed
+
+- `tests/test_system_interests.py` (TEST.580): `_set_life_classes` set `life_class` on the fixture system's planets and cleared it on its moons, but the other classes that live on a generated world are rows of `planet_life` and `moon_life` (GEN.1209), and the interest reasons read them too. After train 12 the fixture system (the first of 120 seeds with two planets) holds a Class 3a row there, so 4 tests found `lifeclass-3a` that they had not set (`test_the_world_query_leaves_the_life_classes_out...`, `test_a_v175_galaxy_gets_the_life_class_reasons...`, and two more). The helper now deletes those rows too, so the reasons are the ones the test sets.
+
+generation-output: unchanged
+
+## [8.0.3481] - 2026-11-06
+
+**Headline:** The stand-in row for the molecular-fraction law now names its constants, so the wiring guard sees they are read.
+
+### Fixed
+- Stand-in row NBC11 (section 6.179) named `nebula_composition.KMT_*`, which the wiring guard read as the name `KMT_` and found unread. It now lists the five constants (`KMT_CHI_COEFFICIENT`, `KMT_CHI_METALLICITY`, `KMT_LOG_TERMS`, `KMT_S_COEFFICIENT`, `KMT_FRACTION_TERMS`) that `molecular_fraction` reads, and its register line is gone. No code changes.
+
+generation-output: unchanged
+
+## [8.0.3480] - 2026-11-06
+
+**Headline:** The sector gravity data route is now classed in the search-engine indexing matrix as a utility route, so it is never offered for indexing.
+
+### Fixed
+- **Indexing class of the sector gravity route (TEST.653).** `web.sector_gravity`, the JSON route behind the Sector Map gravity layer (MAP.168), had no entry in the indexing matrix of `web/seo.py`, so `test_every_web_page_is_classified_on_purpose` failed. It joins the other data routes of the maps (`web.sector_scene`, `web.system_scene`) in the public utility class: reachable, not listed in a sitemap, and marked not to be indexed.
+
+## [8.0.3479] - 2026-11-06
+
+**Headline:** The reach-group density test no longer demands over 1000 expected stars in its smallest shell, and passes again.
+
+### Changed
+
+- `test_gen_reach_groups.py` (TEST.650): the test of the expected stars beyond the outline required more than 1,000 expected stars in the test galaxy's shell 3 and got 873.8 on main. The count is the test galaxy's, not a model fall: the thin disk's infall (GEN.1242, 3,058 down to 310 stars; GEN.1246 back up to 1,205) and then the American spelling sweep (DOC.103, which renamed the nuclear disc population and so moved the shape's random draw, 1,205 down to 874) changed it. The estimate matches the density to 0.04 percent (873.5 against 873.8), which is what the test is for. The bound now only guards against a shell too empty to compare (300).
+
+generation-output: unchanged
+
+## [8.0.3478] - 2026-11-06
+
+**Headline:** Every body an asteroid belt keeps one by one now has a page of its own, with its mass, size, makeup, orbit and the history of its belt, and the belt's list of bodies links to it.
+
+### Added
+- **A page for each stored body of a belt (GEN.1070).** `/object/belt:<ID>/member/<rank>` shows the body by its designation (it has no name), its shape word, mass, diameter, density, type and makeup, the orbit it was saved with (mean, closest and farthest distance, year, eccentricity, inclination and the three angles), its share of the belt's mass, and where its belt came from and what shaped it, with links to the heavier and the lighter neighbor, the belt and the belt's list. The list on the belt's information page links each designation to its page.
+- **`GET /api/objects/<ref>/belt-members/<rank>`** answers the same data. It is a new route, so the API version does not change. A rank above the number of bodies the belt keeps is drawn on demand and has no page yet; it answers 404, as does a rank not written the way the designation writes it.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1070 stays open for the designation display and the dots on the system map).
+
+## [8.0.3477] - 2026-11-06
+
+**Headline:** The wording test that checks a body only claims life when the index gives it life now reads the life-class index, so a world whose life lives in acid clouds is not reported as a lifeless body that claims life.
+
+### Changed
+
+- `tests/test_wording_agrees_with_the_index.py` (TEST.652): `test_a_generated_body_claims_life_only_when_the_index_gives_it_life` asked for `phi_bio > 0` wherever the page had a life or timeline sentence. `phi_bio` is the water-and-carbon index (Class 1a), 0 for a Class 5a world whose life lives in sulfuric-acid clouds aloft (`acid_medium` level 1, which needs no surface temperature), so a hot vapor world (surface 2595 K, seed 13 of the test) with Class 5a life, small mobile animals and a stored timeline failed. The body is not lifeless: it has a stored class that the class index supports (`life_class_scores`, `acid_medium` cloud layer). The test now asks that the text names a stored class and that the class index supports it.
+
+generation-output: unchanged
+
+## [8.0.3476] - 2026-11-06
+
+**Headline:** The Sector Map now draws the globular clusters that reach into the sector and names them.
+
+### Changed
+- A globular cluster whose sphere reaches into a sector is drawn on that sector's map as a soft pale-gold ball at its real radius whose brightness follows the cluster's own King model (its projected density, bright in the crowded middle and fading to nothing at the tidal radius), and named by its name, or by "Globular cluster" and its ID while it has none, with the same Cluster names switch as the Galaxy Map. Clicking its name or the ball opens its card with a link to the cluster's page, and "Globular clusters" is a button in the map's list of kinds to show or hide.
+
+generation-output: unchanged
+
+## [8.0.3475] - 2026-11-06
+
+**Headline:** The Navigation page test looks for the table caption as it is now worded.
+
+### Changed
+
+- `test_web_sector_nav.py`: the adjusted-course test (and its twin that checks the words are absent when there is no adjusted course) looks for "Warp travel time by the straight and the adjusted course". TEST.646 reworded the caption in `nav.html` ("Warp travel time, straight and adjusted" had a British-spelling check against it) and left these two checks on the old words. The "Leave on" row was never missing.
+
+generation-output: unchanged
+
+## [8.0.3474] - 2026-11-06
+
+**Headline:** Choosing a globular cluster on the Galaxy Map opens a window on its own stars.
+
+### Changed
+- Clicking a cluster's name on the Galaxy Map now flies to a window on the cluster's sphere, whatever sectors it crosses: only the stars inside the sphere are drawn (the stored ones of the sectors that are filled and, where a sector is not filled yet, the ones the plan placed), the window bar names the cluster, and its button, Escape or Backspace returns the camera to where it was. The cluster's card also has an "Open cluster window" button.
+
+generation-output: unchanged
+
+## [8.0.3473] - 2026-11-06
+
+**Headline:** A cluster's page lists the stars that belong to it, and a star's page names its cluster.
+
+### Changed
+- The page of a globular cluster now lists its own stars first, as "Stars of the cluster", each linked to its page, and says how many more of its stars are not yet charted: the ones the plan has placed that no filled sector has built yet. A cluster with no name yet is called "Globular cluster" and its ID, and takes its name on the page when the first sector holding one of its stars is filled.
+- The page of a star that belongs to a cluster shows "Member of" and the cluster, linked, in its Location block.
+- The container contents answer carries the cluster's stars as kind `star` and `uncharted_stars`; the star's object answer carries `cluster`.
+
+generation-output: unchanged
+
+## [8.0.3472] - 2026-11-06
+
+**Headline:** A test now proves that changing any row of a rogue planet's four child tables changes the digest of the sector it is filed in.
+
+### Changed
+
+- `test_a_changed_row_of_a_rogue_planets_child_tables_changes_the_digest_of_the_sector_it_is_filed_in` (TEST.647) changes one row of each of `rogue_planet_reflection_spectrum`, `rogue_planet_interior_layers`, `rogue_planet_gases` and `rogue_planet_life_class_scores` and sees both `fingerprint.sector_digest` and the leaf's `fingerprint_tree.resident_digest` change, and come back when the row does. The tables were already in the fingerprint (TEST.598) and the leaf (TEST.602) when train 12 merged, so no code, epoch or golden changes.
+
+generation-output: unchanged
+
+## [8.0.3471] - 2026-11-06
+
+**Headline:** A cluster's page lists the stars that belong to it, and a star's page names its cluster.
+
+### Changed
+- The page of a globular cluster now lists its own stars first, as "Stars of the cluster", each linked to its page, and says how many more of its stars are not yet charted: the ones the plan has placed that no filled sector has built yet. A cluster with no name yet is called "Globular cluster" and its ID, and takes its name on the page when the first sector holding one of its stars is filled.
+- The page of a star that belongs to a cluster shows "Member of" and the cluster, linked, in its Location block.
+- The container contents answer carries the cluster's stars as kind `star` and `uncharted_stars`; the star's object answer carries `cluster`.
+
+generation-output: unchanged
+
 ## [8.0.3470] - 2026-11-06
 
 **Headline:** The galaxy's tabulated stellar potential is now tested against an independent ring sum at the bulge, the Sun, the disk edge, and past 16 kpc.

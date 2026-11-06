@@ -299,6 +299,22 @@ def parse_designation(text, layout=LAYOUT):
     return belt_id, rank
 
 
+def parse_rank(text):
+    """
+    The rank a member designation's last part writes (hex, at least `MEMBER_RANK_DIGITS` digits, no leading zeros beyond them), as the page address of a member carries it.
+
+    Raises:
+        ValueError: Text that is not exactly a canonical rank from 1 to `MAX_MEMBER_RANK`.
+    """
+    written = str(text).strip().upper()
+    if not re.fullmatch(r"[0-9A-F]+", written):
+        raise ValueError(f"a member rank is hex digits, got {text!r}")
+    rank = int(written, 16)
+    if not 1 <= rank <= MAX_MEMBER_RANK or written != f"{rank:0{MEMBER_RANK_DIGITS}X}":
+        raise ValueError(f"a member rank is written as the designation writes it ({MEMBER_RANK_DIGITS} hex digits at least, from 1), got {text!r}")
+    return rank
+
+
 def is_on_demand(rank, individual_count):
     """Whether the member of this rank is drawn on demand and never stored: its rank is above the number of individually stored bodies of its belt."""
     return rank > individual_count

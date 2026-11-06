@@ -61,3 +61,13 @@ def test_anything_but_a_belt_has_no_belt_page(client, belts):
     assert client.get("/object/planet:FE81000A2B-0000005-003/belt").status_code == 404
     assert client.get("/api/objects/planet:FE81000A2B-0000005-003/belt-page").status_code == 404
     assert client.get("/object/nonsense/belt").status_code == 404
+
+
+def test_the_page_shows_where_the_disks_mass_went_exactly_when_the_api_lists_it(client, belts):
+    """GEN.1092: the scatter shares of an outer disk, a table whose rows are the API's `belt.fates`."""
+    for ref, _ in belts:
+        fates = client.get(f"/api/objects/{ref}/belt-page").get_json()["belt"]["fates"]
+        page = client.get(f"/object/{ref}/belt").get_data(as_text=True)
+        assert ('id="belt-fates"' in page) == bool(fates)
+        if fates:
+            assert abs(sum(entry["share"]["value"] for entry in fates) - 1.0) < 1e-6

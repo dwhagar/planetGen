@@ -599,13 +599,17 @@ function showCloudInfo(cloud) {
 
 // MAP.224: a globular cluster named on the map: what it is, how wide, where, and its page (which lists its stars).
 function showClusterInfo(cluster) {
-  showInfo(withRegion({
+  var spec = {
     title: cluster.name,
     fields: [["Type", "Globular cluster"], ["Radius", formatDistancePc(cluster.radius_pc)]].concat(
       cluster.named ? [] : [["Name", "Not named yet: it is named when the first sector holding one of its stars is filled"]]),
     more: [["Center x, y, z", [cluster.x, cluster.y, cluster.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
     view: { href: cluster.href, label: "View cluster →" },
-  }, [cluster.x, cluster.y, cluster.z]));
+  };
+  if (windowOpener) {
+    spec.buttons = [{ label: "Open cluster window →", onClick: function () { windowOpener.openCluster(cluster); } }];
+  }
+  showInfo(withRegion(spec, [cluster.x, cluster.y, cluster.z]));
 }
 
 // A star's color from its surface temperature: Tanner Helland's fit to
@@ -1110,7 +1114,15 @@ function initGalaxyMap3d(canvasEl, data) {
     if (data.pinned || !cloud) return false;
     var candidates = [];
     cloudSprites.forEach(function (sprite) { if (!sprite.userData.cloud.field) candidates.push(sprite.userData.cloud); });
-    var made = GROUP_WINDOW.createWindow("nebula", cloud, candidates);
+    return openGroupWindow("nebula", cloud, candidates);
+  }
+  // MAP.223: a globular cluster's window is its own sphere (groupwindow.js, the "cluster" kind).
+  function openClusterWindow(cluster) {
+    if (data.pinned || !cluster) return false;
+    return openGroupWindow("cluster", cluster, []);
+  }
+  function openGroupWindow(kind, subject, candidates) {
+    var made = GROUP_WINDOW.createWindow(kind, subject, candidates);
     if (!made) return false;
     if (!groupWindow) {
       var scale = stageView.scaleInfo();
@@ -1131,7 +1143,7 @@ function initGalaxyMap3d(canvasEl, data) {
     windowReturn = null;
     return true;
   }
-  windowOpener = data.pinned ? null : { open: openNebulaWindow };
+  windowOpener = data.pinned ? null : { open: openNebulaWindow, openCluster: openClusterWindow };
   if (windowBar) {
     var windowBack = windowBar.querySelector("[data-action=close-window]");
     if (windowBack) windowBack.addEventListener("click", function () { closeGroupWindow(); canvasEl.focus({ preventScroll: true }); });
@@ -5405,7 +5417,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // MAP.224: the globular clusters, named by their name, else by their designation while they have none. Each is anchored at its center,
   // as wide as its sphere, and in the nebulae's share of the label budget (a cluster is a place, not a point).
   function clusterNames() {
-    if (hiddenCell || !Array.isArray(data.clusters)) return [];
+    if (!Array.isArray(data.clusters)) return [];
     return data.clusters.filter(function (cluster) {
       return drawnByTheGalaxy(cluster.x, cluster.y, cluster.z);
     }).map(function (cluster) {
@@ -5496,7 +5508,9 @@ function initGalaxyMap3d(canvasEl, data) {
     } else if (ref.kind === "cluster") {
       highlightPosition(ref.cluster.x, ref.cluster.y, ref.cluster.z);
       showClusterInfo(ref.cluster);
-      stageView.goTo({ entry: { x: ref.cluster.x, y: ref.cluster.y, z: ref.cluster.z, r: ref.cluster.radius_pc } });
+      if (!(windowOpener && windowOpener.openCluster(ref.cluster))) {
+        stageView.goTo({ entry: { x: ref.cluster.x, y: ref.cluster.y, z: ref.cluster.z, r: ref.cluster.radius_pc } });
+      }
     } else if (ref.kind === "sector") {
       stageView.goTo({ sector: ref.sector, label: label.text || null });
     } else if (ref.kind === "region") {

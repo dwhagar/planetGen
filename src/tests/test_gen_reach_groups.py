@@ -203,7 +203,11 @@ def test_the_expected_stars_beyond_the_outline_match_the_density_whatever_phase_
     fractions = brightStars.band_fractions(FLOOR, None, None)
     found = brightStars.reach_expected_stars(SHAPE, shell, -1, EDGE_PC, E_VALUE, fractions)[0]
     truth = _mc_shell_expected(shell, fractions)
-    assert truth > 1000.0
+    # TEST.650: the bound only keeps the comparison from being vacuous (a shell with a handful of stars would match by
+    # luck of the Monte Carlo). It was 1000 when the shared test galaxy held 3,058 expected stars in shell 3; the shape's
+    # draw and the thin disk's infall (GEN.1242, GEN.1246, then DOC.103's renamed stream labels) moved that to 874, so
+    # the bound is the count below which a 6 percent match would stop meaning anything.
+    assert truth > 300.0
     assert found == pytest.approx(truth, rel=0.06)
 
 
