@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.37 |
 | TEST | TEST.632 |
 | USR | USR.32 |
-| OPS | OPS.106 |
+| OPS | OPS.108 |
 | DOC | DOC.109 |
 | VIEW | VIEW.47 |
 | POP | POP.52 |
@@ -2661,6 +2661,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | none | open |
 | OPS.104 | One logging module, part a: util/log.py is the only place a log line is made and written, with one record and one formatter set in local time with zone | none | done, PR #5202 |
 | OPS.105 | One logging module, part b: the stragglers move onto it: the activity log, the queue run log, the direct logging.getLogger users and the log-line print calls | none | open |
+| OPS.106 | update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed | none | open |
+| OPS.107 | The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
