@@ -21,7 +21,7 @@ import time
 import redis
 
 from planetgen.admin import updateguard
-from planetgen.db import objectindex
+from planetgen.db import objectindex, uncharted
 from planetgen.queue import redisclient, warmstart
 
 WAITING = "waiting"
@@ -167,8 +167,15 @@ def read(database, phases):
     except (redis.RedisError, OSError):
         available = False
     recorded = objectindex.recorded(database) if available else {}
+    uncharted_counts = objectindex.recorded_uncharted(database) if available else {}
     index = {"size_bytes": objectindex.recorded_size(database) if available else 0,
              "kinds": [{"kind": kind, "rows": recorded[kind].get("rows"), "mode": recorded[kind].get("mode"),
-                        "built_at": recorded[kind].get("built_at"), "seconds": recorded[kind].get("seconds")}
+                        "built_at": recorded[kind].get("built_at"), "seconds": recorded[kind].get("seconds"),
+                        "uncharted": uncharted_counts.get(kind, 0)}
                        for kind in objectindex.KINDS if kind in recorded]}
+    if index["kinds"]:
+        # MAP.400: a kind only uncharted objects have (a hypervelocity star) has no index row, but the lists hold it.
+        index["kinds"] += [{"kind": kind, "rows": 0, "mode": None, "built_at": None, "seconds": None,
+                            "uncharted": uncharted_counts.get(kind, 0)}
+                           for kind in uncharted.LIST_ONLY_KINDS]
     return {"available": available, "run": run, "phases": rows, "auto": auto, "index": index}

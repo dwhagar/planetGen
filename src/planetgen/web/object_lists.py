@@ -36,6 +36,7 @@ KIND_LABELS = {
     "rogue_planet": ("rogue planet", "rogue planets", "Rogue planets"),
     "interstellar_comet": ("interstellar comet", "interstellar comets", "Interstellar comets"),
     "quasar": ("quasar", "quasars", "Quasars"),
+    "hypervelocity_star": ("hypervelocity star", "hypervelocity stars", "Hypervelocity stars"),
 }
 """dict: Each kind with a list page, to its singular, plural, and heading (facilities have no page of their own)."""
 
@@ -104,7 +105,13 @@ def _physics_cells(item, kind):
 
 
 def _row(item, kind):
-    name = {"text": item["name"], "href": page_url("object_page", ref=f"{item['kind']}:{item['id']}")}
+    if item.get("uncharted"):
+        # MAP.400: no sector has stored it yet. A scattered row has the page of its scatter row; a field cloud has none.
+        name = {"text": item["name"]}
+        if item.get("scatter_id") is not None:
+            name["href"] = page_url("uncharted_phenomenon", scatter_id=item["scatter_id"])
+    else:
+        name = {"href": page_url("object_page", ref=f"{item['kind']}:{item['id']}"), "text": item["name"]}
     sector = ({"text": f"Sector {item['sector_id']}", "href": page_url("sector", sector_id=item["sector_id"])}
               if item["sector_id"] is not None else {"text": "None", "muted": True})
     cells = [name,

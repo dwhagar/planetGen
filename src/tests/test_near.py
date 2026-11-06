@@ -189,7 +189,7 @@ def _scatter_rows(config, center):
         conn.close()
 
 
-def test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search(galaxy):
+def test_the_search_counts_what_is_not_generated_yet_lists_the_scattered_rows_and_never_reads_the_sectors_to_search(galaxy):
     center = sector_position_pc(*ADDRESSES[0], EDGE_PC)
     _scatter_rows(galaxy, center)
     conn = _conn(galaxy)
@@ -200,14 +200,19 @@ def test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors
         conn.execute = lambda sql, *args, **kwargs: statements.append(sql) or real(sql, *args, **kwargs)
         page = near.objects_within(conn, place, 12.0)
         conn.execute = real
-        assert page["not_generated"] == {"bright_star": 2, "black-hole": 1} and page["not_generated_total"] == 3
+        # MAP.400: the scattered black hole is listed (an uncharted object with no reference), the bright stars are only counted.
+        assert page["not_generated"] == {"bright_star": 2} and page["not_generated_total"] == 2
+        holes = [row for row in page["rows"] if row["kind"] == "black_hole"]
+        assert [(row["uncharted"], row["ref"], row["distance_pc"]) for row in holes] == [(True, None, pytest.approx(2.0, abs=0.01))]
+        assert holes[0]["scatter_id"] and holes[0]["name"].startswith("Uncharted black hole") and page["by_kind"]["black_hole"] == 1
         searched = [sql for sql in statements if "sectors" in sql.replace("\n", " ")]
         assert all("WHERE id IN" in sql and "VALUES" not in sql for sql in searched), "the sectors are named by id only"
         before = conn.execute("SELECT COUNT(*) n FROM sectors").fetchone()["n"]
         near.objects_within(conn, place, 12.0)
         assert conn.execute("SELECT COUNT(*) n FROM sectors").fetchone()["n"] == before
         wide = near.objects_within(conn, place, 50.0, kinds=["system"])
-        assert wide["not_generated"] == {"bright_star": 3, "black-hole": 2}
+        assert wide["not_generated"] == {"bright_star": 3}
+        assert near.objects_within(conn, place, 50.0, kinds=["black_hole"])["total"] == 2
     finally:
         conn.close()
     conn = store.get_connection(galaxy)
@@ -219,7 +224,7 @@ def test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors
         conn.close()
     conn = _conn(galaxy)
     try:
-        assert near.objects_within(conn, place, 12.0)["not_generated"] == {"bright_star": 1, "black-hole": 1}
+        assert near.objects_within(conn, place, 12.0)["not_generated"] == {"bright_star": 1}
     finally:
         conn.close()
 
