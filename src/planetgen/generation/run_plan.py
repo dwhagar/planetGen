@@ -21,8 +21,10 @@ import threading
 import time
 import types
 
+import pymysql
+
 from planetgen.queue import commands, progress_rate, units, wrapper
-from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, storage_checksum, store
+from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -122,6 +124,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
     sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
     blocks = {}        # the blocks' candidates, drawn once for the whole draw (GEN.309)
+    sky_ledger = skyTierLedger.read(conn)      # VIEW.25: the spheres the sky tiers drew
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -132,6 +135,13 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
         held_masses = store.sector_bright_masses(conn, chunk, current=True)
         filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
         rows, new_levels = [], {}
+        settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, held_masses)    # VIEW.25: what the sky spheres drew here
+        if settled.masses:
+            store.set_sector_bright_masses(conn, settled.masses)
+            held_masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
+            locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
+        locked.update(settled.levels)
+        new_levels.update(settled.levels)
         for address in chunk:
             floor = floors if isinstance(floors, (int, float)) else floors[address]
             level = locked.get(address)
@@ -202,6 +212,7 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
     edges = brightStars.mass_band_edges([found.mass_limit_sol for found in limits.tiers or ()])
     addresses = sorted(targets)
     blocks = {}        # the blocks' candidates, drawn once for the whole draw (GEN.309)
+    sky_ledger = skyTierLedger.read(conn)      # VIEW.25: the spheres the sky tiers drew
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -212,6 +223,14 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
         masses = store.sector_bright_masses(conn, chunk, current=True)
         filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
         rows, states = [], {}
+        settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, masses)         # VIEW.25: what the sky spheres drew here
+        if settled.masses:
+            store.set_sector_bright_masses(conn, settled.masses)
+            masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
+            locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
+        if settled.levels:
+            store.set_sector_bright_levels(conn, settled.levels)
+            locked.update(settled.levels)
         for address in chunk:
             target = targets[address]
             level = locked.get(address)
@@ -2420,24 +2439,36 @@ def rescore_habitability_unit(params, report):
     a double-star system and the whole score (index, six domains, tiers, equipment, note). For a galaxy generated
     before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts
     agree with the description, which is always worked out from the same conditions when the page is drawn. Nothing but
-    those columns is touched. The unit is one transaction, and the recomputation is the same whenever it is run, so a
-    stopped run is started again and ends in the same place.
+    those columns is touched. The unit is one transaction at READ COMMITTED, and the recomputation is the same whenever it
+    is run, so a stopped run is started again and ends in the same place; so is a unit that hit a deadlock or a lock wait
+    timeout against another worker's range (PERF.228, `store.RETRYABLE_ERRORS`), up to `store.SECTOR_SAVE_ATTEMPTS` times.
 
     Returns:
         dict: `updated`, the bodies updated, and `ids`, how many ids the unit covered (for the bar).
     """
-    conn = store.get_connection(_mysql_config_of(params))
-    try:
-        updated = 0
-        system_ids = [row["id"] for row in conn.execute(
-            "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
-        for system_id in system_ids:
-            updated += store.refresh_habitability(conn, system_id)
-        store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
-        conn.commit()
-        return {"updated": updated, "ids": params["high"] - params["low"] + 1}
-    finally:
-        conn.close()
+    config = _mysql_config_of(params)
+    for attempt in range(1, store.SECTOR_SAVE_ATTEMPTS + 1):
+        conn = store.get_connection(config)
+        try:
+            conn.commit()           # a connection that just checked the schema has a transaction open, and MySQL refuses the next line inside one
+            conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")   # PERF.228: no gap locks between the ranges of other workers
+            updated = 0
+            system_ids = [row["id"] for row in conn.execute(
+                "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
+            for system_id in system_ids:
+                updated += store.refresh_habitability(conn, system_id)
+            store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
+            conn.commit()
+            return {"updated": updated, "ids": params["high"] - params["low"] + 1}
+        except pymysql.err.OperationalError as exc:
+            if not exc.args or exc.args[0] not in store.RETRYABLE_ERRORS or attempt == store.SECTOR_SAVE_ATTEMPTS:
+                raise
+            conn.rollback()         # the whole unit starts over: it recomputes the same numbers whenever it is run
+            log.debug(f"The re-score of systems {params['low']} to {params['high']} hit MySQL error {exc.args[0]}; "
+                      f"trying again ({attempt}/{store.SECTOR_SAVE_ATTEMPTS - 1}).")
+            time.sleep((0.05 + os.getpid() % 8 * 0.03) * attempt)     # not a draw: the process id spreads the workers
+        finally:
+            conn.close()
 
 
 class HabitabilityFollower(BatchFollower):
@@ -2577,11 +2608,11 @@ def expand_clean_nebula_field(params):
 def clean_nebula_field_unit(params, report):
     """
     The `clean-nebula-field` command's unit (GEN.205): brings an existing galaxy's stored field clouds in line with
-    the current keep rates. Every stored dark nebula that is a field cloud (found in its cell's draw by its centre) is
+    the current keep rates. Every stored dark nebula that is a field cloud (found in its cell's draw by its center) is
     checked against `cloud_kept`; the ones the rule now rejects are counted per class (the dry run, always done first).
     With `apply` they are deleted, which clears the `inside_nebula_id` of everything inside them (the foreign key sets
     it to NULL), and containment is refreshed in the sectors they reached. Nothing else is touched: a nebula with no
-    cell draw at its centre was not made by the field and stays. Drawing `nebula_field` again is the starter's next
+    cell draw at its center was not made by the field and stays. Drawing `nebula_field` again is the starter's next
     command (`draw-nebula-field`).
 
     Returns:

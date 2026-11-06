@@ -30,7 +30,7 @@ function distance(a, b) {
   return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 }
 
-// The smallest sphere about the middle of the members' bounding box that holds every member sphere, `{ centre: [x, y, z], radiusPc }`.
+// The smallest sphere about the middle of the members' bounding box that holds every member sphere, `{ center: [x, y, z], radiusPc }`.
 export function boundsOf(spheres) {
   if (!spheres.length) return null;
   const lo = [Infinity, Infinity, Infinity];
@@ -41,9 +41,9 @@ export function boundsOf(spheres) {
       hi[i] = Math.max(hi[i], v + s.radius_pc);
     });
   });
-  const centre = lo.map((v, i) => (v + hi[i]) / 2);
-  const radiusPc = Math.max(...spheres.map((s) => distance(centre, [s.x, s.y, s.z]) + s.radius_pc));
-  return { centre, radiusPc };
+  const center = lo.map((v, i) => (v + hi[i]) / 2);
+  const radiusPc = Math.max(...spheres.map((s) => distance(center, [s.x, s.y, s.z]) + s.radius_pc));
+  return { center, radiusPc };
 }
 
 // The window for `subject` of `kind`, built from `candidates` (what the map draws now, for the kind to choose members from), or null for
@@ -63,7 +63,7 @@ export function createWindow(kind, subject, candidates) {
     kind,
     key: spec.key ? spec.key(subject) : String(subject.id),
     title: spec.label(subject),
-    centre: bounds.centre,
+    center: bounds.center,
     radiusPc: bounds.radiusPc,
     members,
     count: members.length,
@@ -74,12 +74,12 @@ export function createWindow(kind, subject, candidates) {
 // Whether the point (x, y, z) lies in the window.
 export function contains(win, x, y, z) {
   if (!win) return true;
-  return distance([x, y, z], win.centre) <= win.radiusPc * (1 + EDGE_SLACK);
+  return distance([x, y, z], win.center) <= win.radiusPc * (1 + EDGE_SLACK);
 }
 
 // The sphere the camera frames: the window's bounds with the margin.
 export function framing(win) {
-  return { center: win.centre.slice(), radius: win.radiusPc * FRAME_MARGIN };
+  return { center: win.center.slice(), radius: win.radiusPc * FRAME_MARGIN };
 }
 
 // The nebula kind: the subject is a cloud (`{ type, id, name, descriptor, x, y, z, radius_pc }`); its members are itself and every candidate

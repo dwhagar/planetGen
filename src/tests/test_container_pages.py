@@ -34,7 +34,7 @@ def _printed(container):
 
 @pytest.fixture
 def world(mysql_config):
-    """A client over a galaxy with stored containers and one system at the first cluster's centre, and the printed IDs
+    """A client over a galaxy with stored containers and one system at the first cluster's center, and the printed IDs
     of the first cluster and the first superbubble."""
     conn = store.get_connection(mysql_config)
     try:
@@ -162,7 +162,7 @@ def test_a_cluster_page_lists_its_stars_and_says_how_many_are_not_yet_charted_an
     held = client.get(f"/api/containers/{_printed(cluster)}/contents").get_json()
     assert held["uncharted_stars"] == 2 and "star" not in held["counts"]
 
-    # The first fill: the system at the cluster's centre is built around one of the placed stars, and the cluster is named.
+    # The first fill: the system at the cluster's center is built around one of the placed stars, and the cluster is named.
     monkeypatch.setattr(store, "_naming_key_of", lambda conn: "A1B2C3D4")
     conn = store.get_connection(mysql_config)
     try:

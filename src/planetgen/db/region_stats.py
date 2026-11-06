@@ -8,7 +8,7 @@ A region is a 9-block of the Galaxy Map's block ladder that holds at least one g
 
 * `sector_count`: its generated sectors (a row in `sectors`), and `capacity`: the sectors the cell's outline holds, so the
   share charted is `sector_count / capacity` (a standard fill of 109 sectors in a cell of about 780 is about 14 percent);
-* the extent the map draws and frames the region with (`named_regions.region_extent`): the centre `extent_x_pc`,
+* the extent the map draws and frames the region with (`named_regions.region_extent`): the center `extent_x_pc`,
   `extent_y_pc`, `extent_z_pc` and `extent_radius_pc` of the bounding sphere of the largest face-connected clump of its
   generated sectors, never under the framing sphere, and `clump_count`, how many such clumps the cell holds;
 * `mass_sum_kg` (DB.108): the sum of its generated sectors' masses (`sector_stats.total_mass_kg`, `db/sector_mass.py`), added
@@ -85,7 +85,7 @@ def generated_mass_kg(conn, cell):
 
 def _row(cell, addresses, edge_pc, mass_kg):
     extent = named_regions.region_extent(cell, addresses, edge_pc)
-    x, y, z = extent.centre_pc
+    x, y, z = extent.center_pc
     return (cell.shell, cell.band, cell.wedge, len(addresses), capacity_of(cell), extent.clumps, x, y, z, extent.radius_pc,
             mass_kg)
 
@@ -166,22 +166,22 @@ def _region(row):
     count, capacity = int(row["sector_count"]), int(row["capacity"])
     return {"block": cell, "sector_count": count, "capacity": capacity, "charted_percent": 100.0 * count / capacity,
             "clump_count": int(row["clump_count"]), "mass_sum_kg": float(row["mass_sum_kg"]),
-            "extent_centre_pc": (float(row["extent_x_pc"]), float(row["extent_y_pc"]), float(row["extent_z_pc"])),
+            "extent_center_pc": (float(row["extent_x_pc"]), float(row["extent_y_pc"]), float(row["extent_z_pc"])),
             "extent_radius_pc": float(row["extent_radius_pc"])}
 
 
 def region_row(conn, cell):
     """The stored region of the 9-block `cell` (`block`, `sector_count`, `capacity`, `charted_percent`, `clump_count`,
-    `extent_centre_pc`, `extent_radius_pc`, `mass_sum_kg`), or `None` when it holds no generated sector."""
+    `extent_center_pc`, `extent_radius_pc`, `mass_sum_kg`), or `None` when it holds no generated sector."""
     row = conn.execute(f"SELECT {', '.join(COLUMNS)} FROM region_stats WHERE shell_index = ? AND band_index = ?"
                        " AND wedge_index = ?", (cell.shell, cell.band, cell.wedge)).fetchone()
     return None if row is None else _region(row)
 
 
 def extent_of(region):
-    """The extent a charted region carries on the wire (MAP.319), from its stored row `region` (`region_row`): `centre`, the
+    """The extent a charted region carries on the wire (MAP.319), from its stored row `region` (`region_row`): `center`, the
     middle of its bounding sphere as `[x, y, z]` in parsecs, and `radius` in parsecs, which the map frames the region with."""
-    return {"centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"]}
+    return {"center": list(region["extent_center_pc"]), "radius": region["extent_radius_pc"]}
 
 
 def charted_of(region):
@@ -249,7 +249,7 @@ def cells_in(block):
 def node_regions(conn, block, key, edge_pc):
     """
     The charted regions a node of `LABEL_LEVELS` lists on the wire (MAP.314), for the map to name them from a distance: a
-    list of `{"key", "name", "parent", "centre", "radius", "sectors", "percent"}` (the region's 9-block key, its name and its
+    list of `{"key", "name", "parent", "center", "radius", "sectors", "percent"}` (the region's 9-block key, its name and its
     family's, its bounding sphere as the middle `[x, y, z]` and the `radius`, in parsecs, its generated sectors and its share
     charted, in percent),
     most sectors first, ties by the cell. `None` for a block of another size, a block that holds no charted region, and while
@@ -264,7 +264,7 @@ def node_regions(conn, block, key, edge_pc):
     for region in sorted(found, key=lambda region: (-region["sector_count"], tuple(region["block"]))):
         names = labels(region["block"], key, edge_pc)
         listed.append({"key": drill.format_drill_key(region["block"]), "name": names["name"], "parent": names["parent"],
-                       "centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"], **charted_of(region)})
+                       "center": list(region["extent_center_pc"]), "radius": region["extent_radius_pc"], **charted_of(region)})
     return listed
 
 
@@ -292,7 +292,7 @@ def inhabited_by_region(conn, edge_pc):
 def charted_regions(conn, key, edge_pc):
     """
     The charted regions as the Galaxy Map's list and its galactic-scale nodes read them (MAP.316), each one `{key, m, shell,
-    band, wedge, centre, radius, sector_count, capacity, share, clumps}` and, with a naming key in force, `name` and `parent`
+    band, wedge, center, radius, sector_count, capacity, share, clumps}` and, with a naming key in force, `name` and `parent`
     (`labels`): the cell's node key, the middle `[x, y, z]` and `radius` of its extent in parsecs, how many generated sectors it
     holds of how many its outline can, and `share`, that fraction (0 to 1, above 0 for every region). A region with an inhabited
     world also has `inhabited` (MAP.321 c): `systems`, `worlds` and, when one is scored, the best `score` and its PHI-6 `tier`. A
@@ -305,7 +305,7 @@ def charted_regions(conn, key, edge_pc):
     for region in regions(conn):
         cell = region["block"]
         entry = {"key": drill.format_drill_key(cell), "m": cell.m, "shell": cell.shell, "band": cell.band, "wedge": cell.wedge,
-                 "centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"],
+                 "center": list(region["extent_center_pc"]), "radius": region["extent_radius_pc"],
                  "sector_count": region["sector_count"], "capacity": region["capacity"],
                  "share": region["sector_count"] / region["capacity"], "clumps": region["clump_count"]}
         entry.update(labels(cell, key, edge_pc) or {})

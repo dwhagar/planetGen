@@ -22,7 +22,7 @@ galaxy's own shape, with no value taken from the Milky Way's star-formation prof
    `(gas / gas_s)^(m - n)` where it is thin.
 2. The bar gap: a bar drives the gas inside its corotation inward and shocks and shears what is left, so the
    star-forming gas inside the bar's length is depleted (the star-formation desert of a barred galaxy; see the
-   design note for the sources). The rate there is scaled by `S(R)`, a floor `f` at the centre rising to 1 outside
+   design note for the sources). The rate there is scaled by `S(R)`, a floor `f` at the center rising to 1 outside
    the gap radius `R_gap` (a multiple of the bulge's scale radius, `tuning.BAR_GAP_RADIUS_RATIO`).
 3. The disk makes as many stars over its life as before: the factor is normalised so the disk-wide average of the
    recent share is 1 (the populations still split the thin disk's density, so no cell's total changes).
@@ -65,13 +65,13 @@ def gap_radius_pc(shape):
 
 
 def _gap_floor(shape):
-    """What is left of the star formation at the centre of the bar gap: `tuning.BAR_GAP_STAR_FORMATION_FLOOR`, or 1
+    """What is left of the star formation at the center of the bar gap: `tuning.BAR_GAP_STAR_FORMATION_FLOOR`, or 1
     (no gap) for a galaxy without a bar (`shape.structure.bar_present`, GEN.533)."""
     return tuning.BAR_GAP_STAR_FORMATION_FLOOR if shape.structure.bar_present else 1.0
 
 
 def _gap_suppression(radius_pc, gap_pc, floor):
-    """`S(R)`: `floor` at the centre, half-way up at the gap radius, 1 well outside it (works on arrays)."""
+    """`S(R)`: `floor` at the center, half-way up at the gap radius, 1 well outside it (works on arrays)."""
     up = np.power(np.asarray(radius_pc, dtype=float) / gap_pc, tuning.BAR_GAP_EDGE_POWER)
     return floor + (1.0 - floor) * up / (1.0 + up)
 
@@ -146,7 +146,7 @@ def recent_factor(radius_pc, shape):
 
 def star_formation_rate_profile(radius_pc, shape):
     """The present star-formation rate per area at `radius_pc`, in units of the disk's lifetime-average rate at the
-    centre of a pure exponential: the recent factor times the stars' own surface density (`exp(-R / L)`). The
+    center of a pure exponential: the recent factor times the stars' own surface density (`exp(-R / L)`). The
     quantity the plausibility test compares with the observed profile."""
     radius = np.asarray(radius_pc, dtype=float)
     return recent_factor(radius, shape) * np.exp(-radius / shape.disk_scale_length_pc)
@@ -167,7 +167,7 @@ def _log_slope(radius_pc, shape):
 
 @functools.lru_cache(maxsize=64)
 def _turning_points(shape):
-    """The radii at which the factor stops rising or falling (it falls a little from the centre, rises to the gap's
+    """The radii at which the factor stops rising or falling (it falls a little from the center, rises to the gap's
     edge and falls beyond: a local minimum and a local maximum), found on a log grid and bisected."""
     length = shape.disk_scale_length_pc
     grid = np.geomspace(1e-4 * length, 1e4 * length, 4000)

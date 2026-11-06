@@ -122,12 +122,12 @@ def test_a_cancel_during_the_run_finishes_the_update_so_nothing_is_half_moved(ga
     real = orbits.advance_comet_orbits
     seen = {}
 
-    def cancelled_here(conn, clock, **kwargs):
+    def canceled_here(conn, clock, **kwargs):
         seen["registered"] = [item["kind"] for item in updateguard.MarkerSource().items()]
         os.kill(os.getpid(), signal.SIGTERM)        # what the update's cancel sends, between two stages
         return real(conn, clock, **kwargs)
 
-    monkeypatch.setattr(orbits, "advance_comet_orbits", cancelled_here)
+    monkeypatch.setattr(orbits, "advance_comet_orbits", canceled_here)
     capsys.readouterr()
     assert run_orbits(galaxy, monkeypatch) == 0
     out = capsys.readouterr().out
@@ -143,11 +143,11 @@ def test_a_cancel_before_anything_moved_stops_at_once_and_changes_nothing(galaxy
     before = snapshot(galaxy)
     real = orbits.get_orbit_update_elapsed_years
 
-    def cancelled_early(conn):
+    def canceled_early(conn):
         os.kill(os.getpid(), signal.SIGTERM)
         return real(conn)
 
-    monkeypatch.setattr(orbits, "get_orbit_update_elapsed_years", cancelled_early)
+    monkeypatch.setattr(orbits, "get_orbit_update_elapsed_years", canceled_early)
     assert run_orbits(galaxy, monkeypatch) == 130
     assert "Canceled before any position moved" in capsys.readouterr().err
     assert snapshot(galaxy) == before

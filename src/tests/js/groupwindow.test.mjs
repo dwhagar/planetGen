@@ -14,12 +14,12 @@ test("the bounds hold every member sphere", () => {
   const spheres = [cloud(1, 0, 0, 0, 10), cloud(2, 30, 0, 0, 5), cloud(3, 0, -20, 4, 8)];
   const b = G.boundsOf(spheres);
   spheres.forEach((s) => {
-    const d = Math.hypot(s.x - b.centre[0], s.y - b.centre[1], s.z - b.centre[2]);
+    const d = Math.hypot(s.x - b.center[0], s.y - b.center[1], s.z - b.center[2]);
     assert.ok(d + s.radius_pc <= b.radiusPc + 1e-9);
   });
   assert.equal(G.boundsOf([]), null);
   const one = G.boundsOf([cloud(1, 5, 6, 7, 3)]);
-  assert.deepEqual(one.centre, [5, 6, 7]);
+  assert.deepEqual(one.center, [5, 6, 7]);
   assert.equal(one.radiusPc, 3);
 });
 

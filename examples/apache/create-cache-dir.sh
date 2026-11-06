@@ -22,12 +22,18 @@
 
 set -euo pipefail
 
+# The lines this script prints are log records (OPS.98): a time, a severity and a component on every one.
+LOG_COMPONENT="${LOG_COMPONENT:-cache-dir}"
+export LOG_COMPONENT
+# shellcheck source=scripts/logrecord.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../../scripts/logrecord.sh"
+
 APACHE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$APACHE_DIR/../.." && pwd)"
 
 if [[ $EUID -ne 0 ]]; then
-    echo "error: must be run as root (needs chown), e.g.:" >&2
-    echo "  sudo $0 $*" >&2
+    log_error "must be run as root (needs chown), e.g.:"
+    log_error "  sudo $0 $*"
     exit 1
 fi
 
@@ -37,7 +43,7 @@ STATE_DIR=""
 if [[ -z "$CACHE_DIR" ]]; then
     PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
     if [[ -z "$PYTHON" ]]; then
-        echo "error: no python3/python found on PATH." >&2
+        log_error "no python3/python found on PATH."
         exit 1
     fi
     # This runs as root, so nothing is imported from the repo (src/html is
@@ -53,7 +59,7 @@ if [[ -z "$CACHE_DIR" ]]; then
         IFS= read -r STATE_DIR || true
     } < <(cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" "$REPO_DIR")
     if [[ -z "$JOBS_DIR" || -z "$STATE_DIR" ]]; then
-        echo "error: could not read the jobs and state directories from config.json (see above)." >&2
+        log_error "could not read the jobs and state directories from config.json (see above)."
         exit 1
     fi
 fi
@@ -61,19 +67,19 @@ fi
 # shellcheck source=examples/apache/apache-identity.sh
 source "$APACHE_DIR/apache-identity.sh"
 if ! read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACHE_GROUP:-}" ]]; then
-    echo "error: couldn't work out Apache's user and group (see above); nothing was changed." >&2
+    log_error "couldn't work out Apache's user and group (see above); nothing was changed."
     exit 1
 fi
 
 # Parents (e.g. /var/cache/planetgen) stay root-owned and world-traversable;
 # only the cache directory itself belongs to Apache.
 if [[ -z "$CACHE_DIR" ]]; then
-    echo "Tile cache is off (cache.max_mb is 0) -- nothing to create."
+    log_info "Tile cache is off (cache.max_mb is 0) -- nothing to create."
 else
     mkdir -p "$CACHE_DIR"
     chown -R "$APACHE_USER:$APACHE_GROUP" "$CACHE_DIR"
     chmod 750 "$CACHE_DIR"
-    echo "Tile cache: $CACHE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+    log_info "Tile cache: $CACHE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
 fi
 
 # The admin Generate page's background jobs (src/planetgen/web/jobs.py):
@@ -89,7 +95,7 @@ if [[ -z "${1:-}" ]]; then
     mkdir -p "$JOBS_DIR"
     chown "$APACHE_USER:$APACHE_GROUP" "$JOBS_DIR"
     chmod 750 "$JOBS_DIR"
-    echo "Generate jobs: $JOBS_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+    log_info "Generate jobs: $JOBS_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
 fi
 
 # The state directory: the maintenance switch (planetgen.admin.maintenance) and the backup archives
@@ -101,7 +107,7 @@ if [[ -z "${1:-}" ]]; then
     mkdir -p "$STATE_DIR"
     chown "$APACHE_USER:$APACHE_GROUP" "$STATE_DIR"
     chmod 770 "$STATE_DIR"
-    echo "State (maintenance switch, backups): $STATE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+    log_info "State (maintenance switch, backups): $STATE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
 fi
 
 # The kept bright-star sampling tables (planetgen.generation.band_table_cache, PERF.188): the first sector fill of a galaxy builds hundreds of them
@@ -113,6 +119,6 @@ if [[ -z "${1:-}" ]]; then
         mkdir -p "$BAND_TABLE_DIR"
         chown "$APACHE_USER:$APACHE_GROUP" "$BAND_TABLE_DIR"
         chmod 750 "$BAND_TABLE_DIR"
-        echo "Kept star tables: $BAND_TABLE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+        log_info "Kept star tables: $BAND_TABLE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
     fi
 fi

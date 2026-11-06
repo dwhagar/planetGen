@@ -34,7 +34,7 @@ REGION_LABELS = {
 POPULATION_LABELS = {
     "young": "Young disk", "intermediate": "Intermediate disk", "old": "Old disk", "bulge": "Bulge", "halo": "Halo",
     "cluster": "Cluster", "satellite": "Old satellite stars", "nuclear_cluster": "Nuclear cluster",
-    "nuclear_disc": "Nuclear disk", "satellite_young": "Young satellite stars",
+    "nuclear_disk": "Nuclear disk", "satellite_young": "Young satellite stars",
     "satellite_intermediate": "Intermediate satellite stars",
 }
 POPULATION_LABELS.update({

@@ -201,7 +201,7 @@ def _read(html):
 
 def _paths():
     """The in-universe pages this suite can render without a database."""
-    paths = ["/help", "/help/habitability", "/help/life", "/classes", "/references", "/login", "/preferences", "/polities", "/species"]
+    paths = ["/help", "/help/habitability", "/help/life", "/help/sky", "/classes", "/references", "/login", "/preferences", "/polities", "/species"]
     paths += [f"/help/life/{slug}" for slug, _title, _summary in life_help.TOPICS if slug != "kinds"]
     paths += [f"/help/life/classes/{number}" for number in range(1, 10)]
     if classref.preload():
@@ -275,6 +275,7 @@ pages (`references*.html`): the pages where `plainwords.exempt` allows the out-o
 
 NEEDS_DATA = {
     "web.account": "behind the sign-in",
+    "web.belt_info_page": "needs the database",
     "web.galaxy": "needs the galaxy",
     "web.index": "needs the database",
     "web.lists": "needs the database",

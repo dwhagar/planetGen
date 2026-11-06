@@ -158,7 +158,7 @@ class StellarObject(MassObject):
 
 | Tables | Smallest body placed well | Why |
 |---|---|---|
-| planets, moons, asteroid belts, orbit nodes, scatter nodes | 2.4 m | km column at 10,000 AU (0.24 m) |
+| planets, moons, irregular moons, asteroid belts, belt members, orbit nodes, scatter nodes | 2.4 m | km column at 10,000 AU (0.24 m) |
 | stars, scatter members | 2.7 m | AU column at 10,000 AU |
 | comets | 620 m | km column at the stability ceiling (62 m); a comet inside 10,000 AU is placed as well as a planet |
 | bright stars, the phenomenon scatter | 9,200 km | mpc column in a galaxy frame at the largest Edge |

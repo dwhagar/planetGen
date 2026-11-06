@@ -29,7 +29,7 @@ the start, and the mixture is replayed from the same seed at every step: the reg
 temperature (they depend on it), and kept from the `FREEZE_AFTER` th step on so that a regime on the edge of its gate cannot flip the
 solution back and forth. A giant, a brown dwarf and an envelope have no surface: their reference level is `REFERENCE_PRESSURE_BAR`,
 and the mixture there is drawn from the layer temperature of the body, not from the temperature the step solves, so one step is the
-solution. The vapour over a melt or an ice sets its own pressure.
+solution. The vapor over a melt or an ice sets its own pressure.
 
 What it does not do: the magma-ocean epoch, the water the impacts brought (the hydrosphere's draw holds the body's water once, GEN.819), non-thermal escape of the heavy gases (the retention rows stand in), the seafloor
 weathering of an ocean world, a tectonic switch of the heat loss, the helium-rain share of a giant's own heat (GEN.810: its temperature at the reference
@@ -131,8 +131,8 @@ refer to (Jupiter's equatorial radius is the 1 bar one). A convention, not a sta
 GY_S = 3.15576e16
 """float: One billion Julian years, s."""
 
-UNKNOWN_OXIDISED_SHARE = 0.5
-"""float: The share of the sulfur taken to be oxidised at the first step, before there is a gas to read it from (`sulfur_balance.oxidised_share_of`
+UNKNOWN_OXIDIZED_SHARE = 0.5
+"""float: The share of the sulfur taken to be oxidized at the first step, before there is a gas to read it from (`sulfur_balance.oxidized_share_of`
 reads the previous step's gas from the second step on). A starting guess of the fixed point, not a stand-in: it changes only the first step."""
 
 LONG_LIVED_FLUX_FRACTION = 0.5
@@ -142,13 +142,13 @@ inferred physics, tweak level L0)."""
 
 RELATIVE_HUMIDITY = 0.77
 """float: The relative humidity of the air over a surface with water (the fixed value of [R2848], 0.77, the Earth's
-mean; tier: verified, tweak level L0): the water vapour stands at this share of its saturation pressure while the ocean or ice lasts."""
+mean; tier: verified, tweak level L0): the water vapor stands at this share of its saturation pressure while the ocean or ice lasts."""
 
 GIANT_FAMILIES = ("giant", "brown-dwarf", "hot-jupiter", "envelope")
 """tuple: The families with a reference level and no surface."""
 
-VAPOUR_FAMILIES = ("lava", "frost")
-"""tuple: The families whose pressure is the vapour pressure of the surface (`MixtureDraw.pressure_bar`)."""
+VAPOR_FAMILIES = ("lava", "frost")
+"""tuple: The families whose pressure is the vapor pressure of the surface (`MixtureDraw.pressure_bar`)."""
 
 
 # --- the result -----------------------------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ class Setting:
         heat_flux_w_m2 (float): Its heat flow now (the outgassing flux of the carbonate balance).
         ocean_cover (float): The share of the surface a liquid ocean could cover (`hydrosphere`'s hypsometry), 0 for none.
         water_kg (float): The water at the surface (ocean, ice, the part of the mantle's that the surface holds), the reservoir the water
-            vapour of the air stands in contact with.
+            vapor of the air stands in contact with.
         absorbed_flux_w_m2 (float): The starlight the surface absorbs, averaged over the sphere (`greenhouse.absorbed_flux_w_m2`).
         internal_flux_w_m2 (float): A giant's own heat flux at its reference level (`giant_draw.own_flux_w_m2`, GEN.816), radiated with the
             absorbed starlight; 0 for a body with a surface, whose heat flow is too small to warm the air.
@@ -296,7 +296,7 @@ def _moles_at_partial(limit_pa, a, mass, rest_moles, rest_weight):
 def freeze_out(moles, gravity_m_s2, area_m2, temperature_k, reservoirs=None):
     """
     The air that stands over a surface once the gases above their saturation pressure have condensed and the gases in contact with a
-    reservoir have come to their vapour pressure.
+    reservoir have come to their vapor pressure.
 
     A hydrostatic well-mixed column has the pressure `P = g M / A` and a gas the partial pressure `x_i P`. A gas that stands above its
     saturation pressure `p_sat` loses moles until `x_i P = p_sat`, which changes the mean molar mass and so the partial pressures of the
@@ -366,14 +366,14 @@ def freeze_out(moles, gravity_m_s2, area_m2, temperature_k, reservoirs=None):
 
 def liquid_ocean(ocean_cover, temperature_k, pressure_pa):
     """Whether a surface with water that could cover `ocean_cover` of it has a liquid ocean: between the freezing point and the critical
-    point of water, and under at least its vapour pressure (above the boiling point at the pressure there is none)."""
+    point of water, and under at least its vapor pressure (above the boiling point at the pressure there is none)."""
     if ocean_cover <= 0.0 or not surface_pressure.LIQUID_WATER_K[0] <= temperature_k < surface_pressure.LIQUID_WATER_K[1]:
         return False
     return saturation.pressure_pa("H2O", temperature_k) <= pressure_pa
 
 
 def _weathers(setting, water_left, temperature_k):
-    """Whether silicate weathering takes carbon at this step: the body has surface water that has not all gone to vapour, and its surface is
+    """Whether silicate weathering takes carbon at this step: the body has surface water that has not all gone to vapor, and its surface is
     under the critical temperature of water. The cold side is not gated: the weathering law falls off exponentially with the temperature
     (`surface_pressure.carbonate_pco2_bar`), and a hard gate at the freezing point would make the carbon of a frozen world jump to all that
     has been degassed in one step instead of building up until it thaws."""
@@ -422,7 +422,7 @@ def _damped(damping, residual, previous, tolerance):
 def _step(damping, residual, history):
     """
     The step of one variable: the damped residual, or, when the last three residuals fall by the same ratio each (a creep toward the
-    solution, as when the water vapour and the temperature feed each other), the damped step times `1 / (1 - q)` for that ratio `q`,
+    solution, as when the water vapor and the temperature feed each other), the damped step times `1 / (1 - q)` for that ratio `q`,
     the distance of a geometric series to its limit, at most `MAX_GAIN` times. A residual that does not shrink by a steady ratio (a
     swing, noise, a drift away) is never extrapolated.
 
@@ -476,7 +476,7 @@ def water_world_of(setting, design):
 
 def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k, water_world, late):
     """The `supply` callable of one step: the share of each delivered element that the surface holds at `temperature_k`. `sulfur` is
-    `(lifetimes, age_s, oxidised_share)` for the sulfate and sulfide balance (`sulfur_balance`); `late` is the carbon and nitrogen the late accretion
+    `(lifetimes, age_s, oxidized_share)` for the sulfate and sulfide balance (`sulfur_balance`); `late` is the carbon and nitrogen the late accretion
     left (`_late_accretion`), atoms per 100 g of mantle, that the share of an element adds to its degassed share (the gas is at the surface already)."""
     released = setting.released_at_seal_j if water_world.sealed else setting.released_j
     base = surface_pressure.degassed_share(released, setting.mantle_kg)
@@ -490,8 +490,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             shares_["Cl"] = shares_["F"] = 0.0
         degassed_sulfur = inventory.get("S", 0.0) * shares_.get("S", 0.0) * moles_per_100_g
         if degassed_sulfur > 0.0:
-            lifetimes, age_s, oxidised_share = sulfur
-            kept = sulfur_balance.balance(degassed_sulfur / setting.area_m2, age_s=age_s, ocean_present=ocean, oxidised_share=oxidised_share,
+            lifetimes, age_s, oxidized_share = sulfur
+            kept = sulfur_balance.balance(degassed_sulfur / setting.area_m2, age_s=age_s, ocean_present=ocean, oxidized_share=oxidized_share,
                                           crust_kg_m2=crust_kg_m2, lifetimes=lifetimes)
             shares_["S"] *= kept.air_mol_m2 * setting.area_m2 / degassed_sulfur
         degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g
@@ -579,7 +579,7 @@ def solve(setting, start_temperature_k):
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
-    oxidised_share = UNKNOWN_OXIDISED_SHARE
+    oxidized_share = UNKNOWN_OXIDIZED_SHARE
     water_world = water_world_of(setting, design)
     skin_m = bracket(design, "hydrate_skin_m", (*clathrate_brine.HYDRATE_SKIN_RANGE_M, "log"))
     seed = draw.getrandbits(64)
@@ -611,7 +611,7 @@ def solve(setting, start_temperature_k):
             ocean = ocean or cycling
         weathers = _weathers(setting, reservoir_left, temperature)
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
-        shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidised_share), ocean, weathers, temperature,
+        shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidized_share), ocean, weathers, temperature,
                          water_world, late)
         try:
             with _draw_stream(seed):
@@ -634,7 +634,7 @@ def solve(setting, start_temperature_k):
             recipe_subject = subject
         family = mixture.family
         if mixture.mole_fractions:
-            oxidised_share = sulfur_balance.oxidised_share_of(mixture.mole_fractions)
+            oxidized_share = sulfur_balance.oxidized_share_of(mixture.mole_fractions)
         if family in ("airless", "coma") or not mixture.mole_fractions:
             return _airless(setting, mixture, step, design, ocean)
 
@@ -642,7 +642,7 @@ def solve(setting, start_temperature_k):
         if family in GIANT_FAMILIES:
             new_pressure = REFERENCE_PRESSURE_BAR * 1.0e5
             partials = {f: x * new_pressure for f, x in mixture.mole_fractions.items()}
-        elif family in VAPOUR_FAMILIES:
+        elif family in VAPOR_FAMILIES:
             new_pressure = mixture.pressure_bar * 1.0e5
             partials = {f: x * new_pressure for f, x in mixture.mole_fractions.items()}
         else:
@@ -701,7 +701,7 @@ def solve(setting, start_temperature_k):
         step_t = _step(damping[1], residual[1], history[1])
         history[0].append(residual[0])
         history[1].append(residual[1])
-        if setting.giant or family in VAPOUR_FAMILIES:
+        if setting.giant or family in VAPOR_FAMILIES:
             ln_pressure = math.log(new_pressure)
         else:
             ln_pressure += step_p

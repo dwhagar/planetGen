@@ -44,7 +44,6 @@ function of what `read_run` returns: `planetgen.queue.runeta`.
 """
 
 import json
-import logging
 import os
 import re
 import secrets
@@ -73,8 +72,8 @@ building caches changes nothing a visitor reads) or only reads it (`CHECK`, PERF
 one live run at a time, in a place of its own, so a check is never refused for a warm-up and neither holds up a
 generation run."""
 
-LIVE_STATES = ("running", "cancelling")
-FINAL_STATES = ("done", "failed", "cancelled")
+LIVE_STATES = ("running", "canceling")
+FINAL_STATES = ("done", "failed", "canceled")
 
 ALIVE_SECONDS = 120
 """int: How long a run's `alive` key lives after the last `touch`: the run's process is taken as gone when it has
@@ -337,7 +336,7 @@ def busy_message(conn, run_id):
         return f"run {run_id} is running"
     started = record.get("started") or ""
     try:
-        started = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime(float(started)))
+        started = logrecord.local_text(float(started))
     except ValueError:
         started = "at an unknown time"
     return (f"run {run_id} is running ({record.get('title') or 'untitled'}, {record.get('kind') or GENERATION} kind, "
@@ -529,23 +528,23 @@ def _record_stage_time(conn, run_id, index, key):
 
 
 def request_cancel(conn, run_id, now=None):
-    """Marks a live run as cancelling (the unit that completes a stage then queues no next stage). Returns
+    """Marks a live run as canceling (the unit that completes a stage then queues no next stage). Returns
     whether it was live."""
     now = _now(now)
     if _s(conn.hget(run_key(run_id), "state")) not in LIVE_STATES:
         return False
-    conn.hset(run_key(run_id), mapping={"state": "cancelling", "updated": now})
-    log(conn, run_id, "cancel requested", kind="run.cancelling", now=now)
+    conn.hset(run_key(run_id), mapping={"state": "canceling", "updated": now})
+    log(conn, run_id, "cancel requested", kind="run.canceling", now=now)
     return True
 
 
-def is_cancelling(conn, run_id):
-    return _s(conn.hget(run_key(run_id), "state")) == "cancelling"
+def is_canceling(conn, run_id):
+    return _s(conn.hget(run_key(run_id), "state")) == "canceling"
 
 
 def finish_run(conn, run_id, state="done", error=None, now=None):
     """
-    Ends the run in `state` (`done`, `failed` or `cancelled`): records it, frees the machine if this run owns
+    Ends the run in `state` (`done`, `failed` or `canceled`): records it, frees the machine if this run owns
     it, and gives the run's keys `KEEP_SECONDS` to live. A run already over is left as it is.
 
     Returns:
@@ -619,7 +618,7 @@ EVENT_FIELD_NAMES = ("stage", "stages", "unit", "seconds")
 def event_record(fields):
     """
     The logging layer's record (`logrecord.Record`) of an event `read_events` gave (UX.122): its time, its level as the
-    severity, the component `run`, its message, and the fields `event` (its kind), `stage` (the stage's number from 1),
+    severity, the component `queue`, its message, and the fields `event` (its kind), `stage` (the stage's number from 1),
     `stages` (how many the run has), `unit` and `seconds` where it has them.
     """
     level = fields.get("level", "info")
@@ -631,7 +630,7 @@ def event_record(fields):
             named[name] = int(fields[name])
     if "seconds" in fields:
         named["seconds"] = float(fields["seconds"])
-    return logrecord.Record.at(float(fields.get("t", 0)), level if level in logrecord.SYSLOG_CODES else "info", "run",
+    return logrecord.Record.at(float(fields.get("t", 0)), level if level in logrecord.SYSLOG_CODES else "info", "queue",
                                fields.get("message", ""), **named)
 
 
@@ -720,22 +719,13 @@ def is_stale(run, now=None):
     return now - (run["updated"] or run["started"] or now) > max(STALE_FLOOR_SECONDS, 3.0 * longest)
 
 
-class EventHandler(logging.Handler):
+def event_handler(conn, run_id):
     """
-    Writes what the process that follows a run logs at the normal level or above to the run's event stream, so the
-    stream is the run's whole live log (PERF.99): the lines the console shows and the stage and unit events beside
-    them. A Redis that does not answer costs the line, never the run.
+    A handler (`log.callback_handler`) that writes what the process that follows a run logs at the normal level or above to the run's event
+    stream, so the stream is the run's whole live log (PERF.99): the lines the console shows and the stage and unit events beside them.
+    A Redis that does not answer costs the line, never the run. Add it with `log.attach`.
     """
-
-    def __init__(self, conn, run_id):
-        super().__init__(level=logging.INFO)
-        self.conn, self.run_id = conn, run_id
-
-    def emit(self, record):
-        try:
-            log(self.conn, self.run_id, record.getMessage(), level=record.levelname.lower())
-        except Exception:  # noqa: BLE001 -- the line is lost, the run goes on
-            pass
+    return debug_log.callback_handler(lambda message, level: log(conn, run_id, message, level=level))
 
 
 def job_runs(conn, job_id):
@@ -754,6 +744,6 @@ def recent_runs(conn, limit=20):
     return sorted(found, reverse=True)[:limit]
 
 
-__all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
-           "EventHandler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
+__all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_canceling", "is_stale",
+           "event_handler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
            "set_stage_plan", "start_run", "stored_conclusion", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]

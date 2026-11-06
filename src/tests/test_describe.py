@@ -115,7 +115,7 @@ def test_a_black_hole_says_how_it_formed_and_whether_it_feeds():
         text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
                         for sentence in block["text"])
         if hole.mass_class == "supermassive":
-            assert "centre of the galaxy" in text
+            assert "center of the galaxy" in text
         else:
             assert ("collapsed core" in text) or ("intermediate-mass" in text)
             assert ("accretion disk of infalling matter" in text) == bool(hole.has_accretion_disk)

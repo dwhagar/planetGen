@@ -227,8 +227,8 @@ class Comet(SmallBody):
                 the value that puts the aphelion at `ceiling_au`, so a closed orbit never leaves its star
                 (a range that lies wholly above the cut gives the cut itself). A parabolic comet is unbound
                 on purpose and reads no ceiling.
-            star (optional): The star (or binary proxy) the comet orbits: its luminosity, snow line, disc edge and carbon and oxygen put the comet's
-                formation in a zone of the disc, and the zone sets the median CO and CO2 of its ice (GEN.595). Without it the ice keeps the Solar
+            star (optional): The star (or binary proxy) the comet orbits: its luminosity, snow line, disk edge and carbon and oxygen put the comet's
+                formation in a zone of the disk, and the zone sets the median CO and CO2 of its ice (GEN.595). Without it the ice keeps the Solar
                 System population's medians.
         """
         # The name is a placeholder: `store.insert_star_system` replaces it with the

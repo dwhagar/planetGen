@@ -43,7 +43,7 @@ takes minutes, and a gate's four workers each ran it three times, past the test 
 
 @pytest.fixture
 def filled(request):
-    """A planned galaxy before and after a fill of 12 sectors of 40
+    """A planned galaxy before and after a fill of 6 sectors of 40
     systems each, measured once for the tests of this file."""
     if _FILLED:
         return _FILLED
@@ -54,7 +54,7 @@ def filled(request):
     conn = store.get_connection(mysql_config)
     try:
         before = _table_bytes(conn)
-        _run_cli(["--shell", "40", "--band", "0", "--limit", "12", "--num-systems", "40", "--yes"]
+        _run_cli(["--shell", "40", "--band", "0", "--limit", "6", "--num-systems", "40", "--yes"]
                  + _mysql_argv(mysql_config))
         after = _table_bytes(conn)
         systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
@@ -67,7 +67,7 @@ def filled(request):
 
 
 def test_the_default_size_per_system_matches_a_real_fill(filled):
-    assert filled["systems"] == 480
+    assert filled["systems"] == 240
     estimate = generationStats.DEFAULT_BYTES_PER_SYSTEM * (1 + generationStats.SIZE_MARGIN)
     ratio = estimate / filled["growth_per_system"]
     assert 1 / MARGIN <= ratio <= MARGIN, (estimate, filled["growth_per_system"])

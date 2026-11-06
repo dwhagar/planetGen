@@ -1,8 +1,8 @@
 # tests/test_migration_rogue_habitability.py
 
 """
-A saved rogue planet keeps its habitability score, and migration 0158 gives a v157 galaxy the score worked out from the surface
-conditions its rows already hold (nothing is drawn).
+A saved free-floating brown dwarf keeps no habitability score (every field `None`), and migration 0158 leaves a v157 galaxy's brown dwarf row
+without one (GEN.1111: the rogue planets that carried a score are now built by the planet chain and stored by the planet columns).
 """
 
 import pytest
@@ -17,41 +17,13 @@ from tests import db_schema_support
 pytestmark = pytest.mark.fresh_database
 
 
-def _rogue(mass_bin="terrestrial"):
-    for seed in range(40):
-        with draw.bound(seed):
-            planet = RoguePlanet(SystemConfig(), mass_bin=mass_bin)
-        if planet.planet_type == "t":
-            return planet
-    pytest.fail("no terrestrial rogue planet in 40 seeds")
+def _brown_dwarf():
+    with draw.bound(3):
+        return RoguePlanet(SystemConfig())
 
 
-def _downgrade(config):
-    db_schema_support.downgrade_to(config, 157)
-
-
-def test_a_saved_rogue_planet_keeps_its_score(mysql_config):
-    planet = _rogue()
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            row_id = store.insert_rogue_planet(conn, planet)
-        row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (row_id,)).fetchone()
-        for name in rogue_habitability.ROGUE_FIELDS:
-            assert row[name] == pytest.approx(getattr(planet, name)), name
-    finally:
-        conn.rollback()
-        conn.close()
-
-
-def test_a_gas_giant_keeps_no_score(mysql_config):
-    for seed in range(60):
-        with draw.bound(seed):
-            planet = RoguePlanet(SystemConfig(), mass_bin="saturn")
-        if planet.planet_type == "g":
-            break
-    else:
-        pytest.skip("no gas giant in 60 seeds")
+def test_a_saved_brown_dwarf_keeps_no_score(mysql_config):
+    planet = _brown_dwarf()
     conn = store.get_connection(mysql_config)
     try:
         with conn:
@@ -63,30 +35,20 @@ def test_a_gas_giant_keeps_no_score(mysql_config):
         conn.close()
 
 
-def test_a_v157_galaxy_gets_the_score_back_from_the_stored_surface(mysql_config):
-    terrestrial, giant = _rogue(), None
-    for seed in range(60):
-        with draw.bound(seed):
-            candidate = RoguePlanet(SystemConfig(), mass_bin="saturn")
-        if candidate.planet_type == "g":
-            giant = candidate
-            break
+def test_a_v157_galaxy_migrates_with_its_brown_dwarf_unscored(mysql_config):
+    planet = _brown_dwarf()
     conn = store.get_connection(mysql_config)
     try:
         with conn:
-            ids = [store.insert_rogue_planet(conn, planet) for planet in (terrestrial, giant) if planet is not None]
+            row_id = store.insert_rogue_planet(conn, planet)
     finally:
         conn.close()
-    _downgrade(mysql_config)
+    db_schema_support.downgrade_to(mysql_config, 157)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (ids[0],)).fetchone()
-        for name in rogue_habitability.ROGUE_FIELDS:
-            assert row[name] == pytest.approx(getattr(terrestrial, name)), name
-        if giant is not None:
-            row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (ids[1],)).fetchone()
-            assert all(row[name] is None for name in rogue_habitability.ROGUE_FIELDS)
+        row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (row_id,)).fetchone()
+        assert all(row[name] is None for name in rogue_habitability.ROGUE_FIELDS)
         assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()

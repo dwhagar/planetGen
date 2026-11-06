@@ -29,6 +29,12 @@ ZONES = "hec"
 PLANETS_PER_ZONE = 14
 """int: The planets drawn in each zone round each host star."""
 
+MOON_PLANETS_PER_ZONE = 3
+MOONS_ASKED = 4
+"""int: Planets drawn in each zone round each host star with `MOONS_ASKED` moons asked for (TEST.641). A rocky planet draws a massive moon from a giant
+impact in 1 planet in 12 and its small moons only by capture (GEN.962), so the 126 planets above hold 6 moons where they held 91 before it; the rules
+that read a moon (its tides, its parent's shadow, the air a moon holds) still need moons to read, 20 at the least (`test_sweep_atmosphere`), and these 27 planets give 33 more (a planet keeps the moons that stay stable, 1.2 of 3 asked in a first try). Each has a stream of its own, so the planets above are the planets they were."""
+
 
 @dataclass
 class Entry:
@@ -79,6 +85,13 @@ def entries(host_types=HOST_TYPES):
                 with draw.bound(f"sweep:{host}:{zone}:{index}"):
                     planet = Planet(SystemConfig(), star, star.habitable_zone, distance)
                 label = f"{host}/{planet.planet_class}{zone}{index}"
+                out.append(Entry(planet, None, star, label))
+                for moon_index, moon in enumerate(planet.moons):
+                    out.append(Entry(moon, planet, star, f"{label}/moon{moon_index}"))
+            for index in range(MOON_PLANETS_PER_ZONE):
+                with draw.bound(f"sweep:{host}:{zone}:moons{index}"):
+                    planet = Planet(SystemConfig(), star, star.habitable_zone, distance, moon_count=MOONS_ASKED)
+                label = f"{host}/{planet.planet_class}{zone}m{index}"
                 out.append(Entry(planet, None, star, label))
                 for moon_index, moon in enumerate(planet.moons):
                     out.append(Entry(moon, planet, star, f"{label}/moon{moon_index}"))

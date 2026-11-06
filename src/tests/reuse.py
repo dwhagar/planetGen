@@ -4,7 +4,7 @@
 Resuming across builds (TEST.208, on top of TEST.148 to TEST.152).
 
 `scripts/test.py --resume` used to continue only a run of the identical build id, and that id hashes the whole
-checkout, so one merge of main after a cancelled gate started the next from zero. Here a test that passed in an
+checkout, so one merge of main after a canceled gate started the next from zero. Here a test that passed in an
 earlier run is reused (left out of this one) when nothing it depends on has changed since:
 
 - the environment is the same: installed packages, Python, MySQL and Redis versions, the `PLANETGEN_*` and

@@ -16,9 +16,14 @@
     "N": "a hot world",
     "O": "an ocean world with most of its surface covered in liquid water",
     "P": "a cold, glaciated world",
+    "R": "a hothouse world, an oxygen-water world too hot and wet for its air to cool",
     "S": "a barren, rocky Super-Earth, its surface molten when it orbits close to its star",
     "T": "a gas dwarf with a thick atmosphere",
-    "V": "a Super-Earth with high gravity"
+    "U": "a methane-ethane world, with liquid methane and ethane under a thick, methane-bearing air",
+    "V": "a Super-Earth with high gravity",
+    "X": "an ammonia-water world, with an ocean of ammonia and water, often under an ice lid",
+    "Y": "a sulfuric acid world, with liquid acid under a sulfur-rich air",
+    "Z": "a hot world with thin air and no ocean"
   },
   "asteroid": "an asteroid, a body too small for its own weight to pull it round"
 }

@@ -112,7 +112,7 @@ def test_the_profile_read_gives_the_king_clusters_of_the_full_read_in_the_same_o
 
 @pytest.fixture
 def galaxy(mysql_config):
-    """Components and containers stored; one system at the first cluster's centre, one far off, one nebula."""
+    """Components and containers stored; one system at the first cluster's center, one far off, one nebula."""
     drawn = clusters.generate_clusters(SEED, count=3)
     conn = store.get_connection(mysql_config)
     try:
@@ -169,7 +169,7 @@ def test_the_stored_rows_are_the_built_containers(mysql_config, galaxy):
         conn.close()
 
 
-def test_a_cluster_holds_the_system_at_its_centre_and_not_the_one_far_off(mysql_config, galaxy):
+def test_a_cluster_holds_the_system_at_its_center_and_not_the_one_far_off(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)
     try:
         found = containersDb.contents(conn, galaxy["row"])

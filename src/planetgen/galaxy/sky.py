@@ -22,7 +22,7 @@ Per star, in this order:
 3. **Whether it was there.** `light_travel.seen_age`: a star whose light left before it formed is left out (counted in the report). A star whose
    phase ended inside the light time is seen in the phase before it; its stored luminosity and temperature are kept (the stellar track at the
    earlier age is VIEW.12's) and the report counts them (`other_phase`). A star with no stored age is never left out.
-4. **How bright.** `sky_photometry.apparent_magnitude` at the retarded distance (the light's travel, `c tau`), through the dust of the disc along
+4. **How bright.** `sky_photometry.apparent_magnitude` at the retarded distance (the light's travel, `c tau`), through the dust of the disk along
    the line of sight (`galactic_extinction_av`, worked only for the stars that pass without it, since dust only dims). A star fainter than
    `limit` is dropped. Nothing stored for a star's luminosity or temperature leaves it out (counted: `no_photometry`).
 5. **What colour.** The blackbody colour of its temperature (`photometry.star_colour`, linear sRGB with the brightest channel 1), from a
@@ -231,7 +231,7 @@ def sky_from_stars(observer, stars, at_unix, limit=DEFAULT_LIMIT, galaxy_key="",
         galaxy_key (str): Names the galaxy for the stand-in velocities.
         circular_speed_kms: A function of radius in parsecs for the stand-in velocities; defaults to the running galaxy's potential
             (`galaxy.potential.current`).
-        dust (dict): Overrides of the dust law, for a galaxy of another size.
+        dust (dict): Overrides of the dust law (`sky_photometry.dust_av_per_pc` keywords; `profile` is a `physics.dust_model.DustProfile`). `sky_from_database` gives a galaxy the dust of its own gas when this is `None`; the other functions use the fixed Milky Way law.
 
     Returns:
         Sky: The visible stars, brightest first, with `report`: `{"limit", "stars_in", "tiers": {tier: {"in", "visible", "faintest_magnitude",
@@ -330,7 +330,7 @@ def sky_from(observer, source, at_unix, limit=DEFAULT_LIMIT, galaxy_key="", circ
     """
     The sky of `observer`: asks `source` for the stored stars in shells of distance and works the sky out of them (`sky_from_stars`).
 
-    `source(centre_pc, inner_pc, outer_pc, floor_solar)` returns a `SkyStars` of the stored stars between `inner_pc` and `outer_pc` of `centre_pc` with a
+    `source(center_pc, inner_pc, outer_pc, floor_solar)` returns a `SkyStars` of the stored stars between `inner_pc` and `outer_pc` of `center_pc` with a
     luminosity of at least `floor_solar` suns (the sphere query of VIEW.22). The floor of a shell is `luminosity_floor_solar` at its inner edge, the
     smallest a star there may have and still reach `limit`. The report gains `"shells"`: the radii asked for.
     """
@@ -370,13 +370,13 @@ def stars_from_sphere(sphere):
 
 def sphere_source(query, levels=None):
     """
-    The `source` of `sky_from` for a sphere query `query(centre, radius_pc, min_luminosity_sol)` (`db.sky_sphere.stars_in_sphere` with its connection
+    The `source` of `sky_from` for a sphere query `query(center, radius_pc, min_luminosity_sol)` (`db.sky_sphere.stars_in_sphere` with its connection
     bound): a shell is the sphere of its outer radius without the rows nearer than its inner one. When `levels` is a list, each shell appends
     `(inner_pc, outer_pc, floor_solar, complete_above_sol)` to it, `complete_above_sol` being the luminosity above which the cells the sphere reached
     are complete (`CellLevels.complete_above_sol`; `inf` when the query gives none).
     """
-    def source(centre_pc, inner_pc, outer_pc, floor_solar):
-        sphere = query(centre_pc, outer_pc, floor_solar)
+    def source(center_pc, inner_pc, outer_pc, floor_solar):
+        sphere = query(center_pc, outer_pc, floor_solar)
         if levels is not None:
             reached = getattr(sphere, "levels", None)
             levels.append((float(inner_pc), float(outer_pc), float(floor_solar), float(getattr(reached, "complete_above_sol", math.inf))))
@@ -400,6 +400,17 @@ def built_to_pc(levels):
     return reached
 
 
+def default_dust(conn):
+    """
+    The dust a galaxy's sky is seen through when the caller gives none (VIEW.44): the dust of its own gas (`physics.dust_model.dust_for_shape`) for the stored shape;
+    the fixed Milky Way law (an empty override) for a database with no shape.
+    """
+    from planetgen.db import store
+    from planetgen.physics import dust_model
+    info = store.get_galaxy_shape(conn, light=True)
+    return {} if info is None else dust_model.dust_for_shape(info.shape)
+
+
 def sky_from_database(conn, observer, at_unix, limit=DEFAULT_LIMIT, galaxy_key="", circular_speed_kms=None, dust=None,
                       max_distance_pc=MAX_DISTANCE_PC):
     """
@@ -407,8 +418,10 @@ def sky_from_database(conn, observer, at_unix, limit=DEFAULT_LIMIT, galaxy_key="
     The report gains `"built_to_pc"` (`built_to_pc`: how far the stored stars are complete to `limit`) and `"complete_above_sol"` (the largest level of
     the shells' cells), the "built to magnitude X within Y pc" of the plan.
     """
+    if dust is None:
+        dust = default_dust(conn)
     levels = []
-    sky = sky_from(observer, sphere_source(lambda centre, radius, floor: sky_sphere.stars_in_sphere(conn, centre, radius, floor), levels), at_unix, limit,
+    sky = sky_from(observer, sphere_source(lambda center, radius, floor: sky_sphere.stars_in_sphere(conn, center, radius, floor), levels), at_unix, limit,
                    galaxy_key, circular_speed_kms, dust, max_distance_pc)
     sky.report["built_to_pc"] = built_to_pc(levels)
     sky.report["complete_above_sol"] = max((level[3] for level in levels), default=math.inf)

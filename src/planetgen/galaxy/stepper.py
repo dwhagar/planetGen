@@ -8,9 +8,9 @@ Replaces the turn about the galactic pole (`store._galactic_turn`), which is exa
 kick-drift-kick step through `galaxy.acceleration`. Everything is written on `(n, 3)` arrays of positions in parsecs and velocities in km/s, so a million stars
 are one call (the NumPy batching GEN.212 asks for), and the same inputs give the same numbers.
 
-- **The step.** `crossing_time_myr` is a star's own timescale, the smaller of `r / v` (the time to cross its distance from the centre) and `sqrt(r / a)` (the
-  free-fall time of the pull on it); `step_myr` is `STEP_ETA` (0.05) of it, no more than `STEP_CAP_MYR` (5 Myr). An orbit through its pericentre is the
-  fastest part of the path, and the timescale at the star's present point is the cheap stand-in for the pericentre crossing time (registry row ST1).
+- **The step.** `crossing_time_myr` is a star's own timescale, the smaller of `r / v` (the time to cross its distance from the center) and `sqrt(r / a)` (the
+  free-fall time of the pull on it); `step_myr` is `STEP_ETA` (0.05) of it, no more than `STEP_CAP_MYR` (5 Myr). An orbit through its pericenter is the
+  fastest part of the path, and the timescale at the star's present point is the cheap stand-in for the pericenter crossing time (registry row ST1).
 - **Block steps.** A span of time is cut for each star into `2^k` equal steps, the smallest `k` for which a step is within the star's own, so the stars of one
   level go through the same number of steps together (`advance` loops over the levels, not the stars). `MAX_LEVEL` bounds `k`: a star that would need more steps
   than `2^MAX_LEVEL` is stepped at that cap and comes back flagged (`capped`), as the orbital update records a step cap.
@@ -46,8 +46,8 @@ def _pull(pot, positions):
 
 def crossing_time_myr(positions, velocities, pot):
     """
-    Each star's own timescale, Myr: the smaller of `r / v` and `sqrt(r / a)` at its present point (`r` its distance from the centre, `v` its speed, `a` the pull on
-    it). A star at rest at the centre, where both are 0 or infinite, takes the longest timescale the arithmetic can hold (the cap then limits it).
+    Each star's own timescale, Myr: the smaller of `r / v` and `sqrt(r / a)` at its present point (`r` its distance from the center, `v` its speed, `a` the pull on
+    it). A star at rest at the center, where both are 0 or infinite, takes the longest timescale the arithmetic can hold (the cap then limits it).
     """
     positions = np.atleast_2d(np.asarray(positions, dtype=float))
     velocities = np.atleast_2d(np.asarray(velocities, dtype=float))

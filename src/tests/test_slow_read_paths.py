@@ -18,11 +18,11 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 
 
-def _sector(config, name, count, binary_every=2):
+def _sector(config, name, count, binary_every=2, star_types=("K1V",)):
     sector = SpaceSector(name, edge_ly=11.5)
     for index in range(count):
         cfg = SystemConfig()
-        cfg.STAR_TYPE = "K1V"
+        cfg.STAR_TYPE = star_types[index % len(star_types)]
         cfg.BINARY_SYSTEM = index % binary_every == 0
         cfg.MOONS = False
         system = StarSystem(system_config=cfg)
@@ -40,6 +40,25 @@ def galaxy(mysql_config):
         # Two standalone systems: no sector, no octant.
         conn.execute("UPDATE star_systems SET sector_id = NULL, quadrant = NULL, position_x_mpc = NULL,"
                      " position_y_mpc = NULL, position_z_mpc = NULL, location = NULL ORDER BY id LIMIT 2")
+        conn.commit()
+    finally:
+        conn.close()
+    conn = queryDb.open_readonly(mysql_config)
+    try:
+        yield conn
+    finally:
+        conn.close()
+
+
+@pytest.fixture
+def mixed_galaxy(mysql_config):
+    """`galaxy`, with G, K and M stars alternating, so a star type filter keeps some of each group (PERF.219)."""
+    for name, count in (("Beta Sector", 6), ("Alpha Sector", 5), ("Empty Sector", 0), ("Gamma Sector", 7)):
+        _sector(mysql_config, name, count, star_types=("G2V", "K1V", "M3V"))
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE star_systems SET sector_id = NULL, quadrant = NULL, position_x_mpc = NULL,"
+                     " position_y_mpc = NULL, position_z_mpc = NULL, location = NULL ORDER BY id LIMIT 3")
         conn.commit()
     finally:
         conn.close()
@@ -165,10 +184,11 @@ def test_a_keyset_page_is_the_page_offset_paging_gives(galaxy, descending):
         _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="name"))
     assert _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", after=10 ** 9)) == \
         _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant"))
-    # a list filtered by star type reads by offset in every sort (it is not a group walk)
-    assert _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", star_type_prefix="K",
+    # a list filtered by sector reads by offset in every sort (it is not a group walk)
+    sector = next(row["sector_id"] for row in everything if row["sector_id"] is not None)
+    assert _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", sector_id=sector,
                                      after=everything[0]["id"])) == \
-        _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", star_type_prefix="K"))
+        _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", sector_id=sector))
 
 
 @pytest.mark.parametrize("sort", ["sector", "octant"])
@@ -184,6 +204,67 @@ def test_a_page_sorted_by_group_after_a_system_is_the_page_the_full_sort_gives(g
         page = _ids(queryDb.list_systems(galaxy, limit=size, offset=999 if index else 0, sort=sort,
                                          descending=descending, after=everything[index - 1] if index else None, **filters))
         assert page == everything[index:index + size], (sort, descending, filters, index)
+
+
+STAR_TYPE_FILTERS = [{"star_type_prefix": "G"}, {"star_type_prefix": "K1", "binary": True},
+                     {"star_type_prefix": "M", "octants": ("I", "V")}, {"star_type_prefix": "Z"}]
+
+
+def test_a_star_type_filter_pages_by_key_and_by_offset_as_the_full_sort_does(mixed_galaxy):
+    """PERF.219: a star type filter is one more condition inside each group of the walk; offset pages and keyset pages both give the
+    pages of the unlimited (joined, sorted) list, a system counted once whichever of its stars matches. (One galaxy for all the
+    combinations: building one costs more than reading it.)"""
+    size = 3
+    for sort in ("sector", "octant"):
+        for descending in (False, True):
+            for filters in STAR_TYPE_FILTERS:
+                where = (sort, descending, filters)
+                everything = _ids(queryDb.list_systems(mixed_galaxy, sort=sort, descending=descending, **filters))
+                assert bool(everything) == (filters["star_type_prefix"] != "Z"), where
+                assert len(set(everything)) == len(everything), where
+                for offset in range(0, len(everything) + size, 2):
+                    page = _ids(queryDb.list_systems(mixed_galaxy, limit=size, offset=offset, sort=sort, descending=descending, **filters))
+                    assert page == everything[offset:offset + size], (*where, "offset", offset)
+                for index in range(0, len(everything), size):
+                    page = _ids(queryDb.list_systems(mixed_galaxy, limit=size, offset=999 if index else 0, sort=sort,
+                                                     descending=descending, after=everything[index - 1] if index else None, **filters))
+                    assert page == everything[index:index + size], (*where, "after", index)
+
+
+def test_a_keyset_page_with_a_star_type_filter_may_start_after_a_system_the_filter_leaves_out(mixed_galaxy):
+    """The key is a position in the sort, not a row of the filtered list: a link made before the filter changed still lands."""
+    for sort in ("sector", "octant"):
+        every = _ids(queryDb.list_systems(mixed_galaxy, sort=sort))
+        kept = set(_ids(queryDb.list_systems(mixed_galaxy, sort=sort, star_type_prefix="G")))
+        left_out = [number for number, system in enumerate(every) if system not in kept and number < len(every) - 6]
+        assert left_out
+        for number in left_out[::3]:
+            expected = [system for system in every[number + 1:] if system in kept][:4]
+            assert _ids(queryDb.list_systems(mixed_galaxy, limit=4, sort=sort, star_type_prefix="G", after=every[number])) == expected, \
+                (sort, number)
+
+
+def test_the_star_type_walk_never_joins_or_sorts_the_table(mixed_galaxy, monkeypatch):
+    sql = []
+    real = store.Connection._run
+    monkeypatch.setattr(store.Connection, "_run", lambda conn, text, params: sql.append(text) or real(conn, text, params))
+    queryDb.list_systems(mixed_galaxy, limit=3, sort="octant", star_type_prefix="G")
+    walked = [text for text in sql if "FROM star_systems ss" in text]
+    assert walked and not any("JOIN stars" in text or "DISTINCT" in text for text in walked)
+    assert any("EXISTS (SELECT 1 FROM stars s" in text for text in walked)
+
+
+def test_an_octant_offset_page_with_a_star_type_reads_as_before_and_a_sector_one_walks(mixed_galaxy, monkeypatch):
+    """Skipping an octant by counting its matching systems costs a pass over it, so only a page by key walks the octant sort with a star
+    type; the sector sort counts a sector at a time and walks either way (measured, PERF.219)."""
+    sql = []
+    real = store.Connection._run
+    monkeypatch.setattr(store.Connection, "_run", lambda conn, text, params: sql.append(text) or real(conn, text, params))
+    queryDb.list_systems(mixed_galaxy, limit=3, offset=4, sort="octant", star_type_prefix="G")
+    assert any("JOIN stars" in text for text in sql)
+    sql.clear()
+    queryDb.list_systems(mixed_galaxy, limit=3, offset=4, sort="sector", star_type_prefix="G")
+    assert not any("JOIN stars" in text for text in sql)
 
 
 def test_the_systems_route_pages_by_key(client, galaxy):

@@ -4,7 +4,7 @@
 Planet kind from formation (GEN.681)
 ====================================
 
-What sort of body the disc built at a formation distance, without a class letter. The mass law (`planet_mass`) gives the
+What sort of body the disk built at a formation distance, without a class letter. The mass law (`planet_mass`) gives the
 mass and whether the core ran away into a gas giant; this module adds the kind the rest of the generator branches on and
 the one fact about origin the composition draws need.
 
@@ -42,7 +42,7 @@ def draw_formation(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_rati
         star_mass_kg (float): The star's mass, in kilograms.
         snow_line_au (float): The star's own snow line, in AU.
         fe_h (float): The star's [Fe/H] in dex.
-        metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464): the disc's solids scale with it.
+        metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464): the disk's solids scale with it.
         stream (draw.Stream or None): The body's own stream; `None` draws from the stream bound now.
 
     Returns:
@@ -82,10 +82,11 @@ def moon_mass_ceiling_kg(parent_mass_kg, parent_is_giant):
     return ratio * parent_mass_kg
 
 
-def draw_moon_mass_kg(parent_mass_kg, parent_is_giant, limit_kg=None):
+def draw_moon_mass_kg(parent_mass_kg, parent_is_giant, limit_kg=None, floor_kg=None):
     """
     A moon's mass (GEN.646): `dN/dlogM ~ M^-MOON_MASS_FUNCTION_SLOPE` between `MOON_MIN_MASS_KG` and the parent's ceiling
-    (`moon_mass_ceiling_kg`, or `limit_kg` where lower). One draw, from the stream bound now.
+    (`moon_mass_ceiling_kg`, or `limit_kg` where lower). `floor_kg`, where given and above `MOON_MIN_MASS_KG`, replaces the floor (the least a giant
+    impact leaves, GEN.962). One draw, from the stream bound now.
 
     Returns:
         float: The mass in kg, or `None` when the ceiling is under `MOON_MIN_MASS_KG` (the parent holds no moon that light).
@@ -93,6 +94,7 @@ def draw_moon_mass_kg(parent_mass_kg, parent_is_giant, limit_kg=None):
     ceiling = moon_mass_ceiling_kg(parent_mass_kg, parent_is_giant)
     if limit_kg is not None:
         ceiling = min(ceiling, limit_kg)
-    if ceiling <= tuning.MOON_MIN_MASS_KG:
+    floor = tuning.MOON_MIN_MASS_KG if floor_kg is None else max(floor_kg, tuning.MOON_MIN_MASS_KG)
+    if ceiling <= floor:
         return None
-    return sample_power_law(tuning.MOON_MIN_MASS_KG, ceiling, tuning.MOON_MASS_FUNCTION_SLOPE)
+    return sample_power_law(floor, ceiling, tuning.MOON_MASS_FUNCTION_SLOPE)

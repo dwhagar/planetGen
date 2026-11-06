@@ -36,7 +36,7 @@ test("a record keeps both forms, the two ends, a name and when", () => {
   assert.deepEqual(record.direct, { distance_ly: 12.345, bearing_deg: 45.2, mark_deg: 12.4 });
   assert.deepEqual(record.route.path, ["1", "2", "phenomenon:nebula:3"]);
   assert.equal(record.route.distance_ly, 13.5);
-  assert.deepEqual(record.route.hops[1], { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14 });
+  assert.deepEqual(record.route.hops[1], { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14, unknown_space: false });
   assert.equal(record.adjusted, null);
   assert.ok(!("positions" in record.route));
 });
@@ -91,6 +91,28 @@ test("a route that gains a stop says how many", () => {
   assert.deepEqual(C.changesSince(record, longer), ["The route now passes through different systems (4 stops; it was 3)."]);
 });
 
+test("opening a course says when a hop through unknown space has been filled in, or the reverse", () => {
+  const unknown = answer({ route: { path: [1, 2, "phenomenon:nebula:3"], distance_ly: 13.5, hops: [
+    { distance_ly: 6, bearing_deg: 40, mark_deg: 10, unknown_space: true }, { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14, unknown_space: false }] } });
+  const record = C.recordOf(unknown, "Home run", WHEN);
+  assert.deepEqual(record.route.hops.map((hop) => hop.unknown_space), [true, false]);
+  assert.deepEqual(C.changesSince(record, unknown), []);
+  const filledIn = answer({ route: { path: [1, 2, "phenomenon:nebula:3"], distance_ly: 13.5, hops: [
+    { distance_ly: 6, bearing_deg: 40, mark_deg: 10, unknown_space: false }, { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14, unknown_space: true }] } });
+  assert.deepEqual(C.changesSince(record, filledIn), [
+    "Hop 1 of 2 is now through known space; it was a jump through unknown space.",
+    "Hop 2 of 2 is now a jump through unknown space; it was through known space.",
+  ]);
+});
+
+test("a record saved before the unknown-space flag was kept says nothing about it", () => {
+  const record = C.recordOf(answer(), "Home run", WHEN);
+  record.route.hops.forEach((hop) => { delete hop.unknown_space; });
+  const unknown = answer({ route: { path: [1, 2, "phenomenon:nebula:3"], distance_ly: 13.5, hops: [
+    { distance_ly: 6, bearing_deg: 40, mark_deg: 10, unknown_space: true }, { distance_ly: 7.5, bearing_deg: 50, mark_deg: 14 }] } });
+  assert.deepEqual(C.changesSince(record, unknown), []);
+});
+
 test("opening a course says when the route appears or goes", () => {
   const record = C.recordOf(answer(), "Home run", WHEN);
   assert.deepEqual(C.changesSince(record, answer({ route: null })), ["The route through known space is gone: no route is found now."]);
@@ -108,4 +130,34 @@ test("an adjusted path (NAV.6) that changes is reported once courses have one", 
   assert.deepEqual(C.changesSince(record, answer({ adjusted: { path: [[0, 0, 0], [1, 1, 1]] } })), []);
   assert.deepEqual(C.changesSince(record, answer({ adjusted: { path: [[0, 0, 0], [2, 2, 2]] } })),
     ["The adjusted path around gravity wells has changed."]);
+});
+
+const STOPS = [
+  { name: "Alpha", kind: "system", value: "system:1", url: "/system/1", position: [1, 2, 3] },
+  { name: "Veil", kind: "nebula", value: "nebula:3" },
+  { name: "Omega", kind: "system", value: "system:2", url: "/system/2" },
+];
+
+test("a course through waypoints keeps its stops in order and is known by all of them (NAV.58)", () => {
+  const record = C.recordOfWaypoints(STOPS, "  Round trip ", WHEN);
+  assert.equal(C.isWaypointCourse(record), true);
+  assert.equal(record.name, "Round trip");
+  assert.equal(record.from, "system:1");
+  assert.equal(record.to, "system:2");
+  assert.equal(record.fromName, "Alpha");
+  assert.deepEqual(record.stops.map((s) => s.value), ["system:1", "nebula:3", "system:2"]);
+  assert.deepEqual(record.stops[0].position, [1, 2, 3]);
+  assert.equal(record.route, null);
+  assert.equal(C.courseKey(record), "via:system:1>nebula:3>system:2");
+  assert.equal(C.recordOfWaypoints(STOPS, "", WHEN).name, "Alpha to Omega");
+});
+
+test("the same stops in another order, or a plain course between the same ends, are other courses (NAV.58)", () => {
+  const record = C.recordOfWaypoints(STOPS, "a", WHEN);
+  const reordered = C.recordOfWaypoints([STOPS[0], STOPS[2], STOPS[1]], "a", WHEN);
+  assert.notEqual(C.courseKey(record), C.courseKey(reordered));
+  const plain = C.recordOf(answer({ origin: { ref: "system:1", name: "Alpha" }, destination: { ref: "system:2", name: "Omega" } }), "p", WHEN);
+  assert.equal(C.isWaypointCourse(plain), false);
+  assert.equal(C.courseKey(plain), "system:1>system:2");
+  assert.notEqual(C.courseKey(plain), C.courseKey(C.recordOfWaypoints([STOPS[0], STOPS[2]], "p", WHEN)));
 });

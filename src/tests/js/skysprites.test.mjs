@@ -26,7 +26,7 @@ test("the glow is nothing at the limit and its full strength five magnitudes bri
   assert.ok(S.glowStrength(21) > 0 && S.glowStrength(21) < S.GLOW_MAX);
 });
 
-test("the disc follows the chord of a ball and its mean over the disc is one", () => {
+test("the disk follows the chord of a ball and its mean over the disk is one", () => {
   assert.ok(near(S.chordMean(0), 2 / 3));
   assert.ok(near(S.profile(0, 0) , 1 / S.chordMean(0)));
   assert.equal(S.profile(1, 0), 0);
@@ -39,7 +39,7 @@ test("the disc follows the chord of a ball and its mean over the disc is one", (
   assert.ok(near(sum, 1, 1e-3));
 });
 
-test("a shell is a ring: nothing at the centre, brightest at the inner edge, and its mean over the disc is one", () => {
+test("a shell is a ring: nothing at the center, brightest at the inner edge, and its mean over the disk is one", () => {
   const inner = 1 - S.SHELL_THICKNESS;
   assert.ok(S.profile(0, inner) < S.profile(inner * 0.999, inner));
   assert.ok(S.profile(0.5, inner) < 0.5 * S.profile(0.99, inner) || S.profile(0.5, inner) < S.profile(0.99, inner));
@@ -102,7 +102,7 @@ test("the tangent basis is three unit vectors at right angles", () => {
   }
 });
 
-test("a quad is four corners at tan(radius) from its centre on the tangent plane", () => {
+test("a quad is four corners at tan(radius) from its center on the tangent plane", () => {
   const r = record({ direction: [0, 0, 2], angularRadiusRad: 0.1 });
   const q = S.quads([{ record: r, look: S.spriteLook(r) }]);
   assert.equal(q.position.length, 12);

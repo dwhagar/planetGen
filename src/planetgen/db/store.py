@@ -70,17 +70,18 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, chart_ledger, designation_rows, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, chart_ledger, designation_rows, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, scatter_uids, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, body_colour, body_strength, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
-from planetgen.generation import generator_battery as generatorBattery
+from planetgen.physics import nebula_columns as nebulaColumns
+from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
+from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
-from planetgen.generation import cloud as cloudContext, multistar, steps, stored_trees
+from planetgen.generation import cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -92,9 +93,9 @@ from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.density import GalaxyShape, with_family_columns, with_system_richness
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.spherical import (
-    CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at,
+    CELL_REACH_EDGES, MAX_ADDRESSABLE_SHELL, SectorCell, provisional_sector_designation, sector_address_at, sector_position_pc,
 )
-from planetgen.names.bodies import rename_prefix, wide_pair_first_word
+from planetgen.names.bodies import moon_letters, rename_prefix, wide_pair_first_word
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.uniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
@@ -609,7 +610,7 @@ still answers as before."""
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
-    "asteroid_belt_composition",
+    "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
@@ -939,6 +940,8 @@ class Connection:
         self.uid_issuer = None
         """`_UidIssuer` or `None`: while a sector is being saved, gives each new row its unique ID in the INSERT
         (PERF.44)."""
+        self.saved_donors = []
+        """list: `(star_system_id, StarSystem, position_pc)` of every system `_insert_sector_rows` wrote, for the rogues each made (GEN.1111)."""
         self.sector_centers_pc = {}
         """dict: `sector_id -> (x, y, z)` or `None`, the sector centers `_system_velocity_kms` has read inside the
         current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
@@ -2917,7 +2920,7 @@ def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au
         role (str): `'primary'`, `'secondary'`, `'member'` (a star beyond the pair of a system of more than two, GEN.630)
             or `'single'`.
         parent_node_id (int, optional): The `orbit_nodes.node_no` the star is a child of; `None` for a single star.
-        offset_au (tuple, optional): The star's `(x, y, z)` offset from its system's centre of mass, AU (GEN.311).
+        offset_au (tuple, optional): The star's `(x, y, z)` offset from its system's center of mass, AU (GEN.311).
         slot (int, optional): Which child of its parent node the star is, 0 or 1; `None` for a single star (GEN.630).
         flags (int, optional): The star's member flag bits (`generation.multistar.MEMBER_FLAGS`); a runaway star's primary
             carries the bit of its origin (GEN.329); 0 for none.
@@ -2960,7 +2963,7 @@ BODY_FIELDS = (
     object_rows.attr("planet_class"), object_rows.scaled("distance_km", "distance", _AU_KM),
     object_rows.attr("radius_km", "radius"), object_rows.attr("mass_kg", "mass"),
     object_rows.attr("volume_km3", "volume"), object_rows.attr("period_years", "period"), object_rows.attr("zone"),
-    object_rows.attr("description"), object_rows.attr("gravity_g", "gravity"),
+    object_rows.attr("gravity_g", "gravity"),
     object_rows.attr("surface_temperature_k", "surface_temperature"),
     object_rows.attr("density_g_cm3", "density"), object_rows.attr("atmosphere"),
     object_rows.attr("atm_density"), object_rows.attr("atm_molar_density"),
@@ -3001,6 +3004,8 @@ BODY_FIELDS = (
     object_rows.each(habitability_world.BODY_FIELDS),
     object_rows.each(aerosols.BODY_FIELDS),
     object_rows.each(body_strength.FIELDS),
+    object_rows.each(planet_type.FIELDS),
+    object_rows.each(class_code.FIELDS),
     object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),
                          lambda row: {"born_beyond_snow_line": _tristate_from_db(row["born_beyond_snow_line"])}),
 )
@@ -3030,9 +3035,18 @@ def _insert_interior_layers(conn, table, id_column, owner_id, layers):
         )
 
 
-def body_child_rows(conn, body, body_id):
-    """Writes a planet's or moon's reflection spectrum, interior layer rows, gas rows and life class score rows (after any old ones were deleted)."""
-    prefix, id_column = ("moon", "moon_id") if body.is_moon else ("planet", "planet_id")
+BODY_OWNERS = {"planet": ("planet", "planet_id"), "moon": ("moon", "moon_id"), "rogue_planet": ("rogue_planet", "rogue_planet_id")}
+"""dict: The owners of the per-body child tables (`<prefix>_gases` and the rest) by kind, each with its table prefix and its id column (GEN.1111: a rogue planet has its own)."""
+
+
+def body_owner(body, owner=None):
+    """`(prefix, id column)` of the child tables of `body`: the named `owner` of `BODY_OWNERS`, else the moon's or the planet's."""
+    return BODY_OWNERS[owner or ("moon" if body.is_moon else "planet")]
+
+
+def body_child_rows(conn, body, body_id, owner=None):
+    """Writes a planet's, moon's or (with `owner="rogue_planet"`) rogue planet's reflection spectrum, interior layer rows, gas rows and life class score rows (after any old ones were deleted)."""
+    prefix, id_column = body_owner(body, owner)
     _insert_reflection_spectrum(
         conn, f"{prefix}_reflection_spectrum", id_column, body_id,
         body.reflection_spectrum_visible, body.reflection_spectrum_non_visible,
@@ -3055,10 +3069,11 @@ def body_child_rows(conn, body, body_id):
                       entry.get("animal_grade"), entry.get("complexity"), *ages, *kinds))
 
 
-def body_gases(conn, body_ids, is_moon):
+def body_gases(conn, body_ids, is_moon, owner=None):
     """`{body id: {gas formula: partial pressure Pa}}` of the planets or moons `body_ids`: the air their rows keep in
-    `planet_gases` or `moon_gases` (a body with none has no key)."""
-    table, id_column = ("moon_gases", "moon_id") if is_moon else ("planet_gases", "planet_id")
+    `planet_gases` or `moon_gases` (`rogue_planet_gases` for `owner="rogue_planet"`; a body with none has no key)."""
+    prefix, id_column = BODY_OWNERS[owner or ("moon" if is_moon else "planet")]
+    table = f"{prefix}_gases"
     air = {}
     ids = list(body_ids)
     for start in range(0, len(ids), 1000):
@@ -3070,10 +3085,11 @@ def body_gases(conn, body_ids, is_moon):
     return air
 
 
-def body_class_scores(conn, body_ids, is_moon):
+def body_class_scores(conn, body_ids, is_moon, owner=None):
     """`{body id: {class id: score 1 to 9}}` of the planets or moons `body_ids`: the life classes their rows keep in
-    `planet_life_class_scores` or `moon_life_class_scores` (a body that supports none has no key)."""
-    table, id_column = ("moon_life_class_scores", "moon_id") if is_moon else ("planet_life_class_scores", "planet_id")
+    `planet_life_class_scores` or `moon_life_class_scores` (`rogue_planet_life_class_scores` for `owner="rogue_planet"`; a body that supports none has no key)."""
+    prefix, id_column = BODY_OWNERS[owner or ("moon" if is_moon else "planet")]
+    table = f"{prefix}_life_class_scores"
     found = {}
     ids = list(body_ids)
     for start in range(0, len(ids), 1000):
@@ -3123,16 +3139,20 @@ def dominant_first(entries, number, variant):
 
 
 def with_life_inputs(conn, rows, is_moon):
-    """`with_gases` rows that also hold the temperature of the star each orbits as `star_teff_k` (`None` for a circumbinary planet), the
-    one input of a life class re-score (`habitability_world.compute`) a `planets` or `moons` row lacks."""
+    """`with_gases` rows that also hold the temperature of the star each orbits as `star_teff_k` (`None` for a circumbinary planet) and the life
+    classes that live on it (`life_living`, the dominant one first, from `planet_life` or `moon_life`): the inputs of a life class re-score
+    (`habitability_world.compute`) a `planets` or `moons` row lacks. Leaving the other classes out rated a body on its dominant class alone, so a
+    re-score gave lower life scores than generation (TEST.591)."""
     rows = with_gases(conn, rows, is_moon)
+    living = body_living(conn, [row["id"] for row in rows], is_moon)
     star_ids = sorted({row["star_id"] for row in rows if row.get("star_id") is not None})
     teff = {}
     for start in range(0, len(star_ids), 1000):
         chunk = star_ids[start:start + 1000]
         for star in conn.execute(f"SELECT id, temperature_k FROM stars WHERE id IN ({', '.join('?' * len(chunk))})", tuple(chunk)).fetchall():
             teff[star["id"]] = star["temperature_k"]
-    return [{**row, "star_teff_k": teff.get(row.get("star_id"))} for row in rows]
+    return [{**row, "star_teff_k": teff.get(row.get("star_id")),
+             life_classes.LIVING_FIELD: dominant_first(living.get(row["id"]), row["life_class"], row["life_class_variant"])} for row in rows]
 
 
 def with_gases(conn, rows, is_moon):
@@ -3202,7 +3222,41 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     for position, moon in enumerate(planet.moons or []):
         insert_moon(conn, moon, star_system_id, star_id, planet_id, position)
 
+    insert_irregular_moons(conn, planet, planet_id)
+
     return planet_id
+
+
+IRREGULAR_MOON_COLUMNS = ("moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction",
+                          "water_fraction", "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")
+"""tuple: The value columns of `irregular_moons`, after `planet_id`."""
+
+
+def insert_irregular_moons(conn, planet, planet_id):
+    """Writes the `irregular_sets` row and the `irregular_moons` rows of `planet` (GEN.1084): nothing for a planet with none."""
+    held = getattr(planet, "irregulars", irregular_moons.NO_IRREGULARS)
+    if held is irregular_moons.NO_IRREGULARS:
+        return
+    conn.execute("INSERT INTO irregular_sets (planet_id, remainder_kg, above_floor, lost, `temporary`) VALUES (?, ?, ?, ?, ?)",
+                 (planet_id, held.remainder_kg, held.above_floor, held.lost, 1 if held.temporary else 0))
+    for moon in held.moons:
+        d = moon.to_dict()
+        conn.execute(
+            f"INSERT INTO irregular_moons (planet_id, {', '.join(IRREGULAR_MOON_COLUMNS)}) VALUES ({', '.join('?' * (len(IRREGULAR_MOON_COLUMNS) + 1))})",
+            (planet_id, d["rank"], d["window"], d["mass_kg"], d["radius_km"], d["density_kg_m3"] / 1000.0, d["taxon"], d["source_distance_au"] * _AU_KM, d["ice_loss"], d["rock"],
+             d["metal"], d["water"], d["ice"], d["semi_major_axis_au"] * _AU_KM, d["eccentricity"], d["inclination_deg"], d["ascending_node_deg"], d["arg_periapsis_deg"],
+             d["mean_anomaly_deg"]))
+
+
+def irregular_set_dict(summary, rows):
+    """The `IrregularSet.from_dict` dict of a planet's `irregular_sets` row (`None` for none) and its `irregular_moons` rows."""
+    if summary is None:
+        return None
+    return {"remainder_kg": summary["remainder_kg"], "above_floor": summary["above_floor"], "lost": summary["lost"], "temporary": bool(summary["temporary"]), "moons": [{"rank": r["moon_rank"], "window": r["capture_window"], "mass_kg": r["mass_kg"], "radius_km": r["radius_km"], "density_kg_m3": r["density_g_cm3"] * 1000.0,
+                                  "taxon": r["taxon"], "source_distance_au": r["source_distance_km"] / _AU_KM, "ice_loss": r["ice_loss"], "rock": r["rock_fraction"],
+                                  "metal": r["metal_fraction"], "water": r["water_fraction"], "ice": r["ice_fraction"], "semi_major_axis_au": r["distance_km"] / _AU_KM,
+                                  "eccentricity": r["eccentricity"], "inclination_deg": r["inclination_deg"], "ascending_node_deg": r["ascending_node_deg"],
+                                  "arg_periapsis_deg": r["arg_periapsis_deg"], "mean_anomaly_deg": r["mean_anomaly_deg"]} for r in rows]}
 
 
 def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -> int:
@@ -3346,7 +3400,7 @@ BELT_FIELDS = (
     object_rows.scaled("upper_limit_km", "upper_limit", _AU_KM),
     object_rows.attr("density"), object_rows.attr("mass_kg"), object_rows.optional("chondrite_group"),
     object_rows.computed("composition_summary", lambda belt, context: belt.get_composition_summary()),
-    # GEN.337: a belt is a ring about its star, so its point is the star's (the system centre) and it carries no vector
+    # GEN.337: a belt is a ring about its star, so its point is the star's (the system center) and it carries no vector
     # of its own.
     object_rows.computed(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                           "velocity_z_kms"), lambda belt, context: (0.0,) * 6),
@@ -3362,6 +3416,9 @@ BELT_FIELDS = (
                          lambda row: {"origin_history": _json_loads(row["origin_history"], [])}),
     object_rows.computed("scatter_fates", lambda belt, context: _json_or_none(belt.scatter_fates),
                          lambda row: {"scatter_fates": _json_loads(row["scatter_fates"], None)}),
+    # GEN.1232: what the star's evolution did to the belt, as one paragraph (NULL when nothing did), read back as the sentences' one line.
+    object_rows.computed("history_text", lambda belt, context: belt_history.history_text(belt) or None,
+                         load=lambda row: {"history": [row["history_text"]] if row["history_text"] else []}),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 
@@ -3400,6 +3457,16 @@ def insert_asteroid_belt(conn, belt: AsteroidBelt, star_system_id, orbital_index
             VALUES (?, ?, ?, ?)
             """,
             (belt_id, position, component, concentration),
+        )
+
+    for member in belt.members:
+        conn.execute(
+            "INSERT INTO belt_members (belt_id, member_rank, mass_kg, radius_km, distance_km, eccentricity, inclination_deg, ascending_node_deg, arg_periapsis_deg,"
+            " mean_anomaly_deg, taxon, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status, soter_mu, scatter_tag)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (belt_id, member["rank"], member["mass_kg"], member["radius_km"], member["distance_au"] * _AU_KM, member["eccentricity"], member["inclination_deg"],
+             member["node_deg"], member["periapsis_deg"], member["anomaly_deg"], member["taxon"], member["density_g_cm3"], member["rock_fraction"],
+             member["metal_fraction"], member["water_fraction"], member["ice_fraction"], member["status"], member["soter_mu"], member["scatter_tag"]),
         )
 
     return belt_id
@@ -3605,6 +3672,36 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
     return row_id
 
 
+_COMPOSITION_READ = {
+    "nebulae": "id, name, uid, nebula_class, density_cm3, radius_ly, galactic_radius_pc, center_x_pc, center_y_pc, center_z_pc, hosts",
+    "supernova_remnants": "id, name, uid, remnant_class, progenitor_type, compact_remnant_kind, density_cm3, radius_ly, galactic_radius_pc",
+}
+"""dict: The columns of a row that its composition is worked out from (`physics/nebula_columns.py`)."""
+
+
+def store_composition(conn, table, row_id):
+    """
+    Works out and stores the composition of one `nebulae` or `supernova_remnants` row (GEN.1276): the columns of `physics/nebula_columns.py`, keyed on the row's object ID, and the
+    plain-words `composition` (a nebula) and `dominant_species` written from the numbers. Called right after a row is inserted, when its `uid` is already issued; the migration that
+    fills the rows of an older galaxy runs the same model.
+
+    Returns:
+        dict: The values stored.
+    """
+    row = conn.execute(f"SELECT {_COMPOSITION_READ[table]} FROM {table} WHERE id = ?", (row_id,)).fetchone()
+    values = nebulaColumns.values_for(table, dict(row))
+    sentence, species = nebulaColumns.sentences_for(values)
+    columns = nebulaColumns.COLUMNS[table]
+    sets = [f"{column} = ?" for column in columns] + ["dominant_species = ?"]
+    params = [values[column] for column in columns] + [species[:255]]
+    if table == "nebulae":
+        sets.append("composition = ?")
+        params.append(sentence)
+    conn.execute(f"UPDATE {table} SET {', '.join(sets)} WHERE id = ?", (*params, row_id))
+    storage_checksum.mark_rows(conn, table, [row_id])
+    return values
+
+
 def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     """
     Inserts a `nebulae` row (see `schema.sql`'s "v16"/"v18" header notes).
@@ -3650,6 +3747,7 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     )
     confirm_object_name(conn, name_base, "nebulae", cur.lastrowid, diminutive_index)
     _store_nebula_shape(conn, cur.lastrowid, nebula)
+    store_composition(conn, "nebulae", cur.lastrowid)
     _refresh_containment_around(conn, placement, nebula.radius_ly)
     return cur.lastrowid
 
@@ -3684,7 +3782,7 @@ def _placement_values(placement):
 
 def _default_place_pc():
     """tuple: Where an object with no place in the galaxy is taken to be for its movement vector: the radius that
-    holds half of the galaxy's disc stars on the +x axis (`galaxy.scales`), the place
+    holds half of the galaxy's disk stars on the +x axis (`galaxy.scales`), the place
     `galactic_orbit.generate_galactic_orbit_fields` works its speed out for."""
     return (scales.default_galactocentric_pc(), 0.0, 0.0)
 
@@ -3781,6 +3879,7 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
         ),
     )
     confirm_object_name(conn, name_base, "supernova_remnants", cur.lastrowid, diminutive_index)
+    store_composition(conn, "supernova_remnants", cur.lastrowid)
     _refresh_containment_around(conn, placement, remnant.radius_ly)
     return cur.lastrowid
 
@@ -3828,6 +3927,253 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
         "sector_id": sector_id, "placement": placement})
     confirm_object_name(conn, name_base, "rogue_planets", row_id, diminutive_index)
     return row_id
+
+
+ROGUE_HOST_ONLY_COLUMNS = frozenset({
+    "distance_km", "period_years", "zone", "hill_radius_km", "min_orbit_distance_km", "habitable_zone_inner_km", "habitable_zone_outer_km",
+    "orbital_inclination_deg", "orbital_ascending_node_deg", "eccentricity", "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
+    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", *_VELOCITY_COLUMNS})
+"""frozenset: The `planets` columns that are the orbit round a host (GEN.1111): a rogue planet has no host, so its `velocity_*_kms` is the galaxy-frame movement (`_FREE_VECTOR_FIELD`)."""
+
+ROGUE_BODY_FIELDS = tuple(field for field in PLANET_BODY_FIELDS if not set(field.columns) <= ROGUE_HOST_ONLY_COLUMNS)
+"""tuple: The `Field`s of a planet that a rogue planet shares (every one but the orbit round a host)."""
+
+ROGUE_EJECTION_COLUMNS = ("donor_uid", "event_index", "ejection_delay_gy", "since_ejection_gy", "ejection_speed_kms", "rogue_note")
+"""tuple: The columns only a rogue planet has (GEN.1111): the ejecting system's uid, which ejection of that system it is, when and how fast it left, and its note."""
+
+
+def _from_context(column):
+    """A column filled from the context, `None` when the caller gave none."""
+    return object_rows.Field((column,), lambda obj, context: context.get(column))
+
+
+ROGUE_BODY_ROW_FIELDS = (
+    object_rows.context("sector_id"), *ROGUE_BODY_FIELDS, _FREE_VECTOR_FIELD, _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD,
+    *(_from_context(column) for column in ROGUE_EJECTION_COLUMNS),
+)
+"""tuple: The `Field`s of a `rogue_planets` row of a rogue planet built through the planet chain (GEN.1111)."""
+
+_row_columns = object_rows.columns_of(ROGUE_BODY_ROW_FIELDS)
+assert len(_row_columns) == len(set(_row_columns)), sorted({c for c in _row_columns if _row_columns.count(c) > 1})
+
+
+def insert_rogue_body(conn, planet, sector_id=None, placement=None, **ejection) -> int:
+    """
+    Inserts a `rogue_planets` row for a planet built with no star (GEN.1111), its moons (`moons` rows whose parent is the row) and the child
+    rows of the planet and of each moon.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        planet (Planet): The rogue planet, with `galactic_orbital_period_gy`, `galactic_orbital_phase_deg`, `galactic_min_update_interval_years`
+            and (for the movement it was stored with) `ejecta_velocity_kms` set (`generation.rogue_landing.apply_motion`).
+        sector_id (int, optional): The sector that holds it now.
+        placement (dict, optional): As in `insert_supernova_remnant`.
+        **ejection: Any of `ROGUE_EJECTION_COLUMNS`: `donor_uid` (bytes), `event_index`, `ejection_delay_gy`, `since_ejection_gy`,
+            `ejection_speed_kms` and `rogue_note`.
+
+    Returns:
+        int: The new `rogue_planets.id`.
+    """
+    unknown = set(ejection) - set(ROGUE_EJECTION_COLUMNS)
+    if unknown:
+        raise TypeError(f"not a rogue planet column: {sorted(unknown)}")
+    name_base, diminutive_index = _reserve_phenomenon_name(conn, planet, "rogue-planet", placement)
+    for position, moon in enumerate(planet.moons or []):
+        if moon.name is None:    # a moon is named by its planet, the way a system's are (`names.bodies.name_bodies`)
+            moon.name = f"{planet.name}{moon_letters(position)}"
+    row_id = object_rows.insert_row(conn, "rogue_planets", ROGUE_BODY_ROW_FIELDS, planet, {
+        "sector_id": sector_id, "placement": placement, **ejection})
+    confirm_object_name(conn, name_base, "rogue_planets", row_id, diminutive_index)
+    body_child_rows(conn, planet, row_id, "rogue_planet")
+    for position, moon in enumerate(planet.moons or []):
+        insert_moon_of_rogue_planet(conn, moon, row_id, position)
+    return row_id
+
+
+def delete_rogues_of_donor(conn, donor_uid):
+    """
+    Deletes every rogue planet a donor system made (by `donor_uid`), so saving the donor again writes them afresh (GEN.1111). A rogue's moons and
+    child rows go with it (`ON DELETE CASCADE`).
+
+    Returns:
+        int: How many rogue planets were deleted.
+    """
+    sectors = [row["sector_id"] for row in conn.execute("SELECT DISTINCT sector_id FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).fetchall()]
+    deleted = conn.execute("DELETE FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).rowcount
+    for sector_id in sectors:       # a rogue is filed in the sector it landed in, whose storage checksum covers it (DB.45) and whose leaf holds it (TEST.602)
+        touch_sector(conn, sector_id)
+        fingerprintTree.store_residents(conn, sector_id)
+    return deleted
+
+
+def uncharted_sector_id(conn, address, edge_pc, run_id=None):
+    """
+    The `sectors.id` of the cell at `address`, creating the row when the cell has none (GEN.1111, part 7): a rogue planet lands in a sector
+    that may never have been charted, and its row has to point at one. The new row is named by the cell's designation, has its center and no
+    contents, and is not in the chart ledger (`chart_ledger` records charted cells only), so the fill that charts the cell later writes
+    into the same row (`kept_sector_id_at`) and gives it its name then.
+    """
+    found = kept_sector_id_at(conn, *address)
+    if found is not None:
+        return found
+    x, y, z = sector_position_pc(*address, edge_pc)
+    cur = conn.execute(
+        "INSERT INTO sectors (name, edge_mpc, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc, shell_index, band_index, wedge_index,"
+        " generator_epoch, run_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (provisional_sector_designation(*address), edge_pc * 1000.0, x, y, z, math.sqrt(x * x + y * y + z * z), *address,
+         generatorEpoch.generator_epoch(), sector_run_id(conn, run_id)))
+    set_sector_uid(conn, cur.lastrowid)       # a sector has a public ID from the start (API.23), so its page and its rogues' links resolve
+    return cur.lastrowid
+
+
+def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
+    """
+    Saves the rogue planets of freshly saved donor systems (GEN.1111, part 7). For each donor: the rogues it made before are deleted (by its
+    uid, so saving a donor twice never doubles them), `rogue_yield.rogues_of` builds the new ones from its uid and ejection record, and each is
+    written in the sector where it landed (`uncharted_sector_id`) with its object ID born in the donor's sector (`birth_sector_id`), so
+    deleting the donor's sector takes its rogues wherever they are filed.
+
+    Args:
+        conn (Connection): Not mid-`batched`.
+        donors (iterable): `(star_system_id, StarSystem, placement)`, `placement` the dict with the donor's galaxy-frame `center_*_pc`.
+        birth_sector_id (int): The sector the donors were saved in.
+        edge_pc (float): The sector edge of the grid, pc.
+        run_id (int, optional): As in `insert_sector`.
+
+    Returns:
+        int: How many rogue planets were written.
+    """
+    written = 0
+    for system_id, system, placement in donors:
+        uid = conn.execute("SELECT uid FROM star_systems WHERE id = ?", (system_id,)).fetchone()["uid"]
+        if uid is None:
+            continue
+        uid = bytes(uid)
+        delete_rogues_of_donor(conn, uid)
+        position = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
+        row_ids = []
+        landed = set()
+        for rogue in rogue_yield.rogues_of(uid, system, position, edge_pc):
+            sector_id = uncharted_sector_id(conn, rogue.landing.address, edge_pc, run_id)
+            landed.add(sector_id)
+            row_ids.append(insert_rogue_body(
+                conn, rogue.planet, sector_id=sector_id, placement=rogue_landing.placement_of(rogue.landing), donor_uid=uid,
+                event_index=rogue.event.index, ejection_delay_gy=rogue.event.delay_gy, since_ejection_gy=rogue.event.since_ejection_gy,
+                ejection_speed_kms=math.sqrt(sum(v * v for v in rogue.event.kick_km_s)), rogue_note=rogue.note))
+        if row_ids:
+            _assign_rogue_uids(conn, row_ids, birth_sector_id)
+            written += len(row_ids)
+        for sector_id in sorted(landed):        # the leaf of each sector a rogue landed in holds it (TEST.602)
+            fingerprintTree.store_residents(conn, sector_id)
+    return written
+
+
+def arrived_residents(conn, address):
+    """
+    What a sector already holds that was born elsewhere, for the mass its fill need not make (GEN.1124, stage 0): the rogue planets and asteroid fields filed in
+    it whose object IDs belong to another sector (a rogue a neighbour's system threw into it, or a field it made). Rows born in this sector are left out: its own
+    fill replaces them.
+
+    Args:
+        conn (Connection): An open connection.
+        address (tuple): The `(shell, band, wedge)` of the sector.
+
+    Returns:
+        list: A `resident_mass.Resident` for each, with the mass the row stores (rows with no stored mass are left out).
+    """
+    sector_id = kept_sector_id_at(conn, *address)
+    if sector_id is None:
+        return []
+    own = objectUid.sector_bytes(*address)
+    found = []
+    for table, kind in (("rogue_planets", "rogue"), ("asteroid_fields", "phenomenon")):
+        for row in conn.execute(f"SELECT mass_kg FROM {table} WHERE sector_id = ? AND mass_kg > 0 AND (uid IS NULL OR SUBSTRING(uid, 1, {len(own)}) <> ?)",
+                                (sector_id, own)).fetchall():
+            found.append(resident_mass.Resident(kind, float(row["mass_kg"])))
+    return found
+
+
+def save_topup_fields(conn, sector_id, made):
+    """
+    Saves the light asteroid fields of a sector's top-up (GEN.1120): each is an `asteroid_fields` row in the sector with its mass (its density follows from its composition, as any field's does); the origin
+    is apparent and not stored (no parent, no collision). Their object IDs are born in this sector.
+
+    Args:
+        conn (Connection): Not mid-`batched`.
+        sector_id (int): The sector the top-up fills.
+        made (iterable): `field_topup_build.ToppedField`s.
+
+    Returns:
+        int: How many fields were written.
+    """
+    count = 0
+    for item in made:
+        field_id = insert_asteroid_field(conn, item.field, sector_id=sector_id, placement=rogue_landing.placement_of(item.landing))
+        assign_uids(conn, phenomenon=("asteroid_fields", field_id))
+        count += 1
+    return count
+
+
+def delete_topup_rogues(conn, sector_id):
+    """Deletes the rogue planets a sector's top-up made (GEN.1120): the ones filed in it with no donor, so the top-up of a regenerated sector is written afresh."""
+    deleted = conn.execute("DELETE FROM rogue_planets WHERE sector_id = ? AND donor_uid IS NULL", (sector_id,)).rowcount
+    if deleted:
+        touch_sector(conn, sector_id)       # the sector's storage checksum covers its rogues (DB.45)
+        fingerprintTree.store_residents(conn, sector_id)       # and so does its leaf (TEST.602)
+    return deleted
+
+
+def count_rogues_in_sector(conn, sector_id):
+    """How many rogue planets a sector holds, those that arrived from donors and any top-up (the top-up counts them against the Rogues level, GEN.1120)."""
+    return conn.execute("SELECT COUNT(*) AS n FROM rogue_planets WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
+
+
+def save_topup_rogues(conn, sector_id, made):
+    """
+    Saves the rogue planets of a sector's top-up (GEN.1120, stage 3): the sector's earlier top-up is deleted first, so a sector keeps one, and each rogue
+    is written in the sector with no donor (`donor_uid` NULL marks an apparent origin) and the sentence that says where it seems to have come from. Their
+    object IDs are born in this sector.
+
+    Args:
+        conn (Connection): Not mid-`batched`.
+        sector_id (int): The sector the top-up fills.
+        made (iterable): `rogue_topup_build.ToppedRogue`s.
+
+    Returns:
+        int: How many rogue planets were written.
+    """
+    delete_topup_rogues(conn, sector_id)
+    row_ids = []
+    for item in made:
+        origin = item.rogue.apparent_origin
+        row_ids.append(insert_rogue_body(
+            conn, item.planet, sector_id=sector_id, placement=rogue_landing.placement_of(item.landing), donor_uid=None, event_index=None,
+            ejection_delay_gy=max(origin.age_gy - origin.since_ejection_gy, 0.0), since_ejection_gy=origin.since_ejection_gy,
+            ejection_speed_kms=origin.speed_km_s, rogue_note=item.note))
+    if row_ids:
+        _assign_rogue_uids(conn, row_ids, sector_id)
+        fingerprintTree.store_residents(conn, sector_id)       # the leaf holds them (TEST.602)
+    return len(row_ids)
+
+
+def _assign_rogue_uids(conn, row_ids, birth_sector_id):
+    """Run-time IDs for new rogue planets (and their moons) born in the donor's sector, wherever they are filed."""
+    uids = _runtime_uids(conn, _sector_birth_address(conn, birth_sector_id), len(row_ids))
+    _update_by_id(conn, "rogue_planets", ("uid",), list(zip(row_ids, uids)))
+    _assign_rogue_moon_uids(conn, row_ids)
+
+
+def load_rogue_body(conn, row, system_config=None):
+    """
+    Rebuilds the `Planet` a `rogue_planets` row of the physics rogue holds, with its moons (`load_moons_of_rogue_planet`); it has no star, so
+    `planet.star` is `None`, and the ejection columns stay on the row. The planet carries its row id as `db_id`.
+    """
+    config = system_config if system_config is not None else SystemConfig()
+    data = _planet_or_moon_row_to_dict(conn, row, is_moon=False, owner="rogue_planet")
+    planet = Planet.from_dict(data, None, config)
+    planet.db_id = row["id"]
+    planet.moons = load_moons_of_rogue_planet(conn, row["id"], config)
+    return planet
 
 
 def sector_code(conn, sector_id):
@@ -3909,7 +4255,8 @@ ASTEROID_FIELD_FIELDS = (
     object_rows.attr("composition_family"), object_rows.attr("density"), object_rows.attr("radius_ly"),
     object_rows.optional("chondrite_group"),
     object_rows.computed("composition_summary", lambda field, context: field.get_composition_summary()),
-    _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: 0.0), _GALACTIC_ORBIT_FIELD,
+    _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: getattr(field, "mass_kg", None) or 0.0),
+    _GALACTIC_ORBIT_FIELD,
     _PLACEMENT_FIELD,
     object_rows.computed(body_strength.POPULATION_FIELDS, lambda field, context: body_strength.population_values(field)),
 )
@@ -6192,10 +6539,12 @@ def clear_bright_stars(conn):
     scatter leaves tens of millions of rows.
     """
     conn.execute("TRUNCATE TABLE bright_stars")
+    scatter_uids.forget(conn, scatter_uids.STAR_COUNTER)
     scatter_systems.delete_all_member_trees(conn, "bright_stars")
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
+    conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
                  " bright_star_mass_limit_sol = NULL")
     forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
@@ -6284,6 +6633,7 @@ def clear_bright_star_pass(conn, part, limits):
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
+    conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
     conn.execute(f"UPDATE galaxy_shape SET {forget}")
     forget_scatter_epoch(conn, ("mass",) if part == "mass" else ("luminosity", "band"))
     conn.commit()
@@ -6441,6 +6791,7 @@ def clear_phenomenon_scatter(conn):
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows."""
     conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    scatter_uids.forget(conn, scatter_uids.PHENOMENON_COUNTER)
     scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
     conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
     conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
@@ -6449,8 +6800,8 @@ def clear_phenomenon_scatter(conn):
 
 
 NEBULA_FIELD_COLUMNS = ("cell_i", "cell_j", "cell_k", "n", "nebula_class", "radius_ly", "center_x_pc", "center_y_pc",
-                        "center_z_pc")
-"""tuple: The columns `insert_nebula_field` writes (`nebulaField.table_rows` order)."""
+                        "center_z_pc", *nebulaColumns.FIELD_COLUMNS)
+"""tuple: The columns `insert_nebula_field` writes (`nebulaField.table_rows` order): the place, then the composition (GEN.1277)."""
 
 
 def clear_nebula_field(conn):
@@ -6461,12 +6812,14 @@ def clear_nebula_field(conn):
 
 
 def insert_nebula_field(conn, rows, batch_size=5000):
-    """Writes `nebula_field` rows (`NEBULA_FIELD_COLUMNS` order), `batch_size` to a statement. Returns the rows
-    written."""
-    head = f"INSERT INTO nebula_field ({', '.join(NEBULA_FIELD_COLUMNS)}) VALUES "
+    """Writes `nebula_field` rows (`NEBULA_FIELD_COLUMNS` order, a row may stop after the place and leave the composition NULL), `batch_size` to a
+    statement. Returns the rows written."""
+    head = None
     written = 0
     batch = []
     for row in rows:
+        if head is None:
+            head = f"INSERT INTO nebula_field ({', '.join(NEBULA_FIELD_COLUMNS[:len(row)])}) VALUES "
         batch.append("(" + ",".join(map(_scatter_value, row)) + ")")
         if len(batch) >= batch_size:
             conn.execute_literal(head + ",".join(batch))
@@ -6479,7 +6832,7 @@ def insert_nebula_field(conn, rows, batch_size=5000):
 
 
 def link_nebula_field_stored(conn):
-    """Marks the `nebula_field` rows whose cloud is already a `nebulae` row (found by its centre, as
+    """Marks the `nebula_field` rows whose cloud is already a `nebulae` row (found by its center, as
     `_insert_field_nebulae` finds one) as stored, with that nebula's object ID: after a plan redraws the table
     over a galaxy that already holds some of its clouds. Returns the rows linked."""
     cursor = conn.execute(
@@ -6676,7 +7029,10 @@ def insert_phenomenon_scatter(conn, rows, batch_size=5000):
     (`_insert_literal_rows`), which costs about half what the driver's own
     per-value escaping does over tens of millions of rows (PERF.73).
     Returns the rows written."""
-    return _insert_literal_rows(conn, "phenomenon_scatter", PHENOMENON_SCATTER_COLUMNS, rows, batch_size)
+    written = _insert_literal_rows(conn, "phenomenon_scatter", PHENOMENON_SCATTER_COLUMNS, rows, batch_size)
+    if written:
+        scatter_uids.assign(conn, "phenomenon_scatter")     # GEN.1254: the rows just written get their Object IDs
+    return written
 
 
 def drop_phenomenon_scatter_indexes(conn):
@@ -7198,7 +7554,10 @@ def insert_bright_stars(conn, rows, batch_size=10000):
     Returns:
         int: Rows written.
     """
-    return _insert_literal_rows(conn, "bright_stars", BRIGHT_STAR_COLUMNS, rows, batch_size)
+    written = _insert_literal_rows(conn, "bright_stars", BRIGHT_STAR_COLUMNS, rows, batch_size)
+    if written:
+        scatter_uids.assign(conn, "bright_stars")     # GEN.1254: the rows just written get their Object IDs
+    return written
 
 
 def bright_stars_for_sector(conn, shell_index, band_index, wedge_index):
@@ -7299,6 +7658,15 @@ def name_clusters(conn, cluster_ids):
     return named
 
 
+def give_system_uid(conn, system_id, uid):
+    """Gives a system that has no Object ID the one it was born with (a scatter star's, GEN.1254), before `assign_uids` numbers its bodies
+    under it. Does nothing for `uid` `None` or a system that has one already."""
+    if uid is None:
+        return
+    conn.execute("UPDATE star_systems SET uid = ? WHERE id = ? AND uid IS NULL", (bytes(uid), system_id))
+    storage_checksum.mark_rows(conn, "star_systems", [system_id])
+
+
 def mark_bright_star_filled(conn, bright_star_id, star_system_id):
     """Links a pre-placed star to the system its sector's fill built
     around it. A star of a cluster (GEN.359) passes its cluster to every star of the system."""
@@ -7387,6 +7755,9 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
         assign_uids(conn, sector_id=sector_id)
     else:
         set_sector_uid(conn, sector_id)
+    donors, conn.saved_donors = conn.saved_donors, []
+    if donors:
+        save_donor_rogues(conn, donors, sector_id, ly_to_pc(sector.edge_ly), run_id)
     address = None if galaxy_position is None else tuple(
         galaxy_position.get(key) for key in ("shell_index", "band_index", "wedge_index"))
     if address is not None and None not in address:
@@ -7458,7 +7829,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         # GEN.1127: the row of a regenerated sector kept for its residents is filled again, so they keep pointing at it.
         conn.execute(
             "UPDATE sectors SET name = ?, edge_mpc = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?, galactic_radius_pc = ?,"
-            " generator_epoch = ?, run_id = ?, max_mass_kg = NULL, max_mass_id = NULL, storage_checksum = NULL, leaf_digest = NULL,"
+            " generator_epoch = ?, run_id = ?, max_mass_kg = NULL, max_mass_id = NULL, storage_checksum = NULL, leaf_digest = NULL, content_leaf = NULL,"
             " density_multiplier_used = NULL, override_id = NULL, parity_dirty = 1 WHERE id = ?",
             (sector.name, ly_to_milliparsecs(sector.edge_ly), galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
              galaxy_position["center_z_pc"], galaxy_position["galactic_radius_pc"], epoch, run_id, kept_id))
@@ -7526,11 +7897,15 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         built_scatter_ids = []
         nearest = sector.all_nearest_neighbors(3)   # PERF.81: one spatial tree, not a distance to every system each
         for entry, neighbors in zip(sector.entries, nearest):
+            _give_scatter_uid(conn, entry)
             star_system_id = insert_star_system(
                 conn, entry.star_system, entry.system_config,
                 sector_id=sector_id, position=entry.position,
                 location=_location_for_entry(sector, entry, neighbors),
             )
+            _give_scatter_uid(conn, None)
+            if galaxy_position is not None:
+                conn.saved_donors.append((star_system_id, entry.star_system, _galaxy_placement_from_sector_offset(galaxy_position, entry.position)))
             bright_star_id = getattr(entry, "bright_star_id", None)
             if getattr(entry, "cluster_id", None) is not None:
                 cluster_links.append((entry.cluster_id, star_system_id))
@@ -7547,7 +7922,9 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
             if inserter is None:
                 raise ValueError(f"Unknown phenomenon type: {entry.phenomenon_type!r}")
             placement = _galaxy_placement_from_sector_offset(galaxy_position, entry.position)
+            _give_scatter_uid(conn, entry)
             inserter(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
+            _give_scatter_uid(conn, None)
             if getattr(entry, "scatter_id", None) is not None:
                 built_scatter_ids.append(entry.scatter_id)
             _save_progressed(conn)
@@ -7636,7 +8013,7 @@ def _insert_field_nebulae(conn, sector, sector_id):
 
 def _mark_nebula_field_stored(conn, nebula_id, center):
     """Sets `stored` and the object ID on the `nebula_field` row of the field cloud just stored as nebula `nebula_id`
-    (DB.24), found by its cell and exact centre; nothing if the table has no such row (a class P or Q cloud, or a
+    (DB.24), found by its cell and exact center; nothing if the table has no such row (a class P or Q cloud, or a
     galaxy planned before v83)."""
     x, y, z = center
     i, j, k = nebulaField.cell_index(center)
@@ -7644,6 +8021,15 @@ def _mark_nebula_field_stored(conn, nebula_id, center):
         "UPDATE nebula_field SET is_stored = 1, uid = (SELECT uid FROM nebulae WHERE id = ?)"
         " WHERE cell_i = ? AND cell_j = ? AND cell_k = ? AND center_x_pc = ? AND center_y_pc = ? AND center_z_pc = ?",
         (nebula_id, i, j, k, x, y, z))
+
+
+def _give_scatter_uid(conn, entry):
+    """Hands the issuer the Object ID the next row already has (GEN.1254): the scatter star a pre-placed system is built round
+    (`bright_star_uid`), or the scattered phenomenon (`scatter_uid`) an entry was built from; `None` clears it."""
+    if conn.uid_issuer is None:
+        return
+    uid = None if entry is None else (getattr(entry, "bright_star_uid", None) or getattr(entry, "scatter_uid", None))
+    conn.uid_issuer.given_uid = None if uid is None else bytes(uid)
 
 
 def _sector_object_ids(sector, galaxy_position):
@@ -8634,7 +9020,9 @@ def _uid_issuer_for_sector(conn, sector_id, galaxy_position):
     `set_sector_uid`), or `None` when the sector has no grid address to be
     born in: its rows then take run-time IDs from `assign_uids`."""
     address = _sector_address_of(galaxy_position)
-    return None if address is None else _UidIssuer(sector_id, address)
+    if address is None:
+        return None
+    return _UidIssuer(sector_id, address, scatter_uids.next_star_serial(conn, *address))
 
 
 def set_sector_uid(conn, sector_id):
@@ -8681,12 +9069,16 @@ class _UidIssuer:
     system); `insert_sector` then runs `assign_uids` for the rows with none.
     """
 
-    def __init__(self, sector_id, address):
+    def __init__(self, sector_id, address, first_serial=0):
         self.sector_id = sector_id
         self.address = tuple(address)
         self.complete = True
-        self._next_serial = 0
+        self._next_serial = first_serial
+        """int: Where the sector's own fill starts: past the serials its scatter stars hold (GEN.1254, `scatter_uids`)."""
         self.given_nebula_uid = None
+        self.given_uid = None
+        """bytes or `None`: The next top-level row's own ID, when it has one already: the scatter star a system is built round, or the
+        scattered phenomenon being built (GEN.1254; a row that already has a uid keeps it)."""
         """bytes or `None`: The next nebula's own ID, when it is a field cloud born in another sector (GEN.176)."""
         self._system_uid = {}
         self._rogue_uid = {}
@@ -8710,7 +9102,11 @@ class _UidIssuer:
         if table == "star_systems" or table in PHENOMENON_UID_TABLES:
             if row.get("sector_id") != self.sector_id:
                 return None
-            value = self._top_level()
+            if self.given_uid is not None:
+                uid, self.given_uid = self.given_uid, None
+                value = objectUid.from_bytes(uid)
+            else:
+                value = self._top_level()
             if value is None:
                 return None
             if table == "star_systems":
@@ -9312,7 +9708,7 @@ def _wide_binary_row_to_dict(star_system_row):
     }
 
 
-def _planet_or_moon_row_to_dict(conn, row, is_moon):
+def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
     """
     Maps a `planets` or `moons` row (identical column shape -- see
     `schema.sql`'s "v2" header note) to `Planet.from_dict`'s expected dict
@@ -9329,8 +9725,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         dict: In the shape `Planet.to_dict()` produces (`moons` left as
              `[]` -- the caller fills it in for a top-level planet).
     """
-    table_prefix = "moon" if is_moon else "planet"
-    id_column = "moon_id" if is_moon else "planet_id"
+    table_prefix, id_column = BODY_OWNERS[owner or ("moon" if is_moon else "planet")]
 
     spectrum_rows = conn.execute(
         f"SELECT spectrum_type, value FROM {table_prefix}_reflection_spectrum "
@@ -9346,26 +9741,35 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         (row["id"],),
     ).fetchall()
 
-    data = object_rows.load_dict(PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
+    data = object_rows.load_dict(ROGUE_BODY_FIELDS if owner == "rogue_planet" else PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
     data.update({
-        atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon).get(row["id"], {}),
-        life_classes.SCORES_FIELD: body_class_scores(conn, [row["id"]], is_moon).get(row["id"]),
-        life_classes.LIVING_FIELD: dominant_first(body_living(conn, [row["id"]], is_moon).get(row["id"]), row["life_class"], row["life_class_variant"]),
+        atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon, owner).get(row["id"], {}),
+        life_classes.SCORES_FIELD: body_class_scores(conn, [row["id"]], is_moon, owner).get(row["id"]),
+        life_classes.LIVING_FIELD: None if owner == "rogue_planet" else dominant_first(body_living(conn, [row["id"]], is_moon).get(row["id"]), row["life_class"], row["life_class_variant"]),
         "is_moon": is_moon,
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,
         giant_interior.LAYERS_ATTRIBUTE: [{name: layer[name] for name in INTERIOR_LAYER_COLUMNS} for layer in layer_rows] or None,
         "moons": [],
     })
+    if not is_moon:
+        summary = conn.execute("SELECT remainder_kg, above_floor, lost, `temporary` FROM irregular_sets WHERE planet_id = ?", (row["id"],)).fetchone()
+        rows = conn.execute(f"SELECT {', '.join(IRREGULAR_MOON_COLUMNS)} FROM irregular_moons WHERE planet_id = ? ORDER BY moon_rank", (row["id"],)).fetchall()
+        data["irregulars"] = irregular_set_dict(summary, rows)
     return data
 
 
-def _belt_row_to_dict(row, composition_pairs):
+def _belt_row_to_dict(row, composition_pairs, member_rows=()):
     """Maps an `asteroid_belts` row (plus its `asteroid_belt_composition`
-    child rows) to `AsteroidBelt.from_dict`'s expected dict shape."""
+    child rows and its `belt_members` rows) to `AsteroidBelt.from_dict`'s expected dict shape."""
     data = object_rows.load_dict(BELT_FIELDS, row)
     data["body_type"] = "a"
     data["composition"] = [[pair["component"], pair["concentration"]] for pair in composition_pairs]
+    data["members"] = [{"rank": m["member_rank"], "mass_kg": m["mass_kg"], "radius_km": m["radius_km"], "distance_au": m["distance_km"] / _AU_KM,
+                        "eccentricity": m["eccentricity"], "inclination_deg": m["inclination_deg"], "node_deg": m["ascending_node_deg"],
+                        "periapsis_deg": m["arg_periapsis_deg"], "anomaly_deg": m["mean_anomaly_deg"], "taxon": m["taxon"], "density_g_cm3": m["density_g_cm3"],
+                        "rock_fraction": m["rock_fraction"], "metal_fraction": m["metal_fraction"], "water_fraction": m["water_fraction"],
+                        "ice_fraction": m["ice_fraction"], "status": m["status"], "soter_mu": m["soter_mu"], "scatter_tag": m["scatter_tag"]} for m in member_rows]
     return data
 
 
@@ -9565,7 +9969,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
                     "WHERE belt_id = ? ORDER BY position",
                     (r["id"],),
                 ).fetchall()
-                belt = AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows), system_config)
+                member_rows = conn.execute("SELECT * FROM belt_members WHERE belt_id = ? ORDER BY member_rank", (r["id"],)).fetchall()
+                belt = AsteroidBelt.from_dict(_belt_row_to_dict(r, comp_rows, member_rows), system_config)
                 belt.db_id = r["id"]
                 objects.append(belt)
             else:

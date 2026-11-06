@@ -106,7 +106,7 @@ def test_a_saturated_air_cools_more_slowly_with_height_than_a_dry_one():
     dry = rc.Column({"N2": 1.0e5}, 9.81)
     assert moist._saturated(300.0, 1.0e5) and not moist._saturated(340.0, 1.0e5)
     wet_profile, dry_profile = moist.adiabat(300.0), dry.adiabat(300.0)
-    assert np.all(wet_profile[10:] > dry_profile[10:] - 1e-6)          # latent heat releases as the vapour condenses
+    assert np.all(wet_profile[10:] > dry_profile[10:] - 1e-6)          # latent heat releases as the vapor condenses
     assert wet_profile[-1] > dry_profile[-1]
     assert np.all(np.isfinite(wet_profile)) and np.all(np.diff(wet_profile) > 0.0)
 
@@ -154,14 +154,14 @@ def test_the_adiabat_is_continuous_and_rises_with_the_surface_temperature_across
     """A step that started on the dry branch and crossed into saturation used to take the saturated slope for its whole length (the top of
     the column came out 10 K too warm just below the corner and then fell). The slope of the top temperature has a kink at the corner, nothing more."""
     column = rc.Column({"N2": 8.0e4, "H2O": 2.0e4}, 9.81)
-    temperatures = np.linspace(318.0, 340.0, 89)          # the vapour saturates at the surface below about 333 K
+    temperatures = np.linspace(318.0, 340.0, 89)          # the vapor saturates at the surface below about 333 K
     top = np.array([column.adiabat(t)[0] for t in temperatures])
     assert np.all(np.diff(top) > 0.0) and np.max(np.diff(top)) < 3.0
 
 
 # ---- the humidity ----
 
-def test_the_vapour_follows_manabe_and_wetherald_and_is_cold_trapped():
+def test_the_vapor_follows_manabe_and_wetherald_and_is_cold_trapped():
     column = rc.Column(EARTHLIKE, 9.81)
     levels = np.linspace(215.0, 288.0, column.layers + 1)
     layer = 0.5 * (levels[1:] + levels[:-1])
@@ -173,13 +173,13 @@ def test_the_vapour_follows_manabe_and_wetherald_and_is_cold_trapped():
     assert np.all(water * column.layer_pressure <= saturated * (1.0 + 1e-9))
 
 
-def test_a_dry_air_holds_no_vapour_and_a_pure_steam_air_is_all_vapour():
+def test_a_dry_air_holds_no_vapor_and_a_pure_steam_air_is_all_vapor():
     layer = np.linspace(200.0, 300.0, 40)
     assert not rc.Column({"N2": 1.0e5}, 9.81).water_profile(layer, 300.0).any()
     assert np.all(rc.Column({"H2O": 1.0e6}, 9.81).water_profile(layer, 600.0) == 1.0)
 
 
-def test_the_vapour_can_be_held_fixed_as_a_whole_profile():
+def test_the_vapor_can_be_held_fixed_as_a_whole_profile():
     held = np.linspace(1.0e-6, 1.0e-2, rc.LAYERS)
     column = rc.Column(EARTHLIKE, 9.81, water_fraction=held)
     assert column.water_profile(np.full(rc.LAYERS, 250.0), 288.0) is column.fixed_water
@@ -188,7 +188,7 @@ def test_the_vapour_can_be_held_fixed_as_a_whole_profile():
 
 # ---- the cloud ----
 
-def test_the_cloud_keeps_in_a_share_of_the_flux_in_proportion_to_the_surface_humidity_and_is_nil_without_vapour():
+def test_the_cloud_keeps_in_a_share_of_the_flux_in_proportion_to_the_surface_humidity_and_is_nil_without_vapor():
     from planetgen.physics import saturation
 
     assert rc.Column(CARBON, 9.81).cloud_share(288.0) == 0.0
@@ -209,7 +209,7 @@ def test_the_cloud_warms_the_ground_because_it_keeps_in_a_share_of_the_flux(monk
 
 # ---- the sunlight aloft ----
 
-def test_the_sunlight_aloft_is_a_share_of_the_flux_centred_on_the_haze():
+def test_the_sunlight_aloft_is_a_share_of_the_flux_centered_on_the_haze():
     column = rc.Column(CARBON, 9.81)
     heating = rc.sunlight_aloft(column, 100.0, 0.4, 2.0e3)
     assert heating.sum() == pytest.approx(40.0)
@@ -264,7 +264,7 @@ def test_a_share_of_the_sunlight_taken_high_up_cools_the_ground():
     assert hazy.surface_temperature_k < clear.surface_temperature_k          # the anti-greenhouse of a haze
 
 
-def test_a_solution_run_with_its_own_vapour_held_fixed_gives_the_same_surface():
+def test_a_solution_run_with_its_own_vapor_held_fixed_gives_the_same_surface():
     first = rc.solve(EARTHLIKE, 9.81, 240.0)
     again = rc.solve(EARTHLIKE, 9.81, 240.0, water_fraction=first.water_fraction)
     assert again.surface_temperature_k == pytest.approx(first.surface_temperature_k, abs=0.3)
@@ -333,12 +333,19 @@ def test_a_gas_the_database_writes_under_another_name_takes_its_nasa_fit():
 
 
 def test_a_gas_without_a_fit_takes_the_table_heat_capacities_held_at_the_ends():
-    cp = rc._cp_over_r("HCl")
+    """CH3Cl has no NASA Glenn fit (HCl, the gas this test used, has one now) and the gas table's 33.28, 40.86 and 78.84 J/(mol K) at 100, 300 and 1000 K."""
+    assert "CH3Cl" not in rc.species_thermo.BY_FORMULA
+    cp = rc._cp_over_r("CH3Cl")
     at = int(np.searchsorted(rc._CP_GRID, 300.0))
     assert rc._CP_GRID[at] == pytest.approx(300.0)
-    assert cp[at] * rc.R == pytest.approx(29.14, rel=1e-3)
-    assert cp[-1] * rc.R == pytest.approx(31.63, rel=1e-3)
-    assert cp[0] * rc.R == pytest.approx(29.12, rel=1e-3)
+    assert cp[at] * rc.R == pytest.approx(40.86, rel=1e-3)
+    assert cp[-1] * rc.R == pytest.approx(78.84, rel=1e-3)
+    assert cp[0] * rc.R == pytest.approx(33.28, rel=1e-3)
+
+
+def test_a_gas_with_a_fit_takes_the_fit_not_the_table():
+    assert "HCl" in rc.species_thermo.BY_FORMULA
+    assert rc._cp_over_r("HCl")[np.searchsorted(rc._CP_GRID, 300.0)] * rc.R == pytest.approx(29.14, rel=1e-2)
 
 
 def test_a_gas_with_no_heat_capacity_at_all_counts_its_atoms():

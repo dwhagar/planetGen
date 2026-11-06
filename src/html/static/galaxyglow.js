@@ -1,15 +1,15 @@
 // html/static/galaxyglow.js
 //
 // MAP.266: the unresolved glow of the Galaxy Map, the choosing half (galaxyglowlayer.js draws it). A node lists only its
-// brightest stars; the rest of its light, which the camera cannot tell apart, is one soft blob at the centre of that
+// brightest stars; the rest of its light, which the camera cannot tell apart, is one soft blob at the center of that
 // light, drawn for the share the cut gives the node (galaxynodecut.weightCalculator) and so handed over to its
 // children's own stars and blobs at the rate the weights trade places: a node and its children always add up to one, so
 // nothing pops and nothing doubles (docs/design-drafts single-space-map-zoom sections 2.2 and 2.4).
 //
 // A node's unlisted light is what its aggregate stores (`aggregate.lights`, the pre-placed stars nothing was built
 // from, MAP.259; `aggregate.stats.luminosity_sol`, its generated sectors) less the stars the node itself lists. The
-// centre of the first part is exact (the stored flux-weighted centre less the listed stars'); the second has no stored
-// centre and sits at the middle of the block's box. A node with no unlisted light has no blob.
+// center of the first part is exact (the stored flux-weighted center less the listed stars'); the second has no stored
+// center and sits at the middle of the block's box. A node with no unlisted light has no blob.
 //
 // The look is a tone curve over the blob's apparent magnitude, judged GLOW_MAG magnitudes deeper than a point of light
 // because the eye reads a glow by its surface brightness (design 2.4), ending at GLOW_ALPHA_MAX so the glow never
@@ -66,10 +66,10 @@ export function blobOf(key, block, node, edgePc) {
   let preLight = 0;
   let preMoment = [0, 0, 0];
   let temperature = null;
-  if (lights && lights.star_luminosity_sol > 0 && lights.star_centre) {
+  if (lights && lights.star_luminosity_sol > 0 && lights.star_center) {
     preLight = Math.max(0, lights.star_luminosity_sol - listedStars.light);
-    preMoment = [0, 1, 2].map((a) => Math.max(0, lights.star_luminosity_sol * lights.star_centre[a] - listedStars.moment[a]));
-    // A centre worked out from sums can drift when the listed stars are most of the light; keep it inside the block.
+    preMoment = [0, 1, 2].map((a) => Math.max(0, lights.star_luminosity_sol * lights.star_center[a] - listedStars.moment[a]));
+    // A center worked out from sums can drift when the listed stars are most of the light; keep it inside the block.
     if (preLight > 0) {
       preMoment = preMoment.map((value, a) => Math.min(Math.max(value / preLight, geo.lo[a]), geo.hi[a]) * preLight);
     }
@@ -81,10 +81,10 @@ export function blobOf(key, block, node, edgePc) {
 
   const total = preLight + generatedLight;
   if (!(total > 0)) return null;
-  const centre = [0, 1, 2].map((a) => (preMoment[a] + generatedLight * middle[a]) / total);
+  const center = [0, 1, 2].map((a) => (preMoment[a] + generatedLight * middle[a]) / total);
   const radiusPc = Math.sqrt(geo.size * geo.size) / 2;
   return {
-    key, block, x: centre[0], y: centre[1], z: centre[2], luminosity: total,
+    key, block, x: center[0], y: center[1], z: center[2], luminosity: total,
     temperatureK: temperature || GLOW_DEFAULT_TEMPERATURE_K, radiusPc,
   };
 }

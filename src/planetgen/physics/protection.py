@@ -69,8 +69,20 @@ def pressure_need(world):
 
 
 def temperature_need(world):
-    """`(rank, gear, why)` for the temperature, with the wet bulb when it matters."""
-    t = world.temperature_c
+    """
+    `(rank, gear, why)` for the temperature (GEN.1266): the heavier of the gear the best site (the cell of the world livable the largest share of the time) needs at its coldest hour
+    and at its hottest, with the wet bulb when it matters.
+    """
+    cold, hot = habitability.site_extremes_c(world)
+    if hot - cold < 0.5:
+        return _need_at(world, 0.5 * (cold + hot))
+    ranked = [_need_at(world, t) for t in (cold, hot)]
+    rank, gear, why = max(ranked, key=lambda need: _TEMPERATURE_RANK.get(need[0], 0))
+    return rank, gear, f"the air at the best site runs from {_celsius(cold)} to {_celsius(hot)} and {why.replace('the air temperature is', 'at its worst it is')}"
+
+
+def _need_at(world, t):
+    """`(rank, gear, why)` for a steady air temperature `t` (deg C), with the wet bulb when it matters."""
     why = f"the air temperature is {_celsius(t)}"
     if t < limit("cold_suit_c"):
         return "suit", "an environment suit with active heating", why
@@ -211,15 +223,43 @@ def regional_sentence(world, regions):
             text += (f", so the equator runs from {_celsius(span[0] - 273.15)} to {_celsius(span[1] - 273.15)} "
                      f"over a day")
         text += "."
+    if regions.get("temp_livable_belt_only"):
+        text += " Only the terminator belt is livable: a person can live nowhere else on this world without a suit."
     mean_rank = _TEMPERATURE_RANK.get(temperature_need(world)[0], 0)
     worst = None
     for place, _kelvin in places:
-        rank, gear, _ = temperature_need(replace(world, temperature_c=celsius[place], flux_variation=0.0))
+        rank, gear, _ = _need_at(world, celsius[place])
         if gear and _TEMPERATURE_RANK.get(rank, 0) > mean_rank and (worst is None or _TEMPERATURE_RANK[rank] > worst[0]):
             worst = (_TEMPERATURE_RANK[rank], place, celsius[place], gear)
     if worst:
         text += f" {worst[1][0].upper() + worst[1][1:]}, where it is {_celsius(worst[2])}, {worst[3]} is recommended."
+    text += _worst_elsewhere(world, regions, mean_rank)
     return text
+
+
+def _place(latitude, longitude):
+    """The words for a place on a world: "66 S, 45 E" (longitudes past 180 degrees are west)."""
+    east = longitude <= 180.0
+    return f"{round(abs(latitude))} {'N' if latitude >= 0 else 'S'}, {round(longitude if east else 360.0 - longitude)} {'E' if east else 'W'}"
+
+
+def _worst_elsewhere(world, regions, mean_rank):
+    """
+    The note of the worst conditions on the world (GEN.1266): where and when it is coldest or hottest, when that calls for heavier gear than the best site does, as "The coldest
+    hour is at 66 S, 45 E, on day 184 after the equinox, -30 C: an environment suit with active heating is recommended there." Empty when the extremes are not stored or call for
+    no heavier gear.
+    """
+    notes = []
+    for word in ("coldest", "hottest"):
+        kelvin = regions.get(f"temp_{word}_k")
+        latitude, longitude, day = (regions.get(f"temp_{word}_{part}") for part in ("lat_deg", "lon_deg", "day"))
+        if kelvin is None or latitude is None or longitude is None:
+            continue
+        rank, gear, _ = _need_at(world, kelvin - 273.15)
+        if gear and _TEMPERATURE_RANK.get(rank, 0) > mean_rank:
+            when = f", on day {round(day)} after the equinox," if day is not None else ""
+            notes.append(f"The {word} place and hour is at {_place(latitude, longitude)}{when} {_celsius(kelvin - 273.15)}: {gear} is recommended there.")
+    return (" " + " ".join(notes)) if notes else ""
 
 
 def rating(world, compact_host=None, regions=None):

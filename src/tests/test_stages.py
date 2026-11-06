@@ -383,11 +383,11 @@ def test_the_overall_bar_is_the_time_so_far_against_the_stored_time_of_every_sta
         assert stages._state["overall"] is not None
         clock = stages._state["overall"]["t0"]
         description, done, total = stages.overall_progress(clock + 30.0)
-        assert description == "Whole job (stage 1 of 4)" and done == pytest.approx(30.0) and total is None
+        assert description == "Whole job (Stage 1 of 4)" and done == pytest.approx(30.0) and total is None
         stages._state["overall"]["estimate"] = 100.0
         assert stages.overall_progress(clock + 30.0)[1:] == (pytest.approx(30.0), 100.0)
         stages.enter("mass")
-        assert stages.overall_progress(clock + 30.0)[0] == "Whole job (stage 3 of 4)"
+        assert stages.overall_progress(clock + 30.0)[0] == "Whole job (Stage 3 of 4)"
         # Past its estimate the bar waits just short of full rather than claiming to be done.
         _d, done, total = stages.overall_progress(clock + 200.0)
         assert done == pytest.approx(200.0) and total == pytest.approx(200.0 * stages.OVERALL_MARGIN)

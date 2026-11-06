@@ -10,7 +10,7 @@ interior puts the temperature in the liquid range. The model is one column of cr
 * **Geotherm.** T(z) = T_surface + q z / k, with q the stored internal heat flux (plus an icy moon's tide) and
   k = `tuning.AQUIFER_CONDUCTIVITY_W_M_K`.
 * **Where it is liquid.** Below the 273.15 K level, z_cold = (273.15 - T_surface) k / q, and where the water's pressure,
-  the surface pressure plus rho g z, exceeds its vapour pressure at T(z) (a hot surface boils the first metres away). Down
+  the surface pressure plus rho g z, exceeds its vapor pressure at T(z) (a hot surface boils the first metres away). Down
   to the hottest water life can use (`tuning.AQUIFER_LIFE_MAX_K`, 122 C) or to where the pores close, whichever is first.
 * **Where there are pores.** The crust's porosity falls as phi0 exp(-z/K), K the Martian e-folding depth scaled by the
   inverse of the gravity (`tuning.AQUIFER_POROSITY_SCALE_KM_MARS`); the pores are gone under `tuning.AQUIFER_POROSITY_MIN`.
@@ -32,12 +32,12 @@ AQUIFER_FIELDS = ("aquifer_depth_km", "aquifer_thickness_km")
 
 WATER_MELTING_K = 273.15
 LIQUID_WATER_DENSITY_KG_M3 = 1000.0
-SURFACE_STATES = ("dry", "ice", "vapour")
+SURFACE_STATES = ("dry", "ice", "vapor")
 """tuple: The hydrosphere states that can have an aquifer: the ones with no liquid water at the surface."""
 
 
 def _boils(temperature_k, pressure_pa):
-    """Whether water at `pressure_pa` is a vapour at `temperature_k` (the vapour pressure is at or over the pressure)."""
+    """Whether water at `pressure_pa` is a vapor at `temperature_k` (the vapor pressure is at or over the pressure)."""
     return saturation.pressure_pa("H2O", temperature_k) >= pressure_pa
 
 

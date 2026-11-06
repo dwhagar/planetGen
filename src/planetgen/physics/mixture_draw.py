@@ -5,7 +5,7 @@ The atmosphere mixture of a body, drawn from its regimes (GEN.479; docs/design/c
 ===============================================================================================
 
 `physics/atmosphere_recipes.py` (GEN.478) draws which regime a body's air is in: the mantle redox, the volatile delivery, the
-outgassed class, the retention class, the envelope, the giant, brown-dwarf and hot-Jupiter regimes, the lava-world vapour type, the
+outgassed class, the retention class, the envelope, the giant, brown-dwarf and hot-Jupiter regimes, the lava-world vapor type, the
 trace gases. Its rows say what the air is made of in words. This module turns the drawn regimes into mole fractions of the gases
 of the table (`physics/gases.py`) by chemistry and not by a per-class template: the element budget of the body, the temperature
 and pressure of its layer and the oxygen fugacity of its mantle go into the equilibrium solver (`physics/gas_equilibrium.py`, over
@@ -34,7 +34,7 @@ The families, by what the recipe drew:
 | a coma row (`k`: a comet or an icy asteroid) | `coma` | `mixture_coma` |
 | an evolved-terrestrial row (`j1` Venus-like, `j2` Mars-like, `j5` abiotic oxygen) | `venus`, `mars`, `abiotic-oxygen` | `mixture_evolved` |
 | a cold-body row (`j3` Titan-like, `j4` Pluto-like) | `titan`, `frost` | `mixture_evolved` |
-| a molten surface (a hot-zone lava row `i` with the dayside temperature `tp_k` at or above `mixture_lava.MELT_MIN_K`; the silicate-vapour exosphere `l1` of a white-dwarf or pulsar planet at the surface temperature) | `lava` | `mixture_lava` |
+| a molten surface (a hot-zone lava row `i` with the dayside temperature `tp_k` at or above `mixture_lava.MELT_MIN_K`; the silicate-vapor exosphere `l1` of a white-dwarf or pulsar planet at the surface temperature) | `lava` | `mixture_lava` |
 | airless white-dwarf planet (`l2`, or `l1` of a surface below `MELT_MIN_K`) | `airless` (no gas: empty `mole_fractions`) | |
 | anything else rocky (`a` to `c`, `e1`, `e3`, `e4`) | `rocky` | `mixture_rocky` |
 """
@@ -189,7 +189,7 @@ def _draw_family(subject, recipe, family, supply):
         result = MixtureDraw(mole_fractions={}, family="airless", drawn={g: d.name for g, d in recipe.groups.items()}, redox_diw=None,
                              temperature_k=float(subject.get("ts_k") or 0.0), pressure_bar=0.0, inventory={})
     elif family == "lava":
-        result = mixture_lava.vapour_mixture(subject, recipe, temperature_name="ts_k" if "l" in recipe.groups else "tp_k")
+        result = mixture_lava.vapor_mixture(subject, recipe, temperature_name="ts_k" if "l" in recipe.groups else "tp_k")
     elif family in mixture_evolved.FAMILIES:
         try:
             result = mixture_evolved.draw(subject, recipe, family, supply)

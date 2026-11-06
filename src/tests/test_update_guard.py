@@ -21,7 +21,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__
 
 
 class FakeWork:
-    """A source of running work: `items` are the jobs it holds; `stops` says whether cancelling ends them."""
+    """A source of running work: `items` are the jobs it holds; `stops` says whether canceling ends them."""
 
     name = "fake"
 
@@ -30,13 +30,13 @@ class FakeWork:
                       "started": "2026-10-16T03:00:00Z", "holds": "the work lease", "queued": title in queued}
                      for index, title in enumerate(titles)]
         self.stops = stops
-        self.cancelled = []
+        self.canceled = []
 
     def items(self):
         return [dict(item) for item in self.live]
 
     def cancel(self, item):
-        self.cancelled.append(item["id"])
+        self.canceled.append(item["id"])
         if self.stops:
             self.live = [other for other in self.live if other["id"] != item["id"]]
         return True
@@ -229,7 +229,7 @@ def test_a_manual_migration_refuses_running_work_without_a_terminal_and_changes_
     with pytest.raises(SystemExit) as stopped:
         with migrate._update_guard(object(), False):
             raise AssertionError("the migration must not start")
-    assert stopped.value.code == 1 and fake_machine.cancelled == []
+    assert stopped.value.code == 1 and fake_machine.canceled == []
     assert not maintenance.is_on() and updateguard.read_lock() is None
 
 
@@ -243,11 +243,11 @@ def update_sh():
 def test_update_sh_takes_the_guard_before_its_first_change_and_requires_it_by_step_two():
     text = update_sh()
     first = text.index("\nensure_update_guard\n")
-    assert text.index("trap finish_update_guard EXIT") < first < text.index("git fetch origin")
+    assert text.index("trap finish_update_guard EXIT") < first < text.index("git fetch --quiet origin")
     assert text.index("export PLANETGEN_UPDATE_PID=$$") < first
     # taken again after the pull (a checkout that did not have it) and required once the venv exists
     assert text.index("git reset --hard") < text.index("\nensure_update_guard\n", first + 1) < text.index("log_stage 2 9")
-    assert text.index("use_site_python\nensure_update_guard required") < text.index("log_stage 3 9")
+    assert text.index("use_site_python\nstart_update_log\nensure_update_guard required") < text.index("log_stage 3 9")
     assert text.index("ensure_update_guard required") < text.index("\nmigrate_or_reset_db\n")
     assert "--yes" in text
 
@@ -255,7 +255,12 @@ def test_update_sh_takes_the_guard_before_its_first_change_and_requires_it_by_st
 def test_update_sh_names_every_step_for_the_failure_message():
     text = update_sh()
     for step in range(1, 10):
-        assert re.search(rf'^UPDATE_STEP="step {step}/9, [^"]+"\n(?:.*\n)?log_stage {step} 9', text, re.M), step
+        assert re.search(rf'^log_stage {step} 9 "[^"]+"$', text, re.M), step
+    # log_stage sets the step the guard reports when the update fails (OPS.103): the stage's words, in lower case
+    result = subprocess.run(["bash", "-c", f'source {os.path.join(REPO, "scripts", "logrecord.sh")!r}; '
+                             'log_stage 4 9 "Checking the generator\'s math" >/dev/null; echo "$UPDATE_STEP"'],
+                            capture_output=True, text=True, check=True)
+    assert result.stdout.strip() == "stage 4 of 9, checking the generator's math"
 
 
 def test_update_sh_never_edits_the_redis_config_or_the_apache_site():

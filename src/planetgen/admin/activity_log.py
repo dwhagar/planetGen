@@ -26,9 +26,9 @@ macOS;
 Every line has the same shape, documented in `docs/reference/config.md`, so tools
 can match it::
 
-    2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
+    2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
 
-the time in UTC, the process id, the category, the event, then `ip=` (the
+the time local with the offset of its zone, the process id, the category, the event, then `ip=` (the
 client address, or `-` when there is none, such as a command-line run)
 and `user=` (always quoted), then any further `key=value` fields. The
 address always comes before any text a visitor typed, and that text is
@@ -51,15 +51,11 @@ With the debug log on, every line is copied there too.
 
 import getpass
 import ipaddress
-import logging
-import logging.handlers
 import os
 import re
-import sys
 import threading
-import time
 
-from planetgen.util import logpaths
+from planetgen.util import log, logpaths
 
 ROTATE_MAX_BYTES = 100 * 1024 * 1024
 """int: The size at which the program rotates the file itself (when no
@@ -80,9 +76,7 @@ characters, so one request can't write an arbitrarily long line."""
 CATEGORIES = ("AUTH", "AUTHZ", "DB", "GEN", "API")
 """tuple: The categories a line may carry."""
 
-_logger = logging.getLogger("planetgen.activity")
-_logger.propagate = False
-_logger.setLevel(logging.INFO)
+_sink = log.Sink("activity")
 
 _lock = threading.Lock()
 _handler = None
@@ -93,23 +87,6 @@ _warned = set()
 _PLAIN_VALUE = re.compile(r"^[A-Za-z0-9_.:/@+-]{1,200}$")
 _ACTION = re.compile(r"^[a-z][a-z0-9_.-]{0,63}$")
 _KEY = re.compile(r"^[a-z][a-z0-9_]{0,31}$")
-
-
-class _CreateModeMixin:
-    """Opens the log file with `FILE_MODE` when it has to be created, rather
-    than the process umask's usual world-readable 0644."""
-
-    def _open(self):
-        fd = os.open(self.baseFilename, os.O_WRONLY | os.O_APPEND | os.O_CREAT, FILE_MODE)
-        return os.fdopen(fd, "a", encoding=self.encoding or "utf-8")
-
-
-class _WatchedHandler(_CreateModeMixin, logging.handlers.WatchedFileHandler):
-    pass
-
-
-class _RotatingHandler(_CreateModeMixin, logging.handlers.RotatingFileHandler):
-    pass
 
 
 def quote(value):
@@ -180,16 +157,14 @@ def format_line(category, action, ip=None, user=None, fields=None, when=None, pi
         raise ValueError(f"unknown activity log category {category!r}")
     if not _ACTION.match(action):
         raise ValueError(f"bad activity log action {action!r}")
-    stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() if when is None else when))
-    parts = [f"{stamp} planetgen[{os.getpid() if pid is None else pid}]: {category} {action}",
-             f"ip={clean_ip(ip)}", f"user={quote('-' if user is None else user)}"]
+    parts = [f"{category} {action}", f"ip={clean_ip(ip)}", f"user={quote('-' if user is None else user)}"]
     for key, value in (fields or {}).items():
         if not _KEY.match(key) or key in ("ip", "user"):
             raise ValueError(f"bad activity log field name {key!r}")
         if value is None:
             continue
         parts.append(f"{key}={_value(value)}")
-    return " ".join(parts)
+    return log.syslog_line(" ".join(parts), when, pid)
 
 
 def _current_handler():
@@ -211,19 +186,15 @@ def _current_handler():
     try:
         if not os.path.isdir(folder):
             os.makedirs(folder, mode=0o770, exist_ok=True)
-        if mode == "app":
-            handler = _RotatingHandler(path, maxBytes=ROTATE_MAX_BYTES, backupCount=ROTATE_BACKUP_COUNT,
-                                       encoding="utf-8")
-        else:
-            handler = _WatchedHandler(path, encoding="utf-8")
+        handler = log.file_handler(path, "raw", create_mode=FILE_MODE,
+                                   rotate=(ROTATE_MAX_BYTES, ROTATE_BACKUP_COUNT) if mode == "app" else None)
     except OSError as exc:
         _disabled_path = path
         if os.path.isdir(folder):
             _warn_once(path, f"planetgen: the activity log {path} can't be opened ({exc}); run "
                              f"install.sh/update.sh as root to set it up, or set \"log_dir\" in config.json.")
         return None
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    _logger.addHandler(handler)
+    _sink.attach(handler)
     _handler, _handler_path = handler, path
     return handler
 
@@ -231,7 +202,7 @@ def _current_handler():
 def _warn_once(key, message):
     if key not in _warned:
         _warned.add(key)
-        print(message, file=sys.stderr)
+        log.warning(message, stderr=True)
 
 
 def _request_ip():
@@ -263,10 +234,9 @@ def event(category, action, user=None, ip=None, **fields):
         handler = _current_handler()
     if handler is not None:
         try:
-            _logger.info(line)
+            _sink.write(line)
         except Exception:  # noqa: BLE001 -- logging's own handleError already reported it
             pass
-    from planetgen.util import log
     log.trace("activity: %s", line)
     return line
 
@@ -310,7 +280,6 @@ def reset():
     global _handler, _handler_path, _disabled_path
     with _lock:
         if _handler is not None:
-            _logger.removeHandler(_handler)
-            _handler.close()
+            _sink.detach(_handler)
         _handler = _handler_path = _disabled_path = None
         _warned.clear()

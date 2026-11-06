@@ -220,8 +220,12 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_BAND_TABLE_CACHE": "the folder the bright-star band tables are kept in across processes (PERF.218, PERF.188; the test suite "
                                   "sets it; unset, an install keeps them in /var/cache/planetgen/band-tables, which update.sh makes; "
                                   "set but empty, none are kept)",
+    "PLANETGEN_LOG_TIMES": "`always` or `never`: whether a command's lines carry the time when its output is not a terminal (OPS.98; unset, the "
+                           "rule is that they do when it is not a terminal; the test suite sets `never`)",
     "PLANETGEN_WARM_TIME_LIMIT_SECONDS": "set by update.sh for the warm-up stage (WARM_STAGE_SECONDS): the time limit it ends the stage at, "
                                          "told to the run so it can say the limit ended it (the warm command's stop reason)",
+    "PLANETGEN_WARM_STARTED_BY": "set by update.sh for each warm-up stage: what started the run, for the line that opens its record in "
+                                 "warmup.log (OPS.96)",
     "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209; a test-run switch: the "
                                       "test suite sets it, nothing else does)",
 }

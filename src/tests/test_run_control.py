@@ -11,6 +11,7 @@ import rq
 
 from planetgen.queue import commands, redisqueue, runcontrol, runrecord, units, wrapper
 from planetgen.queue.runrecord import Stage
+from planetgen.util import log
 
 KIND = "control-test"
 
@@ -57,20 +58,20 @@ def _waiting(conn):
     return redisqueue.queue(redisqueue.BULK_QUEUE, conn).count
 
 
-def test_cancelling_a_run_cancels_its_waiting_units_and_frees_the_machine_in_under_a_second(conn, jobs_dir):
+def test_canceling_a_run_cancels_its_waiting_units_and_frees_the_machine_in_under_a_second(conn, jobs_dir):
     run_id = _queued_run(conn, count=75, done=5)
     assert _waiting(conn) == 70 and runrecord.active_run(conn) == run_id
     began = time.monotonic()
     stopped = runcontrol.cancel_run(conn, run_id, who="boss")
     took = time.monotonic() - began
-    assert stopped == {"cancelled": 70, "stopped": 0}
-    assert took < 1.0, f"cancelling a 75 unit run took {took:.2f} s"
+    assert stopped == {"canceled": 70, "stopped": 0}
+    assert took < 1.0, f"canceling a 75 unit run took {took:.2f} s"
     run = runrecord.read_run(conn, run_id)
-    assert run["state"] == "cancelled" and run["error"] == "canceled by boss"
+    assert run["state"] == "canceled" and run["error"] == "canceled by boss"
     assert _waiting(conn) == 0
     assert runrecord.active_run(conn) is None, "the machine is free"
     kinds = [fields["kind"] for _id, fields in runrecord.read_events(conn, run_id)]
-    assert "run.cancelling" in kinds and kinds[-1] == "run.cancelled"
+    assert "run.canceling" in kinds and kinds[-1] == "run.canceled"
 
 
 def test_a_started_unit_is_sent_the_stop_command(conn, jobs_dir):
@@ -86,7 +87,7 @@ def test_a_started_unit_is_sent_the_stop_command(conn, jobs_dir):
     listener = conn.pubsub()
     listener.subscribe("rq:pubsub:worker-for-the-test")
     listener.get_message(timeout=1)
-    assert runcontrol.cancel_run(conn, run_id, who="boss") == {"cancelled": 3, "stopped": 1}
+    assert runcontrol.cancel_run(conn, run_id, who="boss") == {"canceled": 3, "stopped": 1}
     message = None
     for _ in range(20):
         message = listener.get_message(timeout=0.2)
@@ -95,7 +96,7 @@ def test_a_started_unit_is_sent_the_stop_command(conn, jobs_dir):
     assert message and message["type"] == "message" and b"stop-job" in message["data"] and running.encode() in message["data"]
 
 
-def test_a_cancelled_run_queues_no_next_stage(conn, jobs_dir):
+def test_a_canceled_run_queues_no_next_stage(conn, jobs_dir):
     run_id = _queued_run(conn, count=2, stages=2)
     runrecord.request_cancel(conn, run_id)
     wrapper.advance(conn, run_id, 1)
@@ -103,7 +104,7 @@ def test_a_cancelled_run_queues_no_next_stage(conn, jobs_dir):
     assert _waiting(conn) == 2, "only the first stage's units are queued"
 
 
-def test_a_run_that_is_over_or_unknown_is_not_cancelled_again(conn, jobs_dir):
+def test_a_run_that_is_over_or_unknown_is_not_canceled_again(conn, jobs_dir):
     run_id = _queued_run(conn, count=2)
     assert runcontrol.cancel_run(conn, run_id) is not None
     assert runcontrol.cancel_run(conn, run_id) is None
@@ -117,7 +118,7 @@ def test_a_run_that_shows_life_is_not_cleared_and_a_stale_one_is(conn, jobs_dir)
     assert runcontrol.clear_run(conn, run_id, who="boss", now=105.0) is None
     assert runrecord.read_run(conn, run_id)["state"] == "running"
     later = runrecord.read_run(conn, run_id)["updated"] + 10_000
-    assert runcontrol.clear_run(conn, run_id, who="boss", now=later) == {"cancelled": 3, "stopped": 0}
+    assert runcontrol.clear_run(conn, run_id, who="boss", now=later) == {"canceled": 3, "stopped": 0}
     run = runrecord.read_run(conn, run_id)
     assert run["state"] == "failed" and run["error"].startswith("cleared by boss")
     assert runrecord.active_run(conn) is None
@@ -179,15 +180,15 @@ def test_a_run_started_by_a_job_is_found_from_the_job(conn, jobs_dir):
 def test_what_the_follower_logs_joins_the_event_stream(conn, caplog):
     caplog.set_level(logging.INFO, logger="planetgen")        # whatever level an earlier test left on the logger
     run_id = runrecord.start_run(conn, "Tee", [Stage("s", "S", units=1)])
-    handler = runrecord.EventHandler(conn, run_id)
+    handler = runrecord.event_handler(conn, run_id)
     logger = logging.getLogger("planetgen")
-    logger.addHandler(handler)
+    log.attach(handler)
     try:
         logger.info("sector 7 saved")
         logger.debug("not a line for the log")
         logger.warning("slow disk")
     finally:
-        logger.removeHandler(handler)
+        log.detach(handler)
     lines = [(fields["level"], fields["message"]) for _id, fields in runrecord.read_events(conn, run_id)
              if fields["kind"] == "log"]
     assert lines == [("info", "sector 7 saved"), ("warning", "slow disk")]

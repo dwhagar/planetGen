@@ -222,7 +222,7 @@ def add_logging_arguments(parser):
                         help="Limit --debug to some kinds of output: " + ", ".join(log.AREAS) + " (comma "
                              "separated; a leading - leaves one out, as in -draw). The default is all of them.")
     parser.add_argument('--record-file', metavar='FILE', default=None,
-                        help="Also write every log line to FILE as a record: one per line, the time in UTC "
+                        help="Also write every log line to FILE as a record: one per line, the time local with its offset "
                              "(PLANETGEN_RECORD_FILE does the same).")
     parser.add_argument('--record-json', action='store_true',
                         help="Write the --record-file records as JSON lines.")
@@ -450,6 +450,7 @@ def add_shared_generation_options(parser):
                                           (`prefix_chars='-+'`) for the
                                           tri-state options below.
     """
+    add_sky_arguments(parser)
     # The forcing options are for a single system only (GEN.51). They stay
     # registered, hidden, so one given here gets a clear error, and their
     # attributes stay None ("let the generator decide") for
@@ -563,6 +564,7 @@ def validate_shared_generation_args(args, parser):
         except ValueError as exc:
             parser.error(f"--star-mix: {exc}")
         args.prevalence = [*(args.prevalence or ()), *mix.items()]
+    validate_sky_arguments(args, parser)
     if args.density is not None and args.num_systems is not None:
         parser.error("--density cannot be combined with --num-systems.")
     if args.workers is not None and args.workers < 0:
@@ -770,6 +772,9 @@ def add_sectors_arguments(parser):
     parser.add_argument('--unit-sectors', type=int, metavar='N',
                         help="With --around: the most sectors in a unit of work, the retry and resume grain (default "
                              f"{region_run.BLOCK_SECTORS}).")
+    parser.add_argument('--rogues', type=dials.lever("rogues").parse, metavar="{" + ",".join(dials.lever("rogues").choices) + "}",
+                        help="With --around: the Rogues level of the run's top-up (stage 3, after every sector is built), for this run only. Default: the level "
+                             "the galaxy's plan was given (plan --rogues), else normal.")
     parser.add_argument('--max-shell', type=int,
                         help="With neither --shell nor --center-sector (random-start mode): the highest "
                              "shell the randomly chosen starting sector may land in. Default: anywhere "
@@ -852,7 +857,8 @@ def validate_sectors_args(args, parser):
     if getattr(args, "around", None) is not None:
         _validate_around(args, parser)
         return
-    for flag, value in (("--grow-shells", getattr(args, "grow_shells", None)), ("--unit-sectors", getattr(args, "unit_sectors", None))):
+    for flag, value in (("--grow-shells", getattr(args, "grow_shells", None)), ("--unit-sectors", getattr(args, "unit_sectors", None)),
+                        ("--rogues", getattr(args, "rogues", None))):
         if value is not None:
             parser.error(f"{flag} requires --around.")
 
@@ -1139,13 +1145,19 @@ def validate_plan_args(args, parser):
             scatter_limits.check_halo_min_luminosity(args.halo_min_luminosity)
         except ValueError as exc:
             parser.error(f"--halo-min-luminosity: {exc}")
-    # Anything else that still can't be normalized.
+    # Anything else that still can't be normalized. Drawing the shape reads the isochrones (the mean mass of a system), so
+    # the data gate comes first: a plan without them is refused with the datasets' message, not a DataMissing trace (TEST.632).
+    refuse_if_data_missing(args, logger_ready=False, bulk=True)
     try:
         shape, _drawn = shapeDraw.plan_shape(args, args.seed)
     except shapeDraw.ScaleError as exc:
         parser.error(f"mass, size and density: {exc}.")
     except (ArithmeticError, ValueError) as exc:
         parser.error(f"these galaxy shape parameters can't be normalized ({exc}).")
+    except fetch.DataMissing:
+        # Only reached under --disregard-missing-data (the gate above refuses otherwise): the shape cannot be drawn without the
+        # isochrones, so this guard cannot be made; the run itself says what it lacks (TEST.632).
+        return
     if not (math.isfinite(shape.k_norm) and shape.k_norm > 0):
         parser.error(f"these galaxy shape parameters can't be normalized (k_norm={shape.k_norm!r}).")
 
@@ -1272,6 +1284,20 @@ def _database_time(text):
         raise argparse.ArgumentTypeError(f"{text!r} is not a time like '2026-10-22 17:30:00'") from None
 
 
+def add_sky_arguments(parser):
+    """Adds `--sky-limit` (VIEW.25): draw the sky tiers of the observer cells the new sectors lie in, for a limiting magnitude, after the bright-star backfill; the `queue.sky_limit` setting when not given."""
+    parser.add_argument('--sky-limit', type=float, default=None, metavar='MAG',
+                        help="Also draw the stars the sky of a system shows, to this limiting magnitude (2 to 9; the sky page's default is 7.5), over the "
+                             "50-parsec cells the new sectors lie in, after the bright-star backfill. A cell already drawn costs nothing. 0 draws none. Default: the "
+                             "queue.sky_limit setting (7.5).")
+
+
+def validate_sky_arguments(args, parser):
+    """Validates `add_sky_arguments`'s option."""
+    if getattr(args, 'sky_limit', None) is not None and args.sky_limit != 0.0 and not 2.0 <= args.sky_limit <= 9.0:
+        parser.error("--sky-limit must be 0 (none) or between 2 and 9.")
+
+
 def add_since_arguments(parser):
     """Adds the options of a command that works on the galaxy sectors saved since a time (`link`, `backfill`, `settle`,
     PERF.123): `--since` (the database's clock; a `sectors` or `galaxy` run says its start time), then the common ones."""
@@ -1287,6 +1313,7 @@ def validate_fill_args(args, parser):
         parser.error("--workers must be 0 (automatic) or more.")
     if args.command == 'settle' and args.sector_id and args.since is not None:
         parser.error("--since and --sector-id cannot be combined.")
+    validate_sky_arguments(args, parser)
 
 
 def add_clean_nebula_field_arguments(parser):
@@ -1663,6 +1690,7 @@ def build_parser():
                     "get the stars born from 1, 2, 5 and 8 solar masses up, each only where it is not drawn yet.",
         help="Backfill the bright stars out from the sectors saved since a time.")
     add_since_arguments(backfill_parser)
+    add_sky_arguments(backfill_parser)
 
     settle_parser = subparsers.add_parser(
         'settle',
@@ -1939,7 +1967,7 @@ def run_fingerprint(args):
     finally:
         conn.close()
     if warning:
-        log.normal(f"Warning: {warning}")
+        log.warning(warning)
     for line in result:
         print(line)
 
@@ -2008,6 +2036,23 @@ BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories", "fini
 """tuple: Subcommands that always generate in bulk, so the data check runs
 first (GEN.590); `sector` joins them when it makes more than one sector
 (`is_bulk_run`)."""
+
+
+def refuse_if_data_missing(args, logger_ready=True, bulk=None):
+    """
+    GEN.590: applies `--disregard-missing-data` and, for a bulk run, refuses (one line, exit status 1, nothing written) when a
+    downloaded data file is missing; returns the notice lines of a run that goes ahead without some. `logger_ready` is False
+    before `main` has set the logger up; `bulk` says so when `args` carries no command (a plan checked on its own). Called by
+    `main` and by the validation of a command that reads the data before `main` gets to it (`plan` draws the galaxy's shape,
+    TEST.632), so the refusal does not depend on what an earlier call left in a cache.
+    """
+    fetch.set_disregard_missing_data(getattr(args, "disregard_missing_data", False))
+    if not (is_bulk_run(args) if bulk is None else bulk):
+        return []
+    try:
+        return list(run_galaxy.disregard_notice(run_galaxy.require_datasets()))
+    except run_galaxy.DatasetsMissing as exc:
+        _fatal(str(exc), logger_ready=logger_ready)
 
 
 def is_bulk_run(args):
@@ -2112,13 +2157,8 @@ def main():
     # start line) when a downloaded data file is missing. The math check is
     # not run here (PERF.170): `update.sh` runs it at every update and the
     # admin page runs it on request.
-    fetch.set_disregard_missing_data(getattr(args, "disregard_missing_data", False))
-    if is_bulk_run(args):
-        try:
-            for line in run_galaxy.disregard_notice(run_galaxy.require_datasets()):
-                log.normal(line)
-        except run_galaxy.DatasetsMissing as exc:
-            _fatal(str(exc))
+    for line in refuse_if_data_missing(args):
+        log.normal(line)
 
     # One start and one finish line per run in the activity log (SEC.28);
     # a `system --output` run writes no database, so it isn't logged, nor
@@ -2154,7 +2194,7 @@ def main():
     except SystemExit as exc:
         # SIGTERM inside a work queue (Cancel) exits with 128 + signal.
         if isinstance(exc.code, int) and exc.code >= 128:
-            status, failure = "interrupted", "cancelled"
+            status, failure = "interrupted", "canceled"
         elif exc.code in (None, 0):
             status = "ok"
         else:
@@ -2181,7 +2221,7 @@ def main():
 def _exit_on_sigterm():
     """
     Makes a SIGTERM (Cancel on the Generate page, `kill`) end the run as `SystemExit(128 + 15)`, so the run's own
-    cleanup runs (its run record ends as cancelled at once, not after the stale time) as Ctrl+C does.
+    cleanup runs (its run record ends as canceled at once, not after the stale time) as Ctrl+C does.
 
     Returns:
         The handler it replaced, to put back when the run ends, or `None` when it is not the main thread.
@@ -2305,7 +2345,7 @@ def _fatal(message, logger_ready=True, traceback=False):
         else:
             log.error(f"Error: {message}")
     else:
-        print(f"planetgen: error: {message}", file=sys.stderr)
+        log.error(f"planetgen: error: {message}")
         if traceback:
             import traceback as traceback_module
 

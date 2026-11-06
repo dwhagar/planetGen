@@ -9,9 +9,8 @@ landed from other sectors have arrived. It compares the mass the sector should h
 Rogues level allows (None, Few, Normal, Many: `tuning.ROGUE_LEVEL_CEILINGS` rogues per star) and the rest, if the level stops it, left as a remainder for the lighter asteroid
 fields (GEN.1126). This module is that planning step as a pure function; nothing calls it yet (the region run and the Rogues dial do).
 
-**How many and how heavy.** The ceiling is `ceiling * stars` rogues for the sector less the rogues already there. Rogues are drawn one at a time, a bin from the existing mass bins
-(`tuning.ROGUE_PLANET_MASS_BINS`: 96 percent terrestrial, 4 percent gas giant) by their per-star rates and a mass within the bin from the mass function `dN/dlnM` proportional to
-`M^-slope`, until the shortfall is used or the ceiling reached. A rogue that would overshoot the shortfall is cut to what is left, if that is at least the lightest rogue
+**How many and how heavy.** The ceiling is `ceiling * stars` rogues for the sector less the rogues already there. Rogues are drawn one at a time, each with a mass from the ejected spectrum of `rogue_mass_function` (`dN/dlogM` going as `M^-0.83`, from the lightest rogue up to the mass of the
+scatterer, a Jupiter, `SCATTERER_MASS_JUPITER`; 92 percent of the masses are terrestrial and none is over a Jupiter's, which only an ejection record gives), until the shortfall is used or the ceiling reached. A rogue that would overshoot the shortfall is cut to what is left, if that is at least the lightest rogue
 (`MIN_MASS_EARTH`), and otherwise the drawing stops, so **the placed mass plus the remainder is the shortfall exactly**.
 
 **Where, and how fast.** Each rogue is placed uniformly in the sector inside `tuning.ROGUE_TOPUP_PLACEMENT` of its edge (the one stand-in Boss wants to play with). It is then
@@ -32,18 +31,20 @@ from statistics import NormalDist
 
 from planetgen import tuning
 from planetgen.galaxy.age_law import AgeLaw
-from planetgen.physics import constants, rogue_age, rogue_drift, rogue_kick, unit_registry as units
+from planetgen.physics import constants, rogue_age, rogue_drift, rogue_kick, rogue_mass_function, unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 _mearth_to_kg = units.converter("Mearth", "kg")
 
 LEVELS = tuple(tuning.ROGUE_LEVEL_CEILINGS)
-MIN_MASS_EARTH = min(low for low, _high, _rate in tuning.ROGUE_PLANET_MASS_BINS.values())
+MIN_MASS_EARTH = min(low for low, _high in tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH.values())
 """float: The lightest rogue, the lower edge of the lightest mass bin."""
+SCATTERER_MASS_JUPITER = 1.0
+"""float: The mass of the planet that throws a top-up rogue out, Jupiter masses: the heaviest body it ejects (`rogue_mass_function.heaviest_ejected_kg`) and the scatterer of the ejection speed. Source tier T6, tweak level L1."""
 SCATTERER_AU_RANGE = (1.0, 30.0)
 """tuple: Where the scattering giant of a top-up rogue's apparent origin sits, AU, drawn log-uniformly. Source tier T8, tweak level L3."""
 VELOCITY_DISPERSION_KM_S = (35.0, 25.0, 20.0)
-"""tuple: The thin disc's velocity dispersion `(sigma_U, sigma_V, sigma_W)` of the local hosts, km/s, where the caller gives none. Source tier T6, tweak level L1."""
+"""tuple: The thin disk's velocity dispersion `(sigma_U, sigma_V, sigma_W)` of the local hosts, km/s, where the caller gives none. Source tier T6, tweak level L1."""
 DEFAULT_AGE_LAW = AgeLaw.uniform(tuning.ROGUE_PLANET_AGE_RANGE_GY)
 GALACTOCENTRIC_RADIUS_PC = 8000.0
 """float: The galactocentric radius used where the caller gives none (about the Sun's). Source tier T6, tweak level L0."""
@@ -51,6 +52,7 @@ ORIGIN = "apparent"
 """str: The origin every top-up rogue carries; a donor link never exists for it."""
 
 _JUPITER_KG = constants.JUPITER_MASS_TO_KG
+_SCATTERER_KG = SCATTERER_MASS_JUPITER * _JUPITER_KG
 _NORMAL = NormalDist()
 
 
@@ -135,7 +137,7 @@ def ceiling_count(level, stars):
 def mass_bin_of(mass_earth):
     """The mass bin a mass falls in (the heaviest bin takes anything above its edge)."""
     found = None
-    for name, (low, high, _rate) in tuning.ROGUE_PLANET_MASS_BINS.items():
+    for name, (low, high) in tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH.items():
         if mass_earth >= low:
             found = name
         if mass_earth < high:
@@ -146,19 +148,8 @@ def mass_bin_of(mass_earth):
 
 
 def draw_mass_earth(rng):
-    """A rogue's mass in Earth masses: a bin by the per-star rates, then `dN/dlnM` proportional to `M^-slope` inside it."""
-    bins = list(tuning.ROGUE_PLANET_MASS_BINS.items())
-    total = math.fsum(rate for _n, (_l, _h, rate) in bins)
-    pick = rng.random() * total
-    chosen = bins[-1]
-    for item in bins:
-        pick -= item[1][2]
-        if pick <= 0.0:
-            chosen = item
-            break
-    _name, (low, high, _rate) = chosen
-    slope = tuning.ROGUE_PLANET_MASS_FUNCTION_SLOPE
-    return (low ** -slope + rng.random() * (high ** -slope - low ** -slope)) ** (-1.0 / slope)
+    """A rogue's mass in Earth masses, from the spectrum of the bodies a Jupiter ejects (`rogue_mass_function.sample_mass_kg`, one random number)."""
+    return _kg_to_mearth(rogue_mass_function.sample_mass_kg(rng.random(), _mearth_to_kg(MIN_MASS_EARTH), _SCATTERER_KG))
 
 
 def _gauss(rng):
@@ -192,10 +183,10 @@ def apparent_history(rng, age_law, dispersion, radius_pc):
     The draws, in order: the age and time since ejection, the scatterer's distance, the ejection speed, the direction and the host's velocity (the
     rogue top-up and the lighter asteroid-field top-up, GEN.1126, share it).
     """
-    ages = rogue_age.rogue_age(age_law, rng.random(), rng.random())
+    ages = rogue_age.rogue_age(age_law, rng.random())
     low, high = SCATTERER_AU_RANGE
     scatter_au = low * (high / low) ** rng.random()
-    speed = rogue_kick.ejection_speed_km_s(rng.random(), _JUPITER_KG, scatter_au)
+    speed = rogue_kick.ejection_speed_km_s(rng.random(), _SCATTERER_KG, scatter_au)
     direction = rogue_kick.isotropic_direction(rng.random(), rng.random())
     kick = rogue_kick.kick(speed, direction)
     host_velocity = tuple(sigma * _gauss(rng) for sigma in dispersion)
@@ -228,7 +219,7 @@ def plan(rng, level, stars, shortfall_kg, host_masses_kg, rogues_present=0, sect
         age_law (AgeLaw): The star-formation history's age law for the sector's population.
         dispersion_km_s (tuple): The local hosts' velocity dispersion.
         placement (float, optional): Override of `tuning.ROGUE_TOPUP_PLACEMENT`.
-        galactocentric_radius_pc (float): The sector's distance from the galactic centre, for the arc the apparent origin lies along.
+        galactocentric_radius_pc (float): The sector's distance from the galactic center, for the arc the apparent origin lies along.
 
     Returns:
         TopUp: The rogues, the mass placed and the remainder.

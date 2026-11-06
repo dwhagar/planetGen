@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import kind_tables, object_rows, storage_checksum, store
+from planetgen.db import fingerprint_tree, kind_tables, object_rows, storage_checksum, store
 from planetgen.galaxy import object_uid as objectUid
 from planetgen.physics import insolation, unit_registry as units
 
@@ -399,6 +399,7 @@ def delete_sector_birth_contents(conn, sector_id):
         dict: `{"systems": n, "phenomena": n, "facilities": n}` deleted.
     """
     born, params = _born_here(conn, sector_id)
+    rogue_sectors = [row["sector_id"] for row in conn.execute(f"SELECT DISTINCT sector_id FROM rogue_planets WHERE {born}", params).fetchall()]
     systems = conn.execute(f"DELETE FROM star_systems WHERE {born}", params).rowcount
     phenomena = 0
     for table in _BIRTH_TABLES:
@@ -407,6 +408,8 @@ def delete_sector_birth_contents(conn, sector_id):
         where = born + (f" AND {_BIRTH_ONLY[table]}" if table in _BIRTH_ONLY else "")
         phenomena += conn.execute(f"DELETE FROM {table} WHERE {where}", params).rowcount
     facilities = conn.execute(f"DELETE FROM facilities WHERE {born} AND host_type = 'space'", params).rowcount
+    for filed_in in rogue_sectors:      # the leaf of each sector that held a rogue born here no longer holds it (TEST.602)
+        fingerprint_tree.store_residents(conn, filed_in)
     for table, column in (("nearest_systems", "sector_id"), ("sector_name_registry", "first_sector_id"), ("sector_paths", "sector_id"),
                           ("object_timing_stats", "sector_id"), ("object_timing_samples", "sector_id")):
         conn.execute(f"DELETE FROM {table} WHERE {column} = ?", (sector_id,))
@@ -432,6 +435,7 @@ def empty_sector(conn, sector_id):
     kept = bool(sector_residents(conn, sector_id)) or _filed_anywhere(conn, sector_id)
     if kept:
         storage_checksum.mark_sector(conn, sector_id)    # the row stays, its contents are gone: its checksum is out of date
+        fingerprint_tree.drop_content(conn, sector_id)   # and so is its leaf: the residents are all it holds (TEST.602)
     else:
         conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
     store.note_sector_deleted(conn)

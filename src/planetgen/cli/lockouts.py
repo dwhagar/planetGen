@@ -33,8 +33,8 @@ def redis_store():
     and there is nothing to reach from here."""
     uri = ratelimit_storage_uri()
     if not uri.startswith(REDIS_SCHEMES):
-        print(f"error: the rate-limit storage is {uri!r}, which keeps the lockouts in each web process's "
-              f"memory; there is nothing to list or lift from here.", file=sys.stderr)
+        log.error(f"error: the rate-limit storage is {uri!r}, which keeps the lockouts in each web process's "
+              f"memory; there is nothing to list or lift from here.")
         return None
     return throttle.RedisStore.from_url(uri, RATELIMIT_KEY_PREFIX)
 
@@ -42,14 +42,14 @@ def redis_store():
 def main(argv=None):
     parser = argparse.ArgumentParser(description="List the login lockouts (per address and per username).")
     log.add_debug_arguments(parser)
-    log.apply_debug_arguments(parser.parse_args(argv), parser)
+    log.apply_debug_arguments(parser.parse_args(argv), parser, errors_to_stderr=True)
     store = redis_store()
     if store is None:
         return 1
     try:
         rows = throttle.locked_subjects(store)
     except redis.RedisError as exc:
-        print(f"error: could not use Redis at {ratelimit_storage_uri()} ({exc}).", file=sys.stderr)
+        log.error(f"error: could not use Redis at {ratelimit_storage_uri()} ({exc}).")
         return 1
     if not rows:
         print("Nothing is locked.")

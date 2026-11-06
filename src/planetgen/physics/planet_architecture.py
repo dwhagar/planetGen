@@ -4,14 +4,14 @@
 Planet architecture (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920, docs/design/composition/planet-architecture.md)
 ==========================================================================================================================
 
-How many planets a star has, where they sit and how heavy they are, from the star's disc alone. A pure law over the star and its disc;
+How many planets a star has, where they sit and how heavy they are, from the star's disk alone. A pure law over the star and its disk;
 it reads no class, writes none and draws only from the stream it is given.
 
-1. **The disc.** A disc's solids scatter about the median of its star's mass (`DISC_SOLIDS_SCATTER_DEX`, [R0114]). A light
-   disc builds nothing the size of a planet; a heavy one builds a chain. No coin flip decides whether a star has planets.
+1. **The disk.** A disk's solids scatter about the median of its star's mass (`DISK_SOLIDS_SCATTER_DEX`, [R0114]). A light
+   disk builds nothing the size of a planet; a heavy one builds a chain. No coin flip decides whether a star has planets.
 2. **The chain.** From an inner edge (a period near 5 days, [R3193, R3196]) outwards oligarchs form one feeding zone after another, each
    at the isolation mass (`formation.isolation_mass_kg`) and `separation` mutual Hill radii from the last (`OLIGARCH_SEPARATION_MEDIAN`,
-   drawn per system). The outer disc has built less (`PLANET_OUTER_GROWTH_AU`).
+   drawn per system). The outer disk has built less (`PLANET_OUTER_GROWTH_AU`).
 3. **The thinning.** Pu and Wu 2015 [R3621] integrated tight chains and fitted the chance that one survives: a pair of spacing
    `K` mutual Hill radii lasts `tau` orbits of its inner planet with probability `1 - exp(-x^2)`, `x = 0.5 K - 0.6 - 0.35 log10 tau`. Each
    pair of the chain gets an instability time drawn from that law; the earliest to go collides (the two merge, keeping their angular
@@ -72,8 +72,8 @@ the merges did not keep and their number, the mass the core cap of a planet with
 below the planet minimum as `[distance_au, mass_kg]`, the planets a giant swept as `(seed, giant)`, the planets a crowded giant threw out as
 `(seed, heavier)`, the star's snow line (AU) and mass (kg)."""
 
-Architecture = collections.namedtuple("Architecture", ("planets", "disc_scatter", "separation", "oligarchs", "lost"))
-"""The planets in order of distance, the factor the disc's solids were scattered by, the spacing the oligarchs formed at (mutual Hill
+Architecture = collections.namedtuple("Architecture", ("planets", "disk_scatter", "separation", "oligarchs", "lost"))
+"""The planets in order of distance, the factor the disk's solids were scattered by, the spacing the oligarchs formed at (mutual Hill
 radii), the number of oligarchs before the thinning and what the build lost (`Lost`, class it with `losses`)."""
 
 Loss = collections.namedtuple("Loss", ("kind", "count", "mass_kg", "core_kg", "distance_au", "formation_au", "time_yr", "perturber_au", "perturber_mass_kg",
@@ -170,7 +170,7 @@ def inner_chain(star_mass_kg, scatter, fe_h, stream=None, force=False, extra_sig
                          * math.exp(tuning.INNER_COUNT_SIGMA_LN * (source.gauss(0.0, 1.0) + extra_sigmas)), source)
     solar_masses = _kg_to_msun(star_mass_kg)
     scale_kg = (tuning.INNER_PLANET_MASS_EARTH * solar_masses ** tuning.INNER_PLANET_MASS_STELLAR_EXPONENT
-                * scatter ** tuning.INNER_PLANET_MASS_DISC_EXPONENT * 10.0 ** (tuning.INNER_PLANET_MASS_METALLICITY_EXPONENT * fe_h)) * _EARTH_KG
+                * scatter ** tuning.INNER_PLANET_MASS_DISK_EXPONENT * 10.0 ** (tuning.INNER_PLANET_MASS_METALLICITY_EXPONENT * fe_h)) * _EARTH_KG
     separation = planet_mass.draw_separation(tuning.INNER_SEPARATION_MEDIAN, source)
     distance = max(period_to_au(tuning.OLIGARCH_INNER_EDGE_PERIOD_DAYS
                                 * 10.0 ** (tuning.OLIGARCH_INNER_EDGE_SIGMA_DEX * source.gauss(0.0, 1.0)), star_mass_kg), floor_au)
@@ -188,8 +188,8 @@ def inner_chain(star_mass_kg, scatter, fe_h, stream=None, force=False, extra_sig
 
 def oligarch_chain(star_mass_kg, snow_line_au, metal_ratio, scatter, separation, inner_au, outer_au):
     """
-    The oligarchs an outer disc builds between `inner_au` and `outer_au`, as `[distance_au, mass_kg]` lists in order of distance: each at
-    the isolation mass of its feeding zone `separation` mutual Hill radii wide, the next one a spacing further out. The outer disc has
+    The oligarchs an outer disk builds between `inner_au` and `outer_au`, as `[distance_au, mass_kg]` lists in order of distance: each at
+    the isolation mass of its feeding zone `separation` mutual Hill radii wide, the next one a spacing further out. The outer disk has
     built less (the taper `PLANET_OUTER_GROWTH_AU` and `PLANET_OUTER_GROWTH_EXPONENT`). Bodies lighter than `PLANET_MIN_MASS_EARTH` are kept in the chain (they
     take part in the thinning) and leave it afterwards (`build`).
     """
@@ -323,7 +323,7 @@ def sublimation_au(luminosity_w):
 
 
 def first_distance_au(star_mass_kg, stream=None, floor_au=0.0):
-    """Where a chain that has to start from nothing begins: the inner edge of the disc, a period near `OLIGARCH_INNER_EDGE_PERIOD_DAYS`
+    """Where a chain that has to start from nothing begins: the inner edge of the disk, a period near `OLIGARCH_INNER_EDGE_PERIOD_DAYS`
     (log-normal in dex by `OLIGARCH_INNER_EDGE_SIGMA_DEX`, [R3193, R3196]), no closer than `floor_au`. One normal from the stream."""
     source = stream or draw
     return max(period_to_au(tuning.OLIGARCH_INNER_EDGE_PERIOD_DAYS * 10.0 ** (tuning.OLIGARCH_INNER_EDGE_SIGMA_DEX * source.gauss(0.0, 1.0)),
@@ -340,16 +340,16 @@ def next_distance_au(distance_au, mass_kg, star_mass_kg, separation=None):
 
 def extra_seed(previous, architecture, star_mass_kg, snow_line_au, metal_ratio, fe_h, floor_au=0.0, stream=None):
     """
-    One more planet in an architecture's disc, for a system asked to hold more bodies than the thinning left: the next oligarch out from
-    `previous` (a `Seed`, or `None` to start at the disc's inner edge, `first_distance_au`), at the isolation mass of its feeding zone and
-    through the gas outcome, in the disc the architecture was built in (`architecture.disc_scatter`, `architecture.separation`).
+    One more planet in an architecture's disk, for a system asked to hold more bodies than the thinning left: the next oligarch out from
+    `previous` (a `Seed`, or `None` to start at the disk's inner edge, `first_distance_au`), at the isolation mass of its feeding zone and
+    through the gas outcome, in the disk the architecture was built in (`architecture.disk_scatter`, `architecture.separation`).
     """
     source = stream or draw
     if previous is None:
         distance = first_distance_au(star_mass_kg, source, floor_au)
     else:
         distance = next_distance_au(previous.distance_au, previous.mass_kg, star_mass_kg, architecture.separation)
-    core = planet_mass.oligarch_core_kg(distance, star_mass_kg, snow_line_au, metal_ratio, architecture.disc_scatter, architecture.separation)
+    core = planet_mass.oligarch_core_kg(distance, star_mass_kg, snow_line_au, metal_ratio, architecture.disk_scatter, architecture.separation)
     outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source)
     return Seed(distance, outcome.mass_kg, outcome.core_kg, outcome.runaway, 1, False, distance)
 
@@ -377,7 +377,7 @@ class Plan:
 
 def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, inner=None, maximum=False, floor_au=0.0):
     """
-    The planets of a star (module docstring). Draws, in this order: the disc scatter, the inner system, the outer spacing, the thinning,
+    The planets of a star (module docstring). Draws, in this order: the disk scatter, the inner system, the outer spacing, the thinning,
     then, for each core past the critical mass beyond the snow line, the gas and migration draws.
 
     Args:
@@ -385,17 +385,17 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
         snow_line_au (float): The star's own snow line, in AU.
         metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`).
         fe_h (float): The star's [Fe/H], dex.
-        outer_au (float): The disc's outer edge, in AU (the oligarchs stop there).
+        outer_au (float): The disk's outer edge, in AU (the oligarchs stop there).
         stream (draw.Stream or None): The star's own stream; `None` draws from the stream bound now.
         inner (bool or None): `True` gives the star an inner system, `False` none, `None` the observed share (`inner_system_fraction`).
-        maximum (bool): The most the disc holds: an inner system, and a starting count two widths of its spread above the mean.
+        maximum (bool): The most the disk holds: an inner system, and a starting count two widths of its spread above the mean.
         floor_au (float): The closest a body forms or migrates to, in AU (`sublimation_au`).
 
     Returns:
         Architecture: The planets by distance, and what built them.
     """
     source = stream or draw
-    scatter = planet_mass.draw_disc_scatter(source)
+    scatter = planet_mass.draw_disk_scatter(source)
     if inner is False:
         chain_inner = []
     else:
@@ -447,7 +447,7 @@ def _seed_radius_earth(seed):
 
 def _loss(kind, count, mass_kg, core_kg, distance_au, formation_au, perturber_au, perturber_mass_kg, theta, hill_au, ice_rich, fates):
     ejected, collided, bound = fates
-    return Loss(kind, count, mass_kg, core_kg, distance_au, formation_au, scatter_rule.DISC_LIFETIME_YR, perturber_au, perturber_mass_kg, theta, hill_au,
+    return Loss(kind, count, mass_kg, core_kg, distance_au, formation_au, scatter_rule.DISK_LIFETIME_YR, perturber_au, perturber_mass_kg, theta, hill_au,
                 ice_rich, ejected, collided, bound)
 
 

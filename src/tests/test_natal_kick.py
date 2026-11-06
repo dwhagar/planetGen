@@ -38,7 +38,7 @@ def test_the_survival_falls_with_the_threshold_and_rises_with_the_progenitors_sp
     assert natal_kick.survival(0.5, 0.0) == 1.0
 
 
-def test_the_birth_radii_divide_the_disc_into_equal_shares():
+def test_the_birth_radii_divide_the_disk_into_equal_shares():
     radii = natal_kick.birth_radii_over_scale_length()
     assert len(radii) == tuning.NEUTRON_STAR_KICK_BIRTH_RADII
     assert list(radii) == sorted(radii)
@@ -76,7 +76,7 @@ def test_the_reference_structure_holds_the_median_halos_share_and_shows_the_gap(
     assert share == pytest.approx(natal_kick.neutron_star_unbound_share(_chain(MILKY_WAY_STARS, halo), 220.0, 2.6))
 
 
-def test_a_faster_kick_ejects_more_and_a_faster_disc_or_deeper_well_ejects_fewer():
+def test_a_faster_kick_ejects_more_and_a_faster_disk_or_deeper_well_ejects_fewer():
     chain = _chain(MILKY_WAY_STARS, MILKY_WAY_HALO)
     base = natal_kick.neutron_star_unbound_share(chain, 220.0, 2.6)
     assert natal_kick.neutron_star_unbound_share(chain, 220.0, 2.6, sigma_kms=1.3 * tuning.NEUTRON_STAR_KICK_SIGMA_KMS) > base

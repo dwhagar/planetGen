@@ -37,7 +37,7 @@ change `S` by a factor of a few, inside the 1.7 to 4 that this module's L3 tweak
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import atmosphere, atmosphere_state, constants, gases, mixture, mixture_oxygen, stellar_spectrum
+from planetgen.physics import atmosphere, atmosphere_state, constants, envelope_share, gases, mixture, mixture_oxygen, stellar_spectrum
 
 EARTH_O2_MOL = 3.7e19
 """float: The oxygen of Earth's air, mol (21 percent of 1.77e20 mol of air; 22.8 kPa at its gravity and area)."""
@@ -323,3 +323,4 @@ def store_air(body, air):
     body.atm_density = state.density_kg_m3
     body.scale_height = state.scale_height_m / 1000.0
     atmosphere.store_air(body, air, body.mantle_delta_iw)
+    envelope_share.fill(body)       # GEN.1226: the envelope share follows the air the life has changed

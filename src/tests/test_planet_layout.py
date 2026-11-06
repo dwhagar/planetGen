@@ -55,10 +55,21 @@ def test_the_descriptions_blocks_are_sorted_into_their_sections():
     blocks = [model.facts("Planet", []), model.prose("description", "It is temperate."), model.composition("Atmosphere", [], "air"),
               model.ratings({"name": "PHI-6", "score": 0.8, "tier": "Green"}, [], []), model.facts("Radiation", []),
               model.facts("Survival equipment", []), model.prose("life-class", "Class 1a life lives here."), model.prose("life", "Life looks green."),
-              model.prose("timeline", "Old."), model.prose("milestone", "Latest."), model.prose("flavour", "Sensors show.")]
+              model.prose("timeline", "Old."), model.prose("milestone", "Latest."), model.prose("flavor", "Sensors show."), model.prose("depth", "It is deep.")]
     parts = planet_layout.split_blocks(blocks)
     assert [b["type"] for b in parts["phi6"]] == ["ratings", "facts", "facts"]
-    assert [b["role"] for b in parts["life"]] == ["life"] and [b["role"] for b in parts["rest"]] == ["flavour"]
+    assert [b["role"] for b in parts["life"]] == ["life"] and [b["role"] for b in parts["rest"]] == ["depth"]
+    assert [b["role"] for b in parts["flavor"]] == ["flavor"], "the Sensors line goes under the Sensor view (UX.276), not in the notes"
+
+
+def test_the_sky_colour_row_comes_out_of_the_bodys_facts_table():
+    row = model.fact("atmosphere_colour", "Atmosphere color", model.swatch("#99bfff", "pale blue"))
+    for caption in ("Planet", "Moon"):
+        found = planet_layout.atmosphere_colour_fact([model.prose("description", "It is temperate."), model.facts(caption, [model.fact("class", "Class", "M"), row])])
+        assert found["label"] == "Atmosphere color" and found["value"][0]["swatch"] == {"hex": "#99bfff", "word": "pale blue"}
+    assert planet_layout.atmosphere_colour_fact([model.facts("Planet", [model.fact("class", "Class", "M")])]) is None
+    assert planet_layout.atmosphere_colour_fact([model.facts("Radiation", [row])]) is None
+    assert planet_layout.atmosphere_colour_fact([]) is None
 
 
 def _row(key, label, raw, value=None):
@@ -212,3 +223,11 @@ def test_the_life_section_has_a_row_for_each_kind_and_the_stored_facts():
     assert view["readings"][2] == {"kind": "Fauna", "abundance": "Absent", "trend": "", "security": "", "left": ""}
     assert dict(view["facts"]) == {"Stage": "small mobile animals", "Animal grade": "A2", "Pace of evolution": "standard",
                                    "Age of the system": "4.60 billion years", "Stage reached at": "3.60 billion years"}
+
+
+def test_the_summary_says_how_well_the_class_fits_and_what_the_runner_up_is():
+    """GEN.1207: `It fits class M 92 percent and class O 41 percent.`; a body that fits no class says its nearest is shown."""
+    text = " ".join(planet_summary.summary_sentences("Kepler b", {**ROW, "class_match": 0.92, "runner_up_class": "O", "runner_up_match": 0.41}, VALUES))
+    assert 'It fits class <a href="/classes/planet/M">M</a> 92 percent and class O 41 percent.' in text
+    hole = " ".join(planet_summary.summary_sentences("Kepler b", {**ROW, "class_match": 0.0}, VALUES))
+    assert 'No class fits it; class <a href="/classes/planet/M">M</a> is the nearest.' in hole

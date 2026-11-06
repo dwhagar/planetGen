@@ -20,12 +20,9 @@ The saved course record and its list, open and rename.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.18 | Saved courses list: open, rename, delete and the Direct/Route switch, over the saved-list store |  | Sibling of bookmarks.js. |
-| NAV.4 | Save a course | NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
-| NAV.19 | Saved courses in the account (after USR.7) | USR.7, NAV.18 |  |
-| NAV.21 | Fit the view to the whole course |  | Same fit as MAP.53, exempt from any zoom limit (MAP.58 was superseded by MAP.125). |
-| NAV.23 | Open a saved course on the map | NAV.4, NAV.21 |  |
-| NAV.39 | Saved courses remember their unknown-space jumps and check them again |  | With NAV.17. |
+| NAV.4 | Save a course |  | Per browser now; NAV.19 moves it into accounts in phase 3+. |
+| NAV.19 | Saved courses in the account (after USR.7) | USR.7 |  |
+| DB.111 | Storage for vessels and stations: the vessel table (Object ID, owner, name, kind, speed table entry, state, anchor, course id, departure and arrival time, finished legs) and the owner and free-point columns on facilities if it lacks them | NAV.4 |  |
 
 ### Halo and intergalactic switch
 
@@ -48,24 +45,41 @@ Showing courses on the maps and bending them around keep-out spheres.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.22 | Courses inside a sector and a system |  |  |
-| NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
 | NAV.70 | Schematic route map part 6 (optional): a distance-keeping layout (layout L2) for the neighbourhood, if the ribbon is judged too plain |  |  |
+| NAV.77 | vessel_position(vessel, t): the position of a vessel at any galaxy time from its stored course, departure time and speed, agreeing with the course planner's travel times to the second | DB.111, NAV.4, GEN.105 |  |
+| MAP.389 | Borders on the maps: hard lines on the Sector and System Maps where two owners meet, a soft haze on the Galaxy Map, and a reserved hatch style for contested systems, drawn from the stored owners and cached by the territory epoch | POP.28 |  |
 
 ### Steering clear of gravity wells
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants |  | Research: NAV.24 (built) follow-ups. |
-| NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | NAV.54 | Boss 5:01 PM EDT: gravity of left-out mass. |
-| NAV.25 | Find the obstacles along a path | NAV.54 | Corridor query from NAV.10; sectors along the line from NAV.38. |
-| NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | NAV.54 | Research: decides the overlap policy. |
-| NAV.26 | Bend the path around keep-out spheres | NAV.25, NAV.56, NAV.62, NAV.54 |  |
-| NAV.27 | Moving bodies inside a system | NAV.26 |  |
-| NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
-| NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26, NAV.54 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
-| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
-| NAV.72 | Schematic route map part 8: hops that cross a keep-out sphere drawn bent or flagged | NAV.6 |  |
+| NAV.56 | Census of overlapping keep-out spheres in a generated galaxy |  | Research: decides the overlap policy. |
+| NAV.6 | Courses that steer clear of gravity wells |  | Parent; closes with its subitems. |
+
+### Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+
+### Console look: icons and the maps' chrome
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.269 | Console look on the icon sprite and the maps' chrome (Galaxy, Sector and System Map controls), by tokens only | UX.268 |  |
+| UX.280 | Galaxy Map Menu rewired onto the shared builder: Chart View with its wedge, grid, stem and side strip controls tucked beneath it and greyed until it is on, Color by, Center, the steps and the charted-regions list | UX.269 |  |
+| UX.281 | View menu search box, Reset to default row and the common row: find a setting, a reset that shows only when something has changed, the few common switches always visible | UX.280 |  |
+| TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | UX.280, UX.281 |  |
+| DOC.108 | Docs: the View menu (headings, search, reset, how a layer declares its heading) in the help and the design notes | UX.280, UX.281 |  |
+| UX.274 | Streamline the View menu further: fewer entries, grouped by task, the same on the Galaxy, Sector and System Maps | UX.280, UX.281, TEST.630, DOC.108 |  |
+
+### Edit everything foundations: aspects and the recipe schema (spread back from 8.6)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| ADM.62 | Aspect catalogue for systems, stars, planets, moons and belts: every stored field and every generation input, with how they depend on each other |  |  |
+| ADM.63 | Aspect catalogue for phenomena: black holes, neutron stars, nebulae, remnants, rogue planets, comets, asteroid fields and quasars | ADM.62 |  |
+| ADM.64 | Keep-or-regenerate resolution: from the admin's marks to the exact set of aspects redrawn | ADM.62 |  |
+| API.28 | Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects | ADM.62, ADM.64 | Shared with 8.9 (API.18, API.19) |
 
 ## Phase 3: Waypoints and the headline
 
@@ -77,9 +91,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared |  | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
-| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | NAV.49, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). |
-| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.49, NAV.58, NAV.4, NAV.23 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
+| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
 
 ## Phase 4: Trade routes
 
@@ -95,7 +107,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | POP.33 | Generate the trade routes: a hop-based run on the navigation graph between each pair of spaceports, saved in the one global route list | POP.32 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | POP.34 | The global trade route list: a page and an API every account can read, with filters by polity, route length, hop count and spaceport | POP.33 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | POP.33, POP.34, DB.105 |  |
-| MAP.309 | Star map filter for trade routes: draw the routes as paths on the Galaxy Map, filtered by polity, length or hop count | POP.34, NAV.5 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
+| MAP.309 | Star map filter for trade routes: draw the routes as paths on the Galaxy Map, filtered by polity, length or hop count | POP.34 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | MAP.310 | Routes away from a selected object: select a system, spaceport or world on the star map and show only the routes leaving it | MAP.309 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | NAV.63 | Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route | POP.33, MAP.309 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | TEST.382 | First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp | POP.33, MAP.310, NAV.63 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |

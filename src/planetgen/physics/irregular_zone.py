@@ -12,10 +12,10 @@ The irregular satellites of the giants are captured small bodies on distant, ecc
   VNL08), which is why retrograde bodies outnumber prograde ones 88 to 19 among the known irregulars with no bias of capture. Both are limits on the semi-major axis, time averaged.
 * **The Kozai band.** An orbit inclined from `KOZAI_FORBIDDEN_DEG[0]` to `KOZAI_FORBIDDEN_DEG[1]` to the planet's orbit has its eccentricity driven up by the star within 65 to 180 years and strikes the planet or the regular
   moons: no irregular is found there (`moon_composition.KOZAI_FORBIDDEN_DEG`).
-* **The inner edge.** A body whose pericentre `a (1 - e)` lies inside the orbit of the outermost regular moon is removed by collisions with it: 0.013 AU at Jupiter (Callisto), 0.023 at Saturn (Iapetus), 0.004 at Uranus (Oberon).
+* **The inner edge.** A body whose pericenter `a (1 - e)` lies inside the orbit of the outermost regular moon is removed by collisions with it: 0.013 AU at Jupiter (Callisto), 0.023 at Saturn (Iapetus), 0.004 at Uranus (Oberon).
 
 `zone` gives the limits of a planet; `verdict` says whether a body with given elements stays and, if not, why. A hot planet's zone is empty (`Zone.empty`): its stable limit lies inside its regular moons.
-Stand-ins are IZ1 to IZ3 of `docs/design/research/gap-filling-plan.md` section 6.94. Nothing reads the module yet; the captured-moon draw (GEN.1078 and the wiring items) will.
+Stand-ins are IZ1 to IZ3 of `docs/design/research/gap-filling-plan.md` section 6.94. `generation.irregular_moons` reads it.
 """
 
 from dataclasses import dataclass
@@ -30,12 +30,12 @@ RETROGRADE_STABLE_FRACTION = 0.55
 RETROGRADE_INCLINATION_DEG = 90.0
 """float: An orbit inclined more than this to the planet's orbit goes round the other way."""
 INNER_EDGE_FACTOR = 1.0
-"""float: The pericentre of an irregular must exceed this multiple of the outermost regular moon's distance (VNL08 take the distance itself). Source tier T1, tweak level L0."""
+"""float: The pericenter of an irregular must exceed this multiple of the outermost regular moon's distance (VNL08 take the distance itself). Source tier T1, tweak level L0."""
 
 
 @dataclass(frozen=True)
 class Zone:
-    """The irregular zone of a planet: its Hill radius, the stable limits of a prograde and a retrograde orbit (AU) and the inner edge for a pericentre (AU, 0 with no regular moon)."""
+    """The irregular zone of a planet: its Hill radius, the stable limits of a prograde and a retrograde orbit (AU) and the inner edge for a pericenter (AU, 0 with no regular moon)."""
     hill_radius_au: float
     prograde_limit_au: float
     retrograde_limit_au: float
@@ -77,7 +77,7 @@ def stable_limit_au(zone_, inclination_deg):
 def verdict(zone_, semi_major_axis_au, eccentricity, inclination_deg):
     """
     Whether a body with these elements stays in the zone: `None` when it does, else why not: `"kozai"` (inclination in the band), `"unstable"` (semi-major axis beyond the stable limit of its sense) or
-    `"collides with regular moons"` (pericentre inside the inner edge). The reasons are tried in that order.
+    `"collides with regular moons"` (pericenter inside the inner edge). The reasons are tried in that order.
     """
     if in_kozai_band(inclination_deg):
         return "kozai"

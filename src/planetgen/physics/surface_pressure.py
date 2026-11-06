@@ -17,7 +17,7 @@ surface, and the sinks that take gas back.
   [R4596]; the continental law of [R2628] (PMC7708846) with their ranges
   gives the CO2 pressure of the balance (`carbonate_pco2_bar`). The temperature depends on the pressure through the greenhouse, so
   the caller passes it as a function.
-* *Ocean.* Water vapour is capped by the saturation pressure and sulfur gases are taken up by an ocean; both are the callers' (they
+* *Ocean.* Water vapor is capped by the saturation pressure and sulfur gases are taken up by an ocean; both are the callers' (they
   have the temperature).
 
 * *Impacts.* The late accretion delivers and erodes gas before the degassing has done much (`impact_history`, GEN.739); `impact_inventory`

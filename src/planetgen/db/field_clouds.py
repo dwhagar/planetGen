@@ -19,6 +19,7 @@ from planetgen import tuning
 from planetgen.db import region
 from planetgen.galaxy import nebula_field
 from planetgen.physics.units import ly_to_pc
+from planetgen.util import detmath
 
 MAX_REACH_PC = 700.0
 """float: The widest a node's circumscribed sphere (half its diagonal plus the biggest cloud's radius) may be for it to list field clouds, parsecs.
@@ -47,12 +48,12 @@ def field_clouds_in_box(conn, lo, hi, max_clouds):
         list[dict]: `type` (`"nebula"`), `id` (`cloud_id`), `name` (`None`), `descriptor` (the family of the class), `class`, `radius_pc`, `x`/`y`/`z`
         and `field` (`True`), largest first, ties by the row's key; `[]` for a box wider than `MAX_REACH_PC`.
     """
-    centre = tuple((a + b) / 2.0 for a, b in zip(lo, hi))
-    reach = 0.5 * math.dist(lo, hi) + nebula_field.MAX_CLOUD_RADIUS_PC
+    center = tuple((a + b) / 2.0 for a, b in zip(lo, hi))
+    reach = 0.5 * detmath.dist(lo, hi) + nebula_field.MAX_CLOUD_RADIUS_PC
     if reach > MAX_REACH_PC:
         return []
     clouds = []
-    for row in region.region_rows(conn, "nebula_field", _COLUMNS, _POSITION, centre, reach, where="p.is_stored = 0"):
+    for row in region.region_rows(conn, "nebula_field", _COLUMNS, _POSITION, center, reach, where="p.is_stored = 0"):
         radius_pc = ly_to_pc(float(row["radius_ly"]))
         position = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
         gap = math.sqrt(sum(max(lo[i] - position[i], 0.0, position[i] - hi[i]) ** 2 for i in range(3)))

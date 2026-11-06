@@ -217,7 +217,7 @@
 --
 -- v10: galactic orbit. `stars` gains `galactic_orbital_speed_kms` and
 --   `galactic_orbital_period_gy` -- a star system's circular orbital speed
---   and period around the galactic center, derived from its (or the fallback's, the radius that holds half of the galaxy's disc stars) distance
+--   and period around the galactic center, derived from its (or the fallback's, the radius that holds half of the galaxy's disk stars) distance
 --   from it via a simple rotation-curve model (see
 --   `physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS`'s comment and
 --   `galactic_orbit.calculate_galactic_orbit`) -- the same "fixed at generation
@@ -1077,7 +1077,7 @@
 --   the floor. NULL on a scatter drawn before v73, which had no mass pass.
 --
 -- v74: hydrosphere and ocean chemistry (GEN.88). `planets` and `moons`:
---   `water_mass_fraction`, `hydrosphere` ('dry', 'vapour', 'ice',
+--   `water_mass_fraction`, `hydrosphere` ('dry', 'vapor', 'ice',
 --   'ice-covered ocean', 'surface ocean', 'hycean'), `ocean_fraction` and
 --   `land_fraction` (shares of the surface; water counts liquid or
 --   frozen), `ocean_depth_km` (mean liquid depth where there is water),
@@ -1102,7 +1102,7 @@
 --   layer) and `ozone_loss_flag` (ozone present but a galactic event rate
 --   over 1 per 100 Myr, or a stellar-particle dose of 100 mSv/yr at the
 --   ozone layer). `stars` gains `lethal_event_rate_per_gyr` (supernovae
---   within 8 pc per Gyr, from the distance to the galactic centre). NULL
+--   within 8 pc per Gyr, from the distance to the galactic center). NULL
 --   on a row generated before v75. Draws: the crust abundance
 --   (`planetgen/physics/radiation.py`); design
 --   docs/design/habitability/activity-magnetism-radiation-hydrosphere.md section 4.
@@ -1156,7 +1156,7 @@
 --   thin disk's level, the middle of the arm crest and the inter-arm trough:
 --   the arm factor is `arm_level * (1 + arm_amplitude * cos)`, so the crest is
 --   `arm_level * (1 + arm_amplitude)` and the trough `arm_level * (1 - arm_amplitude)`)
---   and `core_amplitude` (the galactic core's centre density, a Gaussian on top
+--   and `core_amplitude` (the galactic core's center density, a Gaussian on top
 --   of the bulge; 0 is none; replaced by `nuclear_amplitude` in v99). Defaults 1 and 0 are the model before v81.
 --
 -- v82: indexes and a summary table for the pages that timed out on a big galaxy
@@ -1247,7 +1247,7 @@
 --   ladder is rebuilt on shells in v92). Every address means something else, so the migration CONVERTS:
 --   every system, phenomenon and facility keeps its place, velocity and epoch and is
 --   linked to the new sector that holds it, the sector rows are rebuilt on shells
---   (a cell that holds an object, or whose centre lay in a generated sector), object
+--   (a cell that holds an object, or whose center lay in a generated sector), object
 --   IDs are renumbered for the new birth sector (body numbers kept), the scatter and
 --   bright stars take the address of their cell, `sector_stats` is rebuilt for the
 --   generated sectors, and the outline is built again from the stored shape.
@@ -1291,9 +1291,9 @@
 --   (default 100 solar luminosities): a cell that expects more systems than the ceiling is filled only with the stars
 --   at or above the cap; the rest is computed from the address and never stored.
 -- v99 (GEN.280): `galaxy_shape.core_amplitude` (ADM.49's Gaussian core) becomes `nuclear_amplitude`, how much of the
---   observed nuclear star cluster and nuclear stellar disc the centre holds (1 the observed pair scaled to the bulge,
+--   observed nuclear star cluster and nuclear stellar disk the center holds (1 the observed pair scaled to the bulge,
 --   0 none); `bright_stars.population` (now VARCHAR(16)) also takes `nuclear_cluster` and
---   `nuclear_disc`.
+--   `nuclear_disk`.
 -- v101 (DB.54): `galaxy_shape.core_min_luminosity_sol` and `core_mass_limit_sol` (NULL until set: the core follows the
 --   baseline scatter limits times 1.1) and `halo_min_luminosity_sol` (default 500, at least 50), the scatter limits by
 --   place that the tiers of GEN.333 read.
@@ -1411,7 +1411,7 @@
 --   movement vector of GEN.294 at an epoch, the course (JSON) and the seed and version key it was made under. Nothing writes or reads it yet.
 --
 -- v130 (DB.85): `galaxy_containers`, each globular cluster and each superbubble stored as a container: its object ID (`uid`), kind, name, the cluster component or the bubble's field address that
---   made it, its centre and extent in the galaxy frame, and the sector its centre is born in. The plan writes them from the galaxy seed; `db/containers.py` asks which hold a point and what one holds.
+--   made it, its center and extent in the galaxy frame, and the sector its center is born in. The plan writes them from the galaxy seed; `db/containers.py` asks which hold a point and what one holds.
 --
 -- v131 (OPS.58): `galaxy_shape` also keeps the generator epoch, the fingerprint format and the generator battery digest (with its cases) of the code that planned the galaxy, and `generation_runs`
 --   the epoch each run generated under, so a galaxy says which epoch each pass of it was made at. `planetgen.galaxy.version_check` compares them with the running code.
@@ -1523,10 +1523,25 @@
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
+-- v218 (GEN.1207): `planets`, `moons` and `rogue_planets` keep how well the class fits the body: `class_match` (DOUBLE, 0 to 1, the geometric mean of the memberships of the conditions of the class,
+--   0 when no class fits the body and the stored one is the nearest), `runner_up_class` (CHAR(1), the next best class, NULL when only one passes the gates) and `runner_up_match` (DOUBLE). `class_variant` is 9 when
+--   the class is found only with the gravity and the air amount set aside (`physics/class_fit.py`). NULL for an Asteroid and for a row made before v218, which gets them when the galaxy is regenerated.
+-- v212 (GEN.1221): `planets` and `moons` keep the relative humidity of the air (`relative_humidity`, DOUBLE, 0.05 to 0.99) and the groundwater of the body (`groundwater`, VARCHAR(10): none, reachable
+--   or deep; `physics/habitability_world.py`), which the class-by-domain matrix reads (`physics/class_domains.py`); `rogue_planets` keep them too. NULL for a row made before v212.
+-- v206 (GEN.1219, GEN.1220, GEN.1226): `planets` and `moons` keep the body type (`planet_type`, VARCHAR(12): terrestrial, transitional or gas, from the envelope share
+--   of the mass, `physics/planet_type.py`) and the digit of the class code (`class_variant`, TINYINT 0 to 9, 0 not written; `physics/class_code.py`). The
+--   `envelope_mass_fraction` that was there holds the true share of a hydrogen-rich air for every rocky body (`physics/envelope_share.py`). NULL for a row made before v206.
 -- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
 -- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v200, which gets them when the galaxy is regenerated.
+-- v213 (GEN.1254): `bright_stars` and `phenomenon_scatter` gain `uid` (BINARY(12), unique, NULL until given), the Object ID of the scatter row: its birth sector, a serial that is its rank in that sector (brightest first, stars from 0 and phenomena from the upper half of the serial space) and body number 0. The scatter writers give it as they write (`db/scatter_uids.py`, counters `scatstar` and `scatphen` in `id_counters`), and a system built round a scatter star and a built scatter phenomenon keep it. NULL for a row made before v205, and the regenerated scatter replaces it.
 -- v204 (GEN.1069): `asteroid_belts` keep where the belt came from and its history: `origin_cause` (VARCHAR(24)), `co_causes`, `origin_history` and `scatter_fates` (JSON text), `origin_sentence` (TEXT), `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` (DOUBLE), `stirred` (TINYINT(1)) and `largest_body_km` (DOUBLE, the largest body Dc settled with the mass). NULL for a row made before v201 or a belt made without an origin; the regenerated galaxy replaces it.
+-- v209 (GEN.1070): the table `belt_members` keeps the stored bodies of a belt (the ledger's cut), one row each, with mass, radius, orbit, taxon, density, composition shares, status word and Soter's mu; `member_rank` 1 is the heaviest and names the body (`<belt ID>.<rank in hex>`). A belt saved before v209 has none until the galaxy is regenerated.
+-- v210 (GEN.1232): `asteroid_belts.history_text` (TEXT, NULL), what the star's evolution did to the belt (engulfed in part by the giant branch, thrown inward by the mass loss, `physics/belt_history.py`), as one paragraph
+--   of plain sentences for the belt page. NULL for a belt nothing happened to and for a row made before v210, nothing is backfilled.
+-- v214 (GEN.1276): `nebulae` and `supernova_remnants` keep their composition (`physics/nebula_columns.py`): `gas_oh_dex` ([O/H] of the gas), `mass_fraction_h`, `_he`, `_z` and `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe` (gas and dust together), `abundance_c` to `abundance_fe` (12 + log(X/H) of the gas), `ionized_share`, `atomic_share`, `molecular_share` (of the hydrogen), `dust_to_gas`, `dust_to_metals`, the grain shares (`grain_silicate`, `_iron`, `_carbon`, `_pah`, `_ice`) and `progenitor_mass_sol` (planetary nebulae and remnants); a remnant adds `ejecta_mass_sol`, `swept_mass_sol` and the hydrogen, helium and metal fractions of each part. All DOUBLE, NULL for a row made before v214 that the migration did not fill (it fills every row it can); `composition` and `dominant_species` are written from them.
+-- v215 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v215. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
+-- v219 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -1537,8 +1552,8 @@
 -- v194 (GEN.1013): `dark_members`, one row for each member of a built system's tree that is not one of its stars (a brown dwarf, neutron star, black hole or stripped helium star): `parent_node_no`, `slot`, `kind`, `mass_solar`, `radius_au`. A system stored before has none; nothing is backfilled.
 -- v196 (GEN.1108): `planets` and `moons` keep the climate of the body in seven bands of latitude (`physics/latitude_bands.py`, `physics/regional_temperature.py`), `band1` (the north pole) to `band7`
 --   (the south pole), each with `bandN_mean_k` (the annual-mean temperature), `bandN_swing_k` (the day and night swing, peak to peak, kelvin of difference), `bandN_day_hours` and `bandN_night_hours`
---   (hours of day and of night in a solar day), `bandN_longest_day_days` and `bandN_longest_night_days` (the longest polar day and night of the year at the poleward edge) and `bandN_state`
---   (VARCHAR(24): day and night, polar day and night, non-rotating; for a world locked to its star the seven are rings from the day centre to the night centre, with no hours, and the state is
+--   (hours of day and of night in a solar day), `bandN_longest_day_days` and `bandN_longest_night_days` (the longest unbroken day and night of the year at the poleward edge; GEN.1260 reads it from a time-stepped search, not the polar day alone) and `bandN_state`
+--   (VARCHAR(24): day and night, polar day and night, non-rotating; for a world locked to its star the seven are rings from the day center to the night center, with no hours, and the state is
 --   permanent day side, terminator band or permanent night side). `temp_mean_swing_k` stays (the swing of the whole surface). The columns `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`,
 --   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
 --   `temp_terminator_swing_k` and `temp_night_side_swing_k` are gone. NULL for a body with no temperature or rotation period and a row made before v194, which gets them when the galaxy is regenerated.
@@ -1598,6 +1613,8 @@
 --   rogue top-up ran (`topped_up_at`, NULL until it does); it replaces `sector_stats.filled_at` and is written by the same save, so a cell's charted state is a row here, not a column of the
 --   stats. The `ON DELETE CASCADE` of `rogue_planets`, `interstellar_comets`, `supernova_remnants` and `facilities` on `sector_id` became `RESTRICT`: `sector_id` is the sector that holds an object
 --   now (the orbital update refiles it), so a sector row cannot vanish while a resident points at it, and deleting or regenerating a sector removes only what was born there (the first 56 bits of `uid`).
+-- v205 (GEN.1218b): `planets` and `moons` also keep the makeup of a methane, ethane or nitrogen sea (`surface_liquid_methane_mol`, `surface_liquid_ethane_mol`, `surface_liquid_nitrogen_mol`, mole fractions), the salt of a
+--   water sea (`surface_liquid_salt_wt`) and a second liquid with the share of the surface it covers (`surface_liquid_2`, `surface_liquid_2_fraction`). NULL where they do not apply and for a row made before v205.
 
 
 -- v39: star_systems and several phenomenon tables point at nebulae and
@@ -1664,6 +1681,7 @@ CREATE TABLE IF NOT EXISTS sectors (
     storage_checksum            BINARY(32) NULL,  -- v115 (DB.44)
     parity_dirty                TINYINT NOT NULL DEFAULT 1,  -- v115 (DB.44)
     leaf_digest                 BINARY(32) NULL,  -- v120 (DB.49)
+    content_leaf                BINARY(32) NULL,  -- v220 (TEST.602)
     generator_epoch             SMALLINT UNSIGNED NULL,  -- v121 (DB.16)
     run_id                      BIGINT UNSIGNED NULL,  -- v121 (DB.16)
     density_multiplier_used     DECIMAL(10,4) NULL,  -- v125 (DB.60)
@@ -1899,7 +1917,7 @@ CREATE TABLE IF NOT EXISTS galaxy_block_stats (
 -- sector that holds at least one bright star no system was built around (`bright_stars.star_system_id IS
 -- NULL`) or scattered phenomenon not yet built (`phenomenon_scatter.built_at IS NULL`): their count and
 -- summed luminosity (Lsun), luminosity times position (`*_lpx`, `*_lpy`, `*_lpz`, Lsun times parsecs, so
--- the centre of light is each over the luminosity) and, for stars, luminosity times temperature
+-- the center of light is each over the luminosity) and, for stars, luminosity times temperature
 -- (`star_lt`). Built objects are in `galaxy_block_stats`, so no light is counted twice. Written by
 -- `db/block_lights.py` when sectors are saved or deleted and when a scatter is drawn or cleared, and by
 -- `planetgen fill-block-totals`; no foreign key, as the blocks are not rows of their own.
@@ -2293,7 +2311,6 @@ CREATE TABLE IF NOT EXISTS planets (
     volume_km3                DOUBLE NOT NULL,   -- derived, stored not recomputed
     period_years              DOUBLE NOT NULL,   -- derived, stored not recomputed
     zone                      VARCHAR(4) CHECK (zone IN ('h', 'e', 'c')),
-    description               TEXT,
     gravity_g                 DOUBLE,
     surface_temperature_k     DOUBLE,
     density_g_cm3             DOUBLE,
@@ -2317,7 +2334,7 @@ CREATE TABLE IF NOT EXISTS planets (
     life_age_complex_cells_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches complex cells, Gy
     life_age_multicellularity_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches multicellularity, Gy
     life_age_technological_civilization_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches technological civilization, Gy
-    flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
+    flavor_key                VARCHAR(32),      -- v110: which flavor line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
     -- separate, static "day length" stat. There is no stored phase (v109,
@@ -2363,7 +2380,7 @@ CREATE TABLE IF NOT EXISTS planets (
     flare_irradiation_index     DOUBLE,
     -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
-    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
     ocean_depth_km              DOUBLE,
@@ -2420,7 +2437,7 @@ CREATE TABLE IF NOT EXISTS planets (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day center to the night center)
     band1_swing_k               DOUBLE,
     band1_day_hours             DOUBLE,
     band1_night_hours           DOUBLE,
@@ -2470,6 +2487,31 @@ CREATE TABLE IF NOT EXISTS planets (
     band7_longest_night_days    DOUBLE,
     band7_state                 VARCHAR(24),
     temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
+    temp_livable_share          DOUBLE,  -- v212 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v212: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v212: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v212: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v212: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v212: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v212: the share above 45 C
+    temp_area_always            DOUBLE,  -- v212: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v212: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v212: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v212: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v212: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v212: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v212: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v212: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v212: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v212: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v212: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v212: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
@@ -2478,6 +2520,13 @@ CREATE TABLE IF NOT EXISTS planets (
     roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
     yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
+    planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
+    class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
+    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
+    groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
+    class_match                 DOUBLE,  -- v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
+    runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
+    runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2535,7 +2584,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
     ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
     ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
-    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_oxidized_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidized
     ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
@@ -2547,6 +2596,12 @@ CREATE TABLE IF NOT EXISTS planets (
     surface_liquid_acid_wt        DOUBLE,  -- v197 (GEN.1215): the strength of the liquid sulfuric acid the air makes, percent of its mass (NULL: none)
     surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
     surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
+    surface_liquid_methane_mol    DOUBLE,  -- v205 (GEN.1218b): the methane of a methane, ethane or nitrogen sea, mole fraction (NULL: another liquid)
+    surface_liquid_ethane_mol     DOUBLE,  -- v212: its ethane, mole fraction
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v212: its dissolved nitrogen, mole fraction
+    surface_liquid_salt_wt  DOUBLE,  -- v212: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
+    surface_liquid_2              VARCHAR(32),  -- v212: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_2_fraction     DOUBLE,  -- v212: the share of the surface it covers
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2567,7 +2622,7 @@ CREATE TABLE IF NOT EXISTS planets (
     has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
     ring_kind                   VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),  -- v160 (GEN.732): the kind of the ring system, NULL with none
     ring_origin                 VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),  -- v160: where its material came from
-    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's centre
+    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's center
     ring_outer_km               DOUBLE,  -- v160: its outer edge, km (inside the Roche limit of its own material and the innermost moon)
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
@@ -2733,7 +2788,6 @@ CREATE TABLE IF NOT EXISTS moons (
     volume_km3                DOUBLE NOT NULL,
     period_years              DOUBLE NOT NULL,
     zone                      VARCHAR(4) CHECK (zone IN ('h', 'e', 'c')),
-    description               TEXT,
     gravity_g                 DOUBLE,
     surface_temperature_k     DOUBLE,
     density_g_cm3             DOUBLE,
@@ -2757,7 +2811,7 @@ CREATE TABLE IF NOT EXISTS moons (
     life_age_complex_cells_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches complex cells, Gy
     life_age_multicellularity_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches multicellularity, Gy
     life_age_technological_civilization_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches technological civilization, Gy
-    flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
+    flavor_key                VARCHAR(32),      -- v110: which flavor line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
     -- separate, static "day length" stat. There is no stored phase (v109,
@@ -2799,7 +2853,7 @@ CREATE TABLE IF NOT EXISTS moons (
     flare_irradiation_index     DOUBLE,
     -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
-    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
     ocean_depth_km              DOUBLE,
@@ -2856,7 +2910,7 @@ CREATE TABLE IF NOT EXISTS moons (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day center to the night center)
     band1_swing_k               DOUBLE,
     band1_day_hours             DOUBLE,
     band1_night_hours           DOUBLE,
@@ -2906,6 +2960,31 @@ CREATE TABLE IF NOT EXISTS moons (
     band7_longest_night_days    DOUBLE,
     band7_state                 VARCHAR(24),
     temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
+    temp_livable_share          DOUBLE,  -- v212 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v212: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v212: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v212: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v212: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v212: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v212: the share above 45 C
+    temp_area_always            DOUBLE,  -- v212: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v212: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v212: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v212: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v212: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v212: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v212: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v212: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v212: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v212: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v212: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v212: its longest unbroken spell out of the livable band, days
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
@@ -2914,6 +2993,13 @@ CREATE TABLE IF NOT EXISTS moons (
     roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
     yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
+    planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
+    class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
+    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
+    groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
+    class_match                 DOUBLE,  -- v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
+    runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
+    runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -2966,7 +3052,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
     ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
     ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
-    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_oxidized_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidized
     ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
@@ -2978,6 +3064,12 @@ CREATE TABLE IF NOT EXISTS moons (
     surface_liquid_acid_wt        DOUBLE,  -- v197 (GEN.1215): the strength of the liquid sulfuric acid the air makes, percent of its mass (NULL: none)
     surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
     surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
+    surface_liquid_methane_mol    DOUBLE,  -- v205 (GEN.1218b): the methane of a methane, ethane or nitrogen sea, mole fraction (NULL: another liquid)
+    surface_liquid_ethane_mol     DOUBLE,  -- v212: its ethane, mole fraction
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v212: its dissolved nitrogen, mole fraction
+    surface_liquid_salt_wt  DOUBLE,  -- v212: the salt of a water sea as the sodium chloride that gives its water activity, percent of the solution's mass (NULL: not a water sea)
+    surface_liquid_2              VARCHAR(32),  -- v212: a second liquid beside the main one (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_2_fraction     DOUBLE,  -- v212: the share of the surface it covers
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2998,7 +3090,7 @@ CREATE TABLE IF NOT EXISTS moons (
     has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
     ring_kind                   VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),  -- v160 (GEN.732): the kind of the ring system, NULL with none
     ring_origin                 VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),  -- v160: where its material came from
-    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's centre
+    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's center
     ring_outer_km               DOUBLE,  -- v160: its outer edge, km (inside the Roche limit of its own material and the innermost moon)
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
@@ -3170,9 +3262,9 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     composition_summary  TEXT NOT NULL,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
-    position_x_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system centre, km
-    position_y_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system centre, km
-    position_z_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system centre, km
+    position_x_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system center, km
+    position_y_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system center, km
+    position_z_km               DOUBLE NULL,  -- v102 (DB.55): system-frame offset from the system center, km
     velocity_x_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     velocity_y_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
@@ -3185,7 +3277,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
     chondrite_group             VARCHAR(4) NULL,  -- v190 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v190
-    origin_cause                VARCHAR(24) NULL,  -- v204 (GEN.1069): what formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), NULL for a belt made without an origin
+    origin_cause                VARCHAR(24) NULL,  -- v204 (GEN.1069): what formed the belt (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet`, `collisional-debris`), NULL for a belt made without an origin
     co_causes                   TEXT NULL,  -- v204 (GEN.1069): the other formation causes that coincide with it, a JSON list of codes
     formation_snow_line_au      DOUBLE NULL,  -- v204 (GEN.1069): the star's snow line when the system formed, AU
     primordial_mass_earth       DOUBLE NULL,  -- v204 (GEN.1069): the mass the belt formed with, Earth masses
@@ -3194,8 +3286,9 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     stirred                     TINYINT(1) NULL,  -- v204 (GEN.1069): whether a giant stirs the belt
     origin_history              TEXT NULL,  -- v204 (GEN.1069): the sentences of what shaped the belt, a JSON list
     origin_sentence             TEXT NULL,  -- v204 (GEN.1069): the sentence of where the belt came from, for its page
-    scatter_fates               TEXT NULL,  -- v204 (GEN.1069): for an outer disc, the share of its mass in each population after the scatter step, a JSON object
+    scatter_fates               TEXT NULL,  -- v204 (GEN.1069): for an outer disk, the share of its mass in each population after the scatter step, a JSON object
     largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
+    history_text                TEXT NULL,  -- v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -3221,6 +3314,86 @@ CREATE TABLE IF NOT EXISTS asteroid_belt_composition (
     CONSTRAINT fk_asteroid_belt_composition_belt
         FOREIGN KEY (belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
     KEY idx_asteroid_belt_composition_belt_id (belt_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- belt_members -- v209 (GEN.1070): the individual bodies a belt stores (the belt ledger's cut rule: every body above 1e19 kg, and more of the next
+-- heaviest until 90 percent of the belt's mass is held, at most 300), heaviest first. One row per stored body: `member_rank` 1 is the heaviest and
+-- stays its number, so `<belt object ID>.<member_rank in hex>` names the body (`galaxy/object_uid.designation`). Bodies below the cut are never stored.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS belt_members (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    belt_id           BIGINT UNSIGNED NOT NULL,
+    member_rank       INT NOT NULL,  -- 1 is the heaviest body of the belt
+    mass_kg           DOUBLE NOT NULL,
+    radius_km         DOUBLE NOT NULL,
+    distance_km       DOUBLE NOT NULL,  -- the semi-major axis
+    eccentricity      DOUBLE NOT NULL,
+    inclination_deg   DOUBLE NOT NULL,
+    ascending_node_deg DOUBLE NOT NULL,
+    arg_periapsis_deg DOUBLE NOT NULL,
+    mean_anomaly_deg  DOUBLE NOT NULL,
+    taxon             VARCHAR(4) NOT NULL,  -- the class letter (`physics/belt_member.py`)
+    density_g_cm3     DOUBLE NOT NULL,
+    rock_fraction     DOUBLE NOT NULL,  -- the shares of the body's mass
+    metal_fraction    DOUBLE NOT NULL,
+    water_fraction    DOUBLE NOT NULL,
+    ice_fraction      DOUBLE NOT NULL,
+    status            VARCHAR(16) NOT NULL,  -- planet, dwarf planet, minor body or moon (`physics/body_status.py`)
+    soter_mu          DOUBLE NULL,  -- Soter's mu, NULL where the zone holds nothing else
+    scatter_tag       VARCHAR(24) NULL,  -- the population the scatter step put it in (GEN.1092), NULL until that step is wired
+
+    CONSTRAINT fk_belt_members_belt
+        FOREIGN KEY (belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_belt_members_belt_rank (belt_id, member_rank)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- irregular_sets -- v219 (GEN.1084): what a planet's irregular moons add up to, one row for a planet that has a set (none for one without).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS irregular_sets (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id         BIGINT UNSIGNED NOT NULL,
+    remainder_kg      DOUBLE NOT NULL,  -- the expected mass of the bodies that are not stored (the smaller tiers)
+    above_floor       INT NOT NULL,  -- how many bodies were above the storage floor (1e16 kg)
+    lost              INT NOT NULL,  -- stored bodies lost (no orbit that stays, or left the zone when the planet moved)
+    temporary         TINYINT(1) NOT NULL,  -- 1 when the planet's zone is wide enough to hold temporary captures (a flag, no body)
+
+    CONSTRAINT fk_irregular_sets_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_irregular_sets_planet (planet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- irregular_moons -- v219 (GEN.1084): the small bodies a planet caught from the outer disk and its own feeding zone (`generation/irregular_moons.py`, stored
+-- above 1e16 kg, then more of the next heaviest until 90 percent of the population's mass, at most 100), one row each. `moon_rank` is the body's number for its
+-- planet and stays when a smaller body is lost. The bodies below the cut are a total on `irregular_sets`.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS irregular_moons (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id         BIGINT UNSIGNED NOT NULL,
+    moon_rank         INT NOT NULL,
+    capture_window    VARCHAR(10) NOT NULL,  -- gas, encounter or exchange
+    mass_kg           DOUBLE NOT NULL,
+    radius_km         DOUBLE NOT NULL,
+    density_g_cm3     DOUBLE NOT NULL,
+    taxon             VARCHAR(4) NOT NULL,  -- the class letter of the body at its source
+    source_distance_km DOUBLE NOT NULL,  -- where in the disk it came from
+    ice_loss          DOUBLE NOT NULL,  -- the share of its water ice that capture removed
+    rock_fraction     DOUBLE NOT NULL,
+    metal_fraction    DOUBLE NOT NULL,
+    water_fraction    DOUBLE NOT NULL,
+    ice_fraction      DOUBLE NOT NULL,
+    distance_km       DOUBLE NOT NULL,  -- the semi-major axis about the planet
+    eccentricity      DOUBLE NOT NULL,
+    inclination_deg   DOUBLE NOT NULL,
+    ascending_node_deg DOUBLE NOT NULL,
+    arg_periapsis_deg DOUBLE NOT NULL,
+    mean_anomaly_deg  DOUBLE NOT NULL,
+
+    CONSTRAINT fk_irregular_moons_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_irregular_moons_planet_rank (planet_id, moon_rank)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -3612,6 +3785,36 @@ CREATE TABLE IF NOT EXISTS nebulae (
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
+    gas_oh_dex                   DOUBLE NULL,  -- v214 (GEN.1276): [O/H] of the gas it formed in, dex
+    mass_fraction_h              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of h (gas and dust together)
+    mass_fraction_he             DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of he (gas and dust together)
+    mass_fraction_z              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of the metals (gas and dust together)
+    mass_fraction_c              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of c (gas and dust together)
+    mass_fraction_n              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of n (gas and dust together)
+    mass_fraction_o              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of o (gas and dust together)
+    mass_fraction_ne             DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of ne (gas and dust together)
+    mass_fraction_s              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of s (gas and dust together)
+    mass_fraction_ar             DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of ar (gas and dust together)
+    mass_fraction_fe             DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of fe (gas and dust together)
+    abundance_c                  DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of C in the gas phase
+    abundance_n                  DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of N in the gas phase
+    abundance_o                  DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of O in the gas phase
+    abundance_ne                 DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of NE in the gas phase
+    abundance_s                  DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of S in the gas phase
+    abundance_ar                 DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of AR in the gas phase
+    abundance_fe                 DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of FE in the gas phase
+    ionized_share                DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is ionized
+    atomic_share                 DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is neutral atomic
+    molecular_share              DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is molecular
+    dust_to_gas                  DOUBLE NULL,  -- v214 (GEN.1276): dust mass over gas mass
+    dust_to_metals               DOUBLE NULL,  -- v214 (GEN.1276): dust mass over metal mass
+    grain_silicate               DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in silicate grains
+    grain_iron                   DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in iron grains
+    grain_carbon                 DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in carbon grains
+    grain_pah                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in pah grains
+    grain_ice                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in ice grains
+    progenitor_mass_sol          DOUBLE NULL,  -- v214 (GEN.1276): the initial mass of the star that made it, solar masses (planetary nebulae and remnants, NULL for the other nebulae)
+
     UNIQUE KEY uq_nebulae_uid (uid),
     KEY idx_nebulae_name (name),  -- v40: name uniqueness lookups
     KEY idx_nebulae_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
@@ -3720,6 +3923,44 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
+    gas_oh_dex                   DOUBLE NULL,  -- v214 (GEN.1276): [O/H] of the gas it formed in, dex
+    mass_fraction_h              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of h (gas and dust together)
+    mass_fraction_he             DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of he (gas and dust together)
+    mass_fraction_z              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of the metals (gas and dust together)
+    mass_fraction_c              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of c (gas and dust together)
+    mass_fraction_n              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of n (gas and dust together)
+    mass_fraction_o              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of o (gas and dust together)
+    mass_fraction_ne             DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of ne (gas and dust together)
+    mass_fraction_s              DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of s (gas and dust together)
+    mass_fraction_ar             DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of ar (gas and dust together)
+    mass_fraction_fe             DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of fe (gas and dust together)
+    abundance_c                  DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of C in the gas phase
+    abundance_n                  DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of N in the gas phase
+    abundance_o                  DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of O in the gas phase
+    abundance_ne                 DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of NE in the gas phase
+    abundance_s                  DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of S in the gas phase
+    abundance_ar                 DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of AR in the gas phase
+    abundance_fe                 DOUBLE NULL,  -- v214 (GEN.1276): 12 + log(X/H) of FE in the gas phase
+    ionized_share                DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is ionized
+    atomic_share                 DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is neutral atomic
+    molecular_share              DOUBLE NULL,  -- v214 (GEN.1276): share of the hydrogen mass that is molecular
+    dust_to_gas                  DOUBLE NULL,  -- v214 (GEN.1276): dust mass over gas mass
+    dust_to_metals               DOUBLE NULL,  -- v214 (GEN.1276): dust mass over metal mass
+    grain_silicate               DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in silicate grains
+    grain_iron                   DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in iron grains
+    grain_carbon                 DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in carbon grains
+    grain_pah                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in pah grains
+    grain_ice                    DOUBLE NULL,  -- v214 (GEN.1276): share of the dust mass in ice grains
+    progenitor_mass_sol          DOUBLE NULL,  -- v214 (GEN.1276): the initial mass of the star that made it, solar masses (planetary nebulae and remnants, NULL for the other nebulae)
+    ejecta_mass_sol              DOUBLE NULL,  -- v214 (GEN.1276): mass thrown out by the explosion, solar masses
+    swept_mass_sol               DOUBLE NULL,  -- v214 (GEN.1276): interstellar mass inside the blast wave, solar masses
+    ejecta_mass_fraction_h       DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of h in the ejecta
+    ejecta_mass_fraction_he      DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of he in the ejecta
+    ejecta_mass_fraction_z       DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of z in the ejecta
+    swept_mass_fraction_h        DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of h in the swept-up gas
+    swept_mass_fraction_he       DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of he in the swept-up gas
+    swept_mass_fraction_z        DOUBLE NULL,  -- v214 (GEN.1276): mass fraction of z in the swept-up gas
+
     UNIQUE KEY uq_supernova_remnants_uid (uid),
     KEY idx_supernova_remnants_name (name),  -- v40: name uniqueness lookups
     KEY idx_supernova_remnants_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
@@ -3816,7 +4057,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id           BIGINT UNSIGNED,
     name                VARCHAR(255) NOT NULL,
-    planet_type         VARCHAR(4) NOT NULL CHECK (planet_type IN ('t', 'g')),
+    planet_type         VARCHAR(12) NULL,   -- v207: the body type of GEN.1219: terrestrial, transitional or gas
     -- v47: its PLANET_CLASSES letter (GEN.8); NULL for a brown dwarf.
     planet_class        VARCHAR(4),
     -- v37: the mass bin it was drawn from (program_constants.
@@ -3824,9 +4065,9 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     mass_bin            VARCHAR(16) NOT NULL DEFAULT 'terrestrial',
     mass_kg             DOUBLE NOT NULL,
     radius_km           DOUBLE NOT NULL,
-    composition         TEXT NOT NULL,
-    has_internal_heat   TINYINT(1) NOT NULL CHECK (has_internal_heat IN (0, 1)),
-    has_moons           TINYINT(1) NOT NULL CHECK (has_moons IN (0, 1)),
+    composition         TEXT NULL,
+    has_internal_heat   TINYINT(1) NULL CHECK (has_internal_heat IN (0, 1)),   -- v207: NULL for a row of the physics rogue
+    has_moons           TINYINT(1) NULL CHECK (has_moons IN (0, 1)),   -- v207: NULL for a row of the physics rogue (its moons are `moons` rows)
     -- v48: surface conditions (rogueSurface.rogue_surface_conditions).
     age_gy                   DOUBLE,
     internal_heat_flux_w_m2  DOUBLE,
@@ -3930,13 +4171,250 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     binding_energy_j            DOUBLE,  -- v200 (GEN.1162): the energy that assembling it releases, J
     shelter_column_g_cm2        DOUBLE NULL,  -- v153
     energy_flux_w_m2            DOUBLE NULL,  -- v153
+    -- v207 (GEN.1111): a rogue planet is a planet with no star, so it carries every column a planet does except the orbit round a host (the columns below),
+    -- and the system that ejected it, when, and how fast. The older columns named for the flat-rate rogue (planet_type, mass_bin, has_*) are NULL for these rows.
+    body_type                   VARCHAR(4) CHECK (body_type IN ('t', 'g')),  -- v207 (GEN.1111)
+    volume_km3                  DOUBLE,  -- v207 (GEN.1111)
+    gravity_g                   DOUBLE,  -- v207 (GEN.1111)
+    atmosphere                  TEXT,  -- v207 (GEN.1111)
+    atm_density                 DOUBLE,  -- v207 (GEN.1111)
+    atm_molar_density           DOUBLE,  -- v207 (GEN.1111)
+    atmospheric_pressure_pa     DOUBLE,  -- v207 (GEN.1111)
+    scale_height_km             DOUBLE,  -- v207 (GEN.1111)
+    flavor_text_count           INT NOT NULL DEFAULT 0,  -- v207 (GEN.1111)
+    life_stage                  VARCHAR(32),  -- v207 (GEN.1111)
+    evolutionary_pace           VARCHAR(16),  -- v207 (GEN.1111)
+    life_milestone_age_gyr      DOUBLE,  -- v207 (GEN.1111)
+    life_system_age_gyr         DOUBLE,  -- v207 (GEN.1111)
+    life_age_abiogenesis_gyr    DOUBLE,  -- v207 (GEN.1111)
+    life_age_photosynthesis_gyr DOUBLE,  -- v207 (GEN.1111)
+    life_age_complex_cells_gyr  DOUBLE,  -- v207 (GEN.1111)
+    life_age_multicellularity_gyr DOUBLE,  -- v207 (GEN.1111)
+    life_age_technological_civilization_gyr DOUBLE,  -- v207 (GEN.1111)
+    flavor_key                  VARCHAR(32),  -- v207 (GEN.1111)
+    mantle_redox                VARCHAR(16) CHECK (mantle_redox IN ('reduced', 'intermediate', 'oxidized')),  -- v207 (GEN.1111)
+    mantle_delta_iw             DOUBLE,  -- v207 (GEN.1111)
+    magnetic_moment_a_m2        DOUBLE,  -- v207 (GEN.1111)
+    dipole_class                VARCHAR(16) CHECK (dipole_class IN ('none', 'weak', 'earth-like', 'strong', 'multipolar')),  -- v207 (GEN.1111)
+    induced_moment_a_m2         DOUBLE,  -- v207 (GEN.1111)
+    magnetopause_rp             DOUBLE,  -- v207 (GEN.1111)
+    xuv_flux_earth              DOUBLE,  -- v207 (GEN.1111)
+    xuv_exposure_index          DOUBLE,  -- v207 (GEN.1111)
+    flare_irradiation_index     DOUBLE,  -- v207 (GEN.1111)
+    water_mass_fraction         DOUBLE,  -- v207 (GEN.1111)
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),  -- v207 (GEN.1111)
+    ocean_fraction              DOUBLE,  -- v207 (GEN.1111)
+    land_fraction               DOUBLE,  -- v207 (GEN.1111)
+    ice_shell_km                DOUBLE,  -- v207 (GEN.1111)
+    ocean_class                 VARCHAR(16) CHECK (ocean_class IN ('ice-sealed', 'chloride brine', 'acid sulfate', 'soda', 'neutral')),  -- v207 (GEN.1111)
+    ocean_ph                    DOUBLE,  -- v207 (GEN.1111)
+    water_activity              DOUBLE,  -- v207 (GEN.1111)
+    phosphorus                  VARCHAR(8) CHECK (phosphorus IN ('high', 'limited', 'starved')),  -- v207 (GEN.1111)
+    surface_dose_msv_yr         DOUBLE,  -- v207 (GEN.1111)
+    dose_gcr_msv_yr             DOUBLE,  -- v207 (GEN.1111)
+    dose_sep_msv_yr             DOUBLE,  -- v207 (GEN.1111)
+    dose_ground_msv_yr          DOUBLE,  -- v207 (GEN.1111)
+    dose_belt_msv_yr            DOUBLE,  -- v207 (GEN.1111)
+    dose_helio_mult             DOUBLE,  -- v207 (GEN.1111)
+    uv_surface_index            DOUBLE,  -- v207 (GEN.1111)
+    ozone_loss_flag             BOOLEAN,  -- v207 (GEN.1111)
+    outside_hours               DOUBLE,  -- v207 (GEN.1111)
+    band1_mean_k                DOUBLE,  -- v207 (GEN.1111)
+    band1_swing_k               DOUBLE,  -- v207 (GEN.1111)
+    band1_day_hours             DOUBLE,  -- v207 (GEN.1111)
+    band1_night_hours           DOUBLE,  -- v207 (GEN.1111)
+    band1_longest_day_days      DOUBLE,  -- v207 (GEN.1111)
+    band1_longest_night_days    DOUBLE,  -- v207 (GEN.1111)
+    band1_state                 VARCHAR(24),  -- v207 (GEN.1111)
+    band2_mean_k                DOUBLE,  -- v207 (GEN.1111)
+    band2_swing_k               DOUBLE,  -- v207 (GEN.1111)
+    band2_day_hours             DOUBLE,  -- v207 (GEN.1111)
+    band2_night_hours           DOUBLE,  -- v207 (GEN.1111)
+    band2_longest_day_days      DOUBLE,  -- v207 (GEN.1111)
+    band2_longest_night_days    DOUBLE,  -- v207 (GEN.1111)
+    band2_state                 VARCHAR(24),  -- v207 (GEN.1111)
+    band3_mean_k                DOUBLE,  -- v207 (GEN.1111)
+    band3_swing_k               DOUBLE,  -- v207 (GEN.1111)
+    band3_day_hours             DOUBLE,  -- v207 (GEN.1111)
+    band3_night_hours           DOUBLE,  -- v207 (GEN.1111)
+    band3_longest_day_days      DOUBLE,  -- v207 (GEN.1111)
+    band3_longest_night_days    DOUBLE,  -- v207 (GEN.1111)
+    band3_state                 VARCHAR(24),  -- v207 (GEN.1111)
+    band4_mean_k                DOUBLE,  -- v207 (GEN.1111)
+    band4_swing_k               DOUBLE,  -- v207 (GEN.1111)
+    band4_day_hours             DOUBLE,  -- v207 (GEN.1111)
+    band4_night_hours           DOUBLE,  -- v207 (GEN.1111)
+    band4_longest_day_days      DOUBLE,  -- v207 (GEN.1111)
+    band4_longest_night_days    DOUBLE,  -- v207 (GEN.1111)
+    band4_state                 VARCHAR(24),  -- v207 (GEN.1111)
+    band5_mean_k                DOUBLE,  -- v207 (GEN.1111)
+    band5_swing_k               DOUBLE,  -- v207 (GEN.1111)
+    band5_day_hours             DOUBLE,  -- v207 (GEN.1111)
+    band5_night_hours           DOUBLE,  -- v207 (GEN.1111)
+    band5_longest_day_days      DOUBLE,  -- v207 (GEN.1111)
+    band5_longest_night_days    DOUBLE,  -- v207 (GEN.1111)
+    band5_state                 VARCHAR(24),  -- v207 (GEN.1111)
+    band6_mean_k                DOUBLE,  -- v207 (GEN.1111)
+    band6_swing_k               DOUBLE,  -- v207 (GEN.1111)
+    band6_day_hours             DOUBLE,  -- v207 (GEN.1111)
+    band6_night_hours           DOUBLE,  -- v207 (GEN.1111)
+    band6_longest_day_days      DOUBLE,  -- v207 (GEN.1111)
+    band6_longest_night_days    DOUBLE,  -- v207 (GEN.1111)
+    band6_state                 VARCHAR(24),  -- v207 (GEN.1111)
+    band7_mean_k                DOUBLE,  -- v207 (GEN.1111)
+    band7_swing_k               DOUBLE,  -- v207 (GEN.1111)
+    band7_day_hours             DOUBLE,  -- v207 (GEN.1111)
+    band7_night_hours           DOUBLE,  -- v207 (GEN.1111)
+    band7_longest_day_days      DOUBLE,  -- v207 (GEN.1111)
+    band7_longest_night_days    DOUBLE,  -- v207 (GEN.1111)
+    band7_state                 VARCHAR(24),  -- v207 (GEN.1111)
+    temp_mean_swing_k           DOUBLE,  -- v207 (GEN.1111)
+    temp_livable_share          DOUBLE,  -- v212 (GEN.1265): L, the share of the surface's area and time a person can be out in without a suit (Green band or better, wet bulb rule per sample), read off the temperature of every place through the year (`physics/temperature_coverage.py`), the Temperature score is made from it
+    temp_livable_area           DOUBLE,  -- v212: the share of the surface livable at least half of the time
+    temp_livable_time           DOUBLE,  -- v212: the mean share of the time that ground is livable
+    temp_blue_share             DOUBLE,  -- v212: the share of area and time in the Blue band (0 to 31 C)
+    temp_green_share            DOUBLE,  -- v212: the share in the Green band and not Blue (-20 to 45 C)
+    temp_cold_share             DOUBLE,  -- v212: the share below -20 C
+    temp_hot_share              DOUBLE,  -- v212: the share above 45 C
+    temp_area_always            DOUBLE,  -- v212: the share of the surface livable all the time
+    temp_area_most              DOUBLE,  -- v212: the share of the surface livable at least 90 percent of the time
+    temp_livable_belt_only      TINYINT,  -- v212: 1 when a world that turns once an orbit is livable only in its terminator belt
+    temp_coldest_k              DOUBLE,  -- v212: the coldest sample anywhere, kelvin
+    temp_coldest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_coldest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_hottest_k              DOUBLE,  -- v212: the hottest sample anywhere, kelvin
+    temp_hottest_lat_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_lon_deg        DOUBLE,  -- v212: where it is, degrees
+    temp_hottest_day            DOUBLE,  -- v212: when it is, days from an equinox
+    temp_site_lat_deg           DOUBLE,  -- v212: the best site, the cell livable the largest share of the time (ties go to the most moderate), latitude
+    temp_site_lon_deg           DOUBLE,  -- v212: its longitude, degrees
+    temp_site_livable_time      DOUBLE,  -- v212: the share of the time it is livable
+    temp_site_coldest_k         DOUBLE,  -- v212: its coldest sample, kelvin
+    temp_site_hottest_k         DOUBLE,  -- v212: its hottest sample, kelvin
+    temp_site_mean_k            DOUBLE,  -- v212: its mean temperature, kelvin
+    temp_site_longest_out_days  DOUBLE,  -- v212: its longest unbroken spell out of the livable band, days
+    outside_hours_day           DOUBLE,  -- v207 (GEN.1111)
+    outside_hours_limit         VARCHAR(16),  -- v207 (GEN.1111)
+    day_night_state             VARCHAR(24),  -- v207 (GEN.1111)
+    night_hours                 DOUBLE,  -- v207 (GEN.1111)
+    days_per_year               DOUBLE,  -- v207 (GEN.1111)
+    flux_variation              DOUBLE,  -- v207 (GEN.1111)
+    ozone_column_du             DOUBLE NULL,  -- v207 (GEN.1111)
+    tau_haze                    DOUBLE NULL,  -- v207 (GEN.1111)
+    tau_dust                    DOUBLE NULL,  -- v207 (GEN.1111)
+    tau_cloud                   DOUBLE NULL,  -- v207 (GEN.1111)
+    cloud_cover                 DOUBLE NULL,  -- v207 (GEN.1111)
+    aerosol_draw                DOUBLE NULL,  -- v207 (GEN.1111)
+    c_k0_ppm                    DOUBLE,  -- v207 (GEN.1111)
+    c_th0_ppm                   DOUBLE,  -- v207 (GEN.1111)
+    c_u0_ppm                    DOUBLE,  -- v207 (GEN.1111)
+    al26_ratio                  DOUBLE,  -- v207 (GEN.1111)
+    urey_ratio                  DOUBLE,  -- v207 (GEN.1111)
+    bond_albedo                 DOUBLE NULL,  -- v207 (GEN.1111)
+    greenhouse_factor           DOUBLE NULL,  -- v207 (GEN.1111)
+    albedo_basis                TINYINT UNSIGNED NULL,  -- v207 (GEN.1111)
+    metal_mass_fraction         DOUBLE,  -- v207 (GEN.1111)
+    rock_mass_fraction          DOUBLE,  -- v207 (GEN.1111)
+    ice_mass_fraction           DOUBLE,  -- v207 (GEN.1111)
+    ice_co2_mass_fraction       DOUBLE,  -- v207 (GEN.1111)
+    ice_ch4_mass_fraction       DOUBLE,  -- v207 (GEN.1111)
+    ice_nh3_mass_fraction       DOUBLE,  -- v207 (GEN.1111)
+    ice_n2_mass_fraction        DOUBLE,  -- v207 (GEN.1111)
+    ice_so2_mass_fraction       DOUBLE,  -- v207 (GEN.1111)
+    ice_co_mass_fraction        DOUBLE,  -- v207 (GEN.1111)
+    ice_hcn_mass_fraction       DOUBLE,  -- v207 (GEN.1111)
+    ice_other_mass_fraction     DOUBLE,  -- v207 (GEN.1111)
+    envelope_mass_fraction      DOUBLE,  -- v207 (GEN.1111)
+    rock_feo_fraction           DOUBLE,  -- v207 (GEN.1111)
+    rock_al2o3_fraction         DOUBLE,  -- v207 (GEN.1111)
+    rock_mg_si_ratio            DOUBLE,  -- v207 (GEN.1111)
+    envelope_helium_fraction    DOUBLE,  -- v207 (GEN.1111)
+    envelope_z_fraction         DOUBLE,  -- v207 (GEN.1111)
+    porosity                    DOUBLE,  -- v207 (GEN.1111)
+    carbon_rock                 BOOLEAN,  -- v207 (GEN.1111)
+    composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v207 (GEN.1111)
+    ground_type                 VARCHAR(16),  -- v207 (GEN.1111)
+    ground_grain                VARCHAR(8),  -- v207 (GEN.1111)
+    ground_ocean_fraction       DOUBLE,  -- v207 (GEN.1111)
+    ground_ice_fraction         DOUBLE,  -- v207 (GEN.1111)
+    ground_ultramafic_fraction  DOUBLE,  -- v207 (GEN.1111)
+    ground_anorthositic_fraction DOUBLE,  -- v207 (GEN.1111)
+    ground_basaltic_fraction    DOUBLE,  -- v207 (GEN.1111)
+    ground_felsic_fraction      DOUBLE,  -- v207 (GEN.1111)
+    ground_clay_fraction        DOUBLE,  -- v207 (GEN.1111)
+    ground_oxidized_fraction    DOUBLE,  -- v207 (GEN.1111)
+    ground_metal_fraction       DOUBLE,  -- v207 (GEN.1111)
+    ground_carbon_fraction      DOUBLE,  -- v207 (GEN.1111)
+    ground_evaporite_fraction   DOUBLE,  -- v207 (GEN.1111)
+    ground_sulfur_fraction      DOUBLE,  -- v207 (GEN.1111)
+    ground_intermediate_fraction DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid              VARCHAR(32),  -- v207 (GEN.1111)
+    surface_liquid_fraction     DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_depth_km     DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_acid_wt      DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_acid_layer   VARCHAR(8),  -- v207 (GEN.1111)
+    surface_liquid_ammonia_wt   DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_methane_mol    DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_ethane_mol     DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_nitrogen_mol   DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_salt_wt        DOUBLE,  -- v207 (GEN.1111)
+    surface_liquid_2              VARCHAR(32),  -- v207 (GEN.1111)
+    surface_liquid_2_fraction     DOUBLE,  -- v207 (GEN.1111)
+    class_variant                 TINYINT,  -- v207 (GEN.1111)
+    relative_humidity             DOUBLE,  -- v212 (GEN.1221)
+    groundwater                   VARCHAR(10),  -- v212 (GEN.1221)
+    class_match                   DOUBLE,  -- v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
+    runner_up_class               CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
+    runner_up_match               DOUBLE,  -- v218 (GEN.1207): its match
+    moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
+    moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
+    moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)
+    moon_disk_f_inf             DOUBLE,  -- v207 (GEN.1111)
+    moon_disk_ice_line_km       DOUBLE,  -- v207 (GEN.1111)
+    water_base_pressure_pa      DOUBLE NULL,  -- v207 (GEN.1111)
+    tidal_flux_w_m2             DOUBLE NULL,  -- v207 (GEN.1111)
+    aquifer_depth_km            DOUBLE NULL,  -- v207 (GEN.1111)
+    aquifer_thickness_km        DOUBLE NULL,  -- v207 (GEN.1111)
+    mantle_eta0_pa_s            DOUBLE NULL,  -- v207 (GEN.1111)
+    mantle_activation_kj_mol    DOUBLE NULL,  -- v207 (GEN.1111)
+    interior_kind               VARCHAR(16) CHECK (interior_kind IN ('gas_giant', 'ice_giant', 'brown_dwarf')),  -- v207 (GEN.1111)
+    core_mass_earth             DOUBLE,  -- v207 (GEN.1111)
+    dilute_core_mass_earth      DOUBLE,  -- v207 (GEN.1111)
+    metallization_pressure_gpa  DOUBLE,  -- v207 (GEN.1111)
+    helium_depletion            DOUBLE,  -- v207 (GEN.1111)
+    has_helium_shell            BOOLEAN,  -- v207 (GEN.1111)
+    atmosphere_colour           INT UNSIGNED,  -- v207 (GEN.1111)
+    lid_regime                  VARCHAR(10) NULL,  -- v207 (GEN.1111)
+    day_share_equator           DOUBLE NULL,  -- v207 (GEN.1111)
+    day_share_mean              DOUBLE NULL,  -- v207 (GEN.1111)
+    parent_shadow_share         DOUBLE NULL,  -- v207 (GEN.1111)
+    solar_day_hours             DOUBLE NULL,  -- v207 (GEN.1111)
+    daylight_hours              DOUBLE NULL,  -- v207 (GEN.1111)
+    polar_circle_deg            DOUBLE NULL,  -- v207 (GEN.1111)
+    life_class                  TINYINT UNSIGNED NULL,  -- v207 (GEN.1111)
+    life_class_variant          CHAR(1) NULL,  -- v207 (GEN.1111)
+    life_class_best             VARCHAR(2) NULL,  -- v207 (GEN.1111)
+    life_class_best_score       TINYINT UNSIGNED NULL,  -- v207 (GEN.1111)
+    life_animal_grade           TINYINT UNSIGNED NULL,  -- v207 (GEN.1111)
+    life_complexity             DOUBLE NULL,  -- v207 (GEN.1111)
+    tide_range_spring_m         DOUBLE NULL,  -- v207 (GEN.1111)
+    tide_range_neap_m           DOUBLE NULL,  -- v207 (GEN.1111)
+    ocean_liquid                VARCHAR(40) NULL,  -- v207 (GEN.1111)
+    donor_uid                   BINARY(12) NULL,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    event_index                 INT NULL,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    ejection_delay_gy           DOUBLE NULL,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    since_ejection_gy           DOUBLE NULL,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    ejection_speed_kms          DOUBLE NULL,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
+    rogue_note                  TEXT NULL,  -- v207 (GEN.1111): the ejecting system's uid, the event, the ejection, the note
 
     UNIQUE KEY uq_rogue_planets_uid (uid),
+    UNIQUE KEY uq_rogue_planets_donor_event (donor_uid, event_index),  -- v207 (GEN.1111): a donor's rogues are replaced, never duplicated
     KEY idx_rogue_planets_parent (parent_type, parent_id),
     CONSTRAINT chk_rogue_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
     KEY idx_rogue_planets_placed_name (((center_x_pc IS NOT NULL)), name),   -- v186 (PERF.211): the Phenomena table's sorts read in index order
-    KEY idx_rogue_planets_descriptor_name (((CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END) COLLATE utf8mb4_unicode_ci), name),
+    KEY idx_rogue_planets_descriptor_name (((CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' WHEN planet_type = 'gas' THEN 'gas giant' ELSE 'terrestrial' END) COLLATE utf8mb4_unicode_ci), name),
     KEY idx_rogue_planets_next_update_due (next_update_due),
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     CONSTRAINT chk_rogue_planets_placement CHECK (
@@ -3958,6 +4436,70 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
         FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
     CONSTRAINT fk_rogue_planets_inside_remnant
         FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- v207 (GEN.1111): the rows a rogue planet keeps as a planet does -- its reflection spectrum, interior layers, gases and life class
+-- scores, in tables of the same shape as `planet_*` keyed by `rogue_planet_id` (the moons of a rogue planet use `moon_*`).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS rogue_planet_reflection_spectrum (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id   BIGINT UNSIGNED NOT NULL,
+    spectrum_type     VARCHAR(16) NOT NULL CHECK (spectrum_type IN ('visible', 'non_visible')),
+    position          INT NOT NULL,
+    value             VARCHAR(255) NOT NULL,
+
+    CONSTRAINT fk_rogue_planet_reflection_spectrum_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE,
+    KEY idx_rogue_planet_reflection_spectrum_rogue_planet_id (rogue_planet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rogue_planet_interior_layers (
+    id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id         BIGINT UNSIGNED NOT NULL,
+    layer_index             SMALLINT UNSIGNED NOT NULL,
+    kind                    VARCHAR(24) NOT NULL CHECK (kind IN ('molecular_envelope', 'metallic_envelope', 'helium_gradient', 'helium_shell', 'dilute_core', 'compact_core', 'ice_mantle', 'rock_core')),
+    state                   VARCHAR(16) NOT NULL CHECK (state IN ('molecular_fluid', 'metallic_fluid', 'ionic_fluid', 'superionic', 'molten')),
+    top_pressure_gpa        DOUBLE NOT NULL,
+    bottom_pressure_gpa     DOUBLE NOT NULL,
+    mass_earth              DOUBLE NOT NULL,
+    top_radius_fraction     DOUBLE NOT NULL,
+    bottom_radius_fraction  DOUBLE NOT NULL,
+    hydrogen                DOUBLE NOT NULL,
+    helium                  DOUBLE NOT NULL,
+    iron                    DOUBLE NOT NULL,
+    rock                    DOUBLE NOT NULL,
+    water_liquid            DOUBLE NOT NULL,
+    ice_x                   DOUBLE NOT NULL,
+    nh3_ice                 DOUBLE NOT NULL,
+    ch4_ice                 DOUBLE NOT NULL,
+
+    UNIQUE KEY uq_rogue_planet_interior_layers_index (rogue_planet_id, layer_index),
+    CONSTRAINT fk_rogue_planet_interior_layers_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rogue_planet_gases (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id   BIGINT UNSIGNED NOT NULL,
+    gas               VARCHAR(16) NOT NULL,
+    partial_pa        DOUBLE NOT NULL CHECK (partial_pa > 0),
+
+    CONSTRAINT fk_rogue_planet_gases_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_rogue_planet_gases (rogue_planet_id, gas)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS rogue_planet_life_class_scores (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id   BIGINT UNSIGNED NOT NULL,
+    life_class        VARCHAR(2) NOT NULL,
+    score             TINYINT UNSIGNED NOT NULL CHECK (score BETWEEN 1 AND 9),
+
+    CONSTRAINT fk_rogue_planet_life_class_scores_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_rogue_planet_life_class_scores (rogue_planet_id, life_class),
+    KEY idx_rogue_planet_life_class_scores_class (life_class, score)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -4306,12 +4848,14 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     cluster_id           BIGINT UNSIGNED,  -- v127 (DB.61): the cluster this star belongs to, NULL for a field star
     rotation_period_hours DOUBLE,  -- v185 (GEN.846): the spin period in hours, NULL on a row made before v185
     nuclear_arrival_age_gy DOUBLE,  -- v198 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
+    uid                  BINARY(12) NULL,  -- v213 (GEN.1254): the star's Object ID, given when the scatter writes it, see the header comment
 
+    UNIQUE KEY uq_bright_stars_uid (uid),
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
-    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disc', 'satellite_young', 'satellite_intermediate', 'open_cluster_00', 'open_cluster_01', 'open_cluster_02', 'open_cluster_03', 'open_cluster_04', 'open_cluster_05', 'open_cluster_06', 'open_cluster_07', 'open_cluster_08', 'open_cluster_09', 'open_cluster_10', 'open_cluster_11')),
+    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disk', 'satellite_young', 'satellite_intermediate', 'open_cluster_00', 'open_cluster_01', 'open_cluster_02', 'open_cluster_03', 'open_cluster_04', 'open_cluster_05', 'open_cluster_06', 'open_cluster_07', 'open_cluster_08', 'open_cluster_09', 'open_cluster_10', 'open_cluster_11')),
     KEY idx_bright_stars_cluster (cluster_id),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL,
@@ -4389,6 +4933,38 @@ CREATE TABLE IF NOT EXISTS chart_ledger (
     KEY idx_chart_ledger_run (run_id),
     CONSTRAINT fk_chart_ledger_run
         FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- sky_tier_draws (v216, VIEW.25): the spheres the sky tiers have drawn. Charting draws the stars a system's sky needs (`generation/sky_tiers.py`: luminosity bands of 50 Lsun and up,
+-- mass rings under it) over spheres centered on the system's 50 parsec cell (the cell the glow band is kept for) with the star backfill, and records each sphere here: `kind` (luminosity or mass),
+-- the band's range (`band_low`, `band_high`: Lsun for a band, solar masses for a ring; NULL for no upper edge), the center and `radius_pc` (padded by the cell's half diagonal so every system in the cell
+-- is covered), the limiting magnitude it was built for, the stars written, the seconds it took and the generator epoch. A cell inside a sphere is complete down to the tier's floor with no
+-- `sector_stats` row of its own (a sky sphere holds billions of cells); `db/sky_tier_ledger.py` reads the rows, and the backfill and the fill settle a sector's level from them before they draw.
+-- One row for each kind, band, cell and radius: a deeper sky of the same cell is a row of its own, wider (the cells inside the older sphere are not drawn again). A sphere is drawn in
+-- batches of cells, each committed with the count of batches done (`batches_done`), so a stopped draw goes on from there; `complete` is 1 once the last batch is in, and only then does the sphere count.
+CREATE TABLE IF NOT EXISTS sky_tier_draws (
+    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    kind             VARCHAR(12) NOT NULL,
+    band_low         DOUBLE NOT NULL,
+    band_high        DOUBLE NULL,
+    center_x_pc      DOUBLE NOT NULL,
+    center_y_pc      DOUBLE NOT NULL,
+    center_z_pc      DOUBLE NOT NULL,
+    radius_pc        DOUBLE NOT NULL,
+    limit_mag        DOUBLE NOT NULL,
+    stars            INT UNSIGNED NOT NULL DEFAULT 0,
+    seconds          DOUBLE NOT NULL DEFAULT 0,
+    generator_epoch  SMALLINT UNSIGNED NULL,
+    batches_done     INT UNSIGNED NOT NULL DEFAULT 0,
+    complete         TINYINT(1) NOT NULL DEFAULT 1,
+    drawn_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+
+    CONSTRAINT chk_sky_tier_draws_kind CHECK (kind IN ('luminosity', 'mass')),
+    CONSTRAINT chk_sky_tier_draws_radius CHECK (radius_pc >= 0),
+    UNIQUE KEY uq_sky_tier_draws_cell (kind, band_low, center_x_pc, center_y_pc, center_z_pc, radius_pc),
+    KEY idx_sky_tier_draws_kind (kind, band_low)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -4526,7 +5102,9 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     next_update_due      DOUBLE,  -- v93 (GEN.223): see header comment
     member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
     system_mass_solar    DOUBLE,
+    uid                  BINARY(12) NULL,  -- v213 (GEN.1254): the phenomenon's Object ID, given when the scatter writes it, see the header comment
 
+    UNIQUE KEY uq_phenomenon_scatter_uid (uid),
     KEY idx_phenomenon_scatter_address (shell_index, band_index, wedge_index),
     KEY idx_phenomenon_scatter_next_update_due (next_update_due),
     KEY idx_phenomenon_scatter_class (kind, subtype, mass_solar),  -- v82 (PERF.68): see header comment
@@ -4535,7 +5113,7 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Companions of a scatter point (v93, docs/design/systems/multi-star-systems.md section 5): the point is the system's
--- barycentre, `member_count` and `system_mass_solar` say it has members, and these two tables hold them, one column
+-- barycenter, `member_count` and `system_mass_solar` say it has members, and these two tables hold them, one column
 -- per value. `source` 1 is `bright_stars`, 2 `phenomenon_scatter`; no foreign key (the parent is polymorphic), so
 -- the build deletes a built row's members and nodes in its own transaction.
 CREATE TABLE IF NOT EXISTS scatter_members (
@@ -4600,7 +5178,7 @@ CREATE TABLE IF NOT EXISTS scatter_nodes (
 -- `group`) of the masses below it; `parent_node_no` is the node it orbits in (NULL for the root), `slot` its place among
 -- its parent's children. A star names its node in `stars.parent_node_id` (the `node_no` here), and a circumbinary planet
 -- in `planets.host_node_id`. No foreign key joins them: a node is deleted with its system. `disk_*` is a disk of gas and
--- dust about the node's centre (no bodies in it).
+-- dust about the node's center (no bodies in it).
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS orbit_nodes (
     star_system_id       BIGINT UNSIGNED NOT NULL,
@@ -4747,6 +5325,34 @@ CREATE TABLE IF NOT EXISTS nebula_field (
     KEY idx_nebula_field_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     uid           BINARY(12),
     is_stored     TINYINT(1) NOT NULL DEFAULT 0,
+    gas_oh_dex                   FLOAT NULL,  -- v215 (GEN.1277): gas_oh_dex of the cloud, as on `nebulae` but single precision
+    mass_fraction_h              FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_h of the cloud, as on `nebulae` but single precision
+    mass_fraction_he             FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_he of the cloud, as on `nebulae` but single precision
+    mass_fraction_z              FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_z of the cloud, as on `nebulae` but single precision
+    mass_fraction_c              FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_c of the cloud, as on `nebulae` but single precision
+    mass_fraction_n              FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_n of the cloud, as on `nebulae` but single precision
+    mass_fraction_o              FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_o of the cloud, as on `nebulae` but single precision
+    mass_fraction_ne             FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_ne of the cloud, as on `nebulae` but single precision
+    mass_fraction_s              FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_s of the cloud, as on `nebulae` but single precision
+    mass_fraction_ar             FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_ar of the cloud, as on `nebulae` but single precision
+    mass_fraction_fe             FLOAT NULL,  -- v215 (GEN.1277): mass_fraction_fe of the cloud, as on `nebulae` but single precision
+    abundance_c                  FLOAT NULL,  -- v215 (GEN.1277): abundance_c of the cloud, as on `nebulae` but single precision
+    abundance_n                  FLOAT NULL,  -- v215 (GEN.1277): abundance_n of the cloud, as on `nebulae` but single precision
+    abundance_o                  FLOAT NULL,  -- v215 (GEN.1277): abundance_o of the cloud, as on `nebulae` but single precision
+    abundance_ne                 FLOAT NULL,  -- v215 (GEN.1277): abundance_ne of the cloud, as on `nebulae` but single precision
+    abundance_s                  FLOAT NULL,  -- v215 (GEN.1277): abundance_s of the cloud, as on `nebulae` but single precision
+    abundance_ar                 FLOAT NULL,  -- v215 (GEN.1277): abundance_ar of the cloud, as on `nebulae` but single precision
+    abundance_fe                 FLOAT NULL,  -- v215 (GEN.1277): abundance_fe of the cloud, as on `nebulae` but single precision
+    ionized_share                FLOAT NULL,  -- v215 (GEN.1277): ionized_share of the cloud, as on `nebulae` but single precision
+    atomic_share                 FLOAT NULL,  -- v215 (GEN.1277): atomic_share of the cloud, as on `nebulae` but single precision
+    molecular_share              FLOAT NULL,  -- v215 (GEN.1277): molecular_share of the cloud, as on `nebulae` but single precision
+    dust_to_gas                  FLOAT NULL,  -- v215 (GEN.1277): dust_to_gas of the cloud, as on `nebulae` but single precision
+    dust_to_metals               FLOAT NULL,  -- v215 (GEN.1277): dust_to_metals of the cloud, as on `nebulae` but single precision
+    grain_silicate               FLOAT NULL,  -- v215 (GEN.1277): grain_silicate of the cloud, as on `nebulae` but single precision
+    grain_iron                   FLOAT NULL,  -- v215 (GEN.1277): grain_iron of the cloud, as on `nebulae` but single precision
+    grain_carbon                 FLOAT NULL,  -- v215 (GEN.1277): grain_carbon of the cloud, as on `nebulae` but single precision
+    grain_pah                    FLOAT NULL,  -- v215 (GEN.1277): grain_pah of the cloud, as on `nebulae` but single precision
+    grain_ice                    FLOAT NULL,  -- v215 (GEN.1277): grain_ice of the cloud, as on `nebulae` but single precision
     PRIMARY KEY (cell_i, cell_j, cell_k, n),
     KEY idx_nebula_field_uid (uid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -4754,7 +5360,7 @@ CREATE TABLE IF NOT EXISTS nebula_field (
 -- ---------------------------------------------------------------------
 -- nebula_block_stats (v116, MAP.172): what the nebulae add up to in one block of the Galaxy Map's block
 -- ladder, `(m, shell_index, band_index, wedge_index)` as `galaxy_block_stats` names a block, for the five
--- levels above a sector. A nebula counts in the block that holds its centre (`nebula_count`, `volume_pc3`,
+-- levels above a sector. A nebula counts in the block that holds its center (`nebula_count`, `volume_pc3`,
 -- the volume-weighted `centroid_*_pc`, `bound_radius_pc` around it, and the volume of each family in
 -- `volume_<family>_pc3`; the class with the most volume is `dominant_class`); the part of its sphere that
 -- lies in a block is what `cover_volume_pc3` adds up, so a block a cloud only reaches has a row with a count
@@ -4786,7 +5392,7 @@ CREATE TABLE IF NOT EXISTS nebula_block_stats (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- nebula_block_classes (v116, MAP.172): the volume of each nebula class in a block of `nebula_block_stats`
--- (nebulae by the block of their centre), so a stored nebula can be added to a block and the dominant class
+-- (nebulae by the block of their center), so a stored nebula can be added to a block and the dominant class
 -- found again without reading the nebulae.
 CREATE TABLE IF NOT EXISTS nebula_block_classes (
     m                         SMALLINT UNSIGNED NOT NULL,
@@ -5262,7 +5868,7 @@ CREATE TABLE IF NOT EXISTS population_state (
 
 -- galaxy_components (v97, GEN.159): the discrete stellar components of a galaxy beyond the disk, one row each, of every
 -- kind in one table: the globular clusters, and later the satellites and streams (GEN.237). A component is a density
--- (a profile of its mass about a centre), not a list of stars; its stars come from the profile when a sector is
+-- (a profile of its mass about a center), not a list of stars; its stars come from the profile when a sector is
 -- generated. `profile` 'king' carries the King (1966) concentration `king_w0` (3 to 12) and the `tidal_radius_pc` (`Component` checks that, not the table);
 -- `planetgen/physics/king.py` turns a row into a density. `source` is 'catalogue' for a real object and 'generated' for
 -- one drawn from the galaxy seed (`planetgen/generation/clusters.py`); `planetgen plan` draws the clusters (GEN.160).
@@ -5275,7 +5881,7 @@ CREATE TABLE IF NOT EXISTS galaxy_components (
     source               VARCHAR(12) NOT NULL,
     -- A cluster inside a satellite, or a satellite of a larger galaxy; NULL for a component of the galaxy itself.
     parent_component_id  BIGINT UNSIGNED,
-    -- The component's centre in the galaxy frame (parsecs) and its velocity there, at `epoch_unix`.
+    -- The component's center in the galaxy frame (parsecs) and its velocity there, at `epoch_unix`.
     center_x_pc          DOUBLE NOT NULL,
     center_y_pc          DOUBLE NOT NULL,
     center_z_pc          DOUBLE NOT NULL,

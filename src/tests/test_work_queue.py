@@ -18,7 +18,6 @@ import pytest
 
 from planetgen.util import detmath
 from planetgen.cli import generate as generate_cli
-from planetgen.galaxy import spherical
 from planetgen.generation import run_common
 from planetgen.queue import work as workQueue
 from planetgen.db import store
@@ -131,12 +130,15 @@ def test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one(control_config,
     _plan_wide_galaxy(control_config)
     for counter in run_common.RUN_COUNTS:
         run_common.RUN_COUNTS[counter] = 0
-    _run_galaxy(["--shell", "2", "--num-systems", "6", "--workers", "2"] + _mysql_argv(control_config))
+    _run_galaxy(["--shell", "1", "--band", "0", "--limit", "4", "--num-systems", "3", "--workers", "2"]
+                + _mysql_argv(control_config))     # TEST.417: four sectors of shell 1, not the 50 of shell 2 (a worker process pays the first fill's whole draw, the first sector of each costs about 3 minutes in warm-up)
 
     conn = store.get_connection(control_config)
     try:
-        sectors = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors").fetchall()
-        expected = spherical.cell_count(2)
+        # the sectors a fill charted: a rogue planet landed in another cell has a row there that no fill charted (GEN.1111 part 7)
+        sectors = conn.execute("SELECT s.shell_index, s.band_index, s.wedge_index FROM sectors s JOIN chart_ledger cl"
+                               " ON cl.shell_index = s.shell_index AND cl.band_index = s.band_index AND cl.wedge_index = s.wedge_index").fetchall()
+        expected = 4
         assert len(sectors) == len({tuple(row.values()) for row in sectors}) == expected
         assert run_common.RUN_COUNTS["sectors"] == expected
         assert run_common.RUN_COUNTS["systems"] == conn.execute(

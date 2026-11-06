@@ -6,24 +6,24 @@ docs/design/composition/line-opacity.md; docs/design/composition/atmosphere-comp
 sections 2, 3 and 6)
 ================================================================================================================================
 
-GEN.703 built one grey optical depth per air from band centres, with the strength of each band a stand-in. This module replaces
+GEN.703 built one grey optical depth per air from band centers, with the strength of each band a stand-in. This module replaces
 that: the optical depth of one layer (a pressure, a temperature and the molecules above one square centimetre) on 130 wavenumber
 bands from 0 to 12000 cm-1, each band divided into 10 g points of a correlated-k distribution, so a band that is black in its
-line centres and open between them keeps its windows. `radiative_convective` uses it layer by layer.
+line centers and open between them keeps its windows. `radiative_convective` uses it layer by layer.
 
-* **Line absorption** of water vapour, carbon dioxide and methane: the ExoMolOP correlated-k tables (`datasets/ir_ktables.py`,
-  POKAZATEL, UCL-4000 and YT34to10 line lists), read at the layer's temperature (linear in 1/T) and pressure (linear in ln P) and
+* **Line absorption** of water vapor, carbon dioxide, methane, ammonia, sulphur dioxide, hydrogen sulphide, carbon monoxide and hydrogen
+  cyanide: the ExoMolOP correlated-k tables (`datasets/ir_ktables.py`, line lists POKAZATEL, UCL-4000, YT34to10, CoYuTe, ExoAmes, AYT2, Li2015 and Harris), read at the layer's temperature (linear in 1/T) and pressure (linear in ln P) and
   multiplied by the molecules of the gas. Gases overlap by the random-overlap method (`overlap`): the k-distributions are
   combined as if the lines of different gases were uncorrelated, then sorted again by strength.
-* **The water vapour continuum** (MT_CKD 4.3, part 03 section 3.2, `WATER_CONTINUUM`): self and foreign coefficients that close
+* **The water vapor continuum** (MT_CKD 4.3, part 03 section 3.2, `WATER_CONTINUUM`): self and foreign coefficients that close
   the 8 to 12 micron window of a humid air.
 * **Collision-induced absorption** (`datasets/hitran_cia.py`): `k(T) n1 n2` per unit length for the pairs the HITRAN files hold
   (N2-N2, O2-O2, N2-O2, CO2-CO2, N2-CH4, N2-H2, CO2-CH4, CO2-H2, H2-H2, CH4-H2, H2-He), the mean over each band.
 * **Gases without a table** (stand-ins, `STANDIN_*` constants, registry rows IR1 and IR2 of the gap plan): the gas table lists
-  the centres of the bands of every infrared-active gas and nothing more, so such a gas gets a plateau of opacity at each centre
+  the centers of the bands of every infrared-active gas and nothing more, so such a gas gets a plateau of opacity at each center
   with exponential wings (the form of GEN.703), turned into a k-distribution by sorting the opacity inside a band. The plateau
   strength and the wing reach are class values, not measurements.
-* **The far wings of the gases** (`physics/co2_far_wing.py`, GEN.1019, GEN.1020): the tables cut every line at 25 cm-1 from its centre, so the
+* **The far wings of the gases** (`physics/co2_far_wing.py`, GEN.1019, GEN.1020): the tables cut every line at 25 cm-1 from its center, so the
   opacity of a dense carbon dioxide air between its bands is missing (Venus' surface is 92 bar of carbon dioxide). The wing of every
   carbon dioxide band (Perrin and Hartmann's sub-Lorentzian factor) and the wings of the minor gases the tables hold (water, sulfur dioxide,
   carbon monoxide) in a carbon dioxide air are added, with the band strengths read off each table at its lowest pressure. It is skipped
@@ -55,9 +55,9 @@ SECOND_RADIATION_CM_K = (2.0 * math.pi * constants.REDUCED_PLANCK * constants.SP
 
 EDGES_CM1 = hitran_cia.EDGES_CM1
 """ndarray: The 131 edges, cm-1, of the 130 bands (0 to 200 cm-1, then the k-tables' 129)."""
-CENTRES_CM1 = 0.5 * (EDGES_CM1[1:] + EDGES_CM1[:-1])
-"""ndarray: The band centres, cm-1."""
-BANDS = len(CENTRES_CM1)
+CENTERS_CM1 = 0.5 * (EDGES_CM1[1:] + EDGES_CM1[:-1])
+"""ndarray: The band centers, cm-1."""
+BANDS = len(CENTERS_CM1)
 G_POINTS, G_WEIGHTS, G_EDGES = ir_ktables.g_grid()
 """ndarray: The g points of the k-distribution, their weights (adding to 1) and the 11 edges of the intervals."""
 GRID_POINTS = len(G_POINTS)
@@ -87,11 +87,9 @@ STANDIN_DYAD_BAND_FACTOR = 1.0e-5
 """float: STAND-IN (IR1, tier T7, L1): a Fermi dyad (label contains `dyad`) counts this much of a fundamental's plateau."""
 STANDIN_GENERIC_BAND_CM1 = (600.0, 1500.0)
 """tuple: STAND-IN (IR1, tier T7, L0): the plateau of a gas flagged `"ir"` whose table lists no band."""
-STANDIN_FAR_WING_M2_KG = {"CO": 1.0e-5}
-"""dict: STAND-IN (IR2, tier T5, L0): the far-wing mass opacity at one bar of a gas without a table, m2/kg, read from [R2435]'s statement (CO
-thin even at one bar). A gas flagged `"ir"` without an entry takes `STANDIN_GENERIC_WING_M2_KG`, one flagged `"weak"`
-`STANDIN_WEAK_WING_M2_KG`."""
 STANDIN_GENERIC_WING_M2_KG = 1.0e-4
+"""float: STAND-IN (IR2, tier T7, L0): the far-wing mass opacity at one bar of a gas flagged `"ir"` without a table, m2/kg. A gas flagged `"weak"`
+takes `STANDIN_WEAK_WING_M2_KG`."""
 STANDIN_WEAK_WING_M2_KG = 1.0e-5
 STANDIN_WING_REACH_CM1 = 600.0
 """float: STAND-IN (IR2, tier T7, L0): how far from a band the far wing reaches at one bar; it grows with the pressure (line widths do)."""
@@ -111,7 +109,7 @@ WATER_CONTINUUM = (
     (2500.0, 8.5e-24, 1.8e-27, 6.21),
     (3600.0, 1.4e-21, 1.2e-22, 2.42),
 )
-"""tuple: The MT_CKD 4.3 water vapour continuum of part 03 section 3.2 (DATA, computed there from the AER file at 296 K), eight nodes (IR4)."""
+"""tuple: The MT_CKD 4.3 water vapor continuum of part 03 section 3.2 (DATA, computed there from the AER file at 296 K), eight nodes (IR4)."""
 WATER_CONTINUUM_REFERENCE_K = 296.0
 WATER_CONTINUUM_REFERENCE_DENSITY_CM3 = 1013.0e2 / (constants.BOLTZMANN * WATER_CONTINUUM_REFERENCE_K) * 1.0e-6
 """float: `n_ref`, the number density at 1013 mbar and 296 K, per cm3 (the file's reference)."""
@@ -137,8 +135,8 @@ class Prepared:
     An air prepared for `layer_depth`.
 
     Attributes:
-        dry (dict): Each gas's mole fraction of the dry air (water vapour left out; they add up to 1).
-        has_water (bool): The mixture holds water vapour.
+        dry (dict): Each gas's mole fraction of the dry air (water vapor left out; they add up to 1).
+        has_water (bool): The mixture holds water vapor.
         tabled (tuple): The gases (water included when present) that have a k-table.
         standin (tuple): The infrared-active gases without a table (the stand-in path).
         pairs (tuple): `(key, first, second)` of the collision-induced pairs the mixture holds.
@@ -299,8 +297,8 @@ def _continuum_depth(temperature, pressure_pa, water_fraction, molecules_cm2):
     log_self = np.log([row[1] for row in WATER_CONTINUUM])
     log_foreign = np.log([row[2] for row in WATER_CONTINUUM])
     exponent = np.array([row[3] for row in WATER_CONTINUUM])
-    inside = (CENTRES_CM1 >= nus[0]) & (CENTRES_CM1 <= nus[-1])
-    nu = np.where(inside, CENTRES_CM1, nus[0])
+    inside = (CENTERS_CM1 >= nus[0]) & (CENTERS_CM1 <= nus[-1])
+    nu = np.where(inside, CENTERS_CM1, nus[0])
     sigma_self = (np.exp(np.interp(nu, nus, log_self))[None, :]
                   * (WATER_CONTINUUM_REFERENCE_K / temperature[:, None]) ** np.interp(nu, nus, exponent)[None, :])
     sigma_foreign = np.exp(np.interp(nu, nus, log_foreign))[None, :]
@@ -314,7 +312,7 @@ def _continuum_depth(temperature, pressure_pa, water_fraction, molecules_cm2):
 # ---- stand-in bands ----
 
 def _plateaus(formula):
-    """`[(low, high, factor)]`, cm-1: where a gas's bands sit, from the gas table (a centre is a zero-width plateau)."""
+    """`[(low, high, factor)]`, cm-1: where a gas's bands sit, from the gas table (a center is a zero-width plateau)."""
     row = gases.gas(formula)
     if row.infrared is None or not row.infrared.bands:
         if row.ir == "ir":
@@ -330,8 +328,6 @@ def _plateaus(formula):
 
 def _wing_mass_opacity(formula):
     """The far-wing mass opacity of a gas without a table at one bar, m2/kg."""
-    if formula in STANDIN_FAR_WING_M2_KG:
-        return STANDIN_FAR_WING_M2_KG[formula]
     flag = gases.gas(formula).ir
     if flag == "ir":
         return STANDIN_GENERIC_WING_M2_KG
@@ -443,7 +439,7 @@ def layer_depth(prepared, temperature_k, pressure_pa, water_fraction, molecules_
         prepared (Prepared): From `prepare`.
         temperature_k (ndarray): Each layer's temperature (layers top to bottom), K.
         pressure_pa (ndarray): Each layer's pressure, Pa.
-        water_fraction (ndarray): Each layer's mole fraction of water vapour (the dry gases share the rest in `prepared.dry`'s proportions).
+        water_fraction (ndarray): Each layer's mole fraction of water vapor (the dry gases share the rest in `prepared.dry`'s proportions).
         molecules_cm2 (ndarray): The molecules above one square centimetre in each layer.
 
     Returns:

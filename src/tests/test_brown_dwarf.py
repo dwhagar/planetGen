@@ -222,7 +222,7 @@ def test_the_hot_l_dwarfs_reach_the_censuss_share():
 
 def test_the_free_floating_brown_dwarf_has_the_laws_mass_radius_and_a_type():
     with draw.bound(252):
-        dwarfs = [RoguePlanet(SystemConfig(), mass_bin="brown-dwarf") for _ in range(30)]
+        dwarfs = [RoguePlanet(SystemConfig()) for _ in range(30)]
     for dwarf in dwarfs:
         solar = dwarf.mass_kg / constants.SOLAR_MASS_TO_KG
         assert dwarf.radius_km == pytest.approx(brown_dwarf.radius_sol(solar, dwarf.age_gy) * constants.SOLAR_RADIUS_M
@@ -233,7 +233,6 @@ def test_the_free_floating_brown_dwarf_has_the_laws_mass_radius_and_a_type():
         section = render_support.phenomenon_section(dwarf)
         assert f"{dwarf.spectral_type} brown dwarf" in render_support.prose_text(section)
         assert f"type {dwarf.spectral_type}" in render_support.facts_text(section)
-    assert RoguePlanet(SystemConfig(), mass_bin="terrestrial").spectral_type is None
 
 
 def test_a_brown_dwarf_member_has_a_type_and_the_radius_the_laws_give():
@@ -259,7 +258,7 @@ def _ages(population=None, age_law=None, count=60):
     config.POPULATION = population
     config.AGE_LAW = age_law
     with draw.bound(553):
-        return [RoguePlanet(config, mass_bin="brown-dwarf").age_gy for _ in range(count)]
+        return [RoguePlanet(config).age_gy for _ in range(count)]
 
 
 @pytest.mark.parametrize("population", ["young", "intermediate", "old", "bulge", "halo"])
@@ -307,7 +306,7 @@ def test_a_galaxy_sectors_brown_dwarfs_take_the_populations_of_its_place(monkeyp
     made = []
 
     def build(config, _distance):
-        dwarf = RoguePlanet(config, mass_bin="brown-dwarf")
+        dwarf = RoguePlanet(config)
         made.append((config.POPULATION, dwarf.age_gy))
         return dwarf
 

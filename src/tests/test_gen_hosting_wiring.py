@@ -24,7 +24,8 @@ from planetgen.util import draw
 def sun_like():
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
-    return Star(cfg)
+    with draw.bound(1):         # a star drawn outside `draw.bound` is a different star every run, and the tests below follow its size
+        return Star(cfg)
 
 
 # What the caller gives to get each sort of host: the planet's kind and size follow from its mass.
@@ -66,8 +67,12 @@ def test_a_directed_moon_count_still_goes_through_the_gate(sun_like):
         # a moon the planet's spin history (GEN.959) let fall into it, becoming ring material (GEN.1057), was born all the same
         born.append(len(planet.moons) + len(planet.fallen_moons))
     # the directive holds where there is room: never more than asked, and a planet whose orbits cannot take the second moon keeps one (about 1 in 12);
+    # now and then (about 1 in 24 on this star) every draw is a moon the parent could not hold (`MOON_REJECTION_LIMIT`) and it keeps none, which is
+    # "fewer than asked" and not a broken directive;
     # a moon that fell in the first million years or so leaves the planet with fewer than were born (`kept`), which is the spin history, not the direction
-    assert max(born) == 2 and min(born) >= 1 and born.count(2) >= 0.8 * len(born)
+    # GEN.962: a rocky planet's moons are massive (at least 0.006 of its mass), and the spin history (GEN.959) lets one drift out past the stable orbit, so some
+    # planets end with none of the two born; at least half keep both
+    assert max(born) == 2 and born.count(2) >= 0.5 * len(born)
     assert max(kept) <= 2 and all(n <= b for n, b in zip(kept, born))
 @pytest.mark.parametrize("zone,distance_au,inclination,expected", [
     ("h", 0.3, 0.0, "inner-small-body"),
@@ -96,10 +101,11 @@ def test_a_small_body_has_the_share_of_the_table_and_a_planet_has_none(sun_like)
     assert planet_physics.satellite_share(big) is None
 
 
-@pytest.mark.parametrize("share,expected", [(0.2, 0.2), (None, 0.5)])
-def test_the_chance_of_moons_is_the_tables_share_else_an_even_chance(monkeypatch, share, expected):
+@pytest.mark.parametrize("share,body_type,expected", [(0.2, "t", 0.2), (None, "g", 0.5), (None, "t", 1.0 / 12.0)])
+def test_the_chance_of_moons_is_the_tables_share_else_an_even_chance_for_a_giant_and_the_impact_rate_for_a_rocky_planet(monkeypatch, share, body_type, expected):
+    """GEN.962: a rocky planet with no row in the table has the chance of a massive moon from a giant impact [R5127]."""
     monkeypatch.setattr(planet_physics, "satellite_share", lambda planet: share)
-    body = types.SimpleNamespace(system_config=SystemConfig())
+    body = types.SimpleNamespace(system_config=SystemConfig(), body_type=body_type)
     runs = 6000
     with draw.bound(11):
         hits = sum(Planet._draw_moons(body) for _ in range(runs))

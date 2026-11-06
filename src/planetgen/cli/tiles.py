@@ -23,7 +23,7 @@ import sys
 from planetgen._version import VersionAction, version_banner
 from planetgen.admin import updateguard
 from planetgen.db.store import add_mysql_connection_args, mysql_config_from_args
-from planetgen.util import log
+from planetgen.util import joblog, log, logpaths
 
 
 def main(argv=None):
@@ -44,6 +44,14 @@ def main(argv=None):
         parser.error("--workers must be 0 or more.")
     config = mysql_config_from_args(args)
 
+    # OPS.101: the run is appended to tiles.log in the log folder, whoever started it (the nightly timer or a hand run).
+    with joblog.JobLog(logpaths.TILES_LOG_NAME, "tiles", "Whole-map build", started_by=joblog.started_by_environment()) as record:
+        record.status = _build(args, config)
+    return record.status
+
+
+def _build(args, config):
+    """The whole-map build itself; the exit status."""
     try:
         updateguard.refuse_while_updating("The whole-map build")
     except updateguard.UpdateRunning as exc:

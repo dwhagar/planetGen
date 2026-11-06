@@ -59,7 +59,7 @@ def run_take(args):
     try:
         archive = backup.take(args.part or None, who=config_cli._actor(), reason="manual")
     except backup.BackupError as exc:
-        print(f"error: {exc}", file=sys.stderr)
+        log.error(f"error: {exc}")
         return 1
     print(f"Backed up {', '.join(archive.part_names)}: {archive.name}")
     return 0
@@ -69,10 +69,10 @@ def run_verify(args):
     try:
         checked = backup.verify(args.archive)
     except backup.BackupError as exc:
-        print(f"error: {exc}", file=sys.stderr)
+        log.error(f"error: {exc}")
         return 1
     for problem in checked.problems:
-        print(f"problem: {problem}", file=sys.stderr)
+        log.warning(f"problem: {problem}")
     print(f"{args.archive}: " + ("sound." if checked.ok else "NOT sound."))
     return 0 if checked.ok else 1
 
@@ -83,14 +83,16 @@ def run_restore(args):
         report = backup.restore(args.archive, args.part or None,
                                 backup.RestoreContext(who=config_cli._actor(), role="host", audit=audit))
     except backup.BackupError as exc:
-        print(f"error: {exc}", file=sys.stderr)
+        log.error(f"error: {exc}")
         return 1
     finally:
         close()
     if report.restored:
         print(f"Restored {', '.join(report.restored)} from {args.archive}. What they replaced is in {report.safety}.")
+        if report.results.get("parity") is not None:
+            print(report.results["parity"])
     for name in report.skipped:
-        print(f"skipped: this build has no provider for the {name!r} part; the archive keeps it.", file=sys.stderr)
+        log.warning(f"skipped: this build has no provider for the {name!r} part; the archive keeps it.")
     if not report.restored and not report.skipped:
         print("Nothing to restore.")
     return 0 if report.restored or not report.skipped else 1
@@ -112,7 +114,7 @@ def main(argv=None):
     add_mysql_connection_args(restore)
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
     return {"take": lambda: run_take(args), "list": run_list, "parts": run_parts,
             "verify": lambda: run_verify(args), "restore": lambda: run_restore(args)}[args.command]()
 

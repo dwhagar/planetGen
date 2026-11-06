@@ -14,7 +14,7 @@ The steps (report section 2):
 1. **The gas metallicity of the place** (`gas_oh`): the Milky Way gas has its own gradient (`GAS_GRADIENT_DEX_PER_KPC`, Boss 8:49 PM EST
    2026-11-04: not the stars' 0.06), zero at the galaxy's reference radius, with a scatter drawn from the key. In a satellite component the gas is
    the component's own [Fe/H] plus a young-gas offset drawn inside the widest range of the two published estimates (`SATELLITE_GAS_OFFSETS`).
-2. **The total composition** (gas and dust together): the birth composition of a thin-disc star of that metallicity
+2. **The total composition** (gas and dust together): the birth composition of a thin-disk star of that metallicity
    (`stellar_abundances.composition`), so a nebula and a star born in it share one chemistry.
 3. **The dust** (`dust_to_gas_law`): the broken power law of [R5102] of the oxygen abundance, times the class's survival
    (section 11 of the report: the dust that lives through the ionizing radiation, the shock or the winds of the class).
@@ -49,6 +49,10 @@ GAS_GRADIENT_DEX_PER_KPC = 0.034
 GAS_SCATTER_DEX = 0.14
 """float: The scatter of the gas around its gradient, dex (the same 35 H II regions). [Stand-in NBC2, tier T2, tweak L0.]"""
 
+GAS_OH_MAX_DEX = 0.7
+"""float: The highest [O/H] the gas of a place can have, dex: the gradient is written against the Milky Way's, so a galaxy with a far larger reference radius (a wide disk) would put
+the gas at its center several dex above solar, where the dust law and the composition stop meaning anything (the dust would hold the hydrogen). The cap is above the gradient's value at the Milky Way's center plus three times the scatter (0.28 + 0.42), a recalled bound for the inner disk, not a measurement. [Stand-in NBC16, tier T6, tweak L0.]"""
+
 SATELLITE_GAS_OFFSETS = ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26))
 """tuple: `([Fe/H] of a satellite, lowest, highest offset)` of the gas's [O/H] above that [Fe/H], dex, from the smaller to the larger [Fe/H]. The
 anchors are the two Clouds: the LMC (stored stand-in [Fe/H] about -0.4) has gas at [O/H] -0.34 to -0.14, the SMC (about -0.9) -0.66 to -0.28,
@@ -79,7 +83,7 @@ def satellite_offsets(component_fe_h):
 
 def gas_oh(galactic_radius_pc, key, component_fe_h=None):
     """
-    [O/H] of the gas a nebula `key` formed in, dex. In the Milky Way: the gradient at `galactic_radius_pc` plus a normal draw of `GAS_SCATTER_DEX`.
+    [O/H] of the gas a nebula `key` formed in, dex. In the Milky Way: the gradient at `galactic_radius_pc` plus a normal draw of `GAS_SCATTER_DEX`, not above `GAS_OH_MAX_DEX`.
     In a satellite component of stored [Fe/H] `component_fe_h`: that value plus an offset drawn inside `satellite_offsets`. Both draws are always
     taken, in this order, so a nebula's number never depends on which one is used.
     """
@@ -88,7 +92,7 @@ def gas_oh(galactic_radius_pc, key, component_fe_h=None):
     if component_fe_h is not None:
         low, high = satellite_offsets(component_fe_h)
         return component_fe_h + low + u * (high - low)
-    return gas_gradient_oh(galactic_radius_pc) + normal * GAS_SCATTER_DEX
+    return min(gas_gradient_oh(galactic_radius_pc) + normal * GAS_SCATTER_DEX, GAS_OH_MAX_DEX)
 
 
 # --- The total composition ------------------------------------------------------------------------------------------------------------
@@ -116,7 +120,7 @@ def oh_dex(elements):
 
 
 def fe_h_for_oh(target_oh):
-    """The [Fe/H] of the thin-disc birth composition whose [O/H] is `target_oh` (the [O/Fe] of the disc is a few hundredths of a dex), found by
+    """The [Fe/H] of the thin-disk birth composition whose [O/H] is `target_oh` (the [O/Fe] of the disk is a few hundredths of a dex), found by
     bisection (the fits of [X/Fe] bend, so [O/H] rises with [Fe/H] but not in a straight line)."""
     low, high = target_oh - 1.0, target_oh + 1.0
     for _ in range(50):
@@ -283,12 +287,12 @@ CLASSES = {
     "N": ClassRow("dense", {}, "as M"),
     "P": ClassRow("dense", {}, "as M, with organics in the carbon"),
     "Q": ClassRow("dense", {}, "as M, with organics in the carbon"),
-    "R": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "fresh ejecta dust, mostly destroyed by the reverse shock (open: GEN.1271)"),
+    "R": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "fresh ejecta dust, mostly destroyed by the reverse shock (the survival is a stand-in until the dust yields of the ejecta are modeled)"),
     "S": ClassRow("diffuse", {"silicate": 0.39, "iron": 0.60, "carbon": 0.5, "PAH": 0.1}, "shocked interstellar dust: 61 percent of the Si-rich and 40 percent of the Fe-rich grains destroyed"),
-    "T": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "filament dust of the ejecta (open: GEN.1271)"),
-    "U": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "filament dust of the ejecta (open: GEN.1271)"),
+    "T": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "filament dust of the ejecta (the survival is a stand-in until the dust yields of the ejecta are modeled)"),
+    "U": ClassRow("ejecta", {k: 0.2 for k in ("silicate", "carbon", "iron")}, "filament dust of the ejecta (the survival is a stand-in until the dust yields of the ejecta are modeled)"),
     "V": ClassRow("diffuse", {k: 0.5 for k in ("silicate", "carbon", "PAH", "iron")}, "a cooling shell sputters about half its grains"),
-    "W": ClassRow("iron-group", {k: 0.2 for k in ("silicate", "iron")}, "iron-group dust of a Type Ia ejecta (open: GEN.1271)"),
+    "W": ClassRow("iron-group", {k: 0.2 for k in ("silicate", "iron")}, "iron-group dust of a Type Ia ejecta (the survival is a stand-in until the dust yields of the ejecta are modeled)"),
 }
 """dict: One `ClassRow` for every class of `tuning.NEBULA_CLASSES`. The survivals come from the dust-destruction research of the report (section 11):
 more than 90 percent of the iron of planetary nebulae and H II regions is on grains [R5108]; a shocked LMC remnant keeps 39 percent of the
@@ -316,7 +320,7 @@ class NebulaMakeup:
     Attributes:
         nebula_class (str): The class letter.
         oh_dex (float): [O/H] of the gas it formed in, dex.
-        fe_h (float): [Fe/H] of the thin-disc composition that gave it that oxygen.
+        fe_h (float): [Fe/H] of the thin-disk composition that gave it that oxygen.
         x, y, z (float): Hydrogen, helium and metal mass fractions of gas and dust together (add to 1).
         elements (dict): The mass fraction of each element, gas and dust together (add to 1).
         dust_elements (dict): The mass fraction of the total that sits in dust, by element.
@@ -423,7 +427,7 @@ def makeup(nebula_class, gas_oh_dex, density_cm3, radius_ly, ejecta=None, wolf_r
     open_items = []
     if nebula_class in EJECTA_CLASSES:
         if ejecta is None:
-            open_items.append("no progenitor ejecta given: read as interstellar gas (GEN.1270 for H to L, GEN.1271 for R to W)")
+            open_items.append("no progenitor ejecta given: read as interstellar gas (the ejecta of a planetary nebula and of a remnant are modeled separately)")
             elements = interstellar
         else:
             elements = {symbol: ejecta.get(symbol, 0.0) for symbol in interstellar}
