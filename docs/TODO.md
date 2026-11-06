@@ -14336,6 +14336,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread.
   Prerequisites: none. Related: GEN.1111, GEN.1287, GEN.1288, GEN.1289.
 
+- [ ] **GEN.1296 The volatile-bearing branch (i6) of the lava vapor stage raises "no convergence" from gas_equilibrium.solve for carbon at held fO2 when hot and at low pressure (4000 K at 1 bar, 6000 K at 100 bar) (bug)**
+  Aux 7 (as the lane reported, about 7:35 PM EST on 2026-11-05), found
+  while fixing GEN.1294: mixture_lava's volatile-bearing branch (i6) can
+  raise EquilibriumError "no convergence" from gas_equilibrium.solve for
+  carbon at a held oxygen fugacity when the surface is hot and the
+  pressure low (4000 K at 1 bar, 6000 K at 100 bar). The GEN.1294 test
+  skips those draws; no real build has failed on it yet, but a hot lava
+  world that draws i6 could stop a build. Do: reproduce from a seed,
+  find why the solver does not converge there (start values, bounds, a
+  missing phase), fix the solver or the branch without catching and
+  hiding the error, and add a test that no longer skips. A changed
+  generated value is a lock item (epoch). Version 8.1. Owner: Aux 7.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1294.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
