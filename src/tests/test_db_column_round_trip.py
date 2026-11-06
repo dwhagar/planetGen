@@ -150,7 +150,7 @@ NULL_IN_THIS_GALAXY = {
     # The CLI places an interstellar comet near the galaxy's sectors only sometimes.
     **{("interstellar_comets", column): CHANCE for column in SECTOR_PLACEMENT},
     # Only a lit class (C to G) has host stars (GEN.150), and the seeded galaxy's few nebulae may all be dark.
-    **{("nebulae", column): CHANCE for column in ("age_myr", "q_total", "hosts")},
+    **{("nebulae", column): CHANCE for column in ("age_myr", "q_total", "hosts", "progenitor_mass_sol")},          # a progenitor: only a planetary nebula (GEN.1276)
     # The cell key is derived from the center, so it is NULL wherever the center is.
     ("facilities", "cell_key"): "facility hosts used", ("quasars", "cell_key"): CHANCE,
     ("supernova_remnants", "cell_key"): "standalone remnant",
