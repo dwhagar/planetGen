@@ -27,7 +27,9 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen.galaxy import system_mass
-from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
+
+_msun_to_kg = units.converter("Msun", "kg")
 
 KINDS = ("rogue", "star", "phenomenon", "belt parent", "extended")
 """tuple: The kinds of resident a sector can hold, for the split of the held mass."""
@@ -146,7 +148,7 @@ def shortfall_kg(budget, drawn_kg):
 
 def expected_mass_kg(profile):
     """The mass a sector is calculated to hold, kg: its expected systems times the mean system mass of its populations (`galaxy.system_mass.mean_over_solar`)."""
-    return profile.expected_systems * system_mass.mean_over_solar(profile.mix, profile.shape) * constants.SOLAR_MASS_TO_KG
+    return _msun_to_kg(profile.expected_systems * system_mass.mean_over_solar(profile.mix, profile.shape))
 
 
 def resident_share(profile, residents):

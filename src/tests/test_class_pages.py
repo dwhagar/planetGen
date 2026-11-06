@@ -494,9 +494,10 @@ def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone
     bar = html.split('<header class="site-header">')[1].split("</header>")[0]
     assert 'href="/classes"' not in bar.split("site-help-menu")[0]
     help_menu = re.search(r'<sl-dropdown class="site-help-menu".*?</sl-dropdown>', bar, re.S).group(0)
-    assert re.findall(r'data-href="([^"]*)"[^>]*>([^<]*)<', help_menu) == [
-        ("/help", "All help"), ("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life"),
-        ("/references", "References")]
+    entries = re.findall(r'data-href="([^"]*)"[^>]*>([^<]*)<', help_menu)
+    assert entries[0] == ("/help", "All help") and entries[-1] == ("/references", "References")
+    ordered = [entry for entry in entries if entry in (("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life"))]
+    assert ordered == [("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life")]     # other help pages (the sky, VIEW.38) may sit among them
     assert bar.index("site-help-menu") < bar.index("site-search-link") < bar.index("site-gear")
     assert "Habitability levels" not in html
     page = _html(client, "/help/habitability")

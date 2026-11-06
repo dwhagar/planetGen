@@ -24463,7 +24463,7 @@
     },
     "R4893": {
       "kind": "paper",
-      "label": "Zhang et al. 2026b",
+      "label": "Zhang et al. 2026c",
       "title": "Constraining exotrojans in hot-Jupiter systems using transit timing variation observations from TESS"
     },
     "R4894": {
@@ -25600,6 +25600,71 @@
       "kind": "paper",
       "label": "Boissier et al. 2001",
       "title": "Chemo-spectrophotometric evolution of spiral galaxies--IV. Star formation efficiency and effective ages of spirals"
+    },
+    "R5123": {
+      "kind": "paper",
+      "label": "Li et al. 2015",
+      "title": "ROVIBRATIONAL LINE LISTS FOR NINE ISOTOPOLOGUES OF THE CO MOLECULE IN THE X 1 Σ + GROUND ELECTRONIC STATE"
+    },
+    "R5124": {
+      "kind": "paper",
+      "label": "Barber et al. 2013",
+      "title": "ExoMol line lists – III. An improved hot rotation-vibration line list for HCN and HNC"
+    },
+    "R5125": {
+      "kind": "paper",
+      "label": "Azzam et al. 2016",
+      "title": "ExoMol molecular line lists – XVI. The rotation–vibration spectrum of hot H 2 S"
+    },
+    "R5126": {
+      "kind": "paper",
+      "label": "Underwood et al. 2016",
+      "title": "ExoMol molecular line lists – XIV. The rotation–vibration spectrum of hot SO2"
+    },
+    "R5127": {
+      "kind": "paper",
+      "label": "Elser et al. 2011",
+      "title": "How common are Earth–Moon planetary systems?"
+    },
+    "R5128": {
+      "kind": "paper",
+      "label": "Fukui et al. 2008",
+      "title": "The Second Survey of the Molecular Clouds in the Large Magellanic Cloud by NANTEN. I. Catalog of Molecular Clouds"
+    },
+    "R5129": {
+      "kind": "paper",
+      "label": "Leroy et al. 2007",
+      "title": "TheSpitzerSurvey of the Small Magellanic Cloud: Far‐Infrared Emission and Cold Gas in the Small Magellanic Cloud"
+    },
+    "R5130": {
+      "kind": "paper",
+      "label": "GÃ¼ver and ÃZel 2009",
+      "title": "The relation between optical extinction and hydrogen column density in the Galaxy"
+    },
+    "R5131": {
+      "kind": "paper",
+      "label": "Zhang et al. 2026b",
+      "title": "A Tale of Two Dust Disks in Our Milky Way"
+    },
+    "R5132": {
+      "kind": "paper",
+      "label": "Gontcharov et al. 2022",
+      "title": "A Three-Dimensional Analytical Model of the Interstellar Extinction within the Nearest Kiloparsec"
+    },
+    "R5133": {
+      "kind": "paper",
+      "label": "Nakanishi and Sofue 2015",
+      "title": "Three-dimensional distribution of the ISM in the Milky Way galaxy. III. The total neutral gas disk"
+    },
+    "R5134": {
+      "kind": "paper",
+      "label": "Gao et al. 2013",
+      "title": "Modeling the infrared extinction toward the galactic center"
+    },
+    "R5135": {
+      "kind": "paper",
+      "label": "Marshall et al. 2006",
+      "title": "Modelling the Galactic interstellar extinction distribution in three dimensions"
     }
   }
 }

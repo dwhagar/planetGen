@@ -26,7 +26,6 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.units import pc_to_ly
 from tests.toy_shape import toy_shape
-from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (the fixture)
 
 EDGE_PC = 4.0
 SHELL = 10
@@ -349,7 +348,7 @@ def _awkward_points():
     return points
 
 
-def test_every_positioned_table_round_trips_its_point_and_key_bit_for_bit(rich_galaxy):  # noqa: F811
+def test_every_positioned_table_round_trips_its_point_and_key_bit_for_bit(rich_galaxy):
     conn = store.get_connection(rich_galaxy)
     try:
         tables = _positioned_tables(conn)

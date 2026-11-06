@@ -15,7 +15,6 @@ import pytest
 
 from planetgen.db import store as _db
 from tests.db_schema_support import check_constraints
-from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
 
 pytestmark = pytest.mark.db
 

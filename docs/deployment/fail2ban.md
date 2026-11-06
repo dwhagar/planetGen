@@ -56,8 +56,7 @@ numbers sit above planetGen's own lockout on purpose: a typo or two never
 reaches the firewall, but a script that keeps guessing through the
 lockout does.
 
-The log's times are UTC (`2026-10-01T09:43:33Z`); the jail says so with
-`logtimezone = UTC`, so it works whatever the server's own time zone is.
+The log's times are local with the offset of their zone (`2026-10-01T05:43:33-0400`), and the filter's `datepattern` reads the offset, so it works whatever the server's own time zone is.
 
 To lift a ban: `sudo fail2ban-client set planetgen unbanip <address>`.
 To lift planetGen's own lockout as well: Admin › Stats › Login lockouts,

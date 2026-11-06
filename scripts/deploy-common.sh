@@ -675,10 +675,25 @@ finish_update_guard() {
 # AFTER the reload and the health check, and update.sh stays up showing its bar until it ends. Args: the stage's
 # name, then what `planetgen warm` is asked to build (nothing: every phase). Each stage has a time limit,
 # WARM_STAGE_SECONDS (default 4 hours, OPS.95: a first warm-up after a new epoch takes far longer than the 30 minutes it
-# once had; 0 means none), told in the stage's first line; the output also goes to $WARM_MAP_LOG. A stage that fails or
+# once had; 0 means none), told in the stage's first line. The run writes its own record to warmup.log in the log folder (OPS.96: `planetgen warm` appends it
+# itself, in local time with its zone, so nothing here pipes the output through tee and the bars draw on a terminal). A stage that fails or
 # runs out of time only warns, and says that what it stored is kept and how to continue: the first visit builds what it
 # did not.
 WARM_STAGE_DEFAULT_SECONDS=14400
+
+# The key that skips the cache warm-up while it runs (only with a terminal), and whether it was pressed: a skip ends the stage
+# that runs and leaves out the stages after it.
+WARM_SKIP_KEY="s"
+WARM_SKIPPED=0
+
+# Sends SIGTERM to process $1 and all of its descendants (the warm-up runs under runuser, env and timeout).
+kill_process_tree() {
+    local child
+    for child in $(pgrep -P "$1" 2>/dev/null); do
+        kill_process_tree "$child"
+    done
+    kill -TERM "$1" 2>/dev/null || true
+}
 
 # A number of seconds in words: 14400 is "4 hours", 5400 is "90 minutes", 45 is "45 seconds".
 duration_words() {
@@ -695,13 +710,16 @@ duration_words() {
 }
 
 run_warm_stage() {
+    if (( WARM_SKIPPED )); then
+        echo "Skipping the cache warm-up, $1 (skipped by a keypress)."
+        return 0
+    fi
     local name="$1" user="" runner=() limit=() status=0 seconds="${WARM_STAGE_SECONDS:-$WARM_STAGE_DEFAULT_SECONDS}" limit_words
     shift
     if ! [[ "$seconds" =~ ^[0-9]+$ ]]; then
         echo "warning: WARM_STAGE_SECONDS=$seconds is not a number of seconds; using $WARM_STAGE_DEFAULT_SECONDS." >&2
         seconds=$WARM_STAGE_DEFAULT_SECONDS
     fi
-    WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
     if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
         # shellcheck source=../examples/apache/apache-identity.sh
         source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
@@ -718,12 +736,35 @@ run_warm_stage() {
     else
         limit_words="no time limit"
     fi
-    echo "Building the site's caches, $name ($limit_words; log: $WARM_MAP_LOG):"
-    (cd / && ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm "$@" --progress \
-        </dev/null 2>&1) | tee "$WARM_MAP_LOG"
-    status=${PIPESTATUS[0]}
+    echo "Building the site's caches, $name ($limit_words; log: warmup.log in the log folder):"
+    local can_skip=0
+    [[ -t 0 && -t 1 ]] && can_skip=1
+    (( can_skip )) && echo "Press $WARM_SKIP_KEY to skip the cache warm-up (what it has stored is kept; the first visit builds the rest)."
+    (cd / && ${runner[@]+"${runner[@]}"} env "PLANETGEN_WARM_STARTED_BY=update.sh, $name" ${limit[@]+"${limit[@]}"} \
+        "$PYTHON" -m planetgen.cli.generate warm "$@" --progress </dev/null 2>&1) &
+    local pid=$! key="" read_status=0
+    if (( can_skip )); then
+        while kill -0 "$pid" 2>/dev/null; do
+            read_status=0
+            read -rsn1 -t 1 key || read_status=$?
+            if (( read_status == 0 )); then
+                if [[ "$key" == "$WARM_SKIP_KEY" || "$key" == "${WARM_SKIP_KEY^^}" ]]; then
+                    WARM_SKIPPED=1
+                    kill_process_tree "$pid"
+                    break
+                fi
+            elif (( read_status <= 128 )); then
+                sleep 1         # end of input: nothing to read, do not spin
+            fi
+        done
+    fi
+    wait "$pid" || status=$?
+    if (( WARM_SKIPPED )); then
+        echo "The cache warm-up ($name) was skipped by a keypress. What it stored is kept: 'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues it, and the first visit builds what it did not."
+        return 0
+    fi
     if (( status != 0 )); then
-        local why="failed with status $status (see $WARM_MAP_LOG)"
+        local why="failed with status $status (see warmup.log in the log folder)"
         (( status == 124 )) && why="ran out of its time limit of $(duration_words "$seconds") (WARM_STAGE_SECONDS; 0 means none)"
         echo "warning: the cache warm-up ($name) did not finish: it $why. What it stored is kept: 'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues where it stopped, and the first visit builds what it did not." >&2
     fi
@@ -785,7 +826,7 @@ check_app_imports() {
     else
         user=root
     fi
-    echo "Importing the web app as $user (a few seconds):"
+    echo "Importing the web app as $user:"
     if (cd / && ${runner[@]+"${runner[@]}"} "$PYTHON" - <<'EOF'
 import planetgen.generation.system  # noqa: F401
 from planetgen.web.app import create_app  # noqa: F401
@@ -840,7 +881,7 @@ migrate_or_reset_db() {
 # control database's history (OPS.13; the last 10 are kept), after the
 # schemas are current. A failure only warns: the update carries on.
 record_version_key() {
-    echo "Recording the version key (it runs the generator's fixed test cases once to fingerprint the code: 5 seconds to a minute):"
+    echo "Recording the version key (it runs the generator's fixed test cases once to fingerprint the code):"
     run_cli version_history || echo "warning: could not record the version key (see above); the update carries on." >&2
 }
 
@@ -848,7 +889,7 @@ record_version_key() {
 # which building the galaxy's density shape needs and no web request may spend the time on; the web app reads the results
 # from the data cache folder. A failure only warns: the web app then works them out when it is asked.
 warm_shape_means() {
-    echo "Working out the cluster system masses the galaxy shape needs (a few minutes on a big galaxy, once per release):"
+    echo "Working out the cluster system masses the galaxy shape needs:"
     run_cli warm_shape || echo "warning: could not work out the cluster system masses (see above); the update carries on." >&2
     chmod -R a+rX "${PLANETGEN_DATA_DIR:-/var/cache/planetgen/datasets}" 2>/dev/null || true
 }
@@ -862,7 +903,7 @@ warm_shape_means() {
 # runs it on request.
 MATH_CHECK_FAILED=0
 check_math() {
-    echo "Running the math check (a few seconds):"
+    echo "Running the math check:"
     if run_cli generate check-math; then
         MATH_CHECK_FAILED=0
     else

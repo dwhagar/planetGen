@@ -58,6 +58,7 @@ const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createSectorStage, DEFAULT_HIDDEN_KINDS } = await import(`./galaxysector.js${VERSION_QUERY}`);
 const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
+const { createGravityController } = await import(`./gravitylayer.js${VERSION_QUERY}`);
 const { KINDS } = await import(`./sectorscene.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 const { nearestInDirection } = await import(`./systemstep.js${VERSION_QUERY}`);
@@ -96,8 +97,6 @@ const BUTTON_ZOOM = 1.25;
 // side and one above another. Cells touch: no space between them (Boss,
 // 2026-10-01).
 export const ISO_TILT = Math.atan(Math.SQRT2);
-// MAP.371: the plane view's tilt, from straight down: flatter than the isometric slant, so a grid on the plane and the heights above it read.
-export const PLANE_TILT = (62 * Math.PI) / 180;
 // Every view can be turned, moved and zoomed (Boss, 2026-10-01; the
 // whole galaxy too since MAP.85): drag turns it, right-drag or
 // Shift-drag moves it, the wheel or a pinch zooms. It turns any way by
@@ -1011,13 +1010,35 @@ export function createStageView(host) {
   KINDS.forEach(function (pair) {
     layers.register({
       id: pair[0], label: pair[1], modes: ["galaxy", "sector"], group: "Show on the map", data: { kind: pair[0] },
+      heading: "Show", keywords: [pair[1].toLowerCase(), pair[0], "object", "kind"], common: ["star", "nebula", "blackHole"].indexOf(pair[0]) >= 0,
       defaultOn: DEFAULT_HIDDEN_KINDS.indexOf(pair[0]) < 0, urlKey: "hide", urlKeyOn: "show",
       available: function () { return kindCount(pair[0]) > 0; },
       title: function () { return "Show or hide the " + pair[1].toLowerCase() + " (" + kindCount(pair[0]) + ")"; },
     });
   });
+  // MAP.168: a sector page's map has the Gravity layer (gravitylayer.js): the sector's grid drawn as colored zones. Its numbers come from the page's /gravity route.
+  const gravity = pinned && host.fetchSectorGravity ? createGravityController(THREE, {
+    flipY: true,
+    fetchGrid: function (sectorId, mode, field) { return host.fetchSectorGravity(sectorId, mode, field); },
+    onChange: function () { layers.refresh(); if (!layersFollowing) writeHiddenToUrl(); },
+    picker: { addLayer: function (layer) { return picker.addLayer(layer); }, removeLayer: function (layer) { picker.removeLayer(layer); } },
+  }) : null;
+  if (gravity) {
+    layers.register({
+      id: "gravity", label: "Gravity", modes: ["sector"], group: "Gravity", heading: "Show",
+      keywords: ["gravity", "pull", "well", "tidal", "field", "zones", "heat map", "saddle", "lagrange"],
+      defaultOn: false, urlKey: "hide", urlKeyOn: "show",
+      title: function () { return "Show or hide the gravity of the sector as colored zones"; },
+      legend: gravity.legend, settings: gravity.settings,
+    });
+  }
   layers.onChange(function (id, on) {
     if (layersFollowing) return;
+    if (id === "gravity") {
+      if (gravity) gravity.setOn(on);
+      writeHiddenToUrl();
+      return;
+    }
     sectorStage.setKindHidden(id, !on);
     writeHiddenToUrl();
   });
@@ -1041,6 +1062,10 @@ export function createStageView(host) {
   function takeLayersFromLocation() {
     readLayersFromLocation();
     sectorStage.setHiddenKinds(KINDS.map(function (pair) { return pair[0]; }).filter(function (kind) { return !layers.isOn(kind); }));
+    if (gravity) {
+      gravity.readUrl(new URLSearchParams(location.search));
+      gravity.setOn(layers.isOn("gravity"));
+    }
   }
 
   // The registry follows the stage (a selection showing its kind).
@@ -1087,6 +1112,7 @@ export function createStageView(host) {
   function writeHiddenToUrl() {
     const params = new URLSearchParams(location.search);
     layers.writeUrl(params);
+    if (gravity) gravity.writeUrl(params);
     const marked = sectorStage.markedKinds();
     if (marked.length) params.set("mark", marked.join(","));
     else params.delete("mark");
@@ -1561,7 +1587,7 @@ export function createStageView(host) {
     pixelRatio: host.pixelRatio || function () { return 1; },
     fetchScene: host.fetchSectorScene, fetchUnchartedScene: host.fetchUnchartedScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
     hideCell: host.hideCell || function () {}, preview: host.preview || null, volumeSingles: host.volumeSingles || null,
-    viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
+    viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged, gravity: gravity,
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
     openSystem: !pinned && host.fetchSystemScene ? openSystemFromAmbient : null,
@@ -3039,17 +3065,20 @@ export function createStageView(host) {
     });
   }
 
-  // MAP.371: the plane view's tilt preset (`on`), or the stage's own tilt again (off): the camera turns about its target to the
-  // tilt, keeping the bearing it looks from, the target and the distance, and the user's zoom is read again from the new turn.
-  // Returns false when the camera is not free to move now.
-  function planeTilt(on) {
+  // MAP.371: the Chart View's viewpoint (`on`), or the stage's own tilt again (off). Chart View is a fixed isometric view: the camera
+  // takes the isometric slant (ISO_TILT) looking outward along the wedge's middle line (`angle`, radians from +x, from the galactic
+  // center's side, so the wedge opens away from the viewer), at the same distance. `goal`, when given, is the point the camera
+  // moves to look at (a wedge chosen, MAP.376: the wedge becomes the focus); otherwise the target stays. The user's zoom is read again
+  // from the new turn. Returns false when the camera is not free to move now.
+  function planeTilt(on, angle, goal) {
     if (!resolved || animation || !display || !view) return false;
     dropZoomGoal();
     const from = viewNow();
     const kept = view;
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
-    const theta = Math.hypot(back.x, back.y) > 1e-6 ? Math.atan2(back.y, back.x) : -Math.PI / 2;
-    const to = { target: from.target.slice(), dist: from.dist, quat: presetQuat(theta, on ? PLANE_TILT : (enteredSystem || entered) ? ISO_TILT : presetTilt(resolved)) };
+    const keptTheta = Math.hypot(back.x, back.y) > 1e-6 ? Math.atan2(back.y, back.x) : -Math.PI / 2;
+    const theta = on && angle !== undefined && angle !== null ? angle + Math.PI : keptTheta;
+    const to = { target: goal ? goal.slice() : from.target.slice(), dist: from.dist, quat: presetQuat(theta, on ? ISO_TILT : (enteredSystem || entered) ? ISO_TILT : presetTilt(resolved)) };
     flyCamera(from, to, null, function () {
       view = Object.assign({}, kept, { target: to.target.slice(), dist: to.dist, quat: to.quat.clone() });
       const fit = fitNow();
@@ -4149,6 +4178,7 @@ export function createStageView(host) {
   return {
     // MAP.142: the nebulae of the sector that is up which the map draws from their own points (nebulavolume.singleSource).
     sectorNebulaSources: function () { return sectorStage.nebulaSources(); },
+    sectorHardClouds: function () { return sectorStage.hardClouds(); },
     selectBody: selectBody,
     selectBodyRef: selectBodyRef,
     systemMarkerSource: systemMarkerSource,

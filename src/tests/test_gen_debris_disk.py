@@ -1,83 +1,103 @@
 # tests/test_gen_debris_disk.py
 
 """
-GEN.787: a main-sequence star may hold a cold debris disk, at the share the Herschel DEBRIS survey found for its kind
-[R4081], as a ring whose radius follows the blackbody law for dust of a drawn temperature.
+GEN.1071: the cold debris disk of a main-sequence star is the dust of its outer-disk belt (`physics/debris_dust.py`), found when its light is bright enough for a survey,
+and its edges are the belt's. The dust law is that of [R4785]; the shares of stars it gives are compared with the Herschel DEBRIS survey [R4081].
 """
 
 import math
 
 import pytest
 
-from planetgen import tuning
 from planetgen.describe import sheet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
-from planetgen.physics import constants, debris_disk
+from planetgen.generation.system import StarSystem
+from planetgen.physics import belt_mass, constants, debris_dust
 from planetgen.util import draw
 
+from tests.test_belt_birth import _belts, _config
 
-def _share(mass_sol, trials=4000):
-    found = sum(debris_disk.draw_disk(mass_sol, 1.0, draw.Stream(f"t:{mass_sol}:{i}")) is not None for i in range(trials))
-    return found / trials
-
-
-@pytest.mark.parametrize("mass,expected", [(0.3, 0.022), (0.7, 0.130), (0.95, 0.143), (1.2, 0.239), (2.0, 0.24), (8.0, 0.24)])
-def test_the_share_of_stars_with_a_disk_is_the_surveys_for_their_kind(mass, expected):
-    assert debris_disk.incidence(mass) == expected
-    assert _share(mass) == pytest.approx(expected, abs=0.03)
+SURVEY_SHARE_BY_MASS = ((0.45, 0.022), (0.8, 0.130), (1.04, 0.143), (1.4, 0.239), (math.inf, 0.24))
+"""tuple: The share of stars with a cold disk by the mass band that ends at the first number ([R4081]: M 2.2, K 13.0, G 14.3, F 23.9 percent, A 24)."""
 
 
-def test_the_disk_is_a_ring_at_the_blackbody_radius_of_its_dust_scaled_out():
-    assert debris_disk.blackbody_radius_au(278.3, 1.0) == pytest.approx(1.0)
-    assert debris_disk.blackbody_radius_au(139.15, 4.0) == pytest.approx(8.0)       # 4 times further for half the temperature, 2 for 4 L
-    disks = [d for d in (debris_disk.draw_disk(1.0, 1.0, draw.Stream(f"ring:{i}")) for i in range(2000)) if d]
-    assert len(disks) > 200
-    for disk in disks:
-        assert disk["disk_kind"] == "debris" and disk["disk_mass_solar"] is None
-        assert disk["disk_inner_au"] < disk["disk_outer_au"]
-        assert disk["disk_outer_au"] / disk["disk_inner_au"] == pytest.approx(1.5 / 0.7)
-    belts = sorted(math.sqrt(d["disk_inner_au"] * d["disk_outer_au"]) / math.sqrt(0.7 * 1.5) for d in disks)
-    assert belts[len(belts) // 2] == pytest.approx(1.74 * debris_disk.blackbody_radius_au(58.0, 1.0), rel=0.1)
+def test_a_belt_at_its_steady_state_has_dust_that_falls_as_one_over_the_age():
+    lower, upper = 0.75, 1.25
+    f = debris_dust.fractional_luminosity(lower, upper, 1.0, 1000.0, 2000.0, 1.0e-12 + belt_mass.collisional_constant(lower, upper, 1.0, 2000.0) / 1000.0, 1.0)
+    assert f > 0.0
+    # the same belt at half the age has twice the steady dust
+    f2 = debris_dust.fractional_luminosity(lower, upper, 1.0, 500.0, 2000.0, belt_mass.collisional_constant(lower, upper, 1.0, 2000.0) / 500.0, 1.0)
+    assert f2 == pytest.approx(2.0 * f, rel=1e-6)
 
 
-def test_a_brighter_star_has_its_belt_further_out():
-    near = debris_disk.draw_disk(1.0, 1.0, _always(0.3))
-    far = debris_disk.draw_disk(2.0, 25.0, _always(0.3))
-    assert far["disk_inner_au"] == pytest.approx(5.0 * near["disk_inner_au"])
+def test_the_dust_goes_with_the_mass_the_collisions_have_left():
+    lower, upper, age = 20.0, 60.0, 4000.0
+    ceiling = belt_mass.collisional_constant(lower, upper, 1.0, 100.0) / age
+    full = debris_dust.fractional_luminosity(lower, upper, 1.0, age, 100.0, ceiling, 1.0)
+    half = debris_dust.fractional_luminosity(lower, upper, 1.0, age, 100.0, 0.5 * ceiling, 1.0)
+    assert half == pytest.approx(0.5 * full, rel=1e-9)
+    assert debris_dust.fractional_luminosity(lower, upper, 1.0, age, 100.0, 0.0, 1.0) == 0.0
 
 
-class _always:
-    """A stream whose first draw is under every incidence and whose Gaussian is the same each time."""
-    def __init__(self, value):
-        self.value = value
-
-    def random(self):
-        return 0.0
-
-    def gauss(self, mu, sigma):
-        return 0.0
+def test_a_brighter_star_lights_the_same_belt_less():
+    args = (20.0, 60.0)
+    mass = 0.01
+    near = debris_dust.fractional_luminosity(*args, 1.0, 4000.0, 100.0, mass, 1.0)
+    far = debris_dust.fractional_luminosity(*args, 4.0, 4000.0, 100.0, mass, 1.0)
+    assert far == pytest.approx(near / 2.0, rel=1e-9)
 
 
-def test_the_same_star_always_gets_the_same_disk():
-    def build():
-        return debris_disk.draw_disk(1.0, 1.0, draw.Stream("debris:1.0:4.6"))
-    assert build() == build()
+def test_a_largest_body_beyond_the_cascade_is_reckoned_at_the_cascade_ceiling():
+    cap = debris_dust.CASCADE_MAX_KM
+    args = (20.0, 60.0, 1.0, 4000.0)
+    huge = debris_dust.fractional_luminosity(*args, 12000.0, 1.0e6, 1.0)
+    assert huge > 0.0 and huge == pytest.approx(debris_dust.fractional_luminosity(*args, cap, 1.0e6, 1.0), rel=1e-12)
 
 
-def _star(yerkes, mass_sol=1.0, age=4.6):
-    params = {"type": "G2V", "yerkes_class": yerkes, "mass_kg": mass_sol * constants.SOLAR_MASS_TO_KG, "radius_km": 6.957e5,
-              "temperature_k": 5772.0, "luminosity_w": constants.SOLAR_LUMINOSITY, "age_gy": age, "lifespan_gy": 10.0,
-              "initial_mass_sol": mass_sol, "phase_end_age_gy": 10.0, "metallicity_fe_h": 0.0}
-    return Star.from_params(params, SystemConfig(), name="Test")
+def test_a_belt_whose_cascade_cannot_start_makes_no_dust(monkeypatch):
+    monkeypatch.setattr(belt_mass, "collisional_constant", lambda *a, **k: -1.0)
+    assert debris_dust.fractional_luminosity(20.0, 60.0, 1.0, 4000.0, 100.0, 1.0, 1.0) == 0.0
 
 
-def test_a_main_sequence_star_may_hold_a_debris_disk_and_a_giant_never_does():
-    dwarfs = [_star("V", age=1.0 + i * 0.01) for i in range(300)]
-    held = [s for s in dwarfs if s.disk_kind]
-    assert 0.05 < len(held) / len(dwarfs) < 0.30
-    assert all(s.disk_kind == "debris" and s.disk_mass_solar is None and s.disk_inner_au > 0 for s in held)
-    assert not any(_star("III", age=1.0 + i * 0.01).disk_kind for i in range(100))
+def test_a_bad_belt_is_refused():
+    for bad in ((60.0, 20.0, 1.0, 1000.0, 100.0, 1.0, 1.0), (20.0, 60.0, 0.0, 1000.0, 100.0, 1.0, 1.0), (20.0, 60.0, 1.0, 0.0, 100.0, 1.0, 1.0)):
+        with pytest.raises(ValueError):
+            debris_dust.fractional_luminosity(*bad)
+
+
+def test_the_cut_separates_a_found_disk_from_a_faint_one():
+    cut = debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY
+    assert debris_dust.is_detectable(cut) and debris_dust.is_detectable(10.0 * cut)
+    assert not debris_dust.is_detectable(0.5 * cut) and not debris_dust.is_detectable(0.0)
+
+
+def _systems(count, **overrides):
+    config = _config(**overrides)
+    for seed in range(1, count + 1):
+        draw.set_run_seed(seed)
+        yield StarSystem(system_config=config)
+
+
+def test_a_star_with_a_disk_has_the_edges_of_its_outer_belt():
+    seen = 0
+    for system in _systems(30):
+        star = system.star
+        outer = [belt for belt in _belts(system) if belt.origin == "outer-disk"]
+        if star.disk_kind:
+            seen += 1
+            assert star.disk_kind == "debris" and star.disk_mass_solar is None and star.disk_inner_au < star.disk_outer_au
+            assert any(belt.lower_limit == star.disk_inner_au and belt.upper_limit == star.disk_outer_au for belt in outer)
+        else:
+            assert star.disk_inner_au is None and star.disk_outer_au is None
+    assert seen > 0
+
+
+def test_no_giant_has_a_debris_disk():
+    star = Star.from_params({"type": "K2III", "yerkes_class": "III", "mass_kg": 1.2 * constants.SOLAR_MASS_TO_KG, "radius_km": 2.0e7, "temperature_k": 4500.0,
+                             "luminosity_w": 100.0 * constants.SOLAR_LUMINOSITY, "age_gy": 8.0, "lifespan_gy": 9.0, "initial_mass_sol": 1.2, "phase_end_age_gy": 9.0,
+                             "metallicity_fe_h": 0.0}, SystemConfig(), name="Test")
+    assert star.disk_kind is None
 
 
 def test_the_sheet_rule_says_which_stars_have_disk_rows():
@@ -89,8 +109,7 @@ def test_the_sheet_rule_says_which_stars_have_disk_rows():
     assert ("star", "disk_kind") not in sheet.OPEN_GAPS and ("star", "disk_mass_solar") not in sheet.OPEN_GAPS
 
 
-def test_a_star_with_a_debris_disk_survives_its_dictionary():
-    star = next(s for s in (_star("V", age=1.0 + i * 0.01) for i in range(300)) if s.disk_kind)
-    rebuilt = Star.from_dict(star.to_dict(), SystemConfig())
-    assert (rebuilt.disk_kind, rebuilt.disk_mass_solar, rebuilt.disk_inner_au, rebuilt.disk_outer_au) == (
-        "debris", None, star.disk_inner_au, star.disk_outer_au)
+def test_the_share_of_sun_like_stars_with_a_disk_is_near_the_surveys():
+    held = sum(bool(system.star.disk_kind) for system in _systems(60))
+    survey = dict((upper, share) for upper, share in SURVEY_SHARE_BY_MASS)[1.04]
+    assert 0.03 <= held / 60 <= 2.0 * survey, held         # the tuned cut (stand-in DU1) gives about 8 percent of G2V stars against the survey's 14

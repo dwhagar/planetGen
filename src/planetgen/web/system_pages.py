@@ -326,6 +326,31 @@ def system_sky_band(system_id):
 system_sky_band.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+def _course_in_system(system_id):
+    """
+    NAV.22: the legs of the NAV course in `?course=<from>,<to>` that lie in this system, for the 3D view to draw
+    (`nav_page.system_course`), or `None` when none is asked for, none lies here, or it can't be drawn: a course that can't is simply not
+    drawn.
+    """
+    raw = (request.args.get("course") or "").strip()
+    if "," not in raw:
+        return None
+    from_raw, to_raw = (part.strip() for part in raw.split(",", 1))
+    if not from_raw or not to_raw:
+        return None
+    from .nav_page import system_course  # imported here: nav_page registers routes on `bp`, as this module does
+
+    try:
+        return system_course(system_id, from_raw, to_raw)
+    except apiclient.ApiError as exc:
+        if isinstance(exc, apiclient.NotFoundError):
+            return None  # an endpoint the database no longer has: no course, not a 404 page
+        log.exception(f"API error while plotting a course for the system view: {exc}")
+        return None
+    except ValueError:
+        return None  # an endpoint that does not parse
+
+
 @bp.route("/system/<uid:system_id>", methods=["GET", "POST"])
 def system(system_id):
     """One star system. A POST with a `facility_action` is the admin
@@ -358,6 +383,7 @@ def system(system_id):
 
     section, breadcrumbs = _system_crumbs(detail)
     inside = detail.get("inside")
+    course = _course_in_system(system_id) if detail["stars"] else None
     map_html = ""
     if detail["stars"]:
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"],
@@ -366,7 +392,7 @@ def system(system_id):
                                            sky_url=page_url("system_sky", system_id=system_id),
                                            sky_star_url=page_url("object_page", ref="star:STARIDHERE").replace("STARIDHERE", "{id}"),
                                            sky_help_url=page_url("sky_help_page"),
-                                           nav=body_nav(request.args, course=detail["sector_id"] is not None))
+                                           nav=body_nav(request.args, course=detail["sector_id"] is not None), course=course)
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.
     links, pick = pick_nav("system", system_id, request.args) if detail["sector_id"] is not None else (None, None)

@@ -101,6 +101,16 @@ def test_the_key_is_the_same_in_a_cell_and_changes_with_everything_the_image_dep
     assert len({base, *changes}) == len(changes) + 1
 
 
+def test_the_key_follows_the_tables_of_a_dust_profile():
+    from planetgen.physics import dust_model
+    thin = dust_model.DustProfile((0.0, 5000.0, 10000.0), (0.2, 0.1, 0.0), (100.0, 150.0, 300.0))
+    same = dust_model.DustProfile((0.0, 5000.0, 10000.0), (0.2, 0.1, 0.0), (100.0, 150.0, 300.0))
+    other = dust_model.DustProfile((0.0, 5000.0, 10000.0), (0.3, 0.1, 0.0), (100.0, 150.0, 300.0))
+    keys = [band.cache_key((1, 2, 3), "g", dust={"profile": p}) for p in (thin, same, other)]
+    assert keys[0] == keys[1] != keys[2]
+    assert keys[0] != band.cache_key((1, 2, 3), "g")
+
+
 def test_the_key_follows_the_constants_of_the_image(monkeypatch):
     base = band.cache_key((0, 0, 0), "g")
     monkeypatch.setattr(band, "LOCAL_V_LUMINOSITY_DENSITY", 0.05)

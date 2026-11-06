@@ -6,13 +6,13 @@ Informs: VIEW.20 to VIEW.38 (goal #4907); VIEW.39 and VIEW.40 are optional and o
 
 Status: built for stored stars (VIEW.20 to VIEW.37, 2026-11-05). The sky tiers that charting builds (VIEW.25, VIEW.26) and the calibration against a real catalogue (VIEW.30) are open; until they land the sky holds the stars that are stored and says how far it is built.
 
-Plan and research: `reports/system-sky-from-the-system-2026-11-04.md`. The wire format is [system-sky-wire-format.md](../interface/system-sky-wire-format.md); the longer, full-chart design for the view from a planet (9.1) is [sky-view.md](sky-view.md), and its items VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 stay in 9.1. Sources are cited as `[R0123]`; the list is on the References pages.
+Plan and research: `reports/system-sky-from-the-system-2026-11-04.md`. The wire format is [system-sky-wire-format.md](../interface/system-sky-wire-format.md); the longer, full-chart design for the view from a planet (9.0 phase 2; 9.1 was folded into 9.0) is [sky-view.md](sky-view.md), and its items VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 are built in 8.2 as its foundations. Sources are cited as `[R0123]`; the list is on the References pages.
 
 ## 1. What Boss decided
 
 Boss, 5:17 PM EST on 2026-11-04: the System View's background is the sky that system sees, each star at its true direction and distance and placed where it was when the light left it, not where it is at the galaxy's present time. Boss, 5:29 PM EST the same day (answers 1.2, 2.1, 3.3):
 
-1. A lighter 8.2 backdrop from stored stars and the glow. The 9.1 items stay in 9.1 and this part is built so they can reuse it.
+1. A lighter 8.2 backdrop from stored stars and the glow. The items VIEW.7, VIEW.8, VIEW.11, VIEW.12 and VIEW.13 are built in 8.2 as foundations of the view from a planet (9.0), and this part is built so they can reuse it.
 2. The limiting magnitude is a setting. The default is 7.5 and a phone gets a lower one (6.5).
 3. Missing stars are built when a system is charted, not by a visit. Reading the sky never starts a job.
 
@@ -95,7 +95,7 @@ The velocity of an unbuilt scatter or tier star is the circular speed at its pla
 * VIEW.39 (aberration, off by default) and VIEW.40 (cross-fade).
 * GEN.1254 and GEN.1255 (an ID and a name for scatter stars), then the links.
 * A system orientation to the galaxy (SKD5).
-* In 9.1: reddening and desaturation (VIEW.11), the nebula dust (VIEW.8), the stellar track at the earlier age (VIEW.12), the full ray-march (VIEW.13), the view from a planet's surface.
+* In 8.2 (foundations of the 9.0 view): reddening and desaturation (VIEW.11), the nebula dust (VIEW.8), the stellar track at the earlier age (VIEW.12), the full ray-march (VIEW.13), the view from a planet's surface.
 
 ## Sources
 
