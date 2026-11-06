@@ -17697,34 +17697,6 @@ clears each one.
   (prevalence census owner), after GEN.1265. Filed by the TODO thread.
   Prerequisites: GEN.1265. Related: GEN.1265, TEST.430, GEN.725.
 
-- [ ] **TEST.585 Three more tests red on main: the accessibility sample_params error for /references/method/<area>, test_health_reports_the_reason_for_maintenance, and test_sweep_atmosphere (bug)**
-  Core 2 (as the lane reported, 9:43 PM EST on 2026-11-04) saw the
-  accessibility test fail with a sample_params error for
-  /references/method/<area>, and Aux 7 (9:24 PM EST) saw
-  test_health_reports_the_reason_for_maintenance and
-  test_sweep_atmosphere fail the same on main as on its branch. None is
-  from those lanes' changes. Find the commit for each, fix the code or
-  the test and say which. test_burn_down_register (the 6.170 rows) is
-  already in TEST.580. Done: the three pass on main. Lock-free. Version
-  8.1. Owner: Tides 1, with TEST.580, TEST.581 and TEST.583. Filed by
-  the TODO thread.
-  More from Aux 7 (as the lane reported) (9:46 PM EST on 2026-11-04):
-  four nebula-volume fuzz cases, test_page_numbers_clamp for /systems,
-  and test_a_neighborhood_job_runs_its_sectors_through_the_wrapper also
-  fail on main (the last also in a partial gate). The same pass found
-  the citation lock failing on main from
-  src/tests/test_nav_route_graph.py (a wedge label that read as a name and
-  a year, from NAV.73; Aux 7 fixed that one in #5012). Include all of these in this item.
-  Part 2 (Tides 1, as the lane reported) (11:10 PM EST on 2026-11-04): a
-  LOCK item for the next train: branch claude/test585-trace-air-state
-  head 3bf0c3584, build-only (no epoch, no golden): trace_air.apply
-  recomputes the stored molar mass, density and scale height after
-  adding trace gases (fixes test_sweep_atmosphere, off by 1.4e-8 on N2O
-  worlds), and gas_equilibrium.solve retries with trace-element amounts
-  1e-12 then 1e-9 (fixes the element-balance error). Part 1 (the
-  test-only fixes) is PR #5025.
-  Prerequisites: none. Related: TEST.580, TEST.581, TEST.583.
-
 - [ ] **TEST.591 test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug)**
   Core 5 (as the lane reported, 2:08 AM EST on 2026-11-05) found two
   tests red on plain main: test_number_guard (Oxford comma wording in
@@ -17826,21 +17798,6 @@ clears each one.
   in.
   Prerequisites: none.
 
-- [ ] **TEST.616 tests/test_sweep_atmosphere.py::test_every_body_of_the_sweep_obeys_every_rule: the mean-molar-mass and air-density rules miss by about 1e-8 relative on 4 bodies (bug)**
-  The Train Manager's full-suite run (as the lane reported, about 3:47
-  PM EST on 2026-11-05, main e6939031f, the test run alone on clean
-  main) found this red. Either the rule's tolerance is tighter than the
-  arithmetic (a float order difference) or a value is rounded at
-  storage. Say which and fix at the cause; a tolerance may be set only
-  to the stated precision of the stored column. Done: the test passes on
-  current main. Owner: Tides 1 (moved from Aux 2 by the TODO thread, 9:58
-  PM EST on 2026-11-05, no start was reported by Aux 2). Do: reproduce on current main first (a
-  merge since may have fixed it), fix at the cause with the property
-  kept, never skip or loosen a test. Lock-free if output is unchanged;
-  tell the TODO thread if values change. Version 8.1. Filed by the TODO
-  thread.
-  Prerequisites: none.
-
 - [ ] **TEST.623 Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark)**
   Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
   pilot's console default and wants the other two looks, Chart room and
@@ -17910,11 +17867,62 @@ clears each one.
   Version 8.1. Owner: Core 3. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.619.
 
-- [ ] **TEST.640 tests/test_object_list.py is flaky: the fixture galaxy sometimes has no moons (bug)**
-  The Train Manager (as the lane reported, about 10:55 PM EST on 2026-11-05, train 11 gates) saw test_object_list fail now and then because the fixture galaxy has no moons in that run. Do: make the fixture deterministic (draw.bound or a fixed seed) so it always holds at least one moon, or make the test build the moon it needs; never skip or loosen the test. Reproduce on current main first. Lock-free, no migration. Done:
-  the test passes on current main, in ten runs for the flaky one.
-  Version 8.1. Owner: Core 5. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.619.
+- [ ] **TEST.641 tests/test_sweep_atmosphere.py::test_the_sweep_holds_planets_of_many_classes_in_every_zone_and_some_moons finds 7 moons where it asks for at least 20 (bug)**
+  Tides 1 (as the lane reported, about 11:23 PM EST on 2026-11-05) found
+  this test red on main after train 11. The likely cause is GEN.962
+  (train 11): rocky planets now hold a massive moon only from a giant
+  impact, so moons per planet fell from about 1.3 to 0.1 and the sweep
+  holds fewer moons. Do: confirm that is the cause, then give the sweep
+  enough moons by widening it (more systems, or a sweep that adds moons
+  of giants) rather than lowering the floor without a reason, and say in
+  the test why the number is what it is. Lock-free, no migration. Done:
+  the test passes on current main. Version 8.1. Owner: Bug 1. Filed by
+  the TODO thread.
+  Prerequisites: none. Related: GEN.962.
+
+- [ ] **TEST.642 tests/test_work_units.py: three tests start a second run in the same process and raise Busy from the ADM.136 guard (a run started inside a run would wait for itself for ever) (bug)**
+  The Train Manager (as the lane reported, about 11:24 PM EST on 2026-11-05, main e97e2e2d9) ran tests/test_work_units.py: test_a_second_run_waits_in_line_for_the_first_and_then_runs, test_a_runs_results_do_not_depend_on_the_place_it_started_from and test_a_run_gives_up_after_the_wait_bound_and_names_the_run_it_waited_for raise planetgen.queue.runrecord.Busy: the run is started by the same process that follows it, so it would wait for itself for ever. That is the ADM.136 guard (#4680) firing on tests that start a second run in the same pytest process. Do: start the first run from a separate process (or a thread that is not the follower) in those tests so the guard stays, and never weaken the guard. Reproduce on current main first. Lock-free, no
+  migration. Done: the test passes on current main. Version 8.1. Owner:
+  Core 1. Filed by the TODO thread.
+  Prerequisites: none.
+
+- [ ] **TEST.644 Four more tests are red on main: test_web_fresh_after_cli (3), test_fingerprint every_table_is_compared, test_db_check (3) and test_galaxy_gen span_mode (bug)**
+  Aux 2 (as the lane reported, 11:58 PM EST on 2026-11-05, main 07192bb4f)
+  found these red on main besides TEST.642 and TEST.643: the three
+  tests in test_web_fresh_after_cli (`[first] = _sectors(...)` gets more
+  than one row, because rogue planets add uncharted sector rows since
+  GEN.1111 part 7), test_fingerprint's every_table_is_compared, the
+  three tests in test_db_check, and test_galaxy_gen's span_mode (the
+  last four not yet checked on main). Do: reproduce each on current main,
+  find the cause, and fix the test or the code at the cause; for the
+  first group count only charted sectors, as TEST.643 did. Lock-free
+  unless a cause needs a migration. Done: all of them pass on current
+  main. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.642.
+
+- [ ] **GEN.1301 tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group fails on main: bright_stars and phenomenon_scatter gained uid in GEN.1254 but are in neither the kind_tables uid group nor point_columns.NOT_BODIES (bug)**
+  Planets 1 (as the lane reported, 12:36 AM EST on 2026-11-06, main
+  15e29adb5, clean checkout) found tests/test_kind_tables.py::test_every_table_with_an_object_id_is_in_the_uid_group
+  red: the bright_stars and phenomenon_scatter tables gained a uid column in
+  GEN.1254 but are in neither the kind_tables uid group nor
+  point_columns.NOT_BODIES. Do: decide for each table whether it is a
+  body kind (add it to the uid group, with its kind table) or not (add it
+  to NOT_BODIES with the reason), and make the test pass. Lock-free unless
+  a stored value changes. Done: the test passes on current main. Version
+  8.1. Owner: Core 3 (GEN.1254 follow-up). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1254.
+
+- [ ] **GEN.1302 tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not fails on main: sector 1 0 5 differs in 'structure' between the two orders (bug)**
+  Planets 1 (as the lane reported, 12:36 AM EST on 2026-11-06, main
+  15e29adb5, clean checkout) found tests/test_order_independence.py::test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not
+  red: sector 1 0 5 differs in "structure" between the two orders. A sector
+  must come out the same whatever order the backfill reached it in. Do:
+  reproduce on current main, find which stage reads state that the other
+  order has already changed (probably a GEN.1254 follow-up), and fix it at
+  the cause. Lock item if generation output changes (new epoch), else
+  lock-free. Done: the test passes on current main. Version 8.1. Owner:
+  Core 3 (GEN.1254 follow-up). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1254.
 
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density

@@ -2,6 +2,38 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3431] - 2026-11-06
+
+**Headline:** The column round-trip test no longer fails now and then on whether the test galaxy's rogue planets hold a moon.
+
+### Fixed
+- TEST.645: `test_every_column_is_written` listed `moons.rogue_planet_id` as never written in the test galaxy, but whether a rogue planet that galaxy's donors threw out holds a moon depends on the draws of the build, so the test failed in some combined runs ("written after all"). The column is now listed as chance, like the other columns the draw decides; `test_parent_link` and `test_rogue_body_storage` still write it and read it back.
+
+## [8.0.3430] - 2026-11-06
+
+**Headline:** The tests of the object lists no longer fail now and then for want of a moon in their fixture galaxy.
+
+### Fixed
+- TEST.640: the galaxy that `test_object_list.py`, `test_object_list_values.py`, `test_systems_values.py` and `test_object_index.py` share was drawn afresh each run, and some draws gave no moons, so the tests that read moons failed at random. The three systems are now drawn from fixed streams, and the first stream that gives at least one moon is used, so the galaxy is the same in every run.
+
+## [8.0.3429] - 2026-11-06
+
+**Headline:** The galaxy-run test counts the sectors the run charted, not the uncharted rows that rogue planets add.
+
+### Changed
+
+- `test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units` compared every row of `sectors` with the "Saved sector" lines of the run. Since GEN.1111 a rogue planet that lands in a cell nobody charted gets a row of its own (`uncharted_sector_id`), named by the cell's designation and kept out of the chart ledger, so the table held 60 rows against 36 charted sectors and 36 lines. The test now counts the rows that are in the chart ledger. No line was lost, and no code changes.
+
+## [8.0.3428] - 2026-11-06
+
+**Headline:** A hot lava world that holds carbon in its air no longer stops the build with a solver that does not converge.
+
+### Changed
+
+- The carbon gas of a volatile-bearing lava world (`physics/mixture_lava.py`, row `i6`) is solved at a gas pressure that can hold the oxygen the redox buffer demands (GEN.1296). The buffered oxygen (O2 and O) alone filled the surface pressure from about 2600 K at a millibar or 4000 K at a bar, so `gas_equilibrium.solve` had no room for carbon and raised `no convergence`: 282 of 1200 draws of a sweep from 1400 to 6000 K at 0.001 to 100 bar. Where the oxygen takes under 99 percent of the surface pressure (`OXYGEN_SHARE_MAX`, stand-in row AM96, tier 6, tweak level 0) nothing changes: all 918 draws of the sweep that converged before give the same mixture to the last digit. Where it does not, the gas pressure is what holds the oxygen with 1 percent to spare, and the carbon gases are scaled to it.
+
+generation-output: unchanged
+
 ## [8.0.3427] - 2026-11-06
 
 **Headline:** The test of the forcing rules asks for a belt in every system with a prevalence large enough to do it, and passes again.

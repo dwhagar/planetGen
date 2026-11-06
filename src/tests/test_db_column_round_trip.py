@@ -181,7 +181,10 @@ NULL_IN_THIS_GALAXY = {
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
-    ("moons", "rogue_planet_id"): "only a moon of a free planet (test_parent_link)",
+    # A moon of a free planet names its rogue planet; whether this galaxy's rogue planets (the ones its donors threw out, which depend on the
+    # draws of the build) hold a moon is chance, so the column is either written or NULL here (TEST.645; test_parent_link and test_rogue_body_storage
+    # write and read it back).
+    ("moons", "rogue_planet_id"): CHANCE,
     # GEN.764: the seeded galaxy runs no scatter, and its population pass finds no civilization.
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},

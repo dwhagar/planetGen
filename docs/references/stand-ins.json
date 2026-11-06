@@ -6193,6 +6193,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "mixture_lava.MELT_MAX_K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design (source tier 6, tweak level 0; the carbon solve of a volatile-bearing lava world holds the oxygen at the redox buffer's fugacity, and when that oxygen (O2 and O) alone fills the surface pressure there is no room for carbon and gas_equilibrium.solve does not converge (GEN.1296); checked from 0.8 to 1.2 of the pressure at six temperatures between 2600 and 6000 K and three redox states: it converges for every share under 1 and fails for every share of 1 and over)"
+            ],
+            [
+              "What it is",
+              "mixture_lava.OXYGEN_SHARE_MAX"
+            ],
+            [
+              "The range it moves in",
+              "0.99: the gas pressure over the melt is raised to what holds its buffered oxygen with 1 percent to spare when the surface pressure is lower; nothing changes where the oxygen takes under 99 percent"
+            ],
+            [
+              "Where it holds",
+              "volatile-bearing lava worlds over 2500 K at surface pressures under a bar, and every temperature where the buffered oxygen exceeds the surface pressure"
+            ],
+            [
+              "What would show it wrong",
+              "test_atmosphere_mixture_lava::test_a_surface_pressure_the_buffered_oxygen_fills_is_raised_and_the_carbon_solve_converges"
+            ],
+            [
+              "What replaces it",
+              "a gas-over-melt model in which the oxygen is one more species of the melt's vapor, not a reservoir held at a fugacity (GEN.499)"
+            ]
+          ],
+          "id": "AM96",
+          "key": "6.7:AM96",
+          "kind": "P",
+          "slug": "6-7-am96",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mixture_lava.OXYGEN_SHARE_MAX"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",
@@ -38363,7 +38401,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": "GEN.1207",
+          "unread": "GEN.1281",
           "what": "phase_gate.CO2_FLUID_MAX_K 400 K: the top of the dense carbon dioxide family's window above the critical pressure"
         }
       ],

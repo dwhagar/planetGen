@@ -193,3 +193,35 @@ def test_a_surface_hotter_than_the_fits_has_its_vapor_worked_out_at_their_top():
     seed = next(seed for seed in range(12) if mixture(5000.0, "tp_k", seed) is not None)
     cooler = mixture(5000.0, "tp_k", seed)
     assert cooler.temperature_k == 5000.0 and cooler.mole_fractions != mixture(6881.0, "tp_k", seed).mole_fractions
+
+
+def test_a_surface_pressure_the_buffered_oxygen_fills_is_raised_and_the_carbon_solve_converges():
+    """GEN.1296: the volatile-bearing branch held the oxygen at the redox buffer's fugacity at the surface pressure, and from about 2600 K at a
+    millibar (or 4000 K at a bar) the buffered O2 and O alone fill that pressure, so `gas_equilibrium.solve` had no room for carbon and raised
+    "no convergence" for 282 of 1200 draws of a sweep (row AM96). Where the oxygen takes under `OXYGEN_SHARE_MAX` of the surface pressure the gas
+    is the same as before; where it does not, the gas pressure is what holds the oxygen with a hundredth to spare."""
+    def volatile_bearing(temperature, pressure):
+        subject = Subject("terrestrial", {**HOT, "ts_k": temperature, "tp_k": temperature, "pressure_bar": pressure})
+        for seed in range(60):
+            with draw.bound(seed):
+                recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
+                if recipe.binaries.get("i6", (False, None))[0]:
+                    return subject, recipe, seed
+        raise AssertionError("no volatile-bearing draw in 60 seeds")
+
+    for temperature, pressure in ((4000.0, 1e-3), (3000.0, 1e-3), (6000.0, 1.0), (6881.0, 100.0)):
+        subject, recipe, seed = volatile_bearing(temperature, pressure)
+        with draw.bound(seed):
+            recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
+            result = ml.vapor_mixture(subject, recipe, temperature_name="tp_k")
+        assert result.constants["volatile_bearing"] and sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
+        assert result.mole_fractions["CO"] > 0.0 and result.mole_fractions["CO2"] > 0.0
+    # a feasible case keeps the surface pressure it had: the carbon gas is the solve at that pressure
+    subject, recipe, seed = volatile_bearing(2200.0, 10.0)
+    with draw.bound(seed):
+        recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
+        result = ml.vapor_mixture(subject, recipe, temperature_name="tp_k")
+    redox = recipe.values.get("a4", recipe.values.get("a1"))
+    from planetgen.physics import gas_equilibrium, oxygen_fugacity
+    alone = gas_equilibrium.solve({"C": ml.VOLATILE_BEARING_PER_CARBON}, 2200.0, 10.0, fixed_o2_log_fugacity=oxygen_fugacity.log_fo2(redox, 2200.0))
+    assert alone.mole_fractions["CO2"] / alone.mole_fractions["CO"] == pytest.approx(result.mole_fractions["CO2"] / result.mole_fractions["CO"], rel=1e-6)
