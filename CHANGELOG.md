@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3458] - 2026-11-06
+
+**Headline:** A galaxy with a very wide disk no longer stops its nebula field with a dust error: the gas metallicity of a place is capped.
+
+### Fixed
+- `nebula_composition.gas_oh` never returns more than +0.7 dex (`GAS_OH_MAX_DEX`, stand-in NBC16). The gradient is written against the Milky Way's, so a galaxy whose reference radius is several times larger put the gas of its central clouds above +3 dex, where the dust took more than half the hydrogen and `makeup` raised "dust cannot hold half the hydrogen of a nebula", stopping the nebula field stage (the `planetgen galaxy` runs of `test_fuzz_cli` on the flat test galaxy).
+
+generation-output: unchanged
+
 ## [8.0.3457] - 2026-11-06
 
 **Headline:** The gear a world asks for and the hours outside are now those of its best site, with a note naming the worst conditions elsewhere.
