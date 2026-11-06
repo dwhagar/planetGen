@@ -17892,12 +17892,6 @@ clears each one.
   Core 1. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.643 tests/test_work_units.py::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units fails: 36 'Saved sector' lines against 60 saved (bug)**
-  The Train Manager (as the lane reported, about 11:24 PM EST on 2026-11-05, main e97e2e2d9) found tests/test_work_units.py::test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units failing at "each sector logged once, as it was saved": 36 'Saved sector' lines against 60 saved. The probable cause is the log-form change of OPS.97 (#5206). Do: find whether sectors are logged in another form now or some are not logged, and fix the test or the logging at the cause; no line may be lost. Reproduce on current main first. Lock-free, no
-  migration. Done: the test passes on current main. Version 8.1. Owner:
-  Aux 2. Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **TEST.644 Four more tests are red on main: test_web_fresh_after_cli (3), test_fingerprint every_table_is_compared, test_db_check (3) and test_galaxy_gen span_mode (bug)**
   Aux 2 (as the lane reported, 11:58 PM EST on 2026-11-05, main 07192bb4f)
   found these red on main besides TEST.642 and TEST.643: the three
@@ -17910,7 +17904,7 @@ clears each one.
   first group count only charted sectors, as TEST.643 did. Lock-free
   unless a cause needs a migration. Done: all of them pass on current
   main. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.642, TEST.643.
+  Prerequisites: none. Related: TEST.642.
 
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
