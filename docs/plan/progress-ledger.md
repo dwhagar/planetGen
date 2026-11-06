@@ -2616,3 +2616,4 @@ Baseline: PR #1817.
 | MAP.168 | 8.5 | Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05) |
 | PERF.242 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | MAP.169 | 8.5 | Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05) |
+| UX.94 | 8.5 | Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05) |

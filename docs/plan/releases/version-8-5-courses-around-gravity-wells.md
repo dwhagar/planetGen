@@ -60,7 +60,6 @@ Showing courses on the maps and bending them around keep-out spheres.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.94 | Gravity map wording: the legend, the mode names and the Map help text |  |  |
 
 ### Console look: icons and the maps' chrome
 
