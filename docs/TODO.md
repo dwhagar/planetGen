@@ -18586,25 +18586,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
-- [ ] **OPS.98 A time on every line of every script and command**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: planetgen warm and the other commands print display lines with the
-  time whenever output is not a terminal; the roughly 108 plain echo
-  lines in scripts/deploy-common.sh and those in install.sh,
-  install-python-deps.sh, enable-swap.sh, setup-debug-log.sh,
-  set-permissions.sh and create-cache-dir.sh move to log_info,
-  log_warning and log_error. Shares deploy-common.sh, update.sh and
-  test_deploy_scripts.py with the closing-summary item: one branch or in
-  order. Touches those scripts, test_deploy_scripts.py and
-  test_log_shell.py. Done: every line a script prints carries a time.
-  Prerequisites: OPS.97.
-
 - [ ] **OPS.99 Compact warm-up progress by time, and the progress bars back inside update.sh**
   Boss decided (11-05) that every log uses the system (local) time with
   its zone, and that logging is unified across the board; the standard
@@ -18621,25 +18602,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   tests. Done: update.sh shows bars in a terminal and a quiet progress
   line in a log.
   Prerequisites: OPS.96.
-
-- [ ] **OPS.100 A closing summary for update.sh and install.sh, with warnings repeated**
-  Boss decided (11-05) that every log uses the system (local) time with
-  its zone, and that logging is unified across the board; the standard
-  moves from UTC to local time. Full text and the files touched are in
-  reports/logging-review-2026-11-05.md, section "Boss decision (11-05)
-  and the widened items". Lock-free: it touches no generated content,
-  golden, migration or epoch. Version 8.3. Owner: none yet (the lane
-  that takes the warm-up and update.sh code). Filed by the TODO thread.
-  Do: one shared shell helper (log_summary) in scripts/logrecord.sh
-  prints the duration, code version, migration, the time the site was
-  reloaded and passed the health check, the warm-up result, and every
-  warning raised, repeated at the end. The reload's Done lines become
-  'Site reloaded: running the new code' so Done appears once, last. Long
-  warnings (the 330-character warm-up warning) become a headline plus
-  indented fix lines. Shares files with the time-on-every-line item.
-  Touches update.sh, install.sh, scripts/logrecord.sh, deploy-common.sh
-  and tests. Done: both scripts end with the summary.
-  Prerequisites: OPS.98.
 
 - [ ] **OPS.101 Named logs for the unattended long jobs: tiles.log, orbits.log and update.log**
   Boss decided (11-05) that every log uses the system (local) time with
@@ -18695,7 +18657,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   stagemark.py, warmup.py, warm_progress.py, the generate stages and
   tests. Done: the test passes and every script and command uses the
   table.
-  Prerequisites: OPS.98, OPS.99, OPS.100, OPS.101, OPS.102.
+  Prerequisites: OPS.99, OPS.101, OPS.102.
 
 ## DOC: Documentation
 
