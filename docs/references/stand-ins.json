@@ -36851,8 +36851,8 @@
       "title": "Stand-ins of the gas of the Magellanic Clouds in the nebula field"
     },
     {
-      "key": "6.189",
-      "number": "6.189",
+      "key": "6.190",
+      "number": "6.190",
       "rows": [
         {
           "burn_down": null,
@@ -36883,9 +36883,9 @@
             ]
           ],
           "id": "CW1",
-          "key": "6.189:CW1",
+          "key": "6.190:CW1",
           "kind": "P",
-          "slug": "6-189-cw1",
+          "slug": "6-190-cw1",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
@@ -36925,9 +36925,9 @@
             ]
           ],
           "id": "CW2",
-          "key": "6.189:CW2",
+          "key": "6.190:CW2",
           "kind": "P",
-          "slug": "6-189-cw2",
+          "slug": "6-190-cw2",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
@@ -36935,12 +36935,12 @@
           "what": "capture_windows.FULL_INSTABILITIES 1: one instability of the architecture is the full one the scatter step scales its hot classical share to"
         }
       ],
-      "slug": "6-189-stand-ins-of-the-capture-windows-of-a-system",
+      "slug": "6-190-stand-ins-of-the-capture-windows-of-a-system",
       "title": "Stand-ins of the capture windows of a system"
     },
     {
-      "key": "6.190",
-      "number": "6.190",
+      "key": "6.191",
+      "number": "6.191",
       "rows": [
         {
           "burn_down": null,
@@ -36971,9 +36971,9 @@
             ]
           ],
           "id": "IW1",
-          "key": "6.190:IW1",
+          "key": "6.191:IW1",
           "kind": "P",
-          "slug": "6-190-iw1",
+          "slug": "6-191-iw1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -37009,9 +37009,9 @@
             ]
           ],
           "id": "IW2",
-          "key": "6.190:IW2",
+          "key": "6.191:IW2",
           "kind": "P",
-          "slug": "6-190-iw2",
+          "slug": "6-191-iw2",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
@@ -37047,9 +37047,9 @@
             ]
           ],
           "id": "IW3",
-          "key": "6.190:IW3",
+          "key": "6.191:IW3",
           "kind": "B",
-          "slug": "6-190-iw3",
+          "slug": "6-191-iw3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -37085,9 +37085,9 @@
             ]
           ],
           "id": "IW4",
-          "key": "6.190:IW4",
+          "key": "6.191:IW4",
           "kind": "P",
-          "slug": "6-190-iw4",
+          "slug": "6-191-iw4",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
@@ -37095,7 +37095,7 @@
           "what": "irregular_moons.COMPOSITION_MASS_CAP_KG (0.999 of compaction.TAPER_END_KG): an exchange capture heavier than the composition rows reach is composed as a body of this mass"
         }
       ],
-      "slug": "6-190-stand-ins-of-the-irregular-moons-of-a-planet",
+      "slug": "6-191-stand-ins-of-the-irregular-moons-of-a-planet",
       "title": "Stand-ins of the irregular moons of a planet"
     },
     {
@@ -38331,8 +38331,8 @@
       "title": "Stand-ins of the binary-stripped Wolf-Rayet channel"
     },
     {
-      "key": "6.189",
-      "number": "6.189",
+      "key": "6.192",
+      "number": "6.192",
       "rows": [
         {
           "burn_down": null,
@@ -38363,9 +38363,9 @@
             ]
           ],
           "id": "SEP1",
-          "key": "6.189:SEP1",
+          "key": "6.192:SEP1",
           "kind": "P",
-          "slug": "6-189-sep1",
+          "slug": "6-192-sep1",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
@@ -38373,7 +38373,7 @@
           "what": "tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (required_separation_ly)"
         }
       ],
-      "slug": "6-189-stand-in-of-how-far-apart-random-placement-keeps-two-systems",
+      "slug": "6-192-stand-in-of-how-far-apart-random-placement-keeps-two-systems",
       "title": "Stand-in of how far apart random placement keeps two systems"
     },
     {

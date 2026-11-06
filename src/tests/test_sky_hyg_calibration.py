@@ -117,9 +117,9 @@ def test_the_generated_naked_eye_sky_holds_the_share_of_the_real_one_that_was_me
         # but not through it is never stored (a 50 Lsun star reaches 113 pc through the small galaxy's dust and 161 pc without), and the count would be short for that alone.
         skeleton = store.get_galaxy_shape(conn)
         limits, _seed = run_plan._scatter_limits_and_seed(conn, skeleton)
-        centre, tiers = sky_charting.plan(observer_pc, LIMIT, skeleton.edge_pc, limits=limits, av_per_kpc_at_sun=0.0)
+        center, tiers = sky_charting.plan(observer_pc, LIMIT, skeleton.edge_pc, limits=limits, av_per_kpc_at_sun=0.0)
         assert not tiers.dropped, f"the visit budget cut {len(tiers.dropped)} dust-free bands"
-        sky_charting.chart(conn, observer_pc, LIMIT, tiers=tiers, centre=centre)
+        sky_charting.chart(conn, observer_pc, LIMIT, tiers=tiers, center=center)
         observer = sky.Observer(observer_pc, 1.0e9)
         clear = sky.sky_from_database(conn, observer, 1.0e9, LIMIT, galaxy_key=SEED_HEX, dust={"av_per_kpc_at_sun": 0.0})
         dusty = sky.sky_from_database(conn, observer, 1.0e9, LIMIT, galaxy_key=SEED_HEX)

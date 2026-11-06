@@ -50,7 +50,7 @@ each `Star`/`BinaryStarProxy` has a `system_perimeter` (its Hill sphere
 i.e. the radius beyond which the galaxy's own gravity dominates over the
 star's, roughly the same concept that sets the outer edge of the Oort
 cloud). Two systems are required to be at least `program_constants.SECTOR_HILL_SEPARATION_SHARE`
-(half) of the *sum* of their two Hill radii apart (`required_separation_ly`), so neither one's centre sits deep inside the
+(half) of the *sum* of their two Hill radii apart (`required_separation_ly`), so neither one's center sits deep inside the
 other's sphere. The whole sum is not asked (GEN.1284): at the solar circle the median system's sphere is 1.3 pc in radius (measured
 in the audit galaxy), the mean spacing of systems is 2.2 pc, and real neighbouring spheres overlap (the Sun's nearest neighbour is
 inside its sphere); asking for the whole sum fills 0.6 of a 4 pc sector with spheres, which random placement cannot do, and the
@@ -58,7 +58,7 @@ sector ran out of room and kept 85 percent of the systems its profile expects (7
 
 Each system's `system_perimeter` is the one already shown in every generated system's output (the Sun's Oort cloud is
 inside it); it follows the mass of the galaxy inside the star's place (`galaxy.enclosed_mass`), so its median is about 4 ly
-(1.3 pc) over the systems of the audit galaxy at the solar circle and it falls toward the centre. Scaled by (mass/solar mass)^(1/3) across spectral types it runs from a
+(1.3 pc) over the systems of the audit galaxy at the solar circle and it falls toward the center. Scaled by (mass/solar mass)^(1/3) across spectral types it runs from a
 small M dwarf's to a massive O star's several times larger.
 
 Position sampling draws through `planetgen.util.draw`, the stream bound
@@ -286,7 +286,7 @@ def required_separation_ly(system_a, system_b):
     their galactic Hill radii (`hill_radius_ly`). The whole sum would keep
     the spheres from overlapping at all; the real solar neighbourhood
     overlaps them, and the whole sum cannot be placed at the density of
-    one (GEN.1284). Closer than this puts one system's centre deep inside
+    one (GEN.1284). Closer than this puts one system's center deep inside
     the other's zone of gravitational dominance.
 
     Args:
