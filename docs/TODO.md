@@ -964,20 +964,6 @@ with `clamp()`.
   yet. Filed by the TODO thread.
   Prerequisites: none. Related: UX.269, UX.277, UX.278, UX.279, UX.280, UX.281, TEST.630, DOC.108.
 
-- [ ] **UX.275 Sensor registry and API: one registry of kind, look builder and painter (web/lib/sensor.py, static/sensorview.js) and GET /api/objects/<ref>/sensor, with a test that fails for any kind in describe/sheet.py that has no entry**
-  Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
-  proposal
-  /mnt/project-files/design-drafts/sensor-view-proposal-2026-11-05.md).
-  Do: one registry that maps every kind of the property sheet to the
-  look builder and painter that exist (bodylook.py, bodyview.js,
-  phenomenonrender.js), built from the stored row and the Object ID seed
-  alone (never a cached sky), the API route that returns the look JSON
-  so the Chart and 3D views can reuse it, and a guard test like the
-  property sheet one: a kind with no entry fails. Facilities have no
-  picture before 9.3. Version 8.2. Lock-free, no migration, no epoch.
-  Owner: none yet. Filed by the TODO thread.
-  Prerequisites: none. Related: UX.171, MAP.270.
-
 - [ ] **UX.276 Object page: the rendered example becomes the Sensor view, the first panel for every kind, with a Sensors show readout line and estimate labels**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal
@@ -2163,7 +2149,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the Sensor view does not become a third map mode. Version 8.2.
   Lock-free, no migration, no epoch. Owner: none yet. Filed by the TODO
   thread.
-  Prerequisites: UX.275, UX.276.
+  Prerequisites: UX.276.
 
 - [ ] **MAP.395 Sensor pictures for the kinds with none: belt as a grain field, comet nucleus with coma and tail, rogue planet as a cold world with internal heat**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
@@ -14309,20 +14295,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fast-forward moves them with the orbits.
   Prerequisites: GEN.139. Related: POP.24, POP.35, POP.30.
 
-- [ ] **GEN.1294 A galaxy build died once with "SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000 K)": some draw asks the magma-ocean fit for a temperature past its range (bug)**
-  Aux 5 (as the lane reported, about 7:15 PM EST on 2026-11-05): while
-  testing the GEN.1082 to GEN.1084 stack, one galaxy build stopped with
-  "SiO2(L): no thermodynamic fit at 6881 K (the fits cover 1996 to 6000
-  K)" and passed on a rerun, so a draw can ask the magma-ocean (liquid
-  silicate) fit for a temperature above its range. Do: find which stage
-  asks for 6881 K (likely a very hot surface or magma ocean on a
-  close-in planet), reproduce it from the seed, and either clamp the
-  call to the fit range with a registered stand-in (GEN.725, tier and
-  tweak level) or extend the fit from the data; never catch and hide the
-  error. A changed generated value is a lock item (epoch); a pure range
-  guard is not. Version 8.1. Owner: none yet. Filed by the TODO thread.
-  Prerequisites: none.
-
 - [ ] **GEN.1295 Rogue ages and the rogue stand-ins read the ejection records: the delay (RG2), the closest approach (RK7, MO2, TU3) and the per-star rate (TU1) come from each loss in the architecture, not from drawn distributions**
   Found when main's burn-down test failed: five burn-down rows
   (6.88:RG2, 6.87:RK7, 6.112:MO2, 6.86:TU1, 6.86:TU3) said GEN.1111
@@ -19239,47 +19211,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   OPS.97 lands for it). Done: no handler, formatter or log-line print
   outside the module, and TEST.183 proves it.
   Prerequisites: OPS.97. Related: OPS.97, TEST.183.
-
-- [ ] **OPS.106 update.sh output no longer says how long a step takes: the "a few seconds", "5 seconds to a minute" and "a few minutes on a big galaxy" texts are removed**
-  Boss (7:20 PM EST on 2026-11-05, as the lane reported): drop the
-  duration guesses from the update.sh output (scripts/deploy-common.sh).
-  Do: remove every text that promises how long a step takes; the
-  progress bars and the measured time left (OPS.99) stay. Version 8.3.
-  Lock-free, no migration, no epoch. Owner: the project thread building
-  it on claude/project-thread-a1n0vp. Filed by the TODO thread.
-  Prerequisites: none. Related: OPS.99.
-
-- [ ] **OPS.107 The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs**
-  Boss (7:20 PM EST on 2026-11-05, as the lane reported): the warm-up
-  bar and time left jump because a unit reports only when it finishes.
-  Do: finer progress reports inside a unit of sectors, systems or
-  phenomena, counted by WarmProgress, so the bar and the time left
-  follow the work; test that a long unit moves the bar before it ends.
-  Version 8.3. Lock-free, no migration, no epoch. Owner: the project
-  thread building it on claude/project-thread-a1n0vp. Filed by the TODO
-  thread.
-  Prerequisites: none. Related: OPS.99.
-
-- [ ] **OPS.108 A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged**
-  Boss (about 7:25 PM EST on 2026-11-05, as the lane reported): during
-  the warm-up step of update.sh a keypress should skip the warm-up. Do:
-  show the key on screen while the warm-up runs; read it only when stdin
-  is a terminal; the skip ends the warm-up cleanly (the site still
-  starts, the warm-up is simply not finished, and the closing summary of
-  OPS.100 says it was skipped); without a terminal nothing changes; a
-  test with a pseudo-terminal. Version 8.3. Lock-free, no migration, no
-  epoch. Owner: the project thread building OPS.106 and OPS.107 on
-  claude/project-thread-a1n0vp. Filed by the TODO thread.
-  Prerequisites: none. Related: OPS.99, OPS.100, OPS.107.
-
-- [ ] **OPS.109 The update.sh data set step lists the kept files by download URL (one "kept URL (n files)" line per URL) and says the folder they are stored in**
-  Boss (about 7:25 PM EST on 2026-11-05, as the lane reported): the data
-  set step of update.sh should list the files it kept grouped by
-  download URL, one "kept URL (n files)" line per URL, and say which
-  folder they are stored in. Version 8.3. Lock-free, no migration, no
-  epoch. Owner: the project thread building OPS.106 to OPS.108 (PR
-  5243). Filed by the TODO thread.
-  Prerequisites: none. Related: OPS.99, OPS.100.
 
 ## DOC: Documentation
 
