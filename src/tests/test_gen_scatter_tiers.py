@@ -251,12 +251,10 @@ def test_the_marks_skip_a_sector_by_its_own_tiers_limits(mysql_config):
         limits = store.scatter_limits_of(conn, store.get_galaxy_shape(conn))
         limits = ScatterLimits.of(store.get_galaxy_shape(conn), FLOOR, MASS)
         mass_pass = scatter_limits.mass_pass(limits, 100.0)
-        written = 0
-        for shell in (CORE_SHELL, DISK_SHELL):
-            for row in brightStars.scatter_shell(SHAPE, shell, _high(shell), EDGE_PC, E_VALUE, 100.0, "marks",
-                                                 tiered=mass_pass):
-                store.insert_bright_stars(conn, [row])
-                written += 1
+        rows = [row for shell in (CORE_SHELL, DISK_SHELL)
+                for row in brightStars.scatter_shell(SHAPE, shell, _high(shell), EDGE_PC, E_VALUE, 100.0, "marks", tiered=mass_pass)]
+        store.insert_bright_stars(conn, rows)      # one batch: every insert now gives its rows their Object IDs (GEN.1254), which costs a pass per call
+        written = len(rows)
         conn.commit()
         assert written
         marked = store.bright_star_marked_addresses(conn, limits)
