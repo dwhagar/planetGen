@@ -17146,33 +17146,6 @@ clears each one.
   train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.430.
 
-- [ ] **TEST.606 The habitability re-score of a wide binary gives a different band1_day_hours than generation stored (18.487 against 18.297, planets row 6), so two re-score tests fail (bug)**
-  The Train Manager (as the lane reported, 20:13 UTC clock, train 11
-  gate) found this red on clean main 0d10348c5, so it is not a train 11
-  regression; the list is reports/train11-main-reds-2026-11-05.md.
-  tests/test_habitability_fill.py::test_a_system_comes_back_with_the_numbers_generation_stored
-  and
-  ::test_the_command_re_scores_every_system_and_a_second_run_changes_nothing.
-  A re-score must give exactly what generation stored. Done: the stored
-  and re-scored values are equal for a wide binary and both tests pass
-  on current main. Owner: Tides 1. Do: reproduce on current main first
-  (it may be fixed by a merge since), fix at the cause with a test that
-  fails without the fix, never skip or loosen a test. Lock-free if
-  output is unchanged; tell the TODO thread if values change. Version
-  8.1. Filed by the TODO thread.
-  Cause fixed in GEN.1265 (Tides 1, as the lane reported) (3:33 PM EST
-  on 2026-11-05): The cause was habitability_world.values_from_body not
-  carrying day_share_mean, so generation worked the latitude bands for a
-  point star while a re-score used the star's angular radius (up to
-  about 1 percent in the day and night hours of a band). The same
-  one-line fix is in Core 5's GEN.1265 branch (PR #5053, train 12), so
-  it rides that train. What is left: Tides 1's test-only branch
-  claude/test606-test (head 0fe61c513), the new test_latitude_bands
-  test, which is red on main until GEN.1265 lands and merges after it.
-  Ignore the old branch claude/test606. TEST.606 retires when both are
-  in.
-  Prerequisites: none.
-
 - [ ] **TEST.623 Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark)**
   Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
   pilot's console default and wants the other two looks, Chart room and
@@ -17358,15 +17331,6 @@ clears each one.
   value is read or removed. Version 8.1. Owner: Planets 1. Filed by the
   TODO thread.
   Prerequisites: none. Related: GEN.1276, GEN.1277.
-
-- [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
-  Do: the tabulated potential matches a direct ring sum of the density
-  model at the solar circle, the bulge, the disk edge and beyond 16 kpc
-  inside the stated tolerance; the circular speed at the Sun matches the
-  model; the cache is rebuilt only when the galaxy changes; stand-in
-  rows GP1 to GP3 are gone from GEN.725. Version 8.3. Owner: Tides 1.
-  Filed by the TODO thread.
-  Prerequisites: GEN.1285. Related: GEN.115, GEN.725.
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
