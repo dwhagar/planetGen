@@ -173,6 +173,11 @@ NULL_IN_THIS_GALAXY = {
     # test_belt_origin_stored.py writes and reads both back. GEN.1070: the scatter tag of a member waits for the scatter step (GEN.1092).
     **{("asteroid_belts", column): CHANCE for column in ("origin_history", "scatter_fates")},
     ("belt_members", "scatter_tag"): CHANCE,       # GEN.1092: only the members of an outer disk a giant swept are tagged
+    # GEN.1084: only a giant of a star with an outer disk keeps irregular moons (test_irregular_moons_stored.py writes and reads them back)
+    **{("irregular_sets", column): CHANCE for column in ("id", "planet_id", "remainder_kg", "above_floor", "lost", "temporary")},
+    **{("irregular_moons", column): CHANCE for column in (
+        "id", "planet_id", "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
+        "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")},
     **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
@@ -212,15 +217,20 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members")},
+        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"), ("belt_members", "belt_id"),
+        ("asteroid_field_composition", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
+    # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py); no page or API line shows them yet.
+    **{("irregular_moons", column): "stored by GEN.1084; the page and the API line for the irregular moons follow" for column in (
+        "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
+        "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")},
+    ("irregular_sets", "id"): "child row id",
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
        for column in ("storage_checksum", "parity_dirty")},
     ("stars", "cluster_id"): "read when a star's cluster is shown (DB.61 adds the column only)",

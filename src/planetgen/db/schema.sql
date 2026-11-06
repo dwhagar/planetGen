@@ -1541,6 +1541,7 @@
 --   of plain sentences for the belt page. NULL for a belt nothing happened to and for a row made before v210, nothing is backfilled.
 -- v214 (GEN.1276): `nebulae` and `supernova_remnants` keep their composition (`physics/nebula_columns.py`): `gas_oh_dex` ([O/H] of the gas), `mass_fraction_h`, `_he`, `_z` and `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe` (gas and dust together), `abundance_c` to `abundance_fe` (12 + log(X/H) of the gas), `ionized_share`, `atomic_share`, `molecular_share` (of the hydrogen), `dust_to_gas`, `dust_to_metals`, the grain shares (`grain_silicate`, `_iron`, `_carbon`, `_pah`, `_ice`) and `progenitor_mass_sol` (planetary nebulae and remnants); a remnant adds `ejecta_mass_sol`, `swept_mass_sol` and the hydrogen, helium and metal fractions of each part. All DOUBLE, NULL for a row made before v214 that the migration did not fill (it fills every row it can); `composition` and `dominant_species` are written from them.
 -- v215 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v215. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
+-- v214 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -3344,6 +3345,54 @@ CREATE TABLE IF NOT EXISTS belt_members (
     CONSTRAINT fk_belt_members_belt
         FOREIGN KEY (belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
     UNIQUE KEY uq_belt_members_belt_rank (belt_id, member_rank)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- irregular_sets -- v214 (GEN.1084): what a planet's irregular moons add up to, one row for a planet that has a set (none for one without).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS irregular_sets (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id         BIGINT UNSIGNED NOT NULL,
+    remainder_kg      DOUBLE NOT NULL,  -- the expected mass of the bodies that are not stored (the smaller tiers)
+    above_floor       INT NOT NULL,  -- how many bodies were above the storage floor (1e16 kg)
+    lost              INT NOT NULL,  -- stored bodies lost (no orbit that stays, or left the zone when the planet moved)
+    temporary         TINYINT(1) NOT NULL,  -- 1 when the planet's zone is wide enough to hold temporary captures (a flag, no body)
+
+    CONSTRAINT fk_irregular_sets_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_irregular_sets_planet (planet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- irregular_moons -- v214 (GEN.1084): the small bodies a planet caught from the outer disk and its own feeding zone (`generation/irregular_moons.py`, stored
+-- above 1e16 kg, then more of the next heaviest until 90 percent of the population's mass, at most 100), one row each. `moon_rank` is the body's number for its
+-- planet and stays when a smaller body is lost. The bodies below the cut are a total on `irregular_sets`.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS irregular_moons (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id         BIGINT UNSIGNED NOT NULL,
+    moon_rank         INT NOT NULL,
+    capture_window    VARCHAR(10) NOT NULL,  -- gas, encounter or exchange
+    mass_kg           DOUBLE NOT NULL,
+    radius_km         DOUBLE NOT NULL,
+    density_g_cm3     DOUBLE NOT NULL,
+    taxon             VARCHAR(4) NOT NULL,  -- the class letter of the body at its source
+    source_distance_km DOUBLE NOT NULL,  -- where in the disk it came from
+    ice_loss          DOUBLE NOT NULL,  -- the share of its water ice that capture removed
+    rock_fraction     DOUBLE NOT NULL,
+    metal_fraction    DOUBLE NOT NULL,
+    water_fraction    DOUBLE NOT NULL,
+    ice_fraction      DOUBLE NOT NULL,
+    distance_km       DOUBLE NOT NULL,  -- the semi-major axis about the planet
+    eccentricity      DOUBLE NOT NULL,
+    inclination_deg   DOUBLE NOT NULL,
+    ascending_node_deg DOUBLE NOT NULL,
+    arg_periapsis_deg DOUBLE NOT NULL,
+    mean_anomaly_deg  DOUBLE NOT NULL,
+
+    CONSTRAINT fk_irregular_moons_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_irregular_moons_planet_rank (planet_id, moon_rank)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

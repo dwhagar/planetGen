@@ -1022,6 +1022,50 @@ interstellar_comets = sa.Table(
 )
 
 
+irregular_moons = sa.Table(
+    'irregular_moons',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('moon_rank', mysql.INTEGER(), nullable=False),
+    sa.Column('capture_window', sa.String(10), nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), nullable=False),
+    sa.Column('radius_km', mysql.DOUBLE(), nullable=False),
+    sa.Column('density_g_cm3', mysql.DOUBLE(), nullable=False),
+    sa.Column('taxon', sa.String(4), nullable=False),
+    sa.Column('source_distance_km', mysql.DOUBLE(), nullable=False),
+    sa.Column('ice_loss', mysql.DOUBLE(), nullable=False),
+    sa.Column('rock_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('metal_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('water_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('ice_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('distance_km', mysql.DOUBLE(), nullable=False),
+    sa.Column('eccentricity', mysql.DOUBLE(), nullable=False),
+    sa.Column('inclination_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('ascending_node_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('arg_periapsis_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('mean_anomaly_deg', mysql.DOUBLE(), nullable=False),
+    sa.Index('uq_irregular_moons_planet_rank', 'planet_id', 'moon_rank', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_irregular_moons_planet', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+irregular_sets = sa.Table(
+    'irregular_sets',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('remainder_kg', mysql.DOUBLE(), nullable=False),
+    sa.Column('above_floor', mysql.INTEGER(), nullable=False),
+    sa.Column('lost', mysql.INTEGER(), nullable=False),
+    sa.Column('temporary', mysql.TINYINT(), nullable=False),
+    sa.Index('uq_irregular_sets_planet', 'planet_id', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_irregular_sets_planet', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 moon_gases = sa.Table(
     'moon_gases',
     metadata,

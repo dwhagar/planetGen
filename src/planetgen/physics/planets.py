@@ -24,6 +24,7 @@ import math
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
+from planetgen.generation import irregular_moons
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics import orbits
@@ -1015,6 +1016,7 @@ def drop_unstable_moons(planet):
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept
+    irregular_moons.keep_stable(planet)      # the irregular moons are held to the same zone (GEN.1084); they do not count in the return, no reflex offset comes of them
     return dropped
 
 
@@ -1107,7 +1109,7 @@ def generate_moons(planet, moon_count=None):
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
         # GEN.714, GEN.1244: the origin comes first and the orbit follows from it; a moon of the disk forms inside the disk's zone (`moon_disk_zone`), the rest anywhere a moon can stay
-        origin = moon_composition.draw_origin(parent_kind).row.name
+        origin = moon_composition.draw_origin(parent_kind, moon_mass)
         span_low, span_high = total_orbit_distance, high_orbit
         if origin == "disk" and disk_zone is not None:
             span_low, span_high = max(total_orbit_distance, disk_zone[0]), min(high_orbit, disk_zone[1])

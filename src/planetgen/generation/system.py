@@ -21,7 +21,8 @@ the system.
 import dataclasses
 import math
 
-from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation import irregular_moons
+from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
 from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
@@ -38,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, clearance_ledger, debris_dust, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, debris_dust, planet_architecture, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -496,6 +497,8 @@ class StarSystem:
         if self.unmet_requirements:
             log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
+
+        self._add_irregular_moons()
 
         # Comets don't participate in the planet-slot retry loop above --
         # see _generate_comets' own docstring for why -- so they're rolled
@@ -1336,7 +1339,8 @@ class StarSystem:
         counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
         if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)):
             return
-        belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star))
+        belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star),
+                                 instability=capture_windows.instability_level(self.capture_windows(star)))
         if not belts and config.ASTEROID_BELT is True and not any(body.body_type == 'a' for body in bodies):
             belts = self._requested_belt(bodies, star, orbit_ceiling_au)
         if not belts:
@@ -1369,6 +1373,31 @@ class StarSystem:
         if brightest is not None:
             belt = brightest[1]
             holder.disk_kind, holder.disk_inner_au, holder.disk_outer_au = debris_dust.DEBRIS_KIND, belt.lower_limit, belt.upper_limit
+
+    def _add_irregular_moons(self):
+        """
+        Gives every planet that orbits a star its irregular moons (GEN.1083, `generation/irregular_moons.py`): the small bodies it caught from the outer disk of its star's bodies and from its own feeding zone. It runs once the
+        planets, belts and ages are final, so the outer disk, the instabilities of the architecture (`capture_windows`) and the regular moons are all known; a planet of a star with no outer disk has none. Nothing is stored yet.
+        """
+        hosts = [(self.planets, self.star)]
+        if self.binary_type == "wide":
+            hosts.append((self.secondary_planets, self.secondary_star))
+        hosts += [(bodies, star) for star, bodies in self.member_hosts()]
+        for bodies, star in hosts:
+            source = irregular_moons.source_of(bodies, star, self.capture_windows(star), star_al26_ratio(self.system_config, star))
+            for body in bodies:
+                if body.body_type != 'a' and not body.is_moon:
+                    body.irregulars = irregular_moons.for_planet(body, source)
+
+    def capture_windows(self, star):
+        """
+        The capture windows of the planets of `star` (GEN.1082, `physics/capture_windows.py`): the giant-giant instabilities its architecture holds and their close encounters; none for a star
+        whose planets were not built from an architecture (a requested belt or a `SLOTS` system). Not stored.
+        """
+        for planned, architecture in getattr(self, "architectures", ()):
+            if planned is star:
+                return capture_windows.from_architecture(architecture)
+        return capture_windows.NO_WINDOWS
 
     def _requested_belt(self, bodies, star, orbit_ceiling_au):
         """
