@@ -1515,7 +1515,7 @@ Added in v203 (GEN.1209). The life classes that live on a planet or moon: one ro
 
 ### `irregular_moons`
 
-Added in v214 (GEN.1084). The small bodies a planet caught from the outer disk and its own feeding zone (`generation/irregular_moons.py`), one row each: every body above 1e16 kg, then more of the next heaviest until 90 percent of the population's mass is held (at most 100). Smaller bodies are a total on `irregular_sets`.
+Added in v219 (GEN.1084). The small bodies a planet caught from the outer disk and its own feeding zone (`generation/irregular_moons.py`), one row each: every body above 1e16 kg, then more of the next heaviest until 90 percent of the population's mass is held (at most 100). Smaller bodies are a total on `irregular_sets`.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -1531,7 +1531,7 @@ Added in v214 (GEN.1084). The small bodies a planet caught from the outer disk a
 
 ### `irregular_sets`
 
-Added in v214 (GEN.1084). One row for a planet that has irregular moons (none for one without), with what the stored bodies leave out. It is a table and not columns on `planets` because `planets` has a FULLTEXT key and MySQL rebuilds the whole table for a new column.
+Added in v219 (GEN.1084). One row for a planet that has irregular moons (none for one without), with what the stored bodies leave out. It is a table and not columns on `planets` because `planets` has a FULLTEXT key and MySQL rebuilds the whole table for a new column.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|

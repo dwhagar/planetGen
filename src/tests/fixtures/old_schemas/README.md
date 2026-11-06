@@ -101,3 +101,4 @@ Commit each file came from:
 - v215: train 12 after GEN.1277's migration 0215 (nebula field composition), before VIEW.25 sky tier draws (0216)
 - v216: train 12 after VIEW.25's migration 0216 (sky tier draws), before GEN.1265 temperature coverage (0217)
 - v217: train 12 after GEN.1265's migration 0217 (temperature coverage), before GEN.1207 best-fit classes (0218)
+- v218: train 12 after GEN.1207's migration 0218 (best-fit classes), before GEN.1084 irregular moons (0219)

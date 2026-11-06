@@ -1,11 +1,11 @@
 """The irregular moons of a planet (GEN.1084).
 
-Schema v214. Two new tables. `irregular_moons`: one row for each small body a planet caught (`generation/irregular_moons.py`; the stored ones are every body above 1e16 kg and more of the next heaviest until 90 percent of the
+Schema v219. Two new tables. `irregular_moons`: one row for each small body a planet caught (`generation/irregular_moons.py`; the stored ones are every body above 1e16 kg and more of the next heaviest until 90 percent of the
 population's mass is held, at most 100) with its window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit. `irregular_sets`: one row for a planet that has any, with the expected mass of the bodies not stored, how many were above the floor, how many were lost and the temporary-capture flag.
 
 These are a table, not columns on `planets`, because `planets` has a FULLTEXT key on `name` and MySQL refuses `ALGORITHM=INSTANT` for it and would rebuild the whole table.
 
-A planet made before v214 has no irregular moons to read back (the generator epoch makes them), so the regenerated galaxy replaces it. A table already there is skipped, so a stopped run can be started
+A planet made before v219 has no irregular moons to read back (the generator epoch makes them), so the regenerated galaxy replaces it. A table already there is skipped, so a stopped run can be started
 again.
 """
 
@@ -14,8 +14,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0214"
-down_revision = "0213"
+revision = "0219"
+down_revision = "0218"
 branch_labels = None
 depends_on = None
 
