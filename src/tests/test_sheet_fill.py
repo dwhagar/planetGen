@@ -213,3 +213,12 @@ def test_a_sample_has_no_empty_column_that_applies_and_is_not_filed(mysql_config
     missing = support.unexplained(support.tally(mysql_config))
     assert not missing, "empty where they apply, with no open item (file one, or add the rule that says why): " + "; ".join(
         f"{kind} {key} ({', '.join(f'{klass} {n}/{bodies}' for klass, bodies, n in rows)})" for (kind, key), rows in sorted(missing.items()))
+
+
+def test_a_runner_up_class_applies_only_where_a_second_class_fits_the_body():
+    """TEST.654: `class_fit.classify` stores no runner-up where only one class fits (the match is 0), so an empty column is not a gap there; a runner-up with a match and no letter still is."""
+    for kind in ("planet", "moon"):
+        assert not sheet.applies(kind, "C", "runner_up_class", {"runner_up_match": 0.0})
+        assert not sheet.applies(kind, "C", "runner_up_class", {"runner_up_match": None})
+        assert sheet.applies(kind, "C", "runner_up_class", {"runner_up_match": 0.4})
+        assert sheet.applies(kind, "C", "runner_up_class")
