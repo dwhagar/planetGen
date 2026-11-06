@@ -18496,6 +18496,16 @@ clears each one.
   Owner: none yet. Filed by the TODO thread.
   Prerequisites: UX.280, UX.281.
 
+- [ ] **TEST.631 test_density_components::test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main (6 cases) (bug)**
+  Tides 1 (as the lane reported, about 7:00 PM EST on 2026-11-05):
+  src/tests/test_density_components.py::test_the_spiral_written_as_components_gives_the_density_it_gave_before
+  fails on unmodified main, 6 cases. Do: find whether the density or the
+  test moved, fix the cause (not by loosening the test), and say which
+  commit broke it. Version 8.1. Lock-free if the fix is in the test or a
+  read path; if it changes generated output, tell TODO and it goes to a
+  train. Owner: Aux 7 after TEST.598 and TEST.602. Filed by the TODO thread.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

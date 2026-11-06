@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.37 |
-| TEST | TEST.631 |
+| TEST | TEST.632 |
 | USR | USR.32 |
 | OPS | OPS.106 |
 | DOC | DOC.109 |
@@ -4067,6 +4067,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | open |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
+| TEST.631 | test_density_components::test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main (6 cases) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
