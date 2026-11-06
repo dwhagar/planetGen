@@ -3,7 +3,9 @@
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
 {% block subhead %}
-<p class="badges"><span class="badge">{{ num(sectors.total) }} sector{{ "" if sectors.total == 1 else "s" }}</span></p>
+{%- set generated = sectors.total - uncharted_total %}
+<p class="badges"><span class="badge">{{ num(generated) }} sector{{ "" if generated == 1 else "s" }}</span>
+{%- if uncharted_total %}<span class="badge">{{ num(uncharted_total) }} uncharted</span>{% endif %}</p>
 {% endblock %}
 {% block content %}
 {% include "partials/sectors_panel.html" %}

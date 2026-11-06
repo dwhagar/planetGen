@@ -42,7 +42,7 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns, search_values
+from planetgen.db import chart_ledger, compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns, search_values
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -217,7 +217,10 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         list[dict]: One row per sector, with `id`, `name`,
                            `edge_ly`, `system_count`,
                            `galactic_radius_pc`/`galactic_radius_ly`
-                           (`None` if unplaced).
+                           (`None` if unplaced), and `uncharted` (MAP.399: a
+                           placeholder row a drifting rogue planet made in a cell
+                           nothing was generated in, `store.uncharted_sector_id`:
+                           placed, with no row in the chart ledger).
     """
     if sort is not None and sort not in SECTOR_SORTS:
         raise ValueError(f"unknown sector sort {sort!r}")
@@ -226,10 +229,12 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         rows = _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after)
     else:
         rows = _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after)
+    charted = chart_ledger.charted_among(conn, [(r["shell_index"], r["band_index"], r["wedge_index"]) for r in rows if r["shell_index"] is not None])
     return [
         {
             "id": r["id"], "name": r["name"], "edge_mpc": r["edge_mpc"], "edge_ly": milliparsecs_to_ly(r["edge_mpc"]),
             "system_count": r["system_count"],
+            "uncharted": r["shell_index"] is not None and (r["shell_index"], r["band_index"], r["wedge_index"]) not in charted,
             "center_x_pc": r["center_x_pc"], "center_y_pc": r["center_y_pc"], "center_z_pc": r["center_z_pc"],
             "galactic_radius_pc": r["galactic_radius_pc"],
             "galactic_radius_ly": (
@@ -241,6 +246,22 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         }
         for r in rows
     ]
+
+
+def count_uncharted_sectors(conn):
+    """
+    How many sector rows are uncharted placeholders (MAP.399): placed rows (`shell_index` set) beyond the cells the chart ledger holds. Every charted
+    sector has its cell in the ledger (`store.save_sector` records it), so the difference of the two counts is the placeholders, each count read from an index.
+    """
+    placed = conn.execute("SELECT COUNT(shell_index) AS n FROM sectors").fetchone()["n"]
+    return max(0, placed - chart_ledger.count(conn))
+
+
+def sector_is_uncharted(conn, sector):
+    """Whether the `sectors` row `sector` (anything with `shell_index`, `band_index`, `wedge_index`) is an uncharted placeholder (MAP.399)."""
+    if sector["shell_index"] is None:
+        return False
+    return chart_ledger.row(conn, (sector["shell_index"], sector["band_index"], sector["wedge_index"])) is None
 
 
 def _read_sectors(conn, where, params, order, limit, offset):
@@ -2303,7 +2324,7 @@ def sector_detail(conn, sector_id):
     Returns:
         dict: `id`, `name`, `edge_mpc`, `edge_ly`, `center_x_pc`/
             `center_y_pc`/`center_z_pc`, `shell_index`, `band_index`,
-            `wedge_index`, `placed`, `system_count`, and `systems` (one entry per system
+            `wedge_index`, `placed`, `uncharted` (a placeholder, MAP.399), `system_count`, and `systems` (one entry per system
             placed in this sector, nearest the sector's center first,
             then any with no position by name: `id`, `name`, `quadrant`, `location`,
             `is_binary`, `binary_type`, `binary_separation_km`,
@@ -2374,6 +2395,7 @@ def sector_detail(conn, sector_id):
         "shell_index": sector["shell_index"], "band_index": sector["band_index"],
         "wedge_index": sector["wedge_index"],
         "placed": sector["center_x_pc"] is not None,
+        "uncharted": sector_is_uncharted(conn, sector),
         "system_count": len(systems),
         "star_count": star_count,
         "interstellar_debris_count": interstellar_debris_count(star_count),
