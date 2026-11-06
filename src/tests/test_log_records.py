@@ -35,7 +35,7 @@ def test_a_record_file_holds_each_line_as_a_record_the_console_text_is_the_plain
         handler.flush()
     records = [logrecord.parse_file_line(line) for line in path.read_text().splitlines()]
     assert [(r.severity, r.component, r.message) for r in records] == [
-        ("info", "test_log_records", "Placed 12 sectors"), ("error", "test_log_records", "Error: no such sector")]
+        ("info", "generate", "Placed 12 sectors"), ("error", "generate", "Error: no such sector")]
     assert capsys.readouterr().out.splitlines() == [logrecord.plain_line(r) for r in records]
     assert all(re.match(r"^ts=\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}[+-]\d{4} level=", line) for line in path.read_text().splitlines())
 
@@ -117,7 +117,7 @@ def test_a_command_whose_output_is_not_a_terminal_prints_every_line_with_its_tim
     log.warning("The seed found no sector")
     lines = capsys.readouterr().out.splitlines()
     assert len(lines) == 2 and all(TIMED.match(line) for line in lines)
-    assert lines[0].endswith("INFO     test_log_records: Placed 12 sectors")
+    assert lines[0].endswith("INFO     generate: Placed 12 sectors")
 
 
 def test_the_lines_stay_plain_on_a_terminal_and_the_switch_can_force_either(capsys, monkeypatch):

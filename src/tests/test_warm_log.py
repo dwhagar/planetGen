@@ -57,15 +57,15 @@ def test_runs_are_appended_not_overwritten(path):
 
 
 def test_the_opening_line_says_what_started_the_run(path, monkeypatch):
-    environ = {warm_log.STARTED_BY_ENV: "update.sh, stage 2 of 2, the full warm-up", warm_log.TIME_LIMIT_ENV: "14400"}
-    assert warm_log.started_by(environ=environ) == "update.sh, stage 2 of 2, the full warm-up; time limit 4 hours"
+    environ = {warm_log.STARTED_BY_ENV: "update.sh, part 2 of 2, the full warm-up", warm_log.TIME_LIMIT_ENV: "14400"}
+    assert warm_log.started_by(environ=environ) == "update.sh, part 2 of 2, the full warm-up; time limit 4 hours"
     assert warm_log.started_by(environ={}) == "by hand"
     assert warm_log.started_by("orbits, systems", environ=environ) == "after a change: orbits, systems"
     assert warm_log.started_by(environ={warm_log.TIME_LIMIT_ENV: "5400"}) == "by hand; time limit 90 minutes"
-    monkeypatch.setenv(warm_log.STARTED_BY_ENV, "update.sh, stage 1 of 2")
+    monkeypatch.setenv(warm_log.STARTED_BY_ENV, "update.sh, part 1 of 2")
     with warm_log.RunLog():
         pass
-    assert _lines(path)[0].endswith("Cache warm-up started (update.sh, stage 1 of 2)")
+    assert _lines(path)[0].endswith("Cache warm-up started (update.sh, part 1 of 2)")
 
 
 def test_a_failed_run_says_why_and_a_stopped_one_says_by_what(path):

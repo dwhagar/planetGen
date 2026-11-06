@@ -28,6 +28,8 @@ LOG_SEVERITIES="debug info notice warning error critical"
 LOG_STDERR_SEVERITIES="warning error critical"
 LOG_STAGE_WORD="Stage"
 LOG_DIVIDER="==="
+LOG_COUNTING_WORDS="Stage Part Phase"
+LOG_COMPONENTS="update install warm tiles orbits generate queue web job activity command lib logs permissions cache-dir swap python-deps"
 # END generated vocabulary
 
 log_record() {
@@ -61,7 +63,19 @@ log_error() { log_record error "$1"; }
 # The divider of one stage, as `logrecord.stage_start` writes it: "=== Stage 4 of 9: label ===", an info record.
 log_stage() {
     log_record info "$LOG_DIVIDER $LOG_STAGE_WORD $1 of $2: $3 $LOG_DIVIDER"
+    UPDATE_STEP="$(log_lower "$LOG_STAGE_WORD") $1 of $2, $(log_lower "${3:0:1}")${3:1}"
 }
+
+# Where a script is, in one of the three counting words (OPS.103): `log_count Part 1 2` is "Part 1 of 2". The only place a script words a count;
+# src/tests/test_no_own_log_formatting.py fails on "stage 1 of 2" typed out by hand anywhere else.
+log_count() {
+    local word="$1"
+    [[ " $LOG_COUNTING_WORDS " == *" $word "* ]] || word="$LOG_STAGE_WORD"
+    printf '%s %s of %s' "$word" "$2" "$3"
+}
+
+# The text in lower case, for the middle of a sentence ("part 1 of 2, ...").
+log_lower() { printf '%s' "$1" | tr '[:upper:]' '[:lower:]'; }
 
 # Every non-empty line read from stdin, as a record of the given severity (default info): the instructions a script prints in a heredoc.
 log_lines() {
