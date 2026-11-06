@@ -35627,7 +35627,7 @@
       "title": "Stand-ins of the drawing of the system sky"
     },
     {
-      "key": "6.181 Stand-ins of the look of a sky star, the star caps and the page's reach",
+      "key": "6.181",
       "number": "6.181",
       "rows": [
         {
@@ -36639,8 +36639,8 @@
       "title": "Stand-ins of the capture windows of a system"
     },
     {
-      "key": "6.181 Stand-ins of the irregular moons of a planet",
-      "number": "6.181",
+      "key": "6.190",
+      "number": "6.190",
       "rows": [
         {
           "burn_down": null,
@@ -36671,9 +36671,9 @@
             ]
           ],
           "id": "IW1",
-          "key": "6.181:IW1",
+          "key": "6.190:IW1",
           "kind": "P",
-          "slug": "6-181-iw1",
+          "slug": "6-190-iw1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -36709,9 +36709,9 @@
             ]
           ],
           "id": "IW2",
-          "key": "6.181:IW2",
+          "key": "6.190:IW2",
           "kind": "P",
-          "slug": "6-181-iw2",
+          "slug": "6-190-iw2",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
@@ -36747,9 +36747,9 @@
             ]
           ],
           "id": "IW3",
-          "key": "6.181:IW3",
+          "key": "6.190:IW3",
           "kind": "B",
-          "slug": "6-181-iw3",
+          "slug": "6-190-iw3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -36785,9 +36785,9 @@
             ]
           ],
           "id": "IW4",
-          "key": "6.181:IW4",
+          "key": "6.190:IW4",
           "kind": "P",
-          "slug": "6-181-iw4",
+          "slug": "6-190-iw4",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
@@ -36795,7 +36795,7 @@
           "what": "irregular_moons.COMPOSITION_MASS_CAP_KG (0.999 of compaction.TAPER_END_KG): an exchange capture heavier than the composition rows reach is composed as a body of this mass"
         }
       ],
-      "slug": "6-181-stand-ins-of-the-irregular-moons-of-a-planet",
+      "slug": "6-190-stand-ins-of-the-irregular-moons-of-a-planet",
       "title": "Stand-ins of the irregular moons of a planet"
     },
     {
@@ -44743,7 +44743,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L2",
-          "unread": "GEN.1083",
+          "unread": null,
           "what": "irregular_orbits.MEDIAN_BEFORE_SURVIVAL, the median a / r_H before the stable limits cut, by planet distance: 1.1, 0.33, 0.17, 0.19 at 5.2, 9.5, 19.2, 30.1 AU"
         },
         {
@@ -44785,7 +44785,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1083",
+          "unread": null,
           "what": "irregular_orbits.SIGMA_LN 0.44, the natural-log width of the a / r_H draw"
         },
         {
@@ -44823,7 +44823,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1083",
+          "unread": null,
           "what": "irregular_orbits.ECCENTRICITY_MAX 0.7, the upper end of the uniform eccentricity draw"
         },
         {
@@ -44865,7 +44865,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L3",
-          "unread": "GEN.1083",
+          "unread": null,
           "what": "irregular_orbits.FAMILY_SPEED_M_S (20, 300), the log-uniform ejection speed of a family's fragments"
         }
       ],
