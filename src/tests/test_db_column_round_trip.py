@@ -106,6 +106,7 @@ NULL_IN_THIS_GALAXY = {
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")},
     # GEN.1215: only a body whose air makes liquid sulfuric acid stores its strength and place, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt")},
+    ("rogue_planets", "surface_liquid_ammonia_wt"): CHANCE,    # the same, for a free planet
     # GEN.1218b: the makeup, salt and second liquid exist only for the liquids that have them, and whether this small galaxy has one is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in (*surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS)},
     ("planets", "moon_origin"): "a planet has no origin as a moon (DB.70)",
@@ -237,7 +238,7 @@ NEVER_READ = {
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py); no page or API line shows them yet.
-    **{("irregular_moons", column): "stored by GEN.1084; the page and the API line for the irregular moons follow" for column in (
+    **{("irregular_moons", column): CHANCE for column in (
         "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
         "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")},
     ("irregular_sets", "id"): "child row id",
