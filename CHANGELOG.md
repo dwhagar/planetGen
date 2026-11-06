@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3389] - 2026-11-06
+
+**Headline:** The density identity test's notes use the American spelling.
+
+### Changed
+
+- The notes of `test_the_spiral_written_as_components_gives_the_density_it_gave_before` write "disk", not "disc", as DOC.103 asks, so `test_american_spelling` passes for them (TEST.631 follow-up). Words in a docstring only.
+
+generation-output: unchanged
+
 ## [8.0.3388] - 2026-11-06
 
 **Headline:** A build no longer dies on a rock whose dayside is hotter than 6000 K.
