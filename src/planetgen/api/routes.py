@@ -83,7 +83,6 @@ from planetgen.db.query import (
     galaxy_window,
     list_phenomena,
     phenomena_facets,
-    sectors_facets,
     systems_facets,
     list_sectors,
     list_systems,
@@ -504,9 +503,8 @@ def sectors():
     """
     The sectors, nearest the galactic core first, paginated. The Sectors
     table (UX.41) also takes `sort` (`name`, `systems`, `density`,
-    `position` or `distance`) with `order=asc|desc`, the repeatable filter
-    `quadrant` (`I`-`IV`, `unplaced`) and `facets=1` for the Quadrant menu's
-    option counts (`facets`). `total` counts the sectors that pass the filter (`total_capped`: it stopped at 10,000, PERF.77).
+    `position` or `distance`) with `order=asc|desc`. Each placed item carries `region`, the named region its sector lies in
+    (`{"name", "parent"}`, or `None` with no naming key). `total` counts the sectors (`total_capped`: it stopped at 10,000, PERF.77).
     `after=<sector ID>` starts the page after that sector in the default order and the `name` and `distance` sorts
     (PERF.137: any page costs the same, and `offset` is ignored); the other sorts ignore it.
     """
@@ -515,24 +513,23 @@ def sectors():
     descending = False
     if request.args.get("sort") or request.args.get("order"):
         sort, descending = _parse_sort(request.args, SECTOR_SORTS)
-    quadrants = [v for v in request.args.getlist("quadrant") if v]
     db = get_db()
     after = None
     if request.args.get("after"):
         after = ids.row_id(db, "sector", request.args["after"])
         if after is None:
             raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
-    total = count_sectors(db, quadrants=quadrants)
+    total = count_sectors(db)
+    items = list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after)
+    for item in items:
+        item["region"] = region_of(db, (item["center_x_pc"], item["center_y_pc"], item["center_z_pc"]) if item["placed"] else None)
     body = {
-        "items": list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending,
-                              quadrants=quadrants, after=after),
+        "items": items,
         "total": total,
         "total_capped": is_capped(total),
         "limit": limit,
         "offset": offset,
     }
-    if request.args.get("facets") == "1":
-        body["facets"] = sectors_facets(db, quadrants=quadrants)
     return jsonify(body)
 
 
@@ -592,7 +589,7 @@ def systems():
     for the filter menus' option counts (`facets`: `placement`, `binary`,
     `octant`). `total` counts the systems that pass the filters. `after=<system ID>` starts the page after that system in the
     sort instead of skipping `offset` rows (PERF.75, PERF.206: page 40,000 costs what page 1 does, in the name, sector
-    and octant sorts; a list filtered by star type or sector reads by `offset`). `from=<text>` is the
+    and octant sorts; a list filtered by sector reads by `offset`; a star type filter pages by key too, PERF.219). `from=<text>` is the
     jump-by-value box (PERF.75): with the `name` sort the list begins at the first name from that text on (a letter, or
     the start of a name), with the `sector` sort at the first sector from it on, in the sort's direction; `total`
     counts the systems from there and `offset` and `after` count from there too. The other sorts ignore it.
@@ -1592,7 +1589,10 @@ def object_list(kind):
     name from this one on, with `sort=name` only; `past_end` is true when none lies at or past it and the last page
     is answered). Answers `items`
     (`kind`, `id`, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`, `mass_kg`, `radius_km`,
-    `placed`), `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
+    `placed`; a star, planet or moon item also carries its stored physics values, UX.187: the star's `temperature_k`, `luminosity_w`, `age_gy`
+    and `rotation_period_hours`, and the planet's or moon's `distance_km`, `eccentricity`, `surface_temperature_k`, `rotation_period_hours`,
+    `axial_tilt_deg` and `internal_heat_flux_w_m2`, each null where none is stored; the whole sheet is `GET /api/objects/<ref>/sheet`),
+    `next` (null at the end), `total` and `total_capped`. 400 for an unknown kind, sort or filter, an `after`
     that is not an object ID, a `from` with another sort, or a `sector_id` that is not a sector ID.
     """
     sort, descending = _parse_sort(request.args, [*objectlist.SORTS, *objectlist.value_sort_keys(kind)])

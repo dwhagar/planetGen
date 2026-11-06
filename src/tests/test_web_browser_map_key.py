@@ -36,6 +36,26 @@ def test_every_layer_of_the_galaxy_map_has_a_key_line_a_legend_or_a_reason(page,
     assert page.evaluate(f"() => {LAYERS}.unkeyed()") == []
 
 
+def test_every_layer_of_the_galaxy_map_has_a_view_menu_heading_and_keywords(page, map_site):
+    """UX.277: `unheaded()` names the layers of the map's registry with no View menu heading or no keywords; it is empty on the Galaxy Map and on a
+    sector opened in it, so a new layer cannot be added without them, and each layer's entry says its heading, keywords and whether it is common."""
+    _open_galaxy(page, map_site)
+    assert page.evaluate(f"() => {LAYERS}.unheaded()") == []
+    entries = page.evaluate(f"() => {LAYERS}.entries()")
+    assert len(entries) > 30 and all(entry["heading"] and entry["keywords"] for entry in entries), entries[:3]
+    assert {entry["heading"] for entry in entries} <= {"Show", "Color and fill", "Chart and side views", "Move and Settings"}
+    assert {entry["id"] for entry in entries if entry["common"]} >= {"star", "nebula", "blackHole"}
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    assert page.evaluate(f"() => {LAYERS}.unheaded()") == []
+
+
+def test_every_layer_of_the_sector_page_has_a_view_menu_heading_and_keywords(page, map_site):
+    """UX.277: the Sector Map shares the registry, so its layers (a sector page is a map pinned to one sector) have a heading and keywords too."""
+    _open_sector(page, map_site)
+    assert page.evaluate(f"() => {LAYERS}.unheaded()") == []
+    assert len(page.evaluate(f"() => {LAYERS}.entries()")) >= 10
+
+
 def test_the_key_has_a_line_for_each_kind_drawn_at_the_view_and_none_for_what_is_not(page, map_site):
     """MAP.234: the lines of the on-map Key are the key lines whose thing is drawn at the view (the stars, the blocks of the galaxy, the
     regions), none for a course that is not shown, and an opened sector adds its own kinds."""
