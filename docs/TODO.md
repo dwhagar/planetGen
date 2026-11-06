@@ -16646,6 +16646,7 @@ clears each one.
   percent O2, 1.5 to 1.8 g) has no class; (b) new part 6: dense heavy
   worlds with no oxygen at 1.8 g just under class V's 2 g line fit nothing
   because F stops at 1.4 g (2 bodies of 1448).
+  Added (Boss, 6:36 PM EST on 2026-11-06): after parts 2 and 3 merge, rerun the fudge simulation sweep (GEN.1312's class_fit_cli sweep) to revisit the spread, because the oxygen envelope was still being fixed when the cap tiers were set. Report how the cap tiers and the share of bodies placed change.
 
 - [ ] **GEN.1307 Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug)**
   Found by Bug 1 while fixing TEST.652: a 2595 K vapor world with stored
@@ -16756,6 +16757,7 @@ clears each one.
   Version 8.1. Owner: Planets 1. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.854, GEN.855, GEN.867, GEN.750, GEN.1306, GEN.909.
   Decision (Boss, 6:22 PM EST on 2026-11-06, option 1): the oxygen window stays as built: classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent. Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
+  Added (Boss, 6:36 PM EST on 2026-11-06): after this item merges, rerun the fudge simulation sweep (GEN.1312's class_fit_cli sweep) to revisit the spread, because the oxygen envelope was still being fixed when the cap tiers were set. Report how the cap tiers and the share of bodies placed change.
 
 - [ ] **GEN.1310 Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent**
   Found by Core 5 while building GEN.1304 (6:18 PM EST on 2026-11-06 as the
@@ -16804,6 +16806,7 @@ clears each one.
   Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
   Prerequisites: GEN.1311. Related: GEN.725, GEN.1306, TEST.430.
   Update (Boss, 6:31 PM EST on 2026-11-06, plan section 4d): part 2 also adds a class_fit_cli sweep with no cap: per body the class taken, the values moved and the amounts. Cap tiers are set from that data at the knees of the share-placed-versus-cap curve; starting guess tier 1 = 1 width, tier 2 = 2 widths, no tier 3 (at 4 widths the prototype gives nonsense classes). Bodies past the widest tier are reported as missing classes (GEN.1306), not hidden.
+  Update (coordinator, 6:36 PM EST on 2026-11-06): the sweep runs in its own thread ("Run fudge cap simulation sweep"), on a lane machine with MySQL, Redis and the datasets (scripts/lane_up.sh brings them up after a restart). The sweep is rerun after GEN.1309 and GEN.1306 parts 2 and 3 merge, to revisit the spread.
 
 - [ ] **GEN.1313 Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths**
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Per quantity: width = root sum of squares of the column of the matrix; a
