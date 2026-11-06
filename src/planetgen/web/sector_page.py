@@ -741,11 +741,7 @@ def sector(sector_id):
     detail, facilities = _sector_data(sector_id)
     if detail.get("uncharted"):       # MAP.399: a placeholder row a drifting rogue made in a cell nothing was generated in
         address = (detail["shell_index"], detail["band_index"], detail["wedge_index"])
-<<<<<<< HEAD
         return _uncharted_page(apiclient.get_uncharted_sector(db_name(), *address), address, stored=detail.get("phenomena"))
-=======
-        return _uncharted_page(apiclient.get_uncharted_sector(db_name(), *address), address)
->>>>>>> origin/main
     pick = _pick_mode(request.args)
     _rows, map_systems = _contents(detail, facilities)
     contents = tables.render(CONTENTS_TABLE, request.path, anchor="sector-contents", sector=sector_id)
