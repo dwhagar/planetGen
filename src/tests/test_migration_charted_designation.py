@@ -1,6 +1,6 @@
 # tests/test_migration_charted_designation.py
 
-"""GEN.1257: migration 0221 lets `designations.reason` be `charted`; a database from before it keeps its rows and refuses any other new reason."""
+"""GEN.1257: migration 0222 lets `designations.reason` be `charted`; a database from before it keeps its rows and refuses any other new reason."""
 
 import pytest
 
@@ -15,8 +15,8 @@ def _insert(conn, reason):
                  " VALUES ('name', 'Banhunm Finkap', 'star_systems', 1, 1, ?)", (reason,))
 
 
-def test_a_v220_database_takes_the_charted_reason_once_migrated(mysql_config):
-    load_old_schema(mysql_config, 220)
+def test_a_v221_database_takes_the_charted_reason_once_migrated(mysql_config):
+    load_old_schema(mysql_config, 221)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         with pytest.raises(Exception):
