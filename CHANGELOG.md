@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3386] - 2026-11-06
+
+**Headline:** Every kind of object now has a Sensor entry, and `GET /api/objects/<ref>/sensor` returns the record its picture is drawn from.
+
+### Added
+- **The Sensor registry** (`web/lib/sensor.py`, `static/sensorview.js`, UX.275): one table that maps every kind of the property sheet to the look builder and the painter that exist (a star, planet or moon look record, the phenomenon pictures, the nebula cloud), built from the stored row and the Object ID seed alone. A kind no painter draws yet (belt, comet, asteroid field, remnant, cluster, superbubble, facility) says why. A test fails for a kind in the property sheet that has no entry, and one checks that the server's painter list is the script's.
+- **`GET /api/objects/<ref>/sensor`** returns the record (`painter`, `look`, `caption`, `estimate`, `inputs`, `reason`) so the object page, the map's info panel and the Chart and 3D views can read one thing. Additive, no existing route changes. No picture changes yet. `generation-output: unchanged`.
+
 ## [8.0.3385] - 2026-11-06
 
 **Headline:** The Galaxy Map no longer draws a ring outline around each group of nebulae.
