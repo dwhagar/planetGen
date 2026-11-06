@@ -12839,17 +12839,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fast-forward moves them with the orbits.
   Prerequisites: GEN.139. Related: POP.24, POP.35, POP.30.
 
-- [ ] **GEN.1297 values_from_body does not hand day_share_mean to the latitude bands: generation computes every rocky band for a point star while the re-score and API use the star's real angular size (bug)**
-  Bug 1 (as the lane reported, about 7:35 PM EST on 2026-11-05):
-  test_habitability_fill fails in 2 cases on main because
-  values_from_body does not pass day_share_mean to the latitude bands.
-  Fix is a one-line change in PR #5251, head 0064f2cbd (claude branch of
-  Bug 1), generation-output changed. It is a lock item: slot it into
-  train 13 with GEN.1282 (merge it into the train, never alone). Do: the
-  train adds the epoch with --affects and rewrites the golden files.
-  Version 8.1. Owner: Bug 1. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1282, GEN.1283.
-
 - [ ] **GEN.1298 Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug)**
   Bug 1 (as the lane reported, about 7:35 PM EST on 2026-11-05): a
   generated body holds a life class whose solvent it does not allow;
@@ -16868,25 +16857,6 @@ clears each one.
   four pass on main. Version 8.1. Owner: Bug 1 (with TEST.656). Filed by
   the TODO thread.
   Prerequisites: none. Related: TEST.656, GEN.1082, GEN.1190.
-
-- [ ] **MAP.400 The Object index reads only per-sector tables, so the nebula field (109,811 clouds) and the scattered black holes, remnants, magnetars and hypervelocity stars (9.7 million rows) are missing from search, lists, Nearby and the kind table (bug)**
-  Boss, 5:08 PM EST on 2026-11-06: do a bugfix run to find out why the
-  kind table showed NEBULA 0, SUPERNOVA_REMNANT 0 and BLACK_HOLE 1 when
-  the map does show nebulae. Finding (coordinator, 5:08 PM EST): the
-  Object index (db/objectindex.py, _sources and _phenomenon_sources)
-  reads only per-sector tables; the map draws nebulae from nebula_field
-  and uncharted black holes, remnants, magnetars and hypervelocity stars
-  from phenomenon_scatter, and the index reads neither, so the counts are
-  right for charted rows only. It is a coverage gap, not a failed build.
-  Do: either add nebula_field and phenomenon_scatter as index sources
-  (mind the index budget at 9.7 million rows) or have search, lists and
-  Nearby read them another way; the kind table counts what the map draws
-  or says plainly what it counts. A test shows each scattered kind found
-  by search and counted. Lock-free unless the index schema changes. Done:
-  search, lists, Nearby and the kind table find the scattered nebulae,
-  remnants and black holes. Version 8.1. Owner: Core 2. Filed by the TODO
-  thread.
-  Prerequisites: none. Related: MAP.399, PERF.245.
 
 - [ ] **MAP.401 An uncharted sector has an info page showing what is placed in it, with a link to each object's page**
   Boss, 5:11 PM EST on 2026-11-06 (relayed by the coordinator): uncharted
