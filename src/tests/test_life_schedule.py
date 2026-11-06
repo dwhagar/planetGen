@@ -129,6 +129,23 @@ def test_an_edit_draws_a_class_again_only_when_the_old_one_no_longer_fits(monkey
         assert body.reflection_spectrum_visible == (life_classes.describe(body.life_class_id).life["reflection_spectrum_visible"] or None)
 
 
+def test_a_class_of_acid_clouds_lives_at_the_temperature_of_its_cloud_not_its_ground(monkeypatch):
+    """GEN.1307: Class 5a lives in a cloud layer; a 2600 K surface under a 330 K cloud deck sets neither its pace nor its complexity."""
+    from types import SimpleNamespace
+    from planetgen.physics import acid_medium
+    hot = SimpleNamespace(surface_temperature=2600.0)
+    acid_row, water_row = life_classes.describe("5a"), life_classes.describe("1a")
+    monkeypatch.setattr(planet_life.habitability_world, "values_from_body", lambda body: {})
+    monkeypatch.setattr(planet_life.acid_medium, "medium", lambda values: acid_medium.AcidMedium(acid_medium.CLOUD, "cloud", 330.0, 1.0e5, 85.0))
+    assert planet_life.habitat_temperature_k(hot, acid_row) == 330.0
+    assert planet_life.habitat_temperature_k(hot, water_row) == 2600.0          # a class of water lives at the surface
+    monkeypatch.setattr(planet_life.acid_medium, "medium", lambda values: acid_medium.AcidMedium(acid_medium.POOL, "pool", 300.0, 1.0e5, 90.0))
+    assert planet_life.habitat_temperature_k(hot, acid_row) == 2600.0           # a pool is the ground itself
+    monkeypatch.setattr(planet_life.acid_medium, "medium", lambda values: acid_medium.AcidMedium())
+    assert planet_life.habitat_temperature_k(hot, acid_row) == 2600.0
+    assert planet_life.habitat_temperature_k(hot, None) == 2600.0
+
+
 def test_a_class_that_breathes_oxygen_but_makes_none_stops_at_photosynthesis_in_an_air_without_it():
     for body in _bodies(60, HABITABLE_WORLD=True):
         if body.life_class and _short_of_oxygen(body):

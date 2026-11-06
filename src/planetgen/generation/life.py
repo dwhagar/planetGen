@@ -29,7 +29,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world, trace_air
+from planetgen.physics import acid_medium, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world, trace_air
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -114,7 +114,7 @@ def _apply(planet, keep_stored, key):
     _set_best(planet, final)
     result = final[row.id]
     anoxic = _anoxic_animals(planet, row, keep_stored)
-    complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), planet.surface_temperature, anoxic)
+    complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), habitat_temperature_k(planet, row), anoxic)
     _set_evolutionary_state(planet, evolution.get_evolutionary_state(
         planet.star, tuple(getattr(planet, field) for field in evolution.SCHEDULE_FIELDS), max_stage=complexity.top_stage))
     planet.life_complexity = complexity.index
@@ -166,20 +166,34 @@ def _share_out(cands):
         cand.share = cand.score.npp / total if total > 0.0 else 1.0 / len(cands)
 
 
+def habitat_temperature_k(planet, row):
+    """
+    The temperature the life of `row` lives at (GEN.1307): the surface's, except for a class of sulfuric acid whose acid is in the clouds (Class 5a,
+    `acid_medium` layer "cloud"): it lives at the temperature of that cloud level, not at the ground below it, which can be far outside the liquid
+    (a 2600 K surface under a cool cloud deck). The pace of its steps and its complexity follow that temperature.
+    """
+    surface = getattr(planet, "surface_temperature", None)
+    if row is None or row.solvent["medium"] != "sulfuric":
+        return surface
+    found = acid_medium.medium(habitability_world.values_from_body(planet))
+    return found.temperature_k if found.layer == "cloud" and found.temperature_k else surface
+
+
 def _date(planet, cands):
     """The ages of the five steps of each class that has only its waiting times: at the pace the body's temperature allows, the wait for complex cells
     starting once the class has its oxidant: at once for one that breathes something else or when the air already holds oxygen, else when the oxygen
     of all the classes together has risen (`life_air.oxygen_rise_gyr`; never if it does not)."""
-    factor = life_timeline.rate_factor(getattr(planet, "surface_temperature", None))
     if all(c.ages is not None for c in cands):
         return
-    living = [life_air.Living(c.row, c.share, (c.ages or life_timeline.schedule(c.waits, factor, 0.0, True))[1]) for c in cands]
+    factors = {c.row.id: life_timeline.rate_factor(habitat_temperature_k(planet, c.row)) for c in cands}
+    living = [life_air.Living(c.row, c.share, (c.ages or life_timeline.schedule(c.waits, factors[c.row.id], 0.0, True))[1]) for c in cands]
     rise = life_air.oxygen_rise_gyr(planet, living)
     for cand, one in zip(cands, living):
         if cand.ages is not None:
             continue
         at_start = cand.row.oxidant != "o2" or atmosphere.partial_kpa(planet, "o2") * 1000.0 >= biogenic_oxygen.EUKARYOTE_MINIMUM_PA
         delay = None if rise is None else max(0.0, rise - one.producers_gyr)
+        factor = factors[cand.row.id]
         cand.ages = life_timeline.schedule(cand.waits, factor, delay, at_start)
         log.choice("Evolutionary schedule", ", ".join("never" if age is None else f"{age:.3g} Gyr" for age in cand.ages),
                    f"class {cand.row.id}, hard steps at temperature rate factor {factor:.3g}, oxygen "
@@ -231,7 +245,7 @@ def _store_schedule(planet, cands):
     """Stores the dominant class's schedule and its pace on the body (the columns the life sentence, the timeline and the air read). One kept from the
     stored body (an edit) is stored already."""
     if cands[0].waits is not None:
-        _set_schedule(planet, cands[0].ages, life_timeline.pace_of(life_timeline.rate_factor(getattr(planet, "surface_temperature", None))))
+        _set_schedule(planet, cands[0].ages, life_timeline.pace_of(life_timeline.rate_factor(habitat_temperature_k(planet, cands[0].row))))
 
 
 def _redate(planet, cands):
@@ -271,7 +285,7 @@ def _living_entries(planet, cands, final, key):
         else:
             result = final.get(row.id) or cand.score
             anoxic = _anoxic_animals(planet, row, False, draw.Stream(f"{key}:class:{row.id}:anoxic"))
-            complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), planet.surface_temperature, anoxic)
+            complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), habitat_temperature_k(planet, row), anoxic)
             state = evolution.get_evolutionary_state(planet.star, cand.ages, max_stage=complexity.top_stage)
             stage, milestone, system_age = state["stage"], state["milestone_age_gyr"], state["system_age_gyr"]
             grade = complexity.grade if stage in ("multicellularity", "technological_civilization") else 0
@@ -333,7 +347,7 @@ def _draw_waits(planet, row, stream=None):
     dominant class draws on the body's. A request for a technological civilization raises the odds of waits that finish in the star's age (GEN.1130, `life_timeline.raised_waits`), for the
     dominant class, with the delay the class's own oxygen takes.
     """
-    factor = life_timeline.rate_factor(getattr(planet, "surface_temperature", None))
+    factor = life_timeline.rate_factor(habitat_temperature_k(planet, row))
     waits = None
     if stream is None and planet.star.system_config.INTELLIGENT_LIFE is True:
         needs_oxygen = row.oxidant == "o2"
