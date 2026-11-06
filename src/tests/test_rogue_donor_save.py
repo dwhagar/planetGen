@@ -187,3 +187,46 @@ def test_the_leaf_joins_the_content_part_and_the_residents():
     assert len(tree.combined(content, residents)) == 32 and tree.combined(content, residents) != content
     assert tree.combined(None, residents) != tree.combined(content, residents)
     assert tree.combined(content, residents) != tree.combined(content, bytes([3]) * 32)
+
+
+CHILD_CHANGES = {
+    "rogue_planet_reflection_spectrum": "value = CONCAT(value, 'x')",
+    "rogue_planet_interior_layers": "mass_earth = mass_earth * 1.01",
+    "rogue_planet_gases": "partial_pa = partial_pa * 2",
+    "rogue_planet_life_class_scores": "score = IF(score = 9, 8, score + 1)",
+}
+
+
+def test_a_changed_row_of_a_rogue_planets_child_tables_changes_the_digest_of_the_sector_it_is_filed_in(saved):
+    """TEST.647: the four child tables of a rogue planet are content of the fingerprint (the planet section) and of the leaf's residents digest, so a
+    changed child row changes the digest of the sector the rogue is filed in, and the digest is the same again once the row is."""
+    from planetgen.db import fingerprint, fingerprint_tree
+    conn, sector_id, address = saved
+    rogue = conn.execute("SELECT id FROM rogue_planets ORDER BY id LIMIT 1").fetchone()["id"]
+    minimal = {"rogue_planet_reflection_spectrum": "(rogue_planet_id, spectrum_type, position, value) VALUES (?, 'visible', 0, 'blue')",
+               "rogue_planet_life_class_scores": "(rogue_planet_id, life_class, score) VALUES (?, 'A1', 3)"}
+    seen = set()
+    for table, change in CHILD_CHANGES.items():
+        row = conn.execute(f"SELECT t.id AS id, r.sector_id AS sector_id FROM {table} t JOIN rogue_planets r ON r.id = t.rogue_planet_id "
+                           f"ORDER BY t.id LIMIT 1").fetchone()
+        if row is None:             # this donor's rogues hold no row of the table (a rock with no air has no gases): give the first rogue one
+            with conn:
+                conn.execute(f"INSERT INTO {table} {minimal[table]}", (rogue,))
+            row = conn.execute(f"SELECT t.id AS id, r.sector_id AS sector_id FROM {table} t JOIN rogue_planets r ON r.id = t.rogue_planet_id "
+                               f"ORDER BY t.id LIMIT 1").fetchone()
+        filed_in = row["sector_id"]
+        digest, residents = fingerprint.sector_digest(conn, filed_in), fingerprint_tree.resident_digest(conn, filed_in)
+        original = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (row["id"],)).fetchone()
+        with conn:
+            conn.execute(f"UPDATE {table} SET {change} WHERE id = ?", (row["id"],))
+        try:
+            assert fingerprint.sector_digest(conn, filed_in) != digest, table
+            assert fingerprint_tree.resident_digest(conn, filed_in) != residents, table
+        finally:
+            with conn:
+                conn.execute(f"DELETE FROM {table} WHERE id = ?", (row["id"],))
+                columns = list(original.keys())
+                conn.execute(f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join('?' for _ in columns)})", tuple(original[c] for c in columns))
+        assert fingerprint.sector_digest(conn, filed_in) == digest and fingerprint_tree.resident_digest(conn, filed_in) == residents, table
+        seen.add(table)
+    assert seen == set(CHILD_CHANGES)
