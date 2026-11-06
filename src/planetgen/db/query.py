@@ -463,26 +463,6 @@ def count_sectors(conn, quadrants=()):
     return _counted(conn, ["count_sectors", list(quadrants)], exact, estimate)
 
 
-def sectors_facets(conn, quadrants=()):
-    """
-    The option counts for the Sectors table's Quadrant menu: how many sectors
-    each Quadrant (and `"unplaced"`) holds. The menu ignores its own filter,
-    so choosing one Quadrant still shows the others' counts.
-
-    Returns:
-        dict: `{"quadrant": [{"value", "count"}]}` in Quadrant order, only
-            those with sectors.
-    """
-    def exact(c):
-        counts = {row["quadrant"]: row["n"] for row in c.execute(
-            f"SELECT {_SECTOR_QUADRANT_SQL} AS quadrant, COUNT(*) AS n FROM sectors sec GROUP BY quadrant"
-        ).fetchall()}
-        return {"quadrant": [{"value": value, "count": counts[value]}
-                             for value in (*SECTOR_QUADRANTS, "unplaced") if counts.get(value)]}
-
-    return _counted(conn, ["sectors_facets"], exact, lambda c: {"quadrant": []})
-
-
 class _NoSector:
     """Sentinel type for `NO_SECTOR` (below) -- a distinct value from
     `None` (`sector_id` unfiltered) meaning "explicitly filter to
@@ -584,12 +564,15 @@ def _values_key(values):
 
 
 def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(), in_sector=None, start=None,
-                           sort="name", descending=False, stars=None, values=None):
+                           sort="name", descending=False, stars=None, values=None, star_exists=False):
     """
     Builds the shared `JOIN`/`WHERE`/params fragment `list_systems` and
     `count_systems` both need -- factored out so the count query can't
     silently drift out of sync with what the listing query actually
     matches. `start` keeps the rows from that value on in `sort` (`_start_condition`).
+
+    With `star_exists` the star type filter is an `EXISTS` on `stars`, not a join (PERF.219): the group walk (`_systems_by_group`) reads
+    `star_systems` alone, a system counts once however many of its stars match, and the walk needs no `DISTINCT`.
 
     Returns:
         tuple: `(join_sql, where_sql, params)`, each usable standalone
@@ -600,8 +583,11 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
     params = []
 
     if star_type_prefix is not None:
-        join_sql = " JOIN stars s ON s.star_system_id = ss.id"
-        conditions.append("s.star_type LIKE ? ESCAPE '\\\\'")
+        if star_exists:
+            conditions.append("EXISTS (SELECT 1 FROM stars s WHERE s.star_system_id = ss.id AND s.star_type LIKE ? ESCAPE '\\\\')")
+        else:
+            join_sql = " JOIN stars s ON s.star_system_id = ss.id"
+            conditions.append("s.star_type LIKE ? ESCAPE '\\\\'")
         params.append(f"{escape_like(star_type_prefix)}%")
 
     if sector_id is NO_SECTOR:
@@ -665,7 +651,8 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
             star, planet or moon whose stored values lie in every range on its kind.
         after (int, optional): A system's row ID: with `sort="name"`, `"sector"` or `"octant"` the page starts
             after that system (a keyset page, PERF.75, PERF.206: the rows before it are not read and `offset` is
-            ignored). Other sorts, a system that is gone and a list filtered by star type or sector use `offset`.
+            ignored; PERF.219: a star type filter is one more condition inside each group). Other sorts, a system that is gone and a list
+            filtered by sector use `offset`.
         start (str, optional): The jump-by-value box (PERF.75): the list begins at the first name (`sort="name"`) or
             the first sector (`sort="sector"`) from this text on, in the sort's direction, and `offset` counts from
             there. Ignored for the other sorts.
@@ -683,11 +670,16 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     if sort not in SYSTEM_SORTS:
         raise ValueError(f"unknown system sort {sort!r}")
     # The sector walk begins at its first sector itself (`_systems_by_group`), so its groups carry no start condition.
-    walked = (limit is not None and star_type_prefix is None and sector_id is None and in_sector is None
-              and sort in _GROUP_WALK_SORTS)
+    # A star type filter walks too (PERF.219): it is one more condition inside each group. The walk skips an octant by counting its
+    # matching systems, which with a star type costs a pass over the whole octant (an eighth of the galaxy); so an `offset` page of the octant
+    # sort with a star type reads as it did before and only a page by key (`after`, or the first page) walks. The sector sort counts a
+    # sector at a time, which is cheap, and walks either way.
+    skips_octants = star_type_prefix is not None and sort == "octant" and bool(offset) and after is None
+    walked = limit is not None and sector_id is None and in_sector is None and sort in _GROUP_WALK_SORTS and not skips_octants
     join_sql, where_sql, params = _systems_filter_clause(
         star_type_prefix, sector_id, binary, octants, in_sector,
-        start=None if walked and sort == "sector" else start, sort=sort, descending=descending, stars=stars, values=values)
+        start=None if walked and sort == "sector" else start, sort=sort, descending=descending, stars=stars, values=values,
+        star_exists=walked)
     column = SYSTEM_SORTS[sort]
     direction = "DESC" if descending else "ASC"
     if after is not None and limit is not None and sort == "name":
@@ -1932,11 +1924,16 @@ def _nav_endpoint(conn, ref):
             "anchor": anchor, "system_km": system_km}
 
 
-def _nav_leg(kind, origin_ref, destination_ref, course):
-    return {
+def _nav_leg(kind, origin_ref, destination_ref, course, system_id=None, ends_km=None):
+    """One leg of `nav_course`. A leg inside a system (NAV.27) also says which `system_id` and where it starts and ends (`from_km`,
+    `to_km`: the System Local Frame, km) so its adjusted course can be planned (`api.nav_system`)."""
+    leg = {
         "kind": kind, "from": origin_ref, "to": destination_ref, "direct": course,
         "warp_times": warp_travel_times(course.distance_ly), "fold_times": fold_travel_times(course.distance_ly),
     }
+    if system_id is not None:
+        leg.update(system_id=system_id, from_km=list(ends_km[0]), to_km=list(ends_km[1]))
+    return leg
 
 
 def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACENCY_K):
@@ -2016,7 +2013,8 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
             "scope": "system", "direct": course,
             "warp_times": warp_travel_times(course.distance_ly), "fold_times": fold_travel_times(course.distance_ly),
             "origin_position": tuple(a), "destination_position": tuple(b), "route": None,
-            "legs": [_nav_leg("within", origin["ref"], destination["ref"], course)],
+            "legs": [_nav_leg("within", origin["ref"], destination["ref"], course, system_id=origin["anchor"][1],
+                              ends_km=(origin["system_km"] or (0.0, 0.0, 0.0), destination["system_km"] or (0.0, 0.0, 0.0)))],
             "note": NAV_IN_SYSTEM_NOTE, **ends,
         }
 
@@ -2037,13 +2035,15 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes
     if origin["system_km"] is not None:
         edge = [v * _system_heliopause_km(conn, from_id) for v in heading]
         legs.append(_nav_leg("out", origin["ref"], object_ref.format("system", from_id), course_between(
-            [_km_to_ly(v) for v in origin["system_km"]], [_km_to_ly(v) for v in edge], frame=FRAME_SYSTEM)))
+            [_km_to_ly(v) for v in origin["system_km"]], [_km_to_ly(v) for v in edge], frame=FRAME_SYSTEM),
+            system_id=from_id, ends_km=(origin["system_km"], edge)))
     legs.append(_nav_leg("between", object_ref.format(from_kind if from_kind == "system" else from_type, from_id),
                          object_ref.format(to_kind if to_kind == "system" else to_type, to_id), result["direct"]))
     if destination["system_km"] is not None:
         edge = [-v * _system_heliopause_km(conn, to_id) for v in heading]
         legs.append(_nav_leg("into", object_ref.format("system", to_id), destination["ref"], course_between(
-            [_km_to_ly(v) for v in edge], [_km_to_ly(v) for v in destination["system_km"]], frame=FRAME_SYSTEM)))
+            [_km_to_ly(v) for v in edge], [_km_to_ly(v) for v in destination["system_km"]], frame=FRAME_SYSTEM),
+            system_id=to_id, ends_km=(edge, destination["system_km"])))
     return {**result, "legs": legs, "note": NAV_IN_SYSTEM_NOTE if len(legs) > 1 else None, **ends}
 
 

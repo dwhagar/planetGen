@@ -207,24 +207,11 @@ def test_a_barred_habitable_world_leaves_no_body_of_a_life_class_anywhere_in_the
                 assert moon.planet_class not in tuning.HABITABLE_PLANET_CLASSES, (seed, moon.planet_class)
 
 
-def test_bar_life_class_remakes_a_body_until_it_leaves_the_life_classes_and_says_so_when_it_cannot():
-    from planetgen.physics import planets as planetPhysics
+def test_a_system_that_bars_habitable_worlds_keeps_out_a_body_that_meets_the_request_or_is_of_a_life_class():
+    """GEN.1275 on the bar of GEN.1250: one test for both (`StarSystem._barred`)."""
     life = sorted(tuning.HABITABLE_PLANET_CLASSES)[0]
-    body = types.SimpleNamespace(planet_class=life, mass=1.0, distance=1.0, is_moon=False, star=types.SimpleNamespace(mass=1.0, age=1.0))
-    calls = []
-
-    def remake_after_two():
-        calls.append(1)
-        if len(calls) == 2:
-            body.planet_class = "D"
-
-    draw.set_run_seed(0)
-    assert planetPhysics.bar_life_class(body, remake_after_two) is True
-    assert len(calls) == 2
-    body.planet_class = life
-    never = []
-    assert planetPhysics.bar_life_class(body, lambda: never.append(1)) is False
-    assert len(never) == tuning.BARRED_LATE_CLASS_MAX_ATTEMPTS
-    body.planet_class = "D"
-    assert planetPhysics.bar_life_class(body, lambda: never.append(1)) is True
-    assert len(never) == tuning.BARRED_LATE_CLASS_MAX_ATTEMPTS
+    meets = dict(body_type="t", surface_temperature=288.0, atmospheric_pressure=1.0e5, hydrosphere="surface ocean")
+    cold = dict(body_type="t", surface_temperature=120.0, atmospheric_pressure=1.0e5, hydrosphere="ice")
+    assert StarSystem._barred(types.SimpleNamespace(planet_class="D", **meets))
+    assert StarSystem._barred(types.SimpleNamespace(planet_class=life, **cold))
+    assert not StarSystem._barred(types.SimpleNamespace(planet_class="D", **cold))

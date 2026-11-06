@@ -55,13 +55,19 @@ def pinned_inputs(draw):
 
 
 def _check_whole(planet):
-    assert planet.planet_class in prog_c.PLANET_CLASSES
+    if planet.planet_class is None:
+        # A terrestrial body whose roundness ratio is under 1 is the Asteroid type, which has no letter (GEN.1158, `planet_classes.ASTEROID`): a
+        # pinned radius of a kilometre gives one. Anything else has a class.
+        assert planet.body_type == "t" and planet.roundness_ratio is not None and planet.roundness_ratio < 1.0
+    else:
+        assert planet.planet_class in prog_c.PLANET_CLASSES
     assert planet.planet_class == planets.planet_classes.classify(planet)
     for value in (planet.radius, planet.mass, planet.distance, planet.period):
         assert math.isfinite(value) and value > 0
 
 
 @settings(max_examples=30, deadline=None)
+@example(inputs=("h", 1.0, None, None))        # a kilometre body: the Asteroid type, which has no class letter
 @given(inputs=pinned_inputs())
 def test_pinned_planets_come_out_whole_or_raise_value_error(star, inputs):
     zone, radius, mass, habitable = inputs

@@ -4,7 +4,7 @@ Measures what a full build of the Galaxy Map's tile cache costs (PERF.233): how 
 level, how many bytes one takes on disk, how many seconds one takes to build, and from those the disk and the hours of a build
 of all of them on this machine.
 
-A "tile" of the single-space Galaxy Map is a sector-block node (`db/nodes.py`): a block of the ladder (`galaxy/drill.py`, 177,147
+A "tile" of the single-space Galaxy Map is a sector-block node (`src/planetgen/db/nodes.py`): a block of the ladder (`galaxy/drill.py`, 177,147
 shells down to 3) that holds a generated sector or a pre-placed object, and a node for each generated sector (the ladder's
 last step). The blocks are the stored rows of `galaxy_block_stats` and `galaxy_block_lights`; the sectors are `sectors`.
 

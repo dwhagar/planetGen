@@ -330,12 +330,13 @@ NLTK corpus, runs the generator's math check (a failure only warns, and
 bulk generation refuses to start until it passes), migrates the database
 and records the version key, re-applies folders, permissions and the
 logs, checks that the site imports, and checks Redis as the installer
-does. It never reinstalls what is already there. Last, it starts
-building the site's caches in the background (`planetgen warm`:
+does. It never reinstalls what is already there. Last, it builds
+the site's caches (`planetgen warm`:
 the Galaxy Map's opening view, the lists, the sector, system and phenomenon
-pages and the search, each its own command run in order; at most 30 minutes,
-log at `/tmp/planetgen-warm-map.log`), so
-the first visit after an update is fast; the update does not wait for it.
+pages and the search, each its own command run in order, in two stages, each
+with a time limit of 4 hours, `WARM_STAGE_SECONDS`), so
+the first visit after an update is fast. Each warm-up leaves its record in
+`warmup.log` in the log folder, in local time with its zone.
 
 When the update includes a schema migration, it first asks whether to
 **delete the galaxy data instead** (y/N, defaulting to N after 30

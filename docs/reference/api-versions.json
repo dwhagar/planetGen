@@ -148,8 +148,7 @@
     },
     {
       "version": 13,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.3295",
       "items": [
         "GEN.1212",
         "DOC.103"

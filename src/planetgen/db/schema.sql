@@ -1523,12 +1523,15 @@
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
+-- v212 (GEN.1221): `planets` and `moons` keep the relative humidity of the air (`relative_humidity`, DOUBLE, 0.05 to 0.99) and the groundwater of the body (`groundwater`, VARCHAR(10): none, reachable
+--   or deep; `physics/habitability_world.py`), which the class-by-domain matrix reads (`physics/class_domains.py`); `rogue_planets` keep them too. NULL for a row made before v212.
 -- v206 (GEN.1219, GEN.1220, GEN.1226): `planets` and `moons` keep the body type (`planet_type`, VARCHAR(12): terrestrial, transitional or gas, from the envelope share
 --   of the mass, `physics/planet_type.py`) and the digit of the class code (`class_variant`, TINYINT 0 to 9, 0 not written; `physics/class_code.py`). The
 --   `envelope_mass_fraction` that was there holds the true share of a hydrogen-rich air for every rocky body (`physics/envelope_share.py`). NULL for a row made before v206.
 -- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
 -- v200 (GEN.1162): `stars`, `black_holes` and `neutron_stars` keep the mean density (`density_g_cm3`, DOUBLE, g/cm3) and the binding energy (`binding_energy_j`, DOUBLE, J) of the object (`physics/body_strength.py`); a black hole stores -1 for an infinite binding energy. `rogue_planets` keep those with the roundness ratio and the yield strength of a terrestrial one, and `interstellar_comets` keep what `comets` do (`density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa`, `binding_energy_j`). NULL for a row made before v200, which gets them when the galaxy is regenerated.
+-- v213 (GEN.1254): `bright_stars` and `phenomenon_scatter` gain `uid` (BINARY(12), unique, NULL until given), the Object ID of the scatter row: its birth sector, a serial that is its rank in that sector (brightest first, stars from 0 and phenomena from the upper half of the serial space) and body number 0. The scatter writers give it as they write (`db/scatter_uids.py`, counters `scatstar` and `scatphen` in `id_counters`), and a system built round a scatter star and a built scatter phenomenon keep it. NULL for a row made before v205, and the regenerated scatter replaces it.
 -- v204 (GEN.1069): `asteroid_belts` keep where the belt came from and its history: `origin_cause` (VARCHAR(24)), `co_causes`, `origin_history` and `scatter_fates` (JSON text), `origin_sentence` (TEXT), `formation_snow_line_au`, `primordial_mass_earth`, `cleared_mass_earth`, `scattered_mass_earth` (DOUBLE), `stirred` (TINYINT(1)) and `largest_body_km` (DOUBLE, the largest body Dc settled with the mass). NULL for a row made before v201 or a belt made without an origin; the regenerated galaxy replaces it.
 -- v209 (GEN.1070): the table `belt_members` keeps the stored bodies of a belt (the ledger's cut), one row each, with mass, radius, orbit, taxon, density, composition shares, status word and Soter's mu; `member_rank` 1 is the heaviest and names the body (`<belt ID>.<rank in hex>`). A belt saved before v209 has none until the galaxy is regenerated.
 -- v210 (GEN.1232): `asteroid_belts.history_text` (TEXT, NULL), what the star's evolution did to the belt (engulfed in part by the giant branch, thrown inward by the mass loss, `physics/belt_history.py`), as one paragraph
@@ -1543,7 +1546,7 @@
 -- v194 (GEN.1013): `dark_members`, one row for each member of a built system's tree that is not one of its stars (a brown dwarf, neutron star, black hole or stripped helium star): `parent_node_no`, `slot`, `kind`, `mass_solar`, `radius_au`. A system stored before has none; nothing is backfilled.
 -- v196 (GEN.1108): `planets` and `moons` keep the climate of the body in seven bands of latitude (`physics/latitude_bands.py`, `physics/regional_temperature.py`), `band1` (the north pole) to `band7`
 --   (the south pole), each with `bandN_mean_k` (the annual-mean temperature), `bandN_swing_k` (the day and night swing, peak to peak, kelvin of difference), `bandN_day_hours` and `bandN_night_hours`
---   (hours of day and of night in a solar day), `bandN_longest_day_days` and `bandN_longest_night_days` (the longest polar day and night of the year at the poleward edge) and `bandN_state`
+--   (hours of day and of night in a solar day), `bandN_longest_day_days` and `bandN_longest_night_days` (the longest unbroken day and night of the year at the poleward edge; GEN.1260 reads it from a time-stepped search, not the polar day alone) and `bandN_state`
 --   (VARCHAR(24): day and night, polar day and night, non-rotating; for a world locked to its star the seven are rings from the day center to the night center, with no hours, and the state is
 --   permanent day side, terminator band or permanent night side). `temp_mean_swing_k` stays (the swing of the whole surface). The columns `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`,
 --   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
@@ -2487,6 +2490,8 @@ CREATE TABLE IF NOT EXISTS planets (
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
     planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
+    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
+    groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2930,6 +2935,8 @@ CREATE TABLE IF NOT EXISTS moons (
     binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
     planet_type                 VARCHAR(12),  -- v206 (GEN.1219): the body type, from the envelope share of the mass
     class_variant               TINYINT,  -- v206 (GEN.1220): the digit of the class code, see the header comment
+    relative_humidity           DOUBLE,  -- v212 (GEN.1221): the air's water vapor over saturation, 0.05 to 0.99
+    groundwater                 VARCHAR(10),  -- v212 (GEN.1221): none, reachable or deep, the liquid water under a dry surface
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -4151,6 +4158,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     surface_liquid_2              VARCHAR(32),  -- v207 (GEN.1111)
     surface_liquid_2_fraction     DOUBLE,  -- v207 (GEN.1111)
     class_variant                 TINYINT,  -- v207 (GEN.1111)
+    relative_humidity             DOUBLE,  -- v212 (GEN.1221)
+    groundwater                   VARCHAR(10),  -- v212 (GEN.1221)
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)
@@ -4632,7 +4641,9 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     cluster_id           BIGINT UNSIGNED,  -- v127 (DB.61): the cluster this star belongs to, NULL for a field star
     rotation_period_hours DOUBLE,  -- v185 (GEN.846): the spin period in hours, NULL on a row made before v185
     nuclear_arrival_age_gy DOUBLE,  -- v198 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
+    uid                  BINARY(12) NULL,  -- v213 (GEN.1254): the star's Object ID, given when the scatter writes it, see the header comment
 
+    UNIQUE KEY uq_bright_stars_uid (uid),
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
@@ -4852,7 +4863,9 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     next_update_due      DOUBLE,  -- v93 (GEN.223): see header comment
     member_count         SMALLINT UNSIGNED,  -- v93: companions, see the header comment
     system_mass_solar    DOUBLE,
+    uid                  BINARY(12) NULL,  -- v213 (GEN.1254): the phenomenon's Object ID, given when the scatter writes it, see the header comment
 
+    UNIQUE KEY uq_phenomenon_scatter_uid (uid),
     KEY idx_phenomenon_scatter_address (shell_index, band_index, wedge_index),
     KEY idx_phenomenon_scatter_next_update_due (next_update_due),
     KEY idx_phenomenon_scatter_class (kind, subtype, mass_solar),  -- v82 (PERF.68): see header comment

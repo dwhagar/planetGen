@@ -12,6 +12,7 @@ map: versions with phases, a blocker never in a later phase.
 
 import importlib.util
 import os
+import re
 
 import pytest
 
@@ -207,3 +208,38 @@ A paragraph.
     assert '<p class="muted">Muted lead.</p>' in page
     assert "<li><b>GEN.1:</b> a &lt;script&gt; and <code>code</code></li><li>two</li>" in page
     assert "<p>A paragraph.</p>" in page
+
+
+VERSION_LINE = re.compile(r"\bVersion:?\s+(\d+\.\d+|later)(?=\s*(?:[.,;:)]|\n|$))")
+"""re.Pattern: An item's own statement of its version in docs/TODO.md (TEST.628): `Version 8.4, phase 2.`, `Version: 8.2.` or `Version 8.1.`
+-- a capital V, a number (or `later`) and then a full stop, comma, semicolon, colon, bracket or the end of the line. A sentence that merely
+mentions a version (`Version 8.1 builds the halo ...`, `moved from 8.2 to 8.8`) is not one, and neither is a lower-case `version 8.4`."""
+
+
+def _version_lines(text):
+    return VERSION_LINE.findall(text)
+
+
+def test_an_items_version_line_names_the_version_file_its_row_sits_in():
+    """TEST.628: when Boss moves an item to another version only the version file's row is moved, and the `Version 8.2.` line in the item's
+    text goes on saying the old one. The last version an item's text states is the one it is meant for; its row must be in that file."""
+    data = build_todo_docs.build_data(build_todo_docs.ROOT)["plan"]
+    todo = build_todo_docs.parse_todo(open(os.path.join(ROOT, "docs", "TODO.md"), encoding="utf-8").read())
+    file_of = {item_id: phase["file"] for phase in data["phases"] for group in phase["groups"] for item_id in group["ids"]}
+    wrong = []
+    for item_id, item in todo.items():
+        stated = _version_lines(item["text"])
+        if stated and stated[-1] != data["items"][item_id]["version"]:
+            wrong.append(f"{item_id}: TODO.md says Version {stated[-1]}, its row is in {file_of.get(item_id, 'no version file')} "
+                         f"(version {data['items'][item_id]['version']})")
+    assert not wrong, ("an item's Version line disagrees with the version file its row sits in; the TODO thread fixes the line (or moves "
+                       "the row):\n  " + "\n  ".join(wrong))
+
+
+def test_the_version_line_reader_takes_an_items_own_statement_only():
+    assert _version_lines("Do: x. Version 8.4, phase 2. Owner: Aux 2.") == ["8.4"]
+    assert _version_lines("Lock-free. Version: 8.2.\nPrerequisites: A.") == ["8.2"]
+    assert _version_lines("Version 8.1\nOwner: x") == ["8.1"]
+    assert _version_lines("Version 8.1 builds the halo first. moved from 8.2 to 8.8; version 8.4.") == []
+    assert _version_lines("Version 8.2, phase 1. Rescoped. Version 8.4.") == ["8.2", "8.4"]
+    assert _version_lines("Version later.") == ["later"]

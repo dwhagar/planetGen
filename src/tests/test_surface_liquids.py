@@ -49,30 +49,29 @@ def test_every_liquid_is_stable_inside_its_own_window():
         pressure = 10e5 if row.saturation == "CO2" else 1e5
         low, high = sl.window_k(row.id, pressure)
         middle = 0.5 * (low + high)
-        assert sl.is_stable(row.id, middle, pressure) and row.id in sl.stable_liquids(middle, pressure), row.id
+        assert sl.is_stable(row.id, middle, pressure), row.id
         assert not sl.is_stable(row.id, low - 1.0, pressure) and not sl.is_stable(row.id, high + 1.0, pressure), row.id
 
 
 def test_a_body_outside_every_window_holds_no_liquid():
-    assert sl.stable_liquids(4000.0, 1e5) == ()
-    assert sl.stable_liquids(2.0, 1e5) == ("helium4",)
+    assert not any(sl.is_stable(row.id, 4000.0, 1e5) for row in sl.LIQUIDS)
+    assert [row.id for row in sl.LIQUIDS if sl.is_stable(row.id, 2.0, 1e5)] == ["helium4"]
     assert sl.dominant(4000.0, 1e5, {"CH4": 1e3}, {"water": 1.0}) is None
 
 
 def test_a_titan_like_world_draws_a_hydrocarbon_sea():
-    stable = sl.stable_liquids(94.0, 1.5e5)
+    stable = [row.id for row in sl.LIQUIDS if sl.is_stable(row.id, 94.0, 1.5e5)]
     assert {"methane", "ethane", "propane"} <= set(stable) and "nitrogen" not in stable and "water" not in stable
     pick = sl.dominant(94.0, 1.5e5, {"CH4": 7.5e3, "N2": 1.4e5}, {"methane": 0.05, "water": 0.4})
     assert pick.liquid_id == "methane" and pick.basis == "reservoir"
     sea = sl.ideal_sea(94.0, {"CH4": 7.5e3, "N2": 1.4e5})
     assert sum(sea.values()) == pytest.approx(1.0)
     assert set(sea) == {"CH4", "N2", "C2H6"} and sea["CH4"] > sea["N2"] > 0.05 and 0.01 < sea["C2H6"] < 0.9
-    density = sl.sea_density_kg_m3(sea, 94.0)
-    assert 440.0 < density < 640.0                          # methane 0.45 g/cm3, ethane 0.65 and nitrogen 0.85 at those temperatures
 
 
 def test_a_warm_world_still_draws_water():
-    assert "water" in sl.stable_liquids(288.0, 1e5, kinds=("aqueous",)) and "nitrogen" not in sl.stable_liquids(288.0, 1e5)
+    stable = [row.id for row in sl.LIQUIDS if sl.is_stable(row.id, 288.0, 1e5)]
+    assert "water" in stable and "nitrogen" not in stable
     pick = sl.dominant(288.0, 1e5, {"H2O": 1.7e3}, {"water": 0.3})
     assert pick.liquid_id == "water"
     assert sl.dominant(288.0, 1e5, {"CH4": 1e3, "N2": 7e4}, {"methane": 0.05}) is None        # methane is gas at 288 K

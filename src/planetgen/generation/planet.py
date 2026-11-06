@@ -24,7 +24,7 @@ defined separately in `asteroidData`.
 import math
 
 from planetgen import tuning
-from planetgen.generation import prevalence
+from planetgen.generation import habitable_request, prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
@@ -431,7 +431,7 @@ class Planet(PlanetaryObject):
             planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
             planetPhysics.calculate_atmospheric_conditions(self, distance_override)
             planetPhysics.apply_class(self)
-            if not (system_config.HABITABLE_WORLD is False and planetPhysics.is_life_class(self)):
+            if not (system_config.HABITABLE_WORLD is False and (habitable_request.meets(self) or planetPhysics.is_life_class(self))):
                 break
             draw.redrawn("planet.barred_world")
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
@@ -484,6 +484,8 @@ class Planet(PlanetaryObject):
         """Whether a planet left to chance gets moons: an even chance, or for a small body the share of the hosting gate's
         `satellite-share` table for its population and size (GEN.761), moved by the run's moons prevalence (GEN.52)."""
         chance = planetPhysics.satellite_share(self)
+        if chance is None and self.body_type != "g":
+            chance = tuning.ROCKY_IMPACT_MOON_CHANCE    # GEN.962: a rocky planet's massive moon comes from a giant impact
         if prevalence.percent(self.system_config, "moons"):
             return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5 if chance is None else chance)
         return draw.randrange(2) == 1 if chance is None else draw.random() < chance

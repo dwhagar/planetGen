@@ -9,10 +9,9 @@ belts, life, a system file's slots), every phenomenon type (placed in that secto
 allows it), a polity holding a system, facilities, and two orbit updates.
 """
 
+import contextlib
 import os
 import sys
-
-import pytest
 
 from planetgen.util import draw
 from planetgen.cli import orbits
@@ -38,10 +37,11 @@ PHENOMENA = ("black-hole", "neutron-star", "nebula", "supernova-remnant", "rogue
 PLACEABLE = ("nebula", "asteroid-field", "black-hole", "neutron-star")
 
 
-@pytest.fixture(scope="module")
-def rich_galaxy(_mysql_server_available):
-    """A `MySQLConfig` for one seeded galaxy per test module; tests must
-    leave it as they found it (roll back)."""
+@contextlib.contextmanager
+def scratch_rich_galaxy():
+    """A `MySQLConfig` for one seeded galaxy in a scratch database, dropped on exit. The `rich_galaxy` fixture (conftest.py,
+    one per test process, TEST.417: the build is four minutes and the modules that use it only read it) holds it; tests
+    must leave it as they found it (roll back)."""
     with scratch_database(store.MySQLConfig(database="", **_test_server_kwargs())) as config:
         build_rich_galaxy(config)
         yield config

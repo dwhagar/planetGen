@@ -48,7 +48,8 @@ def test_each_kind_of_field_is_filled_and_submitted(browser, axe_source, base_ur
         # A text box and number boxes (the search page), with the page's own checks.
         page.goto(f"{base_url}/search", wait_until="load")
         _wait_defined(page, "sl-input[name='q']")
-        page.locator("details.search-more > summary").click()
+        # The size boxes are in the first fold ("Search by object and size"); the physical values have a fold of their own.
+        page.locator("details.search-more:not(.search-values) > summary").click()
         problems += [f"/search: {p}" for p in _overflow(page) + _axe_blocking(page, axe_source)]
         page.locator("sl-input[name='q'] input").fill("Sol")
         page.locator("sl-input[name='star_min_radius_km'] input").fill("1200")

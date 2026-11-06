@@ -145,7 +145,7 @@ def test_the_archives_are_replaced_by_one_compact_file_each(cache):
     assert sorted(path.name for path in (cache / "ir_ktables").iterdir()) == [".derived.json", "ir_ktables.npz"]
     assert sorted(path.name for path in (cache / "ir_cia").iterdir()) == [".derived.json", "ir_cia.npz"]
     with np.load(cache / "ir_ktables" / "ir_ktables.npz") as data:
-        assert sorted(data.files) == sorted(["g", "weights", "edges_cm1", "temperature_k", "pressure_bar", "k_H2O", "k_CO2", "k_CH4"])
+        assert sorted(data.files) == sorted(["g", "weights", "edges_cm1", "temperature_k", "pressure_bar", "k_H2O", "k_CO2", "k_CH4", "k_NH3", "k_SO2", "k_H2S", "k_CO", "k_HCN"])
         assert data["k_H2O"].shape == (129, 3, 5, 10)
     with np.load(cache / "ir_cia" / "ir_cia.npz") as data:
         assert sorted(data.files) == sorted(f"{kind}_{pair}" for kind in ("temperature", "k") for pair in hitran_cia.FILES)

@@ -152,7 +152,9 @@ def test_resolve_keeps_forced_flags_and_the_forcing_rules():
     for _ in range(300):
         config = SystemConfig()
         config.COMETS = True
-        config.PREVALENCE = {"habitable_world": 1000, "asteroid_belt": 1000, "planets": -100}
+        # "all of them past 100%" needs p/100 * share / (1 - share) of 1 or more: a belt's usual share is 0.039, so +1000% forces it in about
+        # 41% of systems and only +2464% and above in all (TEST.614: the test asked 1000 when the share was larger)
+        config.PREVALENCE = {"habitable_world": 1000, "asteroid_belt": 10_000, "planets": -100}
         prevalence.resolve(config)
         assert config.HABITABLE_WORLD is True and config.ASTEROID_BELT is True
         assert config.LARGE_STAR is True  # both need a large star
@@ -160,7 +162,7 @@ def test_resolve_keeps_forced_flags_and_the_forcing_rules():
     config = SystemConfig()
     config.LARGE_STAR = False
     config.HABITABLE_WORLD = True
-    config.PREVALENCE = {"asteroid_belt": 1000}
+    config.PREVALENCE = {"asteroid_belt": 10_000}    # forced on in every system, so the undo is what leaves it unset
     prevalence.resolve(config)
     assert config.ASTEROID_BELT is None and config.LARGE_STAR is False
 

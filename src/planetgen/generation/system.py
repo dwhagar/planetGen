@@ -38,10 +38,11 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, clearance_ledger, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, clearance_ledger, debris_dust, planet_architecture, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
+from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 
 _km_to_au = units.converter("km", "au")
@@ -557,23 +558,11 @@ class StarSystem:
             for obj in self.all_planets:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
-                interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
-                planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
-                planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
-                self._bar_life_class(obj, obj.distance, obj.eccentricity)    # GEN.1275: a system that bars habitable worlds has no body of such a class
-                magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
+                self._finish_planet(obj)
                 for moon in obj.moons:
-                    planetPhysics.apply_class(moon)
-                    self._bar_life_class(moon, obj.distance, obj.eccentricity, parent=obj)
-                planetLife.apply_life_data(obj)
-                planetLife.decide_flavor_text(obj)
-                for moon in obj.moons:
-                    interior_heat.update_heat(moon)
-                    planetPhysics.refresh_at_final_age(moon)
-                    magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
-                    radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
-                    planetLife.apply_life_data(moon)
-                    planetLife.decide_flavor_text(moon)
+                    self._finish_moon(moon, obj)
+            if self.system_config.HABITABLE_WORLD is False:
+                self._bar_habitable_worlds()
             for obj in self.all_planets:  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
                 if obj.body_type == 'a':
                     continue
@@ -1335,6 +1324,29 @@ class StarSystem:
         bodies[:] = sorted([*bodies, *belts], key=lambda body: body.distance)
         self.validate_system(bodies)
         self._trim_to_orbit_ceiling(bodies, orbit_ceiling_au)
+        self._set_debris_disk(bodies, star)
+
+    def _set_debris_disk(self, bodies, star):
+        """
+        The cold debris disk of a main-sequence star (GEN.1071): the dust of its outer-disk belt, when a survey would find it (`debris_dust`). The star's `disk_kind` is then "debris" and the disk's edges are
+        the belt's, so the disk and the belt are one thing; a star without such a belt, or whose belt is too faint, holds none. Where two belts are outer disks the brighter one is the disk.
+        """
+        holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star       # a close pair's circumbinary belt is the pair's: its disk is kept on the primary
+        holder.disk_kind = holder.disk_mass_solar = holder.disk_inner_au = holder.disk_outer_au = None
+        if any(member.yerkes_class not in debris_dust.DEBRIS_CLASSES for member in getattr(star, "stars", [star])):
+            return
+        age_myr, mass_sol = star.age * 1.0e3, _kg_to_msun(remnant_orbits.formation_mass_kg(star))
+        brightest = None
+        for belt in bodies:
+            if belt.body_type != 'a' or belt.origin != "outer-disk" or not belt.mass_kg > 0.0:
+                continue
+            fractional = debris_dust.fractional_luminosity(belt.lower_limit, belt.upper_limit, star.luminosity / constants.SOLAR_LUMINOSITY, age_myr, belt.largest_body_km,
+                                                           _kg_to_mearth(belt.mass_kg), mass_sol)
+            if debris_dust.is_detectable(fractional) and (brightest is None or fractional > brightest[0]):
+                brightest = (fractional, belt)
+        if brightest is not None:
+            belt = brightest[1]
+            holder.disk_kind, holder.disk_inner_au, holder.disk_outer_au = debris_dust.DEBRIS_KIND, belt.lower_limit, belt.upper_limit
 
     def _requested_belt(self, bodies, star, orbit_ceiling_au):
         """
@@ -2099,6 +2111,64 @@ class StarSystem:
             return None
         return "aim" if habitable_request.count(self.all_planets if planets is None else planets) > 0 else "unmet"
 
+    def _finish_planet(self, obj):
+        """The end of a planet's making, after the system is whole (the life data pass): the thermal history, the final-age refresh, the class,
+        the star's induced field, the moons' classes and the planet's own life (a moon's end follows, `_finish_moon`)."""
+        interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
+        planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
+        planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
+        magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
+        for moon in obj.moons:
+            planetPhysics.apply_class(moon)
+        planetLife.apply_life_data(obj)
+        planetLife.decide_flavor_text(obj)
+
+    def _finish_moon(self, moon, obj):
+        """The end of a moon's making (the life data pass), after its parent's (`_finish_planet`)."""
+        interior_heat.update_heat(moon)
+        planetPhysics.refresh_at_final_age(moon)
+        magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
+        radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
+        planetLife.apply_life_data(moon)
+        planetLife.decide_flavor_text(moon)
+
+    @staticmethod
+    def _barred(body):
+        """Whether a finished planet or moon is what a system that bars habitable worlds keeps out: it meets the request's conditions or its class can carry life (GEN.1250, GEN.1275)."""
+        return habitable_request.meets(body) or planetPhysics.is_life_class(body)
+
+    def _bar_habitable_worlds(self):
+        """
+        Keeps a system that bars habitable worlds (`HABITABLE_WORLD` False) free of them in its finished bodies (GEN.1250). The first draw of a planet
+        (`Planet.__init__`) is judged before the star's final age, the star's light from every star, and the oxygen a life has built into the air
+        are in, and each can bring a body to the request's conditions (`habitable_request.meets`) or to a class that can carry life
+        (`planets.is_life_class`, GEN.1275: no body of any such class anywhere in the system); so the finished bodies are judged here, and a body
+        that is either has its air, water, surface, class and spin drawn again (`planets.remake_end_stages`, another draw of the stream of its
+        own) and its end made again, up to `tuning.BARRED_CLASS_MAX_ATTEMPTS` times. A body that still is either after that keeps its last draw:
+        the honest limit, counted in `StarSystem.barred_world_limit`; one of a class that can carry life is then left out of the system
+        (`_drop_barred_bodies`).
+        """
+        self.barred_world_limit = 0
+        for obj in self.all_planets:
+            if obj.body_type == 'a':
+                continue
+            for body in (obj, *list(obj.moons)):
+                if not self._barred(body):
+                    continue
+                for attempt in range(1, tuning.BARRED_CLASS_MAX_ATTEMPTS + 1):
+                    draw.redrawn("planet.barred_world_final")
+                    planetPhysics.remake_end_stages(body, obj, attempt)
+                    if body.is_moon:
+                        self._finish_moon(body, obj)
+                    else:
+                        self._finish_planet(obj)
+                        for moon in obj.moons:
+                            self._finish_moon(moon, obj)
+                    if not self._barred(body):
+                        break
+                else:
+                    self.barred_world_limit += 1
+
     def _settle_to_final_age(self):
         """
         Makes what the star's age touches again, now that it is final (GEN.961, GEN.985, GEN.992; the age only ever rises, once, after the
@@ -2150,28 +2220,10 @@ class StarSystem:
             member.reflex_offset_x, member.reflex_offset_y, member.reflex_offset_z = \
                 calculate_reflex_offset(member.mass, self._reflex_children(bodies))
 
-    def _bar_life_class(self, body, planet_distance, planet_eccentricity, parent=None):
-        """
-        GEN.1275: in a system that bars habitable worlds (`HABITABLE_WORLD` False) a body whose final class can carry life has its air, water and class made
-        again (`planetPhysics.bar_life_class`). A giant has no such class. The body's end stages keep their order: the air, the final-age ice and volcanism, the class.
-        """
-        if body.body_type != "t" or not planetPhysics.bars_life_classes(body) or not planetPhysics.is_life_class(body):
-            return
-
-        def remake():
-            if parent is None:
-                planetPhysics.calculate_atmospheric_conditions(body)
-            else:
-                planetPhysics.calculate_atmospheric_conditions(body, planet_distance, planet_eccentricity)
-            planetPhysics.refresh_at_final_age(body)
-            planetPhysics.apply_class(body)
-
-        planetPhysics.bar_life_class(body, remake)    # one that stays a life class is dropped when the system is done (`_drop_barred_bodies`)
-
     def _drop_barred_bodies(self):
         """
         GEN.1275: in a system that bars habitable worlds (`HABITABLE_WORLD` False) a planet or moon whose final class still can carry life, after the attempts to make
-        it again (`_bar_life_class`) and after the life pass (which can change an air), is not in the system: a moon leaves its planet's list, and a planet leaves the
+        it again (`_bar_habitable_worlds`) and after the life pass (which can change an air), is not in the system: a moon leaves its planet's list, and a planet leaves the
         system's with its moons. Returns whether any went.
         """
         if self.system_config.HABITABLE_WORLD is not False:
@@ -2347,5 +2399,6 @@ class StarSystem:
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 
 _kg_to_msun = units.converter("kg", "Msun")
+_kg_to_mearth = units.converter("kg", "Mearth")
 _mearth_to_kg = units.converter("Mearth", "kg")
 object_timing.track(StarSystem, "system")
