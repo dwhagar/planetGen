@@ -2,6 +2,45 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3476] - 2026-11-06
+
+**Headline:** The Sector Map now draws the globular clusters that reach into the sector and names them.
+
+### Changed
+- A globular cluster whose sphere reaches into a sector is drawn on that sector's map as a soft pale-gold ball at its real radius whose brightness follows the cluster's own King model (its projected density, bright in the crowded middle and fading to nothing at the tidal radius), and named by its name, or by "Globular cluster" and its ID while it has none, with the same Cluster names switch as the Galaxy Map. Clicking its name or the ball opens its card with a link to the cluster's page, and "Globular clusters" is a button in the map's list of kinds to show or hide.
+
+generation-output: unchanged
+
+## [8.0.3475] - 2026-11-06
+
+**Headline:** The Navigation page test looks for the table caption as it is now worded.
+
+### Changed
+
+- `test_web_sector_nav.py`: the adjusted-course test (and its twin that checks the words are absent when there is no adjusted course) looks for "Warp travel time by the straight and the adjusted course". TEST.646 reworded the caption in `nav.html` ("Warp travel time, straight and adjusted" had a British-spelling check against it) and left these two checks on the old words. The "Leave on" row was never missing.
+
+generation-output: unchanged
+
+## [8.0.3474] - 2026-11-06
+
+**Headline:** Choosing a globular cluster on the Galaxy Map opens a window on its own stars.
+
+### Changed
+- Clicking a cluster's name on the Galaxy Map now flies to a window on the cluster's sphere, whatever sectors it crosses: only the stars inside the sphere are drawn (the stored ones of the sectors that are filled and, where a sector is not filled yet, the ones the plan placed), the window bar names the cluster, and its button, Escape or Backspace returns the camera to where it was. The cluster's card also has an "Open cluster window" button.
+
+generation-output: unchanged
+
+## [8.0.3473] - 2026-11-06
+
+**Headline:** A cluster's page lists the stars that belong to it, and a star's page names its cluster.
+
+### Changed
+- The page of a globular cluster now lists its own stars first, as "Stars of the cluster", each linked to its page, and says how many more of its stars are not yet charted: the ones the plan has placed that no filled sector has built yet. A cluster with no name yet is called "Globular cluster" and its ID, and takes its name on the page when the first sector holding one of its stars is filled.
+- The page of a star that belongs to a cluster shows "Member of" and the cluster, linked, in its Location block.
+- The container contents answer carries the cluster's stars as kind `star` and `uncharted_stars`; the star's object answer carries `cluster`.
+
+generation-output: unchanged
+
 ## [8.0.3472] - 2026-11-06
 
 **Headline:** A test now proves that changing any row of a rogue planet's four child tables changes the digest of the sector it is filed in.
