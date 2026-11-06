@@ -16792,9 +16792,9 @@ clears each one.
   form); and it shows the sector map with those objects drawn where they
   are. Lock-free (page and map). Done: the page lists every known object
   with working links and draws the sector map, checked in a browser test at
-  every screen size. Version 8.1. Owner: Core 1, after MAP.403.
+  every screen size. Version 8.1. Owner: Core 1, first of three, its own PR, no schema (shows what MAP.399/401 and the rogue and phenomenon rows already hold; scattered cells follow with MAP.402). The Needs on MAP.403 is dropped: it does not wait for it.
   Filed by the TODO thread.
-  Prerequisites: MAP.403. Related: MAP.399, MAP.400, MAP.401.
+  Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
 
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
