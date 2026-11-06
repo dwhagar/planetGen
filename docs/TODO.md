@@ -17864,20 +17864,6 @@ clears each one.
   Core 1. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.644 Four more tests are red on main: test_web_fresh_after_cli (3), test_fingerprint every_table_is_compared, test_db_check (3) and test_galaxy_gen span_mode (bug)**
-  Aux 2 (as the lane reported, 11:58 PM EST on 2026-11-05, main 07192bb4f)
-  found these red on main besides TEST.642 and TEST.643: the three
-  tests in test_web_fresh_after_cli (`[first] = _sectors(...)` gets more
-  than one row, because rogue planets add uncharted sector rows since
-  GEN.1111 part 7), test_fingerprint's every_table_is_compared, the
-  three tests in test_db_check, and test_galaxy_gen's span_mode (the
-  last four not yet checked on main). Do: reproduce each on current main,
-  find the cause, and fix the test or the code at the cause; for the
-  first group count only charted sectors, as TEST.643 did. Lock-free
-  unless a cause needs a migration. Done: all of them pass on current
-  main. Version 8.1. Owner: Aux 2. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.642.
-
 - [ ] **TEST.646 More tests red on main beyond TEST.644: test_parallel_generation (6), test_deferred_sectors (3), test_habitability_fill (2), test_db_check_deep, test_generation_stats (4), test_materials_table, test_sectors_command (2), test_prevalence (asteroid_belt, large_star, habitable_world), test_benchmark_suite, test_estimate_sampling, test_run_job (scatter redraw), test_maintenance (map rebuild), test_no_todo_codes_shown, test_plain_words nav comma (bug)**
   Aux 2 (as the lane reported, 4:10 AM EST on 2026-11-06, main
   ab0af2f9d) ran the 90 test files that use capsys and the 116 that touch
@@ -17891,6 +17877,23 @@ clears each one.
   current main. Version 8.1. Owner: Aux 2 after TEST.644. Filed by the
   TODO thread.
   Prerequisites: none. Related: TEST.644, TEST.642.
+
+- [ ] **TEST.647 The fingerprint leaves out the four rogue_planet child tables, so a change to them does not change a galaxy's digest (lock)**
+  Aux 2 (as the lane reported, 4:45 AM EST on 2026-11-06, while fixing
+  TEST.644) found that the fingerprint table check was red because
+  GEN.1111, GEN.1127 and GEN.1138 added six tables nobody classified.
+  chart_ledger and designations are left out of the fingerprint on
+  purpose; the four rogue_planet child tables are left out with a note in
+  TEST.644. They should be in: a change to a rogue planet's children must
+  change the galaxy's digest. Do: add the four rogue_planet child tables
+  to the fingerprint tree and its leaf, remove the note, and update the
+  table classification. Every digest of a galaxy with a rogue changes, so
+  test_golden_seed goes red until the train's golden rewrite. Lock item
+  (new epoch, golden), after TEST.602 and TEST.598 are on main. Done: the
+  fingerprint covers the four tables, a test changes one child row and
+  sees the digest change, and the golden is rewritten. Version 8.1. Owner:
+  Aux 7. Filed by the TODO thread.
+  Prerequisites: TEST.602, TEST.598. Related: TEST.644.
 
 - [ ] **TEST.627 Tests for the tabulated stellar potential: ring-sum agreement with the density model, the rotation curve, the cache, and the removed stand-ins GP1 to GP3**
   Do: the tabulated potential matches a direct ring sum of the density
