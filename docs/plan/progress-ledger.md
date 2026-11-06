@@ -2697,3 +2697,4 @@ Baseline: PR #1817.
 | VIEW.47 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.654 | 8.1 | Physics rectification: life classes, chemistries and their pages |
 | TEST.642 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1023 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
