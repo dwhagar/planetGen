@@ -120,6 +120,11 @@ NULL_IN_THIS_GALAXY = {
        ("atm_density", "atm_molar_density", "scale_height_km", "life_class", "life_class_variant", "life_class_best", "life_class_best_score",
         "life_animal_grade", "life_complexity",
         "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS)},
+    # The same for the life rows of a moon (GEN.1209): whether any moon of this small galaxy bears life is chance.
+    **{("moon_life", column): CHANCE for column in
+       ("id", "moon_id", "life_class", "share", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr", "life_animal_grade", "life_complexity",
+        "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
+        "life_age_technological_civilization_gyr", "life_microbial", "life_flora", "life_fauna", "life_sentient")},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},
     # A giant moon (rare) and its interior (DB.89).
