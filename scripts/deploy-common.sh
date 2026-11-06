@@ -725,12 +725,13 @@ duration_words() {
 }
 
 run_warm_stage() {
+    local name user="" runner=() limit=() status=0 seconds="${WARM_STAGE_SECONDS:-$WARM_STAGE_DEFAULT_SECONDS}" limit_words warm_started=$SECONDS
+    name="$(log_lower "$(log_count Part "$1" "$2")"), $3"
+    shift 3
     if (( WARM_SKIPPED )); then
-        log_info "Skipping the cache warm-up, $1 (skipped by a keypress)."
+        log_info "Skipping the cache warm-up, $name (skipped by a keypress)."
         return 0
     fi
-    local name="$1" user="" runner=() limit=() status=0 seconds="${WARM_STAGE_SECONDS:-$WARM_STAGE_DEFAULT_SECONDS}" limit_words warm_started=$SECONDS
-    shift
     if ! [[ "$seconds" =~ ^[0-9]+$ ]]; then
         log_warning "WARM_STAGE_SECONDS=$seconds is not a number of seconds; using $WARM_STAGE_DEFAULT_SECONDS."
         seconds=$WARM_STAGE_DEFAULT_SECONDS

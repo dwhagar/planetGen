@@ -319,18 +319,13 @@ class LineFormatter(logging.Formatter):
 
 def record_of(log_record):
     """The `logrecord.Record` of a standard `logging.LogRecord`: its level as a severity, the logger's name (less a leading
-    `planetgen.`; for the program's own logger the module that logged) as the component, the fields `get` attached, and its time."""
+    `planetgen.`, or for the program's own logger the source file that logged it, found in the component table, OPS.103) as the component, the fields `get` attached, and its time."""
     level = log_record.levelno
     severity = "debug"
     for name in logrecord.SEVERITIES:
         if level >= logrecord.LOGGING_LEVELS[name]:
             severity = name
-    component = log_record.name.removeprefix("planetgen.").lower() or "planetgen"
-    if component == "planetgen" and getattr(log_record, "module", None):
-        component = log_record.module.lower()          # the program's own logger: the module that logged is the component
-    component = re.sub(r"[^a-z0-9_.-]", "_", component)[:24]
-    if not logrecord.COMPONENT_PATTERN.match(component):
-        component = "planetgen"
+    component = logrecord.component_of(log_record.name, getattr(log_record, "pathname", ""))
     return logrecord.Record.at(log_record.created, severity, component, log_record.getMessage(),
                      **getattr(log_record, "fields", {}))
 
@@ -1353,8 +1348,8 @@ def get(component):
     Raises:
         ValueError: A component name that is not allowed.
     """
-    if not logrecord.COMPONENT_PATTERN.match(component):
-        raise ValueError(f"component {component!r} is not a short lower-case name (a-z, 0-9, _ . -)")
+    if component not in logrecord.COMPONENTS:
+        raise ValueError(f"component {component!r} is not in the component table ({', '.join(logrecord.COMPONENTS)})")
     return Logger(component)
 
 

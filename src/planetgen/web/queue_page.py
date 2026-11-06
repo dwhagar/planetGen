@@ -133,7 +133,7 @@ def _progress_text(run):
     stage = run["stage"]
     if stage is None:
         return ""
-    where = f"stage {stage['index'] + 1} of {stage['count']}: {stage['label']}" if run["live"] else \
+    where = f"{logrecord.counting_text('Stage', stage['index'] + 1, stage['count'])}: {stage['label']}" if run["live"] else \
         f"{stage['count']} stage{'s' if stage['count'] != 1 else ''}"
     units = f", {run['units_done']} of {run['units']} {counted('unit', run['units'])}" if run["units"] else ""
     return where + units

@@ -184,7 +184,6 @@ export PLANETGEN_UPDATE_PID=$$
 trap finish_update_guard EXIT
 ensure_update_guard
 
-UPDATE_STEP="step 1/9, pulling the latest changes"
 log_stage 1 9 "Pulling the latest changes"
 
 # Mode changes are not local edits: set-permissions.sh makes scripts and
@@ -229,7 +228,6 @@ source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 warn_if_no_swap
 
-UPDATE_STEP="step 2/9, checking the Python libraries"
 log_stage 2 9 "Checking the Python libraries"
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
 use_site_python
@@ -240,23 +238,19 @@ ensure_update_guard required
 resolve_api_health || { log_error "set api_base_url in config.json, then run the update again."; exit 1; }
 log_info "The API address (api_base_url in config.json) is ${API_HEALTH_URL%/health}; the update asks only that address."
 
-UPDATE_STEP="step 3/9, checking the NLTK words corpus and the downloaded data"
 log_stage 3 9 "Checking the NLTK 'words' corpus and the downloaded data sets"
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
 build_reference_pages
 
-UPDATE_STEP="step 4/9, checking the generator's math"
 log_stage 4 9 "Checking the generator's math"
 check_math
 
-UPDATE_STEP="step 5/9, migrating the database"
 log_stage 5 9 "Migrating the configured MySQL database to the current schema"
 migrate_or_reset_db
 record_version_key
 warm_shape_means
 
-UPDATE_STEP="step 6/9, checking Apache's modules"
 log_stage 6 9 "Checking Apache's modules (macOS: the gunicorn daemon)"
 APACHE_NEEDS_RESTART=0
 if is_macos; then
@@ -265,11 +259,9 @@ else
     ensure_apache_modules
 fi
 
-UPDATE_STEP="step 7/9, setting ownership and permissions"
 log_stage 7 9 "Setting ownership/permissions: the checkout belongs to Apache's user"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
-UPDATE_STEP="step 8/9, checking the cache, jobs and log locations"
 log_stage 8 9 "Checking the cache, jobs and debug log locations"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 # The logs never stop an update (OPS.5): setup-debug-log.sh warns, with
@@ -280,7 +272,6 @@ PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
 # Set the secret key if none is (never printed); as Apache's user so the web app can read it.
 set_secret_key
 
-UPDATE_STEP="step 9/9, checking that the web app imports"
 log_stage 9 9 "Checking that the web app imports"
 check_app_imports
 
@@ -304,8 +295,8 @@ if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
     log_notice "Nothing new was pulled."
     SITE_NOTE="nothing new was pulled"
 else
-    UPDATE_STEP="building what the reload and the health check need (cache warm-up, stage 1)"
-    run_warm_stage "stage 1 of 2, what the reload and the health check need" opening
+    UPDATE_STEP="building what the reload and the health check need (cache warm-up, part 1)"
+    run_warm_stage 1 2 "what the reload and the health check need" opening
     log_info "The update steps are finished: waiting ${UPDATE_SETTLE_SECONDS:-5} seconds before reloading the site."
     sleep "${UPDATE_SETTLE_SECONDS:-5}"
     UPDATE_STEP="reloading what serves the site and checking that it answers /api/health"
@@ -341,8 +332,8 @@ fi
 if (( UPDATE_GUARD_HELD )); then
     update_guard end --pid "$$" && UPDATE_GUARD_HELD=0
 fi
-UPDATE_STEP="building the site's caches (cache warm-up, stage 2)"
-run_warm_stage "stage 2 of 2, the full warm-up"
+UPDATE_STEP="building the site's caches (cache warm-up, part 2)"
+run_warm_stage 2 2 "the full warm-up"
 
 # The last thing on the screen (OPS.100): how long it took, what it brought, and every warning raised, repeated.
 CODE_VERSION="$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' "$SCRIPT_DIR/src/planetgen/_version.py" | head -n 1)"

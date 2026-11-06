@@ -168,7 +168,7 @@ class WarmProgress:
         return f"{key} chunk {self.done} of {self.units}" if self.units > 1 else key
 
     def _overall_text(self):
-        return f"warm-up, step {self.index + 1} of {len(self.keys)}"
+        return f"warm-up, family {self.index + 1} of {len(self.keys)}"
 
     def _weight_done(self):
         """The cost of the steps before this one and the share of this one's that its chunks have done."""
@@ -290,7 +290,7 @@ class WarmProgress:
         overall = self._overall_left_text()
         return (f"{key}: {self.sums['warmed']:,} {self.noun} warmed ({self.sums['built']:,} built, "
                 f"{self.sums['cached']:,} already stored{out}) in {clock_text(elapsed)} over {self.units} chunks of up "
-                f"to {self.biggest:,} {self.noun}{together}; step {self.index + 1} of {len(self.keys)}"
+                f"to {self.biggest:,} {self.noun}{together}; family {self.index + 1} of {len(self.keys)}"
                 + (f", warm-up {overall}" if overall and self.index + 1 < len(self.keys) else ""))
 
 

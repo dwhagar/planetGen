@@ -10,7 +10,7 @@ used to be a `tee` into one /tmp file that stage 2 overwrote, and a background r
 says what started it and a line that says how it ended and after how long; between them are the lines the run printed, each in the
 logging layer's display form (`log.LineFormatter`): the local time with its zone, the severity, the component and the message.
 
-    2026-11-05 07:44:10 EST INFO     warm: Cache warm-up started (update.sh, stage 2 of 2, the full warm-up; time limit 4 hours)
+    2026-11-05 07:44:10 EST INFO     warm: Cache warm-up started (update.sh, part 2 of 2, the full warm-up; time limit 4 hours)
     2026-11-05 08:01:54 EST INFO     warm: Cache warm-up finished after 17:44 (5 families)
 
 What started the run is `PLANETGEN_WARM_STARTED_BY`, which `scripts/deploy-common.sh` sets for each of its stages; a run after a
