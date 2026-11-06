@@ -45,7 +45,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, nebula_composition, stellar_abundances
+from planetgen.physics import constants, nebula_composition, stellar_abundances, unit_registry
 
 HYDROGEN_ATOMS_PER_AV_CM2 = 2.21e21
 """float: Hydrogen atoms per cm2 for one magnitude of V extinction in the Galaxy: N_H = (2.21 +- 0.09)e21 A_V, from 22 supernova remnants [R5130: Eq. 1]. Stand-in DU1,
@@ -67,10 +67,12 @@ SOLAR_12LOG = nebula_composition.SOLAR_OXYGEN_12LOG
 """float: The solar 12 + log(O/H) the dust-to-gas law is written against."""
 
 _PC_CM = constants.PARSEC_M * 100.0
-_MSUN_PC2_IN_HYDROGEN_PER_CM2 = constants.SOLAR_MASS_TO_KG / (_PC_CM / 100.0) ** 2 / constants.HYDROGEN_ATOM_MASS_KG / 1.0e4
+_MSUN_KG = unit_registry.converter("Msun", "kg")(1.0)
+"""float: One solar mass in kg, through the unit registry (GEN.568); the same number as `constants.SOLAR_MASS_TO_KG`."""
+_MSUN_PC2_IN_HYDROGEN_PER_CM2 = _MSUN_KG / (_PC_CM / 100.0) ** 2 / constants.HYDROGEN_ATOM_MASS_KG / 1.0e4
 """float: Hydrogen atoms per cm2 in one solar mass of hydrogen per pc2 (1.25e20)."""
 
-_G_PC_KMS2_PER_MSUN = constants.G * constants.SOLAR_MASS_TO_KG / constants.PARSEC_M / 1.0e6
+_G_PC_KMS2_PER_MSUN = constants.G * _MSUN_KG / constants.PARSEC_M / 1.0e6
 """float: The gravitational constant in pc (km/s)^2 per solar mass (4.30e-3)."""
 
 
