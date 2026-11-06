@@ -1,18 +1,18 @@
 # planetgen/physics/planet_classes.py
 
 """
-Planet and moon classes as a function of the finished body (GEN.645, GEN.647, docs/design/habitability/condition-based-planet-classes.md)
-============================================================================================================================
+Planet and moon classes as a function of the finished body (GEN.645, GEN.647, GEN.1207, docs/design/habitability/condition-based-planet-classes.md)
+==============================================================================================================================================
 
 A class says what a world is. It is an output: `classify` reads the conditions a finished planet or moon stores (its mass
 and gravity, its mean surface temperature, the pressure and mixture of its air, its water, and the variation of its
 starlight) and returns one letter. Generation never draws a class (GEN.646): it builds the body, then calls `classify` on it, so
 every generated body's stored letter is this one; the class sweep (`src/tests/class_sweep_cli.py`) reports the shares.
 
-The rules are the rows of `physics/data/planet_classes.json`, in order, one list for giants and one for terrestrial
-bodies. The first row whose conditions all hold names the class. The last row of each list has no conditions, so every body
-gets exactly one letter (`tests/test_planet_classes.py` also proves it over generated bodies). A row's conditions are
-`min` (at least) and `lt` (below) on a named quantity, or `equals` and `not_equals` on a text one.
+Since GEN.1207 the class is the **best fit**: every class has its own positive conditions in `physics/data/planet_class_fit.json`, each is graded, and
+`physics/class_fit.py` picks the class with the highest percent match (no row relies on another having said no). `classify_detail` also gives the match, the
+runner-up and its match, and the digit of the class code. `physics/data/planet_classes.json` holds what a class is called and says (name, sentence, basis), the
+Asteroid object type (a body under a roundness ratio of 1, which has no letter) and the quantities the conditions are written in.
 
 Quantities (all derived here from the stored columns, named as `db.models` names them):
 
@@ -22,13 +22,14 @@ Quantities (all derived here from the stored columns, named as `db.models` names
 * `share_o2` ... `share_so2`: a stored gas's partial pressure over the surface pressure;
 * `reducing_share`: the methane and hydrogen shares together.
 
-Letters no row uses are the `RESERVE`: a letter is never retired without asking Boss, and free letters are kept for new
+Letters no class uses are the `RESERVE`: a letter is never retired without asking Boss, and free letters are kept for new
 designations.
 
 Use:
 
     classify(planet)               # "M"
     classify(row_dict)             # the same, from the stored columns of a planets or moons row
+    classify_detail(planet)        # Classification("M", "t", 0.97, "O", 0.41, 0)
     describe("M")                  # the Class row: name, sentence, kind, basis
 """
 
@@ -115,9 +116,9 @@ def quantities(values):
 
 
 class Class:
-    """One class: a letter, its name and sentence, the body kind it covers and the conditions that select it."""
+    """One class: a letter, its name and sentence and the body kind it covers. Its conditions are its row of `class_fit` (`class_fit.CLASSES`)."""
 
-    __slots__ = ("letter", "name", "kind", "sentence", "basis", "when", "core")
+    __slots__ = ("letter", "name", "kind", "sentence", "basis", "core")
 
     def __init__(self, row, core):
         self.letter = row["letter"]
@@ -125,15 +126,7 @@ class Class:
         self.kind = row["kind"]
         self.sentence = row["sentence"]
         self.basis = row["basis"]
-        self.when = tuple(row["when"])
         self.core = self.letter in core
-        for condition in self.when:
-            keys = set(condition) - {"quantity", "min", "lt", "equals", "not_equals"}
-            if keys or "quantity" not in condition or len(condition) < 2:
-                raise ClassError(f"class {self.letter}: condition {condition!r} is not quantity plus min, lt or equals")
-
-    def matches(self, found):
-        return holds(self.when, found, owner=f"class {self.letter}")
 
 
 def holds(conditions, found, owner="a rule", missing=ClassError):
@@ -163,12 +156,6 @@ def _load():
         document = json.load(handle)
     core = tuple(document["core"])
     classes = tuple(Class(row, core) for row in document["rows"])
-    for kind in (TERRESTRIAL, GIANT):
-        rows = [c for c in classes if c.kind == kind]
-        if not rows or rows[-1].when:
-            raise ClassError(f"the {kind!r} rules do not end with a row that has no conditions")
-        if any(not c.when for c in rows[:-1]):
-            raise ClassError(f"a {kind!r} row before the last has no conditions, so the rows after it never match")
     letters = [c.letter for c in classes]
     if len({(c.letter, c.kind) for c in classes}) != len(letters):
         raise ClassError("a class letter is used by two rows of one kind")
@@ -181,7 +168,7 @@ def _load():
 
 
 DOCUMENT, CLASSES, RESERVE = _load()
-"""tuple: The `Class` rows in rule order; `RESERVE` the free letters kept for new designations."""
+"""tuple: The `Class` rows; `RESERVE` the free letters kept for new designations."""
 
 BY_LETTER = {}
 for _c in CLASSES:
@@ -214,21 +201,40 @@ ASTEROID = AsteroidType(DOCUMENT["asteroid"])
 """AsteroidType: What a terrestrial body whose roundness ratio is under 1 is. `classify_values` gives it and `classify` gives `None` for it."""
 
 
-def classify_values(values):
-    """The `Class` of a body's stored `values` (a column-named mapping): the first row of its kind whose conditions hold. A terrestrial body under a roundness ratio of 1 is `ASTEROID`, which has no letter."""
+def classify_detail(body):
+    """
+    The `class_fit.Classification` of a finished planet or moon (an object, or a column-named mapping of its stored values): its letter and kind, the percent
+    match as a fraction, the runner-up letter and match, and the digit of the class code. A terrestrial body under a roundness ratio of 1 is `ASTEROID`, which
+    has no letter, and is returned as `None`.
+    """
+    values = body if isinstance(body, Mapping) else values_from_body(body)
     found = quantities(values)
     if found["body_type"] == TERRESTRIAL and ASTEROID.matches(found):
+        return None
+    from planetgen.physics import class_fit        # class_fit reads this module's quantities
+    return class_fit.classify(values)
+
+
+def classify_values(values):
+    """The `Class` of a body's stored `values` (a column-named mapping): its best-fit class. A terrestrial body under a roundness ratio of 1 is `ASTEROID`, which has no letter."""
+    detail = classify_detail(values)
+    if detail is None:
         return ASTEROID
-    for cls in CLASSES:
-        if cls.kind == found["body_type"] and cls.matches(found):
-            return cls
-    raise ClassError("no rule matched")  # unreachable: the last row of each kind has no conditions
+    return class_of(detail.letter, detail.kind)
 
 
 def classify(body):
     """The class letter of a finished planet or moon (an object, or a column-named mapping of its stored values); `None` for an Asteroid."""
-    values = body if isinstance(body, Mapping) else values_from_body(body)
-    return classify_values(values).letter
+    detail = classify_detail(body)
+    return None if detail is None else detail.letter
+
+
+def class_of(letter, kind):
+    """The `Class` row of a letter in a body kind."""
+    for cls in CLASSES:
+        if cls.letter == letter and cls.kind == kind:
+            return cls
+    raise ClassError(f"{letter!r} is not a class of kind {kind!r}")
 
 
 def describe(letter):
@@ -252,6 +258,9 @@ def condition_words(condition):
         gas = name[len("share_"):]
         entry = DOCUMENT["quantities"]["share_<gas>"]
         label, unit, percent = entry["label"].replace("<gas>", atmosphere.species_name(gas)), "", True
+    elif name.startswith("phase_"):
+        entry = DOCUMENT["quantities"]["phase_<family>"]
+        label, unit, percent = entry["label"].replace("<family>", name[len("phase_"):].replace("_", "-")), "", False
     else:
         entry = DOCUMENT["quantities"][name]
         label, unit, percent = entry["label"], entry.get("unit", ""), entry.get("percent", False)
@@ -261,13 +270,12 @@ def condition_words(condition):
         parts.append(f"{label} at least {_number(condition['min'], percent)}{suffix}")
     if "lt" in condition:
         parts.append(f"{label} below {_number(condition['lt'], percent)}{suffix}")
-    if "equals" in condition:
+    if "equals" in condition and name.startswith("phase_") and condition["equals"] == 1.0:
+        parts.append(f"the {name[len('phase_'):].replace('_', '-')} family's liquid is a liquid at the surface temperature and pressure")
+    elif "equals" in condition and name == "groundwater_present" and condition["equals"] == 1.0:
+        parts.append("liquid groundwater under a dry surface")
+    elif "equals" in condition:
         parts.append(f"{label} is {condition['equals']}")
     if "not_equals" in condition:
         parts.append(f"{label} is not {condition['not_equals']}")
     return join_words(parts)
-
-
-def rule_words(cls):
-    """The conditions of a `Class` as a list of plain phrases ([] for the row that takes the rest of its kind)."""
-    return [condition_words(condition) for condition in cls.when]

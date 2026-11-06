@@ -76,8 +76,9 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
+from planetgen.physics import nebula_columns as nebulaColumns
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
-from planetgen.generation import generator_battery as generatorBattery
+from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
@@ -609,7 +610,7 @@ still answers as before."""
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
-    "asteroid_belt_composition", "belt_members",
+    "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
@@ -3221,7 +3222,41 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     for position, moon in enumerate(planet.moons or []):
         insert_moon(conn, moon, star_system_id, star_id, planet_id, position)
 
+    insert_irregular_moons(conn, planet, planet_id)
+
     return planet_id
+
+
+IRREGULAR_MOON_COLUMNS = ("moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction",
+                          "water_fraction", "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")
+"""tuple: The value columns of `irregular_moons`, after `planet_id`."""
+
+
+def insert_irregular_moons(conn, planet, planet_id):
+    """Writes the `irregular_sets` row and the `irregular_moons` rows of `planet` (GEN.1084): nothing for a planet with none."""
+    held = getattr(planet, "irregulars", irregular_moons.NO_IRREGULARS)
+    if held is irregular_moons.NO_IRREGULARS:
+        return
+    conn.execute("INSERT INTO irregular_sets (planet_id, remainder_kg, above_floor, lost, `temporary`) VALUES (?, ?, ?, ?, ?)",
+                 (planet_id, held.remainder_kg, held.above_floor, held.lost, 1 if held.temporary else 0))
+    for moon in held.moons:
+        d = moon.to_dict()
+        conn.execute(
+            f"INSERT INTO irregular_moons (planet_id, {', '.join(IRREGULAR_MOON_COLUMNS)}) VALUES ({', '.join('?' * (len(IRREGULAR_MOON_COLUMNS) + 1))})",
+            (planet_id, d["rank"], d["window"], d["mass_kg"], d["radius_km"], d["density_kg_m3"] / 1000.0, d["taxon"], d["source_distance_au"] * _AU_KM, d["ice_loss"], d["rock"],
+             d["metal"], d["water"], d["ice"], d["semi_major_axis_au"] * _AU_KM, d["eccentricity"], d["inclination_deg"], d["ascending_node_deg"], d["arg_periapsis_deg"],
+             d["mean_anomaly_deg"]))
+
+
+def irregular_set_dict(summary, rows):
+    """The `IrregularSet.from_dict` dict of a planet's `irregular_sets` row (`None` for none) and its `irregular_moons` rows."""
+    if summary is None:
+        return None
+    return {"remainder_kg": summary["remainder_kg"], "above_floor": summary["above_floor"], "lost": summary["lost"], "temporary": bool(summary["temporary"]), "moons": [{"rank": r["moon_rank"], "window": r["capture_window"], "mass_kg": r["mass_kg"], "radius_km": r["radius_km"], "density_kg_m3": r["density_g_cm3"] * 1000.0,
+                                  "taxon": r["taxon"], "source_distance_au": r["source_distance_km"] / _AU_KM, "ice_loss": r["ice_loss"], "rock": r["rock_fraction"],
+                                  "metal": r["metal_fraction"], "water": r["water_fraction"], "ice": r["ice_fraction"], "semi_major_axis_au": r["distance_km"] / _AU_KM,
+                                  "eccentricity": r["eccentricity"], "inclination_deg": r["inclination_deg"], "ascending_node_deg": r["ascending_node_deg"],
+                                  "arg_periapsis_deg": r["arg_periapsis_deg"], "mean_anomaly_deg": r["mean_anomaly_deg"]} for r in rows]}
 
 
 def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -> int:
@@ -3637,6 +3672,36 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
     return row_id
 
 
+_COMPOSITION_READ = {
+    "nebulae": "id, name, uid, nebula_class, density_cm3, radius_ly, galactic_radius_pc, center_x_pc, center_y_pc, center_z_pc, hosts",
+    "supernova_remnants": "id, name, uid, remnant_class, progenitor_type, compact_remnant_kind, density_cm3, radius_ly, galactic_radius_pc",
+}
+"""dict: The columns of a row that its composition is worked out from (`physics/nebula_columns.py`)."""
+
+
+def store_composition(conn, table, row_id):
+    """
+    Works out and stores the composition of one `nebulae` or `supernova_remnants` row (GEN.1276): the columns of `physics/nebula_columns.py`, keyed on the row's object ID, and the
+    plain-words `composition` (a nebula) and `dominant_species` written from the numbers. Called right after a row is inserted, when its `uid` is already issued; the migration that
+    fills the rows of an older galaxy runs the same model.
+
+    Returns:
+        dict: The values stored.
+    """
+    row = conn.execute(f"SELECT {_COMPOSITION_READ[table]} FROM {table} WHERE id = ?", (row_id,)).fetchone()
+    values = nebulaColumns.values_for(table, dict(row))
+    sentence, species = nebulaColumns.sentences_for(values)
+    columns = nebulaColumns.COLUMNS[table]
+    sets = [f"{column} = ?" for column in columns] + ["dominant_species = ?"]
+    params = [values[column] for column in columns] + [species[:255]]
+    if table == "nebulae":
+        sets.append("composition = ?")
+        params.append(sentence)
+    conn.execute(f"UPDATE {table} SET {', '.join(sets)} WHERE id = ?", (*params, row_id))
+    storage_checksum.mark_rows(conn, table, [row_id])
+    return values
+
+
 def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     """
     Inserts a `nebulae` row (see `schema.sql`'s "v16"/"v18" header notes).
@@ -3682,6 +3747,7 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     )
     confirm_object_name(conn, name_base, "nebulae", cur.lastrowid, diminutive_index)
     _store_nebula_shape(conn, cur.lastrowid, nebula)
+    store_composition(conn, "nebulae", cur.lastrowid)
     _refresh_containment_around(conn, placement, nebula.radius_ly)
     return cur.lastrowid
 
@@ -3813,6 +3879,7 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
         ),
     )
     confirm_object_name(conn, name_base, "supernova_remnants", cur.lastrowid, diminutive_index)
+    store_composition(conn, "supernova_remnants", cur.lastrowid)
     _refresh_containment_around(conn, placement, remnant.radius_ly)
     return cur.lastrowid
 
@@ -3933,8 +4000,9 @@ def delete_rogues_of_donor(conn, donor_uid):
     """
     sectors = [row["sector_id"] for row in conn.execute("SELECT DISTINCT sector_id FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).fetchall()]
     deleted = conn.execute("DELETE FROM rogue_planets WHERE donor_uid = ?", (donor_uid,)).rowcount
-    for sector_id in sectors:       # a rogue is filed in the sector it landed in, whose storage checksum covers it (DB.45)
+    for sector_id in sectors:       # a rogue is filed in the sector it landed in, whose storage checksum covers it (DB.45) and whose leaf holds it (TEST.602)
         touch_sector(conn, sector_id)
+        fingerprintTree.store_residents(conn, sector_id)
     return deleted
 
 
@@ -3984,8 +4052,10 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
         delete_rogues_of_donor(conn, uid)
         position = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
         row_ids = []
+        landed = set()
         for rogue in rogue_yield.rogues_of(uid, system, position, edge_pc):
             sector_id = uncharted_sector_id(conn, rogue.landing.address, edge_pc, run_id)
+            landed.add(sector_id)
             row_ids.append(insert_rogue_body(
                 conn, rogue.planet, sector_id=sector_id, placement=rogue_landing.placement_of(rogue.landing), donor_uid=uid,
                 event_index=rogue.event.index, ejection_delay_gy=rogue.event.delay_gy, since_ejection_gy=rogue.event.since_ejection_gy,
@@ -3993,6 +4063,8 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
         if row_ids:
             _assign_rogue_uids(conn, row_ids, birth_sector_id)
             written += len(row_ids)
+        for sector_id in sorted(landed):        # the leaf of each sector a rogue landed in holds it (TEST.602)
+            fingerprintTree.store_residents(conn, sector_id)
     return written
 
 
@@ -4047,6 +4119,7 @@ def delete_topup_rogues(conn, sector_id):
     deleted = conn.execute("DELETE FROM rogue_planets WHERE sector_id = ? AND donor_uid IS NULL", (sector_id,)).rowcount
     if deleted:
         touch_sector(conn, sector_id)       # the sector's storage checksum covers its rogues (DB.45)
+        fingerprintTree.store_residents(conn, sector_id)       # and so does its leaf (TEST.602)
     return deleted
 
 
@@ -4079,6 +4152,7 @@ def save_topup_rogues(conn, sector_id, made):
             ejection_speed_kms=origin.speed_km_s, rogue_note=item.note))
     if row_ids:
         _assign_rogue_uids(conn, row_ids, sector_id)
+        fingerprintTree.store_residents(conn, sector_id)       # the leaf holds them (TEST.602)
     return len(row_ids)
 
 
@@ -6449,7 +6523,7 @@ BRIGHT_STAR_COLUMNS = (
     "shell_index", "band_index", "wedge_index", *point_columns.LAYOUTS["bright_stars"].position,
     "population", "star_type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
     "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed", "metallicity_fe_h",
-    "rotation_period_hours", "nuclear_arrival_age_gy",
+    "rotation_period_hours", "nuclear_arrival_age_gy", "cluster_id",
 )
 """tuple: The `bright_stars` columns a scatter writes, in the order
 `insert_bright_stars` expects each row's values."""
@@ -6470,6 +6544,7 @@ def clear_bright_stars(conn):
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
+    conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
                  " bright_star_mass_limit_sol = NULL")
     forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
@@ -6558,6 +6633,7 @@ def clear_bright_star_pass(conn, part, limits):
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
+    conn.execute("DELETE FROM sky_tier_draws")        # the spheres drew stars that are gone (VIEW.25)
     conn.execute(f"UPDATE galaxy_shape SET {forget}")
     forget_scatter_epoch(conn, ("mass",) if part == "mass" else ("luminosity", "band"))
     conn.commit()
@@ -6724,8 +6800,8 @@ def clear_phenomenon_scatter(conn):
 
 
 NEBULA_FIELD_COLUMNS = ("cell_i", "cell_j", "cell_k", "n", "nebula_class", "radius_ly", "center_x_pc", "center_y_pc",
-                        "center_z_pc")
-"""tuple: The columns `insert_nebula_field` writes (`nebulaField.table_rows` order)."""
+                        "center_z_pc", *nebulaColumns.FIELD_COLUMNS)
+"""tuple: The columns `insert_nebula_field` writes (`nebulaField.table_rows` order): the place, then the composition (GEN.1277)."""
 
 
 def clear_nebula_field(conn):
@@ -6736,12 +6812,14 @@ def clear_nebula_field(conn):
 
 
 def insert_nebula_field(conn, rows, batch_size=5000):
-    """Writes `nebula_field` rows (`NEBULA_FIELD_COLUMNS` order), `batch_size` to a statement. Returns the rows
-    written."""
-    head = f"INSERT INTO nebula_field ({', '.join(NEBULA_FIELD_COLUMNS)}) VALUES "
+    """Writes `nebula_field` rows (`NEBULA_FIELD_COLUMNS` order, a row may stop after the place and leave the composition NULL), `batch_size` to a
+    statement. Returns the rows written."""
+    head = None
     written = 0
     batch = []
     for row in rows:
+        if head is None:
+            head = f"INSERT INTO nebula_field ({', '.join(NEBULA_FIELD_COLUMNS[:len(row)])}) VALUES "
         batch.append("(" + ",".join(map(_scatter_value, row)) + ")")
         if len(batch) >= batch_size:
             conn.execute_literal(head + ",".join(batch))
@@ -7516,6 +7594,70 @@ def filled_sector_addresses(conn):
     return chart_ledger.charted_addresses(conn)
 
 
+def _naming_key_of(conn):
+    """The galaxy database's naming key (GEN.70) from the control database, or `None` when none is drawn or the control database cannot be read."""
+    from planetgen.names import naming_key
+    config = getattr(conn, "_config", None)
+    if config is None:
+        return None
+    try:
+        control = get_control_connection(control_mysql_config(config))
+    except Exception:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+        return None
+    try:
+        return naming_key.key_of(control, config.database)
+    except Exception:  # noqa: BLE001 -- a control schema older than v9
+        return None
+    finally:
+        control.close()
+
+
+def name_clusters(conn, cluster_ids):
+    """
+    GEN.359: the first fill that touches a cluster nobody has named gives it one name, once. The name is the local name (`names.naming_key.local_name`)
+    of the cluster's container Object ID under the galaxy's naming key; the cluster's row takes it with `UPDATE ... WHERE name IS NULL`, so a second
+    worker, a rerun or a resumed fill finds it named and changes nothing, and the container row follows. A local name is only certain to be unique inside
+    its birth sector, so a name another cluster already has is spelled with the sector (`local_name_with_sector`). A cluster with a catalogue name, or
+    one with no container row, or a galaxy with no naming key yet, is left as it is.
+
+    Args:
+        conn (Connection): The open galaxy connection, inside the fill's transaction.
+        cluster_ids (iterable): `galaxy_components.id` of the clusters whose stars the fill built.
+
+    Returns:
+        dict: `{cluster id: name}` for the clusters this call named.
+    """
+    ids = sorted({int(i) for i in cluster_ids if i is not None})
+    if not ids:
+        return {}
+    marks = ", ".join("?" * len(ids))
+    unnamed = conn.execute(
+        f"SELECT c.id AS id, k.uid AS uid FROM galaxy_components c JOIN galaxy_containers k ON k.component_id = c.id"
+        f" WHERE c.id IN ({marks}) AND c.name IS NULL ORDER BY c.id", tuple(ids)).fetchall()
+    if not unnamed:
+        return {}
+    key = _naming_key_of(conn)
+    if key is None:
+        return {}
+    from planetgen.names import naming_key
+    named = {}
+    for row in unnamed:
+        uid = objectUid.from_bytes(bytes(row["uid"]))
+        for candidate in (naming_key.local_name(uid, key), naming_key.local_name_with_sector(uid, key)):
+            taken = conn.execute("SELECT 1 FROM galaxy_components WHERE kind = 'cluster' AND name = ?", (candidate,)).fetchone()
+            if taken is not None:
+                continue
+            try:
+                changed = conn.execute("UPDATE galaxy_components SET name = ? WHERE id = ? AND name IS NULL", (candidate, row["id"])).rowcount
+            except pymysql.err.IntegrityError:      # another worker took the name between the check and the update
+                continue
+            if changed:
+                conn.execute("UPDATE galaxy_containers SET name = ? WHERE component_id = ?", (candidate, row["id"]))
+                named[row["id"]] = candidate
+            break
+    return named
+
+
 def give_system_uid(conn, system_id, uid):
     """Gives a system that has no Object ID the one it was born with (a scatter star's, GEN.1254), before `assign_uids` numbers its bodies
     under it. Does nothing for `uid` `None` or a system that has one already."""
@@ -7527,8 +7669,13 @@ def give_system_uid(conn, system_id, uid):
 
 def mark_bright_star_filled(conn, bright_star_id, star_system_id):
     """Links a pre-placed star to the system its sector's fill built
-    around it."""
+    around it. A star of a cluster (GEN.359) passes its cluster to every star of the system."""
     conn.execute("UPDATE bright_stars SET star_system_id = ? WHERE id = ?", (star_system_id, bright_star_id))
+    conn.execute("UPDATE stars SET cluster_id = (SELECT cluster_id FROM bright_stars WHERE id = ?) WHERE star_system_id = ?",
+                 (bright_star_id, star_system_id))
+    cluster = conn.execute("SELECT cluster_id FROM bright_stars WHERE id = ?", (bright_star_id,)).fetchone()
+    if cluster is not None and cluster["cluster_id"] is not None:
+        name_clusters(conn, [cluster["cluster_id"]])
 
 
 def sectors_reached_by(conn, center_pc, radius_pc):
@@ -7682,7 +7829,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
         # GEN.1127: the row of a regenerated sector kept for its residents is filled again, so they keep pointing at it.
         conn.execute(
             "UPDATE sectors SET name = ?, edge_mpc = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?, galactic_radius_pc = ?,"
-            " generator_epoch = ?, run_id = ?, max_mass_kg = NULL, max_mass_id = NULL, storage_checksum = NULL, leaf_digest = NULL,"
+            " generator_epoch = ?, run_id = ?, max_mass_kg = NULL, max_mass_id = NULL, storage_checksum = NULL, leaf_digest = NULL, content_leaf = NULL,"
             " density_multiplier_used = NULL, override_id = NULL, parity_dirty = 1 WHERE id = ?",
             (sector.name, ly_to_milliparsecs(sector.edge_ly), galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
              galaxy_position["center_z_pc"], galaxy_position["galactic_radius_pc"], epoch, run_id, kept_id))
@@ -7745,6 +7892,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
             conn.prereserved_names[id(obj)] = (base, diminutive_index)
 
         bright_star_links = []
+        cluster_links = []
         built_tree_ids = []
         built_scatter_ids = []
         nearest = sector.all_nearest_neighbors(3)   # PERF.81: one spatial tree, not a distance to every system each
@@ -7759,6 +7907,8 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
             if galaxy_position is not None:
                 conn.saved_donors.append((star_system_id, entry.star_system, _galaxy_placement_from_sector_offset(galaxy_position, entry.position)))
             bright_star_id = getattr(entry, "bright_star_id", None)
+            if getattr(entry, "cluster_id", None) is not None:
+                cluster_links.append((entry.cluster_id, star_system_id))
             if bright_star_id is not None:
                 bright_star_links.append((bright_star_id, star_system_id))
                 if getattr(entry.star_system, "tree_built", False):
@@ -7790,6 +7940,9 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     finally:
         conn.prereserved_names = None
         conn.deferred_name_confirmations = None
+    if cluster_links:       # GEN.359: every star of a system built from a cluster's star points to the cluster
+        conn.executemany("UPDATE stars SET cluster_id = ? WHERE star_system_id = ?", cluster_links)
+        name_clusters(conn, [cluster_id for cluster_id, _system_id in cluster_links])
     if bright_star_links:
         _update_by_id(conn, "bright_stars", ("star_system_id",), bright_star_links, touch=True)
     if built_tree_ids:  # GEN.315: a built row's members and nodes are its system's stars and orbit_nodes now
@@ -9599,6 +9752,10 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
         giant_interior.LAYERS_ATTRIBUTE: [{name: layer[name] for name in INTERIOR_LAYER_COLUMNS} for layer in layer_rows] or None,
         "moons": [],
     })
+    if not is_moon:
+        summary = conn.execute("SELECT remainder_kg, above_floor, lost, `temporary` FROM irregular_sets WHERE planet_id = ?", (row["id"],)).fetchone()
+        rows = conn.execute(f"SELECT {', '.join(IRREGULAR_MOON_COLUMNS)} FROM irregular_moons WHERE planet_id = ? ORDER BY moon_rank", (row["id"],)).fetchall()
+        data["irregulars"] = irregular_set_dict(summary, rows)
     return data
 
 

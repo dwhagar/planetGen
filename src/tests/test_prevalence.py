@@ -21,7 +21,16 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.population.model import has_civilization
 
-SYSTEMS = 2000
+SYSTEMS = 140
+"""int: Systems drawn to measure a share (PERF.236). A full system costs about 3 seconds on a lane machine (a `StarSystem` with its air, climate and spin
+histories), so the 2,000 this was costs 6,000 seconds against the gate's 900 s limit per test; 140 cost about 440 s, half the limit as a margin for a slower
+machine. The tolerance (`_tolerance`) is four standard errors of the count, which at 140 is 0.12 to 0.17 for a share of 0.3 to 0.9: wide, but the changes
+these tests check move a share by 0.15 to 0.3, and each draw is seeded so it repeats."""
+COMET_SYSTEMS = 100
+"""int: Systems drawn for the comet and binary cases, whose systems cost more (a pair or comets make the system larger): 830 s for 140 on the slowest cell, so 100 (about 600 s)."""
+FORCED_ON_SYSTEMS = 50
+"""int: Systems drawn when a feature is forced on or barred in many of them (`habitable_world` +50 and -50): the forcing or the bar repeats a draw until the condition holds, which costs
+about 8.6 seconds a system forced on and about 12 seconds a system barred (GEN.1275 remakes every body of a life class), so 50 cost 430 to 600 s. The tolerance at 50 is 0.17 to 0.25; the shares compared lie 0.3 apart."""
 BASELINE_SEED = 11
 """int: The seed of the draw with no prevalence change, which the checks that compare against the usual share share."""
 
@@ -92,8 +101,9 @@ def test_a_measured_feature_moves_by_the_percentage(feature, percent):
     expected = min(1.0, tuning.PREVALENCE_BASE_SHARES[feature] * (1 + percent / 100))
     # TEST.233: a seed that is the same in every process (hash() of a string differs per process), so a failure repeats
     seed = zlib.crc32(f"{feature}:{percent}".encode()) % 1000
-    share = _shares({feature: percent}, seed=seed)[feature]
-    assert share == pytest.approx(expected, abs=_tolerance(expected)), (feature, percent, seed, share)
+    count = FORCED_ON_SYSTEMS if feature == "habitable_world" else SYSTEMS
+    share = _shares({feature: percent}, seed=seed, count=count)[feature]
+    assert share == pytest.approx(expected, abs=_tolerance(expected, count)), (feature, percent, seed, count, share)
 
 
 @pytest.mark.parametrize("feature, base, percent", [
@@ -107,21 +117,21 @@ def test_a_drawn_feature_moves_by_the_percentage(feature, base, percent):
     chance = min(1.0, base * (1 + percent / 100))
     wide = tuning.PREVALENCE_DRAW_SHARES["binary_system"] * tuning.PREVALENCE_DRAW_SHARES["wide_binary"]
     two = (1 - wide) * chance + wide * (1 - (1 - chance) ** 2)
-    share = _shares({feature: percent}, seed=7)[feature]
-    assert chance - _tolerance(chance) <= share <= two + _tolerance(two)
+    share = _shares({feature: percent}, seed=7, count=COMET_SYSTEMS)[feature]
+    assert chance - _tolerance(chance, COMET_SYSTEMS) <= share <= two + _tolerance(two, COMET_SYSTEMS)
     if percent == 100:
-        assert share > chance - _tolerance(chance) and share > _shares({}, seed=BASELINE_SEED)[feature]
+        assert share > chance - _tolerance(chance, COMET_SYSTEMS) and share > _shares({}, seed=BASELINE_SEED)[feature]
 
 
 def test_no_binaries_at_minus_100_and_more_at_plus_50():
-    assert _shares({"binary_system": -100}, seed=3, count=500)["binary_system"] == 0
-    assert _shares({"binary_system": 50}, seed=3, count=1000)["binary_system"] > _shares({}, seed=BASELINE_SEED)["binary_system"] + 0.05
+    assert _shares({"binary_system": -100}, seed=3, count=40)["binary_system"] == 0    # none at all, so a few systems say it
+    assert _shares({"binary_system": 50}, seed=3, count=COMET_SYSTEMS)["binary_system"] > _shares({}, seed=BASELINE_SEED)["binary_system"] + 0.02
 
 
 def test_moons_and_max_planets_scale_their_draws():
     draw.set_run_seed(5)
     for percent, check in ((-100, lambda planets: all(not p.moons for p in planets)),):
-        for _ in range(200):
+        for _ in range(40):    # none at all, so a few systems say it (PERF.236)
             config = SystemConfig()
             config.PREVALENCE = {"moons": percent}
             system = StarSystem(system_config=config)
@@ -168,7 +178,7 @@ def test_civilizations_scale_with_intelligent_life_prevalence():
 
 def test_large_star_minus_forbids_one():
     draw.set_run_seed(9)
-    for _ in range(300):
+    for _ in range(60):    # none at all, so a few systems say it (PERF.236)
         config = SystemConfig()
         config.LARGE_STAR = False
         assert StarSystem(system_config=config).primary_star.initial_mass_sol < tuning.LARGE_STAR_MIN_MASS_SOL

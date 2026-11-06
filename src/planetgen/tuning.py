@@ -512,6 +512,13 @@ DEFAULT_HOME_JITTER_LY = 1.0
 # every existing system's minimum-separation requirement before giving up.
 SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
 
+SECTOR_HILL_SEPARATION_SHARE = 0.5
+"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192). A galactic Hill
+sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood
+overlaps them freely: the mean spacing of systems is 2.2 pc and the nearest neighbour of the Sun is inside its sphere. Keeping the whole sum apart asks a 4 pc
+sector for spheres that fill 0.6 of its volume, which random placement cannot do, so it ran out of room and kept 85 percent of the systems the profile expects (78 percent
+of the mass). Half the sum holds the expected count (424 of 424 requested in 125 solar-circle sectors)"""
+
 # --- Space Sector Growth Parameters (Poisson-disk placement) ---
 
 # Candidate attempts tried around an active point (Bridson's Fast Poisson
@@ -2138,6 +2145,11 @@ PLANET_CLASSES = {
         "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
+    # GEN.1207: the letters of the best-fit classes (GEN.1221, GEN.1258): R hothouse, U methane-ethane, X ammonia-water, Y sulfuric acid, Z hot thin-air.
+    'R': {
+        "composition": 'silicon, iron, and magnesium',
+        "type": 't',
+    },
     'S': {
         "composition": 'silicate rock over a large iron core',
         "type": 't',
@@ -2147,8 +2159,24 @@ PLANET_CLASSES = {
         "type": 'g',
         "also_type": 't',       # GEN.1142: a terrestrial-kind body under about 10 Earth masses with a hydrogen-dominated air is a gas dwarf too
     },
+    'U': {
+        "composition": 'silicon, iron, magnesium, ice, and hydrocarbons',
+        "type": 't',
+    },
     'V': {
         "composition": 'iron, iridium, tungsten, and nickel',
+        "type": 't',
+    },
+    'X': {
+        "composition": 'silicon, iron, magnesium, water ice, and ammonia',
+        "type": 't',
+    },
+    'Y': {
+        "composition": 'silicon, iron, magnesium, and sulfur',
+        "type": 't',
+    },
+    'Z': {
+        "composition": 'silicon, iron, and magnesium',
         "type": 't',
     },
 }
@@ -2959,54 +2987,27 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 # estimate). This range covers the terrestrial-to-giant span those
 # surveys probe.
 # Mass bins (Boss's research, 2026-09-30; docs/design/systems/
-# interstellar-object-rates.md): a rogue planet draws a bin by its
-# per-star rate, then a mass inside it. Since GEN.45 the rates and the draw
-# inside a bin both follow one mass function, dN/dlogM ~ M^-0.65 from 0.1
-# Earth masses to 13 Jupiter masses (Boss's research, 2026-10-01, which
-# writes it dN/dM ~ M^-0.65; read per unit mass that would make about 87%
-# of rogues gas giants, against its own aim of keeping them rare, so it is
-# read per logarithm of mass). The total is ROGUE_PLANET_RATE_PER_STAR, 5.8 per
-# star (the bins sum to it). That gives:
-#   - terrestrial 0.1-2 Earth masses, about 5.0 per star (2-10; Johnson
-#     et al. 2020, AJ 160:123; [R3190]:L11);
-#   - sub-Neptune / ice giant 2-20, about 0.64 per star ([R4254, R4255]
-#     find Neptune-mass candidates but give no rate);
-#   - Saturn-class 20 Earth masses to 1 Jupiter mass, about 0.15;
-#   - Jupiter-mass 1-13 Jupiter masses, about 0.025 per star (under Mroz
-#     et al. 2017's upper limit of 0.25, Nature 548:183).
-# So about 96% of rogues are not gas giants and 4% are. The old hand-set rates
-# (5, 1, 0.25, 0.25) with a log-uniform mass in each bin gave 91% and 9%,
-# twice the reference's share of gas giants.
-# Above 13 Jupiter masses is a brown dwarf (ROGUE_BROWN_DWARF_*).
-ROGUE_PLANET_RATE_PER_STAR = 5.8
-ROGUE_PLANET_MASS_FUNCTION_SLOPE = 0.65
-_ROGUE_PLANET_BIN_EDGES_EARTH = {
+# interstellar-object-rates.md): the classes a rogue planet's mass falls in.
+# Terrestrial 0.1-2 Earth masses, sub-Neptune / ice giant 2-20, Saturn-class
+# 20 Earth masses to 1 Jupiter mass, Jupiter-mass 1-13 Jupiter masses. The bins
+# only name a mass; how many rogues there are and how heavy comes from the
+# ejections (the planet architecture's loss records) and, for the top-up, from
+# `rogue_mass_function` (GEN.1287). Above 13 Jupiter masses is a brown dwarf
+# (ROGUE_BROWN_DWARF_*).
+ROGUE_PLANET_MASS_BIN_EDGES_EARTH = {
     "terrestrial": (0.1, 2.0),
     "sub-neptune": (2.0, 20.0),
     "saturn": (20.0, 317.8),
     "jupiter": (317.8, _boundaries.jupiter("deuterium_burning_limit") * 317.8),
 }
-
-
-def _rogue_planet_mass_bins():
-    slope = ROGUE_PLANET_MASS_FUNCTION_SLOPE
-    low_all = min(low for low, _high in _ROGUE_PLANET_BIN_EDGES_EARTH.values())
-    high_all = max(high for _low, high in _ROGUE_PLANET_BIN_EDGES_EARTH.values())
-    total = low_all ** -slope - high_all ** -slope
-    return {name: (low, high, ROGUE_PLANET_RATE_PER_STAR * (low ** -slope - high ** -slope) / total)
-            for name, (low, high) in _ROGUE_PLANET_BIN_EDGES_EARTH.items()}
-
-
-ROGUE_PLANET_MASS_BINS = _rogue_planet_mass_bins()
-"""dict: bin name -> `(min_mass_earth, max_mass_earth, per_star_rate)`.
-The rates' sum is the rogue-planet rate per star (`ROGUE_PLANET_RATE_PER_STAR`)."""
+"""dict: bin name -> `(min_mass_earth, max_mass_earth)`, the classes of a rogue planet's mass."""
 
 ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (_boundaries.jupiter("deuterium_burning_limit"), _boundaries.jupiter("brown_dwarf_upper_limit"))
 """tuple: A free-floating brown dwarf, between the deuterium-burning
 (~13 Mjup) and hydrogen-burning (~80 Mjup) limits. Stored as a
 `rogue_planets` row with `mass_bin = 'brown-dwarf'` (schema v37)."""
 
-ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BINS) + ("brown-dwarf",)
+ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BIN_EDGES_EARTH) + ("brown-dwarf",)
 """tuple: Every `rogue_planets.mass_bin` value."""
 
 ROGUE_LEVEL_CEILINGS = {"None": 0.0, "Few": 2.5, "Normal": 4.3, "Many": 10.0}
@@ -3266,16 +3267,18 @@ SYSTEM_COMET_CHANCE = 0.3
 # the air follow its life: 0.354 where it was 0.402; and 2026-10-29 over 3,000 systems, two seeds of 1,500, after GEN.646 derived the class
 # from the finished body: 0.722, most of it classes Q, P, V and K, which the feature counts as able to carry life while few are habitable
 # by the score; all four remeasured 2026-10-30 over 2,000 systems, seed 11, after trains 3 and 4: habitable_world 0.598, asteroid_belt 0.039 where
-# it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809). A sector or galaxy run's
+# it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809; and all four remeasured 2026-11-05 over 4,000 systems, four seeds of
+# 1,000, after train 10 (TEST.579): asteroid_belt 0.653 where 0.039 stood, because belts are no longer cut by mass (GEN.1068, GEN.1156), habitable_world 0.584,
+# large_star 0.056, planets 0.822). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.598,   # a planet or moon of a class that can carry life (see above)
-    "asteroid_belt": 0.039,     # an asteroid belt
-    "large_star": 0.050,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.809,           # at least one planet or belt
+    "habitable_world": 0.584,   # a planet or moon of a class that can carry life (see above)
+    "asteroid_belt": 0.653,     # an asteroid belt
+    "large_star": 0.056,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.822,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate

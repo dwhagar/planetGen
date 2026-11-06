@@ -21,10 +21,10 @@ EARTH = World(101.3, 15, {"N2": 0.78, "O2": 0.21, "CO2": 0.0004}, ph=8.1, relati
 EXAMPLES = {
     "Earth": (EARTH, ("Blue",) * 6, 1.0, 0.969, 0.968, ""),
     "Dense CO2": (World(300, 40, {"CO2": 0.95, "N2": 0.05}, ph=6.5, relative_humidity=0.8, energy_flux_w_m2=40),
-                  ("Green", "Yellow", "Red", "Blue", "Blue", "Red"), 0.6905, 0.969, 0.0, "B1h S2"),
+                  ("Green", "Yellow", "Red", "Blue", "Blue", "Red"), 0.6326, 0.969, 0.0, "B1h S2"),
     "Hycean": (World(2000, 60, {"H2": 0.9, "He": 0.1}, ph=7, relative_humidity=0.99, energy_flux_w_m2=20,
                      life_stage="microbial"),
-               ("Yellow", "Yellow", "Green", "Blue", "Blue", "Yellow"), 0.7265, 0.969, 0.0, "B2d S3"),
+               ("Yellow", "Yellow", "Green", "Blue", "Blue", "Yellow"), 0.6763, 0.969, 0.0, "B2d S3"),
     "Photochemical CO": (World(100, 10, {"N2": 0.9, "CO2": 0.05, "CO": 0.05}, ph=7.5),
                          ("Blue", "Blue", "Red", "Blue", "Blue", "Red"), 0.7368, 0.969, 0.0, "S2"),
     "Ice-sealed ocean": (World(1e-6, -170, {}, gravity_ms2=1.3, ph=8, energy_flux_w_m2=1e-3, surface_dose_sv_yr=0.05,
@@ -35,7 +35,7 @@ EXAMPLES = {
                                 chaotropicity_kj_kg=90, ph=8, inventories={"C": 0.05, "N": 0.01, "H": 0.05},
                                 phosphate_umol_l=0.5, energy_flux_w_m2=40, water_source="ice",
                                 relative_humidity=0.05),
-                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.3999, 0.006, 0.0, "B4p F100 S2 H3 [R2]"),
+                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.0, 0.006, 0.0, "B4p F100 S2 H3 [R2]"),
     "Dune world": (World(90, 45, {"N2": 0.78, "O2": 0.21, "CO2": 0.001}, relative_humidity=0.05, water_activity=0.7,
                          ph=8, water_source="vapor", inventories={"C": 0.5, "N": 0.5, "H": 0.05},
                          life_stage="macroscopic"),
@@ -279,17 +279,13 @@ def test_a_light_that_swings_moves_the_temperature_by_the_fourth_root_of_the_flu
     assert cold < 15.0 < hot
 
 
-def test_the_temperature_score_takes_the_worse_extreme_of_a_swinging_light():
+def test_the_temperature_score_reads_the_series_not_the_flux_variation():
+    """GEN.1265: the score is read off the series of a circular orbit, so `flux_variation` (an eccentric orbit's swing in the light) is not in it yet; the extremes the text quotes still take it."""
     near_the_edge = dict(pressure_kpa=101.3, temperature_c=29.0, gases={"N2": 0.78, "O2": 0.21})
-    steady = hab.temperature_score(World(**near_the_edge))
-    swinging = hab.temperature_score(World(**near_the_edge, flux_variation=0.3))
-    assert steady == 1.0 and swinging < steady
-    # A swing never improves a score and no variation is the old score.
-    for temperature in (-60.0, -10.0, 5.0, 20.0, 40.0, 60.0):
-        base = World(pressure_kpa=101.3, temperature_c=temperature, gases={"N2": 0.78, "O2": 0.21})
-        swing = World(pressure_kpa=101.3, temperature_c=temperature, gases={"N2": 0.78, "O2": 0.21},
-                      flux_variation=0.4)
-        assert hab.temperature_score(swing) <= hab.temperature_score(base) or temperature < 0
+    steady = World(**near_the_edge)
+    swinging = World(**near_the_edge, flux_variation=0.3)
+    assert hab.temperature_score(steady) == hab.temperature_score(swinging) == 1.0
+    assert hab.temperature_extremes_c(swinging)[1] > hab.temperature_extremes_c(steady)[1]
 
 
 def test_a_world_with_no_atmosphere_has_red_air_and_a_zero_score():

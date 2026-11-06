@@ -55,12 +55,18 @@
 
 set -euo pipefail
 
+# The lines this script prints are log records (OPS.98): a time, a severity and a component on every one.
+LOG_COMPONENT="${LOG_COMPONENT:-python-deps}"
+export LOG_COMPONENT
+# shellcheck source=scripts/logrecord.sh
+source "$(dirname "${BASH_SOURCE[0]}")/logrecord.sh"
+
 ACTION=install
 case "${1:-}" in
     "") ;;
     --check) ACTION=check ;;
     *)
-        echo "error: unknown argument '$1' (expected nothing or --check)." >&2
+        log_error "unknown argument '$1' (expected nothing or --check)."
         exit 1 ;;
 esac
 
@@ -112,7 +118,7 @@ REQUIREMENTS=(
 )
 
 if [[ -z "$PYTHON" ]]; then
-    echo "error: no python3/python found on PATH." >&2
+    log_error "no python3/python found on PATH."
     exit 1
 fi
 
@@ -136,10 +142,10 @@ report() {
     local state spec detail where failed=0
     while read -r state spec detail where; do
         if [[ "$state" != ok ]]; then
-            printf '  %-10s %s (%s: %s)\n' failed "$spec" "$state" "$detail"
+            log_error "$(printf '  %-10s %s (%s: %s)' failed "$spec" "$state" "$detail")"
             failed=1
         else
-            printf '  %-10s %-24s %-8s (pip, in %s)\n' ok "$spec" "$detail" "$VENV"
+            log_info "$(printf '  %-10s %-24s %-8s (pip, in %s)' ok "$spec" "$detail" "$VENV")"
         fi
     done
     return "$failed"
@@ -151,11 +157,11 @@ final_report() {
     local after
     after="$(probe "${SPECS[@]}" "gunicorn>=0")" || true
     if (( $(grep -c . <<< "$after") != ${#SPECS[@]} + 1 )); then
-        echo "error: could not check the Python libraries with $VENV/bin/python." >&2
+        log_error "could not check the Python libraries with $VENV/bin/python."
         return 1
     fi
     if ! report <<< "$after"; then
-        echo "error: some Python libraries are still unusable (see above)." >&2
+        log_error "some Python libraries are still unusable (see above)."
         return 1
     fi
 }
@@ -177,13 +183,13 @@ import planetgen
 sys.exit(0 if os.path.dirname(os.path.dirname(os.path.realpath(planetgen.__file__))) == os.path.realpath(sys.argv[1]) else 1)
 EOF2
     ) 2>/dev/null || [[ ! -x "$scripts/planetgen" ]]; then
-        echo "Installing planetGen from $SCRIPT_DIR as an editable package."
+        log_info "Installing planetGen from $SCRIPT_DIR as an editable package."
         "$VENV/bin/python" -m pip install --quiet --no-deps -e "$SCRIPT_DIR"
     fi
     if [[ "$(readlink "$PLANETGEN_COMMAND" 2>/dev/null || true)" != "$scripts/planetgen" ]]; then
         mkdir -p "$(dirname "$PLANETGEN_COMMAND")"
         ln -sf "$scripts/planetgen" "$PLANETGEN_COMMAND"
-        echo "Linked $PLANETGEN_COMMAND to $scripts/planetgen."
+        log_info "Linked $PLANETGEN_COMMAND to $scripts/planetgen."
     fi
 }
 
@@ -194,7 +200,7 @@ make_venv() {
     if "$PYTHON" -m venv "$VENV" 2>/dev/null; then return 0; fi
     rm -rf "$VENV"
     if command -v apt-get >/dev/null 2>&1; then
-        echo "python3 -m venv failed: installing python3-venv."
+        log_info "python3 -m venv failed: installing python3-venv."
         apt-get update -qq || true
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-venv || true
     fi
@@ -207,8 +213,8 @@ make_venv() {
 install_venv() {
     # setup.py's python_requires.
     "$PYTHON" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 12) else 1)' || {
-        echo "error: $PYTHON is older than Python 3.12. Install a newer python3 (macOS: brew install python@3.12)," >&2
-        echo "  and give it to this script as PYTHON=..." >&2
+        log_error "$PYTHON is older than Python 3.12. Install a newer python3 (macOS: brew install python@3.12),"
+        log_error "  and give it to this script as PYTHON=..."
         return 1
     }
     if [[ ! -x "$VENV/bin/python" ]]; then
@@ -216,14 +222,14 @@ install_venv() {
             # A release upgrade (Ubuntu 24.04 to 26.04, Python 3.12 to 3.14) removes the
             # Python the venv was made from and leaves its python a dangling link, which
             # `python3 -m venv` keeps rather than replaces.
-            echo "The virtual environment $VENV has no working Python (the one it was made from is gone): making it again."
+            log_info "The virtual environment $VENV has no working Python (the one it was made from is gone): making it again."
             rm -rf "$VENV"
         fi
-        echo "Creating the virtual environment $VENV with $PYTHON."
+        log_info "Creating the virtual environment $VENV with $PYTHON."
         make_venv
         "$VENV/bin/python" -m pip install --quiet --upgrade pip
     fi
-    echo "Installing the locked libraries and gunicorn into $VENV."
+    log_info "Installing the locked libraries and gunicorn into $VENV."
     "$VENV/bin/python" -m pip install --quiet --require-hashes -r "$SERVER_LOCK"
 }
 
@@ -235,19 +241,19 @@ venv_ready() {
 }
 
 if [[ "$ACTION" == check ]]; then
-    echo "Checking the Python libraries in $VENV."
+    log_info "Checking the Python libraries in $VENV."
     if ! venv_ready; then
-        echo "Missing, too old or not importable in $VENV: installing from requirements-server.lock."
+        log_info "Missing, too old or not importable in $VENV: installing from requirements-server.lock."
         install_venv
     fi
     install_checkout
     if ! final_report; then
-        echo "  Running sudo ./install.sh does a full reinstall." >&2
+        log_error "  Running sudo ./install.sh does a full reinstall."
         exit 1
     fi
 else
     install_venv
     install_checkout
-    echo "Python install path: venv ($VENV)."
+    log_info "Python install path: venv ($VENV)."
     final_report
 fi

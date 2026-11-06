@@ -118,8 +118,8 @@ def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path
     runrecord.finish_run(conn, run_id, "done", now=103.0)
     path = runrecord.write_log_file(conn, run_id, tmp_path / "jobs")
     text = open(path, encoding="utf-8").read()
-    assert 'level=warning component=run msg="disk is slow"' in text and text.rstrip().endswith('msg="run done" event=run.done')
-    assert text.splitlines()[0] == 'ts=1969-12-31T19:01:40.000-0500 level=info component=run msg="run started: Fill" event=run.start'
+    assert 'level=warning component=queue msg="disk is slow"' in text and text.rstrip().endswith('msg="run done" event=run.done')
+    assert text.splitlines()[0] == 'ts=1969-12-31T19:01:40.000-0500 level=info component=queue msg="run started: Fill" event=run.start'
     assert [logrecord.parse_file_line(line).message for line in text.splitlines()] == [
         "run started: Fill", "scatter layer 3 saved", "disk is slow", "run done"]
     for n in range(25):

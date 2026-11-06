@@ -16,13 +16,12 @@ For a body of density that does not depend on size, `M ~ D^3` and the number per
 so 0.83 at `q = 3.5` and 1.0 at `q = 4`. [R4254, R4255] measure `0.96 (+0.47 -0.27)` for the free-floating planets ([R4254], the short events of the MOA and OGLE surveys, 0.33 to 6,660 Earth masses): the supply
 of a cascade sits inside the measurement, and no number was tuned to it.
 
-**What the scatterer lifts out.** A body is thrown out by the planet it scatters off only if that planet has the Safronov number to eject (`rogue_kick.ejects`; below it the body is stirred), and
-only if it is the lighter of the pair: the energy that unbinds the body comes out of the scatterer's orbit, so a body heavier than the scatterer is the one that stays (the architecture already throws out
+**What the scatterer lifts out.** A body is thrown out by the planet it scatters off only if it is the lighter of the pair (whether the scatterer ejects at all is the architecture's Safronov number, `scatter.safronov_number`): the energy that unbinds the body comes out of the scatterer's orbit, so a body heavier than the scatterer is the one that stays (the architecture already throws out
 the lighter of a crowded pair, `planet_architecture._scatter_crowded_giants`; [R0258] eject only embryos of at most a Mars mass to an Earth mass in the same runs). The ejected spectrum is
 the supply's, cut at the scatterer's mass.
 
 The normalisation (how many, how much mass) comes from the ejection record (RP1, GEN.1119), not from here; this module gives the shape, the share of the ejected bodies in a mass range, and a draw from it.
-Nothing calls it yet (GEN.1111 creates the rogue rows). Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.110.
+The rogue top-up draws its masses from it (`rogue_topup.draw_mass_earth`, GEN.1287). Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.110.
 """
 
 import math
@@ -52,11 +51,6 @@ def heaviest_ejected_kg(scatterer_mass_kg):
     if not scatterer_mass_kg > 0.0:
         raise RogueMassFunctionError("the scatterer's mass must be positive")
     return MAX_EJECTED_OVER_SCATTERER * scatterer_mass_kg
-
-
-def can_eject(scatterer_mass_kg, scatterer_radius_m, host_mass_kg, distance_au):
-    """Whether the scatterer ejects what it scatters at all (Safronov number over `rogue_kick.EJECTION_SAFRONOV_NUMBER`)."""
-    return rogue_kick.ejects(scatterer_mass_kg, scatterer_radius_m, host_mass_kg, distance_au)
 
 
 @finite_domain()

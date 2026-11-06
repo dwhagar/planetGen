@@ -52,8 +52,36 @@ LOGGING_LEVELS = {"debug": logging.DEBUG, "info": logging.INFO, "notice": NOTICE
 RESERVED_FIELDS = ("ts", "level", "component", "msg")
 """tuple: The names the record itself uses in a file line and a JSON line; a field cannot take one."""
 
-COMPONENT_PATTERN = re.compile(r"^[a-z][a-z0-9_.-]{0,23}$")
+COMPONENTS = {
+    "update": "`update.sh`, the update of an installed site",
+    "install": "`install.sh`, the first install",
+    "warm": "`planetgen warm`: the cache warm-up, its progress and its log",
+    "tiles": "`planetgen tiles`: the nightly whole-map build",
+    "orbits": "`planetgen orbits`: the nightly orbit update",
+    "generate": "the generator: `planetgen generate` and its stages, the physics and the galaxy code a run calls",
+    "queue": "the work queue: runs, units, workers and the machine's lease",
+    "web": "the web app and the API: requests, pages, the admin pages",
+    "job": "the Generate page's job runner, which runs a job's steps as processes",
+    "activity": "the always-on activity log (`AUTH`, `AUTHZ`, `DB`, `GEN` events)",
+    "command": "any other command line tool: `migrate`, `accounts`, `backup`, `config`, `query` and the rest",
+    "lib": "another library's own log lines (Flask, urllib3, ...) that the debug log picks up",
+    "logs": "`examples/apache/setup-debug-log.sh`: the log files and their rotation",
+    "permissions": "`examples/apache/set-permissions.sh`: ownership and permissions",
+    "cache-dir": "`examples/apache/create-cache-dir.sh`: the cache, jobs and state folders",
+    "swap": "`scripts/enable-swap.sh`: the swap file",
+    "python-deps": "`scripts/install-python-deps.sh`: the virtual environment and its libraries",
+}
+"""dict: The component names, each with what writes under it (OPS.103; docs/design/operations/logging-standard.md, "Components"). A record
+takes its component from this table and from nowhere else; `Record` refuses a name that is not in it, `component_of` finds the one a logger or a
+source file belongs to, and `src/tests/test_no_own_log_formatting.py` fails on a literal that is not here."""
+
+
 FIELD_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,31}$")
+
+COUNTING_WORDS = ("Stage", "Part", "Phase")
+"""tuple: The three words that say where a script or a run is (OPS.103): `Stage N of M` for the top-level steps of a script or a run (update,
+install, generate), `Part N of M` for the runs inside one (the warm-up's two), `Phase N of M` for a named group inside a run. No other word
+(`step`, `pass`) counts, and a family of the warm-up is named, not numbered; `chunk` is only ever a count (`28 of 180 chunks`)."""
 
 STAGE_START, STAGE_FINISH, STAGE_FAILED = "stage.start", "stage.finish", "stage.failed"
 STAGE_SKIPPED = "stage.skipped"
@@ -91,8 +119,8 @@ class Record:
     def __init__(self, ms, severity, component, message, fields=None):
         if severity not in SYSLOG_CODES:
             raise ValueError(f"no severity {severity!r}; the severities are {', '.join(SEVERITIES)}")
-        if not COMPONENT_PATTERN.match(component):
-            raise ValueError(f"component {component!r} is not a short lower-case name (a-z, 0-9, _ . -)")
+        if component not in COMPONENTS:
+            raise ValueError(f"component {component!r} is not in the component table ({', '.join(COMPONENTS)})")
         fields = dict(fields or {})
         for name, value in fields.items():
             if not FIELD_PATTERN.match(name) or name in RESERVED_FIELDS:
@@ -331,6 +359,44 @@ def stage_record(event, component, first, total, label=None, seconds=0.0, reason
     return Record.at(time.time() if now is None else now, severity, component, message, **fields)
 
 
+_COMPONENT_OF_PATH = (
+    ("/planetgen/cli/warm", "warm"), ("/planetgen/web/warmup", "warm"),
+    ("/planetgen/cli/tiles", "tiles"), ("/planetgen/web/tilebuild", "tiles"),
+    ("/planetgen/cli/orbits", "orbits"),
+    ("/planetgen/web/job_runner", "job"),
+    ("/planetgen/queue/", "queue"),
+    ("/planetgen/web/", "web"), ("/planetgen/api/", "web"), ("/planetgen/admin/", "web"),
+    ("/planetgen/cli/generate", "generate"),
+    ("/planetgen/cli/", "command"),
+    ("/planetgen/util/joblog", "command"),
+)
+"""tuple: Source-file fragments and the component of what is logged from there, first match wins; anything else of planetGen's own is `generate`."""
+
+
+def component_of(logger_name, pathname=""):
+    """
+    The component of a `logging` record (OPS.103): the logger's name after `planetgen.` when that is a component (`planetgen.queue`,
+    `planetgen.activity`); else the one the source file belongs to (`_COMPONENT_OF_PATH`); another library's logger is `lib`.
+    """
+    if logger_name != "planetgen" and not logger_name.startswith("planetgen."):
+        return "lib"
+    name = logger_name.removeprefix("planetgen.").lower().split(".")[0]      # `planetgen.queue.units` is the queue's
+    if name in COMPONENTS:
+        return name
+    path = pathname.replace("\\", "/")
+    for fragment, component in _COMPONENT_OF_PATH:
+        if fragment in path:
+            return component
+    return "generate"
+
+
+def counting_text(word, number, total):
+    """`Part 2 of 5` (OPS.103): where a script or a run is, in one of the three `COUNTING_WORDS`."""
+    if word not in COUNTING_WORDS:
+        raise ValueError(f"no counting word {word!r}; the words are {', '.join(COUNTING_WORDS)}")
+    return f"{word} {number} of {total}"
+
+
 def _zone_name(moment):
     return moment.tzname() or moment.strftime("%z")
 
@@ -351,7 +417,10 @@ def display_line(record, tz=None, times=True, component=True, fields=True):
     if component:
         parts.append(f"{record.component}:")
     divider = record.event in STAGE_EVENTS
-    parts.append(f"{DIVIDER} {record.message} {DIVIDER}" if divider else record.message)
+    message = record.message
+    if message.lower().startswith(f"{record.severity}: "):
+        message = message[len(record.severity) + 2:]         # the severity column says it: not "ERROR  migrate: error: ..."
+    parts.append(f"{DIVIDER} {message} {DIVIDER}" if divider else message)
     if fields and not divider and record.fields:
         parts.append("(" + " ".join(f"{name}={_value_text(value)}" for name, value in record.fields.items()) + ")")
     return " ".join(parts)
@@ -380,4 +449,5 @@ def shell_vocabulary():
     """
     stage = stagemark.run(1).split(" ")[0]
     return "\n".join((SHELL_BEGIN, f'LOG_SEVERITIES="{" ".join(SEVERITIES)}"', f'LOG_STDERR_SEVERITIES="{" ".join(STDERR_SEVERITIES)}"',
-                      f'LOG_STAGE_WORD="{stage}"', f'LOG_DIVIDER="{DIVIDER}"', SHELL_END))
+                      f'LOG_STAGE_WORD="{stage}"', f'LOG_DIVIDER="{DIVIDER}"', f'LOG_COUNTING_WORDS="{" ".join(COUNTING_WORDS)}"',
+                      f'LOG_COMPONENTS="{" ".join(COMPONENTS)}"', SHELL_END))

@@ -55,7 +55,7 @@ KINDS = {
     "planet.orbit_ceiling_trim": Kind("planet", False, "an outer planet or belt cut because the spacing pass pushed it past the orbit ceiling"),
     "planet.cross_star_trim": Kind("planet", False, "an outer planet cut so the two stars of a wide pair do not encroach on each other's planets"),
     "moon.too_large": Kind("moon", False, "a moon drawn again because it would be larger than its parent could hold"),
-    "moon.disk_full": Kind("moon", False, "a moon of the disk drawn again because the disk has no room left in its zone past the last moon (GEN.1244)"),
+    "moon.disk_full": Kind("moon", False, "a moon of the disk drawn again because the disk has no room left in its zone past the last moon"),
     "comet.ceiling": Kind("comet", False, "a comet drawn again because its orbit lies past the star's ceiling"),
     "comet.composition": Kind("comet", False, "a comet's CO and CO2 shares drawn again because one lies outside the observed bounds"),
     "giant.heavy_mass": Kind("giant", False, "a giant's heavy-element mass drawn again because it lies outside the allowed fraction of its mass"),

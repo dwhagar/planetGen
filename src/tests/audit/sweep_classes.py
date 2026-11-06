@@ -10,9 +10,8 @@ Rules (names as `RULES` lists them):
   or giant) is the body's.
 - `conditions-total`: `classify` returns a letter for the body (no `ClassError`), the same twice, the same from the body and from its
   stored columns (`values_from_body`), and it does not change the body.
-- `class-from-conditions`: the stored class letter is the letter the conditions give, the first row of the body's kind whose conditions
-  all hold (re-derived here from `quantities` and the rule rows, not by `classify`). Until the class leaves generation (GEN.646) the
-  generator draws the letter first, so this rule is a known anomaly (`tests/data/class_sweep_expectations.json`).
+- `class-from-conditions`: the stored class letter, digit, match and runner-up are what the best-fit classifier gives for the stored values
+  (`class_fit.classify`, GEN.1207), and a stored match above 0 means no condition of the class is missed outright.
 
 `habitable_request_statuses` generates seeded systems that ask for a habitable world and returns how each answered
 (`StarSystem.habitable_request_status`: `aim`, `fallback` or `unmet`); a request is met when the answer is `aim` or `fallback`.
@@ -20,7 +19,7 @@ Rules (names as `RULES` lists them):
 
 import copy
 
-from planetgen.physics import planet_classes
+from planetgen.physics import class_fit, planet_classes
 from tests.audit.sweep import Rule, broken_copy, seed_for
 
 REQUEST_SYSTEMS = 12
@@ -28,13 +27,9 @@ REQUEST_SYSTEMS = 12
 
 
 def _conditions_letter(body):
-    """The first row of the body's kind whose conditions hold, from the quantities of its stored values."""
-    values = planet_classes.values_from_body(body)
-    found = planet_classes.quantities(values)
-    for cls in planet_classes.CLASSES:
-        if cls.kind == found["body_type"] and planet_classes.holds(cls.when, found, owner=f"class {cls.letter}"):
-            return cls.letter
-    return None
+    """The best-fit class of the body's stored values: `(letter, digit, match, runner_up, runner_up_match)`."""
+    detail = class_fit.classify(planet_classes.values_from_body(body))
+    return detail.letter, detail.digit, detail.match, detail.runner_up, detail.runner_up_match
 
 
 def _asteroid(body):
@@ -93,18 +88,22 @@ def _check_from_conditions(entry):
     if _asteroid(body):
         return []                   # no letter to compare; `class-assigned` checks that it has none
     try:
-        letter = _conditions_letter(body)
+        derived = _conditions_letter(body)
     except planet_classes.ClassError as error:
         return [f"cannot be classified: {error}"]
-    stored = getattr(body, "planet_class", None)
-    if letter != stored:
-        return [f"stored class {stored!r}, conditions give {letter!r}"]
-    return []
+    stored = (getattr(body, "planet_class", None), getattr(body, "class_variant", None), getattr(body, "class_match", None),
+              getattr(body, "runner_up_class", None), getattr(body, "runner_up_match", None))
+    problems = []
+    if derived[0] != stored[0]:
+        problems.append(f"stored class {stored[0]!r}, conditions give {derived[0]!r}")
+    elif derived[1] != stored[1] or derived[3] != stored[3] or any(abs((a or 0.0) - (b or 0.0)) > 1e-9 for a, b in ((derived[2], stored[2]), (derived[4], stored[4]))):
+        problems.append(f"stored digit, match and runner-up {stored[1:]!r}, conditions give {derived[1:]!r}")
+    return problems
 
 
 def _break_from_conditions(entry):
     try:
-        letter = _conditions_letter(entry.body)
+        letter = _conditions_letter(entry.body)[0]
     except planet_classes.ClassError:
         return None
     other = "V" if letter != "V" else "A"

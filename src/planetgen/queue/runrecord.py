@@ -618,7 +618,7 @@ EVENT_FIELD_NAMES = ("stage", "stages", "unit", "seconds")
 def event_record(fields):
     """
     The logging layer's record (`logrecord.Record`) of an event `read_events` gave (UX.122): its time, its level as the
-    severity, the component `run`, its message, and the fields `event` (its kind), `stage` (the stage's number from 1),
+    severity, the component `queue`, its message, and the fields `event` (its kind), `stage` (the stage's number from 1),
     `stages` (how many the run has), `unit` and `seconds` where it has them.
     """
     level = fields.get("level", "info")
@@ -630,7 +630,7 @@ def event_record(fields):
             named[name] = int(fields[name])
     if "seconds" in fields:
         named["seconds"] = float(fields["seconds"])
-    return logrecord.Record.at(float(fields.get("t", 0)), level if level in logrecord.SYSLOG_CODES else "info", "run",
+    return logrecord.Record.at(float(fields.get("t", 0)), level if level in logrecord.SYSLOG_CODES else "info", "queue",
                                fields.get("message", ""), **named)
 
 

@@ -17,7 +17,7 @@ def _star(address, luminosity, seed, x=1000.0):
         shell_index=address[0], band_index=address[1], wedge_index=address[2], population="old", star_type="G2V", yerkes_class="V",
         mass_kg=2e30, radius_km=7e5, temperature_k=5800.0, luminosity_w=luminosity * SOLAR, age_gy=4.0, lifespan_gy=10.0,
         initial_mass_sol=1.0, phase_end_age_gy=None, seed=seed, metallicity_fe_h=0.0, rotation_period_hours=600.0,
-        nuclear_arrival_age_gy=None, position_x_mpc=x, position_y_mpc=2000.0, position_z_mpc=3000.0)
+        nuclear_arrival_age_gy=None, cluster_id=None, position_x_mpc=x, position_y_mpc=2000.0, position_z_mpc=3000.0)
     return tuple(values[name] for name in store.BRIGHT_STAR_COLUMNS)
 
 

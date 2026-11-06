@@ -6,6 +6,8 @@ the node and slot it hangs in; a system of three round-trips through the JSON fo
 reader that took a system to have one or two stars handles the third.
 """
 
+import html
+
 import pytest
 
 from planetgen.db import orbit_trees, query, store
@@ -219,7 +221,7 @@ def test_the_system_page_and_its_map_draw_a_system_of_three(web_app, mysql_confi
         conn.close()
     response = web_app.test_client().get(f"/system/{pid('system', system_id)}")
     assert response.status_code == 200
-    assert member_name in response.get_data(as_text=True)
+    assert html.escape(member_name) in response.get_data(as_text=True)    # a name with an apostrophe is written escaped
 
 
 def test_the_system_page_lists_the_orbits_of_a_system_of_three(web_app, mysql_config):

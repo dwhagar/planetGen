@@ -34,6 +34,7 @@ import pickle
 import time
 
 from planetgen.galaxy import component_field
+from planetgen.util import logrecord
 from planetgen.util import settings as settings_module
 
 FORMAT = 1
@@ -225,7 +226,7 @@ def assemble(sig, found, edge_pc, expected_at_density_1):
         wanted = part_ages(ages, index)
         means = _read_part(sig, index, wanted)
         if means is None:
-            raise PartsMissing(f"part {index + 1} of {part_count(ages)} of the cluster field is not there")
+            raise PartsMissing(f"{logrecord.counting_text('Part', index + 1, part_count(ages))} of the cluster field is not there")
         mean_by_age.update(zip(wanted, means))
     field = component_field.ComponentField(found, edge_pc, expected_at_density_1, mean_by_age=mean_by_age)
     _write_atomic(field_path(sig), _header(sig, len(field)) + pickle.dumps(field, protocol=pickle.HIGHEST_PROTOCOL))

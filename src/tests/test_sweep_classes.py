@@ -30,7 +30,10 @@ def _body(**changes):
     fields = dict(
         body_type="t", mass=constants.EARTH_MASS_TO_KG, gravity=1.0, surface_temperature=288.0, atmospheric_pressure=101325.0,
         hydrosphere="surface ocean", ocean_fraction=0.7, water_mass_fraction=2.3e-4, flux_variation=0.0, ocean_ph=None,
-        planet_class="M", **{atmosphere.GAS_FIELD: {"O2": 21200.0, "N2": 78800.0, "Ar": 900.0, "CO2": 40.0}})
+        planet_class="M", class_variant=0, class_match=1.0, runner_up_class=None, runner_up_match=0.0, relative_humidity=0.6, groundwater="none",
+        **{atmosphere.GAS_FIELD: {"O2": 21200.0, "N2": 78800.0, "Ar": 900.0, "CO2": 40.0}})
+    for number in range(1, pc.BAND_COUNT + 1):      # the seven latitude bands the matrix reads (GEN.1221)
+        fields[f"band{number}_mean_k"], fields[f"band{number}_swing_k"] = 288.0, 10.0
     fields.update(changes)
     return types.SimpleNamespace(**fields)
 
@@ -79,10 +82,11 @@ def test_every_rule_has_a_breaker_the_check_reports():
         assert rule.check(sweep.Entry(broken, None, None, "x")), rule.name
 
 
-def test_the_conditions_letter_is_the_first_row_of_the_kind_that_holds():
-    assert rules._conditions_letter(_body()) == pc.classify(_body()) == "M"
+def test_the_conditions_letter_is_the_best_fit_class_with_its_digit_match_and_runner_up():
+    assert rules._conditions_letter(_body()) == ("M", 0, 1.0, None, 0.0)
+    assert rules._conditions_letter(_body())[0] == pc.classify(_body()) == "M"
     giant = _body(body_type="g", mass=20.0 * constants.EARTH_MASS_TO_KG)
-    assert rules._conditions_letter(giant) == pc.classify(giant) == "I"
+    assert rules._conditions_letter(giant)[0] == pc.classify(giant) == "I"
 
 
 def test_the_share_of_met_requests_counts_aim_and_fallback():

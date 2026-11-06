@@ -30,7 +30,7 @@ refraction. The day and night swing is the damped-oscillator estimate of `region
 """
 
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 import numpy as np
 
@@ -85,6 +85,12 @@ class Band:
     longest_day_days: float | None
     longest_night_days: float | None
     state: str | None
+
+
+def with_climate(band, mean_k, swing_k):
+    """`band` with the mean temperature `mean_k` and the day and night swing `swing_k` (kelvin of difference) read off the temperature of every place of the world
+    (`temperature_coverage.band_climate`, GEN.1265); the hottest and coldest hour of the band are the mean plus and minus half the swing, as they were."""
+    return replace(band, mean_k=mean_k, day_k=mean_k + swing_k / 2.0, night_k=mean_k - swing_k / 2.0, swing_k=swing_k)
 
 
 def edges():

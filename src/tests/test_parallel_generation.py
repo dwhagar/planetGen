@@ -86,7 +86,9 @@ def _systems_per_sector(config):
         return {(row["shell_index"], row["band_index"], row["wedge_index"]): row["n"]
                 for row in conn.execute(
                     "SELECT s.shell_index, s.band_index, s.wedge_index, COUNT(ss.id) AS n"
-                    " FROM sectors s LEFT JOIN star_systems ss ON ss.sector_id = s.id"
+                    " FROM sectors s JOIN chart_ledger c ON c.shell_index = s.shell_index"
+                    " AND c.band_index = s.band_index AND c.wedge_index = s.wedge_index"
+                    " LEFT JOIN star_systems ss ON ss.sector_id = s.id"
                     " GROUP BY s.id, s.shell_index, s.band_index, s.wedge_index").fetchall()}
     finally:
         conn.close()
@@ -190,7 +192,9 @@ def _sector_addresses(config):
     conn = store.get_connection(config)
     try:
         return [tuple(row.values()) for row in conn.execute(
-            "SELECT shell_index, band_index, wedge_index FROM sectors").fetchall()]
+            "SELECT s.shell_index, s.band_index, s.wedge_index FROM sectors s JOIN chart_ledger c"
+            " ON c.shell_index = s.shell_index AND c.band_index = s.band_index"
+            " AND c.wedge_index = s.wedge_index").fetchall()]
     finally:
         conn.close()
 
