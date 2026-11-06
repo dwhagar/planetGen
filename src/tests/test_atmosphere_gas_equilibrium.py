@@ -158,3 +158,19 @@ def test_a_nitrogen_gas_with_1e_15_of_everything_else_leaves_the_rarest_elements
     result = ge.solve(abundances, 434.2659729417367, 1.0000000000000002)
     assert result.mole_fractions["N2"] > 0.999999
     assert "Ar" not in result.moles and "H2S" not in result.moles and "SO2" not in result.moles
+
+
+def test_a_nitrogen_gas_with_2e_11_of_carbon_and_oxygen_settles_with_only_the_nitrogen():
+    """GEN.1282: a moon's air at 502.3 K and 1 bar, nitrogen with carbon and oxygen at 2e-11 of it (above `TRACE_ELEMENT_FRACTION`, so the first cut
+    leaves them in), stalls at a carbon balance 1e5 times its own abundance. The second cut (`TRACE_ELEMENT_FRACTIONS`, 1e-9 of the gas) settles it."""
+    abundances = {"O": 5.111446168826871e-15, "C": 5.111283730028449e-15, "N": 0.00022157693505497162}
+    with pytest.raises(ge.EquilibriumError):
+        ge._solve(abundances, 502.2999289450794, 1.0000000000000002)
+    result = ge.solve(abundances, 502.2999289450794, 1.0000000000000002)
+    assert result.mole_fractions["N2"] > 0.999999999
+    assert "CO" not in result.moles and "CO2" not in result.moles
+
+
+def test_a_gas_that_stalls_whatever_is_left_out_raises_the_error_of_the_full_gas():
+    with pytest.raises(ge.EquilibriumError):
+        ge.solve({"Zz": 1.0, "N": 1.0}, 1000.0, 1.0)

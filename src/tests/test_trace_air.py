@@ -139,3 +139,19 @@ def test_apply_life_data_stores_the_trace_gases_after_the_life_stage(world):
 def test_a_subject_missing_a_quantity_is_refused_by_name():
     with pytest.raises(MixtureError):
         mixture_trace.draw_trace_amounts(mixture_trace.Subject("terrestrial", {}))
+
+
+def test_the_stored_density_and_scale_height_are_those_of_the_air_with_its_trace_gases(world):
+    """TEST.617: the fixed point stored the molar density, density and scale height from the air before the trace gases, so the stored state
+    disagreed with the stored partials by parts in a million to a thousand."""
+    from planetgen.physics import atmosphere_state, constants
+    for seed in range(60):
+        other = copy.deepcopy(world)
+        other.mass = world.mass * (1.0 + seed * 1e-3)
+        if trace_air.apply(other):
+            state = atmosphere_state.air_state(atmosphere.gas_partials_pa(other), other.surface_temperature, other.gravity * constants.EARTH_GRAVITY)
+            assert other.atm_molar_density == pytest.approx(state.mean_molar_mass_kg_mol, rel=1e-12)
+            assert other.atm_density == pytest.approx(state.density_kg_m3, rel=1e-12)
+            assert other.scale_height == pytest.approx(state.scale_height_m / 1000.0, rel=1e-12)
+            return
+    pytest.fail("no draw added a trace gas")
