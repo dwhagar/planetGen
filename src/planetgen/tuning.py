@@ -3267,16 +3267,18 @@ SYSTEM_COMET_CHANCE = 0.3
 # the air follow its life: 0.354 where it was 0.402; and 2026-10-29 over 3,000 systems, two seeds of 1,500, after GEN.646 derived the class
 # from the finished body: 0.722, most of it classes Q, P, V and K, which the feature counts as able to carry life while few are habitable
 # by the score; all four remeasured 2026-10-30 over 2,000 systems, seed 11, after trains 3 and 4: habitable_world 0.598, asteroid_belt 0.039 where
-# it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809). A sector or galaxy run's
+# it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809; and all four remeasured 2026-11-05 over 4,000 systems, four seeds of
+# 1,000, after train 10 (TEST.579): asteroid_belt 0.653 where 0.039 stood, because belts are no longer cut by mass (GEN.1068, GEN.1156), habitable_world 0.584,
+# large_star 0.056, planets 0.822). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.598,   # a planet or moon of a class that can carry life (see above)
-    "asteroid_belt": 0.039,     # an asteroid belt
-    "large_star": 0.050,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.809,           # at least one planet or belt
+    "habitable_world": 0.584,   # a planet or moon of a class that can carry life (see above)
+    "asteroid_belt": 0.653,     # an asteroid belt
+    "large_star": 0.056,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.822,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
