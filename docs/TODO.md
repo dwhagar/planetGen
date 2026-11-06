@@ -2154,25 +2154,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and tests for a course across two territories.
   Prerequisites: NAV.77, USR.29. Related: USR.10.
 
-- [ ] **MAP.392 Weird spheres and circle markers still drawn for nebulae (bug)**
-  Boss, live observation (6:10 PM EST on 2026-11-05): "When did the
-  nebula stuff get merged? I'm still seeing the weird spheres / circle
-  markers that I was trying to get rid of." The nebula shape mesh was
-  retired in MAP.142 part 4 (merged 11:34 PM EST on 2026-11-04, release
-  8.0.3264) and scattered nebulae became markers in MAP.179 (11:25 PM
-  EST, 8.0.3263), so what Boss sees is either a build older than
-  8.0.3267, a sphere or circle that another layer still draws (a field
-  cloud, a group sprite, a scattered-nebula marker, the sector map
-  volume), or a leftover of a path those items did not reach. Do: ask
-  Boss which map, zoom level and object it is (the Galaxy Map at what
-  level, the Sector Map, the System Map or a nebula page), reproduce it
-  in the browser test harness, find the code that draws it, and remove
-  or replace it with the soft sprite of the family colour; add a browser
-  test that fails when a hard-edged sphere or circle is drawn for a
-  nebula at any zoom. Done: the cause is named, the drawing is fixed,
-  and the test is in.
-  Prerequisites: none. Related: MAP.142, MAP.176, MAP.179, MAP.365.
-
 - [ ] **MAP.394 Map info panel: selecting an object on the Galaxy, Sector or System Map opens its Sensor view in the info panel**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal
@@ -14342,6 +14323,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   guard is not. Version 8.1. Owner: none yet. Filed by the TODO thread.
   Prerequisites: none.
 
+- [ ] **GEN.1295 Rogue ages and the rogue stand-ins read the ejection records: the delay (RG2), the closest approach (RK7, MO2, TU3) and the per-star rate (TU1) come from each loss in the architecture, not from drawn distributions**
+  Found when main's burn-down test failed: five burn-down rows
+  (6.88:RG2, 6.87:RK7, 6.112:MO2, 6.86:TU1, 6.86:TU3) said GEN.1111
+  replaces them, and GEN.1111 is closed (the ejection records are built
+  and stored) without replacing them. Do: read the stored ejection
+  record of each lost planet (time after formation, closest approach,
+  scatterer distance) wherever those five stand-ins draw them, retire
+  the five rows with their tests, and check the rogue count and age
+  shares against the census. This changes generated rogue planets, so it
+  is a lock item (epoch). Version 8.1. Owner: Planets 1. Filed by the
+  TODO thread.
+  Prerequisites: none. Related: GEN.1111, GEN.1287, GEN.1288, GEN.1289.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19262,6 +19256,15 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   epoch. Owner: the project thread building OPS.106 and OPS.107 on
   claude/project-thread-a1n0vp. Filed by the TODO thread.
   Prerequisites: none. Related: OPS.99, OPS.100, OPS.107.
+
+- [ ] **OPS.109 The update.sh data set step lists the kept files by download URL (one "kept URL (n files)" line per URL) and says the folder they are stored in**
+  Boss (about 7:25 PM EST on 2026-11-05, as the lane reported): the data
+  set step of update.sh should list the files it kept grouped by
+  download URL, one "kept URL (n files)" line per URL, and say which
+  folder they are stored in. Version 8.3. Lock-free, no migration, no
+  epoch. Owner: the project thread building OPS.106 to OPS.108 (PR
+  5243). Filed by the TODO thread.
+  Prerequisites: none. Related: OPS.99, OPS.100.
 
 ## DOC: Documentation
 
