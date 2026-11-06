@@ -199,6 +199,9 @@ NULL_IN_THIS_GALAXY = {
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
     ("species", "generator_epoch"): "no species in this galaxy (GEN.764)",
+    # VIEW.25: the sky charting step writes the draws of a sky tier, and the seeded galaxy has not run it.
+    **{("sky_tier_draws", column): "no sky charting in this galaxy (VIEW.25)" for column in
+       ("id", "kind", "band_low", "band_high", "center_x_pc", "center_y_pc", "center_z_pc", "radius_pc", "limit_mag", "stars", "seconds", "generator_epoch", "batches_done", "complete", "drawn_at")},
     ("planets", "parent_shadow_share"): "only a moon is in its planet's shadow (GEN.767)",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
@@ -249,6 +252,9 @@ NEVER_READ = {
     **{("scatter_epochs", column): "read by galaxy/epoch_record (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
     ("species", "generator_epoch"): "read by galaxy/epoch_record (GEN.764)",
+    # VIEW.25: the ledger of the sky tiers is read by `db/sky_tier_ledger.read` and the charting step, not by a page's loader.
+    **{("sky_tier_draws", column): "read by db/sky_tier_ledger (VIEW.25)" for column in
+       ("id", "kind", "band_low", "band_high", "center_x_pc", "center_y_pc", "center_z_pc", "radius_pc", "limit_mag", "stars", "seconds", "generator_epoch", "batches_done", "complete", "drawn_at")},
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",
