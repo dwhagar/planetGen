@@ -152,15 +152,16 @@ def test_every_star_lies_in_its_cell_and_in_its_band(forced):
 
 
 def test_the_candidate_path_gives_each_cell_its_own_poisson_mean(forced):
-    """Over ten seeds the stars placed match the sum of the cells' means to 4.5 standard deviations (the counts are
-    Poisson, so their total has the sum for its variance)."""
+    """Over enough seeds that the stars expected pass 100 (ten at most; TEST.417: each seed costs 30 seconds, so no more are drawn than the
+    test needs) the stars placed match the sum of the cells' means to 4.5 standard deviations (the counts are Poisson, so their
+    total has the sum for its variance)."""
     bands = brightStars.canonical_bands(FLOOR)
     cells = [(SHELL, BAND, wedge) for wedge in range(CELLS)]
     per_seed = 0.0
     for k, low, high in bands:
         shares = _shares(k, low, high)
         per_seed += sum(brightStars.cell_band_rate(SHAPE, address, EDGE_PC, E_VALUE, shares) for address in cells)
-    seeds = range(30, 40)
+    seeds = range(30, 30 + min(10, math.ceil(101.0 / per_seed)))
     found = sum(len(_luminosity(cells, seed=seed)) for seed in seeds)
     expected = per_seed * len(seeds)
     assert expected > 100

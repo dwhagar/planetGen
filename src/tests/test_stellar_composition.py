@@ -262,7 +262,8 @@ def test_the_atmosphere_shares_follow_the_measured_one():
 
 def test_a_helium_core_or_oxygen_neon_white_dwarf_has_no_layers_and_says_so():
     light = sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 0.3, "x", teff_k=9000.0)
-    assert light.detail["core"] == "helium" and light.detail["layers"] is None and light.detail["radius_solar"] is None
+    assert light.detail["core"] == "helium" and light.detail["layers"] is None
+    assert 0.003 < light.detail["radius_solar"] < 0.05      # lighter than the lightest sequence: that sequence, scaled by the zero-temperature relation's ratio of the masses
     heavy = sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 1.2, "x", teff_k=9000.0)
     assert heavy.detail["core"] == "oxygen-neon" and heavy.detail["layers"] is None
     assert any("helium-core or oxygen-neon" in item for item in heavy.open_items)

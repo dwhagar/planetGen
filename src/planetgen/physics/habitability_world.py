@@ -78,13 +78,14 @@ BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     *life_scores.FIELDS, "l_solv", "l_chem", "l_ener", "l_rad",
     *equipment.FIELDS, *regional_temperature.FIELDS, *temperature_coverage.FIELDS, *outside_hours.FIELDS, "energy_flux_w_m2", "flux_variation",
+    "relative_humidity", "groundwater",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
 `moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
 dose refresh re-scores a body from its columns alone)."""
 
-SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation"))
-"""tuple: The stored fields `compute` returns (all but the stored energy flux and flux variation)."""
+SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation", "relative_humidity", "groundwater"))
+"""tuple: The stored fields `compute` returns (all but the stored energy flux, flux variation, humidity and groundwater, which `generate` stores as the score's inputs)."""
 
 LIKELIHOOD_FIELDS = ("phi_bio", "phi_cpx")
 """tuple: The microbial and complex-life likelihoods `compute` also returns and `generate` and `rescore` keep on the body
@@ -548,5 +549,7 @@ def generate(body, internal_flux_w_m2):
         values, getattr(star, "luminosity", None), getattr(body, "_star_distance_au", None),
         internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0))
     values["energy_flux_w_m2"] = body.energy_flux_w_m2
+    body.relative_humidity = relative_humidity(values)      # GEN.1221: stored, for the wet bulb and the water of a class
+    body.groundwater = groundwater(values)
     for name, value in compute(values, compact_host_name(star)).items():
         setattr(body, name, value)

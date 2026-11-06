@@ -104,6 +104,8 @@ def test_page_shows_the_render_and_its_script(client, fake):
     assert 'id="phenomrender"' in page and "phenomenonmap-svg" not in page
     assert re.search(r'<script type="module" src="/static/phenomenonrender.js\?v=[^"]+"></script>', page)
     assert "mapzoom.js" not in page
+    assert "<h2 id=\"phenomrender-heading\">Sensor view</h2>" in page, "UX.276: the picture is the Sensor view"
+    assert page.index("Sensor view") < page.index("Neutron Star Data") if "Neutron Star Data" in page else True, "and the first panel"
 
 
 def test_asteroid_field_page_has_no_view(client, fake):

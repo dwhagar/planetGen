@@ -295,6 +295,7 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
     conn = store.get_connection(mysql_config)
     try:
         before = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (first["sector_id"],)).fetchone()["n"]
+        others = conn.execute("SELECT id FROM sectors WHERE id != ?", (first["sector_id"],)).fetchall()
         _history(monkeypatch, ["fill"])
         with conn:
             conn.execute("UPDATE galaxy_shape SET generator_epoch = 1 WHERE id = 1")
@@ -303,12 +304,16 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
         conn.close()
     said = []
     result = bring_to_epoch.run(mysql_config, None, say=said.append)
-    assert result["redone"] == 1 and not result["failed"], said
-    [sector] = _all_sectors(mysql_config)
+    # The sector is not alone: rogue planets its saved stars threw out land in sectors of their own (GEN.1111), each a sector
+    # made under the old epoch too, so every sector the galaxy holds is made again, not one.
+    assert result["redone"] == len(others) + 1 and not result["failed"], said
+    sectors = _all_sectors(mysql_config)
+    assert len(sectors) == len(others) + 1
+    [sector] = [row for row in sectors if (row["shell_index"], row["band_index"], row["wedge_index"]) == (0, 0, 0)]
     assert sector["id"] != first["sector_id"]
     conn = store.get_connection(mysql_config)
     try:
-        assert conn.execute("SELECT generator_epoch FROM sectors WHERE id = ?", (sector["id"],)).fetchone()["generator_epoch"] == 2
+        assert {row["generator_epoch"] for row in conn.execute("SELECT generator_epoch FROM sectors").fetchall()} == {2}
         assert conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector["id"],)).fetchone()["n"] == before
     finally:
         conn.close()

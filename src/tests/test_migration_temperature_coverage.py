@@ -1,7 +1,7 @@
 # tests/test_migration_temperature_coverage.py
 
 """
-GEN.1265: what is read off the temperature of every place of a body is stored. A system saved and loaded keeps the columns; the migration gives a v211 galaxy the
+GEN.1265: what is read off the temperature of every place of a body is stored. A system saved and loaded keeps the columns; the migration gives a v213 galaxy the
 columns, empty.
 """
 
@@ -50,9 +50,9 @@ def test_a_saved_system_keeps_the_coverage_of_every_body(mysql_config):
         conn.close()
 
 
-def test_a_v211_galaxy_gets_the_columns_empty(mysql_config):
-    load_old_schema(mysql_config, 211)
-    assert store.schema_status(mysql_config)[0] == 211
+def test_a_v213_galaxy_gets_the_columns_empty(mysql_config):
+    load_old_schema(mysql_config, 213)
+    assert store.schema_status(mysql_config)[0] == 213
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("planets", "moons", "rogue_planets"):

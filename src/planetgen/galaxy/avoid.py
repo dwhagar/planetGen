@@ -36,6 +36,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
+from planetgen.util import detmath
 
 HIT_MARGIN = 1e-7
 """float: A leg hits a sphere when it comes nearer the center than `R * (1 - HIT_MARGIN)`."""
@@ -62,16 +63,16 @@ _MERGE_ROUNDS = 4
 
 def _closest(p, q, centers):
     d = q - p
-    a = float(d @ d)
+    a = detmath.dot(d, d)
     f = centers - p
-    tu = (f @ d) / a
+    tu = detmath.dot(f, d) / a
     t = np.clip(tu, 0.0, 1.0)
     dist = np.linalg.norm(f - np.outer(t, d), axis=1)
     return dist, tu, math.sqrt(a)
 
 
 def _empty(p, q):
-    return float((q - p) @ (q - p)) == 0.0
+    return detmath.dot(q - p, q - p) == 0.0
 
 
 def seg_hits(p, q, centers, radii):
@@ -105,16 +106,16 @@ def tangent_wrap(a, b, c, radius):
     if da < radius * (1 - CONTAIN_MARGIN) or db < radius * (1 - CONTAIN_MARGIN):
         return None
     e1 = u / da
-    w = v - (v @ e1) * e1
+    w = v - detmath.dot(v, e1) * e1
     wn = float(np.linalg.norm(w))
     if wn < 1e-12 * db:                       # collinear: any perpendicular gives the same length
         k = int(np.argmin(np.abs(e1)))
         t = np.zeros(3)
         t[k] = 1.0
-        w = t - (t @ e1) * e1
+        w = t - detmath.dot(t, e1) * e1
         wn = float(np.linalg.norm(w))
     e2 = w / wn
-    phi = math.atan2(float(v @ e2), float(v @ e1))
+    phi = math.atan2(detmath.dot(v, e2), detmath.dot(v, e1))
     alpha_a = math.acos(min(1.0, radius / da))
     alpha_b = math.acos(min(1.0, radius / db))
     if alpha_a + alpha_b >= phi:
@@ -130,7 +131,7 @@ def _arc_angle(c, entry, exit_):
     nu, nv = float(np.linalg.norm(u)), float(np.linalg.norm(v))
     if nu == 0.0 or nv == 0.0:
         return 0.0
-    return math.acos(max(-1.0, min(1.0, float(u @ v) / (nu * nv))))
+    return math.acos(max(-1.0, min(1.0, detmath.dot(u, v) / (nu * nv))))
 
 
 def arc_points(c, entry, exit_, step):

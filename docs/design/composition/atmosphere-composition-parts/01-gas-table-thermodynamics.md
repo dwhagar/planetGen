@@ -266,7 +266,7 @@ The twenty-five rows from H to HCOOH (added with GEN.454 and GEN.499) are the at
 | AlH | 27.990 | 29.13 | 29.38 | 35.06 | NOT REACHED | COMPUTED |
 | VO | 66.941 | 29.14 | 30.73 | 36.49 | NOT REACHED | COMPUTED |
 | CaOH | 57.085 | 31.93 | 46.85 | 53.59 | NOT REACHED | COMPUTED |
-| TiO | 63.866 | 33.89 | 31.88 | 36.98 | JANAF Cp in T3 agrees within 4% at 300 K; vapour curve in T6 | COMPUTED |
+| TiO | 63.866 | 33.89 | 31.88 | 36.98 | JANAF Cp in T3 agrees within 4% at 300 K; vapor curve in T6 | COMPUTED |
 | NH4SH | 51.107 | - | - | - | condensation only, section 7.4 | NOT REACHED (Cp) |
 | H | 1.008 | - | 20.79 | 20.79 | no phase data; free energy in species_thermo.py | COMPUTED |
 | O | 15.999 | - | 21.90 | 20.92 | no phase data; free energy in species_thermo.py | COMPUTED |

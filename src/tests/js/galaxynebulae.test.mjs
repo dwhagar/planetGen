@@ -16,14 +16,14 @@ const region = (key, extra) => Object.assign({
 }, extra);
 const node = (regions) => ({ key: "81.4.1.2", block, node: { nebula_regions: regions } });
 
-test("a region's blob is the group's sphere in the colour of its dominant family, with a ring when it holds several", () => {
+test("a region's blob is the group's sphere in the colour of its dominant family, and never has a ring (MAP.392)", () => {
   const [blob] = N.regionBlobs([node([region("27.12.3.1")])], looks, null);
   assert.deepEqual([blob.x, blob.y, blob.z, blob.radiusPc, blob.count], [100, 20, 5, 40, 12]);
   assert.equal(blob.key, "27.12.3.1");
   assert.equal(blob.family, "emission");
   assert.deepEqual(blob.block, block);
   assert.deepEqual(blob.color, N.colourOf(looks.emission[0]));
-  assert.equal(blob.ring, true);
+  assert.equal(blob.ring, false, "a group of several has no ring: the circles were not wanted");
   const [one] = N.regionBlobs([node([region("27.1.1.1", { count: 1 })])], looks, null);
   assert.equal(one.ring, false);
 });

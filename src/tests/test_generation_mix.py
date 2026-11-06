@@ -41,20 +41,27 @@ def _planets(systems):
 
 
 def test_zone_mix_is_spread(systems):
-    """About 30% hot, 12% ecosphere and 50 to 55% cold (it was 96% cold; the ecosphere was 6% before GEN.146 widened it to
-    the Kopparapu edges, 0.95 to 1.68 AU for the Sun; the mass law of GEN.646 puts a few more planets close in)."""
+    """About 38% hot, 16% ecosphere and 46% cold (it was 96% cold; the ecosphere was 6% before GEN.146 widened it to
+    the Kopparapu edges, 0.95 to 1.68 AU for the Sun; the mass law of GEN.646 puts more planets close in). TEST.596: 400 systems on main gave
+    0.38, 0.165 and 0.456, each hundred of them ranging 0.33 to 0.42 hot (the planets of a system fall in one zone together), so the bands keep
+    three standard errors of a 250-system sample (0.03 hot, 0.02 ecosphere, 0.03 cold) from those centers; "0.42 hot" and "0.40 cold" were
+    within two and failed one run in four."""
     zones = collections.Counter(planet.zone for planet in _planets(systems))
     total = sum(zones.values())
     assert total > 3 * N_SYSTEMS
-    assert 0.20 < zones['h'] / total < 0.42
+    assert 0.20 < zones['h'] / total < 0.48
     assert 0.06 < zones['e'] / total < 0.20
-    assert 0.40 < zones['c'] / total < 0.75
+    assert 0.35 < zones['c'] / total < 0.75
 
 
 def test_giants_have_real_densities_and_super_jupiters_occur(systems):
     giants = [p for p in _planets(systems) if p.body_type == 'g']
     densities = [p.density for p in giants]
-    assert len(giants) > N_SYSTEMS // 6
+    # TEST.596: the giants a system has are the occurrence the mass law is tuned to (registry PA2, [R1479, R2172]): 0.045 per star of 0.1 to 0.3
+    # solar masses, 0.11 of 0.3 to 0.7 and 0.16 of 0.7 to 1.5 (docs/design/research/rogue-planet-review.md), so a draw of stars from the mass
+    # function holds about 0.1 a system and 29 of 250 is what the generator has given since at least 12 October (7 points of 600 systems, 0.10 to
+    # 0.12). The bounds are the lowest band's rate (an all-dwarf sample) and the highest (an all-Sun-like one, with room for the draw): "more than a sixth" was a stale guess.
+    assert 0.045 * N_SYSTEMS < len(giants) < 0.2 * N_SYSTEMS
     # Real gas and ice giants run 0.69-1.64 g/cm^3 (Saturn to Neptune);
     # the median was 0.25 before GEN.34.
     assert 0.69 <= statistics.median(densities) <= 1.64
@@ -68,7 +75,9 @@ def test_giants_have_real_densities_and_super_jupiters_occur(systems):
 def test_rocky_planets_get_more_than_class_d_moons(systems):
     classes = collections.Counter(moon.planet_class for planet in _planets(systems)
                                   if planet.body_type == 't' for moon in planet.moons)
-    assert classes['C'] > 0 and classes['D'] > 0
+    # TEST.596: since Boss's 8:41 PM EDT 2026-10-30 class lines, class C is an airless world of 0.1 Earth masses or more (a moon that big is rare:
+    # 2 in 200 systems) and class D one under it, so the moons that are more than class D are the other letters taken together (E, T and C: 9 in 200).
+    assert classes['D'] > 0 and sum(count for letter, count in classes.items() if letter not in ('D', None)) > 0
 
 
 def test_every_moon_is_a_rocky_body_that_fits_its_planet(systems):

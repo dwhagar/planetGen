@@ -13,6 +13,7 @@ own positive conditions (`physics/data/planet_class_fit.json`), each condition i
 * **Condition membership:** 1 inside the edge; across the shoulder beyond it a straight line down to 0; 0 past that. A `min` edge e
   with shoulder s is 1 at e or more, 0 at e - s or less. An `lt` edge e is 1 below e, 0 at e + s or more. `equals` is 0 or 1. A
   quantity the body does not store scores 0.
+* **Domains (GEN.1221):** each quantity belongs to one domain of the class-by-domain matrix (`physics/class_domains.py`); `domain_scores` grades a body in each.
 * **Class match:** the geometric mean of the memberships of the class's conditions, so one condition badly missed pulls the match
   down and a condition missed outright makes it 0.
 * **Best class:** the highest match; a tie goes to the class with more conditions (the narrower description), then to the letter.
@@ -31,7 +32,7 @@ import math
 import os
 from collections.abc import Mapping
 
-from planetgen.physics import elements, planet_classes
+from planetgen.physics import class_domains, elements, planet_classes
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_class_fit.json")
 
@@ -70,6 +71,10 @@ def _load():
                 raise FitError(f"class {cls.letter}: condition {condition!r} is not one quantity with one of min, lt or equals")
             if "equals" not in condition and condition["quantity"] not in shoulders:
                 raise FitError(f"class {cls.letter}: {condition['quantity']!r} has no shoulder")
+            try:
+                class_domains.domain_of(condition["quantity"])
+            except KeyError:
+                raise FitError(f"class {cls.letter}: {condition['quantity']!r} belongs to no domain of the class-by-domain matrix") from None
     if len({(c.letter, c.kind) for c in classes}) != len(classes):
         raise FitError("a class letter is used twice for one kind")
     return document, classes
@@ -135,7 +140,9 @@ def _found(body):
     if isinstance(body, Mapping) and "body_type" in body and "mass_earth" in body:
         return body
     values = body if isinstance(body, Mapping) else planet_classes.values_from_body(body)
-    return planet_classes.quantities(values)
+    found = planet_classes.quantities(values)
+    found.update(class_domains.derived(values))        # GEN.1221: the regional, day, night, wet-bulb, humidity, groundwater and phase quantities
+    return found
 
 
 def class_scores(body):
@@ -144,6 +151,15 @@ def class_scores(body):
     scored = [(match(cls, found), cls) for cls in CLASSES if passes_gates(cls, found)]
     scored.sort(key=lambda pair: (-pair[0], -len(pair[1].when), pair[1].letter))
     return scored
+
+
+def domain_scores(body, letter):
+    """`{domain: score}` of a planet, moon or stored-column mapping for the class `letter` (a terrestrial class where both kinds use it), by domain (`class_domains`)."""
+    found = _found(body)
+    for cls in CLASSES:
+        if cls.letter == letter and passes_gates(cls, found):
+            return class_domains.domain_scores(cls, found, membership)
+    raise FitError(f"no class {letter!r} that the body passes the gates of")
 
 
 def scores(body):
