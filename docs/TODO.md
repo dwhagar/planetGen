@@ -14889,8 +14889,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   search), and cut the cost where it changes no output; where a cut
   would change values, file it as a lock item with the epoch. In
   parallel the tests build fewer systems where the property allows
-  (TEST.417 style). Done: no test times out at 900 s on a 4 vCPU box and
-  one all-flags O0V system takes under 20 s. Related: PERF.238,
+  (TEST.417 style). Done: no test times out at 900 s on a 4 vCPU box
+  (the line "one all-flags O0V system takes under 20 s" moved to
+  PERF.244, see below). Related: PERF.238,
   TEST.417, TEST.571. Lock-free for the test parts. Version 8.1. Owner:
   Bug 1. Filed by the TODO thread.
   Profile done (Bug 1, as the lane reported) (4:38 PM EST on
@@ -14903,25 +14904,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   give only 10 to 20 percent. Bug 1 meanwhile cuts the system counts of
   the timing-out tests where the property allows, in small PRs. The
   prevalence feature_moves tests on the list are PERF.236, already in
-  train 12. PERF.241 stays open until GEN.1282 and PERF.242 land.
-  Prerequisites: none. Related: PERF.238.
+  train 12. PERF.241 stays open until GEN.1282 lands and the hot-star
+  tests are cut.
+  Rescoped (Bug 1, as the lane reported, about 9:36 PM EST on
+  2026-11-05, TODO accepted): with GEN.1282 an O0V all-flags system takes
+  55 s (about 380 s before) and builds 89 planets and about 186 moons;
+  75 percent of the time is moons at 0.15 s per body, and 80 percent of
+  that is surface_air.solve redrawing the outgassed mixture about 8
+  times per body (14 gas-equilibrium solves per body); an O5V all-flags
+  system takes about 80 s. Hot-star ecosphere draws do succeed (O5V 1 of
+  30, O3V 1 of 8, G2V 2 of 30), so PERF.242's premise was false and it is
+  closed. The line is now: no test over 900 s on 4 vCPU, reached by
+  cutting the trials of the hot-star tests (lock-free); the under 20 s
+  line is PERF.244.
+  Prerequisites: none. Related: PERF.238, PERF.244.
 
-- [ ] **PERF.242 Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget**
-  Bug 1's profile of PERF.241 (as the lane reported, about 4:35 PM EST
-  on 2026-11-05; reports/perf241-all-flags-o0v-profile-2026-11-05.md):
-  the forced habitable world makes the placement loop draw the whole
-  system 8 times and spend the 60-planet request budget. Gas equilibrium
-  (29,800 solves of 7 ms, none repeated) is 54 percent of the unprofiled
-  time, so a cache gains nothing and a warm start of the Newton loop
-  gains 10 to 20 percent without changing output. Do: say from the
-  physics which draws can be skipped for a star where no habitable world
-  can exist (a hot O or B star's habitable zone is far out and
-  short-lived: the forced flag cannot be met before the star leaves the
-  main sequence), short-circuit those, and warm-start the Newton solve
-  where bits are unchanged. Output changes for forced-flag draws: lock
-  item with the generator epoch, after the item above. Done: see the
-  item above. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
-  Prerequisites: GEN.1282. Related: PERF.241.
+- [ ] **PERF.244 A cheaper per-body air solve: surface_air.solve redraws the outgassed mixture about 8 times per body (14 gas-equilibrium solves per body); warm-start or cache the mixture across the fixed-point iterations**
+  Bug 1 (as the lane reported, about 9:36 PM EST on 2026-11-05), the
+  remainder of PERF.241 after GEN.1282: an O0V all-flags system takes 55
+  s, 75 percent of it in moons at 0.15 s per body, 80 percent of that in
+  surface_air.solve. Do: carry the outgassed mixture across the
+  fixed-point iterations of the air solve (warm start or a cache keyed
+  on its inputs) so a body does one full solve and the later iterations
+  start from it; measure the cost and the output change. A warm start
+  can nudge converged values in the last digits, so this is a lock item
+  (epoch, golden) unless the output is bit-identical. Done: one
+  all-flags O0V system takes under 20 s on a 4 vCPU box, or the report
+  shows by numbers why not and the line moves. Version 8.1. Owner: Bug 1,
+  after GEN.1298. Filed by the TODO thread.
+  Prerequisites: GEN.1282. Related: PERF.241, GEN.1282.
 
 ## DB: Database and schema
 
