@@ -381,6 +381,7 @@ connectivity to that specific schema rather than the default one.
   carries `keep_out_in_system`, the same object for a course inside its own system: `max(10 R_star, sqrt(L / (4 pi F)))`.
   `queryDb.resolve_object`,
   `planetgen.galaxy.objectref` and `static/objectref.js` hold the logic.
+- `GET /api/objects/<ref>/sensor` — the Sensor view's record of one object (UX.275, `web/lib/sensor.py`): `v` (the record's version), `kind`, `id`, `painter` (which painter draws it: `sphere`, a star, planet or moon look record as a lit sphere; `phenomenon`, a neutron star, black hole, quasar, rogue planet or interstellar comet in 3D; `nebula`, a cloud from its points; `null` for a kind no painter draws yet), `look` (the record that painter reads, `null` with no painter), `caption`, `estimate` (what the picture guessed, such as the surface colour of a world with no stored ground mixture), `inputs` (the stored properties it is built from) and `reason` (why a kind has no painter; a facility has none before 9.3). Built from the stored row and the Object ID seed alone, so the same object gives the same record. Every kind of the property sheet has an entry, and a test fails for one that does not. A reference that names nothing, or a kind with no sheet, is a `404`.
 - `GET /api/objects/<ref>/sheet` — the property sheet of a star, planet, moon,
   belt, comet, facility (UX.183, with a `ratings` group) or standalone phenomenon (UX.168, UX.175, `describe/sheet.py`):
   `kind` and `groups` (`identity`, `orbit`, `physical`, `rotation`,
