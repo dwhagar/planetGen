@@ -404,9 +404,12 @@ export function createLayerRegistry(mode, options) {
         if (layer.data) Object.keys(layer.data).forEach(function (name) { button.dataset[name] = layer.data[name]; });
         button.addEventListener("click", function () { toggle(layer.id); });
         buttons.set(layer.id, button);
-        container.appendChild(button);
         if (layer.forward) {
-          // MAP.306: the second button of a row, pulled forward or not (it shows the layer too).
+          // MAP.306: the second button of a row, pulled forward or not (it shows the layer too). MAP.397: the two sit in one row that
+          // never breaks, so "Forward" is never left alone at the start of a line (it said only "Forward" there, and was greyed out for a
+          // hidden layer); pulling a hidden layer forward shows it, so the button is always there to press.
+          const pair = doc.createElement("span");
+          pair.className = "galaxy-kinds-row";
           const front = doc.createElement("button");
           front.type = "button";
           front.className = "starmap-btn starmap-toggle map-forward-toggle";
@@ -415,7 +418,11 @@ export function createLayerRegistry(mode, options) {
           front.setAttribute("aria-label", "Pull " + layer.label.toLowerCase() + " forward");
           front.addEventListener("click", function () { setPulled(layer.id, !isPulled(layer.id)); });
           forwards.set(layer.id, front);
-          container.appendChild(front);
+          pair.appendChild(button);
+          pair.appendChild(front);
+          container.appendChild(pair);
+        } else {
+          container.appendChild(button);
         }
       });
     }
@@ -434,8 +441,7 @@ export function createLayerRegistry(mode, options) {
       });
       forwards.forEach(function (button, id) {
         button.setAttribute("aria-pressed", String(isPulled(id)));
-        button.disabled = !isOn(id);
-        button.title = "Draw it on top of the other marks, name it first and keep its names when others are cut";
+        button.title = "Show it and draw it on top of the other marks, name it first and keep its names when others are cut";
       });
     }
     refresh();

@@ -3409,14 +3409,19 @@ code {
   gap: 0.3rem;
 }
 
+/* MAP.397: a layer's button and its Forward button are one row that does not break across lines. */
+.galaxy-kinds .galaxy-kinds-row {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
+  white-space: nowrap;
+}
+
 .galaxy-kinds .map-forward-toggle {
   margin-left: -0.35rem;
   border-top-left-radius: 0;
   border-bottom-left-radius: 0;
-}
-
-.galaxy-kinds .map-forward-toggle:disabled {
-  opacity: 0.45;
 }
 
 .galaxy-sub > summary {

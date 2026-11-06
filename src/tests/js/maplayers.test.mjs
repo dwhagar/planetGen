@@ -270,7 +270,17 @@ test("the Menu gives a forward layer a second button and the group one row that 
   front.click();
   assert.equal(reg.stateOf("poi-a"), "forward");
   assert.equal(container.querySelector('button[data-forward="poi-a"]').getAttribute("aria-pressed"), "true");
-  assert.equal(container.querySelector('button[data-forward="poi-b"]').disabled, true, "a hidden layer cannot be pulled forward by its row");
+  // MAP.397: a hidden layer's Forward button is there to press (pulling forward shows it), and sits in one row with its layer's button.
+  const hidden = container.querySelector('button[data-forward="poi-b"]');
+  assert.equal(hidden.disabled, false);
+  assert.equal(hidden.parentNode.className, "galaxy-kinds-row");
+  assert.deepEqual(hidden.parentNode.querySelectorAll("button").map((b) => b.dataset.layer || b.dataset.forward), ["poi-b", "poi-b"]);
+  assert.equal(container.querySelector('button[data-layer="plain"]').parentNode, container, "a layer with no Forward button is not in a row");
+  assert.equal(reg.isOn("poi-b"), false);
+  hidden.click();
+  assert.deepEqual([reg.isOn("poi-b"), reg.stateOf("poi-b")], [true, "forward"]);
+  reg.setPulled("poi-b", false);
+  reg.setOn("poi-b", false);
   container.querySelector('button[data-bulk="forward"]').click();
   assert.deepEqual(["poi-a", "poi-b"].map((id) => reg.stateOf(id)), ["forward", "forward"]);
   container.querySelector('button[data-bulk="hidden"]').click();

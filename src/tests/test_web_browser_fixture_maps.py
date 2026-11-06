@@ -3803,6 +3803,22 @@ def test_the_default_map_marks_a_green_and_a_yellow_world_with_the_reason_listed
         assert wanted in page.locator("#galaxymap3d-info").inner_text()
 
 
+def test_every_control_in_the_galaxy_and_sector_menus_is_a_working_button(page, map_site):
+    """MAP.397: some rows of the Menu showed only the word "Forward" at the start of a line, greyed out and not clickable. Every visible thing
+    in the Menu's "Show on the map" list is a heading or a button that is enabled and named, a Forward button sits right after its layer's
+    button on the same line, and pressing each one changes it, on the Galaxy Map and on a sector."""
+    from tests.map_menu_support import check_menu_controls
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    forwards, seen = check_menu_controls(page, "#galaxymap3d-kinds")
+    assert forwards >= len(POI_LAYERS) and seen > 40, (forwards, seen)
+    _open_sector(page, map_site)
+    page.wait_for_timeout(500)
+    _open_menu(page)
+    check_menu_controls(page, "#galaxymap3d-kinds")
+
+
 def test_the_points_of_interest_menu_group_shows_pulls_forward_or_hides_each_kind_and_remembers_it(page, map_site):
     """MAP.306: the Menu's Points of interest group has a row for each reason, whose second button pulls it forward (drawn over the
     other marks, named first); a crowd takes its strongest member's state; hiding a kind takes its marks away; one row sets every
@@ -3815,7 +3831,7 @@ def test_the_points_of_interest_menu_group_shows_pulls_forward_or_hides_each_kin
     forward = {layer: kinds.locator(f'button[data-forward="{layer}"]') for layer in POI_LAYERS}
     assert all(button.count() == 1 for button in forward.values())
     assert all(forward[layer].get_attribute("aria-pressed") == "false" for layer in POI_LAYERS)
-    assert forward["marker-uninhabitable"].is_disabled(), "a hidden row cannot be pulled forward by its own button"
+    assert not forward["marker-uninhabitable"].is_disabled(), "a hidden row's Forward button is there to press (MAP.397)"
     # Pull the gas giants forward: their marks are drawn in front and named first.
     forward["marker-gas-giant"].click()
     assert "front=marker-gas-giant" in page.url
