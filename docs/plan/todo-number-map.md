@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.283 |
-| MAP | MAP.399 |
+| MAP | MAP.401 |
 | NAV | NAV.78 |
 | GEN | GEN.1309 |
 | PERF | PERF.245 |
@@ -2494,6 +2494,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.396 | Sensor pictures for systems and for sectors, regions, galaxies and clusters: a top-down orrery plate and a star-field and gas patch from stored counts | none | open |
 | MAP.397 | Some View menu options show only the word "Forward" and cannot be clicked (bug) | none | done, PR #5260 |
 | MAP.398 | test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card fails on main: an extra marker-region token for Zarh Region (bug) | none | done, PR #5256 |
+| MAP.399 | The Sectors list shows 375 uncharted placeholder sectors beside the 107 generated ones, each reading as an empty sector with 0 systems and 0% density (bug) | none | open |
+| MAP.400 | After warm-up the Galaxy Map kind table reads NEBULA 0, SUPERNOVA_REMNANT 0 and BLACK_HOLE 1 though the run placed 109,811 nebula clouds, 39 remnants and 9.7 million black holes (bug, unverified) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

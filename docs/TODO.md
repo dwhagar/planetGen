@@ -17203,6 +17203,37 @@ clears each one.
   GEN.1085. Filed by the TODO thread from Aux 5.
   Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
 
+- [ ] **MAP.399 The Sectors list shows 375 uncharted placeholder sectors beside the 107 generated ones, each reading as an empty sector with 0 systems and 0% density (bug)**
+  Boss, 5:00 PM EST on 2026-11-06 (as the coordinator relayed): the
+  Sectors list shows 482 rows but the run generated only 107 sectors (the
+  2,953 systems). The other 375 are uncharted placeholder sectors made by
+  store.uncharted_sector_id (GEN.1111 part 7, store.py near line 4010),
+  where drifting rogue planets land in never-charted cells.
+  list_sectors (query.py near line 185) has no chart_ledger filter, so
+  they sort first by distance from the core and read as generated empty
+  sectors (0 systems, 0% density, no region). Do: keep the placeholders
+  out of the generated-sector rows, or label them "Uncharted" and show
+  their rogue count instead of 0% density, and make the list header count
+  only generated sectors with the uncharted number beside it. A browser
+  test shows an uncharted placeholder labelled and not counted as
+  generated. Lock-free. Done: the Sectors list tells generated sectors
+  from uncharted ones. Version 8.1. Owner: Planets 1 (GEN.1111 rogue
+  work). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1111.
+
+- [ ] **MAP.400 After warm-up the Galaxy Map kind table reads NEBULA 0, SUPERNOVA_REMNANT 0 and BLACK_HOLE 1 though the run placed 109,811 nebula clouds, 39 remnants and 9.7 million black holes (bug, unverified)**
+  Boss, 5:00 PM EST on 2026-11-06 (as the coordinator relayed), from a
+  run log made before train 12 with no errors or warnings. Probably the
+  tile cache budget or the kind table counting only what the warm-up
+  cached, not what was placed; unverified. Do: read the kind table code
+  after warm-up, say whether it counts placed objects or cached tiles,
+  and fix the count or the label so the table matches the run (nebula
+  clouds, remnants, black holes). Lock-free. Done: the kind table matches
+  the placed counts on a fresh run or says plainly that it counts cached
+  tiles. Version 8.1. Owner: Core 4 (nebula and map items). Filed by the
+  TODO thread.
+  Prerequisites: none. Related: MAP.177, PERF.243.
+
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;
   proposal
