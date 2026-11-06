@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3494] - 2026-11-06
+
+**Headline:** The page of an uncharted sector now lists what is placed in it, each object linked to its own page, and says plainly that the sector is uncharted.
+
+### Added
+- The uncharted-sector page (`/sector/at/<shell>/<band>/<wedge>`, and the page of a placeholder sector row from the Sectors list) has a "What is placed here" panel: a table of the rogue planets and other objects stored in the cell, the bright stars the scatters left waiting in it, the unbuilt scattered phenomena (black holes, neutron stars, planetary nebulae, supernova remnants, hypervelocity stars) and the nebulae its waiting stars light. Each row links to the object's page (`/phenomenon/...`, `/systems/uncharted/...`, `/uncharted-phenomenon/...`). A cell with nothing in it says so. Nothing is generated; the lists are read from what is stored.
+- New tests: `test_web_uncharted_contents.py` (the page with a faked API) and a browser check in `test_web_uncharted_sectors_browser.py` (the panel on a placeholder's page fits the phone, tablet and desktop and passes the accessibility check).
+
+generation-output: unchanged
+
 ## [8.0.3493] - 2026-11-06
 
 **Headline:** Two moon tests that had stopped testing anything (one sampled systems with almost no moons, one compared a giant's moons with the radius the giant has shrunk to) now test what they say.
