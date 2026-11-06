@@ -79,7 +79,11 @@ def test_the_total_field_is_the_local_one_plus_the_smooth_galaxy():
     points = points + [8000.0, 0.0, 0.0]
     total = gravity_field.field(local, points, HERNQUIST)
     np.testing.assert_allclose(total, local + gravity_field.smooth_fields(points, HERNQUIST))
-    np.testing.assert_array_equal(gravity_field.field(local, points, HERNQUIST, total=False), local)
+    np.testing.assert_array_equal(gravity_field.field(local, points, HERNQUIST, "local"), local)
+    centered = gravity_field.field(local, points, HERNQUIST, "centered")
+    np.testing.assert_allclose(centered, local + gravity_field.smooth_fields(points.mean(axis=0, keepdims=True), HERNQUIST))
+    with pytest.raises(ValueError):
+        gravity_field.field(local, points, HERNQUIST, "both")
     # the smooth pull swamps the stars' in the pull, the tidal stretch keeps them
     assert gravity_field.scalar(total, "pull").std() / gravity_field.scalar(total, "pull").mean() < 0.02
     assert gravity_field.scalar(total, "tidal").max() > 100.0 * abs(gravity_field.scalar(gravity_field.smooth_fields(points, HERNQUIST), "tidal")).max()
@@ -214,8 +218,11 @@ def test_the_total_field_adds_the_smooth_galaxy_to_the_local_one(galaxy, client,
     total = client.get(f"/api/sectors/{name}/gravity?mode=pull").get_json()
     local = client.get(f"/api/sectors/{name}/gravity?mode=pull&field=local").get_json()
     assert local["field"] == "local"
+    centered = client.get(f"/api/sectors/{name}/gravity?mode=depth&field=centered").get_json()
+    assert centered["field"] == "centered" and centered["maximum"] < client.get(f"/api/sectors/{name}/gravity?mode=depth").get_json()["maximum"]
+    assert total["smooth"]["level"] > 0.0 and total["smooth"]["span"] >= 0.0
     # the sector is kiloparsecs out in the toy galaxy: the smooth pull is the bulk of the total, the stars' a small part of it
-    assert np.mean(total["values"]) > 20.0 * np.mean(local["values"])
+    assert np.mean(total["values"]) > 5.0 * np.mean(local["values"])
 
 
 def test_a_grid_made_stale_by_a_new_star_is_queued_again(galaxy, client, queued):

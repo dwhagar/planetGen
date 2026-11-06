@@ -6523,3 +6523,64 @@ def test_a_field_cloud_sprite_hands_over_to_the_density_volume_and_something_is_
     state = page.evaluate("""() => { const c = document.querySelector('#galaxymap3d-canvas'); const v = c.__mapNebulaVolumes;
         return {sprites: Number(c.dataset.fieldClouds), volumes: v ? v.drawn() : 0}; }""")
     assert state["sprites"] > 0 or state["volumes"] > 0, state
+
+
+# --- The Gravity layer (MAP.168) ------------------------------------------------------
+
+
+def test_sector_gravity_route_answers_the_grid_and_refuses_what_it_does_not_know(map_site):
+    import urllib.error
+    import urllib.request
+
+    def ask(query):
+        try:
+            with urllib.request.urlopen(f"{map_site}/sector/{SECTOR_ID}/gravity{query}") as response:
+                return response.status, response.headers.get("Cache-Control"), json.loads(response.read())
+        except urllib.error.HTTPError as error:
+            return error.code, error.headers.get("Cache-Control"), json.loads(error.read())
+
+    status, cache, body = ask("?mode=tidal&field=centered")
+    assert status == 200 and cache == "no-store"
+    assert body["mode"] == "tidal" and body["field"] == "centered" and body["zones"] == 16 and len(body["values"]) == 16 ** 3
+    assert ask("")[2]["field"] == "total", "the field defaults to the total"
+    assert ask("?mode=speed")[0] == 400 and ask("?field=nothing")[0] == 400
+
+
+def _gravity_toggle(page):
+    return page.locator('#galaxymap3d-kinds input[data-layer="gravity"]')
+
+
+def test_sector_map_gravity_layer_draws_switches_mode_and_keeps_the_address(page, map_site):
+    _open_sector(page, map_site)
+    _open_menu(page)
+    toggle = _gravity_toggle(page)
+    assert toggle.count() == 1 and not toggle.is_checked(), "the layer begins off"
+    assert "gravity" not in page.url
+    before = _shot(page, SECTOR_CANVAS)
+    toggle.click()
+    legend = page.locator("#galaxymap3d-layer-legend")
+    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('Pull')", timeout=20000)
+    assert "gravity=pull" in page.url and "gslab=" in page.url, page.url
+    assert "m/s" in legend.inner_text(), "the legend names the unit"
+    assert _shot(page, SECTOR_CANVAS) != before, "the gravity slab draws over the map"
+    drawn = _shot(page, SECTOR_CANVAS)
+    page.locator('button[data-gravity-mode="tidal"]').click()
+    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('Tidal')", timeout=20000)
+    assert "gravity=tidal" in page.url
+    page.locator('button[data-gravity="next"]').click()
+    assert "gslab=10" in page.url, page.url
+    page.locator('input[data-gravity="volume"]').check()
+    assert "gslab=all" in page.url, page.url
+    assert _shot(page, SECTOR_CANVAS) != drawn, "every slab drawn is not the one slab"
+    toggle.click()
+    assert "gravity" not in page.url and "gslab" not in page.url, page.url
+    assert "Tidal" not in legend.inner_text(), "an off layer has no legend line"
+
+
+def test_sector_map_gravity_layer_opens_from_the_address(page, map_site):
+    _open_sector(page, map_site, "?show=gravity&gravity=depth&gslab=3")
+    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('depth')", timeout=20000)
+    assert "gravity=depth" in page.url and "gslab=3" in page.url, page.url
+    _open_menu(page)
+    assert _gravity_toggle(page).is_checked()
+    assert page.locator('button[data-gravity-mode="depth"]').get_attribute("aria-pressed") == "true"

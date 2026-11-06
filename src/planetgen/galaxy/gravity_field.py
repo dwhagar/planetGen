@@ -16,10 +16,12 @@ and turns the ten numbers into the three scalars of the map's modes:
   compressed direction.
 
 The smooth galaxy's tidal tensor is the derivative of its pull, taken by a central difference over `TENSOR_STEP_PC` (the smooth field changes over kiloparsecs,
-so the difference is exact to the table's own accuracy). The **saddle points** are the zones where the pull is smallest against its neighbours' and the tidal
+so the difference is exact to the table's own accuracy). Why a `centered` reading (Boss, 2026-11-06; `reports/gravity-range-2026-11-06/`): the smooth galaxy's slope across a sector is 700 to 900 times the stars' wells in the depth, so
+colours over the total depth are one ramp; with the smooth galaxy held at the sector's center the colours show the wells, and the pull and tidal strength differ from the total's
+by the galaxy's own change across 4 parsecs only. The **saddle points** are the zones where the pull is smallest against its neighbours' and the tidal
 tensor has both signs: the places a body would sit between wells (the Lagrange points of the map).
 
-The reading of the local field alone (`total=False`) is kept for the cases where the smooth galaxy swamps the stars: it is 99.9 percent of the pull and all of
+The reading of the local field alone (`which="local"`) is kept for the cases where the smooth galaxy swamps the stars: it is 99.9 percent of the pull and all of
 the depth inside a sector, and about 1/750 of the tidal strength within 0.25 pc of a star (`reports/map383-background-rule-2026-11-05.md`).
 """
 
@@ -66,10 +68,22 @@ def smooth_fields(points, pot):
     return out
 
 
-def field(local, points, pot, total=True):
-    """The field the map shows, `(n, 10)` float64: `local` (a grid's numbers) plus the smooth galaxy at `points` when `total`."""
+FIELDS = ("total", "centered", "local")
+"""tuple: The readings of the field: the `total` (the smooth galaxy added at each zone), the `centered` (the smooth galaxy added as it is at the sector's center, the same for every zone, so the colours show what the stars add: the reading the map colours by) and the `local` (the stars alone)."""
+
+
+def field(local, points, pot, which="total"):
+    """The field the map shows, `(n, 10)` float64: `local` (a grid's numbers) plus the smooth galaxy at each of `points` (`which` "total"), at their mean point (`"centered"`)
+    or not at all (`"local"`)."""
     local = np.asarray(local, dtype=np.float64)
-    return local + smooth_fields(points, pot) if total else local
+    if which == "local":
+        return local
+    if which == "centered":
+        points = np.asarray(points, dtype=np.float64)
+        return local + smooth_fields(points.mean(axis=0, keepdims=True), pot)
+    if which != "total":
+        raise ValueError(f"unknown field {which!r}; one of {', '.join(FIELDS)}")
+    return local + smooth_fields(points, pot)
 
 
 def _tensors(result):

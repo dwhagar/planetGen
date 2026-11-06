@@ -3086,6 +3086,29 @@ code {
   font-size: 0.78rem;
 }
 
+/* MAP.168: the Gravity layer's ramp in the key and its controls under its row of the View menu. */
+.map-layer-legend-swatch.gravity-ramp {
+  width: 2.2rem;
+  height: 0.55rem;
+  border-radius: 0.15rem;
+  background: linear-gradient(90deg, rgb(68, 1, 84), rgb(59, 82, 139), rgb(33, 145, 140), rgb(94, 201, 98), rgb(253, 231, 37));
+}
+.gravity-button {
+  margin: 0.1rem 0.2rem 0.1rem 0;
+}
+.gravity-button[aria-pressed="true"] {
+  font-weight: 600;
+  outline: 2px solid var(--accent);
+}
+.gravity-slab {
+  margin: 0 0.4rem;
+  font-size: 0.85rem;
+}
+.gravity-volume {
+  display: block;
+  font-size: 0.85rem;
+}
+
 /* The marks of the key lines for what the map draws as shapes. */
 .map-layer-legend-swatch.map-key-point {
   border-radius: 50%;

@@ -2835,11 +2835,11 @@ GRAVITY_JOB_REUSE_SECONDS = 600
 @bp.route("/sectors/<uid:sector_id>/gravity")
 def sector_gravity(sector_id):
     """
-    `GET /api/sectors/<id>/gravity?mode=pull|depth|tidal[&field=total|local]` -- the per-zone gravity grid of a sector (API.24, `api/gravity.py`; the grid is
+    `GET /api/sectors/<id>/gravity?mode=pull|depth|tidal[&field=total|centered|local]` -- the per-zone gravity grid of a sector (API.24, `api/gravity.py`; the grid is
     MAP.387's, the sector cut into 16 x 16 x 16 zones of the sector's own edge): one scalar per zone, `values`, with the zone size, the `origin_pc` corner, the
     `unit`, the range, the `saddle` zones where the pull is nearly nothing and the tidal tensor has both signs, and the grid's `stamp`. `mode` is the pull in
     m/s^2 (the default), the well depth in m^2/s^2 or the tidal strength in 1/s^2; `field` is the `total` field (the generated stars and the smooth galaxy, the
-    default) or the `local` one (the generated stars less the smooth galaxy's own stars). A grid that is not worked out yet (or went stale when a star moved)
+    default), the `centered` one (the smooth galaxy fixed at the sector's center, which the map colours by) or the `local` one (the generated stars less the smooth galaxy's own stars). A grid that is not worked out yet (or went stale when a star moved)
     is queued as a job: `202` with the job's `status_url`, ask again when it is done; `503` when no cache folder is available or no queue answers. A mode or
     field that is not one of those is a `400`, an unknown sector a `404`, a galaxy with no shape yet a `409`.
     """
@@ -2862,7 +2862,7 @@ def sector_gravity(sector_id):
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
     if local is not None:
-        return jsonify({"sector_id": sector_id, **gravity_api.payload(conn, sector_id, pot, local, stamp, mode, total=field == "total")})
+        return jsonify({"sector_id": sector_id, **gravity_api.payload(conn, sector_id, pot, local, stamp, mode, field)})
     config = _resolve_requested_db_config()
     key = (getattr(config, "database", None), sector_id, stamp)
     now = time.monotonic()
