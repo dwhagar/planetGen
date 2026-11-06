@@ -2663,9 +2663,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.95 | update.sh ends its full warm-up with timeout 1800 (30 minutes), which a first warm-up after a new epoch overruns: the run dies with a KeyboardInterrupt traceback at chunk 414 of 458 and nothing says why (bug) | none | done, PR #4934 |
 | OPS.96 | warmup.log in the log folder, written by planetgen warm itself, local time with zone | none | done, PR #5207 |
 | OPS.97 | Local time with its zone in every log form (the standard changes from UTC), including the activity log and its fail2ban filter | none | done, PR #5207 |
-| OPS.98 | A time on every line of every script and command | none | open |
+| OPS.98 | A time on every line of every script and command | none | done, PR #5322 |
 | OPS.99 | Compact warm-up progress by time, and the progress bars back inside update.sh | none | open |
-| OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | none | open |
+| OPS.100 | A closing summary for update.sh and install.sh, with warnings repeated | none | done, PR #5322 |
 | OPS.101 | Named logs for the unattended long jobs: tiles.log, orbits.log and update.log | none | open |
 | OPS.102 | Debug log: an area column in, the dead logger-name column out | none | open |
 | OPS.103 | One vocabulary (Stage, Part, Phase), one level and component table, enforced by a test | none | open |

@@ -2652,3 +2652,5 @@ Baseline: PR #1817.
 | TEST.648 | 8.1 | Physics rectification: citations and the gate's test health |
 | PERF.244 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.646 | 8.1 | Physics rectification: citations and the gate's test health |
+| OPS.98 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
+| OPS.100 | 8.3 | Unified logging (Boss, 5:44 PM EST on 2026-11-05: local time with zone everywhere) |
