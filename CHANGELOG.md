@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3414] - 2026-11-06
+
+**Headline:** A system that bars habitable worlds now has none among its finished planets and moons: the bar is judged again after the star's final age, the light of every star and the oxygen of a life are in.
+
+### Changed
+- **GEN.1250: the bar on habitable worlds holds.** With the habitable world request off, about 3 percent of sampled systems still held a planet or moon with the request's conditions (temperate, an air of 10 kPa or more, a surface ocean). The first draw of a planet was judged before three things moved it: the air made again at the star's final age, a world outside the ecosphere zone (the first draw looked at the ecosphere only), and a thin air that its life's oxygen lifted over the minimum. Now the first draw is judged in every zone, and the finished bodies are judged once more at the end of the system (`StarSystem._bar_habitable_worlds`); a body that meets the conditions has its air, water, surface, class and spin drawn again and its end made again, up to 30 tries (the same limit as the first draw), then keeps the last draw and is counted in `barred_world_limit` (the honest limit). A system that does not bar habitable worlds is unchanged.
+- Generator epoch bump (numbered at merge): systems that bar habitable worlds and held such a body.
+generation-output: changed
+
 ## [8.0.3413] - 2026-11-06
 
 **Headline:** A planet's class is now fitted against a table of conditions by domain, with stored humidity and groundwater, the phase of the world's liquids, and four new classes (Hothouse R, methane-ethane U, sulfuric acid Y, hot thin-air Z).
