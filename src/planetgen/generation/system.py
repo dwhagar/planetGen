@@ -21,7 +21,8 @@ the system.
 import dataclasses
 import math
 
-from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation import irregular_moons
+from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
 from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
@@ -38,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, clearance_ledger, debris_dust, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, debris_dust, planet_architecture, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -497,6 +498,8 @@ class StarSystem:
             log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
 
+        self._add_irregular_moons()
+
         # Comets don't participate in the planet-slot retry loop above --
         # see _generate_comets' own docstring for why -- so they're rolled
         # once here, after that loop has settled on a final planet/belt
@@ -517,31 +520,7 @@ class StarSystem:
         # `orbits.calculate_reflex_offset`. Positions are now final (planet
         # placement/validation above is done), so this is computed once,
         # here, same as everything else in this pass.
-        self.binary_planetary_wobble_x = self.binary_planetary_wobble_y = self.binary_planetary_wobble_z = 0.0
-        # A planet's own wobble from its moons was made when the moons were; their positions have moved since (the orbits were
-        # settled and the bodies made again at the star's final age), so it is made again from the final ones.
-        for planet in self.all_planets:
-            if planet.body_type != "a":
-                validation.refresh_planet_reflex(planet)
-        if self.binary_type == "close":
-            # Circumbinary planets orbit the merged proxy, not either
-            # individual star (star_id IS NULL -- see schema.sql), so their
-            # combined pull is modeled as one shared wobble on the whole
-            # pair rather than split between primary/secondary -- splitting
-            # it would require solving a real 3+-body problem, out of scope
-            # (see the "Investigated and explicitly out of scope" plan note
-            # on a related, larger case).
-            self.binary_planetary_wobble_x, self.binary_planetary_wobble_y, self.binary_planetary_wobble_z = \
-                calculate_reflex_offset(self.star.mass, self._reflex_children(self.planets))
-        else:
-            self.primary_star.reflex_offset_x, self.primary_star.reflex_offset_y, self.primary_star.reflex_offset_z = \
-                calculate_reflex_offset(self.primary_star.mass, self._reflex_children(self.planets))
-            if self.binary_type == "wide":
-                self.secondary_star.reflex_offset_x, self.secondary_star.reflex_offset_y, self.secondary_star.reflex_offset_z = \
-                    calculate_reflex_offset(self.secondary_star.mass, self._reflex_children(self.secondary_planets))
-        for member, bodies in self.member_hosts():
-            member.reflex_offset_x, member.reflex_offset_y, member.reflex_offset_z = \
-                calculate_reflex_offset(member.mass, self._reflex_children(bodies))
+        self._refresh_wobble()
 
         # Decided once, here, at generation time -- __str__ (which may be called
         # more than once) reads this rather than re-rolling and double-counting
@@ -601,6 +580,8 @@ class StarSystem:
                 self.unmet_requirements.append(wanted)
             elif present and wanted in self.unmet_requirements:
                 self.unmet_requirements.remove(wanted)
+        if self._drop_barred_bodies():    # GEN.1275
+            self._refresh_wobble()
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
         # see names/bodies.py.
@@ -1336,7 +1317,8 @@ class StarSystem:
         counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
         if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)):
             return
-        belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star))
+        belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star),
+                                 instability=capture_windows.instability_level(self.capture_windows(star)))
         if not belts and config.ASTEROID_BELT is True and not any(body.body_type == 'a' for body in bodies):
             belts = self._requested_belt(bodies, star, orbit_ceiling_au)
         if not belts:
@@ -1369,6 +1351,31 @@ class StarSystem:
         if brightest is not None:
             belt = brightest[1]
             holder.disk_kind, holder.disk_inner_au, holder.disk_outer_au = debris_dust.DEBRIS_KIND, belt.lower_limit, belt.upper_limit
+
+    def _add_irregular_moons(self):
+        """
+        Gives every planet that orbits a star its irregular moons (GEN.1083, `generation/irregular_moons.py`): the small bodies it caught from the outer disk of its star's bodies and from its own feeding zone. It runs once the
+        planets, belts and ages are final, so the outer disk, the instabilities of the architecture (`capture_windows`) and the regular moons are all known; a planet of a star with no outer disk has none. Nothing is stored yet.
+        """
+        hosts = [(self.planets, self.star)]
+        if self.binary_type == "wide":
+            hosts.append((self.secondary_planets, self.secondary_star))
+        hosts += [(bodies, star) for star, bodies in self.member_hosts()]
+        for bodies, star in hosts:
+            source = irregular_moons.source_of(bodies, star, self.capture_windows(star), star_al26_ratio(self.system_config, star))
+            for body in bodies:
+                if body.body_type != 'a' and not body.is_moon:
+                    body.irregulars = irregular_moons.for_planet(body, source)
+
+    def capture_windows(self, star):
+        """
+        The capture windows of the planets of `star` (GEN.1082, `physics/capture_windows.py`): the giant-giant instabilities its architecture holds and their close encounters; none for a star
+        whose planets were not built from an architecture (a requested belt or a `SLOTS` system). Not stored.
+        """
+        for planned, architecture in getattr(self, "architectures", ()):
+            if planned is star:
+                return capture_windows.from_architecture(architecture)
+        return capture_windows.NO_WINDOWS
 
     def _requested_belt(self, bodies, star, orbit_ceiling_au):
         """
@@ -2154,21 +2161,28 @@ class StarSystem:
         planetLife.apply_life_data(moon)
         planetLife.decide_flavor_text(moon)
 
+    @staticmethod
+    def _barred(body):
+        """Whether a finished planet or moon is what a system that bars habitable worlds keeps out: it meets the request's conditions or its class can carry life (GEN.1250, GEN.1275)."""
+        return habitable_request.meets(body) or planetPhysics.is_life_class(body)
+
     def _bar_habitable_worlds(self):
         """
         Keeps a system that bars habitable worlds (`HABITABLE_WORLD` False) free of them in its finished bodies (GEN.1250). The first draw of a planet
         (`Planet.__init__`) is judged before the star's final age, the star's light from every star, and the oxygen a life has built into the air
-        are in, and each can bring a body to the request's conditions (`habitable_request.meets`); so the finished bodies are judged here, and a body
-        that meets them has its air, water, surface, class and spin drawn again (`planets.remake_end_stages`, another draw of the stream of its
-        own) and its end made again, up to `tuning.BARRED_CLASS_MAX_ATTEMPTS` times. A body that still meets them after that keeps its last draw:
-        the honest limit, counted in `StarSystem.barred_world_limit`.
+        are in, and each can bring a body to the request's conditions (`habitable_request.meets`) or to a class that can carry life
+        (`planets.is_life_class`, GEN.1275: no body of any such class anywhere in the system); so the finished bodies are judged here, and a body
+        that is either has its air, water, surface, class and spin drawn again (`planets.remake_end_stages`, another draw of the stream of its
+        own) and its end made again, up to `tuning.BARRED_CLASS_MAX_ATTEMPTS` times. A body that still is either after that keeps its last draw:
+        the honest limit, counted in `StarSystem.barred_world_limit`; one of a class that can carry life is then left out of the system
+        (`_drop_barred_bodies`).
         """
         self.barred_world_limit = 0
         for obj in self.all_planets:
             if obj.body_type == 'a':
                 continue
             for body in (obj, *list(obj.moons)):
-                if not habitable_request.meets(body):
+                if not self._barred(body):
                     continue
                 for attempt in range(1, tuning.BARRED_CLASS_MAX_ATTEMPTS + 1):
                     draw.redrawn("planet.barred_world_final")
@@ -2179,7 +2193,7 @@ class StarSystem:
                         self._finish_planet(obj)
                         for moon in obj.moons:
                             self._finish_moon(moon, obj)
-                    if not habitable_request.meets(body):
+                    if not self._barred(body):
                         break
                 else:
                     self.barred_world_limit += 1
@@ -2206,6 +2220,59 @@ class StarSystem:
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+
+    def _refresh_wobble(self):
+        """The reflex wobble of the planets and of the stars, from the planets and moons as they are (called when the orbits are final, and again if a body is dropped, GEN.1275)."""
+        self.binary_planetary_wobble_x = self.binary_planetary_wobble_y = self.binary_planetary_wobble_z = 0.0
+        # A planet's own wobble from its moons was made when the moons were; their positions have moved since (the orbits were
+        # settled and the bodies made again at the star's final age), so it is made again from the final ones.
+        for planet in self.all_planets:
+            if planet.body_type != "a":
+                validation.refresh_planet_reflex(planet)
+        if self.binary_type == "close":
+            # Circumbinary planets orbit the merged proxy, not either
+            # individual star (star_id IS NULL -- see schema.sql), so their
+            # combined pull is modeled as one shared wobble on the whole
+            # pair rather than split between primary/secondary -- splitting
+            # it would require solving a real 3+-body problem, out of scope
+            # (see the "Investigated and explicitly out of scope" plan note
+            # on a related, larger case).
+            self.binary_planetary_wobble_x, self.binary_planetary_wobble_y, self.binary_planetary_wobble_z = \
+                calculate_reflex_offset(self.star.mass, self._reflex_children(self.planets))
+        else:
+            self.primary_star.reflex_offset_x, self.primary_star.reflex_offset_y, self.primary_star.reflex_offset_z = \
+                calculate_reflex_offset(self.primary_star.mass, self._reflex_children(self.planets))
+            if self.binary_type == "wide":
+                self.secondary_star.reflex_offset_x, self.secondary_star.reflex_offset_y, self.secondary_star.reflex_offset_z = \
+                    calculate_reflex_offset(self.secondary_star.mass, self._reflex_children(self.secondary_planets))
+        for member, bodies in self.member_hosts():
+            member.reflex_offset_x, member.reflex_offset_y, member.reflex_offset_z = \
+                calculate_reflex_offset(member.mass, self._reflex_children(bodies))
+
+    def _drop_barred_bodies(self):
+        """
+        GEN.1275: in a system that bars habitable worlds (`HABITABLE_WORLD` False) a planet or moon whose final class still can carry life, after the attempts to make
+        it again (`_bar_habitable_worlds`) and after the life pass (which can change an air), is not in the system: a moon leaves its planet's list, and a planet leaves the
+        system's with its moons. Returns whether any went.
+        """
+        if self.system_config.HABITABLE_WORLD is not False:
+            return False
+        dropped = 0
+        for planets in (self.planets, self.secondary_planets, *self.member_planets):
+            for planet in list(planets):
+                if planet.body_type == "a":
+                    continue
+                if planetPhysics.is_life_class(planet):
+                    planets.remove(planet)
+                    dropped += 1
+                    continue
+                for moon in list(planet.moons):
+                    if planetPhysics.is_life_class(moon):
+                        planet.moons.remove(moon)
+                        dropped += 1
+        if dropped:
+            log.debug(f"{dropped} bodies of a class that can carry life left a system that bars them (GEN.1275)")
+        return dropped > 0
 
     def count_habitable_class_worlds(self, planets=None):
         """

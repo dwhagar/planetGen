@@ -33,7 +33,8 @@ def _dataset_block(dataset):
              f"- Fetch: `python3 -m planetgen.cli.datasets fetch {dataset.key}`.",
              f"- Replaces: {dataset.replaces}.",
              f"- With `--disregard-missing-data`: {dataset.fallback[0].upper() + dataset.fallback[1:]}." if dataset.fallback
-             else "- With `--disregard-missing-data`: nothing falls back, the run is still refused.",
+             else ("- With `--disregard-missing-data`: nothing falls back, the run is still refused." if dataset.required
+                   else "- Bulk generation does not need it (only a test reads it), so nothing falls back and nothing is refused."),
              "- Files (URL, then the file name it is kept under in the dataset's folder):"]
     lines += [f"  - <{piece.url}> as `{piece.name}`" for piece in dataset.pieces]
     return lines

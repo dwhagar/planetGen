@@ -77,6 +77,9 @@ The rule (points 1 to 4 and 6 are MAP.383's; point 5 is a recommendation MAP.167
    model's expected mass. The two differ by 15 to 19 percent where measured (solar circle: potential 0.026 against model 0.031 Msun per pc^3; bulge: 3.68
    against 3.10) because the potential's disks and spheres are stand-ins (GP1 to GP3). Using the potential's own mass changes the tidal norm by 5 to 7
    percent against subtracting the model's, and removes that mismatch from the map instead of showing it as stars that are not there.
+   GEN.1285 (`galaxy/stellar_table.py`) closes the mismatch at its source: the potential's stellar density, pull and potential now include a table of the
+   density model's difference from the profiles, so the potential's own stellar mass is the model's to about 2 percent and the subtraction here and the
+   density model agree. The cache stamp reads the table, so files made before it are made again.
 3. **A sector that is not generated adds nothing and subtracts nothing** (its generated and subtracted mass would be equal), so the near region needs no
    expected-mass cells for holes.
 4. **Dark halo, gas, black hole and every other smooth term stay in the background untouched.**

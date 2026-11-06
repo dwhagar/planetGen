@@ -372,7 +372,9 @@ def test_grow_from_seed_terminates_inside_and_separated(seed, sector, home_hill,
 
 
 @settings(max_examples=scaled(10))
-@given(seed=SEEDS, hill=st.floats(2.0, 8.0))
+# GEN.1284: two systems keep half the sum of their Hill radii apart, so the range that
+# held 200 or fewer systems at a separation of twice the radius is now twice as wide.
+@given(seed=SEEDS, hill=st.floats(4.0, 16.0))
 def test_grow_toward_an_unreachable_target_stops_when_full(seed, hill):
     sector = SpaceSector("greedy")
     with _seeded_sector_rng(seed), _time_limit(30):

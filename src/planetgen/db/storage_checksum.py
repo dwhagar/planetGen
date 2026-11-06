@@ -13,8 +13,8 @@ string as its UTF-8 bytes. The rows come in table order and then in primary key 
 
 Left out (`VOLATILE_COLUMNS`): what the daily orbit update rewrites (`store.advance_orbital_phases`, `advance_galactic_positions`,
 `advance_facility_orbits`, `advance_comet_orbits`: phases, positions, velocities, reflex offsets, binary positions, comet anomalies, the
-`location` text and each row's clocks), so a tick of the simulation never makes a sector look damaged; and the three columns that cannot
-describe themselves (`storage_checksum`, `parity_dirty`, `leaf_digest`), and `modified_at`, which any write bumps. Not in it either: the
+`location` text and each row's clocks), so a tick of the simulation never makes a sector look damaged; and the columns that cannot
+describe themselves (`storage_checksum`, `parity_dirty`, `leaf_digest`, `content_leaf`), and `modified_at`, which any write bumps. Not in it either: the
 address-keyed rows (`bright_stars`, `phenomenon_scatter`), which exist without a sector, and the rebuilt tables (stats, paths, nearest
 systems, the object index).
 
@@ -57,7 +57,7 @@ _BINARY = ("binary_galactic_orbital_phase_deg", "binary_mutual_orbital_phase_deg
 _CLOCKS = ("epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due")
 
 VOLATILE_COLUMNS = {
-    "sectors": ("storage_checksum", "parity_dirty", "leaf_digest", "modified_at"),
+    "sectors": ("storage_checksum", "parity_dirty", "leaf_digest", "content_leaf", "modified_at"),
     "star_systems": ("sector_id", "position_x_mpc", "position_y_mpc", "position_z_mpc", "galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc", "quadrant", "location", "velocity_x_kms",
                      "velocity_y_kms", "velocity_z_kms", "modified_at") + _BINARY + _CLOCKS,
     "stars": ("galactic_orbital_phase_deg", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km") + _CLOCKS,

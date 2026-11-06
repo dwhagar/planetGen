@@ -798,6 +798,7 @@ def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
         entry = sector.add_preplaced_system(system, brightStars.local_position_ly(row, fill.center_pc),
                                             system_config=cfg)
         entry.bright_star_id = row["id"]
+        entry.cluster_id = row.get("cluster_id")                  # GEN.359: the cluster the star belongs to, or None
         entry.bright_star_uid = row.get("uid")     # GEN.1254: the system keeps the Object ID the star has
         fill_stages.count(sector, fill_stages.PRE_PLACED, "star-system")
 

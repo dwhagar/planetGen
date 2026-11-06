@@ -37,7 +37,7 @@ import math
 
 import numpy as np
 
-from planetgen.db import region, store
+from planetgen.db import region, sky_tier_ledger, store
 from planetgen.galaxy import cellkey, spherical
 from planetgen.physics import unit_registry as units
 from planetgen.util import detmath
@@ -241,26 +241,34 @@ def _edge_pc(conn):
 def cell_levels(conn, center, radius_pc):
     """
     The `CellLevels` of the sphere: each sector that can hold part of it, with its `sector_stats` level and mass and the luminosity above which its
-    stars are complete. A galaxy with no sectors gives no cells and `inf`.
+    stars are complete, taken lower by the spheres the sky tiers drew (`db/sky_tier_ledger.py`, VIEW.25). A galaxy with no sectors gives no cells and `inf`; a sphere too large to list
+    is complete down to the deepest drawn sphere that holds all of it.
     """
     edge = _edge_pc(conn)
     scatter = store.bright_star_scatter_settings(conn)
     scatter_level = None if scatter is None else float(scatter[0])
     if edge <= 0.0:
         return CellLevels((), scatter_level, math.inf)
+    ledger = sky_tier_ledger.read(conn)
     if 4.0 / 3.0 * math.pi * ((radius_pc / edge) + spherical.CELL_REACH_EDGES) ** 3 > MAX_LEVEL_CELLS:
-        return CellLevels((), scatter_level, math.inf if scatter_level is None else scatter_level, truncated=True)
+        complete = math.inf if scatter_level is None else scatter_level
+        if scatter_level is not None:
+            complete = ledger.sphere_reached(sky_tier_ledger.LUMINOSITY, center, radius_pc, scatter_level)
+        return CellLevels((), scatter_level, complete, truncated=True)
     addresses = sorted((shell, band, wedge) for shell, band, wedge, *_rest in spherical.cells_touching_sphere(center, radius_pc, edge))
     levels = store.sector_bright_levels(conn, addresses)
     masses = store.sector_bright_masses(conn, addresses)
-    cells = []
+    starts = {}
     for address in addresses:
         level = levels.get(address, store.UNTOUCHED_LEVEL)
         if level == store.UNTOUCHED_LEVEL:
-            complete = math.inf if scatter_level is None else scatter_level
+            starts[address] = math.inf if scatter_level is None else scatter_level
         else:
-            complete = float(level)
-        cells.append(CellLevel(address, float(level), masses.get(address), complete))
+            starts[address] = float(level)
+    reached = ledger.luminosity_reached([a for a in addresses if math.isfinite(starts[a]) and starts[a] > 0.0], edge, starts) if ledger else {}
+    cells = []
+    for address in addresses:
+        cells.append(CellLevel(address, float(levels.get(address, store.UNTOUCHED_LEVEL)), masses.get(address), reached.get(address, starts[address])))
     return CellLevels(tuple(cells), scatter_level, max((cell.complete_above_sol for cell in cells), default=math.inf))
 
 

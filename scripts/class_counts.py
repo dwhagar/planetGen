@@ -28,7 +28,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
-from planetgen.physics import planet_classes  # noqa: E402
+from planetgen.physics import class_fit, planet_classes  # noqa: E402
 from planetgen.util import draw  # noqa: E402
 
 TEMPERATE_K = (250.0, 330.0)
@@ -53,7 +53,8 @@ def measure(seed):
         for body in (planet, *planet.moons):
             values = planet_classes.values_from_body(body)
             found = planet_classes.quantities(values)
-            own = {c.letter for c in planet_classes.CLASSES if c.kind == found["body_type"] and c.when and c.matches(found)}
+            whole = class_fit._found(values)
+            own = {c.letter for c in class_fit.CLASSES if class_fit.passes_gates(c, whole) and class_fit.match(c, whole) > 0.0}
             rows.append({"letter": planet_classes.classify_values(values).letter, "hydrosphere": found["hydrosphere"],
                          "temperature_k": found["temperature_k"], "mass_earth": found["mass_earth"],
                          "hydrogen": found["share_h2"], "pressure_pa": found["pressure_pa"], "ocean_fraction": found["ocean_fraction"], "own": sorted(own & set(WATCHED))})

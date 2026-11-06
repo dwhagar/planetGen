@@ -49,6 +49,10 @@ GAS_GRADIENT_DEX_PER_KPC = 0.034
 GAS_SCATTER_DEX = 0.14
 """float: The scatter of the gas around its gradient, dex (the same 35 H II regions). [Stand-in NBC2, tier T2, tweak L0.]"""
 
+GAS_OH_MAX_DEX = 0.7
+"""float: The highest [O/H] the gas of a place can have, dex: the gradient is written against the Milky Way's, so a galaxy with a far larger reference radius (a wide disk) would put
+the gas at its center several dex above solar, where the dust law and the composition stop meaning anything (the dust would hold the hydrogen). The cap is above the gradient's value at the Milky Way's center plus three times the scatter (0.28 + 0.42), a recalled bound for the inner disk, not a measurement. [Stand-in NBC16, tier T6, tweak L0.]"""
+
 SATELLITE_GAS_OFFSETS = ((-0.9, 0.24, 0.62), (-0.4, 0.06, 0.26))
 """tuple: `([Fe/H] of a satellite, lowest, highest offset)` of the gas's [O/H] above that [Fe/H], dex, from the smaller to the larger [Fe/H]. The
 anchors are the two Clouds: the LMC (stored stand-in [Fe/H] about -0.4) has gas at [O/H] -0.34 to -0.14, the SMC (about -0.9) -0.66 to -0.28,
@@ -79,7 +83,7 @@ def satellite_offsets(component_fe_h):
 
 def gas_oh(galactic_radius_pc, key, component_fe_h=None):
     """
-    [O/H] of the gas a nebula `key` formed in, dex. In the Milky Way: the gradient at `galactic_radius_pc` plus a normal draw of `GAS_SCATTER_DEX`.
+    [O/H] of the gas a nebula `key` formed in, dex. In the Milky Way: the gradient at `galactic_radius_pc` plus a normal draw of `GAS_SCATTER_DEX`, not above `GAS_OH_MAX_DEX`.
     In a satellite component of stored [Fe/H] `component_fe_h`: that value plus an offset drawn inside `satellite_offsets`. Both draws are always
     taken, in this order, so a nebula's number never depends on which one is used.
     """
@@ -88,7 +92,7 @@ def gas_oh(galactic_radius_pc, key, component_fe_h=None):
     if component_fe_h is not None:
         low, high = satellite_offsets(component_fe_h)
         return component_fe_h + low + u * (high - low)
-    return gas_gradient_oh(galactic_radius_pc) + normal * GAS_SCATTER_DEX
+    return min(gas_gradient_oh(galactic_radius_pc) + normal * GAS_SCATTER_DEX, GAS_OH_MAX_DEX)
 
 
 # --- The total composition ------------------------------------------------------------------------------------------------------------

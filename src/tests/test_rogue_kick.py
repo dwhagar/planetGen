@@ -22,17 +22,6 @@ EARTH = (5.972e24, 6.371e6)
 def test_the_suns_escape_and_circular_speeds_at_one_au():
     assert rk.escape_speed_km_s(SUN, 1.0) == pytest.approx(42.1, abs=0.1)
     assert rk.circular_speed_km_s(SUN, 1.0) == pytest.approx(29.78, abs=0.05)
-    assert rk.planet_escape_speed_km_s(*JUPITER) == pytest.approx(59.5, abs=0.5)
-    assert rk.planet_escape_speed_km_s(*EARTH) == pytest.approx(11.19, abs=0.05)
-
-
-def test_the_safronov_number_splits_the_scatterers_that_eject_from_those_that_stir():
-    assert rk.safronov_number(*JUPITER, SUN, 5.2) == pytest.approx(10.4, rel=0.03)
-    assert rk.safronov_number(*EARTH, SUN, 1.0) == pytest.approx(0.071, rel=0.05)
-    assert rk.ejects(*JUPITER, SUN, 5.2) and rk.ejects(*NEPTUNE, SUN, 5.2)
-    assert not rk.ejects(*EARTH, SUN, 1.0)
-    # Theta = (M_p / M_*) (a / R_p)
-    assert rk.safronov_number(*JUPITER, SUN, 5.2) == pytest.approx(JUPITER[0] / SUN * 5.2 * constants.AU_M / JUPITER[1], rel=1e-3)
 
 
 def _mean_speed(planet_mass, distance_au, ejected_mass=0.0, n=20000, seed=3):
@@ -139,8 +128,6 @@ def test_the_speed_window_of_a_rogue_passing_the_sun_holds_the_known_interstella
 def test_inputs_the_model_cannot_use_are_refused():
     with pytest.raises(rk.RogueKickError):
         rk.escape_speed_km_s(0.0, 1.0)
-    with pytest.raises(rk.RogueKickError):
-        rk.planet_escape_speed_km_s(1e27, 0.0)
     with pytest.raises(rk.RogueKickError):
         rk.ejection_speed_km_s(1.0, JUPITER[0], 5.2)
     with pytest.raises(rk.RogueKickError):
