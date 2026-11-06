@@ -2640,3 +2640,4 @@ Baseline: PR #1817.
 | TEST.585 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
 | TEST.616 | 8.1 | Physics rectification: citations and the gate's test health |
 | TEST.643 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.640 | 8.1 | Physics rectification: citations and the gate's test health |
