@@ -16727,6 +16727,24 @@ clears each one.
   Extension (Boss, 6:33 PM EST on 2026-11-06): the backfill and sky-charting writes use the same mechanism as DB.113 (dynamic retries with adaptive backoff, the needs flag, the grant after the 8th failed try, all logged), not a second copy of the retry code.
   Plan (coordinator, 6:35 PM EST on 2026-11-06): DB.113's PR #5392 adds db/contention.py with run_with_retries (adaptive backoff, the needs flag, the grant after the 8th failed try). Here: restructure the backfill and sky-charting writes so the whole transaction is one retry attempt (every write that shares the transaction with the ID step moves inside the function that run_with_retries repeats, with no state kept between attempts), then call run_with_retries there. A real MySQL two-writer test is needed before merge.
 
+- [ ] **UX.283 Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched**
+  Boss, 6:40 PM EST on 2026-11-06 (relayed by the coordinator): he uses the
+  individual system generation interface now and again and it has not
+  been touched in a while. Do: the review thread lists what the page lacks
+  or gets wrong against the current generator (new options and directives
+  such as the habitable_world and intelligent_life tweaks, moons, rogue
+  planets, the weirdness dial and oddities, the life classes, the class
+  letters and the fudge, result links to the object pages, the Object ID
+  names, units, wording, phone fit and accessibility), files each gap as
+  a part of this item or its own item, and fixes the small ones. Lock-free
+  (web page and form only); any part that changes generated values is
+  filed as its own lock item. Done: the page offers every directive the
+  generator accepts, its result links to the new object pages, and a
+  browser test covers the form at every screen size. Version 8.1. Owner:
+  the thread "Update single-system generation interface". Filed by the
+  TODO thread.
+  Prerequisites: none. Related: MAP.401.
+
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
   oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md
@@ -16905,22 +16923,6 @@ clears each one.
   cost is explained. Version 8.1. Owner: Bug 1 after PERF.241. Filed by
   the TODO thread.
   Prerequisites: none. Related: PERF.241, TEST.656.
-
-- [ ] **MAP.401 An uncharted sector has an info page showing what is placed in it, with a link to each object's page**
-  Boss, 5:11 PM EST on 2026-11-06 (relayed by the coordinator): uncharted
-  sectors should have an info page showing what is known in the sector
-  (what is placed) with links to each object page in the uncharted
-  sector. Do: the page for a placeholder sector (MAP.399 names it) lists
-  the rogue planets, black holes, remnants, nebula clouds and other
-  scattered objects placed in its cell, each linked to its own object
-  page, and says plainly that the sector is uncharted and what that
-  means (nothing generated here yet). Reads phenomenon_scatter,
-  nebula_field and the rogue rows by cell; a browser test follows a link
-  to an object page. Lock-free. Done: the placeholder's page lists its
-  known objects with working links. Version 8.1. Owner: Planets 1,
-  after MAP.399. Filed by the TODO thread.
-  Related: MAP.399, MAP.400, GEN.1111.
-  Owner change (TODO) (5:35 PM EST on 2026-11-06): Core 1 takes it after MAP.399.
 
 - [ ] **PERF.245 The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types**
   Boss, 5:08 PM EST on 2026-11-06: the warm-up takes all workers, so
