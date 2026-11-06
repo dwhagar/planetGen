@@ -2683,3 +2683,9 @@ Baseline: PR #1817.
 | TEST.627 | 8.3 | Orbital update core |
 | MAP.224 | 8.8 | Clusters and satellites on the map |
 | TEST.647 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.651 | 8.1 | Physics rectification: citations and the gate's test health |
+| MAP.381 | 8.8 | Clusters and satellites on the map |
+| MAP.223 | 8.8 | Zoom windows |
+| TEST.652 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.1186 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
+| GEN.1185 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |

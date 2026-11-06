@@ -1383,7 +1383,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   view of that object alone, showing its own arrangement (cloud shape,
   cluster stars) whatever sectors it crosses. Owner: Foundations lane 2,
   after the nebula map work (MAP.176 to MAP.180).
-  Prerequisites: MAP.223. Related: MAP.176, MAP.178, MAP.180,
+  Related: MAP.176, MAP.178, MAP.180,
   GEN.209.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -1478,16 +1478,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss decision (6:20 PM EST on 2026-11-05): S7: icons cluster when
   crowded, with the cluster size a presentation setting.
   Prerequisites: USR.29, POP.11. Related: MAP.132.
-
-- [ ] **MAP.223 Globular cluster zoom window: choosing a cluster flies into a view of its own stars**
-  Split from MAP.194 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Plug the cluster kind into the
-  group window of child a: the members are the stars whose parent is the
-  cluster (GEN.209), drawn from the King profile where a sector is not
-  yet filled. Done: choosing a cluster on the Galaxy Map opens its
-  window, and a browser test checks the window on a seeded cluster that
-  crosses two sectors.
-  Related: MAP.194.
 
 - [ ] **MAP.232 Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters**
   Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
@@ -1957,18 +1947,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: none.
 
-- [ ] **MAP.381 Sector Map: draw the globular clusters and label them by name or designation**
-  Split out of MAP.224 by Core 2 (2:30 AM EST on 2026-11-05): the Sector
-  Map draws no clusters today, so the Galaxy Map's Cluster names switch
-  has no Sector Map twin. Do: draw each cluster that touches the sector
-  (a soft marker sized by its real radius) and label it by name or
-  designation with the same switch, click opens the same card with the
-  link to the cluster page. Done: a browser test for the label and the
-  click; the Menu switch works. Lock-free, no migration. Version 8.8.
-  Owner: Core 2, after MAP.223. Filed by the
-  TODO thread.
-  Related: MAP.223.
-
 - [ ] **MAP.388 Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon**
   Boss (5:44 PM EST on 2026-11-05) approved 8.8 as 'Deep sky objects'
   and kept every rare-star item in it (nothing moves to later). This
@@ -1983,7 +1961,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clusters, satellites, nebulae and rare stars of the sky, drawn on the
   maps and reachable by flight). A hand version bump needs Boss's word.
   Version 8.8. Filed by the TODO thread.
-  Prerequisites: MAP.381, GEN.209, MAP.207, MAP.232,
+  Prerequisites: GEN.209, MAP.207, MAP.232,
   GEN.367, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.245, GEN.246,
   GEN.247, GEN.249, GEN.255, GEN.256, GEN.257, MAP.223, MAP.194.
 
@@ -12093,27 +12071,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, so lock-free until then.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
-- [ ] **GEN.1185 Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned**
-  Change INTERIOR_ACTIVATION_RANGE_KJ_MOL from 200 to 300 to 260 to 390
-  kJ/mol and retune eta0 so the reference viscosity holds (medium
-  confidence in the review). Changes tidal heating and interior outputs,
-  so a lock window plus a census; do it with the next Tides 1 window.
-  Owner Tides 1. Source: reports/papers-vs-standins-2026-10-31.md
-  section 7 (the strength papers review of all 14 uploaded and 35
-  downloaded papers, Boss's request).
-  Prerequisites: none. Related: GEN.725.
-
-- [ ] **GEN.1186 Small evidence updates to registered stand-ins from the strength papers review**
-  Update the registry text only (no value used by generation changes):
-  TR9 ice activation range to 40 to 90 kJ/mol and ice rigidity to 3.5
-  GPa as the knob range, RN5 range to 4 to 9, and the evidence lists of
-  RN2 and RN8. Lock-free docs and registry rows. Owner Aux 5 for
-  RN2/RN5/RN8, Tides 1 for TR9. Source:
-  reports/papers-vs-standins-2026-10-31.md section 7 (the strength
-  papers review of all 14 uploaded and 35 downloaded papers, Boss's
-  request).
-  Prerequisites: none. Related: GEN.725.
-
 - [ ] **GEN.1189 Greenhouse refit method: the refit table is blind to the methane share of a hydrogen air and a dense carbon dioxide air is 2 to 8 percent warm, so find a better fit than one L-BFGS network**
   From Air 1 (GEN.1030/GEN.1032 ready for train 7): a drawn ice giant
   with a few percent methane reads about 5 percent warm because the
@@ -12234,7 +12191,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   trust their equation of state for volumes. Still missing: [R1181]
   (Solar System Research 44:202) or Choukroun and Grasset by upload.
   Report: reports/ice-phase-boundaries-secondary-sources-2026-10-31.md.
-  Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
+  Prerequisites: none. Related: GEN.1183, GEN.725.
 
 - [ ] **GEN.1194 Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus**
   From Air 1 (GEN.973 finding): outgoing flux rises monotonically with
@@ -17244,29 +17201,6 @@ clears each one.
   current main. Version 8.1. Owner: Core 3. Filed by the TODO thread.
   Prerequisites: none.
 
-- [ ] **TEST.651 tests/test_web_sector_nav.py::test_the_nav_page_says_how_the_course_goes_round fails on main: the page lacks the 'Leave on' course text (bug)**
-  The Train Manager (as the lane reported, 2:42 PM EST on 2026-11-06,
-  plain main) found the nav page test red because the page lacks the
-  'Leave on' course text. Do: reproduce on current main, find which change
-  removed or reworded the text (the nav template changed in TEST.646,
-  #5318, and in the plain-words items), and fix the test or the page at
-  the cause; the page keeps saying how the course goes round. Lock-free.
-  Done: the test passes on current main. Version 8.1. Owner: Core 1. Filed
-  by the TODO thread.
-  Prerequisites: none.
-
-- [ ] **TEST.652 tests/test_wording_agrees_with_the_index.py::test_a_generated_body_claims_life fails on main: a timeline text on a body with phi_bio 0 (bug)**
-  The Train Manager (as the lane reported, 2:42 PM EST on 2026-11-06,
-  plain main) found test_a_generated_body_claims_life red: a generated
-  body with phi_bio 0 carries a life timeline text. Do: reproduce on
-  current main, find the stage that writes the timeline text without
-  checking the life index, and fix it at the cause (a body with no life
-  never claims life); if the test is wrong, say why. Lock item if stored
-  text changes (new epoch), else lock-free. Done: the test passes on
-  current main. Version 8.1. Owner: Bug 1 (life classes). Filed by the
-  TODO thread.
-  Prerequisites: none. Related: GEN.1298.
-
 - [ ] **VIEW.47 Sky charting runs by default: the Generate console, the API job and the setup call the sphere draws and the floor table of VIEW.25 (--sky-limit is opt-in today)**
   VIEW.25 (train 12, #5333) charts the sky tiers only when a run is given
   --sky-limit, so generation output did not change. Do: decide with
@@ -17292,6 +17226,37 @@ clears each one.
   value is read or removed. Version 8.1. Owner: Planets 1. Filed by the
   TODO thread.
   Prerequisites: none. Related: GEN.1276, GEN.1277.
+
+- [ ] **GEN.1306 Planet class matrix edges left after GEN.1281: cold air worlds, hot anoxic worlds, the 1 kPa and 10 kPa clamp edges, heavy oxygen ocean worlds, thin-air oxygen worlds**
+  Core 4 measured the class matrix on 1448 generated bodies while building
+  GEN.1281 and found gaps outside that item. Do, one part each, smallest
+  first: (1) the Z and K pressure edges miss bodies at exactly 10,000 Pa
+  and 1,000 Pa (CO2 air clamp edges); (2) heavy oxygen ocean worlds at
+  1.25 to 2 g fall between M/H/O/P/R (stop at 1.25 g) and V (starts at
+  2 g); (3) thin-air oxygen worlds at 1 kPa; (4) cold worlds 233 to 273 K
+  with air have no class; (5) hot anoxic worlds above 400 K at 10 kPa.
+  Each part reads the physics (conditions and the finished body), not a
+  game rate, and registers any stand-in in GEN.725. Lock item (class
+  letters change). Done: a 1448-body measure shows each gap closed or a
+  stated reason it stays at nearest class. Version 8.1. Owner: Core 4,
+  after GEN.1281. Filed by the TODO thread.
+  Prerequisites: GEN.1281. Related: GEN.909, GEN.822.
+
+- [ ] **GEN.1307 Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug)**
+  Found by Bug 1 while fixing TEST.652: a 2595 K vapor world with stored
+  Class 5a life (sulfuric-acid clouds aloft, score 2) is given animals.
+  The 5a rule has no surface-temperature window, so a body whose whole
+  deck is far hotter than any cloud layer can hold life gets the same
+  tier as a Venus-like cool cloud layer. Do: check the 5a rule against
+  the finished body's cloud-layer temperature and pressure (physics
+  drives, not a game rate), give the cloud layer the window it needs
+  (the layer's own temperature, not the surface), and say in the life
+  timeline text where the life lives. Register any stand-in in GEN.725.
+  Lock item if stored life changes. Done: a measure over generated
+  bodies shows no animals or higher tier where the cloud layer is outside
+  the window, and the 2595 K body is re-classed or explained. Version
+  8.1. Owner: none yet (life lane). Filed by the TODO thread from Bug 1.
+  Prerequisites: none. Related: GEN.750.
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;

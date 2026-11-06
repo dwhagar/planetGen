@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3477] - 2026-11-06
+
+**Headline:** The wording test that checks a body only claims life when the index gives it life now reads the life-class index, so a world whose life lives in acid clouds is not reported as a lifeless body that claims life.
+
+### Changed
+
+- `tests/test_wording_agrees_with_the_index.py` (TEST.652): `test_a_generated_body_claims_life_only_when_the_index_gives_it_life` asked for `phi_bio > 0` wherever the page had a life or timeline sentence. `phi_bio` is the water-and-carbon index (Class 1a), 0 for a Class 5a world whose life lives in sulfuric-acid clouds aloft (`acid_medium` level 1, which needs no surface temperature), so a hot vapor world (surface 2595 K, seed 13 of the test) with Class 5a life, small mobile animals and a stored timeline failed. The body is not lifeless: it has a stored class that the class index supports (`life_class_scores`, `acid_medium` cloud layer). The test now asks that the text names a stored class and that the class index supports it.
+
+generation-output: unchanged
+
+## [8.0.3476] - 2026-11-06
+
+**Headline:** The Sector Map now draws the globular clusters that reach into the sector and names them.
+
+### Changed
+- A globular cluster whose sphere reaches into a sector is drawn on that sector's map as a soft pale-gold ball at its real radius whose brightness follows the cluster's own King model (its projected density, bright in the crowded middle and fading to nothing at the tidal radius), and named by its name, or by "Globular cluster" and its ID while it has none, with the same Cluster names switch as the Galaxy Map. Clicking its name or the ball opens its card with a link to the cluster's page, and "Globular clusters" is a button in the map's list of kinds to show or hide.
+
+generation-output: unchanged
+
 ## [8.0.3475] - 2026-11-06
 
 **Headline:** The Navigation page test looks for the table caption as it is now worded.

@@ -7,7 +7,8 @@ the bodies of generated systems as the Document describes them:
 - a category's colour, its score and the band its sentence names agree;
 - the headline gear and the equipment line are the same list;
 - an airless body is never better than Red in Air;
-- a body whose text claims life has life in the index;
+- a body whose text claims life has a life class that the life-class index supports (TEST.652: not `phi_bio`, the water-and-carbon index of
+  Class 1a, which is 0 on an acid-cloud world whose Class 5a life lives aloft);
 - no quantity in the describer is written with a raw `:.Nf`.
 """
 
@@ -21,7 +22,7 @@ from planetgen import describe
 from planetgen.describe import model
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import equipment
+from planetgen.physics import equipment, life_classes
 from planetgen.physics import habitability as hab
 from planetgen.physics import protection
 from planetgen.util import draw
@@ -104,6 +105,8 @@ def _life_text(section):
 
 
 def test_a_generated_body_claims_life_only_when_the_index_gives_it_life():
+    """TEST.652: the life and timeline text of a body names its stored life class, and the class index (`life_class_scores`, GEN.980) supports that class.
+    Before the life classes the only index was the water-and-carbon `phi_bio`; a Class 5a world of acid clouds has 0 of that and its life is real."""
     claims = 0
     for seed in range(25):
         draw.set_run_seed(seed)
@@ -119,7 +122,9 @@ def test_a_generated_body_claims_life_only_when_the_index_gives_it_life():
             if not text:
                 continue
             claims += 1
-            assert body.phi_bio is not None and body.phi_bio > 0, (body.name, body.phi_bio, text)
+            class_id = life_classes.class_id(body.life_class, body.life_class_variant)
+            assert class_id is not None, (body.name, text)
+            assert (body.life_class_scores or {}).get(class_id, 0) > 0, (body.name, class_id, body.life_class_scores, text)
     assert claims > 0
 
 
