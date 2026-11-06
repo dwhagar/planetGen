@@ -1,4 +1,4 @@
-"""The shadow scorer of the best-fit classes (GEN.1206): the report on bodies given as stored-column mappings."""
+"""The best-fit class sweep (GEN.1206, GEN.1207): the report on bodies given as stored-column mappings."""
 
 from tests import class_fit_cli as cli
 from tests.test_planet_classes import CASES, body
@@ -6,25 +6,24 @@ from tests.test_planet_classes import CASES, body
 
 def records():
     bodies = [(values, False) for values in CASES.values()]
-    bodies.append((body(surface_temperature_k=414.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapour", gravity_g=1.4), False))
+    bodies.append((body(ocean_fraction=0.97), False))                  # a hole: a wet, mild world between the M and the O boxes
+    bodies.append((body(gravity_g=1.6, mass_earth=2.6), False))        # limited by its gravity: M9
     return cli.score_bodies(bodies)
 
 
-def test_the_confusion_table_counts_every_body_and_agrees_on_the_core_cases():
+def test_every_case_gets_its_letter_at_100_percent_and_the_hole_and_the_limited_world_are_counted():
     recs = records()
-    table = cli.confusion(recs)
-    assert sum(table.values()) == len(CASES) + 1
-    assert all(table.get((letter, letter), 0) == 1 for letter in CASES)
-    assert table[("H", "-")] == 1
+    assert len(recs) == len(CASES) + 2
+    assert all(r["match"] == 1.0 for r in recs[:len(CASES)]) and [r["fit"] for r in recs[:len(CASES)]] == list(CASES)
+    assert recs[-2]["match"] == 0.0 and recs[-1]["digit"] == 9
 
 
-def test_the_report_names_the_hole_and_the_temperate_ocean_table():
+def test_the_report_names_the_hole_the_limited_world_and_the_temperate_ocean_table():
     text = cli.format_report(records(), 1, 0, 0.0)
-    assert "Confusion table" in text and "Low-match list" in text
-    assert "tree H, best fit -" in text
+    assert "Share of each class code" in text and "Low-match list" in text
+    assert "1 fit no class" in text and "1 are limited by another domain" in text
     assert "Temperate (250 to 330 K) bodies with a surface ocean" in text
 
 
 def test_the_temperate_ocean_count_reads_the_hydrosphere():
-    by_tree, by_fit = cli.temperate_surface_ocean(records())
-    assert by_tree["M"] == 1 and by_fit["M"] == 1
+    assert cli.temperate_surface_ocean(records())["M"] >= 1

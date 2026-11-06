@@ -5,13 +5,13 @@
 // or quasar is a point in the packed list itself (kind "phenomenon") and is drawn by skysphere.js like any star at its luminosity.
 //
 // A sprite is a record of the sky route's JSON (`nebulae` of the sky response): `{ id, family, direction: [x, y, z], angularRadiusRad, inside,
-// extinctionMag, surfaceBrightness, visible, seen }`: the unit direction of its centre where it was when its light left it, the angular radius
+// extinctionMag, surfaceBrightness, visible, seen }`: the unit direction of its center where it was when its light left it, the angular radius
 // (`asin(R / d)`), the dimming through its middle, its mean V surface brightness (null for none) and the two verdicts of `sprite_data`.
 //
 // What is drawn, by what makes the light (nebula_sprites.py):
-//   * a nebula with a surface brightness under the naked-eye limit (the record's `visible`): a soft disc in its family's colour. The ball is a uniform
-//     one, so what a line of sight crosses is a chord, sqrt(1 - r^2) at a share r of the radius: the disc follows it, scaled so its mean over the
-//     disc is the surface brightness. Its strength is SB_RAMP mag/arcsec^2 of smoothstep to GLOW_MAX under the limit (the sky does not blind);
+//   * a nebula with a surface brightness under the naked-eye limit (the record's `visible`): a soft disk in its family's colour. The ball is a uniform
+//     one, so what a line of sight crosses is a chord, sqrt(1 - r^2) at a share r of the radius: the disk follows it, scaled so its mean over the
+//     disk is the surface brightness. Its strength is SB_RAMP mag/arcsec^2 of smoothstep to GLOW_MAX under the limit (the sky does not blind);
 //   * a supernova remnant that has been seen: the same law through a shell SHELL_THICKNESS of its radius thick, so a ring;
 //   * a cloud that gives no light of its own but dims what lies behind it (a dark cloud, a diffuse one with extinction): black, with the opacity
 //     1 - 10^(-0.4 A sqrt(1 - r^2)) of its chord, drawn after the stars so it dims them. It dims every star in its direction, near or far, which
@@ -51,12 +51,12 @@ export function glowStrength(sb) {
   return Number.isFinite(sb) ? GLOW_MAX * ease((SB_LIMIT - sb) / SB_RAMP) : 0;
 }
 
-// The mean over the unit disc of the chord through a shell from `inner` to 1 (of the ball when inner is 0): (2/3)(1 - inner^3).
+// The mean over the unit disk of the chord through a shell from `inner` to 1 (of the ball when inner is 0): (2/3)(1 - inner^3).
 export function chordMean(inner) {
   return (2 / 3) * (1 - inner * inner * inner);
 }
 
-// What a sprite looks like at a share `r` (0 centre, 1 edge) of its radius, as a share of its own mean: the chord through the shell, over its mean.
+// What a sprite looks like at a share `r` (0 center, 1 edge) of its radius, as a share of its own mean: the chord through the shell, over its mean.
 export function profile(r, inner) {
   if (r >= 1) return 0;
   const through = Math.sqrt(1 - r * r) - (r < inner ? Math.sqrt(inner * inner - r * r) : 0);
@@ -147,7 +147,7 @@ const VERTEX = [
   "}",
 ].join("\n");
 
-// The share of the radius at the pixel: the angle from the sprite's centre (the atan of the offset in the tangent plane at unit distance) over its radius.
+// The share of the radius at the pixel: the angle from the sprite's center (the atan of the offset in the tangent plane at unit distance) over its radius.
 const SHARE = [
   "varying vec2 vOffset;",
   "varying float vTheta;",

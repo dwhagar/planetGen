@@ -10,14 +10,14 @@
 export const CROSS_SECTORS = 8;
 export const CROSS_EDGES = 1.5;
 
-// The sectors to read: of `records` ({id, shell, band, wedge, ...}) all but the open one (`openId`), whose middle (`centreOf(record)`, [x, y, z] pc)
+// The sectors to read: of `records` ({id, shell, band, wedge, ...}) all but the open one (`openId`), whose middle (`centerOf(record)`, [x, y, z] pc)
 // is within `CROSS_EDGES` edges of `point`, nearest first, at most `CROSS_SECTORS`.
-export function neighbourRecords(records, centreOf, point, edgePc, openId) {
+export function neighbourRecords(records, centerOf, point, edgePc, openId) {
   return (records || [])
     .filter((record) => record && record.id != null && record.id !== openId)
     .map((record) => {
-      const centre = centreOf(record);
-      return { record, distance: centre ? Math.hypot(centre[0] - point[0], centre[1] - point[1], centre[2] - point[2]) : Infinity };
+      const center = centerOf(record);
+      return { record, distance: center ? Math.hypot(center[0] - point[0], center[1] - point[1], center[2] - point[2]) : Infinity };
     })
     .filter((found) => found.distance <= CROSS_EDGES * edgePc)
     .sort((a, b) => a.distance - b.distance)

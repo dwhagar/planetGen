@@ -17,8 +17,8 @@ relation, inside the window the class allows:
   repeated, from the same stream, until they do; a fixed number of tries, then the heaviest mass of the window).
 * L (nitrogen-rich bipolar, Type I): from `HBB_MIN_MASS_SOL` up, where hot bottom burning makes nitrogen.
 
-**The birth composition** is the thin-disc mean [X/Fe] at the formation-epoch [Fe/H]: the place's [Fe/H] now, less the drift of the
-disc's gas over the progenitor's life (`age_metallicity.THIN_SLOPE_DEX_PER_GY` times the lifespan from the star track), so an older progenitor
+**The birth composition** is the thin-disk mean [X/Fe] at the formation-epoch [Fe/H]: the place's [Fe/H] now, less the drift of the
+disk's gas over the progenitor's life (`age_metallicity.THIN_SLOPE_DEX_PER_GY` times the lifespan from the star track), so an older progenitor
 formed from poorer gas.
 
 **The ejecta**, in this order, as mass fractions (every step keeps the sum at 1):
@@ -54,7 +54,7 @@ CLASSES = (H, J, K, L)
 """tuple: The nebula classes this module covers: H young and J evolved planetary nebulae, K carbon-rich, L nitrogen-rich bipolar."""
 
 MIN_MASS_SOL = 0.9
-"""float: The lightest progenitor drawn. [Stand-in PNE1, tier T6, tweak L1: a star must end its life within the age of the disc, about 10 Gy,
+"""float: The lightest progenitor drawn. [Stand-in PNE1, tier T6, tweak L1: a star must end its life within the age of the disk, about 10 Gy,
 which is a little under a solar mass at the track's lifespans; the initial-final relation starts at 0.83.]"""
 
 MAX_MASS_SOL = tuning.WD_IFMR_PIECES[-1][1]
@@ -150,7 +150,7 @@ def lifespan_gy(initial_mass_sol, fe_h):
 
 
 def birth_fe_h(place_fe_h, initial_mass_sol):
-    """[Fe/H] of the gas a progenitor formed from: the place's now, less the disc's drift over the progenitor's lifespan."""
+    """[Fe/H] of the gas a progenitor formed from: the place's now, less the disk's drift over the progenitor's lifespan."""
     return place_fe_h + age_metallicity.THIN_SLOPE_DEX_PER_GY * lifespan_gy(initial_mass_sol, place_fe_h)
 
 

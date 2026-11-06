@@ -27,8 +27,8 @@ dust of nebulae stay with VIEW.11 and VIEW.8 in 9.1, which can reuse these funct
     `-2.5 log10[(T^4 expm1(x)) / (T0^4 expm1(x0))]` with `x = c2 / (550 nm T)` (7.2 magnitudes a decade from 50,000 K, 7.5
     at a million K). A hot white dwarf, a Wolf-Rayet star or a stripped helium star is faint in V for its
     luminosity. Stand-in SKP3.
-* **Galactic dust** (`galactic_extinction_av`): the smooth dust disc of [R1158],
-  `rho(R, z) = rho_sun exp(-(R - R_sun) / h_R) sech^2(z / h_z(R))`, an exponential disc of scale length
+* **Galactic dust** (`galactic_extinction_av`): the smooth dust disk of [R1158],
+  `rho(R, z) = rho_sun exp(-(R - R_sun) / h_R) sech^2(z / h_z(R))`, an exponential disk of scale length
   `h_R` = 2.26 kpc, a sech^2 layer whose scale height is 134 pc inside 4.4 kpc and rises 14.8 pc per kpc beyond (188 pc at
   the solar circle), from their Eq. 13 and 14 and Table 1 (the paper's own numbers; the farthest-out values read from its
   summary of Table 1, to confirm), `R_sun` = 8 kpc. Their normalisation is far-infrared, not A_V, so `rho_sun` is set
@@ -69,7 +69,7 @@ DUST_SCALE_LENGTH_PC = 2260.0
 DUST_HEIGHT_PC = 134.4
 DUST_HEIGHT_FLARE_PC_PER_KPC = 14.8
 DUST_FLARE_START_PC = 4400.0
-"""float: The solar radius, the dust disc's scale length, its scale height at the centre of the flare and the flare, from
+"""float: The solar radius, the dust disk's scale length, its scale height at the center of the flare and the flare, from
 [R1158]: `h_z(R) = 134.4 pc + 14.8 pc/kpc (R - 4.4 kpc)` for R over 4.4 kpc."""
 
 DUST_AV_PER_KPC_AT_SUN = 1.0
@@ -153,8 +153,17 @@ def apparent_magnitude(luminosity_sol, temperature_k, distance_pc, a_v=0.0):
 
 def dust_av_per_pc(x_pc, y_pc, z_pc, *, av_per_kpc_at_sun=DUST_AV_PER_KPC_AT_SUN, scale_length_pc=DUST_SCALE_LENGTH_PC,
                    height_pc=DUST_HEIGHT_PC, flare_pc_per_kpc=DUST_HEIGHT_FLARE_PC_PER_KPC,
-                   flare_start_pc=DUST_FLARE_START_PC, solar_radius_pc=DUST_SOLAR_RADIUS_PC):
-    """The dust disc's extinction in magnitudes per parsec at galactocentric `(x, y, z)` in parsecs (arrays or numbers)."""
+                   flare_start_pc=DUST_FLARE_START_PC, solar_radius_pc=DUST_SOLAR_RADIUS_PC, profile=None):
+    """
+    The dust disk's extinction in magnitudes per parsec at galactocentric `(x, y, z)` in parsecs (arrays or numbers).
+
+    With a `profile` (a `physics.dust_model.DustProfile`, the dust of the galaxy's own gas, VIEW.43) the profile answers and the fixed Milky Way law's keywords are not read;
+    `av_per_kpc_at_sun=0` still means no dust at all.
+    """
+    if profile is not None:
+        if av_per_kpc_at_sun == 0:
+            return np.zeros(np.broadcast(np.asarray(x_pc), np.asarray(y_pc), np.asarray(z_pc)).shape)
+        return profile.av_per_pc(x_pc, y_pc, z_pc)
     r = np.hypot(np.asarray(x_pc, dtype=float), np.asarray(y_pc, dtype=float))
     h_z = height_pc + flare_pc_per_kpc * np.maximum(r - flare_start_pc, 0.0) / 1000.0
     layer = 1.0 / np.cosh(np.asarray(z_pc, dtype=float) / h_z) ** 2
@@ -163,7 +172,7 @@ def dust_av_per_pc(x_pc, y_pc, z_pc, *, av_per_kpc_at_sun=DUST_AV_PER_KPC_AT_SUN
 
 def galactic_extinction_av(observer_pc, direction, distance_pc, *, steps=EXTINCTION_STEPS, **dust):
     """
-    The V extinction `A_V` (magnitudes) of the dust disc along lines of sight from `observer_pc` (galactocentric `(x, y,
+    The V extinction `A_V` (magnitudes) of the dust disk along lines of sight from `observer_pc` (galactocentric `(x, y,
     z)` in parsecs, z up) towards stars at `distance_pc` in the directions `direction`: an array of shape `(n, 3)`
     (they are made unit vectors) with `n` distances, or one direction and one distance. The integral of
     `dust_av_per_pc` by the midpoint rule over `steps` steps of each line. Keyword arguments (`av_per_kpc_at_sun`,

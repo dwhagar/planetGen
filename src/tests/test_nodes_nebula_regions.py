@@ -57,7 +57,7 @@ def test_a_nodes_regions_hold_every_nebula_of_the_node_and_the_largest_come_firs
                 keys = {format_drill_key(child) for _shell, group in drill_children(block) for child in group}
                 assert {r["key"] for r in regions} <= keys
                 for region in regions:
-                    assert region["count"] > 0 and len(region["centre"]) == 3 and region["radius_pc"] > 0
+                    assert region["count"] > 0 and len(region["center"]) == 3 and region["radius_pc"] > 0
                     assert region["class"] and sum(region["shares"].values()) == pytest.approx(1.0)
                 checked += 1
             assert checked

@@ -24,7 +24,6 @@ PERF.108 and PERF.121 to PERF.128 gave each its units), so every step of a run i
 
 import importlib
 import json
-import logging
 import os
 import time
 
@@ -507,7 +506,7 @@ def advance(conn, run_id, index):
     """
     Queues stage `index` of the run, and each stage after it that has no units to wait for, or finishes the run
     when the last stage is one of them. Called by the unit that completes the stage before (the barrier), and by
-    the starter for the first. A run that is no longer running (cancelling, cancelled, failed) queues nothing.
+    the starter for the first. A run that is no longer running (canceling, canceled, failed) queues nothing.
     """
     if runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) != "running":
         return
@@ -519,11 +518,12 @@ def advance(conn, run_id, index):
     runrecord.finish_run(conn, run_id, "done")
 
 
-def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None):
+def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None, touch=True):
     """Stage `index`'s plan once its stage has been expanded (by the unit that completed the stage before it)."""
     last_ensure = float("-inf")
     while True:
-        runrecord.touch(conn, run_id)
+        if touch:
+            runrecord.touch(conn, run_id)
         if on_debug is not None:
             on_debug()
         plan = runrecord.read_plan(conn, run_id, index)
@@ -539,11 +539,12 @@ def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sl
         sleep(units.POLL_SECONDS)
 
 
-def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None):
+def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sleep, on_debug=None, touch=True):
     """What stage `index`'s conclusion found (`conclude_stage`), once the unit that completed the stage has made it."""
     last_ensure = float("-inf")
     while True:
-        runrecord.touch(conn, run_id)
+        if touch:
+            runrecord.touch(conn, run_id)
         if on_debug is not None:
             on_debug()
         found = runrecord.conclusion(conn, run_id, index)
@@ -557,6 +558,43 @@ def _await_conclusion(conn, run_id, index, ensure, clock=time.monotonic, sleep=t
             last_ensure = clock()
             ensure()
         sleep(units.POLL_SECONDS)
+
+
+def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done=None):
+    """
+    Follows a run this process did not start, from the run record alone (PERF.235): the steps are read from the record, and for each
+    stage it waits for the plan, tells the caller (`on_plan(index, plan)`), and follows the units' results (`on_result(index, unit,
+    result)`, and `on_progress(index, unit, done, estimate)` for the units still working) to the end, the results already stored first. It starts nothing, queues nothing and does not say the run is alive (the process
+    that started it does), so it can be started and stopped at any time without changing the run.
+
+    Returns:
+        list[commands.Step]: The run's steps.
+
+    Raises:
+        redisqueue.Unavailable: No Redis server answers.
+        units.RunStopped: A unit failed or the run was canceled before the end.
+    """
+    url = url or redisqueue.redis_url()
+    conn = redisqueue.connect(url)
+    try:
+        conn.ping()
+    except Exception as exc:  # noqa: BLE001 -- any connection failure
+        raise redisqueue.Unavailable(f"no Redis server answers at {url} (config.json's redis.url): {exc}") from exc
+    steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
+    for index in range(len(steps)):
+        plan = _await_plan(conn, run_id, index, None, touch=False)
+        on_plan(index, plan)
+        if plan["units"]:
+            units.follow_stage(conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
+                               None if on_progress is None else
+                               (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
+                               None, touch=False)
+        conclusion = None
+        if commands.spec(steps[index].kind).conclude is not None:
+            conclusion = _await_conclusion(conn, run_id, index, None, touch=False)
+        if on_stage_done is not None:
+            on_stage_done(index, conclusion)
+    return steps
 
 
 def queue_of(kind):
@@ -629,7 +667,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     """
     Runs the queued `steps` as one run: starts the run record (the machine is busy for it), queues the first stage,
     makes sure workers are running (`workers_count` of them at most: the run's `--workers`) and follows each stage to
-    its end. The run ends in Redis as `done`, or `failed` or `cancelled` if this process stops on an error or an
+    its end. The run ends in Redis as `done`, or `failed` or `canceled` if this process stops on an error or an
     interrupt first.
 
     Args:
@@ -660,7 +698,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         runrecord.Busy: Another run of that kind is running. A `GENERATION` run joins the waiting list (PERF.154) and
             waits for it up to `queue.wait_minutes`, then fails with the run named; a `MAINTENANCE` or `CHECK` run does
             not wait.
-        units.RunStopped: A unit failed or the run was cancelled.
+        units.RunStopped: A unit failed or the run was canceled.
     """
     url = url or redisqueue.redis_url()
     conn = redisqueue.connect(url)
@@ -695,8 +733,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
               f"{workers_count or 'the default number of'} worker(s), kind {kind}, database {database}"
               + (f", debug areas {debug}" if debug else ""), area="queue")
-    events = runrecord.EventHandler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
-    logging.getLogger("planetgen").addHandler(events)
+    events = runrecord.event_handler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
+    log.attach(events)
     try:
         advance(conn, run_id, 0)
         for index in range(len(steps)):
@@ -728,10 +766,10 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                    f"in the Redis configuration or flush the page cache, then run again.") if full else \
             (str(exc) or type(exc).__name__)
         try:
-            runrecord.finish_run(conn, run_id, "cancelled" if stopped else "failed", error=message)
+            runrecord.finish_run(conn, run_id, "canceled" if stopped else "failed", error=message)
         except redis.exceptions.RedisError:
             pass        # a full Redis refuses this write too; the original error is the one to show
-        log.trace(f"run {run_id} finished: {'cancelled' if stopped else 'failed'} ({message})", area="queue")
+        log.trace(f"run {run_id} finished: {'canceled' if stopped else 'failed'} ({message})", area="queue")
         if galaxy_seed and kind == runrecord.GENERATION:
             log.error(f"Run {run_id} stopped before it was done. 'planetgen finish-run' carries it on from the first stage "
                       f"that did not finish.")
@@ -741,7 +779,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
             raise RuntimeError(message) from None
         raise
     finally:
-        logging.getLogger("planetgen").removeHandler(events)
+        log.detach(events)
         from planetgen.queue import runcontrol      # it imports this file
         runcontrol.write_log(conn, run_id)
     return run_id

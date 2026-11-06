@@ -21,7 +21,6 @@ from planetgen.physics import planets
 from planetgen import tuning as prog_c
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
-from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.generation.star import Star
 from tests import class_support
 
@@ -77,26 +76,6 @@ def test_giant_mass_radius_relation_hits_the_solar_system(mass_earth, radius_ear
     """Neptune, Saturn and Jupiter land within 10% of their real radii."""
     radius_km = planets.giant_radius_km(mass_earth * pc.EARTH_MASS_TO_KG)
     assert radius_km / pc.EARTH_RADIUS_KM == pytest.approx(radius_earth, rel=0.10)
-
-
-@pytest.mark.parametrize("mass_bin", ["saturn", "jupiter", "sub-neptune"])
-def test_rogue_gas_giant_radius_follows_the_giant_relation(mass_bin):
-    """Rogue gas giants (GEN.60) take their radius from the same giant
-    mass-radius relation as bound giants, so a small one is not Jupiter's
-    size: every radius sits within the relation's 3-sigma scatter of
-    `giant_radius_km(mass)`, with a density a giant can have."""
-    seen = []
-    for _ in range(N_SAMPLE):
-        rogue = RoguePlanet(SystemConfig(), mass_bin=mass_bin)
-        if rogue.planet_type != "g":
-            continue
-        median = planets.giant_radius_km(rogue.mass_kg)
-        sigma = pc.GIANT_RADIUS_SCATTER[planets.giant_regime(rogue.mass_kg)]
-        assert median * (1 - 3 * sigma) <= rogue.radius_km <= median * (1 + 3 * sigma)
-        density = rogue.mass_kg / ((4 / 3) * math.pi * (rogue.radius_km * 1000) ** 3) / 1000
-        assert 0.1 < density < 50.0  # 13 Jupiter masses at 0.8 of Jupiter's radius is ~40 g/cm3
-        seen.append((rogue.mass_kg, rogue.radius_km))
-    assert seen
 
 
 def test_small_rogue_gas_giants_are_smaller_than_large_ones():

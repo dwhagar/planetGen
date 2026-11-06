@@ -9,7 +9,7 @@ from planetgen.cli import generate
 from planetgen.generation import stages
 from planetgen.queue import commands, wrapper
 from tests.bughunt_support import mysql_argv
-from tests.test_galaxy_gen import _all_sectors, _plan_wide_galaxy
+from tests.test_galaxy_gen import _charted_sectors, _plan_wide_galaxy
 
 pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans")]
 
@@ -65,7 +65,7 @@ def test_sectors_saves_the_sectors_and_says_how_to_link_them_and_the_later_stage
     _plan_wide_galaxy(mysql_config)
     _main(monkeypatch, mysql_config, "sectors", "--shell", "1", "--band", "0", "--num-systems", "1")
     out = capsys.readouterr().out
-    assert len(_all_sectors(mysql_config)) == 12
+    assert len(_charted_sectors(mysql_config)) == 12
     assert "Run started at " in out and "planetgen link --since" in out
     assert _count(mysql_config, "sector_paths") == 0, "the paths wait for 'planetgen settle'"
     _main(monkeypatch, mysql_config, "settle", "--since", "2000-01-01 00:00:00")
@@ -133,7 +133,7 @@ def test_a_shell_run_hands_its_stage_the_arguments_that_name_the_sectors_not_the
     _main(monkeypatch, mysql_config, "sectors", "--shell", "1", "--band", "0", "--limit", "2", "--num-systems", "1")
     [(key, params)] = seen
     assert key == "sectors" and params["items"] == [] and params["planned"] == "addresses"
-    assert len(_all_sectors(mysql_config)) == 2
+    assert len(_charted_sectors(mysql_config)) == 2
 
 
 def _planned_starts(mysql_config, seed, *argv):

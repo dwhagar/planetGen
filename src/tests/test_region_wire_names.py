@@ -103,7 +103,7 @@ def test_the_node_of_a_charted_region_carries_its_extent_with_or_without_a_key(g
         finally:
             conn.close()
         node = _node(galaxy, cell)
-        assert node["extent"] == {"centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"]}
+        assert node["extent"] == {"center": list(region["extent_center_pc"]), "radius": region["extent_radius_pc"]}
         assert node["extent"]["radius"] >= named_regions.framing_radius_pc(cell, EDGE)
         assert "name" not in node
 
@@ -141,7 +141,7 @@ def test_the_packed_node_keeps_the_name_and_the_family(galaxy, keyed):
     node = _node(galaxy, cell)
     unpacked = tilepack.unpack_node(tilecache._node_bytes(node))
     assert unpacked["name"] == node["name"] and unpacked["parent"] == node["parent"]
-    assert unpacked["extent"]["centre"] == pytest.approx(node["extent"]["centre"], abs=1e-3)
+    assert unpacked["extent"]["center"] == pytest.approx(node["extent"]["center"], abs=1e-3)
     assert unpacked["extent"]["radius"] == pytest.approx(node["extent"]["radius"], abs=1e-3)
     plain = tilepack.unpack_node(tilecache._node_bytes({"aggregate": {}, "stars": [], "generated": []}))
     assert "name" not in plain and "parent" not in plain and "extent" not in plain

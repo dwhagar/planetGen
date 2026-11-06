@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 """
-src/tests/class_fit_cli.py -- the read-only shadow scorer of the best-fit classes (GEN.1206). Not a pytest module (no `test_*` name).
+src/tests/class_fit_cli.py -- the best-fit class sweep (GEN.1206, GEN.1207). Not a pytest module (no `test_*` name).
 
-Generates systems in memory (the sampling of `class_sweep_cli`), scores every planet and moon both ways, with the first-match tree
-(`planet_classes.classify`) and with the percent-match table (`physics/class_fit.py`, GEN.1205), and prints a Markdown report:
+Generates systems in memory (the sampling of `class_sweep_cli`), classifies every planet and moon with the best-fit classifier
+(`planet_classes.classify_detail`) and prints a Markdown report:
 
-* the confusion table: the stored letter (rows) against the best-fit letter (columns);
-* the share of bodies that score 100 percent for their best class, and the spread of the best match;
-* the low-match list: bodies whose best match is under 50 percent (each is a hole in the class set);
+* the share of each letter and of each class code (letter and digit);
+* the spread of the match: how many bodies score 100 percent for their class, and the list of bodies under 50 percent (each is a hole in the class set:
+  digit 9 is a body limited by its gravity or air amount, a match of 0 is a body that fits no class and shows its nearest);
 * the close pairs: bodies whose runner-up is within 5 percentage points of the best;
-* the temperate (250 to 330 K) surface-ocean count per class by both methods (M against O, V, F, G).
+* the temperate (250 to 330 K) surface-ocean count per class.
 
-Nothing stored changes.
+Nothing is stored.
 
 Usage:
     python src/tests/class_fit_cli.py --systems 300 --seed 1000
-    python src/tests/class_fit_cli.py --systems 300 --seed 5 --habitable-share 0.25 --report /mnt/project-files/reports/class-fit-shadow.md
+    python src/tests/class_fit_cli.py --systems 300 --seed 5 --habitable-share 0.25 --report /mnt/project-files/reports/class-fit-sweep.md
 """
 
 import argparse
@@ -23,7 +23,7 @@ import collections
 import sys
 from collections.abc import Mapping
 
-from planetgen.physics import class_fit, planet_classes
+from planetgen.physics import class_code, planet_classes
 from tests import class_sweep_cli
 
 LOW_MATCH = 0.5
@@ -33,33 +33,28 @@ SURFACE_WATER = ("surface ocean", "hycean", "brine seep")
 
 
 def score_bodies(bodies):
-    """One record per `(body, is_moon)`: the tree's letter, the fit and the quantities worth printing."""
+    """One record per `(body, is_moon)`: the best-fit class and the quantities worth printing. An Asteroid has the letter `Ast`."""
     records = []
     for body, is_moon in bodies:
         values = body if isinstance(body, Mapping) else planet_classes.values_from_body(body)
         found = planet_classes.quantities(values)
-        letter, fit, runner, runner_fit = class_fit.best_class(found)
+        detail = planet_classes.classify_detail(values)
         records.append({
-            "tree": planet_classes.classify(values), "fit": letter or "-", "match": fit,
-            "runner": runner or "-", "runner_match": runner_fit, "moon": is_moon, "found": found,
+            "fit": "Ast" if detail is None else detail.letter, "digit": 0 if detail is None else detail.digit,
+            "match": 1.0 if detail is None else detail.match, "runner": "-" if detail is None or detail.runner_up is None else detail.runner_up,
+            "runner_match": 0.0 if detail is None else detail.runner_up_match, "moon": is_moon, "found": found,
         })
     return records
 
 
-def confusion(records):
-    """`Counter` of `(stored letter, best-fit letter)`."""
-    return collections.Counter((r["tree"], r["fit"]) for r in records)
-
-
 def temperate_surface_ocean(records):
-    """`(by_tree, by_fit)`: `Counter`s of the letters of the bodies at 250 to 330 K with a surface ocean."""
-    by_tree, by_fit = collections.Counter(), collections.Counter()
+    """`Counter` of the letters of the bodies at 250 to 330 K with a surface ocean."""
+    counts = collections.Counter()
     for r in records:
         t = r["found"]["temperature_k"]
         if t is not None and TEMPERATE_K[0] <= t <= TEMPERATE_K[1] and r["found"]["hydrosphere"] in SURFACE_WATER:
-            by_tree[r["tree"]] += 1
-            by_fit[r["fit"]] += 1
-    return by_tree, by_fit
+            counts[r["fit"]] += 1
+    return counts
 
 
 def describe_body(r):
@@ -72,47 +67,38 @@ def describe_body(r):
 
 
 def format_report(records, systems, seed, habitable_share):
-    letters = sorted({r["tree"] for r in records} | {r["fit"] for r in records})
-    table = confusion(records)
     total = len(records)
     full = sum(1 for r in records if r["match"] >= 1.0 - 1e-9)
     low = [r for r in records if r["match"] < LOW_MATCH]
+    nothing = [r for r in records if r["match"] <= 0.0]
+    limited = [r for r in records if r["digit"] == class_code.DIGITS[9]]
     close = [r for r in records if r["runner"] != "-" and r["match"] - r["runner_match"] < CLOSE_MARGIN and r["match"] > 0.0]
-    same = sum(n for (a, b), n in table.items() if a == b)
-    lines = [f"# Best-fit class shadow, {systems} systems from seed {seed} (habitable share {habitable_share})", "",
-             f"{total} planets and moons. First-match tree against the best-fit table (GEN.1205): the same letter for {same} ({same / total:.1%}); "
-             f"{full} ({full / total:.1%}) score 100 percent for their best class; {len(low)} score under {LOW_MATCH:.0%}; "
+    lines = [f"# Best-fit class sweep, {systems} systems from seed {seed} (habitable share {habitable_share})", "",
+             f"{total} planets and moons. {full} ({full / max(total, 1):.1%}) score 100 percent for their class; {len(low)} score under {LOW_MATCH:.0%}, of which "
+             f"{len(nothing)} fit no class (the nearest is shown, at 0 percent); {len(limited)} are limited by another domain (digit 9); "
              f"{len(close)} have a runner-up within {CLOSE_MARGIN * 100:.0f} points.", "",
-             "## Confusion table (rows: tree letter, columns: best-fit letter)", "",
-             "| tree \\ fit | " + " | ".join(letters) + " | total |", "|---|" + "---|" * (len(letters) + 1)]
-    for a in letters:
-        row = [table.get((a, b), 0) for b in letters]
-        if any(row):
-            lines.append(f"| {a} | " + " | ".join(str(n) if n else "" for n in row) + f" | {sum(row)} |")
-    lines += ["", "## Where the two disagree (tree letter, best-fit letter, count, a sample body)", ""]
-    for (a, b), n in sorted(table.items(), key=lambda kv: -kv[1]):
-        if a != b:
-            sample = next(r for r in records if r["tree"] == a and r["fit"] == b)
-            lines.append(f"- {a} to {b}: {n}; e.g. {describe_body(sample)}; match {sample['match']:.2f}, runner-up {sample['runner']} {sample['runner_match']:.2f}")
+             "## Share of each class code", "", "| code | bodies | share |", "|---|---|---|"]
+    codes = collections.Counter(class_code.format_code(r["fit"], r["digit"]) if r["fit"] != "Ast" else "Ast" for r in records)
+    for code, n in sorted(codes.items()):
+        lines.append(f"| {code} | {n} | {n / max(total, 1):.1%} |")
     lines += ["", f"## Low-match list (best match under {LOW_MATCH:.0%}): holes in the class set", ""]
-    holes = collections.Counter((r["tree"], r["fit"]) for r in low)
+    holes = collections.Counter((r["fit"], r["digit"]) for r in low)
     if not low:
         lines.append("None.")
-    for (a, b), n in holes.most_common():
-        sample = next(r for r in low if r["tree"] == a and r["fit"] == b)
-        lines.append(f"- tree {a}, best fit {b} ({sample['match']:.2f}): {n}; e.g. {describe_body(sample)}")
+    for (letter, digit), n in holes.most_common():
+        sample = next(r for r in low if r["fit"] == letter and r["digit"] == digit)
+        lines.append(f"- {class_code.format_code(letter, digit)} ({sample['match']:.2f}): {n}; e.g. {describe_body(sample)}")
     lines += ["", f"## Close pairs (runner-up within {CLOSE_MARGIN * 100:.0f} points)", ""]
     pairs = collections.Counter(tuple(sorted((r["fit"], r["runner"]))) for r in close)
     for (a, b), n in pairs.most_common(12):
         lines.append(f"- {a} and {b}: {n}")
     if not pairs:
         lines.append("None.")
-    by_tree, by_fit = temperate_surface_ocean(records)
-    lines += ["", f"## Temperate ({TEMPERATE_K[0]:.0f} to {TEMPERATE_K[1]:.0f} K) bodies with a surface ocean, by class", "",
-              "| class | tree | best fit |", "|---|---|---|"]
-    for letter in sorted(set(by_tree) | set(by_fit)):
-        lines.append(f"| {letter} | {by_tree[letter]} | {by_fit[letter]} |")
-    lines.append(f"| all | {sum(by_tree.values())} | {sum(by_fit.values())} |")
+    counts = temperate_surface_ocean(records)
+    lines += ["", f"## Temperate ({TEMPERATE_K[0]:.0f} to {TEMPERATE_K[1]:.0f} K) bodies with a surface ocean, by class", "", "| class | bodies |", "|---|---|"]
+    for letter in sorted(counts):
+        lines.append(f"| {letter} | {counts[letter]} |")
+    lines.append(f"| all | {sum(counts.values())} |")
     return "\n".join(lines) + "\n"
 
 

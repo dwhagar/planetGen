@@ -5,12 +5,12 @@ What a sector already holds, and what is left of its mass budget (GEN.1124; docs
 ============================================================================================================================================
 
 Before anything is drawn for a sector, whatever the sector already holds when it is generated comes off the mass it is calculated to have: rogues that arrived from other sectors, bright
-stars placed beforehand, scattered phenomena, the parents of belts and extended objects whose centre lies in it. What is left is the budget the phases of the sector build (the mass-backfill
+stars placed beforehand, scattered phenomena, the parents of belts and extended objects whose center lies in it. What is left is the budget the phases of the sector build (the mass-backfill
 rings, the system draw, phenomena, remnants, belts) draw against. The residents themselves are never moved or changed: this module reads them and returns a new, separate `Budget`.
 
 `remaining_budget(total_kg, residents)` is the pure function:
 
-* A resident counts only when its centre is in the sector (`Resident.centre_inside`); a large object that reaches in from a neighbour is that neighbour's, and is listed as `ignored`.
+* A resident counts only when its center is in the sector (`Resident.center_inside`); a large object that reaches in from a neighbour is that neighbour's, and is listed as `ignored`.
 * The remaining budget is the total less the counted residents, **never negative**; mass the residents hold beyond the total is reported as `over_kg` and the budget is zero (nothing more is drawn).
 * A sector without residents returns the total unchanged.
 * Each resident may also stand for a number of systems (`Resident.systems`), taken off the expected number of systems the same way (`remaining_systems`).
@@ -18,11 +18,18 @@ rings, the system draw, phenomena, remnants, belts) draw against. The residents 
 
 `shortfall_kg(budget, drawn_kg)` is the stage 3 measure: the budget less everything the sector's build drew, never negative, which the rogue top-up (`physics/rogue_topup`) makes up.
 
-Nothing calls this module yet; the generation phases and the region run wire it (GEN.1120).
+`expected_mass_kg(profile)` is the total a sector is calculated to hold (its expected systems times the mean system mass of its populations), and `resident_share(profile, residents)`
+the share of it the counted residents already hold, which the system draw of the fill (`bright_stars.FillContext.resident_share`) takes off its Poisson mean (stage 0, GEN.1124) and the
+rogue top-up (`generation/topup_stage`) reads as the budget it measures its shortfall against.
 """
 
 import math
 from dataclasses import dataclass, field
+
+from planetgen.galaxy import system_mass
+from planetgen.physics import unit_registry as units
+
+_msun_to_kg = units.converter("Msun", "kg")
 
 KINDS = ("rogue", "star", "phenomenon", "belt parent", "extended")
 """tuple: The kinds of resident a sector can hold, for the split of the held mass."""
@@ -40,12 +47,12 @@ class Resident:
     Attributes:
         kind (str): One of `KINDS`.
         mass_kg (float): Its mass, kg, not negative.
-        centre_inside (bool): Whether its centre lies in the sector. An extended object reaching in from a neighbour has `False` and is not counted.
+        center_inside (bool): Whether its center lies in the sector. An extended object reaching in from a neighbour has `False` and is not counted.
         systems (float): How many of the sector's expected systems it stands for, not negative.
     """
     kind: str
     mass_kg: float
-    centre_inside: bool = True
+    center_inside: bool = True
     systems: float = 0.0
 
     def __post_init__(self):
@@ -71,7 +78,7 @@ class Budget:
         remaining_systems (float): The expected systems less those the residents stand for, never negative.
         held_by_kind (dict): The counted mass for each kind that has any.
         counted (int): The residents counted.
-        ignored (int): The residents left out because their centre lies elsewhere.
+        ignored (int): The residents left out because their center lies elsewhere.
     """
     total_kg: float
     held_kg: float
@@ -109,7 +116,7 @@ def remaining_budget(total_kg, residents=(), total_systems=0.0):
     for resident in residents:
         if not isinstance(resident, Resident):
             raise ResidentMassError(f"a resident is a Resident, not {resident!r}")
-        if not resident.centre_inside:
+        if not resident.center_inside:
             ignored += 1
             continue
         counted += 1
@@ -137,3 +144,23 @@ def shortfall_kg(budget, drawn_kg):
     if not math.isfinite(drawn_kg) or drawn_kg < 0.0:
         raise ResidentMassError(f"drawn_kg must be a finite number, not negative: {drawn_kg!r}")
     return max(0.0, budget.remaining_kg - drawn_kg)
+
+
+def expected_mass_kg(profile):
+    """The mass a sector is calculated to hold, kg: its expected systems times the mean system mass of its populations (`galaxy.system_mass.mean_over_solar`)."""
+    return _msun_to_kg(profile.expected_systems * system_mass.mean_over_solar(profile.mix, profile.shape))
+
+
+def resident_share(profile, residents):
+    """
+    The share, 0 to 1, of the sector's calculated mass that its counted residents hold: what the system draw takes off its mean (stage 0). Zero with no
+    resident (so a sector that holds nothing from elsewhere draws exactly as it did), and 1 when the residents hold the whole calculated mass.
+    """
+    residents = list(residents)
+    if not residents:
+        return 0.0
+    total = expected_mass_kg(profile)
+    if total <= 0.0:
+        return 0.0
+    budget = remaining_budget(total, residents, profile.expected_systems)
+    return min(1.0, budget.held_kg / total)

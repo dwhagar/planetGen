@@ -1,6 +1,6 @@
 // tests/js/systemreach.test.mjs -- static/systemreach.js (MAP.152): which star's system the camera wants up in an
 // opened sector, and how much of it shows. The spec is docs/design/interface/fly-through-view-distance.md 4.4 and 4.7: a system's
-// disc appears at about 20 pixels, is whole at 40 and is dropped below 10.
+// disk appears at about 20 pixels, is whole at 40 and is dropped below 10.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -52,7 +52,7 @@ const at = (px, key = "a") => {
   return { key, center: [distance, 0, 0] };
 };
 
-test("nothing is wanted until a disc is 20 px across", () => {
+test("nothing is wanted until a disk is 20 px across", () => {
   assert.equal(R.chooseSystem([0, 0, 0], [at(19)], VIEW, null), null);
   const found = R.chooseSystem([0, 0, 0], [at(21)], VIEW, null);
   assert.equal(found.key, "a");

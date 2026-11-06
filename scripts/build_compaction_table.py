@@ -15,7 +15,7 @@ porosities are weighted by the grain volumes of the mixture. Between the masses 
 decision S9: the endpoints are flagged stand-ins until viscous compaction replaces them); above 1e21 kg the body has no
 macroporosity and the structure solver of GEN.429 takes over.
 
-The integration is run once per central pressure, outwards from the centre, and the (mass, radius) pairs are then put on a
+The integration is run once per central pressure, outwards from the center, and the (mass, radius) pairs are then put on a
 common grid of masses, so one body costs one integration and the whole table takes about a minute.
 
 Run it from the repository root with scipy installed: `python scripts/build_compaction_table.py`.
@@ -82,7 +82,7 @@ def density_curve(rock_fraction, weight):
 
 
 def sphere(central_pressure_pa, density_of_pressure):
-    """`(mass_kg, radius_m)` of the sphere whose centre is at `central_pressure_pa`."""
+    """`(mass_kg, radius_m)` of the sphere whose center is at `central_pressure_pa`."""
     def rhs(r, y):
         p, m = y
         rho = density_of_pressure(p)

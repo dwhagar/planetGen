@@ -9,20 +9,20 @@ The air of a body is cut into `LAYERS` layers equally spaced in ln P between a m
 and the surface. A temperature profile is found that
 
 * follows the adiabat from the surface up to the tropopause (the dry adiabat of the mixture with its heat capacity at each
-  temperature, the water pseudo-adiabat once the vapour saturates, `Column.adiabat`), and
+  temperature, the water pseudo-adiabat once the vapor saturates, `Column.adiabat`), and
 * is in radiative equilibrium above it (every layer takes up as much infrared as it gives, plus any sunlight deposited in it), and
 * sends out to space exactly the absorbed flux.
 
 The infrared flux is solved band by band and g point by g point (`line_opacity.layer_depth`) with the two-stream form
 for a source linear in optical depth between level temperatures (diffusivity factor 1.66). The tropopause is where the radiative
-equilibrium temperature meets the adiabat. The water vapour has Manabe and Wetherald's (1967) relative humidity
-profile, `RH = RH_s (p/p_s - 0.02) / 0.98`, with the surface humidity the mixture's own vapour pressure over the saturation pressure
-at the surface (a surface that is saturated holds the saturation; a drier one holds what the mixture gives), and no vapour
+equilibrium temperature meets the adiabat. The water vapor has Manabe and Wetherald's (1967) relative humidity
+profile, `RH = RH_s (p/p_s - 0.02) / 0.98`, with the surface humidity the mixture's own vapor pressure over the saturation pressure
+at the surface (a surface that is saturated holds the saturation; a drier one holds what the mixture gives), and no vapor
 above the coldest level below it (the cold trap).
 
 Why this and not the grey closure of GEN.703: the closure needs one number for the whole column and cannot say what a 15 micron
-band does when water vapour thins aloft (GEN.717) or what a haze that absorbs sunlight high up does to the ground (GEN.718).
-Here the vapour profile is a profile, and `Column.sunlight_aloft` puts a share of the absorbed flux where a haze takes it.
+band does when water vapor thins aloft (GEN.717) or what a haze that absorbs sunlight high up does to the ground (GEN.718).
+Here the vapor profile is a profile, and `Column.sunlight_aloft` puts a share of the absorbed flux where a haze takes it.
 
 Limits (stated, registry rows IR1 to IR8 in docs/design/research/gap-filling-plan.md section 6): the only infrared cloud is the sulfuric
 acid one the caller passes (`cloud`), scaled for scattering, and no condensation of anything but water; the humidity profile is Manabe and Wetherald's, not a computed one; sunlight is deposited by the
@@ -41,7 +41,6 @@ Use:
 
 import functools
 import math
-import re
 from dataclasses import dataclass
 
 import numpy as np
@@ -68,11 +67,11 @@ DIFFUSIVITY = 1.66
 """float: The diffusivity factor of the two-stream flux: the slant path that stands in for the angular integral of the radiance."""
 HUMIDITY_TOP = 0.02
 """float: STAND-IN (IR7, tier T1 on Earth, T6 on any other world, L0): Manabe and Wetherald's (1967) `p/p_s` below which the relative humidity is zero; their profile
-(relative humidity linear in pressure from the surface value to zero here) is Earth's, applied to every world with water vapour in its air."""
+(relative humidity linear in pressure from the surface value to zero here) is Earth's, applied to every world with water vapor in its air."""
 MAX_WATER_FRACTION = 0.5
-"""float: STAND-IN (IR7, tier T7, L0): the most water vapour a layer holds, as a mole fraction (a steam air is not modelled by this profile)."""
+"""float: STAND-IN (IR7, tier T7, L0): the most water vapor a layer holds, as a mole fraction (a steam air is not modelled by this profile)."""
 WATER_TABLE_TOP_K = min(640.0, saturation.species("H2O").liquid.t_max_k)
-"""float: Where the water table ends and above which the vapour is taken as unable to condense: 640 K, just under water's critical temperature (the
+"""float: Where the water table ends and above which the vapor is taken as unable to condense: 640 K, just under water's critical temperature (the
 `saturation` module's, 647.1 K), so the latent heat, which diverges at the critical point, stays finite on the grid. A numerical limit of this
 table, not a saturation constant: the curve itself is `saturation`'s."""
 METHANE_TABLE_TOP_K = 188.0
@@ -87,9 +86,9 @@ CLOUD_LONGWAVE_SHARE = 0.13
 The model is a clear-sky one and the albedo of a body is its all-sky one, so without this a world that keeps the Earth's cloud (and its cloud shortwave
 cooling) would lose the cloud's longwave warming: 26.5 W/m2 of the 266 W/m2 the clear-sky Earth sends out (CERES EBAF, 0.10; that leaves the Earth twin of the
 fixed point at 284.6 K, the clear-sky model's own bias of 3 K, and 0.13 puts it at 287.9 K, the measured 288 K, which is the value held). The sky sends out
-`(1 - share) * clear` and the cloud scales with the surface humidity (to 1.3 times at most, a saturated surface) and is nil without water vapour. A cloud
-that is a share of the flux, not a layer in the column, masks the carbon dioxide forcing and the vapour feedback by the same tenth, as the cloudy
-sky of the Earth does, and keeps the feedbacks of the clear column whole (a grey layer over the sky hid all of the vapour's)."""
+`(1 - share) * clear` and the cloud scales with the surface humidity (to 1.3 times at most, a saturated surface) and is nil without water vapor. A cloud
+that is a share of the flux, not a layer in the column, masks the carbon dioxide forcing and the vapor feedback by the same tenth, as the cloudy
+sky of the Earth does, and keeps the feedbacks of the clear column whole (a grey layer over the sky hid all of the vapor's)."""
 EARTH_HUMIDITY = 0.77
 """float: The mean relative humidity of the Earth's surface air [R2848], the humidity at which `CLOUD_LONGWAVE_SHARE` holds (tier T1)."""
 FINITE_DIFFERENCE_K = 0.5
@@ -140,7 +139,7 @@ class Solution:
         tropopause_pressure_pa (float): The pressure where the profile leaves the adiabat for radiative equilibrium.
         tropopause_temperature_k (float): The temperature there.
         outgoing_w_m2 (float): The infrared flux to space of the solution (equal to the absorbed flux when `converged`).
-        water_fraction (ndarray): The water vapour mole fraction of each layer.
+        water_fraction (ndarray): The water vapor mole fraction of each layer.
         converged (bool): The balance was met to within `CONVERGED_W_M2` or `CONVERGED_SHARE` of the absorbed flux.
     """
 
@@ -227,11 +226,6 @@ def equilibrium_hydrogen_cp_over_r(temperature_k):
     return 2.5 + spread / temperature[..., 0] ** 2
 
 
-def _atoms(formula):
-    """The number of atoms in a molecule written without brackets (`"HC3N"` is 5)."""
-    return sum(int(count or 1) for _symbol, count in re.findall(r"([A-Z][a-z]?)(\d*)", formula))
-
-
 @functools.cache
 def _cp_over_r(formula):
     """
@@ -255,11 +249,7 @@ def _cp_over_r(formula):
             cold = _CP_GRID < EQUILIBRIUM_HYDROGEN_BELOW_K
             values[cold] = equilibrium_hydrogen_cp_over_r(_CP_GRID[cold]) + (thermo.cp_over_r(max(low, EQUILIBRIUM_HYDROGEN_BELOW_K)) - join)
         return values
-    known = sorted((float(t), v / R) for t, v in gases.gas(formula).cp_j_mol_k.items() if v is not None)
-    if known:
-        return np.interp(_CP_GRID, [t for t, _ in known], [v for _, v in known])
-    atoms = _atoms(formula)
-    return np.full_like(_CP_GRID, {1: 2.5, 2: 3.5}.get(atoms, 4.0 + 0.5 * (3 * atoms - 6)))
+    return mixture.cp_over_r_without_fit(formula, _CP_GRID)
 
 
 # ---- the column ----
@@ -307,7 +297,7 @@ class Column:
     # -- the adiabat --
 
     def _dlnT_dlnP(self, temperature, pressure, condensing=None):
-        """d ln T / d ln P along the adiabat: dry or unsaturated, or the pseudo-adiabat of the condensable (water, else methane) once its vapour saturates
+        """d ln T / d ln P along the adiabat: dry or unsaturated, or the pseudo-adiabat of the condensable (water, else methane) once its vapor saturates
         (`condensing`: take that branch whatever the state, so a step that starts on one branch uses it at its midpoint too; None decides from the state)."""
         x = self.condensable_surface
         if x <= 0.0:
@@ -327,7 +317,7 @@ class Column:
         return numerator / denominator
 
     def _saturated(self, temperature, pressure):
-        """Whether the surface's vapour mixing ratio of the condensable saturates at this temperature and pressure."""
+        """Whether the surface's vapor mixing ratio of the condensable saturates at this temperature and pressure."""
         return self.condensable_surface > 0.0 and self.condensable_surface * pressure >= float(self._saturation(temperature))
 
     def _advance(self, temperature, log_pressure, step):
@@ -341,7 +331,7 @@ class Column:
     def adiabat(self, surface_temperature_k):
         """
         The adiabat's temperature at every level but the surface (top first), integrating up from the surface with second-order steps in
-        ln P. The slope has a corner where the vapour saturates; a step that crosses it is cut at the crossing (bisection) so the
+        ln P. The slope has a corner where the vapor saturates; a step that crosses it is cut at the crossing (bisection) so the
         temperature is a smooth function of the surface temperature.
         """
         temperature = float(surface_temperature_k)
@@ -378,7 +368,7 @@ class Column:
     # -- the water --
 
     def water_profile(self, layer_temperature, surface_temperature):
-        """The water vapour mole fraction of each layer: Manabe and Wetherald's humidity profile, no more than the cold trap leaves."""
+        """The water vapor mole fraction of each layer: Manabe and Wetherald's humidity profile, no more than the cold trap leaves."""
         if self.fixed_water is not None:
             return self.fixed_water
         if not self.dry:
@@ -412,7 +402,7 @@ class Column:
 
     def cloud_share(self, surface_temperature):
         """The share of the clear-sky outgoing flux the cloud keeps in (stand-in IR12): `CLOUD_LONGWAVE_SHARE` at the humidity of the Earth, in proportion to the
-        surface humidity, nil where the air holds no water vapour."""
+        surface humidity, nil where the air holds no water vapor."""
         if self.water_surface <= 0.0:
             return 0.0
         if not self.dry:
@@ -631,7 +621,7 @@ class _Solver:
 def sunlight_aloft(column, absorbed_w_m2, share, pressure_pa):
     """
     The heating of each layer, W/m2, of a share of the absorbed flux deposited aloft: a Gaussian in ln P of width `SUNLIGHT_WIDTH_LN_P`
-    centred on `pressure_pa` (a haze or an upper methane band takes sunlight there instead of the ground).
+    centered on `pressure_pa` (a haze or an upper methane band takes sunlight there instead of the ground).
     """
     if not 0.0 <= share < 1.0:
         raise ValueError("the share of sunlight deposited aloft is at least 0 and under 1")
@@ -647,15 +637,15 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
     The radiative-convective state of an air under an absorbed flux.
 
     Args:
-        partial_pressures_pa (dict): Gas-table formula to partial pressure at the surface, Pa. The water vapour is the surface's own.
+        partial_pressures_pa (dict): Gas-table formula to partial pressure at the surface, Pa. The water vapor is the surface's own.
         gravity_m_s2 (float): Surface gravity.
         absorbed_flux_w_m2 (float): The globally averaged absorbed flux (`greenhouse.absorbed_flux_w_m2`), all of it reaching the ground
             except the `aloft_share`.
         aloft_share (float): The share of it taken high up, by a haze or upper-air absorbers (0 to under 1); the rest heats the surface.
         aloft_pressure_pa (float or None): The pressure where that share is taken (required when `aloft_share` is above 0).
         layers (int): The number of layers.
-        water_fraction (ndarray or None): Hold the water vapour mole fraction of each layer (top first, `layers` long) at these values instead of
-            the humidity profile (a previous solution's `water_fraction`: the experiment of a change with the vapour fixed).
+        water_fraction (ndarray or None): Hold the water vapor mole fraction of each layer (top first, `layers` long) at these values instead of
+            the humidity profile (a previous solution's `water_fraction`: the experiment of a change with the vapor fixed).
         cloud (tuple or None): `(tau_550, radius_um)` of a sulfuric acid cloud (`sulfuric_cloud.of_draw`): its depth at 550 nm and droplet radius.
             Its infrared opacity (`cloud_infrared`) sits in the layers between the level cooler than the cloud base temperature and its top.
 

@@ -106,7 +106,7 @@ def test_a_main_sequence_star_follows_the_relations_with_its_own_draws():
     assert makeup.draws == draws
 
 
-def test_a_young_star_is_thin_disc_whatever_its_number_says():
+def test_a_young_star_is_thin_disk_whatever_its_number_says():
     for key in ("a", "b", "c", "d"):
         assert sc.star_makeup(sc.MAIN_SEQUENCE, -1.0, 2.0, 1.0, key).branch == sa.BRANCH_THIN
 
@@ -262,7 +262,8 @@ def test_the_atmosphere_shares_follow_the_measured_one():
 
 def test_a_helium_core_or_oxygen_neon_white_dwarf_has_no_layers_and_says_so():
     light = sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 0.3, "x", teff_k=9000.0)
-    assert light.detail["core"] == "helium" and light.detail["layers"] is None and light.detail["radius_solar"] is None
+    assert light.detail["core"] == "helium" and light.detail["layers"] is None
+    assert 0.003 < light.detail["radius_solar"] < 0.05      # lighter than the lightest sequence: that sequence, scaled by the zero-temperature relation's ratio of the masses
     heavy = sc.star_makeup(sc.WHITE_DWARF, -0.2, 8.0, 1.2, "x", teff_k=9000.0)
     assert heavy.detail["core"] == "oxygen-neon" and heavy.detail["layers"] is None
     assert any("helium-core or oxygen-neon" in item for item in heavy.open_items)

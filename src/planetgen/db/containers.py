@@ -7,7 +7,7 @@ container holds.
 `galaxy_containers` has one row per container (`generation.containers` builds them from the galaxy seed at a plan). The
 reverse of `cloudcontents`: that lists what sits in a nebula or supernova remnant by the `inside_*` columns, while a
 container has no column on the objects it holds, so containment is geometric: an object is in a container when its
-position lies within the container's extent of its centre. The UX.144 'Inside:' line asks `holding_object` and a
+position lies within the container's extent of its center. The UX.144 'Inside:' line asks `holding_object` and a
 container's page asks `contents`.
 
 Positions are read by the cell key (`db/region.py`), so a query costs the rows near the container and not the size of
@@ -35,7 +35,7 @@ HELD_TABLES = tuple((kind, table, extra, _SYSTEM_POSITION if table == "star_syst
                     for kind, table, extra in cloudcontents.CONTENT_TABLES if table != "nebulae") + (
     ("nebula", "nebulae", "", _FREE_POSITION),)
 """tuple: `(kind, table, extra condition, position expressions)` for each table whose rows a container can hold, in
-the order `cloudcontents.CONTENT_TABLES` lists them (a nebula last: it is measured by its centre like the rest)."""
+the order `cloudcontents.CONTENT_TABLES` lists them (a nebula last: it is measured by its center like the rest)."""
 
 
 def replace(conn, containers):
@@ -119,7 +119,7 @@ def holding(conn, point_pc, kinds=None):
         kinds (iterable, optional): Only these `KINDS`.
 
     Returns:
-        list[dict]: Each container as `get` gives it, plus `depth` (the distance from its centre over its extent,
+        list[dict]: Each container as `get` gives it, plus `depth` (the distance from its center over its extent,
             under 1 inside) and `distance_pc`.
     """
     wanted = KINDS if kinds is None else tuple(kinds)
@@ -161,7 +161,7 @@ def position_of(conn, kind, object_id):
 
 def holding_object(conn, kind, object_id, kinds=None):
     """
-    The containers an object is inside: `holding` at its position (a system's, a phenomenon's centre). Empty for an
+    The containers an object is inside: `holding` at its position (a system's, a phenomenon's center). Empty for an
     object with no row or no position.
     """
     point = position_of(conn, kind, object_id)

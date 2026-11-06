@@ -239,7 +239,7 @@ def _rk4_layer(state, s_from, s_to, steps, density_of):
 
 
 def _integrate(central_pressure, mass_kg, layers, steps):
-    """Integrates outward from the centre through `layers`, a list of (mass fraction, density function), innermost first.
+    """Integrates outward from the center through `layers`, a list of (mass fraction, density function), innermost first.
     Returns the end state and the pressure at the top of the first layer when there is more than one."""
     first_density = layers[0][1](central_pressure)
     s0 = (1e-6 * mass_kg) ** (1.0 / 3.0)

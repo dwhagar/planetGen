@@ -45,9 +45,9 @@ class StellarObject(LazySaladName, MassObject):
         Args:
             system_config (SystemConfig): The shared SystemConfig object for the system.
             name (str, optional): The name to give; one is drawn on first read when omitted (PERF.43).
-            galactic_center_dist_ly (float, optional): This object's distance from the galactic centre, in
+            galactic_center_dist_ly (float, optional): This object's distance from the galactic center, in
                 light-years, threaded into `calculate_system_perimeter`; `None` uses the radius that holds half of
-                the galaxy's disc stars (`galaxy.scales`).
+                the galaxy's disk stars (`galaxy.scales`).
         """
         self.system_config = system_config
         self._init_salad_name(name)  # drawn on first read (PERF.43)
@@ -316,7 +316,7 @@ class StellarObject(LazySaladName, MassObject):
                 from its owning sector's `galactic_radius_pc` once sectors
                 are placed in galaxy-space (see
                 `docs/design/galaxy/galaxy-coordinate-system.md` section 5). `None`
-                (the default) falls back to the radius that holds half of the galaxy's disc stars (`galaxy.scales`) --
+                (the default) falls back to the radius that holds half of the galaxy's disk stars (`galaxy.scales`) --
                 the correct behavior for a system generated outside any
                 galaxy context (e.g. `generation/run_sector.py`'s own standalone CLI,
                 whose sectors are never placed in a galaxy).
@@ -345,7 +345,7 @@ class StellarObject(LazySaladName, MassObject):
             galactic_center_dist_ly (float, optional): This system's actual
                 distance from the galactic center, in light-years -- see
                 `calculate_system_perimeter`'s docstring for the same
-                parameter. `None` (the default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
+                parameter. `None` (the default) uses the radius that holds half of the galaxy's disk stars (`galaxy.scales`).
 
         Returns:
             tuple: `(orbital_speed_kms, orbital_period_gy)` -- see

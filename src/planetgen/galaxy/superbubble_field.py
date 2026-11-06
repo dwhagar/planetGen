@@ -5,15 +5,15 @@ The galaxy's superbubble field (GEN.254)
 ========================================
 
 A superbubble is the cavity the supernovae of an OB association blow in the interstellar medium: 100 to 1,000 pc
-across, filled with ionised gas of about a million kelvin and a thousandth of the disk's density. The Sun sits in one,
+across, filled with ionized gas of about a million kelvin and a thousandth of the disk's density. The Sun sits in one,
 the Local Bubble, 100 to 200 pc across. Molecular clouds do not survive inside one, so the cloud field
-(`nebula_field`) keeps none whose centre lies in a cavity.
+(`nebula_field`) keeps none whose center lies in a cavity.
 
 The field is seeded and stores nothing, like the cloud field. The plane is cut into `SUPERBUBBLE_CELL_PC` columns;
 each column's bubbles come from its own seed (`galaxySeed.seeded`, kind `"superbubble-cell"`, address `i/j`), so every
 worker and every later run agrees where each one is. A column's bubble count is a Poisson draw whose mean puts
 `SUPERBUBBLE_FILL_FRACTION` of the plane at the solar circle inside a bubble and follows the molecular gas
-(`nebula_field.gas_factor`) elsewhere: more in the arms and the inner disk. Each bubble has a centre in its column,
+(`nebula_field.gas_factor`) elsewhere: more in the arms and the inner disk. Each bubble has a center in its column,
 at a height about the young stars' layer, a log-uniform radius, and the gas inside it.
 """
 
@@ -52,20 +52,20 @@ class Superbubble:
     temperature_k: float
 
     def depth(self, point_pc):
-        """How far `point_pc` is from the centre as a share of the radius: under 1 inside."""
+        """How far `point_pc` is from the center as a share of the radius: under 1 inside."""
         return detmath.dist(self.center_pc, point_pc) / self.radius_pc
 
 
 def _mean_cross_section_pc2():
-    """The mean area `pi r^2` of a bubble cut through its centre, for a log-uniform radius."""
+    """The mean area `pi r^2` of a bubble cut through its center, for a log-uniform radius."""
     low, high = tuning.SUPERBUBBLE_RADIUS_RANGE_PC
     return math.pi * (high * high - low * low) / (2.0 * math.log(high / low))
 
 
-def centres_per_pc2():
+def centers_per_pc2():
     """
-    The surface density of bubble centres at the solar circle that puts `SUPERBUBBLE_FILL_FRACTION` of the plane
-    inside a bubble: coverage `1 - exp(-n * area)` of overlapping discs.
+    The surface density of bubble centers at the solar circle that puts `SUPERBUBBLE_FILL_FRACTION` of the plane
+    inside a bubble: coverage `1 - exp(-n * area)` of overlapping disks.
     """
     return -math.log(1.0 - tuning.SUPERBUBBLE_FILL_FRACTION) / _mean_cross_section_pc2()
 
@@ -82,12 +82,12 @@ def cell_bubbles(galaxy_seed, shape, index):
     edge = tuning.SUPERBUBBLE_CELL_PC
     low = (index[0] * edge, index[1] * edge)
     middle = (low[0] + edge / 2, low[1] + edge / 2, 0.0)
-    mean = centres_per_pc2() * edge * edge * nebula_field.gas_factor(middle, shape)
+    mean = centers_per_pc2() * edge * edge * nebula_field.gas_factor(middle, shape)
     bubbles = []
     with galaxySeed.seeded(galaxy_seed or FALLBACK_SEED, "superbubble-cell", index, shape=shape):
         for n in range(_sample_poisson_count(mean)):
             x, y = low[0] + draw.uniform(0.0, edge), low[1] + draw.uniform(0.0, edge)
-            z = draw.gauss(0.0, tuning.SUPERBUBBLE_CENTRE_HEIGHT_SIGMA_PC)
+            z = draw.gauss(0.0, tuning.SUPERBUBBLE_CENTER_HEIGHT_SIGMA_PC)
             radius_low, radius_high = tuning.SUPERBUBBLE_RADIUS_RANGE_PC
             radius = math.exp(draw.uniform(math.log(radius_low), math.log(radius_high)))
             density_low, density_high = tuning.SUPERBUBBLE_AMBIENT_DENSITY_RANGE_CM3
@@ -113,7 +113,7 @@ def bubbles_reaching(galaxy_seed, shape, point_pc, reach_pc=0.0):
 def containing(galaxy_seed, shape, point_pc):
     """
     The bubble `point_pc` is inside, or `None`. Where several overlap, the one it is deepest in (the smallest share of
-    its radius from the centre), so the answer does not depend on the order the columns are read.
+    its radius from the center), so the answer does not depend on the order the columns are read.
     """
     inside = [bubble for bubble in bubbles_reaching(galaxy_seed, shape, point_pc) if bubble.depth(point_pc) < 1.0]
     return min(inside, key=lambda bubble: (bubble.depth(point_pc), bubble.index, bubble.n)) if inside else None
@@ -121,7 +121,7 @@ def containing(galaxy_seed, shape, point_pc):
 
 def all_bubbles(galaxy_seed, shape, radius_pc, half_height_pc=None):
     """
-    Every bubble whose centre lies inside the cylinder of `radius_pc` around the galactic axis (and `half_height_pc`
+    Every bubble whose center lies inside the cylinder of `radius_pc` around the galactic axis (and `half_height_pc`
     above and below the plane when given), by column then draw order: what the Galaxy Map draws.
     """
     edge = tuning.SUPERBUBBLE_CELL_PC

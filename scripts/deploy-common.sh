@@ -14,6 +14,10 @@
 # Expects PYTHON and SCRIPT_DIR (the repo root) to be set, and to run as
 # root.
 
+# Every line this library prints is a log record (OPS.98): a time, a severity and a component (scripts/logrecord.sh).
+# shellcheck source=scripts/logrecord.sh
+declare -F log_record >/dev/null || source "$(dirname "${BASH_SOURCE[0]}")/logrecord.sh"
+
 VENV="${PLANETGEN_VENV:-/usr/local/planetgen/venv}"
 MACOS_LOG_DIR=/usr/local/planetgen/log
 GUNICORN_LABEL=org.planetgen.gunicorn
@@ -29,8 +33,8 @@ warn_if_no_swap() {
     is_macos && return 0
     command -v swapon >/dev/null 2>&1 || return 0
     if [[ -z "$(swapon --show=NAME --noheadings 2>/dev/null)" ]]; then
-        echo "warning: this host has no swap. A memory spike then makes the kernel kill MySQL, Redis or the web" >&2
-        echo "  server instead of slowing down. Fix: sudo $SCRIPT_DIR/scripts/enable-swap.sh  (see INSTALL.md, Swap)" >&2
+        log_warning "this host has no swap. A memory spike then makes the kernel kill MySQL, Redis or the web"
+        log_warning "  server instead of slowing down. Fix: sudo $SCRIPT_DIR/scripts/enable-swap.sh  (see INSTALL.md, Swap)"
     fi
     return 0
 }
@@ -53,6 +57,15 @@ default_python() {
 
 # After install-python-deps.sh: the site runs from the venv it made
 # (OPS.45), so every later step uses that Python.
+# From here on `update.sh` appends every line it prints to `update.log` in the log folder (OPS.101), after the lines it printed before the
+# folder was known (`log_file_begin`). The folder is the code's to say (`config.json`'s `log_dir`), so the new checkout is asked; with no
+# virtual environment yet, or no folder to write, the lines stay on the screen only.
+start_update_log() {
+    local path
+    path="$(cd / && PYTHONPATH="$SCRIPT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" "$VENV/bin/python" -m planetgen.util.logpaths update.log 2>/dev/null)" || return 0
+    log_file_to "$path"
+}
+
 use_site_python() {
     PYTHON="$VENV/bin/python"
 }
@@ -65,7 +78,7 @@ install_launchd_plist() {
     local example="$1" target="/Library/LaunchDaemons/$2" label="${2%.plist}"
     shift 2
     if [[ -f "$target" ]]; then
-        echo "launchd: $target present"
+        log_info "launchd: $target present"
         return 0
     fi
     sed -e "s|/var/lib/planetGen|$SCRIPT_DIR|g" -e "s|/usr/local/planetgen/venv|$VENV|g" "$@" \
@@ -73,7 +86,7 @@ install_launchd_plist() {
     chown root:wheel "$target"
     chmod 644 "$target"
     launchctl bootstrap system "$target" 2>/dev/null || launchctl load -w "$target" || true
-    echo "launchd: installed and loaded $target ($label)"
+    log_info "launchd: installed and loaded $target ($label)"
 }
 
 # macOS's counterpart of the Apache module check: gunicorn under launchd
@@ -83,10 +96,10 @@ install_launchd_plist() {
 ensure_gunicorn_daemon() {
     # gunicorn's own output; a folder that can't be made only warns (OPS.5).
     if ! { mkdir -p "$MACOS_LOG_DIR" && chown _www:_www "$MACOS_LOG_DIR"; }; then
-        echo "warning: couldn't set up gunicorn's log folder $MACOS_LOG_DIR; launchd can't start" >&2
-        echo "  gunicorn until it exists. Fix it with:" >&2
-        echo "    sudo mkdir -p $MACOS_LOG_DIR" >&2
-        echo "    sudo chown _www:_www $MACOS_LOG_DIR" >&2
+        log_warning "couldn't set up gunicorn's log folder $MACOS_LOG_DIR; launchd can't start"
+        log_warning "  gunicorn until it exists. Fix it with:"
+        log_warning "    sudo mkdir -p $MACOS_LOG_DIR"
+        log_warning "    sudo chown _www:_www $MACOS_LOG_DIR"
     fi
     install_launchd_plist "$SCRIPT_DIR/examples/macos/$GUNICORN_LABEL.plist" "$GUNICORN_LABEL.plist"
 }
@@ -103,13 +116,13 @@ ensure_nltk_words() {
     local dir="$1"
     mkdir -p "$dir"
     if "$PYTHON" -c "import nltk, sys; nltk.data.find('corpora/words', paths=[sys.argv[1]])" "$dir" >/dev/null 2>&1; then
-        echo "NLTK 'words' corpus: present in $dir"
+        log_info "NLTK 'words' corpus: present in $dir"
     else
         # A plain nltk.download() rather than `python -m nltk.downloader`,
         # which prints a spurious "found in sys.modules" RuntimeWarning
         # (nltk's __init__ already imported nltk.downloader).
         "$PYTHON" -c "import nltk, sys; sys.exit(0 if nltk.download('words', download_dir=sys.argv[1]) else 1)" "$dir"
-        echo "NLTK 'words' corpus: installed in $dir"
+        log_info "NLTK 'words' corpus: installed in $dir"
     fi
     chmod -R a+rX "$dir"
 }
@@ -126,8 +139,8 @@ ensure_datasets() {
     mkdir -p "$dir"
     if ! PLANETGEN_DATA_DIR="$dir" run_cli datasets fetch; then
         DATASETS_MISSING=1
-        echo "warning: some data could not be downloaded (above); bulk generation refuses to start until the next" >&2
-        echo "         update fetches it ('python3 -m planetgen.cli.datasets status' says which)." >&2
+        log_warning "some data could not be downloaded (above); bulk generation refuses to start until the next"
+        log_warning "         update fetches it ('python3 -m planetgen.cli.datasets status' says which)."
     fi
     chmod -R a+rX "$dir"
 }
@@ -141,35 +154,35 @@ ensure_datasets() {
 ensure_redis() {
     local url host
     url="$("$PYTHON" -c "from planetgen.util.settings import get_settings; print(get_settings().redis.url)")" || {
-        echo "warning: couldn't read redis.url from config.json; skipping the Redis check." >&2
+        log_warning "couldn't read redis.url from config.json; skipping the Redis check."
         return 0
     }
     host="$("$PYTHON" -c "import sys; from urllib.parse import urlsplit; print(urlsplit(sys.argv[1]).hostname or '')" "$url")"
     if redis_answers "$url"; then
-        echo "Redis: answering at $url"
+        log_info "Redis: answering at $url"
         return 0
     fi
     if [[ "$host" == 127.0.0.1 || "$host" == localhost || "$host" == ::1 ]] && ! is_macos \
             && command -v apt-get >/dev/null 2>&1; then
         if ! command -v redis-server >/dev/null 2>&1; then
-            echo "Redis: installing redis-server."
+            log_info "Redis: installing redis-server."
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends redis-server || true
         fi
         if command -v systemctl >/dev/null 2>&1; then
             systemctl enable --now redis-server >/dev/null 2>&1 || true
         fi
         if redis_answers "$url"; then
-            echo "Redis: answering at $url"
+            log_info "Redis: answering at $url"
             return 0
         fi
     fi
-    echo "warning: no Redis server answers at $url (config.json's redis.url)." >&2
+    log_warning "no Redis server answers at $url (config.json's redis.url)."
     if is_macos; then
-        echo "  Install and start it as your own user: brew install redis && brew services start redis" >&2
+        log_warning "  Install and start it as your own user: brew install redis && brew services start redis"
     else
-        echo "  Install and start it: sudo apt install redis-server && sudo systemctl enable --now redis-server" >&2
+        log_warning "  Install and start it: sudo apt install redis-server && sudo systemctl enable --now redis-server"
     fi
-    echo "  Without it the Generate page starts no job and a run cannot use more than one worker (docs/deployment/README.md)." >&2
+    log_warning "  Without it the Generate page starts no job and a run cannot use more than one worker (docs/deployment/README.md)."
 }
 
 # Warns, with the exact line to add, when the running Redis server's
@@ -198,12 +211,12 @@ redis_answers() {
 # a restart (only mod_wsgi does; the other modules load on a reload).
 ensure_apache_modules() {
     if ! command -v a2enmod >/dev/null 2>&1; then
-        echo "warning: a2enmod not found -- is apache2 installed?" >&2
-        echo "  Try: sudo apt install apache2" >&2
+        log_warning "a2enmod not found -- is apache2 installed?"
+        log_warning "  Try: sudo apt install apache2"
         return 0
     fi
     if [[ ! -e /etc/apache2/mods-available/wsgi.load ]] && command -v apt-get >/dev/null 2>&1; then
-        echo "mod_wsgi is not installed: installing libapache2-mod-wsgi-py3."
+        log_info "mod_wsgi is not installed: installing libapache2-mod-wsgi-py3."
         # The package enables the module itself, so a2query below finds
         # it already on; Apache still has to be restarted to load it.
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends libapache2-mod-wsgi-py3 \
@@ -212,14 +225,14 @@ ensure_apache_modules() {
     local mod enabled=()
     for mod in headers deflate wsgi; do
         if a2query -q -m "$mod" 2>/dev/null; then
-            echo "Apache module $mod: enabled"
+            log_info "Apache module $mod: enabled"
         elif a2enmod -q "$mod" >/dev/null 2>&1; then
-            echo "Apache module $mod: enabled now"
+            log_info "Apache module $mod: enabled now"
             enabled+=("$mod")
         else
-            echo "warning: could not enable Apache module $mod." >&2
+            log_warning "could not enable Apache module $mod."
             if [[ "$mod" == wsgi ]]; then
-                echo "  Install it first: sudo apt install libapache2-mod-wsgi-py3 && sudo a2enmod wsgi" >&2
+                log_warning "  Install it first: sudo apt install libapache2-mod-wsgi-py3 && sudo a2enmod wsgi"
             fi
         fi
     done
@@ -255,11 +268,11 @@ reload_web_if_running() {
     if is_macos; then
         if launchctl print "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
             if launchctl kill SIGHUP "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
-                echo "reloaded gunicorn."
+                log_info "reloaded gunicorn."
                 acted=1
                 wait_for_health "$health_url" gunicorn "$health_from" || unhealthy=1
             else
-                echo "warning: launchctl kill SIGHUP system/$GUNICORN_LABEL failed." >&2
+                log_warning "launchctl kill SIGHUP system/$GUNICORN_LABEL failed."
                 failed=1
             fi
         fi
@@ -271,25 +284,25 @@ reload_web_if_running() {
         if [[ -n "$unit" ]]; then
             (( APACHE_NEEDS_RESTART )) && verb=restart
             acted=1
-            echo "Testing Apache's configuration, then ${verb}ing it (a request still running is cut off):"
+            log_info "Testing Apache's configuration, then ${verb}ing it (a request still running is cut off):"
             if ! apache_configtest; then
-                echo "warning: Apache's configuration test failed, so Apache was not ${verb}ed (the running one keeps serving)." >&2
+                log_warning "Apache's configuration test failed, so Apache was not ${verb}ed (the running one keeps serving)."
                 failed=1
             elif systemctl "$verb" "$unit" >/dev/null 2>&1; then
-                echo "${verb}ed Apache."
+                log_info "${verb}ed Apache."
                 wait_for_health "$health_url" Apache "$health_from" || unhealthy=1
             else
-                echo "warning: systemctl $verb $unit failed." >&2
+                log_warning "systemctl $verb $unit failed."
                 failed=1
             fi
         fi
         if systemctl is-active --quiet planetgen-gunicorn 2>/dev/null; then
             acted=1
             if systemctl reload planetgen-gunicorn >/dev/null 2>&1; then
-                echo "reloaded gunicorn."
+                log_info "reloaded gunicorn."
                 wait_for_health "$health_url" gunicorn "$health_from" || unhealthy=1
             else
-                echo "warning: systemctl reload planetgen-gunicorn failed." >&2
+                log_warning "systemctl reload planetgen-gunicorn failed."
                 failed=1
             fi
         fi
@@ -303,10 +316,10 @@ reload_web_if_running() {
 # The commands that reload what serves the site by hand, for the host this is (OPS.29).
 print_reload_commands() {
     if is_macos; then
-        echo "  sudo launchctl kill SIGHUP system/$GUNICORN_LABEL"
+        log_info "  sudo launchctl kill SIGHUP system/$GUNICORN_LABEL"
     else
-        echo "  sudo apache2ctl configtest && sudo systemctl reload apache2     (Apache)"
-        echo "  sudo systemctl reload planetgen-gunicorn                        (nginx or Caddy hosts)"
+        log_info "  sudo apache2ctl configtest && sudo systemctl reload apache2     (Apache)"
+        log_info "  sudo systemctl reload planetgen-gunicorn                        (nginx or Caddy hosts)"
     fi
 }
 
@@ -341,9 +354,9 @@ resolve_api_health() {
     base="$("${PYTHON:-python3}" -c 'from planetgen.util.settings import get_settings; print(get_settings().api_base_url)' 2>/dev/null)" || base=""
     base="${base%/}"
     if [[ -z "$base" ]]; then
-        echo "error: no API address is configured: set api_base_url in config.json (for example \"https://your-site/api\", the address Apache serves the API at;" >&2
-        echo "  PLANETGEN_API_BASE_URL in the environment does the same), or PLANETGEN_HEALTH_URL for the health check alone." >&2
-        echo "  The update asks only that address whether the site answers and never tries 127.0.0.1 or localhost unless it is the one configured." >&2
+        log_error "no API address is configured: set api_base_url in config.json (for example \"https://your-site/api\", the address Apache serves the API at;"
+        log_error "  PLANETGEN_API_BASE_URL in the environment does the same), or PLANETGEN_HEALTH_URL for the health check alone."
+        log_error "  The update asks only that address whether the site answers and never tries 127.0.0.1 or localhost unless it is the one configured."
         return 1
     fi
     API_HEALTH_URL="$base/health" API_HEALTH_FROM="api_base_url in config.json"
@@ -375,7 +388,7 @@ curl_failure_words() {
 wait_for_health() {
     command -v curl >/dev/null 2>&1 || return 0
     # The reload has just restarted the workers: they get HEALTH_SETTLE_SECONDS (default 10) to start before the first probe.
-    echo "Giving the workers ${HEALTH_SETTLE_SECONDS:-10} seconds to start, then asking $1 (${3:-its setting}) for /api/health (up to ${HEALTH_WAIT_SECONDS:-90} seconds):"
+    log_info "Giving the workers ${HEALTH_SETTLE_SECONDS:-10} seconds to start, then asking $1 (${3:-its setting}) for /api/health (up to ${HEALTH_WAIT_SECONDS:-90} seconds):"
     sleep "${HEALTH_SETTLE_SECONDS:-10}"
     local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-90} )) reply code body rc why last_said=-100 last_why=""
     while :; do
@@ -392,12 +405,13 @@ wait_for_health() {
         if (( SECONDS >= end )); then
             local bare_note=""
             [[ "${code:-000}" == 000 ]] && bare_note=" (no HTTP answer at all: $(curl_failure_words "$rc"))"
-            echo "warning: the health check of $2 failed: $1 (${3:-its setting}) answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-90} seconds after the reload. Only that address was asked; check ${3:-the setting} if it is not where the site is served.$(health_maintenance_note "$body" brief)" >&2
+            log_warning "the health check of $2 failed: $1 (${3:-its setting}) answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-90} seconds after the reload.$(health_maintenance_note "$body" brief)"
+            log_warning "  Only that address was asked; check ${3:-the setting} if it is not where the site is served."
             return 1
         fi
         # One line for the first miss, then one every 5 seconds or whenever the reason changes.
         if (( SECONDS - last_said >= 5 )) || [[ "$why" != "$last_why" ]]; then
-            echo "  no good answer yet ($why); asking again, $(( end - SECONDS )) s left"
+            log_info "  no good answer yet ($why); asking again, $(( end - SECONDS )) s left"
             last_said=$SECONDS last_why="$why"
         fi
         sleep 1
@@ -484,11 +498,11 @@ check_apache_user_reads_venv() {
     if (( rc == 125 )); then
         return 0
     elif (( rc != 0 )); then
-        echo "warning: Apache's user $user can't read ${blocked:-the venv}, so mod_wsgi can't use $VENV." >&2
-        echo "  Every directory down to the venv needs to be enterable by it (for example:" >&2
-        echo "  sudo chmod o+rx ${blocked:-$VENV}), and the venv readable. Then restart Apache." >&2
+        log_warning "Apache's user $user can't read ${blocked:-the venv}, so mod_wsgi can't use $VENV."
+        log_warning "  Every directory down to the venv needs to be enterable by it (for example:"
+        log_warning "  sudo chmod o+rx ${blocked:-$VENV}), and the venv readable. Then restart Apache."
     else
-        echo "Apache's user $user can read $VENV."
+        log_info "Apache's user $user can read $VENV."
     fi
 }
 
@@ -514,37 +528,37 @@ check_apache_venv_rules() {
     group="$(sed -n 's/.*[[:space:]]process-group=\([^[:space:]]*\).*/\1/p' <<< "$alias_line")"
     [[ -n "$group" ]] || group="$(sed -n 's/^[[:space:]]*WSGIProcessGroup[[:space:]]\{1,\}\([^[:space:]]*\).*/\1/p' <<< "$active" | head -n1)"
     if [[ -z "$group" || "$group" == %* ]]; then
-        echo "warning: $conf runs planetGen in Apache's embedded mode, which can't use a virtual environment." >&2
-        echo "  Declare a daemon process and use it (examples/apache/planetgen.conf.example):" >&2
-        echo "    WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60 python-home=$VENV" >&2
-        echo "    WSGIScriptAlias / $SCRIPT_DIR/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}" >&2
+        log_warning "$conf runs planetGen in Apache's embedded mode, which can't use a virtual environment."
+        log_warning "  Declare a daemon process and use it (examples/apache/planetgen.conf.example):"
+        log_warning "    WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60 python-home=$VENV"
+        log_warning "    WSGIScriptAlias / $SCRIPT_DIR/src/html/wsgi.py process-group=planetgen-api application-group=%{GLOBAL}"
     else
         daemon="$(grep -E "^[[:space:]]*WSGIDaemonProcess[[:space:]]+$group([[:space:]]|\$)" <<< "$active" | head -n1 || true)"
         if [[ -z "$daemon" ]]; then
-            echo "warning: $conf names the process group '$group' but has no WSGIDaemonProcess $group line." >&2
-            echo "  Add: WSGIDaemonProcess $group processes=1 threads=5 request-timeout=60 python-home=$VENV" >&2
+            log_warning "$conf names the process group '$group' but has no WSGIDaemonProcess $group line."
+            log_warning "  Add: WSGIDaemonProcess $group processes=1 threads=5 request-timeout=60 python-home=$VENV"
         else
             home="$(sed -n 's/.*[[:space:]]python-home=\([^[:space:]]*\).*/\1/p' <<< "$daemon")"
             [[ "$home" == / ]] || home="${home%/}"
             if [[ "$home" == "$VENV" ]]; then
-                echo "Apache runs the site under $VENV (process group $group)."
+                log_info "Apache runs the site under $VENV (process group $group)."
             elif [[ -z "$home" ]]; then
-                echo "warning: $conf does not run the site under planetGen's virtual environment." >&2
-                echo "  Add python-home=$VENV to its WSGIDaemonProcess $group line (examples/apache/planetgen.conf.example)," >&2
-                echo "  then restart Apache." >&2
+                log_warning "$conf does not run the site under planetGen's virtual environment."
+                log_warning "  Add python-home=$VENV to its WSGIDaemonProcess $group line (examples/apache/planetgen.conf.example),"
+                log_warning "  then restart Apache."
             elif [[ "$home" == "$VENV"/bin || "$home" == "$VENV"/bin/* ]]; then
-                echo "warning: $conf has python-home=$home, a path into the venv's bin/." >&2
-                echo "  python-home is the venv's root, the folder that holds bin/ and lib/: python-home=$VENV" >&2
+                log_warning "$conf has python-home=$home, a path into the venv's bin/."
+                log_warning "  python-home is the venv's root, the folder that holds bin/ and lib/: python-home=$VENV"
             else
-                echo "warning: $conf has python-home=$home, not planetGen's virtual environment $VENV." >&2
-                echo "  Set it to python-home=$VENV (the folder that holds bin/ and lib/), then restart Apache." >&2
+                log_warning "$conf has python-home=$home, not planetGen's virtual environment $VENV."
+                log_warning "  Set it to python-home=$VENV (the folder that holds bin/ and lib/), then restart Apache."
             fi
         fi
         if ! grep -qF 'application-group=%{GLOBAL}' <<< "$alias_line" \
                 && ! grep -qE '^[[:space:]]*WSGIApplicationGroup[[:space:]]+%\{GLOBAL\}' <<< "$active"; then
-            echo "warning: $conf doesn't run planetGen in the main Python interpreter." >&2
-            echo "  Add application-group=%{GLOBAL} to its WSGIScriptAlias line (or WSGIApplicationGroup %{GLOBAL})," >&2
-            echo "  as numpy, scipy and numba's C code need it." >&2
+            log_warning "$conf doesn't run planetGen in the main Python interpreter."
+            log_warning "  Add application-group=%{GLOBAL} to its WSGIScriptAlias line (or WSGIApplicationGroup %{GLOBAL}),"
+            log_warning "  as numpy, scipy and numba's C code need it."
         fi
     fi
     check_apache_user_reads_venv
@@ -567,12 +581,12 @@ check_mod_wsgi_python() {
     if [[ -z "$built" ]]; then
         return 0
     elif [[ "$built" == "$ours" ]]; then
-        echo "mod_wsgi runs Python $built, the same as $PYTHON."
+        log_info "mod_wsgi runs Python $built, the same as $PYTHON."
     else
-        echo "warning: mod_wsgi is built for Python $built, but the virtual environment $VENV" >&2
-        echo "  is Python $ours ($PYTHON), so Apache can't use it. Either install the" >&2
-        echo "  libapache2-mod-wsgi-py3 that matches Python $ours, or remake the venv from" >&2
-        echo "  Python $built: sudo rm -rf $VENV && sudo PYTHON=/usr/bin/python$built ./update.sh" >&2
+        log_warning "mod_wsgi is built for Python $built, but the virtual environment $VENV"
+        log_warning "  is Python $ours ($PYTHON), so Apache can't use it. Either install the"
+        log_warning "  libapache2-mod-wsgi-py3 that matches Python $ours, or remake the venv from"
+        log_warning "  Python $built: sudo rm -rf $VENV && sudo PYTHON=/usr/bin/python$built ./update.sh"
     fi
 }
 
@@ -605,7 +619,7 @@ reset_jobs_once() {
             "$VENV/bin/python" -m planetgen.cli.reset_jobs --yes); then
         RESET_JOBS_DONE=1
     else
-        echo "error: the jobs and the queue could not be reset; nothing else was changed." >&2
+        log_error "the jobs and the queue could not be reset; nothing else was changed."
         exit 1
     fi
 }
@@ -625,7 +639,7 @@ kill_all_once() {
             "$VENV/bin/python" -m planetgen.cli.queue stop-all --no-hold); then
         KILL_ALL_DONE=1
     else
-        echo "warning: some planetgen processes could not be ended (see above); the update goes on." >&2
+        log_warning "some planetgen processes could not be ended (see above); the update goes on."
         KILL_ALL_DONE=1
     fi
 }
@@ -642,8 +656,8 @@ ensure_update_guard() {
     fi
     if [[ ! -f "$SCRIPT_DIR/src/planetgen/cli/update_guard.py" || ! -x "$VENV/bin/python" ]]; then
         if [[ "${1:-}" == "required" ]]; then
-            echo "error: the update guard is missing from this checkout or the virtual environment is, so the update" >&2
-            echo "       cannot make sure nothing else is running. Nothing was changed after the pull." >&2
+            log_error "the update guard is missing from this checkout or the virtual environment is, so the update"
+            log_error "       cannot make sure nothing else is running. Nothing was changed after the pull."
             return 1
         fi
         return 0
@@ -652,13 +666,14 @@ ensure_update_guard() {
     if update_guard begin --pid "$$" ${ANSWER_YES[@]+"${ANSWER_YES[@]}"}; then
         UPDATE_GUARD_HELD=1
     else
-        echo "error: the update did not start." >&2
+        log_error "the update did not start."
         exit 1
     fi
 }
 
 finish_update_guard() {
     local status=$?
+    log_summary_forget
     (( UPDATE_GUARD_HELD )) || return 0
     if (( status == 0 )); then
         update_guard end --pid "$$" || true
@@ -675,10 +690,25 @@ finish_update_guard() {
 # AFTER the reload and the health check, and update.sh stays up showing its bar until it ends. Args: the stage's
 # name, then what `planetgen warm` is asked to build (nothing: every phase). Each stage has a time limit,
 # WARM_STAGE_SECONDS (default 4 hours, OPS.95: a first warm-up after a new epoch takes far longer than the 30 minutes it
-# once had; 0 means none), told in the stage's first line; the output also goes to $WARM_MAP_LOG. A stage that fails or
+# once had; 0 means none), told in the stage's first line. The run writes its own record to warmup.log in the log folder (OPS.96: `planetgen warm` appends it
+# itself, in local time with its zone, so nothing here pipes the output through tee and the bars draw on a terminal). A stage that fails or
 # runs out of time only warns, and says that what it stored is kept and how to continue: the first visit builds what it
 # did not.
 WARM_STAGE_DEFAULT_SECONDS=14400
+
+# The key that skips the cache warm-up while it runs (only with a terminal), and whether it was pressed: a skip ends the stage
+# that runs and leaves out the stages after it.
+WARM_SKIP_KEY="s"
+WARM_SKIPPED=0
+
+# Sends SIGTERM to process $1 and all of its descendants (the warm-up runs under runuser, env and timeout).
+kill_process_tree() {
+    local child
+    for child in $(pgrep -P "$1" 2>/dev/null); do
+        kill_process_tree "$child"
+    done
+    kill -TERM "$1" 2>/dev/null || true
+}
 
 # A number of seconds in words: 14400 is "4 hours", 5400 is "90 minutes", 45 is "45 seconds".
 duration_words() {
@@ -695,13 +725,17 @@ duration_words() {
 }
 
 run_warm_stage() {
-    local name="$1" user="" runner=() limit=() status=0 seconds="${WARM_STAGE_SECONDS:-$WARM_STAGE_DEFAULT_SECONDS}" limit_words
-    shift
+    local name user="" runner=() limit=() status=0 seconds="${WARM_STAGE_SECONDS:-$WARM_STAGE_DEFAULT_SECONDS}" limit_words warm_started=$SECONDS
+    name="$(log_lower "$(log_count Part "$1" "$2")"), $3"
+    shift 3
+    if (( WARM_SKIPPED )); then
+        log_info "Skipping the cache warm-up, $name (skipped by a keypress)."
+        return 0
+    fi
     if ! [[ "$seconds" =~ ^[0-9]+$ ]]; then
-        echo "warning: WARM_STAGE_SECONDS=$seconds is not a number of seconds; using $WARM_STAGE_DEFAULT_SECONDS." >&2
+        log_warning "WARM_STAGE_SECONDS=$seconds is not a number of seconds; using $WARM_STAGE_DEFAULT_SECONDS."
         seconds=$WARM_STAGE_DEFAULT_SECONDS
     fi
-    WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
     if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
         # shellcheck source=../examples/apache/apache-identity.sh
         source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
@@ -718,14 +752,43 @@ run_warm_stage() {
     else
         limit_words="no time limit"
     fi
-    echo "Building the site's caches, $name ($limit_words; log: $WARM_MAP_LOG):"
-    (cd / && ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm "$@" --progress \
-        </dev/null 2>&1) | tee "$WARM_MAP_LOG"
-    status=${PIPESTATUS[0]}
+    log_info "Building the site's caches, $name ($limit_words; log: warmup.log in the log folder):"
+    local can_skip=0
+    [[ -t 0 && -t 1 ]] && can_skip=1
+    (( can_skip )) && log_info "Press $WARM_SKIP_KEY to skip the cache warm-up (what it has stored is kept; the first visit builds the rest)."
+    (cd / && ${runner[@]+"${runner[@]}"} env "PLANETGEN_WARM_STARTED_BY=update.sh, $name" ${limit[@]+"${limit[@]}"} \
+        "$PYTHON" -m planetgen.cli.generate warm "$@" --progress </dev/null 2>&1) &
+    local pid=$! key="" read_status=0
+    if (( can_skip )); then
+        while kill -0 "$pid" 2>/dev/null; do
+            read_status=0
+            read -rsn1 -t 1 key || read_status=$?
+            if (( read_status == 0 )); then
+                if [[ "$key" == "$WARM_SKIP_KEY" || "$key" == "${WARM_SKIP_KEY^^}" ]]; then
+                    WARM_SKIPPED=1
+                    kill_process_tree "$pid"
+                    break
+                fi
+            elif (( read_status <= 128 )); then
+                sleep 1         # end of input: nothing to read, do not spin
+            fi
+        done
+    fi
+    wait "$pid" || status=$?
+    if (( WARM_SKIPPED )); then
+        log_info "The cache warm-up ($name) was skipped by a keypress. What it stored is kept."
+        log_info "  'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues it, and the first visit builds what it did not."
+        WARM_RESULT="cache warm-up ($name) skipped by a keypress"
+        return 0
+    fi
     if (( status != 0 )); then
-        local why="failed with status $status (see $WARM_MAP_LOG)"
+        local why="failed with status $status (see warmup.log in the log folder)"
         (( status == 124 )) && why="ran out of its time limit of $(duration_words "$seconds") (WARM_STAGE_SECONDS; 0 means none)"
-        echo "warning: the cache warm-up ($name) did not finish: it $why. What it stored is kept: 'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues where it stopped, and the first visit builds what it did not." >&2
+        log_warning "the cache warm-up ($name) did not finish: it $why."
+        log_warning "  What it stored is kept. 'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues where it stopped, and the first visit builds what it did not."
+        WARM_RESULT="cache warm-up ($name) did not finish"
+    else
+        WARM_RESULT="cache warm-up ($name) done in $(log_duration $(( SECONDS - warm_started )))"
     fi
     return 0
 }
@@ -739,14 +802,14 @@ note_changed_example_configs() {
     local before="$1" after="$2"
     [[ "$before" == "$after" ]] && return 0
     if ! git diff --quiet "$before" "$after" -- examples/apache/planetgen.conf.example; then
-        echo "note: examples/apache/planetgen.conf.example changed in this update."
-        echo "  Your Apache site is yours and was not touched. To see what is new:"
-        echo "    diff /etc/apache2/sites-available/planetgen.conf $SCRIPT_DIR/examples/apache/planetgen.conf.example"
-        echo "  Copy over what you want, then: sudo apache2ctl configtest && sudo systemctl reload apache2"
+        log_notice "examples/apache/planetgen.conf.example changed in this update."
+        log_notice "  Your Apache site is yours and was not touched. To see what is new:"
+        log_notice "    diff /etc/apache2/sites-available/planetgen.conf $SCRIPT_DIR/examples/apache/planetgen.conf.example"
+        log_notice "  Copy over what you want, then: sudo apache2ctl configtest && sudo systemctl reload apache2"
     fi
     if ! git diff --quiet "$before" "$after" -- examples/redis/planetgen.conf; then
-        echo "note: examples/redis/planetgen.conf changed in this update."
-        echo "  Your Redis configuration was not touched. Compare it with $SCRIPT_DIR/examples/redis/planetgen.conf."
+        log_notice "examples/redis/planetgen.conf changed in this update."
+        log_notice "  Your Redis configuration was not touched. Compare it with $SCRIPT_DIR/examples/redis/planetgen.conf."
     fi
     return 0
 }
@@ -785,15 +848,15 @@ check_app_imports() {
     else
         user=root
     fi
-    echo "Importing the web app as $user (a few seconds):"
+    log_info "Importing the web app as $user:"
     if (cd / && ${runner[@]+"${runner[@]}"} "$PYTHON" - <<'EOF'
 import planetgen.generation.system  # noqa: F401
 from planetgen.web.app import create_app  # noqa: F401
 EOF
     ); then
-        echo "The web app and the generator import cleanly as $user with $PYTHON."
+        log_info "The web app and the generator import cleanly as $user with $PYTHON."
     else
-        echo "error: the web app does not import as $user with $PYTHON (see above)." >&2
+        log_error "the web app does not import as $user with $PYTHON (see above)."
         return 1
     fi
 }
@@ -818,19 +881,20 @@ migrate_or_reset_db() {
         return 1
     fi
     read -r current target pending database <<< "$status"
+    DB_SCHEMA_VERSION="$target"
     if (( pending > 0 )); then
-        echo "Database '$database' is at schema v$current; this version needs v$target ($pending migration step(s))."
+        log_info "Database '$database' is at schema v$current; this version needs v$target ($pending migration step(s))."
         if [[ -t 0 ]]; then
             read -r -t 30 -p "Delete all galaxy data in '$database' instead of migrating it? [y/N] (default N in 30s): " answer \
                 || { echo; answer=""; }
         else
-            echo "(No terminal to ask on: keeping the data and migrating it.)"
+            log_info "(No terminal to ask on: keeping the data and migrating it.)"
         fi
         if [[ "$answer" =~ ^[Yy]([Ee][Ss])?$ ]]; then
-            echo "Deleting the galaxy data in '$database' (admin logins are kept)."
+            log_info "Deleting the galaxy data in '$database' (admin logins are kept)."
             run_cli reset --yes
         else
-            echo "Keeping the data and migrating it."
+            log_info "Keeping the data and migrating it."
         fi
     fi
     run_cli migrate
@@ -840,16 +904,16 @@ migrate_or_reset_db() {
 # control database's history (OPS.13; the last 10 are kept), after the
 # schemas are current. A failure only warns: the update carries on.
 record_version_key() {
-    echo "Recording the version key (it runs the generator's fixed test cases once to fingerprint the code: 5 seconds to a minute):"
-    run_cli version_history || echo "warning: could not record the version key (see above); the update carries on." >&2
+    log_info "Recording the version key (it runs the generator's fixed test cases once to fingerprint the code):"
+    run_cli version_history || log_warning "could not record the version key (see above); the update carries on."
 }
 
 # Works out, once and as part of the update, the mean system mass of every stored cluster age (`planetgen.cli.warm_shape`),
 # which building the galaxy's density shape needs and no web request may spend the time on; the web app reads the results
 # from the data cache folder. A failure only warns: the web app then works them out when it is asked.
 warm_shape_means() {
-    echo "Working out the cluster system masses the galaxy shape needs (a few minutes on a big galaxy, once per release):"
-    run_cli warm_shape || echo "warning: could not work out the cluster system masses (see above); the update carries on." >&2
+    log_info "Working out the cluster system masses the galaxy shape needs:"
+    run_cli warm_shape || log_warning "could not work out the cluster system masses (see above); the update carries on."
     chmod -R a+rX "${PLANETGEN_DATA_DIR:-/var/cache/planetgen/datasets}" 2>/dev/null || true
 }
 
@@ -862,13 +926,13 @@ warm_shape_means() {
 # runs it on request.
 MATH_CHECK_FAILED=0
 check_math() {
-    echo "Running the math check (a few seconds):"
+    log_info "Running the math check:"
     if run_cli generate check-math; then
         MATH_CHECK_FAILED=0
     else
         MATH_CHECK_FAILED=1
-        echo "warning: the math check failed (above). Charted data may be wrong until it is fixed;" >&2
-        echo "         run 'planetgen check-math -v' for every check." >&2
+        log_warning "the math check failed (above). Charted data may be wrong until it is fixed;"
+        log_warning "         run 'planetgen check-math -v' for every check."
     fi
 }
 
@@ -877,13 +941,13 @@ check_math() {
 # a server never shows numbers older than its own registries. A failure only warns: /references then says its pages are not built.
 REFERENCE_PAGES_FAILED=0
 build_reference_pages() {
-    echo "Building the References pages:"
+    log_info "Building the References pages:"
     if "$PYTHON" "$SCRIPT_DIR/scripts/build_reference_pages.py"; then
         REFERENCE_PAGES_FAILED=0
     else
         REFERENCE_PAGES_FAILED=1
-        echo "warning: the References pages could not be built (above); /references may show old numbers." >&2
-        echo "         run 'python3 scripts/build_reference_pages.py' to see why." >&2
+        log_warning "the References pages could not be built (above); /references may show old numbers."
+        log_warning "         run 'python3 scripts/build_reference_pages.py' to see why."
     fi
 }
 
@@ -896,7 +960,7 @@ build_reference_pages() {
 offer_population_pass() {
     local answer=""
     if [[ "${MATH_CHECK_FAILED:-0}" == 1 ]]; then
-        echo "Skipping the population pass: the math check failed."
+        log_info "Skipping the population pass: the math check failed."
         return 0
     fi
     case "${POPULATION:-}" in
@@ -908,10 +972,10 @@ offer_population_pass() {
             fi ;;
     esac
     if [[ "$answer" =~ ^[Yy]([Ee][Ss])?$ ]]; then
-        echo "Running the population pass."
+        log_info "Running the population pass."
         run_cli generate population
         run_cli generate territories
     else
-        echo "Skipping the population pass (run 'planetgen population' any time, or set POPULATION=1)."
+        log_info "Skipping the population pass (run 'planetgen population' any time, or set POPULATION=1)."
     fi
 }

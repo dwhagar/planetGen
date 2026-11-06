@@ -33,19 +33,21 @@ from planetgen.util import settings as settingsModule
 from planetgen.web import assets
 
 TOP = frozenset({
-    "web.index", "web.help_index", "web.classes", "web.class_type_page", "web.class_page", "web.habitability_levels", "web.life_help_page", "web.life_help_topic", "web.life_help_class", "web.references_page", "web.galaxy",
+    "web.index", "web.help_index", "web.classes", "web.class_type_page", "web.class_page", "web.habitability_levels", "web.life_help_page", "web.sky_help_page", "web.life_help_topic", "web.life_help_class", "web.references_page", "web.galaxy",
+    "web.references_data_page", "web.references_fitted", "web.references_gaps", "web.references_method", "web.references_papers_page", "web.references_scorecard",
+    "web.references_speculative_page", "web.references_stand_in", "web.references_stand_ins",
     "web.species", "web.species_page", "web.polities", "web.polity_page",
 })
 LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena", "web.lists", "web.object_list"})
 DETAIL = frozenset({
     "web.system", "web.sector", "web.sector_at", "web.phenomenon", "web.uncharted_phenomenon", "web.uncharted_star",
-    "web.object_page",
+    "web.object_page", "web.belt_info_page",
 })
 OTHER_PUBLIC_UTILITY = frozenset({
     "web.search", "web.nav", "web.nav_chart", "web.nearby", "web.table_data",
-    "web.galaxy_locate", "web.galaxy_status", "web.galaxy_system_nearest", "web.galaxy_regions", "web.galaxy_near", "web.galaxy_nebula_surroundings", "web.galaxy_nebula_volume", "web.galaxy_nebula_alone_volume", "web.galaxy_stage", "web.galaxy_territories",
+    "web.galaxy_locate", "web.galaxy_status", "web.galaxy_system_nearest", "web.galaxy_regions", "web.galaxy_near", "web.galaxy_nebula_surroundings", "web.galaxy_nebula_volume", "web.galaxy_nebula_alone_volume", "web.galaxy_cloud_volume", "web.galaxy_stage", "web.galaxy_territories",
     "web.galaxy_nodes", "web.galaxy_uncharted_scene", "web.galaxy_window", "web.sector_on_galaxy_map",
-    "web.sector_scene", "web.system_on_galaxy_map", "web.system_scene", "web.old_page", "web.object_tree",
+    "web.sector_scene", "web.system_on_galaxy_map", "web.system_scene", "web.system_sky", "web.system_sky_band", "web.old_page", "web.object_tree",
 })
 PRIVATE_PREFIXES = ("web.admin", "web.generate", "web.download_galaxy_settings")
 PRIVATE = frozenset({"web.login", "web.logout", "web.account", "web.maintenance_page", "web.preferences"})

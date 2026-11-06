@@ -55,7 +55,7 @@ def test_the_clusters_are_bound_young_and_inside_the_mass_function(drawn):
 
 
 def test_most_clusters_are_young_because_the_old_ones_are_disrupted(drawn):
-    """The clusters under 0.1 Gy are not outnumbered two to one by those over 0.5 Gy. (GEN.1230: with the disc's inside-out infall the star formation of
+    """The clusters under 0.1 Gy are not outnumbered two to one by those over 0.5 Gy. (GEN.1230: with the disk's inside-out infall the star formation of
     the last Gy falls a little, so the young are 0.76 of the old and not more than them; disruption still takes most of the old clusters, which a
     window five times longer would otherwise hold five times as many of.)"""
     _shape_, found = drawn
@@ -239,15 +239,15 @@ def test_a_galaxy_that_would_form_millions_draws_the_cap_and_keeps_the_heavier_o
     assert 0 < len(found) <= 2_000 + 5 * 2_000 ** 0.5
 
 
-# --- GEN.1196: the disc's clusters are held to the most massive cluster each ring's gas can form ---------------------------
+# --- GEN.1196: the disk's clusters are held to the most massive cluster each ring's gas can form ---------------------------
 
 
-def test_no_disc_cluster_is_heavier_than_the_most_massive_its_rings_can_form(drawn):
+def test_no_disk_cluster_is_heavier_than_the_most_massive_its_rings_can_form(drawn):
     shape, found = drawn
     table = open_clusters._formation_table(shape, potential.for_galaxy(shape, b"gen244-test-seed"))
     maximum, efficiency = table[6], table[5]
     assert maximum.shape == efficiency.shape and np.all(maximum >= 0.0)
     assert np.all(maximum <= tuning.CLUSTER_MAX_MASS_CEILING_SOL)
-    disc = [c for c in found if np.hypot(c.center_pc[0], c.center_pc[1]) > 1000.0]
-    assert disc and max(c.mass_solar for c in disc) <= float(maximum.max()) * (1.0 + 1.0e-9)
-    assert max(c.mass_solar for c in disc) < 1.0e5      # not the mass function's 1e6: the Milky Way's heaviest are near 1e4
+    disk = [c for c in found if np.hypot(c.center_pc[0], c.center_pc[1]) > 1000.0]
+    assert disk and max(c.mass_solar for c in disk) <= float(maximum.max()) * (1.0 + 1.0e-9)
+    assert max(c.mass_solar for c in disk) < 1.0e5      # not the mass function's 1e6: the Milky Way's heaviest are near 1e4

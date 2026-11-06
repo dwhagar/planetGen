@@ -853,7 +853,7 @@
    "selection": "single",
    "curves": [],
    "sublimation_kj_mol": 1.02,
-   "note": "solid by Clausius-Clapeyron from the triple point (13.957 K, 7358 Pa) with 1.02 kJ/mol = 0.90 of vapourisation (gas table) + 0.12 of fusion (RECALLED, CRC); a stand-in, unchecked against any measurement",
+   "note": "solid by Clausius-Clapeyron from the triple point (13.957 K, 7358 Pa) with 1.02 kJ/mol = 0.90 of vaporisation (gas table) + 0.12 of fusion (RECALLED, CRC); a stand-in, unchecked against any measurement",
    "liquid": {
     "form": "wagner",
     "t_max_k": 33.145,

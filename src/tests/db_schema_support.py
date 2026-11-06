@@ -29,11 +29,18 @@ def migration_number(stem):
 
 
 ROWS_BEFORE = (
+    ("american_spelling", ("ALTER TABLE planets ALTER CHECK planets_chk_5 NOT ENFORCED",
+                           "ALTER TABLE moons ALTER CHECK moons_chk_5 NOT ENFORCED",
+                           "ALTER TABLE bright_stars ALTER CHECK chk_bright_stars_population NOT ENFORCED",
+                           "UPDATE planets SET hydrosphere = 'vapour' WHERE hydrosphere = 'vapor'",    # old spelling
+                           "UPDATE moons SET hydrosphere = 'vapour' WHERE hydrosphere = 'vapor'",    # old spelling
+                           "UPDATE bright_stars SET population = 'nuclear_disc' WHERE population = 'nuclear_disk'")),    # old spelling
     ("brine_seep", ("UPDATE planets SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'",
                     "UPDATE moons SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'")),
 )
 """tuple: `(migration stem, statements)`: what a row must hold to be kept in a schema older than that migration, when it widened a CHECK
-(GEN.908: the `brine seep` hydrosphere is a `surface ocean` again). `downgrade_to` runs them before it puts the old CHECKs back."""
+(GEN.908: the `brine seep` hydrosphere is a `surface ocean` again), or renamed a value the old CHECK lists (DOC.103, the old spelling: `vapor` is `vapour` again, `nuclear_disk`
+is `nuclear_disc` (old spelling); the new CHECKs are switched off first so the old words can be stored). `downgrade_to` runs them before it puts the old CHECKs back."""
 
 
 def _ddl_parts(conn):

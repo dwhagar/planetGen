@@ -13,11 +13,13 @@ system); everything else is written here from the row of the system detail. Impo
 from html import escape
 
 from planetgen.describe import sheet as sheet_registry
-from planetgen.physics import habitability
+from planetgen.physics import class_code, habitability
 from planetgen.physics.habitability_world import TIER_NAMES
 
 def _class_sentence(name, row, values):
     code = values.get("planet_class") or escape(str(row.get("planet_class") or ""))
+    if code and row.get("class_variant"):
+        code = escape(class_code.format_code(row["planet_class"], row["class_variant"]))     # GEN.1220: the digit, when it is not 0
     giant = row.get("body_type") == "g"
     ratio = row.get("roundness_ratio")
     asteroid = not code and not giant and ratio is not None and ratio < 1.0          # GEN.1160: under a roundness ratio of 1 a body has no class, it is an Asteroid
@@ -25,7 +27,21 @@ def _class_sentence(name, row, values):
     zone = sheet_registry.ZONE_NAMES.get(str(row.get("zone") or "").lower())
     where = f" in the {zone}" if zone else ""
     article = "an" if kind[:1] in "aeiouAEIOU" else "a"
-    return f"{escape(name)} is {article} {kind}{where}."
+    return f"{escape(name)} is {article} {kind}{where}.{_match_sentence(row, code)}"
+
+
+def _match_sentence(row, code):
+    """GEN.1207: how well the class fits, for example `It fits class M 92 percent and class O 41 percent.` (a body that fits no class says its nearest is shown)."""
+    match = row.get("class_match")
+    if match is None or not code:
+        return ""
+    if match <= 0.0:
+        return f" No class fits it; class {code} is the nearest."
+    text = f" It fits class {code} {match * 100:.0f} percent"
+    runner = row.get("runner_up_class")
+    if runner and row.get("runner_up_match"):
+        text += f" and class {escape(str(runner))} {row['runner_up_match'] * 100:.0f} percent"
+    return text + "."
 
 
 def _surface_sentence(row, values):

@@ -12,9 +12,9 @@ observer's position.
     SB   = -0.19 - 2.5 log10(Omega_arcsec2 * J)                                         [mag / arcsec^2]
 
 * `density` is the galaxy's own stellar density in units of the real local one (`galaxy.density.total_density_array`), so
-  the band follows the model galaxy's disc, bulge, arms and halo; `j0` (`LOCAL_V_LUMINOSITY_DENSITY`) is the V light of
+  the band follows the model galaxy's disk, bulge, arms and halo; `j0` (`LOCAL_V_LUMINOSITY_DENSITY`) is the V light of
   a unit of it, 0.044 L_V,sun per cubic parsec (stand-in SKB1).
-* `A_V(s)` is the dust of the smooth disc (`physics.sky_photometry.dust_av_per_pc`, VIEW.20), summed along the same ray
+* `A_V(s)` is the dust of the smooth disk (`physics.sky_photometry.dust_av_per_pc`, VIEW.20), summed along the same ray
   (the midpoint rule, half a step into the step it dims). Galactic dust only: the dust of nebulae stays with VIEW.13.
 * **The subtraction of the resolved stars** is `f_faint(s)`: the share of the V light of a stellar population that comes
   from stars too faint to reach the limiting magnitude `m_lim` at the distance `s`, behind the dust of the ray. A star of
@@ -25,11 +25,11 @@ observer's position.
 * **Steps** are spaced as the square of a uniform fraction (fine near the observer, where the dust and the faint-star
   cut change fastest, and coarse far away where the density is smooth), `STEPS` of them out to `MAX_DISTANCE_PC`.
 * **The image** is a cube map, six faces of `FACE_PIXELS` by `FACE_PIXELS` pixels (`face_directions`), each pixel the
-  surface brightness in mag/arcsec^2 along the direction of its centre (`DARK_MAG` where no light arrives). The shader
+  surface brightness in mag/arcsec^2 along the direction of its center (`DARK_MAG` where no light arrives). The shader
   looks it up with a bilinear filter, so a small map is enough for a band this smooth.
 * **The cache** keeps one image per cell of `CELL_PC` = 50 pc of the observer's position, worked out from the cell's
-  centre, so every system in the cell shares it (moving the observer 20 ly changes the band by at most 0.004 mag in the
-  Milky Way's disc, the plan's figure). The key (`cache_key`) names the cell, the galaxy (the caller's key: the galaxy's
+  center, so every system in the cell shares it (moving the observer 20 ly changes the band by at most 0.004 mag in the
+  Milky Way's disk, the plan's figure). The key (`cache_key`) names the cell, the galaxy (the caller's key: the galaxy's
   id, seed and epoch), the limiting magnitude, the image size, the steps and every constant the image depends on, so
   a change of any of them is a miss and not a stale hit. `BandStore` keeps the images in memory or in `.npy` files.
 
@@ -46,6 +46,7 @@ import numpy as np
 
 from planetgen.galaxy import density
 from planetgen.physics import sky_photometry
+from planetgen.util import detmath
 
 CELL_PC = 50.0
 """float: Side of the observer cells that share a band (parsecs)."""
@@ -85,16 +86,26 @@ percent of the local V light, from HYG within 25 pc); the ends are invented (sta
 MODEL_VERSION = 1
 """int: Raised when the arithmetic of the band changes, so old cached images miss."""
 
+SB_REF = 22.0
+"""float: The surface brightness of the page's unit (`html/static/skyband.js` `SB_REF`): a texel of 1.0 is 22 mag/arcsec^2."""
+
+EQUIRECT_WIDTH, EQUIRECT_HEIGHT = 256, 128
+"""int: The size of the equirectangular glow image the System View samples (the contract of `skyband.js`)."""
+
+TINT_TEMPERATURE_K = 4500.0
+"""float: The temperature of the blackbody whose colour tints the glow (stand-in GLW1): the unresolved light is mostly K and M dwarfs and the cool
+giants of the bulge."""
+
 
 def face_directions(pixels=FACE_PIXELS):
     """
-    The unit vector through the centre of every pixel of a cube map, shape `(6, pixels, pixels, 3)`. The faces are +x,
-    -x, +y, -y, +z, -z; on each, `row` and `column` run through -1..1 across the face (pixel centres).
+    The unit vector through the center of every pixel of a cube map, shape `(6, pixels, pixels, 3)`. The faces are +x,
+    -x, +y, -y, +z, -z; on each, `row` and `column` run through -1..1 across the face (pixel centers).
     """
     if pixels < 1:
         raise ValueError("a face needs at least one pixel")
-    centres = (np.arange(pixels) + 0.5) / pixels * 2.0 - 1.0
-    column, row = np.meshgrid(centres, centres)
+    centers = (np.arange(pixels) + 0.5) / pixels * 2.0 - 1.0
+    column, row = np.meshgrid(centers, centers)
     one = np.ones_like(column)
     faces = np.stack([
         np.stack([one, row, column], axis=-1), np.stack([-one, row, column], axis=-1),
@@ -147,8 +158,8 @@ def cell_of(observer_pc):
     return tuple(int(v) for v in np.floor(p / CELL_PC))
 
 
-def cell_centre(cell):
-    """The centre of a cell of `cell_of`, parsecs."""
+def cell_center(cell):
+    """The center of a cell of `cell_of`, parsecs."""
     return tuple((v + 0.5) * CELL_PC for v in cell)
 
 
@@ -156,14 +167,14 @@ def cache_key(cell, galaxy_key, limiting_magnitude=DEFAULT_LIMITING_MAGNITUDE, p
               max_distance_pc=MAX_DISTANCE_PC, dust=None):
     """
     The cache key of a band: a hash of the cell, the caller's `galaxy_key` (a string naming the galaxy's id, seed and
-    epoch), the limiting magnitude, the image size, the steps, the dust law's overrides and the constants the image
+    epoch), the limiting magnitude, the image size, the steps, the dust law's overrides (a `physics.dust_model.DustProfile` by its `key()`, the digest of its two tables) and the constants the image
     depends on (`MODEL_VERSION`, the luminosity density, the faint-light table, the cell size).
     """
     payload = {
         "version": MODEL_VERSION, "cell": [int(v) for v in cell], "cell_pc": CELL_PC, "galaxy": str(galaxy_key),
         "m_lim": float(limiting_magnitude), "pixels": int(pixels), "steps": int(steps), "max_pc": float(max_distance_pc),
         "j0": LOCAL_V_LUMINOSITY_DENSITY, "faint": [list(row) for row in FAINT_LIGHT_TABLE],
-        "dust": sorted((str(k), float(v)) for k, v in (dust or {}).items()),
+        "dust": sorted((str(k), v.key() if hasattr(v, "key") else float(v)) for k, v in (dust or {}).items()),
         "dust_default": [sky_photometry.DUST_AV_PER_KPC_AT_SUN, sky_photometry.DUST_SCALE_LENGTH_PC,
                          sky_photometry.DUST_HEIGHT_PC, sky_photometry.DUST_HEIGHT_FLARE_PC_PER_KPC,
                          sky_photometry.DUST_FLARE_START_PC, sky_photometry.DUST_SOLAR_RADIUS_PC],
@@ -262,7 +273,7 @@ class FileBandStore:
 def band_for(observer_pc, shape, galaxy_key, store, limiting_magnitude=DEFAULT_LIMITING_MAGNITUDE, pixels=FACE_PIXELS,
              steps=STEPS, max_distance_pc=MAX_DISTANCE_PC, dust=None, density_at=None):
     """
-    The band for an observer: the stored image of its 50 pc cell when there is one, else worked out from the cell's centre
+    The band for an observer: the stored image of its 50 pc cell when there is one, else worked out from the cell's center
     (`surface_brightness`), stored and returned. `galaxy_key` names the galaxy for the cache (see `cache_key`).
     """
     cell = cell_of(observer_pc)
@@ -270,7 +281,66 @@ def band_for(observer_pc, shape, galaxy_key, store, limiting_magnitude=DEFAULT_L
     band = store.get(key)
     if band is not None:
         return band
-    band = surface_brightness(cell_centre(cell), shape, limiting_magnitude, pixels, steps, max_distance_pc, dust,
+    band = surface_brightness(cell_center(cell), shape, limiting_magnitude, pixels, steps, max_distance_pc, dust,
                               density_at)
     store.put(key, band)
     return band
+
+
+def values_of(surface_brightness_mag):
+    """The page's unit of each surface brightness (arrays): `10^(-0.4 (SB - SB_REF))`, and 0 where no light arrives (`DARK_MAG` or more)."""
+    sb = np.asarray(surface_brightness_mag, dtype=float)
+    return np.where(sb >= DARK_MAG, 0.0, 10.0 ** (-0.4 * (sb - SB_REF)))
+
+
+def tint():
+    """The colour of the glow, linear red, green and blue with a luminance (0.2126, 0.7152, 0.0722) of 1: the blackbody of `TINT_TEMPERATURE_K`."""
+    from planetgen.galaxy import sky
+    rgb = sky.star_colours([TINT_TEMPERATURE_K])[0]
+    return rgb / detmath.dot(rgb, (0.2126, 0.7152, 0.0722))
+
+
+def face_bilinear(values, directions):
+    """
+    `values` (the `(6, n, n)` array of `values_of` a band) in the directions `directions` (`(..., 3)`), bilinear within the face each direction falls on
+    (clamped at the face's edge; a pixel is about 3 degrees, so the seams between faces are not seen).
+    """
+    values = np.asarray(values, dtype=float)
+    n = values.shape[1]
+    d = np.asarray(directions, dtype=float)
+    a = np.abs(d)
+    axis = np.argmax(a, axis=-1)
+    sign = np.take_along_axis(d, axis[..., None], axis=-1)[..., 0] < 0
+    major = np.take_along_axis(a, axis[..., None], axis=-1)[..., 0]
+    column_axis = np.where(axis == 0, 2, 0)
+    row_axis = np.where(axis == 1, 2, 1)
+    column = np.take_along_axis(d, column_axis[..., None], axis=-1)[..., 0] / major
+    row = np.take_along_axis(d, row_axis[..., None], axis=-1)[..., 0] / major
+    face = axis * 2 + sign.astype(int)
+    x = np.clip((column + 1.0) / 2.0 * n - 0.5, 0.0, n - 1.0)
+    y = np.clip((row + 1.0) / 2.0 * n - 0.5, 0.0, n - 1.0)
+    x0, y0 = np.floor(x).astype(int), np.floor(y).astype(int)
+    x1, y1 = np.minimum(x0 + 1, n - 1), np.minimum(y0 + 1, n - 1)
+    fx, fy = x - x0, y - y0
+    top = values[face, y0, x0] * (1.0 - fx) + values[face, y0, x1] * fx
+    bottom = values[face, y1, x0] * (1.0 - fx) + values[face, y1, x1] * fx
+    return top * (1.0 - fy) + bottom * fy
+
+
+def equirect(band, width=EQUIRECT_WIDTH, height=EQUIRECT_HEIGHT):
+    """
+    The glow image of the page (`html/static/skyband.js`): a `(height, width, 3)` float32 array of linear light in the page's unit (`values_of`), tinted
+    (`tint`), equirectangular in the sky's galactic axes: row 0 at the north pole, column 0 at longitude -180, texel centers half a texel in,
+    longitude `atan2(y, x)`, latitude `asin(z)`. `band` is the `(6, n, n)` surface brightness of `band_for`.
+    """
+    column = (np.arange(width) + 0.5) / width * 2.0 * math.pi - math.pi
+    latitude = (0.5 - (np.arange(height) + 0.5) / height) * math.pi
+    lon, lat = np.meshgrid(column, latitude)
+    directions = np.stack([np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)], axis=-1)
+    level = face_bilinear(values_of(band), directions)
+    return (level[..., None] * tint()[None, None, :]).astype(np.float32)
+
+
+def to_half_bytes(image):
+    """The image as little-endian half floats, red, green and blue a texel, row by row: what `skyband.js` puts in its texture."""
+    return np.asarray(image, dtype="<f2").tobytes()

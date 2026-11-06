@@ -44,7 +44,6 @@ from planetgen.web.lib.fmt import (
     esc, format_number, format_distance_ly, inside_text, linkify_nearest, nearest_systems_html,
     runaway_text,
 )
-from planetgen.web.maps.galaxymap import sector_quadrant
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, parts_of, plain
 from planetgen.web.maps.galaxymap3d import (
     initial_node_request, node_bounds_pc, render_galaxy_map3d_panel, view_radius_bounds,
@@ -676,6 +675,34 @@ def sector_scene(sector_id):
 sector_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+GRAVITY_MODES = ("pull", "depth", "tidal")
+"""tuple: The gravity layer's modes (`galaxy.gravity_field.MODES`, repeated here so the page does not import it)."""
+
+
+@bp.route("/sector/<uid:sector_id>/gravity")
+def sector_gravity(sector_id):
+    """
+    The Sector Map's gravity layer data (MAP.168): `GET /api/sectors/<id>/gravity` for `?mode=pull|depth|tidal` and `?field=total|centered|local`, as JSON for the
+    map. A grid still being worked out answers `202` and `{"building": true}`; the map asks again in a few seconds (the API queues one job for it, not one
+    per ask). A mode or field that is not one of those is a `400`.
+    """
+    mode = request.args.get("mode", "pull")
+    field = request.args.get("field", "total")
+    if mode not in GRAVITY_MODES or field not in ("total", "centered", "local"):
+        return jsonify({"error": "mode must be pull, depth or tidal and field total, centered or local"}), 400
+    grid = apiclient.get_sector_gravity(db_name(), sector_id, mode, field)
+    if "values" not in grid:
+        response = jsonify({"building": True})
+        response.status_code = 202
+    else:
+        response = jsonify(grid)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+sector_gravity.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/sector/<uid:sector_id>", methods=["GET", "POST"])
 def sector(sector_id):
     """One sector: badges, Sector Map, Contents (`contents_*` parameters), and
@@ -703,7 +730,6 @@ def sector(sector_id):
 
     map_html = _sector_map_html(detail, pick, admin)
 
-    quadrant = sector_quadrant(detail["center_x_pc"], detail["center_y_pc"]) if detail["placed"] else None
     system_count = len(detail["systems"])
     phenomenon_count = len(detail.get("phenomena") or [])
 
@@ -723,7 +749,6 @@ def sector(sector_id):
         star_count=detail.get("star_count"),
         debris=debris_html(detail.get("interstellar_debris_count")),
         phenomenon_count=phenomenon_count,
-        quadrant=quadrant,
         galaxy_url=galaxy_map_url(detail),
         bookmark=sector_bookmark(detail, sector_id),
         map_html=trusted_html(map_html),

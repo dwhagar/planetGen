@@ -47,7 +47,7 @@ def test_the_mass_grows_with_the_radius_and_ends_at_the_galaxys_whole_mass(shape
     assert model.stars_solar(1.0e7) == pytest.approx(stellar_mass, rel=0.05)
 
 
-def test_at_the_centre_the_black_hole_is_most_of_what_is_inside(shape, model):
+def test_at_the_center_the_black_hole_is_most_of_what_is_inside(shape, model):
     black_hole = density.central_black_hole_mass_solar(shape)
     assert model.enclosed_solar(0.5) > black_hole
     assert model.enclosed_solar(0.5) == pytest.approx(black_hole, rel=0.5)

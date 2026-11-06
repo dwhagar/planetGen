@@ -16,7 +16,7 @@ from tests.test_object_uids import PLACE, _sector
 
 @pytest.fixture
 def saved(mysql_config):
-    store.save_sector(_sector("Check One", 3, "Check Wanderer"), config=mysql_config, galaxy_position=PLACE)
+    store.save_sector(_sector("Check One", 3, "Check Wanderer", planets=True), config=mysql_config, galaxy_position=PLACE)    # the damage tests change a planet
     return mysql_config
 
 

@@ -8,13 +8,13 @@ The one record every log line the program writes for a person or a tool to read 
 written, so a file and a screen can never disagree. The standard, and every place the program logs today, are in
 `docs/design/operations/logging-standard.md`.
 
-A `Record` is a time (whole milliseconds, UTC), a severity (the RFC 5424 levels `debug`, `info`, `notice`, `warning`,
+A `Record` is a time (whole milliseconds since the epoch), a severity (the RFC 5424 levels `debug`, `info`, `notice`, `warning`,
 `error`, `critical`), a short component name, a message and ordered `key=value` fields for numbers and names a tool
 may want (a count, an elapsed time). It is written as:
 
-* a **file line** (`file_line`), logfmt, one record per line, the time always UTC::
+* a **file line** (`file_line`), logfmt, one record per line, the time local with the offset of its zone (OPS.97)::
 
-      ts=2026-10-24T18:40:00.123Z level=info component=generate msg="Stage 4 of 12: Scatter the massive stars" stage=4 stages=12
+      ts=2026-10-24T14:40:00.123-0400 level=info component=generate msg="Stage 4 of 12: Scatter the massive stars" stage=4 stages=12
 
 * a **JSON line** (`json_line`), the same record as JSON Lines, for machines;
 * a **display line** (`display_line`), for the command line and the web log: the time in local time and labelled with its
@@ -22,9 +22,9 @@ may want (a count, an elapsed time). It is written as:
   divider (`=== Stage 4 of 12: label ===`). `plain_line` is the command line's untimed text.
 
 `parse_file_line` and `parse_json_line` read a line back to the record it came from, so what a file holds and what the
-screen shows are the same records. Python's `logging` stays the entry point: `get_logger(component)` is a standard
-logger that takes fields as keyword arguments, and `FileFormatter`, `JsonFormatter` and `DisplayFormatter` write what
-it logs. Standard library only.
+screen shows are the same records. This module is the record and its lines, and nothing that writes: `planetgen.util.log` is the one
+place a record is made from a `logging` call and written (`log.get(component)` is a standard logger that takes fields as keyword
+arguments, and `log.LineFormatter` writes what it logs in every form). Standard library only.
 """
 
 import datetime
@@ -43,7 +43,7 @@ SYSLOG_CODES = {"debug": 7, "info": 6, "notice": 5, "warning": 4, "error": 3, "c
 """dict: The RFC 5424 severity number of each severity (a lower number is more severe)."""
 
 NOTICE = 25
-"""int: The `logging` level of `notice`, between `info` (20) and `warning` (30), named in `logging` by `get_logger`."""
+"""int: The `logging` level of `notice`, between `info` (20) and `warning` (30), named in `logging` by `planetgen.util.log`."""
 
 LOGGING_LEVELS = {"debug": logging.DEBUG, "info": logging.INFO, "notice": NOTICE, "warning": logging.WARNING,
                   "error": logging.ERROR, "critical": logging.CRITICAL}
@@ -52,8 +52,36 @@ LOGGING_LEVELS = {"debug": logging.DEBUG, "info": logging.INFO, "notice": NOTICE
 RESERVED_FIELDS = ("ts", "level", "component", "msg")
 """tuple: The names the record itself uses in a file line and a JSON line; a field cannot take one."""
 
-COMPONENT_PATTERN = re.compile(r"^[a-z][a-z0-9_.-]{0,23}$")
+COMPONENTS = {
+    "update": "`update.sh`, the update of an installed site",
+    "install": "`install.sh`, the first install",
+    "warm": "`planetgen warm`: the cache warm-up, its progress and its log",
+    "tiles": "`planetgen tiles`: the nightly whole-map build",
+    "orbits": "`planetgen orbits`: the nightly orbit update",
+    "generate": "the generator: `planetgen generate` and its stages, the physics and the galaxy code a run calls",
+    "queue": "the work queue: runs, units, workers and the machine's lease",
+    "web": "the web app and the API: requests, pages, the admin pages",
+    "job": "the Generate page's job runner, which runs a job's steps as processes",
+    "activity": "the always-on activity log (`AUTH`, `AUTHZ`, `DB`, `GEN` events)",
+    "command": "any other command line tool: `migrate`, `accounts`, `backup`, `config`, `query` and the rest",
+    "lib": "another library's own log lines (Flask, urllib3, ...) that the debug log picks up",
+    "logs": "`examples/apache/setup-debug-log.sh`: the log files and their rotation",
+    "permissions": "`examples/apache/set-permissions.sh`: ownership and permissions",
+    "cache-dir": "`examples/apache/create-cache-dir.sh`: the cache, jobs and state folders",
+    "swap": "`scripts/enable-swap.sh`: the swap file",
+    "python-deps": "`scripts/install-python-deps.sh`: the virtual environment and its libraries",
+}
+"""dict: The component names, each with what writes under it (OPS.103; docs/design/operations/logging-standard.md, "Components"). A record
+takes its component from this table and from nowhere else; `Record` refuses a name that is not in it, `component_of` finds the one a logger or a
+source file belongs to, and `src/tests/test_no_own_log_formatting.py` fails on a literal that is not here."""
+
+
 FIELD_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,31}$")
+
+COUNTING_WORDS = ("Stage", "Part", "Phase")
+"""tuple: The three words that say where a script or a run is (OPS.103): `Stage N of M` for the top-level steps of a script or a run (update,
+install, generate), `Part N of M` for the runs inside one (the warm-up's two), `Phase N of M` for a named group inside a run. No other word
+(`step`, `pass`) counts, and a family of the warm-up is named, not numbered; `chunk` is only ever a count (`28 of 180 chunks`)."""
 
 STAGE_START, STAGE_FINISH, STAGE_FAILED = "stage.start", "stage.finish", "stage.failed"
 STAGE_SKIPPED = "stage.skipped"
@@ -61,6 +89,12 @@ STAGE_SKIPPED = "stage.skipped"
 draws each as a divider."""
 
 STAGE_EVENTS = (STAGE_START, STAGE_FINISH, STAGE_FAILED, STAGE_SKIPPED)
+
+STDERR_SEVERITIES = ("warning", "error", "critical")
+"""tuple: The severities a command writes to standard error (the rest go to standard output)."""
+
+DIVIDER = "==="
+"""str: What a stage divider is drawn with (`=== Stage 4 of 12: label ===`)."""
 
 _NUMBER_LIKE = re.compile(r"^-?(?:\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)$")
 _BARE_VALUE = re.compile(r'^[^\s"\\=\x00-\x1f\x7f\u0085\u2028\u2029]+$')
@@ -85,8 +119,8 @@ class Record:
     def __init__(self, ms, severity, component, message, fields=None):
         if severity not in SYSLOG_CODES:
             raise ValueError(f"no severity {severity!r}; the severities are {', '.join(SEVERITIES)}")
-        if not COMPONENT_PATTERN.match(component):
-            raise ValueError(f"component {component!r} is not a short lower-case name (a-z, 0-9, _ . -)")
+        if component not in COMPONENTS:
+            raise ValueError(f"component {component!r} is not in the component table ({', '.join(COMPONENTS)})")
         fields = dict(fields or {})
         for name, value in fields.items():
             if not FIELD_PATTERN.match(name) or name in RESERVED_FIELDS:
@@ -130,23 +164,29 @@ class Record:
         return f"Record({self.ms}, {self.severity!r}, {self.component!r}, {self.message!r}, {self.fields!r})"
 
 
-def _utc(ms):
-    """`"2026-10-24T18:40:00.123Z"` for `ms` milliseconds since the epoch."""
-    moment = _EPOCH + datetime.timedelta(milliseconds=ms)
-    return moment.strftime("%Y-%m-%dT%H:%M:%S") + f".{moment.microsecond // 1000:03d}Z"
+def _stamp(ms):
+    """`"2026-10-24T14:40:00.123-0400"` for `ms` milliseconds since the epoch: the computer's local time with the offset of its zone (OPS.97)."""
+    moment = (_EPOCH + datetime.timedelta(milliseconds=ms)).astimezone()
+    return moment.strftime("%Y-%m-%dT%H:%M:%S") + f".{moment.microsecond // 1000:03d}" + moment.strftime("%z")
 
 
 def _ms_of(stamp):
-    """The milliseconds since the epoch of a `_utc` text.
+    """The milliseconds since the epoch of a `_stamp` text.
 
     Raises:
         ValueError: Not a time in that form.
     """
-    match = re.match(r"^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)\.(\d{3})Z$", stamp)
+    match = re.match(r"^(\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d)\.(\d{3})([+-]\d{4})$", stamp)
     if not match:
-        raise ValueError(f"{stamp!r} is not a time like 2026-10-24T18:40:00.123Z")
-    moment = datetime.datetime.strptime(match.group(1), "%Y-%m-%dT%H:%M:%S").replace(tzinfo=datetime.timezone.utc)
+        raise ValueError(f"{stamp!r} is not a time like 2026-10-24T14:40:00.123-0400")
+    moment = datetime.datetime.strptime(match.group(1) + match.group(3), "%Y-%m-%dT%H:%M:%S%z")
     return int((moment - _EPOCH) / datetime.timedelta(milliseconds=1)) + int(match.group(2))
+
+
+def local_text(seconds):
+    """`"2026-10-24 14:40:00 EDT"` for `seconds` since the epoch: the local time labelled with its zone, as the display line writes it."""
+    moment = (_EPOCH + datetime.timedelta(seconds=seconds)).astimezone()
+    return f"{moment.strftime('%Y-%m-%d %H:%M:%S')} {_zone_name(moment)}"
 
 
 _ESCAPES = {"\\": "\\\\", '"': '\\"', "\n": "\\n", "\r": "\\r", "\t": "\\t"}
@@ -183,8 +223,8 @@ def _value_text(value):
 
 
 def file_line(record):
-    """The record as a file line (logfmt, the time in UTC, no line break)."""
-    parts = [f"ts={_utc(record.ms)}", f"level={record.severity}", f"component={record.component}",
+    """The record as a file line (logfmt, the time local with its offset, no line break)."""
+    parts = [f"ts={_stamp(record.ms)}", f"level={record.severity}", f"component={record.component}",
              f"msg={_quote(record.message)}"]
     parts.extend(f"{name}={_value_text(value)}" for name, value in record.fields.items())
     return " ".join(parts)
@@ -192,7 +232,7 @@ def file_line(record):
 
 def json_line(record):
     """The record as a JSON Lines line: the same names as the file line, the fields beside them."""
-    body = {"ts": _utc(record.ms), "level": record.severity, "component": record.component, "msg": record.message}
+    body = {"ts": _stamp(record.ms), "level": record.severity, "component": record.component, "msg": record.message}
     body.update(record.fields)
     text = json.dumps(body, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
     return text.replace("\u0085", "\\u0085").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
@@ -319,6 +359,44 @@ def stage_record(event, component, first, total, label=None, seconds=0.0, reason
     return Record.at(time.time() if now is None else now, severity, component, message, **fields)
 
 
+_COMPONENT_OF_PATH = (
+    ("/planetgen/cli/warm", "warm"), ("/planetgen/web/warmup", "warm"),
+    ("/planetgen/cli/tiles", "tiles"), ("/planetgen/web/tilebuild", "tiles"),
+    ("/planetgen/cli/orbits", "orbits"),
+    ("/planetgen/web/job_runner", "job"),
+    ("/planetgen/queue/", "queue"),
+    ("/planetgen/web/", "web"), ("/planetgen/api/", "web"), ("/planetgen/admin/", "web"),
+    ("/planetgen/cli/generate", "generate"),
+    ("/planetgen/cli/", "command"),
+    ("/planetgen/util/joblog", "command"),
+)
+"""tuple: Source-file fragments and the component of what is logged from there, first match wins; anything else of planetGen's own is `generate`."""
+
+
+def component_of(logger_name, pathname=""):
+    """
+    The component of a `logging` record (OPS.103): the logger's name after `planetgen.` when that is a component (`planetgen.queue`,
+    `planetgen.activity`); else the one the source file belongs to (`_COMPONENT_OF_PATH`); another library's logger is `lib`.
+    """
+    if logger_name != "planetgen" and not logger_name.startswith("planetgen."):
+        return "lib"
+    name = logger_name.removeprefix("planetgen.").lower().split(".")[0]      # `planetgen.queue.units` is the queue's
+    if name in COMPONENTS:
+        return name
+    path = pathname.replace("\\", "/")
+    for fragment, component in _COMPONENT_OF_PATH:
+        if fragment in path:
+            return component
+    return "generate"
+
+
+def counting_text(word, number, total):
+    """`Part 2 of 5` (OPS.103): where a script or a run is, in one of the three `COUNTING_WORDS`."""
+    if word not in COUNTING_WORDS:
+        raise ValueError(f"no counting word {word!r}; the words are {', '.join(COUNTING_WORDS)}")
+    return f"{word} {number} of {total}"
+
+
 def _zone_name(moment):
     return moment.tzname() or moment.strftime("%z")
 
@@ -339,7 +417,10 @@ def display_line(record, tz=None, times=True, component=True, fields=True):
     if component:
         parts.append(f"{record.component}:")
     divider = record.event in STAGE_EVENTS
-    parts.append(f"=== {record.message} ===" if divider else record.message)
+    message = record.message
+    if message.lower().startswith(f"{record.severity}: "):
+        message = message[len(record.severity) + 2:]         # the severity column says it: not "ERROR  migrate: error: ..."
+    parts.append(f"{DIVIDER} {message} {DIVIDER}" if divider else message)
     if fields and not divider and record.fields:
         parts.append("(" + " ".join(f"{name}={_value_text(value)}" for name, value in record.fields.items()) + ")")
     return " ".join(parts)
@@ -350,101 +431,23 @@ def plain_line(record):
     `notice`, and the message after `warning: `, `error: ` or `critical: ` for the rest (unless the message already
     begins with that word, as `Error: ...` does)."""
     if record.event in STAGE_EVENTS:
-        return f"=== {record.message} ==="
+        return f"{DIVIDER} {record.message} {DIVIDER}"
     if SYSLOG_CODES[record.severity] >= SYSLOG_CODES["notice"] or record.message.lower().startswith(record.severity):
         return record.message
     return f"{record.severity}: {record.message}"
 
 
-def record_of(log_record):
-    """The `Record` of a standard `logging.LogRecord`: its level as a severity, the logger's name (less a leading
-    `planetgen.`; for the program's own logger the module that logged) as the component, the fields `get_logger` attached, and its time."""
-    level = log_record.levelno
-    severity = "debug"
-    for name in SEVERITIES:
-        if level >= LOGGING_LEVELS[name]:
-            severity = name
-    component = log_record.name.removeprefix("planetgen.").lower() or "planetgen"
-    if component == "planetgen" and getattr(log_record, "module", None):
-        component = log_record.module.lower()          # the program's own logger: the module that logged is the component
-    component = re.sub(r"[^a-z0-9_.-]", "_", component)[:24]
-    if not COMPONENT_PATTERN.match(component):
-        component = "planetgen"
-    return Record.at(log_record.created, severity, component, log_record.getMessage(),
-                     **getattr(log_record, "fields", {}))
+SHELL_BEGIN = "# BEGIN generated vocabulary (scripts/build_log_vocabulary.py from planetgen/util/logrecord.py; do not edit)"
+SHELL_END = "# END generated vocabulary"
 
 
-class FileFormatter(logging.Formatter):
-    """Writes what a logger logs as file lines (`file_line`)."""
-
-    def format(self, log_record):
-        return file_line(record_of(log_record))
-
-
-class JsonFormatter(logging.Formatter):
-    """Writes what a logger logs as JSON lines (`json_line`)."""
-
-    def format(self, log_record):
-        return json_line(record_of(log_record))
-
-
-class DisplayFormatter(logging.Formatter):
-    """Writes what a logger logs as display lines (`display_line`, or `plain_line` with `plain=True`)."""
-
-    def __init__(self, tz=None, plain=False, **parts):
-        super().__init__()
-        self.tz, self.plain, self.parts = tz, plain, parts
-
-    def format(self, log_record):
-        record = record_of(log_record)
-        return plain_line(record) if self.plain else display_line(record, self.tz, **self.parts)
-
-
-class Logger:
+def shell_vocabulary():
     """
-    A standard logger for one component that takes fields as keyword arguments: `log.info("Placed sectors", count=12,
-    seconds=1.5)`. Its stage methods log the start, finish and failure of a stage in the one wording.
+    The vocabulary `scripts/logrecord.sh` is generated with (OPS.104): the severities, the ones that go to standard error, the word of a
+    stage and the divider, as shell variable assignments between `SHELL_BEGIN` and `SHELL_END`, so the shell's side cannot name a word the
+    module does not (`tests/test_log_shell.py` also runs both against the same records).
     """
-
-    def __init__(self, component):
-        self.component = component
-        self.logger = logging.getLogger(f"planetgen.{component}")
-
-    def log(self, severity, message, /, **fields):
-        if self.logger.isEnabledFor(LOGGING_LEVELS[severity]):
-            Record.now(severity, self.component, str(message), **fields)       # a bad field is the caller's bug, now
-            self.logger.log(LOGGING_LEVELS[severity], message, extra={"fields": fields})
-
-    def debug(self, message, /, **fields):
-        self.log("debug", message, **fields)
-
-    def info(self, message, /, **fields):
-        self.log("info", message, **fields)
-
-    def notice(self, message, /, **fields):
-        self.log("notice", message, **fields)
-
-    def warning(self, message, /, **fields):
-        self.log("warning", message, **fields)
-
-    def error(self, message, /, **fields):
-        self.log("error", message, **fields)
-
-    def critical(self, message, /, **fields):
-        self.log("critical", message, **fields)
-
-    def stage(self, event, first, total, label=None, seconds=0.0, reason=None, count=1):
-        """Logs the start, finish or failure of a stage (`stage_record`)."""
-        record = stage_record(event, self.component, first, total, label, seconds, reason, count)
-        self.log(record.severity, record.message, **record.fields)
-
-
-def get_logger(component):
-    """The `Logger` of `component`.
-
-    Raises:
-        ValueError: A component name that is not allowed.
-    """
-    if not COMPONENT_PATTERN.match(component):
-        raise ValueError(f"component {component!r} is not a short lower-case name (a-z, 0-9, _ . -)")
-    return Logger(component)
+    stage = stagemark.run(1).split(" ")[0]
+    return "\n".join((SHELL_BEGIN, f'LOG_SEVERITIES="{" ".join(SEVERITIES)}"', f'LOG_STDERR_SEVERITIES="{" ".join(STDERR_SEVERITIES)}"',
+                      f'LOG_STAGE_WORD="{stage}"', f'LOG_DIVIDER="{DIVIDER}"', f'LOG_COUNTING_WORDS="{" ".join(COUNTING_WORDS)}"',
+                      f'LOG_COMPONENTS="{" ".join(COMPONENTS)}"', SHELL_END))

@@ -6,9 +6,7 @@ The Galaxy Map page (`/galaxy`, was `galaxy.py`) and the endpoint its script fet
 
 The page renders the 3D map panel (`planetgen/web/maps/galaxymap3d.py`, drawn by
 `static/galaxymap3d.js`) with the zoomed-all-the-way-out starting view's
-nodes embedded, plus a plain-text table under it: a per-Quadrant summary,
-or with `?quadrant=I|II|III|IV` that Quadrant's placed sectors nearest
-the core first (paged with `?page=N`).
+nodes embedded, plus a plain-text table under it of the regions where sectors are charted.
 
 Nodes go through `planetgen/web/lib/tilecache.py`'s disk cache in this (the WSGI)
 process: only nodes not already cached reach the API (in-process), and
@@ -22,15 +20,12 @@ import base64
 from flask import Response, current_app, jsonify, make_response, redirect, request, url_for
 
 from planetgen.web.lib import apiclient, galaxystatus
-from planetgen.web.lib.fmt import format_distance_ly
-from planetgen.web.maps.galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
 from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
 from planetgen.web.maps.starmap import uncharted_scene_data
 from planetgen.web.warmup import opening_request
-from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, plain
 from planetgen.util import log
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
-from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.physics.units import ly_to_pc
 from planetgen.web.lib import tilepack
 from planetgen.galaxy.drill import parse_node_key
 from planetgen.galaxy.window import DEFAULT_WINDOW
@@ -43,7 +38,7 @@ from planetgen.api.limiter import page_limit
 
 from planetgen.admin import maintenance
 
-from . import bp, glance, tables
+from . import bp, glance
 from .helpers import crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html
 
 _ID_PLACEHOLDER = 987654321987
@@ -97,67 +92,21 @@ def uncharted_phenomenon_url_template():
     return page_url("uncharted_phenomenon", scatter_id=_ID_PLACEHOLDER).replace(str(_ID_PLACEHOLDER), "{id}")
 
 
-def _parse_quadrant(raw):
-    quadrant = (raw or "").strip().upper()
-    return quadrant if quadrant in QUADRANT_LABELS else None
+REGION_LIST_CAP = 100
+"""int: How many charted regions the page's table lists (the most charted first); the line above it says how many there are."""
 
 
-def _quadrant_summary_rows(sectors):
-    """One row per Quadrant: placed sectors, total systems, Zone extent."""
-    by_quadrant = {label: [] for label in QUADRANT_LABELS}
-    for sector in sectors:
-        by_quadrant[sector_quadrant(sector["x"], sector["y"])].append(sector)
+def _region_rows(regions):
+    """The table rows of the charted regions (`GET /api/galaxy/charted-regions`, by share charted): name, family, sectors, share."""
     rows = []
-    for label in QUADRANT_LABELS:
-        members = by_quadrant[label]
-        extent = None
-        shells = [s["shell_index"] for s in members if s["shell_index"] is not None]
-        if shells:
-            _inner, outer_ly = zone_bounds_ly(sector_zone(max(shells)))
-            extent = f"out to ~{format_distance_ly(outer_ly)}"
+    for region in regions[:REGION_LIST_CAP]:
         rows.append({
-            "label": label,
-            "url": page_url("galaxy", quadrant=label, _anchor="galaxy-table"),
-            "sector_count": len(members),
-            "system_count": sum(s["system_count"] or 0 for s in members),
-            "extent": extent,
+            "name": region.get("name") or f"Region {region['key']}",
+            "parent": region.get("parent"),
+            "sector_count": region["sector_count"],
+            "share": f"{100.0 * region['share']:.1f}%",
         })
     return rows
-
-
-def _zone_label(sector):
-    return f"Zone {sector_zone(sector['shell_index'])}" if sector["shell_index"] is not None else None
-
-
-def _quadrant_cells(sector):
-    radius_ly = pc_to_ly(sector["galactic_radius_pc"])
-    return [
-        {"text": sector["name"], "href": page_url("sector", sector_id=sector["id"])},
-        {"text": _zone_label(sector) or "–"},
-        {"text": plain(format_distance_ly(radius_ly))},
-        {"text": str(sector["system_count"] or 0)},
-    ]
-
-
-def _quadrant_load(state, limit, offset, want_facets):
-    """The placed sectors of the Quadrant in `?quadrant=` (the table route's `quadrant`)."""
-    quadrant = _parse_quadrant(request.args.get("quadrant"))
-    sectors = apiclient.get_galaxy_sectors(db_name()) if quadrant else []
-    members = [s for s in sectors if sector_quadrant(s["x"], s["y"]) == quadrant]
-    return in_memory(
-        members, state, limit, offset, want_facets,
-        {"name": lambda s, descending: s["name"].casefold(),
-         "zone": lambda s, descending: s["shell_index"],
-         "radius": lambda s, descending: s["galactic_radius_pc"],
-         "systems": lambda s, descending: s["system_count"] or 0},
-        {"zone": _zone_label}, _quadrant_cells)
-
-
-QUADRANT_TABLE = tables.register(Table(
-    "galaxy-quadrant", "Sectors",
-    [Column("name", "Name"), Column("zone", "Zone"), Column("radius", "From core"), Column("systems", "Systems")],
-    _quadrant_load, facets=[Facet("zone", "Zone")], noun=("sector", "sectors"), default_sort="radius",
-))
 
 
 def _pick_from_args():
@@ -200,7 +149,7 @@ def _cluster_labels(db):
 @bp.route("/galaxy")
 @page_limit("galaxy")
 def galaxy():
-    """The 3D Galaxy Map plus the Quadrant table (`?quadrant=`, `?page=`)."""
+    """The 3D Galaxy Map plus the table of the regions where sectors are charted."""
     # UX.112: the map is being rebuilt; one page says so. The cache warm-up's own visits (`WARMUP`) are let through: they are what
     # builds the map's caches while the update holds the site closed.
     if maintenance.is_on() and not current_app.config.get("WARMUP"):
@@ -209,8 +158,6 @@ def galaxy():
     running = galaxystatus.status(db)
     if running["active"]:   # PERF.149: nothing is drawn from a half-built galaxy
         return _generating_page(running)
-    quadrant = _parse_quadrant(request.args.get("quadrant"))
-
     sectors = apiclient.get_galaxy_sectors(db)
     galaxy_shape = apiclient.get_galaxy_shape(db)
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
@@ -242,23 +189,16 @@ def galaxy():
         clusters=_cluster_labels(db),
     )
 
-    context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}
-    if quadrant:
-        context["sector_table"] = tables.render(QUADRANT_TABLE, request.path, anchor="galaxy-table",
-                                                keep=("quadrant",), quadrant=quadrant)
-        title = f"Galaxy Map: Quadrant {quadrant}"
-        breadcrumbs = [crumb("Galaxy", "galaxy"), crumb(f"Quadrant {quadrant}")]
-    else:
-        context["summary_rows"] = _quadrant_summary_rows(sectors)
-        context["glance"] = glance.galaxy_rows(sectors, apiclient.get_containers(db))
-        title = "Galaxy Map"
-        breadcrumbs = [crumb("Galaxy")]
+    regions = apiclient.get_galaxy_charted_regions(db)["regions"]
+    context = {"placed_count": len(sectors), "map_html": trusted_html(map_html),
+               "region_rows": _region_rows(regions), "region_count": len(regions), "region_cap": REGION_LIST_CAP,
+               "glance": glance.galaxy_rows(sectors, apiclient.get_containers(db))}
 
     return render_page(
         "galaxy.html",
-        title=title,
+        title="Galaxy Map",
         section="galaxy",
-        breadcrumbs=breadcrumbs,
+        breadcrumbs=[crumb("Galaxy")],
         description="An interactive 3D map of every sector placed in this charted galaxy.",
         **context,
     )
@@ -288,18 +228,25 @@ def _course_from_args():
     """
     The NAV course the map should draw, from `?course=<from>,<to>` (the
     NAV result's "Show on Galaxy Map" link, the drill-down's section
-    9.4), or `None`. A course that can't be drawn is simply not drawn;
+    9.4) or `?via=<a>,<b>,...` (the waypoints, NAV.49; `?course=` wins), or `None`. A course that can't be drawn is simply not drawn;
     an endpoint that doesn't exist is the usual 404.
     """
+    via = [part.strip() for part in (request.args.get("via") or "").split(",") if part.strip()]
     raw = (request.args.get("course") or "").strip()
-    if not raw or "," not in raw:
+    explicit = bool(raw) and "," in raw
+    if not explicit and len(via) < 2:
         return None
-    from_raw, to_raw = (part.strip() for part in raw.split(",", 1))
-    if not from_raw or not to_raw:
-        return None
-    from .nav_page import galaxy_course  # imported here: both modules register routes on `bp`
+    from .nav_page import galaxy_course, galaxy_course_through  # imported here: both modules register routes on `bp`
 
     try:
+        if not explicit:
+            try:
+                return galaxy_course_through(via)  # NAV.49: the waypoints the visitor picked (`?via=<a>,<b>,...`)
+            except apiclient.NotFoundError:
+                return None  # a waypoint kept in the browser that the database no longer has: no course, not a 404 page
+        from_raw, to_raw = (part.strip() for part in raw.split(",", 1))
+        if not from_raw or not to_raw:
+            return None
         return galaxy_course(from_raw, to_raw)
     except apiclient.ApiError as exc:
         if isinstance(exc, apiclient.NotFoundError):
@@ -613,6 +560,34 @@ def galaxy_nebula_alone_volume(nebula_id):
 
 
 galaxy_nebula_alone_volume.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/galaxy/cloud-volume")
+@page_limit("galaxy_tiles")
+def galaxy_cloud_volume():
+    """
+    The points that draw one cloud given by its sphere (MAP.392): `?x=&y=&z=&radius_pc=&family=`, the packed bytes `static/nebulavolume.js` reads, as
+    `GET /api/galaxy/cloud-volume` sampled them. For the nebulae and remnants the map has no id for. A bad query is a 400 and an API failure a 502,
+    both as `{"error": ...}` JSON.
+    """
+    try:
+        center = [float(request.args.get(axis, "")) for axis in "xyz"]
+        radius = float(request.args.get("radius_pc", ""))
+    except ValueError:
+        return _json_error("x, y, z and radius_pc must be numbers.", 400)
+    try:
+        found = apiclient.get_cloud_volume(db_name(), center[0], center[1], center[2], radius, request.args.get("family") or "")
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching a cloud's volume: {exc}")
+        return _json_error("The cloud could not be loaded. Please try again shortly.", 502)
+    response = Response(base64.b64decode(found["data"]), mimetype="application/octet-stream")
+    response.headers["Cache-Control"] = "private, max-age=3600"      # the points follow the sphere and the galaxy's stored shape
+    return response
+
+
+galaxy_cloud_volume.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/galaxy/system/<uid:system_id>/nearest")

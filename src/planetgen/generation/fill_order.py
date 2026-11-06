@@ -8,18 +8,18 @@ Boss (2026-10-07): fill the sectors nearest the original sector first, circling 
 space-filling curve through a pruned Hilbert octree. A pruned ball is not always walkable with face-adjacent steps
 (docs/design/galaxy/fill-order-curves-and-core.md: 16 of 1,335 balls pass the parity test), so the order is deterministic and
 mostly adjacent, and every step that is not adjacent is counted and reported. The decided variant (the default of the
-open question, 2026-10-10) is the 4-voxel-block one, so the first sector is the centre:
+open question, 2026-10-10) is the 4-voxel-block one, so the first sector is the center:
 
-* The candidates are laid on a lattice of one sector edge around the centre (`lattice_offset`: the sector centre minus
-  the fill's centre, in edges, rounded to the nearest voxel; the grid is spherical, so cells near a voxel share it
+* The candidates are laid on a lattice of one sector edge around the center (`lattice_offset`: the sector center minus
+  the fill's center, in edges, rounded to the nearest voxel; the grid is spherical, so cells near a voxel share it
   and tie-break on distance and address).
-* The lattice is cut into blocks of `BLOCK_EDGES` voxels a side, the centre voxel in the middle of the block at the
-  origin. Blocks come nearest first (the distance of the block's middle from the centre), so the ball is filled
-  from the centre outward in shells of blocks; blocks the same distance away come in the Hilbert order of their
+* The lattice is cut into blocks of `BLOCK_EDGES` voxels a side, the center voxel in the middle of the block at the
+  origin. Blocks come nearest first (the distance of the block's middle from the center), so the ball is filled
+  from the center outward in shells of blocks; blocks the same distance away come in the Hilbert order of their
   coordinates, so the walk goes from one to a neighbour.
 * Inside a block the voxels come in the Hilbert order of their place in the block (a curve of two levels whose steps
-  are all face-adjacent), then by distance from the centre and by address, so the whole order is a pure function of
-  the set of cells and the centre: shuffling the candidates changes nothing. The sector nearest the centre comes
+  are all face-adjacent), then by distance from the center and by address, so the whole order is a pure function of
+  the set of cells and the center: shuffling the candidates changes nothing. The sector nearest the center comes
   first of all, whatever its place on the curve.
 
 `fill_order` returns the candidates sorted; `step_statistics` counts the steps longer than `JUMP_EDGES` sector edges,
@@ -82,7 +82,7 @@ def lattice_offset(position, center, edge_pc):
 
 
 def _block_of(voxel):
-    """`(block, local)` of a voxel: the block coordinates (the centre voxel is in the middle of block 0) and the
+    """`(block, local)` of a voxel: the block coordinates (the center voxel is in the middle of block 0) and the
     place inside it, each in `0 .. BLOCK_EDGES - 1`."""
     half = BLOCK_EDGES // 2
     block = tuple((c + half) // BLOCK_EDGES for c in voxel)
@@ -97,11 +97,11 @@ def fill_order(candidates, center, edge_pc):
     Args:
         candidates (iterable): `(shell, band, wedge, x, y, z, distance_pc)` as
             `spherical.enumerate_sectors_within_radius` yields them.
-        center (tuple): The fill's centre, parsecs.
+        center (tuple): The fill's center, parsecs.
         edge_pc (float): The sector edge.
 
     Returns:
-        list: The same tuples, the centre's sector first when it is among them.
+        list: The same tuples, the center's sector first when it is among them.
     """
     cells = list(candidates)
     if not cells:

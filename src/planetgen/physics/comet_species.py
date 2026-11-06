@@ -27,7 +27,7 @@ Tests against measurement (never inputs): the chain gives the 67P value at a hos
 four species measured in populations (CH4, C2H6, H2CO, H2S, rows of k7 that are not stand-ins) have scatter of 0.33 to 0.39 dex, which brackets the width.
 
 Limits. One comet fixes all seven values: a second comet or a laboratory table of trapping by temperature replaces the factors. The sulfur of the two species plus the population's H2S is more
-than the nebular sulfur the chain allows for (the sulfur is not conserved across rows). The share of carbon in CO is the nebular share of one disc.
+than the nebular sulfur the chain allows for (the sulfur is not conserved across rows). The share of carbon in CO is the nebular share of one disk.
 """
 
 import math

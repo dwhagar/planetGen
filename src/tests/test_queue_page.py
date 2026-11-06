@@ -127,7 +127,7 @@ def test_the_api_lists_the_runs_shows_one_and_cancels_it(admin_client, control_c
     assert any(event["message"] == "sector 1,0,0 saved" for event in detail["events"])
     response = admin_client.post(f"/api/admin/work/{run_id}/control", json={"action": "cancel"})
     assert response.get_json()["ok"] is True
-    assert runrecord.read_run(conn, run_id)["state"] == "cancelled"
+    assert runrecord.read_run(conn, run_id)["state"] == "canceled"
     assert admin_client.post(f"/api/admin/work/{run_id}/control", json={"action": "cancel"}).get_json()["ok"] is False
     assert admin_client.post(f"/api/admin/work/{run_id}/control", json={"action": "bogus"}).status_code == 400
     assert admin_client.post(f"/api/admin/work/{run_id}/control", json={"action": "pause"}).status_code == 400
@@ -170,10 +170,10 @@ def test_the_runs_table_route_lists_runs_with_their_controls(web_app, admin_clie
     assert data["total"] == 1
     title, status, started, _duration, left, progress, actions = data["rows"][0]
     assert title["text"] == "Fill shell 1" and title["href"] == f"/admin/queue/{run_id}"
-    assert status["text"] == "Running" and "stage 1 of 2: Sectors" in progress["text"] and "1 of 5 units" in progress["text"]
+    assert status["text"] == "Running" and "Stage 1 of 2: Sectors" in progress["text"] and "1 of 5 units" in progress["text"]
     labels = {part["text"]: part["href"] for part in actions["parts"] if isinstance(part, dict)}
     assert labels["Cancel"] == f"/admin/queue/confirm/cancel?run={run_id}"
-    assert "Clear" not in labels, "a run that answers is cancelled, not cleared"
+    assert "Clear" not in labels, "a run that answers is canceled, not cleared"
 
 
 def test_clear_finished_deletes_every_finished_run_and_keeps_the_live_one(web_app, admin_client, control_config, conn):
@@ -199,7 +199,7 @@ def test_the_time_left_and_the_progress_read_as_words():
     assert queue_page._eta_text(None, True) == "estimating"
     assert queue_page._eta_text({"seconds": 90.0, "stalled": True}, True) == "waiting on progress"
     run = {"stage": {"index": 1, "count": 3, "label": "Settle"}, "live": True, "units": 10, "units_done": 4}
-    assert queue_page._progress_text(run) == "stage 2 of 3: Settle, 4 of 10 units"
+    assert queue_page._progress_text(run) == "Stage 2 of 3: Settle, 4 of 10 units"
     assert queue_page._progress_text({**run, "live": False}) == "3 stages, 4 of 10 units"
 
 
@@ -222,7 +222,7 @@ def test_the_run_page_log_lines_are_the_display_lines_of_the_records_the_downloa
     assert records
     for record in records:
         assert html_escape(logrecord.display_line(record)) in html
-    assert " INFO     run: sector 1,0,0 saved" in html
+    assert " INFO     queue: sector 1,0,0 saved" in html
     downloaded = [logrecord.parse_file_line(line) for line in runrecord.log_text(conn, run_id).splitlines()]
     assert [logrecord.display_line(r) for r in downloaded] == [logrecord.display_line(r) for r in records]
 
@@ -257,7 +257,7 @@ def test_every_control_is_confirmed_first(web_app, admin_client, control_config,
     assert runrecord.read_run(conn, run_id)["state"] == "running"
     response = _post(web_app, admin_client, action="cancel", run=run_id)
     assert response.status_code == 303
-    assert runrecord.read_run(conn, run_id)["state"] == "cancelled"
+    assert runrecord.read_run(conn, run_id)["state"] == "canceled"
     assert runrecord.active_run(conn) is None
     assert "Canceled" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
     assert admin_client.get("/admin/queue/confirm/nonsense").status_code == 404
@@ -318,7 +318,7 @@ def test_retry_reruns_the_command_a_run_was_started_by(web_app, admin_client, co
     run_id = _run(conn, title="planetgen galaxy --shell 2", argv=("galaxy", "--shell", "2"),
                   database=control_config.database, queued=False)
     assert "/admin/queue/confirm/retry" not in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True), \
-        "a live run is cancelled, not retried"
+        "a live run is canceled, not retried"
     runrecord.finish_run(conn, run_id, "failed", error="unit 3 failed")
     page = admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
     assert f"/admin/queue/confirm/retry?run={run_id}" in page and "unit 3 failed" in page
@@ -465,7 +465,7 @@ def test_stop_everything_is_confirmed_holds_everything_and_resume_lifts_it(web_a
     try:
         response = _post(web_app, admin_client, action="queue-stop-all")
         assert response.status_code == 303
-        assert runrecord.read_run(conn, run_id)["state"] == "cancelled"
+        assert runrecord.read_run(conn, run_id)["state"] == "canceled"
         assert stopall.state()["stopped"] and stopall.state()["by"] == "boss" and pause.is_paused(conn)
         page = admin_client.get("/admin/queue").get_data(as_text=True)
         assert "Everything is stopped" in page and "5 process(es) ended" in page

@@ -21,7 +21,7 @@ mass of the research part that is more than 0.01 g/mol from the sum of the eleme
 
 Units: molar mass in kg/mol (computed here from `physics.elements`; the research part's own figure is `research_molar_mass`),
 temperatures in K, pressures in Pa, heat capacity in J/(mol K), latent heat in kJ/mol, Rayleigh cross section in cm2 per
-molecule (the unit the optics tables are published in), Henry constants in mol/(kg bar), viscosity in uPa s, band centres in cm-1
+molecule (the unit the optics tables are published in), Henry constants in mol/(kg bar), viscosity in uPa s, band centers in cm-1
 (`Band.wavelength_um` gives the wavelength), the ultraviolet cross sections in cm2 per molecule over the bins `UV_BINS_NM` (nm). A number the research does not give is `None`.
 
 Use:
@@ -31,7 +31,7 @@ Use:
     gas("CO2").henry.kh(288.15)      # mol/(kg bar), 273.15 to 323.15 K only
     gas("N2").viscosity_upa_s(300)   # Chapman-Enskog, the non-polar gases
     gas("O3").uv.at(255.0)           # Hartley band, bin mean in cm2 per molecule
-    gas("CO2").infrared.bands        # the band centres the research gives
+    gas("CO2").infrared.bands        # the band centers the research gives
     stored("h2o")                    # the row of a stored partial (O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S, SO2)
     GASES                            # every row, in the research table's order
 """
@@ -77,7 +77,7 @@ class Rayleigh:
         king_factor_assumed (bool): F_K was not found and is assumed (1.00); the cross section is good without it to a few percent.
         reference_temperature_k (float or None): The temperature the refractivity fit was made at (GEN.408: mixing conventions
             is 1.1 percent off for O2 and about 8 percent for codes that do); `None` where the research gives none (the
-            polarizability route has none, and water vapour's is unknown).
+            polarizability route has none, and water vapor's is unknown).
         state (str): One of `STATES`.
         limit (str): For a partly verified entry, the limit.
         note (str): How the number was made.
@@ -147,7 +147,7 @@ class Viscosity:
         research_mu_300_upa_s (float): The research part's own Chapman-Enskog value at 300 K (the test checks the formula against it).
         nist_300_upa_s (float or None): The NIST fluid value at 300 K, where one was read.
         difference_percent (float or None): The research part's Chapman-Enskog against NIST at 300 K.
-        polar (bool): The gas is polar and Chapman-Enskog is 10 percent off (water vapour): `Gas.viscosity_upa_s` refuses it.
+        polar (bool): The gas is polar and Chapman-Enskog is 10 percent off (water vapor): `Gas.viscosity_upa_s` refuses it.
         state (str): One of `STATES`.
         limit (str): For a partly verified entry, the limit.
     """
@@ -175,7 +175,7 @@ class Band:
 
     Attributes:
         label (str): The research's name of the band (`"nu2 bend"`, `"hot band"`, the molecule's own name for a row of several).
-        wavenumber_cm1 (float or None): The band centre; `None` for a band the research gives only as a range.
+        wavenumber_cm1 (float or None): The band center; `None` for a band the research gives only as a range.
         range_cm1 (tuple or None): The lowest and highest wavenumber of a band given as a range (the pure rotation band's edge is
             `(0, 600)`, written "below about 600 cm-1").
         approximate (bool): The research writes "about" (the value is recalled, not read from a table).
@@ -188,7 +188,7 @@ class Band:
 
     @property
     def wavelength_um(self):
-        """The wavelength of the band centre, um (`None` for a band given as a range)."""
+        """The wavelength of the band center, um (`None` for a band given as a range)."""
         return None if self.wavenumber_cm1 is None else 1.0e4 / self.wavenumber_cm1
 
 
@@ -205,7 +205,7 @@ class Infrared:
         strength_text, fundamentals_text (str): The research's own strength and band cells, kept whole because they carry what
             is not a number (forcing statements, overlaps, broadening).
         research_row (str): The row of table 2.1 (one row serves several gases).
-        state (str), limit (str): How far the band centres are checked (recalled values are partly verified).
+        state (str), limit (str): How far the band centers are checked (recalled values are partly verified).
     """
 
     bands: tuple
@@ -340,7 +340,7 @@ class Gas:
         `mu = 2.6693 sqrt(M T)/(sigma^2 Omega22)`, M in g/mol, T in K, sigma in Angstrom.
 
         Raises:
-            NoData: The gas has no Lennard-Jones constants, is polar (water vapour: the research gives only the NIST value at
+            NoData: The gas has no Lennard-Jones constants, is polar (water vapor: the research gives only the NIST value at
                 300 K), or the reduced temperature kT/epsilon is outside 0.3 to 100.
         """
         entry = self.viscosity
@@ -420,12 +420,12 @@ def _infrared(formula, item):
     try:
         bands = []
         for band in item["bands"]:
-            centre, span = band["wavenumber_cm1"], band["range_cm1"]
-            if (centre is None) == (span is None):
+            center, span = band["wavenumber_cm1"], band["range_cm1"]
+            if (center is None) == (span is None):
                 raise DataError(f"gases.json: {formula} has a band with a center and a range, or with neither")
-            if (centre is not None and not centre > 0) or (span is not None and not 0 <= span[0] < span[1]):
+            if (center is not None and not center > 0) or (span is not None and not 0 <= span[0] < span[1]):
                 raise DataError(f"gases.json: {formula} has a band at no positive wavenumber")
-            bands.append(Band(band["label"], centre, None if span is None else (float(span[0]), float(span[1])),
+            bands.append(Band(band["label"], center, None if span is None else (float(span[0]), float(span[1])),
                               bool(band["approximate"])))
         entry = Infrared(bands=tuple(bands), saturated_rank=item["saturated_rank"], strength_text=item["strength_text"],
                          fundamentals_text=item["fundamentals_text"], research_row=item["research_row"], state=item["state"],

@@ -33,7 +33,17 @@
 //                    the layer's own code reads through `isPulled(id)` (it is drawn on top and named first). The Menu
 //                    gives such a layer a second button; pulling a layer forward shows it, hiding it lets it go;
 //   bulk             (a group) `registry.bulkGroup(group)` gives a Menu group one row of buttons that set every layer of it
-//                    to shown, pulled forward or hidden at once.
+//                    to shown, pulled forward or hidden at once;
+//   heading          (UX.277) the View menu heading the layer sits under, one of HEADINGS: what the visitor is doing with it ("Show" what
+//                    is on the map, "Color and fill" how it is drawn, "Chart and side views", "Move and Settings"). It is not the
+//                    layer's `group`, which names the row of related layers inside a heading;
+//   keywords         (UX.277) the words the menu's search matches besides the label: a non-empty list of strings ("black", "hole");
+//   common           (UX.277) true for one of the few most used switches, which the menu keeps in reach without opening a heading (default
+//                    false);
+//   settings         (UX.277) optional `function (container)`: fills `container` with the layer's own controls (a slider, a filter) for a layer
+//                    that is more than a switch; the menu builder (UX.278) calls it where the layer's row opens. None for a plain switch.
+//                    A layer with no `heading` of HEADINGS or no `keywords` shows up in `registry.unheaded()`, which the browser test holds
+//                    empty, so a new layer cannot be added without them.
 //
 // The registry holds what is on and off by layer id, including ids not registered yet (a URL names a kind
 // before any sector opens it), and writes the lists back to a URL's parameters. Plain DOM calls only, never
@@ -42,6 +52,9 @@
 // No DOM at import, no three.js: tests/js/maplayers.test.mjs holds it to this description.
 
 export const MODES = ["galaxy", "sector", "system"];
+
+// UX.277: the headings of the View menu a layer is placed under (design-drafts/view-menu-many-options-ux274-2026-11-05.md section 4).
+export const HEADINGS = ["Show", "Color and fill", "Chart and side views", "Move and Settings"];
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -152,8 +165,14 @@ export function createLayerRegistry(mode, options) {
     if (spec.defaultOn === false && spec.urlKey && !spec.urlKeyOn) {
       throw new Error("layer " + spec.id + " begins off, so it needs urlKeyOn to say when it is on");
     }
+    if (spec.keywords != null && !(Array.isArray(spec.keywords) && spec.keywords.every(function (word) { return typeof word === "string"; }))) {
+      throw new Error("layer " + spec.id + ": keywords is a list of strings");
+    }
+    if (spec.settings != null && typeof spec.settings !== "function") throw new Error("layer " + spec.id + ": settings is a function (container) or nothing");
     const layer = Object.assign({ group: null, title: null, defaultOn: true, urlKey: null, urlKeyOn: null,
-      legend: null, keyless: null, pickerLayer: null, fadedWithSectors: true, draw: null, available: null, data: null }, spec, { modes: modes });
+      legend: null, keyless: null, pickerLayer: null, fadedWithSectors: true, draw: null, available: null, data: null,
+      heading: null, keywords: null, common: false, settings: null }, spec, { modes: modes });
+    layer.common = !!layer.common;
     layers.push(layer);
     if (state.get(layer.id) === defaultOf(layer)) state.delete(layer.id);
     return layer;
@@ -196,6 +215,22 @@ export function createLayerRegistry(mode, options) {
     return forMode().filter(function (layer) {
       return !layer.legend && !layer.keyless && !keyEntries.some(function (entry) { return entry.layer === layer.id && entry.modes.indexOf(mode) >= 0; });
     }).map(function (layer) { return layer.id; });
+  }
+
+  // UX.277: the ids of the layers of the mode with no heading of HEADINGS or no keywords, which the View menu could not place or find.
+  function unheaded() {
+    return forMode().filter(function (layer) {
+      return HEADINGS.indexOf(layer.heading) < 0 || !Array.isArray(layer.keywords) || !layer.keywords.some(function (word) { return word.trim() !== ""; });
+    }).map(function (layer) { return layer.id; });
+  }
+
+  // UX.277: what the View menu is made from, one entry per layer of the mode in registration order:
+  // [{id, label, heading, group, keywords, common, settings}] (`settings` is the layer's hook, or null).
+  function entries() {
+    return forMode().map(function (layer) {
+      return { id: layer.id, label: layer.label, heading: layer.heading, group: layer.group, keywords: (layer.keywords || []).slice(),
+        common: layer.common, settings: layer.settings };
+    });
   }
 
   // Takes layers out, for ones made per sector (a kind that is not in the open sector has no button);
@@ -369,9 +404,12 @@ export function createLayerRegistry(mode, options) {
         if (layer.data) Object.keys(layer.data).forEach(function (name) { button.dataset[name] = layer.data[name]; });
         button.addEventListener("click", function () { toggle(layer.id); });
         buttons.set(layer.id, button);
-        container.appendChild(button);
         if (layer.forward) {
-          // MAP.306: the second button of a row, pulled forward or not (it shows the layer too).
+          // MAP.306: the second button of a row, pulled forward or not (it shows the layer too). MAP.397: the two sit in one row that
+          // never breaks, so "Forward" is never left alone at the start of a line (it said only "Forward" there, and was greyed out for a
+          // hidden layer); pulling a hidden layer forward shows it, so the button is always there to press.
+          const pair = doc.createElement("span");
+          pair.className = "galaxy-kinds-row";
           const front = doc.createElement("button");
           front.type = "button";
           front.className = "starmap-btn starmap-toggle map-forward-toggle";
@@ -380,7 +418,11 @@ export function createLayerRegistry(mode, options) {
           front.setAttribute("aria-label", "Pull " + layer.label.toLowerCase() + " forward");
           front.addEventListener("click", function () { setPulled(layer.id, !isPulled(layer.id)); });
           forwards.set(layer.id, front);
-          container.appendChild(front);
+          pair.appendChild(button);
+          pair.appendChild(front);
+          container.appendChild(pair);
+        } else {
+          container.appendChild(button);
         }
       });
     }
@@ -399,8 +441,7 @@ export function createLayerRegistry(mode, options) {
       });
       forwards.forEach(function (button, id) {
         button.setAttribute("aria-pressed", String(isPulled(id)));
-        button.disabled = !isOn(id);
-        button.title = "Draw it on top of the other marks, name it first and keep its names when others are cut";
+        button.title = "Show it and draw it on top of the other marks, name it first and keep its names when others are cut";
       });
     }
     refresh();
@@ -481,6 +522,8 @@ export function createLayerRegistry(mode, options) {
     keys: keys,
     refreshKey: refreshKey,
     unkeyed: unkeyed,
+    unheaded: unheaded,
+    entries: entries,
     unregister: unregister,
     get: find,
     layers: forMode,
@@ -496,6 +539,10 @@ export function createLayerRegistry(mode, options) {
     // Asks every menu and legend drawn from this registry to bring itself up to date (an `available` or a
     // `title` changed without a layer being switched).
     refresh: function () { views.forEach(function (refresh) { refresh(); }); },
+    // UX.278: a menu drawn by another module (viewmenu.js) hands its refresh over, one per container, so a layer switching
+    // brings it up to date as it does the menu `renderMenu` draws.
+    headings: HEADINGS.slice(),
+    attachView: function (container, refresh) { views.set(container, refresh); },
     readUrl: readUrl,
     writeUrl: writeUrl,
     legend: legend,

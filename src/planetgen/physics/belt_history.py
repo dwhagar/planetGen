@@ -1,54 +1,37 @@
 # planetgen/physics/belt_history.py
 
 """
-What happens to a belt over a system's life: giant-planet events, the star's giant branch and mass loss, a companion, and the dust that falls on a white dwarf (GEN.1064; docs/design/systems/belt-evolution.md sections 2.5 and 4 steps 3 and 6, belt-sources.md BR4, BR5, BR12 to BR14)
-===================================================================================================================================================================================================================================================================
+What happens to a belt over a system's life: the star's giant branch and mass loss, and the dust that falls on a white dwarf (GEN.1064; docs/design/systems/belt-evolution.md sections 2.5 and 4 steps 3 and 6, belt-sources.md BR12 to BR14)
+====================================================================================================================================================================================================================
 
-A belt is the surviving part of what formed, and each event that acts on it is a pure function from a `BeltState` to a new one that keeps what is left, what was scattered inward and a line of text the page can show. Nothing calls it yet
-(the belt wiring, GEN.1069 and later, runs the events a system's history holds in order). Mass is a share of the belt as formed; the ledger (`belt_ledger.py`) and the grinding (`belt_mass.py`) turn it into kilograms.
+A belt is the surviving part of what formed, and each event that acts on it is a pure function from a `BeltState` to a new one that keeps what is left, what was scattered inward and a line of text the page can show. `generation/remnant_orbits.py` runs the events of the star's later life in order. Mass is a share of the belt as formed; the ledger (`belt_ledger.py`) and the grinding (`belt_mass.py`) turn it into kilograms.
 
-1. **A giant-planet event** (`giant_event`). A Grand Tack-type migration through the belt leaves `GRAND_TACK_SURVIVAL` of it (2e-3 to 1e-2, [R3150, R4603], READ), a giant-planet instability alone
-   `INSTABILITY_SURVIVAL` (0.1 to 0.5; 50 to 90 percent lost, [R4603]). The share is drawn log-uniform over the range (the widest range until a population synthesis narrows it) from a stream, so a system's history is reproducible.
-2. **The giant branch** (`engulf`). A belt that overlaps the radius the star's envelope reaches (`mass_loss.engulfment_radius_au`) is not lost whole: the part inside is, and the part outside keeps its share of the mass
+1. **The giant branch** (`engulf`). A belt that overlaps the radius the star's envelope reaches (`mass_loss.engulfment_radius_au`) is not lost whole: the part inside is, and the part outside keeps its share of the mass
    (the surface density goes as `a^-SURFACE_DENSITY_SLOPE`, so the mass between two distances goes as `a^(2 - slope)`). Only a belt entirely inside is lost.
-3. **Mass loss** (`mass_loss`). When the star loses mass slowly every orbit widens by `M_before / M_after` (adiabatic invariance; [R1031], READ: a planet beyond 5 au survives and widens), the belt with them.
+2. **Mass loss** (`mass_loss`). When the star loses mass slowly every orbit widens by `M_before / M_after` (adiabatic invariance; [R1031], READ: a planet beyond 5 au survives and widens), the belt with them.
    If giants remain, the sudden change moves their resonances through the belt and a share `MASS_LOSS_SCATTER_SHARE` times the fraction of mass lost is thrown inward; with no giants nothing destabilises it.
-4. **A companion** (`limit`). A close companion truncates a belt outside the stability limit ([R1990], in `orbits.holman_wiegert_critical_semimajor_axis`) and a circumbinary belt starts beyond the inner one
-   (`holman_wiegert_circumbinary_a_crit_au`); the part outside the limit is lost.
-5. **White dwarf pollution** (`pollution_rate_g_s`, `is_polluted`). The scattered rock falls on the white dwarf over `DELIVERY_MYR`; the rate is the scattered mass over that time. [R2415] (READ) measure rates from a few 1e5 to a few 1e8 g/s;
+3. **White dwarf pollution** (`pollution_rate_g_s`, `is_polluted`). The scattered rock falls on the white dwarf over `DELIVERY_MYR`; the rate is the scattered mass over that time. [R2415] (READ) measure rates from a few 1e5 to a few 1e8 g/s;
    a white dwarf is polluted when the rate is at least `MIN_POLLUTION_RATE_G_S` (their lowest, which is also about what can be detected). So a belt of 1e18 to 1e21 kg scattered over 100 Myr spans the observed range.
 
 The Solar System is a test target (a main-belt-mass belt scattered at a white dwarf makes a rate at the top of the observed range). The fractions of white dwarfs polluted (27 to 50 percent accreting now, 56 percent with metals, BR14) are checks on the population this gives, not inputs.
 
 Limits. Each event is applied to a belt as one annulus; the shares of mass inside a distance assume a single power-law surface density; the scattered share of a mass drop is a stand-in (BHS3) with no source behind it; the rain of comets
-and the planets that also scatter rock (the other half of white dwarf pollution) are not here; a belt that survives a Grand Tack with the survival drawn is not tied to the system's own migration history (the origin table, GEN.1054, decides whether the event happened).
+and the planets that also scatter rock (the other half of white dwarf pollution) are not here; the giants' effect on a belt before the star's later life (the Grand Tack-type depletion, row BG9) is `belt_origin`'s, and a companion's limit on a belt is the orbit ceiling `system.py` trims every belt to; a Nice-type instability alone (0.1 to 0.5 of the belt left, row BG9) waits for the architecture to record it (GEN.1082).
 
 Use:
 
     state = BeltState.formed(lower_au, upper_au)
-    state = giant_event(state, GRAND_TACK, stream)           # or INSTABILITY
     state = engulf(state, engulfment_radius_au)
     state = mass_loss(state, mass_before_solar, mass_after_solar, giants_remain)
-    state = limit(state, inner_au, outer_au, "a companion at 120 au")
     state.history                                              # the lines the page shows
 """
 
 from dataclasses import dataclass, replace
 
 from planetgen.util.checks import finite_domain
-from planetgen.util.random import log_uniform
-
-GRAND_TACK = "grand tack"
-INSTABILITY = "instability"
-
-GRAND_TACK_SURVIVAL = (2.0e-3, 1.0e-2)
-"""tuple: The share of a belt left after a giant migrates through it ([R4603], and [R3150], READ: depleted by a factor of several hundred). [Stand-in BR4 of 6.95, row BHS1, tier T2, tweak L1.]"""
-
-INSTABILITY_SURVIVAL = (0.1, 0.5)
-"""tuple: The share of a belt left after a giant-planet instability alone ([R4603], READ: 50 to 90 percent lost). [Stand-in BR5 of 6.95, row BHS1, tier T2, tweak L1.]"""
 
 SURFACE_DENSITY_SLOPE = 1.5
-"""float: The belt's solids go as `a^-slope` (the minimum-mass nebula, as `scatter.DISC_SLOPE`), so the mass between two distances goes as `a^(2 - slope)`. [Stand-in BHS2, tier T6, tweak L1.]"""
+"""float: The belt's solids go as `a^-slope` (the minimum-mass nebula, as `scatter.DISK_SLOPE`), so the mass between two distances goes as `a^(2 - slope)`. [Stand-in BHS2, tier T6, tweak L1.]"""
 
 MASS_LOSS_SCATTER_SHARE = 0.5
 """float: The share of a belt thrown inward by the sudden mass loss of the star, per unit fraction of the star's mass lost, if giants remain. [Stand-in BHS3, tier T9, tweak L3.]"""
@@ -112,26 +95,6 @@ def _percent(share):
     return f"{100.0 * share:.0f}" if share >= 0.01 else f"{100.0 * share:.1f}"
 
 
-def giant_event(state, kind, stream):
-    """
-    A giant planet migrates through the belt (`GRAND_TACK`) or the giants go unstable (`INSTABILITY`): the belt keeps a drawn share of its mass.
-
-    Args:
-        state (BeltState): The belt.
-        kind (str): `GRAND_TACK` or `INSTABILITY`.
-        stream: An object with `random()` (a `draw.Stream`); one draw is taken whatever the state, so the run's stream does not depend on the history.
-    """
-    if kind not in (GRAND_TACK, INSTABILITY):
-        raise ValueError("the event is a grand tack or an instability")
-    low, high = GRAND_TACK_SURVIVAL if kind == GRAND_TACK else INSTABILITY_SURVIVAL
-    survival = log_uniform(low, high, rng=stream)
-    if state.lost:
-        return state
-    what = "A giant planet migrated through the belt" if kind == GRAND_TACK else "The giant planets went unstable"
-    line = f"{what}; {_percent(survival)} percent of the belt's mass was left."
-    return replace(state, mass_fraction=state.mass_fraction * survival, history=state.history + (line,))
-
-
 def engulf(state, radius_au):
     """
     The star's envelope reaches `radius_au` (`mass_loss.engulfment_radius_au`): the belt inside it is lost, the part outside keeps its share of the mass.
@@ -168,27 +131,6 @@ def mass_loss(state, mass_before_solar, mass_after_solar, giants_remain):
     line += f"; {_percent(thrown)} percent of it was thrown inward by the giants' resonances." if thrown > 0.0 else "."
     return replace(state, lower_au=state.lower_au * factor, upper_au=state.upper_au * factor, mass_fraction=state.mass_fraction * (1.0 - thrown),
                    scattered_fraction=state.scattered_fraction + state.mass_fraction * thrown, history=state.history + (line,))
-
-
-def limit(state, inner_au, outer_au, reason):
-    """
-    A companion limits the belt to `inner_au` to `outer_au` (use 0 and the Holman and Wiegert limit for a companion beyond the belt, the circumbinary limit and infinity for a close pair): the part outside is lost.
-
-    Args:
-        state (BeltState): The belt.
-        inner_au, outer_au (float): The stable range.
-        reason (str): Words for the history line ("a companion at 120 au").
-    """
-    if not 0.0 <= inner_au < outer_au:
-        raise ValueError("the stable range needs 0 <= inner < outer")
-    if state.lost or (inner_au <= state.lower_au and outer_au >= state.upper_au):
-        return state
-    if inner_au >= state.upper_au or outer_au <= state.lower_au:
-        return _lost(state, f"The belt lay outside the stable range set by {reason} and was lost.")
-    kept = _share_between(state.lower_au, state.upper_au, inner_au, outer_au)
-    lower, upper = max(state.lower_au, inner_au), min(state.upper_au, outer_au)
-    line = f"{reason[:1].upper()}{reason[1:]} limits the belt to {lower:.1f} to {upper:.1f} au; {_percent(kept)} percent of its mass was inside."
-    return replace(state, lower_au=lower, upper_au=upper, mass_fraction=state.mass_fraction * kept, history=state.history + (line,))
 
 
 @finite_domain()

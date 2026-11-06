@@ -1,6 +1,6 @@
 """
 MAP.350: the Galaxy Map window fills the browser window: the map is always 95% of the window's height (less a held header), recomputed on
-resize, the page rests with the map centred in the window, and once the reader scrolls the page it is left where they put it. A short window
+resize, the page rests with the map centered in the window, and once the reader scrolls the page it is left where they put it. A short window
 keeps the least height.
 
 Skipped without Playwright, Chromium or WebGL, like the other map browser tests.

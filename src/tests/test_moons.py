@@ -146,3 +146,38 @@ def test_a_moons_hill_sphere_is_about_its_planet_not_the_star(host_star):
     moon.distance, moon.mass, moon.primary_mass_kg = 384_400e3 / constants.AU_TO_M, 7.342e22, 5.972e24
     update_hill_sphere(moon)
     assert moon.hill_radius == pytest.approx(61_500, rel=0.01)
+
+
+def test_a_massive_moon_of_a_rocky_planet_comes_from_an_impact_at_the_rate_of_elser(host_star):
+    """GEN.962: rocky planets held 1.5 to 2.0 moons of 1e20 kg and over each (the Solar System has 1 for 4 rocky planets). A rocky planet now gets a moon
+    in about 1 planet in 12 (`tuning.ROCKY_IMPACT_MOON_CHANCE`, [R5127]), of at least `ROCKY_MASSIVE_MOON_MASS_RATIO` of its mass."""
+    planets = [make_host_planet(host_star, 0.5, "e") for _ in range(60)]
+    with_moons = [p for p in planets if p.moons]
+    assert len(with_moons) <= 18, len(with_moons)                    # 5 expected; the old even chance gave about 30
+    for host in with_moons:
+        assert_moons_are_valid(host)
+        assert max(m.mass for m in host.moons) >= prog_c.ROCKY_MASSIVE_MOON_MASS_RATIO * host.mass * 0.999
+
+
+def test_an_impact_chance_of_zero_leaves_a_rocky_planet_one_moon_and_no_more(host_star, monkeypatch):
+    monkeypatch.setattr(prog_c, "ROCKY_IMPACT_MOON_CHANCE", 0.0)
+    cfg = SystemConfig()
+    cfg.MOONS = True
+    distance = distance_for_zone(host_star, "e")
+    for _ in range(8):
+        host = Planet(cfg, host_star, host_star.habitable_zone, distance, mass=EARTH)
+        assert len(host.moons) <= 1
+        for moon in host.moons:
+            assert moon.mass >= prog_c.ROCKY_MASSIVE_MOON_MASS_RATIO * EARTH * 0.999
+
+
+def test_a_moon_mass_floor_replaces_the_lightest_moon_and_a_ceiling_under_it_gives_none():
+    from planetgen.util import draw
+
+    parent = EARTH
+    ceiling = planet_kind.moon_mass_ceiling_kg(parent, False)
+    floor = prog_c.ROCKY_MASSIVE_MOON_MASS_RATIO * parent
+    with draw.bound(draw.Stream("gen962-floor")):
+        masses = [planet_kind.draw_moon_mass_kg(parent, False, None, floor) for _ in range(200)]
+    assert all(floor * 0.999 <= m <= ceiling * 1.001 for m in masses)
+    assert planet_kind.draw_moon_mass_kg(parent, False, floor * 0.5, floor) is None

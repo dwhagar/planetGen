@@ -316,7 +316,7 @@ releases got theirs from a read of the whole changelog (582 releases,
 each with a 1-5 score; the README lists the score-5 and a few score-4
 ones). Upcoming headlines are tagged in TODO.md with a `Headline:
 VERSION (name).` line (8.1 MAP.146 and GEN.301, 8.2 USR.1, 8.3 GEN.105,
-8.5 NAV.59, 8.6 ADM.57, 9.1 MAP.167) and shown with every open item they need on the version plan, the
+8.5 NAV.59, 8.6 ADM.57, 9.0 MAP.167) and shown with every open item they need on the version plan, the
 TODO reference, the TODO tree and the execution plan. When the stamp
 Action adds a release, the TODO thread adds its **Headline:** line under
 the heading in CHANGELOG.md in the next docs PR. When a headline's items

@@ -94,6 +94,9 @@ os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
 # A data change never starts the warm-up by itself in a test (PERF.141); tests/test_warm_start.py turns it on.
 os.environ.setdefault("PLANETGEN_WARM_ON_CHANGE", "0")
+# VIEW.25: charting builds the sky tiers by default (`queue.sky_limit` 7.5, half an hour a cell on a real galaxy); a test galaxy would take minutes to
+# walk one, so tests chart without it. A test of the tiers gives its own limit (`--sky-limit`, or `queue.sky_limit` in its settings).
+os.environ.setdefault("PLANETGEN_SKY_LIMIT", "0")
 # PERF.209: the generator battery digest takes about half a minute and the code does not change during a run, so the workers share one copy
 # (kept under a key of every file it reads, so a changed generator works it out again).
 os.environ.setdefault("PLANETGEN_BATTERY_DIGEST_CACHE", os.path.join(tempfile.gettempdir(), "planetgen-battery-digest"))
@@ -354,6 +357,15 @@ from tests import fuzz_support  # noqa: E402,F401
 
 FAST_PASSWORD_HASH_PARAMETERS = (8, 1, 1)
 """Argon2id's smallest legal cost: 8 KiB, one pass, one thread."""
+
+
+@pytest.fixture(autouse=True)
+def _plain_command_lines(monkeypatch):
+    """A command's lines carry the time when its output is not a terminal (OPS.98), and a test's captured output never is one, so every
+    test that reads a command's text would have to skip a time in front of it. They get the plain line instead, as on a terminal;
+    `test_log_records.py` and `test_log_shell.py` test the timed form with `PLANETGEN_LOG_TIMES` set (or removed) in the test itself."""
+    monkeypatch.setenv("PLANETGEN_LOG_TIMES", "never")
+    yield
 
 
 @pytest.fixture(autouse=True)
@@ -632,3 +644,12 @@ def large_spiral_fallback(monkeypatch):
     place things at 8 kpc assume: the fallback seed's own galaxy is a small spiral since the Auto window narrowed (GEN.603)."""
     from planetgen.galaxy import scales
     monkeypatch.setattr(scales, "_drawn_scale_length_pc", lambda _seed: 2600.0)
+
+
+@pytest.fixture(scope="session")
+def rich_galaxy(_mysql_server_available):
+    """A `MySQLConfig` for the one seeded galaxy of `tests/rich_galaxy_support.py`, built once per test process (TEST.417)
+    for every module that takes it; tests must leave it as they found it (roll back)."""
+    from tests.rich_galaxy_support import scratch_rich_galaxy
+    with scratch_rich_galaxy() as config:
+        yield config

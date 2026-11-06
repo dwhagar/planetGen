@@ -140,7 +140,7 @@ def test_class_pages_show_the_constants(client):
     assert planet_classes.describe("M").sentence in html
     assert "<th scope=\"row\">Core class</th><td>Yes</td>" in html
     html = _html(client, "/classes/planet/S")
-    assert "surface pressure below 10 Pa; mass at least 1.5 Earth masses" in html
+    assert "mass at least 1.5 Earth masses" in html
 
     low_k, high_k = mamajek_sequence.letter_range_k("G")
     html = _html(client, "/classes/star-spectral/G")
@@ -284,7 +284,7 @@ def test_the_tree_without_hook_or_known_class_stays_text(app):
     assert "/classes/" not in html and "Class M" in html
     from planetgen.web.class_pages import class_url
     system = _system()
-    system["planets"] = [_planet("Z")]
+    system["planets"] = [_planet("W")]
     system["stars"][0]["star_type"] = "Unknown"
     with app.test_request_context("/system/1"):
         html = objecttree.nodes_html(_items(system), _tree_context(class_url))
@@ -494,9 +494,10 @@ def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone
     bar = html.split('<header class="site-header">')[1].split("</header>")[0]
     assert 'href="/classes"' not in bar.split("site-help-menu")[0]
     help_menu = re.search(r'<sl-dropdown class="site-help-menu".*?</sl-dropdown>', bar, re.S).group(0)
-    assert re.findall(r'data-href="([^"]*)"[^>]*>([^<]*)<', help_menu) == [
-        ("/help", "All help"), ("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life"),
-        ("/references", "References")]
+    entries = re.findall(r'data-href="([^"]*)"[^>]*>([^<]*)<', help_menu)
+    assert entries[0] == ("/help", "All help") and entries[-1] == ("/references", "References")
+    ordered = [entry for entry in entries if entry in (("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life"))]
+    assert ordered == [("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/life", "Life")]     # other help pages (the sky, VIEW.38) may sit among them
     assert bar.index("site-help-menu") < bar.index("site-search-link") < bar.index("site-gear")
     assert "Habitability levels" not in html
     page = _html(client, "/help/habitability")

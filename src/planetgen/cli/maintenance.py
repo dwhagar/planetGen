@@ -27,14 +27,14 @@ def main(argv=None):
     parser.add_argument("--eta", default="", help="When it should finish, in words (shown to visitors)")
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
-    log.apply_debug_arguments(args, parser)
+    log.apply_debug_arguments(args, parser, errors_to_stderr=True)
     try:
         if args.command == "on":
             maintenance.turn_on(args.eta, by="command line")
         elif args.command == "off":
             maintenance.turn_off(by="command line")
     except (ValueError, maintenance.MaintenanceWriteError) as exc:
-        print(exc, file=sys.stderr)
+        log.error(exc)
         return 1
     state = maintenance.read()
     if state["enabled"]:

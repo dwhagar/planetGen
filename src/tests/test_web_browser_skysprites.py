@@ -1,5 +1,5 @@
 """
-VIEW.36: the nebulae and remnants of the sky a system sees (`static/skysprites.js`) in a real browser. A nebula under the naked-eye limit is a soft disc
+VIEW.36: the nebulae and remnants of the sky a system sees (`static/skysprites.js`) in a real browser. A nebula under the naked-eye limit is a soft disk
 in its family's colour, brightest in the middle (the chord of a ball); a supernova remnant is a ring, dark in the middle; a nebula over the limit, a
 remnant not yet seen and one that holds the observer are not drawn; a cloud with no light of its own dims the star behind it.
 
@@ -64,8 +64,8 @@ def _record(**over):
     return record
 
 
-# Draws the records (and, when `withStar`, a bright point of white light dead centre drawn between the two sprite layers) and returns the light
-# (r, g, b of the pixel) at the offsets in pixels from the centre along +x of the view (to the right).
+# Draws the records (and, when `withStar`, a bright point of white light dead center drawn between the two sprite layers) and returns the light
+# (r, g, b of the pixel) at the offsets in pixels from the center along +x of the view (to the right).
 DRAW = """async ([records, probes, withStar]) => {
   const THREE = await import("/static/vendor/three.module.min.js");
   const sprites = await import("/static/skysprites.js");
@@ -112,12 +112,12 @@ def _sum(rgb):
     return sum(rgb)
 
 
-def test_a_nebula_is_a_soft_disc_brightest_in_the_middle(sky_page):
+def test_a_nebula_is_a_soft_disk_brightest_in_the_middle(sky_page):
     out = _draw(sky_page, [_record()], [[0, 0], [40, 0], [64, 0], [120, 0]])
-    centre, mid, rim, outside = (_sum(p) for p in out["light"])
+    center, mid, rim, outside = (_sum(p) for p in out["light"])
     assert out["count"] == {"glow": 1, "dark": 0}
-    assert centre > 40
-    assert centre > mid > 0
+    assert center > 40
+    assert center > mid > 0
     assert rim < mid
     assert outside == 0
     # Emission is pink: red leads blue.
@@ -126,8 +126,8 @@ def test_a_nebula_is_a_soft_disc_brightest_in_the_middle(sky_page):
 
 def test_a_remnant_is_a_ring_dark_in_the_middle(sky_page):
     out = _draw(sky_page, [_record(family="supernova-remnant", surfaceBrightness=18.0)], [[0, 0], [30, 0], [66, 0], [120, 0]])
-    centre, inner, ring, outside = (_sum(p) for p in out["light"])
-    assert ring > 3 * max(centre, 1)
+    center, inner, ring, outside = (_sum(p) for p in out["light"])
+    assert ring > 3 * max(center, 1)
     assert ring > inner
     assert outside == 0
     assert out["light"][2][0] > out["light"][2][2]          # orange: red over blue

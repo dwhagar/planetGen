@@ -52,7 +52,7 @@ FALLBACK_SEED = bytes(16)
 """bytes: The seed of a galaxy planned before it had one, as `nebula_field` takes it."""
 
 POSITION_ROUND_MPC = 1
-"""int: A cloud's centre is rounded to this many milliparsecs before it names the cloud's seed."""
+"""int: A cloud's center is rounded to this many milliparsecs before it names the cloud's seed."""
 
 
 def hosted_seed(star):
@@ -116,7 +116,7 @@ def _point_seed(galaxy_seed, kind, point_pc):
 
 
 def cloud_seed(galaxy_seed, center_pc):
-    """The seed of one field cloud's contents: the galaxy's, and the cloud's centre in whole milliparsecs."""
+    """The seed of one field cloud's contents: the galaxy's, and the cloud's center in whole milliparsecs."""
     return _point_seed(galaxy_seed, "nebula-members", center_pc)
 
 
@@ -154,7 +154,7 @@ def _protostar_count(rule, rng):
 def cloud_members(galaxy_seed, nebula, center_pc):
     """
     The protostars of a field cloud, from its seed alone: none for a class without any, one in `chance` of Bok globules
-    (P) at the centre, a clump of one to four for a star-forming core (Q), Gaussian about the centre and kept inside
+    (P) at the center, a clump of one to four for a star-forming core (Q), Gaussian about the center and kept inside
     the cloud's radius. A member's mass is drawn from the IMF below `PRE_MAIN_SEQUENCE_MAX_MASS_SOL` and its age
     uniformly under `PROTOSTAR_MAX_AGE_YR` (Class 0 and I).
 
@@ -201,7 +201,7 @@ def emission_reach_pc():
 
 def group_reach_pc():
     """How far a young group's mate can lie from the member that rolled the group (GEN.328), parsecs: two radii of the
-    widest group (the offsets are drawn inside a sphere of that radius about the group's centre, the member being one of
+    widest group (the offsets are drawn inside a sphere of that radius about the group's center, the member being one of
     them)."""
     return 2.0 * tuning.YOUNG_GROUP_RADIUS_AU_RANGE[1] / constants.AU_PER_PARSEC
 
@@ -239,7 +239,7 @@ def _member_mass(name, age_myr, rng):
 
 
 def _plummer_offset(radius_pc, half_mass_pc, rng):
-    """An offset from the Plummer sphere's centre, parsecs: a radius by inverse transform of the profile's mass table,
+    """An offset from the Plummer sphere's center, parsecs: a radius by inverse transform of the profile's mass table,
     redrawn while it lies outside the nebula, a direction uniform on the sphere."""
     table = _plummer_table()
     scale = half_mass_pc / table.half_mass_x
@@ -288,7 +288,7 @@ def emission_members(galaxy_seed, nebula, host_name, host_position_pc):
     return members
 
 
-def member_group(member):
+def member_group(member, fe_h=None):
     """
     The young group a member of a field cloud or emission region is born in (GEN.328), or None: `multistar.draw_young_group`
     on a stream of the member's own seed, so the same member draws the same group wherever it is asked. Only a massive star
@@ -297,15 +297,18 @@ def member_group(member):
 
     Args:
         member (CloudMember): The member; its mass is its birth mass (the age is under a megayear).
+        fe_h (float, optional): The birth [Fe/H] of the member's own star, which the tree's records are made at (`Placed.fe_h`). The sector that builds a member in a decayed
+            group gives the one its evolution draws, so the companions are rebuilt as the stars the tree drew (GEN.951, `stored_trees.matches`); left out, the tree is drawn at the
+            Sun's. It moves no mass and no draw, so the group is live or decayed, and has the same stars, whichever is given.
 
     Returns:
         multistar.MemberTree or None: A tree with a `group` node (the group has not decayed: member 0 is `member`, the others
-        its group mates with an `offset_au` from the group's centre), or the hierarchy the group left (older than its decay
+        its group mates with an `offset_au` from the group's center), or the hierarchy the group left (older than its decay
         age: the member and its companions, no `group` node), or None for a member that is in no group.
     """
     if member.age_yr >= tuning.YOUNG_GROUP_AGE_MAX_YR:
         return None
-    placed = multistar.Placed("star", member.mass_sol, member.mass_sol)
+    placed = multistar.Placed("star", member.mass_sol, member.mass_sol, fe_h=fe_h)
     return multistar.draw_young_group(placed, member.age_yr, rng=draw.Stream(f"young-group:{member.seed}"))
 
 

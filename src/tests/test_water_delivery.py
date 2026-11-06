@@ -57,7 +57,7 @@ def test_a_planet_inside_the_snow_line_can_be_water_rich_as_the_population_has_i
 
 
 def test_the_mass_law_of_gen_510_is_not_applied_on_top_of_the_distance_law():
-    """The earlier mass logistic (centre 6.1 Earth masses, slope 6.28 per dex) took the water-rich share from 2 percent at 1 Earth mass to 91
+    """The earlier mass logistic (center 6.1 Earth masses, slope 6.28 per dex) took the water-rich share from 2 percent at 1 Earth mass to 91
     percent at 12; here, at a fixed distance, the mass moves the water-rich share by a few percent (0.13 per dex in the logit)."""
     for x in (0.5, 1.0, 1.5):
         assert abs(_shares(12.0, x)[3] - _shares(1.0, x)[3]) < 0.08, x

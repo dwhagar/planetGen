@@ -124,7 +124,7 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # property, which draws it on first read from `_name_seed` (PERF.43). A planet's `phi_bio` and `phi_cpx` are the
 # likelihoods its life draw and life scores are made from; the stored life scores say what they gave (GEN.649). A moon's
 # `moon_disk_system` is the giant's disk while its moons are drawn; the giant keeps the disk's numbers in columns (DB.70), as a moon does its
-# `moon_origin`. A planet's `formation_distance_au` is where it formed, which for all but a pulsar's disc planet is the orbit distance it is
+# `moon_origin`. A planet's `formation_distance_au` is where it formed, which for all but a pulsar's disk planet is the orbit distance it is
 # stored with; what the draws read it for is kept as `born_beyond_snow_line` (TEST.427). A planet's `_orbit_birth` is the eccentricity
 # and tidal state it was drawn with, which `settle_orbit` takes again once the star's age is final (GEN.985); it is not stored. A giant's `_giant_draw` is the heavy-element draws that
 # `giant_draw.settle` keeps (GEN.961), also runtime state. A planet's `_surface_w` is the surface water its air solve drew, kept so the final-age
@@ -140,8 +140,9 @@ _RUNTIME_ONLY = {
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
              "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw", "_age_drawn",
-             "_surface_w", "_belt_exposure_msv_yr", "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au"},    # kept so the moon history can run again (GEN.959); the ring it builds is stored
-    AsteroidBelt: {"system_config", "composition", "makeup"},
+             "_surface_w", "_belt_exposure_msv_yr", "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au",
+             "_formation_fractions", "irregulars"},    # `irregulars` is written by `to_dict` as its own entry (GEN.1083); the solid fractions drawn before the envelope took its share (GEN.1226); the stored fractions are the ones after    # kept so the moon history can run again (GEN.959); the ring it builds is stored
+    AsteroidBelt: {"system_config", "composition", "makeup", "scatter_giant_au"},    # the giant's distance the members of an outer disk are drawn with (GEN.1092); the stored members hold what it gave
 }
 
 

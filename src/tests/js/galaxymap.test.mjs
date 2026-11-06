@@ -366,7 +366,7 @@ test("the whole galaxy has no grid lines; a window shows the lines between its b
   assert.deepEqual(gridEdges(first), [0]);
   await drillOnce(first);
   const m = await reopenOnAddress(first);
-  assert.equal(m.view.stage().win.centre.m, 81);
+  assert.equal(m.view.stage().win.center.m, 81);
   const rest = gridEdges(m);
   assert.ok(rest.length === 1 && rest[0] > 0 && rest[0] <= 0.15, "nearly invisible at rest (MAP.202): " + rest);
   assert.deepEqual(Object.keys(m.host.canvasEl.galaxyLines()).sort(), ["blockEdges", "blocksDrawn", "chartedLines", "hovered"]);
@@ -404,7 +404,7 @@ test("each window opened down the ladder pushes a history entry and a breadcrumb
     assert.equal(button(m, "back").disabled, false);
     assert.equal(button(m, "up").disabled, false);
   }
-  assert.deepEqual(seen.map((stage) => stage.win.centre.m), [81, 27, 9, 3, 1], "each step goes one level down; sectors are the last");
+  assert.deepEqual(seen.map((stage) => stage.win.center.m), [81, 27, 9, 3, 1], "each step goes one level down; sectors are the last");
   assert.ok(seen.every((stage) => stage.win.g === 9));
 });
 
@@ -438,7 +438,7 @@ test("Back, Forward, Up and Reset buttons move through the stages", async () => 
   button(m, "up").click();
   await arrive(m);
   assert.deepEqual(m.view.stage(), S.parentStage(second, outline, F.edgePc), "up goes to the parent stage");
-  assert.equal(m.view.stage().win.centre.m, 243 / 3, "the window one size up, centred on the block holding the middle");
+  assert.equal(m.view.stage().win.center.m, 243 / 3, "the window one size up, centered on the block holding the middle");
   assert.equal(button(m, "forward").disabled, true, "a new step clears Forward");
 
   button(m, "reset").click();
@@ -504,7 +504,7 @@ test("Escape goes up and Home goes back to the galaxy", async () => {
   assert.deepEqual(m.view.stage(), { win: null });
 });
 
-test("Up from a window is the window one size up, centred on the block holding its middle (MAP.150)", async () => {
+test("Up from a window is the window one size up, centered on the block holding its middle (MAP.150)", async () => {
   const m = await start();
   const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
   await drillOnce(m);
@@ -514,12 +514,12 @@ test("Up from a window is the window one size up, centred on the block holding i
   m.view.up();
   await arrive(m);
   const up = m.view.stage();
-  assert.deepEqual(up.win.centre, S.stripBlock(P.drillParent(window3.win.centre)));
+  assert.deepEqual(up.win.center, S.stripBlock(P.drillParent(window3.win.center)));
   assert.equal(up.win.g, 9);
-  assert.notDeepEqual(up, window27, "recentred on where the click was, not back where the window was");
+  assert.notDeepEqual(up, window27, "recentered on where the click was, not back where the window was");
   m.view.up();
   await arrive(m);
-  assert.equal(m.view.stage().win.centre.m, 243);
+  assert.equal(m.view.stage().win.center.m, 243);
   m.view.up();
   await arrive(m);
   assert.deepEqual(m.view.stage(), { win: null });
@@ -630,7 +630,7 @@ async function freeStage() {
   // A window of blocks one size down, seen at the isometric slant.
   await drillOnce(first);
   const m = await reopenOnAddress(first);
-  assert.equal(m.view.stage().win.centre.m, 81);
+  assert.equal(m.view.stage().win.center.m, 81);
   assert.ok(Math.abs(lastCamera(m).tilt - SV.ISO_TILT) < 1e-9, "a window is seen at a slant");
   assert.equal(button(m, "reset-view").disabled, false);
   return m;
@@ -977,8 +977,8 @@ test("the breadcrumb and the header name the cell the camera's middle is in (MAP
   const next = { shell: d.shell, band: d.band, wedge: d.wedge + 1 };
   const there = P.sectorPositionPc(next.shell, next.band, next.wedge, F.edgePc);
   const moved = S.stageAtPoint(stage, there, outline, F.edgePc);
-  assert.deepEqual(moved.win.centre, { m: 1, ...next }, "the cell the middle moved to");
-  m.host.canvasEl.galaxyCentreOn(there[0], there[1], there[2]);
+  assert.deepEqual(moved.win.center, { m: 1, ...next }, "the cell the middle moved to");
+  m.host.canvasEl.galaxyCenterOn(there[0], there[1], there[2]);
   await arrive(m);
   assert.equal(m.els.where.textContent, "In Sector " + S.blockLabel(next));
   const crumbs = crumbLabels(m);
@@ -1003,7 +1003,7 @@ test("the address holds the camera: it is written in place once the view is stil
   assert.ok(camera.quat.every((v, k) => close(v, moved.quaternion[k], 1)), "the turn is in the address too");
 
   const again = await start("http://localhost/galaxy" + m.win.location.search);
-  assert.equal(again.view.stage().win.centre.m, m.view.stage().win.centre.m, "the stage is the one the camera looks at");
+  assert.equal(again.view.stage().win.center.m, m.view.stage().win.center.m, "the stage is the one the camera looks at");
   const there = lastCamera(again);
   assert.ok(close(there.dist, moved.dist, moved.dist), "the same distance: " + there.dist + " vs " + moved.dist);
   assert.ok(there.target.every((v, k) => close(v, moved.target[k], moved.dist)), "the same middle");
@@ -1021,5 +1021,5 @@ test("the stage a camera opens is the finest window that holds its view, and the
 
   const close = lastCamera(m);
   const nearer = await start("http://localhost/galaxy?cam=" + [...close.target, close.dist / 3, ...close.quaternion].join(","));
-  assert.ok(nearer.view.stage().win.centre.m <= m.view.stage().win.centre.m, "a nearer view opens the same window or a finer one");
+  assert.ok(nearer.view.stage().win.center.m <= m.view.stage().win.center.m, "a nearer view opens the same window or a finer one");
 });

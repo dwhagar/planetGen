@@ -80,11 +80,11 @@ def rotation_period_hours(kind, radius_rsun, u):
     law held to `AP_PERIOD_RANGE_DAYS`, an Am star's from its equatorial speed)."""
     if kind == AP:
         low, high = (math.log(days) for days in AP_PERIOD_RANGE_DAYS)
-        centre, width = math.log(AP_PERIOD_MEDIAN_DAYS), AP_PERIOD_SIGMA_LN
+        center, width = math.log(AP_PERIOD_MEDIAN_DAYS), AP_PERIOD_SIGMA_LN
         from statistics import NormalDist
-        cut_low, cut_high = NormalDist().cdf((low - centre) / width), NormalDist().cdf((high - centre) / width)
+        cut_low, cut_high = NormalDist().cdf((low - center) / width), NormalDist().cdf((high - center) / width)
         z = NormalDist().inv_cdf(cut_low + min(max(u, 1.0e-12), 1.0 - 1.0e-12) * (cut_high - cut_low))
-        return 24.0 * math.exp(centre + width * z)
+        return 24.0 * math.exp(center + width * z)
     if kind == AM:
         low, high = AM_SPEED_RANGE_KMS
         speed = low + u * (high - low)

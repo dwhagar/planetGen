@@ -28,6 +28,8 @@ SHELL = 60
 (`forced`): enough stars to compare, and exact whatever the bound."""
 FLOOR = 100.0
 SEED = 17
+ORDER_SEED = 1
+"""int: The seed of the order test: with `SEED` the 200 cells hold only 4 stars (9 are expected, so 4 is a draw of about 6 percent), too few to tell an order from another."""
 BAND = 0
 CELLS = wedge_count(SHELL, BAND)
 EDGE_OF_BLOCKS = brightStars.BLOCK_WEDGES
@@ -111,13 +113,15 @@ def test_the_candidates_of_a_cell_are_the_blocks_candidates_in_that_cell():
 
 
 def test_the_same_stars_come_out_in_whatever_order_or_split_the_cells_are_reached(forced):
-    whole = sorted(_luminosity(ACROSS_A_BLOCK))
+    def stars(addresses, memo=None):
+        return _luminosity(addresses, memo=memo, seed=ORDER_SEED)
+    whole = sorted(stars(ACROSS_A_BLOCK))
     assert len(whole) > 5 and len(_wedges(whole)) > 3
-    assert sorted(_luminosity(ACROSS_A_BLOCK[::-1])) == whole
-    assert sorted(row for address in ACROSS_A_BLOCK for row in _luminosity([address])) == whole        # one at a time
+    assert sorted(stars(ACROSS_A_BLOCK[::-1])) == whole
+    assert sorted(row for address in ACROSS_A_BLOCK for row in stars([address])) == whole        # one at a time
     shared = {}
-    assert sorted(row for address in ACROSS_A_BLOCK[::-1] for row in _luminosity([address], memo=shared)) == whole
-    halves = _luminosity(ACROSS_A_BLOCK[::2]) + _luminosity(ACROSS_A_BLOCK[1::2])                    # two workers
+    assert sorted(row for address in ACROSS_A_BLOCK[::-1] for row in stars([address], memo=shared)) == whole
+    halves = stars(ACROSS_A_BLOCK[::2]) + stars(ACROSS_A_BLOCK[1::2])                    # two workers
     assert sorted(halves) == whole
 
 
@@ -148,15 +152,16 @@ def test_every_star_lies_in_its_cell_and_in_its_band(forced):
 
 
 def test_the_candidate_path_gives_each_cell_its_own_poisson_mean(forced):
-    """Over ten seeds the stars placed match the sum of the cells' means to 4.5 standard deviations (the counts are
-    Poisson, so their total has the sum for its variance)."""
+    """Over enough seeds that the stars expected pass 100 (ten at most; TEST.417: each seed costs 30 seconds, so no more are drawn than the
+    test needs) the stars placed match the sum of the cells' means to 4.5 standard deviations (the counts are Poisson, so their
+    total has the sum for its variance)."""
     bands = brightStars.canonical_bands(FLOOR)
     cells = [(SHELL, BAND, wedge) for wedge in range(CELLS)]
     per_seed = 0.0
     for k, low, high in bands:
         shares = _shares(k, low, high)
         per_seed += sum(brightStars.cell_band_rate(SHAPE, address, EDGE_PC, E_VALUE, shares) for address in cells)
-    seeds = range(30, 40)
+    seeds = range(30, 30 + min(10, math.ceil(101.0 / per_seed)))
     found = sum(len(_luminosity(cells, seed=seed)) for seed in seeds)
     expected = per_seed * len(seeds)
     assert expected > 100

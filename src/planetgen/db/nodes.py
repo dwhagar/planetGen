@@ -58,7 +58,7 @@ NODE_NEBULA_POINTS = 60
 
 NODE_NEBULA_REGIONS = 600
 """int: Most nebula regions a block node lists (MAP.173), largest volume first. A block's regions are its children that hold a
-nebula's centre (27 at most for a block of the ladder), so the budget only bites where the ladder is made finer."""
+nebula's center (27 at most for a block of the ladder), so the budget only bites where the ladder is made finer."""
 
 NODE_SECTOR_STARS = 300
 """int: Most pre-placed stars a sector node lists."""
@@ -139,7 +139,7 @@ def _stats(conn, block):
 
 
 def _lights(conn, block):
-    """The stored light of the block's pre-placed objects, as the centre of light and the mean temperature that the
+    """The stored light of the block's pre-placed objects, as the center of light and the mean temperature that the
     sums give (`block_lights`), or `None` when the block holds none or its aggregate is not kept (a sector's)."""
     if block.m == 1:
         return None
@@ -153,7 +153,7 @@ def _lights(conn, block):
         total = float(row[f"{kind}_luminosity_sol"])
         lights[f"{kind}_luminosity_sol"] = total
         if total > 0:
-            lights[f"{kind}_centre"] = [round(float(row[f"{kind}_lp{axis}"]) / total, 3) for axis in "xyz"]
+            lights[f"{kind}_center"] = [round(float(row[f"{kind}_lp{axis}"]) / total, 3) for axis in "xyz"]
     if float(row["star_luminosity_sol"]) > 0:
         lights["star_temperature_k"] = round(float(row["star_lt"]) / float(row["star_luminosity_sol"]))
     return lights
@@ -193,10 +193,10 @@ def _outer_shell(conn):
 
 def node_nebula_regions(conn, block, limit=NODE_NEBULA_REGIONS):
     """
-    The nebula regions of a block node (MAP.173): the children of `block` that hold the centre of at least one nebula, each
+    The nebula regions of a block node (MAP.173): the children of `block` that hold the center of at least one nebula, each
     a fixed-grid group, so a parent's groups are exactly the union of its children's (the nesting of the star lists, MAP.154)
-    and the map needs no clustering. A list of `{"key", "count", "volume_pc3", "centre", "radius_pc", "shares", "class"}`: the
-    child's node key, its nebulae, their summed volume (pc3), the volume-weighted centre `[x, y, z]` and the radius that
+    and the map needs no clustering. A list of `{"key", "count", "volume_pc3", "center", "radius_pc", "shares", "class"}`: the
+    child's node key, its nebulae, their summed volume (pc3), the volume-weighted center `[x, y, z]` and the radius that
     reaches the outer edge of its members (pc), the share of that volume in each family (the families that hold any), and the
     class with the most volume. Largest volume first, ties by the key, at most `limit`. Read from `nebula_block_stats`
     (`db.nebula_blocks`), so the list comes from the seed's field and the stored nebulae and needs no sector. Empty for a block whose
@@ -213,7 +213,7 @@ def node_nebula_regions(conn, block, limit=NODE_NEBULA_REGIONS):
             continue
         listed.append({
             "key": format_drill_key(child), "count": int(row["count"]), "volume_pc3": float(row["volume_pc3"]),
-            "centre": [float(v) for v in row["centroid"]], "radius_pc": float(row["bound_radius_pc"]),
+            "center": [float(v) for v in row["centroid"]], "radius_pc": float(row["bound_radius_pc"]),
             "shares": {family: share for family, share in row["shares"].items() if share > 0},
             "class": row["dominant_class"]})
     listed.sort(key=lambda region: (-region["volume_pc3"], region["key"]))

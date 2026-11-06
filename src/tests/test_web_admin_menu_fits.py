@@ -8,6 +8,10 @@ pages. Loaded in headless Chromium as the admin, at the window sizes of a laptop
 and in both themes, opened on every page that draws it: the open menu (and the submenu of a group) lies inside the
 window, and every entry can be reached (the menu scrolls inside itself when it is taller than the space left).
 Skipped without Playwright, Chromium or the MySQL test server, like `test_web_a11y.py`.
+
+TEST.638: a page whose map fills its window scrolls itself to the map when it has loaded (MAP.350, `mapfit.js`), so on the sector page the
+button lies above the window until the click brings it back. The button and the panel are measured after the click, at the same moment,
+which is where the reader sees them; measured before it the button was 73 to 235 px above the window and the panel could never be at it.
 """
 
 import pytest
@@ -83,11 +87,11 @@ def test_the_admin_menu_opens_inside_the_window_on_every_page_that_has_it(
             page.goto(base_url + path, wait_until="load")
             page.locator("sl-dropdown.admin-menu:defined").first.wait_for()
             trigger = page.locator("sl-dropdown.admin-menu >> [slot=trigger]").first
-            trigger_box = trigger.bounding_box()
             trigger.click()
             menu = page.locator("sl-dropdown.admin-menu >> sl-menu").first
             menu.wait_for(state="visible")
             popup = page.locator("sl-dropdown.admin-menu >> .dropdown__panel").first
+            trigger_box = trigger.bounding_box()      # TEST.638: after the click, which scrolls the button into view
             if not _attached(popup.bounding_box(), trigger_box):
                 problems.append(f"{endpoint}: the panel {popup.bounding_box()} is not at its button {trigger_box}")
             for name, box in (("menu", menu.bounding_box()), ("panel", popup.bounding_box())):
@@ -108,10 +112,10 @@ def test_the_admin_menu_opens_inside_the_window_on_every_page_that_has_it(
             page.keyboard.press("Escape")
             navigate = page.locator(".nav-menu >> [slot=trigger]").first
             if navigate.count() and navigate.is_visible():
-                trigger_box = navigate.bounding_box()
                 navigate.click()
                 panel = page.locator(".nav-menu >> .dropdown__panel").first
                 panel.wait_for(state="visible")
+                trigger_box = navigate.bounding_box()
                 box = panel.bounding_box()
                 if not _attached(box, trigger_box) or _outside(box, width, height):
                     problems.append(f"{endpoint}: the Navigate panel {box} is not at its button {trigger_box} "

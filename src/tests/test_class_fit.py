@@ -1,6 +1,6 @@
 """
 The best-fit class table and scorer (GEN.1205, GEN.1206): `physics/data/planet_class_fit.json` gives every class its own positive
-conditions and `physics/class_fit.py` scores a body against them. Nothing stored changes: `planet_classes.classify` still decides.
+conditions and `physics/class_fit.py` scores a body against them. `planet_classes.classify` decides the stored letter from these rows (GEN.1207).
 """
 
 import json
@@ -35,7 +35,7 @@ def test_every_quantity_a_condition_reads_has_a_shoulder_and_a_registry_basis():
             if "equals" not in condition:
                 assert condition["quantity"] in cf.SHOULDERS
     for name, entry in cf.SHOULDERS.items():
-        assert entry["basis"].startswith("CF")
+        assert entry["basis"].startswith(("CF", "DM"))
         assert ("absolute" in entry) != ("relative" in entry)
 
 
@@ -71,9 +71,11 @@ def test_best_class_is_total_over_gated_bodies():
         assert letter in cf.LETTERS and 0.0 < fit <= 1.0
 
 
-def test_a_body_no_class_matches_has_no_best_letter():
-    hot_thin = body(surface_temperature_k=414.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapour", gravity_g=1.4)
-    assert cf.best_class(hot_thin)[:2] == (None, 0.0)
+def test_a_hot_thin_air_world_is_class_z_and_a_body_no_class_matches_has_no_best_letter():
+    hot_thin = body(surface_temperature_k=414.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=1.4)
+    assert cf.best_class(hot_thin)[:2] == ("Z", 1.0)      # GEN.1221: the hot thin-air world has its own class
+    nothing = body(surface_temperature_k=300.0, atmospheric_pressure_pa=1000.0, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=0.9)
+    assert cf.best_class(nothing)[:2] == (None, 0.0)
 
 
 def test_a_cold_hydrogen_envelope_is_a_gas_dwarf_and_not_a_deep_frozen_world():
@@ -86,10 +88,11 @@ def test_a_cold_hydrogen_envelope_is_a_gas_dwarf_and_not_a_deep_frozen_world():
 def test_one_condition_missed_outright_zeroes_the_match_and_a_soft_miss_only_lowers_it():
     earth = cf.scores(EARTH_VALUES := body())
     assert earth["M"] == pytest.approx(1.0)
-    warm = cf.scores(body(surface_temperature_k=271.0))
+    warm = cf.scores(body(surface_temperature_k=274.0))      # water still freezes at 273.15 K: the phase gate (GEN.1221) is a hard condition
     assert 0.0 < warm["M"] < 1.0
     cold = cf.scores(body(surface_temperature_k=250.0))
     assert cold["M"] == 0.0
+    assert cf.scores(body(surface_temperature_k=271.0))["M"] == 0.0      # below freezing no water family applies
 
 
 def test_a_reducing_wet_world_is_f_and_not_m_by_its_own_fit():

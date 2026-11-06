@@ -111,7 +111,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate share_o2: T9, L3. Free oxygen below 3 percent poisons an anoxygenic or hydrogen-eating microbe: the existing gate (life-classes.md 3.1, Class 2 window)
 - window temperature_k: T7, L3. Habitat 255 to 370 K (life-classes.md 3.1, Class 2 window)
 - supply donor_supply: T9, L4. The donor supply (hydrogen, Fe2+ or H2S delivered, GEN.887) must reach a twentieth of Earth's for the class to be fully supported; its mats are donor-limited to about 1 percent of an oxygenic biosphere per unit of Earth's supply (life-classes.md 4: 1e-4 to 1e-2 of today's biosphere)
-- life anoxygenic: T7, L3. Anoxygenic photosynthesis needs one reaction centre and no water splitting, so it comes first (0.6); its respiration is anaerobic, about a ninth of the aerobic yield (Gale and Wandel, read in the review)
+- life anoxygenic: T7, L3. Anoxygenic photosynthesis needs one reaction center and no water splitting, so it comes first (0.6); its respiration is anaerobic, about a ninth of the aerobic yield (Gale and Wandel, read in the review)
 
 ### Class 3a: Hydrogen eaters: geochemical hydrogen (serpentinisation, vents)
 

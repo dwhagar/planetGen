@@ -9,7 +9,7 @@ One function of position returns the potential and the pull of a galaxy, and one
 - **Hernquist spheres**, `Phi = -G M / (r + a)`: the bulge (the bar's three axes are not kept: a sphere of the bar's long
   axis), the stellar halo, the nuclear star cluster;
 - **Miyamoto-Nagai disks** [R3103], `Phi = -G M / sqrt(R^2 + (a + sqrt(z^2 + b^2))^2)`: the thin and thick disks and the nuclear
-  disc, with `a` the disk's scale length and `b` its scale height;
+  disk, with `a` the disk's scale length and `b` its scale height;
 - **an NFW halo** [R3248] of the dark matter, `Phi = -G M_s ln(1 + r / r_s) / r`, of the mass chain's halo less the galaxy's
   stars, its virial radius and its concentration (`enclosed_mass.dark_halo`).
 
@@ -23,6 +23,12 @@ break radius and cluster scale) are stand-ins (registry rows GP1 to GP3 of 6.157
 rotation curve in the literature ([R0496]'s MWPotential2014: a Hernquist-like bulge, a Miyamoto-Nagai disk, an NFW halo) is the same kind of model with
 its parameters fitted, not derived.
 
+**The stars are the density model's, not the stand-ins (GEN.1285).** The profiles above hold the stars of the density model to 25 to 40 percent in the disk, 40-fold
+at the center and several-fold beyond 16 kpc, so a table (`galaxy.stellar_table`, built once with the potential) adds the potential, the pull and the density of
+the difference between the density model and the profiles' own density: the profiles are the closed-form baseline and the table the residual, together the density
+model's field to about 1 percent in the circular speed (held against an independent ring sum in `tests/test_stellar_table.py`). It is the Sun's 208 km/s becoming 224. The
+bar's three axes are averaged round the axis, as `enclosed_mass` averages them.
+
 Units: parsecs, solar masses and km/s. The pull is in (km/s)^2 per pc (`ACCELERATION_TO_SI` turns it into m/s^2); a time in Myr is `KMS_TO_PC_PER_MYR` (1.0227)
 pc per (km/s), the unit a pull times a time gives a speed in. The arrays are numpy arrays, so one call evaluates many points, and the same inputs give the same
 numbers.
@@ -35,7 +41,7 @@ import math
 
 import numpy as np
 
-from planetgen.galaxy import density, enclosed_mass, mass_chain, seed as galaxySeed, shape_draw
+from planetgen.galaxy import density, enclosed_mass, mass_chain, seed as galaxySeed, shape_draw, stellar_table
 from planetgen.physics import constants, unit_registry
 
 G_PC_KMS2_PER_MSUN = constants.G * unit_registry.converter("Msun", "kg")(1.0) / (constants.PARSEC_M * 1.0e6)
@@ -49,7 +55,7 @@ BLACK_HOLE_SOFTENING_PC = 1.0
 
 HERNQUIST_COMPONENTS = {"bulge": "scale_x_pc", "halo": "break_pc", "nuclear_cluster": "scale_pc"}
 """dict: The components of the density model a Hernquist sphere stands for, and the parameter of each that is its scale radius (stand-ins GP2 and GP3)."""
-DISK_COMPONENTS = ("thin_disk", "thick_disk", "nuclear_disc")
+DISK_COMPONENTS = ("thin_disk", "thick_disk", "nuclear_disk")
 """tuple: The components a Miyamoto-Nagai disk stands for, with `a` the component's `scale_length_pc` and `b` its `scale_height_pc` (stand-in GP1)."""
 
 Hernquist = collections.namedtuple("Hernquist", ("name", "mass_solar", "scale_pc"))
@@ -66,6 +72,8 @@ class Potential:
     halo: Halo = Halo(0.0, 1.0, 1.0)
     black_hole_solar: float = 0.0
     softening_pc: float = BLACK_HOLE_SOFTENING_PC
+    correction: object = None
+    """`galaxy.stellar_table.StellarTable` or `None`: the stars of the density model less the analytic profiles' own (GEN.1285), added to the stellar density, the potential and the pull."""
 
     def __post_init__(self):
         for part in (*self.spheres, *self.disks):
@@ -102,7 +110,7 @@ def _nfw_mass_function(u):
 
 
 def potential(pot, x, y, z):
-    """The potential at `(x, y, z)` (parsecs, the galaxy's axes with the centre at the origin), in (km/s)^2, zero at infinity. A float for float input."""
+    """The potential at `(x, y, z)` (parsecs, the galaxy's axes with the center at the origin), in (km/s)^2, zero at infinity. A float for float input."""
     x, y, z = _arrays(x, y, z)
     r = np.sqrt(x * x + y * y + z * z)
     big_g = G_PC_KMS2_PER_MSUN
@@ -118,9 +126,11 @@ def potential(pot, x, y, z):
         scale = pot.nfw_scale_pc
         u = r / scale
         small = u < 1.0e-8
-        # ln(1 + u) / u -> 1 at the centre, so the potential there is -G M_s / r_s.
+        # ln(1 + u) / u -> 1 at the center, so the potential there is -G M_s / r_s.
         ratio = np.where(small, 1.0, np.log1p(np.where(small, 1.0, u)) / np.where(small, 1.0, u))
         total -= big_g * pot.nfw_characteristic_solar / scale * ratio
+    if pot.correction is not None:
+        total += pot.correction.potential(x, y, z)
     return float(total) if total.ndim == 0 else total
 
 
@@ -157,9 +167,36 @@ def acceleration(pot, x, y, z):
         pull = big_g * disk.mass_solar / denominator
         ax, ay = ax - pull * x, ay - pull * y
         az = az - pull * z * (disk.scale_length_pc + root) / root
+    if pot.correction is not None:
+        cx, cy, cz = pot.correction.pull(x, y, z)
+        ax, ay, az = ax + cx, ay + cy, az + cz
     if ax.ndim == 0:
         return float(ax), float(ay), float(az)
     return ax, ay, az
+
+
+def stellar_density(pot, x, y, z):
+    """
+    The density of the potential's own stars (its Hernquist spheres and Miyamoto-Nagai disks, not the dark halo or the black hole) at `(x, y, z)`, parsecs, in solar
+    masses per pc^3 (MAP.383: the mass the gravity map takes out of the smooth field where it puts the generated stars in). It is the Poisson density of those terms,
+    `laplacian(phi) / (4 pi G)`, in closed form: a Hernquist sphere `M a / (2 pi r (r + a)^3)` and a Miyamoto-Nagai disk
+    `(b^2 M / 4 pi) (a R^2 + (a + 3 s) (a + s)^2) / ((R^2 + (a + s)^2)^(5/2) s^3)` with `s = sqrt(z^2 + b^2)`. Arrays in, arrays out; a float for float input.
+    """
+    x, y, z = _arrays(x, y, z)
+    r = np.sqrt(x * x + y * y + z * z)
+    cylinder2 = x * x + y * y
+    total = np.zeros_like(r)
+    for sphere in pot.spheres:
+        safe = np.where(r > 0.0, r, 1.0)
+        total += np.where(r > 0.0, sphere.mass_solar * sphere.scale_pc / (2.0 * math.pi * safe * (safe + sphere.scale_pc) ** 3), np.inf)
+    for disk in pot.disks:
+        s = np.sqrt(z * z + disk.scale_height_pc ** 2)
+        a = disk.scale_length_pc
+        total += (disk.scale_height_pc ** 2 * disk.mass_solar / (4.0 * math.pi)
+                  * (a * cylinder2 + (a + 3.0 * s) * (a + s) ** 2) / ((cylinder2 + (a + s) ** 2) ** 2.5 * s ** 3))
+    if pot.correction is not None:
+        total = np.maximum(total + pot.correction.density(x, y, z), 0.0)
+    return float(total) if total.ndim == 0 else total
 
 
 def circular_speed_kms(pot, radius_pc):
@@ -199,8 +236,14 @@ def from_shape(shape, galaxy_seed=None):
             parameters = component.parameters
             disks.append(Disk(component.name, component.mass_solar, parameters["scale_length_pc"], parameters["scale_height_pc"]))
     dark = enclosed_mass.dark_halo(shape, galaxy_seed)
-    return Potential(tuple(spheres), tuple(disks), Halo(dark.dark_solar, dark.concentration, dark.virial_radius_pc),
-                     density.central_black_hole_mass_solar(shape))
+    analytic = Potential(tuple(spheres), tuple(disks), Halo(dark.dark_solar, dark.concentration, dark.virial_radius_pc),
+                         density.central_black_hole_mass_solar(shape))
+    scale = 1.0 / (shape.k_norm * density.model_terms(shape)["mass_per_solar"])
+
+    def model(x, y, z):
+        return density.total_density_array(x, y, z, shape) * scale
+
+    return dataclasses.replace(analytic, correction=stellar_table.build(model, lambda x, y, z: stellar_density(analytic, x, y, z), G_PC_KMS2_PER_MSUN))
 
 
 @functools.lru_cache(maxsize=16)

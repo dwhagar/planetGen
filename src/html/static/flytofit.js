@@ -34,13 +34,13 @@ export function fitDistance(radius, vfovDeg, aspect, options) {
   return (size / Math.sin(halfFieldRad(vfovDeg, aspect))) * (1 + margin);
 }
 
-// How far the farthest part of `spheres` reaches from `centre`: spheres are {x, y, z, r} (r the sphere's own radius,
+// How far the farthest part of `spheres` reaches from `center`: spheres are {x, y, z, r} (r the sphere's own radius,
 // 0 for a point). Spheres without a position are skipped.
-export function reachFrom(centre, spheres) {
+export function reachFrom(center, spheres) {
   let far = 0;
   spheres.forEach(function (s) {
     if (!Number.isFinite(s.x) || !Number.isFinite(s.y) || !Number.isFinite(s.z)) return;
-    far = Math.max(far, Math.hypot(s.x - centre[0], s.y - centre[1], s.z - centre[2]) + (s.r > 0 ? s.r : 0));
+    far = Math.max(far, Math.hypot(s.x - center[0], s.y - center[1], s.z - center[2]) + (s.r > 0 ? s.r : 0));
   });
   return far;
 }
