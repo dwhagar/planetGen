@@ -2834,3 +2834,6 @@ Baseline: PR #1817.
 | ADM.136 | 8.1 | Bugs and flaky tests |
 | TEST.671 | 8.1 | Bugs and flaky tests |
 | TEST.673 | 8.1 | Bugs and flaky tests |
+| TEST.670 | 8.1 | Bugs and flaky tests |
+| TEST.672 | 8.1 | Bugs and flaky tests |
+| TEST.674 | 8.1 | Bugs and flaky tests |
