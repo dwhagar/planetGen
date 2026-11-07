@@ -2878,3 +2878,4 @@ Baseline: PR #1817.
 | OPS.116 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.679 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | OPS.117 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.683 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
