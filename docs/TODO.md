@@ -16509,23 +16509,6 @@ clears each one.
   it is lock work.
   Prerequisites: none. Related: TEST.586, TEST.587, TEST.588.
 
-- [ ] **TEST.600 Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12)**
-  The Train Manager (as the lane reported, 9:28 AM EST on 2026-11-05)
-  asked for this. GEN.1275 (the habitable-world bar, Bug 1) and TEST.579
-  (remeasured prevalence base shares, Bug 1, branch
-  bug1/test579-base-shares eac2a5a48, includes PERF.236) were held out
-  of train 11 because GEN.1275 duplicates the bar of GEN.1250 and
-  conflicts in planet.py and system.py; they go to train 12 after Bug 1
-  rebases and keeps one bar. Do: once both land, run the census re-tag,
-  re-baseline the TEST.430 prevalence rows for the new base shares
-  (asteroid_belt 0.653, habitable_world 0.584, large_star 0.056, planets
-  0.822) and check test_prevalence.py goes green (habitable_world -50 is
-  fixed by GEN.1275). Done: the census and prevalence tests pass on main
-  with no other test moved. Version 8.1. Owner: Train Manager, after
-  train 12 merges GEN.1275 and TEST.579. Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.430.
-  Owner change (TODO) (6:00 PM EST on 2026-11-06): Bug 1 takes the census re-tag (the Train Manager's run is in /mnt/project-files/reports/train12/test600-census-notes-2026-11-06.md); anomalies filed as TEST.656 and PERF.246.
-
 - [ ] **TEST.623 Contrast and browser colour tests for all six look and theme combinations (cockpit, chart, phosphor, each in light and dark)**
   Boss (5:54 PM EST on 2026-11-05) chose the Glass cockpit look as the
   pilot's console default and wants the other two looks, Chart room and
@@ -16945,25 +16928,15 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none (build order: after GEN.1306 parts 2 and 3). Related: GEN.1306, GEN.1309, GEN.1320, GEN.1318.
 
-- [ ] **TEST.656 Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876**
-  Train Manager census run on main d2b0ba47b (3:30 PM EST on 2026-11-06,
-  as the lane reported), notes
-  /mnt/project-files/reports/train12/test600-census-notes-2026-11-06.md
-  and class-census-after-train12-2026-11-06.md: nine new flags: moon class
-  B at A0V ecosphere (0.208 against 0.0 to 0.055) and A0V hot (0.182
-  against 0.0 to 0.058); G2V cold moon class D 0.894 against 0.519 to
-  0.806; K5V ecosphere moon ceiling unlimited 0.125 against 0.0 to 0.072;
-  M2V cold moon ceiling microbial 0.090 and none 0.910; the M2V hot moon
-  cell has no bodies drawn; and test_prevalence habitable_world-50 0.62
-  against 0.876 (first run, rerun pending). The moon flags follow the
-  regular moon list getting fewer and different moons after GEN.1082 to
-  GEN.1084. Do: for each flag say whether the new share is the physics
-  (captured moons are now irregulars, so regular shares fall) and re-tag
-  the range with the reason, or a defect and file the fix; run each census
-  file alone with `-n 0 -o timeout=6000`. Lock-free. Done: the class
-  census passes on main with every re-tag explained. Version 8.1. Owner:
-  Bug 1 (with TEST.600). Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.600, TEST.430, GEN.1083.
+- [ ] **GEN.1322 Prevalence with +habitable_world 50 reads 0.62 to 0.66 against 0.876: prevalence.resolve still assumes a forced system gets the world, but GEN.1130 made the request raise odds only (bug)**
+  Bug 1 (as the lane reported, 7:40 PM EST on 2026-11-06). On 100 systems, +habitable_world 50 forces 70 on as designed but only 51 of those hold a habitable-class world, so the share is 0.62 to 0.66; the test target is 0.876 because prevalence.resolve still assumes a forced system gets the world. GEN.1130 (Boss, 5:49 PM EDT 2026-10-30) made the request a probability tweak only, so the target is unreachable by design; -50 passes. TODO decision under that rule: the request stays a probability tweak, so prevalence.resolve scales its forced share by the measured hit rate (hold rate of a forced system) instead of assuming 1, and the Generate page says "raises the odds, never forces" next to the option with the expected share. Do: fix resolve, add the hit rate to the TEST.430 prevalence rows, update the Generate page text and help, and make test_prevalence.py check the share against the scaled target. Done: test_prevalence.py green for +50 and -50, the page states the odds. Lock-free unless the generated output changes (then a lock item). Version 8.1. Owner: Bug 1.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1130, TEST.430, TEST.656.
+
+- [ ] **TEST.660 The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train**
+  Bug 1 (as the lane reported, 7:40 PM EST on 2026-11-06), from the TEST.656 verdicts: the census moon cells now hold 1 to 78 bodies against 500 to 700 in the reference ranges, because captured moons became irregulars (GEN.1082 to 1084) and the class census does not read them (K5V ecosphere moon unlimited 1 of 8, M2V cold moon 7 of 78). Do: let the class census read the irregular moons so a cell has enough bodies, then re-measure and re-baseline the moon class ranges (TEST.430 rows) after the last 8.1 train, so the sampling-width flags clear. Done: the moon cells hold hundreds of bodies and the census has no flag from sampling width. Version 8.1. Owner: Bug 1, after the last 8.1 train merges.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.656, TEST.430, GEN.1160.
 
 - [ ] **PERF.246 A planet draw takes more than 45 seconds at A0V hot and K0III hot cells in the class census (machine speed or a slow draw)**
   Train Manager census run (3:30 PM EST on 2026-11-06, as the lane
