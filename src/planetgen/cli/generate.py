@@ -1446,7 +1446,7 @@ def add_bring_to_epoch_arguments(parser):
                              "change nothing.")
     parser.add_argument('--no-wide-binaries', action='store_true',
                         help="Leave the wide binaries alone. By default the run also reads them and makes again, from "
-                             "their seeds, those that break the stability rule (GEN.229), saying each.")
+                             "their seeds, those that break the stability rule, saying each.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
