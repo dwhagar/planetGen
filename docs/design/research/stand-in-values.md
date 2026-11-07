@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1238 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1245 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 163 | 18 | 10 | 1 | 0 | 192 |
+| T1 | 165 | 18 | 10 | 1 | 0 | 194 |
 | T2 | 124 | 52 | 1 | 1 | 0 | 178 |
-| T3 | 90 | 41 | 7 | 9 | 0 | 147 |
+| T3 | 91 | 41 | 7 | 9 | 0 | 148 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
-| T5 | 52 | 21 | 3 | 1 | 0 | 77 |
-| T6 | 124 | 89 | 25 | 61 | 0 | 299 |
+| T5 | 53 | 21 | 3 | 1 | 0 | 78 |
+| T6 | 127 | 89 | 25 | 61 | 0 | 302 |
 | T7 | 33 | 15 | 7 | 16 | 0 | 71 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 15 | 5 | 86 | 34 | 178 |
-| All | 679 | 257 | 59 | 198 | 45 | 1238 |
+| All | 686 | 257 | 59 | 198 | 45 | 1245 |
 
 ## How the labels were given
 
@@ -1697,7 +1697,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CD2 | P | T2 | L1 | irregular_moons.ENCOUNTER_REACH_AU 3.0 AU at a planet with Jupiter's Hill radius (scaled by the planet's Hill radius over `irregular_population.REFERENCE_HILL_AU`): an inner belt is a reservoir of the planet when the gap between the planet's orbit and the belt's nearest edge is no more than this | 2 to 5 AU | planets of a star with a belt inside the reach, from Jupiter-mass giants | a population of irregular moons of Jupiter or Saturn with no member of a belt inside the reach, or belt bodies caught from a belt far outside it | the encounter sphere of a close approach computed for the belt's own orbits (its eccentricity and inclination) | NDD14's 3 AU encounter sphere (`f_3AU`), the sphere that gives `irregular_population.ENCOUNTER_YIELD` (docs/design/systems/captured-asteroid-moons.md section 4.1) | - | - |
 | CD3 | B | T6 | L0 | irregular_moons.for_planet: an inner belt gives its planet the encounter window only (no gas disk is left), and the yield per particle and the size law are the outer disk's, scaled by the belt's primordial mass over `irregular_population.REFERENCE_DISK_MASS_EARTH`; a body at least as heavy as the belt's lightest stored member is the stored member nearest to it in mass that no earlier planet of the star caught, and keeps its mass, makeup and place as the belt shows them (no ice is lost), a lighter one is composed from the belt's stretch | none | inner belts of 1e-4 Earth masses or more | the ratio of belt to outer-disk captures of the Solar System's giants, with the main belt and the Trojans | a size law and a yield measured for belts | the belt-origin share of the design (mass of the belts inside the encounter region over the total reservoir mass, docs/design/systems/captured-asteroid-moons.md section 4.5) | - | - |
 
-## 6.197 Stand-ins of the heavy oxygen worlds and the thin oxygen worlds
+## 6.198 Stand-ins of the heavy oxygen worlds and the thin oxygen worlds
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1732,7 +1732,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MC4 | T | T6 | L0 | ice_types.water_phase: ice II holds to 620 MPa below 218 K, the temperature of the II-V-VI triple point, because no II-VI boundary equation was found; and the liquid wedge between the Ih and the high-pressure melting curves is not named, the lookup taking the solid next above it | none | a body centre under 218 K and over 0.2 GPa, or at 251 to 273 K | a measured II-VI boundary far from 620 MPa between 150 and 218 K | the II-VI line of [R0777] | no equation for II-VI, VI-VII-VIII or VII-VIII could be found (Sources 1, GEN.1190) | - | - |
 | MC5 | P | T3 | L0 | tidal_rheology.ICE_MELT_VISCOSITY_FACTOR 22: the viscosity of partly molten ice is exp(-22 phi) times its solid's; `viscosity_pa_s` reads it from the material when the material is ice | 22 | ammonia-rich ice with 4 to 8 percent melt | a measured melt law of pure water ice outside 15 to 30 | a melt law of pure water ice | [R0133] (by way of a later paper, B about 22 for ammonia-water ice at 180 to 210 K); no ice shell in the generator has a melt share yet, so the factor is read by the path that has one | - | - |
 
-## 6.198 Stand-ins of the cloud albedo of a world with an ocean
+## 6.199 Stand-ins of the cloud albedo of a world with an ocean
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
@@ -1742,31 +1742,43 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CA4 | P | T6 | L0 | the cloud acts only with a liquid ocean at the step (`CloudLaw.shift(ocean=False)` is 0) and the amount only with a world that has surface water (the ice law's gate) | none | every body with surface water | test_cloud_albedo::test_only_a_locked_body_has_a_deck_and_only_with_an_ocean | an amount from the condensate depth of `aerosols.cloud_depth_limit` | the design note | - | - |
 | CA5 | P | T6 | L0 | cloud_albedo.LOCK_Q_OVER_K2 333 (Q 100, k2 0.3), LOCK_BIRTH_SPIN_HOURS 10 and MOMENT_FACTOR 0.4 (the estimate that a planet is locked 1:1 by the age of its star, the standard simplified despin time; a moon is taken as locked) | Q over k2 100 to 1,000 | rocky planets; the spin is drawn after the air, so the air cannot read the state it will end in | test_cloud_albedo::test_the_lock_estimate_follows_the_tide (the Earth under the Moon takes 5e10 years by this form) | the spin history of the body (`body_spin.evolve`) run before the air, or the air solved after it | Gladman and others 1996, the simplified form, from memory | - | - |
 
-## 6.199 Stand-in of the fire limit of a living world's air
+## 6.200 Stand-in of the fire limit of a living world's air
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | OX1 | P | T7 | L1 | mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA 0.35 * 101325 Pa: the most oxygen pressure of a living world's air, 35 percent of one Earth atmosphere (the Phanerozoic peak of 30 to 35 percent at one atmosphere, where fires spread so easily that plants would struggle); the share is held to `ABIOTIC_O2_MAX` (0.95) as well | 25 to 45 kPa | any living world; at Earth's air it is the old 35 percent | a flammability measurement of plant fuel against oxygen pressure at low total pressure that puts the limit at a share and not a pressure | a burn-rate law of fuel against oxygen pressure and the air's heat capacity | life-timeline-and-oxygen.md; reports/gen1309-oxygen-chain-2026-11-07.md | - | - |
 
-## 6.200 Stand-ins of oxygen and carbon dioxide judged by pressure
+## 6.201 Stand-ins of oxygen and carbon dioxide judged by pressure
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | OP1 | P | T7 | L1 | planet_class_fit.json oxygen edges as pressures: 3 kPa (class F anoxic below, class L from), 16 kPa (class L below, classes M, H, O, P, R from) and 35.5 kPa (classes M, H, O, P, R below; the fire limit of GEN.1320, 35 percent of an atmosphere); the carbon dioxide edge of the oxygen-water classes as a pressure, 1 kPa (class L from, classes M, H, O, P, R below; 1 percent of an atmosphere); life_classes.json class 2 gate below 3 kPa and class 4 gate from 100 Pa. Class F and G keep the carbon dioxide share (20 percent) | each edge 0.7 to 1.3 times | terrestrial bodies with air | a measured tolerance of the organisms the classes stand for to oxygen pressure that is not near these figures (hypoxia sets in near 16 kPa, 3 kPa is the Armstrong-like line of GEN.1306 AW4) | a tolerance table of life classes against oxygen pressure from the life model | the old share edges (0.03, 0.16, 0.35, 0.001) at one atmosphere | - | - |
 | OP2 | P | T6 | L3 | planet_class_fit.json shoulders for oxygen pressure and carbon dioxide pressure: 0.25 of the edge with a floor of 500 Pa and 200 Pa (the shares' 0.25 and 0.005 and 0.002 of an atmosphere) | 0.1 to 0.5 of the edge | terrestrial bodies with air | none known | the toxicity and equipment lines of the habitability index | CF7 carried over from the share | - | - |
 
-## 6.201 Stand-ins of the asteroid field a supernova remnant hosts
+## 6.202 Stand-ins of the asteroid field a supernova remnant hosts
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | HF1 | B | T6 | L1 | asteroid_field.RING_RADIUS_AU 50 and field_host.BELT_LIMITS_AU 30 to 70: the ring a hosted field starts as, and the stretch whose solids make its mass | 30 to 100 AU | progenitors of A to B type with a belt | the radius of the debris belts of A and B stars in the surveys, outside this range, or a belt that is not a ring | the belt chain of the progenitor itself (`belt_origin`) once massive stars are built through it | the design's 50 AU belt around 10 solar masses (docs/design/systems/interstellar-asteroid-fields.md source S2) | - | - |
 | HF2 | P | T9 | L1 | field_host.NEUTRON_STAR_SHARE_OF_CORES (1 less `tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE`, 0.85): the core of a core-collapse remnant that shows none is a neutron star by this share, else a black hole | 0.7 to 0.95 | core-collapse remnants with no visible core | the share of black holes among the cores of the remnants that show none | the remnant's own core drawn when the remnant is made | the share the visible cores follow (`tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE`) | - | - |
 
-## 6.202 Stand-in of the speed of a hand-made asteroid field
+## 6.203 Stand-in of the speed of a hand-made asteroid field
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | AF1 | B | T6 | L0 | tuning.ASTEROID_FIELD_SPEED_KMS_RANGE (0.1, 15.0) km/s, log-uniform: the rms speed of the pieces of a hand-made field, from a tidally disrupted rubble body to the fastest rubble of a collision | 0.1 to 15 | a field with no parent drawn | a survey of the spread of the pieces of the fields that stand, outside this range | the speed of the source that made the field (`rogue_collision.unbound_rms_speed_ms`, `field_dispersal.unbound_belt_speed_ms`) once such a field is drawn by hand | the design's table of ages at a radius (docs/design/systems/interstellar-asteroid-fields.md section 5.2) | - | - |
+
+## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| WL1 | P | T1 | L0 | tuning.WD_ONE_CORE_MASS_FRACTIONS oxygen 0.55 and neon 0.30: the core of an oxygen-neon white dwarf | 0.50 to 0.60 and 0.25 to 0.35 | every oxygen-neon core, whatever its mass | a profile of a core of 1.05 to 1.3 solar masses whose mean oxygen or neon differs by more than 0.05 | a core composition by mass from the progenitor's carbon-burning model | R0627 Sect. 2.2 verbatim: "~55% 16O, ~30% 20Ne"; one value for all four models | - | - |
+| WL2 | P | T6 | L0 | tuning.WD_ONE_CORE_MASS_FRACTIONS trace 0.15: the remainder (22Ne, 23Na, 24Mg) held as one share | 0.10 to 0.20 | the same | a split of the remainder by element | the element-by-element core of the same models | the paper names the elements and gives no share | - | - |
+| WL3 | P | T3 | L0 | tuning.WD_ONE_HELIUM_MASS_BY_WD_MASS_SOL: the helium layer mass (solar masses) of the four models, straight in its log between them and held outside 1.10 to 1.29 | a factor of 2 either way outside the models | oxygen-neon white dwarfs of 1.05 to 1.35 solar masses | a helium layer from a model of 1.05 or 1.33 solar masses | models across 1.05 to 1.33 | R0627 Sect. 2.2: 3.24e-4 and 1.82e-4 solar masses read for 1.10 and 1.16; the last two (0.78e-4 and 0.21e-4) are assigned to 1.23 and 1.29 by the order of a garbled line | - | - |
+| WL4 | P | T1 | L0 | tuning.WD_ONE_HYDROGEN_MASS_SOL 1e-6: the hydrogen envelope (solar masses) of a hydrogen-atmosphere oxygen-neon white dwarf | none | ultra-massive white dwarfs | an envelope model of a lighter oxygen-neon star | a hydrogen envelope by mass from the progenitor's mass loss | R0627: "the maximum expected hydrogen envelope of about 1e-6 solar masses", called quite uncertain | - | - |
+| WL5 | P | T6 | L0 | tuning.WD_HELIUM_CORE_HYDROGEN_FRACTIONS: the hydrogen envelope of a helium-core white dwarf as a share of its mass, 2e-2 at 0.15 and 1e-3 at 0.45 solar masses, straight in its log | 5e-3 to 5e-2 at 0.15; 3e-4 to 3e-3 at 0.45 | hydrogen-atmosphere helium-core white dwarfs | an envelope mass from a helium-core evolution model of 0.2 or 0.3 solar masses that differs by more than a factor of 3 | the envelope mass of helium-core cooling sequences (not opened) | an educated guess from physics: a helium-core star is a hydrogen shell source's remnant that keeps a thick envelope; the papers were not read | - | - |
+| WL6 | P | T5 | L0 | tuning.WD_THIN_HYDROGEN_FRACTION 1e-10: the hydrogen of a helium-atmosphere white dwarf of either kind | none | non-DA white dwarfs | none: the same case as the downloaded sequences' thin envelope | none | datasets/white_dwarf_models thin case | - | - |
+| WL7 | P | T6 | L0 | stellar_composition._grid_radius_solar: a helium-core white dwarf reads the lightest carbon-oxygen sequence and an oxygen-neon one the 1.30 sequence, both scaled by the zero-temperature mass-radius ratio, so a helium-core star has the radius of a thin-envelope carbon-oxygen one | up to 20 percent for the lightest helium-core stars | white dwarfs under 0.20 or over 1.30 solar masses, and helium-core stars at any mass | a helium-core cooling sequence whose radius at 0.2 solar masses and 10,000 K differs from the scaled one by more than 5 percent | helium-core and oxygen-neon cooling sequences | educated guess; the thicker hydrogen envelope of a helium-core star makes it larger than the scaling gives | - | - |
 
 ## 6.182 Stand-ins of where a stored belt member lies
 
