@@ -1,0 +1,4 @@
+**Headline:** The SEC.44 folder check now accepts folders in a user's home folder, for a planetGen installed in a home folder on a shared machine.
+
+### Changed
+- **`/home` and `/Users` are allowed parents for the folders `config.json` names** (tile cache, jobs, debug log, log folder). In a home folder the folders on the way may belong to the user (not only to root), as long as the web user does not own them and the web server's group cannot write them. A name that starts with a dot (`~/.ssh`) is refused, and a whole home folder is never taken over (it is not empty and not the web user's). Every other SEC.44 rule stays: plain characters, no symbolic link, no system service's folder, an existing folder is only taken over when it is the web user's or empty. The web group test now looks at the groups the web user is really in, instead of treating every unknown group as able to write.
