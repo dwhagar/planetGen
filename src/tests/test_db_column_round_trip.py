@@ -42,6 +42,7 @@ SECTOR_PLACEMENT = ("sector_id", "center_x_pc", "center_y_pc", "center_z_pc", "g
 
 NULL_IN_THIS_GALAXY = {
     # GEN.1111: the rogue planets of this small galaxy are dark, lifeless and without a surface liquid, so these are never set on them, and two
+    # (GEN.1323: the rocky ones keep an envelope, which leaves the solid-only roundness and strength empty)
     # child tables hold nothing.
     **{(table, column): "no rogue planet of this galaxy has it (GEN.1111)" for table, columns in (
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
@@ -50,10 +51,11 @@ NULL_IN_THIS_GALAXY = {
                            "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
                            "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
                            "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
-                           "life_stage", "life_system_age_gyr", "life_traits", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "surface_liquid",
+                           "life_stage", "life_system_age_gyr", "life_traits", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "roundness_ratio", "surface_liquid",
                            "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt", "surface_liquid_ammonia_wt",
                            "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
-                           "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
+                           "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index",
+                           "yield_strength_pa"))) for column in columns},
     # DB.81: the stellar mass a plan pinned, which a galaxy whose seed drew everything leaves NULL (test_shape_pins.py
     # writes and reads it back).
     ("galaxy_shape", "pinned_stellar_mass_solar"): "NULL when the seed drew the mass (DB.81)",
@@ -189,6 +191,10 @@ NULL_IN_THIS_GALAXY = {
        for column in ("formed_at", "origin_event_id")},
     # GEN.1103: a field made by hand has no parent, so no origin sentence, history or largest piece; the Rogues top-up writes them (test_asteroid_field_age.py).
     **{("asteroid_fields", column): "only a top-up field has a parent to tell (GEN.1103)" for column in ("origin", "history", "largest_body_kg")},
+    # GEN.1105: only a supernova remnant hosts a field with a ledger, and only such a field keeps members (test_field_members.py writes and reads them back).
+    **{("field_members", column): CHANCE for column in (
+        "id", "field_id", "member_rank", "mass_kg", "radius_km", "density_g_cm3", "rock_fraction", "metal_fraction", "water_fraction", "ice_fraction", "status")},
+    ("moons", "runner_up_class"): CHANCE,   # a moon has a runner-up class only when two classes pass the gates
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
@@ -213,6 +219,9 @@ with why: each is set only by something this small galaxy doesn't
 contain (the cases are exercised in their own tests)."""
 
 NEVER_READ = {
+    # GEN.1105 part 1: the members of a field are stored; the field page and API list them in part 2.
+    **{("field_members", column): "listed by the field page and API in GEN.1105 part 2" for column in (
+        "density_g_cm3", "ice_fraction", "mass_kg", "member_rank", "metal_fraction", "radius_km", "rock_fraction", "status", "water_fraction")},
     # GEN.1111: the child rows of a rogue planet are written with the planet; its page and API do not load them yet.
     **{(table, column): "a rogue planet's children are not loaded yet (GEN.1111 follow-up)" for table, columns in (
         ("rogue_planet_gases", ("gas", "id", "partial_pa", "rogue_planet_id")),
@@ -229,10 +238,10 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons")},
+        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
+        ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),

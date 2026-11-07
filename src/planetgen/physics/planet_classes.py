@@ -37,7 +37,7 @@ import json
 import os
 from collections.abc import Mapping
 
-from planetgen.physics import atmosphere, elements, unit_registry as units
+from planetgen.physics import atmosphere, elements, planet_type, unit_registry as units
 from planetgen.util.wordlist import join_words
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -62,6 +62,7 @@ def values_from_body(body):
     """A planet or moon (in memory) as the column-named dict `classify` reads."""
     values = {
         "body_type": getattr(body, "body_type", None),
+        "envelope_mass_fraction": getattr(body, "envelope_mass_fraction", None),
         "mass_kg": getattr(body, "mass", None),
         "gravity_g": getattr(body, "gravity", None),
         "surface_temperature_k": getattr(body, "surface_temperature", None),
@@ -95,6 +96,10 @@ def quantities(values):
     if mass_kg is None:
         raise ClassError("the body has no mass")
     pressure = values.get("atmospheric_pressure_pa") or 0.0
+    # GEN.1323: a rocky body under a real hydrogen-helium envelope (the transitional type, `planet_type`: a sub-Neptune) is judged by the giant classes, the gas dwarf and
+    # the ice giant, which are the classes of a core under an envelope; a body with a thin air of its own (under `TERRESTRIAL_MAX_ENVELOPE`) stays a rocky class
+    if body_type == TERRESTRIAL and (values.get("envelope_mass_fraction") or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
+        body_type = GIANT
     found = {
         "body_type": body_type,
         "mass_earth": _kg_to_mearth(mass_kg),

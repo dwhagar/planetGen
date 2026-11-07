@@ -112,6 +112,30 @@ now holds the clear-sky airs to the old figures and the other two classes to wha
 **Not changed, and open:** the airs over 300 K are held at the GEN.852 answers where the model was not asked (the hot dense airs: 13.9 K median and 169 K at the 90th percentile in 300 to 500 K), and the hazy and
 hydrogen-chloride-bearing airs need several tens of thousands more model solves (the generator makes them at 5 to 10 seconds an air). A refit of those is a separate item.
 
+## The refit for hazy and hot dense airs (GEN.1310)
+
+GEN.1304 left two open: the airs the file put at 300 to 500 K (median 3.9 %, 90th percentile 42 %) were held at the GEN.852 answers where the model had not been asked, and the hazy airs read 9.0 % at the 90th percentile. GEN.1310 solved them with the radiative-convective model (`solve`, resumable, about 3 s an air per 4 cores): 6,012 hot dense airs the GEN.1304 file puts at 300 to 520 K, and 8,644 hazy ones, both drawn in a random order so any prefix is a fair sample. They were added to the GEN.1304 training set and the file was fitted again from the GEN.1304 weights (`fit --start --distill --hold anchors`, 12,000 iterations, 128-128-64). Hot and hazy airs the model did not finish in the time allowed were dropped from the fit; a first fit that kept them pinned to the old answer did less well on the 90th percentile of 300 to 500 K (33 % against 31 %) and of the cool hazy airs (7.4 % against 5.5 %), so the second fit leaves them out.
+
+Validation (the same 1,081 airs of seeds 5000 to 5100; the GEN.1304 file in brackets):
+
+| Surface temperature | Airs | Median error | 90th percentile | 99th percentile |
+|---|---|---|---|---|
+| 0 to 300 K | 773 | 0.6 K (0.41 %) [0.45 %] | 8.3 K (4.3 %) [6.1 %] | 25 K (13 %) [35 %] |
+| 300 to 500 K | 243 | 7.5 K (2.3 %) [3.9 %] | 130 K (31 %) [42 %] | 426 K (93 %) [93 %] |
+| 500 to 1000 K | 53 | 27 K (3.9 %) [4.7 %] | 246 K (27 %) [23 %] | 510 K (83 %) [79 %] |
+| over 1000 K | 12 | 71 K (4.6 %) [3.6 %] | 136 K (10 %) [11 %] | 1,621 K (68 %) [66 %] |
+| all | 1,081 | 1.4 K (0.69 %) [0.97 %] | 28.7 K (9.3 %) [12.6 %] | 296 K (66 %) [69 %] |
+
+| Cool airs (under 300 K) | Airs | Median error | 90th percentile | 99th percentile |
+|---|---|---|---|---|
+| clear | 262 | 0.6 K (0.47 %) | 4.9 K (2.7 %) | 18 K (9 %) |
+| other infrared gases | 144 | 0.7 K (0.40 %) | 5.3 K (2.6 %) [5.2 %] | 26 K (14 %) |
+| haze | 367 | 0.5 K (0.37 %) | 12.3 K (5.5 %) [9.0 %] | 27 K (14 %) |
+
+`test_greenhouse_table.py` passes unchanged: the anchors (Mars, Venus, 5 bar carbon dioxide, Titan, hydrogen-helium, the giants, the Earth grid) stay within their tolerances.
+
+**Not done, and open:** the GEN.1189 ensemble of three seeds (members fitted from scratch, not from the shipped file) was not built; one longer fit shipped. The 300 to 500 K airs still have a 90th percentile of 31 % and a bias of 32 K cold: the worst are thick steam-rich and hazy airs the table overshoots (model 450 K, table 600 to 850 K), and the 99th percentile there did not move. The airs over 500 K have too few validation airs (65) to say more than "about as accurate as before". A model run that converges for the hot-hazy corner is the next step, not more fitting.
+
 ## The guards (stand-in IR11)
 
 The network was fitted on airs that always hold an absorber and are at least 10 Pa thick, and left alone it gave a noble-gas air a greenhouse of 0.4. Two guards multiply `ln(T_s / T_e)`: a surface pressure under

@@ -146,6 +146,19 @@ def test_an_earth_like_oxidized_volcano_gas_is_water_carbon_dioxide_and_sulfur_d
     pytest.skip("no wet, oxidized draw below 1200 K in 80 seeds")
 
 
+def test_a_very_hot_surface_holds_the_halogen_atoms_in_the_table():
+    # GEN.1337: at 2500 K the hydrogen halides dissociate and a few thousandths of the gas is Cl, F and F2; the gas table lacked them and the whole
+    # draw (a whole StarSystem) failed with a MixtureError. Seeds 0, 2 and 11 failed on main at this temperature.
+    for formula in ("Cl", "F", "F2"):
+        assert gases.has(formula)
+    seen = set()
+    for seed in (0, 2, 11, 25):
+        result = mixture(seed, ts_k=2500.0, mass_earth=1.0)
+        assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
+        seen |= {formula for formula in ("Cl", "F", "F2") if formula in result.mole_fractions}
+    assert seen, "the dissociated halogens are in the result, not dropped"
+
+
 def test_a_subject_without_a_quantity_the_tables_read_is_refused_by_name():
     with pytest.raises(MixtureError, match="pressure_bar"):
         with draw.bound(0):

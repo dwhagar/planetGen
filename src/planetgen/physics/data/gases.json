@@ -8861,6 +8861,72 @@
    "state": "partly verified",
    "limit": "identity not reached",
    "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "Cl",
+   "name": "atomic chlorine",
+   "cas": null,
+   "molar_mass_research_g_mol": 35.45,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 21.85,
+    "1000": 22.23
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "F",
+   "name": "atomic fluorine",
+   "cas": null,
+   "molar_mass_research_g_mol": 18.998,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 22.74,
+    "1000": 21.27
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "F2",
+   "name": "fluorine",
+   "cas": null,
+   "molar_mass_research_g_mol": 37.996,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 31.34,
+    "1000": 37.06
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   }
  ]
 }

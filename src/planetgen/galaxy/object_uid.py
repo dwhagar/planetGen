@@ -315,6 +315,37 @@ def parse_rank(text):
     return rank
 
 
+def field_designation(field_id, rank, layout=LAYOUT):
+    """
+    The designation of the member of an interstellar asteroid field that has `rank` by mass (1 is the heaviest), `<field ID>.<rank hex>` (GEN.1105). A field is a top-level object, so its
+    ID has body number 0 (a belt's has not); the rank is written as `designation` writes it, and a pure function of the two numbers.
+
+    Raises:
+        ValueError: An ID that is a body of a system (a belt's, not a field's), or a rank outside 1 to `MAX_MEMBER_RANK`.
+    """
+    _check("object ID", field_id, layout.total_bits)
+    if body_of(field_id, layout) != 0:
+        raise ValueError(f"{format_id(field_id, layout)} is a body of a system, not a field's own ID")
+    if isinstance(rank, bool) or not isinstance(rank, int) or not 1 <= rank <= MAX_MEMBER_RANK:
+        raise ValueError(f"a member rank is a whole number from 1 to {MAX_MEMBER_RANK}, got {rank!r}")
+    return f"{format_id(field_id, layout)}{MEMBER_SEPARATOR}{rank:0{MEMBER_RANK_DIGITS}X}"
+
+
+def parse_field_designation(text, layout=LAYOUT):
+    """`(field_id, rank)` of a field member designation (the inverse of `field_designation`); the rank is read by `parse_rank`.
+
+    Raises:
+        ValueError: Text that is not exactly a field's ID, a point and a canonical rank.
+    """
+    head, point, tail = str(text).strip().upper().partition(MEMBER_SEPARATOR)
+    if not point or MEMBER_SEPARATOR in tail:
+        raise ValueError(f"a field member designation is <field ID>{MEMBER_SEPARATOR}<rank hex>, got {text!r}")
+    field_id = parse_id(head, layout)
+    if body_of(field_id, layout) != 0:
+        raise ValueError(f"{head} is a body of a system, not a field's own ID")
+    return field_id, parse_rank(tail)
+
+
 def is_on_demand(rank, individual_count):
     """Whether the member of this rank is drawn on demand and never stored: its rank is above the number of individually stored bodies of its belt."""
     return rank > individual_count

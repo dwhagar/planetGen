@@ -288,7 +288,7 @@ class Planet(PlanetaryObject):
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
-                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False):
+                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False, late_core=False):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -338,6 +338,9 @@ class Planet(PlanetaryObject):
                                              whose eccentricity follows the broader law (GEN.727); `None` is taken as several.
             host_eccentricity (float, optional): For a moon, its parent planet's eccentricity (the light a moon gets goes by its
                                                  parent's orbit).
+            late_core (bool, optional): Draw the planet as a core that finished growing after the gas disk was gone, so it captured no envelope
+                                        (`envelope_capture`, GEN.1323). Only a request for a class that no planet with an envelope can be
+                                        (a dense rocky world, V) asks for it (`StarSystem.build_planet`).
             moon_disk_system (DiskSystem, optional): For a disk moon, its giant parent's circumplanetary disk
                                                      (`moon_composition.draw_disk_system`), shared by that parent's moons.
             defer_climate (bool, optional): Builds the body and its orbit's shape only (GEN.1282); the air, the class, the motion and the moons
@@ -350,6 +353,7 @@ class Planet(PlanetaryObject):
         self.is_moon = is_moon
         self.moon_origin = moon_origin
         self.moon_disk_system = moon_disk_system
+        self._late_core = late_core
         self.moons = []
         self.irregulars = irregular_moons.NO_IRREGULARS    # the small bodies the planet caught (GEN.1083); `StarSystem` fills them in once the system's belts stand
         # This planet's own reflex-offset "wobble" (schema v20) from its
@@ -452,6 +456,9 @@ class Planet(PlanetaryObject):
         planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
         self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
         planetPhysics.calculate_surface_gravity(self)
+        # GEN.1323: the envelope the planet kept at the star's age now, on a circular orbit (settled again when the age and the orbit are final); before the orbit is
+        # shaped, since the tide that wears an eccentricity down reads the radius
+        planetPhysics.apply_envelope(self)
         # GEN.727: the eccentricity first, since the light a planet gets goes by its orbit's mean flux
         planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
 

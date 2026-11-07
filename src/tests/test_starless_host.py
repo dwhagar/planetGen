@@ -116,13 +116,18 @@ def test_the_host_of_an_event_is_the_donor_with_the_rogues_age():
     assert host.age == 4.0 and host.luminosity == 0.0 and host.mass == donor.mass
 
 
+# GEN.1323: the body is half an Earth mass, which draws no envelope; a 5 Earth-mass body holds a deep one (a sub-Neptune), and the tide of such a planet
+# drives the moons it is given out of a narrow window or into the planet, so the window tests would then depend on the donor's age
+ROCKY_EARTH_MASSES = 0.5
+
+
 def _moon_distances_km(donor, system, limit_km, seeds=6):
     found = []
     for seed in range(seeds):
-        event = _event(donor, mass_kg=5.0 * EARTH_KG, core_kg=5.0 * EARTH_KG, moon_limit_km=limit_km)
+        event = _event(donor, mass_kg=ROCKY_EARTH_MASSES * EARTH_KG, core_kg=ROCKY_EARTH_MASSES * EARTH_KG, moon_limit_km=limit_km)
         with draw.bound(f"rogue-body-moons-{seed}"):
             # a real star as host: the atmosphere table cannot read a body with no light yet
-            planet = starless_host.build_rogue_body(system.system_config, donor, event, moon_count=2)
+            planet = starless_host.build_rogue_body(system.system_config, donor, event, moon_count=4)
         found.extend(moon.distance * constants.AU_TO_KM for moon in planet.moons)   # a moon's distance is in AU
     return found
 
@@ -130,9 +135,9 @@ def _moon_distances_km(donor, system, limit_km, seeds=6):
 def test_the_moons_of_a_rogue_body_stay_inside_the_edge_the_ejection_left():
     from planetgen.physics import clearance_ledger
     system, donor = _donor()
-    event = _event(donor, mass_kg=5.0 * EARTH_KG, core_kg=5.0 * EARTH_KG, moon_limit_km=2.0e5)
+    event = _event(donor, mass_kg=ROCKY_EARTH_MASSES * EARTH_KG, core_kg=ROCKY_EARTH_MASSES * EARTH_KG, moon_limit_km=2.0e5)
     with draw.bound("rogue-body-hill"):
-        planet = starless_host.build_rogue_body(system.system_config, donor, event, moon_count=2)
+        planet = starless_host.build_rogue_body(system.system_config, donor, event, moon_count=4)
     assert planet.hill_radius == pytest.approx(event.moon_limit_km / clearance_ledger.moon_hill_fraction(0.0)[0])
     distances = _moon_distances_km(donor, system, 2.0e5)
     assert distances, "a limit of 2e5 km leaves room for moons"
