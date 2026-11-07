@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.284 |
 | MAP | MAP.405 |
 | NAV | NAV.78 |
-| GEN | GEN.1322 |
+| GEN | GEN.1323 |
 | PERF | PERF.248 |
 | DB | DB.115 |
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.44 |
-| TEST | TEST.660 |
+| TEST | TEST.661 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -2109,6 +2109,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1319 | Sealed-ocean chemistry: leached sodium and calcium with no chloride or sulfate to balance them give oceans of pH 11 to 14 that lock all carbon into calcite (bug) | none | open |
 | GEN.1320 | Fire limit by oxygen pressure: the 35 percent oxygen cap becomes a limit on oxygen pressure, so thin-air worlds no longer pile up at exactly 35 percent (bug) | none | open |
 | GEN.1321 | Oxygen classes judged by oxygen pressure, not share: classes M, H, L, O, P and R and the thick-air worlds that dilute oxygen under 10 percent | none | open |
+| GEN.1322 | Prevalence with +habitable_world 50 reads 0.62 to 0.66 against 0.876: prevalence.resolve still assumes a forced system gets the world, but GEN.1130 made the request raise odds only (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -4084,7 +4085,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.597 | test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch is flaky on plain main: about 1 run in 3 a region label shows (bug) | none | done, PR #5106 |
 | TEST.598 | test_fingerprint (its table list lacks designations and chart_ledger) and test_bring_to_epoch (its epoch counts) are red on plain main (bug) | none | done, PR #5334 |
 | TEST.599 | test_web_a11y web.system-phone-light fails on main on a skip-link tab stop (bug) | none | done, PR #5148 |
-| TEST.600 | Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12) | none | open |
+| TEST.600 | Census re-tag and prevalence re-baseline after GEN.1275 and TEST.579 land (train 12) | none | done, PR #5418 |
 | TEST.601 | Two tests still expect the British spelling neighbour after DOC.103: test_nav_course_diagram_draws_the_neighbours and test_the_page_says_a_link_is_a_neighbour_relation (bug) | none | done, PR #5121 |
 | TEST.602 | test_fingerprint_tree.py::test_every_saved_sector_has_a_leaf_and_the_stored_nodes_are_the_tree is red on plain main: 24 sectors have a NULL leaf_digest (bug) | none | done, PR #5334 |
 | TEST.603 | The Help menu test pinned the exact list of help pages and went red when VIEW.38 added one (bug) | none | done, PR #5137 |
@@ -4136,10 +4137,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.649 | Five tests are red on clean main: test_api_link_ids, test_atmosphere_state (2) and test_gen_component_pass (2) (bug) | none | done, PR #5332 |
 | TEST.654 | tests/test_sheet_fill.py::test_a_sample_has_no_empty_column_that_applies_and_is_not_filed fails on main: runner_up_class is empty for moons of class D and many planet classes (bug) | none | done, PR #5363 |
 | TEST.655 | tests/test_ice_species.py: a Pluto-like body's ice_n2_mass_fraction reads 0.0 after a database round trip, expected 0.1455 (bug) | none | done, PR #5363 |
-| TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 | none | open |
+| TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 | none | done, PR #5418 |
 | TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") | none | done, PR #5389 |
 | TEST.658 | Train tooling: scripts/train_gate.py, scripts/train.py, scripts/lane_up.sh, the known-red list and gate durations (Train Manager) | none | done, PR #5376 |
 | TEST.659 | Train tooling part 2: train.py renumber and golden conflict handling (Train Manager) | none | done, PR #5401 |
+| TEST.660 | The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
