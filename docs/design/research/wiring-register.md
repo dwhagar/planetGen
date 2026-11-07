@@ -96,7 +96,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
-| module | planetgen.physics.cluster_unbinding | GEN.1288 | the share of planets a birth cluster has unbound; the rogue rows add it to the ejections |
 | module | planetgen.physics.super_puff | GEN.1048 | the super-puff radius, fade and gate (W15); the bulk step reads it when the wiring step lands |
 | row | 6.76:PF1 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
 | row | 6.76:PF2 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
@@ -172,7 +171,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.potential.vertical_force | by design | the disk's vertical pull `K_z` at a radius and height, the check of the potential against the Oort limit and the scale height of a disk; read by tests |
 | function | planetgen.galaxy.density.component_masses | by design | each density component's closed-form mass (GEN.379), the total `test_density_components` holds the numerical integral (`integrated_masses`) to; the potential (GEN.338) reads the component masses from `density_components` directly |
 | function | planetgen.galaxy.density.predicted_star_count | by design | the sector gate of the density design (`predicted_star_count >= 1`) as one pure function of the position; `run_plan` and the sector profile apply the same product with the clamp at 0 inline, and the tests use this as the rule's definition |
-| function | planetgen.galaxy.object_uid.is_on_demand | GEN.1161 | a belt or field member above the individually stored count is drawn on demand, never stored; the member ledger wires it |
+| function | planetgen.galaxy.object_uid.is_on_demand | GEN.1105 | a belt or field member above the individually stored count is drawn on demand, never stored; the member ledger wires it |
 | function | planetgen.galaxy.object_uid.captured_member | GEN.1070 | the designation and parent link of a belt member a planet has captured; the irregular-moon wiring prints it |
 | function | planetgen.galaxy.object_uid.outside_reservoir_member | GEN.1070 | the designation of a captured body from a reservoir that is not a belt; the irregular-moon wiring prints it |
 | function | planetgen.galaxy.object_uid.parse_captured | GEN.1070 | reads a captured body's designation and link back; the irregular-moon wiring and the designation cascade (GEN.1141) use it |
@@ -203,7 +202,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.field_kernel.accelerations | GEN.105 | the pull at an object's exact place; the update's motion vector reads the gravitational field there (the numba kernel `sector_path` loads) |
 | function | planetgen.physics.giant_tilt.large_tilt_chance | by design | the expected share of ice giants tilted over 60 degrees that `MERGER_SHARE` gives, the check of the tilt draw; read by test_giant_tilt, never by the generator |
 | function | planetgen.physics.giant_tilt.final_period_h | by design | the spin after the impact that tilts an ice giant, the check that the impacts that turn a Uranus also spin it as fast as Uranus; read by test_giant_tilt, the draw keeps the giant's own spin |
-| function | planetgen.physics.habitability_world.harshness | POP.38 | one minus the worst core domain score, the 0 to 1 harshness the tech draw and the facility ratings read (population-and-politics.md); POP.38 makes the facility ratings read the host, which is where it is called |
+| function | planetgen.physics.habitability_world.harshness | POP.40 | one minus the worst core domain score, the 0 to 1 harshness the tech draw and the facility ratings read (population-and-politics.md); POP.40 makes the facility ratings read the host, which is where it is called |
 | function | planetgen.physics.hosting_gate.moon_survives_tides | GEN.550 | the tidal-survival gate of a moon that would host a submoon; a moon hosts only through this gate and a sourced satellite-share row, which the recursive generation of GEN.550 adds |
 | function | planetgen.physics.impact_spin.mean_rms_breakup_fraction | by design | the rms birth spin of a mass averaged over the distribution of the mass ratio, the expected value the draws are checked against; read by test_impact_spin and test_tidal_spin, never by the generator |
 | function | planetgen.physics.jwst_selection.observed_sampler | by design | the simulated observed sample of the JWST target selection model: the simulated side of the `jwst_selection` selection model, run by test_jwst_selection through `tuning_harness.SELECTION_MODEL_MODULES`; the generator never needs an observed sample (TEST.527) |

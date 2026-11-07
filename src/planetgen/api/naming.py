@@ -1,12 +1,13 @@
 # planetgen/api/naming.py
 
 """
-Names from IDs in the API's answers (GEN.71).
+Names from IDs in the API's answers (GEN.71, GEN.1256).
 
 The objects the phoneme codec names (`names/naming_key.py`) keep their
-19-digit hex ID in their `name` column. Every JSON answer passes through
-`NamingJSONProvider`, which swaps such a `name` for the codec name under
-the galaxy's naming key (control database, `galaxy_naming`); the pages
+printed Object ID in their `name` column. Every JSON answer passes through
+`NamingJSONProvider`, which swaps such a `name` for the local name under
+the galaxy's naming key (control database, `galaxy_naming`) and adds the
+birth sector as `name_sector`; the pages
 call the API in-process, so they show the same names. Nothing is
 rewritten in the database, so changing the key renames at once (the node
 cache follows because `query.galaxy_content_state` mixes the key into its

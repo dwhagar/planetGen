@@ -12881,11 +12881,11 @@
           "fields": [
             [
               "What it is",
-              "tidal_rheology.MELT_VISCOSITY_FACTOR 26 (a partly molten mantle is exp(-26 phi) times as viscous as its solid)"
+              "tidal_rheology.MELT_VISCOSITY_FACTOR 30 (a partly molten rocky mantle is exp(-30 phi) times as viscous as its solid; it was 26)"
             ],
             [
               "The range it moves in",
-              "20 to 31"
+              "26 to 45"
             ],
             [
               "Where it holds",
@@ -12901,7 +12901,7 @@
             ],
             [
               "Evidence",
-              "[R1956] (diffusion creep, 26) and [R3021] (26 to 31), recalled, not opened"
+              "[R1956: Table 1] (read, GEN.1190; the column is the melt coefficient of eq. 1): 30 for diffusion creep, 30 to 45 for dislocation creep, and tidal flexing is slow and low-stress, so the diffusion value; [R3021] 26 to 31"
             ]
           ],
           "id": "TR1",
@@ -12912,7 +12912,7 @@
           "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "tidal_rheology.MELT_VISCOSITY_FACTOR 26 (a partly molten mantle is exp(-26 phi) times as viscous as its solid)"
+          "what": "tidal_rheology.MELT_VISCOSITY_FACTOR 30 (a partly molten rocky mantle is exp(-30 phi) times as viscous as its solid; it was 26)"
         },
         {
           "burn_down": null,
@@ -13019,7 +13019,7 @@
             ],
             [
               "Evidence",
-              "laboratory olivine 0.2 to 0.4; 0.3 in [R0682, R2121], recalled"
+              "laboratory olivine and ice 0.2 to 0.4 (read, GEN.1190: [R0682] by way of a later paper's section 2.1; 0.23 to 0.28 for the present solid Earth; olivine 0.1 to 0.4 and a peridotite peak at 0.15 to 0.25 from secondary summaries); the repo's 0.3 is inside the range and the midpoint of it, and 0.3 in [R0682, R2121]"
             ]
           ],
           "id": "TR4",
@@ -13057,15 +13057,15 @@
             ],
             [
               "Evidence",
-              "1 in [R1214, R3732] explore 0.01 to 100; the Moon's Q of 38 to 60 is reproduced at 1 without tuning"
+              "1 in [R1214, R3732] explore 0.01 to 100; READ (GEN.1190): about 1 at low stress for ice and for grain-boundary diffusion ([R0682] by way of two papers), but 'differ considerably' for dislocation unpinning in Earth-like bodies; the sources conflict for rock (a summary of laboratory work gives 1e-10 to 1e-4 against about 1 in a later laboratory paper; the primary papers are not in hand), so the ratio is a bracket, Marginal Unverified for a rocky mantle and Confident Unverified for an ice; the Moon's Q of 38 to 60 is reproduced at 1 without tuning"
             ]
           ],
           "id": "TR5",
           "key": "6.23:TR5",
           "kind": "P",
           "slug": "6-23-tr5",
-          "tier": "T6",
-          "tier_code": "T6",
+          "tier": "T3",
+          "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
           "what": "tidal_rheology.ANDRADE_TIMESCALE_RATIO 1 (the Andrade timescale over the Maxwell time)"
@@ -13209,7 +13209,7 @@
             ],
             [
               "Evidence",
-              "[R1503] (rigidity), [R1614] (creep), all second-hand; [R1190: Table 2] (read, GEN.1186): the Ih dislocation activation energies are 39 kJ/mol below 195 K, 61 from 195 to 240 K and 91 from 240 to 258 K, so the 49 kJ/mol used sits inside a 40 to 90 span the evidence supports"
+              "[R1503] (rigidity), [R1614] (creep), all second-hand; [R1190: Table 2] (read, GEN.1186): the Ih dislocation activation energies are 39 kJ/mol below 195 K, 61 from 195 to 240 K and 91 from 240 to 258 K, so the 49 kJ/mol used sits inside a 40 to 90 span the evidence supports; [R1614: Table 5] (read from the page image, GEN.1190): grain-boundary-sliding-accommodated creep below 255 K has n 1.8, grain-size exponent 1.4 and Q 49 kJ/mol (A 3.9e-3 MPa^-1.8 m^1.4 s^-1), basal-limited n 2.4 and Q 60, dislocation n 4 and Q 60, so the 49 kJ/mol used is the sliding law's (verified), and a second source agrees; the sliding law's n and grain-size exponent are not used here (the Arrhenius form has the one activation energy)"
             ]
           ],
           "id": "TR9",
@@ -30827,15 +30827,15 @@
           "fields": [
             [
               "What it is",
-              "cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to every orbit"
+              "cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to the pieces of a history in which the orbit is soft (unbinding_epoch_myr); a harder piece unbinds nothing"
             ],
             [
               "The range it moves in",
-              "a factor of a few either way for hard planets"
+              "the soft boundary (circular speed under V) by a factor of two"
             ],
             [
               "Where it holds",
-              "planets soft against the cluster (circular speed under V, soft); a harder orbit is overestimated by a factor the paper does not give"
+              "planets soft against the cluster (circular speed under V, soft); a harder orbit is less easily unbound than the formula says, by a factor the paper does not give, so none is unbound"
             ],
             [
               "What would show it wrong",
@@ -30856,9 +30856,9 @@
           "slug": "6-113-cu1",
           "tier": "T3",
           "tier_code": "T3",
-          "tweak": "L1",
+          "tweak": "L0",
           "unread": null,
-          "what": "cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to every orbit"
+          "what": "cluster_unbinding.cross_section_au2 and unbinding_time_myr: the cross section of the impulsive soft encounter, (40 pi / 3) G m a / V^2 for equal-mass stars, applied to the pieces of a history in which the orbit is soft (unbinding_epoch_myr); a harder piece unbinds nothing"
         },
         {
           "burn_down": null,
@@ -30935,6 +30935,158 @@
           "tweak": "L1",
           "unread": null,
           "what": "cluster_unbinding.half_mass_density: the density the planet sees is the half-mass density 3 M / (8 pi r_h^3) for the whole life of the cluster"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cluster_unbinding.history_of: a cluster's life from the end of its disk (3 Myr) to its age is cut into HISTORY_PIECES 8 equal pieces, each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
+            ],
+            [
+              "The range it moves in",
+              "4 to 16 pieces; the expansion factor 5 to 10"
+            ],
+            [
+              "Where it holds",
+              "clusters of the generated kind (a radius that grows linearly to its present value in 100 Myr)"
+            ],
+            [
+              "What would show it wrong",
+              "the stored birth radius and mass of the cluster"
+            ],
+            [
+              "What replaces it",
+              "the cluster's own birth radius and mass history stored with it"
+            ],
+            [
+              "Evidence",
+              "the radius law of open_cluster_evolution.half_mass_radii_pc; the mid-point factor and the piece count are ours"
+            ]
+          ],
+          "id": "CU4",
+          "key": "6.113:CU4",
+          "kind": "P",
+          "slug": "6-113-cu4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cluster_unbinding.history_of: a cluster's life from the end of its disk (3 Myr) to its age is cut into HISTORY_PIECES 8 equal pieces, each held at its mid-point's half-mass density and relative speed; the mass is the present one (the cluster has lost some, so the early density is a lower bound) and the birth radius is worked back from the present one with the mid-point (7.5) of tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE over OPEN_CLUSTER_EXPANSION_AGE_GY"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cluster_unbinding.VIRIAL_OVER_HALF_MASS 1.30 and virial_dispersion_km_s: the one-axis dispersion of a cluster in virial equilibrium is sqrt(G M / (6 r_vir)) with the virial radius 1.30 half-mass radii (a Plummer sphere: 16 / (3 pi) / 1.305)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "a cluster in virial equilibrium with a Plummer profile (the catalogue clusters are Kings)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dispersion of a cluster far from this"
+            ],
+            [
+              "What replaces it",
+              "the stored velocity dispersion of the cluster"
+            ],
+            [
+              "Evidence",
+              "the virial theorem for a Plummer sphere (our derivation)"
+            ]
+          ],
+          "id": "CU5",
+          "key": "6.113:CU5",
+          "kind": "B",
+          "slug": "6-113-cu5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cluster_unbinding.VIRIAL_OVER_HALF_MASS 1.30 and virial_dispersion_km_s: the one-axis dispersion of a cluster in virial equilibrium is sqrt(G M / (6 r_vir)) with the virial radius 1.30 half-mass radii (a Plummer sphere: 16 / (3 pi) / 1.305)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cluster_unbinding.UNBINDING_KICK_OVER_CIRCULAR sqrt(2) - 1: a planet the cluster unbinds leaves its star at this multiple of its circular speed (the impulse that just lifts it to the escape speed, sqrt(2) times the circular one); the orbital velocity is added, so the rogue leaves near the escape speed"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 1"
+            ],
+            [
+              "Where it holds",
+              "every planet pulled off (the cross section of [R4184] is for a change of the binding energy by its own size)"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of unbinding encounters with a speed at infinity far from the escape speed"
+            ],
+            [
+              "What replaces it",
+              "the speed at infinity from the energy the encounter gave"
+            ],
+            [
+              "Evidence",
+              "the energy balance (our derivation)"
+            ]
+          ],
+          "id": "CU6",
+          "key": "6.113:CU6",
+          "kind": "P",
+          "slug": "6-113-cu6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cluster_unbinding.UNBINDING_KICK_OVER_CIRCULAR sqrt(2) - 1: a planet the cluster unbinds leaves its star at this multiple of its circular speed (the impulse that just lifts it to the escape speed, sqrt(2) times the circular one); the orbital velocity is added, so the rogue leaves near the escape speed"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "starless_host.stripped_moon_limit_km: a planet pulled off by a distant encounter keeps its moons out to the Domingos fraction of its own Hill radius at the loss (no close-approach cut as a scattering gives)"
+            ],
+            [
+              "The range it moves in",
+              "the fraction 0.3 to 0.6 of the Hill radius"
+            ],
+            [
+              "Where it holds",
+              "moons of a planet unbound by a passing star"
+            ],
+            [
+              "What would show it wrong",
+              "a moon system stripped by an unbinding encounter"
+            ],
+            [
+              "What replaces it",
+              "the moons' stability under the encounter"
+            ],
+            [
+              "Evidence",
+              "the Hill-sphere argument (our reading)"
+            ]
+          ],
+          "id": "CU7",
+          "key": "6.113:CU7",
+          "kind": "P",
+          "slug": "6-113-cu7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "starless_host.stripped_moon_limit_km: a planet pulled off by a distant encounter keeps its moons out to the Domingos fraction of its own Hill radius at the loss (no close-approach cut as a scattering gives)"
         }
       ],
       "slug": "6-113-stand-ins-of-the-planets-a-birth-cluster-strips",
@@ -38495,6 +38647,140 @@
       "title": "Stand-ins of the binary-stripped Wolf-Rayet channel"
     },
     {
+      "key": "6.193",
+      "number": "6.193",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the class F gravity edge 1.4 g was chosen from a sweep of 1,448 bodies; it goes when the gravity edges of classes Z and V are fixed from heavy-world physics (GEN.1136)"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "class F gravity edge 1.4 g (planet_class_fit.json, F gravity_g lt 1.4; 2.0 g before): F stops where the heavy thin-air class Z starts, so an anoxic air of 1.4 g or more is Z (hot, thin) or V (2 g or more)"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 1.75 g"
+            ],
+            [
+              "Where it holds",
+              "anoxic worlds with air at 273 to 400 K"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep where the edge moves bodies of class Z or V into F at 1.75 g (15 of 1448 changed letter, 7 of Z, against 6 at 1.4 g)"
+            ],
+            [
+              "What replaces it",
+              "the gravity edges of Z and V fixed from the heavy-world physics of GEN.1136"
+            ],
+            [
+              "Evidence",
+              "GEN.1281 class sweep, 1448 bodies from three seeds of 150 systems"
+            ]
+          ],
+          "id": "AW1",
+          "key": "6.193:AW1",
+          "kind": "P",
+          "slug": "6-193-aw1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "class F gravity edge 1.4 g (planet_class_fit.json, F gravity_g lt 1.4; 2.0 g before): F stops where the heavy thin-air class Z starts, so an anoxic air of 1.4 g or more is Z (hot, thin) or V (2 g or more)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class F carbon dioxide edge 20 percent (share_co2 lt 0.2): the edge class G starts at (share_co2 min 0.2), so an anoxic air with a fifth carbon dioxide is G and the rest is F"
+            ],
+            [
+              "The range it moves in",
+              "none (the edge of G)"
+            ],
+            [
+              "Where it holds",
+              "anoxic worlds with air at 273 to 400 K"
+            ],
+            [
+              "What would show it wrong",
+              "a carbon-dioxide air that is better read as F"
+            ],
+            [
+              "What replaces it",
+              "the carbon-dioxide edge of G once the greenhouse classes are fitted"
+            ],
+            [
+              "Evidence",
+              "the G row of the same file; GEN.1207"
+            ]
+          ],
+          "id": "AW2",
+          "key": "6.193:AW2",
+          "kind": "P",
+          "slug": "6-193-aw2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class F carbon dioxide edge 20 percent (share_co2 lt 0.2): the edge class G starts at (share_co2 min 0.2), so an anoxic air with a fifth carbon dioxide is G and the rest is F"
+        }
+      ],
+      "slug": "6-193-stand-ins-of-the-anoxic-world",
+      "title": "Stand-ins of the anoxic world"
+    },
+    {
+      "key": "6.194",
+      "number": "6.194",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "irregular_moons.take_from_disks: what the planets hold now (stored bodies and remainder, after their own grinding) leaves the disks' present mass, shared by the disks' primordial mass and never more than a disk's remainder; the grinding the captured bodies and the disk each suffered separately is not told apart"
+            ],
+            [
+              "The range it moves in",
+              "the share of the disk is under 1e-6 for a Jupiter"
+            ],
+            [
+              "Where it holds",
+              "outer disks with one or more giants"
+            ],
+            [
+              "What would show it wrong",
+              "a captured population that is a tenth of its disk's present mass"
+            ],
+            [
+              "What replaces it",
+              "the capture taken from the disk at the window and both ground down apart"
+            ],
+            [
+              "Evidence",
+              "conservation of mass: the design asks that \"belt mass minus captured mass is conserved\" (docs/design/systems/captured-asteroid-moons.md section 4.4)"
+            ]
+          ],
+          "id": "CD1",
+          "key": "6.194:CD1",
+          "kind": "D",
+          "slug": "6-194-cd1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "irregular_moons.take_from_disks: what the planets hold now (stored bodies and remainder, after their own grinding) leaves the disks' present mass, shared by the disks' primordial mass and never more than a disk's remainder; the grinding the captured bodies and the disk each suffered separately is not told apart"
+        }
+      ],
+      "slug": "6-194-stand-in-of-the-mass-the-planets-take-from-an-outer-disk",
+      "title": "Stand-in of the mass the planets take from an outer disk"
+    },
+    {
       "key": "6.192",
       "number": "6.192",
       "rows": [
@@ -38545,8 +38831,328 @@
       "title": "Stand-in of how far apart random placement keeps two systems"
     },
     {
-      "key": "6.193",
-      "number": "6.193",
+      "key": "6.195",
+      "number": "6.195",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+            ],
+            [
+              "The range it moves in",
+              "the 2:1 resonance (1.59) to the 4:1 (2.52)"
+            ],
+            [
+              "Where it holds",
+              "embryos of 0.1 Earth masses and more in a system with at least one planet"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of a disk of embryos about a giant at 5 AU that leaves the embryos beyond 2 times its orbit on their orbits for the disk's life and after"
+            ],
+            [
+              "What replaces it",
+              "the stirred stretch from a direct integration of the architecture's planets and embryos"
+            ],
+            [
+              "Evidence",
+              "the 3:1 resonance is where the Kirkwood gaps open (a body there is pumped to a planet-crossing orbit); using it as the stirred stretch's edge is ours"
+            ]
+          ],
+          "id": "SM1",
+          "key": "6.195:SM1",
+          "kind": "P",
+          "slug": "6-195-sm1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "planet_architecture._RESONANCE_3_TO_1 (3^(2/3) = 2.08): the stretch whose embryos the planets stir runs from the innermost planet's reach band divided by this to the outermost planet's multiplied by it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_architecture.losses: the embryo is scattered by the planet that gives the highest Safronov number at its distance (as for a chain body in a reach band), over the disk lifetime of scatter.DISK_LIFETIME_YR"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "embryos in the stirred stretch"
+            ],
+            [
+              "What would show it wrong",
+              "an architecture where a weaker planet scatters an embryo the strongest does not reach"
+            ],
+            [
+              "What replaces it",
+              "the encounter rates of each planet with the embryo"
+            ],
+            [
+              "Evidence",
+              "the Safronov scatter rule already registered for the reach bands (GEN.1119)"
+            ]
+          ],
+          "id": "SM2",
+          "key": "6.195:SM2",
+          "kind": "P",
+          "slug": "6-195-sm2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planet_architecture.losses: the embryo is scattered by the planet that gives the highest Safronov number at its distance (as for a chain body in a reach band), over the disk lifetime of scatter.DISK_LIFETIME_YR"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_architecture._ROGUE_MIN_KG: an embryo under 0.1 Earth masses is never made a rogue and stays one bound record"
+            ],
+            [
+              "The range it moves in",
+              "the bin edge"
+            ],
+            [
+              "Where it holds",
+              "the generator's rogue classes"
+            ],
+            [
+              "What would show it wrong",
+              "a catalogued rogue of under 0.1 Earth masses"
+            ],
+            [
+              "What replaces it",
+              "the rogue classes below the terrestrial bin"
+            ],
+            [
+              "Evidence",
+              "tuning.ROGUE_PLANET_MASS_BIN_EDGES_EARTH"
+            ]
+          ],
+          "id": "SM3",
+          "key": "6.195:SM3",
+          "kind": "P",
+          "slug": "6-195-sm3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planet_architecture._ROGUE_MIN_KG: an embryo under 0.1 Earth masses is never made a rogue and stays one bound record"
+        }
+      ],
+      "slug": "6-195-stand-ins-of-the-embryos-the-planets-stir-out-of-a-system",
+      "title": "Stand-ins of the embryos the planets stir out of a system"
+    },
+    {
+      "key": "6.196",
+      "number": "6.196",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "water_layer.melting_pressure_mpa: the melting pressure of ice III (251.165 to 256.164 K), V (to 273.31 K), VI (to 355 K) and VII (above), the IAPWS R14-08 equations with all their coefficients, and the triple points 208.566, 350.1, 632.4 and 2,216 MPa"
+            ],
+            [
+              "The range it moves in",
+              "uncertainty 3 percent for III, V and VI and 7 percent for VII"
+            ],
+            [
+              "Where it holds",
+              "water at the base of an ocean from 251 K to 715 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured melting pressure outside the release's uncertainty"
+            ],
+            [
+              "What replaces it",
+              "none (the release is the standard)"
+            ],
+            [
+              "Evidence",
+              "[R4585] (IAPWS R14-08; the check values 268.685 MPa for ice III at 254 K, 479.640 for V at 265 K, 1,356.76 for VI at 320 K and 6,308.71 for VII at 550 K are reproduced by the tests; the ice VII exponents were restored from a garbled text layer and verified against the paper's 6,308.714 MPa at 550 K)"
+            ]
+          ],
+          "id": "MC1",
+          "key": "6.196:MC1",
+          "kind": "D",
+          "slug": "6-196-mc1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "water_layer.melting_pressure_mpa: the melting pressure of ice III (251.165 to 256.164 K), V (to 273.31 K), VI (to 355 K) and VII (above), the IAPWS R14-08 equations with all their coefficients, and the triple points 208.566, 350.1, 632.4 and 2,216 MPa"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "water_layer.ice_ih_melting_pressure_mpa and ice_ih_melting_k: the ice Ih melting curve, 273.16 K at 0.000611657 MPa down to the ice III triple point at 251.165 K and 208.566 MPa, 264.2 K at 100 MPa and 252.3 K at 200 MPa; the lid's base melts along it"
+            ],
+            [
+              "The range it moves in",
+              "uncertainty 2 percent"
+            ],
+            [
+              "Where it holds",
+              "the base of an ice lid at 251 to 273 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Ih melting pressure outside the release's uncertainty"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "[R4585] (IAPWS R14-08)"
+            ]
+          ],
+          "id": "MC2",
+          "key": "6.196:MC2",
+          "kind": "D",
+          "slug": "6-196-mc2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "water_layer.ice_ih_melting_pressure_mpa and ice_ih_melting_k: the ice Ih melting curve, 273.16 K at 0.000611657 MPa down to the ice III triple point at 251.165 K and 208.566 MPa, 264.2 K at 100 MPa and 252.3 K at 200 MPa; the lid's base melts along it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "water_layer.melting_pressure_mpa beyond 715 K and below 251.165 K: the ice VII equation is continued above its stated range, and under the ice III triple point the liquidus is held at that point's pressure (no liquid is stable there, the metastable region is not modelled)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an ocean base hotter than 715 K, or colder than 251.165 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ice VII melting pressure above 715 K that departs from the continued equation"
+            ],
+            [
+              "What replaces it",
+              "a ice VII melting curve fitted above 715 K"
+            ],
+            [
+              "Evidence",
+              "the form is monotone in the release's range; the hold is the old table's"
+            ]
+          ],
+          "id": "MC3",
+          "key": "6.196:MC3",
+          "kind": "T",
+          "slug": "6-196-mc3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "water_layer.melting_pressure_mpa beyond 715 K and below 251.165 K: the ice VII equation is continued above its stated range, and under the ice III triple point the liquidus is held at that point's pressure (no liquid is stable there, the metastable region is not modelled)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ice_types.water_phase: ice II holds to 620 MPa below 218 K, the temperature of the II-V-VI triple point, because no II-VI boundary equation was found; and the liquid wedge between the Ih and the high-pressure melting curves is not named, the lookup taking the solid next above it"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a body centre under 218 K and over 0.2 GPa, or at 251 to 273 K"
+            ],
+            [
+              "What would show it wrong",
+              "a measured II-VI boundary far from 620 MPa between 150 and 218 K"
+            ],
+            [
+              "What replaces it",
+              "the II-VI line of [R0777]"
+            ],
+            [
+              "Evidence",
+              "no equation for II-VI, VI-VII-VIII or VII-VIII could be found (Sources 1, GEN.1190)"
+            ]
+          ],
+          "id": "MC4",
+          "key": "6.196:MC4",
+          "kind": "T",
+          "slug": "6-196-mc4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "ice_types.water_phase: ice II holds to 620 MPa below 218 K, the temperature of the II-V-VI triple point, because no II-VI boundary equation was found; and the liquid wedge between the Ih and the high-pressure melting curves is not named, the lookup taking the solid next above it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tidal_rheology.ICE_MELT_VISCOSITY_FACTOR 22: the viscosity of partly molten ice is exp(-22 phi) times its solid's; viscosity_pa_s reads it from the material when the material is ice"
+            ],
+            [
+              "The range it moves in",
+              "22"
+            ],
+            [
+              "Where it holds",
+              "ammonia-rich ice with 4 to 8 percent melt"
+            ],
+            [
+              "What would show it wrong",
+              "a measured melt law of pure water ice outside 15 to 30"
+            ],
+            [
+              "What replaces it",
+              "a melt law of pure water ice"
+            ],
+            [
+              "Evidence",
+              "[R0133] (by way of a later paper, B about 22 for ammonia-water ice at 180 to 210 K); no ice shell in the generator has a melt share yet, so the factor is read by the path that has one"
+            ]
+          ],
+          "id": "MC5",
+          "key": "6.196:MC5",
+          "kind": "P",
+          "slug": "6-196-mc5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tidal_rheology.ICE_MELT_VISCOSITY_FACTOR 22: the viscosity of partly molten ice is exp(-22 phi) times its solid's; viscosity_pa_s reads it from the material when the material is ice"
+        }
+      ],
+      "slug": "6-196-stand-ins-of-the-melting-curves-and-the-sourced-rheology-constants-of-water-ice-and-rock",
+      "title": "Stand-ins of the melting curves and the sourced rheology constants of water ice and rock"
+    },
+    {
+      "key": "6.197",
+      "number": "6.197",
       "rows": [
         {
           "burn_down": null,
@@ -38577,9 +39183,9 @@
             ]
           ],
           "id": "WL1",
-          "key": "6.193:WL1",
+          "key": "6.197:WL1",
           "kind": "P",
-          "slug": "6-193-wl1",
+          "slug": "6-197-wl1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -38615,9 +39221,9 @@
             ]
           ],
           "id": "WL2",
-          "key": "6.193:WL2",
+          "key": "6.197:WL2",
           "kind": "P",
-          "slug": "6-193-wl2",
+          "slug": "6-197-wl2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -38653,9 +39259,9 @@
             ]
           ],
           "id": "WL3",
-          "key": "6.193:WL3",
+          "key": "6.197:WL3",
           "kind": "P",
-          "slug": "6-193-wl3",
+          "slug": "6-197-wl3",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -38691,9 +39297,9 @@
             ]
           ],
           "id": "WL4",
-          "key": "6.193:WL4",
+          "key": "6.197:WL4",
           "kind": "P",
-          "slug": "6-193-wl4",
+          "slug": "6-197-wl4",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -38729,9 +39335,9 @@
             ]
           ],
           "id": "WL5",
-          "key": "6.193:WL5",
+          "key": "6.197:WL5",
           "kind": "P",
-          "slug": "6-193-wl5",
+          "slug": "6-197-wl5",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -38767,9 +39373,9 @@
             ]
           ],
           "id": "WL6",
-          "key": "6.193:WL6",
+          "key": "6.197:WL6",
           "kind": "P",
-          "slug": "6-193-wl6",
+          "slug": "6-197-wl6",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
@@ -38805,9 +39411,9 @@
             ]
           ],
           "id": "WL7",
-          "key": "6.193:WL7",
+          "key": "6.197:WL7",
           "kind": "P",
-          "slug": "6-193-wl7",
+          "slug": "6-197-wl7",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -38815,7 +39421,7 @@
           "what": "stellar_composition._grid_radius_solar: a helium-core white dwarf reads the lightest carbon-oxygen sequence and an oxygen-neon one the 1.30 sequence, both scaled by the zero-temperature mass-radius ratio, so a helium-core star has the radius of a thin-envelope carbon-oxygen one"
         }
       ],
-      "slug": "6-193-stand-ins-of-the-layers-of-helium-core-and-oxygen-neon-white-dwarfs",
+      "slug": "6-197-stand-ins-of-the-layers-of-helium-core-and-oxygen-neon-white-dwarfs",
       "title": "Stand-ins of the layers of helium-core and oxygen-neon white dwarfs"
     },
     {
@@ -41013,53 +41619,49 @@
           "what": "ice_types co2_ice strength_pa 0.3 MPa: solid carbon dioxide has a strength of its own, not scaled by ice Ih"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the 1993 ammonia-water constants of Durham, Kirby and Stern are not in hand; they replace the three interpolated points"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
-              "ice_types nh3_dihydrate ratio_by_temperature_k 2.0 at 110 K, 1.0 at 135 K, 0.3 at 170 K, log-linear, held at the ends"
+              "ice_types nh3_dihydrate ratio_by_temperature_k 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K, 0.18 at 170 K and 0.14 at 176 K, log-linear, held at the ends (it was 2.0 at 110 K, 1.0 at 135 K and 0.3 at 170 K)"
             ],
             [
               "The range it moves in",
-              "ratio 0.15 to 4"
+              "ratio 0.1 to 2"
             ],
             [
               "Where it holds",
-              "ammonia dihydrate and ammonia-water ices between 100 and 176 K"
+              "ammonia dihydrate and ammonia-water ices between 132 and 176 K, the tested range; under 135 K the ratio is held at 1.7, a lower bound (the law gives 19 at 110 K)"
             ],
             [
               "What would show it wrong",
-              "a measured dihydrate strength far from the three points at those temperatures"
+              "a measured dihydrate strength at 1e-15 per second that differs from the law's ratio by more than a factor of 2 in 135 to 176 K"
             ],
             [
               "What replaces it",
-              "the ammonia-water constants of [R1189] (not in hand)"
+              "the alloys between pure ice and the dihydrate (NH3 mole fraction 0.01 to 0.295) of [R1189], whose full text is not in hand"
             ],
             [
               "Evidence",
-              "Durham and Kirby, NASA NTRS N92-10735 (READ): weaker than water ice near 176 K, stronger below 135 K; the three points are the interpolation of strength research section 14"
+              "[R1189] as tabulated in the 1996 preprint UCRL-JC-123734 of the same authors (Table 1, read): the dihydrate law log A 21.55, n 5.81, E* 107.5 kJ/mol, tested 132 to 176 K at 50 to 100 MPa, over the ice I law of [R1190] (the 1997 row, log A -3.8, n 6.0, E* 39 kJ/mol; the preprint's own ice I row was different and is not used); the paper's laboratory-rate crossover is 143 K; Sources 1 computed the ratios (GEN.1190)"
             ]
           ],
           "id": "IT6",
           "key": "6.129:IT6",
           "kind": "P",
           "slug": "6-129-it6",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
           "unread": null,
-          "what": "ice_types nh3_dihydrate ratio_by_temperature_k 2.0 at 110 K, 1.0 at 135 K, 0.3 at 170 K, log-linear, held at the ends"
+          "what": "ice_types nh3_dihydrate ratio_by_temperature_k 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K, 0.18 at 170 K and 0.14 at 176 K, log-linear, held at the ends (it was 2.0 at 110 K, 1.0 at 135 K and 0.3 at 170 K)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "ice_types phases: Ih under 0.21 GPa, II to 0.63 GPa except III at 240 to 256 K and 0.21 to 0.35 GPa and V at 250 K and over and 0.35 to 0.63 GPa, VI to 2.2 GPa and beyond"
+              "ice_types water_phase with a temperature: the boundary lines Ih-II 176.0 + 0.918 (T - 198.15) MPa, Ih-III 198.2 - 0.42 (T - 273.15), II-III 213 + 99.517 [(T/238.45)^19.676 - 1], II-V 412.0 - 7.01 (T - 239.15), III-V 344.3 - 0.275 d - 0.01099 d^2 and V-VI 625.9 + 0.06086 d - 0.0008571 d^2 (d = T - 273.15), each only between its triple points, and VI from 2,216 MPa (VII and X take its strength); with a pressure alone Ih under 212.9 MPa, II to 620 MPa, VI beyond"
             ],
             [
               "The range it moves in",
@@ -41067,30 +41669,30 @@
             ],
             [
               "Where it holds",
-              "water ice by central pressure"
+              "water ice by central pressure and the shape-set temperature, 218 to 273 K for the lines; below 218 K only the Ih-II line is used and II holds to 620 MPa"
             ],
             [
               "What would show it wrong",
-              "a phase of the water phase diagram at a body's centre that differs"
+              "a phase of the water phase diagram at a body's centre that differs from the lookup's, in a paper's equations"
             ],
             [
               "What replaces it",
-              "a phase-diagram table read from a source"
+              "the solid-solid boundary equations of a paper (the thermodynamic model of [R0777], not in hand, or [R2204]'s Gibbs splines)"
             ],
             [
               "Evidence",
-              "the water phase diagram (recalled, no source read)"
+              "one tertiary source: the water phase diagram page of the LSBU water site (updated Nov 2021; its references are numbers only and unreachable; not yet in the citation registry because the site is not on the machine's allowed list); Sources 1 checked every line meets its triple points within 1 MPa except III-V at the liquid point (345.8 against 350.1) and V-VI there (625.9 against 632.4); the triple points of the liquid are the IAPWS release's [R4585]; Ih-II-III 238.45 K, 212.9 MPa; II-III-V 248.85 K, 344.3 MPa; II-V-VI about 218 K, 620 MPa; VI-VII-liquid 355 K, 2,216 MPa; no equation was found for II-VI, VI-VII-VIII or VII-VIII"
             ]
           ],
           "id": "IT7",
           "key": "6.129:IT7",
           "kind": "D",
           "slug": "6-129-it7",
-          "tier": "T2",
-          "tier_code": "T2",
+          "tier": "T3",
+          "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "ice_types phases: Ih under 0.21 GPa, II to 0.63 GPa except III at 240 to 256 K and 0.21 to 0.35 GPa and V at 250 K and over and 0.35 to 0.63 GPa, VI to 2.2 GPa and beyond"
+          "what": "ice_types water_phase with a temperature: the boundary lines Ih-II 176.0 + 0.918 (T - 198.15) MPa, Ih-III 198.2 - 0.42 (T - 273.15), II-III 213 + 99.517 [(T/238.45)^19.676 - 1], II-V 412.0 - 7.01 (T - 239.15), III-V 344.3 - 0.275 d - 0.01099 d^2 and V-VI 625.9 + 0.06086 d - 0.0008571 d^2 (d = T - 273.15), each only between its triple points, and VI from 2,216 MPa (VII and X take its strength); with a pressure alone Ih under 212.9 MPa, II to 620 MPa, VI beyond"
         },
         {
           "burn_down": null,
@@ -46363,6 +46965,120 @@
           "tweak": "L1",
           "unread": null,
           "what": "belt_birth.MIGRATED_RATIO 1.25, a giant that ended this many times nearer or further than where it formed is one that moved (it swept the belts it passed)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_origin.PEBBLE_CONVERSION_PER_ORBIT 0.01, the share of a patch's pebbles the streaming instability turns into planetesimals each orbit where it works"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.03"
+            ],
+            [
+              "Where it holds",
+              "the solids of the disk past the snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a streaming-instability simulation or a planetesimal population synthesis that finds a conversion rate outside 0.003 to 0.03 per orbit"
+            ],
+            [
+              "What replaces it",
+              "the rate read from Gerbig and Li 2023 in the paper"
+            ],
+            [
+              "Evidence",
+              "pebble-to-planetesimal simulations use 0.01 of the pebble surface density per orbit; read second-hand, not opened"
+            ]
+          ],
+          "id": "BG17",
+          "key": "6.97:BG17",
+          "kind": "P",
+          "slug": "6-97-bg17",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_origin.PEBBLE_CONVERSION_PER_ORBIT 0.01, the share of a patch's pebbles the streaming instability turns into planetesimals each orbit where it works"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_origin.PEBBLE_TO_GAS_SOLAR 0.01, the solids-to-gas ratio of a disk of solar metal content; it scales with the star's metal ratio"
+            ],
+            [
+              "The range it moves in",
+              "0.005 to 0.02"
+            ],
+            [
+              "Where it holds",
+              "any disk"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dust-to-gas ratio of disks outside 0.005 to 0.02"
+            ],
+            [
+              "What replaces it",
+              "the ratio of the star's own composition"
+            ],
+            [
+              "Evidence",
+              "the interstellar value, the standard in disk models"
+            ]
+          ],
+          "id": "BG18",
+          "key": "6.97:BG18",
+          "kind": "D",
+          "slug": "6-97-bg18",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_origin.PEBBLE_TO_GAS_SOLAR 0.01, the solids-to-gas ratio of a disk of solar metal content; it scales with the star's metal ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_origin.PEBBLE_DRIFT_FACTOR 1.1, the pebbles of a drift-limited disk fall in over 1 / (1.1 Z Omega): the drift-limited Stokes number is 0.55 Z / eta and the drift speed 2 St eta v_K, so eta drops out"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2"
+            ],
+            [
+              "Where it holds",
+              "the solids of the disk past the snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a dust-evolution model of the outer disk whose pebbles live more than twice or less than half this long"
+            ],
+            [
+              "What replaces it",
+              "the drift time read from a dust-evolution run (drift-limited dust models, read second-hand)"
+            ],
+            [
+              "Evidence",
+              "physics fixes the form (growth and drift rates both scale with the orbital frequency); the 0.55 is the drift-limited dust model as quoted second-hand"
+            ]
+          ],
+          "id": "BG19",
+          "key": "6.97:BG19",
+          "kind": "P",
+          "slug": "6-97-bg19",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_origin.PEBBLE_DRIFT_FACTOR 1.1, the pebbles of a drift-limited disk fall in over 1 / (1.1 Z Omega): the drift-limited Stokes number is 0.55 Z / eta and the drift speed 2 St eta v_K, so eta drops out"
         }
       ],
       "slug": "6-97-stand-ins-of-the-belt-origins",

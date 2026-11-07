@@ -12,6 +12,7 @@ REASON_TEXT = {
     "regeneration": "rebuilt",
     "parent change": "moved to another parent",
     "admin renumber": "renumbered by an admin",
+    "charted": "named when the star was charted",
 }
 """dict: The words of each reason a designation is retired (`galaxy/designations.REASONS`)."""
 

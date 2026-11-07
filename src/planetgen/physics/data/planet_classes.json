@@ -217,9 +217,9 @@
     },
     {
       "letter": "F",
-      "name": "Reducing world",
+      "name": "Anoxic world",
       "kind": "t",
-      "sentence": "A world with a reducing air: no free oxygen and methane or hydrogen as 5 percent or more of it, warm (under 400 K) and 0.5 to 2 g.",
+      "sentence": "A world with an anoxic air (no free oxygen, under 20 percent carbon dioxide), under 400 K, and 0.5 to 1.4 g.",
       "basis": "design"
     },
     {

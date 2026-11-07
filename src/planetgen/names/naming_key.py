@@ -8,15 +8,17 @@ database (`galaxy_naming`, one row per galaxy database). It is drawn from
 the galaxy seed when the galaxy is planned and an admin can change it.
 The objects with no star-derived name (rogue planets, standalone black
 holes and neutron stars, nebulae, supernova remnants and their cores,
-quasars, interstellar comets, asteroid fields, constellations) are named
-by `codec_name`: the phoneme codec applied to the object's ID in a domain
-made of the key and the object's kind. Nothing about a name is stored, so
-changing the key renames all of them at once. Stars, sectors, planets,
-moons and belts do not use the key.
+quasars, interstellar comets and asteroid fields, GEN.1256) keep their
+Object ID as the stored `name` (the printed form, `object_uid.format_id`)
+and are shown by `local_name`: two capitalized words spelling the serial and
+body number of the ID, scrambled by a keyed bijection of the birth sector.
+Nothing about a name is stored, so changing the key renames all of them at
+once. Regions of the galaxy are named from their block (`galaxy.named_regions`)
+under the same key. Stars, sectors, planets, moons and belts do not use the key.
 
 The codec turns its domain into an affine permutation of the hex digits
 (`GatedPhonemeCodec._get_domain_params`), so a key moves a name among 128
-permutations per kind; two different keys can therefore name an object
+permutations per domain; two different keys can therefore name an object
 alike. The ID stays the identity.
 
 `CODEC_VERSION` goes up whenever the codec would spell an ID differently
@@ -31,8 +33,6 @@ import re
 
 from planetgen.galaxy.spherical import provisional_sector_designation
 from planetgen.galaxy import object_uid
-from planetgen.generation.phenomena import registry
-from planetgen.names import object_id
 from planetgen.names.gated_phoneme_codec import GatedPhonemeCodec
 
 CODEC_VERSION = 2
@@ -43,15 +43,9 @@ KEY_DIGITS = 8
 
 _KEY = re.compile(r"[0-9A-Fa-f]{%d}" % KEY_DIGITS)
 
-OBJECT_ID_DIGITS = 19
-"""int: Every GEN.64 object ID is 19 hex digits; the decoder is told so
-(`decode(phrase, domain, length=19)` is exact)."""
-
-KINDS = tuple(kind for kind in registry.id_codes() if kind != "bright-star") + ("constellation", "region")
-"""tuple: The kinds the codec names: `object_id.KIND_CODES`' spelling
-(less the bright-sweep system, which is a star system), `"constellation"`
-(VIEW.4) and `"region"` (GEN.825: a region of the galaxy is named from its
-block, not from an object ID, `galaxy.named_regions`)."""
+KINDS = ("constellation", "region")
+"""tuple: The kinds `codec_domain` names: `"constellation"` (VIEW.4) and `"region"` (GEN.825: a region of the galaxy is named from
+its block, `galaxy.named_regions`)."""
 
 _CODEC = GatedPhonemeCodec()
 
@@ -81,21 +75,6 @@ def codec_domain(key, kind):
     if kind not in KINDS:
         raise ValueError(f"no codec name for the kind {kind!r}")
     return f"{parse_key(key)}:{kind}"
-
-
-def codec_name(object_id, kind, key):
-    """
-    The name of the object with 19-digit hex `object_id` (`object_id.format_id`)
-    of `kind`, under naming key `key`: capitalized words, e.g. "Bafor Telun".
-    """
-    if len(object_id) != OBJECT_ID_DIGITS:
-        raise ValueError(f"an object ID is {OBJECT_ID_DIGITS} hex digits, not {object_id!r}")
-    return _CODEC.encode(object_id, domain=codec_domain(key, kind)).title()
-
-
-def object_id_of(name, kind, key):
-    """The 19-digit hex ID a `codec_name` stands for (its inverse)."""
-    return _CODEC.decode(name.lower(), codec_domain(key, kind), length=OBJECT_ID_DIGITS)
 
 
 # ---------------------------------------------------------------------
@@ -257,42 +236,43 @@ def active_key():
     return _resolver() if _resolver is not None else None
 
 
-def codec_kind_of(stored_name):
+def stored_uid_of(stored_name):
     """
-    The kind (`KINDS`) the 19-hex-digit object ID `stored_name` belongs to,
-    or `None` when it isn't an object ID or is one of a kind the codec
-    doesn't name (a bright-sweep system keeps its ID as its uid).
+    The Object ID (an integer) a stored `name` is, or `None`: the objects named by their ID (GEN.1256) keep its printed form
+    (`object_uid.format_id`, `FE81000A2B-0000005-000`) in `name`, and no other name has that shape.
     """
-    if not isinstance(stored_name, str) or len(stored_name) != OBJECT_ID_DIGITS:
+    if not isinstance(stored_name, str) or not _STORED_ID.fullmatch(stored_name):
         return None
     try:
-        kind = object_id.parse_id(stored_name)["kind"]
+        return object_uid.parse_id(stored_name)
     except ValueError:
         return None
-    return kind if kind in KINDS else None
+
+
+_STORED_ID = re.compile(r"[0-9A-Fa-f]+(-[0-9A-Fa-f]+){2}")
 
 
 def display_name(stored_name, key=None):
     """
-    What to show for `stored_name`: the codec name of an object ID under
-    `key` (default: `active_key()`), anything else unchanged. The ID stays
-    stored; the kind comes from the ID's own type bits.
+    What to show for `stored_name`: the local name of an Object ID under `key` (default: `active_key()`), anything else unchanged.
+    The ID stays stored.
     """
-    kind = codec_kind_of(stored_name)
-    if kind is None:
-        return stored_name
+    uid = stored_uid_of(stored_name)
     key = key if key is not None else active_key()
-    if key is None:
+    if uid is None or key is None:
         return stored_name
-    return codec_name(stored_name.upper(), kind, key)
+    return local_name(uid, key)
+
+
+SECTOR_FIELD = "name_sector"
+"""str: The field `rename_names` adds beside a renamed `name`: the birth sector's 14 hex digits (`sector_text`)."""
 
 
 def rename_names(value, get_key):
     """
-    `value` (JSON-able dicts and lists) with every `"name"` that is an
-    object ID replaced by its codec name. `get_key` is called at most once,
-    and only when such a name turns up, so payloads without one cost no
-    key lookup. Returns `value` itself when nothing was renamed.
+    `value` (JSON-able dicts and lists) with every `"name"` that is a stored Object ID replaced by its local name, and `SECTOR_FIELD`
+    added beside it. `get_key` is called at most once, and only when such a name turns up, so payloads without one cost no key
+    lookup. Returns `value` itself when nothing was renamed.
     """
     state = {}
 
@@ -305,10 +285,14 @@ def rename_names(value, get_key):
         if isinstance(item, dict):
             changed = None
             for field, child in item.items():
-                if field == "name" and codec_kind_of(child) is not None:
-                    renamed = display_name(child, key())
-                else:
-                    renamed = walk(child) if isinstance(child, (dict, list)) else child
+                uid = stored_uid_of(child) if field == "name" else None
+                if uid is not None and key() is not None:
+                    if changed is None:
+                        changed = dict(item)
+                    changed[field] = local_name(uid, key())
+                    changed[SECTOR_FIELD] = sector_text(uid)
+                    continue
+                renamed = walk(child) if isinstance(child, (dict, list)) else child
                 if renamed is not child:
                     if changed is None:
                         changed = dict(item)
@@ -328,23 +312,19 @@ def rename_names(value, get_key):
     return walk(value)
 
 
-def stored_name_for(typed, key=None):
+def uid_of_typed_name(typed, key=None):
     """
-    The object ID a typed codec name stands for under `key` (default:
-    `active_key()`), or `None`: the name is tried in each codec kind's
-    domain and kept when the decoded ID is of that kind.
+    The Object ID (an integer) a typed name stands for, or `None`: the name is `Banhunm Finkap, sector 00FA0FFFE9E240`
+    (`local_name_with_sector`), the sector after a comma, with or without the word `sector`. Needs the key in force.
     """
     key = key if key is not None else active_key()
-    if key is None or not isinstance(typed, str) or not typed.strip():
+    if key is None or not isinstance(typed, str) or "," not in typed:
         return None
-    for kind in KINDS:
-        try:
-            decoded = object_id_of(" ".join(typed.lower().split()), kind, key)
-        except Exception:  # noqa: BLE001 -- the codec rejects what it can't read
-            continue
-        if codec_kind_of(decoded) == kind:
-            return decoded
-    return None
+    name, _comma, sector = typed.partition(",")
+    try:
+        return uid_of_local_name(name, sector, key)
+    except Exception:  # noqa: BLE001 -- the codec rejects what it can't read
+        return None
 
 
 # ---------------------------------------------------------------------

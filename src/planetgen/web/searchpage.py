@@ -146,7 +146,12 @@ STAR_COUNT_CHOICES = star_count.STAR_COUNT_CHOICES
 """tuple: The stars filter's choices, `(value, label)`, for the form's menu."""
 STARS_FIELD = "stars"
 """str: The stars filter's parameter (UX.239); it is kept with the other text fields of a state."""
-TEXT_FIELDS = tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS + VALUE_FIELDS + VALUE_SORT_FIELDS + (STARS_FIELD,)
+SECTOR_SCOPE_FIELDS = ("sector_coverage", "sector_empty")
+"""tuple: The Sectors panel's two parameters (MAP.403): which sectors it lists (`sector_coverage`: `charted`, `all` or `uncharted`) and whether the
+uncharted sectors nothing is known to be in are listed too (`sector_empty=1`). Kept with the other text fields of a state, but not a search of their own."""
+SECTOR_COVERAGE_CHOICES = (("charted", "Charted sectors"), ("all", "All sectors"), ("uncharted", "Uncharted sectors only"))
+"""tuple: The `sector_coverage` choices, `(value, label)`, for the form's menu and the filter chip."""
+TEXT_FIELDS = tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS + VALUE_FIELDS + VALUE_SORT_FIELDS + (STARS_FIELD,) + SECTOR_SCOPE_FIELDS
 """tuple: Every parameter a state holds as text."""
 _Q_STARS = re.compile(r"(?:^|\s)stars:(\S+)", re.IGNORECASE)
 
@@ -309,6 +314,11 @@ class SearchState:
         """The stars filter as `apiclient.get_search` sends it (`stars=`), or `None` for no filter."""
         return self.texts.get(STARS_FIELD) or None
 
+    def sector_scope(self):
+        """`(coverage, show_empty)` for `apiclient.get_search`'s `sector_scope` (MAP.403): charted sectors unless the state asks for `all` or `uncharted`."""
+        coverage = self.texts.get("sector_coverage")
+        return (coverage if coverage in dict(SECTOR_COVERAGE_CHOICES) else "charted"), self.texts.get("sector_empty") in ("1", "true", "yes", "on")
+
     def value_ranges(self):
         """
         The ranges on physical values as `apiclient.get_search` sends them (UX.227): `{entity: {key: (least, most, unit)}}`, each bound
@@ -339,11 +349,14 @@ class SearchState:
 
     def active(self):
         """True when anything at all is being searched for (an order by a value alone is not)."""
-        return bool(self.q or any(value for key, value in self.texts.items() if key not in VALUE_SORT_FIELDS) or any(self.tags.values()))
+        return bool(self.q or any(value for key, value in self.texts.items() if key not in VALUE_SORT_FIELDS and key not in SECTOR_SCOPE_FIELDS)
+                    or any(self.tags.values()))
 
     def advanced_open(self):
         """Open the per-object fields when one of them is in use (the stars filter sits in the main form)."""
-        return any(value for key, value in self.texts.items() if key != STARS_FIELD and key not in VALUE_FIELDS and key not in VALUE_SORT_FIELDS)
+        return (self.sector_scope() != ("charted", False)
+                or any(value for key, value in self.texts.items()
+                       if key != STARS_FIELD and key not in VALUE_FIELDS and key not in VALUE_SORT_FIELDS and key not in SECTOR_SCOPE_FIELDS))
 
     def values_open(self):
         """Open the physical values when one range or order is in use."""
@@ -486,6 +499,13 @@ def active_filters(state, facet_labels):
         texts = dict(state.texts, **{STARS_FIELD: ""})
         chips.append({"label": f"Stars: {star_count.star_count_label(star_count.parse_star_count(state.stars()))}",
                       "url": state.copy(texts=texts).url()})
+    coverage, show_empty = state.sector_scope()
+    if coverage != "charted":
+        texts = dict(state.texts, sector_coverage="", sector_empty="")
+        chips.append({"label": f"Sectors: {dict(SECTOR_COVERAGE_CHOICES)[coverage].lower()}", "url": state.copy(texts=texts).url()})
+    if show_empty and coverage != "charted":
+        texts = dict(state.texts, sector_empty="")
+        chips.append({"label": "Sectors: with the empty ones", "url": state.copy(texts=texts).url()})
     for entity, label, _ph in SIZE_ENTITIES:
         size_range = state.size_range(entity)
         if size_range is None:
@@ -776,7 +796,7 @@ def fetch(state):
     try:
         data = apiclient.get_search(db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
                                     offsets=api_offsets(state), panels=[], sorts=api_sorts(request.args, state), stars=state.stars(),
-                                    ranges=state.value_ranges())
+                                    ranges=state.value_ranges(), sector_scope=state.sector_scope())
     except slowpages.Pending as pending:
         data = None
         waiting.append(pending)
@@ -786,7 +806,7 @@ def fetch(state):
             answer = apiclient.get_search(
                 db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
                 offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel], sorts=api_sorts(request.args, state), stars=state.stars(),
-                ranges=state.value_ranges())
+                ranges=state.value_ranges(), sector_scope=state.sector_scope())
             results[panel] = answer["results"].get(panel)
         except slowpages.Pending as pending:
             waiting.append(pending)
@@ -808,7 +828,7 @@ def _panel_loader(panel):
             data = apiclient.get_search(
                 db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=limit,
                 offsets={panel: offset}, panels=[panel], sorts=api_sorts(request.args, state), stars=state.stars(),
-                ranges=state.value_ranges())
+                ranges=state.value_ranges(), sector_scope=state.sector_scope())
             cached = data["results"][panel]
         if cached is None:
             return Result([], 0)

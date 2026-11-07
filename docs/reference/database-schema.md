@@ -715,16 +715,16 @@ sector) and `star_system_id` (set for a system) cascade deletes.
 its neighbors' lists; `refresh_nearest_systems` recomputes whole
 sectors. `_migrate_v40_to_v41` adds both and fills them.
 
-**Object IDs (GEN.64).** (A star system built around a bright-sweep star is named like any system once its sector is generated, and keeps its position ID as its unique ID: GEN.72.) Every placed interstellar object (a rogue
+**Object IDs (GEN.64, GEN.1256).** (A star system built around a bright-sweep star is named like any system once its sector is generated.) Every placed interstellar object (a rogue
 planet, standalone black hole or neutron star, nebula, supernova remnant
 and its collapsed core, quasar, interstellar comet or asteroid field)
-is named by its 76-bit position ID, 19 hex digits, instead of the rules below:
-`planetgen/names/object_id.py` packs type, distance unit, distance,
-bearing, mark and a 4-bit collision number from the galactic center,
-and `_db._claim_object_ids` hands out collision numbers in generation
-order. These names never go through `system_name_registry`. A name given
-by hand and an unplaced object still follow the rules below, and rows
-saved before this keep their names. See `docs/design/architecture/object-ids.md`.
+stores its Object ID (`uid`, `galaxy/object_uid.py`) in its printed form,
+such as `FE81000A2B-0000005-000`, as its `name`, instead of the rules below:
+the INSERT that gives the row its `uid` writes it, and migration 0221
+rewrote the 19-digit position IDs it replaced. The API shows these names
+as local names under the naming key. These names never go through
+`system_name_registry`. A name given
+by hand and an unplaced object still follow the rules below. See `docs/design/architecture/object-ids.md`.
 
 **Names (v40).** Black holes, neutron stars, nebulae, supernova
 remnants, rogue planets and quasars draw their names through
@@ -1164,7 +1164,7 @@ The older `*min_update_interval_years` floating-point guards are no longer
 read by the update.
 
 Meant to run on a schedule, not on every deploy (`install.sh`/`update.sh`
-don't call it) -- e.g. a monthly cron entry:
+don't call it; they do install its systemd timer on a systemd host, OPS.110) -- e.g. a monthly cron entry:
 
 ```
 0 3 1 * * cd /var/lib/planetGen && python3 -m planetgen.cli.orbits >> /var/log/planetgen-orbits.log 2>&1
@@ -1180,6 +1180,8 @@ update on the same monthly run:
 ```
 sudo examples/maintenance/install-maintenance-timer.sh [database ...]
 ```
+
+(`install.sh` and `update.sh` run the same installer step for the default database; run it by hand to name others.)
 
 `planetgen.cli.orbits` mutates rows, so it needs the same read-write database
 account `planetgen` and the web app use, not a `SELECT`-only one you may

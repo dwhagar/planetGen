@@ -66,14 +66,36 @@ addresses that keep guessing admin passwords.
   `update.sh` create both (`examples/apache/create-cache-dir.sh`), and
   move jobs left in the old default, `/var/lib/planetgen/jobs`, into the
   new one (a running job stays until it finishes).
-- **The checkout belongs to the web user.** Everything under the
-  checkout (`/var/lib/planetGen`), including `config.json` and the
-  `state/` directory the app writes its maintenance flag to, is owned by
-  the account the app runs as (`www-data:www-data` on Debian and Ubuntu):
-  directories 750, files 640, and scripts and `*.py` files 750. Nobody
-  else can read it. A fresh `install.sh` and an `update.sh` end with the
-  same ownership because both run `set-permissions.sh` on the whole
-  checkout. The virtual environment (`/usr/local/planetgen/venv`) and the
+- **Root does not trust the folders `config.json` names (SEC.44).** The Settings
+  page can rewrite `config.json`, so `create-cache-dir.sh`, `set-permissions.sh`,
+  `setup-debug-log.sh` and the `update.log` start ask `examples/apache/rootpaths.py`
+  before they make, re-own or write into the tile cache, the jobs folder, the
+  debug log or the log folder. A path passes when it is plain (letters, digits and
+  `_ . / + @ : -`), sits under `/var/lib`, `/var/cache`, `/var/log`, `/srv`, `/opt`, a home
+  folder (`/home`, `/Users`: a user may install there on a shared machine, so
+  the folders on the way may be the user's, never the web user's, and none may
+  start with a dot), the checkout or a folder listed in root's
+  `PLANETGEN_ROOT_PATH_PARENTS`, is not a system service's folder, has no
+  symbolic link on the way, has no folder above it that the web user can
+  change (root-owned elsewhere), and, if it exists, is already the web user's, left by an
+  earlier run or empty. A refused folder is skipped with a warning; the install or
+  update goes on. A folder given in root's own environment
+  (`PLANETGEN_TILE_CACHE_DIR`, `PLANETGEN_JOBS_DIR`, `PLANETGEN_LOG_FILE`,
+  `PLANETGEN_LOG_DIR`) is the operator's and is not checked.
+- **The code belongs to root; the web user owns only its own folders
+  (SEC.37).** `install.sh` and `update.sh` run git, Python and the scripts in
+  the checkout (`/var/lib/planetGen`) as root, so nothing there that the web
+  user can write may ever run as root. Everything in the checkout is root's
+  with the web user's group (`www-data` on Debian and Ubuntu), read-only to
+  the web user: directories 750, files 640, scripts and `*.py` files 750.
+  Only the `state/` directory (770: the maintenance flag, the secret key,
+  the backups and `config.json`), the Generate jobs directory and the tile
+  cache and log folders belong to the web user (`www-data:www-data`).
+  `config.json` lives in `state/` so the Settings page can replace it, and
+  `/var/lib/planetGen/config.json` is a root-owned link to it; the first
+  `update.sh` after this change moves an old plain `config.json` there. The
+  bytecode is compiled as root. A fresh `install.sh` and an `update.sh` end
+  with the same ownership because both run `set-permissions.sh`. The virtual environment (`/usr/local/planetgen/venv`) and the
   NLTK corpus stay root's, since `install.sh` and `update.sh` run their
   Python as root. The web server is kept out of the checkout by the
   directory rules in the example Apache site: nothing is served from disk
@@ -91,8 +113,16 @@ addresses that keep guessing admin passwords.
   /path/to/planetgen.conf`) and restart Redis. `install.sh` and
   `update.sh` check the running server and, for each setting that is off,
   print the exact line to add; they never edit your Redis config. One
-  Redis serves everything. It needs no password while it binds loopback;
-  the example shows the ACL user to add later.
+  Redis serves everything. Give it a user with a password and switch
+  the passwordless `default` user off ([`examples/redis/planetgen-acl.conf`](../../examples/redis/planetgen-acl.conf)
+  has the lines): loopback keeps the network out, not the other users of the
+  machine, and a queued job names a function a worker runs. The steps, in
+  order, for a new and for an existing install, are in
+  [INSTALL.md](../../INSTALL.md) ("Give Redis a user and a password");
+  `redis.url` then carries the password
+  (`redis://planetgen:PASSWORD@127.0.0.1:6379/0`). `install.sh` and
+  `update.sh` warn, with those lines, while the passwordless user is on; the
+  warning goes away when the connection logs in as a user of its own.
 - **The NLTK `words` corpus** somewhere the app's account can read:
   `/usr/local/share/nltk_data` on Linux and macOS, or a folder named by
   `NLTK_DATA`.

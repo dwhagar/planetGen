@@ -106,12 +106,14 @@ page says it can't write the switch and the site stays closed. `sudo
 
 ## 5a. Are the code and config.json locked down?
 
-    ls -ld src/html src/html/wsgi.py config.json /var/log/planetgen.log
+    ls -ld src/html src/html/wsgi.py config.json state/config.json /var/log/planetgen.log
 
 Pass: `src/html` and `wsgi.py` are owned by `root` with the web user's
-group (`www-data`, or `_www` on macOS), not by the web user; `config.json`
-is `-rw-r----- root www-data` (mode 640: it holds the database password
-and `secret_key`); the debug log, if there is one, is `-rw-rw----` owned
+group (`www-data`, or `_www` on macOS), not by the web user, and so is
+everything else in the checkout except `state/` and the jobs folder
+(SEC.37); `config.json` is a root-owned link to `state/config.json`, which
+is `-rw-r----- www-data www-data` (mode 640: it holds the database
+password and `secret_key`); the debug log, if there is one, is `-rw-rw----` owned
 by the web user and group (mode 660), never world-writable. If not, on
 Linux: `sudo ./update.sh`, or `sudo examples/apache/set-permissions.sh`
 and `sudo examples/apache/setup-debug-log.sh`. On macOS,

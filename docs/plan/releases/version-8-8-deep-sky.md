@@ -26,7 +26,6 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds |  | Later (Boss 2026-10-08 01:59Z colors). |
 | GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled |  |  |
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) |  | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
 | GEN.248 | Tidal streams as placed components of the halo (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
@@ -38,9 +37,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.245 | Debris disks around A and F stars (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.246 | Luminous blue variables and hypergiants (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
-| GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes |  | Phenomena catalogue, Boss 2026-10-15. Step 7b, later. Core and Interface. |
 | GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars |  | Phenomena catalogue, Boss 2026-10-15. Step 7c, later. Core. |
@@ -56,8 +53,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map |  |  |
-| MAP.388 | Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon | GEN.209, MAP.207, MAP.232, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.245, GEN.246, GEN.247, GEN.249, GEN.255, GEN.256, GEN.257, MAP.194 |  |
+| MAP.388 | Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon | GEN.209, MAP.207, MAP.232, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.246, GEN.249, GEN.255, GEN.256, GEN.257 |  |
 
 ### Pages for every kind of item (moved from 8.2)
 

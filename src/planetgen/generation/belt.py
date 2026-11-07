@@ -142,6 +142,7 @@ class AsteroidBelt:
     origin_sentence = None
     scatter_fates = None
     scatter_giant_au = None
+    captured_mass_kg = 0.0
     largest_body_km = None
     """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,

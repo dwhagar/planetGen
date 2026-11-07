@@ -35,7 +35,7 @@ A young white dwarf is hotter than before (up to about 110,000 K) and a 10 Gyr o
 
 - The hydrogen-to-helium atmosphere change with temperature (BC19: DA fraction against effective temperature from the large catalogues) is
   still a fixed share.
-- Helium-core and oxygen-neon white dwarfs have layers (`physics/white_dwarf_layers.py`, GEN.743: an oxygen-neon core of 55 percent oxygen and 30 percent neon with the helium and hydrogen layers of [R0627]; a helium core with a thick hydrogen envelope; stand-ins WL1 to WL6 in 6.193), but still no sequences of their own: the radius of both is the nearest carbon-oxygen sequence scaled by the zero-temperature relation (WL7).
+- Helium-core and oxygen-neon white dwarfs have layers (`physics/white_dwarf_layers.py`, GEN.743: an oxygen-neon core of 55 percent oxygen and 30 percent neon with the helium and hydrogen layers of [R0627]; a helium core with a thick hydrogen envelope; stand-ins WL1 to WL6 in 6.197), but still no sequences of their own: the radius of both is the nearest carbon-oxygen sequence scaled by the zero-temperature relation (WL7).
 - A white dwarf placed by a user-given type (`-star_type D...`) and the companions of `multistar.py` still use the old mass-radius relation;
   the population model is the generator's path for a white dwarf primary.
 - Star makeup (`stellar_composition.star_makeup`) draws its own atmosphere from the star's key; the star's drawn atmosphere should replace it

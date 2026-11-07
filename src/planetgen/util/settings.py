@@ -289,10 +289,10 @@ class TileCache(_Section):
                                label="Closest map block built ahead",
                                summary="How far in the map is prepared: blocks of this many shells; "
                                        "243 or more skips it.")
-    build_workers: int = opt(0, "Processes `planetgen.cli.tiles` (the whole-galaxy map build) builds nodes in at once; 0 is "
-                             "one per core.", unit="processes", group="speed", ge=0, le=64,
+    build_workers: int = opt(0, "Processes `planetgen.cli.tiles` (the whole-galaxy map build) builds nodes in at once, at the "
+                             "lowered priority queue workers run at; 0 is one per core less the workers kept for short and long jobs.", unit="processes", group="speed", ge=0, le=64,
                              label="Whole-map build processes",
-                             summary="How many processes the nightly whole-map build uses; 0 is one per core.")
+                             summary="How many processes the nightly whole-map build uses; 0 is one per core less the ones kept for short and long jobs.")
     prefetch_per_visit: int = opt(128, "Most nodes one request for nodes queues to be built in the background: "
                                   "the children of the nodes it asked for, then their parents and the parents' other "
                                   "children (0 turns the background build off).", unit="nodes", group="speed", ge=0,
@@ -435,7 +435,7 @@ class Queue(_Section):
         summary="Jobs expected to take longer than this go to the long lane.",
         control="duration")
     sky_limit: float = opt(
-        7.5, "The limiting magnitude of the sky charting builds for each system's neighbourhood (VIEW.25): when a run charts sectors, the stars a system's "
+        7.5, "The limiting magnitude of the sky charting builds for each system's neighbourhood: when a run charts sectors, the stars a system's "
         "sky shows to this magnitude are drawn over the 50 parsec cells the new sectors lie in, after the bright-star backfill, so a visitor never waits "
         "for them. A cell already drawn costs nothing. Fainter limits draw more stars and take longer: 7.5 is a dust-free naked-eye sky, about half an hour "
         "a cell on one worker. 0 turns it off; otherwise 2 to 9. The command line's --sky-limit overrides it for a run.",

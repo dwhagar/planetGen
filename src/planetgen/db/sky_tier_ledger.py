@@ -17,11 +17,11 @@ readers of a sector's level (`store.bright_star_fill_level`, `store.bright_star_
 """
 
 import dataclasses
-import math
 
 import numpy as np
 
 from planetgen.galaxy import spherical
+from planetgen.util import detmath
 
 LUMINOSITY, MASS = "luminosity", "mass"
 KINDS = (LUMINOSITY, MASS)
@@ -49,7 +49,7 @@ class Draw:
 
     def contains_sphere(self, center, radius_pc):
         """Whether the whole sphere `(center, radius_pc)` lies inside this one."""
-        gap = math.dist(self.center, center)
+        gap = detmath.dist(self.center, center)
         return gap + radius_pc <= self.radius_pc + 1e-9
 
 

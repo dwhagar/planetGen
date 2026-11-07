@@ -268,7 +268,7 @@ def compare(cells, expectations):
         zone = next(z for z, name in ZONE_NAMES.items() if name == zone_name)
         cell = cells.get((star, zone, kind))
         if not cell or not cell["n"]:
-            findings.append(Finding("missing", key, "cell", 0.0, 1.0, 1.0, "no bodies drawn"))
+            findings.append(Finding("missing", key, "cell", 0.0, 1.0, 1.0, "no bodies drawn", spec.get("anomaly", "")))
             continue
         scored = sum(cell["tier"].values())
         shares = {"classes": _shares(cell["cls"], cell["n"]), "tiers": _shares(cell["tier"], scored),

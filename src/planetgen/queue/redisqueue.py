@@ -21,7 +21,7 @@ import threading
 import redis
 import rq
 
-from planetgen.queue import redisclient
+from planetgen.queue import allowlist, redisclient
 from planetgen.util.settings import get_settings
 
 GENERATION_QUEUE = "planetgen-generation"
@@ -48,11 +48,28 @@ rebuild jobs (PERF.150). Its workers have a cap of their own (`workers.maintenan
 count with the bulk workers, so a generation stage that queued thousands of units on `BULK_QUEUE` never makes this
 work wait for them."""
 
-JSON_QUEUE_PREFIXES = (BULK_QUEUE, MAINTENANCE_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE, "planetgen-web-", "planetgen-api-")
-"""tuple: A queue whose name starts with one of these carries JSON (`serializer_for`): the shared queues, each
-Generate page job's own (`planetgen-web-<id>`), and the API queues the tests give a name of their own."""
+CHECK_QUEUE = "planetgen-maintenance-check"
+"""str: The units of a `CHECK` run (the database check, PERF.245). One of the maintenance lane's task types: it has a queue of its
+own, so the thousands of units a cache warm-up queued ahead of it never make it wait (the lane's workers take a job from each
+queue in turn, `maintenance_lane`)."""
 
-QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE)
+NODES_QUEUE = "planetgen-maintenance-nodes"
+"""str: The node prefetch and rebuild jobs a visit or a change queues (`web/lib/tileprefetch.py`, PERF.245). One of the maintenance
+lane's task types: a visitor's nodes are built in turn with the warm-up's units, not after all of them."""
+
+def maintenance_lane():
+    """
+    The queues of the maintenance lane, one per task type (PERF.245): a `MAINTENANCE` run's units (the cache warm-up), a `CHECK`
+    run's units and the node prefetch and rebuild jobs. A maintenance worker serves all of them and takes one job from each queue
+    in turn (round robin, `cli/worker.worker_class`), so no task type waits behind another's backlog; the lane's worker count
+    (`workers.maintenance_cap`) is shared by them. The first is the lane's name wherever one is needed (the starting count, the
+    live workers: every worker of the lane is registered with all three). A function, not a constant, so a test that gives
+    `MAINTENANCE_QUEUE` a name of its own gets a lane of its own.
+    """
+    return (MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QUEUE)
+
+
+QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE)
 """tuple: Every shared queue."""
 
 def redis_url():
@@ -77,8 +94,8 @@ def _json_default(value):
 
 
 class JsonSerializer:
-    """RQ's serializer for the queues that carry plain data (PERF.94, finding F8): a job's arguments and its
-    result travel as JSON, not pickle, so a process that can reach Redis can queue data but not code to run."""
+    """RQ's serializer for every queue (PERF.94, SEC.39, finding F8): a job's arguments and its result travel as JSON, not
+    pickle, so a process that can reach Redis can queue data but not an object that runs code when it is read."""
 
     @staticmethod
     def dumps(value, *args, **kwargs):
@@ -91,11 +108,12 @@ class JsonSerializer:
 
 def serializer_for(name):
     """
-    The serializer the queue `name` uses: JSON for the web queues (the Generate page's jobs and the API's,
-    whose arguments are paths, ids and numbers); RQ's default, pickle, for a run's own queue, whose tasks carry
-    Python objects until the work queue rebuild (PERF.95 to 98) turns them into ids. One worker serves one kind.
+    The serializer the queue `name` uses: JSON, for every queue (SEC.39). The Generate page's jobs and the API's carry paths,
+    ids and numbers; a run's units (PERF.95 to PERF.98) carry ids. No queue carries pickle, so a process that can write to
+    Redis cannot queue an object that runs code when a worker reads it. (A job still names the function a worker calls: what
+    keeps a process that is not planetGen from queuing one is the Redis ACL user, `examples/redis/planetgen.conf`.)
     """
-    return JsonSerializer if name.startswith(JSON_QUEUE_PREFIXES) else None
+    return JsonSerializer
 
 
 TIMEOUT_MULTIPLE = 10
@@ -141,16 +159,39 @@ class TimedQueue(rq.Queue):
     `create_job`.
     """
 
+    job_class = allowlist.GuardedJob
+    """The job class of every queue (SEC.45): a worker refuses a job whose function or callback is not on `allowlist.FUNCTIONS`."""
+
     def create_job(self, func, *args, timeout=None, **kwargs):
         """
+        A job with a requirement (`requires.enqueue`; RQ's `depends_on`) is held until it is done (PERF.247); a job that has no
+        on-failure or on-success callback of its own gets the ones that fail the jobs held for it and write what it frees
+        (`requires.job_failed`, `requires.job_succeeded`).
+
         Raises:
             ValueError: `timeout` is missing (RQ would then use its default), zero or negative (-1 is RQ's "no
-                limit").
+                limit"); or a requirement is not valid (`requires.check_serializers`).
         """
         if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or timeout <= 0:
             raise ValueError(f"a job queued to {self.name} needs a time limit in seconds (redisqueue.job_timeout), "
                              f"not {timeout!r}")
-        return super().create_job(func, *args, timeout=timeout, **kwargs)
+        from planetgen.queue import requires as requires_module
+        if kwargs.get("on_failure") is None:
+            kwargs["on_failure"] = rq.job.Callback(requires_module.FAILED_FUNCTION)
+        if kwargs.get("on_success") is None:
+            kwargs["on_success"] = rq.job.Callback(requires_module.SUCCEEDED_FUNCTION)
+        job = super().create_job(func, *args, timeout=timeout, **kwargs)
+        if job._dependency_ids:
+            requires_module.check_serializers(self.connection, job._dependency_ids, self.serializer, job.id)
+        return job
+
+    def setup_dependencies(self, job, pipeline=None):
+        """RQ's holding of a job with a requirement not done; writes the hold to the log (`requires.log_held`)."""
+        held = super().setup_dependencies(job, pipeline)
+        if job._dependency_ids and held.get_status(refresh=False) == rq.job.JobStatus.DEFERRED:
+            from planetgen.queue import requires as requires_module
+            requires_module.log_held(held, list(job._dependency_ids))
+        return held
 
 
 def queue(name, connection):
@@ -159,8 +200,8 @@ def queue(name, connection):
     return TimedQueue(name, connection=connection, serializer=serializer_for(name))
 
 
-def fetch_job(job_id, connection=None, serializer=None):
-    """The RQ job `job_id` (of a queue using `serializer`, default pickle), or `None` when there is none (never
+def fetch_job(job_id, connection=None, serializer=JsonSerializer):
+    """The RQ job `job_id` (of a queue using `serializer`, default JSON), or `None` when there is none (never
     queued, or expired).
 
     Raises:
@@ -168,7 +209,7 @@ def fetch_job(job_id, connection=None, serializer=None):
     """
     connection = connection or connect()
     try:
-        return rq.job.Job.fetch(job_id, connection=connection, serializer=serializer)
+        return rq.job.Job.fetch(job_id, connection=connection, serializer=serializer or JsonSerializer)
     except rq.exceptions.NoSuchJobError:
         return None
     except redis.RedisError as exc:

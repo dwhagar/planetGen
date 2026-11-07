@@ -88,8 +88,9 @@ VACUUM_ICE_MAX_K = 220.0
 sublimates away over billions of years (the Moon keeps ice only in cold
 traps; Mars's caps survive at 150 to 210 K): such a body is `dry`. A
 planetGen default."""
-MELTING_SLOPE_K_PER_BAR = 0.0074
-"""float: Ice Ih's melting point falls this much per bar."""
+REFERENCE_PRESSURE_MPA = 0.1
+"""float: The pressure (1 bar) at which `WATER_MELTING_K` is the melting point of ice Ih, MPa: the lid's weight lowers the melting point from here along the
+ice Ih melting curve (`water_layer.ice_ih_melting_k`, [R4585]). GEN.1190 replaced the straight 0.0074 K per bar, which falls short of the curve past a few hundred bar."""
 
 EARTH_OCEAN_FRACTION = 2.34e-4
 MANTLE_CAP_OCEANS = ((0.5, 2.0), (5.0, 8.0))
@@ -154,15 +155,16 @@ def ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_temperature_k=WATE
 
 def pressure_melted_shell_km(flux_w_m2, top_temperature_k, gravity_m_s2, melting_k=WATER_MELTING_K):
     """`ice_shell_thickness_km` with the base melting point (`melting_k`: pure water's, or a brine's eutectic) lowered by the
-    lid's own weight (fix 3 of section 5.3). The fall stops at the ice III triple point (`water_layer.LIQUIDUS_K_MPA`'s first point, 251.2 K): under
+    lid's own weight (fix 3 of section 5.3) along the ice Ih melting curve (`water_layer.ice_ih_melting_k`). The fall stops at the ice III triple point (`water_layer.ICE_IH_III_TRIPLE_K`, 251.165 K): under
     more pressure than that the base meets ice III, not a deeper Ih melt (GEN.1222: with no floor a thick lid of a cold, low-heat body pulled its own
     base under the surface temperature, the shell came out 0 and the body a liquid ocean at 25 K)."""
     base_k = melting_k
-    floor_k = min(melting_k, water_layer.LIQUIDUS_K_MPA[0][0])
+    floor_k = min(melting_k, water_layer.ICE_IH_III_TRIPLE_K)
     shell_km = ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_k)
     for _ in range(3):
-        bar = ICE_DENSITY_KG_M3 * gravity_m_s2 * shell_km * 1000.0 / 1e5
-        base_k = max(melting_k - MELTING_SLOPE_K_PER_BAR * bar, floor_k)
+        lid_mpa = ICE_DENSITY_KG_M3 * gravity_m_s2 * shell_km * 1000.0 / 1e6
+        fall_k = water_layer.ice_ih_melting_k(REFERENCE_PRESSURE_MPA) - water_layer.ice_ih_melting_k(REFERENCE_PRESSURE_MPA + lid_mpa)
+        base_k = max(melting_k - fall_k, floor_k)
         shell_km = ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_k)
     return shell_km
 

@@ -41,8 +41,8 @@ from planetgen.queue import runline
 from planetgen.web import formerly
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
-    esc, format_number, format_distance_ly, inside_text, linkify_nearest, nearest_systems_html,
-    runaway_text,
+    esc, format_luminosity_sol, format_number, format_distance_ly, format_mass_solar, inside_text, linkify_nearest,
+    nearest_systems_html, runaway_text,
 )
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, parts_of, plain
 from planetgen.web.maps.galaxymap3d import (
@@ -519,14 +519,16 @@ def _pick_mode(args):
             "nav_url": nav_url()}
 
 
-def _sector_map_html(detail, pick, admin):
+def _sector_map_html(detail, pick, admin, uncharted=False):
     """
     The sector page's map (MAP.68): the Galaxy Map's own engine
     (`render_galaxy_map3d_panel`) locked to this sector, which it opens in
     place (`static/galaxysector.js`). A sector with no place in the galaxy
-    has no map; the page says so.
+    has no map; the page says so. `uncharted` (MAP.404): the sector is a cell nothing was generated in, so the map also gets the
+    uncharted scene and phenomenon links and opens what the scatters left in the cell.
     """
-    from .galaxy_views import phenomenon_url_template, sector_url_template, system_url_template  # galaxy_views imports this module
+    from .galaxy_views import (  # galaxy_views imports this module
+        phenomenon_url_template, sector_url_template, system_url_template, uncharted_phenomenon_url_template, uncharted_scene_url_template)
 
     address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
     if not detail["placed"] or None in address:
@@ -554,6 +556,7 @@ def _sector_map_html(detail, pick, admin):
         nearby_url=page_url("nearby"),
         pinned={"shell": address[0], "band": address[1], "wedge": address[2], "center_pc": center},
         clusters=_clusters_reaching(detail),
+        **({"uncharted_scene_url": uncharted_scene_url_template(), "uncharted_phenomenon_url": uncharted_phenomenon_url_template()} if uncharted else {}),
     )
 
 
@@ -699,13 +702,22 @@ def sector_gravity(sector_id):
     """
     The Sector Map's gravity layer data (MAP.168): `GET /api/sectors/<id>/gravity` for `?mode=pull|depth|tidal` and `?field=total|centered|local`, as JSON for the
     map. A grid still being worked out answers `202` and `{"building": true}`; the map asks again in a few seconds (the API queues one job for it, not one
-    per ask). A mode or field that is not one of those is a `400`.
+    per ask). A mode or field that is not one of those is a `400`; a galaxy with no shape yet is a `409` (MAP.405: "not computed yet", not a 502).
     """
     mode = request.args.get("mode", "pull")
     field = request.args.get("field", "total")
     if mode not in GRAVITY_MODES or field not in ("total", "centered", "local"):
         return jsonify({"error": "mode must be pull, depth or tidal and field total, centered or local"}), 400
-    grid = apiclient.get_sector_gravity(db_name(), sector_id, mode, field)
+    try:
+        grid = apiclient.get_sector_gravity(db_name(), sector_id, mode, field)
+    except apiclient.ApiError as exc:
+        if exc.status_code != 409:
+            raise
+        # MAP.405: a galaxy with no shape yet has no gravity to work out; say so (a conflict, 409), not that the data could not be loaded (502)
+        response = jsonify({"error": "The gravity layer is not computed yet: the galaxy has no shape yet.", "notComputed": True})
+        response.status_code = 409
+        response.headers["Cache-Control"] = "no-store"
+        return response
     if "values" not in grid:
         response = jsonify({"building": True})
         response.status_code = 202
@@ -741,7 +753,7 @@ def sector(sector_id):
     detail, facilities = _sector_data(sector_id)
     if detail.get("uncharted"):       # MAP.399: a placeholder row a drifting rogue made in a cell nothing was generated in
         address = (detail["shell_index"], detail["band_index"], detail["wedge_index"])
-        return _uncharted_page(apiclient.get_uncharted_sector(db_name(), *address), address)
+        return _uncharted_page(apiclient.get_uncharted_sector(db_name(), *address), address, stored=detail.get("phenomena"))
     pick = _pick_mode(request.args)
     _rows, map_systems = _contents(detail, facilities)
     contents = tables.render(CONTENTS_TABLE, request.path, anchor="sector-contents", sector=sector_id)
@@ -805,10 +817,57 @@ def sector_at(shell, band, wedge):
     return _uncharted_page(cell, (shell, band, wedge))
 
 
-def _uncharted_page(cell, address):
+def placed_in_uncharted(cell, stored=None):
     """
-    The page of a cell nothing was generated in, for `cell` (the answer of `GET /api/galaxy/uncharted`): the cell's name and region (MAP.399), its place, its profile and what charting it
-    would take. A placeholder sector row a drifting rogue made there (`store.uncharted_sector_id`) shows this page too, at its own address.
+    What is placed in an uncharted cell (MAP.401), as rows for the page's table: `{"name", "url", "kind", "details"}`, each linked to its own page. First the objects stored
+    in the cell's placeholder sector row (`stored`, `phenomena` of its sector detail, only those generated as part of it: the rogue planets that drifted in, and any other
+    phenomenon filed there), then what the scatters left waiting in the cell (`cell`, the answer of `GET /api/galaxy/uncharted`): its bright stars, its unbuilt scattered
+    phenomena (black holes, neutron stars, planetary nebulae, supernova remnants, hypervelocity stars) and the nebulae its waiting stars light.
+    """
+    rows = []
+    for row in sorted((r for r in stored or () if r.get("home")), key=lambda r: (r["distance_ly"] is None, r["distance_ly"] or 0.0, r["name"])):
+        details = [(row.get("descriptor") or "").replace("_", " ").capitalize()]
+        if row.get("class"):
+            details.insert(0, f"Class {row['class']}")
+        if row.get("mass_solar"):
+            details.append(format_mass_solar(row["mass_solar"]))
+        if row.get("radius_ly"):
+            details.append(f"{format_distance_ly(row['radius_ly'])} radius")
+        rows.append({"name": row["name"], "url": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"]),
+                     "kind": PHENOMENON_TYPE_LABELS.get(row["type"], row["type"]), "details": ", ".join(bit for bit in details if bit)})
+    for star in cell.get("stars") or ():
+        details = [f"{star['star_type']} star"]
+        if star.get("luminosity_sol") is not None:
+            details.append(format_luminosity_sol(star["luminosity_sol"]))
+        if star.get("member_count"):
+            details.append(f"{star['member_count']} stars together")
+        rows.append({"name": f"Uncharted {star['star_type']} star {star['id']}", "url": page_url("uncharted_star", bright_star_id=star["id"]),
+                     "kind": "Detected star", "details": ", ".join(details)})
+    for scattered in cell.get("scattered") or ():
+        label = PHENOMENON_TYPE_LABELS.get(scattered["type"]) or scattered["type"].replace("_", " ").title()
+        details = [(scattered.get("subtype") or "").replace("_", " ").replace("-", " ").capitalize()]
+        if scattered.get("mass_solar"):
+            details.append(format_mass_solar(scattered["mass_solar"]))
+        rows.append({"name": f"{label} (uncharted)", "url": page_url("uncharted_phenomenon", scatter_id=scattered["id"]),
+                     "kind": label, "details": ", ".join(bit for bit in details if bit)})
+    for nebula in cell.get("hosted_nebulae") or ():
+        rows.append({"name": nebula["name"], "url": page_url("uncharted_star", bright_star_id=nebula["star_id"]),
+                     "kind": "Nebula", "details": f"{nebula['class_name']}, lit by a detected star, {format_distance_ly(nebula['radius_ly'])} radius"})
+    return rows
+
+
+def _cell_detail(cell, address):
+    """The few keys of a sector's detail that the map panel reads (`_sector_map_html`, `_clusters_reaching`), for an uncharted `cell` (MAP.404)."""
+    x, y, z = cell["center_pc"]
+    return {"placed": True, "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
+            "center_x_pc": x, "center_y_pc": y, "center_z_pc": z, "edge_mpc": cell["edge_pc"] * 1000.0}
+
+
+def _uncharted_page(cell, address, stored=None):
+    """
+    The page of a cell nothing was generated in, for `cell` (the answer of `GET /api/galaxy/uncharted`): the cell's name and region (MAP.399), its place, what is placed in it
+    (`placed_in_uncharted`, MAP.401), its profile and what charting it would take. A placeholder sector row a drifting rogue made there (`store.uncharted_sector_id`) shows this
+    page too, at its own address, with the objects stored in it (`stored`).
     """
     shell, band, wedge = address
     designation = cell["designation"]
@@ -828,7 +887,9 @@ def _uncharted_page(cell, address):
         edge_text=format_distance_ly(pc_to_ly(cell["edge_pc"])),
         star_count=len(cell.get("stars") or ()),
         scattered_count=len(cell.get("scattered") or ()),
+        placed=placed_in_uncharted(cell, stored),
         galaxy_url=page_url("galaxy"),
         can_generate=current_admin() is not None,
         profile=_profile_panel((shell, band, wedge)),
+        map_html=trusted_html(_sector_map_html(_cell_detail(cell, address), None, current_admin(), uncharted=True)),
     )

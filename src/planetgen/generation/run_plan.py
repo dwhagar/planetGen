@@ -24,7 +24,7 @@ import types
 import pymysql
 
 from planetgen.queue import commands, progress_rate, units, wrapper
-from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store
+from planetgen.db import block_lights, block_stats, containers as containersDb, contention, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -101,6 +101,13 @@ def _needs_band(level, galaxy_level, floor):
     return current is None or current > floor
 
 
+def _tick(on_sector, ticked, index):
+    """Calls `on_sector` for the sector at `index` of a chunk unless an earlier try of the chunk already did (`ticked[0]` is how many it has ticked)."""
+    if index >= ticked[0]:
+        ticked[0] = index + 1
+        on_sector()
+
+
 def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_cap=None, counts=None,
                        on_sector=None, shells=None):
     """
@@ -127,54 +134,62 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
     sky_ledger = skyTierLedger.read(conn)      # VIEW.25: the spheres the sky tiers drew
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
-        entries = []
-        for address in chunk:
-            density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
-            entries.append((address, density, density * e_value))
-        locked = store.lock_sector_stats(conn, entries)
-        held_masses = store.sector_bright_masses(conn, chunk, current=True)
-        filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
-        rows, new_levels = [], {}
-        settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, held_masses)    # VIEW.25: what the sky spheres drew here
-        if settled.masses:
-            store.set_sector_bright_masses(conn, settled.masses)
-            held_masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
-            locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
-        locked.update(settled.levels)
-        new_levels.update(settled.levels)
-        for address in chunk:
-            floor = floors if isinstance(floors, (int, float)) else floors[address]
-            level = locked.get(address)
-            galaxy_level = limits.level_at(address[0], address[1])
-            if address in filled or not _needs_band(level, galaxy_level, floor):
+        ticked = [0]      # the progress ticks already given: a retried chunk does not tick its sectors twice
+
+        def attempt(c):
+            """The chunk as one transaction (DB.114): locks, rechecks, wipes, writes and commits; it keeps nothing between tries."""
+            contention.begin_read_committed(c)
+            entries = []
+            for address in chunk:
+                density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
+                entries.append((address, density, density * e_value))
+            locked = store.lock_sector_stats(c, entries)
+            held_masses = store.sector_bright_masses(c, chunk, current=True)
+            filled = store.get_occupied_addresses(c, {address[0] for address in chunk})
+            rows, new_levels = [], {}
+            settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, held_masses)    # VIEW.25: what the sky spheres drew here
+            if settled.masses:
+                store.set_sector_bright_masses(c, settled.masses)
+                held_masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
+                locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
+            locked.update(settled.levels)
+            new_levels.update(settled.levels)
+            for index, address in enumerate(chunk):
+                floor = floors if isinstance(floors, (int, float)) else floors[address]
+                level = locked.get(address)
+                galaxy_level = limits.level_at(address[0], address[1])
+                if address in filled or not _needs_band(level, galaxy_level, floor):
+                    if on_sector is not None:
+                        _tick(on_sector, ticked, index)
+                    continue
+                ceiling = _effective_level(level, galaxy_level)
+                if ceiling is None:
+                    # No level here and no finished scatter: any unbuilt star in
+                    # this cell is left over from a run that failed before it
+                    # recorded one (TEST.25, GEN.44). This draw has no ceiling,
+                    # so it is wiped and drawn again whole.
+                    store.delete_unbuilt_bright_stars(c, address)
+                if ceiling_cap is not None:
+                    cap = ceiling_cap if isinstance(ceiling_cap, (int, float)) else ceiling_cap[address]
+                    ceiling = cap if ceiling is None else min(ceiling, cap)
+                held = held_masses.get(address)
+                # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here
+                # (GEN.187: a sector a mass backfill took lower holds every star from its own mass up).
+                mass_limit = limits.mass_limit_at(address[0], address[1])
+                mass_cap = mass_limit if held is None else held if mass_limit is None else min(held, mass_limit)
+                rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
+                                                       ceiling, seed,
+                                                       mass_range=None if mass_cap is None else (None, mass_cap),
+                                                       memo=blocks))
+                new_levels[address] = floor
                 if on_sector is not None:
-                    on_sector()
-                continue
-            ceiling = _effective_level(level, galaxy_level)
-            if ceiling is None:
-                # No level here and no finished scatter: any unbuilt star in
-                # this cell is left over from a run that failed before it
-                # recorded one (TEST.25, GEN.44). This draw has no ceiling,
-                # so it is wiped and drawn again whole.
-                store.delete_unbuilt_bright_stars(conn, address)
-            if ceiling_cap is not None:
-                cap = ceiling_cap if isinstance(ceiling_cap, (int, float)) else ceiling_cap[address]
-                ceiling = cap if ceiling is None else min(ceiling, cap)
-            held = held_masses.get(address)
-            # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here
-            # (GEN.187: a sector a mass backfill took lower holds every star from its own mass up).
-            mass_limit = limits.mass_limit_at(address[0], address[1])
-            mass_cap = mass_limit if held is None else held if mass_limit is None else min(held, mass_limit)
-            rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
-                                                   ceiling, seed,
-                                                   mass_range=None if mass_cap is None else (None, mass_cap),
-                                                   memo=blocks))
-            new_levels[address] = floor
-            if on_sector is not None:
-                on_sector()
-        scatterCompanions.insert_bright_stars(conn, rows)
-        store.set_sector_bright_levels(conn, new_levels)
-        conn.commit()
+                    _tick(on_sector, ticked, index)
+            scatterCompanions.insert_bright_stars(c, rows)
+            store.set_sector_bright_levels(c, new_levels)
+            c.commit()
+            return rows, new_levels
+
+        rows, new_levels = contention.run_with_retries(conn, attempt, gate="scatter-ids", label="Sector band backfill")
         if counts is not None:
             for row in rows:
                 counts[row[6]] += 1
@@ -215,46 +230,54 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
     sky_ledger = skyTierLedger.read(conn)      # VIEW.25: the spheres the sky tiers drew
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
-        entries = []
-        for address in chunk:
-            density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
-            entries.append((address, density, density * e_value))
-        locked = store.lock_sector_stats(conn, entries)
-        masses = store.sector_bright_masses(conn, chunk, current=True)
-        filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
-        rows, states = [], {}
-        settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, masses)         # VIEW.25: what the sky spheres drew here
-        if settled.masses:
-            store.set_sector_bright_masses(conn, settled.masses)
-            masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
-            locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
-        if settled.levels:
-            store.set_sector_bright_levels(conn, settled.levels)
-            locked.update(settled.levels)
-        for address in chunk:
-            target = targets[address]
-            level = locked.get(address)
-            galaxy_level = limits.level_at(address[0], address[1])
-            held = masses.get(address, limits.mass_limit_at(address[0], address[1]))
-            if address in filled or level == 0 or (held is not None and held <= target):
+        ticked = [0]      # the progress ticks already given: a retried chunk does not tick its sectors twice
+
+        def attempt(c):
+            """The chunk as one transaction (DB.114): locks, rechecks, wipes, writes and commits; it keeps nothing between tries."""
+            contention.begin_read_committed(c)
+            entries = []
+            for address in chunk:
+                density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
+                entries.append((address, density, density * e_value))
+            locked = store.lock_sector_stats(c, entries)
+            masses = store.sector_bright_masses(c, chunk, current=True)
+            filled = store.get_occupied_addresses(c, {address[0] for address in chunk})
+            rows, states = [], {}
+            settled = skyTierLedger.settle(sky_ledger, chunk, skeleton.edge_pc, limits, locked, masses)         # VIEW.25: what the sky spheres drew here
+            if settled.masses:
+                store.set_sector_bright_masses(c, settled.masses)
+                masses.update({address: mass for address, (mass, _own) in settled.masses.items()})
+                locked.update({address: galaxy for address, (_mass, galaxy) in settled.masses.items() if galaxy is not None and locked.get(address, -1) < 0})
+            if settled.levels:
+                store.set_sector_bright_levels(c, settled.levels)
+                locked.update(settled.levels)
+            for index, address in enumerate(chunk):
+                target = targets[address]
+                level = locked.get(address)
+                galaxy_level = limits.level_at(address[0], address[1])
+                held = masses.get(address, limits.mass_limit_at(address[0], address[1]))
+                if address in filled or level == 0 or (held is not None and held <= target):
+                    if on_sector is not None:
+                        _tick(on_sector, ticked, index)
+                    continue
+                ceiling = _effective_level(level, galaxy_level)
+                if ceiling is None and held is None:
+                    # Nothing was placed here by any pass: an unbuilt star in this
+                    # cell is left over from a run that failed before it recorded
+                    # a level (TEST.25, GEN.44), so it is wiped and drawn again.
+                    store.delete_unbuilt_bright_stars(c, address)
+                rows.extend(brightStars.backfill_mass_cells(skeleton.shape, [address], skeleton.edge_pc, e_value,
+                                                            target, held, ceiling, seed, edges, memo=blocks))
+                own = galaxy_level if galaxy_level is not None and (level is None or level < 0) else None
+                states[address] = (target, own)
                 if on_sector is not None:
-                    on_sector()
-                continue
-            ceiling = _effective_level(level, galaxy_level)
-            if ceiling is None and held is None:
-                # Nothing was placed here by any pass: an unbuilt star in this
-                # cell is left over from a run that failed before it recorded
-                # a level (TEST.25, GEN.44), so it is wiped and drawn again.
-                store.delete_unbuilt_bright_stars(conn, address)
-            rows.extend(brightStars.backfill_mass_cells(skeleton.shape, [address], skeleton.edge_pc, e_value,
-                                                        target, held, ceiling, seed, edges, memo=blocks))
-            own = galaxy_level if galaxy_level is not None and (level is None or level < 0) else None
-            states[address] = (target, own)
-            if on_sector is not None:
-                on_sector()
-        scatterCompanions.insert_bright_stars(conn, rows)
-        store.set_sector_bright_masses(conn, states)
-        conn.commit()
+                    _tick(on_sector, ticked, index)
+            scatterCompanions.insert_bright_stars(c, rows)
+            store.set_sector_bright_masses(c, states)
+            c.commit()
+            return rows, states
+
+        rows, states = contention.run_with_retries(conn, attempt, gate="scatter-ids", label="Sector mass backfill")
         if shells is not None:
             for row in rows:
                 shells.setdefault(row[0], collections.Counter())[star_label(row[7], row[8])] += 1
@@ -1798,8 +1821,8 @@ def _scatter_shells_task(payload):
                 landed[row[0]] += 1
                 batch.append(row)
                 if len(batch) >= 10000:
-                    systems += scatterCompanions.insert_bright_stars(conn, batch, epoch).systems
-                    conn.commit()
+                    systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_bright_stars, batch, epoch,
+                                                                          label=f"{payload['key']} scatter").systems
                     batch = []
             if (payload.get("far") and shell_index == payload["far"][0]) or shell_index == COMPONENT_TASK_SHELL:
                 per_shell.extend([shell, stars] for shell, stars in sorted(landed.items()))
@@ -1807,7 +1830,8 @@ def _scatter_shells_task(payload):
                 per_shell.append([shell_index, drawn])
             before[0] += drawn
         if batch:
-            systems += scatterCompanions.insert_bright_stars(conn, batch, epoch).systems
+            systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_bright_stars, batch, epoch,
+                                                                          label=f"{payload['key']} scatter").systems
         conn.commit()
     finally:
         conn.close()
@@ -3059,7 +3083,14 @@ def finish_phenomena_unit(params, report):
         special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, params["seed"], skeleton.shape, filled,
                                                        reach))
         report(1, 4)
-        store.insert_phenomenon_scatter(conn, special)
+
+        def write_special(c):
+            """The special rows and their Object IDs as one transaction (DB.114): other phenomenon units write the same table."""
+            contention.begin_read_committed(c)
+            store.insert_phenomenon_scatter(c, special)
+            c.commit()
+
+        contention.run_with_retries(conn, write_special, gate="scatter-ids", label="Special phenomena")
         report(2, 4)
         # One index at a time, each worth the table's rows, so the bar moves after every index and its time left comes
         # from the rows per second earlier runs recorded (PERF.101).
@@ -3131,13 +3162,14 @@ def _phenomenon_shells_task(payload):
                 batch.append(row)
                 if len(batch) >= 10000:
                     started = time.perf_counter()
-                    systems += scatterCompanions.insert_phenomenon_scatter(conn, batch, epoch).systems
-                    conn.commit()
+                    systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_phenomenon_scatter, batch, epoch,
+                                                                          label="Phenomenon scatter").systems
                     write_seconds += time.perf_counter() - started
                     batch = []
         started = time.perf_counter()
         if batch:
-            systems += scatterCompanions.insert_phenomenon_scatter(conn, batch, epoch).systems
+            systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_phenomenon_scatter, batch, epoch,
+                                                                          label="Phenomenon scatter").systems
         conn.commit()
         write_seconds += time.perf_counter() - started
     finally:

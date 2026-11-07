@@ -91,17 +91,14 @@ def test_the_json_serializer_round_trips_plain_data_and_writes_decimals_and_time
         redisqueue.JsonSerializer.dumps({"code": object()})
 
 
-def test_web_queues_use_json_and_a_runs_own_queue_keeps_pickle():
+def test_every_queue_uses_json_and_none_keeps_pickle():          # SEC.39
     assert redisqueue.serializer_for(redisqueue.INTERACTIVE_QUEUE) is redisqueue.JsonSerializer
     assert redisqueue.serializer_for(redisqueue.BULK_QUEUE) is redisqueue.JsonSerializer
     assert redisqueue.serializer_for("planetgen-web-0123") is redisqueue.JsonSerializer
     assert redisqueue.serializer_for("planetgen-api-test-0123") is redisqueue.JsonSerializer
-    assert redisqueue.serializer_for("planetgen-run-0123") is None
-
-
-def test_one_worker_serves_one_kind_of_queue():
-    with pytest.raises(SystemExit):
-        worker.main(["planetgen-interactive", "planetgen-run-1", "--burst"])
+    assert redisqueue.serializer_for("planetgen-run-0123") is redisqueue.JsonSerializer
+    assert all(redisqueue.serializer_for(name) is redisqueue.JsonSerializer for name in redisqueue.QUEUES)
+    assert redisqueue.serializer_for("a-name-nobody-chose") is redisqueue.JsonSerializer
 
 
 def test_a_job_names_its_function_and_carries_its_connection_settings_as_data():

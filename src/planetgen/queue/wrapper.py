@@ -156,6 +156,7 @@ def _expand(conn, run_id, index):
                              {"kind": step.kind, "units": len(expansion.units), "cost": cost,
                               "detail": expansion.plan})
     runrecord.begin_stage(conn, run_id, index, now=started)
+    _log_released(conn, run_id, index, step)
     if not expansion.units and commands.conclude_function(step.kind) is not None:
         _conclude_empty_stage(conn, run_id, index, stage_label(conn, run_id, index))
         return 0
@@ -164,6 +165,18 @@ def _expand(conn, run_id, index):
                         expected_seconds=json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
                         .get("expected_seconds"))
     return len(expansion.units)
+
+
+def _log_released(conn, run_id, index, step):
+    """PERF.247: a stage that requires an earlier one (`commands.REQUIRES`) is written to the run's log as released when it opens,
+    naming the stages it waited for."""
+    steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
+    if step.key not in [item.key for item in steps]:
+        return
+    needed = commands.required_stage_keys(steps, [item.key for item in steps].index(step.key))
+    if needed:
+        runrecord.log(conn, run_id, f"released: stage {stage_label(conn, run_id, index)} opens, the stage(s) it requires "
+                      f"({', '.join(needed)}) are done", level="info", kind="stage.released", stage=index)
 
 
 DEFERRED = "deferred"
@@ -598,9 +611,12 @@ def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done
 
 
 def queue_of(kind):
-    """The queue the units of a run of `kind` go on (PERF.150): the maintenance queue for a `MAINTENANCE` or `CHECK`
-    run, the bulk queue for a `GENERATION` run."""
-    return redisqueue.BULK_QUEUE if kind == runrecord.GENERATION else redisqueue.MAINTENANCE_QUEUE
+    """The queue the units of a run of `kind` go on (PERF.150, PERF.245): the bulk queue for a `GENERATION` run, the check queue
+    for a `CHECK` run and the maintenance queue for a `MAINTENANCE` run (the cache warm-up); the last two are queues of the
+    maintenance lane, served in turn."""
+    if kind == runrecord.GENERATION:
+        return redisqueue.BULK_QUEUE
+    return redisqueue.CHECK_QUEUE if kind == runrecord.CHECK else redisqueue.MAINTENANCE_QUEUE
 
 
 def waiting_text(holder, position):

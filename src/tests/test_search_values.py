@@ -277,3 +277,14 @@ def test_the_api_sorts_by_a_key_and_takes_another_unit(scored_galaxy):
 def test_the_api_refuses_a_bad_range_with_a_400(scored_galaxy, params):
     status, body = _get(scored_galaxy.base_url, **params)
     assert status == 400 and "error" in body
+
+
+def test_every_gas_formula_is_plain_and_a_formula_that_could_end_a_quoted_string_is_refused():
+    """SEC.42: the gas expression is SQL text built from the fixed gas table; the table's formulas must stay plain."""
+    from planetgen.db import search_values
+    from planetgen.physics import gases
+    for gas in gases.GASES:
+        assert search_values._FORMULA.fullmatch(gas.formula), gas.formula
+    for bad in ("CH4'", "x\\", "a b", "a;b", "a'--", ""):
+        with pytest.raises(ValueError):
+            search_values._gas(bad)

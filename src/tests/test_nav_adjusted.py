@@ -28,6 +28,7 @@ def _field_between(config, radius_ly):
     conn = store.get_connection(config)
     try:
         field_id = store.insert_asteroid_field(conn, field, placement=placement)
+        store.assign_uids(conn, phenomenon=("asteroid_fields", field_id))     # its name is its Object ID, which it takes here (GEN.1256)
         conn.commit()
     finally:
         conn.close()
@@ -151,6 +152,7 @@ def test_a_field_between_two_systems_of_one_sector_bends_the_sector_scale_course
     conn = store.get_connection(mysql_config)
     try:
         field_id = store.insert_asteroid_field(conn, field, placement=placement)
+        store.assign_uids(conn, phenomenon=("asteroid_fields", field_id))     # its name is its Object ID, which it takes here (GEN.1256)
         conn.commit()
     finally:
         conn.close()

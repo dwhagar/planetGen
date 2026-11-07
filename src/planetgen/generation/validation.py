@@ -168,6 +168,10 @@ def reconcile_moved_planet(planet):
     planetPhysics.reconcile_zone(planet, planet.star.mass)
     # The Hill sphere grows with distance, so a moved planet's own clearance (and the next body's spacing) must follow it.
     planetPhysics.update_hill_sphere(planet)
+    if getattr(planet, "_deferred_climate", None) is not None:
+        # GEN.1282: a planet built without its climate has no air or moons to make again; `finish_climate` makes them at this distance.
+        planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
+        return
     planetPhysics.calculate_atmospheric_conditions(planet)
     planetPhysics.apply_class(planet)
     planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)

@@ -522,7 +522,7 @@ designations = sa.Table(
     sa.Index('idx_designations_object', 'object_kind', 'object_row_id', 'retired_epoch'),
     sa.Index('uq_designations_uid', 'designation_uid', unique=True),
     sa.CheckConstraint("(`designation_kind` in (_utf8mb4'uid',_utf8mb4'name'))", name='chk_designations_kind'),
-    sa.CheckConstraint("(`reason` in (_utf8mb4'collision bump',_utf8mb4'rename',_utf8mb4'regeneration',_utf8mb4'parent change',_utf8mb4'admin renumber'))", name='chk_designations_reason'),
+    sa.CheckConstraint("(`reason` in (_utf8mb4'collision bump',_utf8mb4'rename',_utf8mb4'regeneration',_utf8mb4'parent change',_utf8mb4'admin renumber',_utf8mb4'charted'))", name='chk_designations_reason'),
     sa.CheckConstraint("(((`designation_kind` = _utf8mb4'uid') and (`designation_uid` is not null) and (`designation_name` is null)) or ((`designation_kind` = _utf8mb4'name') and (`designation_name` is not null) and (`designation_uid` is null)))", name='chk_designations_shape'),
     mysql_engine="InnoDB",
 )

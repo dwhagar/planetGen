@@ -66,12 +66,14 @@ def test_solid_carbon_dioxide_has_its_own_strength_between_a_tenth_and_half_a_me
     assert it.strength_ratio("co2_ice") < 1.0
 
 
-def test_ammonia_dihydrate_crosses_ice_at_135_k():
-    assert it.strength_ratio("nh3_dihydrate", 135.0) == pytest.approx(1.0)
-    assert it.strength_ratio("nh3_dihydrate", 110.0) == pytest.approx(2.0)
-    assert it.strength_ratio("nh3_dihydrate", 170.0) == pytest.approx(0.3)
-    assert it.strength_ratio("nh3_dihydrate", 100.0) == 2.0 and it.strength_ratio("nh3_dihydrate", 250.0) == 0.3     # held at the ends
-    assert 1.0 < it.strength_ratio("nh3_dihydrate", 120.0) < 2.0 and 0.3 < it.strength_ratio("nh3_dihydrate", 150.0) < 1.0
+def test_ammonia_dihydrate_follows_the_1993_law_and_crosses_ice_near_143_k():
+    """GEN.1190: the ratio of the dihydrate law (log A 21.55, n 5.81, E* 107.5 kJ/mol) to the ice I law at 1e-15 per second, from the preprint's Table 1: 1.7 at
+    135 K, 0.91 at 143 K, 0.57 at 150 K, 0.18 at 170 K and 0.14 at 176 K, the peritectic; below the tested range (132 K) the ratio is held."""
+    for temperature, ratio in ((135.0, 1.7), (143.0, 0.91), (150.0, 0.57), (170.0, 0.18), (176.0, 0.14)):
+        assert it.strength_ratio("nh3_dihydrate", temperature) == pytest.approx(ratio)
+    assert it.strength_ratio("nh3_dihydrate", 100.0) == 1.7 and it.strength_ratio("nh3_dihydrate", 250.0) == 0.14     # held at the ends
+    assert it.strength_ratio("nh3_dihydrate", 138.0) > 1.0 > it.strength_ratio("nh3_dihydrate", 143.0)      # the laboratory crossover is near 143 K
+    assert 0.18 < it.strength_ratio("nh3_dihydrate", 160.0) < 0.57
 
 
 def test_the_default_ice_is_the_ice_of_the_engine():
@@ -84,12 +86,28 @@ def test_an_unknown_type_is_refused():
 
 
 @pytest.mark.parametrize("pressure,temperature,phase", [
-    (None, None, "ice_ih"), (1.0e6, 150.0, "ice_ih"), (2.0e8, 150.0, "ice_ih"),
+    (None, None, "ice_ih"), (1.0e6, 150.0, "ice_ih"), (1.0e8, 150.0, "ice_ih"), (2.0e8, 150.0, "ice_ii"),
     (3.0e8, 150.0, "ice_ii"), (3.0e8, 250.0, "ice_iii"), (5.0e8, 150.0, "ice_ii"), (5.0e8, 260.0, "ice_v"),
     (1.0e9, 200.0, "ice_vi"), (5.0e9, 200.0, "ice_vi"),
+    (5.0e7, 200.0, "ice_ih"), (2.5e8, 245.0, "ice_iii"), (3.5e8, 245.0, "ice_ii"), (4.5e8, 245.0, "ice_v"), (6.5e8, 230.0, "ice_vi"),
+    (2.2e8, 240.0, "ice_iii"), (2.5e8, 252.0, "ice_iii"), (3.5e8, 262.0, "ice_v"), (7.0e8, 265.0, "ice_vi"), (6.0e8, 280.0, "ice_v"),
 ])
 def test_water_phase_from_the_central_pressure(pressure, temperature, phase):
+    """GEN.1190: the phase from the boundary lines of the water phase diagram (the LSBU page, T3), not the earlier recalled pressures."""
     assert it.water_phase(pressure, temperature) == phase
+
+
+def test_a_phase_boundary_agrees_with_the_triple_points_it_ends_in():
+    """Each line meets the triple points it runs between to within 1 MPa (III-V at the liquid point is 345.8 against 350.1, V-VI at the liquid point 625.9 against 632.4): the phase flips across them."""
+    assert it._ih_ii_mpa(it.ICE_IH_II_III_TRIPLE_K) == pytest.approx(212.9, abs=1.0)
+    assert it._ih_iii_mpa(it.ICE_IH_II_III_TRIPLE_K) == pytest.approx(212.9, abs=1.0)
+    assert it._ii_iii_mpa(it.ICE_IH_II_III_TRIPLE_K) == pytest.approx(213.0, abs=1.0)
+    assert it._ii_iii_mpa(it.ICE_II_III_V_TRIPLE_K) == pytest.approx(344.3, abs=1.0)
+    assert it._ii_v_mpa(it.ICE_II_III_V_TRIPLE_K) == pytest.approx(344.3, abs=1.0)
+    assert it._iii_v_mpa(it.ICE_II_III_V_TRIPLE_K) == pytest.approx(344.3, abs=1.0)
+    assert it._v_vi_mpa(273.31) == pytest.approx(632.4, rel=0.011)      # the page's own V-VI-liquid point is 626 MPa; the IAPWS release's is 632.4
+    assert it._v_vi_mpa(it.ICE_II_V_VI_TRIPLE_K) == pytest.approx(620.0, abs=1.0)
+    assert it.water_phase(1.0e9, None) == "ice_vi" and it.water_phase(2.3e9, 300.0) == "ice_vi"
 
 
 def test_a_body_with_no_ice_has_no_ice_type():

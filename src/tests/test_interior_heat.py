@@ -419,3 +419,15 @@ def test_a_mobile_lid_with_no_drop_carries_no_heat():
     assert ih._flux_w_m2(300.0, MID, 9.8, 3.0e6, ih.MOBILE, 300.0) == 0.0
     assert ih._flux_w_m2(250.0, MID, 9.8, 3.0e6, ih.MOBILE, 300.0) == 0.0
     assert ih._flux_w_m2(1500.0, MID, 9.8, 3.0e6, ih.MOBILE, 300.0) > 0.0
+
+
+def test_a_mantle_still_warming_under_a_great_tide_keeps_its_radiogenic_heat_as_its_own():
+    """GEN.1190: a conduction under tide plus radiogenic heat (a negative primordial term) leaves the body its radiogenic heat, not 0; without a tide the
+    own heat is what flows out."""
+    warming = ih.Heat(total_w=9.0e14, radiogenic_w=1.0e13, primordial_w=-2.0e13, mantle_temperature_k=3000.0, flux_w_m2=1.0, released_j=0.0,
+                                 tidal_w=9.1e14)
+    assert warming.own_w == 1.0e13 and warming.own_flux_w_m2 > 0.0
+    steady = ih.Heat(total_w=9.2e14, radiogenic_w=1.0e13, primordial_w=0.0, mantle_temperature_k=3000.0, flux_w_m2=1.0, released_j=0.0, tidal_w=9.1e14)
+    assert steady.own_w == pytest.approx(1.0e13)
+    cooling = ih.Heat(total_w=5.0e13, radiogenic_w=1.0e13, primordial_w=4.0e13, mantle_temperature_k=3000.0, flux_w_m2=1.0, released_j=0.0)
+    assert cooling.own_w == 5.0e13

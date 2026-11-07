@@ -43,6 +43,16 @@ or of what `tuning.PREVALENCE_DRAW_SHARES` says (intelligent life: of
 worlds whose timeline reaches a technological age)."""
 
 
+def forced_hit_rate(feature):
+    """The share of systems with `feature` among those `resolve` forces it on (`tuning.PREVALENCE_FORCED_HIT_RATES`; 1 for a feature made as asked)."""
+    return tuning.PREVALENCE_FORCED_HIT_RATES.get(feature, 1.0)
+
+
+def reachable_share(feature):
+    """The highest share of systems a prevalence can give `feature` (all of them forced on): its forced hit rate, never below its usual share. 1 for a feature made as asked."""
+    return max(forced_hit_rate(feature), USUAL_SHARES[feature])
+
+
 def percent_for_share(feature, share):
     """
     The prevalence (percent from the usual chance) that moves `feature`
@@ -85,7 +95,9 @@ def resolve(config, rng=draw):
     each one still left to chance (`None`) is forced off in `-p`% of
     systems for a negative prevalence, or forced on in just enough of the
     rest for a positive one that the share with it comes to `1 + p/100`
-    times its usual share (all of them past 100%). The rules the forcing
+    times its usual share (all of them past that, or past `reachable_share`
+    for a feature a forced system only sometimes has: a habitable world is
+    asked for, not placed, GEN.1130 and GEN.1322). The rules the forcing
     options follow hold for what this decides: a habitable world and a
     belt together need a large star, and either needs planets. Flags
     already forced are left alone. Runs once per config.
@@ -108,7 +120,9 @@ def resolve(config, rng=draw):
                 decided[attr] = False
         else:
             base = tuning.PREVALENCE_BASE_SHARES[feature]
-            if rng.random() < min(1.0, (p / 100.0) * base / (1.0 - base)):
+            hit = forced_hit_rate(feature)
+            # The extra share a forced system adds is (hit - base), not (1 - base): a forced system only has the feature in `hit` of cases (GEN.1322).
+            if rng.random() < min(1.0, (p / 100.0) * base / (hit - base)):
                 decided[attr] = True
     if not decided:
         return

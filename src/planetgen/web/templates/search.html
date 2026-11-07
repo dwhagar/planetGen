@@ -2,7 +2,7 @@
     filter is a GET parameter; tags and chip "x"s are plain links. -#}
 {% extends "base.html" %}
 {% from "partials/datatable.html" import datatable with context %}
-{% from "partials/ui_fields.html" import ui_input with context %}
+{% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
 {% from "partials/value_group.html" import value_group with context %}
 {% block head %}
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
@@ -39,6 +39,10 @@
           <input type="text" name="{{ key }}" value="{{ state.texts[key] }}" list="dl-{{ list_key }}" autocomplete="off" placeholder="{{ placeholder }}">
         </label>
         {%- endfor %}
+      </div>
+      <div class="search-fields search-fields-sectors">
+        {{ ui_select("sector_coverage", "Sectors to search", sector_coverage_choices, state.sector_scope()[0]) }}
+        {{ ui_checkbox("sector_empty", "Include empty uncharted sectors", checked=state.sector_scope()[1], hint="Uncharted sectors that no scan has detected anything in.") }}
       </div>
       <div class="search-fields search-fields-size">
         {%- for entity, label, placeholder in size_entities %}
