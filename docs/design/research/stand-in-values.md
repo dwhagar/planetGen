@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1245 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1246 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,10 +42,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 53 | 21 | 3 | 1 | 0 | 78 |
 | T6 | 127 | 89 | 25 | 61 | 0 | 302 |
-| T7 | 33 | 15 | 7 | 16 | 0 | 71 |
+| T7 | 34 | 15 | 7 | 16 | 0 | 72 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 15 | 5 | 86 | 34 | 178 |
-| All | 686 | 257 | 59 | 198 | 45 | 1245 |
+| All | 687 | 257 | 59 | 198 | 45 | 1246 |
 
 ## How the labels were given
 
@@ -328,6 +328,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OE13 | P | T4 | L0 | giant_draw.SETTLE_TOLERANCE | 0.001, fixed | table-sized giants | none needed | design: the table radius is good to a few percent, and a giant that the final age and the mean light move by less than a tenth of a percent keeps its radius and interior, so that a system whose giants the star's age did not move is unchanged (GEN.961); measured on 138 table-sized giants, 28 percent were off by more than 1 percent before the settle | - | - |
 | OE14 | P | T4 | L0 | planets.ECCENTRICITY_SETTLE_TOLERANCE | 1e-4, fixed | planets and captured moons | none needed | design: a planet or captured moon whose eccentricity at the star's final age is within 1e-4 of the drawn one keeps its orbit; the circularisation time (OE10) is read again from the body's radius as it then is, so GEN.985 changes a body only where the age of the star rose enough to matter (measured: 134 of 327 planets move at all, 53 by more than 0.01 or 5 percent) | - | - |
 | OE15 | P | T4 | L0 | planets.AGE_SETTLE_TOLERANCE | 0.02, fixed | rocky planets and moons | none needed | design: a rocky planet or moon made when the star's age was within 2 percent of its final age keeps its air, class, spin and dose (GEN.992); above that the decay clock and the heat history it read are off by more than the 2 percent, and the body is made again from a stream of its own; measured (GEN.986): the age rises by a median 4.3 Gyr in about 63 percent of rocky planets, and the class letter moves in 8 to 12 percent of those made again | - | - |
+| OE16 | P | T7 | L0 | orbit_elements.TIDE_GRID_POINTS | 24 points, 4 decades, 6 passes, ratio 1.5, fixed | planets and captured moons | none needed | design: the fall of an eccentricity under the tide the heat model gives (GEN.1351) is integrated over a log grid of 24 points four decades below the birth eccentricity (`TIDE_GRID_POINTS`, `TIDE_GRID_DECADES`), refined up to 6 times (`TIDE_REFINE_PASSES`) where the decay time of two neighbours differs by more than a factor of 1.5 (`TIDE_JUMP_RATIO`), a tide that melts the mantle switching on and off within a few percent of an eccentricity; an interval is taken at the faster of its two ends, so the tide never draws more than the orbit gives up; numerical settings, no physical value | - | - |
 
 ## 6.13 Stand-ins of the tidal heating
 

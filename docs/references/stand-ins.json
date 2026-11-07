@@ -7667,6 +7667,40 @@
           "tweak": "L0",
           "unread": null,
           "what": "planets.AGE_SETTLE_TOLERANCE"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "design: the fall of an eccentricity under the tide the heat model gives (GEN.1351) is integrated over a log grid of 24 points four decades below the birth eccentricity (TIDE_GRID_POINTS, TIDE_GRID_DECADES), refined up to 6 times (TIDE_REFINE_PASSES) where the decay time of two neighbours differs by more than a factor of 1.5 (TIDE_JUMP_RATIO), a tide that melts the mantle switching on and off within a few percent of an eccentricity; an interval is taken at the faster of its two ends, so the tide never draws more than the orbit gives up; numerical settings, no physical value"
+            ],
+            [
+              "What it is",
+              "orbit_elements.TIDE_GRID_POINTS"
+            ],
+            [
+              "The range it moves in",
+              "24 points, 4 decades, 6 passes, ratio 1.5, fixed"
+            ],
+            [
+              "Where it holds",
+              "planets and captured moons"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ]
+          ],
+          "id": "OE16",
+          "key": "6.12:OE16",
+          "kind": "P",
+          "slug": "6-12-oe16",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "orbit_elements.TIDE_GRID_POINTS"
         }
       ],
       "slug": "6-12-stand-ins-of-the-orbit-elements",
