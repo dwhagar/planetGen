@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3570] - 2026-11-07
+
+**Headline:** The dust layer no longer makes numpy warn of an overflow for stars far above the galactic plane; its values are unchanged.
+
+### Changed
+
+- `physics/sky_photometry.cosh_squared` (VIEW.48): `cosh(x) ** 2` as numpy gives it where it is finite and `inf` beyond the float range (|x| above about 355.6), without the `RuntimeWarning: overflow encountered in cosh` and `in square`. The dust layer `1 / cosh(z / h) ** 2` of the gas-built profile (`dust_model.DustProfile.av_per_pc`) and of the fixed Milky Way law (`sky_photometry.dust_av_per_pc`) use it, so far above the plane the layer is exactly 0 as before. The result is identical for every input, nan and infinity included (a test compares the two over a grid and the edge values).
+- `src/tests/test_dust_model.py`: the layer far above the plane in both laws under warnings as errors, and `cosh_squared` against numpy.
+
+generation-output: unchanged
+
+## [8.0.3569] - 2026-11-07
+
+**Headline:** The sky calibration against the HYG catalogue now holds the default-dust sky to a band too, in the small and the Milky Way sized galaxy.
+
+### Changed
+
+- `src/tests/test_sky_hyg_calibration.py` (VIEW.45): each case also checks the share of the dust-free count that the sky through the galaxy's own gas-built dust keeps (`dusty_band`: 0.55 to 0.85 in the small galaxy, measured 0.693; 0.50 to 0.75 in the Milky Way sized one, measured 0.628), prints the default-dust tiers' reach against the dust-free tiers', and carries its own timeout so the suite's 900 seconds does not end a long run. The docstring has the new measurements.
+- `reports/view45-hyg-calibration-dust-2026-11-07.md`: the measurements, the bands and what they say; one finding (a cosh overflow warning in the dust layer) left for its own item.
+
+generation-output: unchanged
+
 ## [8.0.3568] - 2026-11-07
 
 **Headline:** The API route snapshot lists the Queue page's held-jobs route, so the API version test passes again.
