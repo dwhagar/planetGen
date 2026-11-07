@@ -16932,6 +16932,11 @@ clears each one.
   simulation sweep". Filed by the TODO thread.
   Prerequisites: GEN.1309, GEN.1312, GEN.1313. Related: GEN.1306, GEN.1314.
 
+- [ ] **GEN.1319 Sealed-ocean chemistry: leached sodium and calcium with no chloride or sulfate to balance them give oceans of pH 11 to 14 that lock all carbon into calcite (bug)**
+  Found by Planets 1 in the GEN.1309 oxygen chain (/mnt/project-files/reports/gen1309-oxygen-chain-2026-11-07.md, 12:25 AM EST on 2026-11-07, as the lane reported). The dissolved-carbon gate for sunlit-sea life was measured on 79 sunlit-sea worlds and recovers none: the air is all or nothing (5 Pa or more of CO2, or none). Of the zero-CO2 airs, most are physics (no carbon degassed, methane carbon on hydrogen-rich sealed airs, weathering balances), but the sealed-ocean law (waterworld_carbon) is a real gap: leached sodium and calcium with no chloride or sulfate to balance them, where Earth's sodium is balanced by chloride, so the sea comes out at pH 11 to 14 and locks all carbon into calcite (5 of 19 G2V worlds sit at the 1e-12 bar floor). Do: give the sealed ocean its anions (chloride from the halogen budget, sulfate from sulfur outgassing) so the charge balances, re-solve pH and carbon, register every new value as a stand-in with tier and tweak level, and measure how many sealed worlds regain CO2 and carbon-gated life. Lock item (generation output changes, large effect on sealed worlds; epoch and goldens at the train). Done: a sealed ocean is charge balanced, pH lands in a physical range, the sweep shows the count of worlds that regain 5 Pa of CO2. Version 8.1. Owner: Planets 1, after GEN.1278. Feeds GEN.1318 (fudge revisit).
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1309, GEN.1318.
+
 - [ ] **TEST.656 Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876**
   Train Manager census run on main d2b0ba47b (3:30 PM EST on 2026-11-06,
   as the lane reported), notes
