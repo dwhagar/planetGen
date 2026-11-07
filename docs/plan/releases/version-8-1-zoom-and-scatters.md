@@ -708,6 +708,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.665 | test_class_sample.py::test_a_forced_rare_class_is_in_the_system[P] is red on main: no system with a forced class P world in 24 tries (bug) |  |  |
 | TEST.666 | Three tests are red on main: test_db_column_round_trip (rogue surface_liquid_ammonia_wt is never written; irregular_moons is in NEVER_READ), test_object_rows (_Rows has no fetchone) and the brown dwarf case of test_rogue_habitability (temp_livable_share) (bug) |  |  |
 | TEST.667 | Four queue tests are red on clean main: test_api_jobs (test_a_quick_edit_answers_in_the_same_response, test_a_slow_edit_answers_202_with_the_job_id) and two in test_rq_time_limits (bug) |  |  |
+| TEST.668 | Two tests in test_update_database_step.py are red on clean main (bug) |  |  |
 | MAP.405 | The sector gravity page answers 502 on a galaxy that has no shape yet, because the API answers 409 "the galaxy has no shape yet": it should show "not computed yet" (bug) |  |  |
-| OPS.110 | install.sh and update.sh render every systemd unit from the checkout location and venv and install the maintenance timers automatically; the gunicorn unit stays manual |  |  |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, TEST.300, GEN.743, GEN.744, GEN.745, GEN.752 |  |

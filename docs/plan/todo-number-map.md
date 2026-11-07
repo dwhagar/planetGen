@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.47 |
-| TEST | TEST.668 |
+| TEST | TEST.669 |
 | USR | USR.32 |
 | OPS | OPS.111 |
 | DOC | DOC.110 |
@@ -2703,7 +2703,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.107 | The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs | none | done, PR #5249 |
 | OPS.108 | A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged | none | done, PR #5249 |
 | OPS.109 | The update.sh data set step lists the kept files by download URL (one "kept URL (n files)" line per URL) and says the folder they are stored in | none | done, PR #5249 |
-| OPS.110 | install.sh and update.sh render every systemd unit from the checkout location and venv and install the maintenance timers automatically; the gunicorn unit stays manual | none | open |
+| OPS.110 | install.sh and update.sh render every systemd unit from the checkout location and venv and install the maintenance timers automatically; the gunicorn unit stays manual | none | done, PR #5470 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -4161,6 +4161,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.665 | test_class_sample.py::test_a_forced_rare_class_is_in_the_system[P] is red on main: no system with a forced class P world in 24 tries (bug) | none | open |
 | TEST.666 | Three tests are red on main: test_db_column_round_trip (rogue surface_liquid_ammonia_wt is never written; irregular_moons is in NEVER_READ), test_object_rows (_Rows has no fetchone) and the brown dwarf case of test_rogue_habitability (temp_livable_share) (bug) | none | open |
 | TEST.667 | Four queue tests are red on clean main: test_api_jobs (test_a_quick_edit_answers_in_the_same_response, test_a_slow_edit_answers_202_with_the_job_id) and two in test_rq_time_limits (bug) | none | open |
+| TEST.668 | Two tests in test_update_database_step.py are red on clean main (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
