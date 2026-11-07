@@ -651,8 +651,8 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
         cloud (tuple or None): `(tau_550, radius_um)` of a sulfuric acid cloud (`sulfuric_cloud.of_draw`): its depth at 550 nm and droplet radius.
             Its infrared opacity (`cloud_infrared`) sits in the layers between the level cooler than the cloud base temperature and its top.
         saturated (bool): Hold the relative humidity at the surface's value up the whole troposphere (to the cold trap) instead of Manabe and
-            Wetherald's, which falls to nothing aloft: the saturated air the published runaway limits are worked for (Simpson 1928, Nakajima and
-            others 1992, Kasting 1988, Goldblatt and others 2013 [R1607], Kopparapu and others 2013 [R2447]). Stand-in IR17.
+            Wetherald's, which falls to nothing aloft: the saturated air the published runaway limits are worked for (Simpson's limit as given in [R1608], Nakajima and
+            others 1992, Kasting's work [R2275], Goldblatt and others 2013 [R1607], Kopparapu and others 2013 [R2447]). Stand-in IR17.
         clear_sky (bool): Leave out the longwave effect of the cloud (`CLOUD_LONGWAVE_SHARE`, IR12): the clear-sky outgoing flux those limits are.
 
     Returns:

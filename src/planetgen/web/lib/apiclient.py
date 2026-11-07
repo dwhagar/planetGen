@@ -1515,6 +1515,12 @@ def get_system_facilities(db, system_id):
     return _request(f"/systems/{system_id}/facilities", {"db": db})["items"]
 
 
+def get_system_bodies(db, system_id):
+    """Returns `GET /api/systems/<id>/bodies`'s body: the system's body ledger, its total mass, its barycenter with the belts in it and the belts' wobble of the central star (GEN.1241)."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/bodies", {"db": db})
+
+
 def get_system_habitable_species(db, system_id):
     """Returns `GET /api/systems/<id>/habitable-species`'s `bodies`: each rocky planet and moon some species could
     live on, with those species (POP.12)."""

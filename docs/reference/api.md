@@ -848,6 +848,18 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/systems/<id>/habitable-species` — the same for every rocky
   planet and moon of a system that some species could live on: `bodies` of
   `{kind, id, name, unaided, equipped}`.
+- `GET /api/systems/<id>/bodies` — the body ledger of a system and the barycenter that
+  includes its belts (GEN.1241), built from the typed tables with no new storage: `bodies`
+  (every star, planet, moon, ring, comet, belt, belt body and the belt's remainder, each with
+  `kind`, `name`, `mass_kg`, `radius_km`, `density_kg_m3`, `a_au`, `e`, `i_deg`, `status`, `tier`
+  (`typed`, `L1` for a stored belt body, `L3` for the remainder), `parent`, `position_au` from
+  the parent's center and `distance_from_barycenter_au`; a typed body has its `ref` and `id`, a
+  belt body its `belt` and `rank`), `total_mass_kg`, `barycenter_au` (the primary star's center
+  at the origin), `central_offset_au` and `central_offset_km` (where the primary sits against
+  the barycenter), `belt_wobble_au` and `belt_wobble_km` (how far the belts move it),
+  `central_radius_km` and `belts` (`{belt, name, mass_kg, members, stored_members_kg,
+  extended_kg, residual}`; `residual` is the rows against the stored mass, 0 when they add up).
+  A belt body is placed at the mean anomaly it was drawn with. `404` for an unknown system.
 - `GET /api/species/<id>/habitable-worlds/systems/<system>` and
   `.../sectors/<sector>` — the other way round: the rocky planets and moons of
   one system, or of every system of one sector (at most 2,000 bodies; `truncated`
@@ -1130,9 +1142,11 @@ forced credential change. They back the admin stats page
   `DELETE /api/admin/images/<kind>` resets the setting and removes the
   file when no other setting names it. At most 1 MiB a picture.
 - `GET /api/admin/update` — the admin Update button (SEC.43): `{"state", "installed", "can_request", "reason", "log",
-  "log_modified", "stale_request", "can_ask", "needs_password", "owner_minutes"}`. `state` is `not_installed` (the
+  "log_modified", "stale_request", "outcome", "outcome_detail", "can_ask", "needs_password", "owner_minutes"}`. `state` is `not_installed` (the
   root-owned `planetgen-update.path` is missing), `idle`, `requested` (the request file waits) or `running` (the update
-  guard's lock is held, or the site is still closed by an update); `log` is the end of `update.log`. A signed-in session
+  guard's lock is held, or the site is still closed by an update); `log` is the end of `update.log`. With no update waiting
+  or running, `outcome` is `failed` (the service is in `failed`, or the log's last run ended in an error line), `done`
+  (the log's last run reached its closing line) or `null`, and `outcome_detail` says why (UX.284). A signed-in session
   only (an API key gets 403). `POST /api/admin/update` `{}` asks root to run `update.sh`: it creates the empty file
   `update.request` in the state folder and nothing else, so no value from the request reaches the command. Only the
   Owner whose password was typed within `owner_minutes` may (403 with `needs_password`; `POST /api/auth/confirm-password`

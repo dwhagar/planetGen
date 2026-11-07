@@ -2,10 +2,14 @@
 the list is refused when it holds `queue.max_waiting` entries, and an API job shows that it waits
 (`wrapper.report_wait`, `api_jobs.status`)."""
 
+import os
+import socket
+import time
+
 import rq
 import pytest
 
-from planetgen.queue import api_jobs, redisqueue, runline, runrecord, wrapper
+from planetgen.queue import api_jobs, commands, redisqueue, runline, runrecord, wrapper
 from planetgen.queue.runrecord import Stage
 from planetgen.util.settings import get_settings
 
@@ -181,3 +185,71 @@ def test_a_run_started_inside_a_run_of_the_same_process_fails_instead_of_waiting
         runline.start_when_free(
             conn, lambda: runrecord.start_run(conn, "Nested", [runrecord.Stage("a", "A")]), 600, title="Nested",
             nested_guard=True)
+
+
+def _left_behind(conn, pid=None):
+    """A run of a process that is still running but no longer follows it: its owner is a live process id (this test's parent, a
+    stand-in for a worker that lives on), and nothing says it is followed (its `alive` key has run out)."""
+    holder = runrecord.start_run(conn, "A New galaxy job's earlier run", [runrecord.Stage("a", "A")])
+    conn.hset(runrecord.run_key(holder), "owner", f"{socket.gethostname()}:{pid or os.getppid()}")
+    conn.delete(runrecord.alive_key(holder))
+    return holder
+
+
+def test_a_run_left_by_a_process_that_lives_on_is_freed_and_the_next_run_starts(conn):
+    """ADM.136: the holder's process id is running (a long-lived worker, or a reused id), so the pid check alone called it live and a New
+    galaxy job waited on it for ever. Nothing says it is followed (its `alive` key ran out), so it is dead."""
+    holder = _left_behind(conn)
+    assert runrecord._pid_alive(os.getppid()) and runrecord.holder_is_dead(conn, holder)
+    clock = Clock()
+    run_id = runline.start_when_free(conn, _take(conn), 3600, clock=clock.time, sleep=clock.sleep, nested_guard=True)
+    assert runrecord.active_run(conn) == run_id != holder
+    left = runrecord.read_run(conn, holder)
+    assert left["state"] == "failed" and "process was gone" in left["error"]
+
+
+def test_a_run_that_is_followed_is_not_freed_however_long_it_takes(conn):
+    """The `alive` key is there (its follower says so), and the follower is a live process of this host: the run waits for it."""
+    holder = _left_behind(conn)
+    runrecord.touch(conn, holder)
+    assert not runrecord.holder_is_dead(conn, holder)
+    clock = Clock()
+    with pytest.raises(runrecord.Busy, match="waited"):
+        runline.start_when_free(conn, _take(conn), 600, clock=clock.time, sleep=clock.sleep)
+    assert runrecord.read_run(conn, holder)["state"] == "running"
+
+
+def test_a_run_of_a_process_id_that_is_gone_is_still_freed_at_once(conn):
+    holder = runrecord.start_run(conn, "Killed", [runrecord.Stage("a", "A")])
+    conn.hset(runrecord.run_key(holder), "owner", f"{socket.gethostname()}:2147483646")
+    runrecord.touch(conn, holder)       # its key has not run out yet: the missing process is enough
+    assert runrecord.holder_is_dead(conn, holder)
+
+
+def test_the_heartbeat_keeps_a_busy_follower_alive_and_stops_with_it(conn):
+    """A follower busy in a callback does not poll; the heartbeat says the run is followed meanwhile, and stops with the follower."""
+    run_id = runrecord.start_run(conn, "Busy", [runrecord.Stage("a", "A")])
+    conn.delete(runrecord.alive_key(run_id))
+    with runrecord.Heartbeat(conn, run_id, interval=0.02):
+        deadline = time.monotonic() + 5
+        while not conn.exists(runrecord.alive_key(run_id)) and time.monotonic() < deadline:
+            time.sleep(0.02)
+        assert conn.exists(runrecord.alive_key(run_id)) and not runrecord.holder_is_dead(conn, run_id)
+    conn.delete(runrecord.alive_key(run_id))
+    time.sleep(0.2)
+    assert not conn.exists(runrecord.alive_key(run_id)), "the heartbeat is over with the block"
+
+
+def test_a_run_whose_set_up_fails_is_ended_not_left_holding_the_machine(conn, monkeypatch):
+    """ADM.136: the set-up after the machine is taken (workers, relay, log) was outside the `try`, so a failure there left the run live
+    for a process that went on; the next New galaxy waited for it."""
+    kind = next(iter(commands.REGISTRY))
+
+    def refuse(*args, **kwargs):
+        raise RuntimeError("no worker could be started")
+
+    monkeypatch.setattr(wrapper, "stage_ensure", refuse)
+    with pytest.raises(RuntimeError, match="no worker could be started"):
+        wrapper.run("Set-up fails", [commands.Step("a", kind, "A", {})], lambda index, plan: None, lambda index, unit, result: None)
+    assert runrecord.active_run(conn) is None
+    assert runrecord.read_run(conn, runrecord.recent_runs(conn, limit=1)[0])["state"] == "failed"

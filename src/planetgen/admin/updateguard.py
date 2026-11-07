@@ -18,6 +18,12 @@ migrate) changes the checkout and the databases, nothing else may run:
   left. A job that does not stop in time is reported and the update stops before it has changed anything. Nobody
   to ask is a no: a run started by systemd or cron (`started_unattended`) and one with no terminal refuse unless
   `--yes` was given, and a question left unanswered for `PROMPT_SECONDS` is a no too.
+* **A run started by systemd stops everything but generation** (DB.29, Boss 11-06): the monthly timer and the admin Update
+  button have nobody to ask, so a `systemd` start cancels the work it lists without `--yes`, each with a stop reason
+  saying so (`stop_reason`), except what is generating new content (a Generate job, a generation run, a job on the
+  generation queue; the items marked `protect`). Those are never canceled: with any of them running the update
+  changes nothing and says so, and the next firing or press tries again. Cron and a person's own start keep the old
+  rule (the question, or `--yes`).
 * **Nothing new starts** (OPS.53, OPS.54): the update takes a lock, `update.lock` in the state folder, and
   `refuse_while_updating` (called by the Generate page's job starter, the API's job queue, the work queue's runs,
   the queue's workers and the orbital update) refuses for as long as the lock is held by a live process or the
@@ -284,7 +290,7 @@ class MarkerSource:
         return found
 
     def cancel(self, item):
-        stop_reason.leave(item["pid"], "the update guard canceled it, because an update or a cancel from the Stats page needs the machine")
+        stop_reason.leave(item["pid"], item.get("why") or "the update guard canceled it, because an update or a cancel from the Stats page needs the machine")
         with contextlib.suppress(OSError):
             os.kill(item["pid"], signal.SIGTERM)
         return True
@@ -311,7 +317,7 @@ class GenerateJobSource:
             found.append({"source": self.name, "kind": job.get("kind") or "job", "id": job["id"],
                           "title": job.get("title") or "Generate job", "started": started,
                           "holds": "the Generate page's job lock", "queued": job["status"] == "starting",
-                          "root": root})
+                          "root": root, "protect": True})
         return found
 
     def cancel(self, item):
@@ -357,7 +363,8 @@ class QueuedJobSource:
                     found.append({"source": self.name, "kind": name, "id": job_id,
                                   "title": (job.description if job is not None else None) or job_id,
                                   "started": started.strftime("%Y-%m-%dT%H:%M:%SZ") if started else None,
-                                  "holds": f"the {name} queue", "queued": state == "queued", "queue": name})
+                                  "holds": f"the {name} queue", "queued": state == "queued", "queue": name,
+                                  "protect": name == redisqueue.GENERATION_QUEUE})
         return found
 
     def cancel(self, item):
@@ -390,14 +397,19 @@ class RunRecordSource:
             return []
         found = []
         for run_id in runrecord.recent_runs(connection, limit=100_000):
-            run = runrecord.read_run(connection, run_id)
+            try:
+                run = runrecord.read_run(connection, run_id)
+            except Exception:  # noqa: BLE001 -- one malformed record never aborts the update
+                from planetgen.util import log      # imported when asked: this module keeps its import-time reach small
+                log.warning("update guard: skipped the unreadable run record %s", run_id)
+                continue
             if run is None or run["state"] not in runrecord.LIVE_STATES:
                 continue
             started = run["started"] or run["created"]
             found.append({"source": self.name, "kind": run["kind"], "id": run_id, "title": run["title"],
                           "started": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started)) if started else None,
                           "holds": "the generation slot" if run["kind"] == runrecord.GENERATION else "a run slot",
-                          "queued": False})
+                          "queued": False, "protect": run["kind"] == runrecord.GENERATION})
         return found
 
     def cancel(self, item):
@@ -487,10 +499,22 @@ def describe(items):
     return lines
 
 
-def cancel_all(sources, items, write=print):
-    """Asks each source to stop `items` through its own cancel path."""
+SYSTEMD_WHY = "the update guard canceled it: an update started by systemd needs the machine (it will not cancel generation)"
+"""str: The stop reason left for a command-line run canceled by an update that systemd started."""
+
+
+def protected(items):
+    """The items that are generating new content (`protect`), which a systemd-started update never cancels."""
+    return [item for item in items if item.get("protect")]
+
+
+def cancel_all(sources, items, write=print, why=None):
+    """Asks each source to stop `items` through its own cancel path (`why` is the stop reason left for a
+    command-line run)."""
     by_name = {source.name: source for source in sources}
     for item in items:
+        if why:
+            item = {**item, "why": why}
         try:
             by_name[item["source"]].cancel(item)
         except Exception as exc:  # noqa: BLE001 -- reported; the wait below decides whether it stopped
@@ -498,7 +522,7 @@ def cancel_all(sources, items, write=print):
 
 
 def wait_until_idle(sources, timeout=STOP_SECONDS, poll=POLL_SECONDS, write=print, clock=time.monotonic,
-                    sleep=time.sleep):
+                    sleep=time.sleep, spare_generation=False, why=None):
     """
     Cancels everything running and waits until nothing is, looking again every `poll` seconds (work that appeared
     meanwhile is canceled too: only the first look asked the operator).
@@ -510,11 +534,13 @@ def wait_until_idle(sources, timeout=STOP_SECONDS, poll=POLL_SECONDS, write=prin
     asked = set()
     while True:
         items = list_running(sources)
+        if spare_generation:
+            items = [item for item in items if not item.get("protect")]      # begin() looks at those itself
         if not items:
             return []
         fresh = [item for item in items if (item["source"], item["id"]) not in asked]
         if fresh:
-            cancel_all(sources, fresh, write)
+            cancel_all(sources, fresh, write, why)
             asked.update((item["source"], item["id"]) for item in fresh)
         if clock() >= deadline:
             return items
@@ -553,12 +579,25 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
         return False
     items = list_running(sources)
     agreed = bool(yes)
+    systemd = unattended == "systemd" and not yes       # nobody to ask: cancel all but generation (see the module doc)
+    why = SYSTEMD_WHY if systemd else None
     if items:
         write("The update needs the machine to itself. Running or queued work:")
         for line in describe(items):
             write(line)
         asks = interactive and not unattended
-        if agreed:
+        if systemd:
+            generating = protected(items)
+            if generating:
+                write("This run was started by systemd, which cancels everything but generation, and new content is "
+                      "being generated:")
+                for line in describe(generating):
+                    write(line)
+                write("Not updating: nothing was changed and nothing was canceled. The next try runs when the "
+                      "generation has finished.")
+                return False
+            agreed = True
+        elif agreed:
             pass
         elif asks:
             reply = answer("Cancel these and go on with the update? [y/N] ")
@@ -585,6 +624,13 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
         return False
     # Whatever appeared between the first look and the lock is canceled only with the same word.
     leftover = list_running(sources)
+    if systemd and protected(leftover):
+        _abort(already_closed)
+        write("Not updating: generation started while the update began:")
+        for line in describe(protected(leftover)):
+            write(line)
+        write("Run it again when it has finished.")
+        return False
     if leftover and not agreed:
         _abort(already_closed)
         write("Not updating: work started while the update began:")
@@ -594,7 +640,9 @@ def begin(pid, by="update.sh", sources=None, interactive=False, yes=False, unatt
         return False
     if leftover:
         write("Canceling the work above and waiting for it to stop...")
-        remaining = wait_until_idle(sources, timeout, poll, write)
+        remaining = wait_until_idle(sources, timeout, poll, write, spare_generation=systemd, why=why)
+        if systemd and not remaining:
+            remaining = protected(list_running(sources))
         if remaining:
             _abort(already_closed)
             write(f"Not updating: this did not stop within {int(timeout)} seconds, and nothing was changed:")

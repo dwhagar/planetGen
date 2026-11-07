@@ -10,7 +10,7 @@
 # logging) instead of hand-added crontab lines and logfiles.
 #
 # Usage:
-#   sudo examples/maintenance/install-maintenance-timer.sh [--skip-update-timer] [--skip-update-button] [--skip-tiles-timer] [database ...]
+#   sudo examples/maintenance/install-maintenance-timer.sh [--skip-update-timer] [--skip-update-button] [--skip-tiles-timer] [--with-smoke-timer] [database ...]
 #
 # Each remaining argument is a database name to enable a monthly orbit
 # update timer for (a deployment with more than one game database -- see
@@ -38,10 +38,22 @@
 # that fails when a step of a small New galaxy peaks above its memory budget. Linux (systemd) only; the account in
 # /etc/planetgen/maintenance.env must be allowed to create and drop databases.
 #
+# This script and install.sh/update.sh share one function, `install_maintenance_units` (scripts/deploy-common.sh): every unit is
+# rendered for the checkout this script lives in (OPS.110). The example files say /var/lib/planetGen and
+# /usr/local/planetgen/venv, and the installed ones say where the checkout and the virtual environment (PLANETGEN_VENV, as
+# install.sh and update.sh read it) really are, and the state folder deploy-paths.py gives. A path with a space or a special
+# character is refused. A unit already installed that differs from the rendered one (an older copy of the example, or another
+# location) is replaced and the replacement is printed; edit the example, or a drop-in under /etc/systemd/system/<unit>.d/,
+# for a setting of your own. install.sh and update.sh run the same function on every deploy, so they put the timers in place on
+# their own (a deploy enables only a unit it installs for the first time, and never the unattended update timer, which it installs
+# and leaves off with a line saying how to turn it on); this script is for choosing the databases and the options, and it enables
+# everything it was asked for, the update timer too. The gunicorn unit (examples/systemd/planetgen-gunicorn.service) is not
+# installed by either: copy it by hand, changing its two paths (see its own header).
+#
 # What it does:
-#   1. Installs planetgen-orbits@.service/.timer (always) and
-#      planetgen-update.service/.timer (unless --skip-update-timer) into
-#      /etc/systemd/system/.
+#   1. Installs planetgen-orbits@.service/.timer (always), planetgen-update.service/.timer (unless --skip-update-timer),
+#      planetgen-update.path (unless --skip-update-button), the tiles units (unless --skip-tiles-timer) and, with
+#      --with-smoke-timer, the smoke units, into /etc/systemd/system/.
 #   2. Installs /etc/planetgen/maintenance.env (mode 600, since it holds a
 #      DB password) from maintenance.env.example, but only if it doesn't
 #      already exist -- never overwrites credentials a previous run or a
@@ -56,8 +68,6 @@
 # checkout's path put in. No credentials file there: the orbit update
 # reads config.json. An existing plist is left alone.
 #
-# install.sh/update.sh don't call this themselves since maintenance runs
-# on its own schedule, not on every deploy.
 
 set -euo pipefail
 
@@ -132,76 +142,20 @@ if [[ "$(uname -s)" == Darwin ]]; then
     exit 0
 fi
 
-echo "== 1/3: Installing systemd unit files =="
-install -m 644 "$SCRIPT_DIR/planetgen-orbits@.service" /etc/systemd/system/planetgen-orbits@.service
-install -m 644 "$SCRIPT_DIR/planetgen-orbits@.timer" /etc/systemd/system/planetgen-orbits@.timer
-echo "  installed planetgen-orbits@.service and planetgen-orbits@.timer"
-if [[ "$install_update_timer" -eq 1 || "$install_update_button" -eq 1 ]]; then
-    install -m 644 "$SCRIPT_DIR/planetgen-update.service" /etc/systemd/system/planetgen-update.service
-    echo "  installed planetgen-update.service"
-fi
-if [[ "$install_update_timer" -eq 1 ]]; then
-    install -m 644 "$SCRIPT_DIR/planetgen-update.timer" /etc/systemd/system/planetgen-update.timer
-    echo "  installed planetgen-update.timer"
-else
-    echo "  --skip-update-timer given -- not installing planetgen-update.timer"
-fi
-if [[ "$install_update_button" -eq 1 ]]; then
-    install -m 644 "$SCRIPT_DIR/planetgen-update.path" /etc/systemd/system/planetgen-update.path
-    echo "  installed planetgen-update.path (the admin Update button)"
-else
-    echo "  --skip-update-button given -- not installing planetgen-update.path"
-fi
+REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+PYTHON="${PYTHON:-python3}"
+[[ -x "${PLANETGEN_VENV:-/usr/local/planetgen/venv}/bin/python" ]] && PYTHON="${PLANETGEN_VENV:-/usr/local/planetgen/venv}/bin/python"
+SCRIPT_DIR="$REPO_DIR"  # what deploy-common.sh's helpers expect
+# shellcheck source=../../scripts/deploy-common.sh
+source "$REPO_DIR/scripts/deploy-common.sh"
 
-if [[ "$install_tiles_timer" -eq 1 ]]; then
-    install -m 644 "$SCRIPT_DIR/planetgen-tiles@.service" /etc/systemd/system/planetgen-tiles@.service
-    install -m 644 "$SCRIPT_DIR/planetgen-tiles@.timer" /etc/systemd/system/planetgen-tiles@.timer
-    echo "  installed planetgen-tiles@.service and planetgen-tiles@.timer"
-fi
-
-if [[ "$install_smoke_timer" -eq 1 ]]; then
-    install -m 644 "$SCRIPT_DIR/planetgen-smoke.service" /etc/systemd/system/planetgen-smoke.service
-    install -m 644 "$SCRIPT_DIR/planetgen-smoke.timer" /etc/systemd/system/planetgen-smoke.timer
-    echo "  installed planetgen-smoke.service and planetgen-smoke.timer"
-fi
-
-echo
-echo "== 2/3: Setting up credentials file =="
-ENV_FILE=/etc/planetgen/maintenance.env
-if [[ -f "$ENV_FILE" ]]; then
-    echo "  $ENV_FILE already exists -- leaving it alone."
-else
-    mkdir -p /etc/planetgen
-    install -m 600 "$SCRIPT_DIR/maintenance.env.example" "$ENV_FILE"
-    echo "  wrote $ENV_FILE (mode 600) from maintenance.env.example -- edit it"
-    echo "  now with this database's read-write MySQL credentials before the"
-    echo "  timer's first scheduled run (defaults match a freshly installed"
-    echo "  MySQL server's typical planetgen account, not a production one)."
-fi
-
-echo
-echo "== 3/3: Enabling timers =="
-systemctl daemon-reload
-if [[ "$install_update_timer" -eq 1 ]]; then
-    systemctl enable --now planetgen-update.timer
-    echo "  enabled planetgen-update.timer (fires 03:00 on the 1st of each month)"
-fi
-if [[ "$install_update_button" -eq 1 ]]; then
-    systemctl enable --now planetgen-update.path
-    echo "  enabled planetgen-update.path (starts planetgen-update.service when the admin Update button drops update.request)"
-fi
-for db in "${databases[@]}"; do
-    systemctl enable --now "planetgen-orbits@${db}.timer"
-    echo "  enabled planetgen-orbits@${db}.timer (fires 03:30 on the 1st of each month)"
-    if [[ "$install_tiles_timer" -eq 1 ]]; then
-        systemctl enable --now "planetgen-tiles@${db}.timer"
-        echo "  enabled planetgen-tiles@${db}.timer (rebuilds the whole map tile cache every night at 05:00, after the orbit update)"
-    fi
-done
-if [[ "$install_smoke_timer" -eq 1 ]]; then
-    systemctl enable --now planetgen-smoke.timer
-    echo "  enabled planetgen-smoke.timer (fires 04:30 every night; last report: journalctl -u planetgen-smoke.service)"
-fi
+options=(--enable-all --credentials)
+[[ "$install_update_timer" -eq 1 ]] || options+=(--skip-update-timer)
+[[ "$install_update_button" -eq 1 ]] || options+=(--skip-update-button)
+[[ "$install_tiles_timer" -eq 1 ]] || options+=(--skip-tiles-timer)
+[[ "$install_smoke_timer" -eq 0 ]] || options+=(--with-smoke-timer)
+echo "== Installing systemd units for $REPO_DIR (virtual environment $VENV) =="
+install_maintenance_units ${options[@]+"${options[@]}"} "${databases[@]}" || { echo "error: the units were not all installed (see above)." >&2; exit 1; }
 
 echo
 echo "Done. Check scheduled runs with:"

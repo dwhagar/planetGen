@@ -32,8 +32,8 @@ with `mu~` the *complex* rigidity, the inverse of the complex compliance `J` at 
 
 * `melt_fraction`: linear in temperature between the solidus and the liquidus (the one-box model's, `tidal_heating.SOLIDUS_K` and
   `LIQUIDUS_K`; they are passed in, so the wiring can give them a pressure dependence).
-* Viscosity: `exp(-B phi)` with `B = 26` below the disaggregation fraction `CRITICAL_MELT_FRACTION` ([R1956], for
-  diffusion creep; [R3021] find 26 to 31), then a straight line in `log10 eta` down to a silicate liquid's 1 Pa s at
+* Viscosity: `exp(-B phi)` with `B = 30` below the disaggregation fraction `CRITICAL_MELT_FRACTION` ([R1956: Table 1],
+  30 for diffusion creep and 30 to 45 for dislocation creep; [R3021] find 26 to 31), then a straight line in `log10 eta` down to a silicate liquid's 1 Pa s at
   `phi = 1`: above the critical fraction the crystals no longer touch and the mush flows as a suspension.
 * Cold ceiling: the Andrade `Q` of a mantle far below its solidus is capped at `COLD_Q_CEILING` (1,000), a mantle that is all melt included (a magma ocean keeps the loss of its solid lid and core): the lag of a stiff mantle goes to zero
   in the model but not in rock (the Maxwell form, kept as the reference, is not capped).
@@ -69,9 +69,13 @@ tide, its response is the elastic one with the cold ceiling on `Q`, and the expo
 300 kJ/mol). Source tier T7 (a numerical cutoff), tweak level L0."""
 LIQUID_VISCOSITY_PA_S = 1.0
 """float: A silicate liquid's viscosity, Pa s (komatiite to basalt melt, 0.1 to 10). Source tier T2, tweak level L0."""
-MELT_VISCOSITY_FACTOR = 26.0
-"""float: `B` of `exp(-B phi)`, the viscosity of a partly molten mantle against its solid one ([R1956], diffusion creep,
-26; [R3021], 26 to 31; recalled). Source tier T2, tweak level L0."""
+MELT_VISCOSITY_FACTOR = 30.0
+"""float: `B` of `exp(-B phi)`, the viscosity of a partly molten rocky mantle against its solid one ([R1956: Table 1]: the melt coefficient is 30 for diffusion creep and 30 to 45 for dislocation creep; [R3021], 26 to 31). Tidal flexing is
+slow and the stress small, so the diffusion value is the one (GEN.1190, it was 26). Source tier T2, tweak level L0."""
+ICE_MELT_VISCOSITY_FACTOR = 22.0
+"""float: `B` of `exp(-B phi)` for partly molten ammonia-rich ice (22, [R0133]),
+the one measured melt law of an ice: `viscosity_pa_s` reads it when the material is ice. Source tier T3 (one paper that cites one paper),
+tweak level L0 (the law as the paper gives it, for 4 to 8.4 percent ammonia)."""
 CRITICAL_MELT_FRACTION = 0.4
 """float: The melt share at which the crystals stop touching and the mush becomes a suspension (the rheological transition, 0.4 in [R1907]; recalled). Source tier T3, tweak level L1 (the top of the range)."""
 MELT_RIGIDITY_FLOOR = 1.0e-3
@@ -97,16 +101,18 @@ class Material:
         rigidity_pa (float): The solid's shear modulus, Pa.
         andrade_exponent (float): `a`.
         andrade_ratio (float): `zeta`.
+        melt_viscosity_factor (float): `B` of `exp(-B phi)`, how fast partial melt lowers the viscosity.
     """
 
     rigidity_pa: float
     andrade_exponent: float = ANDRADE_EXPONENT
     andrade_ratio: float = ANDRADE_TIMESCALE_RATIO
+    melt_viscosity_factor: float = MELT_VISCOSITY_FACTOR
 
 
 ROCK = Material(7.0e10)
 """Material: A rocky mantle (the PREM average of 65 to 80 GPa, `tidal_heating.ROCK_RIGIDITY_PA`). Source tier T2, tweak level L0."""
-ICE = Material(3.3e9)
+ICE = Material(3.3e9, melt_viscosity_factor=ICE_MELT_VISCOSITY_FACTOR)
 """Material: Ice I (shear modulus 3.3 to 3.5 GPa near its melting point; [R1503], recalled). Source tier T2, tweak level L0."""
 ICE_ACTIVATION_J_MOL = 4.9e4
 """float: The activation energy of ice I's creep (49 kJ/mol; [R1614] for diffusion and grain-boundary sliding).  Source tier T2, tweak level L0."""
@@ -148,9 +154,9 @@ def melt_fraction(temperature_k, solidus_k, liquidus_k):
     return min(max((temperature_k - solidus_k) / (liquidus_k - solidus_k), 0.0), 1.0)
 
 
-def viscosity_pa_s(temperature_k, eta0_pa_s, activation_j_mol, melt=0.0):
+def viscosity_pa_s(temperature_k, eta0_pa_s, activation_j_mol, melt=0.0, melt_factor=MELT_VISCOSITY_FACTOR):
     """
-    The viscosity at `temperature_k` and melt share `melt`, Pa s: Arrhenius for the solid, times `exp(-B melt)` up to `CRITICAL_MELT_FRACTION`,
+    The viscosity at `temperature_k` and melt share `melt`, Pa s: Arrhenius for the solid, times `exp(-B melt)` (`B` is `melt_factor`) up to `CRITICAL_MELT_FRACTION`,
     then a straight line in `log10 eta` from there to `LIQUID_VISCOSITY_PA_S` at a melt share of 1. The solid's value is taken at the
     temperature given, so a body above its solidus must be asked about with the temperature it has.
     """
@@ -158,8 +164,8 @@ def viscosity_pa_s(temperature_k, eta0_pa_s, activation_j_mol, melt=0.0):
     if melt <= 0.0:
         return solid
     if melt <= CRITICAL_MELT_FRACTION:
-        return solid * math.exp(-MELT_VISCOSITY_FACTOR * melt)
-    at_critical = solid * math.exp(-MELT_VISCOSITY_FACTOR * CRITICAL_MELT_FRACTION)
+        return solid * math.exp(-melt_factor * melt)
+    at_critical = solid * math.exp(-melt_factor * CRITICAL_MELT_FRACTION)
     share = (min(melt, 1.0) - CRITICAL_MELT_FRACTION) / (1.0 - CRITICAL_MELT_FRACTION)
     return 10.0 ** (math.log10(at_critical) + share * (math.log10(LIQUID_VISCOSITY_PA_S) - math.log10(at_critical)))
 
@@ -196,7 +202,7 @@ def response(mass_kg, radius_m, frequency_rad_s, temperature_k, eta0_pa_s, activ
     if frequency_rad_s <= 0.0:
         raise ValueError(f"a tide frequency of {frequency_rad_s} rad/s does not flex a body")
     k2 = love_number(mass_kg, radius_m, frequency_rad_s, rigidity_pa(melt, material),
-                     viscosity_pa_s(temperature_k, eta0_pa_s, activation_j_mol, melt), material, maxwell)
+                     viscosity_pa_s(temperature_k, eta0_pa_s, activation_j_mol, melt, material.melt_viscosity_factor), material, maxwell)
     lag = -k2.imag
     q = abs(k2) / lag if lag > 0.0 else math.inf
     return Response(abs(k2), q if maxwell else min(q, COLD_Q_CEILING))

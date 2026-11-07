@@ -98,7 +98,7 @@ def test_percent_for_share(factor, percent):
     ("large_star", 100), ("large_star", -100), ("planets", -40),
 ])
 def test_a_measured_feature_moves_by_the_percentage(feature, percent):
-    expected = min(1.0, tuning.PREVALENCE_BASE_SHARES[feature] * (1 + percent / 100))
+    expected = min(1.0, tuning.PREVALENCE_BASE_SHARES[feature] * (1 + percent / 100), prevalence.reachable_share(feature))    # GEN.1322: a habitable world is asked for, not placed
     # TEST.233: a seed that is the same in every process (hash() of a string differs per process), so a failure repeats
     seed = zlib.crc32(f"{feature}:{percent}".encode()) % 1000
     count = FORCED_ON_SYSTEMS if feature == "habitable_world" else SYSTEMS
@@ -165,6 +165,34 @@ def test_resolve_keeps_forced_flags_and_the_forcing_rules():
     config.PREVALENCE = {"asteroid_belt": 10_000}    # forced on in every system, so the undo is what leaves it unset
     prevalence.resolve(config)
     assert config.ASTEROID_BELT is None and config.LARGE_STAR is False
+
+
+def test_a_feature_a_forced_system_only_sometimes_has_is_forced_more_often_and_stops_at_its_hit_rate():
+    """GEN.1322: +habitable_world forces just enough systems that the share with a habitable-class world comes to the wanted one when a forced system has one in
+    `hit` of cases, and past `reachable_share` forces every system."""
+    base, hit = tuning.PREVALENCE_BASE_SHARES["habitable_world"], tuning.PREVALENCE_FORCED_HIT_RATES["habitable_world"]
+    assert prevalence.reachable_share("habitable_world") == hit and prevalence.reachable_share("asteroid_belt") == 1.0
+    assert hit < 1.0 and base < hit
+
+    def forced_share(percent, draws=4000):
+        rng = random.Random(7)
+        forced = 0
+        for _ in range(draws):
+            config = SystemConfig()
+            config.PREVALENCE = {"habitable_world": percent}
+            prevalence.resolve(config, rng)
+            forced += config.HABITABLE_WORLD is True
+        return forced / draws
+
+    wanted = base * 1.2
+    assert forced_share(20) == pytest.approx((wanted - base) / (hit - base), abs=0.03)
+    assert forced_share(50) == 1.0                  # +50 asks for 0.876, past the 0.747 a forced system gives
+    assert forced_share(-100) == 0.0
+
+
+def test_the_generate_page_says_a_habitable_world_is_only_asked_for():
+    from planetgen.web import generate_page
+    assert generate_page.PREVALENCE_LIMITS == {"prevalence_habitable_world": f"{prevalence.reachable_share('habitable_world') * 100:.3g}"}
 
 
 def test_civilizations_scale_with_intelligent_life_prevalence():

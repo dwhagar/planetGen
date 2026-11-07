@@ -36,7 +36,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.db import search_values
 from planetgen.db import children as children_db
-from planetgen.api import gravity as gravity_api, nav_system, system_sky
+from planetgen.api import gravity as gravity_api, nav_system, system_bodies, system_sky
 from planetgen.describe import belt_info, belt_member_info
 from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.lib import sensor, skypack, tilecache
@@ -131,6 +131,7 @@ from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
 from planetgen.db.render import describe_system, render_system_text
+from planetgen.physics import cluster_unbinding
 from planetgen.physics.units import ly_to_milliparsecs, pc_to_ly
 from planetgen.util import detmath
 
@@ -690,6 +691,19 @@ def system_scene(system_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify(scene)
+
+
+@bp.route("/systems/<uid:system_id>/bodies")
+def system_bodies_route(system_id):
+    """
+    `GET /api/systems/<id>/bodies` -- the body ledger of the system and the barycenter that includes its belts (GEN.1241, `api/system_bodies.py`): every star, planet, moon, ring, belt, belt body
+    and comet with its mass and its place (AU from the primary star), `total_mass_kg`, `barycenter_au`, where the central star sits against it (`central_offset_au`, `central_offset_km`), how far the
+    belts move that star (`belt_wobble_au`, `belt_wobble_km`) and, for each belt, the mass its rows add up to against the mass it stores. A system that does not exist is a 404.
+    """
+    found = system_bodies.build(get_db(), system_id)
+    if found is None:
+        return jsonify({"error": f"no such system: {system_id}"}), 404
+    return jsonify(found)
 
 
 @bp.route("/systems/<uid:system_id>/sky")
@@ -1728,6 +1742,10 @@ def generate_uncharted_system_job(config, bright_star_id):
                                status_code=409)
             system_config = SystemConfig()
             system_config.POPULATION = row["population"]
+            if row["cluster_id"] is not None:         # GEN.1288: the cluster the star was born in pulls planets off it
+                cluster = store.get_galaxy_components(conn, kind="cluster", ids=[row["cluster_id"]])
+                if cluster:
+                    system_config.CLUSTER_HISTORY = cluster_unbinding.history_of(cluster[0].mass_solar, cluster[0].half_mass_radius_pc, cluster[0].age_gy) or None
             x, y, z = (row[f"position_{axis}_mpc"] / brightStars.MPC_PER_PC for axis in "xyz")
             # GEN.315: the system is the tree the row stored, and draws no companion of its own
             plan = stored_trees.plan(scatter_systems.read_stored_trees(conn, "bright_stars", [bright_star_id])
@@ -1737,6 +1755,7 @@ def generate_uncharted_system_job(config, bright_star_id):
                                           primary_star_params=brightStars.star_params(row), member_tree=plan)
             system_id = store.insert_star_system(conn, system, system_config)
             store.give_system_uid(conn, system_id, row.get("uid"))      # GEN.1254: the system keeps the Object ID its star has
+            store.keep_charted_name(conn, system_id, row.get("uid"))       # GEN.1257: and the name that ID spelled until now
             store.assign_uids(conn, system_ids=[system_id])
             store.mark_bright_star_filled(conn, bright_star_id, system_id)
             if system.tree_built:

@@ -2,6 +2,484 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3568] - 2026-11-07
+
+**Headline:** The API route snapshot lists the Queue page's held-jobs route, so the API version test passes again.
+
+### Changed
+
+- **API snapshot gains `/api/admin/work/held GET` (TEST.675).** The Queue page listing of the jobs held for a job they require (PERF.248) added the route without rewriting `tests/fixtures/api_routes.json`, so `test_api_version` failed on main. The route is new and nothing existing changed, so it is not a breaking change: `API_VERSION` stays 13 and `docs/reference/api.md` gets no line. `/api/uncharted-systems/<id>/generate POST` is already in the snapshot. Test fixture only.
+
+generation-output: unchanged
+
+## [8.0.3567] - 2026-11-07
+
+**Headline:** The life sweep's letter floor stays at 8 with its reason measured: the drop from 12 to 9 letters after train 13 is sampling on single-body letters, not lost life-capable bodies.
+
+### Changed
+
+- **The drop in life-capable letters after train 13 is sampling (GEN.1327).** The fixed sweep held 12 letters with a life-capable body before train 13 and 9 after. Cumulative runs over the train's items and three resamples of the sweep (about 900 bodies each) show the capable share unchanged (42.6 percent before, 42.8 after) and 10 to 13 letters per sample on both sides: GEN.1282 reshuffles the draws, GEN.1304 warms temperate wet worlds, and the rare letters (N, Z, F) hold one to a few bodies each, so whether one is capable is chance. `test_sweep_life` keeps its floor of 8 letters and the comment now says why; the per-item split is in `reports/gen1327-sweep-life-letters-2026-11-07.md`. Only a comment changes.
+
+generation-output: unchanged
+
+## [8.0.3566] - 2026-11-07
+
+**Headline:** The class census is re-tagged after train 13: six tags whose range holds again are removed and the eleven flags the train raised are tagged with their reasons.
+
+### Changed
+
+- **Class census re-tag after train 13 (GEN.1327).** The three live censuses ran on the train 13 tree. The life and systems censuses raised nothing. The class census raised eleven new flags: eight shares in four moon cells with a few bodies each (A0V, F5V, K0III and K5V ecosphere, 8 to 19 moons scored), tagged TEST.656, and three planet shares just past a range that is itself a 95 percent bound (A0V and F5V ecosphere planets with an unlimited life ceiling, G2V hot planets in Class C), tagged GEN.1327 with the numbers. Six tags whose range holds again are removed (A0V ecosphere planets microbial ceiling, A0V hot moons Class D, F5V ecosphere moons ceiling none, F5V ecosphere planets Class N, K5V cold planets Class T, M2V cold planets Class J). The class census passes on the new tags. Only test data changes; the ranges stay until the re-baseline after the last 8.1 train (TEST.660).
+
+generation-output: unchanged
+
+## [8.0.3565] - 2026-11-07
+
+**Headline:** A system page now shows the mass of the whole system, where its center of mass lies against the primary star, and how far its asteroid belts pull that star (GEN.1241).
+
+### Added
+
+- `GET /api/systems/<id>/bodies`: the body ledger of a system built from the typed tables with no new storage (stars, planets, moons, rings, comets, belts, the bodies each belt keeps and the belt's remainder), its total mass, barycenter, the central star's offset, the belt wobble and each belt's rows against its stored mass.
+- The "Mass and barycenter" panel on the system page, with the mass and distance of every body from the center of mass and a table of the belts (`web/system_ledger.py`).
+
+## [8.0.3564] - 2026-11-07
+
+**Headline:** The legacy-nebula shape test no longer fails on a nebula whose species text a save rewrites; it checks the shape its stored properties give.
+
+### Changed
+
+- **Nebula shape test follows the stored species (TEST.672).** A nebula's shape is seeded from its properties, `dominant_species` among them, and since GEN.1276 a save rewrites that text from the numbers after the shape is stored. `test_a_nebula_saved_before_shapes_gets_the_shape_a_fresh_save_would` compared the shape of a row with no stored shape against the generator's own, which can never match; it failed on every run, with a different nebula each time because the test builds a random one. It now checks the shape equals the one the stored properties give and is the same on a second read (renamed `..._gets_the_shape_its_stored_properties_give`). The `query.nebula_shape` docstring says the same; no behavior changes.
+
+generation-output: unchanged
+
+## [8.0.3563] - 2026-11-07
+
+**Headline:** The body-marker test picks its not-a-class letter from the class list instead of a fixed letter that has become a class.
+
+### Changed
+
+- **Body-marker test follows the class list (TEST.674).** `tests/js/bodymarkers.test.mjs` used R as the letter that is not a planet class, and R is a class now, so the test failed. It takes the first capital letter that `PLANET_CLASS_LETTERS` leaves out, so adding a class cannot break it again (it asserts a letter is left). Test only.
+
+generation-output: unchanged
+
+## [8.0.3562] - 2026-11-07
+
+**Headline:** The parent-link test follows the rule that a sector cannot be deleted while a rogue planet is filed in it, and checks that emptying the sector takes the rogue planet and its moons.
+
+### Changed
+
+- **Rogue planet and sector delete test fixed (TEST.670).** `test_a_rogue_planets_moons_go_with_it_and_with_its_sector` deleted a sector row straight out from under a rogue planet, which the key on `rogue_planets.sector_id` has refused (RESTRICT) since GEN.1127, so the test failed with an integrity error. The code is as designed (`DELETE /api/sectors/<id>` answers 409 while an object is filed in the sector). The test now asserts the bare delete is refused and the moons stay, then empties the sector with `edits.empty_sector` and asserts the sector, the rogue planet's moons and their spectra are gone. Test only; no migration.
+
+generation-output: unchanged
+
+## [8.0.3561] - 2026-11-07
+
+**Headline:** The browser's sky and day counter read the parsec, the year and the hour from the unit registry instead of writing the numbers themselves.
+
+### Changed
+
+- **Unit factors read from the registry in the browser (TEST.673).** `skysphere.js` took the parsec in kilometers and the year in seconds as numbers written in the file, and `daycounter.js` wrote 3600 in its clock text. Both now get them from `unitregistry.js` (`convert`), which is what `test_no_browser_script_declares_a_unit_factor` requires; the values are the same, so the sky and the clock do not change.
+
+generation-output: unchanged
+
+## [8.0.3560] - 2026-11-07
+
+**Headline:** The citation guard passes on main: three leftover places that wrote a source's name or a bracket-wrapped ID now use the bare registry ID.
+
+### Changed
+
+- **Citation guard green (TEST.671).** The validation sweep's printed reference lines name their sources by ID only ([R1307], [R5137], [R1478]), and two lines of the rogue-planet review no longer wrap an ID in brackets or write a dated refresh in author-year form. Only text changes.
+
+generation-output: unchanged
+
+## [8.0.3559] - 2026-11-07
+
+**Headline:** The rogue planet review now states, row by row, which of its sixteen quantities are built, deleted or still a registered stand-in.
+
+### Changed
+
+- `docs/design/research/rogue-planet-review.md` section 8: the state of every row and of RP1 to RP9 after the ejection, top-up, cluster and embryo work (documentation only).
+
+## [8.0.3558] - 2026-11-07
+
+**Headline:** Five sources named in code and docs (Kasting 1988, Simpson's limit, Van Eylen 2019, Hadden and Lithwick 2014, Fulton 2017) are written by their registry IDs, so the citation guard passes outside the TODO text.
+
+### Changed
+
+- **Sources written by registry ID (TEST.671).** `radiative_convective.py`, `scripts/validation_sweep_planets.py` and `docs/design/research/gap-filling-plan.md` no longer name these papers by author and year alone: Kasting 1988 is [R2275], Van Eylen and others 2019 is [R1307], Fulton and others 2017 is [R1478], Hadden and Lithwick 2014 is the new [R5137], and Simpson's limit is cited through Goldblatt and Watson 2012, the second-hand source, as the new [R1608]. Only comments, docstrings, a report line and the registry change.
+
+generation-output: unchanged
+
+## [8.0.3557] - 2026-11-07
+
+**Headline:** A New galaxy job no longer waits for ever on a generation run that nothing follows any more: a run left behind by a process that is still running is freed, and a run whose set-up fails ends instead of holding the machine.
+
+### Changed
+
+- **A run nobody follows is freed, even when its process is still running (ADM.136).** The run line freed a holder only when its process id was gone, or, for a run on another host, when its `alive` key had run out. A run left behind by a process that lives on (a worker that stays up, or a process id the system reused) counted as live for ever, so a New galaxy job that came after it waited behind it until its time ran out. A run now counts as dead when its record is over, when its process id is gone, or when its `alive` key has run out, which a followed run never lets happen.
+- **A followed run keeps its `alive` key while its follower is busy (ADM.136).** The follower said so only at each poll, so a callback that took longer than two minutes (saving what a stage found) would have let the key run out and the run look dead. The process that follows a run now says so from a thread of its own every 30 seconds until the run ends.
+- **A run whose set-up fails ends as failed (ADM.136).** The set-up after the machine is taken (making sure workers run, the debug relay, the run's log) was outside the block that ends the run on an error, so a failure there left the run live for a process that went on; the next run waited for it.
+- `src/tests/test_run_control.py` (found on the way): `test_a_started_unit_is_sent_the_stop_command` passed the fetched job object to `queue.remove`, which does not take it for a job when the queue's job class differs from the fetched one; it passes the id.
+
+generation-output: unchanged
+
+## [8.0.3556] - 2026-11-07
+
+**Headline:** Helium-core and oxygen-neon white dwarfs now have layers of their own.
+
+### Added
+
+- A white dwarf under 0.45 solar masses (helium core) or over 1.05 (oxygen-neon core) now has its mass split into layers in its makeup, where before it had none. An oxygen-neon star is about 55 percent oxygen and 30 percent neon with the helium and hydrogen layers of [R0627]; a helium-core star is helium under a thick hydrogen envelope. The radius of both is unchanged. Stand-ins WL1 to WL7 are registered (GEN.725).
+
+### Changed
+
+- The alpha-track module and the age-metallicity design page no longer say the track shift is unwired (it has been read by every track lookup since GEN.1024).
+
+generation-output: unchanged
+
+## [8.0.3555] - 2026-11-07
+
+**Headline:** The bright-star backfills, the special phenomena and the sky charting no longer stop a run on a MySQL deadlock.
+
+### Fixed
+
+- **DB.114: every writer of the bright-star and phenomenon scatter tables now runs the Object ID step inside a transaction that is retried.** After DB.113 fixed the scatter units, the sector backfills (by luminosity and by mass), the special phenomena write and each batch of the sky charting still ran the same ID step with other writes in the same transaction and no retry, so a deadlock (MySQL error 1213) or lock wait timeout (1205) with other workers stopped the run. Each of them is now one whole transaction at READ COMMITTED (the sector locks, the draw, the stars with their IDs, the levels and the ledger) that `db.contention.run_with_retries` rolls back and writes again, with the same waits, logging and exclusive grant after the eighth failed try as DB.113. The stars written are the ones an undisturbed run writes, and a progress tick is not given twice.
+
+generation-output: unchanged
+
+## [8.0.3554] - 2026-11-07
+
+**Headline:** The greenhouse table is fitted again so an Earth-like world with its ocean stands at 288 K, not 276 K, and the hazy and hydrogen-chloride airs the generator now makes are read better.
+
+### Changed
+- GEN.1304: `physics/data/greenhouse_table.json` is fitted again, starting from the GEN.852 file, with 10,000 temperate wet airs (vapor free, 150 to 400 W/m2, near one bar and away from it) solved by the radiative-convective model, 12,388 airs of today's generator solved by the model (5,000 of them hazy or hydrogen-chloride-bearing), the hot airs and 2,500 copies of the airs the tests check held at their old answers. The Earth twin of the fixed point reads 287.7 K (model 288.0 K; it read 276.0 K since GEN.852 part 3), the sweep at 255 and 285 W/m2 reads 294.5 K and 307.0 K (model 294.9 and 307.7), and the temperate wet branch is within 1.5 K of the model from 400 to 5,000 Pa of vapor. Every generated body with an air and surface water can move (the temperate wet ones warm by up to 12 K), so this is a generator-output change and rides a train with an epoch.
+- GEN.1304: `scripts/fit_greenhouse_table.py` gains the steps of a refit from the file (`wet`, `anchors`, `solve --cool-below`, `fit --start --distill --hold`) and a per-class validation of the cool airs; the file states its accuracy by class (`cool_by_class`).
+- GEN.1304: the GEN.852 file's stated accuracy (cool airs 0.37 % median, 3 % at the 90th percentile) did not hold on today's generator, which makes hazy airs and airs rich in hydrogen chloride and fluoride the table was never fitted on (cool airs on the new validation: 1.5 % median and 16 % at the 90th percentile; now 0.45 % and 6.1 %, the clear-sky ones 0.40 % and 2.6 %). `test_the_file_states_an_accuracy_the_fit_reached` holds the clear-sky airs to the old figures and the other classes to what they reached; the weaker classes and the hot dense airs are an open item.
+
+## [8.0.3553] - 2026-11-07
+
+**Headline:** A rocky world with a hydrogen-rich air stores the helium and heavy-element shares of that air as its envelope's details, as a giant does, so the sheet and the columns no longer show an envelope with nothing in it.
+
+### Changed
+
+- **The envelope of a hydrogen-air dwarf has its details (GEN.1303).** `envelope_share.fill` (GEN.1226) stores a rocky planet's or moon's envelope share from its hydrogen-rich air, but left `envelope_helium_fraction` and `envelope_z_fraction` empty, so five bodies of the audit sweep (envelope shares of 2e-8 to 2e-5) failed `detail-ranges` of `test_sweep_bulk` ("envelope_helium is None with an envelope share of ..."). `envelope_share.air_details` now works both out from the stored air: the helium as a share of the air's mass and the elements heavier than helium (counted by element, so the oxygen of water is heavy and its hydrogen is not) as the other share; they are `None` again when the air stops being hydrogen-rich. A body whose air holds no helium stores a helium share of 0, which is what its air holds. Only bodies with a hydrogen-rich air change.
+
+generation-output: changed
+
+## [8.0.3552] - 2026-11-07
+
+**Headline:** The small icy and rocky embryos a system's planets stir out of it now leave as rogue planets, so a star gives back about 1.3 rocky free-floating bodies instead of almost none.
+
+### Changed
+- An embryo left under the planet minimum used to stay bound whatever the planets did, because none lay inside a planet's chaotic zone. An embryo of 0.1 Earth masses or more that lies between the 3:1 mean-motion resonance inside the innermost planet and the one outside the outermost (`planet_architecture.losses`) is now scattered by the planet of the highest Safronov number at its distance and shares out ejected, collided and bound by the same rule as every other loss. The ejected share leaves the system as a rogue planet of the terrestrial class (`StarSystem.ejected_losses` now includes `sub_minimum` losses), with the kick, age and note of any thrown-out planet.
+- Over a star of the generator's mass function the architecture ejects about 1.3 bodies per star of 0.1 to 10 Earth masses (the band of [R0258] is 0.8 to 7.5) and 0.65 of 0.33 Earth masses and up. The microlensing band of [R4254, R4255] (8 to 42) is left to the Rogues-level top-up (GEN.1287), as Boss chose.
+- `test_rogue_yield_calibration` tests the terrestrial band as a plain test and checks that the donors stay under the microlensing band.
+- Stand-ins SM1 to SM3 (section 6.195).
+- Systems with planets and embryos beyond them change their rogues (golden epoch).
+
+generation-output: changed
+
+## [8.0.3551] - 2026-11-07
+
+**Headline:** A world's life class no longer survives the loss of the liquid it lives in: when the air a class makes leaves it no solvent, the world is made again without that class.
+
+### Changed
+
+- **A class that froze its own sea is dropped (GEN.1298).** `life.apply_life_data` worked out the air a class makes (the hydrogen and methane it draws down) and kept the dominant class whatever the air then scored it, because a class that had used up a donor still lives on what is left (TEST.486). That is wrong when the class lost its solvent: a class 8 world at 180 K held an ammonia-water sea (32 wt% ammonia, just above the 176 K eutectic), the class drew down the greenhouse gas, the world fell to 166 K, the sea froze and the stored ammonia share was 0.035 against the 0.1 the class needs, yet class 8 was stored as the life there (`test_no_class_lives_on_a_solvent_it_does_not_allow`, 1 generated body in 250). The scoring after the air now tells a lost solvent from a used-up donor (`ClassScore.failed` holds `"solvent"`): when the dominant class's solvent is gone, the body is restored to what it was before the life, that class is barred, and the life is settled again, so the next supported class lives there or the world is lifeless. A class that merely used up its donor is kept as before.
+- **The edit test checks the run's stream.** `test_an_edit_keeps_the_class_and_the_pace_while_they_still_fit` refused every draw, but an edit draws the trace gases and an ice-giant heat share from streams of the body's own (`apply_life_data` says so). It now checks that the run's stream does not move and that the class, pace and schedule are unchanged.
+
+generation-output: changed
+
+## [8.0.3550] - 2026-11-07
+
+**Headline:** The planets a star's birth cluster pulls off their orbits now leave the system and become rogue planets that say their birth cluster unbound them.
+
+### Changed
+- A star that belongs to a cluster (`stars.cluster_id`, GEN.359) is built with the cluster's history: its density and its relative speed from the end of the disk to the cluster's age, worked from the stored mass, half-mass radius and age (`cluster_unbinding.history_of`; the radius grew from a birth radius as `open_cluster_evolution` has it, the speed is the virial one of a Plummer sphere). Each planet of the star's architecture takes a draw; a planet the cluster unbinds (`unbinding_epoch_myr`, the rate of [R4184] eqs. 36 and 37 in the pieces of the history where the orbit is soft against the encounters, so a tight orbit is never lost) is taken out of the system, recorded as a `stripped` loss of the architecture (`planet_architecture.strip`), and made again as a rogue by the same chain as a thrown-out planet.
+- The rogue leaves at the speed that just unbinds it (`sqrt(2) - 1` of its circular speed, added to its orbital velocity), keeps its moons out to the Domingos fraction of its own Hill radius, and its note reads "Unbound by its birth cluster from the ... system ...". An `EjectionEvent` has a `cause` ("thrown" or "cluster").
+- The same history is given to a scattered star's system built on its own (the uncharted-systems route), so both ways of building it agree. A system asked for by planet count or slot list is left as asked.
+- Stand-ins CU1 (soft pieces only) and CU4 to CU7 (section 6.113). The wiring guard line for `cluster_unbinding` is gone.
+- Generated stars of clusters change their planets (golden epoch).
+
+generation-output: changed
+
+## [8.0.3549] - 2026-11-07
+
+**Headline:** A system settles the spacing of its planets' orbits before any air is worked out, so a planet that is pushed outward is built once, and a crowded system of hot stars is several times faster to make.
+
+### Changed
+
+- **Orbits first, climate after (GEN.1282).** `StarSystem._generate_planets` builds each plain planet with `defer_climate=True`: the body and the shape of its orbit are drawn, but not its air, class, motion or moons. `validation.space_orbits` pushes planets outward by mutual Hill exclusion as before, and a deferred planet only has its zone, Hill sphere and period brought up to date (`reconcile_moved_planet`). `validate_system` then calls `Planet.finish_climate` on each planet once, at the distance it has. Before this a planet pushed by the spacing had its air, class, spin and moons worked out again for each push, and the all-flags O0V profile (PERF.241) spent 7 ms in the gas equilibrium solver for each of 29,800 solves. A system that bars habitable worlds from its ecosphere (`HABITABLE_WORLD` false) keeps the old order, since its redraw loop needs the finished body. Measured on O0V seed 6: 7 times faster.
+
+generation-output: changed
+
+## [8.0.3548] - 2026-11-07
+
+**Headline:** Class F is now the Anoxic world, so a world with a plain nitrogen air and no oxygen has a class.
+
+### Changed
+- Class F, the Reducing world, needed methane or hydrogen as 5 percent of the air, so a world with a plain nitrogen air, no oxygen and no methane or hydrogen fit no class and took its nearest one with a match of 0. F is now the Anoxic world: no free oxygen, under 20 percent carbon dioxide (more is class G), under 400 K and 0.5 to 1.4 g (a heavier thin hot air is class Z, from 2 g class V). A reducing air is still F. Of 1448 generated bodies, 28 fit no class before and 16 after, and 6 changed letter. The new rows are in the stand-in registry as section 6.193.
+
+generation-output: changed
+
+## [8.0.3547] - 2026-11-07
+
+**Headline:** Belts are smaller and more honest: the solids of the cold disk lose the share that never grew to planetesimals, a gap holds no more than the planet it would have grown, and belts are made of the disk the planets grew in.
+
+### Changed
+
+- The solids a belt starts with (`belt_origin`, GEN.1261): past the snow line only `planetesimal_share` of the disk's solids grew to planetesimals before the pebbles drifted in (about one half for a solar disk; stand-ins BG17 to BG19), and a gap belt holds no more than the isolation mass at its centre (`isolation_cap_earth`). In a census of 240 F, G and K systems the median outer disk fell from 10 to 2 Earth masses and the largest gap belt from 3.2 to 0.6; the share of systems with a belt did not change (inner 11 percent, cold 70 percent against 14 to 20 observed).
+- Belts are built in the system's own disk: `belt_birth.build` takes the planets' `disk_scatter` (0.7 dex) where it used the median disk, so a light disk has light belts.
+- Tests for the cold share, a disk with no drift loss, the isolation cap and the disk scatter; the stand-ins BG17, BG18 and BG19 are in the GEN.725 registry.
+
+## [8.0.3546] - 2026-11-07
+
+**Headline:** When charting gives an uncharted star its own name, the name its Object ID spelled is kept on the Formerly line, and a search for it still finds the star.
+
+### Added
+- A new retired-name reason, `charted` (migration 0221 widens `chk_designations_reason`; "named when the star was charted" on the Formerly line). The name an uncharted star's Object ID spells (a local name, `naming_key.local_name`, GEN.1255) is computed and never stored, so when the sector fill, or `POST /api/uncharted-systems/<id>/generate`, builds the system round a scatter star and the registry gives it a word-salad name, `store.keep_charted_name` writes the spelled name as the system's first retired name. `api.lookup` follows it, so an old link or a past-name search lands on the system. The Object ID does not change, so nothing redirects by ID.
+- Nothing is kept for a system the fill made without a scatter star, when no naming key is in force, or twice for the same system. Scattered phenomena keep no word-salad name to replace (their names come from their IDs, GEN.1256).
+
+### Changed
+- Stored designation rows gain one `charted` row for each charted scatter star; no other stored value changes.
+
+generation-output: changed
+TODO items resolved: GEN.1257 (migration 0221, epoch and golden ride the train; the new rows are in `designations` only)
+
+## [8.0.3545] - 2026-11-07
+
+**Headline:** Rogue planets, black holes, neutron stars, nebulae, remnants, quasars, comets and asteroid fields are now named from their Object ID, shown as a two-word local name with the sector beside it.
+
+### Changed
+- An object with no star stores its Object ID (`FE81000A2B-0000005-000`) as its `name`, not a 19-digit position ID. The API shows it as its local name under the naming key and adds `name_sector`, the birth sector. A key change still renames all of them at once, and nothing is stored in words.
+- `GET /api/lookup?text=` also accepts a local name followed by its sector (`Banhunm Finkap, sector 00FA0FFFE9E240`).
+- Migration `0221_object_id_names` rewrites the stored names of an older galaxy from each row's `uid`; a row with no `uid`, and a name given by hand, stay.
+- The golden files change (epoch 135): the stored names of the rogue planets in the pinned galaxy change shape, so the generator epoch goes up.
+
+### Removed
+- The position ID of GEN.64 (`names/object_id.py`, the type codes, the 16-number collision chain, `store._claim_object_ids` and `_rank_chain`, the `object_ids` table order, `registry.id_code`) and the codec name of a position ID (`naming_key.codec_name`, `object_id_of`, `stored_name_for`). There is no alias.
+
+generation-output: changed
+
+## [8.0.3544] - 2026-11-07
+
+**Headline:** The ocean floors of water worlds and the ice lids above them now melt along the published melting curves of water ice, and a partly molten mantle loses viscosity by the laboratory's rate, so deep oceans, ice lids and the tides that heat them shift a little.
+
+### Changed
+- **GEN.1190, melting curves.** `water_layer.liquidus_pressure_pa` takes the melting pressure of ice III, V, VI and VII from the IAPWS release R14-08 equations in place of a table of nine points (a straight line between them, with ice VI's last slope standing in for ice VII above 2.2 GPa). The triple points move by up to 1.5 percent (the ice V and ice VI point from 620 to 632.4 MPa, the ice VI and ice VII point from 2,200 to 2,216 MPa), and above 355 K the curve is ice VII's own. The sheet's high-pressure ice rule reads 632 MPa to match. `hydrosphere.pressure_melted_shell_km` lowers the melting point of an ice lid's base along the ice Ih melting curve of the same release instead of 0.0074 K per bar, which fell short by almost a third at 200 MPa (252.3 K there, not 258 K).
+- **GEN.1190, rheology.** The viscosity of a partly molten rocky mantle falls as exp(-30 melt) (the laboratory's diffusion-creep value) in place of exp(-26 melt); a partly molten ice takes exp(-22 melt), read from the material. Io's tide and the tide of every body with a mantle between its solidus and its critical melt fraction change.
+- **GEN.1190, ice types.** Ammonia dihydrate's strength against water ice is the ratio of the 1993 creep law to the ice I law: 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K, 0.18 at 170 K, 0.14 at 176 K, replacing three interpolated points. The phase of a water-ice body's centre follows the boundary lines of the water phase diagram (from a web page, tier Marginal Unverified) when a temperature is given, in place of recalled pressures. Nothing in generation reads the ice types yet.
+- Stand-in rows TR1, TR4, TR5 and TR9 carry the read evidence (the Andrade ratio's tier falls to Marginal Unverified because its sources conflict for rock), IT6 and IT7 are replaced, and MC1 to MC5 are added in section 6.196.
+
+generation-output: changed
+
+TODO items advanced: GEN.1190.
+
+## [8.0.3543] - 2026-11-07
+
+**Headline:** The mass the planets of a star hold as irregular moons now comes out of the outer disk they caught it from, so a disk's mass less what its planets hold is what the disk keeps.
+
+### Changed
+- **Captured mass leaves the outer disk (GEN.1085).** After the planets of a star get their irregular moons, the stored bodies and the remainder of every planet's set are taken out of the star's outer disks, shared by the disks' primordial mass and never more than a disk's remainder (the mass its listed bodies do not hold), so the listed bodies stay whole. A Jupiter-size catch is far under a millionth of its disk, so a disk's mass moves in the last digits; the sum is exact. Inner belts are still not reservoirs: only outer disks give up mass, and the design's other half (a body of an inner belt that is caught keeps its belt designation) stays open under this item. The registry has the rule as row CD1 of section 6.194.
+
+generation-output: changed
+
+TODO items resolved: none (GEN.1085 stays open for inner belts as reservoirs and the captured members keeping their belt designation).
+
+## [8.0.3542] - 2026-11-07
+
+**Headline:** The tests of the warm-up pass again after it learned to skip an empty galaxy, and the update guard writes its one warning through the program's own logger.
+
+### Changed
+
+- `src/tests/test_warm_phases.py`, `test_warm_log.py`, `test_cache_warmup.py`, `test_maintenance.py` (found while checking OPS.114): the warm-up now asks the database whether it holds a galaxy before it warms anything and, when it holds none, says so and exits 0. Ten tests ran the warm-up against a stand-in database that is only a name (`x`, or a Redis key prefix), or against arguments with no database at all, and so failed with "Unknown database" or a missing `database`. They now run as if the database held a galaxy; `test_warm_empty_galaxy.py` still holds the empty case. The warm-up itself is unchanged.
+- `src/planetgen/admin/updateguard.py`: the update guard made its own standard-library logger (`logging.getLogger`), which `test_no_own_log_formatting.py` refuses (every line goes through `planetgen.util.log`). Its one warning, about a run record it cannot read, now goes through `log.warning`. Same text, same level; it appears in the program's log format.
+
+generation-output: unchanged
+
+## [8.0.3541] - 2026-11-07
+
+**Headline:** The two update-step tests that checked for a bare "error:" on stderr now read the scripts' log line, so they pass again.
+
+### Changed
+
+- **`test_update_database_step` reads the log line the scripts print (TEST.668).** Since the scripts write every message as a log record (`scripts/logrecord.sh`, for example `2026-11-07 03:32:27 UTC ERROR    command: ...`), an unreachable server and a refused migration no longer print a line that starts with `error:`. `test_an_unreachable_server_stops_the_step` and `test_a_failed_migration_stops_the_step_and_keeps_the_version` now look for that line (time, zone, `ERROR`, component, message). Only the tests change.
+
+generation-output: unchanged
+
+## [8.0.3540] - 2026-11-07
+
+**Headline:** The two queue time-limit tests that were red on main pass again: `requires.enqueue` names the job limit as a keyword, and the over-limit test builds its worker the way the real one is built.
+
+### Changed
+
+- **`requires.enqueue` takes `job_timeout` as a required keyword (TEST.667).** The guard `test_every_call_that_queues_a_job_names_its_limit` reads the source for a `job_timeout` at each queuing call and could not see one behind `**options` in `queue/requires.py`. The limit is now a named keyword and is passed on by name; a call without one fails with a plain `TypeError` before it reaches the queue (which refuses a job without a limit already). No caller in the program changes: they all name it.
+- **The over-limit test reads the queue's JSON jobs (TEST.667).** `test_a_job_over_its_limit_is_ended_and_reported_failed` ran a worker with RQ's default pickle serializer and plain job class against a queue that holds JSON jobs, so the worker could not read the job (`DeserializationError`) and never reached the limit. The worker now has the JSON serializer and the guarded job class, as `cli/worker.py` builds one, and `time.sleep` is added to its list of functions the way the suite does.
+
+generation-output: unchanged
+
+## [8.0.3539] - 2026-11-07
+
+**Headline:** The tests of update.sh's database step pass again: they now look for the failure line as the update scripts write it, with its time and severity.
+
+### Changed
+
+- `src/tests/test_update_database_step.py` (TEST.668): `test_an_unreachable_server_stops_the_step` and `test_a_failed_migration_stops_the_step_and_keeps_the_version` expected the failure to begin with `error:`. The database step was not wrong: since OPS.98 and OPS.100 every line a command writes to a pipe carries its time and severity, and the `error:` its message began with is the severity (`2026-11-07 03:25:40 UTC ERROR    command: (2003, "Can't connect to MySQL server ...")`). The step still stops with a non-zero exit, no traceback, the schema version unchanged, and the server's own reason on stderr. The two tests now look for that line (a time, a zone, `ERROR`, the component) and for the reason. They ran into no GRANT problem on a machine with a normal MySQL.
+
+generation-output: unchanged
+
+## [8.0.3538] - 2026-11-07
+
+**Headline:** The cache warm-up and the nightly whole-map build now skip an empty galaxy cleanly instead of trying to work.
+
+### Changed
+- **OPS.114: a warm-up run right after a New galaxy wipe tried every task.** `planetgen warm` (from update.sh, after a change, or by hand) and the whole-map build (`planetgen.cli.tiles`, the nightly timer) now check first whether the database holds any galaxy (no sector and no galaxy plan row, or no tables yet). If not, each prints `galaxy is empty, nothing to warm up`, does nothing and exits 0. update.sh reports that step as skipped because the galaxy is empty, not as failed, so the Update button and the maintenance timers do not report a failure. Once a galaxy exists the warm-up runs as before.
+
+## [8.0.3537] - 2026-11-07
+
+**Headline:** The tests of the sector page and the section pages pass again: their stand-ins for the web layer's data calls had fallen behind two calls the pages learned.
+
+### Changed
+
+- `src/tests/test_web_sector_nav.py` and `src/tests/test_web_pages.py` (TEST.669): 35 tests answered a 404 page ("No such database: 'planetgen_web_test'") or a TypeError on main. Neither was a route or an ID-format regression. MAP.381 made the sector page ask for the globular clusters (`apiclient.get_containers`) to draw the ones that reach into the sector, and the sector test's fake data never stubbed that call, so it went through the in-process transport to the real API, which found no such database. MAP.403 gave `get_sectors` the `coverage` and `show_empty` keywords, and the section pages' fake `get_sectors` did not accept them. The sector test's fake now answers `get_containers` with no clusters and the other fake's `get_sectors` takes both keywords. The pages and routes are unchanged.
+
+generation-output: unchanged
+
+## [8.0.3536] - 2026-11-07
+
+**Headline:** The admin Update page says plainly when the last update failed, and the update log and a queue run's log are colored by level (errors red, warnings amber, info blue, debug green).
+
+### Changed
+
+- `src/planetgen/admin/webupdate.py` (UX.284): when no update is waiting or running, the view now has `outcome` (`failed`, `done` or none) and `outcome_detail`. It is `failed` when systemd holds `planetgen-update.service` in `failed` (read with an unprivileged `systemctl show`: exit status 1 from the update guard, or the start limit of ten tries in ten minutes, which needs `systemctl reset-failed planetgen-update.service`), or when the last run in `update.log` ends in an error line. It is `done` when the last run reached its closing "Update done" line. A start that dies before `update.log` begins now shows too.
+- `src/planetgen/web/templates/admin_update.html`: a red "The last update failed." alert under State, with the detail and the last error line of the log.
+- `src/html/static/style.css`, `partials/log_lines.html`, `logrecord.display_severity`: each line of the Update page log and the queue run log is in its level's color (error and critical red, warning and notice amber, info blue, debug green), 4.5:1 or better on the box in the light and the dark theme. The level word stays in every line, so color is never the only cue.
+- `docs/reference/api.md`: `GET /api/admin/update` also returns `outcome` and `outcome_detail`.
+
+generation-output: unchanged
+
+## [8.0.3535] - 2026-11-07
+
+**Headline:** The log on the admin Update page and the log of a queue run now open scrolled to the last line and stay there as the log grows.
+
+### Changed
+
+- `src/html/static/logfollow.js` (UX.284): a log box marked `data-follow-end` is scrolled to its end when the page loads and whenever its text changes. A reader who scrolls up pauses the following, so the lines they are reading do not move; scrolling back to the end resumes it. The Update page reloads itself every few seconds while an update runs, so the pause and the place being read are kept in the browser's session storage across the reload (blocked storage means it follows the end). `/admin/update` and `/admin/queue/<run>` use it; the Generate job output already followed its end. Without script the box shows the log from its top, as before.
+- `src/tests/test_logfollow_browser.py` tests the script in Chromium on a bare page.
+
+generation-output: unchanged
+
+## [8.0.3534] - 2026-11-07
+
+**Headline:** An update started by the Update button or the monthly timer now stops the running jobs and goes on, instead of refusing.
+
+### Changed
+- **OPS.113: a systemd-started update failed whenever the warm-up or another job was running.** Started by systemd, `update.sh` now cancels everything it lists (the warm-up, queued jobs, tile and orbit work) without `--yes`, leaving each command-line run a stop reason that says an update started by systemd needed the machine. The one thing it never cancels is generation (a Generate job, a generation run, a job on the generation queue): with that running it changes nothing and the next firing or press tries again. Runs by hand and from cron keep the question and `--yes` rules.
+
+## [8.0.3533] - 2026-11-07
+
+**Headline:** The sector map's gravity layer now says "not computed yet" when the galaxy has no shape, instead of failing with a "data unavailable" error, and a page whose data call is refused with a conflict now shows what the refusal said.
+
+### Changed
+- **MAP.405.** `GET /sector/<id>/gravity` answers 409 with a JSON message ("The gravity layer is not computed yet: the galaxy has no shape yet.") when the API says the galaxy has no shape, in place of a 502.
+- An API conflict (409) that no page catches itself now shows a "Not possible now" page with the message the API gave (it was a 502 "Data unavailable" page).
+
+TODO items advanced: MAP.405.
+
+## [8.0.3532] - 2026-11-07
+
+**Headline:** The test that an oxygenic world holds oxygen once its oxygen has risen now checks the rise the generator decided, so it passes again, and its sample is a third smaller.
+
+### Changed
+
+- `src/tests/test_biogenic_oxygen.py` (TEST.664): `test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none` compared the star's age less the photosynthesis age with `biogenic_oxygen.profile_of(world).delay_gyr`, the delay of the headline class alone. GEN.1213 replaced that with the age the oxygen of all the classes together rises (`life_air.oxygen_rise_gyr`: the producers' shares, and the oxygen the methane of the earlier classes burns). Four of twelve sampled worlds disagreed with the old oracle in both directions (Elleodras IV held 11.4 kPa before its old delay; Allandelas V, Alcaila Lleyzax XII and Asethor VII held none after it), and for each of the four the stored air agreed with the rise the generator decided (`rise` `None`, so no oxygen; or a rise before the star's age, so oxygen). The code was right and the test was behind it. The test now records what `generation.life._build_oxygen` decided while the sample is generated and checks that the final air follows it: oxygen above 0.5 kPa when the rise is at or before the star's age, below 0.2 kPa when it never comes or comes after.
+- The sample stops at the first world whose life built oxygen into the air (it asked for three worlds of oxygenic life, and ran to seed 60). The file takes 410 s on 4 vCPUs instead of 600 s with the same 11 tests. It cannot be under 2 minutes by drawing systems: a G2V system with a request for a habitable world costs 8 to 18 s and about one in 25 holds such a world, and a seed list fixed in the test would stop meaning anything at the next epoch.
+
+generation-output: unchanged
+
+## [8.0.3531] - 2026-11-07
+
+**Headline:** A new galaxy no longer fails at stage 3 because the compiled kernels could not be cached.
+
+### Fixed
+- **OPS.112: the galaxy job failed at stages 3 to 14 with "cannot cache function: no locator available".** Since SEC.37 the code tree is read-only to the service user, so numba could not write its cache beside the source. `planetgen` now points `NUMBA_CACHE_DIR` at `/var/cache/planetgen/numba` (made by `create-cache-dir.sh`, so by `./update.sh`), or at a private per-user temporary folder when that is missing, before any kernel loads.
+
+## [8.0.3530] - 2026-11-07
+
+**Headline:** The references registry gained Elkins-Tanton and Seager 2008b (super-Earth outgassing), no generator output changes.
+
+### Changed
+
+Elkins-Tanton and Seager 2008b (ranges of atmospheric mass and composition of super-Earth exoplanets, outgassing from chondritic material) is now in the references registry as R5136. The earlier paper of the same year by the same authors becomes 2008a. No generator output changes.
+
+## [8.0.3529] - 2026-11-07
+
+**Headline:** Correction to the GEN.753 planets sweep: the ground gamma dose of an Earth-like body is not 100 times too low.
+
+### Changed
+- GEN.753: the sweep's earlier release note said an Earth-like ground reads 100 times too little gamma dose. That was wrong. The dose already uses the surface rock (`surface_composition.land_rock_ppm`): over felsic crust at 4.567 Gyr it gives the Earth's 0.35 mSv/yr gamma (0.53 with radon), and the low values in the sample were old basaltic class E bodies. The sweep's report line now says so. Nothing the generator makes changes.
+
+## [8.0.3528] - 2026-11-07
+
+**Headline:** Six checks that were red on main pass again: a bash 4 expansion in the deploy script that macOS's bash 3.2 cannot run, three test harnesses that missed the log library, seven item codes in text users see, and a variable the settings check did not know.
+
+### Changed
+
+- `scripts/deploy-common.sh` (TEST.661): the cache warm-up's skip key was compared with `${WARM_SKIP_KEY^^}`, a bash 4 expansion; the script says it runs under macOS's bash 3.2 (no `mapfile`, no associative arrays), so a Mac would have stopped at the line. The upper case spelling is a second constant, `WARM_SKIP_KEY_UPPER`. This was a real portability bug; the `^^}` check of `test_install_python_deps.py` was right.
+- `src/tests/test_install_python_deps.py`: the harnesses that run one function of `install-python-deps.sh` (`install_checkout`, `install_venv`) source `scripts/logrecord.sh` first. OPS.98 made the script print through `log_info`, which the extracted function calls and the harness did not define, so three tests ended with `log_info: command not found` (127). The code was right; the tests were behind it.
+- `src/tests/test_no_todo_codes_shown.py` found item codes in text a user sees: the HYG dataset's `replaces` and `fill` (shown as `hyg_stars (VIEW.30) is missing`), the sheet audit's excuse for the cloud composition columns, the charting log line, a debug line of the life bar, the circular speed check's note and the `sky_limit` setting (and so `docs/reference/config.md` and `config.schema.json`, regenerated). Each is now plain words; `test_datasets_readers.py` names the new `fill`.
+- `src/tests/test_settings.py`: `PLANETGEN_SYSTEMD_UNIT_DIR` (SEC.43's Update button, read in `admin/webupdate.py`, set by its tests) joins the variables that are not options, with its reason. It was red on main with the other six.
+- The plain-words document test passed on main when run alone (69 passed with `test_no_todo_codes_shown.py`), so nothing is changed for it; the failure the Train Manager saw is not reproduced.
+
+generation-output: unchanged
+
+## [8.0.3527] - 2026-11-07
+
+**Headline:** `update.sh` no longer stops with `KeyError: 'stages'` when Redis holds a run record that has no stages; the update guard reads such a record as a run with none, and one unreadable record is skipped with a warning instead of aborting the update.
+
+### Changed
+
+- `src/planetgen/queue/runrecord.py` (`read_run`): a run hash missing `stages` (or `title`, `who`, `database`, `state`, `error`, `current`) is read with empty or zero defaults instead of raising.
+- `src/planetgen/admin/updateguard.py` (`RunRecordSource.items`): a run record that still fails to read is logged and skipped.
+- `src/tests/test_update_guard_yes.py`: a partial hash and a legacy live run with no stages.
+
+generation-output: unchanged
+
+## [8.0.3526] - 2026-11-07
+
+**Headline:** `install.sh` and `update.sh` now install every maintenance timer and the Update button's units with the real checkout and virtual environment paths (the unattended update timer is installed but left off), and `install-maintenance-timer.sh` is a thin caller of the same code.
+
+### Changed
+
+- `scripts/deploy-common.sh` (OPS.110): one function, `install_maintenance_units`, renders the monthly orbit update, the unattended update timer, the Update button's path unit, the nightly tile rebuild and (with `--with-smoke-timer`) the smoke run for the checkout the script sits in and the virtual environment (`PLANETGEN_VENV`, default `/usr/local/planetgen/venv`), writes them to `/etc/systemd/system`, reloads systemd and enables the timers except the unattended update timer, which is installed and left off: every deploy says, while it is off, that `sudo systemctl enable --now planetgen-update.timer` turns on the monthly update of whatever is on the tracked branch with no review. It replaces `ensure_update_request_units`. A path with a space or a special character is refused and nothing is written. A unit already installed that differs from the rendering is replaced and the log says so; a deploy enables only a unit it installs for the first time, so a timer an operator disabled stays disabled.
+- `install.sh`, `update.sh`: call it on every run on a systemd host. A failure only warns.
+- `examples/maintenance/install-maintenance-timer.sh`: calls the same function (no copy of the rendering), keeps its options, and still writes the credentials file; it enables every timer it was asked for.
+- The gunicorn unit stays a manual copy. `examples/systemd/planetgen-gunicorn.service`, `docs/deployment/nginx.md` and `docs/deployment/caddy.md` now say which two paths to edit: the checkout and the virtual environment.
+- `INSTALL.md`, `docs/reference/database-schema.md` and the unit file headers describe the automatic install.
+- `src/tests/test_systemd_units_installer.py` (new) renders every unit under a temporary checkout and finds no `/var/lib/planetGen` or `/usr/local/planetgen` in the installed copies.
+
+generation-output: unchanged
+
+## [8.0.3525] - 2026-11-07
+
+**Headline:** A queue worker now runs only the functions the program queues, so a process that can write to Redis cannot get a worker to call an arbitrary function.
+
+### Changed
+- **SEC.45: a fixed list of the functions a queued job may name** (`planetgen/queue/allowlist.py`). A job in Redis names the function a worker calls; with pickle gone (SEC.39) the name was still data, so anything that could write to Redis could name any function a worker could import. Every queue now builds its jobs with `GuardedJob` and every worker reads them with it: the function a job names, and its success, failure and stopped callbacks, must be on `FUNCTIONS` (a run's unit and its failure callback, the dependency callbacks, the API dispatcher `api_jobs.execute`, the Generate page's `job_runner.run`, the node prefetch). A job that names anything else is logged as refused and fails in the failed registry with the reason; nothing runs. `api_jobs.execute` is itself a dispatcher (it calls the function in its first argument), so what it may call is a second fixed list, `API_FUNCTIONS` (the API's edit, generate, gravity and page-answer jobs, and `run_command`). A test sweeps the source and fails when a place that queues work names a function that is not on the lists.
+- A worker's environment variable `PLANETGEN_QUEUE_EXTRA_FUNCTIONS` (`module:name` or `module:*`, comma separated) adds functions; it is unset in production and the test suite sets it for the plain functions its queue tests run. The arguments of an allowed function are not checked: `run_command` still runs the command line it is given, so the Redis ACL user and password (`examples/redis/planetgen-acl.conf`) stay the wall that keeps other processes out.
+
+## [8.0.3524] - 2026-11-07
+
+**Headline:** Asking for more habitable worlds in a run now forces enough systems that the share with one comes to the wanted figure, up to the 74.7% a forced system can give, and the Generate page says a habitable world is only asked for.
+
+### Changed
+
+- `src/planetgen/generation/prevalence.py` (GEN.1322): `resolve` forced a system on in `p * base / (1 - base)` of cases, which assumes every forced system has the feature. A habitable world is asked for, not placed (GEN.1130: the conditions' odds are multiplied by ten and the request never forces), and the count is of planets and moons of a class that can carry life, so 224 of 300 forced systems had one (0.747). The chance is now `p * base / (hit - base)`, with `hit = tuning.PREVALENCE_FORCED_HIT_RATES` (1 for the belt, large star and planets, so those are as before), and every system is forced from the share a forced system can give (`reachable_share`). +50 had read 0.62 to 0.66 against 0.876 asked; it now forces every system and should read about 0.75, the most that can be had; +20 asks for 0.70 and forces 80% of systems.
+- `src/planetgen/tuning.py`: `PREVALENCE_FORCED_HIT_RATES` `{"habitable_world": 0.747}`, measured over 300 systems with `HABITABLE_WORLD` True (run seeds 801 to 803), remeasured with the base shares.
+- `src/planetgen/web/generate_page.py`, `partials/generate_fields.html`: the habitable-world prevalence field says "A higher share raises the odds and never forces one; the most it gives is 74.7%."
+- `src/tests/test_prevalence.py`: the measured-feature test expects at most the reachable share; tests of the forced chance at +20, +50 and -100 and of the page's limit.
+
+generation-output: unchanged
+
 ## [8.0.3523] - 2026-11-07
 
 **Headline:** The Queue page lists the jobs that are waiting for a job they require.

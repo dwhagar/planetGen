@@ -113,3 +113,16 @@ def test_gates_are_kinds_not_degrees():
 def test_the_ice_gas_giant_overlap_is_a_shoulder_not_a_cut():
     scored = cf.scores(body(body_type="g", mass_earth=40.0))
     assert scored["J"] == 1.0 and 0.0 < scored["I"] < 1.0
+
+
+def test_a_plain_nitrogen_air_with_no_oxygen_is_f_and_a_carbon_dioxide_rich_one_is_g():
+    """GEN.1281: heavy worlds with an inert nitrogen air, no oxygen, no methane and no hydrogen fit no class before F was widened from the reducing world to the anoxic world."""
+    from tests.test_planet_classes import no_oxygen
+    inert = no_oxygen(surface_temperature_k=300.0, gravity_g=1.2, share_ch4=0.0, share_h2=0.0, share_co2=0.01, ocean_fraction=0.5)
+    detail = pc.classify_detail(inert)
+    assert (detail.letter, detail.match) == ("F", pytest.approx(1.0)) and detail.digit == 0
+    assert pc.class_of("F", "t").name == "Anoxic world"
+    rich = no_oxygen(surface_temperature_k=300.0, gravity_g=1.2, share_ch4=0.0, share_h2=0.0, share_co2=0.5, ocean_fraction=0.5)
+    assert pc.classify(rich) == "G"
+    heavy_hot_thin = no_oxygen(surface_temperature_k=380.0, gravity_g=1.8, atmospheric_pressure_pa=9000.0, ocean_fraction=0.0, hydrosphere="vapor")
+    assert pc.classify(heavy_hot_thin) == "Z"      # F stops at 1.4 g so the heavy thin-air class Z keeps its bodies

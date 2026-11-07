@@ -426,6 +426,16 @@ def display_line(record, tz=None, times=True, component=True, fields=True):
     return " ".join(parts)
 
 
+_DISPLAY_SEVERITY = re.compile(r"^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d \S+ (DEBUG|INFO|NOTICE|WARNING|ERROR|CRITICAL) ")
+
+
+def display_severity(line):
+    """The severity (one of `SEVERITIES`) of a line `display_line` drew with its time, or `None` for any other line (the
+    output of a command, a continuation). The admin pages colour a log by it (UX.284)."""
+    found = _DISPLAY_SEVERITY.match(line)
+    return found.group(1).lower() if found else None
+
+
 def plain_line(record):
     """The command line's text without times: a divider for a stage's marks, the message for `debug`, `info` and
     `notice`, and the message after `warning: `, `error: ` or `critical: ` for the rest (unless the message already

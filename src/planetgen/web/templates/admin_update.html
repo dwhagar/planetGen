@@ -4,6 +4,7 @@
 {%- if refresh %}<meta http-equiv="refresh" content="{{ refresh }}">{% endif %}
 {% endblock %}
 {% block content %}
+{% from "partials/log_lines.html" import colored_log with context %}
 {%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
 {%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 {%- if data %}
@@ -16,8 +17,10 @@
     {%- if data.stale_request %} It has waited a long time: the path unit <code>planetgen-update.path</code> may not be running (<code>systemctl status planetgen-update.path</code>).{% endif %}</p>
   {%- elif data.state == 'running' %}
   <p><strong>Running.</strong> The site is closed to visitors while it runs. This page reloads every {{ refresh or 10 }} seconds, and may fail to load for a moment when the update restarts the web server.</p>
+  {%- elif data.outcome == 'failed' %}
+  <p class="error" role="alert"><strong>The last update failed.</strong> {{ data.outcome_detail }} Nothing is running now; the end of the log is below.</p>
   {%- else %}
-  <p>No update is waiting or running.{% if data.log_modified %} The log was last written {{ utc_time(data.log_modified) }}.{% endif %}</p>
+  <p>No update is waiting or running.{% if data.outcome == 'done' %} The last update finished.{% endif %}{% if data.log_modified %} The log was last written {{ utc_time(data.log_modified) }}.{% endif %}</p>
   {%- endif %}
 </section>
 <section class="panel" aria-labelledby="update-now-heading">
@@ -47,7 +50,8 @@
 {%- if data.log %}
 <section class="panel" aria-labelledby="update-log-heading">
   <h2 id="update-log-heading">Log (update.log)</h2>
-  <pre class="job-log" tabindex="0">{{ data.log }}</pre>
+  <pre class="job-log" id="update-log" data-follow-end tabindex="0">{{ colored_log(log_lines) }}</pre>
+  <script src="{{ static_url('logfollow.js') }}" defer></script>
 </section>
 {%- endif %}
 {%- endif %}

@@ -1,0 +1,8 @@
+{#- planetgen/web/templates/partials/log_lines.html -- the lines of a log, each in its level's colour (UX.284). `lines` is
+[(severity or None, text)]. The level word stays in the text, so colour is never the only cue. No whitespace is added between
+lines but the newline the <pre> needs. -#}
+{%- macro colored_log(lines) -%}
+{%- for severity, text in lines -%}
+{%- if severity %}<span class="log-{{ severity }}">{{ text }}</span>{% else %}{{ text }}{% endif %}
+{% endfor -%}
+{%- endmacro -%}

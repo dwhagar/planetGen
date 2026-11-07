@@ -90,10 +90,13 @@
 # of work (Generate jobs, runs in the run record, queued jobs, the orbital
 # update, the Galaxy Map warm-up) and stops, changing nothing, unless you
 # agree to cancel them: --yes, or a y typed at the question on the terminal.
-# Nobody to ask is a no: a run started by systemd or cron, one with no
-# terminal, and 30 seconds without an answer all stop it, with exit status 1,
-# unless --yes was given (the maintenance timer adds it when it should cancel
-# the work). Then it closes the site (maintenance mode, cause
+# Nobody to ask is a no: a run started by cron, one with no terminal, and 30
+# seconds without an answer all stop it, with exit status 1, unless --yes was
+# given. A run started by systemd (the monthly timer, the admin Update button)
+# cancels everything it lists except what is generating new content (a
+# Generate job, a generation run, a job on the generation queue), with a stop
+# reason saying why; while anything is generating it changes nothing, exits 1
+# and the next firing or press tries again. Then it closes the site (maintenance mode, cause
 # "update") and nothing else can start until the update has finished. A good
 # update opens the site again at the end; a failed one leaves it closed, says
 # which step failed and how to open it (`python3 -m planetgen.cli.maintenance
@@ -280,8 +283,8 @@ log_info "Checking the Redis server (config.json's redis.url):"
 ensure_redis
 check_redis_settings
 
-# SEC.43: the admin Update button's request file starts update.sh through these root-owned units (Linux, systemd).
-ensure_update_request_units
+# OPS.110: the maintenance timers and (SEC.43) the admin Update button's units, rendered for this checkout and venv (Linux, systemd).
+install_maintenance_units || log_warning "the maintenance units were not all set up (see above); the deploy carries on."
 
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then

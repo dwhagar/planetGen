@@ -160705,6 +160705,30 @@
    "volume": "686",
    "year": 2008
   },
+  "10.1086/591433": {
+   "arxiv": "0808.1909",
+   "authors": [
+    [
+     "Elkins‐Tanton",
+     "L. T."
+    ],
+    [
+     "Seager",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/591433",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "1237",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Ranges of Atmospheric Mass and Composition of Super‐Earth Exoplanets",
+   "type": "journal-article",
+   "volume": "685",
+   "year": 2008
+  },
   "10.1086/591439": {
    "arxiv": "0803.2706",
    "authors": [
@@ -168763,6 +168787,29 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "A STUDY OF THE SHORTEST-PERIOD PLANETS FOUND WITHKEPLER",
+   "type": "journal-article",
+   "volume": "787",
+   "year": 2014
+  },
+  "10.1088/0004-637x/787/1/80": {
+   "authors": [
+    [
+     "Hadden",
+     "S."
+    ],
+    [
+     "Lithwick",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/787/1/80",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "80",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "DENSITIES AND ECCENTRICITIES OF 139KEPLERPLANETS FROM TRANSIT TIME VARIATIONS",
    "type": "journal-article",
    "volume": "787",
    "year": 2014
@@ -279889,7 +279936,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5136,
+ "id_next": 5138,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -282303,6 +282350,7 @@
   "10.1086/590227": "R0747",
   "10.1086/590552": "R1497",
   "10.1086/590926": "R1417",
+  "10.1086/591433": "R5136",
   "10.1086/591439": "R4367",
   "10.1086/591671": "R0237",
   "10.1086/591785": "R2846",
@@ -282509,6 +282557,7 @@
   "10.1088/0004-637x/786/1/21": "R3537",
   "10.1088/0004-637x/786/1/39": "R3240",
   "10.1088/0004-637x/787/1/47": "R3904",
+  "10.1088/0004-637x/787/1/80": "R5137",
   "10.1088/0004-637x/787/2/171": "R3785",
   "10.1088/0004-637x/788/1/28": "R4499",
   "10.1088/0004-637x/788/1/39": "R4327",
@@ -284799,6 +284848,7 @@
   "arxiv:0807.4570": "R2806",
   "arxiv:0808.0206": "R3816",
   "arxiv:0808.1908": "R1248",
+  "arxiv:0808.1909": "R5136",
   "arxiv:0808.2112": "R0796",
   "arxiv:0808.2506": "R4710",
   "arxiv:0809.0898": "R4181",

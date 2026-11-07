@@ -163,7 +163,7 @@
   gives with no changes; type a higher or lower share to change it, 0 for none.</p>
   <div class="search-fields">
     {%- for name, label, usual in prevalence_fields %}
-    {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%") }}
+    {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%" ~ (". A higher share raises the odds and never forces one; the most it gives is " ~ prevalence_limits[name] ~ "%." if prevalence_limits is defined and name in prevalence_limits else "")) }}
     {%- endfor %}
   </div>
   <fieldset class="generate-mode" data-star-mix>

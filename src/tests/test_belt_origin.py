@@ -80,7 +80,7 @@ def test_two_neighbours_far_apart_leave_a_gap_belt_between_their_keep_outs():
     (belt,) = [b for b in build(chain) if b.origin == "gap"]
     near, far = bo.keep_out(chain[0], STAR), bo.keep_out(chain[1], STAR)
     assert belt.inner_au == pytest.approx(near[1]) and belt.outer_au == pytest.approx(far[0] - tuning.MIN_ASTEROID_BELT_SEPARATION)
-    assert belt.primordial_mass_earth == pytest.approx(belt_mass.primordial_mass_earth(belt.inner_au, belt.outer_au, STAR, SNOW))
+    assert belt.primordial_mass_earth == pytest.approx(bo.isolation_cap_earth(belt.inner_au, belt.outer_au, STAR, SNOW))
     assert "0.4 AU to 3 AU" in belt.sentence
 
 
@@ -94,12 +94,50 @@ def test_a_gap_is_a_belt_only_where_enough_solids_were_left_in_it():
 
 
 def test_a_stretch_just_over_the_least_mass_is_a_belt_and_just_under_it_is_not():
+    chain = [rocky(1.0)]
+    (tail,) = [b for b in build(chain) if b.origin == "tail"]
+    over = bo.MIN_BELT_MASS_EARTH * 1.5 / tail.primordial_mass_earth
+    under = bo.MIN_BELT_MASS_EARTH * 0.5 / tail.primordial_mass_earth
+    assert [b for b in build(chain, scatter=over) if b.origin == "tail"]
+    assert not [b for b in build(chain, scatter=under) if b.origin == "tail"]
+
+
+def test_a_gap_belt_never_holds_more_than_the_planet_it_would_have_grown_took():
+    """GEN.1261: the solids of a gap are capped by the isolation mass at its center; a stretch of more would have grown a planet."""
     chain = [rocky(0.4), rocky(3.0)]
     (belt,) = [b for b in build(chain) if b.origin == "gap"]
-    over = bo.MIN_BELT_MASS_EARTH * 1.5 / belt.primordial_mass_earth
-    under = bo.MIN_BELT_MASS_EARTH * 0.5 / belt.primordial_mass_earth
-    assert [b for b in build(chain, scatter=over) if b.origin == "gap"]
-    assert not [b for b in build(chain, scatter=under) if b.origin == "gap"]
+    cap = bo.isolation_cap_earth(belt.inner_au, belt.outer_au, STAR, SNOW)
+    uncapped = bo._primordial(belt.inner_au, belt.outer_au, STAR, SNOW, 1.0, 1.0)
+    assert uncapped > cap
+    assert belt.primordial_mass_earth == pytest.approx(cap)
+    assert bo.conservation_error(belt) < 1e-9
+    # a heavier disk takes the cap up with it (the isolation mass goes as the density to the 3/2)
+    heavy = [b for b in build(chain, scatter=3.0) if b.origin == "gap"]
+    assert heavy[0].primordial_mass_earth == pytest.approx(cap * 3.0 ** 1.5, rel=0.02)
+
+
+def test_the_cold_disk_keeps_only_the_share_of_solids_that_grew_to_planetesimals():
+    """GEN.1261: past the snow line only `planetesimal_share` of the disk's solids became planetesimals; inside it all of them did."""
+    share = bo.planetesimal_share(1.0)
+    assert 0.0 < share < 1.0
+    assert share == pytest.approx(bo.PEBBLE_CONVERSION_PER_ORBIT / (bo.PEBBLE_CONVERSION_PER_ORBIT + bo.PEBBLE_DRIFT_FACTOR * bo.PEBBLE_TO_GAS_SOLAR))
+    assert bo.planetesimal_share(3.0) < share < bo.planetesimal_share(0.3)
+    chain = [rocky(1.0)]
+    (tail,) = [b for b in build(chain) if b.origin == "tail"]
+    (outer,) = [b for b in build([giant(5.2)]) if b.origin == "outer-disk"]
+    whole = belt_mass.primordial_mass_earth(outer.inner_au, outer.outer_au, STAR, SNOW)
+    assert outer.primordial_mass_earth == pytest.approx(share * whole, rel=1e-6)    # past the snow line from edge to edge
+    # the tail ends at the growth limit past the snow line: its solids are the warm part whole and the cold part at the share
+    warm = belt_mass.primordial_mass_earth(tail.inner_au, min(tail.outer_au, SNOW), STAR, SNOW) if tail.inner_au < SNOW else 0.0
+    cold = belt_mass.primordial_mass_earth(max(tail.inner_au, SNOW), tail.outer_au, STAR, SNOW) if tail.outer_au > SNOW else 0.0
+    assert tail.primordial_mass_earth == pytest.approx(warm + share * cold, rel=1e-6)
+
+
+def test_a_disk_whose_pebbles_all_became_planetesimals_loses_nothing_to_drift(monkeypatch):
+    monkeypatch.setattr(bo, "PEBBLE_CONVERSION_PER_ORBIT", 1.0e9)
+    assert bo.planetesimal_share(1.0) == pytest.approx(1.0)
+    (outer,) = [b for b in build([giant(5.2)]) if b.origin == "outer-disk"]
+    assert outer.primordial_mass_earth == pytest.approx(belt_mass.primordial_mass_earth(outer.inner_au, outer.outer_au, STAR, SNOW), rel=1e-6)
 
 
 def test_neighbours_at_the_spacing_of_the_chain_leave_no_gap():

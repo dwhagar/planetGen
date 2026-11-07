@@ -139,3 +139,13 @@ if [[ -z "${1:-}" ]]; then
         log_info "Kept star tables: $BAND_TABLE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
     fi
 fi
+
+# numba's compiled kernels (planetgen/__init__.py, NUMBA_CACHE_DEFAULT): the code tree is root's and read-only to Apache's user (SEC.37), so numba
+# cannot cache beside the source. The workers (Apache's user) write this folder.
+if [[ -z "${1:-}" ]]; then
+    NUMBA_DIR="/var/cache/planetgen/numba"
+    mkdir -p "$NUMBA_DIR"
+    chown "$APACHE_USER:$APACHE_GROUP" "$NUMBA_DIR"
+    chmod 750 "$NUMBA_DIR"
+    log_info "Compiled kernels (numba): $NUMBA_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
+fi

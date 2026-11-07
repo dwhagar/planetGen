@@ -147,13 +147,13 @@ def report(summary):
     lines = [f"{summary['systems']} systems, {summary['bodies']} bodies, {summary['planets']} planets"]
     e = summary["inner_small_eccentricity"]
     lines.append(f"eccentricity of small planets inside 100 d in multi systems: n {e['n']}, median {e['median']:.3f}, mean {e['mean']:.3f}, 90th {e['p90']:.3f}"
-                 "   (published: Rayleigh sigma 0.049, Van Eylen 2019; TTV 0.01 to 0.02, Hadden and Lithwick 2014)")
+                 "   (published: Rayleigh sigma 0.049, the small-planet eccentricity paper [R1307]; TTV 0.01 to 0.02, the TTV eccentricity paper [R5137])")
     s = summary["spacing"]
     lines.append(f"spacing of neighbours in mutual Hill radii: n {s['n']}, median {s['median']:.1f}, 10th {s['p10']:.1f}, 90th {s['p90']:.1f}, over 10: {s['share_over_10']:.2f}"
                  "   (published: mode near 20, 93 percent over 10)")
     h = summary["radius_histogram"]
     lines.append(f"radius histogram of planets of 1 to 4 Earth radii inside 100 d of a FGK star {h['edges']}: {h['counts']}, share over 2.0: {h['share_over_2']:.2f}, in the gap 1.5 to 2.0: {h['share_1p5_to_2']:.2f}"
-                 "   (published: peaks at 1.3 and 2.4, a gap at 1.5 to 2.0, about half over 2.0, Fulton 2017)")
+                 "   (published: peaks at 1.3 and 2.4, a gap at 1.5 to 2.0, about half over 2.0, the radius-gap paper [R1478])")
     for row in summary["mass_radius"]:
         lines.append(f"mass {row['mass_range']}: n {row['n']}, median mass {row['median_mass']:.2f}, median radius {row['median_radius']:.2f} (10th {row['p10']:.2f}, 90th {row['p90']:.2f})")
     for row in summary["heat"]:
@@ -162,7 +162,7 @@ def report(summary):
     lines.append(f"cosmic-ray dose on an airless ground at 0.7 to 1.4 times the starlight of the Earth: n {d['n']}, median {d['median']:.0f} mSv/yr (10th {d['p10']:.0f}, 90th {d['p90']:.0f})"
                  "   (published: the Moon 500 mSv/yr at solar minimum, half that at maximum; Mars 245 under its air)")
     g = summary["earthlike_ground_dose"]
-    lines.append(f"ground gamma dose of Earth-like (class E) bodies: n {g['n']}, median {g['median']:.4f} mSv/yr, 90th {g['p90']:.3f}   (published: the Earth 0.48 mSv/yr, UNSCEAR)")
+    lines.append(f"ground gamma dose of Earth-like (class E) bodies: n {g['n']}, median {g['median']:.4f} mSv/yr, 90th {g['p90']:.3f}   (the Earth's 0.48 mSv/yr is over felsic crust at 4.6 Gyr; basaltic ground at 14 Gyr reads 0.002, so a low median means old basaltic ground, not a defect)")
     for row in summary["pressure_by_starlight"]:
         lines.append(f"rocky planets (under 1.6 Earth radii) at {row['starlight_range']} times the Earth's starlight: n {row['n']}, airless {row['airless']:.2f}, "
                      f"under 1 bar {row['under_1_bar']:.2f}, over 1 bar {row['over_1_bar']:.2f}")

@@ -435,7 +435,7 @@ class Queue(_Section):
         summary="Jobs expected to take longer than this go to the long lane.",
         control="duration")
     sky_limit: float = opt(
-        7.5, "The limiting magnitude of the sky charting builds for each system's neighbourhood (VIEW.25): when a run charts sectors, the stars a system's "
+        7.5, "The limiting magnitude of the sky charting builds for each system's neighbourhood: when a run charts sectors, the stars a system's "
         "sky shows to this magnitude are drawn over the 50 parsec cells the new sectors lie in, after the bright-star backfill, so a visitor never waits "
         "for them. A cell already drawn costs nothing. Fainter limits draw more stars and take longer: 7.5 is a dust-free naked-eye sky, about half an hour "
         "a cell on one worker. 0 turns it off; otherwise 2 to 9. The command line's --sky-limit overrides it for a run.",

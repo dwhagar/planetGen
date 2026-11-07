@@ -25,7 +25,10 @@ Rogue = collections.namedtuple("Rogue", ("event", "landing", "planet", "note"))
 
 
 def note_of(system_name, event):
-    """The rogue note: the system it was thrown out of and how long ago, in the units of the site (Gy)."""
+    """The rogue note: the system it was thrown out of (or pulled off by its birth cluster) and how long ago, in the units of the site (Gy)."""
+    if event.cause == "cluster":
+        return (f"Unbound by its birth cluster from the {system_name} system {event.since_ejection_gy:.2f} Gy ago, {event.delay_gy:.2f} Gy after that system formed, "
+                f"and it has drifted {{separation_pc:.0f}} pc from there since.")
     return (f"Thrown out of the {system_name} system {event.since_ejection_gy:.2f} Gy ago, {event.delay_gy:.2f} Gy after that system formed, "
             f"and it has drifted {{separation_pc:.0f}} pc from there since.")
 

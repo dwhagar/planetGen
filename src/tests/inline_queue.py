@@ -42,7 +42,7 @@ def inline_queue(monkeypatch=None):
     import redis
     import rq
 
-    from planetgen.queue import redisqueue, runrecord, workers
+    from planetgen.queue import allowlist, redisqueue, runrecord, workers
 
     token = uuid.uuid4().hex[:12]
     prefix = f"planetgen-test:{token}"
@@ -53,8 +53,8 @@ def inline_queue(monkeypatch=None):
     def run_waiting_units(name, connection=None, url=None, mysql_host=None, count=None):
         used.append(True)
         connection = connection or redisqueue.connect(url)
-        rq.SimpleWorker([redisqueue.queue(name, connection)], connection=connection,
-                        serializer=redisqueue.JsonSerializer).work(burst=True, logging_level="WARNING")
+        rq.SimpleWorker([redisqueue.queue(name, connection)], connection=connection, serializer=redisqueue.JsonSerializer,
+                        job_class=allowlist.GuardedJob).work(burst=True, logging_level="WARNING")     # SEC.45: the real worker's guard
         return 0
 
     server = _server()

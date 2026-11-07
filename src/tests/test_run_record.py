@@ -276,12 +276,17 @@ def test_a_run_whose_process_was_killed_no_longer_makes_the_next_run_busy(conn):
     assert runrecord.is_canceling(conn, first) is False and runrecord.finish_run(conn, first, "done") is False
 
 
-def test_a_run_whose_process_lives_keeps_the_machine_even_when_its_sign_of_life_lapsed(conn):
+def test_a_run_whose_process_lives_but_says_nothing_is_freed_once_its_sign_of_life_lapsed(conn):
+    """ADM.136: a live process id used to keep the machine for ever, so a worker that lived on (or a reused id) held it after it
+    stopped following the run. A follower says it follows every 30 s from a thread of its own (`Heartbeat`), even while it is busy,
+    so a lapsed sign of life means nothing follows the run."""
     first = runrecord.start_run(conn, "Fill", _stages(), now=100)
-    conn.delete(runrecord.alive_key(first))
     with pytest.raises(runrecord.Busy):
         runrecord.start_run(conn, "Another", _stages())
     assert runrecord.read_run(conn, first)["state"] == "running"
+    conn.delete(runrecord.alive_key(first))
+    assert runrecord.start_run(conn, "Another", _stages())
+    assert runrecord.read_run(conn, first)["state"] == "failed"
 
 
 def test_a_run_of_another_host_is_dead_when_its_sign_of_life_has_run_out(conn):

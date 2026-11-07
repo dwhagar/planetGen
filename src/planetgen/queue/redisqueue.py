@@ -21,7 +21,7 @@ import threading
 import redis
 import rq
 
-from planetgen.queue import redisclient
+from planetgen.queue import allowlist, redisclient
 from planetgen.util.settings import get_settings
 
 GENERATION_QUEUE = "planetgen-generation"
@@ -158,6 +158,9 @@ class TimedQueue(rq.Queue):
     `job_timeout`. Every way RQ queues a job (`enqueue`, `enqueue_call`, `enqueue_many`, `enqueue_at`) goes through
     `create_job`.
     """
+
+    job_class = allowlist.GuardedJob
+    """The job class of every queue (SEC.45): a worker refuses a job whose function or callback is not on `allowlist.FUNCTIONS`."""
 
     def create_job(self, func, *args, timeout=None, **kwargs):
         """

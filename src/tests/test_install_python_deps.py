@@ -16,6 +16,8 @@ import sys
 import pytest
 
 ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
+LOG_LIBRARY = f'source "{os.path.join(os.path.realpath(ROOT), "scripts", "logrecord.sh")}"'
+"""str: The line a harness that runs one function of a script starts with, so the log_info and log_error the function calls exist (OPS.98 made the scripts print through `scripts/logrecord.sh`)."""
 
 
 def _setup_requirements():
@@ -212,7 +214,7 @@ def _run_install_checkout(tmp_path, script_dir):
     python.chmod(0o755)
     command = tmp_path / "bin" / "planetgen"
     harness = "\n".join([
-        "set -euo pipefail", f'VENV="{tmp_path / "venv"}"', f'SCRIPT_DIR="{script_dir}"',
+        "set -euo pipefail", LOG_LIBRARY, f'VENV="{tmp_path / "venv"}"', f'SCRIPT_DIR="{script_dir}"',
         f'PLANETGEN_COMMAND="{command}"', _function(script, "install_checkout") + "\n}\n", "install_checkout",
     ])
     result = subprocess.run(["bash", "-c", harness], capture_output=True, text=True)
@@ -262,7 +264,7 @@ def test_a_venv_whose_python_is_gone_is_made_again(tmp_path):
 
     def run(venv):
         harness = "\n".join([
-            "set -euo pipefail", f'PYTHON="{fake}"', f'VENV="{venv}"', f'SERVER_LOCK="{tmp_path / "lock"}"',
+            "set -euo pipefail", LOG_LIBRARY, f'PYTHON="{fake}"', f'VENV="{venv}"', f'SERVER_LOCK="{tmp_path / "lock"}"',
             _function(script, "make_venv") + "\n}\n", _function(script, "install_venv") + "\n}\n", "install_venv",
         ])
         done = subprocess.run(["bash", "-c", harness], capture_output=True, text=True)

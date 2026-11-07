@@ -58,7 +58,13 @@ def apply_life_data(planet, keep_stored=False):
     else:
         key = f"life:{draw.random()!r}"
     with draw.bound(draw.Stream(key)):
-        _apply(planet, keep_stored, key)
+        before = _trial_copy(planet)
+        barred = set()
+        while (frozen := _apply(planet, keep_stored, key, barred)) is not None:
+            # The life of the dominant class took the liquid it lives in (GEN.1298): the world is made again without that class, from the body as it was
+            barred.add(frozen)
+            vars(planet).clear()
+            vars(planet).update(vars(_trial_copy(before)))
 
 
 @dataclass
@@ -73,12 +79,14 @@ class _Cand:
     ages: tuple | None = None
 
 
-def _apply(planet, keep_stored, key):
-    scores = life_classes.score_classes(planet)
+def _apply(planet, keep_stored, key, barred):
+    """Settles the life of `planet`; returns the id of the dominant class when its own air took its solvent away (the caller makes the world again
+    without it; `barred` holds the classes it has barred), else `None`."""
+    scores = {class_id: result for class_id, result in life_classes.score_classes(planet).items() if class_id not in barred}
     chosen, kept = _choose(planet, scores, keep_stored)
     if chosen is None:
         _lifeless(planet, scores, "no class is supported")
-        return
+        return None
     row = life_classes.describe(chosen.id)
     if kept:
         log.debug(f"Life class: kept {row.id}, still supported")
@@ -99,7 +107,7 @@ def _apply(planet, keep_stored, key):
         # only those): the first of them, by production, is the one that lives here and heads the list.
         if len(cands) == 1:
             _lifeless(planet, scores, f"class {row.id} is supported but its first step comes after the star's age")
-            return
+            return None
         cands = _redate(planet, cands[1:])
         headline = cands[0]
         row, chosen = headline.row, headline.score
@@ -108,6 +116,10 @@ def _apply(planet, keep_stored, key):
     cands = _settle(planet, cands, key)
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
     if not (final.get(row.id) and final[row.id].score > 0):
+        if row.id in final and "solvent" in final[row.id].failed:
+            # Its own air (the greenhouse gas it drew down) took the liquid it lives in: a class cannot live without its solvent (GEN.1298)
+            log.debug(f"Life class: {row.id} dropped, its own air left no {row.solvent['medium']} for it")
+            return row.id
         # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
         # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
         final = {**final, row.id: chosen}

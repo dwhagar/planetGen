@@ -231,6 +231,11 @@ class FakeData:
         self.calls.append(("auth_me", cookie_header))
         return self.admin
 
+    def get_containers(self, db, kind=None):
+        """The globular clusters (MAP.381 asks for them to draw the ones that reach into a sector): none in these fixtures."""
+        self.calls.append(("get_containers", db, kind))
+        return []
+
     estimate = {"sectors": 4, "summary": "About 280 KB and 3 s for 4 sectors.", "refused": False, "refusal": None}
 
     def generate_sector_neighborhood(self, cookie_header, sector_id, radius_ly=None, estimate_only=False):
@@ -243,7 +248,7 @@ class FakeData:
 
 
 _FAKED = ("get_sector", "get_galaxy_shape", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_object", "get_phenomenon", "get_nav", "get_nav_chart",
-          "auth_me", "generate_sector_neighborhood")
+          "auth_me", "generate_sector_neighborhood", "get_containers")
 
 
 @pytest.fixture
@@ -734,6 +739,37 @@ def test_nav_unsupported_pair_is_a_message_not_an_error(client, fake):
 def test_nav_api_failure_is_502(client, fake):
     fake.nav_error = apiclient.ApiError("planetGen API error (500): boom", status_code=500)
     assert client.get("/nav?from=system:1001&to=system:2001").status_code == 502
+
+
+GRAVITY_URL = "/sector/100000000000001/gravity"
+
+
+def _gravity_raises(monkeypatch, status):
+    def refuse(*args, **kwargs):
+        raise apiclient.ApiError(f"planetGen API error ({status}): the galaxy has no shape yet", status_code=status)
+    monkeypatch.setattr(apiclient, "get_sector_gravity", refuse)
+
+
+def test_the_gravity_of_a_galaxy_with_no_shape_is_not_computed_yet_and_not_a_502(client, monkeypatch):
+    """MAP.405: the API says 409 for a galaxy with no shape; the route says so in JSON and never caches it."""
+    _gravity_raises(monkeypatch, 409)
+    resp = client.get(GRAVITY_URL)
+    assert resp.status_code == 409 and resp.headers["Cache-Control"] == "no-store"
+    body = resp.get_json()
+    assert body["notComputed"] is True and "not computed yet" in body["error"]
+
+
+def test_a_gravity_failure_that_is_not_a_conflict_is_still_a_502(client, monkeypatch):
+    _gravity_raises(monkeypatch, 500)
+    assert client.get(GRAVITY_URL).status_code == 502
+
+
+def test_a_page_whose_api_call_answers_a_conflict_says_what_the_api_said_in_a_409_page(client, fake):
+    """MAP.405: a 409 nothing on the page catches is the API refusing a state (not computed yet, an update running), not data that could not be loaded."""
+    fake.nav_error = apiclient.ApiError("planetGen API error (409): <an update> is running", status_code=409)
+    resp = client.get("/nav?from=system:1001&to=system:2001")
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 409 and "Not possible now" in html and "&lt;an update&gt; is running" in html
 
 
 @pytest.mark.parametrize("query", [

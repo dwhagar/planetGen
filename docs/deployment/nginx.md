@@ -57,9 +57,24 @@ this page.
    reload in 25.1 to 26.x.
 
        sudo cp examples/systemd/planetgen-gunicorn.service /etc/systemd/system/
+       sudoedit /etc/systemd/system/planetgen-gunicorn.service
        sudo systemctl daemon-reload
        sudo systemctl enable --now planetgen-gunicorn
        systemctl status planetgen-gunicorn
+
+   This unit is the one planetGen does not install for you. `install.sh` and
+   `update.sh` render the maintenance units (the monthly orbit update, the
+   nightly map tile rebuild, the update timer and the Update button) with
+   the real checkout and virtual environment paths, but the web server is
+   yours to set up. In the `sudoedit` step change the two paths that name
+   where planetGen is installed:
+
+   - the checkout, `/var/lib/planetGen`, in `WorkingDirectory=` and in the
+     `--pythonpath` line of `ExecStart=`;
+   - the virtual environment, `/usr/local/planetgen/venv`, in the
+     `gunicorn` of `ExecStart=` (the same path as `PLANETGEN_VENV`).
+
+   With the usual layout there is nothing to change.
 
 4. **nginx and the certificate.** Install the site and set
    `server_name`. The example points at certbot's certificate paths, so

@@ -94,7 +94,7 @@ def test_io_is_melt_limited_and_radiates_a_watt_or_more_a_square_metre_with_no_n
     powers = [_heat(8.93e22, 1821.6, rock, forcing, corner).tidal_w for corner in CORNERS]
     assert min(powers) < 1.0e13 < max(powers) and 0.9e14 / 4.0 < max(powers)
     assert all(1.0e12 < power < 1.0e15 for power in powers)
-    assert all(_heat(8.93e22, 1821.6, rock, forcing, corner).mantle_temperature_k == pytest.approx(pipe_k, rel=0.01) for corner in CORNERS)   # GEN.1185: the softest corner sits 0.7 percent under the pipe
+    assert all(_heat(8.93e22, 1821.6, rock, forcing, corner).mantle_temperature_k == pytest.approx(pipe_k, rel=0.015) for corner in CORNERS)   # GEN.1185: the softest corner sat 0.7 percent under the pipe, GEN.1190 (melt factor 30) 1.1
 
 
 def test_a_weaker_tide_warms_the_mantle_without_melting_it_to_the_pipe():
