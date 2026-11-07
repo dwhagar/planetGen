@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3554] - 2026-11-07
+
+**Headline:** The greenhouse table is fitted again so an Earth-like world with its ocean stands at 288 K, not 276 K, and the hazy and hydrogen-chloride airs the generator now makes are read better.
+
+### Changed
+- GEN.1304: `physics/data/greenhouse_table.json` is fitted again, starting from the GEN.852 file, with 10,000 temperate wet airs (vapor free, 150 to 400 W/m2, near one bar and away from it) solved by the radiative-convective model, 12,388 airs of today's generator solved by the model (5,000 of them hazy or hydrogen-chloride-bearing), the hot airs and 2,500 copies of the airs the tests check held at their old answers. The Earth twin of the fixed point reads 287.7 K (model 288.0 K; it read 276.0 K since GEN.852 part 3), the sweep at 255 and 285 W/m2 reads 294.5 K and 307.0 K (model 294.9 and 307.7), and the temperate wet branch is within 1.5 K of the model from 400 to 5,000 Pa of vapor. Every generated body with an air and surface water can move (the temperate wet ones warm by up to 12 K), so this is a generator-output change and rides a train with an epoch.
+- GEN.1304: `scripts/fit_greenhouse_table.py` gains the steps of a refit from the file (`wet`, `anchors`, `solve --cool-below`, `fit --start --distill --hold`) and a per-class validation of the cool airs; the file states its accuracy by class (`cool_by_class`).
+- GEN.1304: the GEN.852 file's stated accuracy (cool airs 0.37 % median, 3 % at the 90th percentile) did not hold on today's generator, which makes hazy airs and airs rich in hydrogen chloride and fluoride the table was never fitted on (cool airs on the new validation: 1.5 % median and 16 % at the 90th percentile; now 0.45 % and 6.1 %, the clear-sky ones 0.40 % and 2.6 %). `test_the_file_states_an_accuracy_the_fit_reached` holds the clear-sky airs to the old figures and the other classes to what they reached; the weaker classes and the hot dense airs are an open item.
+
 ## [8.0.3553] - 2026-11-07
 
 **Headline:** A rocky world with a hydrogen-rich air stores the helium and heavy-element shares of that air as its envelope's details, as a giant does, so the sheet and the columns no longer show an envelope with nothing in it.
