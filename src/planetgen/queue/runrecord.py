@@ -560,11 +560,35 @@ def finish_run(conn, run_id, state="done", error=None, now=None):
     conn.register_script(_RELEASE)(keys=[active_key(kind)], args=[run_id])
     log(conn, run_id, error or f"run {state}", kind=f"run.{state}", level="error" if state == "failed" else "info",
         now=now)
+    if state != "done":
+        _log_unrun_dependents(conn, run_id, state, now)
     pipe = conn.pipeline()
     for key in _keys_of(conn, run_id):
         pipe.expire(key, KEEP_SECONDS)
     pipe.execute()
     return True
+
+
+def _log_unrun_dependents(conn, run_id, state, now):
+    """PERF.247: a stage that requires (`queue.commands.REQUIRES`) a stage the run did not finish is written to the log as not run, with
+    the stage it waited for, so a failed or canceled run says what it left undone and why."""
+    try:
+        from planetgen.queue import commands
+        steps = [commands.Step.from_dict(item) for item in read_steps(conn, run_id)]
+        declared = json.loads(_s(conn.hget(run_key(run_id), "stages")) or "[]")
+        index_of = {_s(item["key"]): index for index, item in enumerate(declared)}
+        for position, step in enumerate(steps):
+            if step.key not in index_of or conn.hget(stage_key(run_id, index_of[step.key]), "started") is not None:
+                continue
+            unfinished = [key for key in commands.required_stage_keys(steps, position)
+                          if key in index_of and conn.hget(stage_key(run_id, index_of[key]), "ended") is None
+                          and conn.scard(done_key(run_id, index_of[key])) < int(_s(conn.hget(stage_key(run_id, index_of[key]), "units")) or 1)]
+            if unfinished:
+                log(conn, run_id, f"dropped: stage {_s(declared[index_of[step.key]]['label'])} did not run, the stage(s) it requires "
+                    f"({', '.join(unfinished)}) did not finish ({state})", level="warning", kind="stage.dropped",
+                    stage=index_of[step.key], now=now)
+    except Exception:  # noqa: BLE001 -- the account of what was left undone must never fail the end of a run
+        pass
 
 
 def _keys_of(conn, run_id, every=False):

@@ -298,6 +298,46 @@ REGISTRY = _commands(
 )
 """dict: Every command the wrapper can name, by kind."""
 
+REQUIRES = {
+    "finish-phenomena": ("scatter-phenomena",),
+    "run-territories": ("run-population",),
+    "link-neighbors": ("generate-start-sector", "generate-neighborhood", "generate-sectors"),
+    "settle-sector-paths": ("generate-start-sector", "generate-neighborhood", "generate-sectors"),
+}
+"""dict: The commands that must not start before another command of the same run is done (PERF.247): each command's kinds it requires.
+A requirement not in the run is nothing to wait for (a run of one stage has none); one that is in the run must come before it
+(`validate_order`), and the stage is logged as released when its requirements are done and as not run when one of them did not
+finish (`runrecord.finish_run`). Only a requirement that is true is declared here: a stage with none may run beside the others
+(its units already run together)."""
+
+
+def requires_of(kind):
+    """The kinds of command `kind` requires, `()` for none."""
+    return REQUIRES.get(kind, ())
+
+
+def required_stage_keys(steps, index):
+    """The keys of the earlier steps of `steps` that step `index` requires: those of a kind in `requires_of` its kind."""
+    wanted = set(requires_of(steps[index].kind))
+    return [step.key for step in steps[:index] if step.kind in wanted]
+
+
+def validate_order(steps):
+    """
+    Refuses a list of steps in which a step comes before a step it requires (a step of a kind in `requires_of` its own that is later
+    in the list), so the wrong order is found where the list is made and not by a run that reads rows that are not there yet.
+
+    Raises:
+        ValueError: Naming the step and the later step it requires.
+    """
+    for index, step in enumerate(steps):
+        wanted = set(requires_of(step.kind))
+        for later in steps[index + 1:]:
+            if later.kind in wanted:
+                raise ValueError(f"step {step.key!r} ({step.kind}) requires {later.key!r} ({later.kind}), which comes after it")
+    return steps
+
+
 KIND_OF_STAGE = {
     "mass": "scatter-mass", "skeleton": "plan-skeleton", "phenomena": "scatter-phenomena",
     "luminosity": "scatter-luminosity", "backfill": "scatter-backfill", "band": "scatter-band",
@@ -432,16 +472,16 @@ def build_steps(command, args):
             command that is not in the list.
     """
     if command == "warm":
-        return _warm_steps(args)
+        return validate_order(_warm_steps(args))
     if command == "check-db":
-        return _check_steps(args)
+        return validate_order(_check_steps(args))
     if command in ONE_COMMAND_RUNS:
         return [_one_command_step(command, args)]
     from planetgen.generation import stages
     if command not in STAGED_COMMANDS:
         raise ValueError(f"the wrapper builds steps for {', '.join(STAGED_COMMANDS + ONE_COMMAND_RUNS)}, warm and check-db, not {command!r}")
-    return [Step(stage.key, KIND_OF_STAGE[stage.key], stage.label, stages.stage_settings(stage.key, args))
-            for stage in stages.for_command(command, args) if stage.skip is None]
+    return validate_order([Step(stage.key, KIND_OF_STAGE[stage.key], stage.label, stages.stage_settings(stage.key, args))
+                           for stage in stages.for_command(command, args) if stage.skip is None])
 
 
 ONE_COMMAND_RUNS = ("sector", "system")

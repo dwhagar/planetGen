@@ -156,6 +156,7 @@ def _expand(conn, run_id, index):
                              {"kind": step.kind, "units": len(expansion.units), "cost": cost,
                               "detail": expansion.plan})
     runrecord.begin_stage(conn, run_id, index, now=started)
+    _log_released(conn, run_id, index, step)
     if not expansion.units and commands.conclude_function(step.kind) is not None:
         _conclude_empty_stage(conn, run_id, index, stage_label(conn, run_id, index))
         return 0
@@ -164,6 +165,18 @@ def _expand(conn, run_id, index):
                         expected_seconds=json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
                         .get("expected_seconds"))
     return len(expansion.units)
+
+
+def _log_released(conn, run_id, index, step):
+    """PERF.247: a stage that requires an earlier one (`commands.REQUIRES`) is written to the run's log as released when it opens,
+    naming the stages it waited for."""
+    steps = [commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)]
+    if step.key not in [item.key for item in steps]:
+        return
+    needed = commands.required_stage_keys(steps, [item.key for item in steps].index(step.key))
+    if needed:
+        runrecord.log(conn, run_id, f"released: stage {stage_label(conn, run_id, index)} opens, the stage(s) it requires "
+                      f"({', '.join(needed)}) are done", level="info", kind="stage.released", stage=index)
 
 
 DEFERRED = "deferred"

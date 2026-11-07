@@ -164,14 +164,34 @@ class TimedQueue(rq.Queue):
 
     def create_job(self, func, *args, timeout=None, **kwargs):
         """
+        A job with a requirement (`requires.enqueue`; RQ's `depends_on`) is held until it is done (PERF.247); a job that has no
+        on-failure or on-success callback of its own gets the ones that fail the jobs held for it and write what it frees
+        (`requires.job_failed`, `requires.job_succeeded`).
+
         Raises:
             ValueError: `timeout` is missing (RQ would then use its default), zero or negative (-1 is RQ's "no
-                limit").
+                limit"); or a requirement is not valid (`requires.check_serializers`).
         """
         if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or timeout <= 0:
             raise ValueError(f"a job queued to {self.name} needs a time limit in seconds (redisqueue.job_timeout), "
                              f"not {timeout!r}")
-        return super().create_job(func, *args, timeout=timeout, **kwargs)
+        from planetgen.queue import requires as requires_module
+        if kwargs.get("on_failure") is None:
+            kwargs["on_failure"] = rq.job.Callback(requires_module.FAILED_FUNCTION)
+        if kwargs.get("on_success") is None:
+            kwargs["on_success"] = rq.job.Callback(requires_module.SUCCEEDED_FUNCTION)
+        job = super().create_job(func, *args, timeout=timeout, **kwargs)
+        if job._dependency_ids:
+            requires_module.check_serializers(self.connection, job._dependency_ids, self.serializer, job.id)
+        return job
+
+    def setup_dependencies(self, job, pipeline=None):
+        """RQ's holding of a job with a requirement not done; writes the hold to the log (`requires.log_held`)."""
+        held = super().setup_dependencies(job, pipeline)
+        if job._dependency_ids and held.get_status(refresh=False) == rq.job.JobStatus.DEFERRED:
+            from planetgen.queue import requires as requires_module
+            requires_module.log_held(held, list(job._dependency_ids))
+        return held
 
 
 def queue(name, connection):
