@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3559] - 2026-11-07
+
+**Headline:** The rogue planet review now states, row by row, which of its sixteen quantities are built, deleted or still a registered stand-in.
+
+### Changed
+
+- `docs/design/research/rogue-planet-review.md` section 8: the state of every row and of RP1 to RP9 after the ejection, top-up, cluster and embryo work (documentation only).
+
 ## [8.0.3558] - 2026-11-07
 
 **Headline:** Five sources named in code and docs (Kasting 1988, Simpson's limit, Van Eylen 2019, Hadden and Lithwick 2014, Fulton 2017) are written by their registry IDs, so the citation guard passes outside the TODO text.
