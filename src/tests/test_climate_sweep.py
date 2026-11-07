@@ -16,7 +16,7 @@ rate, the surface albedo (GEN.972) and, since GEN.974, the cloud are in it. The 
 thinner low cloud, `cloud_albedo`); the response is 0.65 and 0.56 K per W/m2 above 288 K and 0.76 and 0.87 on the cool side down to 3 percent less light (it was 0.44 without the
 cloud, under the published lower bound of 0.54, which a strict expected failure held until GEN.974 landed). Below that the twin falls to a snowball: a flux 5 percent
 down, started from the airless Earth's temperature, ends at 224 K and the fixed point is bistable there (a warm start finds 276 K), the ice catastrophe of the energy
-balance models (Budyko 1969, Sellers 1969: a few percent of the Earth's light). The sweep therefore goes from 3 percent below the twin's light to 10 percent above, the branch
+balance models ([R0580, R4008]: a few percent of the Earth's light). The sweep therefore goes from 3 percent below the twin's light to 10 percent above, the branch
 the published sensitivity is about, and `test_a_flux_fifteen_percent_down_ends_in_a_snowball` holds the other.
 
 The twin is a test target, never an input of the code. The solve is replayed on one stream (`draw.bound`), so the sweep changes the light and nothing else;
