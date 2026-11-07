@@ -1523,8 +1523,8 @@
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
--- v221 (GEN.876): `planets`, `moons` and `rogue_planets` keep the adaptation traits of the life on the body (`life_traits`, VARCHAR(48), text such as `radiation:2,sulfide:3`: the stress and its grade, 2 tolerant
---   or 3 extreme; `physics/adaptation_traits.py`). NULL for a body with none and for a row made before v221, which gets them when the galaxy is regenerated.
+-- v223 (GEN.876): `planets`, `moons` and `rogue_planets` keep the adaptation traits of the life on the body (`life_traits`, VARCHAR(48), text such as `radiation:2,sulfide:3`: the stress and its grade, 2 tolerant
+--   or 3 extreme; `physics/adaptation_traits.py`). NULL for a body with none and for a row made before v223, which gets them when the galaxy is regenerated.
 -- v218 (GEN.1207): `planets`, `moons` and `rogue_planets` keep how well the class fits the body: `class_match` (DOUBLE, 0 to 1, the geometric mean of the memberships of the conditions of the class,
 --   0 when no class fits the body and the stored one is the nearest), `runner_up_class` (CHAR(1), the next best class, NULL when only one passes the gates) and `runner_up_match` (DOUBLE). `class_variant` is 9 when
 --   the class is found only with the gravity and the air amount set aside (`physics/class_fit.py`). NULL for an Asteroid and for a row made before v218, which gets them when the galaxy is regenerated.
@@ -1545,8 +1545,8 @@
 -- v215 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v215. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
 -- v219 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
 -- v221 (GEN.1257): `designations.reason` takes a sixth value, `charted` (`chk_designations_reason`): the name an uncharted star's Object ID spells is kept as a retired name of its system when charting gives the star its own name. No other row or column changes.
--- v221 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v221, nothing is backfilled.
--- v221 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v221, nothing is backfilled.
+-- v224 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v224, nothing is backfilled.
+-- v225 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v225, nothing is backfilled.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -2647,7 +2647,7 @@ CREATE TABLE IF NOT EXISTS planets (
     life_class_best_score       TINYINT UNSIGNED NULL,  -- v175: its score, 0 to 9
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
-    life_traits                 VARCHAR(48) NULL,  -- v221 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
+    life_traits                 VARCHAR(48) NULL,  -- v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
     tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
     tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
     ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
@@ -3116,7 +3116,7 @@ CREATE TABLE IF NOT EXISTS moons (
     life_class_best_score       TINYINT UNSIGNED NULL,  -- v175: its score, 0 to 9
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
-    life_traits                 VARCHAR(48) NULL,  -- v221 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
+    life_traits                 VARCHAR(48) NULL,  -- v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
     tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
     tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
     ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
@@ -3397,8 +3397,8 @@ CREATE TABLE IF NOT EXISTS irregular_moons (
     ascending_node_deg DOUBLE NOT NULL,
     arg_periapsis_deg DOUBLE NOT NULL,
     mean_anomaly_deg  DOUBLE NOT NULL,
-    belt_order        INT NULL,  -- v221 (GEN.1085): for a body caught from an inner belt, the belt's number among the belts of the planet's star, nearest first
-    belt_rank         INT NULL,  -- v221 (GEN.1085): when it was a stored member of that belt, its rank there, which it keeps in its designation
+    belt_order        INT NULL,  -- v224 (GEN.1085): for a body caught from an inner belt, the belt's number among the belts of the planet's star, nearest first
+    belt_rank         INT NULL,  -- v224 (GEN.1085): when it was a stored member of that belt, its rank there, which it keeps in its designation
 
     CONSTRAINT fk_irregular_moons_planet
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
@@ -4407,7 +4407,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     life_class_best_score       TINYINT UNSIGNED NULL,  -- v207 (GEN.1111)
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v207 (GEN.1111)
     life_complexity             DOUBLE NULL,  -- v207 (GEN.1111)
-    life_traits                 VARCHAR(48) NULL,  -- v221 (GEN.876)
+    life_traits                 VARCHAR(48) NULL,  -- v223 (GEN.876)
     tide_range_spring_m         DOUBLE NULL,  -- v207 (GEN.1111)
     tide_range_neap_m           DOUBLE NULL,  -- v207 (GEN.1111)
     ocean_liquid                VARCHAR(40) NULL,  -- v207 (GEN.1111)
@@ -4666,12 +4666,12 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     ice_mass_fraction           DOUBLE,  -- v199 (GEN.1159): the mean share of the mass of a member that is ice of any kind
     formed_at                   DOUBLE NULL,  -- v102 (DB.55)
     origin_event_id             BIGINT UNSIGNED NULL,  -- v102 (DB.55)
-    rms_speed_kms               DOUBLE NULL,  -- v221 (GEN.1103): the rms speed of its pieces, which is how fast the field spreads, km/s
-    birth_age_yr                DOUBLE NULL,  -- v221 (GEN.1103): its age at the epoch of the sector, years, from which and the speed its radius follows
-    shape                       VARCHAR(8) NULL,  -- v221 (GEN.1103): ball or annulus, what the cloud was made as
-    origin                      VARCHAR(32) NULL,  -- v221 (GEN.1103): how it came to be (unbound remnant for a top-up field), NULL for a hand-made one that claims none
-    history                     TEXT NULL,  -- v221 (GEN.1103): the sentence of where it came from, NULL for a field with no history
-    largest_body_kg             DOUBLE NULL,  -- v221 (GEN.1103): the mass of the largest piece, NULL where it is not known
+    rms_speed_kms               DOUBLE NULL,  -- v225 (GEN.1103): the rms speed of its pieces, which is how fast the field spreads, km/s
+    birth_age_yr                DOUBLE NULL,  -- v225 (GEN.1103): its age at the epoch of the sector, years, from which and the speed its radius follows
+    shape                       VARCHAR(8) NULL,  -- v225 (GEN.1103): ball or annulus, what the cloud was made as
+    origin                      VARCHAR(32) NULL,  -- v225 (GEN.1103): how it came to be (unbound remnant for a top-up field), NULL for a hand-made one that claims none
+    history                     TEXT NULL,  -- v225 (GEN.1103): the sentence of where it came from, NULL for a field with no history
+    largest_body_kg             DOUBLE NULL,  -- v225 (GEN.1103): the mass of the largest piece, NULL where it is not known
     KEY idx_asteroid_fields_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
