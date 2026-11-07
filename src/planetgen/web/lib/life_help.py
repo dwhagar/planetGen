@@ -258,10 +258,10 @@ def _gate_words(gate):
         return f"Carbon dioxide in the air, at a partial pressure of at least {_pressure(gate['min'])}"
     if quantity == "band_light_vs_earth":
         return f"At least {gate['min']:.0%} of Earth's light in the band the class eats"
-    if quantity == "share_o2" and "lt" in gate:
-        return f"Free oxygen below {gate['lt']:.0%} of the air"
-    if quantity == "share_o2":
-        return f"Oxygen at least {gate['min']:.1%} of the air"
+    if quantity == "o2_partial_pa" and "lt" in gate:
+        return f"Free oxygen at a partial pressure below {_pressure(gate['lt'])}"
+    if quantity == "o2_partial_pa":
+        return f"Oxygen at a partial pressure of at least {_pressure(gate['min'])}"
     if quantity == "acid_medium":
         return "A pool of liquid sulfuric acid at the ground" if gate["min"] >= 2.0 else "A cloud layer or pool of liquid sulfuric acid"
     if quantity == "share_co2":

@@ -322,6 +322,7 @@ def quantities(values):
         partial_pa = atmosphere.partial_kpa(values, gas) * 1000.0
         found[f"share_{gas}"] = min(1.0, partial_pa / pressure) if pressure > 0.0 else 0.0
     found["co2_partial_pa"] = atmosphere.partial_kpa(values, "co2") * 1000.0
+    found["o2_partial_pa"] = atmosphere.partial_kpa(values, "o2") * 1000.0        # GEN.1321: a microbe meets oxygen as a pressure, not as a share of the air
     habitat = life_supply.habitat_temperature_k(values)
     if habitat is not None:
         found["habitat_temperature_k"] = habitat

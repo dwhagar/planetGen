@@ -29,9 +29,14 @@
       "relative": 0.5,
       "basis": "CF6"
     },
-    "share_o2": {
+    "o2_partial_pa": {
       "relative": 0.25,
-      "floor": 0.005,
+      "floor": 500.0,
+      "basis": "CF7"
+    },
+    "co2_partial_pa": {
+      "relative": 0.25,
+      "floor": 200.0,
       "basis": "CF7"
     },
     "share_co2": {
@@ -271,16 +276,16 @@
           "lt": 320.0
         },
         {
-          "quantity": "share_co2",
-          "min": 0.01
+          "quantity": "co2_partial_pa",
+          "min": 1000.0
         },
         {
-          "quantity": "share_o2",
-          "min": 0.03
+          "quantity": "o2_partial_pa",
+          "min": 3000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.16
+          "quantity": "o2_partial_pa",
+          "lt": 16000.0
         },
         {
           "quantity": "gravity_g",
@@ -299,7 +304,7 @@
           "lt": 0.03
         }
       ],
-      "note": "Earth-like but hard to breathe: 3 to 16 percent oxygen, carbon dioxide 1 percent or more; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+      "note": "Earth-like but hard to breathe: 3 to 16 kPa of oxygen (GEN.1321: judged by oxygen pressure), carbon dioxide 1 kPa or more (a pressure, GEN.1321); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
     },
     {
       "letter": "K",
@@ -366,16 +371,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -489,8 +494,8 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "lt": 0.03
+          "quantity": "o2_partial_pa",
+          "lt": 3000.0
         },
         {
           "quantity": "share_co2",
@@ -575,16 +580,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -656,16 +661,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -737,16 +742,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -813,7 +818,7 @@
           "equals": 1.0
         }
       ],
-      "note": "the Earth-like sweet spot (GEN.1221, families report section 3): mean 275 to 305 K, equator at most 310 K, poles at least 250 K, night at least 245 K, wet bulb under 28 C, liquid water over 20 to 80 percent, oxygen 16 to 35 percent; up to 2 g (GEN.1306, registry AW3)"
+      "note": "the Earth-like sweet spot (GEN.1221, families report section 3): mean 275 to 305 K, equator at most 310 K, poles at least 250 K, night at least 245 K, wet bulb under 28 C, liquid water over 20 to 80 percent, oxygen 16 to 35.5 kPa (GEN.1321: a pressure, so a thick air with that much oxygen counts); up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "R",
@@ -822,16 +827,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",

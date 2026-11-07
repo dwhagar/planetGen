@@ -31,10 +31,10 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 | 1a | water (factor 1) | light, 400 to 700 nm, efficiency 1 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | none |
 | 1b | water (factor 1) | light, 300 to 500 nm, efficiency 1 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | none |
 | 1c | water (factor 1) | light, 700 to 800 nm, efficiency 0.8 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01 | temperature_k 255 to 395 (falls off over 15 below, 15 above) | none |
-| 2 | water (factor 1) | light, 800 to 1050 nm, efficiency 0.8 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01; share_o2 < 0.03 | temperature_k 255 to 370 (falls off over 15 below, 15 above) | donor_supply (full at 0.05 of Earth's, placeholder 1) |
+| 2 | water (factor 1) | light, 800 to 1050 nm, efficiency 0.8 | hydrosphere in surface ocean, hycean; pressure_pa >= 10.0; co2_partial_pa >= 5.0; band_light_vs_earth >= 0.01; o2_partial_pa < 3000.0 | temperature_k 255 to 370 (falls off over 15 below, 15 above) | donor_supply (full at 0.05 of Earth's, placeholder 1) |
 | 3a | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | h2_supply (full at 0.3 of Earth's, placeholder 1) |
 | 3b | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | radiolytic_h2_supply (full at 0.1 of Earth's, placeholder 1) |
-| 4a | water (factor 1) | chemical (internal and tidal heat) | share_o2 >= 0.001 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | donor_supply (full at 0.05 of Earth's, placeholder 1) |
+| 4a | water (factor 1) | chemical (internal and tidal heat) | o2_partial_pa >= 100.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | donor_supply (full at 0.05 of Earth's, placeholder 1) |
 | 4b | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | nitrate_supply (full at 0.3 of Earth's, placeholder 0.3); donor_supply (full at 0.05 of Earth's, placeholder 1) |
 | 4c | water (factor 1) | chemical (internal and tidal heat) | pressure_pa >= 0.0 | habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above) | perchlorate_supply (full at 0.1 of Earth's, placeholder 0.1); donor_supply (full at 0.05 of Earth's, placeholder 1) |
 | 5a | sulfuric (factor 0.1) | chemical (internal and tidal heat) | acid_medium >= 1.0 | none | sulfur_supply (full at 0.1 of Earth's, placeholder 0.5) |
@@ -108,7 +108,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 - gate pressure_pa: T9, L3. The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)
 - gate co2_partial_pa: T7, L3. Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)
 - gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model
-- gate share_o2: T9, L3. Free oxygen below 3 percent poisons an anoxygenic or hydrogen-eating microbe: the existing gate (life-classes.md 3.1, Class 2 window)
+- gate o2_partial_pa: T9, L3. Free oxygen below 3 kPa (3 percent of an Earth atmosphere) poisons an anoxygenic or hydrogen-eating microbe: the existing gate (life-classes.md 3.1, Class 2 window), now a pressure (GEN.1321)
 - window temperature_k: T7, L3. Habitat 255 to 370 K (life-classes.md 3.1, Class 2 window)
 - supply donor_supply: T9, L4. The donor supply (hydrogen, Fe2+ or H2S delivered, GEN.887) must reach a twentieth of Earth's for the class to be fully supported; its mats are donor-limited to about 1 percent of an oxygenic biosphere per unit of Earth's supply (life-classes.md 4: 1e-4 to 1e-2 of today's biosphere)
 - life anoxygenic: T7, L3. Anoxygenic photosynthesis needs one reaction center and no water splitting, so it comes first (0.6); its respiration is anaerobic, about a ninth of the aerobic yield (Gale and Wandel, read in the review)
@@ -135,7 +135,7 @@ Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.
 
 - solvent water: T9, L3. Liquid water
 - energy chemical: T9, L3. The energy of the fuel meeting the oxidant, scored on the share of the heat flow life can use
-- gate share_o2: T9, L3. An oxygen sea: oxygen at least 0.1 percent of the air for the oxidant to reach the vents (life-classes.md 3.1, Class 4 window)
+- gate o2_partial_pa: T9, L3. An oxygen sea: oxygen at least 100 Pa (0.1 percent of an Earth atmosphere) for the oxidant to reach the vents (life-classes.md 3.1, Class 4 window), now a pressure (GEN.1321)
 - window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms
 - supply donor_supply: T9, L4. The reduced fuel supply (H2S, Fe2+, NH4+, CH4, GEN.887): a twentieth of Earth's is enough
 - life chemolithotroph: T2, L2. Sulfur, iron and nitrogen oxidisers breathe oxygen: the yield follows the oxygen of the air (as Class 1); first step 1

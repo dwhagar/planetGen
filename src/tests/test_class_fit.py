@@ -171,3 +171,24 @@ def test_a_fifth_carbon_dioxide_is_g_whatever_the_oxygen():
     # GEN.1306 (registry AW5), with L (Boss's low-oxygen mask world) unchanged: 1 to 20 percent carbon dioxide with 3 to 16 percent oxygen
     assert cf.best_class(body(share_co2=0.3, share_o2=0.2))[0] == "G"
     assert cf.best_class(body(share_co2=0.05, share_o2=0.1))[0] == "L"
+
+
+def test_oxygen_is_judged_by_pressure_and_not_by_share():
+    """GEN.1321 (registry OP1): a thick air whose oxygen is a few percent of the molecules but 25 kPa is a temperate world; a thin air of 90 percent oxygen
+    that is only 9 kPa is a marginal one; the same oxygen share on a thin air is not enough."""
+    thick = body(atmospheric_pressure_pa=1.0e6, p_o2_kpa=25.0, p_n2_kpa=950.0, p_ar_kpa=9.0, p_co2_kpa=0.4)
+    detail = cf.classify(thick)
+    assert (detail.letter, detail.digit) == ("M", 9)                          # 2.5 percent of the air, 25 kPa of oxygen: M, limited by its air amount (M's air is 50 to 250 kPa)
+    thin = body(atmospheric_pressure_pa=10000.0, p_o2_kpa=9.0, p_n2_kpa=0.9, p_ar_kpa=0.05, p_co2_kpa=0.05)
+    assert cf.best_class(thin)[0] != "M"                                      # 90 percent of the air, only 9 kPa
+    assert cf.scores(body(p_o2_kpa=40.0))["M"] < 1.0 and cf.scores(body(p_o2_kpa=35.4))["M"] == pytest.approx(1.0)    # the fire limit is the upper edge
+
+
+def test_carbon_dioxide_of_the_oxygen_water_classes_is_judged_by_pressure():
+    """GEN.1321 (registry OP1): under 1 kPa of carbon dioxide M fits fully, over it L takes over from M, and a thick air whose carbon dioxide is under 1 percent of the molecules
+    but over 1 kPa is not M; class G keeps its share."""
+    assert cf.scores(body(p_co2_kpa=0.5))["M"] == pytest.approx(1.0)
+    assert cf.scores(body(p_co2_kpa=1.5))["M"] < 1.0
+    deep = body(atmospheric_pressure_pa=2.0e5, p_co2_kpa=1.8, p_o2_kpa=40.0, p_n2_kpa=150.0, p_ar_kpa=2.0)       # 0.9 percent of the molecules, 1.8 kPa
+    assert cf.scores(deep)["M"] < 1.0
+    assert cf.best_class(body(share_co2=0.3, share_o2=0.2))[0] == "G"
