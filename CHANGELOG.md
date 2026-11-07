@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3622] - 2026-11-07
+
+**Headline:** A neutron star's page now shows its crust, layer by layer, from the nuclei at the surface to the bottom of the inner crust.
+
+### Added
+- The crust of a neutron star by density (GEN.1358): the 15 nuclei of the outer crust from iron-56 to krypton-118 with the density each holds to, neutron drip at 4.27e11 g/cm3, and the 11 cells of the inner crust (zirconium, tin, then zirconium and germanium) down to 1.3e14 g/cm3, read from [R0722: Tables 2 and 3]. The neutron star page shows it as a "Crust" table.
+
+generation-output: unchanged
+
 ## [8.0.3621] - 2026-11-07
 
 **Headline:** Links inside running text on the References and Help pages are now underlined, and long source-file names wrap on a phone.
