@@ -40841,6 +40841,166 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.210",
+      "number": "6.210",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.EARTH_CORE_SHARE Cr 0.552, Mn 0.601, Ni 0.929, P 0.942 and EARTH_CORE_FRACTION 0.325: the Earth's core ppm times 0.325 over its bulk ppm"
+            ],
+            [
+              "The range it moves in",
+              "the core ppm of the concordance (Cr 6590, Mn 3257, Ni 50600, P 2774; bulk 3883, 1760, 17700, 957)"
+            ],
+            [
+              "Where it holds",
+              "the Earth, and any body by the scaling of D"
+            ],
+            [
+              "What would show it wrong",
+              "a core ppm of the same elements from a later compilation that differs by more than the table's uncertainty"
+            ],
+            [
+              "What replaces it",
+              "an interior model that fixes the partition from pressure, temperature and fO2 for each element"
+            ],
+            [
+              "Evidence",
+              "the numbers are read from the table of [R4608] by the research lane (bulk_earth_pm_core_and_depletion.csv, \"read\"); the core mass fraction 0.325 is the same paper's"
+            ]
+          ],
+          "id": "MO1",
+          "key": "6.210:MO1",
+          "kind": "D",
+          "slug": "6-210-mo1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mantle_oxides.EARTH_CORE_SHARE Cr 0.552, Mn 0.601, Ni 0.929, P 0.942 and EARTH_CORE_FRACTION 0.325: the Earth's core ppm times 0.325 over its bulk ppm"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.EARTH_CORE_SHARE Na 0.05 and K 0.05: the core holds a twentieth of the body's sodium and potassium"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.30 (the same table has 0.20 and 0.30 from one model)"
+            ],
+            [
+              "Where it holds",
+              "any rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "a core with a measured share of K or Na outside 0 to 0.1 (a K-bearing core would change the heat budget)"
+            ],
+            [
+              "What replaces it",
+              "a partition of the alkalis from sulfur-rich metal and pressure"
+            ],
+            [
+              "Evidence",
+              "the research note (real-material-data-2, section 1) caps the model's 0.20 and 0.30 at 0.05 as the old model's; the cap is the research lane's choice, not a measurement; the mantle Na2O and K2O reach 0.88 and 1.4 times the Earth's"
+            ]
+          ],
+          "id": "MO2",
+          "key": "6.210:MO2",
+          "kind": "P",
+          "slug": "6-210-mo2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_oxides.EARTH_CORE_SHARE Na 0.05 and K 0.05: the core holds a twentieth of the body's sodium and potassium"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2"
+            ],
+            [
+              "The range it moves in",
+              "n of Cr 2 to 3 (Cr2+ at the oxygen fugacity of core formation); Ni 2; P 5 (as P5+)"
+            ],
+            [
+              "Where it holds",
+              "rocks of FeO 0.01 to 0.18"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose mantle P or Cr does not rise with its FeO; Mars NiO: the model gives 0.5 percent where Yoshizaki and McDonough have 0.046, a miss of 11 times that the pressure, temperature and sulfur terms of the real metal would close"
+            ],
+            [
+              "What replaces it",
+              "a pressure and temperature dependent partition of each element (the real law has three more terms)"
+            ],
+            [
+              "Evidence",
+              "the exchange of a metal atom for n/2 oxygen is the leading term of the metal-silicate partition, not fitted; with it the mantle P of Mars goes from 0.037 to 0.13 percent against the printed 0.17 [R4833], and the Earth is unchanged by the anchor"
+            ]
+          ],
+          "id": "MO3",
+          "key": "6.210:MO3",
+          "kind": "T",
+          "slug": "6-210-mo3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent"
+            ],
+            [
+              "The range it moves in",
+              "Ti 0 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "any rocky body"
+            ],
+            [
+              "What would show it wrong",
+              "a core with a Ti share above 0.05"
+            ],
+            [
+              "What replaces it",
+              "a partition of Ti at the pressure of a large body's core"
+            ],
+            [
+              "Evidence",
+              "Ti has no core ppm in the table of [R4608], and the model Earth TiO2 is 0.92 of the McDonough and Sun value [R5076]; the floor only keeps D finite"
+            ]
+          ],
+          "id": "MO4",
+          "key": "6.210:MO4",
+          "kind": "B",
+          "slug": "6-210-mo4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent"
+        }
+      ],
+      "slug": "6-210-stand-ins-of-the-minor-oxides-of-a-rocky-body-s-rock",
+      "title": "Stand-ins of the minor oxides of a rocky body's rock"
+    },
+    {
       "key": "6.209",
       "number": "6.209",
       "rows": [
@@ -41153,7 +41313,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L2",
-          "unread": "GEN.1362",
+          "unread": null,
           "what": "volatile_depletion.SLOPE_PER_K 0.00165 and CUT_K 1316.6: the least-squares hinge to the 26 rows of data/volatile_depletion.json (rms 0.079 dex); the research set's line from 13 of the rows, -2.150 + 0.001623 T50, differs by under 0.013 dex from 660 to 1300 K"
         },
         {
@@ -41229,7 +41389,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1362",
+          "unread": null,
           "what": "volatile_depletion.REFERENCE_BLACKBODY_K 278.3: the blackbody temperature, K, of the zone the Earth fit is made for (the Sun's light of 3.828e26 W at 1 AU, data/volatile_depletion.json reference)"
         },
         {
@@ -41267,7 +41427,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1362",
+          "unread": null,
           "what": "volatile_depletion.MIN_T50_EARTH_K 500: the law is refused under this T50"
         }
       ],

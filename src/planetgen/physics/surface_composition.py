@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, materials, mixture, rock_types, saturation, surface_liquid_world
+from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, mantle_oxides, materials, mixture, rock_types, saturation, surface_liquid_world
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -559,11 +559,13 @@ def inputs_of(body):
 
 
 def _rock_oxides_of(body):
-    """The oxides of the body's silicate rock from its stored FeO and Al2O3 shares and Mg/Si, with the star's Ca/Mg; None for carbon rock or a body that stores no rock composition."""
+    """The oxides of the body's silicate rock from its stored FeO, Al2O3 and seven minor-oxide shares and Mg/Si, with the star's Ca/Mg; None for carbon rock or a body that stores no rock composition."""
     feo, al2o3, mg_si = (getattr(body, name, None) for name in ("rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio"))
     if getattr(body, "carbon_rock", False) or None in (feo, al2o3, mg_si):
         return None
-    return rock_types.rock_oxides(feo, al2o3, mg_si, bulk_draw.host_ratios(body.star).ca)
+    stored = {oxide: getattr(body, f"rock_{oxide.lower()}_fraction", None) for oxide in mantle_oxides.OXIDE_NAMES}
+    others = None if None in stored.values() else stored    # a body saved before GEN.1362 stores none of the seven
+    return rock_types.rock_oxides(feo, al2o3, mg_si, bulk_draw.host_ratios(body.star).ca, others)
 
 
 def _volatile_shares(body):

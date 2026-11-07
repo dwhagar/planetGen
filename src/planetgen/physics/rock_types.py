@@ -8,7 +8,7 @@ docs/design/composition/surface-composition.md, "Rock types from the oxides").
 fixed mineral list. Here the ground type is worked out from the oxides of the body's own mantle:
 
 1. **The norm** (`cipw_norm`). The CIPW norm (Cross, Iddings) allocates the oxides of a rock to an ideal set of minerals by mass
-   balance, in the fixed order of the method: apatite and ilmenite, then orthoclase, albite and anorthite from the alumina, magnetite, then diopside and
+   balance, in the fixed order of the method: apatite, ilmenite and chromite (GEN.1362), then orthoclase, albite and anorthite from the alumina, magnetite, then diopside and
    hypersthene from the lime, magnesia and iron; the silica left over is quartz, and a shortage converts hypersthene to olivine, albite to nepheline and
    orthoclase to leucite (and olivine to periclase). Every oxide goes to a mineral: the norm adds up to the oxides given (tested), so a composition that cannot
    be allocated is refused and not trimmed.
@@ -25,8 +25,8 @@ fixed mineral list. Here the ground type is worked out from the oxides of the bo
 The Earth's oxide analyses are test points and never inputs: the bulk silicate Earth (McDonough and Sun 1995, `mixture_lava.OXIDES`) melted by a tenth is a
 basalt; the upper continental crust ([R3842: Table 11]) is felsic and the lower crust intermediate; a lunar highland anorthosite is anorthositic.
 
-Limits. The norm has no hydrous or carbonate minerals, no sulfur and no peralkaline allocation (acmite and sodium metasilicate): a rock whose alkalis exceed its
-alumina is refused. The melt is a staged allocation, not a phase-equilibrium calculation (MELTS or pMELTS would give the real liquid at a pressure; the real
+Limits. The norm has no hydrous or carbonate minerals, no sulfur and no acmite (no ferric iron is stored): the alkali that the alumina cannot take goes to its metasilicate (GEN.1362). MnO and NiO go
+with the pool of divalent oxides of iron and magnesium (so the pyroxenes and olivine carry them). The melt is a staged allocation, not a phase-equilibrium calculation (MELTS or pMELTS would give the real liquid at a pressure; the real
 first melts of a peridotite are alkaline and richer in the pyroxene's magnesium than the stage mix gives); the iron split between minerals is proportional
 (one Fe/(Fe+Mg) for all the mafic minerals, so the norm's olivine is not as magnesian as a real one). The ground type has no mixed or sedimentary rocks. Wired (GEN.474): the surface draw
 takes the volcanic (secondary) crust of a body from its stored mantle through `rock_oxides`, `partial_melt` and `ground_type_of`; the library of `GROUND_TYPES` stays as the
@@ -38,13 +38,13 @@ import math
 from planetgen.physics import elements
 from planetgen.util.checks import finite_domain
 
-OXIDES = ("SiO2", "TiO2", "Al2O3", "Fe2O3", "FeO", "MgO", "CaO", "Na2O", "K2O", "P2O5")
+OXIDES = ("SiO2", "TiO2", "Al2O3", "Cr2O3", "Fe2O3", "FeO", "MnO", "NiO", "MgO", "CaO", "Na2O", "K2O", "P2O5")
 """tuple: The oxides the norm reads (weight percent or any one mass unit)."""
 
 _MASS = {oxide: elements.molar_mass(oxide) * 1000.0 for oxide in OXIDES}
 _EPS = 1.0e-12
 
-# oxide moles per formula unit of each normative mineral (FM is MgO and FeO in the rock's Fe/(Fe+Mg))
+# oxide moles per formula unit of each normative mineral (FM is the divalent pool MgO, FeO, MnO and NiO in the rock's proportions)
 MINERALS = {
     "quartz": {"SiO2": 1.0},
     "orthoclase": {"K2O": 1.0, "Al2O3": 1.0, "SiO2": 6.0},
@@ -61,12 +61,16 @@ MINERALS = {
     "magnetite": {"FeO": 1.0, "Fe2O3": 1.0},
     "hematite": {"Fe2O3": 1.0},
     "ilmenite": {"FeO": 1.0, "TiO2": 1.0},
+    "chromite": {"FeO": 1.0, "Cr2O3": 1.0},
+    "eskolaite": {"Cr2O3": 1.0},
+    "sodium_metasilicate": {"Na2O": 1.0, "SiO2": 1.0},
+    "potassium_metasilicate": {"K2O": 1.0, "SiO2": 1.0},
     "rutile": {"TiO2": 1.0},
     "apatite": {"CaO": 10.0 / 3.0, "P2O5": 1.0},
 }
 """dict: The normative minerals as oxide moles per formula unit (the formula unit of olivine and periclase is one FM, of the feldspars one alkali or lime)."""
 
-MELT_STAGES = (("quartz", "orthoclase", "albite", "nepheline", "leucite", "anorthite", "diopside", "wollastonite"), ("hypersthene",), ("olivine", "periclase"))
+MELT_STAGES = (("quartz", "orthoclase", "albite", "nepheline", "leucite", "anorthite", "diopside", "wollastonite", "sodium_metasilicate", "potassium_metasilicate"), ("hypersthene",), ("olivine", "periclase"))
 """tuple: The minerals of the norm by the stage they melt in: the low-melting eutectic components together (in the proportions the rock holds them: the feldspars and
 pyroxene of a basalt, the quartz and feldspars of a granite), then the orthopyroxene, then the refractory olivine; the oxides (magnetite, ilmenite, apatite, corundum)
 stay in the residue. [Stand-in RT1, tier T5, tweak L1.]"""
@@ -110,12 +114,15 @@ def _units(oxides):
     units["ilmenite"] = min(m["TiO2"], feo)
     units["rutile"] = m["TiO2"] - units["ilmenite"]
     feo -= units["ilmenite"]
+    units["chromite"] = min(m["Cr2O3"], feo)
+    units["eskolaite"] = m["Cr2O3"] - units["chromite"]
+    feo -= units["chromite"]
     units["orthoclase"] = min(m["K2O"], alumina)
     alumina -= units["orthoclase"]
     units["albite"] = min(m["Na2O"], alumina)
     alumina -= units["albite"]
-    if m["K2O"] - units["orthoclase"] > _EPS or m["Na2O"] - units["albite"] > _EPS:
-        raise ValueError("the alkalis exceed the alumina: no peralkaline norm")
+    units["potassium_metasilicate"] = max(m["K2O"] - units["orthoclase"], 0.0)    # peralkaline: the alkali the alumina cannot take goes to its metasilicate
+    units["sodium_metasilicate"] = max(m["Na2O"] - units["albite"], 0.0)
     units["anorthite"] = min(alumina, max(cao, 0.0))
     cao -= units["anorthite"]
     alumina -= units["anorthite"]
@@ -123,8 +130,9 @@ def _units(oxides):
     units["magnetite"] = min(m["Fe2O3"], feo)
     feo -= units["magnetite"]
     units["hematite"] = m["Fe2O3"] - units["magnetite"]
-    fm = feo + mgo
-    iron = feo / fm if fm > 0.0 else 0.0
+    pool = {"MgO": mgo, "FeO": feo, "MnO": m["MnO"], "NiO": m["NiO"]}    # MnO and NiO go with the iron and the magnesium, as the divalent oxides they are
+    fm = sum(pool.values())
+    iron = {oxide: value / fm for oxide, value in pool.items()} if fm > 0.0 else {"MgO": 1.0, "FeO": 0.0, "MnO": 0.0, "NiO": 0.0}
     units["diopside"] = min(cao, fm)
     cao -= units["diopside"]
     fm -= units["diopside"]
@@ -146,10 +154,10 @@ def _units(oxides):
 
 
 def _mass(name, iron):
-    """The mass of one formula unit of a normative mineral, g/mol."""
+    """The mass of one formula unit of a normative mineral, g/mol (`iron` is the divalent pool's mole fractions)."""
     total = 0.0
     for oxide, count in MINERALS[name].items():
-        total += count * ((1.0 - iron) * _MASS["MgO"] + iron * _MASS["FeO"] if oxide == "FM" else _MASS[oxide])
+        total += count * (sum(share * _MASS[member] for member, share in iron.items()) if oxide == "FM" else _MASS[oxide])
     return total
 
 
@@ -202,8 +210,8 @@ def _oxides_of(units, iron):
     for name, amount in units.items():
         for oxide, count in MINERALS[name].items():
             if oxide == "FM":
-                out["MgO"] += amount * count * (1.0 - iron) * _MASS["MgO"]
-                out["FeO"] += amount * count * iron * _MASS["FeO"]
+                for member, share in iron.items():
+                    out[member] += amount * count * share * _MASS[member]
             else:
                 out[oxide] += amount * count * _MASS[oxide]
     total = sum(out.values())
@@ -221,17 +229,23 @@ def batch_enrichment(melt_fraction, partition=INCOMPATIBLE_D):
 
 
 @finite_domain()
-def rock_oxides(feo_fraction, al2o3_fraction, mg_si_ratio, ca_over_mg):
+def rock_oxides(feo_fraction, al2o3_fraction, mg_si_ratio, ca_over_mg, others=None):
     """
     The oxides of a rock the generator stores as a few numbers, in weight percent adding to 100: `MgO` and `SiO2` in the molar `mg_si_ratio` (Mg/Si), `CaO` at `ca_over_mg` Ca atoms
-    per Mg atom (the star's), and `Al2O3` and `FeO` as the given mass fractions of the whole rock. The alkalis, titanium and phosphorus are not stored and are zero (the norm then
-    has anorthite for its feldspar and no orthoclase or albite).
+    per Mg atom (the star's), and `Al2O3` and `FeO` as the given mass fractions of the whole rock. `others` gives the rest the body stores (GEN.1362): `{oxide: mass fraction of the rock}`
+    for `Na2O`, `K2O`, `TiO2`, `Cr2O3`, `MnO`, `NiO` and `P2O5`; with none given they are zero (the norm then has anorthite for its feldspar and no orthoclase or albite).
     """
-    if not (0.0 <= feo_fraction and 0.0 <= al2o3_fraction and feo_fraction + al2o3_fraction < 1.0 and mg_si_ratio > 0.0 and ca_over_mg >= 0.0):
+    others = {} if others is None else others
+    unknown = set(others) - set(OXIDES)
+    if unknown or any(value < 0.0 for value in others.values()):
+        raise ValueError(f"the other oxides must be non-negative oxides of the norm, not {others!r}")
+    share = feo_fraction + al2o3_fraction + sum(others.values())
+    if not (0.0 <= feo_fraction and 0.0 <= al2o3_fraction and share < 1.0 and mg_si_ratio > 0.0 and ca_over_mg >= 0.0):
         raise ValueError("the oxide fractions must be non-negative and leave room for the rest of the rock, with Mg/Si positive")
     mgo, sio2, cao = _MASS["MgO"], _MASS["SiO2"] / mg_si_ratio, ca_over_mg * _MASS["CaO"]
-    rock = (mgo + sio2 + cao) / (1.0 - feo_fraction - al2o3_fraction)
+    rock = (mgo + sio2 + cao) / (1.0 - share)
     parts = {"SiO2": sio2, "MgO": mgo, "CaO": cao, "Al2O3": al2o3_fraction * rock, "FeO": feo_fraction * rock}
+    parts.update({oxide: value * rock for oxide, value in others.items()})
     return {oxide: 100.0 * mass / rock for oxide, mass in parts.items()}
 
 

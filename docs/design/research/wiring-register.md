@@ -273,8 +273,3 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.class_fit.best_class | by design | the public scorer of the best-fit classifier: the generator reads `fit` and the class sweep, the class-fit command line and the tests read this one-call form |
 | function | planetgen.physics.class_fit.domain_scores | by design | the per-domain scores of one class, which the class page and the class-fit command line show; the generator reads the combined `fit` |
 | function | planetgen.physics.planet_classes.classify_values | by design | the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier |
-| module | planetgen.physics.volatile_depletion | GEN.1362 | the volatility depletion law (GEN.1361): the share of an element a rocky body keeps against CI by the element's T50; the mantle step of GEN.1362 reads it |
-| data | volatile_depletion.json | GEN.1362 | the 26-element Earth over CI table and the law's constants; read by `physics/volatile_depletion.py` only until GEN.1362 calls it |
-| row | 6.208:VD1 | GEN.1362 | `volatile_depletion.SLOPE_PER_K` and `CUT_K`, not read until the mantle step calls the module |
-| row | 6.208:VD3 | GEN.1362 | `volatile_depletion.REFERENCE_BLACKBODY_K`, not read until the mantle step calls the module |
-| row | 6.208:VD4 | GEN.1362 | `volatile_depletion.MIN_T50_EARTH_K`, not read until the mantle step calls the module |

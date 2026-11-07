@@ -27,8 +27,8 @@ have their own condensation items (N4), not this law, which holds for T50 from `
 The Earth fit is the central case and the lever is a stand-in with a counterexample on record: Mercury's K/U (14,311 against the bulk silicate Earth's 9,704,
 [R1003]) says the innermost planet kept more potassium than the Earth, where the lever gives it a cut near 2,100 K and a twentieth of the Earth law's potassium.
 Mercury's mantle was stripped by a giant impact or formed from material the Sun had not heated as the blackbody does, and the Moon is far poorer than any
-distance scaling gives, which is the same impact history: neither is a target of this law. A caller that wants the Earth law for every body passes no cut. Nothing in
-generation calls the module yet: the mantle step of GEN.1362 reads it (it is in the wiring register against that item).
+distance scaling gives, which is the same impact history: neither is a target of this law. A caller that wants the Earth law for every body passes no cut. The mantle step
+of GEN.1362 (`mantle_oxides`, called by `bulk_draw.dry_partition`) reads it with the cut of each body's formation zone.
 """
 
 import json
