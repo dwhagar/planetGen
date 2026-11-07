@@ -51,7 +51,7 @@ NULL_IN_THIS_GALAXY = {
                            "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
                            "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
                            "life_stage", "life_system_age_gyr", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "surface_liquid",
-                           "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt",
+                           "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt", "surface_liquid_ammonia_wt",
                            "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
                            "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
     # DB.81: the stellar mass a plan pinned, which a galaxy whose seed drew everything leaves NULL (test_shape_pins.py
@@ -234,10 +234,6 @@ NEVER_READ = {
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
-    # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py); no page or API line shows them yet.
-    **{("irregular_moons", column): "stored by GEN.1084; the page and the API line for the irregular moons follow" for column in (
-        "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
-        "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")},
     ("irregular_sets", "id"): "child row id",
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
        for column in ("storage_checksum", "parity_dirty")},
