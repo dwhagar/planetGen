@@ -153,7 +153,10 @@ def test_a_close_in_planet_is_circularised_for_the_final_age(host_star):
     host_star.age = 13.8
     assert planets.settle_orbit(planet) is True
     time_yr = orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance)
-    assert planet.eccentricity == pytest.approx(orbit_elements.circularised(planet._orbit_birth, 13.8e9, time_yr), rel=1e-9)
+    cold = orbit_elements.circularised(planet._orbit_birth, 13.8e9, time_yr)
+    # GEN.1351: the orbit decays at the faster of the cold rheology's time and the one the tide the body really feels gives
+    assert planet.eccentricity == pytest.approx(orbit_elements.settled_eccentricity(planet, planet._orbit_birth, 13.8e9, planet.primary_mass_kg, planet.distance), rel=1e-9)
+    assert planet.eccentricity <= cold * (1.0 + 1e-9)
     assert planet.eccentricity < drawn
     assert planet.orbit_from_vector()["eccentricity"] == pytest.approx(planet.eccentricity, abs=1e-7)
     assert planet.orbit_from_vector()["semi_major_axis"] == pytest.approx(planet.distance, rel=1e-9)
