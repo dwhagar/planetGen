@@ -31,6 +31,7 @@ import time
 
 from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, workers
+from planetgen.util import log
 
 QUEUE_PREFIX = "planetgen-api-"
 """str: A job's id in RQ is this plus its own id."""
@@ -441,13 +442,22 @@ def run_command(argv, env, cwd, timeout, merge_stderr=False):
     except subprocess.TimeoutExpired as exc:
         out["timed_out"] = True
         out["stdout"] = (exc.stdout or b"").decode("utf-8", errors="replace")
+        log.get("queue").error(f"The command {_command_words(argv)} timed out after {timeout} s")
     except OSError as exc:
         out["error"] = str(exc)
+        log.get("queue").error(f"The command {_command_words(argv)} could not be started: {exc}")
     else:
         out["returncode"] = done.returncode
         out["stdout"] = (done.stdout or b"").decode("utf-8", errors="replace")
         out["stderr"] = (done.stderr or b"").decode("utf-8", errors="replace")
+        log.process_ended("queue", f"The command {_command_words(argv)}", done.returncode, output=out["stderr"] or out["stdout"])
     return out
+
+
+def _command_words(argv):
+    """The first words of a command line, for a log line (a long argument list is not one)."""
+    words = " ".join(str(part) for part in argv[:4])
+    return words if len(argv) <= 4 else words + " ..."
 
 
 def command_and_wait(argv, env, cwd, timeout, merge_stderr=False):

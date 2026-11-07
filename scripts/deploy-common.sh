@@ -72,6 +72,17 @@ start_update_log() {
     log_file_to "$path"
 }
 
+# Starts the error log (OPS.116) once the log folder is known, like `start_update_log`: the error records kept since `log_error_file_begin` go
+# to error.log of the folder, and the ones after it. A refused folder leaves them on the screen only.
+start_error_log() {
+    local path
+    path="$(cd / && PYTHONPATH="$SCRIPT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" "$VENV/bin/python" -m planetgen.util.logpaths error.log 2>/dev/null)" || return 0
+    if [[ -n "$path" ]] && ! (cd / && "$VENV/bin/python" -I "$SCRIPT_DIR/examples/apache/deploy-paths.py" --check log_dir "$(dirname "$path")" "$SCRIPT_DIR" >/dev/null 2>&1); then
+        return 0
+    fi
+    log_error_file_to "$path"
+}
+
 use_site_python() {
     PYTHON="$VENV/bin/python"
 }
@@ -849,6 +860,7 @@ ensure_update_guard() {
 
 finish_update_guard() {
     local status=$?
+    log_exit_failure "The update" "$status"
     log_summary_forget
     (( UPDATE_GUARD_HELD )) || return 0
     if (( status == 0 )); then
@@ -970,6 +982,7 @@ run_warm_stage() {
     if (( status != 0 )); then
         local why="failed with status $status (see warmup.log in the log folder)"
         (( status == 124 )) && why="ran out of its time limit of $(duration_words "$seconds") (WARM_STAGE_SECONDS; 0 means none)"
+        log_error_only "the cache warm-up ($name) did not finish: it $why."
         log_warning "the cache warm-up ($name) did not finish: it $why."
         log_warning "  What it stored is kept. 'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues where it stopped, and the first visit builds what it did not."
         WARM_RESULT="cache warm-up ($name) did not finish"

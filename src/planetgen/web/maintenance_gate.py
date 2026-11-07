@@ -14,7 +14,7 @@ pages' own in-process API calls skip it: the page request that made them
 has already passed.
 """
 
-from flask import jsonify, make_response, redirect, render_template, request, url_for
+from flask import g, jsonify, make_response, redirect, render_template, request, url_for
 
 from planetgen.admin import maintenance
 from planetgen.api.limiter import is_in_process_call
@@ -54,6 +54,7 @@ def page_response(state, status=503):
         "maintenance.html", state=state, message=state.get("reason") or MESSAGE, refresh=RETRY_AFTER_SECONDS, admin=status == 200), status)
     if status == 503:
         response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
+        g.expected_unavailable = True       # a closed site is not an error for error.log (OPS.116)
     response.headers["Cache-Control"] = "no-store"
     return response
 
@@ -71,6 +72,7 @@ def gate():
         response.status_code = 503
         response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
         response.headers["Cache-Control"] = "no-store"
+        g.expected_unavailable = True
         return response
     return redirect(url_for("web.maintenance_page"), code=302)
 

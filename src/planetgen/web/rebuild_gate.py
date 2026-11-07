@@ -34,6 +34,7 @@ def check(path):
 def api_response(exc):
     """The JSON 503 for `exc`."""
     g.retry_after_fixed = True
+    g.expected_unavailable = True       # a cache being rebuilt is not an error for error.log (OPS.116)
     response = jsonify({"error": cachebuild.MESSAGE, "rebuilding": True, "cause": exc.state["cause"],
                         "since": exc.state.get("since")})
     response.status_code = 503
