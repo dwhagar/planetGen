@@ -117,7 +117,7 @@ def test_a_second_run_changes_nothing_and_does_not_reload(deployed):
     log.unlink()
     _run(deployed, "/srv/planetgen/state", checkout_name="deployed")
     assert {p.name: p.read_text() for p in units.iterdir()} == before
-    assert not log.exists()                      # nothing to reload or enable
+    assert not any(call.startswith(("enable", "daemon-reload")) for call in log.read_text().splitlines()) if log.exists() else True
 
 
 def test_the_deploy_scripts_set_the_units_up_and_the_maintenance_installer_has_the_opt_out():

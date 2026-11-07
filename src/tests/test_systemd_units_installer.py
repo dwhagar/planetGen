@@ -33,7 +33,15 @@ def host(tmp_path):
     bin_dir.mkdir()
     log = tmp_path / "systemctl.log"
     fake = bin_dir / "systemctl"
-    fake.write_text(f'#!/bin/bash\necho "$@" >> "{log}"\nexit 0\n')
+    enabled = tmp_path / "enabled.txt"
+    fake.write_text(f'''#!/bin/bash
+echo "$@" >> "{log}"
+case "$1" in
+    enable) shift; [[ "$1" == --now ]] && shift; echo "$1" >> "{enabled}" ;;
+    is-enabled) shift; [[ "$1" == --quiet ]] && shift; grep -qx "$1" "{enabled}" 2>/dev/null || exit 1 ;;
+esac
+exit 0
+''')
     fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
     units = tmp_path / "units"
     units.mkdir()
@@ -86,17 +94,40 @@ def test_the_smoke_units_render_with_their_option_and_the_output_path_follows_th
     assert f"--output {host['checkout']}/smoke-last.json" in (host["units"] / "planetgen-smoke.service").read_text()
 
 
-def test_a_deploy_enables_only_what_it_installs_and_a_second_run_changes_nothing(host):
-    _function(host)
+def test_a_deploy_enables_what_it_installs_but_never_the_unattended_update_and_says_how(host):
+    result = _function(host)
     calls = _calls(host)
-    for name in ("planetgen-update.timer", "planetgen-update.path", "planetgen-orbits@planetgen.timer", "planetgen-tiles@planetgen.timer"):
+    for name in ("planetgen-update.path", "planetgen-orbits@planetgen.timer", "planetgen-tiles@planetgen.timer"):
         assert f"enable --now {name}" in calls, name
+    assert "enable --now planetgen-update.timer" not in calls
+    assert (host["units"] / "planetgen-update.timer").is_file()              # installed, off
+    text = result.stdout + result.stderr
+    assert "sudo systemctl enable --now planetgen-update.timer" in text and "no review" in text
     assert "daemon-reload" in calls
+
+
+def test_a_second_deploy_changes_nothing_and_says_again_while_the_update_timer_is_off(host):
+    _function(host)
     before = {path.name: path.read_text() for path in host["units"].iterdir()}
     host["log"].unlink()
-    assert _function(host).returncode == 0
+    result = _function(host)
+    assert result.returncode == 0
     assert {path.name: path.read_text() for path in host["units"].iterdir()} == before
-    assert _calls(host) == []                    # no reload, and a timer left disabled by an operator stays disabled
+    assert not any(call.startswith(("enable", "daemon-reload")) for call in _calls(host))    # nothing reloaded, nothing switched on
+    assert "sudo systemctl enable --now planetgen-update.timer" in result.stdout + result.stderr
+
+
+def test_once_the_operator_turns_the_update_timer_on_the_deploy_stops_saying_so(host):
+    _function(host)
+    subprocess.run([str(host["bin"] / "systemctl"), "enable", "--now", "planetgen-update.timer"], check=True)
+    result = _function(host)
+    assert "sudo systemctl enable --now planetgen-update.timer" not in result.stdout + result.stderr
+
+
+def test_the_installer_script_enables_the_update_timer_when_asked(host):
+    result = _function(host, "--enable-all")
+    assert "enable --now planetgen-update.timer" in _calls(host)
+    assert "To turn it on" not in result.stdout + result.stderr
 
 
 def test_a_unit_that_differs_is_replaced_and_the_replacement_is_logged(host):
@@ -142,6 +173,7 @@ def test_the_options_leave_units_out_and_name_the_databases(host):
     calls = _calls(host)
     assert "enable --now planetgen-orbits@alpha.timer" in calls and "enable --now planetgen-orbits@beta.timer" in calls
     assert not any("update" in call or "tiles" in call for call in calls if call.startswith("enable"))
+    assert "To turn it on" not in result.stdout + result.stderr          # the update timer was left out on purpose: nothing to offer
 
 
 def test_the_gunicorn_unit_is_never_installed(host):

@@ -426,8 +426,10 @@ ten tries in ten minutes; clear it with `sudo systemctl reset-failed planetgen-u
 
 ### Scheduled maintenance
 
-On Linux with systemd, `install.sh` and `update.sh` install and enable the timers themselves (OPS.110): the monthly orbit update
-(`planetgen.cli.orbits`, at 03:30 on the 1st), the unattended monthly update (at 03:00) and the nightly tile rebuild below. Every
+On Linux with systemd, `install.sh` and `update.sh` install the timers themselves (OPS.110) and enable the monthly orbit update
+(`planetgen.cli.orbits`, at 03:30 on the 1st) and the nightly tile rebuild below. The unattended monthly update (at 03:00) is installed
+but left off, because it deploys whatever is on the tracked branch with no review; every deploy says how to turn it on while it is off:
+`sudo systemctl enable --now planetgen-update.timer`. Every
 unit file is rendered for the checkout the script runs from and the virtual environment (`PLANETGEN_VENV`, default
 `/usr/local/planetgen/venv`), so the installed copies name the real paths; a path with a space or a special character is refused. A
 unit that differs from the rendered one (an older copy, or another install location) is replaced, and the log says so. A deploy
@@ -435,7 +437,7 @@ enables only a unit it installs for the first time, so a timer you disable stays
 the databases or leave a timer out; on macOS it is the only way to get the launchd daemons:
 
 ```bash
-sudo examples/maintenance/install-maintenance-timer.sh                      # Linux (systemd) and macOS (launchd)
+sudo examples/maintenance/install-maintenance-timer.sh                      # Linux (systemd) and macOS (launchd); this one also turns the update timer on
 sudo examples/maintenance/install-maintenance-timer.sh --skip-update-timer  # orbits only
 ```
 

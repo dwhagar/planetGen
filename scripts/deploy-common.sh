@@ -145,7 +145,7 @@ render_systemd_unit() {
 
 # OPS.110, with SEC.43's Update button: installs every maintenance unit of planetGen (examples/maintenance) into /etc/systemd/system
 # (SYSTEMD_UNIT_DIR overrides it, for tests), each rendered for this checkout, its virtual environment and its state folder, and
-# enables the timers. install.sh and update.sh call it with no arguments on every deploy; examples/maintenance/install-maintenance-
+# enables the timers except the unattended update's, which a deploy only installs and says how to turn on. install.sh and update.sh call it with no arguments on every deploy; examples/maintenance/install-maintenance-
 # timer.sh is a thin caller of this same function. The gunicorn unit (examples/systemd) is not part of it: it stays a manual copy.
 #
 #   the monthly orbit update       planetgen-orbits@.service/.timer (one timer instance per database)
@@ -157,7 +157,8 @@ render_systemd_unit() {
 #                                  may create and drop databases); once installed it is kept rendered like the others
 #
 # Options: --skip-update-timer, --skip-update-button, --skip-tiles-timer, --with-smoke-timer; --enable-all enables every requested
-# timer (a deploy enables only a unit it installs for the first time, so a timer an operator disabled stays disabled);
+# timer, the update timer too (a deploy enables only the orbit, tile, Update button and smoke units it installs for the first time, so a timer an
+# operator disabled stays disabled, and never the update timer);
 # --credentials writes /etc/planetgen/maintenance.env (mode 600, MAINTENANCE_ENV_FILE overrides it) from the example when it is
 # missing; the remaining arguments are the databases to update monthly (default $PLANETGEN_MYSQL_DATABASE, then planetgen).
 # A unit already installed that differs from the rendered one (an older copy of the example, or another checkout) is replaced, and
@@ -221,7 +222,8 @@ install_maintenance_units() {
     place_unit planetgen-orbits@.timer 1
     [[ "$UNIT_ACTION" == installed ]] && orbits_new=1
     place_unit planetgen-update.service $(( update_timer || update_button ))
-    place_unit planetgen-update.timer "$update_timer" planetgen-update.timer
+    place_unit planetgen-update.timer "$update_timer"
+    (( update_timer )) && (( enable_all )) && to_enable+=(planetgen-update.timer)
     place_unit planetgen-update.path "$update_button" planetgen-update.path
     place_unit planetgen-tiles@.service "$tiles_timer"
     place_unit planetgen-tiles@.timer "$tiles_timer"
@@ -246,6 +248,11 @@ install_maintenance_units() {
     fi
     if (( changed )); then
         systemctl daemon-reload || { log_warning "systemctl daemon-reload failed; run it by hand."; failed=1; }
+    fi
+    # The unattended update deploys whatever is on the tracked branch with no human in the loop, so a deploy installs the timer and never switches it
+    # on (Boss, OPS.110); only the installer script, run by a person, enables it. Said at every deploy while it is off.
+    if (( update_timer )) && ! (( enable_all )) && ! systemctl is-enabled --quiet planetgen-update.timer 2>/dev/null; then
+        log_info "systemd: planetgen-update.timer is installed but off. When on, it runs update.sh at 03:00 on the 1st of each month, which pulls and deploys whatever is on the tracked branch with no review. To turn it on: sudo systemctl enable --now planetgen-update.timer"
     fi
     for name in ${to_enable[@]+"${to_enable[@]}"}; do
         if systemctl enable --now "$name" >/dev/null 2>&1; then

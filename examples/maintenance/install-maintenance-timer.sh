@@ -45,8 +45,9 @@
 # character is refused. A unit already installed that differs from the rendered one (an older copy of the example, or another
 # location) is replaced and the replacement is printed; edit the example, or a drop-in under /etc/systemd/system/<unit>.d/,
 # for a setting of your own. install.sh and update.sh run the same function on every deploy, so they put the timers in place on
-# their own (a deploy enables only a unit it installs for the first time); this script is for choosing the databases and the
-# options, and it enables everything it was asked for. The gunicorn unit (examples/systemd/planetgen-gunicorn.service) is not
+# their own (a deploy enables only a unit it installs for the first time, and never the unattended update timer, which it installs
+# and leaves off with a line saying how to turn it on); this script is for choosing the databases and the options, and it enables
+# everything it was asked for, the update timer too. The gunicorn unit (examples/systemd/planetgen-gunicorn.service) is not
 # installed by either: copy it by hand, changing its two paths (see its own header).
 #
 # What it does:
