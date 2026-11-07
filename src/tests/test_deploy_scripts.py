@@ -1367,3 +1367,63 @@ def test_every_root_script_asks_before_using_a_folder_from_config_json():
     with open(os.path.join(REPO_DIR, "scripts", "deploy-common.sh"), encoding="utf-8") as f:
         assert "deploy-paths.py\" --check log_dir" in f.read()
     assert "chown -R -h" in _read("create-cache-dir.sh")
+
+
+# --- SEC.44 follow-up: a user may install in a home folder on a shared machine ------------------------------------------
+
+def test_a_home_folder_is_an_allowed_parent(monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    assert "/home" in rootpaths.ALLOWED_PARENTS and "/Users" in rootpaths.ALLOWED_PARENTS
+    assert rootpaths.check("/home/nobody-such-user/planetGen/jobs", "jobs")
+    assert rootpaths.check("/Users/nobody-such-user/planetGen/state/tiles", "cache")
+    with pytest.raises(rootpaths.UnsafePath):
+        rootpaths.check("/home/nobody-such-user/.ssh/jobs", "jobs")        # a hidden folder: never
+    with pytest.raises(rootpaths.UnsafePath):
+        rootpaths.check("/homework/jobs", "jobs")                          # only the folder itself, not a prefix
+
+
+@pytest.fixture
+def home(tmp_path, monkeypatch):
+    """A fake /home: allowed parent whose user folders belong to people, not root."""
+    base = tmp_path / "home"
+    base.mkdir(mode=0o755)
+    rootpaths = _rootpaths(monkeypatch)
+    monkeypatch.setattr(rootpaths, "HOME_PARENTS", (str(base),))
+    monkeypatch.setenv("PLANETGEN_ROOT_PATH_PARENTS", str(base))
+    return rootpaths, base
+
+
+@pytest.mark.skipif(os.geteuid() != 0, reason="needs root to give a folder to another user")
+def test_a_users_own_home_folder_on_the_way_is_fine_unless_it_is_the_web_users_or_the_web_group_can_write_it(home):
+    rootpaths, base = home
+    alice = base / "alice"
+    alice.mkdir(mode=0o750)
+    os.chown(alice, 4242, 4242)
+    web_uid, web_gid = 33, 33
+    assert rootpaths.check(str(alice / "planetGen" / "jobs"), "jobs", web_uid, web_gid)
+    os.chmod(alice, 0o770)                       # the user's own group may write: not the web group
+    assert rootpaths.check(str(alice / "planetGen" / "jobs"), "jobs", web_uid, web_gid)
+    os.chown(alice, 4242, web_gid)               # now the web group can: the web user could swap a link in
+    with pytest.raises(rootpaths.UnsafePath, match="only its owner and root"):
+        rootpaths.check(str(alice / "planetGen" / "jobs"), "jobs", web_uid, web_gid)
+    os.chown(alice, web_uid, 4242)               # the web user's own folder
+    os.chmod(alice, 0o755)
+    with pytest.raises(rootpaths.UnsafePath, match="only its owner and root"):
+        rootpaths.check(str(alice / "planetGen" / "jobs"), "jobs", web_uid, web_gid)
+
+
+def test_the_other_checks_still_hold_in_a_home_folder(home, tmp_path):
+    rootpaths, base = home
+    (base / "alice").mkdir()
+    (base / "alice" / "link").symlink_to(tmp_path)
+    for bad in (base / "alice" / "link", base / "alice" / "link" / "x"):
+        with pytest.raises(rootpaths.UnsafePath, match="symbolic link"):
+            rootpaths.check(str(bad), "jobs")
+    (base / "alice" / "data").mkdir()
+    (base / "alice" / "data" / "mine").write_text("x")
+    with pytest.raises(rootpaths.UnsafePath, match="not empty"):
+        rootpaths.check(str(base / "alice" / "data"), "jobs", os.getuid() + 1, os.getgid() + 1)
+    with pytest.raises(rootpaths.UnsafePath, match="not empty"):         # a whole home folder is not taken over either
+        rootpaths.check(str(base / "alice"), "jobs", os.getuid() + 1, os.getgid() + 1)
+    with pytest.raises(rootpaths.UnsafePath, match="hidden"):
+        rootpaths.check(str(base / "alice" / ".ssh" / "jobs"), "jobs")
