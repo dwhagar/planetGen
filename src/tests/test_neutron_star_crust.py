@@ -3,7 +3,7 @@
 """
 GEN.1358: the crust of a neutron star by density (`physics/neutron_star_crust.py`, `data/neutron_star_crust.json`) and its reader on the page.
 
-The table is Chamel and Haensel 2008 Tables 2 and 3 (READ): 15 nuclei of the outer crust with the density each holds to, neutron drip at 4.27e11 g/cm3 and
+The table is [R0722: Tables 2 and 3] (READ): 15 nuclei of the outer crust with the density each holds to, neutron drip at 4.27e11 g/cm3 and
 11 cells of the inner crust. The tests check the sequence against the printed one, that every row adds up, the refusals, and that the
 neutron star page shows it.
 """

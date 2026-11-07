@@ -5,7 +5,7 @@ The matter of the crust of a neutron star by density (GEN.1358)
 ===============================================================
 
 The crust of a neutron star is a lattice of nuclei in an electron gas whose nuclei change with the density, down to the layer where the matter turns
-uniform. [R0722] (Chamel and Haensel 2008, READ) give the sequence, and `data/neutron_star_crust.json` holds it:
+uniform. [R0722: Tables 2 and 3] (READ) gives the sequence, and `data/neutron_star_crust.json` holds it:
 
 * **The outer crust**, Table 2: a single kind of nucleus at each density, the ground state of cold catalysed matter, from iron-56 at the surface
   through nickel and the nuclei with 50 neutrons (krypton-86, selenium-84, germanium-82, zinc-80, zinc-82) to the nuclei with 82 neutrons (palladium-128

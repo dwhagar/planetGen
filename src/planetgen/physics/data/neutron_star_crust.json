@@ -1,6 +1,6 @@
 {
  "title": "Matter of the crust of a neutron star by density: the outer crust nuclei and the inner crust cells (GEN.1358)",
- "source": "[R0722] (Chamel and Haensel 2008, Living Reviews in Relativity 11:10): Table 2, the ground-state nuclei of the outer crust (experimental masses to 82Zn, the BSk8 mass model beyond), and Table 3, the cells of the inner crust (the Negele and Vautherin calculation); densities as printed (READ)",
+ "source": "[R0722: Table 2], the ground-state nuclei of the outer crust (experimental masses to 82Zn, the BSk8 mass model beyond), and [R0722: Table 3], the cells of the inner crust (the Negele and Vautherin calculation); densities as printed (READ)",
  "label": "READ",
  "outer_crust": [
   {
