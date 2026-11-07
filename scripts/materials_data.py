@@ -367,6 +367,8 @@ PART3_GROUPS = {
 # or a reached group lists it. A row that is neither is listed here with why, so it is vocabulary a later item may wire, not a row someone forgot; a row listed
 # here that a draw reads, or a row that is not in the table, fails the test. Reasons are plain words.
 _HP_SILICATE = "high-pressure silicate phase: no draw reads it, the mantle density comes from a fixed table in physics/bulk_structure.py"
+_ICE_PHASE = "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)"
+_SPECIES_ROW = "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet"
 VOCABULARY_ONLY = {
     "mg_wadsleyite": _HP_SILICATE, "fe_wadsleyite": _HP_SILICATE, "mg_ringwoodite": _HP_SILICATE, "fe_ringwoodite": _HP_SILICATE,
     "mg_bridgmanite": _HP_SILICATE, "fe_bridgmanite": _HP_SILICATE, "mgfe_bridgmanite": _HP_SILICATE, "mg_post_perovskite": _HP_SILICATE,
@@ -389,6 +391,13 @@ VOCABULARY_ONLY = {
     "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
     "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
     "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+    # GEN.1359: the species rows the inventories name; a later item wires each to its draw
+    "ice_ic": _ICE_PHASE, "ice_iv": _ICE_PHASE, "ice_ix": _ICE_PHASE, "ice_xi": _ICE_PHASE, "ice_xv": _ICE_PHASE,
+    "o2_ice": _SPECIES_ROW, "xe_ice": _SPECIES_ROW, "ar_ice": _SPECIES_ROW, "kr_ice": _SPECIES_ROW, "c2h2_ice": _SPECIES_ROW,
+    "nh4cl": _SPECIES_ROW, "nh4hco3": _SPECIES_ROW, "nh4sh": _SPECIES_ROW, "ammonium_formate": _SPECIES_ROW, "ammonium_sulfate": _SPECIES_ROW,
+    "ammonia_monohydrate": _SPECIES_ROW, "sulfuric_acid_monohydrate": _SPECIES_ROW, "sulfuric_acid_tetrahydrate": _SPECIES_ROW,
+    "tholin": "organic solid of the haze: physics/aerosols.py carries its own density constant and no draw reads this row yet",
+    "insoluble_organic_matter": "organic solid of chondrites and comets: the comet draw reads the lumped complex_organics row, not this one",
     **{row: "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)" for row in (
         "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "niningerite", "alabandite", "daubreelite", "osbornite",
         "sinoite", "khamrabaevite")},

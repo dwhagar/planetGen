@@ -18,6 +18,11 @@
   "hakim2018": "[R1752] (iron and light-element equations of state), Tables D.5 and F.7, as read in part B",
   "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/composition/body-composition-parts/B-rocky.md section 2.1b)",
   "slb2024-burnman": "[R4233], Thermodynamics of mantle minerals III, GJI 237, 1699 [R4233], as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
+  "lsbu-ice-phases": "Chaplin, Water Structure and Science, the ice phases table (water.lsbu.ac.uk/water/ice_phases.html), the crystallographic density column; a web compilation read for GEN.1359",
+  "titan-haze-density": "Titan haze density compilation of the UCSC titan materials group (titanmaterials.sites.ucsc.edu/haze-density): pycnometry of laboratory tholins (three groups, one of them [R2080]), and the same page's effective density of aggregates (0.95 to 1.13 g/cm3)",
+  "sshade-solid": "SSHADE solid-phase pages (Solid Spectroscopy Hosting Architecture of Databases and Expertise), the density listed for the compound",
+  "wikipedia-infobox": "Wikipedia compound or element infobox density, no temperature given there; the cited handbook was not read",
+  "wikipedia-solid-oxygen": "Wikipedia, Solid oxygen: the molar volume of the alpha phase (21 cm3/mol), turned into a density here with the molar mass",
   "exoplex": "ExoPlex 1.0.1a1 source distribution ([R0111] liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",
   "hp2011-burnman": "[R1981] data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",
   "journaux2020": "[R2204], JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C section 2.3 (computed from second-hand data)",
@@ -125,6 +130,26 @@
   "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
   "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
   "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+  "ice_ic": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "ice_iv": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "ice_ix": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "ice_xi": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "ice_xv": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+  "o2_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "xe_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "ar_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "kr_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "c2h2_ice": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "nh4cl": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "nh4hco3": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "nh4sh": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "ammonium_formate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "ammonium_sulfate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "ammonia_monohydrate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "sulfuric_acid_monohydrate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "sulfuric_acid_tetrahydrate": "species row added from the comet and giant-planet inventories (GEN.1359): no draw names it yet",
+  "tholin": "organic solid of the haze: physics/aerosols.py carries its own density constant and no draw reads this row yet",
+  "insoluble_organic_matter": "organic solid of chondrites and comets: the comet draw reads the lumped complex_organics row, not this one",
   "pyrrhotite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "pentlandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
   "chalcopyrite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
@@ -6022,6 +6047,569 @@
    "source": "cod-part-d",
    "state": "verified",
    "limit": ""
+  },
+  {
+   "id": "ice_ic",
+   "name": "ice Ic",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [
+    "cubic ice"
+   ],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 0.933,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density; measured about 0.943 near 80 K",
+     "measured_range": [
+      0.933,
+      0.943
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "ice_iv",
+   "name": "ice IV",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.275,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density (metastable high-pressure phase)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "ice_ix",
+   "name": "ice IX",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.16,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density (proton-ordered ice III)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "ice_xi",
+   "name": "ice XI",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 0.93,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density (proton-ordered ice Ih)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "ice_xv",
+   "name": "ice XV",
+   "family": "ice",
+   "formula": "H2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": "H2O",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.328,
+     "unit": "g/cm3",
+     "source": "lsbu-ice-phases",
+     "code": "H",
+     "basis": "crystallographic density (proton-ordered ice VI)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "lsbu-ice-phases",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of the crystallographic density; the original structure papers were not read"
+  },
+  {
+   "id": "o2_ice",
+   "name": "oxygen ice",
+   "family": "ice",
+   "formula": "O2",
+   "composition": "",
+   "aliases": [
+    "oxygen ice",
+    "solid oxygen",
+    "alpha oxygen"
+   ],
+   "members": null,
+   "gas_formula": "O2",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.524,
+     "unit": "g/cm3",
+     "source": "wikipedia-solid-oxygen",
+     "code": "C",
+     "basis": "alpha phase: 31.9988 g/mol over the molar volume 21 cm3/mol (the gamma phase is 23.5 cm3/mol, about 1.36)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=C",
+   "note": "",
+   "source": "wikipedia-solid-oxygen",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "xe_ice",
+   "name": "xenon ice",
+   "family": "ice",
+   "formula": "Xe",
+   "composition": "",
+   "aliases": [
+    "xenon ice",
+    "solid xenon"
+   ],
+   "members": null,
+   "gas_formula": "Xe",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.408,
+     "unit": "g/cm3",
+     "source": "wikipedia-infobox",
+     "code": "H",
+     "basis": "solid at the triple point"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "wikipedia-infobox",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: an infobox value with no temperature; the handbook behind it was not read"
+  },
+  {
+   "id": "ar_ice",
+   "name": "argon ice",
+   "family": "ice",
+   "formula": "Ar",
+   "composition": "",
+   "aliases": [
+    "argon ice",
+    "solid argon"
+   ],
+   "members": null,
+   "gas_formula": "Ar",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No solid density was reached for GEN.1359.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "kr_ice",
+   "name": "krypton ice",
+   "family": "ice",
+   "formula": "Kr",
+   "composition": "",
+   "aliases": [
+    "krypton ice",
+    "solid krypton"
+   ],
+   "members": null,
+   "gas_formula": "Kr",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No solid density was reached for GEN.1359.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "c2h2_ice",
+   "name": "acetylene ice",
+   "family": "organic ice",
+   "formula": "C2H2",
+   "composition": "",
+   "aliases": [
+    "acetylene ice",
+    "solid acetylene"
+   ],
+   "members": null,
+   "gas_formula": "C2H2",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No solid density was reached for GEN.1359.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "nh4cl",
+   "name": "ammonium chloride",
+   "family": "halide",
+   "formula": "NH4Cl",
+   "composition": "",
+   "aliases": [
+    "sal ammoniac"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.519,
+     "unit": "g/cm3",
+     "source": "sshade-solid",
+     "code": "H",
+     "basis": "solid, no temperature listed"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "sshade-solid",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a database listing without the temperature or the original measurement"
+  },
+  {
+   "id": "nh4hco3",
+   "name": "ammonium bicarbonate",
+   "family": "ammonium salt",
+   "formula": "NH4HCO3",
+   "composition": "",
+   "aliases": [
+    "ammonium hydrogen carbonate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.58,
+     "unit": "g/cm3",
+     "source": "sshade-solid",
+     "code": "H",
+     "basis": "the middle of 1.573 to 1.586",
+     "measured_range": [
+      1.573,
+      1.586
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "sshade-solid",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a database listing without the temperature or the original measurement"
+  },
+  {
+   "id": "nh4sh",
+   "name": "ammonium hydrosulfide",
+   "family": "ammonium salt",
+   "formula": "NH4SH",
+   "composition": "",
+   "aliases": [
+    "ammonium hydrosulphide"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.17,
+     "unit": "g/cm3",
+     "source": "wikipedia-infobox",
+     "code": "H",
+     "basis": ""
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "wikipedia-infobox",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: an infobox value with no temperature; the handbook behind it was not read"
+  },
+  {
+   "id": "ammonium_formate",
+   "name": "ammonium formate",
+   "family": "ammonium salt",
+   "formula": "HCOONH4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.26,
+     "unit": "g/cm3",
+     "source": "wikipedia-infobox",
+     "code": "H",
+     "basis": ""
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "wikipedia-infobox",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: an infobox value with no temperature; the handbook behind it was not read"
+  },
+  {
+   "id": "ammonium_sulfate",
+   "name": "ammonium sulfate",
+   "family": "ammonium salt",
+   "formula": "(NH4)2SO4",
+   "composition": "",
+   "aliases": [
+    "ammonium sulphate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.77,
+     "unit": "g/cm3",
+     "source": "wikipedia-infobox",
+     "code": "H",
+     "basis": ""
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "",
+   "source": "wikipedia-infobox",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: an infobox value with no temperature; the handbook behind it was not read"
+  },
+  {
+   "id": "ammonia_monohydrate",
+   "name": "ammonia monohydrate",
+   "family": "ice",
+   "formula": "NH3H2O",
+   "composition": "",
+   "aliases": [
+    "nh3 monohydrate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "The ammonia-water compound of the cold moons; its density was not reached (the crystal database page was empty).",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "sulfuric_acid_monohydrate",
+   "name": "sulfuric acid monohydrate",
+   "family": "ice",
+   "formula": "H2SO4H2O",
+   "composition": "",
+   "aliases": [
+    "sulphuric acid monohydrate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "Sulfuric acid forms hydrates with 1, 2, 3, 4, 6.5 and 8 waters; no density was reached.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "sulfuric_acid_tetrahydrate",
+   "name": "sulfuric acid tetrahydrate",
+   "family": "ice",
+   "formula": "H2SO4(H2O)4",
+   "composition": "",
+   "aliases": [
+    "sulphuric acid tetrahydrate"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "Sulfuric acid forms hydrates with 1, 2, 3, 4, 6.5 and 8 waters; no density was reached.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "tholin",
+   "name": "tholin",
+   "family": "organic",
+   "formula": null,
+   "composition": "nitrogen-rich organic solid made by irradiating or sparking CH4 and N2",
+   "aliases": [
+    "tholins",
+    "titan tholin"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.4,
+     "unit": "g/cm3",
+     "source": "titan-haze-density",
+     "code": "H",
+     "basis": "laboratory pycnometry 1.343 [R2080], 1.38 and 1.45 (two other groups): the middle of the widest range",
+     "measured_range": [
+      1.343,
+      1.45
+     ]
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "The material density; an aggregate of the haze has a lower effective density (0.95 to 1.13 g/cm3 in laboratory experiments), and the haze code of aerosols.py assumes 1.0 for the aggregates, which this row does not change.",
+   "source": "titan-haze-density",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation of lab pycnometry on laboratory analogues, not of a material measured in a natural haze"
+  },
+  {
+   "id": "insoluble_organic_matter",
+   "name": "insoluble organic matter",
+   "family": "organic",
+   "formula": null,
+   "composition": "macromolecular organic solid of chondrites and comets, the part no solvent dissolves",
+   "aliases": [
+    "IOM",
+    "chondritic insoluble organic matter"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No density source was read (GEN.1359); the lumped complex_organics row stays the one the comet draw reads.",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
   },
   {
    "id": "amorphous_carbon",
