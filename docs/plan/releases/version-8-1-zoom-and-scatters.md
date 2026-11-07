@@ -707,5 +707,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.666 | Three tests are red on main: test_db_column_round_trip (rogue surface_liquid_ammonia_wt is never written; irregular_moons is in NEVER_READ), test_object_rows (_Rows has no fetchone) and the brown dwarf case of test_rogue_habitability (temp_livable_share) (bug) |  |  |
 | TEST.667 | Four queue tests are red on clean main: test_api_jobs (test_a_quick_edit_answers_in_the_same_response, test_a_slow_edit_answers_202_with_the_job_id) and two in test_rq_time_limits (bug) |  |  |
 | TEST.668 | Two tests in test_update_database_step.py are red on clean main (bug) |  |  |
-| TEST.669 | 35 tests in test_web_sector_nav.py and test_web_pages.py are red on main: the sector page answers 404 on their fake ids (a public-ID change?) (bug) |  |  |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, TEST.300, GEN.743, GEN.744, GEN.745, GEN.752 |  |
