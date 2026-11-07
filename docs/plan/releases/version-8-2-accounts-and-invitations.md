@@ -70,6 +70,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | MAP.394, MAP.395, MAP.396 |  |
 | DOC.107 | Docs: the Sensor view (what it shows for each kind, the estimate labels, the API route) in the help and the design notes | MAP.394, MAP.395, MAP.396 |  |
 | UX.273 | Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views | MAP.394, MAP.395, MAP.396, TEST.629, DOC.107 |  |
+| UX.286 | Sensor view: a dotted line through the middle of a planet, moon or star along its axis of rotation, read from the stored spin axis and axial tilt |  |  |
+| GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values |  |  |
+| UX.287 | Sensor view: magnetic field lines drawn for a planet, moon, star or neutron star from its stored field strength and dipole orientation, when it has a field |  |  |
 | UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss |  | Split from UX.43. |
 | UX.131 | Console tokens, type and base template in both themes | UX.130, UX.265 | Split from UX.43. |
 | USR.27 | Admin Users page: list accounts, promote, demote, disable and delete | USR.26 | Split from USR.2. |
