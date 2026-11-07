@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.47 |
 | TEST | TEST.670 |
 | USR | USR.32 |
-| OPS | OPS.114 |
+| OPS | OPS.115 |
 | DOC | DOC.110 |
 | VIEW | VIEW.48 |
 | POP | POP.52 |
@@ -2708,6 +2708,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.111 | update.sh crashes with KeyError 'stages' in the update guard when Redis holds a run record with no stages (bug) | none | done, PR #5474 |
 | OPS.112 | New galaxy jobs fail at stages 3 to 14 with numba "cannot cache function bright_ranges: no locator available" because the code tree is read-only to the service user since SEC.37 (bug) | none | done, PR #5477 |
 | OPS.113 | update.sh fails when started by systemd (the Update button and the monthly timer) while warm-up or other jobs run: a systemd-started update cancels everything except generation and refuses only while generation runs (bug) | none | done, PR #5485 |
+| OPS.114 | Warm-ups (update.sh, on-change, the nightly whole-map tiles build) exit cleanly with success and "galaxy is empty, nothing to warm up" when the database holds no galaxy, and update.sh says skipped, not failed (bug) | none | done, PR #5492 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
