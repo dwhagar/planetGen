@@ -2831,3 +2831,12 @@ Baseline: PR #1817.
 | GEN.1299 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | GEN.1288 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | GEN.743 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| ADM.136 | 8.1 | Bugs and flaky tests |
+| TEST.671 | 8.1 | Bugs and flaky tests |
+| TEST.673 | 8.1 | Bugs and flaky tests |
+| TEST.670 | 8.1 | Bugs and flaky tests |
+| TEST.672 | 8.1 | Bugs and flaky tests |
+| TEST.674 | 8.1 | Bugs and flaky tests |
+| GEN.1241 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1327 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.675 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |

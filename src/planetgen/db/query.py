@@ -3630,8 +3630,9 @@ def nebula_shape(conn, nebula_id):
     """
     One nebula's shape (GEN.75, `planetgen.galaxy.nebula_shape`): the one
     stored with it (`nebulae.shape_*` and `nebula_shape_balls`), or, for a
-    nebula saved before v56, the one a fresh save would have stored,
-    drawn from its own properties.
+    nebula saved before v56, the one its stored properties give (drawn
+    from them, `dominant_species` included, so it is the same each time it
+    is read but not the generator's own, whose species text a save rewrites).
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.

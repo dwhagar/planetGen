@@ -67,11 +67,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
 | GEN.396 | Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants |  | Core 3 finding, 2026-10-16 10:00 PM EDT; any Core lane. |
-| ADM.136 | A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug) |  |  |
-| TEST.670 | test_parent_link fails on main: the delete-sector test hits the rogue planet foreign key, which is RESTRICT (bug) |  |  |
-| TEST.671 | test_citations_outside_the_registry fails on main: Simpson 1928 and Hadden and Lithwick 2014 are cited by name outside the registry (bug) |  |  |
-| TEST.672 | test_nebula_shape fails on main and differs by a different item each run (flaky, bug) |  |  |
-| TEST.673 | test_unit_registry_js fails on main (bug) |  |  |
 
 ### Nebula data foundations
 
@@ -467,12 +462,12 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1085 | Belt ledger link: a captured member leaves its belt's mass total; until then captured bodies come from the outer-disc reservoir only | GEN.1069 |  |
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders | GEN.1085 |  |
 | TEST.660 | The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train |  |  |
+| TEST.676 | Radius valley and rogue-envelope tests: a measured gate on the 1.5 to 2.0 Earth radii gap against the published valley, and a check that starless planets of 1 to 20 Earth masses keep the whole envelope and are classed like bound ones (GEN.1323 parts C and D) |  |  |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | GEN.1069, GEN.1006 |  |
 | GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | GEN.1068 |  |
 | GEN.1278 | Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14) |  |  |
 | GEN.1070 | Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump | GEN.1069 |  |
 | GEN.1069 | Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words | GEN.477, GEN.1068 |  |
-| GEN.1241 | Wire the system body view: the ledger and barycentre function read the typed tables for the system page |  |  |
 | GEN.1068 | Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py) | GEN.1014 |  |
 | GEN.1231 | White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent | GEN.1068 |  |
 | GEN.1150 | Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region" | GEN.1006 | Trojans T2, epoch lock, train 8 |
@@ -571,11 +566,14 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1319 | Sealed-ocean chemistry: leached sodium and calcium with no chloride or sulfate to balance them give oceans of pH 11 to 14 that lock all carbon into calcite (bug) |  |  |
 | GEN.1323 | Close-in planets of 4 to 40 Earth masses carry no hydrogen envelope, so there are no sub-Neptunes and no radius valley: the envelope recipes of GEN.509 and GEN.722 are not read by the generator (bug) |  |  |
 | GEN.1325 | Giant planet eccentricity averages 0.08 against 0.22 published for the observed giants |  |  |
-| GEN.1327 | Fewer life-capable bodies on the train 13 sweep than on main: letters holding a capable body fell from 12 to 9, with class C 21 to 16, E 35 to 29, N 1 to 0 of 22, Z 1 to 0 of 6 and F 1 to 0 of 1 while G, S, T and U rose; check whether the drop is intended (bug) |  |  |
 | GEN.1329 | Three of 20 hot rocky planets hold 1e5 bar steam airs of 3 to 7 percent of the planet's mass on K hosts: check whether the water inventory and the loss are right (bug) |  |  |
 | GEN.1320 | Fire limit by oxygen pressure: the 35 percent oxygen cap becomes a limit on oxygen pressure, so thin-air worlds no longer pile up at exactly 35 percent (bug) |  |  |
 | GEN.1321 | Oxygen classes judged by oxygen pressure, not share: classes M, H, L, O, P and R and the thick-air worlds that dilute oxygen under 10 percent |  |  |
 | GEN.1331 | Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide) | GEN.1321 |  |
+| GEN.1332 | A nebula's stored shape cannot be reproduced from its stored row: the shape seed includes the dominant-species text, which store_composition rewrites afterwards (TEST.672) |  |  |
+| GEN.1333 | A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers | GEN.1323 |  |
+| GEN.1334 | A planet with a hydrogen-helium envelope has no ground: no surface dose, land fraction or rocky air solve beneath it; its air, moons and rings follow the envelope (GEN.1323 part B) | GEN.1323 |  |
+| GEN.1335 | Inner planets (inside 100 days) are 5 to 8 Earth masses against the 3.72 median of the Kepler survey, so the rocky peak of the radius valley sits at 1.5 to 1.75 Earth radii instead of 1.3 to 1.4: compare the generated inner mass function with the published masses |  |  |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) |  |  |
 
 ### Physics rectification: winds and ring darkening

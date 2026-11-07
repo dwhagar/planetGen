@@ -4,6 +4,8 @@ Planets 1 lane, 10-30. Boss (4:54 PM EDT 10-30): "physics is the driver for rogu
 
 Source marks: **[read]** a paper whose text was opened for this report or for GEN.1089 and the oddity lanes; **[R]** recalled, to be confirmed by the replacement item before it is relied on.
 
+**Refresh of 2026-11-07 (main with train 13):** sections 1 to 7 are the review as written on 10-30 and stay as the record of what the generator did then. Section 8 gives the state of every row now (all sixteen are built, deleted or turned into a named stand-in) and which of RP1 to RP9 are done. The flat rate, the hand-cut mass bins, the uniform age, the speed with no kick, the envelope, water and heat defaults and the cluster gap are gone; what is left is the top-up dial and its stand-ins.
+
 **Update (GEN.1286, 2026-11-05):** rows 5, 6, 8, 9 and 12 below describe the old defaults. Those constants (`ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`, `ROGUE_HYDROGEN_ENVELOPE_CHANCE`, `ROGUE_WATER_RICH_CHANCE`, `ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH`, `ROGUE_ACTIVE_HEAT_FLUX_W_M2`) and the unread modules `rogue_volatiles` and `rogue_radiogenic` are deleted: a rogue is the planet chain against a starless host (`starless_host`), which gives the giant class from the radius, the water from the formation distance against the snow line, the radiogenic content from the donor's composition and the air from the body's own conditions. One effect is not modelled: the envelope a planet loses to its star's XUV in the time before the ejection (the host has no luminosity).
 
 ## Result in one paragraph
@@ -99,3 +101,32 @@ R3 (GEN.1112) is RP2 to RP7 as the replacement modules; RP1 is the first of them
 ## 7. Stand-ins this review registers
 
 GEN.1119 registers EJ1 and EJ2 (section 6.127). The audit itself adds no number to the generator; rows 1 to 12 and 14 to 16 already count as stand-ins in the design table and are replaced by RP1 to RP7.
+
+## 8. Where every row stands now (2026-11-07, main with train 13)
+
+Status words: **built** (a physical module or the planet chain does it), **deleted** (the default was removed and nothing replaces it because the chain now gives the answer), **stand-in** (a registered number remains), **open**. Items and files are those of main; tier and tweak levels are in the registry sections named.
+
+| # | Quantity | Now | Where |
+|---|---|---|---|
+| 1 | Count per star | **built + stand-in.** A rogue is a body a generated system threw out (the architecture's loss record), made again by the planet chain against a starless host and stored where it has drifted to; the flat 5.8 per star is gone (GEN.1111 part 8). Each cluster-unbound planet is a rogue too (GEN.1288). Embryos the planets stir leave as rogues (GEN.1299, SM1 to SM3, section 6.193). A sector's shortfall in mass is made up by a top-up never above the Rogues level: None 0, Few 2.5, Normal 4.3, Many 10 per star (`ROGUE_LEVEL_CEILINGS`, registry 6.86 RT1, T9 L3, the numbers Boss accepted); the levels are dials, not physics | `generation/rogue_yield.py`, `rogue_topup_build.py`, `physics/rogue_topup.py` |
+| 2 | Count per volume | **built.** The per-volume figure is whatever the stars of a sector donate plus the top-up; no density constant is read for planets | `rogue_yield`, `rogue_topup` (GEN.1120, GEN.1125) |
+| 3 | Mass function | **built.** Masses are the ejected spectrum, `dN/dlogM ~ M^-0.83` from the cascade (q = 3.5), cut at the scatterer's mass; the top-up draws from it (GEN.1287); a donor's rogues take the masses of its loss record. Sumi's 0.96 (+0.47 -0.27) contains it | `physics/rogue_mass_function.py` (GEN.1112 RP2) |
+| 4 | Lower mass edge | **stand-in.** Donor rogues have the architecture's own floor (`PLANET_MIN_MASS_EARTH`); the top-up's lightest is the lowest bin edge, 0.1 Earth masses (`ROGUE_PLANET_MASS_BIN_EDGES_EARTH`) | `rogue_topup.MIN_MASS_EARTH` |
+| 5 | Gas-giant threshold | **deleted.** The giant class comes from the radius in the planet chain (a giant from 10 Earth masses, GEN.1133) | GEN.1286 |
+| 6 | Air kept through ejection | **built, one effect left out.** A body with no starlight keeps its envelope and its own heat warms it (GEN.1111 part 5). The envelope a planet loses to its star's XUV before the ejection is not modelled and measured negligible: under 1 percent for almost every rogue, because the scatterers sit at 1 to 30 AU and the law starts at 1 Gyr (`reports/rogue-xuv-envelope-loss-before-ejection-2026-11-05.md`; no item filed) | `starless_host.py`, GEN.1286 |
+| 7 | Moons carried out | **built.** A moon stays if its orbit is inside the limit the encounter allows [R2031]; the moon system the rogue keeps follows the ejection record | `physics/rogue_moons.py` (GEN.1112 RP4, GEN.1111) |
+| 8 | Water-rich | **deleted.** Water follows the formation distance against the snow line, in the chain | GEN.1286 |
+| 9 | Frozen atmosphere | **deleted.** The air chain decides from the body's own conditions and inventory | GEN.1286 |
+| 10 | Age | **built + stand-in.** A donor's rogue is as old as its star (the galaxy's age law) and its ejection time comes from the loss record (the disk lifetime, `EJECTION_TIME_GY`; GEN.1295 RG2, burn-down rows to no data); the time since is the rest. The top-up keeps the uniform 0.1 to 10 Gy (`ROGUE_PLANET_AGE_RANGE_GY`, `DEFAULT_AGE_LAW`) because it has no donor | `physics/rogue_age.py` (GEN.1112 RP5) |
+| 11 | Temperature | **built.** A rogue's heat is the chain's, fed the real age. The giant cooling law (t^-1.3, Jupiter 5.4 W/m2, Neptune 53 K, 0.3 bar) stays for the free-floating brown dwarfs only | `physics/rogue_surface.py` |
+| 12 | Internal heat | **deleted.** Radiogenic content comes from the donor's composition, the mantle and core from the chain | GEN.1286 |
+| 13 | Retention test | **deleted as a rogue constant.** `ROGUE_MIN_ESCAPE_PARAMETER` is gone; a rogue keeps or loses its air by the air chain's own rule (not re-measured here) | GEN.1111 |
+| 14 | Speed | **built.** The speed at infinity from the scatterer's mass and orbit ([R2031], 3 km/s scale, lognormal spread), plus the planet's orbital velocity at the ejection, isotropic (Boss, 10-30); the star's galactic velocity is added; the top-up uses the thin disk's dispersion (35, 25 and 20 km/s in U, V and W) | `physics/rogue_kick.py` (GEN.1113), `ejection_events.py` |
+| 15 | Origin / parent | **built.** An ejected rogue is saved with its donor and carries a note naming the system, how long ago, and a cluster unbinding where it was one; a top-up rogue is marked origin "apparent" and links no donor | `rogue_yield.note_of`, `db/store.save_donor_rogues` |
+| 16 | Cluster unbinding | **built, first version** (GEN.1288); the full version waits for GEN.359 (moved to 8.1) | `physics/cluster_unbinding.py` |
+
+**RP1 to RP9.** RP1 done (GEN.1119). RP2 done (GEN.1112, drawn by the top-up since GEN.1287). RP3 done in the chain (GEN.1286), pre-ejection XUV measured negligible. RP4 done (GEN.1111). RP5 done (GEN.1112, GEN.1295). RP6 done (GEN.1113). RP7 first version done (GEN.1288). RP8 done (GEN.1111, parts 1 to 9). RP9 done (TEST.499, `tests/test_rogue_yield_calibration.py`): the donors alone gave about 0.085 bodies of 0.1 to 10 Earth masses per star against the [R0258] band of 0.8 to 7.5; after GEN.1299 the architecture ejects 1.32 per star in that range (inside the band) and 0.65 per star of 0.33 Earth masses and up, and the 8 to 42 per star of the microlensing band is reached only by the top-up at the Many level (`reports/rogue-yield-calibration-2026-11-06.md`).
+
+**What is still a dial or open.** The Rogues-level ceilings (RT1) and the top-up's placement share (RT2) are Boss's dials and carry no physics. The microlensing yield (21 per star) is not reproduced by scattering alone and is not expected to be ([R4533], Ma et al. 2016); the remainder is left to the top-up, which labels its rogues "apparent". The top-up's age (uniform) and lowest mass (0.1 Earth masses) are stand-ins until a donor field supplies them.
+
+**Small findings of section 4.** The 6.5 against 5.8 wording went with the flat rate (`ROGUE_PLANET_RATE_PER_STAR` no longer exists). `PHENOMENON_DENSITY_PC3` stays for the brown-dwarf and other phenomena rates, not for planets.

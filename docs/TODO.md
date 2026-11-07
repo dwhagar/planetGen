@@ -10072,23 +10072,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1068. Related: GEN.1072, GEN.1068, GEN.725.
   Folded in (2026-11-07, Boss approved the TODO plan): GEN.1203 Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants.
 
-- [ ] **GEN.1241 Wire the system body view: the ledger and barycentre function read the typed tables for the system page**
-  From Planets 1's GEN.1066 (merged as #4754, 7:11 AM EST on
-  2026-11-04), filed by the TODO thread. The pure ledger and barycentre
-  module (physics/system_bodies.py, design note
-  docs/design/systems/system-bodies-ledger.md) is on main and tested,
-  but nothing calls it: the view over the typed tables (stars, planets,
-  moons, belts, comets) that gives a system its body ledger and
-  barycentre is a view with no new storage, and it needs the belt member
-  rows of GEN.1069. Do: add the view (read-side only) and wire it to the
-  system page and the API, listing every body with its mass and its
-  barycentre offset, and remove the wiring-register line for the module.
-  Done: a system page shows its barycentre and the belt wobble, with
-  units, from the stored rows; a test pins it. Lock-free if no stored
-  value changes. Owner: Planets 1.
-  Prerequisites: GEN.1069.
-  Prerequisites: none.
-
 - [ ] **GEN.1249 A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree**
   Found by Tides 1 in its GEN.1218b build, about 2:30 PM EST on
   2026-11-04 (as the lane reported); notes in
@@ -12404,31 +12387,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: DB.106, GEN.799. Related: ADM.62, ADM.130, ADM.131.
 
-- [ ] **ADM.136 A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug)**
-  Boss (2026-10-31, 9:25 PM EDT, as the lane reported 01:25:37 UTC): a
-  New galaxy job stalled waiting on a generation run started by another
-  process, and the run that holds the machine is not yet identified.
-  #4675 now names the holder in the log. Do: (1) read the holder's run
-  record (title, kind, start, process) from the job log of the stalled
-  job and from the run page, and say whether it is a live run, a dead
-  run whose owner process is gone, or the same job's own earlier run;
-  (2) if the holder is dead, make the run line free it (the existing
-  dead-holder check, `_free_dead_holder`, must cover this case: a run
-  whose process no longer exists, a run killed by the host, or a run
-  left by an update); (3) if it is live, say who started it and why it
-  counts as a generation run. Done: a test that reproduces the holder
-  state found, and a New galaxy job that starts after the stale holder
-  is cleared. Lock-free, generation output unchanged. Owner: Tides 1 (Boss, 2026-11-07: fix it now). Version 8.1 (moved from 8.9 on Boss's approval of the TODO plan, 2026-11-07, because it blocks production generation).
-  Partial fix merged (#4680) (2026-10-31 9:40 PM EDT): wrapper.run now
-  passes nested_guard=True to runline.start_when_free, so a run started
-  inside a run that the same process follows fails at once with Busy
-  naming the holder, and logs a stack. The root caller that nests runs
-  is not found yet: keep this item open until Boss's next job log shows
-  the stack. The new test in test_run_line.py was not run (no gate on
-  that lane); it goes in the next changed-files gate.
-  Prerequisites: none. Related: ADM.95, PERF.227.
-  Prerequisites: none.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -12504,22 +12462,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1306, GEN.1323.
 
-
-- [ ] **TEST.670 test_parent_link fails on main: the delete-sector test hits the rogue planet foreign key, which is RESTRICT (bug)**
-  Train Manager (as the lane reported 1:03 AM EST on 2026-11-07), red on main and not caused by train 13: `test_parent_link` (the delete-sector test) fails because a rogue planet's foreign key to its parent is RESTRICT, so deleting a sector with a parent that holds rogue rows is refused. Do: say whether the code or the test is wrong (a sector delete must leave no row pointing at a deleted parent: either the delete order removes the rogue rows first or the key cascades or the rogue is released) and fix it with the reason in the commit, with a regression test. Done: the test passes on main and the sector delete and bring-to-epoch tests pass. Lock-free unless a migration is needed (then say so). Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1111, TEST.666.
-
-- [ ] **TEST.671 test_citations_outside_the_registry fails on main: Simpson 1928 and Hadden and Lithwick 2014 are cited by name outside the registry (bug)**
-  Train Manager (as the lane reported 1:03 AM EST on 2026-11-07), red on main: `test_citations_outside_the_registry` finds Simpson 1928 in `radiative_convective.py` and in `gap-filling-plan.md` row IR17, and Hadden and Lithwick 2014 in `validation_sweep_planets.py`. The rule is that a source appears only as its [R0123] registry number. Do: add the two papers to the registry with the add command if they are not there, replace each mention by its number, regenerate the references. Done: the test passes and the citations sweep is clean. Lock-free. Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
-  Prerequisites: none. Related: DOC.98, DOC.99.
-
-- [ ] **TEST.672 test_nebula_shape fails on main and differs by a different item each run (flaky, bug)**
-  Train Manager (as the lane reported 1:03 AM EST on 2026-11-07), fails on main and on train 13 with a different nebula each run. Do: find out whether the test or the generator is unstable. A run to run difference in a seeded draw would break seed reproducibility, so check first for an unordered set or dict, an unseeded stream, a thread race or a float tie. Done: the cause is named, the test passes 20 runs in a row alone and under load, and if the generator was unstable it is fixed with a test (and TODO is told, because that is a lock item). Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1273, TEST.344.
-
-- [ ] **TEST.673 test_unit_registry_js fails on main (bug)**
-  Train Manager (as the lane reported 1:03 AM EST on 2026-11-07), red on main and not caused by train 13, seen on both gate shards: `test_unit_registry_js` (the browser twin of the unit registry). Do: say whether the JS registry or the test is stale after the recent unit and column changes, and fix it with the reason in the commit. Done: the test passes on main and `test_quantity_js` still passes. Lock-free. Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.568, TEST.666.
 
 - [ ] **TEST.666 Three tests are red on main: test_db_column_round_trip (rogue surface_liquid_ammonia_wt is never written; irregular_moons is in NEVER_READ), test_object_rows (_Rows has no fetchone) and the brown dwarf case of test_rogue_habitability (temp_livable_share) (bug)**
   Tides 1 (as the lane reported, 8:43 PM EST on 2026-11-06), seen on plain main while building GEN.876, not caused by it. Do: for each of the three, say whether the test or the code is wrong and fix it with the reason in the commit: the rogue surface_liquid_ammonia_wt column is either written by the rogue build or is not a column; irregular_moons is either read somewhere or taken out of NEVER_READ with the reason; _Rows needs fetchone, or the code that calls it must not; the brown dwarf temp_livable_share is either the physics (then the test's expectation changes with its source) or a bug. Done: all three pass on main and the targeted tests pass. Lock-free unless a column is added or removed. Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
@@ -13743,11 +13685,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.753.
 
-- [ ] **GEN.1327 Fewer life-capable bodies on the train 13 sweep than on main: letters holding a capable body fell from 12 to 9, with class C 21 to 16, E 35 to 29, N 1 to 0 of 22, Z 1 to 0 of 6 and F 1 to 0 of 1 while G, S, T and U rose; check whether the drop is intended (bug)**
-  Train Manager (as the lane reported, 8:40 PM EST on 2026-11-06), train 13 gate. test_sweep_life reached only 9 of 10 life-class letters, and the Train Manager lowered its letter floor from 10 to 8 so the gate passes (a hand change to a test, to be undone or justified by this item). The first suspect is the GEN.1304 greenhouse refit, then GEN.1282 (deferred climate), GEN.1297, GEN.1298, GEN.1303 and GEN.1261. Do: after train 13 merges, rerun the sweep on the train 13 merge commit and on the commit before it, split the change in capable bodies by item (bisect over the train's items), and say for each whether it is the intended result of its physics (a table refit that moved worlds out of the habitable range is fine; a lost gate or a broken input is a bug). Report the numbers per class. If the drop is intended, set the test's letter floor from the new physics with the reason in the note; if not, fix the cause. Done: the per-item split is in a report, the floor is either restored to 10 or justified, and the targeted tests pass. Version 8.1. Owner: Bug 1 (census re-tag after train 13), with Core 5 for GEN.1304.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.600, GEN.1304.
-
 - [ ] **GEN.1320 Fire limit by oxygen pressure: the 35 percent oxygen cap becomes a limit on oxygen pressure, so thin-air worlds no longer pile up at exactly 35 percent (bug)**
   Boss (7:36 PM EST on 2026-11-06): option b for both oxygen findings of the GEN.1309 chain (/mnt/project-files/reports/gen1309-oxygen-chain-2026-11-07.md; plain-word write-up in the Planets 1 thread). Finding: some thin-air worlds (10 to 17 kPa) with oxygen-making life hit the 35 percent share cap, which stands in for the fire limit, and 3 of 5 (natural galaxy), 4 of 5 (sun-like stars with a habitable world) and 1 of 2 (orange stars) of the worlds with 16 percent oxygen or more sit at exactly 35.0 percent. Fire depends on oxygen pressure, not share (35 percent of 14 kPa is 5 kPa, a quarter of Earth's). Do: set the fire limit by oxygen pressure (stand-in value, registered with tier and tweak level; Earth's present air is the anchor and sources for burn limits are to be found first), so a thin air can carry a larger share and the pile-up spreads; measure the same three samples before and after. Lock item (generation output changes; epoch and goldens at the train). Done: no pile-up at one value in the three samples, the registry rows exist, the sweep shows the new spread. Version 8.1. Owner: Planets 1, before GEN.1278 (Boss asked for it and it is small). Feeds GEN.1318.
   Filed by the TODO thread.
@@ -13760,10 +13697,30 @@ clears each one.
   Prerequisites: none (build order: after GEN.1306 parts 2 and 3). Related: GEN.1306, GEN.1309, GEN.1320, GEN.1318, GEN.1331, GEN.1314.
 
 
+- [ ] **GEN.1332 A nebula's stored shape cannot be reproduced from its stored row: the shape seed includes the dominant-species text, which store_composition rewrites afterwards (TEST.672)**
+  Bug 1 (as the lane reported 2:16 AM EST on 2026-11-07), found while fixing TEST.672: the nebula shape seed (`galaxy/nebula_shape.py`) includes `dominant_species`, and since GEN.1276 `store_composition` rewrites that text after the shape is stored, so a row with no stored shape cannot be redrawn to the same shape, and the test could only be made to check the shape the stored properties give. Do: make the shape seed depend only on values that are fixed when the nebula is drawn (its address, kind and drawn size), not on text written later; say in the commit which stored shapes change. Done: redrawing a nebula from its stored properties gives the shape that was stored, with a test for a row that went through `store_composition`. Lock item (changes every stored nebula shape, so an epoch; ride a train with GEN.1273 or after it). Version 8.1. Owner: Bug 1 (after TEST.672). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1273, GEN.1276, GEN.75, TEST.672.
+
+- [ ] **GEN.1333 A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers**
+  Core 4 (as the lane reported 2:48 AM EST on 2026-11-07), from TEST.665: a request for a class (the forced-class draw behind `test_a_forced_rare_class_is_in_the_system`) finds P and G in about 1 of 24 forced systems on main even with three times the attempts, and with the GEN.1323 envelope step on its branch [G] fails in seeds 1 to 24. V was the same until GEN.1323 added a late-forming bare-core draw for it (V now 12 of 40 seeds, was 24). The test was not loosened. Do: find why a forced G and a forced P are rarely reachable (the physics gate that stops them, or the draw that never aims at them), then give each a physically honest route as V got (a late-forming or special-history draw, never a fixed body), or say in the commit that a class is unreachable by physics and change the request to say so. Boss decides if a class that physics makes this rare should still be requestable (the options go to him from the TODO thread when the finding is in). Done: a forced request for each class that physics allows is met in at least 18 of 24 seeds, or the test names the classes it exempts with the reason. Lock item (changes the drawn bodies for forced requests only; epoch note). Version 8.1. Owner: Core 4 (after GEN.1323 and GEN.1331). Filed by the TODO thread.
+  Prerequisites: GEN.1323. Related: TEST.665, GEN.1323, GEN.1306.
+
+- [ ] **GEN.1334 A planet with a hydrogen-helium envelope has no ground: no surface dose, land fraction or rocky air solve beneath it; its air, moons and rings follow the envelope (GEN.1323 part B)**
+  Core 4 (as the lane reported 2:50 AM EST on 2026-11-07), part B of GEN.1323. Today a sub-Neptune with an envelope still gets a surface dose, a land fraction and a rocky-style air solve beneath its envelope. Do: for bodies at or above 0.5 percent envelope, give no ground (no surface dose, no land fraction, no surface life gates), move the air to the envelope's own composition, and drop or re-form moons and rings to the new radius and Hill sphere. Sources found and any stand-in registered in GEN.725 with tier and tweak level. Done: no envelope planet carries a surface field, with a test over a generated sample, and the note reports the moon and ring changes. Lock item (output changes, an epoch). Version 8.1. Owner: Core 4 (after GEN.1323 merges). Filed by the TODO thread.
+  Prerequisites: GEN.1323. Related: GEN.1323, GEN.1306, GEN.725.
+
+- [ ] **GEN.1335 Inner planets (inside 100 days) are 5 to 8 Earth masses against the 3.72 median of the Kepler survey, so the rocky peak of the radius valley sits at 1.5 to 1.75 Earth radii instead of 1.3 to 1.4: compare the generated inner mass function with the published masses**
+  Core 4 (as the lane reported 3:00 AM EST on 2026-11-07), from the GEN.1323 and TEST.676 radius-valley sweep: the valley's trough is right (1.75 to 2.0 Earth radii) but the rocky peak is at 1.5 to 1.75 against 1.3 to 1.4 published [R1478], because the generator's planets inside 100 days are heavier (about 5 to 8 Earth masses) than the 3.72 median the survey was tuned on. The cause is in the architecture's inner mass function (`planet_architecture`), not the envelope law. Do: (1) lock-free analysis first: measure the generated mass function of planets inside 100 days on 240 G2V systems and compare it with published Kepler masses and the transit-timing masses, with sources found and the gap reported without tuning to it; (2) if the generator is off for a physical reason (the isolation mass, the pebble or solid supply, or the inner-disc loss), say which law and fix it, with any stand-in registered in GEN.725 with tier and tweak level. Done: the mass function and the rocky peak are in the report; if a fix is made, the peak sits within the published range and a test pins it. Lock item if a fix is made (an epoch). Version 8.1. Owner: Core 4 (after TEST.676). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1323, TEST.676, GEN.1261, GEN.725.
+
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.
   Filed by the TODO thread.
   Prerequisites: GEN.1321. Related: GEN.1321, GEN.1314, GEN.1312, GEN.1313, GEN.725.
+
+- [ ] **TEST.676 Radius valley and rogue-envelope tests: a measured gate on the 1.5 to 2.0 Earth radii gap against the published valley, and a check that starless planets of 1 to 20 Earth masses keep the whole envelope and are classed like bound ones (GEN.1323 parts C and D)**
+  Core 4 (as the lane reported 2:50 AM EST on 2026-11-07), parts C and D of GEN.1323. Do: (C) make the existing slow radius-valley test a measured gate with a report: gap depth in 1.5 to 2.0, planets per mass bin, against the published valley [R1478]; fail only when the shares leave the researched range. (D) a rogue-planet test that starless planets of 1 to 20 Earth masses keep the whole start envelope and are typed and classed like bound ones, with a short note. Done: both pass on main with the numbers in the note. Lock-free, no generation change. Version 8.1. Owner: Core 4 (after GEN.1323). Filed by the TODO thread.
+  Prerequisites: none (runs after GEN.1323 merges). Related: GEN.1323, TEST.436.
 
 - [ ] **TEST.660 The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train**
   Bug 1 (as the lane reported, 7:40 PM EST on 2026-11-06), from the TEST.656 verdicts: the census moon cells now hold 1 to 78 bodies against 500 to 700 in the reference ranges, because captured moons became irregulars (GEN.1082 to 1084) and the class census does not read them (K5V ecosphere moon unlimited 1 of 8, M2V cold moon 7 of 78). Do: let the class census read the irregular moons so a cell has enough bodies, then re-measure and re-baseline the moon class ranges (TEST.430 rows) after the last 8.1 train, so the sampling-width flags clear. Done: the moon cells hold hundreds of bodies and the census has no flag from sampling width. Version 8.1. Owner: Bug 1, after the last 8.1 train merges.

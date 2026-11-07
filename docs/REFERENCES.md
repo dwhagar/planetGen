@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5018 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5019 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -1812,6 +1812,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 ### H
 
 - <a id="paper-r1742"></a>**R1742** Haan, S. & Braun, R. 2014, On the formation of warped gas discs in galaxies, MNRAS, 440, L21, doi:10.1093/mnrasl/slu008. [paper](https://doi.org/10.1093/mnrasl/slu008) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnrasl/slu008/abstract)
+- <a id="paper-r5137"></a>**R5137** Hadden, S. & Lithwick, Y. 2014, DENSITIES AND ECCENTRICITIES OF 139KEPLERPLANETS FROM TRANSIT TIME VARIATIONS, ApJ, 787, 80, doi:10.1088/0004-637x/787/1/80. [paper](https://doi.org/10.1088/0004-637x/787/1/80) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/787/1/80/abstract)
 - <a id="paper-r1743"></a>**R1743** Hadden, S. & Lithwick, Y. 2017, Kepler Planet Masses and Eccentricities from TTV Analysis, AJ, 154, 5, doi:10.3847/1538-3881/aa71ef. [paper](https://doi.org/10.3847/1538-3881/aa71ef) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-3881/aa71ef/abstract)
 - <a id="paper-r1744"></a>**R1744** Hadigol, M. & Doostan, A. 2018, Least squares polynomial chaos expansion: A review of sampling strategies, Computer Methods in Applied Mechanics and Engineering, 332, 382, doi:10.1016/j.cma.2017.12.019, arXiv:1706.07564. [paper](https://doi.org/10.1016/j.cma.2017.12.019) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.cma.2017.12.019/abstract)
 - <a id="paper-r1745"></a>**R1745** Hadjidemetriou, J. D. 1963, Two-body problem with variable mass: A new approach, Icarus, 2, 440, doi:10.1016/0019-1035(63)90072-1. [paper](https://doi.org/10.1016/0019-1035(63)90072-1) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/0019-1035(63)90072-1/abstract)

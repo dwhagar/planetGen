@@ -848,6 +848,18 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/systems/<id>/habitable-species` — the same for every rocky
   planet and moon of a system that some species could live on: `bodies` of
   `{kind, id, name, unaided, equipped}`.
+- `GET /api/systems/<id>/bodies` — the body ledger of a system and the barycenter that
+  includes its belts (GEN.1241), built from the typed tables with no new storage: `bodies`
+  (every star, planet, moon, ring, comet, belt, belt body and the belt's remainder, each with
+  `kind`, `name`, `mass_kg`, `radius_km`, `density_kg_m3`, `a_au`, `e`, `i_deg`, `status`, `tier`
+  (`typed`, `L1` for a stored belt body, `L3` for the remainder), `parent`, `position_au` from
+  the parent's center and `distance_from_barycenter_au`; a typed body has its `ref` and `id`, a
+  belt body its `belt` and `rank`), `total_mass_kg`, `barycenter_au` (the primary star's center
+  at the origin), `central_offset_au` and `central_offset_km` (where the primary sits against
+  the barycenter), `belt_wobble_au` and `belt_wobble_km` (how far the belts move it),
+  `central_radius_km` and `belts` (`{belt, name, mass_kg, members, stored_members_kg,
+  extended_kg, residual}`; `residual` is the rows against the stored mass, 0 when they add up).
+  A belt body is placed at the mean anomaly it was drawn with. `404` for an unknown system.
 - `GET /api/species/<id>/habitable-worlds/systems/<system>` and
   `.../sectors/<sector>` — the other way round: the rocky planets and moons of
   one system, or of every system of one sector (at most 2,000 bodies; `truncated`

@@ -23,8 +23,10 @@ const { SKY_LIGHT_GLSL, skyLimit, starColour } = await import(`./skylight.js${VE
 const { apparentMagnitude } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 
 export const LIGHT_SPEED_KMS = 299792.458;
-export const PARSEC_KM = 3.0856775814913673e13;
-export const YEAR_SECONDS = 31557600;
+// The parsec in kilometers and the year in seconds are the unit registry's (unitregistry.js), not a number written here.
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+export const PARSEC_KM = convert(1, "pc", "km");
+export const YEAR_SECONDS = convert(1, "yr", "s");
 export const SECONDS_PER_YEAR = YEAR_SECONDS;
 // 1 km/s in parsecs a year, and the speed of light in parsecs a year.
 export const KMS_TO_PC_PER_YEAR = YEAR_SECONDS / PARSEC_KM;

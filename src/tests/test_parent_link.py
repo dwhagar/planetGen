@@ -5,9 +5,10 @@ DB.73: every kind of object says what it orbits in `parent_type` and `parent_id`
 and is stored, numbered, loaded, fingerprinted and deleted with it; a planet that leaves its star keeps its row and ID.
 """
 
+import pymysql
 import pytest
 
-from planetgen.db import fingerprint, store
+from planetgen.db import edits, fingerprint, store
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
@@ -119,8 +120,16 @@ def test_a_rogue_planets_moons_go_with_it_and_with_its_sector(mysql_config):
             store.assign_uids(conn, sector_id=sector_id)
         assert conn.execute("SELECT COUNT(*) AS n FROM moons WHERE uid IS NOT NULL AND rogue_planet_id = ?",
                             (rogue_id,)).fetchone()["n"] == 2
+        # GEN.1127: the sector row cannot go while a rogue planet is filed in it (the key is RESTRICT), so a bare delete is refused and the
+        # moons stay; emptying the sector takes the rogue planet and its moons and then the row.
+        with pytest.raises(pymysql.err.IntegrityError):
+            with conn:
+                conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
+        conn.rollback()
+        assert conn.execute("SELECT COUNT(*) AS n FROM moons WHERE rogue_planet_id = ?", (rogue_id,)).fetchone()["n"] == 2
         with conn:
-            conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
+            edits.empty_sector(conn, sector_id)
+        assert conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE id = ?", (sector_id,)).fetchone()["n"] == 0
         assert conn.execute("SELECT COUNT(*) AS n FROM moons").fetchone()["n"] == 0
         assert conn.execute("SELECT COUNT(*) AS n FROM moon_reflection_spectrum").fetchone()["n"] == 0
     finally:

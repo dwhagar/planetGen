@@ -10,6 +10,9 @@
 //
 // No DOM at import; `tests/js/daycounter.test.mjs` holds the numbers.
 
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+
 export const MS_PER_HOUR = 3600000;
 
 // Where the clock stands `nowMs` milliseconds since 1970, for a day of `dayHours` counted from `epochMs` and a night of `nightHours` (null when not known):
@@ -31,9 +34,9 @@ export function clockAt(nowMs, epochMs, dayHours, nightHours) {
 // A span of hours as "7 h 12 min 33 s" (hours only when the span is whole hours; seconds always shown for a span under a day, so the clock moves).
 export function spanText(hours) {
   if (!Number.isFinite(hours) || hours < 0) return "–";
-  const total = Math.floor(hours * 3600);
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
+  const total = Math.floor(convert(hours, "h", "s"));
+  const h = Math.floor(convert(total, "s", "h"));
+  const m = Math.floor(convert(total - convert(h, "h", "s"), "s", "min"));
   const s = total % 60;
   return `${h.toLocaleString("en-US")} h ${String(m).padStart(2, "0")} min ${String(s).padStart(2, "0")} s`;
 }

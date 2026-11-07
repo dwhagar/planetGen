@@ -2,6 +2,126 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3568] - 2026-11-07
+
+**Headline:** The API route snapshot lists the Queue page's held-jobs route, so the API version test passes again.
+
+### Changed
+
+- **API snapshot gains `/api/admin/work/held GET` (TEST.675).** The Queue page listing of the jobs held for a job they require (PERF.248) added the route without rewriting `tests/fixtures/api_routes.json`, so `test_api_version` failed on main. The route is new and nothing existing changed, so it is not a breaking change: `API_VERSION` stays 13 and `docs/reference/api.md` gets no line. `/api/uncharted-systems/<id>/generate POST` is already in the snapshot. Test fixture only.
+
+generation-output: unchanged
+
+## [8.0.3567] - 2026-11-07
+
+**Headline:** The life sweep's letter floor stays at 8 with its reason measured: the drop from 12 to 9 letters after train 13 is sampling on single-body letters, not lost life-capable bodies.
+
+### Changed
+
+- **The drop in life-capable letters after train 13 is sampling (GEN.1327).** The fixed sweep held 12 letters with a life-capable body before train 13 and 9 after. Cumulative runs over the train's items and three resamples of the sweep (about 900 bodies each) show the capable share unchanged (42.6 percent before, 42.8 after) and 10 to 13 letters per sample on both sides: GEN.1282 reshuffles the draws, GEN.1304 warms temperate wet worlds, and the rare letters (N, Z, F) hold one to a few bodies each, so whether one is capable is chance. `test_sweep_life` keeps its floor of 8 letters and the comment now says why; the per-item split is in `reports/gen1327-sweep-life-letters-2026-11-07.md`. Only a comment changes.
+
+generation-output: unchanged
+
+## [8.0.3566] - 2026-11-07
+
+**Headline:** The class census is re-tagged after train 13: six tags whose range holds again are removed and the eleven flags the train raised are tagged with their reasons.
+
+### Changed
+
+- **Class census re-tag after train 13 (GEN.1327).** The three live censuses ran on the train 13 tree. The life and systems censuses raised nothing. The class census raised eleven new flags: eight shares in four moon cells with a few bodies each (A0V, F5V, K0III and K5V ecosphere, 8 to 19 moons scored), tagged TEST.656, and three planet shares just past a range that is itself a 95 percent bound (A0V and F5V ecosphere planets with an unlimited life ceiling, G2V hot planets in Class C), tagged GEN.1327 with the numbers. Six tags whose range holds again are removed (A0V ecosphere planets microbial ceiling, A0V hot moons Class D, F5V ecosphere moons ceiling none, F5V ecosphere planets Class N, K5V cold planets Class T, M2V cold planets Class J). The class census passes on the new tags. Only test data changes; the ranges stay until the re-baseline after the last 8.1 train (TEST.660).
+
+generation-output: unchanged
+
+## [8.0.3565] - 2026-11-07
+
+**Headline:** A system page now shows the mass of the whole system, where its center of mass lies against the primary star, and how far its asteroid belts pull that star (GEN.1241).
+
+### Added
+
+- `GET /api/systems/<id>/bodies`: the body ledger of a system built from the typed tables with no new storage (stars, planets, moons, rings, comets, belts, the bodies each belt keeps and the belt's remainder), its total mass, barycenter, the central star's offset, the belt wobble and each belt's rows against its stored mass.
+- The "Mass and barycenter" panel on the system page, with the mass and distance of every body from the center of mass and a table of the belts (`web/system_ledger.py`).
+
+## [8.0.3564] - 2026-11-07
+
+**Headline:** The legacy-nebula shape test no longer fails on a nebula whose species text a save rewrites; it checks the shape its stored properties give.
+
+### Changed
+
+- **Nebula shape test follows the stored species (TEST.672).** A nebula's shape is seeded from its properties, `dominant_species` among them, and since GEN.1276 a save rewrites that text from the numbers after the shape is stored. `test_a_nebula_saved_before_shapes_gets_the_shape_a_fresh_save_would` compared the shape of a row with no stored shape against the generator's own, which can never match; it failed on every run, with a different nebula each time because the test builds a random one. It now checks the shape equals the one the stored properties give and is the same on a second read (renamed `..._gets_the_shape_its_stored_properties_give`). The `query.nebula_shape` docstring says the same; no behavior changes.
+
+generation-output: unchanged
+
+## [8.0.3563] - 2026-11-07
+
+**Headline:** The body-marker test picks its not-a-class letter from the class list instead of a fixed letter that has become a class.
+
+### Changed
+
+- **Body-marker test follows the class list (TEST.674).** `tests/js/bodymarkers.test.mjs` used R as the letter that is not a planet class, and R is a class now, so the test failed. It takes the first capital letter that `PLANET_CLASS_LETTERS` leaves out, so adding a class cannot break it again (it asserts a letter is left). Test only.
+
+generation-output: unchanged
+
+## [8.0.3562] - 2026-11-07
+
+**Headline:** The parent-link test follows the rule that a sector cannot be deleted while a rogue planet is filed in it, and checks that emptying the sector takes the rogue planet and its moons.
+
+### Changed
+
+- **Rogue planet and sector delete test fixed (TEST.670).** `test_a_rogue_planets_moons_go_with_it_and_with_its_sector` deleted a sector row straight out from under a rogue planet, which the key on `rogue_planets.sector_id` has refused (RESTRICT) since GEN.1127, so the test failed with an integrity error. The code is as designed (`DELETE /api/sectors/<id>` answers 409 while an object is filed in the sector). The test now asserts the bare delete is refused and the moons stay, then empties the sector with `edits.empty_sector` and asserts the sector, the rogue planet's moons and their spectra are gone. Test only; no migration.
+
+generation-output: unchanged
+
+## [8.0.3561] - 2026-11-07
+
+**Headline:** The browser's sky and day counter read the parsec, the year and the hour from the unit registry instead of writing the numbers themselves.
+
+### Changed
+
+- **Unit factors read from the registry in the browser (TEST.673).** `skysphere.js` took the parsec in kilometers and the year in seconds as numbers written in the file, and `daycounter.js` wrote 3600 in its clock text. Both now get them from `unitregistry.js` (`convert`), which is what `test_no_browser_script_declares_a_unit_factor` requires; the values are the same, so the sky and the clock do not change.
+
+generation-output: unchanged
+
+## [8.0.3560] - 2026-11-07
+
+**Headline:** The citation guard passes on main: three leftover places that wrote a source's name or a bracket-wrapped ID now use the bare registry ID.
+
+### Changed
+
+- **Citation guard green (TEST.671).** The validation sweep's printed reference lines name their sources by ID only ([R1307], [R5137], [R1478]), and two lines of the rogue-planet review no longer wrap an ID in brackets or write a dated refresh in author-year form. Only text changes.
+
+generation-output: unchanged
+
+## [8.0.3559] - 2026-11-07
+
+**Headline:** The rogue planet review now states, row by row, which of its sixteen quantities are built, deleted or still a registered stand-in.
+
+### Changed
+
+- `docs/design/research/rogue-planet-review.md` section 8: the state of every row and of RP1 to RP9 after the ejection, top-up, cluster and embryo work (documentation only).
+
+## [8.0.3558] - 2026-11-07
+
+**Headline:** Five sources named in code and docs (Kasting 1988, Simpson's limit, Van Eylen 2019, Hadden and Lithwick 2014, Fulton 2017) are written by their registry IDs, so the citation guard passes outside the TODO text.
+
+### Changed
+
+- **Sources written by registry ID (TEST.671).** `radiative_convective.py`, `scripts/validation_sweep_planets.py` and `docs/design/research/gap-filling-plan.md` no longer name these papers by author and year alone: Kasting 1988 is [R2275], Van Eylen and others 2019 is [R1307], Fulton and others 2017 is [R1478], Hadden and Lithwick 2014 is the new [R5137], and Simpson's limit is cited through Goldblatt and Watson 2012, the second-hand source, as the new [R1608]. Only comments, docstrings, a report line and the registry change.
+
+generation-output: unchanged
+
+## [8.0.3557] - 2026-11-07
+
+**Headline:** A New galaxy job no longer waits for ever on a generation run that nothing follows any more: a run left behind by a process that is still running is freed, and a run whose set-up fails ends instead of holding the machine.
+
+### Changed
+
+- **A run nobody follows is freed, even when its process is still running (ADM.136).** The run line freed a holder only when its process id was gone, or, for a run on another host, when its `alive` key had run out. A run left behind by a process that lives on (a worker that stays up, or a process id the system reused) counted as live for ever, so a New galaxy job that came after it waited behind it until its time ran out. A run now counts as dead when its record is over, when its process id is gone, or when its `alive` key has run out, which a followed run never lets happen.
+- **A followed run keeps its `alive` key while its follower is busy (ADM.136).** The follower said so only at each poll, so a callback that took longer than two minutes (saving what a stage found) would have let the key run out and the run look dead. The process that follows a run now says so from a thread of its own every 30 seconds until the run ends.
+- **A run whose set-up fails ends as failed (ADM.136).** The set-up after the machine is taken (making sure workers run, the debug relay, the run's log) was outside the block that ends the run on an error, so a failure there left the run live for a process that went on; the next run waited for it.
+- `src/tests/test_run_control.py` (found on the way): `test_a_started_unit_is_sent_the_stop_command` passed the fetched job object to `queue.remove`, which does not take it for a job when the queue's job class differs from the fetched one; it passes the id.
+
+generation-output: unchanged
+
 ## [8.0.3556] - 2026-11-07
 
 **Headline:** Helium-core and oxygen-neon white dwarfs now have layers of their own.
