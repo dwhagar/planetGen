@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.288 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1354 |
+| GEN | GEN.1355 |
 | PERF | PERF.249 |
 | DB | DB.116 |
 | API | API.42 |
@@ -2141,6 +2141,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1352 | Moons of a tipped giant: a moon's stored inclination is read by moon_history as against the parent's equator but placed in the system frame, so Uranus-type moons do not follow the tipped equator (bug) | none | open |
 | GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values | none | open |
 | GEN.1353 | Class and life census re-tag after train 15 (epoch 137): re-measure the census shares and re-baseline the class and life ranges the train moved | none | open |
+| GEN.1354 | bring_to_epoch on a galaxy this size: the rogue planets a remade sector throws out land in sectors of their own, and remaking those fills each with stars whose rogues land in more cells; check that it ends, how many cells it touches, and what it costs | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -4210,7 +4211,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
 | TEST.631 | test_density_components::test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main (6 cases) (bug) | none | done, PR #5239 |
 | TEST.678 | Test failure on main: the forced-eccentricity tide test gives Io a tidal power of 6.1e13 W against its 5e13 W ceiling (test_resonant_chains.py, test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon) (bug) | none | done, PR #5561 |
-| TEST.679 | test_bring_to_epoch.py::test_a_sector_made_under_an_older_epoch_is_really_generated_again hangs on main: the hang guard kills it after 17 minutes alone (bug) | none | open |
+| TEST.679 | test_bring_to_epoch.py::test_a_sector_made_under_an_older_epoch_is_really_generated_again hangs on main: the hang guard kills it after 17 minutes alone (bug) | none | done, PR #5581 |
 | TEST.680 | test_web_a11y.py: 20 cases fail axe link-in-text-block (link colour contrast 2.49 to 1) on the help index, the references pages and the account page (bug) | none | open |
 | TEST.681 | The train gate's file selection (scripts/train_gate.py files) misses tests/test_sheet_fill.py and tests/test_bring_to_epoch.py, which generation changes affect: widen the selection and add a test that holds it | none | done, PR #5574 |
 | TEST.682 | test_cache_warmup.py::test_a_tiered_pass_travels_as_json_and_comes_back_equal fails on main (bug) | none | open |
