@@ -710,4 +710,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.664 | test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug) |  |  |
 | SEC.40 | Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740) |  |  |
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats |  |  |
+| DOC.109 | Rewrite INSTALL.md to set up the Redis user and password: create the planetgen user from examples/redis/planetgen-acl.conf, turn off the passwordless default user, put the password in redis.url, and say what update.sh warns about |  |  |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, TEST.300, GEN.743, GEN.744, GEN.745, GEN.752 |  |

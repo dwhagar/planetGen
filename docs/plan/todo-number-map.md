@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.665 |
 | USR | USR.32 |
 | OPS | OPS.110 |
-| DOC | DOC.109 |
+| DOC | DOC.110 |
 | VIEW | VIEW.48 |
 | POP | POP.52 |
 
@@ -3489,6 +3489,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.39 | A run's own queue still uses pickle and Redis has no ACL user: use ids or add an ACL | none | done, PR #5439 |
 | SEC.40 | Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740) | none | open |
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats | none | open |
+| DOC.109 | Rewrite INSTALL.md to set up the Redis user and password: create the planetgen user from examples/redis/planetgen-acl.conf, turn off the passwordless default user, put the password in redis.url, and say what update.sh warns about | none | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | open |
 | SEC.45 | A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function | none | open |
 | SEC.46 | Accept /home and /Users in the config.json folder check, for installs in a home folder on a shared machine (SEC.44 follow-up, Boss) | none | done, PR #5444 |

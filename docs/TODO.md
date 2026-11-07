@@ -15074,6 +15074,11 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.33.
 
+- [ ] **DOC.109 Rewrite INSTALL.md to set up the Redis user and password: create the planetgen user from examples/redis/planetgen-acl.conf, turn off the passwordless default user, put the password in redis.url, and say what update.sh warns about**
+  Boss (8:23 PM EST on 2026-11-06), on SEC.39: he will reconfigure his Redis server when he can, update.sh keeps warning until then, and the install document must walk through the Redis user and password. Do: rewrite the Redis part of INSTALL.md (and the deployment README it links) so a new install creates the planetgen user from examples/redis/planetgen-acl.conf with a password the reader chooses, switches off the default user, puts the URL in the configuration, checks the connection, and states what the update.sh warning means and how it goes away; include the steps for an existing install that already runs on the passwordless default user. Done: the document has the steps in order for both a new and an existing install, and the docs tests pass. Lock-free. Version 8.1. Owner: Core 3 (wrote the ACL file in SEC.39), after SEC.40 and SEC.41.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.39.
+
 - [ ] **SEC.42 Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml**
   Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L3, S-L4, S-L5, Low): ci.yml, release-note.yml and
   deep-fuzz.yml set no permissions block and actions are pinned by tag, not
