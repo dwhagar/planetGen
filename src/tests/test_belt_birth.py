@@ -34,7 +34,7 @@ def _belts(system):
 
 
 def _planet(distance, mass, body_type="t", formed=None, eccentricity=0.0):
-    return types.SimpleNamespace(body_type=body_type, distance=distance, mass=mass, formation_distance_au=formed, eccentricity=eccentricity)
+    return types.SimpleNamespace(body_type=body_type, distance=distance, mass=mass, formation_distance_au=formed, eccentricity=eccentricity, radius=7.0e4 if body_type == "g" else 6.4e3)
 
 
 def test_the_chain_skips_belts_and_marks_a_giant_that_moved():
