@@ -2,6 +2,313 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3583] - 2026-11-07
+
+**Headline:** A free-floating brown dwarf rebuilt from its saved form keeps the 25 temperature coverage fields (empty, as it was built), so the rebuilt object has every column its row stores.
+
+### Changed
+
+- **A rogue planet's saved form carries the temperature coverage fields (TEST.666).** `rogue_habitability.ROGUE_FIELDS` lists the 25 `temp_*` coverage fields (GEN.1265) that `rogue_planets` stores, but `ROGUE_UNITS`, which feeds `RoguePlanet.FIELD_UNITS` and with it the saved form, left them out, so `to_dict` dropped them and `from_dict` rebuilt a brown dwarf without the attributes (`AttributeError` on `temp_livable_share` in `test_a_rebuilt_brown_dwarf_keeps_its_empty_score`). They now carry the units of the same columns on `planets` (kelvin, degrees, days, share, flag). Values do not change (empty on a brown dwarf); the saved form of every rogue planet gains the 25 keys, which changes the structure digest of the golden battery.
+- **The fake database of `test_object_rows` serves the irregular-moon rows (TEST.666).** The fake connection answered only the tables that existed when the test was written; it now answers `irregular_sets` and `irregular_moons` from the rows `store.insert_irregular_moons` writes, so a rebuilt planet is compared with the planet that was stored.
+- **The column round trip test follows the code (TEST.666, TEST.461).** `test_db_column_round_trip` was red on main for two reasons that were the test's. `rogue_planets.surface_liquid_ammonia_wt` is a solute of the surface liquid, and no rogue planet of the small test galaxy has a surface liquid (GEN.1111), so it joins its siblings in the list of columns that are empty there. The columns of `irregular_moons` were listed as never read, but `store.load_star_system` reads them (GEN.1084), so the list drops them. The `planets.porosity` column of TEST.461 is written (it is no longer red); only the rogue planets leave it empty, as their list says.
+
+generation-output: changed
+
+## [8.0.3582] - 2026-11-07
+
+**Headline:** Clouds now thin as a wet world warms and thicken as it cools, so the climate of an Earth-like world responds to its sunlight the way the published range says (0.65 K per W/m2, was 0.44), and a world locked to its star under strong light builds a bright cloud deck.
+
+### Added
+- GEN.974: `physics/cloud_albedo.py` adds two terms to the ice-albedo law of a body with surface water: the low cloud thins as the world warms (`-BETA (T - 288 K)`, up to 0.12 either way, sized to the assessed cloud feedback of +0.42 W/m2 per K) and a world locked 1:1 to its star above 1,000 W/m2 of starlight gains a substellar deck (up to 0.12, from 0.42 at 1,000 W/m2 to 0.53 at 2,200). `surface_air.solve` reads them at each step that has a liquid ocean; a body with no ocean, a dry body, a giant and an airless body are unchanged. Stand-ins CA1 to CA5 (section 6.199 of the gap-filling plan) carry tier and tweak level.
+
+### Changed
+- GEN.974: the albedo and the temperature of a wet body away from 288 K move (a warm one is darker by up to 0.12 and warmer, a cold one brighter and colder). The Earth twin of `test_climate_sweep.py` now responds inside the published range, the strict expected failure is gone, the cooling half of its sweep stops 3 percent down (on the table of GEN.1304 the twin falls to a snowball 12 to 14 percent down, with the cloud or without it), and a test holds the snowball at 15 percent down. Generator output changes, so it rides a train with an epoch.
+
+## [8.0.3581] - 2026-11-07
+
+**Headline:** Sunlit water now gives a little extra energy to the chemical life that fixes its own carbon, the way retinal pigments do in Earth's sea, so hydrogen and sulfur eaters on a world with a lit ocean score a little higher.
+
+### Changed
+- **GEN.881, retinal as a supplement.** A chemical life class that fixes carbon (the hydrogen eaters of Class 3 and the sulfur, iron and nitrogen eaters of Class 4) and lives in water that sunlight reaches adds 5 percent of the usable light in the blue-green band (480 to 580 nm, scaled to the star's spectrum as a pigment's band is) to the energy it gets from the body's heat. The pigments make energy and no biomass, so nothing else about the class changes. Light eaters, acid eaters, life under ice or underground, and worlds with no star get none (`life_classes.retinal_supplement_w_m2`). The share and the band are stand-in row LF72.
+- **Melanin.** The radiation adaptation with the dose in its draw is the radiation trait of GEN.876; there is no radiation food left in the class table.
+
+generation-output: changed
+
+TODO items advanced: GEN.881.
+
+## [8.0.3580] - 2026-11-07
+
+**Headline:** The life of a harsh world can now be tougher than the life of an easy one: a world with a lot of radiation, hydrogen sulfide or carbon dioxide may carry an "adapted to" trait, and microbes now stand a thousand times the radiation an animal does.
+
+### Changed
+- **GEN.876, adaptation traits.** A body's life draws up to three traits, one for each stress the life scores have a limit to widen: radiation, hydrogen sulfide and carbon dioxide (`physics/adaptation_traits.py`, `physics/adaptation_draw.py`). A trait is tolerant (grade 2) or extreme (grade 3). The chance of a trait is 0.8 times a stress score that rises with the logarithm of the stress from the ordinary limit to the extreme grade's, and a share of them equal to half the stress score squared are extreme. The draw is six uniforms from a stream of the body's own, made before the classes are scored, so a hard world supports classes an easy one would not and no other body's draw moves. A world with no life stores none.
+- **Where a trait acts.** Radiation multiplies the dose threshold (tolerant ten times, extreme a hundred times for a microbe; an animal stops at ten times). Sulfide and carbon dioxide multiply the toxin scales of the animals (`habitability.toxin_factor`: sulfide ten and a hundred times, carbon dioxide two and five times). The human scores never read a trait.
+- **Microbes and the dose.** `habitability.l_rad` and the likelihood of microbial life read a microbe's threshold of 1,000 Gy/yr (new `MICROBE_DOSE_THRESH_GY`); animals and plants keep 10 Gy/yr, which complex life reads through the new `animal_dose_share` (`phi_cpx`, the complex-life likelihood of each class). Worlds with a dose between 10 and 1,000 Gy/yr now support microbes.
+- **Stored and shown.** `planets`, `moons` and `rogue_planets` gain `life_traits` (text such as `radiation:2,sulfide:3`, NULL for none; schema v223). The property sheet lists "Adapted to: radiation (tolerant), sulfide (extreme)" for a body that has one.
+- **Not built, by physics.** Brine, heat and cold, ultraviolet, acid and alkali and low oxygen have no limit in the life scores to widen, and the carbon monoxide and sulfur dioxide toxins are scored for animals only, so no trait is drawn for them (stand-in rows LF70 and LF71). Rows LF66 to LF69 carry the numbers; LF17's replacement note now says the energy source per class is built (GEN.878).
+
+generation-output: changed
+
+TODO items advanced: GEN.876, GEN.878.
+
+## [8.0.3579] - 2026-11-07
+
+**Headline:** The world classes and the life classes now judge oxygen by its pressure and not by its share of the air, so a thick air with a breathable oxygen pressure and a thin air with plenty of oxygen are no longer misjudged (GEN.1321).
+
+### Changed
+
+- The temperate world classes (M, H, O, P, R) take 16 to 35.5 kPa of oxygen, the marginal thin-air world (L) 3 to 16 kPa and the anoxic world (F) under 3 kPa, the Earth-air equivalents of the old 16, 35 and 3 percent; the fit tolerance (CF7) is a pressure tolerance for oxygen (stand-ins OP1, OP2 in section 6.201).
+- The carbon dioxide edge of the oxygen-water classes is a pressure too: 1 kPa (class L from it, classes M, H, O, P and R below it); classes F and G keep the carbon dioxide share. `tests/class_fit_cli.py --compare REV` counts the bodies that change class code against an older fit table.
+- Life class 2 needs under 3 kPa of free oxygen and class 4 at least 100 Pa (`o2_partial_pa`, a new quantity of the class and life-class rules), with the help text and the rule tables following.
+- Oxygen as redox chemistry (the reducing-air test of the age needs) stays on the share.
+
+## [8.0.3578] - 2026-11-07
+
+**Headline:** A living world's oxygen is now held to a fire limit of oxygen pressure (35.5 kPa, 35 percent of one Earth atmosphere) and not to 35 percent of its air, so a thin air can carry a larger share of oxygen and the pile-up of worlds at exactly 35 percent is gone (GEN.1320).
+
+### Changed
+
+- `biogenic_oxygen._fire_limit_mol` solves the oxygen the other gases leave room for under a partial-pressure cap, with the share held to 95 percent; `mixture_oxygen.BIOTIC_O2_MAX` is replaced by `BIOTIC_O2_PRESSURE_MAX_PA` (stand-in OX1, section 6.200).
+- Thick airs are unchanged in practice (35.5 kPa of oxygen in 1.2 MPa is still a small share); the class windows that read the share of oxygen are judged by pressure in GEN.1321.
+
+## [8.0.3577] - 2026-11-07
+
+**Headline:** Heavy oxygen worlds, carbon dioxide airs with oxygen, and thin oxygen-rich airs now have a class.
+
+### Changed
+- A heavy world with free oxygen between 1.25 and 2 g fell between the temperate classes (M, H, O, P, R stopped at 1.25 g) and the high-gravity class V (from 2 g), and took its nearest class with a match of 0. The temperate classes now reach 2 g, V's line.
+- Class G (carbon dioxide world) needed under 16 percent oxygen, so a carbon dioxide air of 20 percent or more that also held oxygen fit no class. G is now any air with carbon dioxide of 20 percent or more.
+- Class K (thin-air world) needed under 10 percent oxygen, so a 1 kPa air that is mostly oxygen fit no class. K is now any air under 3 kPa at 273 to 320 K, since under 6.3 kPa (the Armstrong limit) no oxygen share is breathable.
+- Of 2212 generated bodies, 30 fit no class before and 23 after. The new rows are in the stand-in registry as section 6.198.
+
+generation-output: changed
+
+## [8.0.3576] - 2026-11-07
+
+**Headline:** Cold air worlds and hot thin-air worlds that fit no class now have one: the new class W, the Frozen world, and a wider class Z.
+
+### Changed
+- A world with air between -40 C and freezing that class P (the Earth-like cold world) does not hold fit no class and took its nearest one with a match of 0. A new class W, the Frozen world, takes them: an air world with a mean surface from -40 C to freezing, under 2 g, not a hydrogen envelope and not a volcanic air. Class P is unchanged and wins a full tie, class E stays under -40 C. W is the last free class letter.
+- A hot thin air (340 K or more, 1 to 10 kPa, no ocean) under 1.4 g, or hotter than 1100 K, fit no class, since class Z started at 1.4 g. Z now covers 0.5 to 2 g and up to 1500 K. A warm anoxic or carbon dioxide air under 400 K stays class F or G.
+- The pressure edges of class Z at 1 kPa and 10 kPa already held through the soft shoulder; a test now pins them.
+- Of 2212 generated bodies, 30 fit no class before GEN.1306 and 6 after (three dense 1.8 g anoxic worlds and three oxygen-bearing airs, left for the oxygen fix). W takes 42 of them. The new rows are in the stand-in registry as section 6.198.
+
+generation-output: changed
+
+## [8.0.3575] - 2026-11-07
+
+**Headline:** A and F stars now hold cold debris disks about as often as the surveys find them (17 and 20 percent of A1V and F5V stars, against 0 and 8 percent), because a wide belt's dust is the sum of its rings and a survey can find a fainter disk around a hotter star (GEN.1278).
+
+### Changed
+
+- `debris_dust.belt_fractional_luminosity` adds the dust of 32 rings of a belt, each with the belt's eccentricity and the share of the belt's mass the nebula's solids gave it, in place of one ring at the belt's middle radius (stand-in DU4).
+- The fractional luminosity a survey can find falls as the cube of the star's temperature (`detectable_fractional_luminosity`, stand-in DU5); at the Sun's temperature it is 5e-5 (DU1 re-tuned from 3e-5). Shares of 100 stars each: A1V 17, F5V 20, G2V 17, K3V 18 percent (surveys 24, 24, 14, 13).
+
+## [8.0.3574] - 2026-11-07
+
+**Headline:** A nebula inside the Large or Small Magellanic Cloud now has its gas metallicity from the Cloud's own [Fe/H], so it is more metal-poor than a nebula at the solar circle.
+
+### Changed
+
+- **A Cloud nebula takes the Cloud's metallicity (GEN.1273).** `nebula_columns._gas_oh` never passed a component's [Fe/H] to `nebula_composition.gas_oh`, so every nebula, including the ones GEN.367 places in the Clouds, used the Milky Way gas gradient at its galactic radius (a Cloud nebula, 50 kpc out, got the gradient's far-disk value regardless of the Cloud). It now asks the bound galaxy's components for the satellite whose gas holds the nebula's place (`ComponentField.gas_fe_h`, the satellite with the largest gas tracer there) and draws the gas [O/H] inside the widest range of the two methods above that [Fe/H] (`SATELLITE_GAS_OFFSETS`, registry row NBC3, already a GEN.725 row with tier T2 and tweak level L2): the Large Cloud's nebulae come out at [O/H] -0.34 to -0.14, the Small Cloud's at -0.66 to -0.28. Nebulae of the Milky Way, nebulae with no center, and galaxies with no satellites are unchanged. Supernova remnants keep the gradient (a remnant stores no center yet). The stored composition of a Cloud nebula changes, so this is a lock item; the golden galaxy has no Cloud, so its digests do not move.
+
+generation-output: changed
+
+## [8.0.3573] - 2026-11-07
+
+**Headline:** A young core-collapse supernova remnant can now host the asteroid field its progenitor's belt became, an expanding ring of rubble that leaves at about 11 km/s and is retired past a light year.
+
+### Added
+- **The supernova host rule (GEN.1104).** Every scattered core-collapse remnant draws, from its own seed, a progenitor from the mass windows of its core, whether the star kept a belt for its age, whether the explosion unbound it and whether the remnant is still young enough to host the field (`field_rates.hosted_belt`), and the field's mass from the belt's own grinding for the progenitor's life (`field_mass.unbound_belt_field`, the rocky law because the blast strips the ice). The field is an `AsteroidField` placed at the remnant, shaped as a ring, with its speed, age, largest piece and a sentence of where it came from (GEN.1103's columns); its radius follows from age, speed and the ring. In a probe of 2,000 remnants, 13 percent of the core-collapse ones host one, with a median of about 90 Earth masses (the solids of a 30 to 70 AU belt around a massive star). A Type Ia remnant hosts none. Stand-in rows HF1 and HF2 of section 6.202.
+
+generation-output: changed
+
+TODO items resolved: GEN.1104.
+
+## [8.0.3572] - 2026-11-07
+
+**Headline:** An asteroid field now has an age and a speed for its pieces, and its radius follows from the two instead of being drawn, so every field can be brought to another epoch by the same formula.
+
+### Added
+- **Age, speed, shape, origin, history and largest piece of a field (GEN.1103).** Schema 225 adds six columns to `asteroid_fields` (`rms_speed_kms`, `birth_age_yr`, `shape`, `origin`, `history`, `largest_body_kg`), with a migration that adds each one only if it is missing. A field the Rogues top-up plans keeps its planned speed, age, shape, origin and largest piece, and gets the sentence of where it seems to have come from (no system is claimed). The field's page shows them.
+
+### Changed
+- **A field's radius is a result of its age and speed (GEN.1103).** A field made by hand takes a speed log-uniform from 0.1 to 15 km/s and an age uniform from the age of the smallest field to the age at which a field retires, and its rms radius is what `field_dispersal.rms_radius_m` gives for the two, so the radius a field is stored with is the radius its age gives. The size digit of a top-up field's class now follows its planned radius (it followed the radius drawn before the plan replaced it). The speed range is stand-in row AF1 in section 6.203, and the registry text of the asteroid-field kind says a hand-made field is given a speed and an age.
+
+generation-output: changed
+
+TODO items resolved: none (GEN.1103 part 1: the columns, the radius from the age and the registry text; the field density leaving 0 and the calls of the field mass, rate and composition modules stay open under GEN.1103).
+
+## [8.0.3571] - 2026-11-07
+
+**Headline:** A planet can now catch bodies from a belt near its orbit, and a belt body that is caught keeps its belt designation, leaves the belt's mass and shows as a moon.
+
+### Added
+- **Inner belts give planets irregular moons (GEN.1085, part 2).** A belt that is not an outer disk, whose nearest edge is within about 3 AU of a giant's orbit (scaled by the giant's Hill radius), is a reservoir for it in the encounter window, with the outer disk's size law and yield scaled by the belt's primordial mass. A body at least as heavy as the belt's lightest stored member is that member (the nearest in mass that no earlier planet of the star caught): it keeps its rank and its designation `<belt ID>.<rank hex>`, its mass and makeup as the belt shows them, and the belt's row stays with the status `moon`. A lighter body of the belt is composed from the belt's stretch and has no rank. The belt's mass falls by what its planets hold. Schema 224 adds `belt_order` and `belt_rank` to `irregular_moons`. Stand-in rows CD2 and CD3 of section 6.193.
+
+### Changed
+- A planet with no outer disk to catch from can now still hold bodies of an inner belt in reach, and no binary exchange (a Triton) is drawn where there is no outer disk.
+
+generation-output: changed
+
+TODO items resolved: GEN.1085 (with part 1).
+
+## [8.0.3570] - 2026-11-07
+
+**Headline:** The dust layer no longer makes numpy warn of an overflow for stars far above the galactic plane; its values are unchanged.
+
+### Changed
+
+- `physics/sky_photometry.cosh_squared` (VIEW.48): `cosh(x) ** 2` as numpy gives it where it is finite and `inf` beyond the float range (|x| above about 355.6), without the `RuntimeWarning: overflow encountered in cosh` and `in square`. The dust layer `1 / cosh(z / h) ** 2` of the gas-built profile (`dust_model.DustProfile.av_per_pc`) and of the fixed Milky Way law (`sky_photometry.dust_av_per_pc`) use it, so far above the plane the layer is exactly 0 as before. The result is identical for every input, nan and infinity included (a test compares the two over a grid and the edge values).
+- `src/tests/test_dust_model.py`: the layer far above the plane in both laws under warnings as errors, and `cosh_squared` against numpy.
+
+generation-output: unchanged
+
+## [8.0.3569] - 2026-11-07
+
+**Headline:** The sky calibration against the HYG catalogue now holds the default-dust sky to a band too, in the small and the Milky Way sized galaxy.
+
+### Changed
+
+- `src/tests/test_sky_hyg_calibration.py` (VIEW.45): each case also checks the share of the dust-free count that the sky through the galaxy's own gas-built dust keeps (`dusty_band`: 0.55 to 0.85 in the small galaxy, measured 0.693; 0.50 to 0.75 in the Milky Way sized one, measured 0.628), prints the default-dust tiers' reach against the dust-free tiers', and carries its own timeout so the suite's 900 seconds does not end a long run. The docstring has the new measurements.
+- `reports/view45-hyg-calibration-dust-2026-11-07.md`: the measurements, the bands and what they say; one finding (a cosh overflow warning in the dust layer) left for its own item.
+
+generation-output: unchanged
+
+## [8.0.3568] - 2026-11-07
+
+**Headline:** The API route snapshot lists the Queue page's held-jobs route, so the API version test passes again.
+
+### Changed
+
+- **API snapshot gains `/api/admin/work/held GET` (TEST.675).** The Queue page listing of the jobs held for a job they require (PERF.248) added the route without rewriting `tests/fixtures/api_routes.json`, so `test_api_version` failed on main. The route is new and nothing existing changed, so it is not a breaking change: `API_VERSION` stays 13 and `docs/reference/api.md` gets no line. `/api/uncharted-systems/<id>/generate POST` is already in the snapshot. Test fixture only.
+
+generation-output: unchanged
+
+## [8.0.3567] - 2026-11-07
+
+**Headline:** The life sweep's letter floor stays at 8 with its reason measured: the drop from 12 to 9 letters after train 13 is sampling on single-body letters, not lost life-capable bodies.
+
+### Changed
+
+- **The drop in life-capable letters after train 13 is sampling (GEN.1327).** The fixed sweep held 12 letters with a life-capable body before train 13 and 9 after. Cumulative runs over the train's items and three resamples of the sweep (about 900 bodies each) show the capable share unchanged (42.6 percent before, 42.8 after) and 10 to 13 letters per sample on both sides: GEN.1282 reshuffles the draws, GEN.1304 warms temperate wet worlds, and the rare letters (N, Z, F) hold one to a few bodies each, so whether one is capable is chance. `test_sweep_life` keeps its floor of 8 letters and the comment now says why; the per-item split is in `reports/gen1327-sweep-life-letters-2026-11-07.md`. Only a comment changes.
+
+generation-output: unchanged
+
+## [8.0.3566] - 2026-11-07
+
+**Headline:** The class census is re-tagged after train 13: six tags whose range holds again are removed and the eleven flags the train raised are tagged with their reasons.
+
+### Changed
+
+- **Class census re-tag after train 13 (GEN.1327).** The three live censuses ran on the train 13 tree. The life and systems censuses raised nothing. The class census raised eleven new flags: eight shares in four moon cells with a few bodies each (A0V, F5V, K0III and K5V ecosphere, 8 to 19 moons scored), tagged TEST.656, and three planet shares just past a range that is itself a 95 percent bound (A0V and F5V ecosphere planets with an unlimited life ceiling, G2V hot planets in Class C), tagged GEN.1327 with the numbers. Six tags whose range holds again are removed (A0V ecosphere planets microbial ceiling, A0V hot moons Class D, F5V ecosphere moons ceiling none, F5V ecosphere planets Class N, K5V cold planets Class T, M2V cold planets Class J). The class census passes on the new tags. Only test data changes; the ranges stay until the re-baseline after the last 8.1 train (TEST.660).
+
+generation-output: unchanged
+
+## [8.0.3565] - 2026-11-07
+
+**Headline:** A system page now shows the mass of the whole system, where its center of mass lies against the primary star, and how far its asteroid belts pull that star (GEN.1241).
+
+### Added
+
+- `GET /api/systems/<id>/bodies`: the body ledger of a system built from the typed tables with no new storage (stars, planets, moons, rings, comets, belts, the bodies each belt keeps and the belt's remainder), its total mass, barycenter, the central star's offset, the belt wobble and each belt's rows against its stored mass.
+- The "Mass and barycenter" panel on the system page, with the mass and distance of every body from the center of mass and a table of the belts (`web/system_ledger.py`).
+
+## [8.0.3564] - 2026-11-07
+
+**Headline:** The legacy-nebula shape test no longer fails on a nebula whose species text a save rewrites; it checks the shape its stored properties give.
+
+### Changed
+
+- **Nebula shape test follows the stored species (TEST.672).** A nebula's shape is seeded from its properties, `dominant_species` among them, and since GEN.1276 a save rewrites that text from the numbers after the shape is stored. `test_a_nebula_saved_before_shapes_gets_the_shape_a_fresh_save_would` compared the shape of a row with no stored shape against the generator's own, which can never match; it failed on every run, with a different nebula each time because the test builds a random one. It now checks the shape equals the one the stored properties give and is the same on a second read (renamed `..._gets_the_shape_its_stored_properties_give`). The `query.nebula_shape` docstring says the same; no behavior changes.
+
+generation-output: unchanged
+
+## [8.0.3563] - 2026-11-07
+
+**Headline:** The body-marker test picks its not-a-class letter from the class list instead of a fixed letter that has become a class.
+
+### Changed
+
+- **Body-marker test follows the class list (TEST.674).** `tests/js/bodymarkers.test.mjs` used R as the letter that is not a planet class, and R is a class now, so the test failed. It takes the first capital letter that `PLANET_CLASS_LETTERS` leaves out, so adding a class cannot break it again (it asserts a letter is left). Test only.
+
+generation-output: unchanged
+
+## [8.0.3562] - 2026-11-07
+
+**Headline:** The parent-link test follows the rule that a sector cannot be deleted while a rogue planet is filed in it, and checks that emptying the sector takes the rogue planet and its moons.
+
+### Changed
+
+- **Rogue planet and sector delete test fixed (TEST.670).** `test_a_rogue_planets_moons_go_with_it_and_with_its_sector` deleted a sector row straight out from under a rogue planet, which the key on `rogue_planets.sector_id` has refused (RESTRICT) since GEN.1127, so the test failed with an integrity error. The code is as designed (`DELETE /api/sectors/<id>` answers 409 while an object is filed in the sector). The test now asserts the bare delete is refused and the moons stay, then empties the sector with `edits.empty_sector` and asserts the sector, the rogue planet's moons and their spectra are gone. Test only; no migration.
+
+generation-output: unchanged
+
+## [8.0.3561] - 2026-11-07
+
+**Headline:** The browser's sky and day counter read the parsec, the year and the hour from the unit registry instead of writing the numbers themselves.
+
+### Changed
+
+- **Unit factors read from the registry in the browser (TEST.673).** `skysphere.js` took the parsec in kilometers and the year in seconds as numbers written in the file, and `daycounter.js` wrote 3600 in its clock text. Both now get them from `unitregistry.js` (`convert`), which is what `test_no_browser_script_declares_a_unit_factor` requires; the values are the same, so the sky and the clock do not change.
+
+generation-output: unchanged
+
+## [8.0.3560] - 2026-11-07
+
+**Headline:** The citation guard passes on main: three leftover places that wrote a source's name or a bracket-wrapped ID now use the bare registry ID.
+
+### Changed
+
+- **Citation guard green (TEST.671).** The validation sweep's printed reference lines name their sources by ID only ([R1307], [R5137], [R1478]), and two lines of the rogue-planet review no longer wrap an ID in brackets or write a dated refresh in author-year form. Only text changes.
+
+generation-output: unchanged
+
+## [8.0.3559] - 2026-11-07
+
+**Headline:** The rogue planet review now states, row by row, which of its sixteen quantities are built, deleted or still a registered stand-in.
+
+### Changed
+
+- `docs/design/research/rogue-planet-review.md` section 8: the state of every row and of RP1 to RP9 after the ejection, top-up, cluster and embryo work (documentation only).
+
+## [8.0.3558] - 2026-11-07
+
+**Headline:** Five sources named in code and docs (Kasting 1988, Simpson's limit, Van Eylen 2019, Hadden and Lithwick 2014, Fulton 2017) are written by their registry IDs, so the citation guard passes outside the TODO text.
+
+### Changed
+
+- **Sources written by registry ID (TEST.671).** `radiative_convective.py`, `scripts/validation_sweep_planets.py` and `docs/design/research/gap-filling-plan.md` no longer name these papers by author and year alone: Kasting 1988 is [R2275], Van Eylen and others 2019 is [R1307], Fulton and others 2017 is [R1478], Hadden and Lithwick 2014 is the new [R5137], and Simpson's limit is cited through Goldblatt and Watson 2012, the second-hand source, as the new [R1608]. Only comments, docstrings, a report line and the registry change.
+
+generation-output: unchanged
+
+## [8.0.3557] - 2026-11-07
+
+**Headline:** A New galaxy job no longer waits for ever on a generation run that nothing follows any more: a run left behind by a process that is still running is freed, and a run whose set-up fails ends instead of holding the machine.
+
+### Changed
+
+- **A run nobody follows is freed, even when its process is still running (ADM.136).** The run line freed a holder only when its process id was gone, or, for a run on another host, when its `alive` key had run out. A run left behind by a process that lives on (a worker that stays up, or a process id the system reused) counted as live for ever, so a New galaxy job that came after it waited behind it until its time ran out. A run now counts as dead when its record is over, when its process id is gone, or when its `alive` key has run out, which a followed run never lets happen.
+- **A followed run keeps its `alive` key while its follower is busy (ADM.136).** The follower said so only at each poll, so a callback that took longer than two minutes (saving what a stage found) would have let the key run out and the run look dead. The process that follows a run now says so from a thread of its own every 30 seconds until the run ends.
+- **A run whose set-up fails ends as failed (ADM.136).** The set-up after the machine is taken (making sure workers run, the debug relay, the run's log) was outside the block that ends the run on an error, so a failure there left the run live for a process that went on; the next run waited for it.
+- `src/tests/test_run_control.py` (found on the way): `test_a_started_unit_is_sent_the_stop_command` passed the fetched job object to `queue.remove`, which does not take it for a job when the queue's job class differs from the fetched one; it passes the id.
+
+generation-output: unchanged
+
+## [8.0.3556] - 2026-11-07
+
+**Headline:** Helium-core and oxygen-neon white dwarfs now have layers of their own.
+
+### Added
+
+- A white dwarf under 0.45 solar masses (helium core) or over 1.05 (oxygen-neon core) now has its mass split into layers in its makeup, where before it had none. An oxygen-neon star is about 55 percent oxygen and 30 percent neon with the helium and hydrogen layers of [R0627]; a helium-core star is helium under a thick hydrogen envelope. The radius of both is unchanged. Stand-ins WL1 to WL7 are registered (GEN.725).
+
+### Changed
+
+- The alpha-track module and the age-metallicity design page no longer say the track shift is unwired (it has been read by every track lookup since GEN.1024).
+
+generation-output: unchanged
+
 ## [8.0.3555] - 2026-11-07
 
 **Headline:** The bright-star backfills, the special phenomena and the sky charting no longer stop a run on a MySQL deadlock.

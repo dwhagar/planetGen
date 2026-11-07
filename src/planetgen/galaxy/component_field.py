@@ -280,6 +280,19 @@ class ComponentField:
                 total += systems * young * tuning.SATELLITE_NEBULA_GAS_SCALE.get(self.names[i], 1.0)
         return total / self.expected_at_density_1
 
+    def gas_fe_h(self, position_pc):
+        """
+        The [Fe/H] of the satellite whose gas holds a place (GEN.1273): of the satellites that reach `position_pc`, the one whose gas tracer (`gas_density`) is the largest there, so
+        a nebula in the Large Cloud takes the Large Cloud's metallicity and not the Milky Way gas gradient. `None` where no satellite's gas reaches (the Milky Way's own place).
+        """
+        best, found = 0.0, None
+        for i, systems in self._contributions(position_pc):
+            young = self.shares[i].get("satellite_young", 0.0)
+            weight = systems * young * tuning.SATELLITE_NEBULA_GAS_SCALE.get(self.names[i], 1.0)
+            if weight > best:
+                best, found = weight, self.fe_h[i]
+        return found
+
     def relative_density(self, position_pc, kind=None):
         """
         The components' part of `relative_density` at `position_pc` (of one `kind`, or all): the systems they put in

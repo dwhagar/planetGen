@@ -9,21 +9,27 @@ Generates systems in memory (the sampling of `class_sweep_cli`), classifies ever
 * the spread of the match: how many bodies score 100 percent for their class, and the list of bodies under 50 percent (each is a hole in the class set:
   digit 9 is a body limited by its gravity or air amount, a match of 0 is a body that fits no class and shows its nearest);
 * the close pairs: bodies whose runner-up is within 5 percentage points of the best;
-* the temperate (250 to 330 K) surface-ocean count per class.
+* the temperate (250 to 330 K) surface-ocean count per class;
+* with `--compare REV`: how many bodies change class code against the fit table of git revision REV (GEN.1321: the oxygen and carbon dioxide edges became pressures),
+  each change listed as from to with its count.
 
 Nothing is stored.
 
 Usage:
     python src/tests/class_fit_cli.py --systems 300 --seed 1000
     python src/tests/class_fit_cli.py --systems 300 --seed 5 --habitable-share 0.25 --report /mnt/project-files/reports/class-fit-sweep.md
+    python src/tests/class_fit_cli.py --systems 300 --seed 1000 --habitable-share 0.25 --compare origin/main
 """
 
 import argparse
 import collections
+import contextlib
+import json
+import subprocess
 import sys
 from collections.abc import Mapping
 
-from planetgen.physics import class_code, planet_classes
+from planetgen.physics import class_code, class_fit, planet_classes
 from tests import class_sweep_cli
 
 LOW_MATCH = 0.5
@@ -43,8 +49,59 @@ def score_bodies(bodies):
             "fit": "Ast" if detail is None else detail.letter, "digit": 0 if detail is None else detail.digit,
             "match": 1.0 if detail is None else detail.match, "runner": "-" if detail is None or detail.runner_up is None else detail.runner_up,
             "runner_match": 0.0 if detail is None else detail.runner_up_match, "moon": is_moon, "found": found,
+            "full": class_fit._found(values),
         })
     return records
+
+
+def table_at(revision):
+    """The text of `planet_class_fit.json` at git revision `revision`."""
+    path = "src/planetgen/physics/data/planet_class_fit.json"
+    return subprocess.run(["git", "show", f"{revision}:{path}"], check=True, capture_output=True, text=True).stdout
+
+
+@contextlib.contextmanager
+def fit_table(text):
+    """Swaps the classifier's table for the one in `text` (a `planet_class_fit.json`) while the block runs."""
+    document = json.loads(text)
+    saved = (class_fit.CLASSES, class_fit.SHOULDERS, class_fit.GATE_PRESSURE_PA)
+    class_fit.CLASSES = tuple(class_fit.FitClass(row) for row in document["classes"])
+    class_fit.SHOULDERS, class_fit.GATE_PRESSURE_PA = document["shoulders"], document["gate_pressure_pa"]
+    try:
+        yield
+    finally:
+        class_fit.CLASSES, class_fit.SHOULDERS, class_fit.GATE_PRESSURE_PA = saved
+
+
+def code_of(found):
+    """The class code (letter and digit) the best-fit classifier gives the stored quantities `found` with the table now in force."""
+    detail = class_fit.classify(found)
+    return class_code.format_code(detail.letter, detail.digit)
+
+
+def changes_against(records, text):
+    """`(changed, total, Counter)`: how many gaseous-or-solid bodies take another class code under the table in `text` than under the table now, and each
+    `(before, after)` pair with its count. A record whose body the classifier skips (an asteroid) is left out."""
+    pairs, total = collections.Counter(), 0
+    for r in records:
+        if r["fit"] == "Ast":
+            continue
+        total += 1
+        after = class_code.format_code(r["fit"], r["digit"])
+        with fit_table(text):
+            before = code_of(r["full"])
+        if before != after:
+            pairs[(before, after)] += 1
+    return sum(pairs.values()), total, pairs
+
+
+def format_changes(revision, changed, total, pairs):
+    lines = ["", f"## Class codes against the fit table at {revision}", "",
+             f"{changed} of {total} bodies ({changed / max(total, 1):.1%}) take another class code than they did.", ""]
+    if pairs:
+        lines += ["| before | after | bodies |", "|---|---|---|"]
+        lines += [f"| {a} | {b} | {n} |" for (a, b), n in pairs.most_common()]
+    return "\n".join(lines) + "\n"
 
 
 def temperate_surface_ocean(records):
@@ -108,9 +165,12 @@ def main(argv=None):
     parser.add_argument("--seed", type=int, default=1000)
     parser.add_argument("--habitable-share", type=float, default=0.0)
     parser.add_argument("--report", help="also write the report to this file")
+    parser.add_argument("--compare", metavar="REV", help="also count the bodies whose class code differs from the one the fit table at git revision REV gives")
     args = parser.parse_args(argv)
     records = score_bodies(class_sweep_cli.sample_bodies(args.systems, args.seed, args.habitable_share))
     text = format_report(records, args.systems, args.seed, args.habitable_share)
+    if args.compare:
+        text += format_changes(args.compare, *changes_against(records, table_at(args.compare)))
     print(text)
     if args.report:
         with open(args.report, "w", encoding="utf-8") as handle:

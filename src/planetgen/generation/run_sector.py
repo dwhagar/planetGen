@@ -24,7 +24,7 @@ from planetgen.galaxy import scales
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.generation import directives
 from planetgen.generation import cloud as cloudContext
-from planetgen.generation import fill_stages
+from planetgen.generation import field_host, fill_stages
 from planetgen.generation import multistar, nebula_contents, scatter_companions, stored_trees
 from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
@@ -620,7 +620,24 @@ def add_scattered_phenomena(sector, args, fill):
         fill_stages.count(sector, fill_stages.SCATTERED, row["kind"])
         if hasattr(entry, "phenomenon_type"):
             new_entries.append(entry)
+            if row["kind"] == "supernova-remnant":
+                hosted = _hosted_field_entry(sector, entry, row)
+                if hosted is not None:
+                    new_entries.append(hosted)
     return new_entries
+
+
+def _hosted_field_entry(sector, entry, row):
+    """
+    The asteroid field a young supernova remnant hosts (GEN.1104, `generation/field_host.py`), added to `sector` at the remnant's point, or `None` where the remnant hosts none (a Type Ia
+    remnant, a belt that stayed bound or was never kept, a remnant older than the field takes to pass a light year). It is drawn from the row's seed, so the same remnant hosts the same field
+    whenever its sector is filled.
+    """
+    hosted = field_host.hosted_field(entry.phenomenon, entry.phenomenon.system_config, str(row["seed"]))
+    if hosted is None:
+        return None
+    fill_stages.count(sector, fill_stages.SCATTERED, "hosted-field")
+    return _seeded_build(row["seed"], lambda: sector.add_phenomenon(hosted.field, "asteroid-field", position=entry.position))
 
 
 def _bubble_density(fill):

@@ -127,7 +127,6 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 | VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law |  | Split from VIEW.2. Extends GEN.416 (the blackbody colour, 9.0). |
 | VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | VIEW.11 | Split from VIEW.2. |
 | VIEW.13 | Galactic band: the glow of the unresolved stars and dust along each line of sight | VIEW.11, VIEW.8 | Split from VIEW.2. |
-| VIEW.45 | Re-baseline the HYG calibration test (VIEW.30) for the new dust, in dust-free and default-dust modes, in the small and the Milky Way sized galaxy |  |  |
 
 ## Phase 3: Settlements foundation
 

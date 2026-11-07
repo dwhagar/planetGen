@@ -193,8 +193,8 @@ vapour, the ice-supported air and the Titan-like air (whose hydrogen is a photoc
 pressure is not changed here.
 
 The oxygen cap (`mixture_oxygen`, Boss 10-24): no air is pure oxygen. A lifeless world that lost its water (the abiotic-oxygen family) is
-capped at 95 percent oxygen with at least 0.5 percent nitrogen plus argon; a living world is capped at 35 percent (`BIOTIC_O2_MAX`, from the
-Phanerozoic peak and the fire limit), for the life stage that sets the oxygen of a living world to apply with `cap_oxygen`. The analysis is
+capped at 95 percent oxygen with at least 0.5 percent nitrogen plus argon; a living world is capped at an oxygen pressure of 35 percent of one Earth atmosphere, 35.5 kPa (`BIOTIC_O2_PRESSURE_MAX_PA`, from the
+Phanerozoic peak and the fire limit; a pressure and not a share since GEN.1320, with the share still held to 95 percent), by the life stage that sets the oxygen of a living world (`biogenic_oxygen._fire_limit_mol`). The analysis is
 in `/mnt/project-files/reports/pure-oxygen-atmosphere-2026-10-24.md`.
 
 The lava vapour reproduces [R2380]'s vapour pressure over a BSE melt (1.8e-4 bar at 2000 K, 1.1e-2 bar at 2500 K against 2e-4

@@ -2,7 +2,7 @@
 
 """
 MAP.402: every cell a scatter left a waiting bright star or an unbuilt scattered phenomenon in has a placeholder sector row (`db.uncharted_index`), made when
-a scatter ends (`run_plan.refresh_block_lights_unit`), by `planetgen fill-block-totals` and by migration 0223, so the Sectors list and the search reach it.
+a scatter ends (`run_plan.refresh_block_lights_unit`), by `planetgen fill-block-totals` and by migration 0226, so the Sectors list and the search reach it.
 """
 
 import pytest
@@ -151,8 +151,8 @@ def test_the_api_lists_the_made_cells_only_when_asked(galaxy):
 
 @pytest.mark.fresh_database
 def test_the_migration_makes_the_rows_of_a_galaxy_scattered_before_it(mysql_config):
-    load_old_schema(mysql_config, 222)
-    assert store.schema_status(mysql_config)[0] == 222
+    load_old_schema(mysql_config, 225)
+    assert store.schema_status(mysql_config)[0] == 225
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         _star(conn, STAR_CELL)

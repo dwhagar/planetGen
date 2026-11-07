@@ -50,10 +50,20 @@ MIN_CLASSES = 8
 """int: The classes the sweep must reach, or it has not swept every kind of body."""
 
 
+EXTRA_SYSTEMS_MAX = 12
+"""int: The systems added, one at a time, when the sweep drew no giant (the rules and the tests that break them need one; a draw of 14 systems may hold none, which GEN.974's
+change of every wet body's albedo made of seed 15, as the habitable-world requests draw again on the new conditions)."""
+
+
 @pytest.fixture(scope="module")
 def swept():
-    """`(body, is_moon)` for every planet and moon of the sweep."""
-    return sample_bodies(SYSTEMS, SEED, HABITABLE_SHARE)
+    """`(body, is_moon)` for every planet and moon of the sweep, with systems added one by one until a giant is in it (at most `EXTRA_SYSTEMS_MAX`)."""
+    bodies = sample_bodies(SYSTEMS, SEED, HABITABLE_SHARE)
+    extra = 0
+    while not any(body.body_type == "g" for body, _ in bodies) and extra < EXTRA_SYSTEMS_MAX:
+        extra += 1
+        bodies = bodies + sample_bodies(1, SEED + 1000 + extra)
+    return bodies
 
 
 def _starlight_w_m2(body):
@@ -227,8 +237,14 @@ def test_a_missing_spectrum_under_a_lit_star_is_named(swept, monkeypatch):
     assert any("no spectrum" in text for text in transmission_problems(body))
 
 
+def _passes_some_light(body):
+    """Whether the real column lets some light through in a band the rule reads (an opaque column passes ten times nothing: the test needs a column that passes some)."""
+    spectrum = body_radiation.surface_spectrum(body)
+    return spectrum is not None and any(spectrum.band_transmission(band) > 1e-3 for band in ("uv_c", "uv_b", "uv_a", "visible"))
+
+
 def test_a_thicker_column_that_passes_more_light_is_named(swept, monkeypatch):
-    body, _ = _first(swept, lambda b, m: air_column.column_of(b) is not None and _starlight_w_m2(b) is not None and b.atmospheric_pressure > 1e3)
+    body, _ = _first(swept, lambda b, m: air_column.column_of(b) is not None and _starlight_w_m2(b) is not None and b.atmospheric_pressure > 1e3 and _passes_some_light(b))
     real = body_radiation.surface_spectrum(body)
 
     def fewer_photons_for_thin_air(candidate, *args, **kwargs):

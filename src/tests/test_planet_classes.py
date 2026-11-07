@@ -97,6 +97,7 @@ CASES = {
                    share_ch4=0.05, p_n2_kpa=140.0, p_ar_kpa=0.0),
     "Y": no_oxygen(surface_temperature_k=320.0, atmospheric_pressure_pa=20000.0, hydrosphere="dry", ocean_fraction=0.0, share_so2=0.05, p_n2_kpa=5.0,
                    p_ar_kpa=0.0),
+    "W": body(surface_temperature_k=250.0),      # GEN.1306: a cold air world with no melting region is the frozen world, not the glaciated P
     "X": dict(body(atmospheric_pressure_pa=0.0, surface_temperature_k=210.0, gravity_g=0.3, mass_earth=0.03, ocean_fraction=0.5,
                    hydrosphere="ice-covered ocean", surface_liquid_ammonia_wt=20.0), **{atmosphere.GAS_FIELD: {}}),
 }
@@ -165,9 +166,10 @@ def test_a_best_class_always_exists_and_a_body_that_fits_none_gets_its_nearest_w
 
 
 def test_a_world_that_fits_a_family_only_with_its_gravity_set_aside_is_limited_by_another_domain_digit_9():
-    heavy = body(gravity_g=1.6, mass_earth=2.6)
-    detail = pc.classify_detail(heavy)
+    light = body(gravity_g=0.6, mass_earth=0.3)      # GEN.1306: M reaches 2 g, so a heavy world is plain M; a light one is still limited
+    detail = pc.classify_detail(light)
     assert detail.letter == "M" and detail.digit == 9 and detail.match == pytest.approx(1.0)
+    assert pc.classify_detail(body(gravity_g=1.6, mass_earth=2.6)).digit == 0
     assert pc.classify_detail(body()).digit == 0
 
 
@@ -215,8 +217,10 @@ def test_a_body_without_what_the_rules_read_is_refused():
 def test_a_class_follows_its_conditions():
     values = body()
     assert pc.classify(values) == "M"
-    values["surface_temperature_k"] = 250.0
-    assert pc.classify(values) == "P"
+    values.update(surface_temperature_k=250.0, hydrosphere="ice", ocean_fraction=0.4, band1_mean_k=235.0, band4_mean_k=276.0)
+    assert pc.classify(values) == "P"      # a seasonal melt and oxygen: the glaciated world
+    assert pc.classify(body(surface_temperature_k=250.0)) == "W"        # GEN.1306: the same cold with no melting region is the frozen world
+    assert pc.classify(body(surface_temperature_k=225.0)) == "E"
     values.update(atmospheric_pressure_pa=0.0, **{atmosphere.GAS_FIELD: {}})
     assert pc.classify(values) == "C"
 
@@ -225,7 +229,7 @@ def test_conditions_read_in_plain_words():
     words = {c.letter: cf.rule_words(c) for c in cf.CLASSES if c.kind == "t"}
     assert words["S"] == ["mass at least 1.5 Earth masses"]      # the air gate (no air under 10 Pa) is a gate of the class, not a condition
     assert words["N"][0] == "surface pressure at least 1,000,000 Pa"
-    assert any(word.startswith("oxygen share of the air at least 3 percent") for word in words["L"])
+    assert any(word.startswith("oxygen pressure at least 3,000 Pa") for word in words["L"])
     assert "water cover at least 20 percent" in words["M"] and "the water family's liquid is a liquid at the surface temperature and pressure" in words["M"]
 
 
@@ -280,7 +284,8 @@ def test_gen_1142_lines():
     assert pc.classify_detail(dict(thin, surface_temperature_k=321.0)).match < 1.0
     mask = body(p_co2_kpa=3.0, p_o2_kpa=10.0)
     assert pc.classify(mask) == "L"
-    assert pc.classify(dict(mask, atmospheric_pressure_pa=29000.0)) != "L" and pc.classify_detail(dict(mask, atmospheric_pressure_pa=310000.0)).match < 1.0
+    assert pc.classify_detail(dict(mask, atmospheric_pressure_pa=29000.0)).match < 1.0 and pc.classify(dict(mask, atmospheric_pressure_pa=15000.0)) != "L"      # GEN.1321: the oxygen is a pressure, so thinning the air leaves it
+    assert pc.classify_detail(dict(mask, atmospheric_pressure_pa=310000.0)).match < 1.0
     put_kpa(mask, "o2", 20.0)
     assert pc.classify_detail(mask).match < 1.0                          # too much oxygen to need a mask
 

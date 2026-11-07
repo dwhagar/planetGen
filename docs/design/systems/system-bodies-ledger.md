@@ -1,6 +1,6 @@
 # The system body ledger and the barycentre that includes the belts (GEN.1066)
 
-Status: pure module built (`physics/system_bodies.py`, lock-free, nothing calls it yet); the view over the typed tables is the wiring step. Written 2026-11-04 as the lane reported. Follows belt-evolution.md section 5 (Boss, 4:19 PM EDT 2026-10-30) and unified-system-barycentre.md.
+Status: built and wired. The pure module is `physics/system_bodies.py`; the view over the typed tables is `api/system_bodies.py` (GEN.1241), read by `GET /api/systems/<id>/bodies` and by the "Mass and barycenter" panel of the system page (`web/system_ledger.py`). Written 2026-11-04 as the lane reported. Follows belt-evolution.md section 5 (Boss, 4:19 PM EDT 2026-10-30) and unified-system-barycentre.md.
 
 ## 1. The question and the answer
 
@@ -30,13 +30,19 @@ The view reads exact column names when it is written (the typed tables are the s
 * **The barycentre is `sum(m r) / sum(m)`** over every row with a mass, belts and rings included (`barycentre_au`); the central object sits at minus that (`central_offset_au`). For one planet it is the two-body formula, for a moon the moon's share of the total mass. This is the "reflex" the planets columns store today for planets alone, now with the belts in it.
 * **The belt test.** `belt_wobble_au` is the distance between where the barycentre puts the star with the belts and without them. A round, centred belt gives zero; one heavy member on one side gives `m a / (M + m)`. The belts' wobble of a generated star is therefore a measurable number, and the Solar System's (the Sun's wobble from the belts is a test target, never an input) is the first check once the view is wired.
 
-## 4. What is not here
+## 4. The view (GEN.1241)
+
+`api/system_bodies.build` takes the stars, planets, moons and comets from the system scene (`web/maps/systemscene.build_scene`, which places them from the stored rows and already knows what each goes round), adds the mass a belt and a comet store, the rings (`planets.ring_mass_kg`), the bodies a belt keeps (`belt_members`, placed from their elements and mean anomaly by `relative_position_au`) and the belt's remainder below them (the stored belt mass less the kept bodies, one extended mass at the belt's center), and checks the list as a tree. The frame has the primary star (the origin star of a wide binary, else the first) at the origin; a body that goes round the center of a close pair is placed from that center. Moons of rings and of belt bodies are not in the rows (the typed tables hold none). A belt body is at the mean anomaly it was drawn with and the planets are where the orbits were last advanced to, so the belt wobble is the size of the pull, not its direction on a date.
+
+## 5. What is not here
 
 * The view over the typed tables, and where it is read (the system page, the map, the N-body export): the wiring item, which needs the belt member rows (GEN.1069) and the L2 on-demand draw to exist.
 * A time series: positions are one instant; a caller loop advances the orbits (`relative_position_au` turns elements and a mean anomaly into a position).
 * Close binaries as the origin of two stars, and moons of moons: the first keeps its own convention, the second is excluded by the no-satellite line of the unified rule (a belt member that has a moon is the only exception, as small-body binaries exist).
 * Per-body gravitational interaction: the ledger is for sums, not integration.
 
-## 5. Tests
+## 6. Tests
 
 `tests/test_system_bodies.py`: the tree checks and their reasons, chained positions, subtree and total mass, the barycentre against the two-body formula and with a moon, a round belt against a heavy member (the wobble), the belt residual, and elements to positions.
+
+`tests/test_system_bodies_view.py` walks the API and the page on the generated sample galaxy: one tree from the primary star, the masses adding up, the barycenter against the star's offset, each belt's rows against its stored mass, belt bodies named by belt and rank, printed IDs and the panel.

@@ -48,6 +48,7 @@ import os
 import re
 import secrets
 import socket
+import threading
 import time
 from dataclasses import asdict, dataclass
 
@@ -371,18 +372,63 @@ def _pid_alive(pid):
 
 def holder_is_dead(conn, run_id):
     """
-    Whether the process that follows the run `run_id` is gone, so the run can never end by itself: it started on
-    this host and its process id is not running, or (another host, or a run recorded before runs said who follows
-    them) its `alive` key has run out. A run whose record is gone or already over is dead too: nothing follows it.
+    Whether nothing follows the run `run_id` any more, so the run can never end by itself: its record is gone or already over; or
+    its `alive` key has run out (the process that follows a run says so every few seconds while it does, `Heartbeat`), which also
+    catches a process that is still running but no longer follows the run (a long-lived worker or a reused process id that left its
+    run behind, ADM.136); or it started on this host and its process id is not running (found at once, without waiting for the
+    `alive` key to run out).
     """
     owner = _s(conn.hget(run_key(run_id), "owner")) or ""
     state = _s(conn.hget(run_key(run_id), "state")) or ""
     if state and state not in LIVE_STATES:
         return True
     host, _, pid = owner.rpartition(":")
-    if state and host == socket.gethostname() and pid.isdigit():
-        return not _pid_alive(int(pid))
+    if state and host == socket.gethostname() and pid.isdigit() and not _pid_alive(int(pid)):
+        return True
     return not conn.exists(alive_key(run_id))
+
+
+HEARTBEAT_SECONDS = ALIVE_SECONDS / 4
+"""float: How often `Heartbeat` says the run is followed; a quarter of the time the `alive` key lives, so three beats can fail."""
+
+
+class Heartbeat:
+    """
+    Says every `HEARTBEAT_SECONDS`, from a thread of its own, that this process follows the run `run_id` (`touch`), for as long as
+    the `with` block lasts. The follower's own loop touches at every poll, but it does not while it is busy in a callback of its
+    own (saving what a stage found, starting workers), and a run whose follower is only quiet must not be taken for a dead one now
+    that `holder_is_dead` believes the `alive` key (ADM.136). When the block ends, the key runs out after `ALIVE_SECONDS` and a run
+    left behind is freed by the next one.
+    """
+
+    def __init__(self, conn, run_id, interval=None):
+        self.conn, self.run_id = conn, run_id
+        self.interval = HEARTBEAT_SECONDS if interval is None else interval
+        self._stop = threading.Event()
+        self._thread = threading.Thread(target=self._beat, name=f"heartbeat-{run_id}", daemon=True)
+
+    def _beat(self):
+        while not self._stop.wait(self.interval):
+            try:
+                touch(self.conn, self.run_id)
+            except Exception:  # noqa: BLE001 -- a Redis that does not answer now costs a beat, never the run
+                pass
+
+    def start(self):
+        self._thread.start()
+        return self
+
+    def stop(self):
+        self._stop.set()
+        if self._thread.is_alive():
+            self._thread.join(timeout=5)
+
+    def __enter__(self):
+        return self.start()
+
+    def __exit__(self, *exc_info):
+        self.stop()
+        return False
 
 
 def _free_dead_holder(conn, kind):

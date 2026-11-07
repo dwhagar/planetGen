@@ -1390,6 +1390,23 @@ STELLAR_WD_HELIUM_CORE_MAX_SOL = 0.45
 STELLAR_WD_ONE_CORE_MIN_SOL = 1.05
 """float: A white dwarf above this mass has an oxygen-neon core [R0085]."""
 STELLAR_WD_DA_SHARE = 0.80
+# The layers of a white dwarf whose core the downloaded sequences do not hold (GEN.743, `physics.white_dwarf_layers`).
+WD_ONE_CORE_MASS_FRACTIONS = {"oxygen": 0.55, "neon": 0.30, "trace": 0.15}
+"""dict: The mass fractions of an oxygen-neon core: 16O about 0.55 and 20Ne about 0.30 [R0627] (Sect. 2.2, read); the
+rest (22Ne, 23Na, 24Mg and traces) is the remainder, held as one `trace` share. [Stand-ins WL1 and WL2.]"""
+WD_ONE_HELIUM_MASS_BY_WD_MASS_SOL = ((1.10, 3.24e-4), (1.16, 1.82e-4), (1.23, 0.78e-4), (1.29, 0.21e-4))
+"""tuple: `(white dwarf mass, helium layer mass)` in solar masses of the four oxygen-neon models of [R0627] (Sect. 2.2: 3.24e-4, 1.82e-4 and
+the last two as the text lists them in order); the log of the layer is straight between the points and held outside them. [Stand-in WL3.]"""
+WD_ONE_HYDROGEN_MASS_SOL = 1.0e-6
+"""float: The hydrogen envelope, solar masses, of a hydrogen-atmosphere oxygen-neon white dwarf: the 'maximum expected' 1e-6 [R0627] adopted for
+ultra-massive models. [Stand-in WL4.]"""
+WD_HELIUM_CORE_HYDROGEN_FRACTIONS = ((0.15, 2.0e-2), (0.45, 1.0e-3))
+"""tuple: `(white dwarf mass, hydrogen envelope as a fraction of the star's mass)` of a hydrogen-atmosphere helium-core white dwarf: the
+envelope of a low-mass star is thick (about a hundredth of its mass for the lightest, 'extremely low mass', stars) and thins toward the
+flash-limit core; the log is straight between the points and held outside them. [Stand-in WL5.]"""
+WD_THIN_HYDROGEN_FRACTION = 1.0e-10
+"""float: The hydrogen fraction of a helium-atmosphere white dwarf whose sequences are not held (the thin-envelope case of the downloaded
+sequences, `datasets.white_dwarf_models`). [Stand-in WL6.]"""
 STELLAR_WD_POLLUTED_SHARE = (0.25, 0.50)
 # Neutron stars [R3075, R3396, R3746, R3804].
 STELLAR_NS_MASS_GAUSSIANS = (("slow", 1.49, 0.19), ("recycled", 1.54, 0.23))
@@ -2167,6 +2184,10 @@ PLANET_CLASSES = {
         "composition": 'iron, iridium, tungsten, and nickel',
         "type": 't',
     },
+    'W': {
+        "composition": 'silicon, iron, magnesium, and ice',
+        "type": 't',
+    },
     'X': {
         "composition": 'silicon, iron, magnesium, water ice, and ammonia',
         "type": 't',
@@ -2220,7 +2241,7 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
 """
 list: A list of planet class codes that are considered habitable.
 """
@@ -3350,6 +3371,10 @@ COMET_CEILING_ATTEMPTS = 25
 # planetary nebula's own radius range (NEBULA_CLASSES "H"-"L", 0.1-3
 # ly) so the two remain visually/narratively distinct phenomena.
 ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
+
+ASTEROID_FIELD_SPEED_KMS_RANGE = (0.1, 15.0)
+"""tuple: The rms speed a hand-made asteroid field spreads at, km/s, log-uniform (GEN.1103): a tidally disrupted rubble body is the slow end (0.1), the fastest rubble of a collision the fast end
+(15), the design's table (docs/design/systems/interstellar-asteroid-fields.md section 5.2). Registry section 6.203, row AF1."""
 
 # NAV.54: the keep-out radii a course keeps from an object that is not a Hill sphere (docs/design/orbits/course-avoidance.md section 2).
 KEEP_OUT_STAR_FLUX_W_M2 = 50000.0

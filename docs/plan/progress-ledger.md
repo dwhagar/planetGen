@@ -2819,3 +2819,38 @@ Baseline: PR #1817.
 | MAP.194 | 8.8 | Zoom windows |
 | GEN.164 | later | Multiple galaxies |
 | TEST.389 | 8.1 | Physics rectification: older physics follow-ups, units and the storage rows |
+| DB.114 | 8.1 | Bugs and flaky tests |
+| GEN.1257 | 8.1 | Physics rectification: names, designations and Object IDs |
+| GEN.1256 | 8.1 | Physics rectification: names, designations and Object IDs |
+| GEN.1190 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| GEN.1281 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1282 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1298 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1303 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1304 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1299 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1288 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.743 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| ADM.136 | 8.1 | Bugs and flaky tests |
+| TEST.671 | 8.1 | Bugs and flaky tests |
+| TEST.673 | 8.1 | Bugs and flaky tests |
+| TEST.670 | 8.1 | Bugs and flaky tests |
+| TEST.672 | 8.1 | Bugs and flaky tests |
+| TEST.674 | 8.1 | Bugs and flaky tests |
+| GEN.1241 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1327 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.675 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| VIEW.45 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
+| VIEW.48 | 8.2 | Bookmarks |
+| GEN.1104 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1278 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.876 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| TEST.436 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| GEN.1306 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1320 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1321 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.974 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| GEN.1261 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| GEN.1273 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| TEST.666 | 8.1 | The headline closes |
+| GEN.752 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |

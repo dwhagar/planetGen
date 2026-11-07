@@ -33,6 +33,8 @@ PROSE_TEXT_COLUMNS = {
     # GEN.1069 and GEN.1232: what formed a belt (causes, sentences, scatter fates as JSON text) and what its star's evolution did to it
     ("asteroid_belts", "co_causes"), ("asteroid_belts", "history_text"), ("asteroid_belts", "origin_history"),
     ("asteroid_belts", "origin_sentence"), ("asteroid_belts", "scatter_fates"),
+    # GEN.1103: the sentence of where an asteroid field came from
+    ("asteroid_fields", "history"),
     # GEN.1111: a rogue planet keeps the air text of a planet and the sentence of where it came from
     ("rogue_planets", "atmosphere"), ("rogue_planets", "rogue_note"),
     # DB.36: a plan's request and decision text, and the before and after of an operation or journal entry as JSON documents
