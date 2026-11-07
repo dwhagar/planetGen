@@ -2749,3 +2749,6 @@ Baseline: PR #1817.
 | TEST.662 | 8.1 | The headline closes |
 | SEC.40 | 8.1 | The headline closes |
 | SEC.41 | 8.1 | The headline closes |
+| DOC.109 | 8.1 | The headline closes |
+| SEC.42 | 8.2 | Accounts and sign-up |
+| GEN.1259 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |

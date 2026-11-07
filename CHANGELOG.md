@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3522] - 2026-11-07
+
+**Headline:** The low-severity points of the security audit are closed: workflow permissions, a hardened gunicorn unit, a stricter SVG upload check and three hygiene fixes.
+
+### Changed
+- **SEC.42 (S-L3): the GitHub workflows** `ci.yml`, `release-note.yml` and `deep-fuzz.yml` now set `permissions: contents: read` (the dev-branch dispatcher in `ci.yml` keeps its own `actions: write`; `stamp-version.yml` keeps `contents: write` on purpose), and every action is pinned by commit (`actions/checkout`, `actions/setup-python`, `actions/upload-artifact`), the tag it was on in a comment.
+- **SEC.42 (S-L4): `examples/systemd/planetgen-gunicorn.service`** adds `PrivateDevices`, `ProtectKernelTunables`, `ProtectKernelModules`, `ProtectKernelLogs`, `ProtectControlGroups`, `RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK`, `RestrictSUIDSGID`, `RestrictRealtime`, `LockPersonality` and `SystemCallArchitectures=native`. `ReadWritePaths` is not set (`ProtectSystem=full` leaves `/var` alone and the writable folders are configurable); the unit's comment gives the lines for an operator who wants `ProtectSystem=strict`. Its stale line saying the checkout belongs to www-data now says root with the web group.
+- **SEC.42 (S-L5): the SVG upload check** refuses an SVG that is not UTF-8 (a NUL byte, a UTF-16 byte-order mark, an `encoding=` declaration other than UTF-8, or bytes that do not decode), because the DOCTYPE and entity screen reads raw bytes and a UTF-16 file slipped past it. No new dependency.
+- **SEC.42 (S-I2, S-I3, S-I6):** a gas formula in the search values must be letters, digits, brackets, `+` and `-` (it is SQL text built from the fixed gas table, so a backslash can no longer end the quoted string); the two SHA-1 cache fingerprints say `usedforsecurity=False`; `vm.err` is gone from the repo root. S-I1, S-I4, S-I5, S-I7 and S-I8 are notes that need no change.
+
+## [8.0.3521] - 2026-11-07
+
+**Headline:** The SEC.44 folder check now accepts folders in a user's home folder, for a planetGen installed in a home folder on a shared machine.
+
+### Changed
+- **`/home` and `/Users` are allowed parents for the folders `config.json` names** (tile cache, jobs, debug log, log folder). In a home folder the folders on the way may belong to the user (not only to root), as long as the web user does not own them and the web server's group cannot write them. A name that starts with a dot (`~/.ssh`) is refused, and a whole home folder is never taken over (it is not empty and not the web user's). Every other SEC.44 rule stays: plain characters, no symbolic link, no system service's folder, an existing folder is only taken over when it is the web user's or empty. The web group test now looks at the groups the web user is really in, instead of treating every unknown group as able to write.
+
+## [8.0.3520] - 2026-11-07
+
+**Headline:** INSTALL.md walks through giving Redis a user and a password, for a new install and for one already running without.
+
+### Changed
+
+- `INSTALL.md` (DOC.109): a new section, "Give Redis a user and a password", with the steps in order: choose a password, copy `examples/redis/planetgen-acl.conf` and put the password in its `user planetgen` line, include it at the end of `redis.conf` (which also switches the `default` user off), put the password in `redis.url`, restart Redis and the web server, check with `redis-cli` and `update.sh`, and how to go back. It says what the `update.sh` warning means and that it goes away once the connection logs in as the `planetgen` user.
+- `docs/deployment/README.md`: the Redis settings entry no longer says a password can wait; it points to those steps.
+
+- `INSTALL.md`: "cancelled" is spelled "canceled" (the spelling test was red on main for that word).
+
+generation-output: unchanged
+
 ## [8.0.3519] - 2026-11-07
 
 **Headline:** The locked nltk is 3.10.4, and the API refuses "nan" and "inf" in its numbers with a 400 instead of a server error.

@@ -12175,32 +12175,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1254, GEN.1255. Filed by the TODO thread.
   Prerequisites: GEN.1254.
 
-- [ ] **GEN.1259 A planetless stretch becomes a belt only if enough leftover rocky mass could survive there: check the belt rule of GEN.1068 and GEN.1156 against the physics and the observed belt rates (about two thirds of systems have a belt now, from 4 percent before train 7)**
-  Boss, 6:43 PM EST on 2026-11-04, chose option 1 (keep the physics
-  rule, check it, compare with observation, no hand-tuning). Bug 1
-  measured the share of systems with at least one asteroid belt: 0.02
-  before GEN.1068 and GEN.1156 (train 7, belts come from the finished
-  planet chain), 0.785 at train 7, 0.69 at train 9, 0.66 over 600
-  systems on main. The chain now leaves a belt wherever the planets
-  leave a stretch with no planet. Do: (1) read the rule and decide what
-  leftover rocky mass the stretch had (the solid disc mass beyond what
-  the planets took, the depletion by the neighbouring planets'
-  scattering, the time it needs to survive to the system's age); a gap
-  becomes a belt only above a physical mass and stability floor, not
-  just because it is empty; (2) compare the resulting warm
-  (asteroid-like) and cold (Kuiper-like) belt shares with the observed
-  debris-disc occurrence around Sun-like stars from the indexed sources,
-  report both without tuning to hit them, and register any stand-in in
-  GEN.725 with its tier and tweak level; (3) the base shares in TEST.579
-  are remeasured after this item and the train 10 re-tag, not before.
-  Done: the rule, a test of a gap with too little mass (no belt) and one
-  with enough (a belt), and the measured shares in the note. Generation
-  output changes (an epoch), so a lock item for the next train it is
-  ready for; it cannot reach train 10 (its list is frozen). Owner:
-  Aux 5 (belts), after GEN.1085 part 2 (reassigned from Core 3, 8:25 PM EST
-  on 2026-11-06). Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.579, GEN.725.
-
 - [ ] **GEN.1261 Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken**
   Boss, 7:23 PM EST on 2026-11-04, confirmed option 1 on the GEN.1259
   follow-up: file this, no tuning to the observed share. Core 3 measured
@@ -15049,31 +15023,15 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.661, GEN.1320.
 
-- [ ] **OPS.110 One installer for every systemd unit: render the maintenance, tile, smoke and gunicorn units from the checkout location and venv, and have install.sh and update.sh offer it**
-  Boss (8:29 PM EST on 2026-11-06) asked whether a script puts the right files into systemd and enables them based on the install directory. Today only planetgen-update.service and planetgen-update.path are rendered from the checkout (ensure_update_request_units in scripts/deploy-common.sh, run by install.sh and update.sh). examples/maintenance/install-maintenance-timer.sh copies the orbit, update, tile and smoke units as they are, so they still say /var/lib/planetGen and /usr/local/planetgen/venv; planetgen-gunicorn.service (nginx and Caddy hosts) is copied by hand with the same fixed paths; and neither install.sh nor update.sh offers the timer script, so a fresh install has no timers until someone runs it. Do: make install-maintenance-timer.sh render every unit with the checkout path (its own location) and the venv (PLANETGEN_VENV, as deploy-common.sh does), keep the state folder from deploy-paths.py, install planetgen-gunicorn.service when the host is not Apache (and reload it as update.sh already does), let install.sh and update.sh run it or say the one command to run (never a silent change to a host that has timers on purpose), and refuse a path with a space or special character as ensure_update_request_units does. No shim for the old copied units: a unit that differs from the rendered one is replaced and the change is logged. Done: a test renders each unit under a checkout in a temporary directory and finds no /var/lib/planetGen or /usr/local/planetgen left, the docs for nginx, Caddy and the maintenance timers match, and the docs tests pass. Lock-free. Version 8.1. Owner: Core 3, after DOC.109 (the same deploy files).
+- [ ] **TEST.665 test_class_sample.py::test_a_forced_rare_class_is_in_the_system[P] is red on main: no system with a forced class P world in 24 tries (bug)**
+  Core 4 (as the lane reported, 8:32 PM EST on 2026-11-06), seen on the GEN.1281 head and not caused by GEN.1306. Do: find out whether the forcing of class P no longer reaches the system (a class judged from the finished body, epoch 121, can lose a forced class) or the test's 24 tries are too few for it, and fix the code or the test with the reason written in the commit. Done: the test passes on main, or is replaced by one that checks what forcing really promises, and the targeted tests pass. Lock-free unless the forcing code changes the generator. Version 8.1. Owner: Core 4, with GEN.1323.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1306, GEN.1323.
+
+- [ ] **OPS.110 install.sh and update.sh render every systemd unit from the checkout location and venv and install the maintenance timers automatically; the gunicorn unit stays manual**
+  Boss (8:29 PM EST on 2026-11-06) asked whether a script puts the right files into systemd based on the install directory, then (8:33 PM EST) decided: install.sh and update.sh make sure every service and timer unit file has the right script directory and venv path, the gunicorn service stays manual, and the maintenance is installed automatically. Today only planetgen-update.service and planetgen-update.path are rendered from the checkout (ensure_update_request_units in scripts/deploy-common.sh). examples/maintenance/install-maintenance-timer.sh copies the orbit, update, tile and smoke units as they are, so they still say /var/lib/planetGen and /usr/local/planetgen/venv, and neither install.sh nor update.sh runs it. Do: one renderer in scripts/deploy-common.sh that writes every maintenance unit (orbit, update timer, update button, tiles; smoke stays opt-in) with the checkout path (where the script sits) and the venv (PLANETGEN_VENV, as deploy-common.sh does) and the state folder from deploy-paths.py; install.sh and update.sh run it and enable the timers on a Linux systemd host (a host with the timers on purpose keeps its choices: no timer is re-enabled that was disabled by hand, and --skip options carry over); install-maintenance-timer.sh stays only as a thin caller of the same code (no second copy). The gunicorn unit is not installed by any script: its example file and the nginx and Caddy guides say which two paths to edit. Refuse a path with a space or special character as ensure_update_request_units does. No shim for the old copied units: a unit that differs from the rendered one is replaced and the change is logged. Done: a test renders each unit under a temporary checkout and finds no /var/lib/planetGen or /usr/local/planetgen left in the installed copies, update.sh on a host with the old copied units fixes them, the docs match, and the docs tests pass. Lock-free. Version 8.1. Owner: Core 3 (starts now).
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.43, DOC.109.
-
-- [ ] **DOC.109 Rewrite INSTALL.md to set up the Redis user and password: create the planetgen user from examples/redis/planetgen-acl.conf, turn off the passwordless default user, put the password in redis.url, and say what update.sh warns about**
-  Boss (8:23 PM EST on 2026-11-06), on SEC.39: he will reconfigure his Redis server when he can, update.sh keeps warning until then, and the install document must walk through the Redis user and password. Do: rewrite the Redis part of INSTALL.md (and the deployment README it links) so a new install creates the planetgen user from examples/redis/planetgen-acl.conf with a password the reader chooses, switches off the default user, puts the URL in the configuration, checks the connection, and states what the update.sh warning means and how it goes away; include the steps for an existing install that already runs on the passwordless default user. Done: the document has the steps in order for both a new and an existing install, and the docs tests pass. Lock-free. Version 8.1. Owner: Core 3 (wrote the ACL file in SEC.39), after SEC.40 and SEC.41.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.39.
-
-- [ ] **SEC.42 Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml**
-  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L3, S-L4, S-L5, Low): ci.yml, release-note.yml and
-  deep-fuzz.yml set no permissions block and actions are pinned by tag, not
-  commit; the gunicorn systemd unit has only NoNewPrivileges, PrivateTmp,
-  ProtectHome and ProtectSystem=full (add ProtectKernelTunables,
-  ProtectControlGroups, RestrictAddressFamilies, ReadWritePaths); the SVG
-  upload check parses with xml.etree and screens DOCTYPE on raw bytes, so a
-  UTF-16 SVG slips past (parse with defusedxml or reject non-UTF-8; upload
-  is admin-only and served with a sandbox policy). The hygiene notes S-I1 to
-  S-I8 in the report ride along (parameterise search_values._gas,
-  usedforsecurity=False on the two SHA-1 cache fingerprints, delete vm.err
-  from the repo root). Do: all of the above. Lock-free. Done: each point
-  fixed or noted with a reason. Version 8.2. Owner: the SEC.33 audit thread (it is free after SEC.44).
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.33.
 
 - [ ] **SEC.45 A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function**
   Core 3 (as the lane reported, 8:08 PM EST on 2026-11-06), left over from SEC.39: with pickle gone and a Redis user with a password shipped, a queued job still names the function a worker runs, so the password alone keeps another local user from queuing a job. Do: the worker refuses any job whose function is not on a fixed list of the functions the program queues (one registry, tested against every enqueue call site), and logs and fails a refused job. Done: a job naming a function off the list is refused in a test, and every real enqueue is on the list. Lock-free. Version 8.2. Owner: the SEC.33 audit thread (Core 3 is busy with SEC.40 and SEC.41).
@@ -16726,6 +16684,11 @@ clears each one.
   Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: 10 of 32 hot planets at 16 times the Earth's starlight or more hold 1,000 to 17,000 bar of air with almost no water; JWST observations of hot rocky planets mostly show bare rock or thin air. Do: run the measurement (how the air is outgassed against how it is lost at those temperatures), say whether the generator or the observations are right, and file or build the fix with sources. Done: a short report with numbers and a verdict, and a follow-up item if the generator is wrong. Version 8.1. Owner: Core 5, after GEN.1310.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.753, GEN.1310.
+
+- [ ] **GEN.1327 Fewer life-capable bodies on the train 13 sweep than on main: letters holding a capable body fell from 12 to 9, with class C 21 to 16, E 35 to 29, N 1 to 0 of 22, Z 1 to 0 of 6 and F 1 to 0 of 1 while G, S, T and U rose; check whether the drop is intended (bug)**
+  Train Manager (as the lane reported, 8:40 PM EST on 2026-11-06), train 13 gate. test_sweep_life reached only 9 of 10 life-class letters, and the Train Manager lowered its letter floor from 10 to 8 so the gate passes (a hand change to a test, to be undone or justified by this item). The first suspect is the GEN.1304 greenhouse refit, then GEN.1282 (deferred climate), GEN.1297, GEN.1298, GEN.1303 and GEN.1261. Do: after train 13 merges, rerun the sweep on the train 13 merge commit and on the commit before it, split the change in capable bodies by item (bisect over the train's items), and say for each whether it is the intended result of its physics (a table refit that moved worlds out of the habitable range is fine; a lost gate or a broken input is a bug). Report the numbers per class. If the drop is intended, set the test's letter floor from the new physics with the reason in the note; if not, fix the cause. Done: the per-item split is in a report, the floor is either restored to 10 or justified, and the targeted tests pass. Version 8.1. Owner: Bug 1 (census re-tag after train 13), with Core 5 for GEN.1304.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.600, GEN.1304.
 
 - [ ] **GEN.1320 Fire limit by oxygen pressure: the 35 percent oxygen cap becomes a limit on oxygen pressure, so thin-air worlds no longer pile up at exactly 35 percent (bug)**
   Boss (7:36 PM EST on 2026-11-06): option b for both oxygen findings of the GEN.1309 chain (/mnt/project-files/reports/gen1309-oxygen-chain-2026-11-07.md; plain-word write-up in the Planets 1 thread). Finding: some thin-air worlds (10 to 17 kPa) with oxygen-making life hit the 35 percent share cap, which stands in for the fire limit, and 3 of 5 (natural galaxy), 4 of 5 (sun-like stars with a habitable world) and 1 of 2 (orange stars) of the worlds with 16 percent oxygen or more sit at exactly 35.0 percent. Fire depends on oxygen pressure, not share (35 percent of 14 kPa is 5 kPa, a quarter of Earth's). Do: set the fire limit by oxygen pressure (stand-in value, registered with tier and tweak level; Earth's present air is the anchor and sources for burn limits are to be found first), so a thin air can carry a larger share and the pile-up spreads; measure the same three samples before and after. Lock item (generation output changes; epoch and goldens at the train). Done: no pile-up at one value in the three samples, the registry rows exist, the sweep shows the new spread. Version 8.1. Owner: Planets 1, before GEN.1278 (Boss asked for it and it is small). Feeds GEN.1318.
