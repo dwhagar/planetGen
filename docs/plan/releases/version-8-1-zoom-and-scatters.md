@@ -69,6 +69,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
 | TEST.290 | test_work_units and test_galaxy_seed each fail once under the gate load: a galaxy run stores each stage once, and a new seed replaces the old only before any sector (bug) |  |  |
 | GEN.396 | Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants |  | Core 3 finding, 2026-10-16 10:00 PM EDT; any Core lane. |
+| ADM.136 | A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug) |  |  |
 
 ### Nebula data foundations
 
