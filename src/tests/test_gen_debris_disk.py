@@ -112,4 +112,4 @@ def test_the_sheet_rule_says_which_stars_have_disk_rows():
 def test_the_share_of_sun_like_stars_with_a_disk_is_near_the_surveys():
     held = sum(bool(system.star.disk_kind) for system in _systems(60))
     survey = dict((upper, share) for upper, share in SURVEY_SHARE_BY_MASS)[1.04]
-    assert 0.03 <= held / 60 <= 2.0 * survey, held         # the tuned cut (stand-in DU1) gives about 8 percent of G2V stars against the survey's 14
+    assert 0.03 <= held / 60 <= 2.0 * survey, held         # the tuned cut (stand-in DU1) gives about 15 percent of G2V stars against the survey's 14 (GEN.1261: 1.3 percent at the earlier cut 1.5e-4, once the cold belts lost their unformed share)

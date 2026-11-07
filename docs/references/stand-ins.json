@@ -20031,11 +20031,11 @@
           "fields": [
             [
               "What it is",
-              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
+              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 3e-5: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
             ],
             [
               "The range it moves in",
-              "8e-5 to 3e-4 (G disk share 33 to 2 percent)"
+              "3e-5 to 5e-5 (K, G and F dwarfs together 18 to 8 percent)"
             ],
             [
               "Where it holds",
@@ -20051,7 +20051,7 @@
             ],
             [
               "Evidence",
-              "tuned against a sweep of 70 to 160 systems each of K3V, G2V, F5V and A2V (A stars then hold none, F about half the survey's share)"
+              "tuned against a sweep of 300 systems each of K2V, G2V and F5V after the cold-belt loss of GEN.1261 (11-07): the cut 1.5e-4 gave 1.3, 3.3 and 1.7 percent of G, K and F stars a disk (7.3, 34 and 4.3 before the loss), 3e-5 gives 14.7, 31 and 7: the K, G and F dwarfs together 17.7 percent against the survey's 17 (before: 70 to 160 systems each of K3V, G2V, F5V and A2V, A stars then holding none, F about half the survey's share)"
             ]
           ],
           "id": "DU1",
@@ -20062,7 +20062,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
+          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 3e-5: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
         },
         {
           "burn_down": null,

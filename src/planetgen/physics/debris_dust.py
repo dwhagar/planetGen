@@ -45,7 +45,7 @@ F_MAX_COEFFICIENT = 0.004
 CASCADE_MAX_KM = 2000.0
 """float: The largest body the dust cascade is reckoned for, km: the nominal `Dc` of [R4785] (their Fig. 2 and Eq. 21). [Stand-in DU3, tier T1, tweak L1.]"""
 
-DETECTABLE_FRACTIONAL_LUMINOSITY = 1.5e-4
+DETECTABLE_FRACTIONAL_LUMINOSITY = 3.0e-5
 """float: The fractional luminosity, dust over star, at which the generator's disks are as rare as the surveys' (the real survey limit is near 1e-5). [Stand-in DU1, tier Marginal educated guess from needed output, tweak L3.]"""
 
 
