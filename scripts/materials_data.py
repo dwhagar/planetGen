@@ -280,4 +280,7 @@ VOCABULARY_ONLY = {
     "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
     "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
     "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+    **{row: "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)" for row in (
+        "pyrite", "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "niningerite", "alabandite", "daubreelite", "osbornite",
+        "sinoite", "khamrabaevite")},
 }
