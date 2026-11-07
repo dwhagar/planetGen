@@ -10356,48 +10356,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can still be made leaner.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
-- [ ] **PERF.227 Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug)**
-  Boss (2026-10-31, 7:38 PM EDT, as the coordinator relayed): "On a
-  fresh download, I tried to create a new scatter on a plan, testing the
-  individual parts... But it's not working...." The Apache error log on
-  hal shows, at 6:23:48 PM EDT and again at 7:35:49 PM EDT, five lines
-  each of `Truncated or oversized response headers received from daemon
-  process 'planetgen-api': /var/lib/planetGen/src/html/wsgi.py` (five
-  requests cut off at the same second, so the daemon died or was killed,
-  not one slow request). The browser showed a generic error 500; after a
-  refresh the console had no log and said "The job stopped without
-  finishing (the server may have restarted)." Do: (1) reproduce: a fresh
-  checkout, plan a galaxy, start one scatter part (a single stage) from
-  the Generate console, and watch the daemon, the web request and the
-  worker; (2) find why the daemon dies: the request limit (the same 60 s
-  ending as PERF.225, which now builds the cluster field ahead and
-  refuses a visitor's build), memory (PERF.226 caps the stage workers;
-  check whether the start request itself builds a big table in the
-  daemon), or a crash in the start path; Apache's own error log lines
-  before the first Truncated line and the kernel log say which; (3) fix
-  at the cause so the start request answers in a second and the work
-  runs in the queue, not in the daemon; (4) make a stopped job say why
-  in one plain line (killed by memory, restarted, daemon limit), not
-  only "may have restarted". Done: starting each single scatter part
-  from the console on a fresh plan answers at once, the job runs and
-  finishes or fails with a plain reason, and a test holds the start path
-  to a small fixed time. Owner: the investigating thread (named by the
-  coordinator); it checks the overlap with PERF.225 and PERF.226 first.
-  Lock-free unless the cause needs a migration. Version 8.1.
-  Fix merged (#4667), kept open for the gate (2026-10-31 8:50 PM EDT): A
-  stage whose workers read the galaxy shape now makes the cluster field
-  file once before the stage is cut (queue/wrapper._expand to
-  galaxy/field_job.ensure_file), instead of each worker building it
-  (hal: 10 workers, 7 GB, the run crawled). No epoch, generation output
-  unchanged. The gate was partial: field, queue, wrapper and guard tests
-  151 passed, and the full changed-files set stopped at 622 passed with
-  2 failures not identified, because the lane machine was too slow.
-  Retire this item when the full-suite thread or a lane names the 2
-  failures and they are not this change's. hal needs ./update.sh (it ran
-  8.0.3021) for this, PERF.225 and PERF.226, and Boss must cancel and
-  clear the stuck run.
-  Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
-
 - [ ] **PERF.240 A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug)**
   Bug 1 (as the lane reported, 10:33 PM EST on 2026-11-04), found
   building GEN.1275: once a barred system must hold no planet or moon of
@@ -15167,6 +15125,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   count equals N; the run reports what came out (natural, N met, or
   asked N and got M); a user who wants a different count repeats the run
   with another seed. The held-back and met_forced states are dropped.
+  Spacing ruling (2026-11-07, 1:58 PM EST, read from Boss's decision G1 of 5:44 PM EST on 2026-11-05 that no civilization physics allowed is cancelled, and from his rule that a civilization is never forced): the homeworld spacing only lowers the odds of a new space-faring homeworld near an existing one and never removes a natural civilization; a hard minimum distance is not used.
   Prerequisites: POP.25, DB.104, GEN.774. Related: GEN.180, POP.17.
 
 - [ ] **POP.27 Territories of several worlds and sectors: every government's homeworld is inside its territory, a government that really reaches only its own system holds one system and the page says why, and the check is a test**
