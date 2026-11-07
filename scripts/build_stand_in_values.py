@@ -315,6 +315,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.205", "6.205 Stand-ins of the strong-acid anions of a sealed ocean",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.206", "6.206 Stand-ins of the envelope a rocky planet captures and keeps",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.197", "6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.182", "6.182 Stand-ins of where a stored belt member lies",

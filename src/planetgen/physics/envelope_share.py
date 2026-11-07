@@ -44,6 +44,8 @@ _FORMED = "_formation_fractions"
 
 def air_share(body):
     """The hydrogen-rich air's mass over the body's mass; 0 for a body without a hydrogen-rich air (a giant, a body with no air, no mass or no radius)."""
+    if getattr(body, "_captured_envelope", 0.0):
+        return 0.0      # the envelope the planet captured (GEN.1323, `envelope_capture`) is its hydrogen air already; the share is not counted twice
     mass, radius_km, pressure = getattr(body, "mass", None), getattr(body, "radius", None), getattr(body, "atmospheric_pressure", None)
     if not mass or not radius_km or not pressure or pressure <= 0.0:
         return 0.0
@@ -72,6 +74,21 @@ def air_details(body):
     return helium, max(0.0, 1.0 - mass_of.get("H", 0.0) / total - helium)
 
 
+def set_gas_detail(body):
+    """Stores the helium and heavy-element shares of the envelope of a rocky body (`envelope_helium_fraction`, `envelope_z_fraction`): the disk's gas, so the star's
+    (`bulk_draw.host_ratios`); `None` for both when the body has no envelope. A body with an envelope share stores both (the bulk rule of `tests/audit/sweep_bulk.py`)."""
+    from planetgen.physics import bulk_draw      # imported here: bulk_draw is loaded by the planet before this module is used
+    if not (getattr(body, "envelope_mass_fraction", None) or 0.0) > 0.0:
+        body.envelope_helium_fraction = body.envelope_z_fraction = None
+        return
+    star = getattr(body, "star", None)
+    if star is None:
+        return              # a bare stand-in body of a test: no star, no ratios
+    ratios = bulk_draw.host_ratios(star)
+    body.envelope_helium_fraction = ratios.y_envelope * (1.0 - ratios.z)
+    body.envelope_z_fraction = ratios.z
+
+
 def restore(body):
     """Puts a rocky body's drawn fractions back (what `fill` scaled), before its air is solved again. Nothing to put back on a body not filled yet."""
     formed = getattr(body, _FORMED, None)
@@ -94,9 +111,10 @@ def fill(body):
     body.envelope_mass_fraction = formed["envelope_mass_fraction"] + share
     if share > 0.0:         # GEN.1303: an envelope has the helium and the heavy elements of the air that is it
         body.envelope_helium_fraction, body.envelope_z_fraction = air_details(body)
-    elif not formed["envelope_mass_fraction"]:
-        body.envelope_helium_fraction = body.envelope_z_fraction = None
-    keep = 1.0 - share
+    else:
+        set_gas_detail(body)        # GEN.1323: a captured envelope is the disk's gas; none when the body has no envelope
+    solids = sum(formed[name] or 0.0 for name in SOLIDS)
+    keep = 1.0 - share / solids if solids > 0.0 else 1.0       # the air's share comes out of the solids, which are what is left of the whole after the envelope the body was drawn with
     for name in SOLIDS:
         if formed[name] is not None:
             setattr(body, name, formed[name] * keep)
