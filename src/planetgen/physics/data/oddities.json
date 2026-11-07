@@ -97,7 +97,7 @@
         {"quantity": "spin_period_days", "min": 20.0},
         {"quantity": "obliquity_deg", "min": 90.0}
       ],
-      "source": "[R0896] (Correia and Laskar 2001, Nature 411:767; 2003, Icarus 163:1 and 24); [R0962] (Int. J. Astrobiol. 14:233); the module is physics/venus_spin.py",
+      "source": "[R0896] ([R0896]:767; 2003, Icarus 163:1 and 24); [R0962] (Int. J. Astrobiol. 14:233); the module is physics/venus_spin.py",
       "text": "The star's heat tide on its thick air and the solid tide of the planet balance at a spin that is not the orbit's, so the planet turns slowly backwards, as Venus does."
     },
     {
@@ -329,7 +329,7 @@
       "limits": [
         {"quantity": "mass_earth", "lt": 0.11}
       ],
-      "source": "Kepler-1520 b, K2-22 b, KOI-2700 b; [R3487] (Perez-Becker and Chiang 2013); the module is physics/disintegrating_planet.py",
+      "source": "Kepler-1520 b, K2-22 b, KOI-2700 b; [R3487]; the module is physics/disintegrating_planet.py",
       "text": "Its dayside is hot enough to lift a wind of its own rock vapor that its weak gravity cannot hold, so it is losing mass and trailing dust, and it will be gone."
     },
     {
@@ -439,7 +439,7 @@
       "limits": [
         {"quantity": "body_type", "equals": "t"}
       ],
-      "source": "[R0580], [R4008] (the ice-albedo feedback); WR7; the module is physics/climate_branches.py and physics/air_branches.py",
+      "source": "[R0580, R4008] (the ice-albedo feedback); WR7; the module is physics/climate_branches.py and physics/air_branches.py",
       "text": "Its light is in the band where a world can be either warm or frozen over, and history put it on the other one."
     },
     {
@@ -469,7 +469,7 @@
       "limits": [
         {"quantity": "obliquity_deg", "min": 60.0}
       ],
-      "source": "[R3149] and [R2300] (Uranus at 98 degrees by a giant impact); the module is physics/giant_tilt.py",
+      "source": "[R2300, R3149] (Uranus at 98 degrees by a giant impact); the module is physics/giant_tilt.py",
       "text": "A giant impact knocked it over, and it turns on its side, its poles taking turns facing the star; its rings lie in the same tipped plane."
     }
   ]
