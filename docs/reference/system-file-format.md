@@ -148,6 +148,7 @@ B, F, G, O, H, M. The last class in each list takes every body that no earlier r
 | `K` | Thin-air world | terrestrial | Air under 3 kPa, a mean surface of 273.15 K to 320 K, and under 10 percent oxygen. | yes |
 | `E` | Deep-frozen world | terrestrial | A mean surface under 233.15 K (-40 C). | yes |
 | `P` | Glaciated world | terrestrial | A mean surface of 233.15 K to 273.15 K. | yes |
+| `W` | Frozen world | terrestrial | An air world with a mean surface of 233.15 K to 273.15 K, under 2 g, that class P does not hold (GEN.1306). | yes |
 | `B` | Small hot world | terrestrial | Surface gravity under 0.5 g. | no |
 | `F` | Anoxic world | terrestrial | Under 3 percent oxygen and under 20 percent carbon dioxide in the air, 0.5 to 1.4 g. | yes |
 | `G` | Carbon dioxide world | terrestrial | At least 20 percent carbon dioxide in the air. | yes |

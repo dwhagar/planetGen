@@ -293,6 +293,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.194", "6.194 Stand-in of the mass the planets take from an outer disk",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.197", "6.197 Stand-ins of the heavy oxygen worlds and the thin oxygen worlds",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.192", "6.192 Stand-in of how far apart random placement keeps two systems",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.195", "6.195 Stand-ins of the embryos the planets stir out of a system",
