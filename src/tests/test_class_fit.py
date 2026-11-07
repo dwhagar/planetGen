@@ -142,3 +142,14 @@ def test_a_carbon_dioxide_air_is_g_whatever_its_oxygen_and_a_thin_air_is_k_whate
     assert cf.best_class(rich)[:2] == ("G", 1.0)
     thin = body(surface_temperature_k=290.0, atmospheric_pressure_pa=1000.0, share_co2=0.01, share_o2=0.63, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=1.3)
     assert cf.best_class(thin)[:2] == ("K", 1.0)
+
+
+def test_oxygen_is_judged_by_pressure_and_not_by_share():
+    """GEN.1321 (registry OP1): a thick air whose oxygen is a few percent of the molecules but 25 kPa is a temperate world; a thin air of 90 percent oxygen
+    that is only 9 kPa is a marginal one; the same oxygen share on a thin air is not enough."""
+    thick = body(atmospheric_pressure_pa=1.0e6, p_o2_kpa=25.0, p_n2_kpa=950.0, p_ar_kpa=9.0, p_co2_kpa=0.4)
+    detail = cf.classify(thick)
+    assert (detail.letter, detail.digit) == ("M", 9)                          # 2.5 percent of the air, 25 kPa of oxygen: M, limited by its air amount (M's air is 50 to 250 kPa)
+    thin = body(atmospheric_pressure_pa=10000.0, p_o2_kpa=9.0, p_n2_kpa=0.9, p_ar_kpa=0.05, p_co2_kpa=0.05)
+    assert cf.best_class(thin)[0] != "M"                                      # 90 percent of the air, only 9 kPa
+    assert cf.scores(body(p_o2_kpa=40.0))["M"] < 1.0 and cf.scores(body(p_o2_kpa=35.4))["M"] == pytest.approx(1.0)    # the fire limit is the upper edge

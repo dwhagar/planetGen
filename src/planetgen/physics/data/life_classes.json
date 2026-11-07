@@ -353,11 +353,11 @@
      "basis": "Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model"
     },
     {
-     "quantity": "share_o2",
-     "lt": 0.03,
+     "quantity": "o2_partial_pa",
+     "lt": 3000.0,
      "tier": "T9",
      "tweak": "L3",
-     "basis": "Free oxygen below 3 percent poisons an anoxygenic or hydrogen-eating microbe: the existing gate (life-classes.md 3.1, Class 2 window)"
+     "basis": "Free oxygen below 3 kPa (3 percent of an Earth atmosphere) poisons an anoxygenic or hydrogen-eating microbe: the existing gate (life-classes.md 3.1, Class 2 window), now a pressure (GEN.1321)"
     }
    ],
    "windows": [
@@ -556,11 +556,11 @@
    },
    "gates": [
     {
-     "quantity": "share_o2",
-     "min": 0.001,
+     "quantity": "o2_partial_pa",
+     "min": 100.0,
      "tier": "T9",
      "tweak": "L3",
-     "basis": "An oxygen sea: oxygen at least 0.1 percent of the air for the oxidant to reach the vents (life-classes.md 3.1, Class 4 window)"
+     "basis": "An oxygen sea: oxygen at least 100 Pa (0.1 percent of an Earth atmosphere) for the oxidant to reach the vents (life-classes.md 3.1, Class 4 window), now a pressure (GEN.1321)"
     }
    ],
    "windows": [

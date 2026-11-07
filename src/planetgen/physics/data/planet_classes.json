@@ -52,6 +52,11 @@
       "percent": true,
       "note": "a stored gas's partial pressure over the surface pressure (o2, co2, co, n2, ar, h2, h2o, ch4, h2s, so2)"
     },
+    "o2_partial_pa": {
+      "label": "oxygen pressure",
+      "unit": "Pa",
+      "note": "the oxygen's partial pressure; the classes judge oxygen by pressure, not share (GEN.1321): 3 kPa, 16 kPa and 35.5 kPa are 3, 16 and 35 percent of an Earth atmosphere"
+    },
     "reducing_share": {
       "label": "methane and hydrogen share of the air",
       "percent": true,

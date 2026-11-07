@@ -28,12 +28,12 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | T | Gas dwarf (terrestrial kind) | hydrogen 30 percent of the air or more and under 10 Earth masses (GEN.1142; the same T as the giant row) |
 | N | Hot dense world | pressure of 10 bar or more, 400 K or more, hydrogen under 30 percent of the air (GEN.1142) |
 | V | High-gravity world | gravity of 2 g or more (GEN.1136; 1.25 g before) |
-| L | Marginal thick-air world | pressure 30 kPa to 3 bar, 273.15 to 320 K, carbon dioxide 1 percent or more, oxygen 3 to 16 percent, gravity 0.5 g or more (GEN.1142) |
+| L | Marginal thick-air world | pressure 30 kPa to 3 bar, 273.15 to 320 K, carbon dioxide 1 percent or more, oxygen 3 to 16 kPa (GEN.1321: judged by oxygen pressure; a share of 3 to 16 percent before), gravity 0.5 g or more (GEN.1142) |
 | K | Thin-air world | pressure under 3 kPa, 273.15 to 320 K, any oxygen share (GEN.1142; the under-10-percent oxygen cap removed in GEN.1306, registry AW4) |
 | E | Deep-frozen world | air, mean surface under 233.15 K (-40 C) (GEN.1142; the letter of the old wet reducing world) |
 | P | Glaciated world | mean surface 233.15 K to freezing (273.15 K) (GEN.1142) |
 | B | Small hot world | gravity under 0.5 g |
-| F | Anoxic world | oxygen under 3 percent and carbon dioxide under 20 percent, 0.5 to 1.4 g (GEN.1281; the reducing world before, which needed methane and hydrogen 5 percent or more) |
+| F | Anoxic world | oxygen under 3 kPa (GEN.1321: a pressure; 3 percent of the air before) and carbon dioxide under 20 percent, 0.5 to 1.4 g (GEN.1281; the reducing world before, which needed methane and hydrogen 5 percent or more) |
 | G | Carbon dioxide world | carbon dioxide 20 percent of the air or more, any oxygen share (GEN.1306, registry AW5) |
 | O | Ocean world | water covers 80 percent or more of the surface (GEN.1142) |
 | H | Desert world | water covers under 20 percent (GEN.1142) |

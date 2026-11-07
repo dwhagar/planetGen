@@ -226,7 +226,7 @@ def test_conditions_read_in_plain_words():
     words = {c.letter: cf.rule_words(c) for c in cf.CLASSES if c.kind == "t"}
     assert words["S"] == ["mass at least 1.5 Earth masses"]      # the air gate (no air under 10 Pa) is a gate of the class, not a condition
     assert words["N"][0] == "surface pressure at least 1,000,000 Pa"
-    assert any(word.startswith("oxygen share of the air at least 3 percent") for word in words["L"])
+    assert any(word.startswith("oxygen pressure at least 3,000 Pa") for word in words["L"])
     assert "water cover at least 20 percent" in words["M"] and "the water family's liquid is a liquid at the surface temperature and pressure" in words["M"]
 
 
@@ -281,7 +281,8 @@ def test_gen_1142_lines():
     assert pc.classify_detail(dict(thin, surface_temperature_k=321.0)).match < 1.0
     mask = body(p_co2_kpa=3.0, p_o2_kpa=10.0)
     assert pc.classify(mask) == "L"
-    assert pc.classify(dict(mask, atmospheric_pressure_pa=29000.0)) != "L" and pc.classify_detail(dict(mask, atmospheric_pressure_pa=310000.0)).match < 1.0
+    assert pc.classify_detail(dict(mask, atmospheric_pressure_pa=29000.0)).match < 1.0 and pc.classify(dict(mask, atmospheric_pressure_pa=15000.0)) != "L"      # GEN.1321: the oxygen is a pressure, so thinning the air leaves it
+    assert pc.classify_detail(dict(mask, atmospheric_pressure_pa=310000.0)).match < 1.0
     put_kpa(mask, "o2", 20.0)
     assert pc.classify_detail(mask).match < 1.0                          # too much oxygen to need a mask
 
