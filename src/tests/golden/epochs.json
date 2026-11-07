@@ -801,6 +801,18 @@
       "first_release": "8.0.3449",
       "reason": "Train 12: the stars of a cluster point to it (GEN.359), the galactic potential follows the density model's stars (GEN.1285), a sector holds the systems its profile expects (GEN.1284), the rogue top-up masses and ejection times come from the ejected record (GEN.1287, GEN.1295), the nebula and remnant composition is stored (GEN.1276, GEN.1277), the temperature coverage score and the hours of the bands (GEN.1265, GEN.1266), the best-fit class of every body (GEN.1207), the capture windows and irregular moons of a planet (GEN.1082 to GEN.1084), and the bar holds for every life class body (GEN.1275) move the generated output",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 135,
+      "first_release": "8.0.3543",
+      "reason": "GEN.1256: an object with no star (rogue planet, black hole, neutron star, nebula, remnant, quasar, comet, asteroid field) stores its Object ID in printed form as its name instead of a 19-digit position ID, so the stored names of the rogue planets in the pinned galaxy change shape.",
+      "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 136,
+      "first_release": "8.0.3571",
+      "reason": "Train 14: heavy and thin oxygen worlds, the Frozen world class and a wider class Z (GEN.1306), oxygen and carbon dioxide judged by pressure (GEN.1321, GEN.1320), the cloud albedo of a wet world (GEN.974), debris disks of hot stars and the dust of a wide belt (GEN.1261, GEN.1278), adaptation traits of life (GEN.876, GEN.881), inner belts give planets irregular moons (GEN.1085), asteroid fields have an age, a speed and a host (GEN.1103, GEN.1104), the gas metallicity of a Cloud nebula (GEN.1273), the rogue planet saved form of a brown dwarf (TEST.666)",
+      "affects": ["plan", "scatter", "fill", "population"]
     }
   ]
 }

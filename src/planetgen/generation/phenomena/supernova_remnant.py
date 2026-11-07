@@ -142,7 +142,7 @@ class SupernovaRemnant(LazySaladName):
         # A draft name: `store.insert_supernova_remnant` reserves it through
         # the system-name registry (v40), and the core follows.
         self._init_salad_name(name)  # drawn on first read (PERF.43)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        self.name_given = bool(name)  # a given name is kept over an Object ID name (GEN.1256)
 
         type_ia_chance = getattr(system_config, "TYPE_IA_SHARE", None)
         if type_ia_chance is None:

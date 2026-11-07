@@ -24,17 +24,17 @@ def _body(**fields):
     return types.SimpleNamespace(**base)
 
 
-def _result(oxygenic=None, multi=None, living=None, **rungs):
+def _result(oxygenic=None, multi=None, living=None, traits=None, trait_worlds=0, **rungs):
     """A run whose life worlds stand on `rungs`; the oxygenic worlds of the host systems stand on `oxygenic` (default: the same rungs)."""
     life_worlds = sum(rungs.values())
     host = rungs if oxygenic is None else oxygenic
     return {"systems": 10, "worlds": 100, "life": life_worlds, "rungs": rungs, "classes": {}, "host_systems": 10, "host_oxygenic": host,
-            "multi": int(0.8 * life_worlds) if multi is None else multi, "living": living or {}, "minor_sentient": 0, "abandoned": 0, "errors": [], "error_count": 0}
+            "multi": int(0.8 * life_worlds) if multi is None else multi, "living": living or {}, "traits": traits or {}, "trait_worlds": trait_worlds, "minor_sentient": 0, "abandoned": 0, "errors": [], "error_count": 0}
 
 
 def _expectations(**changes):
     bands = {"stops_before_animals": (0.5, 1.0), "reaches_animals": (0.15, 0.35), "reaches_sentient": (0.0, 0.02),
-             "sentient_of_animal_worlds": (0.0, 0.05), "two_or_more_classes": (0.6, 1.0)}
+             "sentient_of_animal_worlds": (0.0, 0.05), "two_or_more_classes": (0.6, 1.0), "any_trait": (0.01, 0.25), "extreme_of_traits": (0.0, 0.75)}
     measures = {name: {"min": low, "max": high, "kind": "stand-in", "source": "test"} for name, (low, high) in bands.items()}
     for name, extra in changes.items():
         measures[name].update(extra)
@@ -204,6 +204,7 @@ def test_a_broken_band_trips_the_live_flag(expectations):
 
 
 @pytest.mark.slow
+@pytest.mark.timeout(3600)    # PERF.241: the census draws every cell as its reference did, on every core: 886 to 1,036 s on 4 vCPUs against the default 900 s
 def test_the_life_census_raises_no_new_flag(expectations):
     """Generates the seeded systems, writes the latest-run report and fails on a flag that no known anomaly explains."""
     result = life.run()
@@ -215,3 +216,45 @@ def test_the_life_census_raises_no_new_flag(expectations):
     path = census.write_report(life.format_report(result, findings, header), name=life.REPORT_NAME)
     new = [finding for finding in findings if not finding.known]
     assert not new, f"new life census flags (report: {path}):\n" + "\n".join(f.line() for f in new)
+
+
+# --- TEST.436: traits, chemistries per star letter, animal grades ---------------------------------------------------------------
+
+
+def test_the_trait_shares_are_over_the_life_worlds_and_over_the_traits_drawn():
+    result = _result(origin=30, producers=30, animals=30, sentient=10, traits={"radiation:2": 6, "radiation:3": 2, "sulfide:2": 2}, trait_worlds=8)
+    values, counts = life.summarize(result)
+    assert values["any_trait"] == 0.08 and counts["any_trait"] == 100
+    assert values["extreme_of_traits"] == 0.2 and counts["extreme_of_traits"] == 10
+
+
+def test_a_census_in_which_the_trait_draw_went_silent_is_flagged():
+    result = _result(origin=60000, producers=10000, animals=29000, sentient=1000, multi=80000)
+    flags = life.compare(result, _expectations())
+    assert [f.measure for f in flags] == ["any_trait"] and flags[0].kind == "missing"
+
+
+def test_a_census_in_which_every_life_world_carries_a_trait_is_flagged():
+    result = _result(origin=30, producers=30, animals=30, sentient=10, traits={"radiation:2": 90}, trait_worlds=90)
+    assert "any_trait" in [f.measure for f in life.compare(result, _expectations())]
+
+
+def test_the_star_letter_of_a_body_is_the_first_letter_of_its_spectral_type():
+    assert life.star_letter(types.SimpleNamespace(star=types.SimpleNamespace(star_type="g2V"))) == "G"
+    assert life.star_letter(types.SimpleNamespace(star=types.SimpleNamespace(star_type=None))) == "?"
+    assert life.star_letter(types.SimpleNamespace()) == "?"
+
+
+def test_the_draw_counts_traits_star_letters_and_animal_grades_of_the_life_worlds():
+    found = life.draw_life([0, 1, 2, 3])
+    assert sum(found["by_letter"].values()) == found["life"] == sum(found["grades"].values())
+    assert found["trait_worlds"] <= found["life"] and sum(found["traits"].values()) >= found["trait_worlds"]
+    assert all(key.split(":")[1].isalpha() or key.endswith(":?") for key in found["by_letter"])
+    assert all(name.split(":")[0] in ("radiation", "sulfide", "carbon_dioxide") and name.endswith((":2", ":3")) for name in found["traits"])
+
+
+def test_the_report_lists_the_traits_the_classes_by_star_letter_and_the_animal_grades():
+    result = _result(origin=60, producers=10, animals=29, sentient=1, traits={"radiation:2": 3}, trait_worlds=3)
+    result.update(classes={"3a": 40, "4b": 60}, by_letter={"3a:K": 30, "3a:G": 10, "4b:G": 60}, grades={"3a:0": 40, "4b:2": 20, "4b:0": 40})
+    report = life.format_report(result, life.compare(result, _expectations()))
+    assert "radiation:2 3" in report and "- 3a: G 10, K 30" in report and "- 4b: grade 0 40, grade 2 20" in report

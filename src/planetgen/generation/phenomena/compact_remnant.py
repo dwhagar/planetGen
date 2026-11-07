@@ -246,7 +246,7 @@ class BlackHole(CompactRemnant):
                 scatter already drew it (MAP.165); no mass is drawn then.
         """
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        self.name_given = bool(name)  # a given name is kept over an Object ID name (GEN.1256)
 
         if mass_class not in (None, "supermassive", "stellar", "intermediate"):
             raise ValueError(f"mass_class must be None, 'supermassive', 'stellar' or 'intermediate', "
@@ -400,7 +400,7 @@ class NeutronStar(CompactRemnant):
         scatter row of the magnetar class, GEN.278), with an age within a
         magnetar's active life unless `age_gy` is given."""
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        self.name_given = bool(name)  # a given name is kept over an Object ID name (GEN.1256)
 
         self.mass_solar = mass_solar or remnant_mass.draw_mass_sol("neutron-star", mass_range)
         self.mass = _msun_to_kg(self.mass_solar)

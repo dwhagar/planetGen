@@ -27,8 +27,8 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, regional_temperature,
-                               life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability)
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, regional_temperature,
+                               life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -278,7 +278,7 @@ _BODY_GROUPS = (
            ("tier_suitability", "Suitability rating", TIER), ("tier_radiation", "Radiation rating", TIER)),
     *_rows("life", ("life_class", "Life class number", TEXT), ("life_class_variant", "Life class letter", TEXT),
            ("life_class_best", "Best-supported life class", TEXT), ("life_class_best_score", "Best-supported class score"),
-           ("life_animal_grade", "Animal grade"), ("life_complexity", "Complexity index"), ("evolutionary_pace", "Evolutionary pace", TEXT), ("life_stage", "Life stage", TEXT),
+           ("life_animal_grade", "Animal grade"), ("life_complexity", "Complexity index"), ("life_traits", "Adapted to", TEXT), ("evolutionary_pace", "Evolutionary pace", TEXT), ("life_stage", "Life stage", TEXT),
            ("life_milestone_age_gyr", "Age of that stage"), ("life_system_age_gyr", "Age of the system when it was written"),
            ("life_age_abiogenesis_gyr", "Age of abiogenesis"), ("life_age_photosynthesis_gyr", "Age of photosynthesis"),
            ("life_age_complex_cells_gyr", "Age of complex cells"), ("life_age_multicellularity_gyr", "Age of multicellularity"),
@@ -344,7 +344,9 @@ _NEBULA = (
 
 _ASTEROID_FIELD = (
     *_rows("identity", ("field_class", "Class", TEXT), ("density", "Density", TEXT)),
-    *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members")),
+    *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members"), ("largest_body_kg", "Mass of its largest piece"),
+           ("rms_speed_kms", "Speed its pieces spread at"), ("birth_age_yr", "Age"), ("shape", "Made as", TEXT),
+           ("origin", "Where it came from", TEXT), ("history", "History", TEXT)),
     *_rows("composition", ("composition_family", "Composition family", TEXT),
            ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
            ("chondrite_group", "Nearest meteorite group", TEXT)),
@@ -570,7 +572,7 @@ def _container_not_shown():
     }
 
 
-_COMPOSITION_STORED = {table: _excuse(columns, "the stored composition of the cloud (GEN.1276, GEN.1277); its sheet rows come with the item that wires the composition text")
+_COMPOSITION_STORED = {table: _excuse(columns, "the stored composition of the cloud; its sheet rows come with the item that wires the composition text")
                        for table, columns in nebula_columns.COLUMNS.items()}
 """dict: Table -> the composition columns of a nebula or remnant, each excused until the sheet shows the composition."""
 
@@ -733,6 +735,8 @@ def _value(spec, table, stored):
     if stored is None:
         return [NOT_STORED]
     quantity = spec.quantity
+    if spec.stored_column() == "life_traits":
+        return [adaptation_traits.sentence(stored)]      # GEN.876: "radiation (tolerant), sulfide (extreme)"
     if quantity == TEXT:
         text = str(stored).replace("_", " ")    # a stored key such as technological_civilization reads as words
         return [text[:1].upper() + text[1:]]
@@ -812,9 +816,9 @@ GIANT_CLASSES = frozenset("IJT")
 NEGLIGIBLE_TIDE_ECCENTRICITY = 1e-12
 """float: The eccentricity below which a body's tide heat is taken as nil and is not stored (`interior_heat.update_heat`): the heat goes as the
 square of it, so at 1e-12 it is 1e-24 of the heat at an eccentricity of 1, and the circularised orbits the generator draws are far smaller still (1e-170)."""
-HP_ICE_MIN_BASE_PA = 6.2e8
+HP_ICE_MIN_BASE_PA = water_layer.ICE_V_VI_TRIPLE_MPA * 1e6
 """float: The pressure at the base of a body's water, Pa, from which ice VI (the first high-pressure ice that `water_layer.column` counts in `hp_ice_km`)
-forms: 620 MPa, where ice VI melts at 272 K (`water_layer.LIQUIDUS_K_MPA`)."""
+forms: 632.4 MPa, the ice V, ice VI and liquid triple point (`water_layer.ICE_V_VI_TRIPLE_MPA`, [R4585])."""
 POROSITY_MAX_MASS_KG = compaction.TAPER_END_KG
 """float: The mass, kg, below which a body keeps voids (1e21, the end of the compaction taper): `bulk_draw` stores a porosity for every body lighter than this and
 none for a heavier one."""
@@ -838,7 +842,7 @@ _SURFACE = (
     "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
     "c_k0_ppm", "c_th0_ppm", "c_u0_ppm", "al26_ratio", "urey_ratio", "internal_heat_flux_w_m2", "mantle_eta0_pa_s",
     "mantle_activation_kj_mol", *_MEAN_SWING, *_COVERAGE_ROWS,
-    "life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
+    "life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity", "life_traits",
     "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
     "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
     "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
@@ -926,7 +930,7 @@ _BODY_RULES = [
      "underground water needs a layer between the freezing and the boiling line of water under the crust, which a body either has or lacks; a body without one stores none"),
     (("hp_ice_km",), lambda klass, row: row is None or (row.get("hydrosphere") in ICE_SHELL_STATES
                                                          and (row.get("water_base_pressure_pa") or 0.0) >= HP_ICE_MIN_BASE_PA),
-     "high-pressure ice (ice VI and VII) forms only where the water's weight reaches 620 MPa: a dry body, an open ocean, a vapor world and a "
+     "high-pressure ice (ice VI and VII) forms only where the water's weight reaches 632 MPa: a dry body, an open ocean, a vapor world and a "
      "body whose ice or ocean is too shallow for that pressure have none"),
     (("porosity",), lambda klass, row: row is None or (row.get("mass_kg") or 0.0) < POROSITY_MAX_MASS_KG,
      "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
@@ -937,6 +941,8 @@ _BODY_RULES = [
      "an ocean tide is worked out for a sea with a free surface (water, or another liquid such as methane or ammonia-water) or one frozen over (zero); a brine seep, a deep hycean sea, a lava sea and a dry, ice, or vapor world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
+    (("life_traits",), lambda klass, row: row is None or bool(row.get("life_traits")),
+     "a trait is shown only for a world whose life drew one: its radiation, hydrogen sulfide or carbon dioxide is more than the ordinary limits of life allow"),
     (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") in _CLASSES_WITH_VARIANTS,
      "only some life classes come in variants, a letter for the pigment or habitat; the others have one form and no letter"),
     (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") is None or any(

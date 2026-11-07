@@ -135,6 +135,7 @@ def test_viscosity_is_arrhenius_then_weakened_by_melt_then_a_liquid_at_full_melt
     assert tidal_rheology.viscosity_pa_s(1500.0, ETA0, EA) > solid > tidal_rheology.viscosity_pa_s(1700.0, ETA0, EA)
     assert tidal_rheology.viscosity_pa_s(1700.0, ETA0, EA, 0.2) == pytest.approx(
         tidal_rheology.viscosity_pa_s(1700.0, ETA0, EA) * math.exp(-tidal_rheology.MELT_VISCOSITY_FACTOR * 0.2))
+    assert tidal_rheology.MELT_VISCOSITY_FACTOR == 30.0     # GEN.1190: [R1956: Table 1], diffusion creep
     critical = tidal_rheology.CRITICAL_MELT_FRACTION
     below = tidal_rheology.viscosity_pa_s(1900.0, ETA0, EA, critical - 1e-9)
     above = tidal_rheology.viscosity_pa_s(1900.0, ETA0, EA, critical + 1e-9)
@@ -180,3 +181,16 @@ def test_a_mantle_far_colder_than_any_body_does_not_overflow_and_is_elastic_with
     frozen = tidal_rheology.rock_response(*MOON, MONTH_RATE, 50.0, ETA0, 3.0e5, SOLIDUS, LIQUIDUS)
     assert frozen.k2 == pytest.approx(tidal_heating.rigid_k2(*MOON), rel=0.01)
     assert frozen.q == tidal_rheology.COLD_Q_CEILING
+
+
+def test_a_partly_molten_ice_loses_viscosity_by_the_ammonia_ice_law_and_a_rock_by_the_mantle_law(monkeypatch):
+    """GEN.1190: the melt law of an ice is exp(-22 phi) [R0133] and a rocky mantle's exp(-30 phi) [R1956: Table 1], each read from the material."""
+    assert tidal_rheology.ICE.melt_viscosity_factor == 22.0 and tidal_rheology.ROCK.melt_viscosity_factor == 30.0
+    solid = tidal_rheology.viscosity_pa_s(250.0, 1.0e-3, 4.9e4)
+    assert tidal_rheology.viscosity_pa_s(250.0, 1.0e-3, 4.9e4, 0.1, tidal_rheology.ICE.melt_viscosity_factor) == pytest.approx(solid * math.exp(-2.2))
+    seen = []
+    real = tidal_rheology.viscosity_pa_s
+    monkeypatch.setattr(tidal_rheology, "viscosity_pa_s", lambda *args: seen.append(args[4]) or real(*args))
+    tidal_rheology.response(*EUROPA, EUROPA_RATE, 273.0, 1.0e-3, 4.9e4, 0.1, tidal_rheology.ICE)
+    tidal_rheology.response(*EUROPA, EUROPA_RATE, 1700.0, ETA0, EA, 0.1, tidal_rheology.ROCK)
+    assert seen == [22.0, 30.0]

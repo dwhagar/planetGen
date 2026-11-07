@@ -22,6 +22,9 @@ needs (`physics.life_timeline`); a class that splits water builds the oxygen its
 (`physics.biogenic_oxygen`); and the complexity of the class on the final air (`physics.life_complexity`) caps the milestones and gives
 the animal grade. All the draws of a body are made from a stream of its own, seeded by one draw of the run's (GEN.872), so a change in
 the life model no longer re-rolls the names and flavor text of every later body.
+
+The adaptation traits of the life (GEN.876, `physics/adaptation_traits.py`) are drawn first, from the stress the body has and on a stream of their own, because
+the class scores read them: a hard world's life is tougher, so it supports classes an easy world's would not. A world that ends up with no life stores none.
 """
 
 import copy
@@ -29,7 +32,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world, trace_air
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -58,7 +61,13 @@ def apply_life_data(planet, keep_stored=False):
     else:
         key = f"life:{draw.random()!r}"
     with draw.bound(draw.Stream(key)):
-        _apply(planet, keep_stored, key)
+        before = _trial_copy(planet)
+        barred = set()
+        while (frozen := _apply(planet, keep_stored, key, barred)) is not None:
+            # The life of the dominant class took the liquid it lives in (GEN.1298): the world is made again without that class, from the body as it was
+            barred.add(frozen)
+            vars(planet).clear()
+            vars(planet).update(vars(_trial_copy(before)))
 
 
 @dataclass
@@ -73,12 +82,15 @@ class _Cand:
     ages: tuple | None = None
 
 
-def _apply(planet, keep_stored, key):
-    scores = life_classes.score_classes(planet)
+def _apply(planet, keep_stored, key, barred):
+    """Settles the life of `planet`; returns the id of the dominant class when its own air took its solvent away (the caller makes the world again
+    without it; `barred` holds the classes it has barred), else `None`."""
+    planet.life_traits = adaptation_traits.text_of(adaptation_draw.draw(habitability_world.values_from_body(planet), draw.Stream(f"{key}:traits")))   # GEN.876
+    scores = {class_id: result for class_id, result in life_classes.score_classes(planet).items() if class_id not in barred}
     chosen, kept = _choose(planet, scores, keep_stored)
     if chosen is None:
         _lifeless(planet, scores, "no class is supported")
-        return
+        return None
     row = life_classes.describe(chosen.id)
     if kept:
         log.debug(f"Life class: kept {row.id}, still supported")
@@ -99,7 +111,7 @@ def _apply(planet, keep_stored, key):
         # only those): the first of them, by production, is the one that lives here and heads the list.
         if len(cands) == 1:
             _lifeless(planet, scores, f"class {row.id} is supported but its first step comes after the star's age")
-            return
+            return None
         cands = _redate(planet, cands[1:])
         headline = cands[0]
         row, chosen = headline.row, headline.score
@@ -108,6 +120,10 @@ def _apply(planet, keep_stored, key):
     cands = _settle(planet, cands, key)
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
     if not (final.get(row.id) and final[row.id].score > 0):
+        if row.id in final and "solvent" in final[row.id].failed:
+            # Its own air (the greenhouse gas it drew down) took the liquid it lives in: a class cannot live without its solvent (GEN.1298)
+            log.debug(f"Life class: {row.id} dropped, its own air left no {row.solvent['medium']} for it")
+            return row.id
         # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
         # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
         final = {**final, row.id: chosen}
@@ -289,7 +305,7 @@ def _lifeless(planet, scores, why):
     setattr(planet, life_classes.LIVING_FIELD, None)
     _set_schedule(planet, None, None)
     _set_evolutionary_state(planet, None)
-    planet.life_animal_grade = planet.life_complexity = None
+    planet.life_animal_grade = planet.life_complexity = planet.life_traits = None
     _trace_gases(planet)                # GEN.524: a lifeless world loses the trace gases a drawn life had given it
     habitability_world.rescore(planet)
     log.debug(f"Life class: none, {why}")

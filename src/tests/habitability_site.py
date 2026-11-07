@@ -71,10 +71,10 @@ def _config_for(site_config):
     return SiteConfig
 
 
-HABITABLE_SEED = 6
-"""int: The seed of the habitable sector's system: a G2V star with ten planets and five moons, generated in about five seconds."""
+HABITABLE_SEED = 9
+"""int: The seed of the habitable sector's system: a G2V star with seven planets and six moons, generated in about five seconds (TEST.677: seed 6 had ten planets and five moons until train 14, one moon after it, since captured moons went to the irregular store, GEN.1082 to GEN.1084; the lists test needs more than three moons)."""
 BARREN_SEED = 1
-"""int: The seed of the other sector's system: three planets and three moons."""
+"""int: The seed of the other sector's system: three planets, no moon now (it had three before GEN.1082 to GEN.1084)."""
 BLUE, GREEN, YELLOW, RED = 1.2, 0.9, 0.5, 0.1
 """float: The overall PHI-6 score (`phi4`) stored for a body of each colour (`habitability.tier`)."""
 
@@ -91,10 +91,13 @@ def _system(seed):
 
 
 def _give_scores(conn, system_id, colours):
-    """Stores an overall score on every planet and moon of the system: the colours in `colours` on its first bodies (planets
-    first), Red on the rest. The fixture seeds the stored scores the pages read, as `scored_site` does."""
+    """Stores an overall score on every planet and moon of the system that has its domain ratings: the colours in `colours` on
+    its first such bodies (planets first), Red on the rest. A gas giant has no domain ratings and no overall score, as in a real
+    galaxy, and the Habitability cell of a list cannot draw a score without them (TEST.677: seed 9 holds three). The fixture seeds
+    the stored scores the pages read, as `scored_site` does."""
     bodies = [(table, row["id"]) for table in ("planets", "moons")
-              for row in conn.execute(f"SELECT id FROM {table} WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
+              for row in conn.execute(f"SELECT id FROM {table} WHERE star_system_id = ? AND tier_air IS NOT NULL ORDER BY id",
+                                      (system_id,)).fetchall()]
     assert len(bodies) >= len(colours), (len(bodies), len(colours))
     for index, (table, body_id) in enumerate(bodies):
         conn.execute(f"UPDATE {table} SET phi4 = ? WHERE id = ?", (colours[index] if index < len(colours) else RED, body_id))

@@ -21,19 +21,27 @@
 # month, with no human review in between. update.sh itself still refuses
 # to run over uncommitted local changes or a diverged/detached HEAD (see
 # its own header comment) rather than forcing past either, but it does
-# not gate on *what* the pull brings in. Skip installing this unit (pass
-# `--skip-update-timer` to install-maintenance-timer.sh) if this
-# deployment's branch should only ever be updated by a human running
-# `sudo ./update.sh` deliberately.
+# not gate on *what* the pull brings in. install.sh and update.sh install the timer (OPS.110) and leave it off, saying at every deploy while it is off how to turn it on:
+# `sudo systemctl enable --now planetgen-update.timer` (running install-maintenance-timer.sh does the same). If this deployment's branch
+# should only ever be updated by a human running `sudo ./update.sh` deliberately, do nothing: a deploy never turns it on.
+# (install-maintenance-timer.sh --skip-update-timer leaves it out of a host that does not have it yet.)
 #
-# Install with examples/maintenance/install-maintenance-timer.sh, which
-# also sets up the credentials file this unit reads (needed for
+# SEC.43: planetgen-update.path also starts this unit, when the admin Update button drops the request file
+# (<state folder>/update.request). ExecStartPre removes the request before update.sh runs, so one press is one run; a press made
+# while the update runs waits for it and runs after. The file's contents are never read, and ExecStart takes no argument from it.
+#
+# Installed by install.sh and update.sh, rendered for the real checkout and virtual environment (and by
+# examples/maintenance/install-maintenance-timer.sh, which also sets up the credentials file this unit reads, needed for
 # install.sh's `planetgen.cli.migrate` step).
 
 [Unit]
 Description=planetGen deployment update (git pull + dependency check)
 After=network-online.target
 Wants=network-online.target
+# A request file that cannot be removed fails ExecStartPre at once and would start this again over and over; ten starts in ten
+# minutes stop that loop (`systemctl reset-failed planetgen-update.service` clears it).
+StartLimitIntervalSec=600
+StartLimitBurst=10
 
 [Service]
 Type=oneshot
@@ -48,8 +56,9 @@ WorkingDirectory=/var/lib/planetGen
 # "-" prefix makes it optional so a missing file falls back to
 # planetgen.cli.migrate's own built-in defaults rather than failing to start.
 EnvironmentFile=-/etc/planetgen/maintenance.env
-# With work running (a Generate job, a queued run, an orbital update) and no
-# terminal to ask on, update.sh refuses and changes nothing (OPS.53), so this
-# unit fails that month and the next firing tries again. To cancel the work
-# instead, add `--yes`: ExecStart=/var/lib/planetGen/update.sh --yes
+# Started by systemd, update.sh cancels the work it finds (queued jobs, the warm-up, tile and orbit work) with a stop
+# reason that says so, and updates. The one thing it never cancels is generation (a Generate job, a generation run):
+# with that running it changes nothing and this unit fails that time, so the next firing or press tries again. Adding
+# `--yes` (ExecStart=/var/lib/planetGen/update.sh --yes) cancels generation too.
+ExecStartPre=/bin/rm -f -- /var/lib/planetGen/state/update.request
 ExecStart=/var/lib/planetGen/update.sh

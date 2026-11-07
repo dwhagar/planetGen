@@ -302,7 +302,6 @@ How generated things are named.
 | [`bodies.py`](../../../src/planetgen/names/bodies.py) | Derived names for the stars, planets and moons inside one star system. |
 | [`gated_phoneme_codec.py`](../../../src/planetgen/names/gated_phoneme_codec.py) | A reversible, deterministic codec from hexadecimal identifiers to pronounceable names. |
 | [`naming_key.py`](../../../src/planetgen/names/naming_key.py) | The naming key (GEN.70; docs/design/architecture/object-ids.md, "Planned" step 3). |
-| [`object_id.py`](../../../src/planetgen/names/object_id.py) | The 76-bit position ID every interstellar object is named by (GEN.64). |
 | [`uniqueness.py`](../../../src/planetgen/names/uniqueness.py) | Name-uniqueness decoration -- pure functions, no database access. |
 | [`wordlists.py`](../../../src/planetgen/names/wordlists.py) | The data for the procedural name generator: base names, prefixes, suffixes and syllables. |
 | [`wordsalad.py`](../../../src/planetgen/names/wordsalad.py) | The syllable and phoneme-salad name generator, its validity checks, and sector names. |
@@ -614,6 +613,7 @@ The map panels and their data.
 | `adminpalette.js` | The Ctrl+K palette, its typed commands and the keyboard set (ADM.120, ADM.121, ADM.122). |
 | `adminjobstrip.js` | The job strip on every admin page: the running and the queued job, Cancel, Discard and Start now (ADM.119, ADM.123). |
 | `gridopacity.js` | The translucent blocks of a drill-down stage add up along the line of sight (MAP.188). |
+| `logfollow.js` | The admin log boxes (`pre[data-follow-end]`: the Update page's log, a queue run's log) scroll to the last line on load and when the text changes; scrolling up pauses it, scrolling back to the end resumes it (kept across the Update page's reload). |
 | `joblog.js` | The job output box: a terminal (Xterm.js) that shows the job's raw output as it streams (ADM.22). |
 | `mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map's scene share (MAP.64). |
 | `mapcore.js` | The helpers the Galaxy Map, the Sector Map and the System Map share, so each is written once (MAP.63). |

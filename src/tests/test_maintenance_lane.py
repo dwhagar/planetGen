@@ -63,7 +63,9 @@ def _generation_run(connection):
 
 def test_a_run_goes_on_the_queue_of_its_kind():
     assert wrapper.queue_of(runrecord.GENERATION) == redisqueue.BULK_QUEUE
-    assert wrapper.queue_of(runrecord.MAINTENANCE) == wrapper.queue_of(runrecord.CHECK) == redisqueue.MAINTENANCE_QUEUE
+    assert wrapper.queue_of(runrecord.MAINTENANCE) == redisqueue.MAINTENANCE_QUEUE      # PERF.245: a queue for each task type of the lane
+    assert wrapper.queue_of(runrecord.CHECK) == redisqueue.CHECK_QUEUE
+    assert redisqueue.NODES_QUEUE in redisqueue.QUEUES and redisqueue.CHECK_QUEUE in redisqueue.QUEUES
     assert redisqueue.serializer_for(redisqueue.MAINTENANCE_QUEUE) is redisqueue.JsonSerializer
     assert redisqueue.MAINTENANCE_QUEUE in redisqueue.QUEUES
 
@@ -228,6 +230,10 @@ def test_perf185_many_callers_together_never_pass_the_host_cap(lane, monkeypatch
     for _ in range(10):                                       # callers that lost the race to the lock ask again later
         for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
             workers.ensure_workers(name, connection)
-    assert len(started) == 4
+    assert len(started) == 2        # PERF.245: the cap less the two places kept for the short and long lanes (an interactive start takes one)
     assert int(connection.get(workers.REFUSED_KEY)) >= 1
+    _queue(connection, redisqueue.INTERACTIVE_QUEUE, 1)
+    assert workers.ensure_workers(redisqueue.INTERACTIVE_QUEUE, connection, count=1) == 1 and len(started) == 3
+    connection.delete(workers.STARTING_PREFIX + redisqueue.INTERACTIVE_QUEUE)
+    redisqueue.queue(redisqueue.INTERACTIVE_QUEUE, connection).empty()
     assert len(lines) == 1 and "cap is 4" in lines[0]                                 # said once, not at every poll

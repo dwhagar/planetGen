@@ -213,7 +213,59 @@ warning, with the exact line to add, for the append-only file, the memory
 policy and limit, and the bind address; copy the lines from
 [`examples/redis/planetgen.conf`](examples/redis/planetgen.conf) into your
 Redis config and restart Redis (it never edits that file; see
-[deployment](docs/deployment/README.md)).
+[deployment](docs/deployment/README.md)). It also warns while Redis lets
+anyone on the machine in without a password; the next section is the fix.
+
+### Give Redis a user and a password (new and existing installs)
+
+A job on the work queue names a function that a planetGen worker runs, so
+any user on the machine who can reach a passwordless Redis can make a worker
+run planetGen code with arguments of their choosing. `redis.url` should
+therefore name a Redis user with a password, and the passwordless `default`
+user should be off. [`examples/redis/planetgen-acl.conf`](examples/redis/planetgen-acl.conf)
+has the two lines; the installer cannot do this for you (it never edits your
+Redis config, and the password is yours to choose). Until it is done,
+`install.sh` and `update.sh` print "any user on this machine can use Redis
+without a password" with these same lines, and carry on.
+
+Do it in this order, on a new install after `install.sh` has finished and on
+an existing install when nothing you care about is running (the restart in
+step 4 stops the runs and workers using Redis; queued jobs are kept because
+of the append-only file):
+
+1. Choose a password: `openssl rand -hex 24` prints a good one.
+2. Copy the example next to your Redis config and put your password in place
+   of `A-LONG-RANDOM-PASSWORD` in the `user planetgen` line (only there).
+   Redis alone must read it:
+   `sudo cp examples/redis/planetgen-acl.conf /etc/redis/planetgen-acl.conf`,
+   then `sudo chown redis:redis /etc/redis/planetgen-acl.conf` and
+   `sudo chmod 600 /etc/redis/planetgen-acl.conf`.
+3. End `/etc/redis/redis.conf` with the line
+   `include /etc/redis/planetgen-acl.conf` (after the `include` of
+   `planetgen.conf`, if you added one: later lines win). This is the file
+   that switches the `default` user off.
+4. Put the same password in the URL planetGen uses, in `config.json`:
+   `"redis": {"url": "redis://planetgen:YOUR-PASSWORD@127.0.0.1:6379/0"}`
+   (or set `PLANETGEN_REDIS_URL`; a password with characters such as `@` or
+   `/` must be percent-encoded, which is why a hex password is the easy
+   choice). `config.json` lives in the state folder with mode 640 (the web user and
+   its group), so other users cannot read the password, as with the
+   database password it already holds; edit the linked file with `sudo`.
+5. Restart Redis and the web server:
+   `sudo systemctl restart redis-server && sudo systemctl restart apache2`.
+6. Check it: `redis-cli ping` now answers `NOAUTH Authentication required.`
+   (the passwordless user is off), and
+   `redis-cli --user planetgen --pass YOUR-PASSWORD ping` answers `PONG`.
+   Then `sudo ./update.sh` prints "Redis: answering at ..." and no longer
+   warns about the password; any other line it prints about Redis is one of
+   the settings of `planetgen.conf` and has the line to add.
+
+To go back, remove the `include` line from `redis.conf`, put the plain
+`redis://127.0.0.1:6379/0` URL back and restart both services.
+`update.sh` keeps printing the warning until this is done; it does not stop
+the update. The user may do everything planetGen does and none of the
+dangerous commands (`FLUSHALL`, `KEYS`, `CONFIG SET`, `SHUTDOWN`, `ACL` and
+the like): for those, edit the Redis config and restart Redis, as above.
 
 `sudo ./install.sh --skip-database` leaves out step 2 and the population
 question when the database
@@ -260,7 +312,7 @@ Where the examples live:
 | [`examples/caddy/`](examples/caddy/) | Caddyfile | [caddy.md](docs/deployment/caddy.md) |
 | [`examples/systemd/`](examples/systemd/) | gunicorn service for nginx or Caddy | [nginx.md](docs/deployment/nginx.md) |
 | [`examples/macos/`](examples/macos/) | nginx config and launchd plists (gunicorn, orbit update, `update.sh`) | [macos.md](docs/deployment/macos.md) |
-| [`examples/redis/`](examples/redis/) | Redis settings (append-only file, noeviction, memory guard, loopback) | [deployment](docs/deployment/README.md) |
+| [`examples/redis/`](examples/redis/) | Redis settings (append-only file, noeviction, memory guard, loopback) and the `planetgen` user with a password | [deployment](docs/deployment/README.md) |
 | [`examples/maintenance/`](examples/maintenance/) | Monthly maintenance: systemd timers or launchd daemons (`install-maintenance-timer.sh`) | [below](#scheduled-maintenance) |
 | [`examples/systems/`](examples/systems/) | Example system files for `planetgen system --system-file` | [system-file-format.md](docs/reference/system-file-format.md) |
 
@@ -359,15 +411,38 @@ To stop everything and keep it stopped, use `sudo planetgen queue stop-all` (or 
 Do not use a plain `git pull`: it skips the migration and can drop the
 scripts' executable bits.
 
+### The Update button (Linux)
+
+The admin pages can start `update.sh` without anyone holding a root shell (SEC.43). The web server's user only creates an empty file,
+`update.request`, in the state folder. The root-owned unit `planetgen-update.path` sees it and starts `planetgen-update.service`,
+which deletes the request and runs `update.sh` as root. The file is never read and the command has no argument, so a request can do
+nothing except run the update. A press made while an update runs waits for it and runs after it; the update guard decides whether
+running work is canceled or the update refuses. `install.sh` and `update.sh` install and enable both units with this checkout's path
+and state folder (the same step installs the maintenance timers below); `install-maintenance-timer.sh --skip-update-button` leaves the path unit out. The Owner presses it on the admin
+Update page (`/admin/update`, after typing the password again; the page shows the state and the end of `update.log` and reloads itself
+while an update runs). Progress is in
+`update.log` in the log folder and `journalctl -u planetgen-update.service`. If a request file cannot be removed, the service stops after
+ten tries in ten minutes; clear it with `sudo systemctl reset-failed planetgen-update.service`.
+
 ### Scheduled maintenance
 
-The monthly orbit update (`planetgen.cli.orbits`, at 03:30 on the 1st)
-and, optionally, an unattended monthly update (at 03:00):
+On Linux with systemd, `install.sh` and `update.sh` install the timers themselves (OPS.110) and enable the monthly orbit update
+(`planetgen.cli.orbits`, at 03:30 on the 1st) and the nightly tile rebuild below. The unattended monthly update (at 03:00) is installed
+but left off, because it deploys whatever is on the tracked branch with no review; every deploy says how to turn it on while it is off:
+`sudo systemctl enable --now planetgen-update.timer`. Every
+unit file is rendered for the checkout the script runs from and the virtual environment (`PLANETGEN_VENV`, default
+`/usr/local/planetgen/venv`), so the installed copies name the real paths; a path with a space or a special character is refused. A
+unit that differs from the rendered one (an older copy, or another install location) is replaced, and the log says so. A deploy
+enables only a unit it installs for the first time, so a timer you disable stays disabled. Run the installer by hand to choose
+the databases or leave a timer out; on macOS it is the only way to get the launchd daemons:
 
 ```bash
-sudo examples/maintenance/install-maintenance-timer.sh                      # Linux (systemd) and macOS (launchd)
+sudo examples/maintenance/install-maintenance-timer.sh                      # Linux (systemd) and macOS (launchd); this one also turns the update timer on
 sudo examples/maintenance/install-maintenance-timer.sh --skip-update-timer  # orbits only
 ```
+
+The gunicorn unit of an nginx or Caddy host is the exception: copy it by hand and edit its two paths (the checkout and the virtual
+environment; [nginx.md](docs/deployment/nginx.md)).
 
 An unattended update deploys whatever is on the tracked branch with no review, and
 keeps the data when a migration is pending.

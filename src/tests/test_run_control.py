@@ -79,7 +79,7 @@ def test_a_started_unit_is_sent_the_stop_command(conn, jobs_dir):
     running = units.job_id(run_id, 0, 2)
     job = rq.job.Job.fetch(running, connection=conn, serializer=redisqueue.JsonSerializer)
     queue = redisqueue.queue(redisqueue.BULK_QUEUE, conn)
-    queue.remove(job)
+    queue.remove(job.id)       # the id: the queue's own job class is not the one fetched here, so a job object is not taken for one
     job.worker_name = "worker-for-the-test"
     job.set_status(rq.job.JobStatus.STARTED)
     job.save()

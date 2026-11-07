@@ -29,9 +29,14 @@
       "relative": 0.5,
       "basis": "CF6"
     },
-    "share_o2": {
+    "o2_partial_pa": {
       "relative": 0.25,
-      "floor": 0.005,
+      "floor": 500.0,
+      "basis": "CF7"
+    },
+    "co2_partial_pa": {
+      "relative": 0.25,
+      "floor": 200.0,
       "basis": "CF7"
     },
     "share_co2": {
@@ -271,16 +276,16 @@
           "lt": 320.0
         },
         {
-          "quantity": "share_co2",
-          "min": 0.01
+          "quantity": "co2_partial_pa",
+          "min": 1000.0
         },
         {
-          "quantity": "share_o2",
-          "min": 0.03
+          "quantity": "o2_partial_pa",
+          "min": 3000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.16
+          "quantity": "o2_partial_pa",
+          "lt": 16000.0
         },
         {
           "quantity": "gravity_g",
@@ -299,7 +304,7 @@
           "lt": 0.03
         }
       ],
-      "note": "Earth-like but hard to breathe: 3 to 16 percent oxygen, carbon dioxide 1 percent or more; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+      "note": "Earth-like but hard to breathe: 3 to 16 kPa of oxygen (GEN.1321: judged by oxygen pressure), carbon dioxide 1 kPa or more (a pressure, GEN.1321); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
     },
     {
       "letter": "K",
@@ -320,10 +325,6 @@
           "lt": 320.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.1
-        },
-        {
           "quantity": "gravity_g",
           "lt": 2.0
         },
@@ -336,7 +337,7 @@
           "lt": 0.03
         }
       ],
-      "note": "air under 3 kPa, 273 to 320 K, little oxygen; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+      "note": "air under 3 kPa, 273 to 320 K, whatever the oxygen share (GEN.1306, registry AW4: at 3 kPa even pure oxygen is under the 6.3 kPa Armstrong line); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
     },
     {
       "letter": "E",
@@ -370,16 +371,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -399,7 +400,7 @@
         },
         {
           "quantity": "gravity_g",
-          "lt": 1.25
+          "lt": 2.0
         },
         {
           "quantity": "share_h2",
@@ -430,7 +431,36 @@
           "lt": 15.0
         }
       ],
-      "note": "M's too cold (GEN.1221): mean 240 to 270 K, the hottest region melts in season (270 K or more), poles under 245 K, wet bulb under 15 C; no phase gate, its liquid is under ice or seasonal"
+      "note": "M's too cold (GEN.1221): mean 240 to 270 K, the hottest region melts in season (270 K or more), poles under 245 K, wet bulb under 15 C; no phase gate, its liquid is under ice or seasonal; up to 2 g (GEN.1306, registry AW3)"
+    },
+    {
+      "letter": "W",
+      "name": "Frozen world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "temperature_k",
+          "min": 233.15
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 273.15
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        }
+      ],
+      "note": "GEN.1306 part 4, registry AW8 (Boss, 11-06): a cold air world between class E (under -40 C) and freezing that class P (the Earth-like world about -40 C, with near-standard air) does not hold: any air, under 2 g, not a hydrogen envelope and not a volcanic air. P holds more conditions, so a body that fits both fully is P"
     },
     {
       "letter": "B",
@@ -459,17 +489,17 @@
     },
     {
       "letter": "F",
-      "name": "Reducing world",
+      "name": "Anoxic world",
       "kind": "t",
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "lt": 0.03
+          "quantity": "o2_partial_pa",
+          "lt": 3000.0
         },
         {
-          "quantity": "reducing_share",
-          "min": 0.05
+          "quantity": "share_co2",
+          "lt": 0.2
         },
         {
           "quantity": "share_h2",
@@ -489,7 +519,7 @@
         },
         {
           "quantity": "gravity_g",
-          "lt": 2.0
+          "lt": 1.4
         },
         {
           "quantity": "temperature_k",
@@ -500,7 +530,7 @@
           "lt": 0.03
         }
       ],
-      "note": "no free oxygen, methane, and hydrogen 5 percent or more but not a hydrogen envelope, a warm world of 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+      "note": "GEN.1281: no free oxygen and not carbon-dioxide-rich (a reducing methane or hydrogen air, or a plain inert nitrogen air), not a hydrogen envelope, a warm world of 0.5 to 1.4 g, under 400 K (a hotter dense air is class N; from 1.4 g the thin hot air is class Z and from 2 g class V); not a volcanic air (sulfur dioxide under 3 percent)"
     },
     {
       "letter": "G",
@@ -513,10 +543,6 @@
           "min": 0.2
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.16
-        },
-        {
           "quantity": "pressure_pa",
           "min": 3000.0
         },
@@ -545,7 +571,7 @@
           "lt": 0.03
         }
       ],
-      "note": "carbon dioxide 20 percent or more, a warm world of 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+      "note": "carbon dioxide 20 percent or more whatever the oxygen (GEN.1306, registry AW5), a warm world of 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
     },
     {
       "letter": "O",
@@ -554,16 +580,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -583,7 +609,7 @@
         },
         {
           "quantity": "gravity_g",
-          "lt": 1.25
+          "lt": 2.0
         },
         {
           "quantity": "share_h2",
@@ -626,7 +652,7 @@
           "equals": 1.0
         }
       ],
-      "note": "M's too wet (GEN.1221): mean 298 to 312 K, equator at most 315 K, poles at least 285 K, wet bulb 28 to 31 C, water over 80 percent of the surface"
+      "note": "M's too wet (GEN.1221): mean 298 to 312 K, equator at most 315 K, poles at least 285 K, wet bulb 28 to 31 C, water over 80 percent of the surface; up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "H",
@@ -635,16 +661,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -664,7 +690,7 @@
         },
         {
           "quantity": "gravity_g",
-          "lt": 1.25
+          "lt": 2.0
         },
         {
           "quantity": "share_h2",
@@ -707,7 +733,7 @@
           "equals": 1.0
         }
       ],
-      "note": "M's too dry (GEN.1221): mean 295 to 315 K, hottest region at most 330 K, poles at least 270 K, wet bulb under 25 C, water under 20 percent of the surface with groundwater"
+      "note": "M's too dry (GEN.1221): mean 295 to 315 K, hottest region at most 330 K, poles at least 270 K, wet bulb under 25 C, water under 20 percent of the surface with groundwater; up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "M",
@@ -716,16 +742,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -745,7 +771,7 @@
         },
         {
           "quantity": "gravity_g",
-          "lt": 1.25
+          "lt": 2.0
         },
         {
           "quantity": "share_h2",
@@ -792,7 +818,7 @@
           "equals": 1.0
         }
       ],
-      "note": "the Earth-like sweet spot (GEN.1221, families report section 3): mean 275 to 305 K, equator at most 310 K, poles at least 250 K, night at least 245 K, wet bulb under 28 C, liquid water over 20 to 80 percent, oxygen 16 to 35 percent"
+      "note": "the Earth-like sweet spot (GEN.1221, families report section 3): mean 275 to 305 K, equator at most 310 K, poles at least 250 K, night at least 245 K, wet bulb under 28 C, liquid water over 20 to 80 percent, oxygen 16 to 35.5 kPa (GEN.1321: a pressure, so a thick air with that much oxygen counts); up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "R",
@@ -801,16 +827,16 @@
       "air": true,
       "when": [
         {
-          "quantity": "share_o2",
-          "min": 0.16
+          "quantity": "o2_partial_pa",
+          "min": 16000.0
         },
         {
-          "quantity": "share_o2",
-          "lt": 0.35
+          "quantity": "o2_partial_pa",
+          "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -830,7 +856,7 @@
         },
         {
           "quantity": "gravity_g",
-          "lt": 1.25
+          "lt": 2.0
         },
         {
           "quantity": "share_h2",
@@ -865,7 +891,7 @@
           "equals": 1.0
         }
       ],
-      "note": "M's too hot (GEN.1221, Boss): mean 312 to 345 K, equator 315 K or more, poles 295 K or more, wet bulb 31 C or more (the uncompensable limit)"
+      "note": "M's too hot (GEN.1221, Boss): mean 312 to 345 K, equator 315 K or more, poles 295 K or more, wet bulb 31 C or more (the uncompensable limit); up to 2 g (GEN.1306, registry AW3)"
     },
     {
       "letter": "Z",
@@ -875,7 +901,7 @@
       "when": [
         {
           "quantity": "gravity_g",
-          "min": 1.4
+          "min": 0.5
         },
         {
           "quantity": "gravity_g",
@@ -887,7 +913,7 @@
         },
         {
           "quantity": "temperature_k",
-          "lt": 1100.0
+          "lt": 1500.0
         },
         {
           "quantity": "pressure_pa",
@@ -902,7 +928,7 @@
           "lt": 0.01
         }
       ],
-      "note": "the hot thin-air gap (GEN.1211, Boss confirmed Z): 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean"
+      "note": "the hot thin-air world (GEN.1211, Boss confirmed Z; GEN.1306 parts 1 and 5, registry AW6 and AW7): 0.5 to 2 g, 340 to 1500 K, 1 to 10 kPa, no ocean. A warm anoxic or carbon dioxide air under 400 K and under 1.4 g stays F or G (they hold more conditions, so they win the tie)"
     },
     {
       "letter": "U",

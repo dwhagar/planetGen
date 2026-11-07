@@ -577,7 +577,7 @@ def white_dwarf_radius_solar(mass_sol):
 def white_dwarf_core(mass_sol):
     """The core type of a white dwarf: "helium" below `tuning.STELLAR_WD_HELIUM_CORE_MAX_SOL` (recalled, open), "oxygen-neon"
     above `tuning.STELLAR_WD_ONE_CORE_MIN_SOL` [R0085], "carbon-oxygen" between. The downloaded sequences are
-    carbon-oxygen only (`datasets.white_dwarf_models`), so the other two cores have no layers."""
+    carbon-oxygen only (`datasets.white_dwarf_models`), so the other two cores take their layers from `white_dwarf_layers` (GEN.743)."""
     if mass_sol < tuning.STELLAR_WD_HELIUM_CORE_MAX_SOL:
         return "helium"
     if mass_sol > tuning.STELLAR_WD_ONE_CORE_MIN_SOL:

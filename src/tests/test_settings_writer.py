@@ -70,6 +70,23 @@ def test_a_save_writes_the_parsed_value_and_keeps_everything_else(config):
     assert config.read_text().endswith("}\n") and '\n  "site_name"' in config.read_text()
 
 
+def test_a_save_through_a_link_replaces_the_file_in_the_folder_it_is_in(config, tmp_path, monkeypatch):
+    """SEC.37: the checkout is root's, so its config.json is a link into the state folder; the file is replaced there and
+    the link, which the web user could not change, stays."""
+    state = tmp_path / "state"
+    state.mkdir()
+    real = state / "config.json"
+    config.rename(real)
+    config.symlink_to(real)
+    assert settings_writer.config_path() == str(real.resolve())
+    assert settings_writer.write_problem() is None
+    result = _save({"site_name": "Linked"})
+    assert result.saved and result.ok
+    assert config.is_symlink() and os.readlink(config) == str(real)
+    assert _doc(real)["site_name"] == "Linked"
+    assert not [p for p in state.iterdir() if p.name.endswith(".tmp")]
+
+
 def test_a_save_keeps_the_files_mode(config):
     config.chmod(0o640)
     _save({"jobs.keep": 5})

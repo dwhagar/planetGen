@@ -43,19 +43,19 @@ def test_a_cell_with_waiting_objects_lists_each_with_a_link_to_its_page(client, 
                             "class_name": "HII region", "radius_ly": 12.0, "age_myr": 3.0}],
     }
     html = client.get("/sector/at/40/0/3").get_data(as_text=True)
-    assert 'id="uncharted-contents"' in html and "What is placed here" in html and "This sector is uncharted" in html
-    assert 'href="/systems/uncharted/41"' in html and "Uncharted B2 star 41" in html and "Waiting star" in html
+    assert 'id="uncharted-contents"' in html and "Detected by long-range scans" in html and "No survey has charted this sector" in html
+    assert 'href="/systems/uncharted/41"' in html and "Uncharted B2 star 41" in html and "Detected star" in html
     assert 'href="/systems/uncharted/42"' in html and "3 stars together" in html
     assert 'href="/uncharted-phenomenon/7"' in html and "Black Hole (uncharted)" in html
     assert 'href="/uncharted-phenomenon/8"' in html and "Supernova Remnant (uncharted)" in html
-    assert "Hosted Veil" in html and "lit by a waiting star" in html
-    assert "5 objects are placed in it already" in html
+    assert "Hosted Veil" in html and "lit by a detected star" in html
+    assert "detected 5 objects here" in html
 
 
 def test_a_cell_with_nothing_in_it_says_so_plainly(client, cells):
     cells["cell"] = _uncharted() | {"stars": [], "scattered": []}
     html = client.get("/sector/at/40/0/3").get_data(as_text=True)
-    assert "What is placed here" in html and "nothing is placed in it yet" in html and "<table" not in html.split("What is placed here", 1)[1].split("</section>", 1)[0]
+    assert "Detected by long-range scans" in html and "detected nothing in it" in html and "<table" not in html.split("Detected by long-range scans", 1)[1].split("</section>", 1)[0]
 
 
 def test_a_placeholder_sector_lists_the_rogue_planets_that_drifted_into_it_beside_what_waits(client, cells, fake):
@@ -65,16 +65,25 @@ def test_a_placeholder_sector_lists_the_rogue_planets_that_drifted_into_it_besid
     fake.sectors[11] = detail
     cells["cell"] = _uncharted() | {"stars": [_star(41)], "scattered": []}
     html = client.get("/sector/11").get_data(as_text=True)
-    assert "This sector is uncharted" in html and "What is placed here" in html
+    assert "No survey has charted this sector" in html and "Detected by long-range scans" in html
     assert 'href="/phenomenon/rogue_planet/31"' in html and 'href="/phenomenon/rogue_planet/32"' in html
     assert html.index("Wanderer One") < html.index("Wanderer Two") < html.index("Uncharted B2 star 41")
     assert "A Neighbour" not in html and "Cloud From Elsewhere" not in html     # only what was generated as part of this cell is placed in it
-    assert "Rogue Planet" in html and "3 objects are placed in it already" in html
+    assert "Rogue Planet" in html and "detected 3 objects here" in html
 
 
 def test_placed_in_uncharted_gives_every_row_a_name_a_link_a_kind_and_its_details(app):
     with app.test_request_context():
         rows = sector_page.placed_in_uncharted(_uncharted() | {"stars": [_star(1)], "scattered": [_scatter(2)]}, [_rogue(3, "Drifter")])
-        assert [row["kind"] for row in rows] == ["Rogue Planet", "Waiting star", "Black Hole"]
+        assert [row["kind"] for row in rows] == ["Rogue Planet", "Detected star", "Black Hole"]
         assert all(row["name"] and row["url"].startswith("/") and row["details"] for row in rows)
         assert sector_page.placed_in_uncharted(_uncharted() | {"stars": []}) == []
+
+
+def test_the_page_of_an_uncharted_cell_shows_the_sector_map_pinned_to_it(client, cells):
+    """MAP.404: the Sector Map panel is on the page, locked to the cell, and can open what the scans detected there."""
+    cells["cell"] = _uncharted() | {"stars": [_star(41)], "scattered": []}
+    html = client.get("/sector/at/40/0/3").get_data(as_text=True)
+    assert 'id="map"' in html and "Sector Map" in html
+    assert "/galaxy/uncharted/" in html and "/uncharted-phenomenon/" in html
+    assert html.index('id="map"') < html.index('id="uncharted-contents"')

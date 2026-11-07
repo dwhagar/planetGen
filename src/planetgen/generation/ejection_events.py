@@ -18,16 +18,17 @@ distance. The star's own velocity through the galaxy is added by the caller (`ro
 import collections
 
 from planetgen.generation.phenomena import starless_host
-from planetgen.physics import rogue_age, rogue_kick
+from planetgen.physics import cluster_unbinding, rogue_age, rogue_kick
 from planetgen.util import draw
 
 EjectionEvent = collections.namedtuple("EjectionEvent", (
     "donor_uid", "index", "mass_kg", "core_kg", "formation_au", "distance_au", "perturber_au", "perturber_mass_kg", "ice_rich",
-    "delay_gy", "age_gy", "since_ejection_gy", "kick_km_s", "orbital_velocity_km_s", "moon_limit_km"))
+    "delay_gy", "age_gy", "since_ejection_gy", "kick_km_s", "orbital_velocity_km_s", "moon_limit_km", "cause"))
 """One body a donor threw out: the donor's uid and the event's index in the donor (the key a rogue row carries, so saving a donor again replaces exactly
 the rogues it made), the body's mass and core mass, where it formed and where it was thrown from, the scatterer's orbit and mass, whether it formed beyond
 the snow line, the ejection delay after formation, the age now (the donor's) and the time since the ejection (all Gy), the kick of the scattering and the
-planet's orbital velocity then (both `(outward, along the rotation, up)` in km/s, relative to the donor), and the outer edge of the moon system it kept (km)."""
+planet's orbital velocity then (both `(outward, along the rotation, up)` in km/s, relative to the donor), the outer edge of the moon system it kept (km), and the `cause`: "thrown" (a scattering
+planet threw it out) or "cluster" (the donor's birth cluster pulled it off, GEN.1288)."""
 
 
 def events(donor_uid, donor, losses, rng=draw, first_index=0):
@@ -37,7 +38,7 @@ def events(donor_uid, donor, losses, rng=draw, first_index=0):
     Args:
         donor_uid: The donor system's uid (any value that is the same each time the donor is built).
         donor: The star the bodies were thrown from (`StarSystem.star`, or the star `StarSystem.ejected_losses` names).
-        losses (iterable): `planet_architecture.Loss` records of kind `thrown` (`StarSystem.ejected_losses()` gives them with their star).
+        losses (iterable): `planet_architecture.Loss` records of kind `thrown` or `stripped` (`StarSystem.ejected_losses()` gives them with their star).
         rng: Anything with `random`; `draw` by default.
         first_index (int): The index of the first body, so a donor with more than one star keeps its events' indexes apart (the second star's start
             where the first star's end).
@@ -58,11 +59,17 @@ def events(donor_uid, donor, losses, rng=draw, first_index=0):
                 continue
             delay_gy = min(loss.time_yr / 1.0e9, donor.age)
             ages = rogue_age.from_record(donor.age, delay_gy)
-            speed = rogue_kick.ejection_speed_km_s(u_speed, loss.perturber_mass_kg, loss.perturber_au, mass_kg)
-            kick = rogue_kick.kick(speed, rogue_kick.isotropic_direction(u_cos, u_phi))
             circular = rogue_kick.circular_speed_km_s(donor.mass, loss.distance_au)
+            if loss.kind == "stripped":
+                speed = cluster_unbinding.unbinding_kick_km_s(circular)
+                limit = starless_host.stripped_moon_limit_km(loss)
+                cause = "cluster"
+            else:
+                speed = rogue_kick.ejection_speed_km_s(u_speed, loss.perturber_mass_kg, loss.perturber_au, mass_kg)
+                limit = starless_host.ejected_moon_limit_km(loss, mass_kg, donor.mass, u_moons)
+                cause = "thrown"
+            kick = rogue_kick.kick(speed, rogue_kick.isotropic_direction(u_cos, u_phi))
             orbital = rogue_kick.kick(circular, rogue_kick.isotropic_direction(u_orbit_cos, u_orbit_phi))
-            limit = starless_host.ejected_moon_limit_km(loss, mass_kg, donor.mass, u_moons)
             found.append(EjectionEvent(donor_uid, event_index, mass_kg, core_kg, loss.formation_au, loss.distance_au, loss.perturber_au,
-                                       loss.perturber_mass_kg, loss.ice_rich, delay_gy, ages.age_gy, ages.since_ejection_gy, tuple(kick), tuple(orbital), limit))
+                                       loss.perturber_mass_kg, loss.ice_rich, delay_gy, ages.age_gy, ages.since_ejection_gy, tuple(kick), tuple(orbital), limit, cause))
     return found

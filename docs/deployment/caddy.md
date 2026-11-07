@@ -10,7 +10,7 @@ fits in one short file. gunicorn runs the app exactly as in the
 | File | Goes to |
 |---|---|
 | [`examples/caddy/Caddyfile`](../../examples/caddy/Caddyfile) | `/etc/caddy/Caddyfile` |
-| [`examples/systemd/planetgen-gunicorn.service`](../../examples/systemd/planetgen-gunicorn.service) | `/etc/systemd/system/` |
+| [`examples/systemd/planetgen-gunicorn.service`](../../examples/systemd/planetgen-gunicorn.service) | `/etc/systemd/system/`, copied by hand: edit its two paths, the checkout (`/var/lib/planetGen`) and the virtual environment (`/usr/local/planetgen/venv`), if yours differ |
 
 ## Install
 
@@ -26,7 +26,7 @@ fits in one short file. gunicorn runs the app exactly as in the
    that runs as the `caddy` user.
 
 3. Let Caddy read `static/` and connect to gunicorn's socket. Both belong
-   to the `www-data` group (the checkout is `www-data:www-data`, mode
+   to the `www-data` group (the checkout is `root:www-data`, mode
    750/640):
 
        sudo usermod -aG www-data caddy

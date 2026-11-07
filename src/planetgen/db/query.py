@@ -159,6 +159,42 @@ def _sector_quadrant_filter(quadrants):
     return f" WHERE {_SECTOR_QUADRANT_SQL} IN ({', '.join('?' for _ in quadrants)})", list(quadrants)
 
 
+SECTOR_COVERAGES = ("charted", "all", "uncharted")
+"""tuple[str]: The `coverage` choices of `list_sectors` (MAP.403): the sectors that were charted, every sector, or only the uncharted placeholders."""
+
+DEFAULT_SECTOR_COVERAGE = "charted"
+"""str: What the Sectors page, the API and the search show unless asked otherwise (Boss, 2026-11-06): charted sectors only."""
+
+_UNCHARTED_SECTOR_SQL = (
+    "(sec.shell_index IS NOT NULL AND NOT EXISTS (SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = sec.shell_index "
+    "AND cl.band_index = sec.band_index AND cl.wedge_index = sec.wedge_index))")
+"""str: SQL for an uncharted placeholder (`sector_is_uncharted`): a placed sector row whose cell the chart ledger does not hold."""
+
+_EMPTY_SECTOR_SQL = (
+    "(NOT EXISTS (SELECT 1 FROM rogue_planets rp WHERE rp.sector_id = sec.id) "
+    "AND NOT EXISTS (SELECT 1 FROM bright_stars bs WHERE bs.shell_index = sec.shell_index AND bs.band_index = sec.band_index "
+    "AND bs.wedge_index = sec.wedge_index AND bs.star_system_id IS NULL) "
+    "AND NOT EXISTS (SELECT 1 FROM phenomenon_scatter ps WHERE ps.shell_index = sec.shell_index AND ps.band_index = sec.band_index "
+    "AND ps.wedge_index = sec.wedge_index AND ps.built_at IS NULL))")
+"""str: SQL for a sector row nothing is known to be in (MAP.403): no rogue planet filed in it, no waiting bright star and no unbuilt scattered
+phenomenon at its address, the three things the page of an uncharted sector lists (`web.sector_page.placed_in_uncharted`)."""
+
+
+def sector_coverage_condition(coverage=DEFAULT_SECTOR_COVERAGE, show_empty=False):
+    """
+    The SQL condition on `sectors sec` that keeps the rows `coverage` asks for (MAP.403), or `""` for all of them: `charted` the sectors
+    that are not uncharted placeholders, `uncharted` the placeholders and `all` both. A placeholder that is empty (nothing known to be in
+    it, `_EMPTY_SECTOR_SQL`) is left out unless `show_empty`; the option has no effect on `charted`.
+    """
+    if coverage not in SECTOR_COVERAGES:
+        raise ValueError(f"unknown sector coverage {coverage!r}")
+    if coverage == "charted":
+        return f"NOT {_UNCHARTED_SECTOR_SQL}"
+    if coverage == "uncharted":
+        return _UNCHARTED_SECTOR_SQL if show_empty else f"({_UNCHARTED_SECTOR_SQL} AND NOT {_EMPTY_SECTOR_SQL})"
+    return "" if show_empty else f"NOT ({_UNCHARTED_SECTOR_SQL} AND {_EMPTY_SECTOR_SQL})"
+
+
 def refresh_sector_system_counts(conn):
     """
     Makes `sector_system_counts` match the sectors and systems now (PERF.74, PERF.208): one row for each sector with its
@@ -182,7 +218,7 @@ def refresh_sector_system_counts(conn):
     return cur.rowcount
 
 
-def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=(), after=None):
+def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=(), after=None, coverage="all", show_empty=True):
     """
     Returns every sector, with its edge length (converted to light-years)
     and how many systems it contains (as of the last refresh of
@@ -212,6 +248,10 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
             (`SECTOR_QUADRANTS`, or `"unplaced"`).
         after (int, optional): The row id of the sector the previous page ended on. With a `limit` the page starts
             after that sector in every sort and `offset` is ignored.
+        coverage (str): One of `SECTOR_COVERAGES` (MAP.403): `all` (the default here, so a caller that asks for no filter gets every row), `charted`
+            or `uncharted`. The Sectors page and the API pass `DEFAULT_SECTOR_COVERAGE`.
+        show_empty (bool): Keep the uncharted placeholders nothing is known to be in (`sector_coverage_condition`); the default here keeps
+            every row, the page and the API leave them out unless asked.
 
     Returns:
         list[dict]: One row per sector, with `id`, `name`,
@@ -224,11 +264,12 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     """
     if sort is not None and sort not in SECTOR_SORTS:
         raise ValueError(f"unknown sector sort {sort!r}")
+    extra = sector_coverage_condition(coverage, show_empty)
     _counted(conn, ["sector_system_counts"], refresh_sector_system_counts, lambda c: 0)
     if sort in (None, "name", "distance"):
-        rows = _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after)
+        rows = _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after, extra)
     else:
-        rows = _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after)
+        rows = _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after, extra)
     charted = chart_ledger.charted_among(conn, [(r["shell_index"], r["band_index"], r["wedge_index"]) for r in rows if r["shell_index"] is not None])
     return [
         {
@@ -281,12 +322,12 @@ def _read_sectors(conn, where, params, order, limit, offset):
     return conn.execute(query, params).fetchall()
 
 
-def _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after):
+def _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after, extra=""):
     """
     The rows of `list_sectors` in the default order or the `name` or `distance` sort, each walk in the order an index
     serves (PERF.137). The `name` sort is one walk of `idx_sectors_name`. The others are two: the placed sectors by
     `idx_sectors_galactic_radius_pc` (backward for a descending `distance`), then the unplaced ones by name. `after`
-    starts the page after that sector instead of skipping `offset` rows.
+    starts the page after that sector instead of skipping `offset` rows. `extra` is a further condition on `sectors sec` (`sector_coverage_condition`).
     """
     wanted = set(quadrants)
     backward = descending and sort in ("name", "distance")
@@ -306,6 +347,8 @@ def _sectors_by_key(conn, limit, offset, sort, descending, quadrants, after):
         conditions = [phase_condition] if phase_condition else []
         if where_quadrant:
             conditions.append(where_quadrant.removeprefix(" WHERE "))
+        if extra:
+            conditions.append(extra)
         params = list(quadrant_params)
         placed_start = start is not None and start["galactic_radius_pc"] is not None
         if start is not None and not (phase == "unplaced" and placed_start):
@@ -337,13 +380,13 @@ _SECTOR_COLUMNS = ("sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_
 _COUNTED_SECTORS = ("sector_system_counts c STRAIGHT_JOIN sectors sec ON sec.id = c.sector_id")
 
 
-def _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after):
+def _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after, extra=""):
     """
     The rows of `list_sectors` in the `systems`, `density` and `position` sorts (PERF.208), each walk in the order an
     index of `sector_system_counts` serves, the sector id breaking ties in the sort's direction. `density` and
     `position` are two walks, the sectors with a value and then the ones with none (no galaxy position), which come
     last either way. A last walk reads the sectors made since the last refresh, which have no row yet, by id. `after`
-    starts the page after that sector instead of skipping `offset` rows.
+    starts the page after that sector instead of skipping `offset` rows. `extra` is a further condition on `sectors sec` (`sector_coverage_condition`).
     """
     column = SECTOR_SORTS[sort].removeprefix("c.")
     direction = "DESC" if descending else "ASC"
@@ -374,6 +417,8 @@ def _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after):
         if in_tail or (started_unplaced and phase != "unplaced"):
             continue
         conditions, params = list(conditions), list(params)
+        if extra:
+            conditions.append(extra)
         if start and not (phase == "unplaced" and not started_unplaced):
             if key_column is None:
                 conditions.append("c.sector_id < ?" if descending else "c.sector_id > ?")
@@ -396,11 +441,13 @@ def _sectors_by_counts(conn, limit, offset, sort, descending, quadrants, after):
         if want is not None and len(page) >= want:
             return rows
         if skip and not page:       # the offset lies past this walk: what is left of it counts in the next
-            counted = conn.execute(f"SELECT COUNT(*) AS n FROM sector_system_counts c{where}", params).fetchone()["n"]
+            counted = conn.execute(f"SELECT COUNT(*) AS n FROM {_COUNTED_SECTORS}{where}", params).fetchone()["n"]
             skip = max(0, skip - counted)
         else:
             skip = 0
     conditions, params = ["sec.id > ?"], [newest]
+    if extra:
+        conditions.append(extra)
     if quadrants:
         conditions.append(_sector_quadrant_filter(quadrants)[0].removeprefix(" WHERE "))
         params += list(quadrants)
@@ -455,10 +502,10 @@ def _counted(conn, key, compute, fallback, stamp=None):
     return countcache.cached(conn, [sector_deletions(conn), key], compute, fallback, stamp or galaxy_content_stamp)
 
 
-def count_sectors(conn, quadrants=()):
+def count_sectors(conn, quadrants=(), coverage="all", show_empty=True):
     """
-    Returns the total number of sectors (that pass the same `quadrants`
-    filter as `list_sectors`), ignoring any pagination --
+    Returns the total number of sectors (that pass the same `quadrants`, `coverage` and `show_empty`
+    filters as `list_sectors`), ignoring any pagination --
     the denominator `list_sectors(conn, limit=...)` callers (the API's
     `/api/sectors`) need to report how many pages exist. Kept by
     `countcache` (PERF.64): the last count made when the galaxy has changed
@@ -471,6 +518,9 @@ def count_sectors(conn, quadrants=()):
         int: Total sector count.
     """
     where, params = _sector_quadrant_filter(quadrants)
+    extra = sector_coverage_condition(coverage, show_empty)
+    if extra:
+        where = f"{where} AND {extra}" if where else f" WHERE {extra}"
 
     def exact(c):
         return c.execute(f"SELECT COUNT(*) AS n FROM sectors sec{where}", params).fetchone()["n"]
@@ -481,7 +531,23 @@ def count_sectors(conn, quadrants=()):
         return _capped(c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM sectors sec{where} LIMIT ?) c",
                                  list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
-    return _counted(conn, ["count_sectors", list(quadrants)], exact, estimate)
+    return _counted(conn, ["count_sectors", list(quadrants), coverage, bool(show_empty)], exact, estimate)
+
+
+def count_empty_uncharted_sectors(conn):
+    """
+    How many uncharted placeholders nothing is known to be in (MAP.403, `_EMPTY_SECTOR_SQL`), counted under the galaxy's content stamp
+    like `count_sectors`; the first answer, before it is made, counts to the cap.
+    """
+    where = f" WHERE {_UNCHARTED_SECTOR_SQL} AND {_EMPTY_SECTOR_SQL}"
+
+    def exact(c):
+        return c.execute(f"SELECT COUNT(*) AS n FROM sectors sec{where}").fetchone()["n"]
+
+    def estimate(c):
+        return _capped(c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM sectors sec{where} LIMIT ?) c", [COUNT_FALLBACK_CAP]).fetchone()["n"])
+
+    return _counted(conn, ["count_empty_uncharted_sectors"], exact, estimate)
 
 
 class _NoSector:
@@ -3564,8 +3630,9 @@ def nebula_shape(conn, nebula_id):
     """
     One nebula's shape (GEN.75, `planetgen.galaxy.nebula_shape`): the one
     stored with it (`nebulae.shape_*` and `nebula_shape_balls`), or, for a
-    nebula saved before v56, the one a fresh save would have stored,
-    drawn from its own properties.
+    nebula saved before v56, the one its stored properties give (drawn
+    from them, `dominant_species` included, so it is the same each time it
+    is read but not the generator's own, whose species text a save rewrites).
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -7370,10 +7437,13 @@ def _with_refs(conn, rows, kind):
     return rows
 
 
-def _search_result_sectors(conn, term, limit, offset):
+def _search_result_sectors(conn, term, limit, offset, coverage=DEFAULT_SECTOR_COVERAGE, show_empty=False):
+    """The Sectors panel of a search: sectors whose name matches `term`, those `coverage` and `show_empty` ask for (`sector_coverage_condition`, MAP.403)."""
     match, params = _search_name(conn, "name", "id", "sectors", term)
+    extra = sector_coverage_condition(coverage, show_empty)
     rows, page = _search_page(
-        conn, "SELECT id, name, edge_mpc", f"FROM sectors WHERE {match}", "name, id", params, limit, offset,
+        conn, "SELECT sec.id, sec.name, sec.edge_mpc", f"FROM sectors sec WHERE {match}" + (f" AND {extra}" if extra else ""), "sec.name, sec.id",
+        params, limit, offset,
     )
     return {"rows": _with_refs(conn, _with_formerly(conn, [dict(r) for r in rows], "sectors", term), "sector"), **page}
 
@@ -7634,7 +7704,8 @@ def _search_facets_cached(conn):
     return value
 
 
-def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None, sorts=None, stars=None, ranges=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None, sorts=None, stars=None, ranges=None,
+           sector_scope=(DEFAULT_SECTOR_COVERAGE, False)):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -7671,6 +7742,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
             bound `None` for "unbounded", `unit` the unit key both are in. A panel with a range runs for it, and its rows carry the `values`
             of the keys in use. `sorts` also takes a key of `search_values.KEYS` (`gravity` smallest first, `-gravity` largest first; no
             value last) for `star`, `planet` and `moon`.
+        sector_scope (tuple): `(coverage, show_empty)` for the Sectors panel (MAP.403): charted sectors only unless `coverage` is `all` or `uncharted`,
+            and the uncharted sectors nothing is known to be in left out unless `show_empty`.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -7730,7 +7803,7 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     results = {panel: None for panel in SEARCH_RESULT_PANELS}
     wanted = set(SEARCH_RESULT_PANELS if only is None else only)
     if texts.get("sector_q") and "sectors" in wanted:
-        results["sectors"] = _search_result_sectors(conn, texts["sector_q"], *_page("sectors"))
+        results["sectors"] = _search_result_sectors(conn, texts["sector_q"], *_page("sectors"), *sector_scope)
     if (texts.get("system_q") or stars is not None) and "systems" in wanted:
         results["systems"] = _search_result_systems(conn, texts.get("system_q", ""), *_page("systems"), stars=stars)
     if stars_included and "stars" in wanted:

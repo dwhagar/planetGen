@@ -172,7 +172,7 @@ def schedule(db, keys):
         return 0
     try:
         connection = _redis()
-        queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
+        queue = redisqueue.queue(redisqueue.NODES_QUEUE, connection)
         if queue.count >= settings.prefetch_max_queued:
             return 0
         names = [_claim_name(db, generation, key) for key in missing]
@@ -191,7 +191,7 @@ def schedule(db, keys):
         claimed = claimed[:room]
         _enqueue_chunks(queue, db, claimed, "prefetch")
         if claimed:
-            workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection, redisqueue.redis_url())
+            workers.ensure_workers(redisqueue.NODES_QUEUE, connection, redisqueue.redis_url())
         return len(claimed)
     except (redis.RedisError, OSError, redisqueue.Unavailable) as exc:
         log.debug(f"Node prefetch: not queued ({exc}).")
@@ -228,14 +228,14 @@ def rebuild(db, generation, keys):
     ordered = sorted(keys, key=lambda key: (-parse_node_key(key).m, key))[:REBUILD_MAX]
     try:
         connection = _redis()
-        queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
+        queue = redisqueue.queue(redisqueue.NODES_QUEUE, connection)
         pipe = connection.pipeline()
         for key in ordered:
             pipe.set(_claim_name(db, generation, key), "1", nx=True, ex=CLAIM_SECONDS)
         claimed = [key for key, won in zip(ordered, pipe.execute()) if won]
         _enqueue_chunks(queue, db, claimed, "rebuild")
         if claimed:
-            workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection, redisqueue.redis_url())
+            workers.ensure_workers(redisqueue.NODES_QUEUE, connection, redisqueue.redis_url())
         return len(claimed)
     except (redis.RedisError, OSError, redisqueue.Unavailable) as exc:
         log.debug(f"Node rebuild: not queued ({exc}).")

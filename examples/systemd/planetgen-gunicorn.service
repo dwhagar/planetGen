@@ -10,9 +10,13 @@
 # sees the client's address and scheme, not the proxy's (docs/reference/config.md).
 # See docs/deployment/nginx.md.
 #
-# Install:
-#     sudo apt install gunicorn            # Debian/Ubuntu: uses the system python3
+# Install (by hand: install.sh, update.sh and install-maintenance-timer.sh install the maintenance units but never this one). Copy
+# it, then change the two paths that name where planetGen is installed on this host:
+#     1. the checkout: /var/lib/planetGen (WorkingDirectory= and the --pythonpath line of ExecStart=)
+#     2. the virtual environment: /usr/local/planetgen/venv (the gunicorn on the first line of ExecStart=; PLANETGEN_VENV)
+# No change is needed when the checkout is at /var/lib/planetGen and the environment at /usr/local/planetgen/venv.
 #     sudo cp examples/systemd/planetgen-gunicorn.service /etc/systemd/system/
+#     sudoedit /etc/systemd/system/planetgen-gunicorn.service      # the two paths above
 #     sudo systemctl daemon-reload
 #     sudo systemctl enable --now planetgen-gunicorn
 #
@@ -39,7 +43,7 @@ Type=notify
 NotifyAccess=main
 # The same identity install.sh/update.sh give the runtime directories to
 # (they detect Apache's user and fall back to www-data when Apache is
-# not installed). The checkout belongs to www-data (set-permissions.sh); the venv stays root's.
+# not installed). The checkout belongs to root with the web group (set-permissions.sh, SEC.37); the venv stays root's.
 User=www-data
 Group=www-data
 WorkingDirectory=/var/lib/planetGen
@@ -92,10 +96,28 @@ Restart=on-failure
 # ordinary file permissions (the tile cache, the jobs directory and the
 # debug log belong to www-data, the code tree does not). /tmp is a
 # private one.
+#
+# SEC.42: the kernel, the control groups, other users' views and odd socket types are closed to the service too. The
+# address families are the ones it uses: UNIX (the proxy socket, a local MySQL or Redis socket), IPv4 and IPv6 (MySQL,
+# Redis, DNS) and NETLINK (name lookups). No MemoryDenyWriteExecute: numpy and the compiled libraries need it off.
+# ReadWritePaths is not set because ProtectSystem=full leaves /var alone; an operator who wants "strict" lists the
+# folders config.json names (jobs.dir, tile_cache.dir, log_dir, log_file) plus the state folder:
+#     ProtectSystem=strict
+#     ReadWritePaths=/var/lib/planetGen/state /var/lib/planetGen/jobs /var/cache/planetgen /var/log
 NoNewPrivileges=true
 PrivateTmp=true
+PrivateDevices=true
 ProtectHome=true
 ProtectSystem=full
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+SystemCallArchitectures=native
 
 [Install]
 WantedBy=multi-user.target

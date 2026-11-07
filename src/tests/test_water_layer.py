@@ -77,8 +77,21 @@ def test_the_sealing_water_fraction_is_a_few_thousandths():
 def test_the_liquidus_is_monotone_and_continues_past_the_last_triple_point():
     values = [wl.liquidus_pressure_pa(t) for t in range(240, 420, 5)]
     assert values == sorted(values)
-    assert wl.liquidus_pressure_pa(400.0) > wl.liquidus_pressure_pa(353.8)
-    assert wl.liquidus_pressure_pa(200.0) == wl.liquidus_pressure_pa(251.2)
+    assert wl.liquidus_pressure_pa(400.0) > wl.liquidus_pressure_pa(wl.ICE_VI_VII_TRIPLE_K)
+    assert wl.liquidus_pressure_pa(200.0) == wl.liquidus_pressure_pa(wl.ICE_IH_III_TRIPLE_K) == wl.ICE_IH_III_TRIPLE_MPA * 1e6
+
+
+def test_the_ice_ih_melting_curve_falls_to_the_ice_iii_triple_point_and_inverts():
+    """GEN.1190: [R4585] (IAPWS R14-08): ice Ih melts at 264.2 K under 100 MPa and 252.3 K under 200 MPa, and the curve meets the ice III triple point
+    (251.165 K, 208.566 MPa); `ice_ih_melting_k` is its inverse, held at the triple points beyond them."""
+    assert wl.ice_ih_melting_pressure_mpa(wl.ICE_IH_III_TRIPLE_K) == pytest.approx(wl.ICE_IH_III_TRIPLE_MPA, rel=1e-4)
+    assert wl.ice_ih_melting_pressure_mpa(wl.WATER_TRIPLE_K) == pytest.approx(wl.WATER_TRIPLE_MPA)
+    assert wl.ice_ih_melting_k(100.0) == pytest.approx(264.2, abs=0.1)
+    assert wl.ice_ih_melting_k(200.0) == pytest.approx(252.3, abs=0.1)
+    for pressure in (1.0, 50.0, 150.0, 200.0):
+        assert wl.ice_ih_melting_pressure_mpa(wl.ice_ih_melting_k(pressure)) == pytest.approx(pressure, rel=1e-6)
+    assert wl.ice_ih_melting_k(500.0) == wl.ICE_IH_III_TRIPLE_K
+    assert wl.ice_ih_melting_k(0.0) == wl.WATER_TRIPLE_K
 
 
 def test_a_lid_heavier_than_the_water_freezes_it_solid_and_a_second_run_is_the_same():

@@ -80,11 +80,12 @@ def primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, metal_
 
 
 @finite_domain()
-def collisional_constant(lower_au, upper_au, star_mass_solar, largest_km, density_kg_m3=GRAIN_DENSITY_KG_M3):
-    """`A = M_max t`, Earth masses times Myr, of a belt between two distances whose largest planetesimal is `largest_km` across ([R4785: Eq. 15])."""
+def collisional_constant(lower_au, upper_au, star_mass_solar, largest_km, density_kg_m3=GRAIN_DENSITY_KG_M3, eccentricity=None):
+    """`A = M_max t`, Earth masses times Myr, of a belt between two distances whose largest planetesimal is `largest_km` across ([R4785: Eq. 15]). The planetesimals' eccentricity
+    is the belt's half-width over its radius unless `eccentricity` is given (a thin ring cut from a wide belt keeps the belt's stirring: GEN.1278)."""
     r = 0.5 * (lower_au + upper_au)
     dr = upper_au - lower_au
-    e = (upper_au - lower_au) / (upper_au + lower_au)
+    e = eccentricity if eccentricity is not None else (upper_au - lower_au) / (upper_au + lower_au)
     strength = disruption_threshold_j_per_kg(largest_km, density_kg_m3)
     xc = 1.0e-3 * (r * strength / e ** 2) ** (1.0 / 3.0)
     return (3.8e-6 * density_kg_m3 * r ** 3.5 * (dr / r) * largest_km / star_mass_solar ** 0.5

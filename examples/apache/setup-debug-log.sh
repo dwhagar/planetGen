@@ -121,6 +121,19 @@ if ! read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACH
     exit 0
 fi
 
+# SEC.44: config.json is the web user's file, and this script makes folders, gives them to the web user and writes their names
+# into /etc/logrotate.d as root. A log path from config.json is only used when rootpaths.py allows it (a plain name under
+# /var/log, /var/lib, /var/cache, /srv or the checkout, no symbolic link, nothing of the system's). A path from root's own
+# environment (PLANETGEN_LOG_FILE, PLANETGEN_LOG_DIR) is the operator's and is not asked about.
+for check in "log_file:$LOG_FILE" "log_dir:$ACTIVITY_DIR"; do
+    if ! why="$(cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" --check "${check%%:*}" "${check#*:}" "$REPO_DIR" "$APACHE_USER" "$APACHE_GROUP" 2>&1)"; then
+        log_warning "${why#refused: }"
+        log_warning "  The logs and their rotation were not set up. Name a path under /var/log in config.json (\"log_file\", \"log_dir\"),"
+        log_warning "  or leave them out for the defaults, then run sudo ./update.sh again."
+        exit 0
+    fi
+done
+
 # Both log files, their folders, owners and modes, and whether Apache's
 # user and group can really write them; it only ever warns.
 # The helper is plain Python that prints plain lines; each one is made a log record here (OPS.98): what it says is info, what it warns is a warning.

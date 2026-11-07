@@ -118,6 +118,7 @@ def occurrence_expectations():
 
 
 @pytest.mark.slow
+@pytest.mark.timeout(3600)    # PERF.241: the census draws every cell as its reference did, on every core: 886 to 1,036 s on 4 vCPUs against the default 900 s
 def test_the_system_and_occurrence_census_raise_no_new_flag(expectations, occurrence_expectations):
     """Draws the systems as the reference did (the same count per star type, once: the occurrence census reads the same systems),
     writes both latest-run reports and fails on a flag no known anomaly explains, in either."""

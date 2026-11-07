@@ -1,7 +1,6 @@
 """PERF.152: the Queue page's Pause is one flag in Redis that the workers honour: a paused queue starts no new unit,
 a resume releases it, and the two API lanes are never held."""
 
-import math
 import subprocess
 import sys
 import time
@@ -48,6 +47,14 @@ def test_the_api_lanes_and_the_generate_pages_queues_are_never_held():
     assert pause.holds(redisqueue.BULK_QUEUE) and pause.holds("planetgen-bulk-test-abc") and pause.holds("planetgen-generation")
 
 
+def _job(queue):
+    """A job a worker will run (SEC.45: only the program's own functions): `api_jobs.execute` calling `run_command` for `true`.
+    It finishes with `{"result": ...}`."""
+    import os
+    return queue.enqueue(api_jobs.execute, args=(api_jobs.function_reference(api_jobs.run_command),
+                                                 [["true"], dict(os.environ), "/", 30, False]), job_timeout=60)
+
+
 def _run_worker(queue_name, connection, redis_url, burst=True):
     """A worker of the worker command, as its own process (a burst worker, or one that leaves after 5 idle seconds);
     returns it once it is listening on the queue."""
@@ -66,14 +73,14 @@ def _run_worker(queue_name, connection, redis_url, burst=True):
 def test_a_paused_queue_starts_no_unit_and_a_resume_releases_it(flag, redis_server):
     name = f"planetgen-bulk-test-{uuid.uuid4().hex[:12]}"
     queue = redisqueue.queue(name, flag)
-    job = queue.enqueue(math.pow, 2, 5, job_timeout=60)
+    job = _job(queue)
     pause.pause("boss", flag)
     process = _run_worker(name, flag, redis_server)
     time.sleep(3)
     assert job.get_status(refresh=True) == "queued"          # held, not started
     pause.resume(flag)
     assert process.wait(60) == 0
-    assert job.get_status(refresh=True) == "finished" and job.return_value() == 32.0
+    assert job.get_status(refresh=True) == "finished" and "result" in job.return_value()
 
 
 def test_a_job_that_arrives_after_the_pause_is_held_not_run(flag, redis_server):
@@ -82,7 +89,7 @@ def test_a_job_that_arrives_after_the_pause_is_held_not_run(flag, redis_server):
     process = _run_worker(name, flag, redis_server, burst=False)       # blocked asking for a job, nothing paused yet
     time.sleep(0.5)
     pause.pause("boss", flag)
-    job = queue.enqueue(math.pow, 2, 6, job_timeout=60)        # the blocked worker takes it, then must hold it
+    job = _job(queue)        # the blocked worker takes it, then must hold it
     time.sleep(3)
     assert job.get_status(refresh=True) != "finished" and job.get_status(refresh=True) != "started"
     pause.resume(flag)
@@ -92,7 +99,7 @@ def test_a_job_that_arrives_after_the_pause_is_held_not_run(flag, redis_server):
 
 def test_a_paused_queue_does_not_hold_the_api_lanes(flag, redis_server):
     name = f"planetgen-api-test-{uuid.uuid4().hex[:12]}"
-    job = redisqueue.queue(name, flag).enqueue(math.pow, 2, 3, job_timeout=60)
+    job = _job(redisqueue.queue(name, flag))
     pause.pause("boss", flag)
     assert _run_worker(name, flag, redis_server).wait(60) == 0
     assert job.get_status(refresh=True) == "finished"

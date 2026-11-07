@@ -45,7 +45,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, nebula_composition, stellar_abundances, unit_registry
+from planetgen.physics import constants, nebula_composition, sky_photometry, stellar_abundances, unit_registry
 
 HYDROGEN_ATOMS_PER_AV_CM2 = 2.21e21
 """float: Hydrogen atoms per cm2 for one magnitude of V extinction in the Galaxy: N_H = (2.21 +- 0.09)e21 A_V, from 22 supernova remnants [R5130: Eq. 1]. Stand-in DU1,
@@ -152,7 +152,7 @@ class DustProfile:
         """The extinction in magnitudes per parsec at galactocentric `(x, y, z)` in parsecs (arrays or numbers, z up)."""
         radius = np.hypot(np.asarray(x_pc, dtype=float), np.asarray(y_pc, dtype=float))
         height = self.height_at(radius)
-        return self.column_at(radius) / (2.0 * height) / np.cosh(np.asarray(z_pc, dtype=float) / height) ** 2
+        return self.column_at(radius) / (2.0 * height) / sky_photometry.cosh_squared(np.asarray(z_pc, dtype=float) / height)
 
     def plane_av_per_kpc(self, radius_pc):
         """The extinction in the plane at `radius_pc`, magnitudes per kpc."""
@@ -161,7 +161,7 @@ class DustProfile:
     def key(self):
         """A short text that names these tables (for a cache key): a digest of the values rounded to six figures."""
         text = repr((tuple(round(v, 6) for v in self.radius_pc), tuple(float("%.6g" % v) for v in self.column_av), tuple(float("%.6g" % v) for v in self.height_pc)))
-        return hashlib.sha1(text.encode()).hexdigest()[:16]
+        return hashlib.sha1(text.encode(), usedforsecurity=False).hexdigest()[:16]
 
 
 def profile_from_history(history, disk_scale_length_pc, reference_radius_pc=None, *, visible_share=VISIBLE_SHARE, dispersion_kms=GAS_DISPERSION_KMS,

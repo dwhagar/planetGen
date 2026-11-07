@@ -130,3 +130,54 @@ def test_the_surface_temperature_does_not_jump_when_the_tropopause_moves_to_anot
     steps = np.diff([s.surface_temperature_k for s in solutions])
     assert (steps > 0).all()
     assert steps.max() - steps.min() < 0.15           # about 0.19 K per W/m2 throughout; the move of a level costs under a tenth of a kelvin
+
+
+# ---- the runaway greenhouse (GEN.1194) ----
+
+RUNAWAY_FLUXES_W_M2 = (285.0, 300.0, 315.0, 330.0)
+"""tuple: The clear-sky outgoing fluxes the runaway test solves at: the published limits are 282 (Simpson and Nakajima), 291 (Kopparapu) and 310 W/m2 (Kasting), [R1607]."""
+
+
+def _saturated_air(flux, saturated=True):
+    """The surface of a 1 bar nitrogen air with 40 Pa of carbon dioxide whose vapor stands at saturation at its own surface temperature, clear sky: the vapor is
+    iterated to the temperature (a few solves, a second each)."""
+    temperature = 300.0
+    for _ in range(8):
+        vapor = float(rc.saturation_pressure_pa(temperature))
+        solution = rc.solve({"N2": 1.0e5, "CO2": 40.0, "H2O": vapor}, 9.8, flux, saturated=saturated, clear_sky=True)
+        if abs(solution.surface_temperature_k - temperature) < 0.2:
+            break
+        temperature = solution.surface_temperature_k
+    return solution
+
+
+@pytest.fixture(scope="module")
+def runaway_curve():
+    """`{absorbed flux: surface temperature}` of the saturated clear-sky air."""
+    curve = {}
+    for flux in RUNAWAY_FLUXES_W_M2:
+        solution = _saturated_air(flux)
+        assert solution.converged
+        curve[flux] = solution.surface_temperature_k
+    return curve
+
+
+def test_a_saturated_air_runs_away_once_the_flux_passes_the_published_limits(runaway_curve):
+    """The outgoing flux rises ever more slowly with the surface temperature, so the surface answers each added watt with more kelvin: about 1 K per W/m2 up to 300 W/m2 and over 2 K per
+    W/m2 past 315, the elbow inside the published 282 to 310 (a few percent over at the top: the air here is 1 bar of nitrogen with 40 Pa of carbon dioxide, not pure steam)."""
+    fluxes = RUNAWAY_FLUXES_W_M2
+    slopes = [(runaway_curve[b] - runaway_curve[a]) / (b - a) for a, b in zip(fluxes, fluxes[1:])]
+    assert slopes == sorted(slopes)                                     # each step steeper than the one before
+    assert slopes[0] < 1.2                                              # 285 to 300: still the temperate response (the Earth twin's is 0.65 to 0.9)
+    assert slopes[-1] > 2.0                                             # 315 to 330: the surface has no answer left near the limit
+    assert runaway_curve[330.0] - runaway_curve[300.0] > 40.0
+
+
+def test_the_runaway_belongs_to_the_saturated_air_not_to_the_opacity():
+    """GEN.1194: the profile that falls to nothing aloft (Manabe and Wetherald's, IR7) lets the window and the rotation band leak and shows no elbow at all (the same
+    clear-sky 330 W/m2 gives about 310 K), where the saturated profile of the published limits is 375 K and climbing: the opacity (the MT_CKD continuum and the tables)
+    is not what keeps the outgoing flux from a plateau."""
+    saturated = _saturated_air(330.0)
+    dry_aloft = _saturated_air(330.0, saturated=False)
+    assert dry_aloft.surface_temperature_k < 320.0
+    assert saturated.surface_temperature_k - dry_aloft.surface_temperature_k > 40.0

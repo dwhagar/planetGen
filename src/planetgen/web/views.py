@@ -52,9 +52,24 @@ def _sector_row(sector):
     ]
 
 
+SECTOR_COVERAGE_LABELS = {"charted": "Charted sectors", "all": "All sectors", "uncharted": "Uncharted sectors only"}
+"""dict: The Sectors page's choices of which sectors to list (MAP.403), in the order the menu shows them."""
+
+
+def sector_coverage_args(args):
+    """
+    `(coverage, show_empty)` the request's `coverage` and `empty` parameters ask for (MAP.403): charted sectors unless `coverage` names another
+    of `SECTOR_COVERAGE_LABELS`, and the uncharted sectors nothing is known to be in left out unless `empty` is set. Anything else is the default.
+    """
+    coverage = args.get("coverage")
+    return (coverage if coverage in SECTOR_COVERAGE_LABELS else "charted"), args.get("empty") in ("1", "true", "yes", "on")
+
+
 def _sectors_load(state, limit, offset, want_facets, after=None):
+    coverage, show_empty = sector_coverage_args(request.args)
     envelope = apiclient.get_sectors(
-        db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending)
+        db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending,
+        coverage=coverage, show_empty=show_empty)
     items = envelope["items"]
     return Result([_sector_row(sector) for sector in items], envelope["total"], None,
                   envelope.get("total_capped", False), items[-1]["id"] if items else None)
@@ -227,15 +242,24 @@ def index():
 
 @bp.route("/sectors")
 def sectors():
-    """Every sector, nearest the galactic core first."""
+    """Every charted sector, nearest the galactic core first; `?coverage=all|uncharted` and `&empty=1` (MAP.403) list the uncharted ones too."""
+    coverage, show_empty = sector_coverage_args(request.args)
+    counts = apiclient.get_sectors(db_name(), limit=1, offset=0)
+    source_args = {"coverage": coverage} | ({"empty": "1"} if show_empty else {})
     return render_page(
         "sectors.html",
         title="Sectors",
         section="sectors",
         breadcrumbs=[crumb("Sectors")],
-        description="Every sector in this charted galaxy, and the uncharted cells rogue planets have landed in.",
-        sectors=tables.render(SECTORS_TABLE, request.path, anchor="sectors"),
-        uncharted_total=apiclient.get_sectors(db_name(), limit=1, offset=0).get("uncharted_total", 0),
+        description="Every charted sector in this galaxy, and the uncharted ones where long-range scans detected something.",
+        sectors=tables.render(SECTORS_TABLE, request.path, anchor="sectors", keep=("coverage", "empty"), **source_args),
+        charted_total=counts.get("charted_total", counts["total"]),
+        uncharted_total=counts.get("uncharted_total", 0),
+        empty_total=counts.get("empty_total", 0),
+        coverage=coverage,
+        show_empty=show_empty,
+        coverage_options=[{"value": value, "label": label} for value, label in SECTOR_COVERAGE_LABELS.items()],
+        sectors_url=page_url("sectors"),
     )
 
 
@@ -372,6 +396,7 @@ def search():
         state=state,
         lookup=searchpage.lookup_notice(state.q),
         name_fields=searchpage.NAME_FIELDS,
+        sector_coverage_choices=[{"value": value, "label": label} for value, label in searchpage.SECTOR_COVERAGE_CHOICES],
         size_entities=searchpage.SIZE_ENTITIES,
         value_groups=searchpage.value_form(state),
         star_choices=searchpage.STAR_COUNT_CHOICES,

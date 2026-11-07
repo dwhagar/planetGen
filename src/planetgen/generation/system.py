@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, debris_dust, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -1297,7 +1297,7 @@ class StarSystem:
                 if apply_guarantees and hz and self.system_config.HABITABLE_WORLD is True:
                     planet = self._planet_in_ecosphere(star, habitable_zone, estimated_distance, **given)
                 else:
-                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance, **given) # Pass system_config
+                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance, defer_climate=True, **given)   # GEN.1282: its air and moons come once the spacing has settled
                 planets.append(planet)
 
                 if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
@@ -1317,8 +1317,9 @@ class StarSystem:
         counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
         if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)):
             return
+        scatter = next((architecture.disk_scatter for planned, architecture in getattr(self, "architectures", ()) if planned is star), 1.0)     # the disk the planets grew in (GEN.1261)
         belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star),
-                                 instability=capture_windows.instability_level(self.capture_windows(star)))
+                                 instability=capture_windows.instability_level(self.capture_windows(star)), disk_scatter=scatter)
         if not belts and config.ASTEROID_BELT is True and not any(body.body_type == 'a' for body in bodies):
             belts = self._requested_belt(bodies, star, orbit_ceiling_au)
         if not belts:
@@ -1340,13 +1341,18 @@ class StarSystem:
         if any(member.yerkes_class not in debris_dust.DEBRIS_CLASSES for member in getattr(star, "stars", [star])):
             return
         age_myr, mass_sol = star.age * 1.0e3, _kg_to_msun(remnant_orbits.formation_mass_kg(star))
+        formation_kg, snow_line_au = remnant_orbits.formation_mass_kg(star), star.snow_line_au
+
+        def solids(distance_au):                     # the disk's solids the dust rings share the belt's mass by: the nebula of the belt's own origin (`belt_mass.primordial_mass_earth`)
+            return planet_mass.solids_surface_density_gcm2(distance_au, formation_kg, snow_line_au)
+
         brightest = None
         for belt in bodies:
             if belt.body_type != 'a' or belt.origin != "outer-disk" or not belt.mass_kg > 0.0:
                 continue
-            fractional = debris_dust.fractional_luminosity(belt.lower_limit, belt.upper_limit, star.luminosity / constants.SOLAR_LUMINOSITY, age_myr, belt.largest_body_km,
-                                                           _kg_to_mearth(belt.mass_kg), mass_sol)
-            if debris_dust.is_detectable(fractional) and (brightest is None or fractional > brightest[0]):
+            fractional = debris_dust.belt_fractional_luminosity(belt.lower_limit, belt.upper_limit, star.luminosity / constants.SOLAR_LUMINOSITY, age_myr, belt.largest_body_km,
+                                                                _kg_to_mearth(belt.mass_kg), mass_sol, solids)
+            if debris_dust.is_detectable(fractional, star.temperature) and (brightest is None or fractional > brightest[0]):
                 brightest = (fractional, belt)
         if brightest is not None:
             belt = brightest[1]
@@ -1363,9 +1369,14 @@ class StarSystem:
         hosts += [(bodies, star) for star, bodies in self.member_hosts()]
         for bodies, star in hosts:
             source = irregular_moons.source_of(bodies, star, self.capture_windows(star), star_al26_ratio(self.system_config, star))
+            sets = []
             for body in bodies:
                 if body.body_type != 'a' and not body.is_moon:
                     body.irregulars = irregular_moons.for_planet(body, source)
+                    irregular_moons.record(source, body.irregulars)
+                    sets.append(body.irregulars)
+            irregular_moons.take_from_disks([belt for belt in bodies if belt.body_type == 'a' and getattr(belt, "origin", None) == "outer-disk"], sets)     # GEN.1085
+            irregular_moons.take_from_belts(dict(source.belts), sets)
 
     def capture_windows(self, star):
         """
@@ -2271,7 +2282,7 @@ class StarSystem:
                         planet.moons.remove(moon)
                         dropped += 1
         if dropped:
-            log.debug(f"{dropped} bodies of a class that can carry life left a system that bars them (GEN.1275)")
+            log.debug(f"{dropped} bodies of a class that can carry life left a system that bars them")
         return dropped > 0
 
     def count_habitable_class_worlds(self, planets=None):
@@ -2314,14 +2325,31 @@ class StarSystem:
 
     def ejected_losses(self):
         """
-        What the planet architecture of each star of this system threw out, as `(star, Loss)` pairs (GEN.1119, GEN.1111): the `thrown` losses of the
-        plan each star's kept planets were built from, with the share of each that ends ejected (`Loss.ejected`). Empty for a system rebuilt from
+        What the planet architecture of each star of this system threw out, as `(star, Loss)` pairs (GEN.1119, GEN.1111): the `thrown` and `sub_minimum` losses of the
+        plan (and the `stripped` ones, the planets its birth cluster pulled off, GEN.1288) each star's kept planets were built from, with the share of each that ends ejected (`Loss.ejected`). Empty for a system rebuilt from
         storage (`from_dict` has no plan; a donor's rogues are made and saved when it is generated) and for a star with no plan.
         """
         found = []
         for star, architecture in getattr(self, "architectures", ()):
-            found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind == "thrown" and loss.ejected > 0.0)
+            found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind in ("thrown", "stripped", "sub_minimum") and loss.ejected > 0.0)
         return found
+
+    def _strip_by_cluster(self, star, architecture):
+        """
+        `architecture` without the planets the star's birth cluster pulled off (GEN.1288, `physics/cluster_unbinding.py`): a star with a `CLUSTER_HISTORY` (the cluster's density and speed through its life) gives each planet a draw,
+        and the planet whose draw the history unbinds (`unbinding_epoch_myr`) is taken out and recorded as a loss (`planet_architecture.strip`), so it leaves the system and is made again as a rogue. Every planet takes its draw
+        whether or not it can be stripped, so the stream is the same each time. A system with its planets asked for by count (`NUM_ORBITS`) or by slot (`SLOTS`) is left as asked.
+        """
+        history = getattr(self.system_config, "CLUSTER_HISTORY", None)
+        config = self.system_config
+        if not history or config.NUM_ORBITS is not None or config.SLOTS:
+            return architecture
+        stripped = []
+        for seed in architecture.planets:
+            epoch_myr = cluster_unbinding.unbinding_epoch_myr(seed.distance_au, _kg_to_msun(star.mass), history, draw.random())
+            if epoch_myr is not None:
+                stripped.append((seed, epoch_myr * 1.0e6))
+        return planet_architecture.strip(architecture, stripped)
 
     def _plan_architecture(self, star, orbit_ceiling_au):
         """
@@ -2358,13 +2386,13 @@ class StarSystem:
             floor_au = self._orbit_floor_au(star)
             if floor_au > 0.0:
                 architecture = architecture._replace(planets=tuple(s for s in architecture.planets if s.distance_au >= floor_au))
-            return planet_architecture.Plan(architecture, star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au)
+            return planet_architecture.Plan(self._strip_by_cluster(star, architecture), star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au)
 
         def built(maximum=False):
             return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au)
 
         if config.PLANETS is False:
-            return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0, planet_architecture.Lost(0.0, 0.0, 0, 0.0, 0, (), (), (), 0.0, 0.0)), 0), 0
+            return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0, planet_architecture.Lost(0.0, 0.0, 0, 0.0, 0, (), (), (), 0.0, 0.0, ())), 0), 0
         minimum = 1 if config.PLANETS is True else 0
         if config.NUM_ORBITS is not None:
             return plan_of(built(), config.NUM_ORBITS), config.NUM_ORBITS
@@ -2417,6 +2445,9 @@ class StarSystem:
         if planets is None:
             planets = self.planets
         validation.space_orbits(planets)
+        for body in planets:   # GEN.1282: the planets built without their climate get it at the distance the spacing left them
+            if body.body_type != 'a':
+                body.finish_climate()
 
     def _reconcile_moved_planet(self, planet):
         """

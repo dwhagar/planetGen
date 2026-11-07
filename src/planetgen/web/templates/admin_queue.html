@@ -51,6 +51,26 @@
   {%- endif %}
   {%- endif %}
 </section>
+{%- if held %}
+<section class="panel" id="queue-held" aria-labelledby="queue-held-heading">
+  <h2 id="queue-held-heading">Held jobs</h2>
+  <p>{{ held.total }} {{ 'job is' if held.total == 1 else 'jobs are' }} held in no queue until the job{{ '' if held.total == 1 else 's' }} {{ 'it' if held.total == 1 else 'they' }} require{{ 's' if held.total == 1 else '' }} finish{{ 'es' if held.total == 1 else '' }}. A worker is never handed one early; the worker that finishes the last required job queues it. If a required job fails, the held job fails with it and a failed run names it.</p>
+  <div class="table-scroll" tabindex="0">
+  <table>
+    <caption class="sr-only">Jobs held for a job they require</caption>
+    <thead><tr><th scope="col">Job</th><th scope="col">Queue</th><th scope="col">Run</th><th scope="col">Waits for</th></tr></thead>
+    <tbody>
+    {%- for row in held.rows %}
+    <tr><td>{{ row.label }} <code>{{ row.id }}</code></td><td>{{ row.queue }}</td>
+      <td>{% if row.run_url %}<a href="{{ row.run_url }}">{{ row.run }}</a>{% if row.stage is not none %}, stage {{ row.stage }}{% endif %}{% endif %}</td>
+      <td><code>{{ row.waits_for }}</code></td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- if held.shown < held.total %}<p class="hint">The first {{ held.shown }} are listed.</p>{% endif %}
+</section>
+{%- endif %}
 {%- if available %}
 <section class="panel" id="queue-fills" aria-labelledby="queue-fills-heading">
   <h2 id="queue-fills-heading">Start a fill</h2>

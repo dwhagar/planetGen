@@ -51,7 +51,7 @@ from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 from planetgen.util import chem
 
 from . import bp, habitability_symbol_row, tables
-from . import edit_actions, glance, item_pages, system_facilities, system_species
+from . import edit_actions, glance, item_pages, system_facilities, system_ledger, system_species
 from .class_pages import class_url
 from .helpers import (
     bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
@@ -430,6 +430,7 @@ def system(system_id):
         admin=admin,
         facilities=system_facilities.facility_rows(facilities),
         habitable_species=system_species.panel_rows(db, system_id),
+        ledger=system_ledger.panel(db, system_id),
         facility_status=system_facilities.MESSAGES.get(request.args.get("facility")) if admin else None,
         facility_form=facility_form or {"fields": {}, "errors": [], "preview": None},
         facility_hosts=system_facilities.host_options(detail) if admin else [],

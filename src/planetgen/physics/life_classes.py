@@ -73,13 +73,20 @@ OXIDANTS = ("o2", "nitrate", "perchlorate", "sulfate", "co2", "acid", "none")
 """tuple: What a class breathes (`life.oxidant`); `"o2"` is the oxidant whose yield follows the air's oxygen."""
 METABOLISMS = ("oxygenic", "anoxygenic", "hydrogenotroph", "chemolithotroph", "hydrogenator", "acidophile")
 """tuple: How a class makes its living (`life.metabolism`): only an `"oxygenic"` one splits water and so makes free oxygen."""
+CARBON_FIXERS = ("oxygenic", "anoxygenic", "hydrogenotroph", "chemolithotroph", "hydrogenator")
+"""tuple: The metabolisms that fix their own carbon (`life.metabolism`), the ones a retinal supplement can sit beside (GEN.881): an acid eater lives on organic carbon."""
+RETINAL_SHARE = 0.05
+"""float: The share of the usable light in the retinal band that a retinal-pigment supplement turns to energy (GEN.881; registry LF72). Source tier T7, tweak level L3."""
+RETINAL_BAND_NM = (480.0, 580.0)
+"""tuple: The band the retinal pigments absorb in, nm: the blue-green of the proteorhodopsins of the sunlit sea (peaks recalled at 490 to 530 nm; registry LF72). Source tier T7, tweak level L3."""
 CO2_DENSE_SHARE = 0.5
 """float: The share of the air that carbon dioxide must be for its phase to be the surface fluid's (the same as the Class 6 rule)."""
 
 
-BODY_FIELDS = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity")
+BODY_FIELDS = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity", "life_traits")
 """tuple: What the life pass stores on a body besides the schedule, the stage and the four scores (columns of `planets` and `moons`): the class that
-lives on it (the number and the variant letter), the best-supported class and its score, the animal grade (0 to 3) and the complexity index."""
+lives on it (the number and the variant letter), the best-supported class and its score, the animal grade (0 to 3), the complexity index and the adaptation
+traits of its life (`physics/adaptation_traits.py`, text such as `radiation:2,sulfide:3`, `None` for none)."""
 
 LIVING_FIELD = "life_living"
 """str: The body attribute holding the list of the life classes that live on it (GEN.1209; the child table `life`): the dominant class first, each a dict
@@ -322,6 +329,7 @@ def quantities(values):
         partial_pa = atmosphere.partial_kpa(values, gas) * 1000.0
         found[f"share_{gas}"] = min(1.0, partial_pa / pressure) if pressure > 0.0 else 0.0
     found["co2_partial_pa"] = atmosphere.partial_kpa(values, "co2") * 1000.0
+    found["o2_partial_pa"] = atmosphere.partial_kpa(values, "o2") * 1000.0        # GEN.1321: a microbe meets oxygen as a pressure, not as a share of the air
     habitat = life_supply.habitat_temperature_k(values)
     if habitat is not None:
         found["habitat_temperature_k"] = habitat
@@ -417,11 +425,26 @@ def band_ratio(row, found):
     return min(1.0, band_fraction(teff, row.energy["band_nm"]) * row.energy["efficiency"] / _earth_band_flux())
 
 
+def retinal_supplement_w_m2(row, found, world, values):
+    """The light a chemical class gets from retinal pigments, W/m2 (GEN.881): a class that fixes carbon (`CARBON_FIXERS`) in water that sunlight reaches carries
+    them as a supplement. Retinal makes ATP and no biomass, so it adds `RETINAL_SHARE` of the usable light that falls in its band, scaled to the star as a class's
+    band is, to the class's own chemical energy and fixes no carbon. 0 for a class that eats light already, for one that does not fix carbon or does not live
+    in water, and for a world whose water the light does not reach (under ice, deep underground) or whose star gives none."""
+    if (row.energy["source"] != "chemical" or row.life["metabolism"] not in CARBON_FIXERS or row.solvent["medium"] != "water"
+            or world.solvent != "water" or values.get("hydrosphere") in ("ice-covered ocean",) or not world.life_on_surface):
+        return 0.0
+    teff = found.get("_teff_k")
+    earth = band_fraction(REFERENCE_STAR_K, RETINAL_BAND_NM)
+    if not teff or earth <= 0.0:
+        return 0.0
+    return RETINAL_SHARE * world.energy_flux_w_m2 * band_fraction(teff, RETINAL_BAND_NM) / earth
+
+
 def _energy_term(row, found, world, values):
     energy = row.energy
     if energy["source"] == "chemical":
         heat = (values.get("internal_heat_flux_w_m2") or 0.0) + (values.get("tidal_flux_w_m2") or 0.0)
-        return _energy_curve(habitability_world.CHEMICAL_SHARE * heat)
+        return _energy_curve(habitability_world.CHEMICAL_SHARE * heat + retinal_supplement_w_m2(row, found, world, values))
     sunlit = values.get("hydrosphere") not in ("ice-covered ocean",) and world.life_on_surface
     if not sunlit:
         return 0.0

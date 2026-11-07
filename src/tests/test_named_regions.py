@@ -30,7 +30,7 @@ CELLS = [_cell(*spherical.sector_address_at(point, EDGE)) for point in (
     (12000.0, -9000.0, 40.0), (1.0, 1.0, 1.0), (0.0, 0.0, -1800.0))]
 
 
-def test_the_codec_names_the_region_kind_and_the_object_kinds_are_as_before():
+def test_the_codec_names_the_region_kind():
     assert "region" in naming_key.KINDS
     assert naming_key.codec_domain(KEY, "region") == f"{KEY}:region"
 

@@ -26,7 +26,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | POP.11 | Scatter space vessels and stations for the races in their territories | USR.29 | Stations and space ports are scattered by POP.21 in 8.4; this item keeps the space vessels (Boss, 9:27 PM EDT 2026-10-24). |
 | USR.30 | Add a ship or station from a page and see it and its track on the maps | USR.29 | Split from USR.10. |
 | MAP.391 | The ship page shows the territories crossed: a read of the owners along a vessel's track (borders block nothing) | NAV.77, USR.29 |  |
-| USR.10 | Users add their own objects (ships and stations) and track their movement on the map | USR.29, USR.30 |  |
-| MAP.221 | Station and vessel icons on the Galaxy Map | USR.29, POP.11 | Split from MAP.132. |
 | TEST.625 | Ships and stations tests: position against the course planner, the arrival job, refused orbits, and determinism of generated traffic | USR.29, POP.11, MAP.391 |  |
 | DOC.106 | Docs for ships and stations: the help page (states, courses, tracks, how the ship's place is found) and the design note | TEST.625 |  |

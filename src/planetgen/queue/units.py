@@ -38,7 +38,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import commands, redisqueue, runrecord
+from planetgen.queue import commands, redisqueue, requires, runrecord
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -343,6 +343,7 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed: "
                                f"{exc_type.__name__}: {exc_value}")
+    requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
 
 def horse_killed(job, retpid, ret_val, _rusage):

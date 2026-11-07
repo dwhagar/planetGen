@@ -125,7 +125,7 @@ GLYPHS.civilization = discWith(function (ctx, size) {
 
 // The planet classes the map can mark (MAP.220): `planetgen.tuning.PLANET_CLASSES`' letters; tests/test_system_interests.py holds the
 // two lists to each other. A class's reason is "class-" and its letter, the same id the server's `system_interests` rows use.
-export const PLANET_CLASS_LETTERS = "ABCDEFGHIJKLMNOPRSTUVXYZ".split("");
+export const PLANET_CLASS_LETTERS = "ABCDEFGHIJKLMNOPRSTUVWXYZ".split("");
 
 // The life classes the map can mark (MAP.351): `planetgen.physics.life_classes.CLASSES`' ids; tests/test_system_interests.py holds the two lists to
 // each other. A life class's reason is "lifeclass-" and its id, the same id the server's `system_interests` rows use.
