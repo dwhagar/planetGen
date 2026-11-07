@@ -1091,7 +1091,8 @@ def add_plan_arguments(parser):
                                   help="A cell that expects more systems than this is filled only with the stars at "
                                        "or above --fill-luminosity-cap; the rest is unresolved, its count and mass "
                                        "shown on the sector page. Stored with the galaxy by a full plan. Default: "
-                                       f"{program_constants.CELL_STAR_CEILING:,.0f}.")
+                                       "the generation.cell_cap setting in config.json "
+                                       f"({program_constants.CELL_STAR_CEILING:,.0f} unless changed).")
     resolution_group.add_argument('--fill-luminosity-cap', type=finite_float, default=None, metavar='L_SUN',
                                   help="The dimmest star (solar luminosities) a cell above --cell-star-ceiling "
                                        "resolves, at least the brightest white dwarf "

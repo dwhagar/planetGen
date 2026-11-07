@@ -31,6 +31,7 @@ GROUPS = {
     "speed": "Speed and disk",
     "protection": "Abuse protection",
     "housekeeping": "Housekeeping",
+    "generation": "Galaxy generation",
     "database": "Database connection",
     "queue": "Queue server",
     "logging": "Logging",
@@ -39,7 +40,7 @@ GROUPS = {
     "paths": "Folders and addresses",
     "file": "Settings file",
 }
-"""dict: Each `x-group` and its heading, in the order the page lists them. The first seven are the groups an admin
+"""dict: Each `x-group` and its heading, in the order the page lists them. The first eight are the groups an admin
 works in; the rest hold what only the server's file can change (or the Owner), listed after them. Every option's
 group must be named here (a test checks it)."""
 

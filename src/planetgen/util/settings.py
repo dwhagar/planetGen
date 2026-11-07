@@ -377,6 +377,18 @@ class Jobs(_Section):
                               "app's own.")
 
 
+class Generation(_Section):
+    cell_cap: float = opt(5000, "The most systems one cell of the galaxy may expect before it is filled only with the stars at or above the "
+                          "fill luminosity cap (the rest is left unresolved, its count and mass shown on the sector page). A new galaxy "
+                          "takes this value when its plan starts and keeps it, so a change affects only galaxies planned afterwards, "
+                          "never cells already stored; the command line's --cell-star-ceiling sets one galaxy's own and wins over this. "
+                          "A lower cap fills fewer systems in a crowded cell and makes the galaxy smaller and quicker to build; a "
+                          "higher one fills more and takes more disk and time.", unit="systems", group="generation",
+                          ge=500, le=50000, label="Systems a cell may hold",
+                          summary="How many systems a crowded cell may hold before it is only partly filled; applies to galaxies planned "
+                                  "afterwards.")
+
+
 class Parity(_Section):
     enabled: bool = opt(False, "Keep a parity file beside the database that can rebuild a damaged sector: every saved "
                         "or edited sector updates the parity of its group, which costs a few milliseconds a save and about "
@@ -891,6 +903,7 @@ class Settings(_Section):
     page_cache: PageCache = PageCache()
     jobs: Jobs = Jobs()
     parity: Parity = Parity()
+    generation: Generation = Generation()
 
     _loose = field_validator("debug", "admin_cookie_insecure", mode="before")(_loose_bool)
 
