@@ -559,6 +559,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     if _past_runaway_with_water(planet, solar_output_at_orbit, surface_w):
         start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `_past_runaway_with_water`)
     air = surface_air.solve(setting, start_k)
+    planet._retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
     if air is None or not air.partials_pa:
         if setting.albedo_law is not None:
             # GEN.972: with no air the ice the cold leaves is the only feedback; the temperature and the albedo that keep each other

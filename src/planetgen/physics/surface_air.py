@@ -266,6 +266,8 @@ class Air:
         converged (bool): The pressure and the temperature settled to `TOLERANCE_LN_P` and `TOLERANCE_K`.
         ocean_present (bool): The last step's ocean flag.
         constants (dict): The design constants drawn (the efficiencies, the cycle's draws, the sulfur lifetimes, the skin of ice).
+        retention_cap_pa (float or None): The most pressure the retention regime of the recipe (`d6`) lets the air keep, Pa; `None` for no cap. The life stage keeps the
+            oxygen it adds inside it (`biogenic_oxygen.apply`, GEN.1340).
     """
 
     mixture: object
@@ -281,6 +283,7 @@ class Air:
     constants: dict = field(default_factory=dict)
     haze: object = aerosols.NO_HAZE
     albedo: object = None
+    retention_cap_pa: object = None
 
     @property
     def greenhouse_factor(self):
@@ -723,7 +726,8 @@ def solve(setting, start_temperature_k):
     state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     converged = setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K)
     return Air(mixture=mixture, partials_pa=partials, pressure_pa=pressure, temperature_k=temperature_k, warming=warming, state=state,
-               condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step)
+               condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step,
+               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject))
 
 
 def _retention_cap_pa(mixture, subject):
