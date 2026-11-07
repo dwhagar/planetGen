@@ -253,3 +253,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF70 | no data | - | five stresses of the design have no limit in the life scores to move, so no trait is drawn for them until a class rule reads the stress |
 | 6.18:LF71 | no data | - | the carbon monoxide and sulfur dioxide toxins are scored for animals only; a microbe toxin term would give the trait something to move |
 | 6.18:LF72 | no data | - | no survey of the share of the sunlit ocean's energy that retinal pigments supply is in hand; the share and the band are the order of the recalled literature |
+| 6.198:AW6 | no data | - | L3, the class Z gravity floor 0.5 g was chosen from a sweep of 2,212 bodies (GEN.1306); it goes when the gravity edges of Z are fixed from heavy-world physics (GEN.1136) |
+| 6.198:AW7 | no data | - | L3, the class Z temperature top 1500 K was chosen from the same sweep; it goes when the top is fixed from the temperature at which a thin air is lost (the retention fit) |
+| 6.201:OP2 | no data | - | L3, the oxygen and carbon dioxide pressure shoulders (0.25 of the edge, floors of 500 Pa and 200 Pa) were carried over from the shares and not fitted; they go when the toxicity and equipment lines of the habitability index are fixed from physiology |

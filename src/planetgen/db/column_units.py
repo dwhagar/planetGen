@@ -195,7 +195,7 @@ TABLES = {
     },
     "irregular_moons": {
         "id": ("id", "planet_id"),
-        "index": ("moon_rank",),
+        "index": ("moon_rank", "belt_order", "belt_rank"),
         "kg": ("mass_kg",),
         "km": ("radius_km", "distance_km", "source_distance_km"),
         "orbit-e": ("eccentricity",),
