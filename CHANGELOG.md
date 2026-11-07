@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3565] - 2026-11-07
+
+**Headline:** A system page now shows the mass of the whole system, where its center of mass lies against the primary star, and how far its asteroid belts pull that star (GEN.1241).
+
+### Added
+
+- `GET /api/systems/<id>/bodies`: the body ledger of a system built from the typed tables with no new storage (stars, planets, moons, rings, comets, belts, the bodies each belt keeps and the belt's remainder), its total mass, barycenter, the central star's offset, the belt wobble and each belt's rows against its stored mass.
+- The "Mass and barycenter" panel on the system page, with the mass and distance of every body from the center of mass and a table of the belts (`web/system_ledger.py`).
+
 ## [8.0.3564] - 2026-11-07
 
 **Headline:** The legacy-nebula shape test no longer fails on a nebula whose species text a save rewrites; it checks the shape its stored properties give.
