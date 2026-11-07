@@ -69,10 +69,6 @@ def maintenance_lane():
     return (MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QUEUE)
 
 
-JSON_QUEUE_PREFIXES = (BULK_QUEUE, MAINTENANCE_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE, "planetgen-web-", "planetgen-api-")
-"""tuple: A queue whose name starts with one of these carries JSON (`serializer_for`): the shared queues, each
-Generate page job's own (`planetgen-web-<id>`), and the API queues the tests give a name of their own."""
-
 QUEUES = (GENERATION_QUEUE, BULK_QUEUE, MAINTENANCE_QUEUE, CHECK_QUEUE, NODES_QUEUE, INTERACTIVE_QUEUE, LONG_QUEUE)
 """tuple: Every shared queue."""
 
@@ -98,8 +94,8 @@ def _json_default(value):
 
 
 class JsonSerializer:
-    """RQ's serializer for the queues that carry plain data (PERF.94, finding F8): a job's arguments and its
-    result travel as JSON, not pickle, so a process that can reach Redis can queue data but not code to run."""
+    """RQ's serializer for every queue (PERF.94, SEC.39, finding F8): a job's arguments and its result travel as JSON, not
+    pickle, so a process that can reach Redis can queue data but not an object that runs code when it is read."""
 
     @staticmethod
     def dumps(value, *args, **kwargs):
@@ -112,11 +108,12 @@ class JsonSerializer:
 
 def serializer_for(name):
     """
-    The serializer the queue `name` uses: JSON for the web queues (the Generate page's jobs and the API's,
-    whose arguments are paths, ids and numbers); RQ's default, pickle, for a run's own queue, whose tasks carry
-    Python objects until the work queue rebuild (PERF.95 to 98) turns them into ids. One worker serves one kind.
+    The serializer the queue `name` uses: JSON, for every queue (SEC.39). The Generate page's jobs and the API's carry paths,
+    ids and numbers; a run's units (PERF.95 to PERF.98) carry ids. No queue carries pickle, so a process that can write to
+    Redis cannot queue an object that runs code when a worker reads it. (A job still names the function a worker calls: what
+    keeps a process that is not planetGen from queuing one is the Redis ACL user, `examples/redis/planetgen.conf`.)
     """
-    return JsonSerializer if name.startswith(JSON_QUEUE_PREFIXES) else None
+    return JsonSerializer
 
 
 TIMEOUT_MULTIPLE = 10
@@ -180,8 +177,8 @@ def queue(name, connection):
     return TimedQueue(name, connection=connection, serializer=serializer_for(name))
 
 
-def fetch_job(job_id, connection=None, serializer=None):
-    """The RQ job `job_id` (of a queue using `serializer`, default pickle), or `None` when there is none (never
+def fetch_job(job_id, connection=None, serializer=JsonSerializer):
+    """The RQ job `job_id` (of a queue using `serializer`, default JSON), or `None` when there is none (never
     queued, or expired).
 
     Raises:
@@ -189,7 +186,7 @@ def fetch_job(job_id, connection=None, serializer=None):
     """
     connection = connection or connect()
     try:
-        return rq.job.Job.fetch(job_id, connection=connection, serializer=serializer)
+        return rq.job.Job.fetch(job_id, connection=connection, serializer=serializer or JsonSerializer)
     except rq.exceptions.NoSuchJobError:
         return None
     except redis.RedisError as exc:

@@ -64,3 +64,21 @@ def test_an_unreachable_server_only_warns(capsys):
 
 def test_a_limit_under_two_gigabytes_is_called_too_small():
     assert _lines(maxmemory="536870912") == ["maxmemory 4gb"]
+
+
+def test_a_server_anyone_may_use_without_a_password_warns_with_the_lines_to_add():       # SEC.39
+    what, lines = check.open_access_problem("default", ["on", "nopass", "sanitize-payload"])
+    assert "without a password" in what
+    assert "user default off" in lines and "user planetgen on >" in lines and "redis://planetgen:" in lines
+
+
+def test_a_connection_that_logged_in_as_a_user_of_its_own_raises_no_warning():
+    assert check.open_access_problem("planetgen", ["on", "nopass"]) is None
+    assert check.open_access_problem("default", ["on"]) is None                       # the default user has a password
+    assert check.open_access_problem("default", ["off", "nopass"]) is None
+
+
+def test_the_acl_example_is_a_user_the_warning_describes():
+    text = open(os.path.join(ROOT, "examples", "redis", "planetgen-acl.conf"), encoding="utf-8").read()
+    live = [line for line in text.splitlines() if line and not line.startswith("#")]
+    assert live == check.ACL_LINES.splitlines()[:2]
