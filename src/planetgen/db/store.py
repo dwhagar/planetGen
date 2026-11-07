@@ -83,6 +83,7 @@ from planetgen.util import fingerprint_encoding as fingerprintEncoding, generato
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation.phenomena import asteroid_field
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.population import facilities as facility_rules, facility_attrs
@@ -6042,7 +6043,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
             counts, `sectors` -- the ids of every sector something moved
             in or out of -- `step_capped` (objects that needed more steps than the stepper allows), and `counts`, `{name: rows_moved}`:
             `"star_systems"`, `"binary_galactic_orbits"`, each orbiting
-            phenomenon table and `"space_facilities"`.
+            phenomenon table, `"space_facilities"` and `"retired_asteroid_fields"` (the fields that passed a light year in this run, GEN.1107, present when any did).
     """
     index = _SectorIndex(conn)
     moved = refiled = 0
@@ -6143,7 +6144,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         # An anchored black hole or neutron star moves with its system's star row.
         anchored = " AND star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""
         scheduled, clocks, updates, refile_updates = [], [], [], []
-        stepping, finished = [], []
+        stepping, finished, aging = [], [], []
         for row in conn.execute(
             f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_period_gy,"
             f" velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix, next_update_due FROM {table}"
@@ -6156,6 +6157,8 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
                 continue
             elapsed_years = (clock.end_unix - epoch) / seconds_per_year
             clocks.append((elapsed_years, clock.end_unix, clock.end_unix + interval, row["id"]))
+            if table == "asteroid_fields":
+                aging.append((row["id"], elapsed_years))
             # A black hole or neutron star with a velocity and no galactic orbit is one the galaxy ejected (GEN.238):
             # a straight line, like a hypervelocity star's (GEN.137). The galaxy's own black hole has no velocity.
             ballistic = (table in ("black_holes", "neutron_stars") and not row["galactic_orbital_period_gy"]
@@ -6202,6 +6205,10 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
                 f" galactic_radius_pc = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
                 refile_updates)
             _refile_nearest_rows(conn, table, [(update[0], update[-1]) for update in refile_updates])
+        if aging:
+            retired = _age_asteroid_fields(conn, aging)
+            if retired:
+                counts["retired_asteroid_fields"] = retired
         counts[table] = len(clocks)
         _report(on_progress, table, done, steps)
 
@@ -10494,6 +10501,39 @@ def _phase_turn_sql(period_column, prefix=""):
     (GEN.108): a step many orbits long wraps exactly, where elapsed / period
     would leave few digits for the fraction."""
     return f"(MOD({_elapsed_years_sql(prefix)}, {period_column}) / {period_column} * 360)"
+
+
+FIELD_AGING_BATCH = 1_000
+"""int: How many due asteroid fields `_age_asteroid_fields` reads and writes at a time."""
+
+
+def _age_asteroid_fields(conn, aging):
+    """
+    The bring-to-epoch step of asteroid fields (GEN.1107): each due field `(id, elapsed_years)` gets older by the years since its epoch, and its radius and the size digit of its class follow from the age
+    (`asteroid_field.aged`, the formula that made them). A field that has spread past a light year is retired (`asteroid_field.is_retired_radius`): its row stays, with its Object ID, members and
+    facilities, and the readers of the map and the lists leave it out (`asteroid_field.RETIRED_FIELD_SQL`); its radius keeps following its age. A field with no age or speed stored (saved before GEN.1103) is not aged.
+
+    Returns:
+        int: How many of the fields passed a light year in this step (not those that were retired already).
+    """
+    retired = 0
+    for start in range(0, len(aging), FIELD_AGING_BATCH):
+        batch = dict(aging[start:start + FIELD_AGING_BATCH])
+        marks = ", ".join("?" * len(batch))
+        updates = []
+        for row in conn.execute(
+            f"SELECT id, radius_ly, birth_age_yr, rms_speed_kms, shape, composition_family, density FROM asteroid_fields WHERE id IN ({marks})"
+            f" AND birth_age_yr IS NOT NULL AND rms_speed_kms > 0", tuple(batch)
+        ).fetchall():
+            if batch[row["id"]] <= 0:
+                continue
+            age, radius, field_class = asteroid_field.aged(
+                row["birth_age_yr"], row["rms_speed_kms"], row["shape"] or "ball", row["composition_family"], row["density"], batch[row["id"]])
+            updates.append((age, radius, field_class, row["id"]))
+            retired += asteroid_field.is_retired_radius(radius) and not asteroid_field.is_retired_radius(row["radius_ly"])
+        if updates:
+            conn.executemany("UPDATE asteroid_fields SET birth_age_yr = ?, radius_ly = ?, field_class = ?, modified_at = modified_at WHERE id = ?", updates)
+    return retired
 
 
 def _due_interval_s(row, clock, speed_kms, scale, prefix=""):
