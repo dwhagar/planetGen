@@ -182,7 +182,6 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies |  | Core 1; Boss 4:02 PM EDT: feasibility study. |
 | GEN.534 | A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young` |  | Residual of GEN.528: the system-type tables do not name satellite_young. Core 3 proposed. |
 
 ### Globular clusters
@@ -471,7 +470,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1150 | Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region" | GEN.1006 | Trojans T2, epoch lock, train 8 |
 | GEN.1151 | Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row | GEN.1150 | Trojans T3, epoch lock, train 8 or 9 |
 | MAP.354 | Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer | GEN.1150 | Trojans T4, with T2 |
-| GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin), W10 (iron-rich cores) and W15 (super-puffs) into the bulk, spin and climate inputs | GEN.1047 |  |
+| GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin) and W10 (iron-rich cores) into the bulk, spin and climate inputs | GEN.1047 |  |
 | GEN.1050 | Wire W14 (the dying-planet flag) and W9 (rings from decayed moons) | GEN.1047 |  |
 | GEN.1051 | Wire the W19 nightside collapse and the W20 bistable branches (the history draw between branches) | GEN.1047 |  |
 | GEN.1058 | Wire the G1 giant-impact tilt and the ring plane following the equator | GEN.1047 |  |
@@ -570,7 +569,14 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1337 | A rocky planet's outgassing can fail with a MixtureError (0.00143 of the gas is Cl, F and F2, species the gas table lacks) and crash the whole StarSystem (bug) |  |  |
 | GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor |  |  |
 | GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number |  |  |
-| GEN.1342 | A temperate (275 to 298 K) global ocean with oxygen has no hard class: class O needs 298 to 312 K and class M needs 20 to 80 percent ocean cover, so these worlds are placed only by soft shoulders (Boss decides the class) |  |  |
+| GEN.1342 | Class O takes any world with more than 80 percent surface water within the habitable range, 275 to 312 K (M's floor up to O's current ceiling), so a temperate global ocean with oxygen has a hard class (Boss, option 2: no new letter) |  |  |
+| GEN.1343 | Super-puff planets (W15): an envelope-bearing sub-Neptune branch through the air solver, class and radius, so the super_puff module has a body to inflate |  |  |
+| GEN.1344 | An air that cannot settle in the 60 steps of the air fixed point (about 4 percent of airs: a haze or ocean switch makes the step jump down as it warms, so there is no exact fixed point) stores the last answer, up to 75 K off the switch point; store the knee value instead |  |  |
+| GEN.1346 | Steam-air energy-limited efficiency: set ENERGY_LIMITED_EFFICIENCY to 0.1 to 0.15 instead of 0.01, with the stand-in registered and the census re-measured |  |  |
+| GEN.1347 | Tidal inflation of super-puff radius (the tidal-inflation equation in the GEN.1343 report, which needs the planet's drawn obliquity) so super-puffs stay inflated past 1 Gyr |  |  |
+| GEN.1348 | Sealed-ocean anion supply: find the published chloride and sulfate that leached basalt gives up with its sodium, so sealed-ocean pH is no longer bimodal at 12 to 14 for two thirds of sealed oceans |  |  |
+| OPS.115 | update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug) |  |  |
+| DB.115 | A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug) |  |  |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) |  |  |
 
 ### Physics rectification: winds and ring darkening

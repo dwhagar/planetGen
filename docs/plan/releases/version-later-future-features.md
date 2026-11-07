@@ -20,7 +20,7 @@ Neighbour galaxies, more than one galaxy in the database and the intergalactic f
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies |  | Research: stage 1 of GEN.9. |
+| GEN.157 | The `neighbor_galaxies` table drawn from the seed (the real Local Group list is a test reference only, no shipped content) |  | Research: stage 1 of GEN.9. |
 | GEN.1292 | The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later) | VIEW.46 |  |
 | UX.282 | Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu | UX.281 |  |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | GEN.157 | Research. |
@@ -61,3 +61,6 @@ Boss, 12:27 PM EDT 2026-10-23 (cards): not in 8.1; each needs a generator epoch 
 |---|---|---|---|
 | PERF.162 | Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word |  | Boss: not in 8.1 (12:27 PM EDT 2026-10-23). |
 | PERF.166 | The mean-system-mass lookup bisects per age (0.2 ms each); a faster form changes the last bits and needs an epoch and Boss's word (bug) |  | Boss: leave it (12:27 PM EDT 2026-10-23); build only if a measurement after PERF.165 says it is worth an epoch. |
+| NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | POP.33, POP.34, DB.105 |  |
+| USR.23 | Email notices: a request was submitted, decided or sent back | USR.17, USR.3 |  |
+| USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | USR.7, USR.26 | Research suggestion; not requested. |
