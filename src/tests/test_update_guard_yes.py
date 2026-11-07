@@ -59,8 +59,8 @@ def test_with_jobs_thirty_seconds_of_silence_is_a_no(say, lines):
     assert updateguard.PROMPT_SECONDS == 30
 
 
-@pytest.mark.parametrize("starter", ["systemd", "cron"])
-def test_with_jobs_a_run_from_systemd_or_cron_asks_nothing_and_is_a_no_unless_the_flag_is_given(say, lines, starter):
+@pytest.mark.parametrize("starter", ["cron"])
+def test_with_jobs_a_run_from_cron_asks_nothing_and_is_a_no_unless_the_flag_is_given(say, lines, starter):
     fake = FakeWork("Generate sectors")
     asked = []
     assert not begin(sources=[fake], interactive=True, unattended=starter,
@@ -184,3 +184,45 @@ def test_update_sh_takes_yes_and_no_longer_the_old_flag():
     with open(os.path.join(REPO, "update.sh"), encoding="utf-8") as handle:
         text = handle.read()
     assert "--yes) ANSWER_YES=(--yes) ;;" in text and "cancel-running" not in text
+
+
+# --- a run from systemd cancels all but generation --------------------------------------------------------------
+
+class MixedWork(FakeWork):
+    """A warm-up and, when `generating`, a generation run."""
+
+    def __init__(self, generating):
+        super().__init__("Warm-up", *(["Generation run"] if generating else []))
+        for item in self.live:
+            item["protect"] = item["title"] == "Generation run"
+
+
+def test_systemd_cancels_everything_but_generation_without_the_flag(say, lines):
+    fake = MixedWork(generating=False)
+    assert begin(sources=[fake], interactive=True, unattended="systemd", answer=lambda text: pytest.fail(text), write=say)
+    assert fake.canceled == ["job-0"]
+
+
+def test_systemd_changes_nothing_while_generation_runs(say, lines):
+    fake = MixedWork(generating=True)
+    assert not begin(sources=[fake], unattended="systemd", write=say)
+    assert fake.canceled == []
+    assert "Generation run" in "\n".join(lines) and "generation has finished" in "\n".join(lines)
+    sure_nothing_changed(fake)
+
+
+def test_systemd_with_the_flag_and_cron_keep_their_rules(say):
+    fake = MixedWork(generating=True)
+    assert begin(sources=[fake], unattended="systemd", yes=True, write=say)
+    assert sorted(fake.canceled) == ["job-0", "job-1"]
+    assert not begin(sources=[MixedWork(generating=False)], unattended="cron", write=say)
+
+
+def test_a_command_run_canceled_for_systemd_is_told_why(tmp_path, monkeypatch):
+    from planetgen.admin import stop_reason
+    monkeypatch.setattr(stop_reason, "leave", lambda pid, reason: seen.append((pid, reason)) or True)
+    monkeypatch.setattr(updateguard.os, "kill", lambda pid, sig: None)
+    seen = []
+    updateguard.cancel_all([updateguard.MarkerSource()], [{"source": "run", "kind": "warm-map", "id": "7", "title": "w",
+                                                          "pid": 7}], why=updateguard.SYSTEMD_WHY)
+    assert seen == [(7, updateguard.SYSTEMD_WHY)]

@@ -56,9 +56,9 @@ WorkingDirectory=/var/lib/planetGen
 # "-" prefix makes it optional so a missing file falls back to
 # planetgen.cli.migrate's own built-in defaults rather than failing to start.
 EnvironmentFile=-/etc/planetgen/maintenance.env
-# With work running (a Generate job, a queued run, an orbital update) and no
-# terminal to ask on, update.sh refuses and changes nothing (OPS.53), so this
-# unit fails that month and the next firing tries again. To cancel the work
-# instead, add `--yes`: ExecStart=/var/lib/planetGen/update.sh --yes (that also applies to the Update button's runs)
+# Started by systemd, update.sh cancels the work it finds (queued jobs, the warm-up, tile and orbit work) with a stop
+# reason that says so, and updates. The one thing it never cancels is generation (a Generate job, a generation run):
+# with that running it changes nothing and this unit fails that time, so the next firing or press tries again. Adding
+# `--yes` (ExecStart=/var/lib/planetGen/update.sh --yes) cancels generation too.
 ExecStartPre=/bin/rm -f -- /var/lib/planetGen/state/update.request
 ExecStart=/var/lib/planetGen/update.sh
