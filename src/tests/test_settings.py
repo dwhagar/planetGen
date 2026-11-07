@@ -163,7 +163,7 @@ def test_every_option_is_documented_and_has_complete_metadata():
 def test_every_option_has_plain_words_a_group_and_a_control():
     from planetgen.util import settings_view, settings_writer
     labels = {}
-    admin_groups = list(settings_view.GROUPS)[:7]
+    admin_groups = list(settings_view.GROUPS)[:8]
     for path, _info, meta in settings.iter_fields():
         label, summary = meta["x-label"], meta["x-summary"]
         assert label and summary, path

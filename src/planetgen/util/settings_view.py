@@ -29,6 +29,7 @@ GROUPS = {
     "search": "Search engines",
     "previews": "Link previews",
     "speed": "Speed and disk",
+    "generation": "World generation",
     "protection": "Abuse protection",
     "housekeeping": "Housekeeping",
     "database": "Database connection",
@@ -39,7 +40,7 @@ GROUPS = {
     "paths": "Folders and addresses",
     "file": "Settings file",
 }
-"""dict: Each `x-group` and its heading, in the order the page lists them. The first seven are the groups an admin
+"""dict: Each `x-group` and its heading, in the order the page lists them. The first eight are the groups an admin
 works in; the rest hold what only the server's file can change (or the Owner), listed after them. Every option's
 group must be named here (a test checks it)."""
 

@@ -136,6 +136,9 @@
     "keep": 20,
     "python": ""
   },
+  "generation": {
+    "weirdness_dial": 1.0
+  },
   "parity": {
     "enabled": false,
     "dir": "",

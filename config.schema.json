@@ -97,6 +97,32 @@
       "title": "Cache",
       "type": "object"
     },
+    "Generation": {
+      "properties": {
+        "weirdness_dial": {
+          "default": 1.0,
+          "description": "How often the worlds the generator makes get the rare, physically plausible oddities of the oddity table (a planet tipped onto its side, a slow backwards day, an iron-rich core, a ring from a fallen moon). 1 is the rate the sources give, 0 turns every oddity off, 2 doubles every chance. It applies to the worlds generated afterwards; a world already made keeps what it has. A run that names its own dial (the generator page, an administrator's force) uses that instead.",
+          "maximum": 10.0,
+          "minimum": 0.0,
+          "title": "Weirdness Dial",
+          "type": "number",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "generation",
+          "x-label": "Oddity rate",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How often generated worlds get rare oddities; 1 is the natural rate and 0 turns them off."
+        }
+      },
+      "title": "Generation",
+      "type": "object"
+    },
     "Icons": {
       "properties": {
         "apple_touch_icon": {
@@ -2058,6 +2084,12 @@
       "x-secret": false,
       "x-slider": null,
       "x-summary": "Which kinds of detail debug mode writes; empty is all of them."
+    },
+    "generation": {
+      "$ref": "#/$defs/Generation",
+      "default": {
+        "weirdness_dial": 1.0
+      }
     },
     "icons": {
       "$ref": "#/$defs/Icons",

@@ -551,3 +551,54 @@ def test_the_dial_at_zero_gives_the_same_system_as_the_dial_at_one_wherever_noth
             assert json.dumps(made[0.0].to_dict(), sort_keys=True, default=str) == json.dumps(made[1.0].to_dict(), sort_keys=True, default=str), number
             compared += 1
     assert compared >= 4, "too few systems without an oddity to compare"
+
+
+# --- UX.285: the dial in the settings file and page -----------------------------------------------------------------------------
+
+def test_the_settings_dial_is_used_when_the_run_names_none_and_the_file_names_one(monkeypatch):
+    from planetgen.util import settings
+
+    named = settings.build({"generation": {"weirdness_dial": 0.0}}, {})
+    unnamed = settings.build({}, {})
+    assert named.generation.weirdness_dial == 0.0 and unnamed.generation.weirdness_dial == 1.0
+
+    body = _venus(tilt=95.0, pressure=1.0e5)
+    body.system_config.FORCE_ODDITIES = None
+    body.system_config.WEIRDNESS_DIAL = None
+    monkeypatch.setattr(settings, "get_settings", lambda environ=None: named)
+    assert oddities.site_dial() == 0.0 and oddities.apply(body, levers=("L1",)) == []         # the file turns the oddities off
+
+    monkeypatch.setattr(settings, "get_settings", lambda environ=None: unnamed)
+    assert oddities.site_dial() is None                                                       # nothing named: the tuning's dial
+    assert oddities.apply(body, levers=("L1",)) == ["W1"]
+
+
+def test_a_run_that_names_its_own_dial_ignores_the_settings_file(monkeypatch):
+    from planetgen.util import settings
+
+    named = settings.build({"generation": {"weirdness_dial": 0.0}}, {})
+    monkeypatch.setattr(settings, "get_settings", lambda environ=None: named)
+    body = _venus(tilt=95.0, pressure=1.0e5)
+    body.system_config.FORCE_ODDITIES = None
+    body.system_config.WEIRDNESS_DIAL = 1.0
+    assert oddities.apply(body, levers=("L1",)) == ["W1"]
+
+
+def test_a_settings_file_that_does_not_fit_the_model_leaves_the_tunings_dial(monkeypatch):
+    from planetgen.util import settings
+
+    def broken(environ=None):
+        raise settings.SettingsError("bad file")
+
+    monkeypatch.setattr(settings, "get_settings", broken)
+    assert oddities.site_dial() is None
+
+
+def test_the_dial_is_an_option_of_the_world_generation_group():
+    from planetgen.util import settings_view
+
+    assert "generation" in settings_view.GROUPS
+    from planetgen.util import settings
+
+    field = settings.Generation.model_fields["weirdness_dial"]
+    assert field.json_schema_extra["x-group"] == "generation" and field.default == 1.0
