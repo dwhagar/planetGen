@@ -800,6 +800,7 @@ with `clamp()`.
   (VIEW.19 to VIEW.40) and the 9.0 sky chart (VIEW.15). Done: decided
   when it is scheduled. Not scheduled, no owner. Goal #3241. Filed by
   the TODO thread.
+  Deferred to later versions (Boss, 11:08 AM EST on 2026-11-07, from the defer list): out of 8.1 and its phase, kept in the plan, nothing deleted.
   Prerequisites: none.
 
 - [ ] **UX.265 Look and theme preference: a look (cockpit, chart, phosphor) times a theme (system, light, dark), stored on the account and in the browser, chosen in Preferences and the gear menu**
@@ -2069,6 +2070,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   POP.33's design (trade_routes, trade_route_hops), so none is proposed
   here. Done: decided when it is scheduled. Goal #1679. Filed by the
   TODO thread.
+  Deferred to later versions (Boss, 11:08 AM EST on 2026-11-07, from the defer list): out of 8.1 and its phase, kept in the plan, nothing deleted.
   Prerequisites: POP.33, POP.34, DB.105.
 
 - [ ] **NAV.77 vessel_position(vessel, t): the position of a vessel at any galaxy time from its stored course, departure time and speed, agreeing with the course planner's travel times to the second**
@@ -12313,7 +12315,8 @@ clears each one.
   the Owner tier": User, Moderator and Admin are the roles, and the
   Owner is an account tier above Admin (ADM.86, USR.2), not a fourth
   role.
-  Prerequisites: USR.18, USR.19, USR.16, USR.21, USR.22, USR.23, ADM.68.
+  USR.23 (email notices) was deferred to a later version (Boss, 11:08 AM EST on 2026-11-07), so this test no longer needs it and skips the notices.
+  Prerequisites: USR.18, USR.19, USR.16, USR.21, USR.22, ADM.68.
   Related: USR.25.
   Design: [docs/design/interface/roles-and-requests.md](design/interface/roles-and-requests.md)
 
@@ -13348,10 +13351,6 @@ clears each one.
   Core 5 (as the lane reported 10:42 AM EST on 2026-11-07), a finding on train 15: surface_air.solve can fail to settle in its 60 steps when the air is bistable. Example: a class T body (205 K, hazy methane air with hydrogen from the GEN.1323 envelope, 27 W/m2 absorbed) alternates each step between a 1.9 bar cool air and a 10 bar 350 K air, residual about 75 K either way, damping stuck at its 0.05 floor; the stored temperature ends a step off the mixture's own warming (stored greenhouse factor differs by 3 percent). The air reports it did not converge but the body does not store that. Census (Core 5, 3 x 100 systems on train 15): 60 of 1,507 airs unsettled (4.0 percent); no step rule can settle them, so the air stays flagged. Do: for an air that did not settle, when the last 12 answers swing by over 1 K while the iterate stays put, store the mean of the answers (the knee) and take the greenhouse factor from that temperature; register the rule (window 12, swing 1 K, iterate share 0.5) as a stand-in in GEN.725 (SL1, section 6.200, tier T5, tweak L0). Done: the stored error falls from the swing size to about the step size, the unsettled share is reported and not expected to fall, and tests cover the knee. Built: PR 5552, branch claude/core5-gen1344, head 8f84de627. Lock item (epoch), because it moves every unsettled body. Goal issue #1674. Version 8.1. Owner: Core 5 (Core 4 if Core 5 is busy). Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1323, GEN.1329, GEN.1309.
 
-- [ ] **GEN.1345 Sealed-ocean crust: find a published range for the altered-crust thickness (waterworld_carbon.ALTERED_CRUST_KM, row AM54) and change it only if a source supports it**
-  Boss (10:47 AM EST on 2026-11-07, option 1): research a published altered-crust range first and change it only if a source supports it. Today the range is 0.1 to 50 km from a second-hand source [R2381], and sealed oceans come out at pH 11 to 12 (GEN.1309, GEN.1319 barely moves it). Do: search for the primary or best secondary source for the thickness of hydrothermally altered crust that can take up carbon, report the range, and if it differs from 0.1 to 50 km change the constant, re-measure the sealed-ocean pH and register the stand-in in GEN.725 with tier and tweak level; if no source supports a change, say so and keep it. Done: a short report with the sources by registry number and the sealed-ocean pH before and after. Lock-free if the report only confirms the range, otherwise a lock item (epoch). Version 8.1. Owner: Planets 1. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1319, GEN.1309, GEN.725.
-
 - [ ] **GEN.1346 Steam-air energy-limited efficiency: set ENERGY_LIMITED_EFFICIENCY to 0.1 to 0.15 instead of 0.01, with the stand-in registered and the census re-measured**
   Boss (10:47 AM EST on 2026-11-07, option 2): the efficiency of the energy-limited loss is about 0.1 to 0.15, not 0.01. Core 5 held the value unchanged in GEN.1329 until he ruled. Do: set the efficiency to a value in 0.1 to 0.15 chosen from the published range, register it in GEN.725 (tier and tweak level), re-measure the census of steam airs and atmosphere retention, and re-baseline the TEST.430 ranges that move. Done: the constant, the stand-in row, the census before and after, and tests. Lock item (epoch). Version 8.1. Owner: Core 5. Filed by the TODO thread.
   Prerequisites: none (runs after GEN.1329 merges). Related: GEN.1329, GEN.974, GEN.725.
@@ -13359,6 +13358,10 @@ clears each one.
 - [ ] **GEN.1347 Tidal inflation of super-puff radius (the tidal-inflation equation in the GEN.1343 report, which needs the planet's drawn obliquity) so super-puffs stay inflated past 1 Gyr**
   Planets 1 (as the lane reported 10:56 AM EST on 2026-11-07), from GEN.1343 part 1 (a few sub-Neptune cores of 2 to 10 Earth masses inside 100 days start as super-puffs with 7 to 45 percent envelope; report reports/gen1343-super-puffs-2026-11-07.md). Do: add the tidal heating that keeps a super-puff inflated after its first Gyr (Kepler-79 d and Kepler-27 b are the examples), using the planet's drawn obliquity; wire tidal_inflation_ratio and tidal_luminosity_ratio (the wiring-register lines now naming GEN.1343 are re-pointed here) and register any stand-in in GEN.725. Done: super-puffs older than 1 Gyr stay inflated at a rate the sources support, tests, census. Lock item (epoch). Goal issue #4117. Version 8.1. Owner: Planets 1, after GEN.1343 part 1 merges. Filed by the TODO thread.
   Prerequisites: none (runs after GEN.1343 part 1 merges). Related: GEN.1343.
+
+- [ ] **GEN.1348 Sealed-ocean anion supply: find the published chloride and sulfate that leached basalt gives up with its sodium, so sealed-ocean pH is no longer bimodal at 12 to 14 for two thirds of sealed oceans**
+  Planets 1 (as the lane reported 11:10 AM EST on 2026-11-07), from GEN.1345 (report /mnt/project-files/reports/gen1345-altered-crust-range-2026-11-07.md): the altered-crust thickness is right at 0.1 to 50 km log-uniform [R2381], but the lever on sealed-ocean pH is the anion supply, not the thickness. On the train 15 head (2,034 sealed oceans, 600 systems) pH has a median of 12.5, 10th to 90th percentile 5.8 to 13.8, and is bimodal (6 to 8 when the anions cover the sodium, 12 to 14 when not); the anions from GEN.1319 are only about 1 percent of the sodium charge. Do: source search for how much chloride and sulfate leached basalt gives up with its sodium (and any other anion the sources name), register the values as stand-ins in GEN.725 with tier and tweak level, re-measure the sealed-ocean pH, and report whether the 12 to 14 mode falls. Done: a report with the sources by registry number and the sealed-ocean pH before and after. Lock-free if the report only confirms the supply, otherwise a lock item (epoch). Goal issue #3242. Version 8.1. Owner: Planets 1. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1345, GEN.1319, GEN.1309.
 
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.
@@ -13674,6 +13677,7 @@ clears each one.
   of USR.2; "delete my account" is the delete-by-self rule USR.2 sets,
   and the data export reads each account list through the saved-list
   store so saved courses join it when NAV.19 lands (2026-10-16 review).
+  Deferred to later versions (Boss, 11:08 AM EST on 2026-11-07, from the defer list): out of 8.1 and its phase, kept in the plan, nothing deleted.
   Prerequisites: USR.26.
   Design: [docs/design/interface/settings-seo-and-accounts.md](design/interface/settings-seo-and-accounts.md)
 
@@ -13853,6 +13857,7 @@ clears each one.
   USR.3; each account chooses on or off. Done: the notices as queue
   jobs, the setting on the account page, and a test with a captured
   mailbox.
+  Deferred to later versions (Boss, 11:08 AM EST on 2026-11-07, from the defer list): out of 8.1 and its phase, kept in the plan, nothing deleted.
   Prerequisites: USR.17. Related: USR.25, USR.3.
   Design: [docs/design/interface/roles-and-requests.md](design/interface/roles-and-requests.md)
 
@@ -14013,6 +14018,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
+
+- [ ] **OPS.115 update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug)**
+  Boss live observation, relayed by a lane (as the lane reported 11:13 AM EST on 2026-11-07): the pull step of update.sh lists untracked files in its "uncommitted local changes will be overwritten" warning, and set-permissions.sh logs a WARNING when config.json exists in both places. Do: the pull warning ignores untracked files; the both-exist line is an INFO note; nothing is moved or deleted; the deploy-script test asserts no WARNING is printed. Built: PR 5562 (branch claude/project-thread-om7xej, touches update.sh, examples/apache/set-permissions.sh, src/tests/test_deploy_scripts.py), waiting for the changed-tests gate on a lane machine. Done: PR 5562 merged. Lock-free. Goal issue #5433. Version 8.1. Owner: none (the PR is built). Filed by the TODO thread.
+  Prerequisites: none.
 
 ## DOC: Documentation
 
