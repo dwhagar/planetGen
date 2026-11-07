@@ -276,45 +276,40 @@
         "label": "ammonia dihydrate, NH3 with two waters (and ammonia-water mixtures)",
         "ratio_by_temperature_k": [
           [
-            110.0,
-            2.0
+            135.0,
+            1.7
           ],
           [
-            135.0,
-            1.0
+            143.0,
+            0.91
+          ],
+          [
+            150.0,
+            0.57
           ],
           [
             170.0,
-            0.3
+            0.18
+          ],
+          [
+            176.0,
+            0.14
           ]
         ],
         "range": [
-          0.15,
-          4.0
+          0.1,
+          2.0
         ],
-        "source": "Durham and Kirby, NASA NTRS N92-10735 (READ): weaker than water ice near its 176 K melting point, more temperature sensitive, stronger below about 135 K; the three points are the interpolation of strength research section 14 (the 1993 constants of Durham, Kirby and Stern are not in hand)",
-        "tier": "T6",
-        "tweak": "L3"
+        "source": "[R1189] as tabulated in the 1996 preprint UCRL-JC-123734 of its authors (Table 1; READ, GEN.1190): the dihydrate law log A 21.55, n 5.81, E* 107.5 kJ/mol (tested 132 to 176 K, 50 to 100 MPa) over the ice I law of [R1190] (the 1997 row, log A -3.8, n 6.0, E* 39 kJ/mol, below 195 K) at 1e-15 per second: 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K, 0.18 at 170 K and 0.14 at 176 K, the peritectic; the paper's own crossover is 143 K at the laboratory rate; held at the end values (110 K, at 19, is outside the tested range, so under 135 K the ratio stays 1.7, a lower bound)",
+        "tier": "T2",
+        "tweak": "L0"
       }
     },
     "phases": {
-      "note": "Which phase of water ice a body's center holds, from its central pressure (and the shape-set temperature for the narrow wedges). Boundaries are the usual water phase diagram (recalled, row IT8); the lookup is a stand-in for bodies whose center is over 0.2 GPa, which are nearly all round already.",
-      "ih_below_pa": 210000000.0,
-      "ii_below_pa": 630000000.0,
-      "vi_below_pa": 2200000000.0,
-      "iii_temperature_k": [
-        240.0,
-        256.0
-      ],
-      "iii_pressure_pa": [
-        210000000.0,
-        350000000.0
-      ],
-      "v_above_k": 250.0,
-      "v_pressure_pa": [
-        350000000.0,
-        630000000.0
-      ]
+      "note": "Which phase of water ice a body's center holds. With a temperature the phase comes from the boundary lines of the water phase diagram (physics/ice_types.py `water_phase`: Chaplin's Water Phase Diagram, a web page, tier T3 until a paper matches; the melting curves are IAPWS R14-08, water_layer.py). With a pressure alone the three pressures below separate Ih, II and VI (the triple points Ih-II-III and II-V-VI and the VI-VII-liquid point). The lookup is a stand-in for bodies whose center is over 0.2 GPa, which are nearly all round already.",
+      "ih_below_pa": 212900000.0,
+      "ii_below_pa": 620000000.0,
+      "vii_above_pa": 2216000000.0
     },
     "composition": {
       "note": "How the ice type of a body is named from its components (`small_body_composition` shares of the ice group). A hydrate is named when the cage-filling share of the ice is over the threshold; the ammonia type when ammonia is that share of the ice; otherwise the dominant ice by mass.",

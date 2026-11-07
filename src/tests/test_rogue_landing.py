@@ -14,7 +14,7 @@ DONOR = (8000.0, 0.0, 20.0)
 
 
 def _event(kick=(0.0, 0.0, 0.0), orbital=(0.0, 0.0, 0.0), since_gy=0.0):
-    return ejection_events.EjectionEvent("u", 0, 1e25, 1e24, 5.0, 5.0, 3.0, 1e27, True, 1.0, since_gy + 1.0, since_gy, kick, orbital, 1e6)
+    return ejection_events.EjectionEvent("u", 0, 1e25, 1e24, 5.0, 5.0, 3.0, 1e27, True, 1.0, since_gy + 1.0, since_gy, kick, orbital, 1e6, "thrown")
 
 
 def test_a_rogue_that_has_not_moved_is_where_its_donor_is():

@@ -33,7 +33,7 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | E | Deep-frozen world | air, mean surface under 233.15 K (-40 C) (GEN.1142; the letter of the old wet reducing world) |
 | P | Glaciated world | mean surface 233.15 K to freezing (273.15 K) (GEN.1142) |
 | B | Small hot world | gravity under 0.5 g |
-| F | Reducing world | oxygen under 3 percent, methane and hydrogen 5 percent or more |
+| F | Anoxic world | oxygen under 3 percent and carbon dioxide under 20 percent, 0.5 to 1.4 g (GEN.1281; the reducing world before, which needed methane and hydrogen 5 percent or more) |
 | G | Carbon dioxide world | carbon dioxide 20 percent of the air or more |
 | O | Ocean world | water covers 80 percent or more of the surface (GEN.1142) |
 | H | Desert world | water covers under 20 percent (GEN.1142) |

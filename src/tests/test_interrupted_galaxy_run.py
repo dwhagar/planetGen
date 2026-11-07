@@ -38,7 +38,8 @@ def _sector_counts(config):
         sectors = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
         short = conn.execute(
             "SELECT s.id, COUNT(ss.id) AS n FROM sectors s LEFT JOIN star_systems ss ON ss.sector_id = s.id"
-            " GROUP BY s.id HAVING n < ?", (NUM_SYSTEMS,)).fetchall()   # a first fill adds bright stars' systems (GEN.633)
+            " JOIN chart_ledger c ON c.shell_index = s.shell_index AND c.band_index = s.band_index AND c.wedge_index = s.wedge_index"
+            " GROUP BY s.id HAVING n < ?", (NUM_SYSTEMS,)).fetchall()      # a charted sector only: a rogue planet's landing cell has a row no fill charted (GEN.1111 part 7)   # a first fill adds bright stars' systems (GEN.633)
         orphans = conn.execute(
             "SELECT COUNT(*) AS n FROM star_systems ss LEFT JOIN sectors s ON s.id = ss.sector_id"
             " WHERE ss.sector_id IS NOT NULL AND s.id IS NULL").fetchone()["n"]

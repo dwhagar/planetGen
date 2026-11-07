@@ -16,7 +16,7 @@ def _seed(runaway):
 
 
 def _architecture(thrown):
-    lost = pa.Lost(0.0, 0.0, 0, 0.0, 0, (), (), tuple(thrown), 2.7, constants.SOLAR_MASS_TO_KG)
+    lost = pa.Lost(0.0, 0.0, 0, 0.0, 0, (), (), tuple(thrown), 2.7, constants.SOLAR_MASS_TO_KG, ())
     return pa.Architecture((), 1.0, 12.0, 0, lost)
 
 

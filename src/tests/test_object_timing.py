@@ -169,7 +169,9 @@ def test_a_galaxy_run_saves_each_sectors_timings_under_its_run(mysql_config, mon
     conn = store.get_connection(mysql_config)
     try:
         run_id = conn.execute("SELECT id FROM generation_runs WHERE command = 'sectors'").fetchone()["id"]
-        sectors = {row["id"] for row in conn.execute("SELECT id FROM sectors").fetchall()}
+        sectors = {row["id"] for row in conn.execute(      # the charted sectors: a rogue planet's landing cell has a row no fill charted (GEN.1111 part 7)
+            "SELECT s.id FROM sectors s JOIN chart_ledger c ON c.shell_index = s.shell_index AND c.band_index = s.band_index"
+            " AND c.wedge_index = s.wedge_index").fetchall()}
         rows = conn.execute("SELECT sector_id, kind, object_count FROM object_timing_stats WHERE run_id = ?",
                             (run_id,)).fetchall()
         assert {row["sector_id"] for row in rows} == sectors

@@ -15,8 +15,8 @@ For a rocky body the air column is its surface pressure times the area over the 
 
 A body with an air that is not hydrogen-rich (nitrogen, carbon dioxide, a thin air of any kind) keeps 0, which is honest: its air is secondary
 and not an envelope. The four solid fractions take the air's share out of themselves, so the five fractions still add up to 1
-(`bulk_composition`); the radius, density and gravity were worked out from the solids and are not changed. `restore` puts the drawn
-fractions back before the air is made again (`planets.refinish_rocky` solves the air once more at the star's final age), so the share never
+(`bulk_composition`); the radius, density and gravity were worked out from the solids and are not changed. The envelope stores the helium and heavy-element shares of that air (`air_details`, GEN.1303), as a giant's does.
+`restore` puts the drawn fractions back before the air is made again (`planets.refinish_rocky` solves the air once more at the star's final age), so the share never
 compounds.
 
 Use:
@@ -27,7 +27,7 @@ Use:
 
 import math
 
-from planetgen.physics import atmosphere, constants, gases
+from planetgen.physics import atmosphere, constants, elements, gases
 from planetgen.physics import unit_registry as units
 
 HYDROGEN_RICH_SHARE = 0.3
@@ -55,6 +55,23 @@ def air_share(body):
     return min(4.0 * math.pi * radius ** 4 * pressure / (constants.G * mass * mass), 0.5)
 
 
+def air_details(body):
+    """`(helium, heavy)`: the helium and the elements heavier than helium as shares of the mass of the body's air (an envelope's `envelope_helium` and
+    `envelope_z`, which count by element: the oxygen of water is heavy, its hydrogen is not). `(None, None)` for an airless body."""
+    mass_of = {}
+    for formula, pascal in atmosphere.gas_partials_pa(body).items():
+        gas = gases.gas(formula)
+        atoms = ({name.split("-")[0]: elements.isotope(name).molar_mass * count for name, count in gas.isotopes.items()} if gas.isotopes
+                 else {symbol: elements.element(symbol).molar_mass * count for symbol, count in elements.parse_formula(formula).items()})
+        for symbol, kg_per_mol in atoms.items():
+            mass_of[symbol] = mass_of.get(symbol, 0.0) + pascal * kg_per_mol      # the partial pressure is the mole share of the total
+    total = math.fsum(mass_of.values())
+    if total <= 0.0:
+        return None, None
+    helium = mass_of.get("He", 0.0) / total
+    return helium, max(0.0, 1.0 - mass_of.get("H", 0.0) / total - helium)
+
+
 def restore(body):
     """Puts a rocky body's drawn fractions back (what `fill` scaled), before its air is solved again. Nothing to put back on a body not filled yet."""
     formed = getattr(body, _FORMED, None)
@@ -75,6 +92,10 @@ def fill(body):
         setattr(body, _FORMED, formed)
     share = air_share(body)
     body.envelope_mass_fraction = formed["envelope_mass_fraction"] + share
+    if share > 0.0:         # GEN.1303: an envelope has the helium and the heavy elements of the air that is it
+        body.envelope_helium_fraction, body.envelope_z_fraction = air_details(body)
+    elif not formed["envelope_mass_fraction"]:
+        body.envelope_helium_fraction = body.envelope_z_fraction = None
     keep = 1.0 - share
     for name in SOLIDS:
         if formed[name] is not None:

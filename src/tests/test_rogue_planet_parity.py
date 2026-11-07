@@ -110,6 +110,9 @@ LIQUID_SURFACE_FIELDS = frozenset({
 CLOUD_FIELDS = frozenset({"aerosol_draw", "atmosphere_colour", "cloud_cover", "tau_cloud", "tau_dust", "tau_haze"})
 """The stored quantities of a cloud and haze layer: whether the air holds one is decided by the temperature the body's own heat gives it."""
 
+ENVELOPE_AIR_FIELDS = frozenset({"envelope_helium_fraction", "envelope_z_fraction"})
+"""The helium and heavy-element shares of an envelope (GEN.1303): stored only where the air is hydrogen-rich, which the temperature (a star's light or the body's own heat) decides."""
+
 RUNNER_UP_FIELDS = frozenset({"runner_up_class"})
 """The next-best class letter (GEN.1207): the classifier names one only when a second class fits at all, which the body's own conditions decide."""
 
@@ -208,7 +211,7 @@ def test_a_rogue_and_a_bound_planet_fill_the_same_stored_fields_and_differ_only_
         if rogue_body.is_moon:
             continue
         one_sided = {name for name, a, b in zip(names, kept, lit) if (a is None) != (b is None)}
-        allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS
+        allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_AIR_FIELDS
         if rogue.planet_class != bound.planet_class:
             allowed |= SOLID_ONLY_FIELDS
         assert one_sided <= allowed, sorted(one_sided - allowed)

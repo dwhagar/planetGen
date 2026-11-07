@@ -72,7 +72,12 @@ def test_settle_saves_the_paths_of_the_sectors_since_the_time_and_leaves_older_o
 def test_link_says_how_many_sectors_it_linked(mysql_config, monkeypatch, redis_server, capsys):
     helper._save(mysql_config, systems=1)
     _run(monkeypatch, mysql_config, "link", "--since", LONG_AGO)
-    assert "Linked 1 sectors" in capsys.readouterr().out
+    conn = store.get_connection(mysql_config)
+    try:     # the saved sector and the cells its rogue planets landed in, which have a row no fill charted (GEN.1111 part 7)
+        rows = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+    finally:
+        conn.close()
+    assert rows >= 1 and f"Linked {rows} sectors" in capsys.readouterr().out
 
 
 @pytest.mark.parametrize("command", ["link", "backfill", "settle"])

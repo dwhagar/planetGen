@@ -24,11 +24,19 @@ still bound after a time is `exp(-t / tau)` for a density held that long; a clus
 easily unbound than the formula says, by a factor the paper's N-body runs do not give; the module returns the formula for every orbit and `soft` says which are inside its derivation, so the
 number for a hard planet is an upper limit. Planets and rogues of the cluster's own free-floating population, and exchanges that put a planet on another star, are not counted.
 
-Pure functions; nothing calls them yet (GEN.1111 creates the rogue rows). Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.113.
+**The generator reads it** (GEN.1288). A star that belongs to a generated or catalogue cluster (`stars.cluster_id`) is built with the cluster's history (`history_of`): from the end of its disk (`DISK_LIFETIME_MYR`) to the cluster's age, in
+`HISTORY_PIECES` equal pieces, each with the density and the relative speed of the cluster then. The cluster's stored mass and half-mass radius are the ones it has now; its radius grew from `birth radius` by the mid-point of
+`tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE` over `tuning.OPEN_CLUSTER_EXPANSION_AGE_GY` (`open_cluster_evolution.half_mass_radii_pc`), so the birth radius is worked back from it, and the mass is held at the present value (the
+cluster lost some, so the early density is a lower bound). The speed is the virial one of a Plummer sphere: `sigma_1D^2 = G M / (6 r_vir)` with `r_vir = VIRIAL_OVER_HALF_MASS r_h`. `unbinding_epoch_myr` takes a planet's uniform draw
+and says when, if at all, the cluster pulled it off: the draw is turned into a cumulative hazard and walked through the pieces, counting only the pieces where the planet is soft. The planet leaves with the speed that just unbinds it
+(`unbinding_kick_km_s`).
+
+Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.113.
 """
 
 import math
 
+from planetgen import tuning
 from planetgen.physics import constants, unit_registry as units
 from planetgen.util.checks import finite_domain
 
@@ -107,3 +115,80 @@ def survival_fraction(semi_major_axis_au, history):
 def unbound_fraction(semi_major_axis_au, history):
     """The share of planets of an orbit the cluster has unbound, `1 - survival_fraction`."""
     return 1.0 - survival_fraction(semi_major_axis_au, history)
+
+
+DISK_LIFETIME_MYR = 3.0
+"""float: When the planets exist: the end of the disk (`scatter.DISK_LIFETIME_YR`, 3 Myr); the cluster's encounters before then meet a disk, not planets."""
+
+HISTORY_PIECES = 8
+"""int: How many equal pieces the cluster's life is cut into, each held at its mid-point's density and speed (stand-in CU4)."""
+
+VIRIAL_OVER_HALF_MASS = 1.30
+"""float: A Plummer sphere's virial radius over its half-mass radius, `16 / (3 pi) / 1.305` (stand-in CU5)."""
+
+UNBINDING_KICK_OVER_CIRCULAR = math.sqrt(2.0) - 1.0
+"""float: The speed a planet unbound by an encounter leaves its star with, over its circular speed there: the impulse that just lifts it to the escape speed `sqrt(2)` times the circular one (stand-in CU6)."""
+
+
+def virial_dispersion_km_s(cluster_mass_msun, half_mass_radius_pc):
+    """The one-axis dispersion of a Plummer cluster in virial equilibrium, km/s: `sqrt(G M / (6 r_vir))`, `r_vir = VIRIAL_OVER_HALF_MASS r_h`."""
+    if not cluster_mass_msun > 0.0 or not half_mass_radius_pc > 0.0:
+        raise ClusterUnbindingError("the mass and radius must be positive")
+    return math.sqrt(_G_PC_KM2_S2_PER_MSUN * cluster_mass_msun / (6.0 * VIRIAL_OVER_HALF_MASS * half_mass_radius_pc))
+
+
+def history_of(cluster_mass_msun, half_mass_radius_pc, age_gy):
+    """
+    The history of a cluster as `survival_fraction` takes it, for a planet that formed when the disk ended: `HISTORY_PIECES` equal pieces from `DISK_LIFETIME_MYR` to `age_gy`, each `(duration_myr, half-mass density, relative speed)`.
+
+    Args:
+        cluster_mass_msun (float): The mass the cluster has now.
+        half_mass_radius_pc (float): Its half-mass radius now.
+        age_gy (float): Its age.
+
+    Returns:
+        tuple: The pieces; empty for a cluster no older than the disk.
+    """
+    if not cluster_mass_msun > 0.0 or not half_mass_radius_pc > 0.0:
+        raise ClusterUnbindingError("the mass and radius must be positive")
+    start, end = DISK_LIFETIME_MYR, age_gy * 1000.0
+    if end <= start:
+        return ()
+    low, high = tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE
+    factor = 0.5 * (low + high)
+    span_myr = tuning.OPEN_CLUSTER_EXPANSION_AGE_GY * 1000.0
+    born_pc = half_mass_radius_pc / (1.0 + (factor - 1.0) * min(end / span_myr, 1.0))
+    width = (end - start) / HISTORY_PIECES
+    pieces = []
+    for k in range(HISTORY_PIECES):
+        middle = start + (k + 0.5) * width
+        radius = born_pc * (1.0 + (factor - 1.0) * min(middle / span_myr, 1.0))
+        speed = relative_speed_km_s(virial_dispersion_km_s(cluster_mass_msun, radius))
+        pieces.append((width, half_mass_density(cluster_mass_msun, radius), speed))
+    return tuple(pieces)
+
+
+def unbinding_epoch_myr(semi_major_axis_au, host_mass_msun, history, u):
+    """
+    When the cluster pulls a planet off its star, Myr after the cluster formed, or `None` if it keeps it.
+
+    The planet's uniform draw `u` is its place in the order of fates: the cumulative hazard it takes to unbind it is `-ln(1 - u)`, and the history is walked piece by piece (hazard `duration / unbinding_time`) until that much has
+    been taken. A piece in which the planet is not soft (`soft`: the formula's own validity) adds none. Over many planets the share unbound is `unbound_fraction` over the soft pieces, and the times follow the density of the history.
+    """
+    if not 0.0 <= u < 1.0:
+        raise ClusterUnbindingError("the draw must be in [0, 1)")
+    need = -math.log1p(-u)
+    now = DISK_LIFETIME_MYR
+    for duration_myr, density, speed in history:
+        if density > 0.0 and duration_myr > 0.0 and soft(semi_major_axis_au, host_mass_msun, speed):
+            rate = 1.0 / unbinding_time_myr(semi_major_axis_au, density, speed)
+            if need <= rate * duration_myr:
+                return now + need / rate
+            need -= rate * duration_myr
+        now += duration_myr
+    return None
+
+
+def unbinding_kick_km_s(circular_speed_km_s):
+    """The speed at which a planet unbound by the cluster leaves its star, km/s: `UNBINDING_KICK_OVER_CIRCULAR` times its circular speed."""
+    return UNBINDING_KICK_OVER_CIRCULAR * circular_speed_km_s

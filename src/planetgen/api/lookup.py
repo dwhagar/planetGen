@@ -7,6 +7,7 @@ that has it now (`docs/design/architecture/designation-history.md` section 5); a
 """
 from planetgen.db import designation_rows
 from planetgen.galaxy import designations, object_uid
+from planetgen.names import naming_key
 from . import ids
 
 KIND_OF_TABLE = {table: kind for kind, table in ids.OBJECT_TABLES.items()}
@@ -61,6 +62,11 @@ def lookup(conn, text):
         uid = None
     if uid is not None:
         return _by_id(conn, text, uid)
+    typed = naming_key.uid_of_typed_name(text)     # GEN.1256: `Banhunm Finkap, sector 00FA0FFFE9E240`
+    if typed is not None:
+        status, body = _by_id(conn, text, typed)
+        if status != 404:
+            return status, body
     return _by_name(conn, text)
 
 
