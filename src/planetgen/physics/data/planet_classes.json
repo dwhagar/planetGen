@@ -219,7 +219,7 @@
       "letter": "F",
       "name": "Anoxic world",
       "kind": "t",
-      "sentence": "A world with an anoxic air: no free oxygen and under 20 percent carbon dioxide (a reducing methane or hydrogen air or a plain nitrogen air), warm (under 400 K) and 0.5 to 1.4 g.",
+      "sentence": "A world with an anoxic air (no free oxygen, under 20 percent carbon dioxide), under 400 K, and 0.5 to 1.4 g.",
       "basis": "design"
     },
     {
