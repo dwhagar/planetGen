@@ -19,8 +19,7 @@ Pure functions of two differentiated parents and a collision, no draw. The old `
 * **Makeup.** `field_makeup` writes the shards as rows of the shared materials table (forsterite and enstatite for the mantle, as the ring does, `kamacite` for iron, `water_ice`) and builds
   a `SmallBodyMakeup` of the kind `asteroid-field` at a porosity the caller draws.
 
-Stand-ins are IF23 to IF25 of `docs/design/research/gap-filling-plan.md` section 6.107. Nothing reads the module yet: the field generation that replaces `draw_field("collisional")`
-(GEN.1103, GEN.1104) wires it, and `draw_field("collisional")` stays until then.
+Stand-ins are IF23 to IF25 of `docs/design/research/gap-filling-plan.md` section 6.107. The collision field generation reads it (`generation/collision_field.py`, GEN.1103); it replaces `draw_field("collisional")` for the fields it makes.
 """
 
 import collections

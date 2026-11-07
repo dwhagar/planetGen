@@ -115,20 +115,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.shape_temperature | GEN.1201 | the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in `body_strength` and stores it, once GEN.1159's columns are on main |
 | row | 6.162:SHT1 | GEN.1201 | `shape_temperature.ICE_SPECIFIC_HEAT`, read when the wiring step lands |
 | row | 6.162:SHT2 | GEN.1201 | `shape_temperature.WINDOW_SHAPE_FACTOR`, read when the wiring step lands |
-| module | planetgen.physics.field_composition | GEN.1103 | the layers, escaping shards, remnant core fraction, collision outcome and makeup of a collision field (lock-free, GEN.1102); the field generation (GEN.1103) calls `collision_field` and `field_makeup` in place of `draw_field("collisional")` |
-| row | 6.107:IF23 | GEN.1103 | `field_composition.CORE_LEAK_SHARE`, read when the field generation lands |
-| row | 6.107:IF24 | GEN.1103 | `field_composition.MANTLE_ROWS, CORE_ROW`, read when the field generation lands |
-| function | planetgen.physics.field_mass.collision_field | GEN.1103 | the field two colliding rogue planets leave (lock-free, GEN.1102); the collision field generation (GEN.1103) calls it |
 | function | planetgen.physics.field_mass.mass_is_conserved | by design | the check the tests hold a field's stored bodies and remainder to; the generator never needs to ask |
-| function | planetgen.physics.field_rates.collision_field_rate_per_sector_per_year | GEN.1103 | the birth rate of collision fields in a sector, read when the field density leaves 0 |
-| function | planetgen.physics.field_rates.unbound_belt_birth_rate_per_year | GEN.1103 | the birth rate of fields from supernova-unbound belts of a galaxy, the number the host rule's census is checked against (GEN.1103) |
-| function | planetgen.physics.field_rates.standing_per_sector | GEN.1103 | the standing number of fields of a sector from the galaxy's, read when the field density leaves 0 |
-| function | planetgen.physics.field_rates.hosted_age_share | GEN.1103 | the share of remnants that still host their belt's field, the host rule's expected share the census is held to |
-| function | planetgen.physics.field_rates.cluster_swarm_standing | GEN.1103 | the young-cluster swarm hook of the design (source S3), read when the field density leaves 0 |
-| function | planetgen.physics.rogue_collision.galaxy_rate_per_year | GEN.1103 | the galaxy's rogue-rogue collision rate, read with the collision field rate |
-| function | planetgen.physics.rogue_collision.impact_angle_cdf | GEN.1103 | the impact angle of a collision, read by the collision field generation |
-| function | planetgen.physics.rogue_collision.peak_shock_pressure_pa | GEN.1103 | the shock of a collision on its pieces, read by the collision field generation |
-| function | planetgen.physics.rogue_collision.second_remnant_fraction | GEN.1103 | the share a second remnant takes of a collision's pieces, read by the collision field generation |
+| function | planetgen.physics.field_rates.unbound_belt_birth_rate_per_year | by design | the birth rate of fields from supernova-unbound belts of a galaxy: the census the host rule's share of remnants is held to (tests/test_field_host.py) |
+| function | planetgen.physics.field_rates.hosted_age_share | by design | the share of remnants that still host their belt's field: the expected share the host rule's census is held to |
+| function | planetgen.physics.field_rates.cluster_swarm_standing | by design | the young-cluster swarm hook of the design (source S3): no swarm is drawn, a young cluster lists none (low priority) |
+| function | planetgen.physics.rogue_collision.galaxy_rate_per_year | by design | the galaxy's rogue-rogue collision rate: the figure the per-sector rate of `collision_field` is checked against in a test |
 | module | planetgen.physics.resonance_gaps | GEN.1069 | the resonance zones, chaotic zones, survivors, Yarkovsky cut and stirring of a belt from its giants (lock-free, GEN.1062); the belt generator reads the map and the clearance ledger (GEN.1014) can reuse the zones |
 | row | 6.116:RGP2 | GEN.1069 | `resonance_gaps.ORDER_WIDTH_EXPONENT`, read when the wiring step lands |
 | row | 6.116:RGP3 | GEN.1069 | `resonance_gaps.RESONANCE_CLEARING_MYR`, read when the wiring step lands |
@@ -173,6 +164,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.potential.vertical_force | by design | the disk's vertical pull `K_z` at a radius and height, the check of the potential against the Oort limit and the scale height of a disk; read by tests |
 | function | planetgen.galaxy.density.component_masses | by design | each density component's closed-form mass (GEN.379), the total `test_density_components` holds the numerical integral (`integrated_masses`) to; the potential (GEN.338) reads the component masses from `density_components` directly |
 | function | planetgen.galaxy.density.predicted_star_count | by design | the sector gate of the density design (`predicted_star_count >= 1`) as one pure function of the position; `run_plan` and the sector profile apply the same product with the clamp at 0 inline, and the tests use this as the rule's definition |
+| function | planetgen.generation.collision_field.standing_density_pc3 | by design | the collision fields standing per pc3, the figure `tuning.PHENOMENON_DENSITY_PC3["asteroid-field"]` is held to by a test (tuning cannot import physics) |
 | function | planetgen.galaxy.object_uid.is_on_demand | GEN.1105 | a belt or field member above the individually stored count is drawn on demand, never stored; the member ledger wires it |
 | function | planetgen.galaxy.object_uid.captured_member | GEN.1070 | the designation and parent link of a belt member a planet has captured; the irregular-moon wiring prints it |
 | function | planetgen.galaxy.object_uid.outside_reservoir_member | GEN.1070 | the designation of a captured body from a reservoir that is not a belt; the irregular-moon wiring prints it |
@@ -258,7 +250,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
 | function | planetgen.physics.seasonal_swing.peak_wet_bulb_c | by design | the hottest wet bulb of a series for a note; the Temperature score applies the wet bulb rule to each sample (`temperature_coverage.coverage`, GEN.1265) |
-| function | planetgen.physics.field_dispersal.age_from_unit_yr | GEN.361 | the age a field reaches at a given share of its retirement radius; read by the field render (GEN.361) |
 | function | planetgen.physics.field_dispersal.column_density_kg_m2 | GEN.361 | the column density through a field; read by the field render (GEN.361) |
 | function | planetgen.physics.field_dispersal.freeze_out_time_s | GEN.361 | when a field stops colliding; read by the field render (GEN.361) |
 | function | planetgen.physics.field_dispersal.member_position_m | GEN.361 | a field member's place from its parent's; read by the field render (GEN.361) |
