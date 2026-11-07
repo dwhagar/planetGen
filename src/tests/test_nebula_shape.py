@@ -176,16 +176,24 @@ def test_a_saved_nebula_stores_its_shape(mysql_config):
     assert loaded.to_dict() == nebula.get_shape().to_dict()
 
 
-def test_a_nebula_saved_before_shapes_gets_the_shape_a_fresh_save_would(mysql_config):
+def test_a_nebula_saved_before_shapes_gets_the_shape_its_stored_properties_give(mysql_config):
+    # TEST.672: the shape is seeded from the properties, `dominant_species` among them, and a save rewrites that text from the numbers
+    # (GEN.1276, `store.store_composition`) after the shape is drawn, so a row with no stored shape cannot get back the shape of the
+    # generator's own species text. It gets the shape of the properties it holds, the same one every time it is read.
     from planetgen.db import query, store
+    from planetgen.galaxy import nebula_shape
 
-    nebula_id, nebula = _nebula_in_db(mysql_config)
+    nebula_id, _nebula = _nebula_in_db(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
         conn.execute("DELETE FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,))
         conn.execute("UPDATE nebulae SET shape_scale = NULL WHERE id = ?", (nebula_id,))
         conn.commit()
-        _row, loaded = query.nebula_shape(conn, nebula_id)
+        row, loaded = query.nebula_shape(conn, nebula_id)
+        _row, again = query.nebula_shape(conn, nebula_id)
     finally:
         conn.close()
-    assert loaded.to_dict() == nebula.get_shape().to_dict()
+    expected = nebula_shape.shape_for_nebula(row["nebula_class"], row["radius_ly"], row["density_cm3"], row["temperature_k"],
+                                             row["extinction_av"], row["dominant_species"])
+    assert loaded.to_dict() == expected.to_dict()
+    assert again.to_dict() == loaded.to_dict()
