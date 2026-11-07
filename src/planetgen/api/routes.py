@@ -112,7 +112,7 @@ from planetgen.db import cloudcontents, containers as containersDb, nebula_volum
 from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
 from planetgen.db import edits as dbEdits
-from planetgen.generation import bright_stars as brightStars, limits as generationLimits, stored_trees
+from planetgen.generation import bright_stars as brightStars, limits as generationLimits, sector_context, stored_trees
 from planetgen import tuning
 from planetgen.admin import maintenance
 from planetgen.population import facility_ratings, facility_suggest, facility_types
@@ -124,7 +124,6 @@ from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_
 from planetgen.util.checks import finite_float
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy import drill, gravity_field, potential as galacticPotential, spherical
 from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
 from planetgen.galaxy.window import DEFAULT_WINDOW
@@ -2586,25 +2585,12 @@ def _sector_generation_context(conn, sector_id, system_config):
     """For a galaxy-placed sector: the system's distance from the galactic
     center in light-years, after giving `system_config` the sector's
     stellar population and (once a bright-star scatter ran) its dim-star
-    cap (its own backfill level and mass, GEN.44, GEN.187), as a sector fill would
-    (`brightStars.FillContext`). `None` for a
+    cap (`generation.sector_context.apply_sector_context`). `None` for a
     sector outside the galaxy. 404 when the sector doesn't exist."""
     try:
-        placement = store.get_sector_galaxy_position(conn, sector_id)
+        return sector_context.apply_sector_context(conn, sector_id, system_config)
     except ValueError:
         raise ApiError(f"no such sector: {sector_id}", status_code=404)
-    if placement is None:
-        return None
-    skeleton = get_galaxy_shape(conn)
-    if skeleton is not None:
-        address = (placement["shell_index"], placement["band_index"], placement["wedge_index"])
-        level = store.bright_star_fill_level(conn, *address)
-        mass_limit = store.bright_star_fill_mass_limit(conn, *address)
-        center = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
-        profile = profile_at(center, skeleton.shape, skeleton.edge_pc, skeleton.expected_system_count_at_density_1,
-                             address=address)
-        brightStars.FillContext(profile, min_luminosity_sol=level, star_mass_limit_sol=mass_limit).apply(system_config)
-    return pc_to_ly(placement["galactic_radius_pc"])
 
 
 def _generate_system(system_config, galactic_center_dist_ly=None, **kwargs):
