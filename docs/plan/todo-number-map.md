@@ -1016,7 +1016,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.226 | Addresses on shells: designation, sector ID, seeds and object ID | none | done, PR #1607 |
 | GEN.227 | Generation paths on shells | none | done, PR #1607 |
 | GEN.228 | Wide binaries must be stable: the two stars and the far orbit of each keep out of each other (bug) | none | done, PR #1610 |
-| GEN.229 | Repair or re-roll the wide binaries that already break the stability rule | none | open |
+| GEN.229 | Repair or re-roll the wide binaries that already break the stability rule | none | done, PR #5590 |
 | GEN.230 | Sector designations and object-ID birth fields cannot name bands at or beyond 2048 (bug) | none | done, PR #1757 |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | none | done, PR #3567 |
 | GEN.232 | Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for minutes (bug) | none | done, PR #1660 |

@@ -2951,48 +2951,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.340. Related: GEN.105, PERF.88.
   Design: [docs/design/architecture/math-and-library-efficiency.md](design/architecture/math-and-library-efficiency.md)
 
-- [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
-  GEN.228 (PR #1610) makes new wide binaries stable and adds `planetgen
-  check-db --deep --wide-binaries`, which counts the existing unstable
-  ones. Boss (2026-10-15 07:44Z) saw two in his last galaxy whose
-  orbital paths overlap and would end in planetary collisions. Run the
-  count and report how many break the rule; the repair or re-roll itself
-  needs Boss's word before anything is changed. Owner: Core. Source:
-  Boss's report 2026-10-15 07:44Z.
-  Decided (Boss, 2026-10-16, 3:00 PM EDT, decision card): run the count
-  and report it first; the repair or re-roll needs Boss's word. Owner:
-  Core 1, in its bug phase.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Core 5 (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's
-  three small lane reorderings?", tapped "Apply all three", relayed in
-  words; Core 1 confirmed at 10:41 AM EDT as the lane reported that it
-  has not started it): it sits beside PERF.99, GEN.310 and GEN.231,
-  whose files it shares (the Generate page, cli/generate.py,
-  run_plan.py). This replaces any earlier owner line on this item.
-  Research (2026-10-09, Update): Update 1:27 AM EDT 2026-10-24 (as Core
-  1 reported): Core 1 has not started it and releases it to the pool;
-  Core 5 may take it, but the repair or re-roll needs Boss's word before
-  anything is changed.
-  Research (2026-10-09, Decided): Decided (Boss, 8:37 AM EDT 2026-10-24,
-  message cmsg_01RuNTFUNB92A8cm5CbojQAiUosXZByEG3UuFyLRYt2W5N, relayed
-  by the coordinator), option 3: re-roll only the affected systems from
-  their seeds (not a repair in place, not leaving them). While the
-  migration (or the re-roll step) runs, it prints to the console which
-  systems it redid, with details: the system id, the two stars or orbits
-  that broke the stability rule, and what the re-roll produced. Do: run
-  the wide-binary count first and report it, then build the re-roll with
-  that console report. Owner: none (pool); Core 5 may take it if nobody
-  started it.
-  Research (2026-10-09, Core 5 report): Core 5 releases this (10:59 PM
-  EDT 2026-10-24 as the lane reported): the count has to run on Boss's
-  own database and re-rolling single systems has no per-system
-  regenerate today (only whole sectors), so it overlaps the GEN.764
-  revise job. Owner: Aux 5 (re-homed 2026-11-07 from Core 1, whose queue is the oddity chain), built on the bring-to-epoch run (GEN.764 is done), after GEN.1107.
-  Decided (Boss, 10:55 AM EST on 2026-11-07, option 2): build the per-system re-roll (only the unstable wide-binary systems, from their seeds), on the bring-to-epoch run (GEN.764, done). Owner: Aux 5, after GEN.1107.
-  Prerequisites: none. Related: GEN.228 (done, PR #1610).
-
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
   Step 10 of the whole-sphere train. High-velocity clouds are the one
   gas item in the halo worth rows: a few hundred, placed like the
