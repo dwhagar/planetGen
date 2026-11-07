@@ -8394,7 +8394,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the ore-forming processes of GEN.1379 (the 8.1 design that
   names the deposit fields 8.1 stores) and the host minerals of GEN.1355
   to GEN.1357. Still 8.2 for the build.
-  Prerequisites: GEN.477, GEN.1379. Related: GEN.477, GEN.473, GEN.725, MAP.305, GEN.1380.
+  Prerequisites: GEN.477. Related: GEN.477, GEN.473, GEN.725, MAP.305, GEN.1380.
 
 - [ ] **GEN.799 Resource scan: compute the grade, mass and score of every resource for belts, fields, giants and icy bodies from their stored composition, as its own command and galaxy stage**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
@@ -13247,36 +13247,6 @@ clears each one.
   Boss (3:56 PM EST on 2026-11-07, as the coordinator relayed): "Add a button in config in admin to update config.json to all the current properties it needs w/o losing the site settings it needs". Do: an admin-only button on the Config page, "Update config.json", that reads the settings model (ADM.42, the one list of properties with their defaults, as GEN.303's generation.cell_cap is now) and the file; shows a preview of what it would change (new keys with their defaults, keys the file has that the model no longer knows, shown as stale and left in place unless the admin ticks them for removal); on confirmation writes the file through the same atomic write the settings page uses, with a dated backup copy beside it. It also adds the recommended settings that are not present and need to be set (Boss, 3:57 PM EST on 2026-11-07): the settings model carries, beside each property's default, a recommended value and a flag for the properties a site should set (for example a setting a feature needs to work, such as a mail server for accounts), and the preview lists those under their own heading, "recommended, not set", each with its value and the reason; a ticked one is written with the recommended value. Every existing value is kept exactly, secrets are never shown or changed, and a key the admin cannot edit on the web (the database section) is added with its default but never altered. The old file's order and comments, if any, are kept where the format allows. Done: the button, the preview, the write with backup, tests (a recommended setting that is absent is listed and written when ticked, and left alone when the site already has any value; a file missing three keys gets them with defaults and keeps every old value; a stale key is flagged and survives; a failed write leaves the old file; a non-admin gets 403), the docs/reference/config.md and help entries, and a change note. Lock-free, no migration, no epoch. Goal issue #2350. Version 8.1 (it makes each new setting such as generation.cell_cap reach an existing site's file). Owner: Core 3 (settings page lane). Filed by the TODO thread.
   Prerequisites: none. Related: GEN.303, ADM.42, ADM.84.
 
-- [ ] **TEST.685 Materials reachability test: every row of the materials table is drawn by some path or tagged vocabulary-only, and an unreferenced row fails the gate**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N14 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size S; free. Target: wave 0, merges ahead of train 17. About 70 table
-  rows are named by no code path (a string search, not a call graph) and
-  a few are doubled (hematite in three grain sizes, anorthosite powder
-  against anorthite, plagioclase against plagioclase feldspars). Do:
-  write the test that walks the table against the recipe, speciation and
-  alias code, fails on an orphan with no vocabulary-only tag, and lists
-  the doubles it finds; the tags for the rows the new minerals add come
-  with GEN.1355 to GEN.1357. Owner (proposed by TODO, 2026-11-07,
-  confirm with TODO before taking; one lock-free item at a time while
-  waiting): Aux 5. Rules: open the primary or an accepted secondary
-  source of every recalled value before it enters GEN.725; draws through
-  draw.py; every stand-in gets a GEN.725 row with tier and tweak level;
-  every number has a unit or scale and a column_units entry; a change to
-  drawn output carries tests.golden_update --reason ... --affects fill
-  and the next epoch; tests are scripts/test.py changed --resume; no
-  fixed content from the Milky Way or the Solar System; built code needs
-  a caller.
-  Prerequisites: none. Related: TEST.455, GEN.1357, GEN.1356, GEN.1355.
-
 - [ ] **GEN.1355 Missing minerals the ground recipes and the norm already name, part 1, silicates and oxides: smectite, chlorite, talc, brucite, amphibole, epidote, nepheline, leucite, hypersthene, augite, pigeonite, hibonite and the oxides in the list**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -13743,7 +13713,7 @@ clears each one.
   carries tests.golden_update --reason ... --affects fill and the next
   epoch; tests are scripts/test.py changed --resume; no fixed content
   from the Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1368, TEST.685. Related: GEN.477.
+  Prerequisites: GEN.1368. Related: GEN.477.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
@@ -13978,37 +13948,6 @@ clears each one.
   Milky Way or the Solar System; built code needs a caller.
   Prerequisites: GEN.1366, GEN.1367. Related: GEN.1379.
 
-- [ ] **GEN.1379 Design: ore-forming processes for rocky planet and moon crusts (magmatic, hydrothermal, sedimentary, weathering, pegmatite, carbonatite, kimberlite, unconformity uranium) and the deposit-level fields 8.1 stores for the 8.2 resource scan**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N10 part 1 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; free (docs). Target: wave 4, early: write before parts 2 to 5.
-  No ore-forming process exists. Boss widened GEN.798 to rocky crusts.
-  Do: write docs/design/composition/ore-processes.md: the 19 deposit
-  types with setting, grade, tonnage, host minerals and the generator
-  state each needs, and the fields 8.1 stores. Data:
-  /mnt/project-files/research/real-material-data/ore_deposit_types_and_parameters.csv
-  (recalled with named sources);
-  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
-  section 5. Owner (proposed by TODO, 2026-11-07, confirm with TODO
-  before taking; one lock-free item at a time while waiting): Materials
-  1 (new lane, proposed). Rules: open the primary or an accepted
-  secondary source of every recalled value before it enters GEN.725;
-  draws through draw.py; every stand-in gets a GEN.725 row with tier and
-  tweak level; every number has a unit or scale and a column_units
-  entry; a change to drawn output carries tests.golden_update --reason
-  ... --affects fill and the next epoch; tests are scripts/test.py
-  changed --resume; no fixed content from the Milky Way or the Solar
-  System; built code needs a caller.
-  Prerequisites: none. Related: GEN.798.
-
 - [ ] **GEN.1380 Ore processes build, magmatic deposits: chromite, PGE sulfides and Fe-Ti oxides, stored per body**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -14032,7 +13971,7 @@ clears each one.
   ... --affects fill and the next epoch; tests are scripts/test.py
   changed --resume; no fixed content from the Milky Way or the Solar
   System; built code needs a caller.
-  Prerequisites: GEN.1379, GEN.1362, GEN.1355. Related: GEN.798.
+  Prerequisites: GEN.1362, GEN.1355. Related: GEN.798.
 
 - [ ] **GEN.1381 Ore processes build, hydrothermal and sedimentary-hosted deposits**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
@@ -14132,6 +14071,51 @@ clears each one.
   changed --resume; no fixed content from the Milky Way or the Solar
   System; built code needs a caller.
   Prerequisites: GEN.1383, GEN.1377, GEN.1376, GEN.1375, GEN.1374, GEN.1370, GEN.1369. Related: TEST.261, GEN.725.
+
+- [ ] **TEST.687 test_materials_table.py::test_every_class_composition_text_is_mapped_to_rows fails on main: the table has 14 class texts and the test expects 11 (bug)**
+  Aux 5 (as the lane reported 5:43 PM EST on 2026-11-07), found while
+  building TEST.685, red on main before that change and not from it. Do:
+  run the test on main, find which three class texts were added to the
+  class table (the best-fit class changes of GEN.1160 and the DOC.103
+  spelling pass are the likely sources), decide whether the test's count
+  or the mapping is stale, fix the cause so every class text maps to
+  rows, and keep the vocabulary-only tags of TEST.685 true. Owner
+  (proposed by TODO): Bug 1. Rules: tests are scripts/test.py changed
+  --resume; built code needs a caller.
+  Prerequisites: none. Related: TEST.685, GEN.1160, DOC.103.
+
+- [ ] **GEN.1384 Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md.
+  Core 5 (as the lane reported 5:50 PM EST on 2026-11-07), found while
+  building GEN.1356: the rows exist and are tagged vocabulary-only, but
+  the metal ground still names troilite and kamacite as its stand-ins
+  for pyrite and the reduced-body taxa name troilite alone. Do: swap the
+  recipes to name the new rows by the redox and sulfur state of the body
+  (the reduced-body setting of the real-material report: oldhamite,
+  niningerite, alabandite and daubreelite on enstatite-like and
+  Mercury-like bodies), remove the vocabulary-only tags the swap makes
+  stale (TEST.685), and register the stand-ins. Size S. Lock item,
+  target train 18. Owner (proposed by TODO): Core 5. Rules: draws
+  through draw.py; every stand-in gets a GEN.725 row with tier and tweak
+  level; a change to drawn output carries tests.golden_update --reason
+  ... --affects fill and the next epoch; tests are scripts/test.py
+  changed --resume; no fixed content from the Milky Way or the Solar
+  System; built code needs a caller.
+  Prerequisites: none (runs after GEN.1356 merges). Related: GEN.1356, GEN.475, GEN.477, TEST.685.
+
+- [ ] **GEN.1385 test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug)**
+  Core 5 (as the lane reported 5:50 PM EST on 2026-11-07), found while
+  gating GEN.1356, red on unmodified main and not from it. Do: run the
+  test on main, find the generated body (about 408 K with ice cover),
+  decide whether the ground or the ice-cover step is wrong (an ice cover
+  at 408 K cannot be water ice at the body's pressure unless a
+  high-pressure phase or a cold trap is named), fix the cause, and keep
+  the test. Owner (proposed by TODO): Bug 1. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: GEN.1356, TEST.687.
 
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.

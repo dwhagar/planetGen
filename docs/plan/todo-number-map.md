@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.288 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1384 |
+| GEN | GEN.1386 |
 | PERF | PERF.249 |
 | DB | DB.116 |
 | API | API.42 |
 | ADM | ADM.141 |
 | SEC | SEC.47 |
-| TEST | TEST.687 |
+| TEST | TEST.688 |
 | USR | USR.32 |
 | OPS | OPS.119 |
 | DOC | DOC.110 |
@@ -2168,11 +2168,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1376 | Nebula and ISM dust species: amorphous silicates, graphite, amorphous carbon, PAHs, SiC, Fe and ice mantles | GEN.1359 | open |
 | GEN.1377 | Per-body isotope record, non-fictional part: D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon isotopes and the short-lived Fe-60, Mn-53, I-129 and Pu-244 | GEN.1363 | open |
 | GEN.1378 | Sedimentary and biogenic deposits: banded iron formation (needs the oxygen rise), phosphorites, limestone, chert, coal and kerogen | GEN.1366, GEN.1367 | open |
-| GEN.1379 | Design: ore-forming processes for rocky planet and moon crusts (magmatic, hydrothermal, sedimentary, weathering, pegmatite, carbonatite, kimberlite, unconformity uranium) and the deposit-level fields 8.1 stores for the 8.2 resource scan | none | open |
+| GEN.1379 | Design: ore-forming processes for rocky planet and moon crusts (magmatic, hydrothermal, sedimentary, weathering, pegmatite, carbonatite, kimberlite, unconformity uranium) and the deposit-level fields 8.1 stores for the 8.2 resource scan | none | done, PR #5603 |
 | GEN.1380 | Ore processes build, magmatic deposits: chromite, PGE sulfides and Fe-Ti oxides, stored per body | GEN.1379, GEN.1362, GEN.1355 | open |
 | GEN.1381 | Ore processes build, hydrothermal and sedimentary-hosted deposits | GEN.1380, GEN.1378 | open |
 | GEN.1382 | Ore processes build, weathering and pegmatite deposits (bauxite and laterite, REE and Li pegmatites) | GEN.1380, GEN.1371 | open |
 | GEN.1383 | Ore processes build, carbonatite, kimberlite and unconformity uranium deposits | GEN.1382, GEN.1365 | open |
+| GEN.1384 | Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins | none | open |
+| GEN.1385 | test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -4248,8 +4250,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.682 | test_cache_warmup.py::test_a_tiered_pass_travels_as_json_and_comes_back_equal fails on main (bug) | none | done, PR #5594 |
 | TEST.683 | Three tests fail on main or in the wrong folder: test_deploy_scripts::test_set_permissions_keeps_both_config_files_when_both_exist, test_settings::test_the_code_reads_no_variable_the_model_does_not_name (names PLANETGEN_QUEUE_EXTRA_FUNCTIONS and PLANETGEN_WARM_OUTCOME_FILE), and test_warm_empty_galaxy (fails only when run from src, a relative path) (bug) | none | done, PR #5586 |
 | TEST.684 | Three tests fail on main: a fuzz tuning case and two no-todo-code strings tests (bug) | none | open |
-| TEST.685 | Materials reachability test: every row of the materials table is drawn by some path or tagged vocabulary-only, and an unreferenced row fails the gate | none | open |
+| TEST.685 | Materials reachability test: every row of the materials table is drawn by some path or tagged vocabulary-only, and an unreferenced row fails the gate | none | done, PR #5603 |
 | TEST.686 | Real-material closing gate: a composition census over a generated sample (each new element and mineral appears where physics says and nowhere it should not) and a check that every stand-in the set added has its GEN.725 row | GEN.1383, GEN.1377, GEN.1376, GEN.1375, GEN.1374, GEN.1370, GEN.1369 | open |
+| TEST.687 | test_materials_table.py::test_every_class_composition_text_is_mapped_to_rows fails on main: the table has 14 class texts and the test expects 11 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
