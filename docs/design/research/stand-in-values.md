@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1192 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1197 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 111 | 85 | 24 | 61 | 0 | 281 |
-| T7 | 33 | 13 | 7 | 13 | 0 | 66 |
+| T6 | 112 | 87 | 24 | 61 | 0 | 284 |
+| T7 | 33 | 13 | 7 | 14 | 0 | 67 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
-| T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 653 | 248 | 58 | 188 | 45 | 1192 |
+| T9 | 35 | 14 | 5 | 80 | 34 | 168 |
+| All | 654 | 250 | 58 | 190 | 45 | 1197 |
 
 ## How the labels were given
 
@@ -1674,6 +1674,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md | - | no data |
+
+## 6.196 Stand-ins of the envelope a rocky planet captures and keeps
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| EC1 | P | T9 | L3 | envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket `f_env0` 0.05 to 0.2, log) | 0.05 to 0.2 | rocky planets of 3.72 to 20 Earth masses | a measured envelope fraction of the sub-Neptunes of that mass that sits outside the bracket | an envelope drawn from a disk gas-accretion model of the core's mass, the disk's life and its opacity | both valley targets (slope -0.11, 1.84 Earth radii at 10 days) are inside 2 sigma for the whole bracket (`envelope-escape-wiring.md` section 1); the generator's 240-system sweep gives 45 percent above 2.0 inside 100 days (`reports/gen1323-sub-neptune-envelopes-2026-11-07.md`) | - | - |
+| EC2 | P | T7 | L3 | envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power | 2 to 4 | rocky planets of 1 to 3.72 Earth masses | a population of 1 to 2 Earth-mass planets whose radii are mostly above 1.6 (exponent too low) or of 2 to 4 Earth-mass planets that are all bare (too high) | gas capture by a core in a disk of its own mass and temperature | no source read: a flat start gives every Earth-mass planet an envelope (median radius 3.2 in the sweep) and the Earth and Venus have none; at 3, a 1 Earth-mass planet starts with 0.2 percent and a 2 Earth-mass planet with 1.6 percent; at 4, 1 to 2 Earth-mass planets are mostly bare | - | - |
+| EC3 | B | T6 | L0 | envelope_capture.MIN_MASS_EARTH 1 and MAX_MASS_EARTH 20: the planets that capture an envelope are the rocky planets of the e1 and e2 rows (1 Earth mass up) and `planet_kind`'s heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope) | 0.5 to 2; 15 to 30 | rocky planets | an envelope found on a planet under 1 Earth mass | a capture law that has no lower edge | the e1 and e2 rows (`mass_earth` 1 to 30) and `planet_kind._MAX_TERRESTRIAL_EARTH` | - | - |
+| EC4 | P | T6 | L1 | `planets.settle_envelope` keeps the drawn mass as the planet's total and takes the radius at the 20 mbar level of Lopez and Fortney (the level the valley survey and transit radii use) | the envelope's mass, a few percent | planets with an envelope of 0.5 to 20 percent | a planet whose measured mass is the core's alone (the total is then a few percent too light) | the core mass drawn first and the envelope added on top | the rows pass the planet's mass as the core mass in the same way (`envelope-escape-wiring.md` section 3) | - | - |
+| EC5 | B | T6 | L1 | envelope_capture.MAX_START 0.2: the largest starting envelope a rocky planet draws, the top of the range the radius law of Lopez and Fortney was fitted over (the survey holds 0.5) | 0.1 to 0.3 | rocky planets of 1 to 20 Earth masses | a planet of 2 to 4 Earth masses with an envelope of more than 20 percent | a radius law that holds past 20 percent, or a capture law that caps the envelope by the core's mass | [R2741] fit range (`bulk_structure.CLOSED_FORM_RANGES`); the first sweep with the survey's 0.5 gave planets of 3 Earth masses of 7 Earth radii | - | - |
 
 ## 6.182 Stand-ins of where a stored belt member lies
 

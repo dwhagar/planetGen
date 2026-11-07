@@ -44,6 +44,8 @@ _FORMED = "_formation_fractions"
 
 def air_share(body):
     """The hydrogen-rich air's mass over the body's mass; 0 for a body without a hydrogen-rich air (a giant, a body with no air, no mass or no radius)."""
+    if getattr(body, "_captured_envelope", 0.0):
+        return 0.0      # the envelope the planet captured (GEN.1323, `envelope_capture`) is its hydrogen air already; the share is not counted twice
     mass, radius_km, pressure = getattr(body, "mass", None), getattr(body, "radius", None), getattr(body, "atmospheric_pressure", None)
     if not mass or not radius_km or not pressure or pressure <= 0.0:
         return 0.0
@@ -53,6 +55,21 @@ def air_share(body):
         return 0.0
     radius = _km_to_m(radius_km)
     return min(4.0 * math.pi * radius ** 4 * pressure / (constants.G * mass * mass), 0.5)
+
+
+def set_gas_detail(body):
+    """Stores the helium and heavy-element shares of the envelope of a rocky body (`envelope_helium_fraction`, `envelope_z_fraction`): the disk's gas, so the star's
+    (`bulk_draw.host_ratios`); `None` for both when the body has no envelope. A body with an envelope share stores both (the bulk rule of `tests/audit/sweep_bulk.py`)."""
+    from planetgen.physics import bulk_draw      # imported here: bulk_draw is loaded by the planet before this module is used
+    if not (getattr(body, "envelope_mass_fraction", None) or 0.0) > 0.0:
+        body.envelope_helium_fraction = body.envelope_z_fraction = None
+        return
+    star = getattr(body, "star", None)
+    if star is None:
+        return              # a bare stand-in body of a test: no star, no ratios
+    ratios = bulk_draw.host_ratios(star)
+    body.envelope_helium_fraction = ratios.y_envelope * (1.0 - ratios.z)
+    body.envelope_z_fraction = ratios.z
 
 
 def restore(body):
@@ -75,6 +92,7 @@ def fill(body):
         setattr(body, _FORMED, formed)
     share = air_share(body)
     body.envelope_mass_fraction = formed["envelope_mass_fraction"] + share
+    set_gas_detail(body)
     keep = 1.0 - share
     for name in SOLIDS:
         if formed[name] is not None:

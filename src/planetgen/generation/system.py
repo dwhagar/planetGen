@@ -2217,6 +2217,8 @@ class StarSystem:
                 for body in (obj, *obj.moons):
                     if planetPhysics.settle_orbit(body):
                         log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                if planetPhysics.settle_envelope(obj):
+                    log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km")
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")

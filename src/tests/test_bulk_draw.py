@@ -168,7 +168,11 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
                 if body.body_type == "g":
                     assert bulk.envelope > 0.0
                 else:
-                    assert bulk.envelope == pytest.approx(envelope_share.air_share(body)) and body.water_mass_fraction == bulk.water     # GEN.1226: the share of a hydrogen-rich air, else 0
+                    # GEN.1226: the share of a hydrogen-rich air, else 0; GEN.1323: a planet that captured an envelope stores that one (its air is the envelope)
+                    captured = getattr(body, "_captured_envelope", 0.0)
+                    assert bulk.envelope == pytest.approx(captured or envelope_share.air_share(body)) and body.water_mass_fraction == bulk.water
+                    if captured:
+                        assert bulk.envelope_helium is not None and bulk.envelope_z is not None
                 seen_classes.add(body.planet_class)
     assert len(seen_classes) >= 3
 

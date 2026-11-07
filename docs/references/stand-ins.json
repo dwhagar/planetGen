@@ -38545,6 +38545,204 @@
       "title": "Stand-in of how far apart random placement keeps two systems"
     },
     {
+      "key": "6.196",
+      "number": "6.196",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 3.72 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured envelope fraction of the sub-Neptunes of that mass that sits outside the bracket"
+            ],
+            [
+              "What replaces it",
+              "an envelope drawn from a disk gas-accretion model of the core's mass, the disk's life and its opacity"
+            ],
+            [
+              "Evidence",
+              "both valley targets (slope -0.11, 1.84 Earth radii at 10 days) are inside 2 sigma for the whole bracket (envelope-escape-wiring.md section 1); the generator's 240-system sweep gives 45 percent above 2.0 inside 100 days (reports/gen1323-sub-neptune-envelopes-2026-11-07.md)"
+            ]
+          ],
+          "id": "EC1",
+          "key": "6.196:EC1",
+          "kind": "P",
+          "slug": "6-196-ec1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 1 to 3.72 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a population of 1 to 2 Earth-mass planets whose radii are mostly above 1.6 (exponent too low) or of 2 to 4 Earth-mass planets that are all bare (too high)"
+            ],
+            [
+              "What replaces it",
+              "gas capture by a core in a disk of its own mass and temperature"
+            ],
+            [
+              "Evidence",
+              "no source read: a flat start gives every Earth-mass planet an envelope (median radius 3.2 in the sweep) and the Earth and Venus have none; at 3, a 1 Earth-mass planet starts with 0.2 percent and a 2 Earth-mass planet with 1.6 percent; at 4, 1 to 2 Earth-mass planets are mostly bare"
+            ]
+          ],
+          "id": "EC2",
+          "key": "6.196:EC2",
+          "kind": "P",
+          "slug": "6-196-ec2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.MIN_MASS_EARTH 1 and MAX_MASS_EARTH 20: the planets that capture an envelope are the rocky planets of the e1 and e2 rows (1 Earth mass up) and planet_kind's heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2; 15 to 30"
+            ],
+            [
+              "Where it holds",
+              "rocky planets"
+            ],
+            [
+              "What would show it wrong",
+              "an envelope found on a planet under 1 Earth mass"
+            ],
+            [
+              "What replaces it",
+              "a capture law that has no lower edge"
+            ],
+            [
+              "Evidence",
+              "the e1 and e2 rows (mass_earth 1 to 30) and planet_kind._MAX_TERRESTRIAL_EARTH"
+            ]
+          ],
+          "id": "EC3",
+          "key": "6.196:EC3",
+          "kind": "B",
+          "slug": "6-196-ec3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "envelope_capture.MIN_MASS_EARTH 1 and MAX_MASS_EARTH 20: the planets that capture an envelope are the rocky planets of the e1 and e2 rows (1 Earth mass up) and planet_kind's heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.settle_envelope keeps the drawn mass as the planet's total and takes the radius at the 20 mbar level of Lopez and Fortney (the level the valley survey and transit radii use)"
+            ],
+            [
+              "The range it moves in",
+              "the envelope's mass, a few percent"
+            ],
+            [
+              "Where it holds",
+              "planets with an envelope of 0.5 to 20 percent"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose measured mass is the core's alone (the total is then a few percent too light)"
+            ],
+            [
+              "What replaces it",
+              "the core mass drawn first and the envelope added on top"
+            ],
+            [
+              "Evidence",
+              "the rows pass the planet's mass as the core mass in the same way (envelope-escape-wiring.md section 3)"
+            ]
+          ],
+          "id": "EC4",
+          "key": "6.196:EC4",
+          "kind": "P",
+          "slug": "6-196-ec4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "planets.settle_envelope keeps the drawn mass as the planet's total and takes the radius at the 20 mbar level of Lopez and Fortney (the level the valley survey and transit radii use)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.MAX_START 0.2: the largest starting envelope a rocky planet draws, the top of the range the radius law of Lopez and Fortney was fitted over (the survey holds 0.5)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 1 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a planet of 2 to 4 Earth masses with an envelope of more than 20 percent"
+            ],
+            [
+              "What replaces it",
+              "a radius law that holds past 20 percent, or a capture law that caps the envelope by the core's mass"
+            ],
+            [
+              "Evidence",
+              "[R2741] fit range (bulk_structure.CLOSED_FORM_RANGES); the first sweep with the survey's 0.5 gave planets of 3 Earth masses of 7 Earth radii"
+            ]
+          ],
+          "id": "EC5",
+          "key": "6.196:EC5",
+          "kind": "B",
+          "slug": "6-196-ec5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "envelope_capture.MAX_START 0.2: the largest starting envelope a rocky planet draws, the top of the range the radius law of Lopez and Fortney was fitted over (the survey holds 0.5)"
+        }
+      ],
+      "slug": "6-196-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",
+      "title": "Stand-ins of the envelope a rocky planet captures and keeps"
+    },
+    {
       "key": "6.182",
       "number": "6.182",
       "rows": [
