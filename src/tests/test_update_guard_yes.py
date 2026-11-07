@@ -157,6 +157,18 @@ def test_a_live_run_stops_the_update_without_the_word_and_is_canceled_with_it(co
     assert redisqueue.queue(redisqueue.BULK_QUEUE, conn).count == 0
 
 
+def test_a_run_record_with_no_stages_does_not_stop_the_guard(conn, redis_server):
+    """A partial or legacy run hash (no `stages` field) is read as a run with none; it never aborts the update."""
+    run_id = _live_run(conn)
+    conn.hset(runrecord.run_key("20990101T000000-partial"), mapping={"owner": "someone", "heartbeat": "1"})
+    legacy = runrecord.run_key("20990101T000001-legacy")
+    conn.hset(legacy, mapping={"title": "Old", "state": "running", "who": "boss"})
+    assert runrecord.read_run(conn, "20990101T000000-partial")["stages"] == []
+    found = updateguard.RunRecordSource(redis_server).items()
+    assert run_id in [item["id"] for item in found]
+    assert "20990101T000001-legacy" in [item["id"] for item in found]      # live and undeclared: still named
+
+
 def test_without_a_redis_server_the_source_lists_nothing():
     assert updateguard.RunRecordSource("redis://127.0.0.1:1/0").items() == []
 

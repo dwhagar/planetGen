@@ -33,6 +33,7 @@ written to a name that does not exist yet, never through a link. This module imp
 
 import contextlib
 import json
+import logging
 import os
 import re
 import select
@@ -45,6 +46,8 @@ from datetime import datetime, timezone
 
 from planetgen.admin import maintenance, stop_reason
 from planetgen.queue import stopall
+
+log = logging.getLogger(__name__)
 
 UPDATE_CAUSE = "update"
 """str: The maintenance `cause` of an update."""
@@ -390,7 +393,11 @@ class RunRecordSource:
             return []
         found = []
         for run_id in runrecord.recent_runs(connection, limit=100_000):
-            run = runrecord.read_run(connection, run_id)
+            try:
+                run = runrecord.read_run(connection, run_id)
+            except Exception:  # noqa: BLE001 -- one malformed record never aborts the update
+                log.warning("update guard: skipped the unreadable run record %s", run_id)
+                continue
             if run is None or run["state"] not in runrecord.LIVE_STATES:
                 continue
             started = run["started"] or run["created"]

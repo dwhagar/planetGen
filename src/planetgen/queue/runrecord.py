@@ -708,15 +708,17 @@ def read_run(conn, run_id):
     record = {_s(k): _s(v) for k, v in pipe.execute()[0].items()}
     if not record:
         return None
-    declared = json.loads(record["stages"])
+    declared = json.loads(record.get("stages") or "[]")        # a partial or legacy hash has none: no stages, not a crash
     pipe = conn.pipeline()
     for index in range(len(declared)):
         pipe.hgetall(stage_key(run_id, index))
-    run = {"id": run_id, "title": record["title"], "kind": record.get("kind") or GENERATION, "who": record["who"],
-           "database": record["database"], "job": record.get("job") or None, "argv": json.loads(record.get("argv") or "[]"),
+    run = {"id": run_id, "title": record.get("title") or run_id, "kind": record.get("kind") or GENERATION,
+           "who": record.get("who") or "",
+           "database": record.get("database") or "", "job": record.get("job") or None, "argv": json.loads(record.get("argv") or "[]"),
            "galaxy_seed": record.get("galaxy_seed") or None, "build": record.get("build") or None,
            "finishes": record.get("finishes") or None,
-           "state": record["state"], "error": record["error"] or None, "current": int(float(record["current"])),
+           "state": record.get("state") or "", "error": record.get("error") or None,
+           "current": int(float(record.get("current") or 0)),
            "stages": []}
     for name in ("created", "started", "updated", "finished"):
         run[name] = float(record[name]) if record.get(name) else None
