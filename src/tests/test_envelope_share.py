@@ -92,3 +92,28 @@ def test_generated_planets_store_their_type_digit_and_whole_fractions():
                 assert sum(fractions.shares().values()) == pytest.approx(1.0, abs=bulk_composition.SUM_TOLERANCE)
             kinds.add(body.planet_type)
     assert "terrestrial" in kinds
+
+
+def test_an_envelope_stores_the_helium_and_the_heavy_elements_of_the_air_that_is_it():
+    """GEN.1303: a rocky body with a hydrogen-rich air has an envelope, and an envelope has its helium and heavy-element shares, as a giant's does."""
+    body = Body(mass_earth=4.0, radius_km=11000.0, pressure_pa=5.0e9)
+    h2, he, h2o = gases.stored("h2").formula, gases.gas("He").formula, gases.stored("h2o").formula
+    setattr(body, atmosphere.GAS_FIELD, {h2: 0.8 * 5.0e9, he: 0.1 * 5.0e9, h2o: 0.1 * 5.0e9})
+    envelope_share.fill(body)
+    kg_per_mol = {name: gases.gas(formula).molar_mass for name, formula in (("h2", h2), ("he", he), ("h2o", h2o))}
+    total = 0.8 * kg_per_mol["h2"] + 0.1 * kg_per_mol["he"] + 0.1 * kg_per_mol["h2o"]
+    assert body.envelope_helium_fraction == pytest.approx(0.1 * kg_per_mol["he"] / total)
+    oxygen = 0.1 * (kg_per_mol["h2o"] - kg_per_mol["h2"])        # the water's oxygen: its molar mass less its two hydrogens
+    assert body.envelope_z_fraction == pytest.approx(oxygen / total, rel=1e-3)
+    assert body.envelope_helium_fraction + body.envelope_z_fraction < 1.0
+
+
+def test_a_body_without_an_envelope_has_no_envelope_details_and_the_details_follow_the_air():
+    body = Body(mass_earth=4.0, radius_km=11000.0, pressure_pa=5.0e9)
+    setattr(body, atmosphere.GAS_FIELD, _hydrogen_air(5.0e9))
+    envelope_share.fill(body)
+    assert body.envelope_helium_fraction is not None and body.envelope_z_fraction is not None
+    envelope_share.restore(body)
+    setattr(body, atmosphere.GAS_FIELD, {"N2": 5.0e9})
+    envelope_share.fill(body)
+    assert body.envelope_mass_fraction == 0.0 and body.envelope_helium_fraction is None and body.envelope_z_fraction is None

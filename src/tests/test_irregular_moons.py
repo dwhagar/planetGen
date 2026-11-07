@@ -82,3 +82,53 @@ def test_a_heavy_moon_is_rarely_a_captured_one_and_a_light_one_often():
         light = sum(moon_composition.draw_origin(moon_composition.GIANT, 1.0e15) == "captured" for _ in range(400))
     assert heavy < 20
     assert 150 < light < 250
+
+
+def _disk(primordial_earth, mass_kg, members=()):
+    return types.SimpleNamespace(primordial_mass_earth=primordial_earth, mass_kg=mass_kg, members=[{"mass_kg": mass} for mass in members], captured_mass_kg=0.0)
+
+
+def test_what_the_planets_hold_leaves_the_disks_they_caught_it_from():
+    """GEN.1085: a belt's mass less what its planets hold is what the belt keeps, shared among the disks by their primordial mass."""
+    source = _source()
+    held = [irregular_moons.for_planet(_planet(5.2, JUPITER_KG, 69911.0), source), irregular_moons.for_planet(_planet(9.5, 5.7e26, 58232.0), source)]
+    caught = sum(moon.mass_kg for each in held for moon in each.moons) + sum(each.remainder_kg for each in held)
+    assert caught > 0.0
+    disks = [_disk(30.0, 3.0e23), _disk(10.0, 1.0e23, members=(4.0e22,))]
+    before = sum(disk.mass_kg for disk in disks)
+    assert irregular_moons.take_from_disks(disks, held) == pytest.approx(caught)
+    assert before - sum(disk.mass_kg for disk in disks) == pytest.approx(caught)
+    assert sum(disk.captured_mass_kg for disk in disks) == pytest.approx(caught)
+    assert disks[0].captured_mass_kg / disks[1].captured_mass_kg == pytest.approx(3.0)
+
+
+def test_a_disk_never_gives_up_more_than_its_remainder():
+    held = [irregular_moons.IrregularSet((), 5.0e22, 0, 0, False)]
+    disk = _disk(10.0, 1.0e23, members=(9.0e22,))
+    assert irregular_moons.take_from_disks([disk], held) == pytest.approx(1.0e22)
+    assert disk.mass_kg == pytest.approx(9.0e22) and disk.captured_mass_kg == pytest.approx(1.0e22)
+
+
+def test_nothing_is_taken_where_nothing_was_caught_or_no_disk_stands():
+    disk = _disk(10.0, 1.0e23)
+    assert irregular_moons.take_from_disks([disk], [irregular_moons.NO_IRREGULARS]) == 0.0 and disk.mass_kg == 1.0e23
+    assert irregular_moons.take_from_disks([], [irregular_moons.IrregularSet((), 5.0e22, 0, 0, False)]) == 0.0
+
+
+def test_the_system_takes_what_its_planets_caught_out_of_its_outer_disk(monkeypatch):
+    """GEN.1085: `StarSystem._add_irregular_moons` hands the sets of the planets of a star to `take_from_disks` with that star's outer disks."""
+    from planetgen.generation import system as system_module
+    star = types.SimpleNamespace(luminosity=3.828e26, mass=SUN_KG, age=4.6)
+    giant = types.SimpleNamespace(body_type='g', is_moon=False, distance=5.2, mass=JUPITER_KG, radius=69911.0, envelope_mass_fraction=0.9, moons=[], moon_disk_lifetime_myr=3.0,
+                                  irregulars=irregular_moons.NO_IRREGULARS)
+    disk = types.SimpleNamespace(body_type='a', origin="outer-disk", primordial_mass_earth=30.0, lower_limit=30.0, upper_limit=50.0, mass_kg=3.0e23, members=[], captured_mass_kg=0.0)
+    inner = types.SimpleNamespace(body_type='a', origin="inner", primordial_mass_earth=1.0, lower_limit=2.0, upper_limit=3.0, mass_kg=1.0e21, members=[], captured_mass_kg=0.0)
+    fake = types.SimpleNamespace(planets=[giant, disk, inner], star=star, binary_type=None, system_config=None, member_hosts=lambda: [],
+                                 capture_windows=lambda host: capture_windows.Windows(1, 130.0))
+    monkeypatch.setattr(system_module, "star_al26_ratio", lambda config, host: 5.0e-5)
+    system_module.StarSystem._add_irregular_moons(fake)
+    held = giant.irregulars
+    caught = sum(moon.mass_kg for moon in held.moons) + held.remainder_kg
+    assert caught > 0.0
+    assert disk.captured_mass_kg == pytest.approx(caught) and disk.mass_kg == pytest.approx(3.0e23 - caught)
+    assert inner.captured_mass_kg == 0.0 and inner.mass_kg == 1.0e21

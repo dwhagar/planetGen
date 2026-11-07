@@ -5,13 +5,30 @@ Checks
 ======
 
 `finite_domain`, the decorator that gives a numeric physics helper one
-contract: it returns finite numbers or raises `ValueError`.
+contract: it returns finite numbers or raises `ValueError`. `finite_float`, the
+one place a request's text becomes a float: `float()` alone accepts "nan",
+"inf" and "-inf" (SEC.41), which a database parameter or a sort then turns into
+a server error.
 """
 
 import functools
 import inspect
 import math
 
+
+
+
+def finite_float(raw):
+    """
+    The float `raw` spells, which must be finite.
+
+    Raises:
+        ValueError: `raw` is not a number, or is "nan", "inf" or "-inf" (the message says which text).
+    """
+    value = float(raw)
+    if not math.isfinite(value):
+        raise ValueError(f"{raw!r} is not a finite number")
+    return value
 
 
 def _numeric_leaves(value):

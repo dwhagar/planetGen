@@ -161,7 +161,7 @@ class DustProfile:
     def key(self):
         """A short text that names these tables (for a cache key): a digest of the values rounded to six figures."""
         text = repr((tuple(round(v, 6) for v in self.radius_pc), tuple(float("%.6g" % v) for v in self.column_av), tuple(float("%.6g" % v) for v in self.height_pc)))
-        return hashlib.sha1(text.encode()).hexdigest()[:16]
+        return hashlib.sha1(text.encode(), usedforsecurity=False).hexdigest()[:16]
 
 
 def profile_from_history(history, disk_scale_length_pc, reference_radius_pc=None, *, visible_share=VISIBLE_SHARE, dispersion_kms=GAS_DISPERSION_KMS,

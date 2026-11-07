@@ -84,7 +84,7 @@ CASES = {
     "P": body(surface_temperature_k=250.0, hydrosphere="ice", ocean_fraction=0.4, band1_mean_k=235.0, band4_mean_k=276.0),
     "B": body(gravity_g=0.3, mass_earth=0.04, surface_temperature_k=450.0, hydrosphere="dry", ocean_fraction=0.0),
     "E": body(surface_temperature_k=200.0, hydrosphere="ice", ocean_fraction=0.5, atmospheric_pressure_pa=6000.0),
-    "F": no_oxygen(surface_temperature_k=300.0, share_ch4=0.2, share_co2=0.5, p_n2_kpa=10.0, p_ar_kpa=0.0),
+    "F": no_oxygen(surface_temperature_k=300.0, share_ch4=0.2, share_co2=0.05, p_n2_kpa=10.0, p_ar_kpa=0.0),
     "G": body(share_co2=0.5, p_o2_kpa=0.0),
     "O": body(ocean_fraction=0.97, surface_temperature_k=305.0, relative_humidity=0.55),
     "H": body(ocean_fraction=0.02, hydrosphere="dry", surface_temperature_k=300.0, relative_humidity=0.2, groundwater="reachable"),
@@ -192,6 +192,10 @@ def test_the_function_is_pure_total_and_the_same_from_an_object():
             self.atmospheric_pressure, self.hydrosphere, self.ocean_fraction = 101325.0, "surface ocean", 0.7
             self.water_mass_fraction, self.flux_variation = 2.3e-4, 0.0
             self.gas_partials_pa = {"O2": 21200.0, "N2": 78800.0}
+            self.relative_humidity, self.groundwater = 0.6, "reachable"
+            for number in range(1, pc.BAND_COUNT + 1):      # the latitude bands the regional, day and night temperatures of a class read (GEN.1221)
+                setattr(self, f"band{number}_mean_k", 288.0)
+                setattr(self, f"band{number}_swing_k", 5.0)
 
     assert pc.classify(Planet()) == "M"
 

@@ -113,7 +113,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
         """
         self.system_config = system_config
         self._init_salad_name(name)  # drawn on first read (PERF.43)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        self.name_given = bool(name)  # a given name is kept over an Object ID name (GEN.1256)
 
         self.mass_bin = "brown-dwarf"
         # GEN.252: the substellar mass function of the 20 pc census [R2374], not log-uniform.

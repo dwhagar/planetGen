@@ -18,15 +18,21 @@ Usage:
     python3 -I examples/apache/deploy-paths.py <repo-dir>
     python3 -I examples/apache/deploy-paths.py --move-old-jobs <jobs-dir>
     python3 -I examples/apache/deploy-paths.py --remove-galaxy-settings <jobs-dir>
+    python3 -I examples/apache/deploy-paths.py --check <cache|jobs|log_dir|log_file> <path> <repo-dir> [<user> <group>]
 
 The third form (ADM.50) deletes the `galaxy-settings` folder of creation-settings files that
 older versions kept inside the jobs directory; the galaxy's record lives in the database now.
+
+The `--check` form (SEC.44) asks `rootpaths.py` whether root may create, own or write into a folder or file that
+config.json named: exit 0 when it may, 1 with the reason on stderr when it may not. config.json is the web user's file, so
+the other forms are only run on a path that passed it (a path from root's own environment passes without a look).
 
 The second form (OPS.19) moves Generate jobs from the old default,
 `OLD_JOBS_DIR`, into `<jobs-dir>` when that is the new default, and says
 what it did.
 """
 
+import importlib.util
 import json
 import os
 import shutil
@@ -46,6 +52,31 @@ OLD_SETTINGS_DIR_NAME = "galaxy-settings"
 LOCK_NAME = "active"
 """The running job's lock file in the old jobs directory, as it was before the lock moved to Redis (PERF.154): its first
 line is the job's id. Only the old folder is read for it."""
+
+
+def load_rootpaths():
+    """`rootpaths.py` from beside this file (a -I script has no import path of its own)."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rootpaths.py")
+    spec = importlib.util.spec_from_file_location("planetgen_rootpaths", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def check_path(label, path, repo_dir, user=None, group=None):
+    """
+    Whether root may use `path` (SEC.44).
+
+    Returns:
+        str: Empty when it may, else why not.
+    """
+    rootpaths = load_rootpaths()
+    uid, gid = rootpaths.web_identity(user, group)
+    try:
+        rootpaths.check(path, label, uid, gid, extra_parents=(os.path.realpath(repo_dir), os.path.abspath(repo_dir)))
+    except rootpaths.UnsafePath as exc:
+        return str(exc)
+    return ""
 
 
 def load_config(repo_dir):
@@ -177,6 +208,12 @@ def main(argv):
     if len(argv) == 3 and argv[1] == "--move-old-jobs":
         for line in move_old_jobs(argv[2]):
             print(line)
+        return 0
+    if len(argv) in (5, 7) and argv[1] == "--check":
+        why = check_path(argv[2], argv[3], argv[4], *(argv[5:7] or (None, None)))
+        if why:
+            print(f"refused: {why}", file=sys.stderr)
+            return 1
         return 0
     if len(argv) != 2:
         print("usage: python3 -I deploy-paths.py <repo-dir>", file=sys.stderr)

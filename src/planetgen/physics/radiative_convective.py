@@ -257,8 +257,10 @@ def _cp_over_r(formula):
 class Column:
     """An air cut into layers: its geometry, its composition and the pieces of the thermodynamics the solver needs."""
 
-    def __init__(self, partial_pressures_pa, gravity_m_s2, layers=LAYERS, water_fraction=None, cloud=None):
+    def __init__(self, partial_pressures_pa, gravity_m_s2, layers=LAYERS, water_fraction=None, cloud=None, saturated=False, clear_sky=False):
         self.cloud = cloud
+        self.saturated = saturated
+        self.clear_sky = clear_sky
         self.fixed_water = None if water_fraction is None else np.asarray(water_fraction, dtype=float)
         fractions = mixture.mole_fractions(partial_pressures_pa)
         self.gravity = gravity_m_s2
@@ -376,7 +378,7 @@ class Column:
         if self.water_surface <= 0.0:
             return np.zeros(self.layers)
         saturated_surface = float(saturation_pressure_pa(surface_temperature))
-        shape = np.clip((self.layer_pressure / self.surface_pressure_pa - HUMIDITY_TOP) / (1.0 - HUMIDITY_TOP), 0.0, None)
+        shape = np.ones(self.layers) if self.saturated else np.clip((self.layer_pressure / self.surface_pressure_pa - HUMIDITY_TOP) / (1.0 - HUMIDITY_TOP), 0.0, None)
         if math.isfinite(saturated_surface):
             humidity = min(1.0, self.water_surface * self.surface_pressure_pa / saturated_surface)
             saturated = saturation_pressure_pa(layer_temperature)
@@ -402,8 +404,8 @@ class Column:
 
     def cloud_share(self, surface_temperature):
         """The share of the clear-sky outgoing flux the cloud keeps in (stand-in IR12): `CLOUD_LONGWAVE_SHARE` at the humidity of the Earth, in proportion to the
-        surface humidity, nil where the air holds no water vapor."""
-        if self.water_surface <= 0.0:
+        surface humidity, nil where the air holds no water vapor (and nil in a `clear_sky` column, the air of the published runaway limits)."""
+        if self.water_surface <= 0.0 or self.clear_sky:
             return 0.0
         if not self.dry:
             return CLOUD_LONGWAVE_SHARE / EARTH_HUMIDITY
@@ -632,7 +634,7 @@ def sunlight_aloft(column, absorbed_w_m2, share, pressure_pa):
 
 
 def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.0, aloft_pressure_pa=None, layers=LAYERS,
-          water_fraction=None, cloud=None):
+          water_fraction=None, cloud=None, saturated=False, clear_sky=False):
     """
     The radiative-convective state of an air under an absorbed flux.
 
@@ -648,6 +650,10 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
             the humidity profile (a previous solution's `water_fraction`: the experiment of a change with the vapor fixed).
         cloud (tuple or None): `(tau_550, radius_um)` of a sulfuric acid cloud (`sulfuric_cloud.of_draw`): its depth at 550 nm and droplet radius.
             Its infrared opacity (`cloud_infrared`) sits in the layers between the level cooler than the cloud base temperature and its top.
+        saturated (bool): Hold the relative humidity at the surface's value up the whole troposphere (to the cold trap) instead of Manabe and
+            Wetherald's, which falls to nothing aloft: the saturated air the published runaway limits are worked for (Simpson 1928, Nakajima and
+            others 1992, Kasting 1988, Goldblatt and others 2013 [R1607], Kopparapu and others 2013 [R2447]). Stand-in IR17.
+        clear_sky (bool): Leave out the longwave effect of the cloud (`CLOUD_LONGWAVE_SHARE`, IR12): the clear-sky outgoing flux those limits are.
 
     Returns:
         Solution: Its `converged` is False when the search for the surface temperature did not reach a balance (for example when the sunlight
@@ -659,7 +665,7 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
     for name, value in (("gravity_m_s2", gravity_m_s2), ("absorbed_flux_w_m2", absorbed_flux_w_m2)):
         if not (value > 0.0 and math.isfinite(value)):
             raise ValueError(f"{name} must be a positive number, not {value!r}")
-    column = Column(partial_pressures_pa, gravity_m_s2, layers, water_fraction, cloud)
+    column = Column(partial_pressures_pa, gravity_m_s2, layers, water_fraction, cloud, saturated, clear_sky)
     heating = None
     if aloft_share > 0.0:
         if aloft_pressure_pa is None or not aloft_pressure_pa > 0.0:

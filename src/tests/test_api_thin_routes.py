@@ -413,3 +413,14 @@ def test_galaxy_made_lists_sectors_created_in_a_window(client, mysql_config):
     assert {(i["shell_index"], i["band_index"], i["wedge_index"]) for i in body["items"]} == {(30, 0, 0), (30, 0, 5)}
     assert client.get(f"/api/galaxy/made?since={now + 3600}").get_json() == {"total": 0, "items": []}
     assert client.get("/api/galaxy/made?since=soon").status_code == 400
+
+
+@pytest.mark.parametrize("spelling", ["nan", "NaN", "inf", "-inf", "Infinity", "-Infinity", "+inf"])
+def test_galaxy_made_and_the_cloud_volume_refuse_numbers_that_are_not_finite(client, spelling):
+    """SEC.41: `float()` takes "nan" and "inf"; they used to reach MySQL as parameters and answer an anonymous 500."""
+    for query in (f"since={spelling}", f"since=1&until={spelling}"):
+        response = client.get(f"/api/galaxy/made?{query}")
+        assert response.status_code == 400, query
+        assert "numbers" in response.get_json()["error"]
+    for query in (f"x={spelling}&y=2&z=3&radius_pc=4&family=diffuse", f"x=1&y=2&z=3&radius_pc={spelling}&family=diffuse"):
+        assert client.get(f"/api/galaxy/cloud-volume?{query}").status_code == 400, query

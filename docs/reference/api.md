@@ -1031,6 +1031,9 @@ forced credential change. They back the admin stats page
   "seconds"}]}}`. `index` is the object index as its last runs recorded it (PERF.140). A phase's `state` is `waiting`, `running`, `built`, `unchanged`, `stopped`,
   `nothing`, `failed` or `interrupted` (null before any run); `auto` says whether a change starts the warm-up by itself,
   which changes it waits to warm for, and the process that holds it.
+- `GET /api/admin/work/held` — the jobs held for a job they require (PERF.247, PERF.248):
+  `{"total", "items": [{"id", "queue", "label", "waits_for", "run", "stage"}]}`, the first 100. `waits_for` lists the
+  required jobs not done yet; `run` and `stage` are set for a unit of a run. A job that requires nothing is never listed.
 - `GET /api/admin/work/workers` and `POST /api/admin/work/workers`
   `{"count": n}` or `{"ludicrous": true}` — the bulk queue's worker count
   (ADM.15, PERF.95). `{"wanted", "live", "ludicrous", "cpus"}`: the count
@@ -1126,6 +1129,17 @@ forced credential change. They back the admin stats page
   settings writer, so it is backed up and audited as `config.update`.
   `DELETE /api/admin/images/<kind>` resets the setting and removes the
   file when no other setting names it. At most 1 MiB a picture.
+- `GET /api/admin/update` — the admin Update button (SEC.43): `{"state", "installed", "can_request", "reason", "log",
+  "log_modified", "stale_request", "outcome", "outcome_detail", "can_ask", "needs_password", "owner_minutes"}`. `state` is `not_installed` (the
+  root-owned `planetgen-update.path` is missing), `idle`, `requested` (the request file waits) or `running` (the update
+  guard's lock is held, or the site is still closed by an update); `log` is the end of `update.log`. With no update waiting
+  or running, `outcome` is `failed` (the service is in `failed`, or the log's last run ended in an error line), `done`
+  (the log's last run reached its closing line) or `null`, and `outcome_detail` says why (UX.284). A signed-in session
+  only (an API key gets 403). `POST /api/admin/update` `{}` asks root to run `update.sh`: it creates the empty file
+  `update.request` in the state folder and nothing else, so no value from the request reaches the command. Only the
+  Owner whose password was typed within `owner_minutes` may (403 with `needs_password`; `POST /api/auth/confirm-password`
+  opens the window); a press while an update runs is accepted and runs after it, a second while a request waits is a
+  409; answers 202 with the state. Audited as `update.request`; 6 requests an hour.
 - `GET /api/admin/lockouts` — every address and username locked right
   now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
   "level"}], "proxy_warning"}`. `proxy_warning` is true when the site

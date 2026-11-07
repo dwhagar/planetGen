@@ -52,6 +52,10 @@ def main(argv=None):
 
 def _build(args, config):
     """The whole-map build itself; the exit status."""
+    from planetgen.cli import warm
+    if warm.galaxy_is_empty(config.database):       # OPS.114: right after a New galaxy wipe there is no map to build
+        warm.say_galaxy_is_empty()
+        return 0
     try:
         updateguard.refuse_while_updating("The whole-map build")
     except updateguard.UpdateRunning as exc:

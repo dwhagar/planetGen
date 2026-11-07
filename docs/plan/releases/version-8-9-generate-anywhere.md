@@ -47,7 +47,6 @@ Generation without a database, uploads, verification and the incomplete uploads 
 | ADM.13 | Incomplete uploads page | API.10, API.8 |  |
 | API.30 | generate.py --remote: the client driver for sector and galaxy runs | API.5, API.12, API.13, API.14, API.8 | Split from API.3. |
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | API.10, API.14, API.8 | Split from API.3. |
-| ADM.136 | A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug) |  |  |
 | API.3 | Remote generate: generate on a local machine, upload through the API | API.30, ADM.95 | Parent; remote mode mirrors the CLI options GEN.51/52 settle. |
 | API.17 | Remote generation reproduces what the server would make | API.12, API.13, API.8 |  |
 
@@ -63,7 +62,6 @@ Generation without a database, uploads, verification and the incomplete uploads 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.204 | An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2) |  |  |
-| PERF.195 | Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5) | PERF.197 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
 | PERF.197 | Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain PERF.195, Boss 10:35 PM EDT. |
 
 ## Phase 3: Backup parts and restore

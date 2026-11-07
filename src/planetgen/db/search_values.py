@@ -27,6 +27,7 @@ mass, luminosity, age and temperature of a star (`mass` is the key of all three:
 
 import dataclasses
 import math
+import re
 
 from planetgen.db import column_units
 from planetgen.physics import gases, unit_registry
@@ -92,8 +93,16 @@ def _moon_count(entity, alias):
     return f"(SELECT COUNT(*) FROM moons mc WHERE mc.planet_id = {alias}.id)"
 
 
+_FORMULA = re.compile(r"[A-Za-z0-9()+\-]+")
+"""A gas formula as the fixed `gases.GASES` table writes it (SEC.42): nothing that could end a quoted SQL string."""
+
+
 def _gas(formula):
-    quoted = formula.replace("'", "''")
+    # The formulas come from the fixed table, never from a request, and the expression below is SQL text, so it is checked here
+    # instead of trusting the doubling of single quotes (a backslash would defeat that in MySQL's default mode).
+    if not _FORMULA.fullmatch(formula):
+        raise ValueError(f"a gas formula must be letters, digits, brackets, + and -; got {formula!r}")
+    quoted = formula
 
     def expression(entity, alias):
         table, owner = ("planet_gases", "planet_id") if entity == "planet" else ("moon_gases", "moon_id")

@@ -116,7 +116,8 @@ def test_warm_once_keeps_a_record_of_the_run_and_the_reason_a_change_gave(path, 
         record.families = 1
 
     monkeypatch.setattr(warm_cli, "_warm_run", run)
-    warm_cli._warm_once(SimpleNamespace(), reason="orbits")
+    monkeypatch.setattr(warm_cli, "galaxy_is_empty", lambda _database: False)       # OPS.114: this run is about its record, not an empty galaxy
+    warm_cli._warm_once(SimpleNamespace(database="planetgen"), reason="orbits")
     lines = _lines(path)
     assert lines[0].endswith("Cache warm-up started (after a change: orbits)") and lines[1].endswith("one family warmed")
     assert lines[2].endswith("(1 family)") and "finished" in lines[2]

@@ -115,7 +115,10 @@ def test_the_life_model_and_the_index_answer_the_same_on_every_letter_for_every_
 def test_the_sweep_holds_life_capable_conditions_so_the_letters_are_tried_on_them(everything):
     capable = rules.capable_by_class(everything)
     assert sum(ok for _, ok in capable.values()) >= 50
-    assert len([letter for letter, (_, ok) in capable.items() if ok]) >= 10
+    # 12 letters held life-capable bodies before train 13 and 9 do after it (F, N and Z each lost their one or few: the sweep's
+    # bodies moved with epoch 135, GEN.1304's greenhouse refit among the changes); the rule only needs the letters to be tried on
+    # several kinds of capable conditions, so the floor is 8.
+    assert len([letter for letter, (_, ok) in capable.items() if ok]) >= 8
 
 
 @pytest.fixture(scope="module")

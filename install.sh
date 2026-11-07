@@ -52,10 +52,12 @@
 #      missing. On macOS, installs and starts the gunicorn launchd daemon
 #      (examples/macos/org.planetgen.gunicorn.plist) instead. Steps 3 and
 #      5 come from scripts/deploy-common.sh, which update.sh shares.
-#   6. Runs `examples/apache/set-permissions.sh`: the whole checkout and its
-#      state directory (/var/lib/planetGen/state, made if missing) are
-#      owned by Apache's worker user and group (www-data:www-data), with
-#      the same modes update.sh sets. The virtual environment stays root's.
+#   6. Runs `examples/apache/set-permissions.sh` (SEC.37): the code belongs to
+#      root and is read-only to Apache's user; the state directory
+#      (/var/lib/planetGen/state, made if missing, and holding config.json)
+#      and the jobs directory are owned by Apache's worker user and group
+#      (www-data:www-data), with the same modes update.sh sets. The virtual
+#      environment stays root's.
 #   7. Runs `examples/apache/create-cache-dir.sh` to create the Galaxy Map's
 #      on-disk tile cache (`tile_cache.dir` in config.json, default
 #      /var/cache/planetgen/tiles) owned by Apache's worker user.
@@ -172,8 +174,11 @@ else
     ensure_apache_modules
 fi
 
-log_stage 6 8 "Setting ownership/permissions: the checkout belongs to Apache's user"
-# Includes config.json (DB password, secret_key): the web user's, mode 640.
+log_stage 6 8 "Setting ownership/permissions: the code belongs to root, read-only to Apache's user"
+# SEC.37: the web user cannot write __pycache__ here, so compile as root. config.json (DB password, secret_key) moves into
+# the state folder (the web user's, mode 640); the checkout's config.json becomes a link to it.
+"$PYTHON" -m compileall -q "$SCRIPT_DIR/src" >/dev/null 2>&1 \
+    || log_warning "compiling the bytecode failed; the web app still runs, a little slower to start."
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
 log_stage 7 8 "Creating the Galaxy Map tile cache directory"
@@ -191,6 +196,9 @@ check_app_imports
 log_info "Checking the Redis server (config.json's redis.url):"
 ensure_redis
 check_redis_settings
+
+# OPS.110: the maintenance timers and (SEC.43) the admin Update button's units, rendered for this checkout and venv (Linux, systemd).
+install_maintenance_units || log_warning "the maintenance units were not all set up (see above); the deploy carries on."
 
 if is_macos; then
     log_lines notice <<EOF

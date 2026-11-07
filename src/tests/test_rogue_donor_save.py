@@ -204,12 +204,15 @@ def test_a_changed_row_of_a_rogue_planets_child_tables_changes_the_digest_of_the
     conn, sector_id, address = saved
     rogue = conn.execute("SELECT id FROM rogue_planets ORDER BY id LIMIT 1").fetchone()["id"]
     minimal = {"rogue_planet_reflection_spectrum": "(rogue_planet_id, spectrum_type, position, value) VALUES (?, 'visible', 0, 'blue')",
+               "rogue_planet_interior_layers": "(rogue_planet_id, layer_index, kind, state, top_pressure_gpa, bottom_pressure_gpa, mass_earth, top_radius_fraction, "
+                                               "bottom_radius_fraction, hydrogen, helium, iron, rock, water_liquid, ice_x, nh3_ice, ch4_ice) "
+                                               "VALUES (?, 0, 'rock_core', 'molten', 0, 10, 0.1, 0.5, 1, 0, 0, 0.3, 0.7, 0, 0, 0, 0)",
                "rogue_planet_life_class_scores": "(rogue_planet_id, life_class, score) VALUES (?, 'A1', 3)"}
     seen = set()
     for table, change in CHILD_CHANGES.items():
         row = conn.execute(f"SELECT t.id AS id, r.sector_id AS sector_id FROM {table} t JOIN rogue_planets r ON r.id = t.rogue_planet_id "
                            f"ORDER BY t.id LIMIT 1").fetchone()
-        if row is None:             # this donor's rogues hold no row of the table (a rock with no air has no gases): give the first rogue one
+        if row is None:             # this donor's rogues hold no row of the table (a rock with no air has no gases, a small icy body no layers): give the first rogue one
             with conn:
                 conn.execute(f"INSERT INTO {table} {minimal[table]}", (rogue,))
             row = conn.execute(f"SELECT t.id AS id, r.sector_id AS sector_id FROM {table} t JOIN rogue_planets r ON r.id = t.rogue_planet_id "

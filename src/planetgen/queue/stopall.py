@@ -264,7 +264,7 @@ def _cancel_runs(connection, who):
 def _empty_queues(connection):
     import rq
 
-    from planetgen.queue import redisqueue
+    from planetgen.queue import redisqueue, requires
 
     removed = 0
     names = {queue.name for queue in rq.Queue.all(connection=connection)}
@@ -274,6 +274,7 @@ def _empty_queues(connection):
             queue = redisqueue.queue(name, connection)
             removed += queue.count
             queue.empty()
+            removed += requires.drop_held(connection, name)      # PERF.247: the jobs held for a requirement are dropped with it
         except Exception:       # noqa: BLE001 -- the other queues are still emptied
             pass
     return removed

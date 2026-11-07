@@ -1322,6 +1322,20 @@ def admin_image_remove(cookie_header, kind):
     return body
 
 
+def admin_update(cookie_header):
+    """`GET /api/admin/update` -- the Update button's state, log tail and whether this caller may press it (SEC.43)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/update", cookie_header=cookie_header)
+    return body
+
+
+def admin_update_request(cookie_header):
+    """`POST /api/admin/update` -- asks root to run `update.sh` (SEC.43); 403 unless the Owner typed the password
+    recently, 409 while an update is waiting or running."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/update", cookie_header=cookie_header,
+                                              json_body={})
+    return body
+
+
 def admin_backups(cookie_header):
     """`GET /api/admin/backups` -- the backup archives, newest first, with their parts (ADM.85)."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/backups", cookie_header=cookie_header)
@@ -1401,6 +1415,12 @@ def admin_work_warm(cookie_header, database):
     """`GET /api/admin/work/warm?database=` -- what the cache warm-up has done on `database`, phase by phase (PERF.141)."""
     body, _set_cookie_headers = _auth_request("GET", f"/admin/work/warm?{_build_query({'database': database})}",
                                               cookie_header=cookie_header)
+    return body
+
+
+def admin_work_held(cookie_header):
+    """`GET /api/admin/work/held` -- the jobs held for a job they require (PERF.248): `{"total", "items"}`."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/work/held", cookie_header=cookie_header)
     return body
 
 

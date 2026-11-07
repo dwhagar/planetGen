@@ -702,13 +702,22 @@ def sector_gravity(sector_id):
     """
     The Sector Map's gravity layer data (MAP.168): `GET /api/sectors/<id>/gravity` for `?mode=pull|depth|tidal` and `?field=total|centered|local`, as JSON for the
     map. A grid still being worked out answers `202` and `{"building": true}`; the map asks again in a few seconds (the API queues one job for it, not one
-    per ask). A mode or field that is not one of those is a `400`.
+    per ask). A mode or field that is not one of those is a `400`; a galaxy with no shape yet is a `409` (MAP.405: "not computed yet", not a 502).
     """
     mode = request.args.get("mode", "pull")
     field = request.args.get("field", "total")
     if mode not in GRAVITY_MODES or field not in ("total", "centered", "local"):
         return jsonify({"error": "mode must be pull, depth or tidal and field total, centered or local"}), 400
-    grid = apiclient.get_sector_gravity(db_name(), sector_id, mode, field)
+    try:
+        grid = apiclient.get_sector_gravity(db_name(), sector_id, mode, field)
+    except apiclient.ApiError as exc:
+        if exc.status_code != 409:
+            raise
+        # MAP.405: a galaxy with no shape yet has no gravity to work out; say so (a conflict, 409), not that the data could not be loaded (502)
+        response = jsonify({"error": "The gravity layer is not computed yet: the galaxy has no shape yet.", "notComputed": True})
+        response.status_code = 409
+        response.headers["Cache-Control"] = "no-store"
+        return response
     if "values" not in grid:
         response = jsonify({"building": True})
         response.status_code = 202

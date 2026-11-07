@@ -51,7 +51,6 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.285 | Nuclear mass components in the galactic potential for the orbital update |  | Core 3; step 5 of the galactic core note; moved from 8.1 (no potential module until GEN.338); Boss 8:41 PM EDT: stays in 8.3. |
 
 ## Phase 2: The update itself
 
@@ -61,20 +60,17 @@ N-body influence, collisions, encounters and the Quantity class.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) |  | Research follow-up to GEN.106 (built). |
 | GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded |  | Split from GEN.115. |
-| GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | GEN.139 | Split from GEN.115. |
-| GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.339, GEN.340 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
+| GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.339 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
 | VIEW.46 | The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes | GEN.115 |  |
-| GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | GEN.340 |  |
+| GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) |  |  |
 | GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter |  | Split from GEN.109. |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs |  | Split from GEN.109. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.343, GEN.344 |  |
-| GEN.197 | Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split |  |  |
-| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | GEN.197 | Split from GEN.110. |
+| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events |  | Split from GEN.110. |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.346 |  |
 | GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.343 |  |
-| GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.290, GEN.343, GEN.346, GEN.197 |  |
+| GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.290, GEN.343, GEN.346 |  |
 | GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110, GEN.290, GEN.291 | Parent of the orbital update work. |
 
 ### The Quantity class
@@ -94,8 +90,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | USR.3, GEN.344 | Needs USR.3's SMTP settings. |
 | GEN.347 | The last-collisions admin view and the test that runs the whole collision path | GEN.346 | Split from GEN.143. |
-| GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | GEN.347 | Research: makes the collision code testable. |
-| GEN.1293 | The orbital update runs registered steps: another domain (population, politics, trade) registers a step that receives the galaxy time step dt and a named draw stream, and the run calls them in a fixed order | GEN.139 |  |
+| GEN.1293 | The orbital update runs registered steps: another domain (population, politics, trade) registers a step that receives the galaxy time step dt and a named draw stream, and the run calls them in a fixed order | GEN.105 |  |
 
 ### Long steps
 
@@ -110,15 +105,14 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential |  | Gravity map foundation (Boss 2026-10-10). |
-| GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
+| GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198 |  |
 
 ### What moved in the last update
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | GEN.212, GEN.340 | Split from MAP.192. Core 1 owns migrations. |
+| DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | GEN.212 | Split from MAP.192. Core 1 owns migrations. |
 | MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | DB.57 | Split from MAP.192. |
-| MAP.192 | See the objects whose positions changed in the last orbital update | DB.57, MAP.216 |  |
 
 ## Phase 4: World population
 

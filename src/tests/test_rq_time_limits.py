@@ -25,7 +25,7 @@ import time
 import pytest
 import rq
 
-from planetgen.queue import api_jobs, redisqueue, units, workers
+from planetgen.queue import allowlist, api_jobs, redisqueue, units, workers
 from planetgen.web import job_runner, jobs
 from planetgen.web.lib import tileprefetch
 
@@ -152,9 +152,12 @@ def test_no_site_passes_a_negative_or_missing_limit():
 
 # --- A job over its limit ---------------------------------------------------------------------------------
 
-def test_a_job_over_its_limit_is_ended_and_reported_failed(own_queue):
+def test_a_job_over_its_limit_is_ended_and_reported_failed(own_queue, monkeypatch):
+    """TEST.667: the worker reads the queue's JSON serializer and refuses a function off the list (SEC.39, SEC.45), so it is built as `cli/worker.py` builds
+    one and `time.sleep` is added to its list the way the suite does (`allowlist.EXTRA_ENV`)."""
+    monkeypatch.setenv(allowlist.EXTRA_ENV, "time:sleep")
     job = own_queue.enqueue(time.sleep, 30, job_timeout=1, result_ttl=0, failure_ttl=60)
-    rq.SimpleWorker([own_queue], connection=own_queue.connection).work(burst=True)
+    rq.SimpleWorker([own_queue], connection=own_queue.connection, serializer=redisqueue.JsonSerializer, job_class=allowlist.GuardedJob).work(burst=True, logging_level="CRITICAL")
     job.refresh()
     assert job.get_status() == "failed" and "maximum timeout value (1 seconds)" in job.latest_result().exc_string
 

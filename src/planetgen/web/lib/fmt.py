@@ -206,7 +206,7 @@ def _static_fingerprint():
     now = time.monotonic()
     if now - _fingerprint_cache["at"] < STATIC_FINGERPRINT_TTL_SECONDS:
         return _fingerprint_cache["value"]
-    digest = hashlib.sha1()
+    digest = hashlib.sha1(usedforsecurity=False)
     try:
         for folder, names, files in os.walk(_STATIC_DIR):
             names.sort()

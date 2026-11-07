@@ -104,7 +104,7 @@ def _event(donor, **over):
     from planetgen.generation import ejection_events
     fields = dict(donor_uid="u", index=0, mass_kg=300.0 * EARTH_KG, core_kg=10.0 * EARTH_KG, formation_au=5.0, distance_au=5.0, perturber_au=3.0,
                   perturber_mass_kg=3000.0 * EARTH_KG, ice_rich=True, delay_gy=0.5, age_gy=donor.age, since_ejection_gy=donor.age - 0.5,
-                  kick_km_s=(1.0, 0.0, 0.0), orbital_velocity_km_s=(0.0, 1.0, 0.0), moon_limit_km=2.0e6)
+                  kick_km_s=(1.0, 0.0, 0.0), orbital_velocity_km_s=(0.0, 1.0, 0.0), moon_limit_km=2.0e6, cause="thrown")
     fields.update(over)
     return ejection_events.EjectionEvent(**fields)
 

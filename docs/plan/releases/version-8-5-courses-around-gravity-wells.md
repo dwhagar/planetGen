@@ -54,7 +54,6 @@ Showing courses on the maps and bending them around keep-out spheres.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy |  | Research: decides the overlap policy. |
-| NAV.6 | Courses that steer clear of gravity wells |  | Parent; closes with its subitems. |
 
 ### Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05)
 
@@ -77,7 +76,6 @@ Showing courses on the maps and bending them around keep-out spheres.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.62 | Aspect catalogue for systems, stars, planets, moons and belts: every stored field and every generation input, with how they depend on each other |  |  |
-| ADM.63 | Aspect catalogue for phenomena: black holes, neutron stars, nebulae, remnants, rogue planets, comets, asteroid fields and quasars | ADM.62 |  |
 | ADM.64 | Keep-or-regenerate resolution: from the admin's marks to the exact set of aspects redrawn | ADM.62 |  |
 | API.28 | Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects | ADM.62, ADM.64 | Shared with 8.9 (API.18, API.19) |
 
@@ -91,7 +89,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
+| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
 
 ## Phase 4: Trade routes
 
@@ -103,8 +101,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| POP.32 | Trade partners: which spaceports trade with which, by the gravity model on population and distance, with a cap per port and hubs | POP.21, POP.30, DB.105 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
-| POP.33 | Generate the trade routes: a hop-based run on the navigation graph between each pair of spaceports, saved in the one global route list | POP.32 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
+| POP.33 | Generate the trade routes: a hop-based run on the navigation graph between each pair of spaceports, saved in the one global route list |  | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | POP.34 | The global trade route list: a page and an API every account can read, with filters by polity, route length, hop count and spaceport | POP.33 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | POP.33, POP.34, DB.105 |  |
 | MAP.309 | Star map filter for trade routes: draw the routes as paths on the Galaxy Map, filtered by polity, length or hop count | POP.34 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |

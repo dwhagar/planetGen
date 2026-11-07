@@ -143,6 +143,15 @@ def _wait_while_closed(gate, label):
         log.normal(f"{label} goes on after {waited:.1f} s.")
 
 
+def begin_read_committed(conn):
+    """
+    Starts a transaction at READ COMMITTED (DB.113, DB.114): the Object ID step of the scatter tables (`scatter_uids.assign`) reads every row that
+    has no ID yet, and at the default level that read takes locks that meet the other writers'. Call it first in an `attempt`.
+    """
+    conn.commit()           # a connection that just read has a transaction open, and MySQL refuses the next line inside one
+    conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+
+
 def run_with_retries(conn, attempt, gate, label, attempts=ATTEMPTS, gate_object=None):
     """
     Runs `attempt(conn)` (one whole transaction, committed at its end) and returns what it returns, trying again after a deadlock or lock wait

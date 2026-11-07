@@ -15,7 +15,7 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, runcontrol, runrecord, runview, stopall, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, requires, runcontrol, runrecord, runview, stopall, warmphases, work as workQueue, workers as queueWorkers
 
 from .authz import audit, require_admin
 from .common import ApiError, require_json_body
@@ -261,6 +261,14 @@ def workers_state():
     """`GET /api/admin/work/workers` -- `wanted` (the bulk worker count), `live` (bulk workers running now),
     `ludicrous` (the count "Ludicrous Speed" sets) and `cpus` (ADM.15)."""
     return jsonify(_workers_state(_redis()))
+
+
+@bp.route("/held", methods=["GET"])
+@require_admin()
+def held_jobs():
+    """`GET /api/admin/work/held` -- the jobs held for a job they require (PERF.247, PERF.248): `{"total", "items": [{"id", "queue",
+    "label", "waits_for", "run", "stage"}]}`, the first 100; a job that requires nothing is never here."""
+    return jsonify(requires.held_overview(_redis()))
 
 
 @bp.route("/workers", methods=["POST"])

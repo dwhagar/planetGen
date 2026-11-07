@@ -29,11 +29,12 @@ import math
 import time
 
 from planetgen import tuning
-from planetgen.db import chart_ledger, sky_tier_ledger, store
+from planetgen.db import chart_ledger, contention, sky_tier_ledger, store
 from planetgen.galaxy import sky_band
 from planetgen.galaxy.density import relative_density
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars, scatter_companions, sky_tiers
+from planetgen.util import detmath
 
 CELL_PAD_PC = sky_band.CELL_PC * math.sqrt(3.0) / 2.0
 """float: What every radius is padded by: the half diagonal of the observer's cell, so a system anywhere in it is inside the sphere (stand-in SKT7 in 6.176)."""
@@ -275,23 +276,30 @@ def draw_tier(context, tier, center, *, generator_epoch=None, on_batch=None, led
         if walked <= done:
             continue                                   # written by the draw this one goes on from
         # The cells that hold a star here are locked, as a sector backfill locks the cells it draws, so the two never draw one at once; each gets the depth its tier reached.
-        entries = []
-        for address in addresses:
-            density = max(relative_density(sector_position_pc(*address, context.edge_pc), context.skeleton.shape), 0.0)
-            entries.append((address, density, density * context.expected))
-        locked = store.lock_sector_stats(conn, entries)
-        masses = store.sector_bright_masses(conn, addresses, current=True)
-        states = cell_states(context, ledger, addresses, locked, masses)
-        rows, reached = make_rows(context, tier, addresses, work, states)
-        scatter_companions.insert_bright_stars(conn, rows)
-        if tier.ledger == sky_tier_ledger.LUMINOSITY:
-            store.set_sector_bright_levels(conn, reached)
-        else:
-            store.set_sector_bright_masses(conn, {address: (mass, context.own_level(address, locked)) for address, mass in reached.items()})
+
+        def batch(c):
+            """One batch as one transaction (DB.114): locks, draws, writes the stars with their IDs and the levels, advances the ledger and commits; it keeps nothing between tries."""
+            contention.begin_read_committed(c)
+            entries = []
+            for address in addresses:
+                density = max(relative_density(sector_position_pc(*address, context.edge_pc), context.skeleton.shape), 0.0)
+                entries.append((address, density, density * context.expected))
+            locked = store.lock_sector_stats(c, entries)
+            masses = store.sector_bright_masses(c, addresses, current=True)
+            states = cell_states(context, ledger, addresses, locked, masses)
+            rows, reached = make_rows(context, tier, addresses, work, states)
+            scatter_companions.insert_bright_stars(c, rows)
+            if tier.ledger == sky_tier_ledger.LUMINOSITY:
+                store.set_sector_bright_levels(c, reached)
+            else:
+                store.set_sector_bright_masses(c, {address: (mass, context.own_level(address, locked)) for address, mass in reached.items()})
+            sky_tier_ledger.advance(c, draw_id, walked, stars + len(rows), spent + time.perf_counter() - started)
+            c.commit()
+            return rows, states
+
+        rows, states = contention.run_with_retries(conn, batch, gate="scatter-ids", label="Sky charting batch")
         stars += len(rows)
         cells += len(states)
-        sky_tier_ledger.advance(conn, draw_id, walked, stars, spent + time.perf_counter() - started)
-        conn.commit()
         if on_batch is not None:
             on_batch(walked, len(states), len(rows))
     seconds = spent + time.perf_counter() - started
@@ -313,7 +321,7 @@ def built_to_pc(conn, observer_pc):
     if scatter is None or not ledger:
         return 0.0
     observer = tuple(float(c) for c in observer_pc)
-    holding = sky_tier_ledger.Ledger(d for d in ledger.draws if math.dist(d.center, observer) < d.radius_pc)
+    holding = sky_tier_ledger.Ledger(d for d in ledger.draws if detmath.dist(d.center, observer) < d.radius_pc)
     if not holding:
         return 0.0
     if holding.sphere_reached(sky_tier_ledger.LUMINOSITY, observer, 0.0, float(scatter[0])) > sky_tiers.RING_TOP_SOL + sky_tier_ledger.EDGE_TOLERANCE:
@@ -321,7 +329,7 @@ def built_to_pc(conn, observer_pc):
     mass_limit = store.bright_star_mass_limit(conn)
     if mass_limit is not None and holding.sphere_reached(sky_tier_ledger.MASS, observer, 0.0, mass_limit) > min(sky_tiers.ring_edges()) + sky_tier_ledger.EDGE_TOLERANCE:
         return 0.0
-    return max(d.radius_pc - math.dist(d.center, observer) for d in holding.draws)
+    return max(d.radius_pc - detmath.dist(d.center, observer) for d in holding.draws)
 
 
 def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, tiers=None, center=None):

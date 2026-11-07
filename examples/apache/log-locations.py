@@ -44,6 +44,15 @@ IS_MACOS = sys.platform == "darwin"
 UPDATE_HINT = "sudo ./update.sh"
 
 
+def load_rootpaths():
+    """`rootpaths.py` from beside this file (SEC.44: which paths from config.json root may use)."""
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rootpaths.py")
+    spec = importlib.util.spec_from_file_location("planetgen_rootpaths", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def load_logpaths(repo_dir):
     path = os.path.join(repo_dir, "src", "planetgen", "util", "logpaths.py")
     spec = importlib.util.spec_from_file_location("planetgen_logpaths", path)
@@ -310,8 +319,23 @@ def main(argv):
               f"defaults), then run {UPDATE_HINT} again.", file=sys.stderr)
         return 0
     setup = LogSetup(user, group)
-    setup.debug_log(log_file, source_of("PLANETGEN_LOG_FILE", config, "log_file", logpaths.DEFAULTS), debug_on)
-    setup.activity_log(activity, source_of("PLANETGEN_LOG_DIR", config, "log_dir", logpaths.DEFAULTS))
+    # SEC.44: config.json is the web user's file; a path from it is only made, re-owned or chmod-ed as root when allowed.
+    rootpaths = load_rootpaths()
+    allowed = {}
+    for label, path in (("log_file", log_file), ("log_dir", os.path.dirname(os.path.abspath(activity)))):
+        try:
+            rootpaths.check(os.path.abspath(path), label, setup.uid, setup.gid,
+                            extra_parents=(os.path.realpath(repo_dir), os.path.abspath(repo_dir)))
+            allowed[label] = True
+        except rootpaths.UnsafePath as exc:
+            allowed[label] = False
+            print(f"warning: {exc}.", file=sys.stderr)
+            print(f"  Nothing was created or changed there. Name a path under /var/log in config.json, or leave it out "
+                  f"for the default, then run {UPDATE_HINT} again.", file=sys.stderr)
+    if allowed["log_file"]:
+        setup.debug_log(log_file, source_of("PLANETGEN_LOG_FILE", config, "log_file", logpaths.DEFAULTS), debug_on)
+    if allowed["log_dir"]:
+        setup.activity_log(activity, source_of("PLANETGEN_LOG_DIR", config, "log_dir", logpaths.DEFAULTS))
     return 0
 
 

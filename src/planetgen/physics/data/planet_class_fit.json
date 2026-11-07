@@ -459,7 +459,7 @@
     },
     {
       "letter": "F",
-      "name": "Reducing world",
+      "name": "Anoxic world",
       "kind": "t",
       "air": true,
       "when": [
@@ -468,8 +468,8 @@
           "lt": 0.03
         },
         {
-          "quantity": "reducing_share",
-          "min": 0.05
+          "quantity": "share_co2",
+          "lt": 0.2
         },
         {
           "quantity": "share_h2",
@@ -489,7 +489,7 @@
         },
         {
           "quantity": "gravity_g",
-          "lt": 2.0
+          "lt": 1.4
         },
         {
           "quantity": "temperature_k",
@@ -500,7 +500,7 @@
           "lt": 0.03
         }
       ],
-      "note": "no free oxygen, methane, and hydrogen 5 percent or more but not a hydrogen envelope, a warm world of 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+      "note": "GEN.1281: no free oxygen and not carbon-dioxide-rich (a reducing methane or hydrogen air, or a plain inert nitrogen air), not a hydrogen envelope, a warm world of 0.5 to 1.4 g, under 400 K (a hotter dense air is class N; from 1.4 g the thin hot air is class Z and from 2 g class V); not a volcanic air (sulfur dioxide under 3 percent)"
     },
     {
       "letter": "G",
