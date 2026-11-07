@@ -48,7 +48,7 @@ SOURCES = {
     "computed-e": "Computed in part E from its other columns (molar mass, latent heat per kilogram, interaction length from oxides)",
     "handbook-mineralogy": "Anthony, Bideaux, Bladh and Nichols, Handbook of Mineralogy, Mineralogical Society of America (Mineral Data "
                            "Publishing, 2001-2005), the page of the mineral: D(calc.) and D(meas.)",
-    "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density listed there",
+    "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density, Mohs hardness, crystal system and color listed there",
     "crc-density-wiki": "Densities of the elements (data page), Wikipedia, the row marked 'use' (CRC and WebElements values); the handbook itself was not read",
     "pubchem": "PubChem compound pages, section Density (experimental values from the sources named there: CRC, USCG, NTP, EPA, HSDB)",
     "seager2007": "[R3992], Mass-radius relationships for solid exoplanets, ApJ 669, 1279 "
@@ -426,6 +426,24 @@ def main():
     ]
     for row_id, name, family, members, names in groups:
         rows[row_id] = new_row(row_id, name, family, None, names, members=members)
+
+    # --- GEN.1355: the silicates and oxides the recipes and the norm name (Webmineral pages read 2026-11-07); like GEN.1356, no band albedo was reached
+    # for them, so the three bands are explicit nulls (code N)
+    for row_id, (formula, family, aliases_here, page_formula, crystal, mohs, density, basis, measured, color, page) in data.PART1_MINERALS.items():
+        row = new_row(row_id, row_id, family, formula, aliases_here, composition=page_formula if page_formula != formula else "")
+        extra = {"measured_range": list(measured)} if measured else {}
+        row["props"]["rho_grain_g_cm3"] = prop(density, "H", "webmineral", "g/cm3", basis=f"{basis}; page {page}", **extra)
+        if mohs is not None:
+            row["props"]["mohs"] = prop(mohs[0], "H", "webmineral", "1", measured_range=[mohs[1], mohs[2]],
+                                        basis=f"the middle of the hardness range the page prints; page {page}")
+        else:
+            row["props"]["mohs"] = null_prop("mohs")
+        for band in ("alb_040_050", "alb_050_060", "alb_060_070"):
+            row["props"][band] = null_prop(band)
+        row["crystal_system"], row["color"] = crystal, color
+        rows[row_id] = row
+    for row_id, (name, members) in data.PART1_GROUPS.items():
+        rows[row_id] = new_row(row_id, name, "mineral group", None, [name], members=list(members))
 
     # --- hydrogen and helium
     hydrogen = new_row("hydrogen", "hydrogen", "envelope", "H2", ["hydrogen"], gate=PLANETARY, gas="H2")
