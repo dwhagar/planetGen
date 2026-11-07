@@ -2813,6 +2813,9 @@ class BlockLightsFollower(followed.Follower):
         super().__init__(args)
         self.bar = None
 
+    def params(self):
+        return {"run_id": getattr(self.args, "generation_run_id", None)}      # the run the uncharted rows (MAP.402) are recorded under
+
     def on_plan(self, plan):
         log.normal("Making the block light totals for the Galaxy Map (this reads every pre-placed star and phenomenon again; "
                    "a full galaxy takes a while)...")
