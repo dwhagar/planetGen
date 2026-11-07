@@ -15049,27 +15049,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.661, GEN.1320.
 
-- [ ] **SEC.40 Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740)**
-  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L1, Low): GHSA-8mgp-746c-j5xp / CVE-2026-81726 is
-  fixed in 3.10.4. Not reachable (nltk only reads the words corpus in
-  names/wordlists.py), but the lock should not carry it. Do: bump the
-  version in both lock files and re-run pip-audit; if the bump breaks the
-  wordlist read, record a dated ignore with the not-reachable reason
-  instead. Lock-free. Done: pip-audit clean for nltk on both locks. Version
-  8.1. Owner: Core 3, after SEC.38.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.33.
-
-- [ ] **SEC.41 GET /api/galaxy/made?since=nan: reject non-finite floats**
-  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L2, Low, suspected from code): api/routes.py:1148
-  takes float() with no isfinite test, so nan or inf goes to MySQL as a
-  parameter and probably gives an anonymous 500. Do: reject non-finite
-  values in the one place that parses these floats, with a test for nan, inf
-  and -inf on this route and its siblings. Lock-free. Done: the request
-  returns the usual 400 error. Version 8.1. Owner: Core 3, after SEC.38.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.33.
-
 - [ ] **DOC.109 Rewrite INSTALL.md to set up the Redis user and password: create the planetgen user from examples/redis/planetgen-acl.conf, turn off the passwordless default user, put the password in redis.url, and say what update.sh warns about**
   Boss (8:23 PM EST on 2026-11-06), on SEC.39: he will reconfigure his Redis server when he can, update.sh keeps warning until then, and the install document must walk through the Redis user and password. Do: rewrite the Redis part of INSTALL.md (and the deployment README it links) so a new install creates the planetgen user from examples/redis/planetgen-acl.conf with a password the reader chooses, switches off the default user, puts the URL in the configuration, checks the connection, and states what the update.sh warning means and how it goes away; include the steps for an existing install that already runs on the passwordless default user. Done: the document has the steps in order for both a new and an existing install, and the docs tests pass. Lock-free. Version 8.1. Owner: Core 3 (wrote the ACL file in SEC.39), after SEC.40 and SEC.41.
   Filed by the TODO thread.
