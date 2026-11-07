@@ -9916,30 +9916,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train.
   Prerequisites: GEN.804. Related: GEN.800.
 
-- [ ] **GEN.807 Stellar activity (flare rate, XUV saturation) follows the star's rotation: rotation_period_hours, flare_alpha and xuv_saturated get readers (G2, step 4)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). Stars write rotation_period_hours, spin axis, axial_tilt_deg,
-  flare_alpha and xuv_saturated that nothing reads. Tie the flare rate
-  and the XUV saturation to the rotation period (the activity-rotation
-  relation), and let the stored values feed GEN.804 and GEN.805. Done: a
-  fast rotator has a higher flare rate than a slow one of the same mass,
-  and the six columns have readers. Version 8.1. Owner: Core 4
-  (stars). Rules: no backward-compat shims; every number has a unit or
-  scale (GEN.772); a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 4. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
-  coordinator at 3:21 PM EDT (Boss: retire threads that served their
-  purpose); owner is now Core 4.
-  Prerequisites: none. Related: GEN.800, GEN.788.
-
 - [ ] **GEN.808 The ozone-loss flag feeds the UV limit on life and the surface look (G2, step 5)**
   Unused stored values audit chain
   (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
@@ -15156,20 +15132,15 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.37.
 
-- [ ] **SEC.39 A run's own queue still uses pickle and Redis has no ACL user: use ids or add an ACL**
-  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M3, Medium, confirmed): queue/redisqueue.py
-  serializer_for makes the web queues JSON but a run's own queue still uses
-  RQ's default pickle, so anything that can write to Redis can queue code a
-  worker runs; examples/redis/planetgen.conf ships with no ACL user. PERF.95
-  to PERF.98 are done, so the run's own tasks were left out of them. Do:
-  make the run's own queue carry ids and JSON like the web queues, and
-  meanwhile ship a Redis ACL user in the example config and the redis.url
-  setting (update.sh check_redis_settings.py must accept it). Done: no
-  pickle on any queue and the ACL user documented, or Boss accepts the risk.
-  Blocks the 8.1 stamp unless Boss accepts. Version 8.1. Owner: Core 3 after
-  SEC.38 (queue code is Core 3's from PERF.95 to 98).
+- [ ] **TEST.662 test_api_link_ids::test_every_get_endpoint_is_audited is red on main: api.object_belt_member_route (GEN.1070) is neither audited nor given a reason (bug)**
+  Core 1 (as the lane reported, 8:08 PM EST on 2026-11-06), seen on main while merging MAP.403. The GET route for a belt member (GEN.1070) was added without an entry in the audit list of link ids and without a stated reason, so test_every_get_endpoint_is_audited fails on main. Do: audit the route (its ids link to the object pages) or give the reason it is exempt, in the same form the other routes use. Done: the test is green on main. Lock-free. Version 8.1. Owner: Aux 5 (belts).
   Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.33.
+  Prerequisites: none. Related: GEN.1070, TEST.661.
+
+- [ ] **TEST.663 test_reproducible_draws::test_no_version_or_library_dependent_maths_in_the_package is red on main: stellar_table.py uses the matrix operator @ and the sky files use math.dist, both outside the deterministic maths (bug)**
+  Bug 1 (as the lane reported, 8:06 PM EST on 2026-11-06), seen while fixing PERF.246. The reproducibility test bans version- or library-dependent maths in the package (the matrix operator, math.dist) because the same seed must give the same bits on every machine and library version; it is red on main for stellar_table.py (@) and the sky files (math.dist). Do: replace each with the deterministic detmath form (sum and product order fixed) and check the outputs are bit-identical where they feed stored values; where a sky file only draws pictures, say so in the test's exemption list with the reason. Done: the test is green on main and the golden is unchanged. Lock-free if bit-identical. Version 8.1. Owner: Bug 1.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.661, PERF.246.
 
 - [ ] **SEC.40 Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740)**
   Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L1, Low): GHSA-8mgp-746c-j5xp / CVE-2026-81726 is
@@ -15207,6 +15178,11 @@ clears each one.
   fixed or noted with a reason. Version 8.2. Owner: none yet (after 8.1).
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.33.
+
+- [ ] **SEC.45 A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function**
+  Core 3 (as the lane reported, 8:08 PM EST on 2026-11-06), left over from SEC.39: with pickle gone and a Redis user with a password shipped, a queued job still names the function a worker runs, so the password alone keeps another local user from queuing a job. Do: the worker refuses any job whose function is not on a fixed list of the functions the program queues (one registry, tested against every enqueue call site), and logs and fails a refused job. Done: a job naming a function off the list is refused in a test, and every real enqueue is on the list. Lock-free. Version 8.2. Owner: Core 3 (after SEC.41).
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.39, SEC.33.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -16683,44 +16659,10 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
 
-- [ ] **MAP.403 Sector filter: charted sectors by default, with all sectors or uncharted only, on the Sectors list and in the search information**
-  Boss, 6:42 PM EST on 2026-11-06 (relayed by the coordinator). Do: a sector
-  filter with three choices (charted only, the default; all sectors;
-  uncharted only) on the Sectors list, remembered in the page's address like
-  the other filters, and the same choice in the search page's information
-  and in the API (an additive parameter, no version bump). The header counts
-  follow the filter (MAP.399 already shows generated and uncharted numbers).
-  Lock-free (web and API). Done: the Sectors list and a search obey the
-  filter, the default hides uncharted sectors, and a browser test covers the
-  three choices at every screen size. Version 8.1. Owner: Core 1
-  (MAP.399/401's author). Works on the placeholder sectors of MAP.399 at
-  once and on every scattered cell after MAP.402.
+- [ ] **PERF.248 Queue page: show the jobs held by a declared requirement (held, since when, waiting on which job), from requires.held_jobs**
+  Core 4 (as the lane reported, 8:08 PM EST on 2026-11-06), the part of PERF.247 left on purpose: held jobs are in no queue, so the Queue page does not show them. Do: list them on the Queue page with what each waits on and since when, and show a failed wait as failed. Done: a held job is visible on the Queue page and in the API. Lock-free. Version 8.1. Owner: Core 4.
   Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
-  Addition (Boss, 6:49 PM EST on 2026-11-06): truly empty uncharted sectors (nothing known to be in them) get their own option when viewing uncharted: show empty sectors or not, default not. It shows on the Sectors list and in the search information with the other sector filter choices, and in the API as an additive parameter.
-
-- [ ] **PERF.247 Job queue: a job can declare that it requires another job, so the round robin never picks one that cannot run yet; jobs with no declared dependency still run together**
-  Boss, 6:45 PM EST on 2026-11-06 (relayed by the coordinator), following
-  PERF.245's fair sharing between task types: the queue must not hand a
-  worker a job that cannot run because it depends on a previous job, and
-  this guards against running tasks in the wrong order. Do: add an
-  optional requires (one or more job ids or task-type stages) to a job's
-  declaration; the dispatcher skips a job whose requirements are not done
-  (and leaves it queued, not failed), shows it as waiting on those jobs in
-  the run record and log, and a requirement that failed or was stopped
-  fails or stops its dependants with a clear line instead of waiting
-  forever. Only declared dependencies block: jobs that can run
-  concurrently (they do not touch each other's data or read data that is
-  not there yet) stay allowed to run together, so the stages that
-  already run in parallel are not serialised. Declare the dependencies
-  that exist today (for example indexing after a stage's rows are written,
-  the sky charting after the scatter) and test for a dependant that waits,
-  a failed requirement, and two independent jobs running together.
-  Lock-free (queue only; no generated value changes). Done: a job with a
-  requirement is never started before it is done, and independent jobs
-  still overlap. Version 8.1. Owner: Core 4 (PERF.245's queue work), after
-  PERF.245. Filed by the TODO thread.
-  Prerequisites: PERF.245. Related: PERF.245, DB.113.
+  Prerequisites: PERF.247. Related: PERF.245.
 
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
@@ -16893,18 +16835,6 @@ clears each one.
   Bug 1 (as the lane reported, 7:40 PM EST on 2026-11-06), from the TEST.656 verdicts: the census moon cells now hold 1 to 78 bodies against 500 to 700 in the reference ranges, because captured moons became irregulars (GEN.1082 to 1084) and the class census does not read them (K5V ecosphere moon unlimited 1 of 8, M2V cold moon 7 of 78). Do: let the class census read the irregular moons so a cell has enough bodies, then re-measure and re-baseline the moon class ranges (TEST.430 rows) after the last 8.1 train, so the sampling-width flags clear. Done: the moon cells hold hundreds of bodies and the census has no flag from sampling width. Version 8.1. Owner: Bug 1, after the last 8.1 train merges.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.656, TEST.430, GEN.1160.
-
-- [ ] **PERF.246 A planet draw takes more than 45 seconds at A0V hot and K0III hot cells in the class census (machine speed or a slow draw)**
-  Train Manager census run (3:30 PM EST on 2026-11-06, as the lane
-  reported): the class census hit its 45 s guard on a planet draw at A0V
-  hot and at K0III hot, which may be only machine speed. Do: time those
-  two cells on a faster machine, profile the draw if it still passes 45 s
-  (the hot-star moon builds of PERF.241 are the likely cost), and either
-  cut the cost where it changes no output or file the lock item. Lock-free
-  to find. Done: no census cell draw passes 45 s on a 4 vCPU box or the
-  cost is explained. Version 8.1. Owner: Bug 1 after PERF.241. Filed by
-  the TODO thread.
-  Prerequisites: none. Related: PERF.241, TEST.656.
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;

@@ -28,6 +28,25 @@ def listens_beyond_loopback(bind):
     addresses = [a.lstrip("-") for a in bind.split()]
     return not addresses or any(a not in LOOPBACK and not a.startswith("127.") for a in addresses)
 
+ACL_LINES = ("user default off\n"
+             "user planetgen on >A-LONG-RANDOM-PASSWORD ~* &* +@all -@dangerous +config|get +info +client|list\n"
+             "and in config.json: \"redis\": {\"url\": \"redis://planetgen:A-LONG-RANDOM-PASSWORD@127.0.0.1:6379/0\"}")
+"""str: What the warning about a Redis that anyone on the machine may use prints (`examples/redis/planetgen-acl.conf` has it)."""
+
+
+def open_access_problem(whoami, default_flags):
+    """
+    `(what is wrong, lines to add)` when this connection is the server's passwordless default user (SEC.39): any local user may
+    then queue a job that a planetGen worker runs. `None` when the connection logged in as a user of its own, or the default user
+    is off or has a password.
+    """
+    flags = {str(flag).lower() for flag in (default_flags or ())}
+    if str(whoami).lower() == "default" and "nopass" in flags and "on" in flags:
+        return ("any user on this machine can use Redis without a password, and a planetGen worker runs the function a queued job "
+                "names", ACL_LINES)
+    return None
+
+
 MIN_MAXMEMORY = 2 * 1024 ** 3
 """int: Below this, the Redis memory limit is called too small."""
 
@@ -66,8 +85,14 @@ def main(argv):
               "(CONFIG may be disabled).", file=sys.stderr)
         return 0
     found = problems(config)
+    try:
+        opened = open_access_problem(client.execute_command("ACL", "WHOAMI"), client.acl_getuser("default").get("flags"))
+    except Exception:  # noqa: BLE001 -- Redis before 6, or a user not allowed ACL: nothing to say
+        opened = None
+    if opened:
+        found.append(opened)
     if not found:
-        print("Redis settings: append-only file on, noeviction, memory limit set, loopback only")
+        print("Redis settings: append-only file on, noeviction, memory limit set, loopback only, a user of its own")
         return 0
     print(f"warning: the Redis server at {argv[1]} has settings planetGen doesn't want:", file=sys.stderr)
     for what, line in found:

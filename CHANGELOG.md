@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3513] - 2026-11-07
+
+**Headline:** A planet draw that took 71 s (a tiny body at 0.9 AU of an A0V star, 0.00047 Earth masses with its moons) takes 16 s, because the sum behind the seasonal swing's Anderson mixing is added faster with the same bits.
+
+### Changed
+
+- `src/planetgen/util/detmath.py` (PERF.246): `matmul` of a product too large to form at once (more than `_ACCUMULATE_LIMIT` products) went through a loop of `inner` array operations. The seasonal swing's `_anderson` takes the Gram matrix of 6 series of 138,240 to 190,080 values every pass (31 solves of 30 passes in the draw), 0.26 s a call, 55 s of a 64 s draw. When the outputs (rows times columns) are fewer than the inner terms, each output is now added alone: its products in one buffer and `numpy.add.accumulate` over it, left to right as the loop adds them, so the bits are the loop's. The call takes 0.027 s. Census draw 72 of A0V hot: 71 s to 16 s; the draws the class census abandons at 45 s were this (A0V hot draws 72, 136; K0III hot 176, 181, 231, 232 took 17 to 71 s).
+- `src/tests/test_detmath_matmul.py`: 38 tests that the output-at-a-time path is bit for bit the loop's (random shapes and limits, a tiny term lost to the sum before it, a 6 by 138,240 Gram matrix).
+
+generation-output: unchanged
+
+## [8.0.3512] - 2026-11-07
+
+**Headline:** No queue carries pickle any more, and the example Redis configuration ships a password-protected user that update.sh asks for.
+
+### Changed
+
+- `queue/redisqueue.py` (SEC.39, audit finding S-M3): `serializer_for` returns the JSON serializer for every queue name, `JSON_QUEUE_PREFIXES` is gone, `fetch_job` and `cancel_now` default to JSON, and a worker of any queues uses it (the check that one worker serves only one kind of queue goes with it). A run's units already went through the shared JSON queues since PERF.95 to PERF.98; the pickle path that remained served a queue nothing writes to.
+- `examples/redis/planetgen-acl.conf` ships the Redis user `planetgen` (default user off, no dangerous commands, INFO and CONFIG GET allowed) with the steps to install it and put its password in `redis.url`; `examples/redis/planetgen.conf` points to it. The queue, worker, update-guard and stop-all tests pass as that user.
+- `scripts/check_redis_settings.py` (run by `update.sh`) warns, with the lines to add, while the connection is the passwordless default user. A job still names the function a worker calls, so the password, not the serializer, keeps another local user from queuing one.
+- Tests: every queue name serializes as JSON, nothing that builds an RQ queue, worker or job fetch leaves the serializer to RQ, the queue package never imports pickle, and the warning and the example file agree.
+
+generation-output: unchanged
+
+## [8.0.3511] - 2026-11-07
+
+**Headline:** The Sectors list and the search show charted sectors by default, with a choice of all sectors or only uncharted ones, and a separate option for the uncharted sectors nothing has been detected in.
+
+### Changed
+- `GET /api/sectors` takes `coverage=charted|all|uncharted` (default `charted`) and `empty=1` (the uncharted sectors nothing is known to be in; default left out). `total` counts the sectors listed; the answer adds `charted_total`, `empty_total`, `coverage` and `show_empty` beside `uncharted_total`. The default listing no longer includes uncharted placeholders (the API version is unchanged: no route moved).
+- The Sectors page has a "Show" menu (Charted sectors, All sectors, Uncharted sectors only) and an "Include empty uncharted sectors" box, kept through sorting and paging; the header counts charted sectors, the uncharted ones with something detected in them and the empty ones, each linking to its list.
+- The search takes `sector_coverage` and `sector_empty` for its Sectors panel (`GET /api/search`, and a menu and box under "Search by object and size"), with filter chips; by default only charted sectors are searched.
+- `query.list_sectors`/`count_sectors` take `coverage` and `show_empty` (keeping every row when not given); new `count_empty_uncharted_sectors`.
+- New tests: `test_sector_coverage_filter.py`; `test_uncharted_sector_rows.py` asks for the placeholders it lists.
+
+generation-output: unchanged
+
+## [8.0.3510] - 2026-11-07
+
+**Headline:** A queued job can declare that it requires another job, so no worker is handed one that cannot run yet.
+
+### Changed
+- A job can require other jobs (`requires.enqueue`). It is held out of every queue until they are done, so the round robin of a worker that serves several queues cannot pick it early, and the worker that finishes the last one queues it. A job that declares no requirement is queued at once and runs beside the others, as before.
+- Held, released and dropped jobs are logged (and in the run's own log for a unit of a run). A required job that fails or is stopped fails what waits for it, and the jobs that wait for those, with the line "required job X failed", instead of leaving them waiting for ever; Stop All drops the held jobs with the queued ones.
+- The stages of a run that need another stage (the phenomena index after the phenomena scatter, the territories after the population pass, the link and the sector paths after the sectors) are declared; a list of steps in the wrong order is refused where it is made, a stage logs when it is released, and a failed run logs which stages it left undone and why.
+
+generation-output: unchanged
+
 ## [8.0.3509] - 2026-11-07
 
 **Headline:** The three live census tests state their own time limit (3,600 s), because on 4 vCPUs each takes 886 to 1,036 s against the default 900 s.

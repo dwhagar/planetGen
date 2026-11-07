@@ -31,7 +31,6 @@ def test_the_two_shared_queues_carry_json_and_a_worker_serves_one():
     assert redisqueue.BULK_QUEUE == "planetgen-bulk" and redisqueue.INTERACTIVE_QUEUE == "planetgen-interactive"
     assert redisqueue.serializer_for(redisqueue.BULK_QUEUE) is redisqueue.JsonSerializer
     assert api_jobs.QUEUE_NAME.startswith("planetgen-api-test-")        # the tests' own; production uses:
-    assert redisqueue.INTERACTIVE_QUEUE.startswith(redisqueue.JSON_QUEUE_PREFIXES)
 
 
 def test_the_wanted_count_is_the_admins_else_the_machines(redis_server, monkeypatch):
