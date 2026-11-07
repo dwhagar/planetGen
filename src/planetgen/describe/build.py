@@ -40,6 +40,7 @@ from planetgen.physics import (
     habitability,
     habitability_explain,
     meteorite_groups,
+    neutron_star_crust,
     outside_hours,
     planet_class_text,
     pre_main_sequence,
@@ -267,7 +268,28 @@ def _neutron_star_blocks(star):
                                 "every ", spin, "."))
     else:
         sentences.append(inline("Its beam no longer sweeps across this vantage point."))
-    return [facts("Neutron star", rows), prose("summary", *sentences)]
+    return [facts("Neutron star", rows), prose("summary", *sentences), _crust_block()]
+
+
+def _density(g_cm3):
+    return qty("density", g_cm3, "g_cm3")
+
+
+def _crust_block():
+    """The crust of a neutron star by density (GEN.1358): the nuclei of the outer crust, where neutrons start to drip and the clusters of the inner
+    crust, the same for every star (`physics.neutron_star_crust`)."""
+    outer = []
+    for nucleus in neutron_star_crust.OUTER_CRUST:
+        outer += [nucleus.name, " to ", _density(nucleus.max_density_g_cm3), "; "]
+    inner = []
+    for name, first, last in neutron_star_crust.inner_runs():
+        inner += [name, " at ", _density(first)] if first == last else [name, " from ", _density(first), " to ", _density(last)]
+        inner.append("; ")
+    return facts("Crust", [
+        fact("crust_outer", "Outer crust", "single nuclei in a lattice, each down to the density shown: ", *outer[:-1]),
+        fact("crust_drip", "Neutron drip", "neutrons run free from ", _density(neutron_star_crust.NEUTRON_DRIP_G_CM3)),
+        fact("crust_inner", "Inner crust", "clusters in a gas of free neutrons: ", *inner[:-1]),
+    ])
 
 
 def _star_section(star, children=()):

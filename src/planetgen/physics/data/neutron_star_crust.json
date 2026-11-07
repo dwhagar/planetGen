@@ -1,0 +1,207 @@
+{
+ "title": "Matter of the crust of a neutron star by density: the outer crust nuclei and the inner crust cells (GEN.1358)",
+ "source": "[R0722] (Chamel and Haensel 2008, Living Reviews in Relativity 11:10): Table 2, the ground-state nuclei of the outer crust (experimental masses to 82Zn, the BSk8 mass model beyond), and Table 3, the cells of the inner crust (the Negele and Vautherin calculation); densities as printed (READ)",
+ "label": "READ",
+ "outer_crust": [
+  {
+   "symbol": "Fe",
+   "mass_number": 56,
+   "protons": 26,
+   "neutrons": 30,
+   "max_density_g_cm3": 8020000.0,
+   "mass_data": "experimental masses (Ruster+2006)"
+  },
+  {
+   "symbol": "Ni",
+   "mass_number": 62,
+   "protons": 28,
+   "neutrons": 34,
+   "max_density_g_cm3": 271000000.0,
+   "mass_data": "experimental"
+  },
+  {
+   "symbol": "Ni",
+   "mass_number": 64,
+   "protons": 28,
+   "neutrons": 36,
+   "max_density_g_cm3": 1330000000.0,
+   "mass_data": "experimental"
+  },
+  {
+   "symbol": "Ni",
+   "mass_number": 66,
+   "protons": 28,
+   "neutrons": 38,
+   "max_density_g_cm3": 1500000000.0,
+   "mass_data": "experimental"
+  },
+  {
+   "symbol": "Kr",
+   "mass_number": 86,
+   "protons": 36,
+   "neutrons": 50,
+   "max_density_g_cm3": 3090000000.0,
+   "mass_data": "experimental"
+  },
+  {
+   "symbol": "Se",
+   "mass_number": 84,
+   "protons": 34,
+   "neutrons": 50,
+   "max_density_g_cm3": 10600000000.0,
+   "mass_data": "experimental"
+  },
+  {
+   "symbol": "Ge",
+   "mass_number": 82,
+   "protons": 32,
+   "neutrons": 50,
+   "max_density_g_cm3": 27900000000.0,
+   "mass_data": "experimental"
+  },
+  {
+   "symbol": "Zn",
+   "mass_number": 80,
+   "protons": 30,
+   "neutrons": 50,
+   "max_density_g_cm3": 60700000000.0,
+   "mass_data": "experimental"
+  },
+  {
+   "symbol": "Zn",
+   "mass_number": 82,
+   "protons": 30,
+   "neutrons": 52,
+   "max_density_g_cm3": 84600000000.0,
+   "mass_data": "experimental"
+  },
+  {
+   "symbol": "Pd",
+   "mass_number": 128,
+   "protons": 46,
+   "neutrons": 82,
+   "max_density_g_cm3": 96700000000.0,
+   "mass_data": "BSk8 mass model"
+  },
+  {
+   "symbol": "Ru",
+   "mass_number": 126,
+   "protons": 44,
+   "neutrons": 82,
+   "max_density_g_cm3": 147000000000.0,
+   "mass_data": "BSk8"
+  },
+  {
+   "symbol": "Mo",
+   "mass_number": 124,
+   "protons": 42,
+   "neutrons": 82,
+   "max_density_g_cm3": 211000000000.0,
+   "mass_data": "BSk8"
+  },
+  {
+   "symbol": "Zr",
+   "mass_number": 122,
+   "protons": 40,
+   "neutrons": 82,
+   "max_density_g_cm3": 289000000000.0,
+   "mass_data": "BSk8"
+  },
+  {
+   "symbol": "Sr",
+   "mass_number": 120,
+   "protons": 38,
+   "neutrons": 82,
+   "max_density_g_cm3": 397000000000.0,
+   "mass_data": "BSk8"
+  },
+  {
+   "symbol": "Kr",
+   "mass_number": 118,
+   "protons": 36,
+   "neutrons": 82,
+   "max_density_g_cm3": 427000000000.0,
+   "mass_data": "BSk8"
+  }
+ ],
+ "inner_crust": [
+  {
+   "density_g_cm3": 467000000000.0,
+   "symbol": "Zr",
+   "nucleons_in_cell": 180,
+   "protons": 40,
+   "neutrons_in_cell": 140
+  },
+  {
+   "density_g_cm3": 669000000000.0,
+   "symbol": "Zr",
+   "nucleons_in_cell": 200,
+   "protons": 40,
+   "neutrons_in_cell": 160
+  },
+  {
+   "density_g_cm3": 1000000000000.0,
+   "symbol": "Zr",
+   "nucleons_in_cell": 250,
+   "protons": 40,
+   "neutrons_in_cell": 210
+  },
+  {
+   "density_g_cm3": 1470000000000.0,
+   "symbol": "Zr",
+   "nucleons_in_cell": 320,
+   "protons": 40,
+   "neutrons_in_cell": 280
+  },
+  {
+   "density_g_cm3": 2660000000000.0,
+   "symbol": "Zr",
+   "nucleons_in_cell": 500,
+   "protons": 40,
+   "neutrons_in_cell": 460
+  },
+  {
+   "density_g_cm3": 6240000000000.0,
+   "symbol": "Sn",
+   "nucleons_in_cell": 950,
+   "protons": 50,
+   "neutrons_in_cell": 900
+  },
+  {
+   "density_g_cm3": 9650000000000.0,
+   "symbol": "Sn",
+   "nucleons_in_cell": 1100,
+   "protons": 50,
+   "neutrons_in_cell": 1050
+  },
+  {
+   "density_g_cm3": 14900000000000.0,
+   "symbol": "Sn",
+   "nucleons_in_cell": 1350,
+   "protons": 50,
+   "neutrons_in_cell": 1300
+  },
+  {
+   "density_g_cm3": 34100000000000.0,
+   "symbol": "Sn",
+   "nucleons_in_cell": 1800,
+   "protons": 50,
+   "neutrons_in_cell": 1750
+  },
+  {
+   "density_g_cm3": 79400000000000.0,
+   "symbol": "Zr",
+   "nucleons_in_cell": 1500,
+   "protons": 40,
+   "neutrons_in_cell": 1460
+  },
+  {
+   "density_g_cm3": 132000000000000.0,
+   "symbol": "Ge",
+   "nucleons_in_cell": 982,
+   "protons": 32,
+   "neutrons_in_cell": 950
+  }
+ ],
+ "neutron_drip_g_cm3": 427000000000.0
+}
