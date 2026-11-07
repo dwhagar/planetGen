@@ -2855,3 +2855,4 @@ Baseline: PR #1817.
 | TEST.666 | 8.1 | The headline closes |
 | GEN.752 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
 | GEN.1085 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.854 | 8.1 | Physics rectification: life classes, chemistries and their pages |
