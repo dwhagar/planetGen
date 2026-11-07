@@ -166,8 +166,22 @@ def dust_av_per_pc(x_pc, y_pc, z_pc, *, av_per_kpc_at_sun=DUST_AV_PER_KPC_AT_SUN
         return profile.av_per_pc(x_pc, y_pc, z_pc)
     r = np.hypot(np.asarray(x_pc, dtype=float), np.asarray(y_pc, dtype=float))
     h_z = height_pc + flare_pc_per_kpc * np.maximum(r - flare_start_pc, 0.0) / 1000.0
-    layer = 1.0 / np.cosh(np.asarray(z_pc, dtype=float) / h_z) ** 2
+    layer = 1.0 / cosh_squared(np.asarray(z_pc, dtype=float) / h_z)
     return av_per_kpc_at_sun / 1000.0 * np.exp(-(r - solar_radius_pc) / scale_length_pc) * layer
+
+
+_COSH_SQUARED_LIMIT = float(np.arccosh(np.sqrt(np.finfo(float).max)))
+"""float: The argument above which `cosh(x) ** 2` is beyond the largest float (about 355.6)."""
+
+
+def cosh_squared(x):
+    """
+    `cosh(x) ** 2` as numpy gives it, with the overflow made quiet (VIEW.48): the same number where it is finite, `inf` (what numpy returned, with a RuntimeWarning, in `cosh` and again in the
+    square) where `|x|` is beyond the largest float's reach. A layer `1 / cosh(z / h) ** 2` is then exactly 0 far above the plane, as before; the argument of a nan stays a nan.
+    """
+    x = np.asarray(x, dtype=float)
+    beyond = np.abs(x) > _COSH_SQUARED_LIMIT
+    return np.where(beyond, np.inf, np.cosh(np.where(beyond, 0.0, x)) ** 2)[()]
 
 
 def galactic_extinction_av(observer_pc, direction, distance_pc, *, steps=EXTINCTION_STEPS, **dust):
