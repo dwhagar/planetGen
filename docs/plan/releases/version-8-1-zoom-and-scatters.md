@@ -711,7 +711,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | SEC.43 | An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell |  |  |
 | SEC.44 | Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes |  |  |
 | TEST.661 | Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug) |  |  |
-| SEC.38 | World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite |  |  |
 | SEC.39 | A run's own queue still uses pickle and Redis has no ACL user: use ids or add an ACL |  |  |
 | SEC.40 | Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740) |  |  |
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats |  |  |
