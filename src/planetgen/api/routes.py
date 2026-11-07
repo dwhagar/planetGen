@@ -131,7 +131,7 @@ from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
 from planetgen.db.render import describe_system, render_system_text
-from planetgen.physics import cluster_unbinding
+from planetgen.physics import cluster_unbinding, oddities
 from planetgen.physics.units import ly_to_milliparsecs, pc_to_ly
 from planetgen.util import detmath
 
@@ -1246,6 +1246,24 @@ def galaxy_superbubbles():
          "radius_pc": round(b.radius_pc, 1)} for b in bubbles]})
 
 
+ODDITY_TABLES = {"planet": "planets", "moon": "moons", "rogue_planet": "rogue_planets"}
+"""dict: The table that keeps the oddities of an object kind (GEN.1047)."""
+
+
+def oddities_of(conn, kind, object_id):
+    """
+    The oddities an object has (GEN.1047), `[{"id", "name", "text"}]` in table order: the row's `oddities` ids read against the table
+    (`physics/oddities.py`), the sentence being the cause the page shows ("A giant impact knocked ..."). Empty for an object of another kind
+    and for an id the table no longer holds.
+    """
+    table = ODDITY_TABLES.get(kind)
+    if table is None:
+        return []
+    row = conn.execute(f"SELECT oddities FROM {table} WHERE id = ?", (object_id,)).fetchone()
+    ids_found = oddities.from_column(row["oddities"] if row else None)
+    return [{"id": row_id, "name": oddities.BY_ID[row_id].name, "text": oddities.BY_ID[row_id].text} for row_id in ids_found if row_id in oddities.BY_ID]
+
+
 def region_of(conn, position_pc):
     """
     The named region holding a point (UX.231, `region_stats.region_of`): `{"name": "Vang Zarh Region", "parent": "Vang Reach"}`, or `None`
@@ -1973,6 +1991,7 @@ def object_ref_route(ref):
         kind, object_id = object_ref.parse(resolved)
         found = resolve_object(get_db(), kind, object_id)
         found["region"] = region_of(get_db(), found["positions"]["galaxy_pc"])
+        found["oddities"] = oddities_of(get_db(), kind, object_id)
         found["former_designations"] = ids.former_designations(get_db(), kind, object_id)
         return jsonify(found)
     except ValueError as exc:  # includes ids.IdError

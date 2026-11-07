@@ -21,7 +21,7 @@ and moon in a system after all of them have been generated.
 
 import math
 
-from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
+from planetgen.physics import moon_history, body_state, oddities, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.generation import irregular_moons
@@ -248,6 +248,7 @@ def generate_planet_properties(planet, zone_override=None):
 
     planet.body_type = "g" if kind == "giant" else "t"
     rings.clear(planet)  # a new draw draws its ring again (GEN.732)
+    planet.oddities = ()  # ... and its oddities (GEN.1047)
 
     if uses_giant_mass_radius(planet):
         apply_giant(planet, radius_given, mass_given)
@@ -255,6 +256,8 @@ def generate_planet_properties(planet, zone_override=None):
         # The composition comes first and the radius, density and gravity follow from it (GEN.428, GEN.429; `bulk_draw`).
         bulk_draw.draw_terrestrial(planet, radius_given, mass_given)
         giant_interior.clear(planet)
+
+    oddities.apply(planet, levers=("L3",))     # GEN.1047: the bulk inputs (core, water, envelope) are settled; a row of lever L3 acts here
 
     # The air is made later, with the temperature it gives (`calculate_atmospheric_conditions`, GEN.411 and GEN.422): whether the
     # body holds one is the solver's call. Clear what a previous draw left behind -- `reconcile_zone` regenerates a body

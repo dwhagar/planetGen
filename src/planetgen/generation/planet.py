@@ -240,7 +240,7 @@ class Planet(PlanetaryObject):
         *body_strength.FIELDS,
         *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line", "host_eccentricity",
+        "born_beyond_snow_line", "host_eccentricity", "oddities",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -269,6 +269,9 @@ class Planet(PlanetaryObject):
     """float: The eccentricity of the orbit the body was generated on (GEN.727, `physics.orbit_elements`), beside `distance` and `period`; the
     orbit it is on now is whatever its state vector says (`orbit_from_vector`). A moon's `host_eccentricity` is its parent's, which the light
     it gets goes by. A circle by default: a body made without them is on one."""
+
+    oddities = ()
+    """tuple[str]: The ids of the oddities the body has (`physics/oddities.py`, GEN.1047), in table order; empty for none. Stored as comma separated text."""
 
     moon_origin = None
     moon_disk_system = None
@@ -363,6 +366,7 @@ class Planet(PlanetaryObject):
         # GEN.458: whether it formed beyond its star's snow line; `StarSystem` sets it once the orbits are final
         # (a moon takes its planet's), and it stays None for a planet whose host has no snow line to compare.
         self.born_beyond_snow_line = None
+        self.oddities = ()      # the oddities the body is given (`oddities.apply`, GEN.1047)
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None
@@ -558,6 +562,7 @@ class Planet(PlanetaryObject):
         # a rogue planet (GEN.1111) has no host and so no habitable zone of one's own
         self.habitable_zone = tuple(data["habitable_zone"]) if data.get("habitable_zone") is not None else None
         self.irregulars = irregular_moons.IrregularSet.from_dict(data.get("irregulars"))
+        self.oddities = tuple(data.get("oddities") or ())
 
     @property
     def life_class_id(self):

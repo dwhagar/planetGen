@@ -25,19 +25,23 @@ id, or a tier or tweak that is not in the registry's scale. An empty table loads
 turning off a row changes no other draw (design 4.4; the isolation test holds this). `probability` multiplies the row's rate by the world's
 weirdness dial (`tuning.WEIRDNESS_DIAL`, 0 turns every oddity off) and the row's own scale (`tuning.WEIRDNESS_RATE_SCALE`).
 
-Nothing calls this module yet (GEN.1047 wires the table; each effect has its own module). Use:
+**The wiring (GEN.1047).** `apply(body, levers)` is what the generator calls at the point of the chain where a lever's input is settled: it asks
+for the rows of the body's kind whose gate holds (`quantities_of`), rolls each on its own stream keyed by `body_key`, runs the effect the row
+names (`EFFECTS`, filled by the module that implements the effect through `register`), and records the ids on `body.oddities`. A row an
+admin or a request forces (`SystemConfig.FORCE_ODDITIES`) skips the roll but not the gate: a world cannot be given what its conditions
+forbid. `body_key` is made from the star and the body's own orbit and mass, so an empty table, or a row the dial turns off, draws nothing
+from the run's stream and the golden seed does not move. Use:
 
-    rows = candidates("planet", quantities)          # the rows whose gate holds
-    for row in rows:
-        if roll(row, body_key=planet_seed):
-            ...                                      # the module for row.apply["effect"] changes row.apply["input"]
-    broken = limit_failures(row, quantities_after)    # [] when the body is still physical
+    applied = apply(body, levers=("L3",))             # at the bulk step: the ids that were given to the body
+    broken = limit_failures(row, quantities_of(body))  # [] when the body is still physical
 """
 
 import json
 import os
 import re
 from dataclasses import dataclass
+
+from planetgen.physics import constants
 
 from planetgen import tuning
 from planetgen.physics import elements, planet_classes
@@ -223,3 +227,142 @@ def roll(row, body_key, dial=None, scale=None):
 def words(row):
     """The sentence the page shows for `row`: 'Odd: <name>. <text>'."""
     return f"Odd: {row.name}. {row.text}"
+
+
+EFFECTS = {}
+"""dict: The effect functions by name, `function(body, row) -> None`, which change the one input of the row's lever on the body; registered by the module
+that implements the effect (`register`)."""
+
+KIND_OF_BODY = {"t": "planet", "g": "giant"}
+"""dict: The row `kind` a body is asked about, by its `body_type`; a moon is asked as a moon, a rogue planet as a rogue."""
+
+
+def register(effect):
+    """Decorator: `@register("strip_mantle")` makes the function the effect of every row that names it."""
+    def wrap(function):
+        if effect in EFFECTS and EFFECTS[effect] is not function:
+            raise OddityError(f"the effect {effect!r} is registered twice")
+        EFFECTS[effect] = function
+        return function
+    return wrap
+
+
+def kind_of(body):
+    """The row kind that applies to `body`: moon, rogue, giant or planet."""
+    if getattr(body, "is_moon", False):
+        return "moon"
+    if getattr(body, "is_rogue", False) or getattr(body, "rogue", False):
+        return "rogue"
+    return KIND_OF_BODY.get(getattr(body, "body_type", None), "planet")
+
+
+def body_key(body):
+    """
+    A key for `body` that no other body shares and that needs no draw: the star's key, whether it is a moon, the orbit's distance and the mass. A body made
+    again with the same star, orbit and mass gets the same key, so its oddities do not move.
+    """
+    from planetgen.physics import radiogenic
+
+    star = getattr(body, "star", None)
+    star_key = radiogenic._star_key(star) if star is not None else None
+    parent = getattr(body, "primary_mass_kg", None) if getattr(body, "is_moon", False) else None
+    return f"{star_key!r}:{int(bool(getattr(body, 'is_moon', False)))}:{getattr(body, 'distance', None)!r}:{getattr(body, 'mass', None)!r}:{parent!r}"
+
+
+def quantities_of(body):
+    """
+    The quantities of `body` that the table's gates and limits read (`oddities.json` `quantities`), for the ones the body has. A quantity the body
+    lacks is left out, and a gate that reads it fails: a row never applies on a guess.
+    """
+    found = {}
+
+    def put(name, value):
+        if value is not None:
+            found[name] = value
+
+    body_type = getattr(body, "body_type", None)
+    put("body_type", body_type)
+    mass, radius = getattr(body, "mass", None), getattr(body, "radius", None)
+    put("mass_earth", None if mass is None else mass / constants.EARTH_MASS_TO_KG)
+    put("radius_earth", None if radius is None else radius / constants.EARTH_RADIUS_KM)
+    put("semi_major_axis_au", getattr(body, "distance", None))
+    put("eccentricity", getattr(body, "eccentricity", None))
+    period = getattr(body, "period", None)
+    put("orbital_period_days", None if period is None else period * 365.25)
+    star = getattr(body, "star", None)
+    put("age_gyr", getattr(star, "age", None))
+    put("host_teff_k", getattr(star, "temperature", None))
+    star_mass = getattr(star, "mass", None)
+    put("host_mass_sun", None if star_mass is None else star_mass / constants.SOLAR_MASS_TO_KG)
+    put("surface_pressure_pa", getattr(body, "atmospheric_pressure", None))
+    put("obliquity_deg", getattr(body, "axial_tilt_deg", None))
+    hours = getattr(body, "rotation_period_hours", None)
+    put("spin_period_days", None if hours is None else abs(hours) / 24.0)
+    put("core_mass_fraction", getattr(body, "metal_mass_fraction", None))
+    put("water_mass_fraction", getattr(body, "water_mass_fraction", None))
+    put("envelope_mass_fraction", getattr(body, "envelope_mass_fraction", None))
+    put("collision_count", getattr(body, "collision_count", None))
+    for name, value in (getattr(body, "oddity_quantities", None) or {}).items():
+        put(name, value)       # quantities the chain keeps with the body for a gate (the architecture's, the moon set's)
+    return found
+
+
+def ids_of(body):
+    """The ids of the oddities `body` has, a tuple (empty for none)."""
+    return tuple(getattr(body, "oddities", ()) or ())
+
+
+def forced_ids(body):
+    """The oddity ids the body's system asks for (`SystemConfig.FORCE_ODDITIES`), a tuple."""
+    config = getattr(body, "system_config", None)
+    return tuple(getattr(config, "FORCE_ODDITIES", None) or ())
+
+
+def apply(body, levers=None, rows=None, dial=None, scale=None):
+    """
+    Gives `body` the oddities of the table that belong at this step of the chain.
+
+    Args:
+        body: A planet, moon or rogue planet (anything `quantities_of` can read).
+        levers (iterable of str, optional): Only rows whose `apply` lever is one of these (`'L3'`...): the step names the levers whose inputs it has settled.
+            All rows when omitted.
+        rows (iterable of Oddity, optional): The table to use instead of the loaded one (tests).
+        dial, scale: The weirdness dial and the per-row scale to use instead of the tuning's.
+
+    Returns:
+        list[str]: The ids given at this call (also added to `body.oddities`, in table order).
+    """
+    table = ROWS if rows is None else tuple(rows)
+    if not table:
+        return []
+    if dial is None:
+        dial = getattr(getattr(body, "system_config", None), "WEIRDNESS_DIAL", None)       # a run's own dial; the tuning's when it has none
+    found = quantities_of(body)
+    forced = set(forced_ids(body))
+    key = body_key(body)
+    given = []
+    for row in candidates(kind_of(body), found, table):
+        if levers is not None and row.lever not in levers:
+            continue
+        if row.id in ids_of(body):
+            continue
+        wanted = row.id in forced
+        if not (wanted or roll(row, key, dial, scale)):
+            continue
+        if row.effect not in EFFECTS:
+            raise OddityError(f"oddity {row.id}: no module registered the effect {row.effect!r}")
+        EFFECTS[row.effect](body, row)
+        body.oddities = ids_of(body) + (row.id,)
+        given.append(row.id)
+        found = quantities_of(body)         # the effect moved an input: the next gate reads the body as it now is
+    return given
+
+
+def column_text(ids):
+    """The text a body's ids are stored as: comma separated, `None` for none."""
+    return ",".join(ids) if ids else None
+
+
+def from_column(text):
+    """The ids of a stored column value, a tuple (empty for `None` and for an empty string)."""
+    return tuple(part for part in (text or "").split(",") if part)

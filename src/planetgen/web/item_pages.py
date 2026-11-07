@@ -407,6 +407,22 @@ def with_region(context, found):
     return {**context, "glance": context["glance"] + [{"label": row["label"], "html": trusted_html(row["html"])}]}
 
 
+def oddity_rows(found):
+    """
+    The rows that say what is odd about an object (GEN.1047): one "Odd" row for each oddity, the name and then the sentence that says why, as
+    the table gives them. `found` is `GET /api/objects/<ref>`, which carries `oddities` (`[{"id", "name", "text"}]`); empty for an object with none.
+    """
+    return [{"label": "Odd", "html": esc(f"{item['name']}. {item['text']}")} for item in found.get("oddities") or []]
+
+
+def with_oddities(context, found):
+    """A page's sheet context with the object's oddities as rows of its At a glance panel, before the region row (GEN.1047)."""
+    rows = oddity_rows(found)
+    if not rows:
+        return context
+    return {**context, "glance": context["glance"] + [{"label": row["label"], "html": trusted_html(row["html"])} for row in rows]}
+
+
 def _bodies(detail):
     """`[(kind, row)]` for every star, planet, moon, belt and comet of a system's detail, each row with the `kind` it is
     and (a moon's) its planet."""
@@ -524,7 +540,7 @@ def _free_moon_page(db, kind, printed_id, found, free_planet):
         object_id=printed_id,
         former=formerly.view(found.get("former_designations")),
         facts=trusted_html(""),
-        **with_region(sheet_context(apiclient.get_object_sheet(db, ref)), found),
+        **with_region(with_oddities(sheet_context(apiclient.get_object_sheet(db, ref)), found), found),
         tree=tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE)),
         location=location(found["parents"], None),
         owner_url=item_url(free_planet["ref"]),
@@ -574,7 +590,7 @@ def _facility_page(db, printed_id, found):
         object_id=printed_id,
         former=formerly.view(found.get("former_designations")),
         facts=trusted_html(_facility_facts(facility, found)),
-        **with_region(sheet_context(apiclient.get_object_sheet(db, ref)), found),
+        **with_region(with_oddities(sheet_context(apiclient.get_object_sheet(db, ref)), found), found),
         tree="",
         location=location(found["parents"], None),
         system_url=page_url("system", system_id=system["ref"].partition(":")[2]) if system else None,
@@ -664,7 +680,7 @@ def _container_page(db, kind, printed_id, found):
         object_id=printed_id,
         former=formerly.view(found.get("former_designations")),
         facts=trusted_html(_container_facts(container, found, listing)),
-        **with_region(sheet_context(apiclient.get_object_sheet(db, ref)), found),
+        **with_region(with_oddities(sheet_context(apiclient.get_object_sheet(db, ref)), found), found),
         tree="",
         location=location(found["parents"], None),
         bookmark=bookmark(kind, endpoint(kind, printed_id), name, item_url(ref)),
@@ -740,7 +756,7 @@ def render_item(kind, printed_id):
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
         day_counter=day_counter.counter(row, kind) if kind in ("planet", "moon") and row is not None else None,
         life_air=life_air_view(db, kind, printed_id, row),
-        **with_region(sheet_context(sheet), found),
+        **with_region(with_oddities(sheet_context(sheet), found), found),
         **({"planet": planet_sections(name, row, sheet, species, piece, life_readings_view(db, kind, printed_id, row))} if kind in ("planet", "moon") else {}),
         tree=tree,
         tree_marks=tree_has_marks(children),
