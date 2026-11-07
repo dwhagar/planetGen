@@ -10706,6 +10706,48 @@
           "burn_down": [
             "no data",
             "-",
+            "no survey of the share of the sunlit ocean's energy that retinal pigments supply is in hand; the share and the band are the order of the recalled literature"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "life_classes.RETINAL_SHARE 0.05, life_classes.RETINAL_BAND_NM (480, 580)"
+            ],
+            [
+              "The range it moves in",
+              "share 0.02 to 0.2, band edges 20 nm"
+            ],
+            [
+              "Where it holds",
+              "the light a retinal-pigment supplement turns to energy for a chemical class that fixes carbon in sunlit water: the share of the usable light in the blue-green band"
+            ],
+            [
+              "What would show it wrong",
+              "a measured share of the sunlit ocean's energy budget that proteorhodopsin phototrophy supplies"
+            ],
+            [
+              "What replaces it",
+              "the retinal share of Earth's surface ocean energy budget, read from a survey"
+            ],
+            [
+              "Evidence",
+              "planetGen's choice of the order of a few percent (recalled from the proteorhodopsin literature, not opened); the band is the blue-green absorption of the proteorhodopsins, peaks recalled at 490 to 530 nm"
+            ]
+          ],
+          "id": "LF72",
+          "key": "6.18:LF72",
+          "kind": "P",
+          "slug": "6-18-lf72",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "life_classes.RETINAL_SHARE 0.05, life_classes.RETINAL_BAND_NM (480, 580)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
             "fitted to the first census (TEST.430) by design: the prevalence targets are the only calibration, so the rows stay L3 until a measured fraction of worlds with each rung exists"
           ],
           "fields": [

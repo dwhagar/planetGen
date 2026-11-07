@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1198 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1199 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,10 +42,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
 | T6 | 111 | 85 | 24 | 61 | 0 | 281 |
-| T7 | 33 | 13 | 7 | 15 | 0 | 68 |
+| T7 | 33 | 13 | 7 | 16 | 0 | 69 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 83 | 34 | 171 |
-| All | 653 | 248 | 58 | 194 | 45 | 1198 |
+| All | 653 | 248 | 58 | 195 | 45 | 1199 |
 
 ## How the labels were given
 
@@ -432,6 +432,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LF69 | P | T7 | L3 | adaptation_draw.ONSET (dose 10 Gy/yr, hydrogen sulfide 0.002 kPa, carbon dioxide 2 kPa) and adaptation_draw.FULL (dose 1e5 Gy/yr, hydrogen sulfide 0.2 kPa, carbon dioxide 20 kPa) | each 0.3 to 3 times | the stress at which a trait becomes possible (the ordinary limit starts to cost the life something) and the stress at which the extreme grade is needed | none | a stress score per limit from measured tolerance ranges | read off the limits it moves (LF20, LF22) and their grade-3 factors; the shape is the design's (5.1) | - | no data |
 | LF70 | P | T9 | L3 | adaptation traits not built: brine (habitability.WATER_ACTIVITY_CRIT), heat and cold, ultraviolet, acid and alkali, low oxygen (habitability.METAZOA_O2_LOW_KPA) (design 3, rows 2, 4, 5, 6 and 8) | none | the stresses the design lists that have no limit in the life scores to move: water activity is one floor for all life, the class windows are the life's own temperature bands, no class term reads ultraviolet or pH, and the life builds its own oxygen (GEN.877 sets the floors by class) | a class term that reads one of them | a class rule that reads the stress, then its trait | physics: nothing to widen, so a trait drawn for it would change no score | - | no data |
 | LF71 | P | T9 | L3 | adaptation traits not built: habitability.CO_TOX_KPA and habitability.SO2_TOX_KPA, the carbon monoxide and sulfur dioxide toxins | none | only animals are scored against these two (habitability.CO_TOX_KPA, habitability.SO2_TOX_KPA) and the design makes the trait microbe-only, so no limit exists to move | a microbe limit on either gas | a microbe toxin term in the class scoring | physics: no microbe limit on either gas exists in the life scores | - | no data |
+| LF72 | P | T7 | L3 | life_classes.RETINAL_SHARE 0.05, life_classes.RETINAL_BAND_NM (480, 580) | share 0.02 to 0.2, band edges 20 nm | the light a retinal-pigment supplement turns to energy for a chemical class that fixes carbon in sunlit water: the share of the usable light in the blue-green band | a measured share of the sunlit ocean's energy budget that proteorhodopsin phototrophy supplies | the retinal share of Earth's surface ocean energy budget, read from a survey | planetGen's choice of the order of a few percent (recalled from the proteorhodopsin literature, not opened); the band is the blue-green absorption of the proteorhodopsins, peaks recalled at 490 to 530 nm | - | no data |
 | LF57 | P | T9 | L3 | tuning.LIFE_NPP (chemosynthesis_share 1e-3, light_ratio_max 3, tie_factor 2): the net primary production that picks the class that lives on a world | chemosynthesis share 1e-4 to 1e-2; ratio cap 2 to 5; tie factor 1.5 to 4 | every body with a supported class | the first census (TEST.430) puts the classes at shares the prevalence targets disagree with | the census-fitted values | design (GEN.889, life-classes.md 8.2); the chemosynthesis share is the order of vent and seep estimates against Earth's ocean production (recalled) | - | no data |
 | LF58 | P | T9 | L3 | tuning.LIFE_COMPLEXITY (thresholds complex cells 1e-5, multicellularity 3e-5, A1 1e-4, A2 1e-3, A3 1e-1; oxygen floors A1 0.1, A2 2, A3 6 kPa; full yield at 2 kPa; anaerobic yield 0.11; full complexity 0.3; fauna cap 0, 3, 6, 9; anoxic animal chance 0.03 with donor supply 0.3) | each threshold a factor of 10 either way; floors a factor of 3 | every class that reaches the rung | the first census (TEST.430) shows a rung reached far more or less often than the prevalence targets | the census-fitted values | design (life-classes.md 7.3, GEN.890, GEN.877, GEN.882 to GEN.884); the floors follow [R3084] and [R0689, R0691] (recalled), the anoxic route [R0992, R4803]; set from the first census | - | no data |
 | LF54 | P | T9 | L0 | tuning.LIFE_START_AGE_GYR 0.1, the pace words (tuning.LIFE_PACE_FAST_ABOVE 1.5, tuning.LIFE_PACE_SLOW_BELOW 0.67) | none (labels) | all worlds | test_life_timeline.test_the_pace_is_a_word_for_the_factor | none | needed output | - | - |

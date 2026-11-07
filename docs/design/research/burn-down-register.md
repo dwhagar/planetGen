@@ -252,3 +252,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF69 | no data | - | the onset and full stress of each trait are read off the limits it moves and have no tolerance-range survey behind them |
 | 6.18:LF70 | no data | - | five stresses of the design have no limit in the life scores to move, so no trait is drawn for them until a class rule reads the stress |
 | 6.18:LF71 | no data | - | the carbon monoxide and sulfur dioxide toxins are scored for animals only; a microbe toxin term would give the trait something to move |
+| 6.18:LF72 | no data | - | no survey of the share of the sunlit ocean's energy that retinal pigments supply is in hand; the share and the band are the order of the recalled literature |

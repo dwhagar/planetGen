@@ -10,12 +10,12 @@ import re
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import adaptation_draw, adaptation_traits, habitability, habitability_world
+from planetgen.physics import adaptation_draw, adaptation_traits, habitability, habitability_world, life_classes
 
 PLAN = pathlib.Path(__file__).resolve().parents[2] / "docs" / "design" / "research" / "gap-filling-plan.md"
 MODULES = {"tuning": tuning, "habitability": habitability, "habitability_world": habitability_world, "adaptation_traits": adaptation_traits,
-           "adaptation_draw": adaptation_draw}
-NAME = re.compile(r"\b(tuning|habitability_world|habitability|adaptation_traits|adaptation_draw)\.([A-Z][A-Z0-9_]*)\b")
+           "adaptation_draw": adaptation_draw, "life_classes": life_classes}
+NAME = re.compile(r"\b(tuning|habitability_world|habitability|adaptation_traits|adaptation_draw|life_classes)\.([A-Z][A-Z0-9_]*)\b")
 
 TUNING_PREFIXES = ("LIFE_", "STAR_EVOLUTION", "EVOLUTIONARY_", "HABITABILITY_LIFE_")
 
