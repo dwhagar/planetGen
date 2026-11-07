@@ -791,6 +791,7 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     spin_rate, birth_tilt, capture_units = birth
     if found is None:
         if not planet.is_moon and (getattr(planet, "moons", None) or getattr(planet, "_born_moons", None)):
+            release_moons(planet)      # GEN.1352: the history moves them against the equator they were drawn in
             return moon_history.apply(planet, primary_mass_kg)
         found = body_spin.evolve(planet, primary_mass_kg, _au_to_m(planet.distance), spin_rate, _yr_to_s(_gyr_to_yr(planet.star.age)),
                                  getattr(planet, "eccentricity", 0.0) or 0.0, capture_units=capture_units)
@@ -808,6 +809,8 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
                 tilt = 180.0 - tilt
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
+    if not planet.is_moon and getattr(planet, "moons", None):
+        orient_moons(planet)      # GEN.1352: its moons lie in the equator this axis gives
     # GEN.767: the day and night shares follow the rotation and tilt just set (a planet's; a moon's need its parent's axis, `refinish_rocky`)
     if not planet.is_moon:
         daylight.generate(planet)
@@ -820,6 +823,46 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     # GEN.89: the habitability score, from all of the above.
     habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
 
+
+
+def _turn_moon(moon, axis, turn):
+    """Turns a moon's position, velocity and spin axis by `turn` (`spin.turn_to_axis` or `spin.turn_from_axis`) about the planet's pole `axis`."""
+    moon.set_position_au(*turn((moon.position_x, moon.position_y, moon.position_z), axis))
+    moon.set_velocity_kms(*turn((moon.velocity_x_kms, moon.velocity_y_kms, moon.velocity_z_kms), axis))
+    if moon.spin_axis_x is not None:
+        moon.spin_axis_x, moon.spin_axis_y, moon.spin_axis_z = turn((moon.spin_axis_x, moon.spin_axis_y, moon.spin_axis_z), axis)
+
+
+def release_moons(planet):
+    """
+    Writes the moons of `planet` that `orient_moons` set in the system's frame back in the frame of the planet's equator, the one their
+    elements (`orbital_inclination_deg`, `orbital_ascending_node_deg`) are measured in and the history of the moons moves them in (no draws).
+    """
+    for moon in planet.moons:
+        axis = getattr(moon, "_frame_axis", None)
+        if axis is not None:
+            _turn_moon(moon, axis, spin.turn_from_axis)
+            moon._frame_axis = None
+
+
+def orient_moons(planet):
+    """
+    GEN.1352: sets the moons of `planet` in the system's frame. A moon's inclination and node are drawn and kept against the equator of its planet
+    (`generate_orbital_motion_properties`, `moon_history.retrograde`), so its position, velocity and spin axis are turned from that frame onto the planet's
+    spin axis: a moon of a planet tipped by 98 degrees goes round in its tipped equator, and one of a planet with no tilt goes round in the plane of its
+    planet's orbit. A turn only, no draws; the planet's wobble from its moons (`reflex_offset_*`) follows the new positions. The irregular moons keep
+    their own frame (`generation/irregular_moons.py`).
+    """
+    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+    if any(c is None for c in axis):
+        return
+    release_moons(planet)
+    for moon in planet.moons:
+        _turn_moon(moon, axis, spin.turn_to_axis)
+        moon._frame_axis = axis
+    if planet.moons:
+        planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
+            planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])
 
 
 def move_orbit(body, distance_au, primary_mass_kg):
