@@ -79,7 +79,31 @@ fixed for a step and the step is cut at the crossing (`test_the_adiabat_is_conti
 GEN.717's miss (the old model gave 0.3 to 0.6 K for a doubling) was the missing line structure; GEN.718's (Titan twice too warm) was the missing absorption of sunlight
 by the haze, which the old closure had no way to say. Earth's clear-sky target is rebased: the old `0.625` for G assumed a closure tuned to a cloudy 288 K.
 
-## Limits (registry rows IR1 to IR13, `gap-filling-plan.md` 6.6b)
+## The runaway greenhouse (GEN.1194)
+
+The question was whether the model's outgoing flux has a plateau, the Simpson-Nakajima limit, as water vapor thickens: a first look at the generator's own air (Manabe and
+Wetherald's humidity, IR7, 77 percent at the surface) found the clear-sky flux still rising by 2.3 to 2.8 W/m2 per K at 334 K, 414 W/m2 against 282 to 310 published, and
+blamed the water window, the continuum's temperature dependence and the line wings. A band-by-band look at the 321 K column showed the opacity is not at fault: the MT_CKD
+continuum gives the 1,000 cm-1 window an optical depth of 2.2 (176 kg of vapor per m2, `WATER_CONTINUUM`, IR4), the same as a hand count with the coefficient and its
+temperature exponent, and the window leaves 77 percent of the surface's blackbody flux only because the vapor *falls to nothing aloft* in the Earth's profile.
+
+With the relative humidity held at the surface's value up the whole troposphere (`saturated=True`, the air the published limits use) and the cloud left out
+(`clear_sky=True`), on 1 bar of nitrogen with 40 Pa of carbon dioxide and vapor at saturation at the surface:
+
+| absorbed flux, W/m2 | 285 | 300 | 315 | 330 |
+|---|---|---|---|---|
+| saturated profile, surface K | 307.6 | 322.4 | 342.5 | 374.6 |
+| Manabe and Wetherald profile (IR7), surface K | 293.2 | 298.8 | 304.5 | 309.6 |
+| slope of the saturated surface, K per W/m2 | | 1.0 | 1.3 | 2.1 to 2.4 |
+
+The saturated air has the elbow of the runaway (the flux stops being enough near 300 to 315 W/m2, inside 282 to 310 [R1607] plus a few percent for the nitrogen
+and not pure steam); the Earth's profile has none. So the generator, which keeps the Earth's profile for a world with an ocean (IR7), leaves the runaway to the
+water-loss history (`runaway_history`, GEN.639) and to the steam start of GEN.1238, as before; `saturated` and `clear_sky` are the way to ask the model for the limit
+(stand-in IR17, T1, L0), and `test_radiative_convective_real.py` holds the elbow and the finding. The 3D models that put the inner edge at 1.1 times the present
+flux or more (a dry subtropics) are the reason not to make the generator's own air saturated. Pure steam airs are not part of this check: the model takes 2 to 3
+minutes and does not converge for them at fixed vapor, a limit already stated below.
+
+## Limits (registry rows IR1 to IR17, `gap-filling-plan.md` 6.6b)
 
 - The cloud is a share of the outgoing flux (IR12), not a layer, and there is no condensation but water. The humidity profile is Earth's. Sunlight is deposited by the caller, never absorbed by the gases here.
 - The stratosphere is clear-sky radiative equilibrium without ozone heating. A gas without a table has stand-in bands.
