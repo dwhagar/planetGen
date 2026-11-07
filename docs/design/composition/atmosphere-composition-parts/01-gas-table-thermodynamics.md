@@ -302,6 +302,11 @@ The twenty-five rows from H to HCOOH (added with GEN.454 and GEN.499) are the at
 | Al2O | 69.963 | - | 52.04 | 60.65 | no phase data; free energy in species_thermo.py | COMPUTED |
 | AlO2 | 58.980 | - | 51.73 | 60.70 | no phase data; free energy in species_thermo.py | COMPUTED |
 | Al2O2 | 85.962 | - | 68.23 | 83.80 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Cl | 35.450 | - | 21.85 | 22.23 | no phase data; free energy in species_thermo.py | COMPUTED |
+| F | 18.998 | - | 22.74 | 21.27 | no phase data; free energy in species_thermo.py | COMPUTED |
+| F2 | 37.996 | - | 31.34 | 37.06 | no phase data; free energy in species_thermo.py | COMPUTED |
+
+The last three rows (Cl, F, F2; GEN.1337) are the halogen atoms and fluorine that a hot outgassed gas holds once its hydrogen halides dissociate: `physics/gas_equilibrium.py` already carries their free energies, and a drawn mixture whose unlisted share was above the 1e-3 limit of `mixture_base.finish` failed with a MixtureError (about 1 in 240 G2V systems) until the table listed them. Cp is the NASA Glenn fit, as above.
 
 ## 6. Saturation vapour pressure correlations
 
