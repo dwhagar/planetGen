@@ -3974,9 +3974,12 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
         if uid is None:
             continue
         uid = bytes(uid)
+        kept_uids = {row["event_index"]: bytes(row["uid"]) for row in conn.execute(
+            "SELECT event_index, uid FROM rogue_planets WHERE donor_uid = ? AND uid IS NOT NULL AND event_index IS NOT NULL", (uid,)).fetchall()}
         delete_rogues_of_donor(conn, uid)
         position = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
         row_ids = []
+        row_kept = {}
         landed = set()
         for rogue in rogue_yield.rogues_of(uid, system, position, edge_pc):
             sector_id = uncharted_sector_id(conn, rogue.landing.address, edge_pc, run_id)
@@ -3985,8 +3988,10 @@ def save_donor_rogues(conn, donors, birth_sector_id, edge_pc, run_id=None):
                 conn, rogue.planet, sector_id=sector_id, placement=rogue_landing.placement_of(rogue.landing), donor_uid=uid,
                 event_index=rogue.event.index, ejection_delay_gy=rogue.event.delay_gy, since_ejection_gy=rogue.event.since_ejection_gy,
                 ejection_speed_kms=math.sqrt(sum(v * v for v in rogue.event.kick_km_s)), rogue_note=rogue.note))
+            if rogue.event.index in kept_uids:
+                row_kept[row_ids[-1]] = kept_uids[rogue.event.index]
         if row_ids:
-            _assign_rogue_uids(conn, row_ids, birth_sector_id)
+            _assign_rogue_uids(conn, row_ids, birth_sector_id, kept=row_kept)
             written += len(row_ids)
         for sector_id in sorted(landed):        # the leaf of each sector a rogue landed in holds it (TEST.602)
             fingerprintTree.store_residents(conn, sector_id)
@@ -4081,10 +4086,15 @@ def save_topup_rogues(conn, sector_id, made):
     return len(row_ids)
 
 
-def _assign_rogue_uids(conn, row_ids, birth_sector_id):
-    """Run-time IDs for new rogue planets (and their moons) born in the donor's sector, wherever they are filed."""
-    uids = _runtime_uids(conn, _sector_birth_address(conn, birth_sector_id), len(row_ids))
-    _update_by_id(conn, "rogue_planets", ("uid",), list(zip(row_ids, uids)))
+def _assign_rogue_uids(conn, row_ids, birth_sector_id, kept=None):
+    """
+    Run-time IDs for new rogue planets (and their moons) born in the donor's sector, wherever they are filed. A rogue that a donor saved again makes
+    from the same event takes the ID it had (`kept`, `{row id: uid}`): saving a donor again never changes an ID, and the Object ID name follows it.
+    """
+    kept = kept or {}
+    fresh = [row_id for row_id in row_ids if row_id not in kept]
+    uids = _runtime_uids(conn, _sector_birth_address(conn, birth_sector_id), len(fresh)) if fresh else []
+    _update_by_id(conn, "rogue_planets", ("uid",), [*zip(fresh, uids), *kept.items()])
     _name_rogues_by_uid(conn, row_ids)
     _assign_rogue_moon_uids(conn, row_ids)
 

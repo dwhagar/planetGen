@@ -505,12 +505,12 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
         conn.close()
 
     assert _is_named_as(bh_row["name"], black_hole_entry.phenomenon.name)
-    assert ns_row["name"] == neutron_star_entry.phenomenon.name
-    assert nebula_row["name"] == nebula_entry.phenomenon.name
-    assert field_row["name"] == field_entry.phenomenon.name
-    assert remnant_row["name"] == remnant_entry.phenomenon.name
-    assert planet_row["name"] == planet_entry.phenomenon.name
-    assert comet_row["name"] == comet_entry.phenomenon.name
+    assert _is_named_as(ns_row["name"], neutron_star_entry.phenomenon.name)
+    assert _is_named_as(nebula_row["name"], nebula_entry.phenomenon.name)
+    assert _is_named_as(field_row["name"], field_entry.phenomenon.name)
+    assert _is_named_as(remnant_row["name"], remnant_entry.phenomenon.name)
+    assert _is_named_as(planet_row["name"], planet_entry.phenomenon.name)
+    assert _is_named_as(comet_row["name"], comet_entry.phenomenon.name)
 
     # Every type gets a real position converted from its own
     # sector-relative offset (galaxy_position + offset, NOT an independent
