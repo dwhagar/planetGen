@@ -567,9 +567,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1335 | Inner planets (inside 100 days) are 5 to 8 Earth masses against the 3.72 median of the Kepler survey, so the rocky peak of the radius valley sits at 1.5 to 1.75 Earth radii instead of 1.3 to 1.4: compare the generated inner mass function with the published masses |  |  |
 | GEN.1336 | Hot Jupiters round red dwarfs are about twice as common as the researched band (0.5 percent against 0.27): test_hot_jupiters_are_rare_and_rarer_round_a_red_dwarf passes only on a lucky seed |  |  |
 | GEN.1337 | A rocky planet's outgassing can fail with a MixtureError (0.00143 of the gas is Cl, F and F2, species the gas table lacks) and crash the whole StarSystem (bug) |  |  |
-| GEN.1339 | Sea worlds are almost all global oceans: 55 of 59 worlds with a liquid sunlit sea are 95 to 100 percent ocean and only 3 are in the 20 to 80 percent range class M asks for; find why (delivered water against relief) |  |  |
 | GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor |  |  |
 | GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number |  |  |
+| GEN.1342 | A temperate (275 to 298 K) global ocean with oxygen has no hard class: class O needs 298 to 312 K and class M needs 20 to 80 percent ocean cover, so these worlds are placed only by soft shoulders (Boss decides the class) |  |  |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) |  |  |
 
 ### Physics rectification: winds and ring darkening
