@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3563] - 2026-11-07
+
+**Headline:** The body-marker test picks its not-a-class letter from the class list instead of a fixed letter that has become a class.
+
+### Changed
+
+- **Body-marker test follows the class list (TEST.674).** `tests/js/bodymarkers.test.mjs` used R as the letter that is not a planet class, and R is a class now, so the test failed. It takes the first capital letter that `PLANET_CLASS_LETTERS` leaves out, so adding a class cannot break it again (it asserts a letter is left). Test only.
+
+generation-output: unchanged
+
 ## [8.0.3562] - 2026-11-07
 
 **Headline:** The parent-link test follows the rule that a sector cannot be deleted while a rogue planet is filed in it, and checks that emptying the sector takes the rogue planet and its moons.
