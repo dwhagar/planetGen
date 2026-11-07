@@ -647,6 +647,10 @@ def backfill_bright_stars_unit(unit_args, report):
                        for shell, types in shells.items()}}
 
 
+SKY_UNIT_CONNECTION_TRIES = 3
+"""int: How many connections a sky unit may use up, one after another, to lose to MySQL before it fails."""
+
+
 def _sky_unit(unit_args, report):
     """
     The unit of one observer cell's sky tiers (VIEW.25, `sky_charting.chart`): every tier the ledger does not hold, from the top down, each in committed batches; a tier stopped part way
@@ -657,16 +661,22 @@ def _sky_unit(unit_args, report):
     """
     from planetgen.generation import sky_charting
     sky = unit_args["sky"]
-    conn = store.get_connection(_mysql_config_of(unit_args))
-    try:
-        steps_done = [0]
-        # a tier is the progress step; `chart` draws tiers one after another, so a batch tick is the only call it makes between them
-        result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=lambda batches, cells, stars: report(steps_done[0], steps_done[0] + 1))
-    except BaseException:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    for attempt in range(1, SKY_UNIT_CONNECTION_TRIES + 1):
+        conn = store.get_connection(_mysql_config_of(unit_args))
+        try:
+            steps_done = [0]
+            # a tier is the progress step; `chart` draws tiers one after another, so a batch tick is the only call it makes between them
+            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=lambda batches, cells, stars: report(steps_done[0], steps_done[0] + 1))
+            break
+        except BaseException as exc:
+            conn.rollback()
+            # The draw is long (a cell can take half an hour) and MySQL may drop its connection; every batch is committed and the ledger
+            # records the spheres, so a fresh connection goes on from the last batch (and the server released the draw's named lock with the old one).
+            if attempt == SKY_UNIT_CONNECTION_TRIES or not store.is_lost_connection(exc):
+                raise
+            log.normal(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
+        finally:
+            conn.close()
     drawn = [item for item in result["tiers"] if not item.skipped]
     return {"sectors": 0, "stars": result["stars"], "visited": 0, "shells": {},
             "sky": {"stars": result["stars"], "seconds": result["seconds"], "spheres": len(drawn), "cell": list(result["cell"]), "floors": result["floors"]}}

@@ -476,6 +476,17 @@ def _session_sql_mode():
     return mode
 
 
+LOST_CONNECTION_ERRORS = (2006, 2013, 2055)
+"""tuple: The MySQL client errors for a connection that is gone: the server has gone away, lost the connection during a query, lost the connection to the server."""
+
+
+def is_lost_connection(exc):
+    """Whether `exc` says the connection itself is gone (a lost-connection client error, or a command on a connection already closed), not a statement that failed."""
+    if isinstance(exc, pymysql.err.InterfaceError):
+        return True
+    return isinstance(exc, pymysql.err.OperationalError) and bool(exc.args) and exc.args[0] in LOST_CONNECTION_ERRORS
+
+
 def _get_pool(config, statement_timeout_s=None, lock_wait_s=None):
     key = config._key() if not (statement_timeout_s or lock_wait_s) else (
         config._key(), float(statement_timeout_s or 0), float(lock_wait_s or 0))
@@ -1270,6 +1281,14 @@ class Connection:
         self._parity_touched = set()
         try:
             self._conn.rollback()
+        except pymysql.err.InterfaceError:
+            # A connection the server dropped (or that was already closed) has nothing left to roll back: the server ended its
+            # transaction with it. Raising here would hide the error that is being cleaned up after, in every `except: rollback(); raise`.
+            log.normal("Rollback skipped: the connection to MySQL was already closed.")
+        except pymysql.err.OperationalError as exc:
+            if not exc.args or exc.args[0] not in LOST_CONNECTION_ERRORS:
+                raise
+            log.normal(f"Rollback skipped: the connection to MySQL was lost (error {exc.args[0]}).")
         finally:
             self._release_txn_locks()
 
