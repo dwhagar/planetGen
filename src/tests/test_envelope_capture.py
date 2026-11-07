@@ -181,7 +181,7 @@ def test_a_planet_with_no_star_keeps_the_whole_envelope_it_started_with():
 
 @pytest.mark.slow
 def test_the_generated_planets_show_the_radius_valley_a_system_sweep_finds():
-    """The sweep of GEN.1323: inside 100 days, about half the planets of 1 to 4 Earth radii are above 2.0 (Fulton et al. 2017) and the
+    """The sweep of GEN.1323: inside 100 days, about half the planets of 1 to 4 Earth radii are above 2.0 [R1478] and the
     planets of 1 to 2 Earth masses are mostly rocky."""
     draw.set_run_seed(20261107)
     inner, big, light, light_rocky = 0, 0, 0, 0

@@ -4,7 +4,7 @@
 TEST.676: the radius valley of the generated sample, and the rogue planets that share its envelopes (GEN.1323).
 
 `test_radius_valley.py` tunes the survey that GEN.822 fitted and `test_envelope_capture.py` tests the pieces. This file measures what the generator
-makes: a sweep of G2V systems, the share of the planets of 1 to 4 Earth radii that are above 2.0 inside 100 days (Fulton et al. 2017: about half), the
+makes: a sweep of G2V systems, the share of the planets of 1 to 4 Earth radii that are above 2.0 inside 100 days ([R1478]: about half), the
 planets beyond 100 days, the largest a rocky planet comes out, and the rogue planets, which have no star to strip an envelope.
 """
 
@@ -23,7 +23,7 @@ EARTH = constants.EARTH_MASS_TO_KG
 SYSTEMS = 30
 SEED = 20261107
 INNER_DAYS = 100.0
-"""float: Fulton et al. (2017) count the planets inside 100 days."""
+"""float: [R1478] count the planets inside 100 days."""
 
 Row = collections.namedtuple("Row", "days radius mass envelope density planet_type planet_class")
 

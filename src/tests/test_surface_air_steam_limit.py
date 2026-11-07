@@ -3,7 +3,7 @@
 """
 GEN.1329: a body under its runaway greenhouse limit cannot hold its water as steam.
 
-A hot steam air radiates about 280 W/m2 whatever it absorbs (Nakajima, Hayashi and Abe 1992), so a body that gets less than the runaway flux of its star and mass
+A hot steam air radiates about 280 W/m2 whatever it absorbs [R3236], so a body that gets less than the runaway flux of its star and mass
 (`orbits.runaway_greenhouse_flux`) cools and its water returns to the surface. The fixed point had no such limit: a dense, hydrogen-rich first step (28 bar, which the
 table warms to 1,000 K) carried the air past the critical temperature of water (647 K), `freeze_out` then let the whole ocean join the air (a gas above its critical
 point has no saturation) and the steam air of 1e10 to 1e11 Pa stood at 2 W/m2 absorbed: 44 of the 63 steam airs in 450 generated systems were under the limit, one at 0.008

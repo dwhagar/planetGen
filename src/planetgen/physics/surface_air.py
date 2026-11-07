@@ -818,7 +818,7 @@ def _steam_possible(body, albedo, starlight_w_m2):
     """
     Whether the body can hold its water as steam (GEN.1329): its effective flux, the starlight in the Sun's at the Earth plus its own heat flow (the
     interior's and the tide's) as the starlight that would absorb the same, is past `orbits.runaway_greenhouse_flux` of its star and mass (the limit the
-    water-loss history and the steam-branch start already use). A hot steam air radiates about 280 W/m2 (Nakajima, Hayashi and Abe 1992) whatever it
+    water-loss history and the steam-branch start already use). A hot steam air radiates about 280 W/m2 [R3236] whatever it
     absorbs, so under the limit it cools and the water returns to the surface; a body with no star (an ejected one) is held to the Sun's limit. No draw.
     """
     own_w_m2 = (getattr(body, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(body, "tidal_flux_w_m2", None) or 0.0)

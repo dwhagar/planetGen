@@ -149,7 +149,7 @@ def test_systems_differ_in_scale_and_the_planets_of_one_system_stay_alike():
 
 
 def test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet():
-    """GEN.1335 against Fressin et al. 2013 (16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii inside 85 days): of the inner systems of a K dwarf
+    """GEN.1335 against [R1459] (16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii inside 85 days): of the inner systems of a K dwarf
     about a quarter hold a bare core of that size (0.19 with every system at the same scale)."""
     mass_solar, hosts, earth = 0.7, 0, 0
     draw.set_run_seed(78)

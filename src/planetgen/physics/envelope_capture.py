@@ -6,7 +6,7 @@ The hydrogen-helium envelope a rocky planet captured and kept: sub-Neptunes and 
 
 A core of a few Earth masses that finishes growing inside the gas disk captures a hydrogen-helium envelope. Close to its star the star's
 X-rays and heat strip it again (`envelope_escape`, GEN.822); farther out the planet keeps it, and is a sub-Neptune of 2 to 4 Earth radii.
-That is the radius valley (Fulton et al. 2017: about half the planets of 1 to 4 Earth radii inside 100 days are above 2.0). The envelope
+That is the radius valley ([R1478]: about half the planets of 1 to 4 Earth radii inside 100 days are above 2.0). The envelope
 and loss recipes of rows e1 and e2 (GEN.509, GEN.722, GEN.822) were tuned to the valley, but nothing drew an envelope for a rocky planet, so
 no generated planet of 1 to 4 Earth radii came out above 2.0 (GEN.1323, found by the validation sweep of GEN.753).
 
@@ -46,7 +46,7 @@ the middle (geometric) of the recipe bracket `f_env0` 0.05 to 0.2 that both vall
 
 MAX_START = bulk_structure.CLOSED_FORM_RANGES["envelope"]["envelope"][1]
 """float: STAND-IN EC5 (T6, L1, registry 6.206): the largest starting envelope a rocky planet draws, 0.2 of its mass: the top of the range the law of Lopez and Fortney was
-fitted over ([R2741]). The valley survey holds its start at 0.5 (`envelope_escape.MAX_ENVELOPE`); beyond 0.2 a planet of a few Earth masses would be a puffed-up
+fitted over [R2741]. The valley survey holds its start at 0.5 (`envelope_escape.MAX_ENVELOPE`); beyond 0.2 a planet of a few Earth masses would be a puffed-up
 Saturn of 5 to 7 Earth radii, which no core of that mass captures."""
 
 START_SPREAD = 0.6

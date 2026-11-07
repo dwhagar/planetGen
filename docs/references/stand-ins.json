@@ -7673,7 +7673,7 @@
           "fields": [
             [
               "Evidence",
-              "RECALLED ([R2366] Kipping 2013: the eccentricities of the radial-velocity planets follow a Beta law of a = 0.867 and b = 3.03, mean 0.22; the first draw of GEN.1325 gave generated giants a mean of 0.08 from the Kepler laws OE1 to OE3, a third of it); the planets of every system take it when they are giants, a single or one of several, and the tide and the periapsis cut act after it"
+              "RECALLED ([R2366]: the eccentricities of the radial-velocity planets follow a Beta law of a = 0.867 and b = 3.03, mean 0.22; the first draw of GEN.1325 gave generated giants a mean of 0.08 from the Kepler laws OE1 to OE3, a third of it); the planets of every system take it when they are giants, a single or one of several, and the tide and the periapsis cut act after it"
             ],
             [
               "What it is",
@@ -17047,7 +17047,7 @@
             ],
             [
               "Evidence",
-              "tuned to a published statistic: Fressin et al. 2013 (1301.0842): 16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii with periods up to 85 days; the FGK weights used (15, 21 and 64 percent of F, G and K) are a stand-in; GEN.1335 measured 9.9 percent with no spread between systems and 15.6 with 0.4 dex (reports/gen1335-inner-mass-function-2026-11-07.md)"
+              "tuned to a published statistic: [R1459] (1301.0842): 16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii with periods up to 85 days; the FGK weights used (15, 21 and 64 percent of F, G and K) are a stand-in; GEN.1335 measured 9.9 percent with no spread between systems and 15.6 with 0.4 dex (reports/gen1335-inner-mass-function-2026-11-07.md)"
             ]
           ],
           "id": "PA15",
@@ -40387,7 +40387,7 @@
             ],
             [
               "The range it moves in",
-              "MOIST_LIMIT_K 340 to 420; the limit's own range (Kopparapu 2013 runaway sets, 0.9 to 1.5 S by star and mass)"
+              "MOIST_LIMIT_K 340 to 420; the limit's own range ([R2446] runaway sets, 0.9 to 1.5 S by star and mass)"
             ],
             [
               "Where it holds",
@@ -40403,7 +40403,7 @@
             ],
             [
               "Evidence",
-              "educated guess from physics: a hot steam air cannot radiate less than about 280 W/m2 ([R3236], [R1607]), so a body that absorbs less than the limit cools until its water condenses; the 375 K bound is the model's own moist limit, not a source value"
+              "educated guess from physics: a hot steam air cannot radiate less than about 280 W/m2 [R1607, R3236], so a body that absorbs less than the limit cools until its water condenses; the 375 K bound is the model's own moist limit, not a source value"
             ]
           ],
           "id": "SV1",
