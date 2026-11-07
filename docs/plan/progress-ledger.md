@@ -2883,3 +2883,5 @@ Baseline: PR #1817.
 | GEN.229 | 8.1 | Generate page and directives |
 | TEST.682 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | GEN.303 | 8.1 | Galactic core and halo |
+| TEST.685 | 8.1 | Stand-in replacements |
+| GEN.1379 | 8.1 | Stand-in replacements |

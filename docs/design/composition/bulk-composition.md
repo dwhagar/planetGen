@@ -56,7 +56,7 @@ States: **Decided** (Boss, EDT), **Default taken** (adopted so work proceeds; Bo
 
 ## 3. The bulk fractions, and what is drawn from physics
 
-All are whole-body mass fractions adding to 1 (tested to 1e-9), the same set for every kind of body; a kind uses the rows its gate passes (decision 7). The shared table (GEN.427) holds every element, mineral, ice and organic the descriptions name; a body stores a mixture of its rows (DB.69, DB.70, master 14.6).
+All are whole-body mass fractions adding to 1 (tested to 1e-9), the same set for every kind of body; a kind uses the rows its gate passes (decision 7). The shared table (GEN.427) holds every element, mineral, ice and organic the descriptions name; a body stores a mixture of its rows (DB.69, DB.70, master 14.6). Every row is read by a draw or listed as vocabulary-only with why not (`VOCABULARY_ONLY` in `scripts/materials_data.py`, TEST.685): `tests/test_materials_reachability.py` fails a row that is neither, a tag on a row a draw reads, and a new double (the same formula as a powder or grain-size variant); the rows GEN.1355 to GEN.1357 add carry their tag with them.
 
 | Fraction | Drawn from physics (stored inputs) | Plain seeded draw (range) |
 |---|---|---|

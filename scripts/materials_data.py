@@ -252,3 +252,32 @@ CLASS_COMPOSITIONS = {
     "hydrogen, helium, and hydrocarbons": ["hydrogen", "helium", "hydrocarbons"],
     "iron, iridium, tungsten, and nickel": ["iron", "iridium", "tungsten", "nickel"],
 }
+
+# Rows no draw reads (TEST.685, tests/test_materials_reachability.py). A row is reached when a module that uses the table names it (its id, name or an alias),
+# or a reached group lists it. A row that is neither is listed here with why, so it is vocabulary a later item may wire, not a row someone forgot; a row listed
+# here that a draw reads, or a row that is not in the table, fails the test. Reasons are plain words.
+_HP_SILICATE = "high-pressure silicate phase: no draw reads it, the mantle density comes from a fixed table in physics/bulk_structure.py"
+VOCABULARY_ONLY = {
+    "mg_wadsleyite": _HP_SILICATE, "fe_wadsleyite": _HP_SILICATE, "mg_ringwoodite": _HP_SILICATE, "fe_ringwoodite": _HP_SILICATE,
+    "mg_bridgmanite": _HP_SILICATE, "fe_bridgmanite": _HP_SILICATE, "mgfe_bridgmanite": _HP_SILICATE, "mg_post_perovskite": _HP_SILICATE,
+    "fe_post_perovskite": _HP_SILICATE, "ca_perovskite": _HP_SILICATE, "al_perovskite": _HP_SILICATE, "al_post_perovskite": _HP_SILICATE,
+    "mg_akimotoite": _HP_SILICATE, "mg_majorite": _HP_SILICATE, "hp_clinoenstatite": _HP_SILICATE, "clinoenstatite": _HP_SILICATE,
+    "coesite": _HP_SILICATE, "stishovite": _HP_SILICATE, "seifertite": _HP_SILICATE,
+    "ice_ii": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+    "ice_iii": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+    "ice_v": "ice phase kept for the phase diagram: the water layer reads only ice VI, VII and X (physics/bulk_structure.py)",
+    "hydrogen": "envelope row: the giant-planet draws read the gas table (physics/gases), not this row",
+    "helium": "envelope row: the giant-planet draws read the gas table (physics/gases), not this row",
+    "potassium": "element row: the element draws go through physics/elements, not this row",
+    "tungsten": "element row: the element draws go through physics/elements, not this row",
+    "fesi": "light-element compound of a core: no draw names it",
+    "carbon_diamond": "carbon polymorph: the carbon draws name graphite, black and amorphous carbon only",
+    "amorphous_carbon": "carbon form: no draw names it",
+    "wustite": "iron oxide: no draw names it",
+    "periclase": "magnesium oxide: no draw names it",
+    "goethite": "iron hydroxide: only the band albedo of the row exists, no recipe names it",
+    "komatiite": "rock type: no recipe or taxon names it",
+    "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
+    "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+    "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+}
