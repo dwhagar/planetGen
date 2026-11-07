@@ -6043,7 +6043,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
             counts, `sectors` -- the ids of every sector something moved
             in or out of -- `step_capped` (objects that needed more steps than the stepper allows), and `counts`, `{name: rows_moved}`:
             `"star_systems"`, `"binary_galactic_orbits"`, each orbiting
-            phenomenon table, `"space_facilities"` and `"retired_asteroid_fields"` (the fields that passed a light year in this run, GEN.1107, present when any did).
+            phenomenon table, `"space_facilities"` and `"retired_asteroid_fields"` (the fields that passed a light year in this run, GEN.1107).
     """
     index = _SectorIndex(conn)
     moved = refiled = 0
@@ -6205,10 +6205,8 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
                 f" galactic_radius_pc = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
                 refile_updates)
             _refile_nearest_rows(conn, table, [(update[0], update[-1]) for update in refile_updates])
-        if aging:
-            retired = _age_asteroid_fields(conn, aging)
-            if retired:
-                counts["retired_asteroid_fields"] = retired
+        if table == "asteroid_fields":
+            counts["retired_asteroid_fields"] = _age_asteroid_fields(conn, aging) if aging else 0
         counts[table] = len(clocks)
         _report(on_progress, table, done, steps)
 

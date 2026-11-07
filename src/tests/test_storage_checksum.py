@@ -302,6 +302,7 @@ WRITERS = {
     ("db/store.py", "mark_bright_star_filled"): "links the star to the system the fill just inserted in the same transaction, which marked the sector (GEN.359)",
     ("db/store.py", "add_facility"): INSERT,
     ("db/store.py", "delete_facility"): MARKS,
+    ("db/store.py", "_age_asteroid_fields"): VOLATILE + " (the age, radius and class of a field, GEN.1107)",
     ("db/store.py", "advance_galactic_positions"): VOLATILE + "; a refile marks both sectors through touch_sector",
     ("db/store.py", "advance_facility_orbits"): VOLATILE,
     ("db/store.py", "refresh_after_motion"): VOLATILE,
