@@ -17,6 +17,7 @@ reachable.
 """
 
 import math
+import re
 
 import pytest
 
@@ -28,6 +29,11 @@ from planetgen.galaxy.spherical import sector_orientation
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
+
+
+def _is_named_as(actual, expected):
+    """A phenomenon with no name of its own is stored under its printed Object ID (GEN.1256): equal to the name, or an ID when the name is empty."""
+    return actual == expected or (not expected and re.fullmatch(r"\d{14}-\d{7}-\d{3}", actual) is not None)
 
 
 def _place_sector(mysql_config, name, center_pc, edge_ly=11.5):
@@ -151,7 +157,7 @@ def test_phenomena_near_sector_finds_a_nebula_placed_at_that_sector(mysql_config
     match = matches[0]
     assert match["id"] == nebula_id
     assert match["type"] == "nebula"
-    assert match["name"] == nebula.name
+    assert _is_named_as(match["name"], nebula.name)
     assert match["descriptor"] == nebula.nebula_type
     assert match["radius_ly"] == pytest.approx(5.0)
     assert match["class"] == nebula.nebula_class
@@ -498,7 +504,7 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
     finally:
         conn.close()
 
-    assert bh_row["name"] == black_hole_entry.phenomenon.name
+    assert _is_named_as(bh_row["name"], black_hole_entry.phenomenon.name)
     assert ns_row["name"] == neutron_star_entry.phenomenon.name
     assert nebula_row["name"] == nebula_entry.phenomenon.name
     assert field_row["name"] == field_entry.phenomenon.name
@@ -642,7 +648,7 @@ def test_phenomena_near_sector_finds_a_black_hole_placed_at_that_sector(mysql_co
         conn.close()
 
     match = next(m for m in matches if m["id"] == bh_id and m["type"] == "black_hole")
-    assert match["name"] == bh.name
+    assert _is_named_as(match["name"], bh.name)
     assert match["radius_ly"] == 0
     # A point object (radius_ly=0) still shows up when its own center
     # falls within the sector's bounding sphere -- compute_phenomenon_placement's
