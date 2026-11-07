@@ -40,7 +40,7 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen.physics import (
-    aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw,
+    aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw,
     mixture_escape, mixture_rocky,
     mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
@@ -184,6 +184,8 @@ class Setting:
         star_temperature_k (float or None): The star's effective temperature, whose blackbody the haze's share of the sunlight is weighted by.
         far_uv (FarUv or None): The far-ultraviolet light the body is under (`aerosols.far_uv_of`), which limits the methane the haze is made of (GEN.982).
         starlight_w_m2 (float): The starlight at the body's orbit (`greenhouse.absorbed_flux_w_m2` takes the albedo off it); used only with `albedo_law`.
+        cloud_law (CloudLaw or None): The cloud terms of the albedo of a body with surface water (GEN.974, `cloud_albedo`): added to the ice law's albedo at each step that has a
+            liquid ocean. `None` for a body without them (a setting built by hand).
         albedo_law (IceAlbedoLaw or None): The Bond albedo as a function of the surface temperature of a body with surface water (GEN.972,
             `climate_branches`): each step of the fixed point takes its absorbed flux at the albedo of the last step's temperature. `None` holds the
             albedo in `absorbed_flux_w_m2`, as a dry body, a giant and a setting built by hand do.
@@ -212,13 +214,24 @@ class Setting:
     starlight_w_m2: float = 0.0
     albedo_law: object = None
     orbital_speed_ms: object = None
+    cloud_law: object = None
 
-    def absorbed_flux_at(self, temperature_k):
+    def albedo_at(self, temperature_k, ocean=True):
+        """The Bond albedo of the step at `temperature_k`: the ice law's (GEN.972) plus the cloud's (`cloud_albedo`, GEN.974, nil with no liquid ocean at the step), held under
+        `cloud_albedo.MAX_ALBEDO`; `None` for a body that holds the albedo it drew."""
+        if self.albedo_law is None:
+            return None
+        albedo = self.albedo_law.albedo(temperature_k)
+        if self.cloud_law is not None:
+            albedo = min(albedo + self.cloud_law.shift(temperature_k, ocean), max(albedo, cloud_albedo.MAX_ALBEDO))
+        return albedo
+
+    def absorbed_flux_at(self, temperature_k, ocean=True):
         """The starlight the surface absorbs when its mean temperature is `temperature_k`: `absorbed_flux_w_m2` for a held albedo, else the flux at the
-        albedo the ice law gives that temperature (GEN.972), floored as the held one is."""
+        albedo the ice law and the cloud give that temperature (GEN.972, GEN.974), floored as the held one is."""
         if self.albedo_law is None:
             return self.absorbed_flux_w_m2
-        return max(greenhouse.absorbed_flux_w_m2(self.starlight_w_m2, self.albedo_law.albedo(temperature_k)), MIN_ABSORBED_FLUX_W_M2)
+        return max(greenhouse.absorbed_flux_w_m2(self.starlight_w_m2, self.albedo_at(temperature_k, ocean)), MIN_ABSORBED_FLUX_W_M2)
 
     @property
     def area_m2(self):
@@ -674,8 +687,8 @@ def solve(setting, start_temperature_k):
         haze = aerosols.NO_HAZE if setting.haze_draws is None else aerosols.haze_of(partials, setting.gravity_m_s2, temperature, setting.haze_draws,
                                                                                   setting.star_temperature_k, setting.far_uv)
         # the haze takes a share of the starlight; the flux the air radiates also holds a giant's own heat, so the share of that flux is smaller
-        absorbed_w_m2 = setting.absorbed_flux_at(temperature)
-        albedo_of_step = None if setting.albedo_law is None else setting.albedo_law.albedo(temperature)
+        absorbed_w_m2 = setting.absorbed_flux_at(temperature, ocean)
+        albedo_of_step = setting.albedo_at(temperature, ocean)
         radiated_w_m2 = absorbed_w_m2 + setting.internal_flux_w_m2
         aloft_share = haze.absorbed_share * absorbed_w_m2 / radiated_w_m2
         warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, radiated_w_m2, aloft_share, haze.pressure_pa)
@@ -751,6 +764,22 @@ def ice_albedo_law(body, albedo, surface_w):
     return climate_branches.IceAlbedoLaw(ice_free=albedo, ice_covered=max(covered, albedo))
 
 
+def cloud_law_of(body, starlight_w_m2, star_distance_au):
+    """
+    The cloud terms (`cloud_albedo.CloudLaw`, GEN.974) of a body that has the ice law (the caller leaves the others, a giant and a body with no surface water, without). The deck needs the
+    body locked 1:1 to its star; the spin is drawn after the air, so the lock is the estimate of `cloud_albedo.tidally_locked` for a planet and true for a moon (a moon's tide is
+    its planet's, and nearly every moon is locked; stand-in CA5).
+    """
+    star = getattr(body, "star", None)
+    if getattr(body, "is_moon", False):
+        locked = True
+    else:
+        age_s = (getattr(star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY) * 1.0e9 * 3.15576e7
+        locked = bool(star_distance_au and getattr(star, "mass", None)
+                      and cloud_albedo.tidally_locked(body.mass, body.radius * 1000.0, star.mass, star_distance_au * constants.AU_M, age_s))
+    return cloud_albedo.CloudLaw(starlight_w_m2=starlight_w_m2, locked=locked)
+
+
 def airless_state(law, starlight_w_m2, start_temperature_k):
     """
     The mean surface temperature and the Bond albedo of a body with surface water and no air (GEN.972): the fixed point of the starlight it absorbs at the albedo
@@ -785,6 +814,7 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
                                                long_lived_geology=long_lived_geology, water_lost=water_lost,
                                                star_distance_au=star_distance_au)
 
+    ice_law = ice_albedo_law(body, albedo, surface_w)
     return Setting(
         gravity_m_s2=gravity, radius_m=body.radius * 1000.0, mantle_kg=0.0 if giant else rock.silicate * body.mass,
         released_j=0.0 if heat is None else heat.released_j, heat_flux_w_m2=flux,
@@ -799,4 +829,5 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         haze_draws=aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
         star_temperature_k=getattr(star, "temperature", None), orbital_speed_ms=orbital_speed,
         far_uv=aerosols.far_uv_of(star, star_distance_au),
-        starlight_w_m2=starlight_w_m2, albedo_law=ice_albedo_law(body, albedo, surface_w))
+        starlight_w_m2=starlight_w_m2, albedo_law=ice_law,
+        cloud_law=None if ice_law is None else cloud_law_of(body, starlight_w_m2, star_distance_au))

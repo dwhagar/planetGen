@@ -1,6 +1,13 @@
 # Cloud albedo on the surface-air fixed point (GEN.974)
 
-Status: design only. Nothing in the generator reads it yet. The build is lock work (generated output changes), waits for GEN.972 (the albedo already moves with the temperature there), and rides the same epoch if the train allows. It adds one pure module, `src/planetgen/physics/cloud_albedo.py`, and the wiring below.
+Status: built (GEN.974, Core 5, 2026-11-06). `physics/cloud_albedo.py` is the pure module (the amount and deck terms, `CloudLaw`, the lock estimate); `surface_air.Setting` carries `cloud_law`, `albedo_at` and `absorbed_flux_at` take the step's ocean, and `surface_air.cloud_law_of` builds the law for a body that has the ice law. Generated output changes (the albedo of every wet body away from 288 K), so it rides a train with an epoch. Stand-in rows CA1 to CA5 are in `gap-filling-plan.md` section 6.193 (the design's CL1 to CL4 clash with the planet-class rows of that name, and a fifth row, the lock estimate, was needed).
+
+## What the build found
+
+* **The twin's response is inside the published range.** With the cloud in the fixed point the Earth twin of `test_climate_sweep.py` responds with 0.65 and 0.56 K per W/m2 above 288 K (the lower bound is 0.54; it was 0.44 without the cloud), and the strict expected failure that named GEN.973 and GEN.974 is gone.
+* **The snowball comes sooner.** The ice law and the cloud together make the twin bistable at 4 to 5 percent less light: a flux 5 percent down, started from the airless Earth's temperature, ends at 224 K, and started warm it ends at 276 K; 10 percent down is a snowball from any start. That is the ice catastrophe of the energy balance models (Budyko 1969, Sellers 1969: a few percent of the Earth's light), so the cooling half of the sweep now stops 3 percent down, on the warm branch the published sensitivity is about.
+* **The lock is an estimate.** The spin is drawn after the air, so the deck term reads the standard despin time with a stand-in Q/k2 (row CA5), and a moon is taken as locked. The deck matters only above 1,000 W/m2 of starlight.
+* **Not wired, as designed:** `temperature_coverage.ice_law_of` (the stored body's cells) and `seasonal_swing` keep the ice law alone; they read the stored albedo, which already holds the cloud shift at the stored temperature.
 
 ## What is missing
 
