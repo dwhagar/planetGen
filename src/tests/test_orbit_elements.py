@@ -60,6 +60,21 @@ def test_the_eccentricities_of_a_single_planet_follow_the_published_mixture():
     assert sum(values) > 2.5 * sum(multi)       # a single planet is the hotter population [R1307]
 
 
+def test_the_eccentricities_of_a_giant_follow_the_beta_law_of_the_radial_velocity_planets_in_any_system():
+    values = _draws(SAMPLES, lambda: oe.draw_planet_eccentricity(True, 0.9, giant=True))
+    assert max(values) <= oe.MAX_ECCENTRICITY
+    cut = stats.beta(oe.GIANT_BETA_A, oe.GIANT_BETA_B).cdf(0.9)
+    assert stats.kstest(values, lambda x: stats.beta(oe.GIANT_BETA_A, oe.GIANT_BETA_B).cdf(x) / cut).pvalue > 0.001
+    assert 0.18 < sum(values) / SAMPLES < 0.24            # Kipping 2013: mean 0.22
+    smaller = _draws(SAMPLES, lambda: oe.draw_planet_eccentricity(True, 0.9))
+    assert sum(values) > 2.0 * sum(smaller)
+
+
+def test_a_giant_keeps_the_cut_and_a_zero_cut_is_a_circle():
+    assert max(_draws(2000, lambda: oe.draw_planet_eccentricity(False, 0.12, giant=True))) <= 0.12
+    assert oe.draw_planet_eccentricity(True, 0.0, giant=True) == 0.0
+
+
 def test_a_cut_eccentricity_is_never_exceeded_and_a_cut_of_zero_is_a_circle():
     assert max(_draws(2000, lambda: oe.draw_planet_eccentricity(False, 0.12))) <= 0.12
     assert max(_draws(2000, lambda: oe.draw_planet_eccentricity(True, 0.05))) <= 0.05

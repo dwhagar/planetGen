@@ -7277,7 +7277,7 @@
             ],
             [
               "Where it holds",
-              "every planet"
+              "every planet that is not a giant (a giant takes OE16)"
             ],
             [
               "What replaces it",
@@ -7667,6 +7667,40 @@
           "tweak": "L0",
           "unread": null,
           "what": "planets.AGE_SETTLE_TOLERANCE"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "RECALLED ([R2366] Kipping 2013: the eccentricities of the radial-velocity planets follow a Beta law of a = 0.867 and b = 3.03, mean 0.22; the first draw of GEN.1325 gave generated giants a mean of 0.08 from the Kepler laws OE1 to OE3, a third of it); the planets of every system take it when they are giants, a single or one of several, and the tide and the periapsis cut act after it"
+            ],
+            [
+              "What it is",
+              "orbit_elements.GIANT_BETA_A, GIANT_BETA_B"
+            ],
+            [
+              "The range it moves in",
+              "0.867 and 3.03, fixed"
+            ],
+            [
+              "Where it holds",
+              "a gas or ice giant (body_type g), any period"
+            ],
+            [
+              "What replaces it",
+              "a Beta law by period and by the number of giants in the system; direct-imaging eccentricities of wide giants"
+            ]
+          ],
+          "id": "OE16",
+          "key": "6.12:OE16",
+          "kind": "B",
+          "slug": "6-12-oe16",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "orbit_elements.GIANT_BETA_A, GIANT_BETA_B"
         }
       ],
       "slug": "6-12-stand-ins-of-the-orbit-elements",
