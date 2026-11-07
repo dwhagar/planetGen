@@ -10,8 +10,8 @@ again when it has finished (OPS.41, OPS.53; `planetgen.admin.updateguard` says h
     python3 -m planetgen.cli.update_guard status
 
 `begin` lists every running or queued piece of work and goes on only if there is none or the operator agrees to
-cancel it (`--yes`, or a y typed on the terminal within 30 seconds; a run started by systemd or cron, one with no
-terminal and silence are all a no, DB.29). It exits 0 to go on and 1 when
+cancel it (`--yes`, or a y typed on the terminal within 30 seconds; a run started by cron, one with no
+terminal and silence are all a no, DB.29). A run started by systemd cancels everything but generation without asking. It exits 0 to go on and 1 when
 the update must not (nothing is changed then). `end` opens the site again, or, with `--failed`, leaves it closed
 and says how to open it. `status` prints whether an update runs and what runs.
 """
