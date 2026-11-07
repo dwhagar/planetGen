@@ -11,7 +11,7 @@
   "e-table-2.6": "Band reflectance of part E table 2.6, computed from the spectral library values it lists (label C)",
   "computed-e": "Computed in part E from its other columns (molar mass, latent heat per kilogram, interaction length from oxides)",
   "handbook-mineralogy": "Anthony, Bideaux, Bladh and Nichols, Handbook of Mineralogy, Mineralogical Society of America (Mineral Data Publishing, 2001-2005), the page of the mineral: D(calc.) and D(meas.)",
-  "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density listed there",
+  "webmineral": "Webmineral Mineralogy Database (Barthelmy), the data page of the mineral: the density, Mohs hardness, crystal system and colour listed there",
   "crc-density-wiki": "Densities of the elements (data page), Wikipedia, the row marked 'use' (CRC and WebElements values); the handbook itself was not read",
   "pubchem": "PubChem compound pages, section Density (experimental values from the sources named there: CRC, USCG, NTP, EPA, HSDB)",
   "seager2007": "[R3992], Mass-radius relationships for solid exoplanets, ApJ 669, 1279 [R3992: Tables 1], 2 and 3 (read)",
@@ -120,12 +120,55 @@
   "carbon_diamond": "carbon polymorph: the carbon draws name graphite, black and amorphous carbon only",
   "amorphous_carbon": "carbon form: no draw names it",
   "wustite": "iron oxide: no draw names it",
-  "periclase": "magnesium oxide: no draw names it",
   "goethite": "iron hydroxide: only the band albedo of the row exists, no recipe names it",
   "komatiite": "rock type: no recipe or taxon names it",
   "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
   "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
-  "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping"
+  "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+  "akaganeite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "cronstedtite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "ferrihydrite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "lepidocrocite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "maghemite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "magnesiochromite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "schwertmannite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "tochilinite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "ulvospinel": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "antigorite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "beidellite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "brucite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "chamosite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "chrysotile": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "clinochlore": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "illite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "lizardite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "montmorillonite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "nontronite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "palygorskite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "saponite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "sepiolite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "talc": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "cristobalite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "lime": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "lonsdaleite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "opal": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "portlandite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "tridymite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "akermanite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "gehlenite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "grossmanite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "hibonite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "melilite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "analcime": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "augite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "epidote": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "hornblende": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "jadeite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "pigeonite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "tremolite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "smectite": "group added as table data (GEN.1355): surface_composition.py names Hu's Mg-smectite only in a comment, kaolinite stands in, and swapping it is a change to drawn output (a later epoch item)",
+  "chlorite": "mineral added as table data (GEN.1355): no recipe or taxon names it yet",
+  "amphibole": "mineral added as table data (GEN.1355): no recipe or taxon names it yet"
  },
  "materials": [
   {
@@ -414,7 +457,7 @@
    },
    "eos": [],
    "labels": "rho=R;Tm=R;Tb=H;Tt=R;Pt=R;Tc=R;Pc=R;Hfus=H;Hvap=R;Hsub=R;Hfus_kg=C;lamI=R;debye=N;alb=N",
-   "note": "Dropped as recalled with no source: rho_grain_g_cm3 1.56 (recalled, no source).",
+   "note": "Dropped as recalled with no source: rho_grain_g_cm3 1.56 (recalled, no source). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "pubchem; nist-webbook; crc-chemicals; computed-e; pdg-nuclear",
    "state": "partly verified",
    "limit": "t_boil_or_sub_k: second-hand; h_fus_kj_mol: second-hand; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
@@ -526,7 +569,7 @@
    },
    "eos": [],
    "labels": "Tm=R;Tb=H;Tt=R;Pt=R;Tc=H;Hfus=H;Hvap=H;Hsub=R;Hfus_kg=C;lamI=N;debye=N;alb=N;rho=N",
-   "note": "No primary solid density was reached (part C: PubChem and the handbooks list the liquid only; the crystallographic estimates are recalled and are not kept).",
+   "note": "No primary solid density was reached (part C: PubChem and the handbooks list the liquid only; the crystallographic estimates are recalled and are not kept). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "nist-webbook; crc-chemicals; computed-e",
    "state": "partly verified",
    "limit": "t_boil_or_sub_k: second-hand; t_crit_k: second-hand; h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand; lambda_i_g_cm2: no source; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source; rho_grain_g_cm3: no source"
@@ -644,7 +687,7 @@
    },
    "eos": [],
    "labels": "Tm=R;Tb=H;Tt=H;Pt=R;Tc=R;Pc=R;Hfus=H;Hvap=H;Hsub=R;Hfus_kg=C;lamI=N;debye=N;alb=N;rho=N",
-   "note": "No primary solid density was reached (part C: PubChem and the handbooks list the liquid only; the crystallographic estimates are recalled and are not kept).",
+   "note": "No primary solid density was reached (part C: PubChem and the handbooks list the liquid only; the crystallographic estimates are recalled and are not kept). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "nist-webbook; crc-chemicals; computed-e",
    "state": "partly verified",
    "limit": "t_boil_or_sub_k: second-hand; t_triple_k: second-hand; h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand; lambda_i_g_cm2: no source; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source; rho_grain_g_cm3: no source"
@@ -754,7 +797,7 @@
    },
    "eos": [],
    "labels": "Tm=R;Tb=R;Tt=R;Pt=R;Tc=R;Pc=R;Hfus=H;Hvap=H;Hfus_kg=C;lamI=R;debye=N;alb=N;rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "nist-webbook; crc-chemicals; computed-e; pdg-nuclear; pubchem",
    "state": "partly verified",
    "limit": "h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
@@ -857,7 +900,7 @@
    },
    "eos": [],
    "labels": "Tm=R;Tb=H;Tt=R;Pt=R;Tc=R;Hfus=N;Hvap=H;Hfus_kg=N;lamI=N;debye=N;alb=N;rho=N",
-   "note": "No primary solid density was reached (part C: PubChem and the handbooks list the liquid only; the crystallographic estimates are recalled and are not kept).",
+   "note": "No primary solid density was reached (part C: PubChem and the handbooks list the liquid only; the crystallographic estimates are recalled and are not kept). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "nist-webbook; crc-chemicals",
    "state": "partly verified",
    "limit": "t_boil_or_sub_k: second-hand; h_vap_kj_mol: second-hand; h_fus_kj_mol: no source; h_fus_kj_kg: no source; lambda_i_g_cm2: no source; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source; rho_grain_g_cm3: no source"
@@ -1071,7 +1114,7 @@
     }
    ],
    "labels": "rho=R;Tm=N;Tb=H;Hfus=H;Hvap=N;Hfus_kg=C;lamI=R;debye=N;alb=N",
-   "note": "Dropped as recalled with no source: t_melt_k 1811 (recalled, no source); h_vap_kj_mol 340 (recalled, no source).",
+   "note": "Dropped as recalled with no source: t_melt_k 1811 (recalled, no source); h_vap_kj_mol 340 (recalled, no source). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "research-e; crc-chemicals; computed-e; pdg-nuclear; seager2007",
    "state": "partly verified",
    "limit": "t_boil_or_sub_k: second-hand; h_fus_kj_mol: second-hand; t_melt_k: no source; h_vap_kj_mol: no source; debye_k: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
@@ -1500,7 +1543,7 @@
    "props": {},
    "eos": [],
    "labels": "",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "part E of the body composition research (row listed with no value yet)",
    "state": "partly verified",
    "limit": "no property value yet"
@@ -2077,7 +2120,7 @@
     }
    ],
    "labels": "rho=R;debye=H",
-   "note": "Part E's 3.2266 g/cm3 is replaced by the read value (handbook-mineralogy).",
+   "note": "Part E's 3.2266 g/cm3 is replaced by the read value (handbook-mineralogy). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman",
    "state": "partly verified",
    "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
@@ -2132,7 +2175,7 @@
     }
    ],
    "labels": "rho=R;debye=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman",
    "state": "partly verified",
    "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
@@ -2205,7 +2248,7 @@
     }
    ],
    "labels": "rho=R;debye=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman; seager2007",
    "state": "partly verified",
    "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
@@ -2260,7 +2303,7 @@
     }
    ],
    "labels": "rho=R;debye=H",
-   "note": "Part E's 4.0014 g/cm3 is replaced by the read value (handbook-mineralogy).",
+   "note": "Part E's 4.0014 g/cm3 is replaced by the read value (handbook-mineralogy). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman",
    "state": "partly verified",
    "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
@@ -2315,7 +2358,7 @@
     }
    ],
    "labels": "rho=R;debye=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2011-burnman; slb2024-burnman",
    "state": "partly verified",
    "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
@@ -2351,7 +2394,7 @@
    },
    "eos": [],
    "labels": "rho=R;debye=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2011-burnman",
    "state": "partly verified",
    "limit": "debye_k: second-hand"
@@ -2415,7 +2458,7 @@
     }
    ],
    "labels": "rho=R;lamI=R;debye=H",
-   "note": "Part E's 2.5384 g/cm3 is replaced by the read value (handbook-mineralogy).",
+   "note": "Part E's 2.5384 g/cm3 is replaced by the read value (handbook-mineralogy). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; pdg-nuclear; slb2011-burnman; slb2024-burnman",
    "state": "partly verified",
    "limit": "debye_k: second-hand; eos mgd-slb3: second-hand"
@@ -2482,7 +2525,7 @@
     }
    ],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki; seager2007",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2507,7 +2550,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2532,7 +2575,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2557,7 +2600,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2582,7 +2625,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2607,7 +2650,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2632,7 +2675,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "Red phosphorus; white is 1.823 and black 2.69 g/cm3 on the same page.",
+   "note": "Red phosphorus; white is 1.823 and black 2.69 g/cm3 on the same page. No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2657,7 +2700,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2682,7 +2725,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2707,7 +2750,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2732,7 +2775,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2757,7 +2800,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2782,7 +2825,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2807,7 +2850,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2832,7 +2875,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2857,7 +2900,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2882,7 +2925,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2907,7 +2950,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "crc-density-wiki",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: the CRC values as listed on a Wikipedia data page; the handbook was not read"
@@ -2972,7 +3015,7 @@
     }
    ],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; hakim2018; seager2007",
    "state": "verified",
    "limit": ""
@@ -3002,7 +3045,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3045,7 +3088,7 @@
     }
    ],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; hakim2018",
    "state": "verified",
    "limit": ""
@@ -3094,7 +3137,7 @@
     }
    ],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2024-burnman",
    "state": "partly verified",
    "limit": "eos mgd-slb3: second-hand"
@@ -3143,7 +3186,7 @@
     }
    ],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2024-burnman",
    "state": "partly verified",
    "limit": "eos mgd-slb3: second-hand"
@@ -3173,7 +3216,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3245,7 +3288,7 @@
     }
    ],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral; seager2007",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3275,7 +3318,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3305,7 +3348,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3335,7 +3378,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3365,7 +3408,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3395,7 +3438,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3425,7 +3468,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3455,7 +3498,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3485,7 +3528,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3511,7 +3554,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3541,7 +3584,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3571,7 +3614,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3597,7 +3640,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3627,7 +3670,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3653,7 +3696,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3683,7 +3726,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3713,7 +3756,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3743,7 +3786,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3773,7 +3816,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3803,7 +3846,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3833,7 +3876,7 @@
    },
    "eos": [],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
@@ -3863,7 +3906,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3893,7 +3936,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3923,7 +3966,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3953,7 +3996,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -3983,7 +4026,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4013,7 +4056,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4064,7 +4107,7 @@
     }
    ],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2024-burnman",
    "state": "partly verified",
    "limit": "eos mgd-slb3: second-hand"
@@ -4096,7 +4139,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4128,7 +4171,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4179,7 +4222,7 @@
     }
    ],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral; slb2024-burnman",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; eos mgd-slb3: second-hand"
@@ -4211,7 +4254,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4243,7 +4286,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4275,7 +4318,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4307,7 +4350,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4339,7 +4382,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4371,7 +4414,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4403,7 +4446,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4433,7 +4476,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4482,7 +4525,7 @@
     }
    ],
    "labels": "rho=H",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "webmineral; slb2024-burnman",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; eos mgd-slb3: second-hand"
@@ -4512,7 +4555,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4561,7 +4604,7 @@
     }
    ],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2024-burnman",
    "state": "partly verified",
    "limit": "eos mgd-slb3: second-hand"
@@ -4591,7 +4634,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4621,7 +4664,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4651,7 +4694,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4677,7 +4720,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4707,7 +4750,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy",
    "state": "verified",
    "limit": ""
@@ -4778,7 +4821,7 @@
     }
    ],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2024-burnman; seager2007",
    "state": "partly verified",
    "limit": "eos mgd-slb3: second-hand"
@@ -4857,7 +4900,7 @@
     }
    ],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; hakim2018; slb2024-burnman",
    "state": "partly verified",
    "limit": "eos mgd-slb3: second-hand; eos mgd-slb3: second-hand"
@@ -4906,7 +4949,7 @@
     }
    ],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "handbook-mineralogy; slb2024-burnman",
    "state": "partly verified",
    "limit": "eos mgd-slb3: second-hand"
@@ -4932,7 +4975,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "pubchem",
    "state": "verified",
    "limit": ""
@@ -4958,7 +5001,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "pubchem",
    "state": "verified",
    "limit": ""
@@ -4984,7 +5027,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "pubchem",
    "state": "verified",
    "limit": ""
@@ -5010,7 +5053,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "pubchem",
    "state": "verified",
    "limit": ""
@@ -5035,7 +5078,7 @@
    },
    "eos": [],
    "labels": "rho=N",
-   "note": "No density reached (PubChem has no record of the compound's density).",
+   "note": "No density reached (PubChem has no record of the compound's density). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "part E of the body composition research (row listed with no value yet)",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: no source"
@@ -5061,7 +5104,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "pubchem",
    "state": "verified",
    "limit": ""
@@ -5131,7 +5174,7 @@
    },
    "eos": [],
    "labels": "Tm=R;Tb=R;Tt=R;Tc=R;Pc=R;Hfus=H;Hvap=H;rho=R",
-   "note": "Phase points are part E's carbon monoxide gas row; the solid density is PubChem's hexagonal solid at 65 K.",
+   "note": "Phase points are part E's carbon monoxide gas row; the solid density is PubChem's hexagonal solid at 65 K. No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "nist-webbook; crc-chemicals; pubchem",
    "state": "partly verified",
    "limit": "h_fus_kj_mol: second-hand; h_vap_kj_mol: second-hand"
@@ -5158,7 +5201,7 @@
    },
    "eos": [],
    "labels": "rho=N",
-   "note": "PubChem lists the liquid (0.6875 g/cm3 at 20 C) only; no solid density was reached.",
+   "note": "PubChem lists the liquid (0.6875 g/cm3 at 20 C) only; no solid density was reached. No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "part E of the body composition research (row listed with no value yet)",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: no source"
@@ -5185,7 +5228,7 @@
    },
    "eos": [],
    "labels": "rho=N",
-   "note": "PubChem lists the anhydrous liquid (0.815 g/cm3 at -20 C) only; no solid density was reached.",
+   "note": "PubChem lists the anhydrous liquid (0.815 g/cm3 at -20 C) only; no solid density was reached. No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "part E of the body composition research (row listed with no value yet)",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: no source"
@@ -5214,7 +5257,7 @@
    },
    "eos": [],
    "labels": "rho=C",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "cod-part-d",
    "state": "verified",
    "limit": ""
@@ -5242,7 +5285,7 @@
    },
    "eos": [],
    "labels": "rho=N",
-   "note": "No solid density was reached (part D lists no cell for the solid).",
+   "note": "No solid density was reached (part D lists no cell for the solid). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "part E of the body composition research (row listed with no value yet)",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: no source"
@@ -5271,7 +5314,7 @@
    },
    "eos": [],
    "labels": "rho=C",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "cod-part-d",
    "state": "verified",
    "limit": ""
@@ -5298,7 +5341,7 @@
    },
    "eos": [],
    "labels": "rho=N",
-   "note": "No density source reached; the value depends on the hydrogen content and the formation.",
+   "note": "No density source reached; the value depends on the hydrogen content and the formation. No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "part E of the body composition research (row listed with no value yet)",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: no source"
@@ -5330,7 +5373,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "[R0776] (read, section 3.3, the CONSERT permittivity review) gives only a rough 'some organics (permittivity about 2, rho about 2)' with no unit written (g/cm3 by the ice value beside it) and no organics density of its own elsewhere; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, inside the widest range (two sources in question: GEN.660). The comet draw reads this row and holds no density of its own for the organics (GEN.712).",
+   "note": "[R0776] (read, section 3.3, the CONSERT permittivity review) gives only a rough 'some organics (permittivity about 2, rho about 2)' with no unit written (g/cm3 by the ice value beside it) and no organics density of its own elsewhere; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, inside the widest range (two sources in question: GEN.660). The comet draw reads this row and holds no density of its own for the organics (GEN.712). No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "blum-bischoff",
    "state": "verified",
    "limit": ""
@@ -5357,7 +5400,7 @@
    },
    "eos": [],
    "labels": "rho=N",
-   "note": "No density source reached.",
+   "note": "No density source reached. No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "part E of the body composition research (row listed with no value yet)",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: no source"
@@ -5525,6 +5568,1740 @@
     "anorthosite_powder",
     "forsterite",
     "enstatite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "akaganeite",
+   "name": "akaganeite",
+   "family": "oxidized",
+   "formula": null,
+   "composition": "Fe+++(O,OH,Cl)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.0,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Akaganeite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Brown, Rusty brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "cronstedtite",
+   "name": "cronstedtite",
+   "family": "clay",
+   "formula": null,
+   "composition": "Fe++2Fe+++(SiFe+++)O5(OH)4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.34,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Cronstedtite",
+     "measured_range": [
+      3.34,
+      3.35
+     ]
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Cronstedtite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Trigonal",
+   "colour": "Brownish black, Greenish black, Dark brown, Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "ferrihydrite",
+   "name": "ferrihydrite",
+   "family": "oxidized",
+   "formula": null,
+   "composition": "Fe+++2O3.0.5(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.8,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Ferrihydrite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Trigonal",
+   "colour": "Yellow brown, Dark brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "lepidocrocite",
+   "name": "lepidocrocite",
+   "family": "oxidized",
+   "formula": "FeO(OH)",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.0,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "listed value (read; the research file had it recalled); page Lepidocrocite"
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Lepidocrocite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Orthorhombic",
+   "colour": "Red, Yellowish brown, Blackish brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "maghemite",
+   "name": "maghemite",
+   "family": "oxidized",
+   "formula": "Fe2O3",
+   "composition": "gamma-Fe+++2O3",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.9,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Maghemite"
+    },
+    "mohs": {
+     "value": 6.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Maghemite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Isometric",
+   "colour": "Dark brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "magnesiochromite",
+   "name": "magnesiochromite",
+   "family": "oxide",
+   "formula": "MgCr2O4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.2,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Magnesiochromite"
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Magnesiochromite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Isometric",
+   "colour": "Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "schwertmannite",
+   "name": "schwertmannite",
+   "family": "oxidized",
+   "formula": "Fe16O16(OH)12(SO4)2",
+   "composition": "Fe+++16O16(OH)12(SO4)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.88,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Schwertmannite",
+     "measured_range": [
+      3.77,
+      3.99
+     ]
+    },
+    "mohs": {
+     "value": 3.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Schwertmannite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Tetragonal",
+   "colour": "Brownish yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "tochilinite",
+   "name": "tochilinite",
+   "family": "sulfide",
+   "formula": null,
+   "composition": "6Fe0.9S.5(Mg,Fe++)(OH)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.97,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Tochilinite",
+     "measured_range": [
+      2.96,
+      2.99
+     ]
+    },
+    "mohs": {
+     "value": 1.25,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Tochilinite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Bronze black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "ulvospinel",
+   "name": "ulvospinel",
+   "family": "oxide",
+   "formula": "Fe2TiO4",
+   "composition": "TiFe++2O4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.91,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "calc; page Ulvospinel"
+    },
+    "mohs": {
+     "value": 5.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Ulvospinel"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Isometric",
+   "colour": "Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "antigorite",
+   "name": "antigorite",
+   "family": "clay",
+   "formula": "Mg3Si2O5(OH)4",
+   "composition": "(Mg,Fe++)3Si2O5(OH)4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.54,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Antigorite",
+     "measured_range": [
+      2.5,
+      2.6
+     ]
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Antigorite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Green, Gray, Bluish gray, Brown, Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "beidellite",
+   "name": "beidellite",
+   "family": "clay",
+   "formula": null,
+   "composition": "Na0.5Al2(Si3.5Al0.5)O10(OH)2.n(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.15,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Beidellite",
+     "measured_range": [
+      2.0,
+      2.3
+     ]
+    },
+    "mohs": {
+     "value": 1.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Beidellite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "White, Gray, Reddish white, Brownish white, Pale yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "brucite",
+   "name": "brucite",
+   "family": "oxide",
+   "formula": "Mg(OH)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.39,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Brucite",
+     "measured_range": [
+      2.39,
+      2.4
+     ]
+    },
+    "mohs": {
+     "value": 2.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Brucite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Trigonal",
+   "colour": "Blue, Gray, Gray blue, Yellow, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "chamosite",
+   "name": "chamosite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(Fe++,Mg,Fe+++)5Al(Si3Al)O10(OH,O)8",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.2,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Chamosite",
+     "measured_range": [
+      3.0,
+      3.4
+     ]
+    },
+    "mohs": {
+     "value": 3.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Chamosite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Gray, Greenish gray, Brown, Blackish green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "chrysotile",
+   "name": "chrysotile",
+   "family": "clay",
+   "formula": "Mg3Si2O5(OH)4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.53,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Chrysotile"
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Chrysotile"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "clinochlore",
+   "name": "clinochlore",
+   "family": "clay",
+   "formula": "Mg5Al2Si3O10(OH)8",
+   "composition": "(Mg,Fe++)5Al(Si3Al)O10(OH)8",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.65,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Clinochlore",
+     "measured_range": [
+      2.55,
+      2.75
+     ]
+    },
+    "mohs": {
+     "value": 2.25,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Clinochlore"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Blackish green, Bluish green, White, Yellowish green, Olive ",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "illite",
+   "name": "illite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(K,H3O)(Al,Mg,Fe)2(Si,Al)4O10[(OH)2,(H2O)]",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.75,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Illite",
+     "measured_range": [
+      2.6,
+      2.9
+     ]
+    },
+    "mohs": {
+     "value": 1.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Illite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "lizardite",
+   "name": "lizardite",
+   "family": "clay",
+   "formula": "Mg3Si2O5(OH)4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.57,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Lizardite",
+     "measured_range": [
+      2.55,
+      2.6
+     ]
+    },
+    "mohs": {
+     "value": 2.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Lizardite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Triclinic",
+   "colour": "Green, Green blue, Yellow, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "montmorillonite",
+   "name": "montmorillonite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(Na,Ca)0,3(Al,Mg)2Si4O10(OH)2.n(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.35,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Montmorillonite",
+     "measured_range": [
+      2.0,
+      2.7
+     ]
+    },
+    "mohs": {
+     "value": 1.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Montmorillonite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "White, Gray white, Yellow, Brownish yellow, Greenish yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "nontronite",
+   "name": "nontronite",
+   "family": "clay",
+   "formula": null,
+   "composition": "Na0.3Fe+++2(Si,Al)4O10(OH)2.n(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Nontronite"
+    },
+    "mohs": {
+     "value": 1.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Nontronite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Greenish yellow, Brownish green, Olive green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "palygorskite",
+   "name": "palygorskite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(Mg,Al)2Si4O10(OH).4(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.15,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Palygorskite",
+     "measured_range": [
+      2.1,
+      2.2
+     ]
+    },
+    "mohs": {
+     "value": 2.25,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Palygorskite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "White, Gray, Brownish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "saponite",
+   "name": "saponite",
+   "family": "clay",
+   "formula": null,
+   "composition": "(Ca/2,Na)0,3(Mg,Fe++)3(Si,Al)4O10(OH)2.4(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Saponite"
+    },
+    "mohs": {
+     "value": 1.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Saponite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "White, Yellowish white, Greenish white, Reddish white, Bluis",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "sepiolite",
+   "name": "sepiolite",
+   "family": "clay",
+   "formula": "Mg4Si6O15(OH)2.6H2O",
+   "composition": "Mg4Si6O15(OH)2.6(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.0,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Sepiolite"
+    },
+    "mohs": {
+     "value": 2.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Sepiolite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Orthorhombic",
+   "colour": "Grayish white, Yellowish white, Bluish green white, Reddish ",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "talc",
+   "name": "talc",
+   "family": "clay",
+   "formula": "Mg3Si4O10(OH)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.75,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Talc",
+     "measured_range": [
+      2.7,
+      2.8
+     ]
+    },
+    "mohs": {
+     "value": 1.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Talc"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Pale green, White, Gray white, Yellowish white, Brownish whi",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "cristobalite",
+   "name": "cristobalite",
+   "family": "oxide",
+   "formula": "SiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.27,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Cristobalite"
+    },
+    "mohs": {
+     "value": 6.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Cristobalite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Tetragonal",
+   "colour": "Blue gray, Brown, Gray, Yellow, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "lime",
+   "name": "lime",
+   "family": "oxide",
+   "formula": "CaO",
+   "composition": "",
+   "aliases": [
+    "calcium oxide"
+   ],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.35,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Lime"
+    },
+    "mohs": {
+     "value": 3.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Lime"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Isometric",
+   "colour": "White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "lonsdaleite",
+   "name": "lonsdaleite",
+   "family": "carbon",
+   "formula": "C",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.41,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Lonsdaleite",
+     "measured_range": [
+      3.3,
+      3.52
+     ]
+    },
+    "mohs": {
+     "value": 7.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Lonsdaleite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Hexagonal",
+   "colour": "Brownish black, Light brownish yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "opal",
+   "name": "opal",
+   "family": "oxide",
+   "formula": null,
+   "composition": "SiO2.n(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.09,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Opal",
+     "measured_range": [
+      1.9,
+      2.3
+     ]
+    },
+    "mohs": {
+     "value": 5.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Opal"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Amorphous",
+   "colour": "White, Yellow, Red, Brown, Blue",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "portlandite",
+   "name": "portlandite",
+   "family": "oxide",
+   "formula": "Ca(OH)2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.23,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Portlandite"
+    },
+    "mohs": {
+     "value": 2.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Portlandite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Trigonal",
+   "colour": "Colorless",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "tridymite",
+   "name": "tridymite",
+   "family": "oxide",
+   "formula": "SiO2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Tridymite",
+     "measured_range": [
+      2.28,
+      2.33
+     ]
+    },
+    "mohs": {
+     "value": 6.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Tridymite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Triclinic",
+   "colour": "Colorless, White, Yellowish white, Gray",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "akermanite",
+   "name": "akermanite",
+   "family": "silicate",
+   "formula": "Ca2MgSi2O7",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.94,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Akermanite"
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Akermanite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Tetragonal",
+   "colour": "Colorless, Grayish, Green, Brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "gehlenite",
+   "name": "gehlenite",
+   "family": "silicate",
+   "formula": "Ca2Al2SiO7",
+   "composition": "Ca2Al(AlSi)O7",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.98,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Gehlenite",
+     "measured_range": [
+      2.9,
+      3.07
+     ]
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Gehlenite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Tetragonal",
+   "colour": "Brown, Colorless, Greenish, Gray, Yellow",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "grossmanite",
+   "name": "grossmanite",
+   "family": "silicate",
+   "formula": "CaTiAlSiO6",
+   "composition": "CaTi+++AlSiO6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.41,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "calc; page Grossmanite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value"
+  },
+  {
+   "id": "hibonite",
+   "name": "hibonite",
+   "family": "oxide",
+   "formula": null,
+   "composition": "(Ca,Ce)(Al,Ti,Mg)12O19",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.84,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Hibonite"
+    },
+    "mohs": {
+     "value": 7.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Hibonite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Hexagonal",
+   "colour": "Black, Black, Reddish brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "melilite",
+   "name": "melilite",
+   "family": "silicate",
+   "formula": null,
+   "composition": "(Ca,Na)2(Al,Mg,Fe++)(Si,Al)2O7",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.95,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Melilite",
+     "measured_range": [
+      2.9,
+      3.0
+     ]
+    },
+    "mohs": {
+     "value": 5.25,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Melilite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Tetragonal",
+   "colour": "White, Yellowish white, Brown, Gray, Greenish gray",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "analcime",
+   "name": "analcime",
+   "family": "silicate",
+   "formula": "NaAlSi2O6.H2O",
+   "composition": "NaAlSi2O6.(H2O)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Analcime"
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Analcime"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Triclinic",
+   "colour": "White, Grayish white, Greenish white, Yellowish white, Reddi",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "augite",
+   "name": "augite",
+   "family": "silicate",
+   "formula": null,
+   "composition": "(Ca,Na)(Mg,Fe,Al,Ti)(Si,Al)2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.4,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Augite",
+     "measured_range": [
+      3.2,
+      3.6
+     ]
+    },
+    "mohs": {
+     "value": 5.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Augite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Brown green, Green, Light brown, Dark brown, Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "epidote",
+   "name": "epidote",
+   "family": "silicate",
+   "formula": null,
+   "composition": "Ca2(Fe+++,Al)3(SiO4)3(OH) = Ca2(Fe,Al)Al2(SiO4)(Si2O7)O(OH)",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.45,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Epidote",
+     "measured_range": [
+      3.3,
+      3.6
+     ]
+    },
+    "mohs": {
+     "value": 7.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Epidote"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Yellowish green, Brownish green, Black, Yellow, Gray",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "hornblende",
+   "name": "hornblende",
+   "family": "silicate",
+   "formula": null,
+   "composition": "Ca2(Mg,Fe,Al)5(Si,Al)8O22(OH)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.23,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "listed average of 3 to 3.47 (the page of magnesiohornblende, where webmineral redirects hornblende); page Magnesiohornblende",
+     "measured_range": [
+      3.0,
+      3.47
+     ]
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Magnesiohornblende"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Brown, Green, Greenish brown, Greenish black, Dark green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "hypersthene",
+   "name": "hypersthene",
+   "family": "silicate",
+   "formula": null,
+   "composition": "(Mg,Fe++)2Si2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.55,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Hypersthene",
+     "measured_range": [
+      3.2,
+      3.9
+     ]
+    },
+    "mohs": {
+     "value": 5.75,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Hypersthene"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Orthorhombic",
+   "colour": "Grayish white, Greenish white, Yellowish white, Bronzy brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "jadeite",
+   "name": "jadeite",
+   "family": "silicate",
+   "formula": "NaAlSi2O6",
+   "composition": "Na(Al,Fe+++)Si2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.3,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Jadeite",
+     "measured_range": [
+      3.25,
+      3.35
+     ]
+    },
+    "mohs": {
+     "value": 6.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Jadeite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Green, White, Pale bluish gray, Grayish green, Pale purple",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "leucite",
+   "name": "leucite",
+   "family": "silicate",
+   "formula": "KAlSi2O6",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.47,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas; page Leucite"
+    },
+    "mohs": {
+     "value": 6.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Leucite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Tetragonal",
+   "colour": "Colorless, Gray, Yellow gray, White",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "nepheline",
+   "name": "nepheline",
+   "family": "silicate",
+   "formula": "NaAlSiO4",
+   "composition": "(Na,K)AlSiO4",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.59,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Nepheline",
+     "measured_range": [
+      2.55,
+      2.65
+     ]
+    },
+    "mohs": {
+     "value": 6.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Nepheline"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Hexagonal",
+   "colour": "White, Gray, Brown, Brownish gray, Reddish white",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "pigeonite",
+   "name": "pigeonite",
+   "family": "silicate",
+   "formula": null,
+   "composition": "(Mg,Fe++,Ca)(Mg,Fe++)Si2O6",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.38,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Pigeonite",
+     "measured_range": [
+      3.3,
+      3.46
+     ]
+    },
+    "mohs": {
+     "value": 6.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Pigeonite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Brown, Greenish brown, Light purple brown, Black",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "tremolite",
+   "name": "tremolite",
+   "family": "silicate",
+   "formula": "Ca2Mg5Si8O22(OH)2",
+   "composition": "[ ]Ca2Mg5Si8O22(OH)2",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.05,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "meas avg; page Tremolite",
+     "measured_range": [
+      2.9,
+      3.2
+     ]
+    },
+    "mohs": {
+     "value": 5.5,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Tremolite"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Monoclinic",
+   "colour": "Brown, Colorless, Gray, White, Light green",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "wollastonite",
+   "name": "wollastonite",
+   "family": "silicate",
+   "formula": "CaSiO3",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.84,
+     "unit": "g/cm3",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "listed average of 2.8 to 2.9 (Wollastonite-1A page; the research file had a recalled 2.9); page Wollastonite-1A",
+     "measured_range": [
+      2.8,
+      2.9
+     ]
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "Mohs",
+     "source": "webmineral",
+     "code": "H",
+     "basis": "page Wollastonite-1A"
+    }
+   },
+   "eos": [],
+   "labels": "rho=H;Mohs=H",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
+   "crystal_system": "Triclinic",
+   "colour": "White, Yellow, Gray, Red, Brown",
+   "source": "webmineral",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: a web compilation: a listed average or single value; mohs: second-hand"
+  },
+  {
+   "id": "smectite",
+   "name": "smectite",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "smectite"
+   ],
+   "members": [
+    "montmorillonite",
+    "saponite",
+    "nontronite",
+    "beidellite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "chlorite",
+   "name": "chlorite",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "chlorite"
+   ],
+   "members": [
+    "clinochlore",
+    "chamosite"
+   ],
+   "gas_formula": null,
+   "gate": "any",
+   "props": {},
+   "eos": [],
+   "labels": "",
+   "note": "",
+   "source": "a group of the rows it names; no number of its own",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "amphibole",
+   "name": "amphibole",
+   "family": "mineral group",
+   "formula": null,
+   "composition": "",
+   "aliases": [
+    "amphibole"
+   ],
+   "members": [
+    "tremolite",
+    "hornblende"
    ],
    "gas_formula": null,
    "gate": "any",
@@ -6826,7 +8603,7 @@
     }
    ],
    "labels": "",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "journaux2020",
    "state": "partly verified",
    "limit": "eos reference-points: second-hand"
@@ -6885,7 +8662,7 @@
     }
    ],
    "labels": "",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "journaux2020",
    "state": "partly verified",
    "limit": "eos reference-points: second-hand"
@@ -6944,7 +8721,7 @@
     }
    ],
    "labels": "",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "journaux2020",
    "state": "partly verified",
    "limit": "eos reference-points: second-hand"
@@ -7015,7 +8792,7 @@
     }
    ],
    "labels": "",
-   "note": "",
+   "note": "No visible band albedo reached: the ground draws raise MissingAlbedo for this row until the three bands are added with their source.",
    "source": "journaux2020",
    "state": "partly verified",
    "limit": "eos reference-points: second-hand"

@@ -335,3 +335,68 @@ def test_the_data_file_is_what_the_builder_makes(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr("sys.argv", ["build_materials_table.py", "--check"])
     module.main()
     assert "current" in capsys.readouterr().out
+
+
+# --- GEN.1355: the silicates and oxides the recipes and the norm name --------------------------------------------
+
+def _part1():
+    module = _builder()
+    return module.data.PART1_MINERALS, module.data.PART1_GROUPS
+
+
+def test_a_ground_row_has_a_band_albedo_or_says_it_has_none():
+    """A ground row (a non-group row every body can hold, not a gas or liquid) either carries the three visible-band albedos or the flag `ground_albedo` raises on."""
+    flag = _builder().NO_ALBEDO_NOTE
+    for row in materials.MATERIALS:
+        if row.is_group or row.gate != (pt.ANY_CLASS,) or row.family in ("envelope", "liquid"):
+            continue
+        bands = [row.props.get(key) for key in ("alb_040_050", "alb_050_060", "alb_060_070")]
+        has_bands = all(band is not None and band.value is not None for band in bands)
+        assert has_bands or flag in row.note, row.id
+
+
+def test_the_new_silicates_and_oxides_are_read_from_their_pages():
+    minerals, groups = _part1()
+    assert len(minerals) == 45 and set(groups) == {"smectite", "chlorite", "amphibole"}
+    for row_id, entry in minerals.items():
+        row = materials.material(row_id)
+        assert row.source and "webmineral" in row.source, row_id
+        density = row.prop("rho_grain_g_cm3")
+        assert density.source == "webmineral" and density.code == "H" and 0.8 < density.value < 6.0, row_id
+        assert row.crystal_system in materials.CRYSTAL_SYSTEMS and row.colour or row_id in ("grossmanite",), row_id
+        if "mohs" in row.props:
+            assert 1.0 <= row.prop("mohs").value <= 10.0 and row.prop("mohs").unit == "Mohs", row_id
+        if row.formula:
+            assert row.molar_mass > 0.0, row_id
+
+
+def test_a_group_name_the_recipes_use_stands_for_its_members():
+    assert {row.id for row in materials.expand("smectite")} == {"montmorillonite", "saponite", "nontronite", "beidellite"}
+    assert {row.id for row in materials.expand("chlorite")} == {"clinochlore", "chamosite"}
+    assert {row.id for row in materials.expand("amphibole")} == {"tremolite", "hornblende"}
+    for group in ("smectite", "chlorite", "amphibole"):
+        assert materials.material(group).is_group and not materials.material(group).props
+
+
+def test_the_values_the_research_file_had_recalled_are_the_values_read_from_the_page():
+    """Wollastonite 2.9, hornblende 3.2 and lepidocrocite 4 were recalled in the research file; the pages list 2.84, 3.23 (magnesiohornblende) and 4."""
+    assert materials.material("wollastonite").prop("rho_grain_g_cm3").value == pytest.approx(2.84)
+    assert materials.material("hornblende").prop("rho_grain_g_cm3").value == pytest.approx(3.23)
+    assert materials.material("lepidocrocite").prop("rho_grain_g_cm3").value == pytest.approx(4.0)
+
+
+def test_the_norms_minerals_are_rows():
+    """The CIPW norm (`rock_types.py`) names these; each is a row now."""
+    for name in ("nepheline", "leucite", "hypersthene", "wollastonite", "periclase", "diopside", "albite", "orthoclase", "anorthite"):
+        assert materials.has(name), name
+
+
+def test_the_loader_refuses_a_mohs_value_off_the_scale(tmp_path, monkeypatch):
+    data = json.loads(open(materials.DATA_FILE, encoding="utf-8").read())
+    row = next(item for item in data["materials"] if item["id"] == "talc")
+    row["props"]["mohs"]["value"] = 11.0
+    bad = tmp_path / "materials.json"
+    bad.write_text(json.dumps(data), encoding="utf-8")
+    monkeypatch.setattr(materials, "DATA_FILE", str(bad))
+    with pytest.raises(DataError, match="Mohs"):
+        materials._load()

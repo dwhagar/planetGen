@@ -79,8 +79,12 @@ PROPERTIES = {
     "alb_050_060": ("1", "alb"),
     "alb_060_070": ("1", "alb"),
     "rho_gas_stp_g_l": ("g/L", "rhog"),
+    "mohs": ("Mohs", "Mohs"),
 }
 """dict: Every property a row may carry: key -> (unit, the key of part E's label column). The albedo of the three bands share one label."""
+
+CRYSTAL_SYSTEMS = ("Isometric", "Tetragonal", "Hexagonal", "Trigonal", "Orthorhombic", "Monoclinic", "Triclinic", "Amorphous")
+"""tuple: The crystal systems a mineral row may name (`Amorphous` for a solid with none)."""
 
 CODES = ("R", "C", "H", "S", "N")
 """tuple: Part E's label codes: R read, C computed, H second-hand, S snippet, N not reached."""
@@ -174,6 +178,8 @@ class Material:
         props (dict): Property key -> `Prop`.
         eos (tuple): The `Eos` entries.
         labels (str): Part E's label column for the row (`rho=R;Tm=H`), rebuilt from the codes of its numbers.
+        crystal_system (str): The mineral's crystal system as its source lists it (`Monoclinic`; `Amorphous` for an opal), or empty where the row is not a mineral or none was read.
+        colour (str): The colours the source lists for the mineral, or empty.
         source, state, limit (str): The row's source summary, source state, and for a partly verified row the limit.
         note (str): What was dropped or replaced.
     """
@@ -195,6 +201,8 @@ class Material:
     state: str
     limit: str
     note: str
+    crystal_system: str = ""
+    colour: str = ""
 
     def prop(self, key):
         """The `Prop` of `key` (`"rho_grain_g_cm3"`); raises `KeyError` where the row has no such column."""
@@ -348,6 +356,12 @@ def _load():
         members = item.get("members")
         props = {key: _prop(row_id, key, entry, sources) for key, entry in (item.get("props") or {}).items()}
         eos_entries = tuple(_eos(row_id, entry, sources) for entry in item.get("eos") or ())
+        system = item.get("crystal_system", "")
+        if system and system not in CRYSTAL_SYSTEMS:
+            raise DataError(f"materials.json: {row_id} crystal system {system!r} is none of {', '.join(CRYSTAL_SYSTEMS)}")
+        mohs = props.get("mohs")
+        if mohs is not None and mohs.value is not None and not 1.0 <= mohs.value <= 10.0:
+            raise DataError(f"materials.json: {row_id} Mohs hardness {mohs.value} is outside the scale 1 to 10")
         if members is not None and (props or eos_entries or formula):
             raise DataError(f"materials.json: {row_id} is a group and carries a number or formula of its own")
         if members is not None and len(members) < 2:
@@ -367,7 +381,8 @@ def _load():
             id=row_id, name=item["name"], family=item["family"], formula=formula, composition=item.get("composition", ""),
             aliases=tuple(item.get("aliases", ())), members=None if members is None else tuple(members),
             gas_formula=item.get("gas_formula"), molar_mass=mass, gate=gate, props=props, eos=eos_entries, labels=labels,
-            source=item["source"], state=item["state"], limit=item.get("limit", ""), note=item.get("note", "")))
+            source=item["source"], state=item["state"], limit=item.get("limit", ""), note=item.get("note", ""),
+            crystal_system=item.get("crystal_system", ""), colour=item.get("colour", "")))
     if not rows:
         raise DataError("materials.json holds no materials")
     ids = {row.id for row in rows}
