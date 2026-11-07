@@ -187,6 +187,8 @@ NULL_IN_THIS_GALAXY = {
         "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank")},
     **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
        for column in ("formed_at", "origin_event_id")},
+    # GEN.1103: a field made by hand has no parent, so no origin sentence, history or largest piece; the Rogues top-up writes them (test_asteroid_field_age.py).
+    **{("asteroid_fields", column): "only a top-up field has a parent to tell (GEN.1103)" for column in ("origin", "history", "largest_body_kg")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},

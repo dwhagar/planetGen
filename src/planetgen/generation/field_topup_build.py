@@ -13,12 +13,20 @@ collision is recorded, so the row has no parent.
 import collections
 
 from planetgen.generation import rogue_landing, rogue_topup_build
-from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_class
 from planetgen.physics import constants
 from planetgen.util import draw
 
 ToppedField = collections.namedtuple("ToppedField", ("plan", "field", "landing"))
 """One top-up field: the plan's `TopUpField`, the `AsteroidField` and where it is (`rogue_landing.Landing`)."""
+
+
+def history_of(planned):
+    """The history sentence of a top-up field: it seems to have come from another system, never a real one (the field has no parent and no collision)."""
+    origin = planned.apparent_origin
+    return (f"Rubble thrown out of a system about {origin.distance_pc:.0f} pc from here {origin.since_ejection_gy:.2f} Gy ago, at {origin.speed_km_s:.1f} km/s "
+            f"(an {origin.origin} origin: no system is claimed).")
+
 
 def build(fields, system_config, stream_key, address, edge_pc):
     """
@@ -41,6 +49,10 @@ def build(fields, system_config, stream_key, address, edge_pc):
             field = AsteroidField(system_config)
         field.radius_ly = planned.radius_m / constants.LIGHTYEAR_M
         field.mass_kg = planned.mass_kg
+        field.rms_speed_kms, field.birth_age_yr, field.shape = planned.rms_speed_ms / 1000.0, planned.age_yr, planned.shape      # the radius follows from the two (`radius_ly_at`)
+        field.origin, field.largest_body_kg = planned.origin, planned.largest_body_mass_kg
+        field.history = history_of(planned)
+        field.field_class = asteroid_field_class(field.composition_family, field.density, field.radius_ly)           # the size digit follows the planned radius
         where = rogue_topup_build.place(planned, address, edge_pc, circular_speed)
         rogue_landing.apply_motion(field, where)
         made.append(ToppedField(planned, field, where))

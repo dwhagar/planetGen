@@ -1546,6 +1546,7 @@
 -- v219 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
 -- v221 (GEN.1257): `designations.reason` takes a sixth value, `charted` (`chk_designations_reason`): the name an uncharted star's Object ID spells is kept as a retired name of its system when charting gives the star its own name. No other row or column changes.
 -- v221 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v221, nothing is backfilled.
+-- v221 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v221, nothing is backfilled.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -4665,6 +4666,12 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     ice_mass_fraction           DOUBLE,  -- v199 (GEN.1159): the mean share of the mass of a member that is ice of any kind
     formed_at                   DOUBLE NULL,  -- v102 (DB.55)
     origin_event_id             BIGINT UNSIGNED NULL,  -- v102 (DB.55)
+    rms_speed_kms               DOUBLE NULL,  -- v221 (GEN.1103): the rms speed of its pieces, which is how fast the field spreads, km/s
+    birth_age_yr                DOUBLE NULL,  -- v221 (GEN.1103): its age at the epoch of the sector, years, from which and the speed its radius follows
+    shape                       VARCHAR(8) NULL,  -- v221 (GEN.1103): ball or annulus, what the cloud was made as
+    origin                      VARCHAR(32) NULL,  -- v221 (GEN.1103): how it came to be (unbound remnant for a top-up field), NULL for a hand-made one that claims none
+    history                     TEXT NULL,  -- v221 (GEN.1103): the sentence of where it came from, NULL for a field with no history
+    largest_body_kg             DOUBLE NULL,  -- v221 (GEN.1103): the mass of the largest piece, NULL where it is not known
     KEY idx_asteroid_fields_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
     galactic_radius_pc  DOUBLE,
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
