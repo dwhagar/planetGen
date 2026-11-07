@@ -60,14 +60,20 @@ def cells_without_a_row(conn, shell):
 
 def _batch(conn, shell, cells, edge_pc, generator_epoch, run_id):
     """Writes the rows of `cells` (`(band, wedge)` of `shell`) in one transaction; returns the rows made."""
+    config = getattr(conn, "_config", None)
+    ids = [store._allocate_id(config, "sectors") for _cell in cells] if config is not None else [None] * len(cells)
+    with_ids = None not in ids      # the ids come from this process's block, as every other sector row's do (a row made with AUTO_INCREMENT could take an id the block holds)
     values, params = [], []
-    for band, wedge in cells:
+    for (band, wedge), new_id in zip(cells, ids):
         address = (shell, band, wedge)
         x, y, z = sector_position_pc(*address, edge_pc)
-        values.append("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)")
+        values.append("(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)" if with_ids else "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)")
+        if with_ids:
+            params.append(new_id)
         params.extend((provisional_sector_designation(*address), edge_pc * 1000.0, x, y, z, math.sqrt(x * x + y * y + z * z), *address,
                        generator_epoch, run_id, galaxyUid.sector_uid(*address)))
-    made = conn.execute(_INSERT_HEAD + ", ".join(values), params).rowcount
+    head = _INSERT_HEAD.replace("INTO sectors (", "INTO sectors (id, ", 1) if with_ids else _INSERT_HEAD
+    made = conn.execute(head + ", ".join(values), params).rowcount
     conn.commit()
     return made
 

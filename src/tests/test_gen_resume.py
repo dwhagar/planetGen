@@ -262,7 +262,8 @@ def _sector_rows(config):
         rows = conn.execute(
             "SELECT s.id, s.shell_index, s.band_index, s.wedge_index, COUNT(ss.id) AS systems"
             " FROM sectors s LEFT JOIN star_systems ss ON ss.sector_id = s.id"
-            " GROUP BY s.id, s.shell_index, s.band_index, s.wedge_index").fetchall()
+            " GROUP BY s.id, s.shell_index, s.band_index, s.wedge_index"
+            " HAVING systems > 0").fetchall()      # MAP.402: the scatters leave an empty row in every cell they put something in; only the filled sectors count here
     finally:
         conn.close()
     return {(row["shell_index"], row["band_index"], row["wedge_index"]): (row["id"], row["systems"])
