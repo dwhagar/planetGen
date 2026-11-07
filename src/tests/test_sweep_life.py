@@ -115,9 +115,10 @@ def test_the_life_model_and_the_index_answer_the_same_on_every_letter_for_every_
 def test_the_sweep_holds_life_capable_conditions_so_the_letters_are_tried_on_them(everything):
     capable = rules.capable_by_class(everything)
     assert sum(ok for _, ok in capable.values()) >= 50
-    # 12 letters held life-capable bodies before train 13 and 9 do after it (F, N and Z each lost their one or few: the sweep's
-    # bodies moved with epoch 135, GEN.1304's greenhouse refit among the changes); the rule only needs the letters to be tried on
-    # several kinds of capable conditions, so the floor is 8.
+    # GEN.1327: the count of letters holding a life-capable body is a noisy number, not a gate. The sweep is 275 fixed draws and N, Z, F, G, K and the like hold one to
+    # a few bodies each, so any change that moves the draws moves which of them are capable: 12 letters before train 13, 9 after, while on three resamples of the same
+    # code (about 900 bodies each) the capable share is 42.6 percent before and 42.8 after and the letters per sample are 10 to 13 on both sides
+    # (reports/gen1327-sweep-life-letters-2026-11-07.md). The rule only needs the letters to be tried on several kinds of capable conditions, so the floor is 8.
     assert len([letter for letter, (_, ok) in capable.items() if ok]) >= 8
 
 
