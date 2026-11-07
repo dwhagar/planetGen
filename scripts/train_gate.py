@@ -54,6 +54,14 @@ GUARD_TESTS = (
     "test_plain_words", "test_precision", "test_column_units", "test_api_link_ids", "test_no_own_log_formatting")
 """tuple: Tests that guard what every train changes: golden files, migrations, registries, references, units, wording."""
 
+SAMPLE_TESTS = (
+    "test_sheet_fill", "test_bring_to_epoch", "test_field_bring_to_epoch", "test_starless_host", "test_web_fresh_after_cli",
+    "test_climate_draws", "test_sweep_classes", "test_bughunt_serialization_fuzz", "test_orbit_elements", "test_radius_valley_sweep",
+    "test_surface_air", "test_deferred_sectors", "test_bright_star_scatter")
+"""tuple: Tests that draw a few seeded bodies or sectors and count what they find, so any change to generated output can move
+them even when they name no changed module (trains 13 to 15 each met several of them red); the gate runs them when the branch
+changes a file under `generation/` or `physics/` (TEST.681)."""
+
 SLOW_CENSUS = ("test_prevalence", "test_fuzz_system_generation", "test_fuzz_planet_inputs", "test_generation_mix",
                "test_gen_kind_factors", "test_web_browser", "test_js_unit", "test_systems.py")
 """tuple: Name parts of the files the gate leaves to the census run and the end-of-version bug hunt."""
@@ -102,6 +110,8 @@ def gate_files(base="origin/main"):
         if any(pattern.search(text) for pattern in patterns):
             chosen.add("tests/" + name)
     chosen.update(f"tests/{name}.py" for name in GUARD_TESTS)
+    if any(n.startswith(("src/planetgen/generation/", "src/planetgen/physics/")) and n.endswith(".py") for n in names):
+        chosen.update(f"tests/{name}.py" for name in SAMPLE_TESTS)
     chosen = {path for path in chosen if os.path.exists(os.path.join(SRC, path))}
     return sorted(path for path in chosen if not any(part in path for part in SLOW_CENSUS))
 
