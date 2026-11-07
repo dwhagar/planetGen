@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1197 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1198 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 112 | 87 | 24 | 61 | 0 | 284 |
+| T6 | 113 | 87 | 24 | 61 | 0 | 285 |
 | T7 | 33 | 13 | 7 | 14 | 0 | 67 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 80 | 34 | 168 |
-| All | 654 | 250 | 58 | 190 | 45 | 1197 |
+| All | 655 | 250 | 58 | 190 | 45 | 1198 |
 
 ## How the labels were given
 
@@ -1684,6 +1684,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | EC3 | B | T6 | L0 | envelope_capture.MIN_MASS_EARTH 1 and MAX_MASS_EARTH 20: the planets that capture an envelope are the rocky planets of the e1 and e2 rows (1 Earth mass up) and `planet_kind`'s heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope) | 0.5 to 2; 15 to 30 | rocky planets | an envelope found on a planet under 1 Earth mass | a capture law that has no lower edge | the e1 and e2 rows (`mass_earth` 1 to 30) and `planet_kind._MAX_TERRESTRIAL_EARTH` | - | - |
 | EC4 | P | T6 | L1 | `planets.settle_envelope` keeps the drawn mass as the planet's total and takes the radius at the 20 mbar level of Lopez and Fortney (the level the valley survey and transit radii use) | the envelope's mass, a few percent | planets with an envelope of 0.5 to 20 percent | a planet whose measured mass is the core's alone (the total is then a few percent too light) | the core mass drawn first and the envelope added on top | the rows pass the planet's mass as the core mass in the same way (`envelope-escape-wiring.md` section 3) | - | - |
 | EC5 | B | T6 | L1 | envelope_capture.MAX_START 0.2: the largest starting envelope a rocky planet draws, the top of the range the radius law of Lopez and Fortney was fitted over (the survey holds 0.5) | 0.1 to 0.3 | rocky planets of 1 to 20 Earth masses | a planet of 2 to 4 Earth masses with an envelope of more than 20 percent | a radius law that holds past 20 percent, or a capture law that caps the envelope by the core's mass | [R2741] fit range (`bulk_structure.CLOSED_FORM_RANGES`); the first sweep with the survey's 0.5 gave planets of 3 Earth masses of 7 Earth radii | - | - |
+| EC6 | B | T6 | L0 | planets.ENVELOPE_SETTLE_TOLERANCE 0.02: a planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it, its air, class and spin | 0.01 to 0.05 | rocky planets with an envelope | a planet whose radius or class moves visibly between the draw and the settle | none (numerical: the radius moves by under a hundredth) | the same 2 percent as `AGE_SETTLE_TOLERANCE` (row OE15) | - | - |
 
 ## 6.182 Stand-ins of where a stored belt member lies
 

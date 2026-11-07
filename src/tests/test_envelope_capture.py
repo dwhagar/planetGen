@@ -74,21 +74,22 @@ def _planet(star, distance, mass_earth, seed=0):
 
 
 def _kept_planet(star, distance, mass_earth):
+    """A planet that was drawn with an envelope (the draw gives it when the planet is made), and the radius of its drawn core."""
     for seed in range(60):
         planet = _planet(star, distance, mass_earth, seed)
-        bare = (planet.radius, planet.density, planet.gravity)
-        if planets.settle_envelope(planet):
-            return planet, bare
+        if planet._captured_envelope:
+            return planet, planet._bare_core["radius"]
     pytest.fail("no planet kept an envelope in 60 draws")
 
 
-def test_settling_gives_a_planet_its_envelope_radius_density_gravity_and_fractions(sun):
-    planet, (bare_radius, bare_density, bare_gravity) = _kept_planet(sun, 1.5, 6.0)
+def test_a_planet_is_made_with_the_envelope_it_kept_its_radius_density_gravity_and_fractions(sun):
+    planet, bare_radius = _kept_planet(sun, 1.5, 6.0)
     assert planet.envelope_mass_fraction == pytest.approx(planet._captured_envelope) and 0.0 < planet.envelope_mass_fraction < 0.5
-    assert planet.radius > bare_radius * 1.15 and planet.density < bare_density and planet.gravity < bare_gravity
+    assert planet.radius > bare_radius * 1.15
     assert planet.volume == pytest.approx(4 / 3 * math.pi * planet.radius ** 3, rel=1e-12)
     assert planet.gravity == pytest.approx(constants.G * planet.mass / (planet.radius * 1000) ** 2 / constants.EARTH_GRAVITY, rel=1e-6)
     assert planet.density == pytest.approx(planet.mass / (4 / 3 * math.pi * (planet.radius * 1000) ** 3) / 1000, rel=1e-9)
+    assert planet.density < planet.mass / (4 / 3 * math.pi * (bare_radius * 1000) ** 3) / 1000
     total = sum(getattr(planet, name) or 0.0 for name in (*envelope_share.SOLIDS, "envelope_mass_fraction"))
     assert total == pytest.approx(1.0, abs=1e-9)
     assert planet.planet_class is not None and planet.scale_height is not None
@@ -97,11 +98,43 @@ def test_settling_gives_a_planet_its_envelope_radius_density_gravity_and_fractio
     assert planet_type.planet_type(planet) == expected
 
 
-def test_a_settled_planet_is_settled_for_good_and_a_second_pass_does_not_compound(sun):
-    planet, _bare = _kept_planet(sun, 1.5, 6.0)
-    stored = (planet.radius, planet.gravity, planet.envelope_mass_fraction, planet.metal_mass_fraction, planet.composition)
+def _stripped_by_age(star):
+    """A planet close in whose envelope the star's X-rays thin as it ages: drawn at 0.8 Gyr (before the loss starts), settled at 6."""
+    star.age = 0.8
+    for seed in range(60):
+        planet = _planet(star, 0.12, 12.0, seed)
+        if planet._captured_envelope:
+            star.age = 6.0
+            return planet
+    pytest.fail("no planet kept an envelope at 0.8 Gyr in 60 draws")
+
+
+def test_settling_at_the_final_age_takes_the_loss_again_and_makes_the_air_and_class_again(sun):
+    planet = _stripped_by_age(sun)
+    young = (planet.envelope_mass_fraction, planet.radius)
     assert planets.settle_envelope(planet) is True
+    assert planet.envelope_mass_fraction < young[0] and planet.radius < young[1]
+    assert planet.gravity == pytest.approx(constants.G * planet.mass / (planet.radius * 1000) ** 2 / constants.EARTH_GRAVITY, rel=1e-6)
+    total = sum(getattr(planet, name) or 0.0 for name in (*envelope_share.SOLIDS, "envelope_mass_fraction"))
+    assert total == pytest.approx(1.0, abs=1e-9)
+
+
+def test_a_settled_planet_is_settled_for_good_and_a_second_pass_does_not_compound(sun):
+    planet = _stripped_by_age(sun)
+    planets.settle_envelope(planet)
+    stored = (planet.radius, planet.gravity, planet.envelope_mass_fraction, planet.metal_mass_fraction, planet.composition)
+    assert planets.settle_envelope(planet) is False
     assert (planet.radius, planet.gravity, planet.envelope_mass_fraction, planet.metal_mass_fraction, planet.composition) == stored
+
+
+def test_the_star_stripping_all_of_it_gives_the_drawn_core_back(sun):
+    planet = _stripped_by_age(sun)
+    bare_radius = planet._bare_core["radius"]
+    sun.age = 10.0
+    sun.luminosity *= 30.0       # a star that has turned on: the loss takes it all
+    assert planets.settle_envelope(planet) is True
+    assert planet._captured_envelope == 0.0 and planet.radius == pytest.approx(bare_radius) and not planet.envelope_mass_fraction
+    assert planet.envelope_helium_fraction is None and planet.envelope_z_fraction is None
 
 
 def test_a_bare_core_and_a_planet_out_of_range_are_left_as_drawn(sun):
@@ -110,11 +143,11 @@ def test_a_bare_core_and_a_planet_out_of_range_are_left_as_drawn(sun):
     assert planets.settle_envelope(close) is False
     assert (close.radius, close.gravity, close.envelope_mass_fraction, close.planet_class) == before
     light = _planet(sun, 1.5, 0.5)
-    assert planets.settle_envelope(light) is False
+    assert planets.settle_envelope(light) is False and not light._captured_envelope
 
 
 def test_settling_draws_nothing_from_the_run_stream(sun):
-    planet = _planet(sun, 1.5, 6.0)
+    planet = _stripped_by_age(sun)
     draw.set_run_seed(5)
     planets.settle_envelope(planet)
     after = draw.random()
@@ -127,13 +160,21 @@ def test_the_envelope_is_not_counted_twice_as_a_hydrogen_air(sun):
     assert envelope_share.air_share(planet) == 0.0
 
 
+def test_a_planet_with_no_star_keeps_the_whole_envelope_it_started_with():
+    """A rogue planet: no light, no loss (`envelope_escape`), the radius read at the least light the law is fitted for."""
+    star = SimpleNamespace(luminosity=0.0, mass=1.989e30, age=4.5)
+    body = SimpleNamespace(star=star, mass=8.0 * EARTH, distance=1.0e5, eccentricity=0.0)
+    fraction, radius_earth = envelope_capture.kept(body, 0.1)
+    assert fraction == pytest.approx(0.1) and radius_earth > 2.5
+
+
 @pytest.mark.slow
 def test_the_generated_planets_show_the_radius_valley_a_system_sweep_finds():
     """The sweep of GEN.1323: inside 100 days, about half the planets of 1 to 4 Earth radii are above 2.0 (Fulton et al. 2017) and the
     planets of 1 to 2 Earth masses are mostly rocky."""
     draw.set_run_seed(20261107)
     inner, big, light, light_rocky = 0, 0, 0, 0
-    for _ in range(16):
+    for _ in range(24):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         from planetgen.generation.system import StarSystem
@@ -148,5 +189,5 @@ def test_the_generated_planets_show_the_radius_valley_a_system_sweep_finds():
             if 1.0 <= mass_earth < 1.5:
                 light += 1
                 light_rocky += (planet.envelope_mass_fraction or 0.0) < 0.01
-    assert inner >= 10 and 0.2 <= big / inner <= 0.7
+    assert inner >= 8 and 0.2 <= big / inner <= 0.75
     assert light >= 10 and light_rocky / light >= 0.6

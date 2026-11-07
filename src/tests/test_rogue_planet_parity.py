@@ -113,6 +113,10 @@ CLOUD_FIELDS = frozenset({"aerosol_draw", "atmosphere_colour", "cloud_cover", "t
 RUNNER_UP_FIELDS = frozenset({"runner_up_class"})
 """The next-best class letter (GEN.1207): the classifier names one only when a second class fits at all, which the body's own conditions decide."""
 
+ENVELOPE_GAS_FIELDS = frozenset({"envelope_helium_fraction", "envelope_z_fraction"})
+"""The helium and heavy-element shares of an envelope (GEN.1323): filled where the body has an envelope, which the air it holds with its own heat and the light it
+gets decides (a hydrogen air is an envelope, `envelope_share`), so one draw of a matched pair can have one and the other not."""
+
 SOLID_ONLY_FIELDS = frozenset({"roundness_ratio", "yield_strength_pa", "shelter_column_g_cm2"})
 """The stored quantities only a solid body has (a giant has none): they differ only where the two draws fall in different classes."""
 
@@ -208,7 +212,7 @@ def test_a_rogue_and_a_bound_planet_fill_the_same_stored_fields_and_differ_only_
         if rogue_body.is_moon:
             continue
         one_sided = {name for name, a, b in zip(names, kept, lit) if (a is None) != (b is None)}
-        allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS
+        allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS
         if rogue.planet_class != bound.planet_class:
             allowed |= SOLID_ONLY_FIELDS
         assert one_sided <= allowed, sorted(one_sided - allowed)

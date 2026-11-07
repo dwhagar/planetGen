@@ -38737,6 +38737,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "envelope_capture.MAX_START 0.2: the largest starting envelope a rocky planet draws, the top of the range the radius law of Lopez and Fortney was fitted over (the survey holds 0.5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.ENVELOPE_SETTLE_TOLERANCE 0.02: a planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it, its air, class and spin"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "rocky planets with an envelope"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose radius or class moves visibly between the draw and the settle"
+            ],
+            [
+              "What replaces it",
+              "none (numerical: the radius moves by under a hundredth)"
+            ],
+            [
+              "Evidence",
+              "the same 2 percent as AGE_SETTLE_TOLERANCE (row OE15)"
+            ]
+          ],
+          "id": "EC6",
+          "key": "6.196:EC6",
+          "kind": "B",
+          "slug": "6-196-ec6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.ENVELOPE_SETTLE_TOLERANCE 0.02: a planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it, its air, class and spin"
         }
       ],
       "slug": "6-196-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",

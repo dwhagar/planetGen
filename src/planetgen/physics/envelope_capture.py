@@ -18,8 +18,9 @@ no generated planet of 1 to 4 Earth radii came out above 2.0 (GEN.1323, found by
 * **The loss.** `envelope_escape.envelope_left_earth` over the planet's real mass, light, host and age, with the mean light of its orbit.
   The planet keeps its drawn mass as its total (the masses the survey models are measured ones); the radius is the law of [R2741]
   (`bulk_structure.envelope_radius_earth`, at the 20 mbar level the transit radii and the valley survey use) of the planet's mass and what is left.
-* **When.** After the orbit and the star's age are final (`planets.settle_envelope`, in the settle pass of the system), like a giant's settled
-  radius (`planets.settle_giant`): the loss needs both.
+* **When.** Twice: a planet is made with the envelope the star's age and its orbit give it then (`planets.apply_envelope`, so a request judged by class
+  sees it), and once the orbit and the star's age are final the loss is taken again (`planets.settle_envelope`, in the settle pass of the system, like a
+  giant's settled radius, `planets.settle_giant`). A planet with no star keeps the whole envelope it started with (no light, no loss).
 
 Use:
 
@@ -99,4 +100,5 @@ def kept(body, start):
     if left <= 0.0:
         return None
     fraction = left / (mass_earth + left)
-    return fraction, bulk_structure.envelope_radius_earth(mass_earth, fraction, insolation, star.age)
+    flux = max(insolation, bulk_structure.CLOSED_FORM_RANGES["envelope"]["flux_earth"][0])     # the law is fitted from 0.1 Earth's light up; a cold or starless planet is read there
+    return fraction, bulk_structure.envelope_radius_earth(mass_earth, fraction, flux, star.age)
