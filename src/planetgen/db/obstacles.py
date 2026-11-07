@@ -191,7 +191,8 @@ def passed_through_along_segment(conn, start_pc, end_pc):
     found = []
     for kind in PASS_THROUGH_KINDS:
         table = _PASS_THROUGH_TABLES[kind]
-        widest = ly_to_pc(_scalar(conn, f"SELECT MAX(radius_ly) AS v FROM {table} WHERE center_x_pc IS NOT NULL"))
+        live = f" AND NOT ({RETIRED_FIELD_SQL})" if table == "asteroid_fields" else ""      # a retired field is no longer a field (GEN.1073)
+        widest = ly_to_pc(_scalar(conn, f"SELECT MAX(radius_ly) AS v FROM {table} WHERE center_x_pc IS NOT NULL{live}"))
         if widest <= 0.0:
             continue
         density = "density_cm3" if kind == "nebula" else "NULL"

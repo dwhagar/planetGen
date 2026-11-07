@@ -2595,6 +2595,9 @@ def rogue_planet_gravity_g(mass_kg, radius_km):
 _LIVE_ONLY = {"asteroid_fields": f"AND NOT ({asteroid_field.RETIRED_FIELD_SQL})"}
 """dict: A phenomenon table -> the extra `WHERE` test that leaves its retired rows out of the maps and lists."""
 
+_LIVE_CLAUSE = {"asteroid_fields": f"NOT (t.{asteroid_field.RETIRED_FIELD_SQL})"}
+"""dict: A phenomenon table -> the condition, on the alias `t`, that leaves its retired rows out of the Phenomena catalog (GEN.1073): a retired field is no longer a field."""
+
 
 def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     """
@@ -2746,7 +2749,8 @@ def _phenomena_union():
                (t.center_x_pc IS NOT NULL) AS placed, 0 AS scattered
         FROM {table} t
         LEFT JOIN sectors sec ON sec.id = t.sector_id
-        {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
+        {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else
+         f"WHERE {_LIVE_CLAUSE[table]}" if table in _LIVE_CLAUSE else ""}
         """
         for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
     )
@@ -2958,6 +2962,8 @@ def _built_by_key(conn, limit, sort, descending, types, descriptors, placed, sta
         clauses, clause_params = [], []
         if table in ("black_holes", "neutron_stars"):
             clauses.append("t.star_id IS NULL")
+        if table in _LIVE_CLAUSE:
+            clauses.append(_LIVE_CLAUSE[table])
         if extra:
             clauses.append(extra)
         if descriptors:
@@ -3010,6 +3016,8 @@ def _sector_rows(conn, limit, descending, types, descriptors, placed, sector_ids
         clause_params = list(sector_ids or [])
         if table in ("black_holes", "neutron_stars"):
             clauses.append("t.star_id IS NULL")
+        if table in _LIVE_CLAUSE:
+            clauses.append(_LIVE_CLAUSE[table])
         if descriptors:
             clauses.append(f"{_descriptor_key(descriptor_expr)} IN ({', '.join('?' for _ in descriptors)})")
             clause_params.extend(descriptors)
