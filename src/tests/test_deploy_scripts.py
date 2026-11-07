@@ -934,7 +934,7 @@ def test_update_sh_opens_the_site_when_only_the_health_probe_failed():
 
 def test_the_dirty_tree_warning_leaves_out_the_state_folder_the_update_owns():
     update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
-    assert "status --porcelain -- . ':(exclude)state'" in update
+    assert "status --porcelain --untracked-files=no -- . ':(exclude)state'" in update
     assert 'UPDATE_STEP="reloading what serves the site' in update
 
 
