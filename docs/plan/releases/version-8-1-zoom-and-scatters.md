@@ -708,4 +708,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.661 | Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug) |  |  |
 | TEST.664 | test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug) |  |  |
 | DOC.109 | Rewrite INSTALL.md to set up the Redis user and password: create the planetgen user from examples/redis/planetgen-acl.conf, turn off the passwordless default user, put the password in redis.url, and say what update.sh warns about |  |  |
+| OPS.110 | One installer for every systemd unit: render the maintenance, tile, smoke and gunicorn units from the checkout location and venv, and have install.sh and update.sh offer it |  |  |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, TEST.300, GEN.743, GEN.744, GEN.745, GEN.752 |  |
