@@ -35,3 +35,14 @@ def test_a_known_red_is_not_new(tmp_path, monkeypatch):
     monkeypatch.setattr(gate, "KNOWN", str(known))
     new, explained, stale = gate.reds([str(path)])
     assert new == ["tests/test_new.py"] and explained == ["tests/test_known.py"] and stale == ["tests/test_stale.py"]
+
+
+def test_the_sampling_tests_are_real_files_and_join_when_generation_changes(monkeypatch):
+    """TEST.681: tests that count what a few seeded bodies do name no changed module, so the gate lists them by name."""
+    tests_dir = pathlib.Path(__file__).resolve().parent
+    for name in gate.GUARD_TESTS + gate.SAMPLE_TESTS:
+        assert (tests_dir / f"{name}.py").exists(), name
+    monkeypatch.setattr(gate, "_git", lambda *args: "src/planetgen/physics/surface_air.py\n")
+    assert {f"tests/{name}.py" for name in gate.SAMPLE_TESTS} <= set(gate.gate_files())
+    monkeypatch.setattr(gate, "_git", lambda *args: "docs/TODO.md\n")
+    assert "tests/test_sheet_fill.py" not in gate.gate_files()
