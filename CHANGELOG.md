@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3499] - 2026-11-07
+
+**Headline:** The scatter write fix for the MySQL deadlock is now tested with eight real writers at once.
+
+### Added
+
+- **DB.113: a test with eight writer threads on their own connections, writing bright-star and phenomenon scatter batches into the same tables with the Object ID step.** The writers meet at a barrier between their inserts and their ID step, so the clash is certain: with the old write at least one writer is killed with MySQL error 1213, and with `write_committed` all of them land, every row has an ID, no ID is shared and each sector is numbered with no gap.
+
+generation-output: unchanged
+
 ## [8.0.3498] - 2026-11-07
 
 **Headline:** A MySQL deadlock between two scatter workers no longer stops the massive-star stage.
