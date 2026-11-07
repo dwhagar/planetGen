@@ -29,7 +29,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import constants, mantle_stripping, oddities, planet_classes, relations, rings, surface_air
+from planetgen.physics import constants, mantle_stripping, oddities, planet_classes, relations, rings, surface_air, venus_spin
 from planetgen.physics.oddities import Oddity, Rate
 from planetgen.physics import bulk_draw
 from planetgen.util import draw
@@ -172,8 +172,27 @@ def _strip_mantle(body, star, stream):
         body.rock_mass_fraction = max(0.0, 1.0 - remnant.core_mass_fraction - (body.water_mass_fraction or 0.0))
 
 
+def _venus_spin(body, star, stream):
+    """
+    W2 (GEN.1038, GEN.1048): the thick-air planet the tides leave turning slowly backwards (`venus_spin.spin_of` for the tilt it was born with); the rotation period and the
+    tilt are the module's end state. A body whose tides have not had the age, or whose end state is prograde, is declined (False), as the real effect declines it: `force` then has no sample.
+    """
+    result = venus_spin.spin_of(body)
+    if result is None or not result.reached or not result.retrograde:
+        return False
+    body.rotation_period_hours = result.period_days * 24.0
+    body.axial_tilt_deg = result.final_obliquity_deg
+    return None
+
+
+def _seasons_from_tilt(body, star, stream):
+    """W1 (GEN.1039, GEN.1048): the tilt is already the body's own and `temperature_series` reads it; the effect changes nothing on the body."""
+
+
 EFFECTS = {
     "strip_mantle": _strip_mantle,
+    "venus_spin": _venus_spin,
+    "seasons_from_tilt": _seasons_from_tilt,
     "stub_ring": _stub_ring,
     "broken_heavy_ring": _broken_heavy_ring,
     "broken_ring_beyond_roche": _broken_ring_beyond_roche,
@@ -425,7 +444,8 @@ def force(row, number):
     if drawn is None:
         return None
     body, star = drawn
-    EFFECTS[row.effect](body, star, oddities.stream(row.id, f"{SEED}:{number}"))
+    if EFFECTS[row.effect](body, star, oddities.stream(row.id, f"{SEED}:{number}")) is False:       # the effect declines this body (the real one is not given it)
+        return None
     return body, star
 
 

@@ -22,7 +22,7 @@ and moon in a system after all of them have been generated.
 import math
 
 from planetgen.physics import moon_history, body_state, oddities, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, venus_spin
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -249,6 +249,7 @@ def generate_planet_properties(planet, zone_override=None):
     planet.body_type = "g" if kind == "giant" else "t"
     rings.clear(planet)  # a new draw draws its ring again (GEN.732)
     planet.oddities = ()  # ... and its oddities (GEN.1047)
+    planet._venus_spin = None
 
     if uses_giant_mass_radius(planet):
         apply_giant(planet, radius_given, mass_given)
@@ -809,6 +810,16 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
             tilt = birth_tilt
             if found.rate < 0.0:
                 tilt = 180.0 - tilt
+    # GEN.1048 (oddity W2): the rows of the spin lever are rolled again on the body as it is now (its air, its moons and the age change between calls) and a
+    # thick-air planet the tides leave turning slowly backwards takes the Venus-type state in place of the tide history's
+    planet._venus_spin = None
+    if planet.body_type == "t" and not planet.is_moon:
+        planet.axial_tilt_deg = tilt             # the rows read the tilt the planet is about to have (set below)
+        oddities.drop(planet, ("L1",))
+        oddities.apply(planet, levers=("L1",))
+        venus_tilt = venus_spin.set_on(planet)
+        if venus_tilt is not None:
+            tilt = venus_tilt
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
     # GEN.767: the day and night shares follow the rotation and tilt just set (a planet's; a moon's need its parent's axis, `refinish_rocky`)

@@ -237,7 +237,7 @@ KIND_OF_BODY = {"t": "planet", "g": "giant"}
 """dict: The row `kind` a body is asked about, by its `body_type`; a moon is asked as a moon, a rogue planet as a rogue."""
 
 
-EFFECT_MODULES = ("planetgen.physics.mantle_stripping",)
+EFFECT_MODULES = ("planetgen.physics.mantle_stripping", "planetgen.physics.venus_spin", "planetgen.physics.seasonal_swing")
 """tuple: The modules that register an effect (`register`), imported the first time `apply` has a row to run; a module that implements a row's effect is listed here."""
 
 
@@ -313,6 +313,9 @@ def quantities_of(body):
     put("water_mass_fraction", getattr(body, "water_mass_fraction", None))
     put("envelope_mass_fraction", getattr(body, "envelope_mass_fraction", None))
     put("collision_count", getattr(body, "collision_count", None))
+    moons = getattr(body, "moons", None)
+    if moons is not None and mass:
+        put("moon_mass_ratio", max((float(moon.mass) for moon in moons if getattr(moon, "mass", None)), default=0.0) / mass)
     for name, value in (getattr(body, "oddity_quantities", None) or {}).items():
         put(name, value)       # quantities the chain keeps with the body for a gate (the architecture's, the moon set's)
     return found
@@ -353,7 +356,9 @@ def apply(body, levers=None, rows=None, dial=None, scale=None):
     forced = set(forced_ids(body))
     key = body_key(body)
     given = []
-    for row in candidates(kind_of(body), found, table):
+    for row in table:
+        if row.kind != kind_of(body) or not candidates(row.kind, found, (row,)):      # the gate is read on the body as it is after the rows before this one
+            continue
         if levers is not None and row.lever not in levers:
             continue
         if row.id in ids_of(body):
@@ -363,11 +368,22 @@ def apply(body, levers=None, rows=None, dial=None, scale=None):
             continue
         if row.effect not in EFFECTS:
             raise OddityError(f"oddity {row.id}: no module registered the effect {row.effect!r}")
-        EFFECTS[row.effect](body, row)
+        if EFFECTS[row.effect](body, row) is False:      # the effect found the body cannot have it after all (it would break a limit): not given, not recorded
+            continue
         body.oddities = ids_of(body) + (row.id,)
         given.append(row.id)
         found = quantities_of(body)         # the effect moved an input: the next gate reads the body as it now is
     return given
+
+
+def drop(body, levers):
+    """
+    Takes from `body` the oddities whose lever is in `levers`, so that a step that runs again (the spin is made again when the age moves or a moon is added) rolls
+    its rows again on the body as it now is. The roll is the row's own stream on the body's key, so a row whose gate still holds is given again.
+    """
+    keep = tuple(identifier for identifier in ids_of(body) if identifier not in BY_ID or BY_ID[identifier].lever not in levers)
+    if keep != ids_of(body):
+        body.oddities = keep
 
 
 def column_text(ids):

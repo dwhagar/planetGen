@@ -65,6 +65,66 @@
       ],
       "source": "[R2867]; Benz and others 2007 (Space Science Reviews 132, 189); Bonomo and others 2019 (Nature Astronomy 3, 416); the module is physics/mantle_stripping.py",
       "text": "A giant impact knocked much of its rocky mantle off, so it is richer in iron than a planet that formed quietly, and its water went with it."
+    },
+    {
+      "id": "W2",
+      "name": "Venus-type slow retrograde rotation",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "surface_pressure_pa", "min": 1000000.0},
+        {"quantity": "moon_mass_ratio", "lt": 0.001}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row VS9: every moonless rocky planet with an air of 10 bar or more follows the closed-form tide balance of the module; the share that ends retrograde and slow is whatever share is born tilted past the split angle and old enough, which the census measures (no extra draw, and the design note's 25 percent is dropped)",
+        "label": "RECALLED",
+        "tier": "T5",
+        "tweak": "L0",
+        "registry": "VS9"
+      },
+      "apply": {
+        "lever": "L1",
+        "input": "spin_period_days",
+        "effect": "venus_spin",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "spin_period_days", "min": 20.0},
+        {"quantity": "obliquity_deg", "min": 90.0}
+      ],
+      "source": "[R0896] (Correia and Laskar 2001, Nature 411:767; 2003, Icarus 163:1 and 24); [R0962] (Int. J. Astrobiol. 14:233); the module is physics/venus_spin.py",
+      "text": "The star's heat tide on its thick air and the solid tide of the planet balance at a spin that is not the orbit's, so the planet turns slowly backwards, as Venus does."
+    },
+    {
+      "id": "W1",
+      "name": "Extreme tilt seasons",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "obliquity_deg", "min": 60.0},
+        {"quantity": "obliquity_deg", "lt": 120.0},
+        {"quantity": "moon_mass_ratio", "lt": 0.01}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row SS20: the tilt is already drawn from the giant impacts that built the planet; the row names the tilts of 60 to 120 degrees (equal seasons for a tilt and its supplement) on a planet with no large moon, so there is no extra draw",
+        "label": "RECALLED",
+        "tier": "T5",
+        "tweak": "L0",
+        "registry": "SS20"
+      },
+      "apply": {
+        "lever": "L1",
+        "input": "obliquity_deg",
+        "effect": "seasons_from_tilt",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "obliquity_deg", "min": 60.0}
+      ],
+      "source": "[R2571] (Mars's chaotic tilt); [R2710] (Earth without the Moon); Uranus at 98 degrees; the module is physics/seasonal_swing.py",
+      "text": "Its axis lies far over, with no large moon to steady it, so the seasons are its main weather: each pole spends a season in daylight as bright as the equator's noon and a season in the dark."
     }
   ]
 }

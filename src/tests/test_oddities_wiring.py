@@ -172,9 +172,9 @@ def test_the_ids_are_saved_with_a_planet_and_a_moon_and_the_api_names_them(mysql
         system_id = store.insert_star_system(conn, system, config)
         conn.commit()
         row = conn.execute("SELECT id, oddities FROM planets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()
-        assert [r["oddities"] for r in row].count("W10") == 1
-        planet_id = next(r["id"] for r in row if r["oddities"])
-        found = routes.oddities_of(conn, "planet", planet_id)
+        first = row[system.planets.index(planets[0])]
+        assert first["oddities"] == "W10"
+        found = routes.oddities_of(conn, "planet", first["id"])
         assert [item["id"] for item in found] == ["W10"] and "mantle" in found[0]["text"]
         assert routes.oddities_of(conn, "star", 1) == []
         loaded = store.load_star_system(conn, system_id)
@@ -205,7 +205,7 @@ def _systems_with_a_merged_rocky_planet(force):
 
 def test_a_forced_iron_rich_core_keeps_the_mass_raises_the_iron_and_takes_the_water_with_the_mantle():
     for planet in _systems_with_a_merged_rocky_planet(("W10",)):
-        assert planet.oddities == ("W10",)
+        assert "W10" in planet.oddities
         assert planet.water_mass_fraction == 0.0 and planet.ice_mass_fraction == 0.0
         assert 0.0 < planet.metal_mass_fraction < 0.85 and abs(planet.metal_mass_fraction + planet.rock_mass_fraction - 1.0) < 1e-9
         assert oddities.limit_failures(oddities.BY_ID["W10"], oddities.quantities_of(planet)) == []
@@ -226,3 +226,97 @@ def test_a_planet_with_no_recorded_merger_never_gets_the_iron_rich_core_even_whe
 def test_without_forcing_the_iron_rich_core_is_rare_among_merged_planets():
     planets = _systems_with_a_merged_rocky_planet(None)
     assert sum("W10" in p.oddities for p in planets) <= len(planets) // 2 + 1
+
+
+# --- GEN.1048: W2, the Venus-type slow retrograde rotation ------------------------------------------------------------------------
+
+def _venus(tilt=170.0, age=4.5, moons=(), pressure=9.2e6, distance=0.7233):
+    """A Venus: its mass, radius, air, orbit and the Sun's luminosity and mass, a given birth tilt and age."""
+    star = types.SimpleNamespace(mass=1.98847e30, luminosity=3.828e26, age=age, temperature=5772.0)
+    return _body(mass_kg=4.8675e24, radius=6051.8, distance=distance, eccentricity=0.007, star=star, atmospheric_pressure=pressure, moons=list(moons),
+                 _birth_spin=(1.0e-5, tilt, ()), axial_tilt_deg=tilt, rotation_period_hours=24.0, period=distance ** 1.5)
+
+
+def _force_w2(body):
+    body.system_config.FORCE_ODDITIES = ("W2",)
+    return oddities.apply(body, levers=("L1",))
+
+
+def test_a_born_upside_down_venus_is_given_its_243_day_retrograde_spin():
+    body = _venus()
+    assert _force_w2(body) == ["W2"] and body.oddities == ("W2",)
+    from planetgen.physics import venus_spin
+
+    assert venus_spin.set_on(body) == 180.0 and abs(body.rotation_period_hours / 24.0 - 243.0) < 1.0
+
+
+def test_a_planet_born_upright_ends_prograde_so_the_oddity_is_declined_and_not_recorded():
+    body = _venus(tilt=20.0)
+    assert _force_w2(body) == [] and body.oddities == () and body._venus_spin is None
+
+
+def test_a_planet_whose_tide_has_not_had_the_age_is_declined():
+    body = _venus(age=0.5)
+    assert _force_w2(body) == [] and body.oddities == ()
+
+
+def test_a_planet_with_a_big_moon_or_a_thin_air_fails_the_gate_even_when_forced():
+    moon = types.SimpleNamespace(mass=7.3e22)
+    assert _force_w2(_venus(moons=[moon])) == []
+    assert _force_w2(_venus(pressure=1.0e5)) == []
+
+
+def test_a_day_under_twenty_days_is_declined_by_the_limit_of_the_row():
+    body = _venus(distance=0.2)           # the same tide balance far closer in: the retrograde day is days, not months
+    assert _force_w2(body) == [] and body.oddities == ()
+
+
+def test_dropping_a_lever_takes_its_rows_off_and_a_second_roll_gives_them_back():
+    body = _venus()
+    _force_w2(body)
+    oddities.drop(body, ("L3",))
+    assert body.oddities == ("W2",)
+    oddities.drop(body, ("L1",))
+    assert body.oddities == ()
+    assert _force_w2(body) == ["W2"]
+
+
+def test_generate_spin_puts_the_state_on_the_rotation_and_the_tilt():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.planet import Planet
+    from planetgen.generation.star import Star
+    from planetgen.physics import planets
+    from planetgen.util import draw
+
+    with draw.bound("w2-generate-spin"):
+        config = SystemConfig()
+        config.STAR_TYPE, config.BINARY_SYSTEM, config.FORCE_ODDITIES = "G2V", False, ("W2",)
+        star = Star(config)
+        planet = Planet(config, star, star.habitable_zone, 0.7, moon_count=0)
+        star.mass, star.luminosity, star.age = 1.98847e30, 3.828e26, 4.5
+        planet.mass, planet.radius, planet.eccentricity, planet.distance, planet.atmospheric_pressure = 4.8675e24, 6051.8, 0.007, 0.7233, 9.2e6
+        planets.generate_spin(planet, star.mass, birth=(planet._birth_spin[0], 170.0, planet._birth_spin[2]))
+        assert planet.oddities == ("W2",) and planet.axial_tilt_deg == 180.0 and abs(planet.rotation_period_hours / 24.0 - 243.0) < 1.0
+        planet.atmospheric_pressure = 1.0e5       # made again with a thin air: the row's gate fails and the Venus state goes
+        planets.generate_spin(planet, star.mass, birth=(planet._birth_spin[0], 170.0, planet._birth_spin[2]))
+        assert planet.oddities == () and planet._venus_spin is None
+
+
+def test_a_planet_tilted_far_over_with_no_moon_is_named_for_its_seasons_and_nothing_on_it_changes():
+    body = _venus(tilt=95.0, pressure=1.0e5)
+    before = dict(body.__dict__)
+    body.system_config.FORCE_ODDITIES = None
+    assert oddities.apply(body, levers=("L1",), dial=1.0) == ["W1"]
+    assert body.oddities == ("W1",) and {k: v for k, v in body.__dict__.items() if k != "oddities"} == {k: v for k, v in before.items() if k != "oddities"}
+
+
+def test_the_seasons_row_wants_a_tilt_of_sixty_to_one_hundred_twenty_degrees_and_no_big_moon():
+    for tilt, moons in ((30.0, ()), (150.0, ()), (95.0, [types.SimpleNamespace(mass=7.3e22)])):
+        body = _venus(tilt=tilt, pressure=1.0e5, moons=moons)
+        assert oddities.apply(body, levers=("L1",), dial=1.0) == [], tilt
+
+
+def test_a_born_tilted_venus_that_the_tides_turn_over_is_not_named_for_its_seasons():
+    body = _venus(tilt=100.0)         # born on its side, thick air: the tide balance turns it upside down (180) and its seasons are the upright ones
+    ids = oddities.apply(body, levers=("L1",), dial=1.0, rows=None)
+    assert ids == ["W2"] and body.axial_tilt_deg == 180.0
