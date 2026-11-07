@@ -149,7 +149,7 @@ def take_from_disks(disks, sets):
         return 0.0
     # GEN.1308: the share of a disk the scatter step says the planets caught (`swept_kg["captured"]`) is mass the disk had already lost, so the planets are caught from it first and the disk's own mass
     # does not fall for it; what they hold above those shares comes out of the disks' mass as before.
-    budget = {id(disk): (disk.swept_kg or {}).get("captured", 0.0) for disk in disks}
+    budget = {id(disk): (getattr(disk, "swept_kg", None) or {}).get("captured", 0.0) for disk in disks}
     from_shares = min(caught, sum(budget.values()))
     if from_shares > 0.0:
         for disk in disks:

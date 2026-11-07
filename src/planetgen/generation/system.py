@@ -1364,7 +1364,11 @@ class StarSystem:
         Gives every planet that orbits a star its irregular moons (GEN.1083, `generation/irregular_moons.py`): the small bodies it caught from the outer disk of its star's bodies and from its own feeding zone. It runs once the
         planets, belts and ages are final, so the outer disk, the instabilities of the architecture (`capture_windows`) and the regular moons are all known; a planet of a star with no outer disk has none. Nothing is stored yet.
         """
-        for bodies, star in self._belt_hosts():
+        hosts = [(self.planets, self.star)]
+        if self.binary_type == "wide":
+            hosts.append((self.secondary_planets, self.secondary_star))
+        hosts += [(bodies, star) for star, bodies in self.member_hosts()]
+        for bodies, star in hosts:
             source = irregular_moons.source_of(bodies, star, self.capture_windows(star), star_al26_ratio(self.system_config, star))
             sets = []
             for body in bodies:
