@@ -2126,8 +2126,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1336 | Hot Jupiters round red dwarfs are about twice as common as the researched band (0.5 percent against 0.27): test_hot_jupiters_are_rare_and_rarer_round_a_red_dwarf passes only on a lucky seed | none | open |
 | GEN.1337 | A rocky planet's outgassing can fail with a MixtureError (0.00143 of the gas is Cl, F and F2, species the gas table lacks) and crash the whole StarSystem (bug) | none | open |
 | GEN.1338 | Census re-tag for train 14: re-tag the class, life and systems censuses after train 14 and report any new flag with its reason (GEN.1306 class W, GEN.1321 oxygen pressure, GEN.1261 and GEN.1278 belts, GEN.876 traits) | none | done, PR #5545 |
-| GEN.1339 | Carbon dioxide on an oxygen world is drawn down: worlds with free oxygen and a sunlit sea keep 1.5 to 17 kPa of CO2 against the oxygen classes' limit of under 1 kPa (Earth 0.04) | none | open |
-| GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor | GEN.1339 | open |
+| GEN.1339 | Sea worlds are almost all global oceans: 55 of 59 worlds with a liquid sunlit sea are 95 to 100 percent ocean and only 3 are in the 20 to 80 percent range class M asks for; find why (delivered water against relief) | none | open |
+| GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor | none | open |
 | GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
