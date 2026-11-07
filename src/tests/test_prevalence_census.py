@@ -87,6 +87,12 @@ def test_a_cell_with_no_bodies_is_flagged():
     assert [f.kind for f in findings] == ["missing"]
 
 
+def test_a_cell_with_no_bodies_can_carry_a_known_anomaly():
+    spec = _spec({"C": (0.0, 1.0)})
+    spec["cells"]["G2V/ecosphere/planet"]["anomaly"] = "TEST.656"
+    assert [(f.kind, f.known) for f in census.compare({}, spec)] == [("missing", "TEST.656")]
+
+
 def test_a_known_anomaly_is_named_in_the_finding_and_the_report():
     spec = _spec({"M": (0.1, 0.3)})
     spec["cells"]["G2V/ecosphere/planet"]["classes"]["M"]["anomaly"] = "GEN.855"
@@ -140,6 +146,12 @@ def test_the_reference_records_which_commit_and_seeds_it_was_measured_on(expecta
     reference = expectations["reference"]
     assert re.fullmatch(r"[0-9a-f]{40}", reference["commit"]) and reference["draws_per_cell"] >= 100
     assert reference["seeds"] and reference["kind"].startswith("stand-in")
+
+
+def test_a_cell_anomaly_names_an_item_with_a_reason(expectations):
+    for key, spec in expectations["cells"].items():
+        if "anomaly" in spec:
+            assert ITEM.match(spec["anomaly"]) and spec["anomaly"] in expectations["anomalies"], key
 
 
 def test_a_barred_class_has_no_range(expectations):
