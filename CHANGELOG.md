@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3538] - 2026-11-07
+
+**Headline:** The cache warm-up and the nightly whole-map build now skip an empty galaxy cleanly instead of trying to work.
+
+### Changed
+- **OPS.114: a warm-up run right after a New galaxy wipe tried every task.** `planetgen warm` (from update.sh, after a change, or by hand) and the whole-map build (`planetgen.cli.tiles`, the nightly timer) now check first whether the database holds any galaxy (no sector and no galaxy plan row, or no tables yet). If not, each prints `galaxy is empty, nothing to warm up`, does nothing and exits 0. update.sh reports that step as skipped because the galaxy is empty, not as failed, so the Update button and the maintenance timers do not report a failure. Once a galaxy exists the warm-up runs as before.
+
 ## [8.0.3537] - 2026-11-07
 
 **Headline:** The tests of the sector page and the section pages pass again: their stand-ins for the web layer's data calls had fallen behind two calls the pages learned.
