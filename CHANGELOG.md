@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3525] - 2026-11-07
+
+**Headline:** A queue worker now runs only the functions the program queues, so a process that can write to Redis cannot get a worker to call an arbitrary function.
+
+### Changed
+- **SEC.45: a fixed list of the functions a queued job may name** (`planetgen/queue/allowlist.py`). A job in Redis names the function a worker calls; with pickle gone (SEC.39) the name was still data, so anything that could write to Redis could name any function a worker could import. Every queue now builds its jobs with `GuardedJob` and every worker reads them with it: the function a job names, and its success, failure and stopped callbacks, must be on `FUNCTIONS` (a run's unit and its failure callback, the dependency callbacks, the API dispatcher `api_jobs.execute`, the Generate page's `job_runner.run`, the node prefetch). A job that names anything else is logged as refused and fails in the failed registry with the reason; nothing runs. `api_jobs.execute` is itself a dispatcher (it calls the function in its first argument), so what it may call is a second fixed list, `API_FUNCTIONS` (the API's edit, generate, gravity and page-answer jobs, and `run_command`). A test sweeps the source and fails when a place that queues work names a function that is not on the lists.
+- A worker's environment variable `PLANETGEN_QUEUE_EXTRA_FUNCTIONS` (`module:name` or `module:*`, comma separated) adds functions; it is unset in production and the test suite sets it for the plain functions its queue tests run. The arguments of an allowed function are not checked: `run_command` still runs the command line it is given, so the Redis ACL user and password (`examples/redis/planetgen-acl.conf`) stay the wall that keeps other processes out.
+
 ## [8.0.3524] - 2026-11-07
 
 **Headline:** Asking for more habitable worlds in a run now forces enough systems that the share with one comes to the wanted figure, up to the 74.7% a forced system can give, and the Generate page says a habitable world is only asked for.
