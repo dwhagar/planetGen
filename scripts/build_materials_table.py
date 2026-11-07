@@ -86,6 +86,7 @@ PROPERTIES = {
     "alb_050_060": ("1", "alb"),
     "alb_060_070": ("1", "alb"),
     "rho_gas_stp_g_l": ("g/L", "rhog"),
+    "mohs": ("1", "mohs"),
 }
 
 CSV_COLUMNS = {  # part E csv header -> property key
@@ -313,15 +314,38 @@ def main():
         ("kamacite", None, "metal", [], "alpha iron-nickel, about 5 to 7 percent nickel by mass in the Handbook's analyses"),
         ("taenite", None, "metal", [], "gamma iron-nickel, about 25 to 31 percent nickel by mass in the Handbook's analyses"),
         ("periclase", "MgO", "oxide", [], ""), ("wustite", "FeO", "oxide", [], "Fe(1-x)O"), ("anorthite", "CaAl2Si2O8", "silicate", [], ""),
+        # GEN.1356: the sulfides, nitrides and carbides the reduced-body recipes and the ores name (Handbook of Mineralogy)
+        ("pyrite", "FeS2", "sulfide", [], ""),
+        ("pyrrhotite", "Fe7S8", "sulfide", [], "Fe(1-x)S, x = 0 to 0.17; the formula is the Fe7S8 member, the one the Handbook's cell counts"),
+        ("pentlandite", "Fe5Ni4S8", "sulfide", [], "(Fe,Ni)9S8; the formula takes iron and nickel about one to one"),
+        ("chalcopyrite", "CuFeS2", "sulfide", [], ""),
+        ("oldhamite", "CaS", "sulfide", [], "(Ca,Mg)S; the formula is the calcium end member"),
+        ("niningerite", "MgS", "sulfide", [], "(Mg,Fe,Mn)S; the formula is the magnesium end member"),
+        ("alabandite", "MnS", "sulfide", [], ""), ("daubreelite", "FeCr2S4", "sulfide", [], ""),
+        ("osbornite", "TiN", "nitride", [], ""), ("sinoite", "Si2N2O", "nitride", [], ""),
+        ("khamrabaevite", "TiC", "carbide", [], "(Ti,V,Fe)C; the formula is the titanium end member"),
     ]
     for row_id, formula, family, aliases_here, composition in minerals:
         row = new_row(row_id, row_id, family, formula, aliases_here, composition=composition)
         value, lo, hi, source, basis = data.MINERAL_DENSITY[row_id]
         extra = {"measured_range": [lo, hi]} if lo is not None and hi is not None else {}
-        code = "R" if source == "handbook-mineralogy" else "H"
+        code = "C" if basis.startswith("COMPUTED") else "R" if source == "handbook-mineralogy" else "H"
         row["props"]["rho_grain_g_cm3"] = prop(value, code, source, "g/cm3", basis=basis, **extra)
         rows[row_id] = row
     rows["calcite"]["aliases"] = ["calcium carbonate"]
+    # GEN.1356: crystal system, Mohs hardness and color of the Handbook pages; no band albedo was reached for the new rows (the pages
+    # print the reflectance of a polished section, not the albedo of a grain), so the three bands are explicit nulls (code N)
+    for row_id, (system, mohs, low, high, color) in data.MINERAL_FIELDS.items():
+        row = rows[row_id]
+        row["crystal_system"], row["color"] = system, color
+        row["props"]["mohs"] = (prop(mohs, "R", "handbook-mineralogy", "1", measured_range=[low, high],
+                                     basis="the middle of the hardness range the Handbook prints") if mohs is not None else null_prop("mohs"))
+        if row_id != "troilite":
+            for band in ("alb_040_050", "alb_050_060", "alb_060_070"):
+                row["props"][band] = null_prop(band)
+    rows["troilite"]["note"] = "Webmineral's page repeats pyrrhotite's density (4.61); the Handbook's D(meas.) 4.67 to 4.79 and D(calc.) 4.85 are kept."
+    rows["khamrabaevite"]["props"]["mohs"]["basis"] = "the Handbook prints hardness above 9; the range is 9 to 10 and the middle is the value"
+    rows["khamrabaevite"]["note"] = "The page's D(calc.) 10.01 counts the cell with Z 8; with Z 4 (rock salt) it is 4.97, which is the density kept."
     rows["halite"]["aliases"] = ["sodium chloride"]
     # tourmaline's gem name and the mica gem names are not separate rows
 

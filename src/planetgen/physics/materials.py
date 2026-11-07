@@ -29,8 +29,9 @@ a group whose member is missing, and a `labels` entry that names no property of 
 the code `N` (not reached); none is kept from memory.
 
 Units: densities in g/cm3 (`rho_grain_g_cm3`, the grain density at ambient conditions, solids at room temperature), temperatures
-in K, pressures in bar, latent heats in kJ/mol and kJ/kg, interaction length in g/cm2, albedo as a fraction, molar mass in kg/mol
-(computed here from `physics.elements`). An equation of state states its own units in the names of its constants (`rho0_kg_m3`,
+in K, pressures in bar, latent heats in kJ/mol and kJ/kg, interaction length in g/cm2, albedo as a fraction, Mohs hardness on its
+scale of 1 to 10 (`mohs`: the middle of the range the source prints, the range itself as `measured_range`), molar mass in kg/mol
+(computed here from `physics.elements`). A mineral row also names its crystal system (`crystal_system`) and its color (`color`, the\nsource's words). An equation of state states its own units in the names of its constants (`rho0_kg_m3`,
 `k0_gpa`).
 
 Use:
@@ -79,6 +80,7 @@ PROPERTIES = {
     "alb_050_060": ("1", "alb"),
     "alb_060_070": ("1", "alb"),
     "rho_gas_stp_g_l": ("g/L", "rhog"),
+    "mohs": ("1", "mohs"),
 }
 """dict: Every property a row may carry: key -> (unit, the key of part E's label column). The albedo of the three bands share one label."""
 
@@ -99,6 +101,9 @@ EOS_MODELS = {
 }
 """dict: The equation-of-state models and the constants each must give (`bme` also gives `rho0_kg_m3` or `v0_cm3_mol`, and
 `k0pp_per_gpa` at order 4)."""
+
+CRYSTAL_SYSTEMS = ("cubic", "tetragonal", "hexagonal", "trigonal", "orthorhombic", "monoclinic", "triclinic")
+"""tuple: The crystal systems a mineral row may name (the Handbook of Mineralogy's seven, in lower case)."""
 
 LICENCE_FILE = "DATA-LICENSE.md"
 """str: The file in the repository root where the licence of the data is recorded."""
@@ -176,6 +181,8 @@ class Material:
         labels (str): Part E's label column for the row (`rho=R;Tm=H`), rebuilt from the codes of its numbers.
         source, state, limit (str): The row's source summary, source state, and for a partly verified row the limit.
         note (str): What was dropped or replaced.
+        crystal_system (str): The crystal system of a mineral row (`CRYSTAL_SYSTEMS`), empty where the row is no crystal.
+        color (str): The color of a mineral row in the source's words, empty where none was read.
     """
 
     id: str
@@ -195,6 +202,8 @@ class Material:
     state: str
     limit: str
     note: str
+    crystal_system: str = ""
+    color: str = ""
 
     def prop(self, key):
         """The `Prop` of `key` (`"rho_grain_g_cm3"`); raises `KeyError` where the row has no such column."""
@@ -262,6 +271,8 @@ def _prop(row_id, key, item, sources):
             raise DataError(f"materials.json: {label} has no source (every number has one; a value with none is null)")
         if key.startswith("alb_") and not 0.0 <= value <= 1.0:
             raise DataError(f"materials.json: {label} is not a fraction")
+        if key == "mohs" and not 1.0 <= value <= 10.0:
+            raise DataError(f"materials.json: {label} is outside the Mohs scale, 1 to 10")
         if key != "debye_k" and key not in ("rho_gas_stp_g_l",) and not value >= 0:
             raise DataError(f"materials.json: {label} is negative")
     measured = item.get("measured_range")
@@ -338,6 +349,9 @@ def _load():
         if item["state"] in (pt.PARTLY_VERIFIED, pt.OPEN_STATE) and not str(item.get("limit", "")).strip():
             raise DataError(f"materials.json: {row_id} is {item['state']} and names no limit")
         gate = gate_classes(item["gate"])
+        system = item.get("crystal_system", "")
+        if system and system not in CRYSTAL_SYSTEMS:
+            raise DataError(f"materials.json: {row_id} crystal system {system!r} is none of {', '.join(CRYSTAL_SYSTEMS)}")
         formula = item.get("formula")
         mass = None
         if formula:
@@ -367,7 +381,8 @@ def _load():
             id=row_id, name=item["name"], family=item["family"], formula=formula, composition=item.get("composition", ""),
             aliases=tuple(item.get("aliases", ())), members=None if members is None else tuple(members),
             gas_formula=item.get("gas_formula"), molar_mass=mass, gate=gate, props=props, eos=eos_entries, labels=labels,
-            source=item["source"], state=item["state"], limit=item.get("limit", ""), note=item.get("note", "")))
+            source=item["source"], state=item["state"], limit=item.get("limit", ""), note=item.get("note", ""),
+            crystal_system=system, color=item.get("color", "")))
     if not rows:
         raise DataError("materials.json holds no materials")
     ids = {row.id for row in rows}
