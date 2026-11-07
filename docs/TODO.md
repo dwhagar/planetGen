@@ -10928,6 +10928,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   number guard and old-schema tests pass.
   Prerequisites: UX.272. Related: PERF.208.
 
+- [ ] **DB.115 A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug)**
+  Boss live observation, relayed by a lane (as the lane reported 10:52 AM EST on 2026-11-07): job-20261107-032338-3037 stage 13 failed with InterfaceError (0, '') in a sky-tier unit after about 30 minutes; the rollback on the dead connection masked the real error. Fixed and merged in PR 5556 (the rollback skips dead connections; the sky unit retries on a new connection up to 3 times; test src/tests/test_lost_connection.py). Do: read the next failure's log (it now shows the real error), find why MySQL dropped the connection (idle timeout, packet size, a lock wait, the server restarting) and fix the cause; if it never recurs after the next two long runs, close with the log noted. Done: the cause is named and fixed, or the item is closed with two clean long runs. Lock-free. Goal issue #2350. Version 8.1. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: none. Related: PERF.86.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
