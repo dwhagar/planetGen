@@ -88,7 +88,7 @@ def hosted_field(remnant, config, key):
         return None
     with draw.bound(stream):
         field = AsteroidField(config)
-    field.mass_kg = mass.mass_kg
+    field.mass_kg, field.ledger = mass.mass_kg, mass.ledger
     field.rms_speed_kms, field.birth_age_yr, field.shape = belt.speed_ms / 1000.0, belt.age_yr, SHAPE
     field.origin, field.history, field.largest_body_kg = ORIGIN, mass.sentence, mass.ledger.masses_kg[0] if len(mass.ledger.masses_kg) else None
     field.radius_ly = radius_ly_at(field.birth_age_yr, field.rms_speed_kms, field.shape)

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1195 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1196 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 112 | 86 | 24 | 61 | 0 | 283 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
-| T9 | 35 | 15 | 5 | 79 | 34 | 168 |
-| All | 654 | 250 | 58 | 188 | 45 | 1195 |
+| T9 | 35 | 16 | 5 | 79 | 34 | 169 |
+| All | 654 | 251 | 58 | 188 | 45 | 1196 |
 
 ## How the labels were given
 
@@ -1668,6 +1668,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | WB1 | P | T1 | L0 | tuning.WR_BINARY_MIN_RATIO 0.72: the least initial mass at which a companion can strip a star into a Wolf-Rayet star, as a share of the single-star threshold (18 against 25 solar masses at the Sun's metallicity, carried up by the same metallicity law as the threshold) | 0.6 to 0.85 | primaries of 15 to 40 solar masses with a close companion, at the Galaxy's metallicity; at lower metallicity the law is the single-star threshold's own | a spectroscopic survey of Wolf-Rayet stars in binaries whose primaries began below 18 solar masses, or the 18 / 24 / 37 solar mass trend of the Galaxy, LMC and SMC failing to follow Z to the minus one half | the stripped-star mass from a binary evolution grid by metallicity, period and mass ratio (the MESA grid of the source) | [R4051: Table 1] and section 3.2: the least initial mass 18 solar masses for the Galaxy, from the 7.5 solar mass least stripped helium star of a Wolf-Rayet spectrum | - | - |
 | WB2 | P | T2 | L0 | tuning.WR_STRIPPING_FRACTION 0.33: the share of stars between the binary and the single-star threshold that a companion strips into a Wolf-Rayet star | 0.2 to 0.5 | the same band, near solar metallicity | an observed binary-stripped to single-star Wolf-Rayet ratio far from 0.25 to 0.4 in the Galaxy, or a population synthesis of interacting binaries giving another stripped share | a stripping chance from the period and mass-ratio law of the member trees (the share of close binaries that transfer mass in a way that strips the envelope) | [R4051] section 5, below its Eq. 4: the stripping efficiency 0.33 it takes from the observed interacting fraction (read, quoted by the paper, not re-derived) | - | - |
+
+## 6.196 Stand-in of the bodies an asteroid field stores
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
 
 ## 6.195 Stand-ins of the asteroid field a supernova remnant hosts
 

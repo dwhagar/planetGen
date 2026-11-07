@@ -38495,6 +38495,52 @@
       "title": "Stand-ins of the binary-stripped Wolf-Rayet channel"
     },
     {
+      "key": "6.196",
+      "number": "6.196",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "fields with a ledger (a supernova host's)"
+            ],
+            [
+              "What would show it wrong",
+              "the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent"
+            ],
+            [
+              "What replaces it",
+              "the belt member rule (belt_member.member with the compaction taper) once a field has a taxon mix and a star-free heating"
+            ],
+            [
+              "Evidence",
+              "the belt members of GEN.1070 share the same makeup rule at one density per taxon"
+            ]
+          ],
+          "id": "FD1",
+          "key": "6.196:FD1",
+          "kind": "P",
+          "slug": "6-196-fd1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass"
+        }
+      ],
+      "slug": "6-196-stand-in-of-the-bodies-an-asteroid-field-stores",
+      "title": "Stand-in of the bodies an asteroid field stores"
+    },
+    {
       "key": "6.195",
       "number": "6.195",
       "rows": [

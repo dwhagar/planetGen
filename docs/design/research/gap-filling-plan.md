@@ -3071,6 +3071,14 @@ A rocky planet with no row in the hosting gate's `satellite-share` table holds a
 |---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md |
 
+### 6.196 Stand-in of the bodies an asteroid field stores (GEN.1105)
+
+`generation/field_members.member_rows` gives each stored body of a field with a ledger the field's makeup shares and one bulk density.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon |
+
 ### 6.195 Stand-ins of the asteroid field a supernova remnant hosts (GEN.1104)
 
 `generation/field_host.hosted_field` gives a core-collapse supernova remnant the field the belt of its progenitor left (`physics/field_rates.hosted_belt`, `physics/field_mass.unbound_belt_field`). It needs where the progenitor's belt lay and what core a remnant that shows none has; the belt's share, the unbinding, the retirement and the grinding are the physical modules of sections 6.106 and 6.161.

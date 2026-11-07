@@ -228,10 +228,10 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons")},
+        "planet_interior_layers", "moon_interior_layers", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
+        ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),

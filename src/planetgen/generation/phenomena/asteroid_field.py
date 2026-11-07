@@ -128,6 +128,18 @@ class AsteroidField(SmallBody):
             guard for `galactic_orbital_phase_deg`.
     """
 
+    ledger = None
+    """belt_ledger.Ledger or None: The stored bodies of a field whose mass was solved with a ledger (a supernova host's, a collision's); not stored itself, its bodies are `members`."""
+    _members = None
+
+    @property
+    def members(self):
+        """The stored members of the field (GEN.1105, `generation/field_members.py`): one dict for each body its ledger holds, heaviest first; none for a field with no ledger."""
+        if self._members is None:
+            from planetgen.generation import field_members
+            self._members = field_members.member_rows(self)
+        return self._members
+
     FIELD_UNITS = {
         "name": "text", "field_class": "text", "composition_family": "text", "density": "text", "radius_ly": "ly",
         "chondrite_group": "text", "rms_speed_kms": "km_s", "birth_age_yr": "yr", "shape": "text", "origin": "text", "history": "text", "largest_body_kg": "kg",

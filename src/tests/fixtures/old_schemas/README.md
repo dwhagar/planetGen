@@ -104,3 +104,4 @@ Commit each file came from:
 - v218: train 12 after GEN.1207's migration 0218 (best-fit classes), before GEN.1084 irregular moons (0219)
 - v219: train 12 after GEN.1084's migration 0219 (irregular moons), before TEST.602 sector content leaf (0220)
 - v220: train 12 after TEST.602's migration 0220 (sector content leaf), before GEN.1103 asteroid field age columns (0221)
+- v221: train 14 after GEN.1103's migration 0221 (asteroid field age columns), before GEN.1105 field members (0222)

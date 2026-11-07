@@ -56,7 +56,7 @@ def test_planets_and_moons_place_the_projects_ten_metre_floor_body():
 
 
 EXPECTED_FLOOR_M = {
-    "asteroid_belts": 2.4, "belt_members": 2.4, "irregular_moons": 2.4, "comets": 620.0, "moons": 2.4, "planets": 2.4, "stars": 2.7, "scatter_members": 2.7,
+    "asteroid_belts": 2.4, "belt_members": 2.4, "irregular_moons": 2.4, "field_members": 2.4, "comets": 620.0, "moons": 2.4, "planets": 2.4, "stars": 2.7, "scatter_members": 2.7,
     "orbit_nodes": 2.4, "scatter_nodes": 2.4,
     "bright_stars": 9.2e6, "phenomenon_scatter": 9.2e6, "star_systems": 9.0e6, "rogue_planets": 9.0e6,
     "interstellar_comets": 9.0e6, "asteroid_fields": 9.0e6, "black_holes": 9.0e6, "neutron_stars": 9.0e6,

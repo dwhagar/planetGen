@@ -178,6 +178,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.object_uid.captured_member | GEN.1070 | the designation and parent link of a belt member a planet has captured; the irregular-moon wiring prints it |
 | function | planetgen.galaxy.object_uid.outside_reservoir_member | GEN.1070 | the designation of a captured body from a reservoir that is not a belt; the irregular-moon wiring prints it |
 | function | planetgen.galaxy.object_uid.parse_captured | GEN.1070 | reads a captured body's designation and link back; the irregular-moon wiring and the designation cascade (GEN.1141) use it |
+| function | planetgen.galaxy.object_uid.field_designation | GEN.1105 | the text a field member prints (`<field ID>.<rank hex>`); the field page and the member page (GEN.1105 part 2) print it |
+| function | planetgen.galaxy.object_uid.parse_field_designation | GEN.1105 | reads a field member's text back; the member page route (GEN.1105 part 2) reads it |
 | function | planetgen.galaxy.region_run.next_units | GEN.1128 | the barrier of the region run (stages 0 to 2 for every unit, then the top-up); the command wires it when the top-up stage exists |
 | function | planetgen.galaxy.spherical.shell_cells | by design | every cell of one shell in order, the independent reference the grid tests count, sum volumes and compare neighbours against; the generator reaches cells by band ranges and never walks a whole shell |
 | function | planetgen.galaxy.star_formation.star_formation_rate_profile | by design | the present star-formation rate against radius that `test_star_formation_profile` compares with the observed profile; the generator reads `recent_factor`, never the profile |
