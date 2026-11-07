@@ -206,7 +206,7 @@ def test_a_forced_iron_rich_core_keeps_the_mass_raises_the_iron_and_takes_the_wa
     for planet in _systems_with_a_merged_rocky_planet(("W10",)):
         assert "W10" in planet.oddities
         assert planet.water_mass_fraction == 0.0 and planet.ice_mass_fraction == 0.0
-        assert 0.0 < planet.metal_mass_fraction < 0.85 and abs(planet.metal_mass_fraction + planet.rock_mass_fraction - 1.0) < 1e-9
+        assert 0.0 < planet.metal_mass_fraction < 0.85 and abs(planet.metal_mass_fraction + planet.rock_mass_fraction + (planet.envelope_mass_fraction or 0.0) - 1.0) < 1e-9      # (a hydrogen envelope that settles later, GEN.1323, takes its share of all the solids)
         assert oddities.limit_failures(oddities.BY_ID["W10"], oddities.quantities_of(planet)) == []
 
 

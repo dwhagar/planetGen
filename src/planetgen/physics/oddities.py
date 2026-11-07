@@ -44,6 +44,25 @@ from dataclasses import dataclass
 from planetgen.physics import constants
 
 from planetgen import tuning
+
+EFFECTS = {}
+"""dict: The effect functions by name, `function(body, row) -> None`, which change the one input of the row's lever on the body; registered by the module
+that implements the effect (`register`)."""
+
+
+def register(effect):
+    """Decorator: `@register("strip_mantle")` makes the function the effect of every row that names it."""
+    def wrap(function):
+        if effect in EFFECTS and EFFECTS[effect] is not function:
+            raise OddityError(f"the effect {effect!r} is registered twice")
+        EFFECTS[effect] = function
+        return function
+    return wrap
+
+
+# (`EFFECTS` and `register` come before the imports below on purpose: a module that registers an effect at import time, such as `rings`, can be reached
+# through `planet_classes` while this module is still loading, and needs them to exist by then.)
+
 from planetgen.physics import elements, planet_classes
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
@@ -229,10 +248,6 @@ def words(row):
     return f"Odd: {row.name}. {row.text}"
 
 
-EFFECTS = {}
-"""dict: The effect functions by name, `function(body, row) -> None`, which change the one input of the row's lever on the body; registered by the module
-that implements the effect (`register`)."""
-
 KIND_OF_BODY = {"t": "planet", "g": "giant"}
 """dict: The row `kind` a body is asked about, by its `body_type`; a moon is asked as a moon, a rogue planet as a rogue."""
 
@@ -249,16 +264,6 @@ def _import_effects():
 
     for name in EFFECT_MODULES:
         importlib.import_module(name)
-
-
-def register(effect):
-    """Decorator: `@register("strip_mantle")` makes the function the effect of every row that names it."""
-    def wrap(function):
-        if effect in EFFECTS and EFFECTS[effect] is not function:
-            raise OddityError(f"the effect {effect!r} is registered twice")
-        EFFECTS[effect] = function
-        return function
-    return wrap
 
 
 def kind_of(body):
