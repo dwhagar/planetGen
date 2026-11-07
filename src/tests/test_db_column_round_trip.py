@@ -42,6 +42,7 @@ SECTOR_PLACEMENT = ("sector_id", "center_x_pc", "center_y_pc", "center_z_pc", "g
 
 NULL_IN_THIS_GALAXY = {
     # GEN.1111: the rogue planets of this small galaxy are dark, lifeless and without a surface liquid, so these are never set on them, and two
+    # (GEN.1323: the rocky ones keep an envelope, which leaves the solid-only roundness and strength empty)
     # child tables hold nothing.
     **{(table, column): "no rogue planet of this galaxy has it (GEN.1111)" for table, columns in (
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
@@ -50,10 +51,11 @@ NULL_IN_THIS_GALAXY = {
                            "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
                            "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
                            "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
-                           "life_stage", "life_system_age_gyr", "life_traits", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "surface_liquid",
+                           "life_stage", "life_system_age_gyr", "life_traits", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "roundness_ratio", "surface_liquid",
                            "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt", "surface_liquid_ammonia_wt",
                            "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
-                           "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
+                           "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index",
+                           "yield_strength_pa"))) for column in columns},
     # DB.81: the stellar mass a plan pinned, which a galaxy whose seed drew everything leaves NULL (test_shape_pins.py
     # writes and reads it back).
     ("galaxy_shape", "pinned_stellar_mass_solar"): "NULL when the seed drew the mass (DB.81)",
