@@ -1,7 +1,0 @@
-**Headline:** Clouds now thin as a wet world warms and thicken as it cools, so the climate of an Earth-like world responds to its sunlight the way the published range says (0.65 K per W/m2, was 0.44), and a world locked to its star under strong light builds a bright cloud deck.
-
-### Added
-- GEN.974: `physics/cloud_albedo.py` adds two terms to the ice-albedo law of a body with surface water: the low cloud thins as the world warms (`-BETA (T - 288 K)`, up to 0.12 either way, sized to the assessed cloud feedback of +0.42 W/m2 per K) and a world locked 1:1 to its star above 1,000 W/m2 of starlight gains a substellar deck (up to 0.12, from 0.42 at 1,000 W/m2 to 0.53 at 2,200). `surface_air.solve` reads them at each step that has a liquid ocean; a body with no ocean, a dry body, a giant and an airless body are unchanged. Stand-ins CA1 to CA5 (section 6.199 of the gap-filling plan) carry tier and tweak level.
-
-### Changed
-- GEN.974: the albedo and the temperature of a wet body away from 288 K move (a warm one is darker by up to 0.12 and warmer, a cold one brighter and colder). The Earth twin of `test_climate_sweep.py` now responds inside the published range, the strict expected failure is gone, the cooling half of its sweep stops 3 percent down (on the table of GEN.1304 the twin falls to a snowball 12 to 14 percent down, with the cloud or without it), and a test holds the snowball at 15 percent down. Generator output changes, so it rides a train with an epoch.
