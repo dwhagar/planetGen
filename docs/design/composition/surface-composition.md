@@ -15,7 +15,7 @@ Gives (a `SurfaceComposition`): the areal `mix` (ocean, ice and the ground types
 3. Modifiers, in the fixed order felsic, clay, oxidised, evaporite, sulfur, each a uniform areal share of the land when its inputs allow it, scaled together to at most 0.9 of the land.
 4. Grain: slab if molten (1400 K) or slab or crushed if under 0.1 Gyr, else powder.
 
-The recipes (`surface-ground-types`) are Hu et al. 2012 Table 2 on materials rows. Stand-ins are named on the rows: kaolinite for Mg-smectite, troilite and kamacite for pyrite, `basalt_powder` for glass, `orthoclase` for K-feldspar.
+The recipes (`surface-ground-types`) are Hu et al. 2012 Table 2 on materials rows. Stand-ins are named on the rows: kaolinite for Mg-smectite, `basalt_powder` for glass, `orthoclase` for K-feldspar. Hu's pyrite is the `pyrite` row (GEN.1384): the `metal` ground is that sample alone, as Table 2 gives it, where it stood as troilite and kamacite before the row existed.
 
 ## Parametrisations (all in `RANGES`, none a measurement)
 

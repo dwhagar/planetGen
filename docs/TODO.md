@@ -14084,6 +14084,39 @@ clears each one.
   --resume; built code needs a caller.
   Prerequisites: none. Related: TEST.685, GEN.1160, DOC.103.
 
+- [ ] **GEN.1384 Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md.
+  Core 5 (as the lane reported 5:50 PM EST on 2026-11-07), found while
+  building GEN.1356: the rows exist and are tagged vocabulary-only, but
+  the metal ground still names troilite and kamacite as its stand-ins
+  for pyrite and the reduced-body taxa name troilite alone. Do: swap the
+  recipes to name the new rows by the redox and sulfur state of the body
+  (the reduced-body setting of the real-material report: oldhamite,
+  niningerite, alabandite and daubreelite on enstatite-like and
+  Mercury-like bodies), remove the vocabulary-only tags the swap makes
+  stale (TEST.685), and register the stand-ins. Size S. Lock item,
+  target train 18. Owner (proposed by TODO): Core 5. Rules: draws
+  through draw.py; every stand-in gets a GEN.725 row with tier and tweak
+  level; a change to drawn output carries tests.golden_update --reason
+  ... --affects fill and the next epoch; tests are scripts/test.py
+  changed --resume; no fixed content from the Milky Way or the Solar
+  System; built code needs a caller.
+  Prerequisites: none (runs after GEN.1356 merges). Related: GEN.1356, GEN.475, GEN.477, TEST.685.
+
+- [ ] **GEN.1385 test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug)**
+  Core 5 (as the lane reported 5:50 PM EST on 2026-11-07), found while
+  gating GEN.1356, red on unmodified main and not from it. Do: run the
+  test on main, find the generated body (about 408 K with ice cover),
+  decide whether the ground or the ice-cover step is wrong (an ice cover
+  at 408 K cannot be water ice at the body's pressure unless a
+  high-pressure phase or a cold trap is named), fix the cause, and keep
+  the test. Owner (proposed by TODO): Bug 1. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: GEN.1356, TEST.687.
+
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.
   Filed by the TODO thread.
