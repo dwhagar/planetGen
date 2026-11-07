@@ -11470,7 +11470,7 @@
      "unit": "g/cm3",
      "source": "pubchem",
      "code": "R",
-     "basis": "PubChem density annotation 2.21 at 68 F (USCG, 1999); the research file had a recalled 2.6; page PubChem CID 24840"
+     "basis": "PubChem density annotation 2.21 at 68 F (a US Coast Guard record); the research file had a recalled 2.6; page PubChem CID 24840"
     },
     "mohs": {
      "value": null,
