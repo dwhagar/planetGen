@@ -109,6 +109,10 @@ The step is a rule over the architecture's own events; it needs no N-body run. A
 
 **Limits to name:** no direct observation of how many other systems did this. Exoplanet evidence is indirect (debris discs at 7 to 40 AU, Fomalhaut-type narrow rings). We declare the scatter fraction a stand-in (tier educated guess from physics, tweak L1 to L3) and keep it a single registered row.
 
+### 6.1 Built: the loss past the outermost planet (GEN.1341)
+
+`belt_origin` has a shaping cause `planet-scattering`. A system with an instability level above 0 and two giants or more lost belt mass past its outermost giant: the stretch of the disk that starts at or beyond that giant and lies inside its reach (apoapsis plus 3 chaotic half-widths) loses the share `instability x (1 - exp(-Theta / 10))`, where Theta is the Safronov number of the giant (row SX3, the escape-speed-to-orbital-speed ratio squared, [R5138] [R5139] [R5141] [R5140]). No share is tuned to the observed cold share. A system with one giant, or none, or a stretch outside the reach, is untouched. Registry rows BG20 and BG21 in section 6.97 of the stand-in values.
+
 ## 7. TODO items
 
 | Item | What | Owner and train (best guess, can move) |

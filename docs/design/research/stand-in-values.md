@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1245 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1247 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 91 | 41 | 7 | 9 | 0 | 148 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 53 | 21 | 3 | 1 | 0 | 78 |
-| T6 | 127 | 89 | 25 | 61 | 0 | 302 |
+| T6 | 128 | 90 | 25 | 61 | 0 | 304 |
 | T7 | 33 | 15 | 7 | 16 | 0 | 71 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 15 | 5 | 86 | 34 | 178 |
-| All | 686 | 257 | 59 | 198 | 45 | 1245 |
+| All | 687 | 258 | 59 | 198 | 45 | 1247 |
 
 ## How the labels were given
 
@@ -2169,6 +2169,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BG17 | P | T2 | L0 | belt_origin.PEBBLE_CONVERSION_PER_ORBIT 0.01, the share of a patch's pebbles the streaming instability turns into planetesimals each orbit where it works | 0.003 to 0.03 | the solids of the disk past the snow line | a streaming-instability simulation or a planetesimal population synthesis that finds a conversion rate outside 0.003 to 0.03 per orbit | the rate read from Gerbig and Li 2023 in the paper | pebble-to-planetesimal simulations use 0.01 of the pebble surface density per orbit; read second-hand, not opened | - | - |
 | BG18 | D | T2 | L0 | belt_origin.PEBBLE_TO_GAS_SOLAR 0.01, the solids-to-gas ratio of a disk of solar metal content; it scales with the star's metal ratio | 0.005 to 0.02 | any disk | a measured dust-to-gas ratio of disks outside 0.005 to 0.02 | the ratio of the star's own composition | the interstellar value, the standard in disk models | - | - |
 | BG19 | P | T6 | L0 | belt_origin.PEBBLE_DRIFT_FACTOR 1.1, the pebbles of a drift-limited disk fall in over 1 / (1.1 Z Omega): the drift-limited Stokes number is 0.55 Z / eta and the drift speed 2 St eta v_K, so eta drops out | 0.5 to 2 | the solids of the disk past the snow line | a dust-evolution model of the outer disk whose pebbles live more than twice or less than half this long | the drift time read from a dust-evolution run (drift-limited dust models, read second-hand) | physics fixes the form (growth and drift rates both scale with the orbital frequency); the 0.55 is the drift-limited dust model as quoted second-hand | - | - |
+| BG20 | P | T6 | L1 | belt_origin.scattering_reach_au: the giants that scattered each other sweep from the outermost giant out to its apoapsis plus the 3 chaotic half-widths (1.3 a mu^(2/7), row BG8) it stirs, so the survival of a Jupiter, Saturn, Uranus or Neptune at their own radii is 0.35, 0.51, 0.61 and 0.39; the share thrown out is `scatter.THETA_EJECT` (row SX3) applied to the Safronov number of that giant, times the instability level (GEN.1341) | reach of one to five chaotic half-widths beyond the apoapsis; the instability level 0 to 1 | a stretch of the disk that starts outside the outermost giant of a system with two or more giants and an instability | a belt past the giants of a system with an instability whose survival lies outside 0.1 to 0.5 (row BR5), or a debris belt beyond the reach that N-body runs show scattered | N-body instability runs of the system's own giants (the Nice type runs of [R5139]) | Safronov number above 1 ends close encounters in ejection, below 1 in collision, and a giant-planet system usually ejects ([R5138], READ); ejection is the main loss channel of scattering systems, 50 to 60 percent of planets after a million years ([R5141], READ); a 15 to 20 Earth mass planetesimal disc is consistent with the Solar System's instability ([R5139], READ); an inferred belt mass of up to 10 Earth masses against 0.1 in large Kuiper belt bodies ([R5140], READ). The reach is a planetGen estimate | - | - |
+| BG21 | D | T6 | L0 | belt_origin.JUPITER_RADIUS_KM 71492, the radius of a giant that has none stored, for its Safronov number | 50000 to 100000 | a giant with no stored radius | a giant of the ledger with a radius outside the range | the stored radius of every giant | a giant's radius changes little with its mass beyond a few tenths of a Jupiter mass (inflated hot Jupiters excepted) | - | - |
 
 ## 6.59 Stand-ins of the comet species
 

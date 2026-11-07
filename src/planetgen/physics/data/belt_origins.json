@@ -53,6 +53,12 @@
       "label": "swept by a moving giant",
       "fields": ["giant_from_au", "giant_au", "removed_percent"],
       "text": "A giant that moved from {giant_from_au:.3g} AU to {giant_au:.3g} AU swept away {removed_percent:.3g} percent of it."
+    },
+    "planet-scattering": {
+      "kind": "shaping",
+      "label": "thrown out by giants that scattered each other",
+      "fields": ["giant_au", "reach_au", "removed_percent"],
+      "text": "Giants that scattered each other, the outermost at {giant_au:.3g} AU, threw out {removed_percent:.3g} percent of it (their reach is {reach_au:.3g} AU)."
     }
   }
 }

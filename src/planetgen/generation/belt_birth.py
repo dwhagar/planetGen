@@ -61,7 +61,7 @@ def chain_of(planets):
         formed = planet.formation_distance_au or planet.distance
         giant = planet.body_type == 'g'
         moved = giant and max(formed / planet.distance, planet.distance / formed) >= MIGRATED_RATIO
-        chain.append(belt_origin.Body(planet.distance, planet.mass, planet.eccentricity or 0.0, giant, moved, formed))
+        chain.append(belt_origin.Body(planet.distance, planet.mass, planet.eccentricity or 0.0, giant, moved, formed, planet.radius))
     return sorted(chain, key=lambda body: body.distance_au)
 
 
@@ -110,7 +110,7 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
     snow_line_au = star.snow_line_au
     edge_au = disk_edge_au if disk_edge_au < float("inf") else tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au
     origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, tuning.PLANET_OUTER_GROWTH_AU, edge_au, u=_stream(star, chain, "survival").random(),
-                                debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter)
+                                debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter, instability=instability)
     found = []
     for origin in origins:
         lower, upper = max(origin.inner_au, orbit_floor_au), min(origin.outer_au, orbit_ceiling_au)
