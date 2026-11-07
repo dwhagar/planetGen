@@ -1,0 +1,40 @@
+{#- One body an interstellar asteroid field keeps (/object/asteroid_field:<ID>/field-member/<rank>, web/field_member_page.py, GEN.1105): its status, mass, size and makeup, and its field's history. -#}
+{% extends "base.html" %}
+{% block subhead %}
+<div class="page-subhead">
+  <p class="badges">
+    <span class="badge">{{ member.status.word|capitalize if member.status.word else "Body of an asteroid field" }}</span>
+    <span class="badge">Designation {{ designation }}</span>
+  </p>
+</div>
+{% endblock %}
+{% block content %}
+<section class="panel" id="member-body" aria-labelledby="member-body-heading">
+  <div class="panel-header"><h2 id="member-body-heading">The body</h2></div>
+  <p>This body has a designation, not a name. It is number {{ member.rank }} by mass among the {{ field.individual_count }} bodies its field keeps one by one{% if share is not none %}, and holds
+     {{ "%.3g"|format(share * 100) }} percent of the field's mass{% endif %}. It goes round no star: it drifts with the rest of its field.</p>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      <tr><th scope="row">Field</th><td><a href="{{ field_url }}">{{ name }}</a></td></tr>
+      <tr><th scope="row">Shape</th><td>{{ member.status.word or "" }}</td></tr>
+      <tr><th scope="row">Mass</th><td>{{ quantity(member.mass) }}</td></tr>
+      <tr><th scope="row">Diameter</th><td>{{ quantity(member.diameter) }}</td></tr>
+      <tr><th scope="row">Density</th><td>{{ quantity(member.density) }}</td></tr>
+      <tr><th scope="row">Made of</th><td>{{ composition_text }}</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+{%- if field.origin or field.history %}
+<section class="panel" id="member-history" aria-labelledby="member-history-heading">
+  <div class="panel-header"><h2 id="member-history-heading">The field it belongs to</h2></div>
+  {%- if field.history %}<p>{{ field.history }}</p>{% endif %}
+</section>
+{%- endif %}
+
+<nav class="panel" id="member-neighbours" aria-label="Neighboring bodies of the field">
+  {%- if previous_url %}<a href="{{ previous_url }}">Heavier: <code>{{ previous }}</code></a>{% endif %}
+  {%- if previous_url and next_url %} &middot; {% endif %}
+  {%- if next_url %}<a href="{{ next_url }}">Lighter: <code>{{ next }}</code></a>{% endif %}
+</nav>
+{% endblock %}

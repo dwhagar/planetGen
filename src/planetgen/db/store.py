@@ -610,7 +610,7 @@ still answers as before."""
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
-    "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons",
+    "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
@@ -4253,6 +4253,14 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
             VALUES (?, ?, ?, ?)
             """,
             (field_id, position, component, concentration),
+        )
+
+    for member in field.members:
+        conn.execute(
+            "INSERT INTO field_members (field_id, member_rank, mass_kg, radius_km, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (field_id, member["rank"], member["mass_kg"], member["radius_km"], member["density_g_cm3"], member["rock_fraction"], member["metal_fraction"],
+             member["water_fraction"], member["ice_fraction"], member["status"]),
         )
 
     return field_id

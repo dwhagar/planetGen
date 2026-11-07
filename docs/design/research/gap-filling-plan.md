@@ -3206,6 +3206,14 @@ The world classes and two life classes judged oxygen by its share of the air. A 
 | WL6 | P | T5 | L0 | tuning.WD_THIN_HYDROGEN_FRACTION 1e-10: the hydrogen of a helium-atmosphere white dwarf of either kind | none | non-DA white dwarfs | none: the same case as the downloaded sequences' thin envelope | none | datasets/white_dwarf_models thin case |
 | WL7 | P | T6 | L0 | stellar_composition._grid_radius_solar: a helium-core white dwarf reads the lightest carbon-oxygen sequence and an oxygen-neon one the 1.30 sequence, both scaled by the zero-temperature mass-radius ratio, so a helium-core star has the radius of a thin-envelope carbon-oxygen one | up to 20 percent for the lightest helium-core stars | white dwarfs under 0.20 or over 1.30 solar masses, and helium-core stars at any mass | a helium-core cooling sequence whose radius at 0.2 solar masses and 10,000 K differs from the scaled one by more than 5 percent | helium-core and oxygen-neon cooling sequences | educated guess; the thicker hydrogen envelope of a helium-core star makes it larger than the scaling gives |
 
+### 6.207 Stand-in of the bodies an asteroid field stores (GEN.1105)
+
+`generation/field_members.member_rows` gives each stored body of a field with a ledger the field's makeup shares and one bulk density.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon |
+
 ### 6.204 Stand-in of the steam limit of the air of a body (GEN.1329)
 
 `surface_air._steam_possible` and `surface_air.MOIST_LIMIT_K` keep a body under its runaway greenhouse flux from holding its water as steam (the fixed point let a dense, hot first step carry a body past the critical temperature of water, where the whole reservoir joined the air). The limit is the one the water-loss history and the steam-branch start already read (`orbits.runaway_greenhouse_flux`, [R2447]); a body's own heat counts as the starlight that would absorb the same.
