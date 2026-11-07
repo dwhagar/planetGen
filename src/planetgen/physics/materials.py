@@ -102,8 +102,8 @@ EOS_MODELS = {
 """dict: The equation-of-state models and the constants each must give (`bme` also gives `rho0_kg_m3` or `v0_cm3_mol`, and
 `k0pp_per_gpa` at order 4)."""
 
-CRYSTAL_SYSTEMS = ("cubic", "tetragonal", "hexagonal", "trigonal", "orthorhombic", "monoclinic", "triclinic")
-"""tuple: The crystal systems a mineral row may name (the Handbook of Mineralogy's seven, in lower case)."""
+CRYSTAL_SYSTEMS = ("cubic", "tetragonal", "hexagonal", "trigonal", "orthorhombic", "monoclinic", "triclinic", "amorphous")
+"""tuple: The crystal systems a mineral row may name (the Handbook of Mineralogy's seven, in lower case, and `amorphous` for a solid with none, an opal)."""
 
 LICENCE_FILE = "DATA-LICENSE.md"
 """str: The file in the repository root where the licence of the data is recorded."""
