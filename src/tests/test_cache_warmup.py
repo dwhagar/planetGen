@@ -832,6 +832,8 @@ def script(monkeypatch, redis_server):
                 "line": f"{family}: 3 pages warmed (0 answers built, 3 already cached, 0 left out by the cap) in 0.1 s"}
 
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
+    # OPS.114: a warm-up of a database with no galaxy says so and warms nothing; "x" is only a name here, so the run goes as if it held one.
+    monkeypatch.setattr(warm_cli, "galaxy_is_empty", lambda _database: False)
     monkeypatch.setattr(warmup, "warm_family", warm_family)
     # The node commands are many units on a real galaxy; here, like the other families, each is one unit that is faked.
     monkeypatch.setattr(warmup, "expand_warm_galaxy_nodes", lambda params: commands.Expansion(
