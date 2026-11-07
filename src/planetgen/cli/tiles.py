@@ -58,7 +58,9 @@ def _build(args, config):
         log.error(f"The whole-map build did not run: {exc}")
         return updateguard.EX_TEMPFAIL
 
+    from planetgen.queue import work
     from planetgen.web import tilebuild
+    work.lower_priority()       # PERF.245: the build, and the pool processes it starts (they inherit it), run at the lowered priority every queue worker runs at, so it never takes a core from a visitor's request or a short job
     try:
         with updateguard.running("tiles", "Whole-map build"):
             tilebuild.build_all(config.database, workers=args.workers or None, force=args.force, swap=not args.no_swap)

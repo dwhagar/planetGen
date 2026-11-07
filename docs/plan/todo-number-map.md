@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.283 |
-| MAP | MAP.402 |
+| UX | UX.284 |
+| MAP | MAP.405 |
 | NAV | NAV.78 |
-| GEN | GEN.1311 |
-| PERF | PERF.247 |
-| DB | DB.113 |
+| GEN | GEN.1319 |
+| PERF | PERF.248 |
+| DB | DB.115 |
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.43 |
-| TEST | TEST.659 |
+| TEST | TEST.660 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -2023,11 +2023,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1233 | Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law | none | done, PR #5096 |
 | GEN.1234 | Four stored ozone columns are below the least the oxygen allows because the oxygen changed after the column was drawn (bug) | none | done, PR #4699 |
 | GEN.1235 | The sweep rule does not know the 2000 K surface temperature clamp: Icilat Aobaris I has 2000.0 where albedo and greenhouse give 2165 K (bug) | none | done, PR #4699 |
-| GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) | none | open |
+| GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) | none | done, PR #5389 |
 | GEN.1237 | An Earth-mass planet at 1 AU from a G2V star is temperate in only 1 of 40 draws, and the one that is holds about 70 times Earth's ocean (bug) | none | dropped (not a bug (Aux 3, 2026-11-04): the twin setup put the planet inside the inner edge of its star habitable zone; at Earth insolation 25 of 40 are temperate and the ocean mass follows the Bern water law of GEN.849) |
-| GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) | none | open |
+| GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) | none | done, PR #5389 |
 | GEN.1239 | The dry-class carbon bracket gives a log middle of 153 ppm C against the bulk silicate Earth's 99 ppm (bug) | none | dropped (already settled (Aux 3, 2026-11-04): the red test read main before #4701; GEN.1005 replaced the Earth-tuned bracket with a source-derived one and the test holds the middle to the source range; all 8 tests pass on main) |
-| GEN.1240 | The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug) | none | open |
+| GEN.1240 | The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug) | none | done, PR #5389 |
 | GEN.1241 | Wire the system body view: the ledger and barycentre function read the typed tables for the system page | none | open |
 | GEN.1242 | The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug) | none | done, PR #4886 |
 | GEN.1243 | The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug) | none | done, PR #4767 |
@@ -2098,6 +2098,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders | GEN.1085 | open |
 | GEN.1309 | Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug) | none | open |
 | GEN.1310 | Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent | GEN.1304 | open |
+| GEN.1311 | Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves | none | open |
+| GEN.1312 | Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix | GEN.1311 | open |
+| GEN.1313 | Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths | GEN.1312 | open |
+| GEN.1314 | Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored | GEN.1313 | open |
+| GEN.1315 | Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters) | GEN.1314 | open |
+| GEN.1316 | Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge | GEN.1313 | open |
+| GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 | open |
+| GEN.1318 | Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers | GEN.1309, GEN.1312, GEN.1313 | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2498,7 +2506,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.398 | test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card fails on main: an extra marker-region token for Zarh Region (bug) | none | done, PR #5256 |
 | MAP.399 | Uncharted placeholder sectors in the Sectors list are named from their Object ID, say they are uncharted and name their region, and show no density (bug) | none | done, PR #5379 |
 | MAP.400 | The Object index reads only per-sector tables, so the nebula field (109,811 clouds) and the scattered black holes, remnants, magnetars and hypervelocity stars (9.7 million rows) are missing from search, lists, Nearby and the kind table (bug) | none | done, PR #5383 |
-| MAP.401 | An uncharted sector has an info page showing what is placed in it, with a link to each object's page | MAP.399 | open |
+| MAP.401 | An uncharted sector has an info page showing what is placed in it, with a link to each object's page | MAP.399 | done, PR #5400 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2929,8 +2937,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.242 | Lower or short-circuit REQUEST_PLANET_DRAW_BUDGET for hot O and B stars: a forced habitable world makes the placement loop draw the whole system 8 times and spend the 60-planet request budget | none | done, PR #5273 |
 | PERF.243 | Perf guard for the gravity grid: the densest place's sector grid under a set time on the reference machine, and a reference file for the lane machine's pair rate | none | done, PR #5227 |
 | PERF.244 | A cheaper per-body air solve: surface_air.solve redraws the outgassed mixture about 8 times per body (14 gas-equilibrium solves per body); warm-start or cache the mixture across the fixed-point iterations | none | done, PR #5316 |
-| PERF.245 | The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types | none | open |
+| PERF.245 | The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types | none | done, PR #5408 |
 | PERF.246 | A planet draw takes more than 45 seconds at A0V hot and K0III hot cells in the class census (machine speed or a slow draw) | none | open |
+| PERF.247 | Job queue: a job can declare that it requires another job, so the round robin never picks one that cannot run yet; jobs with no declared dependency still run together | PERF.245 | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -4124,8 +4133,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.654 | tests/test_sheet_fill.py::test_a_sample_has_no_empty_column_that_applies_and_is_not_filed fails on main: runner_up_class is empty for moons of class D and many planet classes (bug) | none | done, PR #5363 |
 | TEST.655 | tests/test_ice_species.py: a Pluto-like body's ice_n2_mass_fraction reads 0.0 after a database round trip, expected 0.1455 (bug) | none | done, PR #5363 |
 | TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 | none | open |
-| TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") | none | open |
+| TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") | none | done, PR #5389 |
 | TEST.658 | Train tooling: scripts/train_gate.py, scripts/train.py, scripts/lane_up.sh, the known-red list and gate durations (Train Manager) | none | done, PR #5376 |
+| TEST.659 | Train tooling part 2: train.py renumber and golden conflict handling (Train Manager) | none | done, PR #5401 |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
@@ -4199,6 +4209,8 @@ Each citation below resolves to one item by its date.
 | items 62-63 (PR #150) | 2026-10-01 01:58Z | UX.2, MAP.3 |
 | TODO 24 (PR #151) | 2026-10-01 02:10Z | ADM.3 |
 | TODO 35 (PR #152) | 2026-10-01 02:22Z | DB.1 |
+| DB.113 | The generate run stops at stage 7 (Scatter the massive stars) on a MySQL deadlock (error 1213) in unit 11, with 15 workers (bug) | none | done, PR #5408 |
+| DB.114 | The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113) | DB.113 | open |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
@@ -4257,6 +4269,7 @@ Each citation below resolves to one item by its date.
 | `static/style.css` | "TODO 63" | 2026-10-01 04:21Z | MAP.3 |
 | `test_web_sector_nav.py` | "TODO 74" | 2026-10-01 04:24Z | MAP.21 |
 | `test_web_facilities.py` | "TODO 36" | 2026-10-01 02:42Z | UX.5 |
+| UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched | none | open |
 
 ### Code tags `TODO(<area> #N)`
 
@@ -4277,6 +4290,9 @@ commit that wrote them. Only the last row is still in the code.
 | 2026-09-30 20:08Z | web-pages #46 to #49 | UX.11, MAP.12, UX.12, MAP.4 |
 | 2026-09-30 20:43Z, 20:48Z | installers #50; windows #54, then #55 | OPS.3; OPS.4 |
 | 2026-10-01 00:07Z | sector-map #55 | MAP.13 |
+| MAP.402 | Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets | none | open |
+| MAP.403 | Sector filter: charted sectors by default, with all sectors or uncharted only, on the Sectors list and in the search information | none | open |
+| MAP.404 | Uncharted sector pages show only what is known to be in the sector and display the sector map | none | done, PR #5406 |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 

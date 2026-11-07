@@ -268,7 +268,7 @@ def _empty_queues(connection):
 
     removed = 0
     names = {queue.name for queue in rq.Queue.all(connection=connection)}
-    names |= {redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE, redisqueue.INTERACTIVE_QUEUE, redisqueue.LONG_QUEUE}
+    names |= {redisqueue.BULK_QUEUE, *redisqueue.maintenance_lane(), redisqueue.INTERACTIVE_QUEUE, redisqueue.LONG_QUEUE}
     for name in sorted(names):
         try:
             queue = redisqueue.queue(name, connection)

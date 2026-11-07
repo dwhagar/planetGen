@@ -2,6 +2,90 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3500] - 2026-11-07
+
+**Headline:** A cache warm-up no longer takes every worker: a database check, a visitor's map nodes and the short jobs get workers while it runs.
+
+### Changed
+- The maintenance workers now have a queue for each kind of task (the warm-up's units, a database check's units, the map-node prefetch and rebuild jobs) and take one job from each in turn, so a check or a visitor's nodes no longer wait behind thousands of warm-up units. Measured on a 3-worker box with 300 warm-up units queued: a check and a node job waited 11.5 s before and 0.1 s after.
+- The host's worker cap now keeps places for the short and long job lanes, so a warm-up or a generation run that has used up the host's workers never leaves a search or a sector list with no worker: with the cap used up, the short job waited for ever before and 1.7 s after.
+- The workers for warm-up units, node jobs and slow page answers build the site's app once when they start instead of for every job: 30 warm-up units that each build the app took 69.2 s before and 9.8 s after, and a second short job 6.9 s before and 0.3 s after (the first job after a worker starts takes as long as before).
+- The whole-map build runs at the lowered priority queue workers use and with one process per core less the places kept for short and long jobs (`tile_cache.build_workers` 0), so it no longer takes the cores a visitor's request needs.
+
+generation-output: unchanged
+
+## [8.0.3499] - 2026-11-07
+
+**Headline:** The scatter write fix for the MySQL deadlock is now tested with eight real writers at once.
+
+### Added
+
+- **DB.113: a test with eight writer threads on their own connections, writing bright-star and phenomenon scatter batches into the same tables with the Object ID step.** The writers meet at a barrier between their inserts and their ID step, so the clash is certain: with the old write at least one writer is killed with MySQL error 1213, and with `write_committed` all of them land, every row has an ID, no ID is shared and each sector is numbered with no gap.
+
+generation-output: unchanged
+
+## [8.0.3498] - 2026-11-07
+
+**Headline:** A MySQL deadlock between two scatter workers no longer stops the massive-star stage.
+
+### Fixed
+- **DB.113: the massive-star scatter died with "Deadlock found when trying to get lock" (error 1213) on a run with 15 workers.** Each worker's batch of stars gives the new rows their Object IDs (`scatter_uids.assign`), which reads every row of the table that has no ID yet, so workers writing at once met on each other's uncommitted rows. A batch of the massive-star, bright-star-band and phenomenon scatters now runs at READ COMMITTED and starts over (up to 8 tries, with a short pause) after a deadlock or lock wait timeout; the retry writes the same rows with the same IDs.
+- **Retries wait longer when there is more trouble, and ask for the step to themselves at the end.** New `db/contention.py`: each retry waits a random, growing time (longer when this process has failed lately, capped at 5 s). After the 8th failed try the unit raises a need for exclusive use of the step; the system grants it with a MySQL named lock that the other writers of the same step check before each try, so they hold off, and the unit tries once more alone. Every retry (error and wait), need, grant, hold-off and release is logged.
+
+## [8.0.3497] - 2026-11-06
+
+**Headline:** The page of an uncharted sector now shows the Sector Map locked to that sector, and its list of what is known there is worded as what long-range scans detected.
+
+### Changed
+- The uncharted-sector page (a cell nothing was generated in, or its placeholder row) carries the same Sector Map panel as a generated sector, pinned to the cell. Detected stars and phenomena in the cell open on it, linked to their own pages; an empty cell shows the empty map.
+- The panel "What is placed here" is "Detected by long-range scans", with an intro and an empty-cell line in that voice. The kind "Waiting star" is "Detected star", a nebula is "lit by a detected star", and the header badges say "N detected stars" and "N detected phenomena". The lists and links are unchanged.
+- New tests in `test_web_uncharted_contents.py` and `test_web_uncharted_sectors_browser.py`.
+
+generation-output: unchanged
+
+## [8.0.3496] - 2026-11-06
+
+**Headline:** The one-off system page now takes the number of stars, says that habitable world and intelligent life only raise the odds, and refuses bad input with the same messages as the command line.
+
+### Changed
+- `/admin/generate/system` has "Number of stars" and "Most stars allowed" boxes (`--stars`, `--max-stars`), checked against the pair options and the system file the way `planetgen system` checks them.
+- Habitable world and intelligent life are offered as "Raise the odds" instead of "Yes", since the generator never forces them (GEN.1130).
+- The form now refuses, before running the generator, a star type that is not a spectral type, a name longer than the database allows, and no planets combined with an asteroid belt.
+
+generation-output: unchanged
+
+## [8.0.3495] - 2026-11-06
+
+**Headline:** The train runner can move a head's stand-in section or citation to a free number in one command, and golden files in a merge conflict are left to the golden step.
+
+### Changed
+
+- `scripts/train.py renumber HEAD OLD NEW` changes a stand-in section (`6.193` to `6.196`) or a citation (`R5136` to `R5140`) in the lines a head added, so a clash found by `collisions` is fixed in seconds instead of by hand.
+- `scripts/train.py merge` takes this branch's side in a conflict in `src/tests/golden/` (the golden step writes those files again).
+
+generation-output: unchanged
+
+## [8.0.3494] - 2026-11-06
+
+**Headline:** The page of an uncharted sector now lists what is placed in it, each object linked to its own page, and says plainly that the sector is uncharted.
+
+### Added
+- The uncharted-sector page (`/sector/at/<shell>/<band>/<wedge>`, and the page of a placeholder sector row from the Sectors list) has a "What is placed here" panel: a table of the rogue planets and other objects stored in the cell, the bright stars the scatters left waiting in it, the unbuilt scattered phenomena (black holes, neutron stars, planetary nebulae, supernova remnants, hypervelocity stars) and the nebulae its waiting stars light. Each row links to the object's page (`/phenomenon/...`, `/systems/uncharted/...`, `/uncharted-phenomenon/...`). A cell with nothing in it says so. Nothing is generated; the lists are read from what is stored.
+- New tests: `test_web_uncharted_contents.py` (the page with a faked API) and a browser check in `test_web_uncharted_sectors_browser.py` (the panel on a placeholder's page fits the phone, tablet and desktop and passes the accessibility check).
+
+generation-output: unchanged
+
+## [8.0.3493] - 2026-11-06
+
+**Headline:** Two moon tests that had stopped testing anything (one sampled systems with almost no moons, one compared a giant's moons with the radius the giant has shrunk to) now test what they say.
+
+### Changed
+
+- `src/tests/test_moon_history.py` (TEST.657): `_systems` made plain systems with `SystemConfig()`, whose `MOONS` is off by default. Since GEN.962 and GEN.1082 to GEN.1084 a rocky planet has a moon only by a giant impact (1 in 12) or capture, so the 16 sampled systems held 2 moons and `test_every_planet_with_moons_ends_with_moons_it_can_keep` failed on `seen_moons > 5`. `_systems` now sets `config.MOONS = True`.
+- `src/tests/test_moon_disk_zone.py` (TEST.657): `test_the_disk_moons_of_generated_giants_sit_inside_the_zone` compared a disk moon's birth distance with 30 radii of the giant's final radius. A giant's radius is derived again at the star's final age (`_settle_to_final_age`) after its moons are drawn, so the final radius is a few percent smaller than the one the zone was made for. The test now records the zone each giant's moons were drawn in (`moon_disk_zone.zone_km`), asserts the birth distance lies inside that zone, and that the zone is 30 radii of the giant to within 6 percent.
+
+generation-output: unchanged
+
 ## [8.0.3492] - 2026-11-06
 
 **Headline:** A giant's stored albedo and greenhouse pair is tested to give its temperature back at every mass, and the scale-height inversion says plainly that it does not apply to a giant.

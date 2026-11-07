@@ -55,12 +55,16 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched |  |  |
+| MAP.402 | Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets |  |  |
+| MAP.403 | Sector filter: charted sectors by default, with all sectors or uncharted only, on the Sectors list and in the search information |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 
 ### Bugs and flaky tests
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| DB.114 | The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113) |  |  |
 | TEST.344 | Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory |  |  |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
@@ -488,9 +492,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders | GEN.1085 |  |
 | TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 |  |  |
 | PERF.246 | A planet draw takes more than 45 seconds at A0V hot and K0III hot cells in the class census (machine speed or a slow draw) |  |  |
-| TEST.657 | Four tests fail on plain main 96a583511: test_moon_disk_zone.py::test_the_disk_moons_of_generated_giants_sit_inside_the_zone and three in test_moon_history.py ("no planet with moons in the sampled systems") |  |  |
-| MAP.401 | An uncharted sector has an info page showing what is placed in it, with a link to each object's page |  |  |
-| PERF.245 | The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types |  |  |
+| PERF.247 | Job queue: a job can declare that it requires another job, so the round robin never picks one that cannot run yet; jobs with no declared dependency still run together |  |  |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | GEN.1069, GEN.1006 |  |
 | GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | GEN.1068 |  |
 | GEN.1203 | Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants | GEN.1068, GEN.1072 |  |
@@ -597,7 +599,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1217 | Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it |  |  |
 | GEN.1281 | Heavy worlds with a plain nitrogen air and no oxygen or methane (about 1.3 percent of bodies) fit no class: widen a class or add one |  |  |
 | GEN.1306 | Planet class matrix edges left after GEN.1281: cold air worlds, hot anoxic worlds, the 1 kPa and 10 kPa clamp edges, heavy oxygen ocean worlds, thin-air oxygen worlds | GEN.1281 |  |
-| GEN.1309 | Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug) |  |  |
 
 ### Physics rectification: citations and the gate's test health
 
@@ -620,7 +621,16 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1298 | Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug) |  |  |
 | GEN.1303 | Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug) |  |  |
 | GEN.1304 | The greenhouse table under-warms a temperate wet air after the GEN.852 part 3 refit: the Earth twin sits at 276.0 K instead of 288 K (lock) |  |  |
+| GEN.1309 | Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug) |  |  |
 | GEN.1310 | Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent | GEN.1304 |  |
+| GEN.1311 | Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves |  |  |
+| GEN.1312 | Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix | GEN.1311 |  |
+| GEN.1313 | Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths | GEN.1312 |  |
+| GEN.1314 | Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored | GEN.1313 |  |
+| GEN.1315 | Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters) | GEN.1314 |  |
+| GEN.1316 | Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge | GEN.1313 |  |
+| GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 |  |
+| GEN.1318 | Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers | GEN.1309, GEN.1312, GEN.1313 |  |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) |  |  |
 | GEN.1299 | The planet architecture ejects about 0.1 body per star where the observed free-floating yield is 8 to 42 per star (0.33 Earth masses and up) and 0.8 to 7.5 rocky bodies per star: decide where the yield should come from |  |  |
 | GEN.1288 | cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections |  |  |
@@ -670,9 +680,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.1236 | Two class N planets sit at the 2000 K surface_air cap but keep the uncapped greenhouse factor, so stored temperature and greenhouse disagree (bug) |  |  |
-| GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) |  |  |
-| GEN.1240 | The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug) |  |  |
 | GEN.1247 | Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug) |  |  |
 | GEN.1259 | A planetless stretch becomes a belt only if enough leftover rocky mass could survive there: check the belt rule of GEN.1068 and GEN.1156 against the physics and the observed belt rates (about two thirds of systems have a belt now, from 4 percent before train 7) |  |  |
 | GEN.1261 | Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken | GEN.1259 |  |

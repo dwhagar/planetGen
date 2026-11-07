@@ -598,9 +598,12 @@ def follow(run_id, on_plan, on_result, on_progress=None, url=None, on_stage_done
 
 
 def queue_of(kind):
-    """The queue the units of a run of `kind` go on (PERF.150): the maintenance queue for a `MAINTENANCE` or `CHECK`
-    run, the bulk queue for a `GENERATION` run."""
-    return redisqueue.BULK_QUEUE if kind == runrecord.GENERATION else redisqueue.MAINTENANCE_QUEUE
+    """The queue the units of a run of `kind` go on (PERF.150, PERF.245): the bulk queue for a `GENERATION` run, the check queue
+    for a `CHECK` run and the maintenance queue for a `MAINTENANCE` run (the cache warm-up); the last two are queues of the
+    maintenance lane, served in turn."""
+    if kind == runrecord.GENERATION:
+        return redisqueue.BULK_QUEUE
+    return redisqueue.CHECK_QUEUE if kind == runrecord.CHECK else redisqueue.MAINTENANCE_QUEUE
 
 
 def waiting_text(holder, position):

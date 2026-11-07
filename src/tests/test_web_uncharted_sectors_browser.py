@@ -93,3 +93,39 @@ def test_the_page_of_a_placeholder_says_it_is_uncharted_and_in_which_region(brow
     finally:
         context.close()
     assert not problems, "\n".join(problems)
+
+
+@pytest.mark.parametrize("scheme", SCHEMES)
+@pytest.mark.parametrize("viewport", sorted(VIEWPORTS))
+def test_the_page_of_a_placeholder_has_a_what_is_placed_here_panel_that_fits_and_passes_axe(browser, axe_source, sectors, server, viewport, scheme):
+    """MAP.401: the panel is there on every placeholder's page, says the sector is uncharted, and fits the screen."""
+    context, page, problems, base_url = _page(browser, server, viewport, scheme)
+    try:
+        name = naming_key.uncharted_sector_name(UNCHARTED[0], KEY)
+        page.goto(base_url + "/sectors", wait_until="load")
+        page.wait_for_selector("#sectors table tbody tr")
+        page.get_by_role("link", name=name).click()
+        page.wait_for_selector("#uncharted-contents")
+        panel = page.locator("#uncharted-contents")
+        assert "Detected by long-range scans" in panel.inner_text()
+        assert "long-range scans" in panel.inner_text()
+        problems += _overflow(page) + _axe_blocking(page, axe_source)
+    finally:
+        context.close()
+    assert not problems, f"at {viewport}/{scheme}:\n  " + "\n  ".join(problems)
+
+
+def test_the_page_of_a_placeholder_shows_the_sector_map_locked_to_its_cell(browser, sectors, server):
+    """MAP.404: the Sector Map is on the page, locked to the cell, and carries the link to the cell's scene."""
+    context, page, problems, base_url = _page(browser, server)
+    try:
+        name = naming_key.uncharted_sector_name(UNCHARTED[0], KEY)
+        page.goto(base_url + "/sectors", wait_until="load")
+        page.wait_for_selector("#sectors table tbody tr")
+        page.get_by_role("link", name=name).click()
+        page.wait_for_selector("#map canvas")
+        assert "Sector Map" in page.locator("#map").inner_text()
+        assert "/galaxy/uncharted/" in page.content()      # the map can open what the scans detected in the cell
+    finally:
+        context.close()
+    assert not problems, "\n".join(problems)
