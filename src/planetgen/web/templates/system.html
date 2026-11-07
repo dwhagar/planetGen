@@ -245,6 +245,40 @@
   </table></div>
 </section>
 {%- endif %}
+{%- if ledger %}
+<section class="panel" id="system-bodies" aria-labelledby="system-bodies-heading">
+  <h2 id="system-bodies-heading">Mass and barycenter</h2>
+  <p class="muted">The mass of every body of the system and where its center of mass lies, with the asteroid belts counted in. Distances are from the center of mass.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <caption>Summary</caption>
+    <tbody>
+      {%- for label, value, note in ledger.summary %}
+      <tr><th scope="row">{{ label }}</th><td>{{ value }}</td><td class="hint">{{ note or '' }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  <div class="table-scroll" tabindex="0"><table>
+    <caption>Bodies</caption>
+    <thead><tr><th scope="col">Body</th><th scope="col">Kind</th><th scope="col">Goes round</th><th scope="col">Mass</th><th scope="col">Distance from the center of mass</th></tr></thead>
+    <tbody>
+      {%- for row in ledger.bodies %}
+      <tr><td>{% if row.url %}<a href="{{ row.url }}">{{ row.name }}</a>{% else %}{{ row.name }}{% endif %}</td><td>{{ row.kind }}</td><td>{{ row.parent or '–' }}</td><td>{{ row.mass }}</td><td>{{ row.distance }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- if ledger.belts %}
+  <div class="table-scroll" tabindex="0"><table>
+    <caption>Belts</caption>
+    <thead><tr><th scope="col">Belt</th><th scope="col">Stored mass</th><th scope="col">Bodies kept one by one</th><th scope="col">The rest</th><th scope="col">Check</th></tr></thead>
+    <tbody>
+      {%- for row in ledger.belts %}
+      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ row.mass }}</td><td>{{ row.kept }}</td><td>{{ row.extended }}</td><td>{{ row.check }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+</section>
+{%- endif %}
 {%- if facilities or facility_status %}
 <section class="panel" id="facilities" aria-labelledby="facilities-heading">
   <h2 id="facilities-heading">Facilities</h2>
