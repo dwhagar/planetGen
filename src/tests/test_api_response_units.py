@@ -18,7 +18,7 @@ PLAIN = {
     # counts of the things the answer holds or paged past
     "count": "how many of the thing named beside it", "total": "how many rows match", "limit": "rows asked for in a page",
     "offset": "rows skipped before a page", "star_count": "stars", "system_count": "star systems",
-    "interstellar_debris_count": "interstellar debris objects", "uncharted_total": "uncharted placeholder sectors, beside the generated ones `total` counts",
+    "interstellar_debris_count": "interstellar debris objects", "uncharted_total": "uncharted placeholder sectors, beside the generated ones `total` counts", "charted_total": "charted sectors", "empty_total": "uncharted sectors nothing is known to be in",
     # ids, grid addresses and versions: names, not quantities
     "id": "a row or object id", "shell_index": "grid shell", "band_index": "grid band", "wedge_index": "grid wedge",
     "api_version": "the API version", "schema_version": "the database schema version",

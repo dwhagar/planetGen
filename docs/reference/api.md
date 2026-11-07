@@ -123,6 +123,11 @@ connectivity to that specific schema rather than the default one.
   (`sector_system_counts`) by index, with the sectors that have no galaxy position last, and
   sectors that tie follow the sort's direction by id; a sector made since the last refresh of
   those figures follows the others. An `after` that is not a sector ID is a 400.
+  MAP.403: `coverage=charted|all|uncharted` picks which sectors are listed (default `charted`, the generated sectors; `uncharted` lists the placeholder rows
+  a rogue planet, a waiting bright star or a scattered phenomenon made in a cell nothing was generated in) and `empty=1` keeps the uncharted sectors nothing is
+  known to be in (no rogue planet filed in them, no waiting star, no unbuilt scattered phenomenon), which are left out by default; it has no effect on `charted`.
+  `total` counts the sectors listed and `charted_total`, `uncharted_total` and `empty_total` count each kind whatever is listed; the answer echoes `coverage` and
+  `show_empty`. Another `coverage` is a 400. Changed: the default listing no longer includes the uncharted placeholders.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
@@ -704,6 +709,8 @@ connectivity to that specific schema rather than the default one.
   detail page of its own, only a hover tooltip on the Sector/Galaxy Map),
   now including a to-scale AU diagram (`../src/planetgen/web/maps/phenomenonmap.py`).
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
+  (MAP.403: the Sectors panel lists charted sectors only; `sector_coverage=all|uncharted` adds the uncharted placeholders, `sector_empty=1` the
+  uncharted ones nothing is known to be in, and another coverage is a 400.)
   the faceted search behind the `/search` page: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
   type, supported life chemistry, the equipment a human needs

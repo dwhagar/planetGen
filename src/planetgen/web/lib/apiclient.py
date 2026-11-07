@@ -456,13 +456,14 @@ def list_databases():
     return _request("/databases")["items"]
 
 
-def get_sectors(db, limit=None, offset=None, sort=None, descending=False, after=None):
+def get_sectors(db, limit=None, offset=None, sort=None, descending=False, after=None, coverage=None, show_empty=False):
     """Returns `GET /api/sectors`'s full paginated envelope
     (`items`/`total`/`limit`/`offset`). `sort` is the Sectors table's sort (UX.41); `after` is the sector ID the previous
-    page ended on (PERF.137)."""
+    page ended on (PERF.137). `coverage` (`charted`, `all` or `uncharted`, MAP.403; the API's own default, charted, when `None`) and
+    `show_empty` (the uncharted sectors nothing is known to be in) pick which sectors are listed."""
     _require_db(db)
     params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
-              ("order", "desc" if descending else None)]
+              ("order", "desc" if descending else None), ("coverage", coverage), ("empty", "1" if show_empty else None)]
     return _request("/sectors", [(key, value) for key, value in params if value is not None])
 
 
@@ -1004,7 +1005,7 @@ def get_object_children(db, ref, limit=None, after=None):
     return _request(f"/objects/{ref}/children", {"db": db, "limit": limit, "after": after})
 
 
-def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None, sector_scope=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `db.query.search`'s docstring for the full shape.
@@ -1033,10 +1034,16 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
         ranges (dict, optional): `{entity: {key: (least, most, unit)}}`, the range filters on the physical values (UX.226), sent as
             `<entity>_min_<key>`, `<entity>_max_<key>` and `<entity>_<key>_unit`; either bound `None` is left out, and a `None` unit
             is the key's own.
+        sector_scope (tuple, optional): `(coverage, show_empty)` for the Sectors panel (MAP.403), sent as `sector_coverage` and `sector_empty`; the API's
+            own default (charted sectors only) when `None`.
     """
     _require_db(db)
     pairs = [("db", db)]
     pairs.extend((key, value) for key, value in texts.items() if value)
+    if sector_scope is not None:
+        pairs.append(("sector_coverage", sector_scope[0]))
+        if sector_scope[1]:
+            pairs.append(("sector_empty", "1"))
     for facet, values in tags.items():
         pairs.extend((facet, value) for value in values)
     for entity, size_range in (sizes or {}).items():

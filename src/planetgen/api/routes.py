@@ -64,9 +64,12 @@ from planetgen.db.query import (
     SEARCH_RESULT_PANELS,
     SEARCH_TAG_FACETS,
     PHENOMENON_SORTS,
+    DEFAULT_SECTOR_COVERAGE,
+    SECTOR_COVERAGES,
     SECTOR_SORTS,
     SYSTEM_SORTS,
     count_phenomena,
+    count_empty_uncharted_sectors,
     count_sectors,
     count_uncharted_sectors,
     is_capped,
@@ -511,8 +514,17 @@ def sectors():
     stored designation as `designation`, and carries its region; `uncharted_total` counts them beside `total`.
     `after=<sector ID>` starts the page after that sector in the default order and the `name` and `distance` sorts
     (PERF.137: any page costs the same, and `offset` is ignored); the other sorts ignore it.
+
+    MAP.403: `coverage=charted|all|uncharted` picks which sectors are listed (default `charted`: the sectors that were generated; `uncharted` the
+    placeholders) and `empty=1` keeps the uncharted ones nothing is known to be in (default left out; no effect on `charted`). `total` counts the
+    sectors listed; `charted_total`, `uncharted_total` and `empty_total` (the empty ones among the uncharted) count each kind whatever is listed, and
+    the response echoes `coverage` and `show_empty`. Another `coverage` is a 400.
     """
     limit, offset = _paginate(request.args)
+    coverage = request.args.get("coverage") or DEFAULT_SECTOR_COVERAGE
+    if coverage not in SECTOR_COVERAGES:
+        raise ApiError(f"coverage must be one of {', '.join(SECTOR_COVERAGES)}, got {coverage!r}")
+    show_empty = request.args.get("empty") in ("1", "true", "yes", "on")
     sort = None
     descending = False
     if request.args.get("sort") or request.args.get("order"):
@@ -523,8 +535,8 @@ def sectors():
         after = ids.row_id(db, "sector", request.args["after"])
         if after is None:
             raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
-    total = count_sectors(db)
-    items = list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after)
+    total = count_sectors(db, coverage=coverage, show_empty=show_empty)
+    items = list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after, coverage=coverage, show_empty=show_empty)
     for item in items:
         if item["uncharted"]:
             _show_uncharted_sector(db, item)
@@ -533,7 +545,11 @@ def sectors():
     body = {
         "items": items,
         "total": total,
+        "charted_total": count_sectors(db, coverage="charted"),
         "uncharted_total": count_uncharted_sectors(db),
+        "empty_total": count_empty_uncharted_sectors(db),
+        "coverage": coverage,
+        "show_empty": show_empty,
         "total_capped": is_capped(total),
         "limit": limit,
         "offset": offset,
@@ -2150,8 +2166,15 @@ def search():
     UX.239: `stars` keeps the systems with that many stars: a count (`stars=3`, exactly three), a count and a plus (`stars=3+`, three or more)
     or a name (`single`, `binary`, `trinary`, `quaternary`: exactly that many; `quintenary`: five or more). The Systems panel runs for it with
     or without a name; each row carries `star_count`. Anything else is a 400.
+
+    MAP.403: the Sectors panel lists charted sectors only, unless `sector_coverage=all|uncharted` asks for the uncharted placeholders too (another
+    value is a 400); `sector_empty=1` keeps the uncharted sectors nothing is known to be in, which are left out by default.
     """
     args = request.args
+    sector_coverage = args.get("sector_coverage") or DEFAULT_SECTOR_COVERAGE
+    if sector_coverage not in SECTOR_COVERAGES:
+        raise ApiError(f"sector_coverage must be one of {', '.join(SECTOR_COVERAGES)}, got {sector_coverage!r}")
+    sector_scope = (sector_coverage, args.get("sector_empty") in ("1", "true", "yes", "on"))
     texts = {
         key: (args.get(key) or "").strip()
         for key in ("sector_q", "system_q", "star_q", "planet_q", "moon_q")
@@ -2184,7 +2207,7 @@ def search():
     except ValueError as exc:
         raise ApiError(str(exc))
     return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only, sorts=sorts, stars=stars,
-                              ranges=ranges))
+                              ranges=ranges, sector_scope=sector_scope))
 
 
 # ---------------------------------------------------------------------
