@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.284 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1329 |
+| GEN | GEN.1330 |
 | PERF | PERF.249 |
 | DB | DB.115 |
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.47 |
-| TEST | TEST.668 |
+| TEST | TEST.669 |
 | USR | USR.32 |
-| OPS | OPS.111 |
+| OPS | OPS.113 |
 | DOC | DOC.110 |
 | VIEW | VIEW.48 |
 | POP | POP.52 |
@@ -2115,7 +2115,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1325 | Giant planet eccentricity averages 0.08 against 0.22 published for the observed giants | none | open |
 | GEN.1326 | Measure the hot class N planets: at the 2,000 K cap they hold 1,000 to 17,000 bar of air with almost no water, against JWST bare-rock results | none | done, PR #5463 |
 | GEN.1327 | Fewer life-capable bodies on the train 13 sweep than on main: letters holding a capable body fell from 12 to 9, with class C 21 to 16, E 35 to 29, N 1 to 0 of 22, Z 1 to 0 of 6 and F 1 to 0 of 1 while G, S, T and U rose; check whether the drop is intended (bug) | none | open |
-| GEN.1328 | Hot class N planets keep 600 to 3,600 bar of CO2, about 2 percent of the planet's mass and ten times Venus's, where the shoreline and the JWST hot rocky targets say bare or thin: trace the volatile inventory of class N and why the loss does not strip it (bug) | none | open |
+| GEN.1328 | Hot class N planets keep 600 to 3,600 bar of CO2, about 2 percent of the planet's mass and ten times Venus's, where the shoreline and the JWST hot rocky targets say bare or thin: trace the volatile inventory of class N and why the loss does not strip it (bug) | none | dropped, the premise did not hold (Core 5 trace: 0.03 to 0.07 percent of planet mass, hot hosts keep thick CO2 airs as 55 Cnc e does) |
+| GEN.1329 | Three of 20 hot rocky planets hold 1e5 bar steam airs of 3 to 7 percent of the planet's mass on K hosts: check whether the water inventory and the loss are right (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2703,7 +2704,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.107 | The warm-up progress bar and time left are accurate: units report progress inside a unit, so a sector, system or phenomenon unit moves the bar while it runs | none | done, PR #5249 |
 | OPS.108 | A keypress skips the warm-up step of update.sh: the key is shown on screen, works on a terminal only, and without a terminal the warm-up is unchanged | none | done, PR #5249 |
 | OPS.109 | The update.sh data set step lists the kept files by download URL (one "kept URL (n files)" line per URL) and says the folder they are stored in | none | done, PR #5249 |
-| OPS.110 | install.sh and update.sh render every systemd unit from the checkout location and venv and install the maintenance timers automatically; the gunicorn unit stays manual | none | open |
+| OPS.110 | install.sh and update.sh render every systemd unit from the checkout location and venv and install the maintenance timers automatically; the gunicorn unit stays manual | none | done, PR #5471 |
+| OPS.111 | update.sh crashes with KeyError 'stages' in the update guard when Redis holds a run record with no stages (bug) | none | done, PR #5474 |
+| OPS.112 | New galaxy jobs fail at stages 3 to 14 with numba "cannot cache function bright_ranges: no locator available" because the code tree is read-only to the service user since SEC.37 (bug) | none | done, PR #5477 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -4154,13 +4157,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.658 | Train tooling: scripts/train_gate.py, scripts/train.py, scripts/lane_up.sh, the known-red list and gate durations (Train Manager) | none | done, PR #5376 |
 | TEST.659 | Train tooling part 2: train.py renumber and golden conflict handling (Train Manager) | none | done, PR #5401 |
 | TEST.660 | The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train | none | open |
-| TEST.661 | Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug) | none | open |
+| TEST.661 | Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug) | none | done, PR #5480 |
 | TEST.662 | test_api_link_ids::test_every_get_endpoint_is_audited is red on main: api.object_belt_member_route (GEN.1070) is neither audited nor given a reason (bug) | none | done, PR #5450 |
 | TEST.663 | test_reproducible_draws::test_no_version_or_library_dependent_maths_in_the_package is red on main: stellar_table.py uses the matrix operator @ and the sky files use math.dist, both outside the deterministic maths (bug) | none | done, PR #5447 |
-| TEST.664 | test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug) | none | open |
+| TEST.664 | test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug) | none | done, PR #5480 |
 | TEST.665 | test_class_sample.py::test_a_forced_rare_class_is_in_the_system[P] is red on main: no system with a forced class P world in 24 tries (bug) | none | open |
 | TEST.666 | Three tests are red on main: test_db_column_round_trip (rogue surface_liquid_ammonia_wt is never written; irregular_moons is in NEVER_READ), test_object_rows (_Rows has no fetchone) and the brown dwarf case of test_rogue_habitability (temp_livable_share) (bug) | none | open |
 | TEST.667 | Four queue tests are red on clean main: test_api_jobs (test_a_quick_edit_answers_in_the_same_response, test_a_slow_edit_answers_202_with_the_job_id) and two in test_rq_time_limits (bug) | none | open |
+| TEST.668 | Two tests in test_update_database_step.py are red on clean main (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |

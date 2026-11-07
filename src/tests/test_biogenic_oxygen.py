@@ -5,10 +5,10 @@
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import evolution
+from planetgen.generation import evolution, life
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, biogenic_oxygen as bo, gases, life_classes
+from planetgen.physics import atmosphere, biogenic_oxygen as bo, gases, life_air, life_classes
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -26,29 +26,47 @@ def _worlds(seeds):
                 yield planet
 
 
-OXYGENIC_WORLDS_WANTED = 3
-"""int: How many worlds of oxygenic life the sample must hold for the tests that read them."""
+OXYGENIC_WORLDS_WANTED = 1
+"""int: How many worlds whose oxygenic life built oxygen into the air the sample must hold for the tests that read them. TEST.664: it was 3 worlds of oxygenic life that could, and a sample of three took 600 s on
+4 vCPUs (a G2V system with a request for a habitable world costs 8 to 18 s and about one in 25 holds such a world); one that holds the oxygen it built shows the rise and the air it left."""
 
-FIRST_SEEDS = 12
-"""int: The seeds always drawn; more follow until `OXYGENIC_WORLDS_WANTED` oxygenic worlds are held (one seed in eight gives one)."""
+FIRST_SEEDS = 4
+"""int: The seeds always drawn; more follow until `OXYGENIC_WORLDS_WANTED` worlds hold oxygen their life built."""
 
 LAST_SEED = 80
 """int: The seed after which the sample stops growing (the tests then fail on the missing oxygenic worlds)."""
 
+DECISIONS = {}
+"""dict: `{id(world): (rise_gyr, took_oxygen)}` as the generator decided it: the age the oxygen of the world's classes rises (`life_air.oxygen_state`, `None` when it never does) and whether the air took
+oxygen at that call (`generation.life._build_oxygen`). The last call for a world is the one its stored air follows."""
+
 
 def _makes_oxygen(world):
-    """Whether the world has oxygenic life that can build the oxygen (a delay): a request for a habitable world only raises the odds (GEN.1130), so
-    a sample of them holds worlds that cannot, and the tests read the ones that can."""
-    return bool(world.life_class_id and evolution.releases_oxygen(world.life_class_id)) and bo.profile_of(world).delay_gyr is not None
+    """Whether the world has oxygenic life whose oxygen the generator put in the air (`DECISIONS`): a request for a habitable world only raises the odds (GEN.1130), so a sample of them holds worlds that cannot, and the tests
+    read the ones that can."""
+    return bool(world.life_class_id and evolution.releases_oxygen(world.life_class_id)) and DECISIONS.get(id(world), (None, False))[1]
 
 
 @pytest.fixture(scope="module")
 def worlds():
-    held = list(_worlds(range(0, FIRST_SEEDS)))
-    seed = FIRST_SEEDS
-    while seed < LAST_SEED and sum(1 for w in held if _makes_oxygen(w)) < OXYGENIC_WORLDS_WANTED:
-        held += list(_worlds([seed]))
-        seed += 1
+    patch = pytest.MonkeyPatch()
+    real = life._build_oxygen
+
+    def recording(planet, living):
+        rise, _target = life_air.oxygen_state(planet, living)
+        took = real(planet, living)
+        DECISIONS[id(planet)] = (rise, took)
+        return took
+
+    patch.setattr(life, "_build_oxygen", recording)
+    try:
+        held = list(_worlds(range(0, FIRST_SEEDS)))
+        seed = FIRST_SEEDS
+        while seed < LAST_SEED and sum(1 for w in held if _makes_oxygen(w)) < OXYGENIC_WORLDS_WANTED:
+            held += list(_worlds([seed]))
+            seed += 1
+    finally:
+        patch.undo()
     return held
 
 
@@ -135,24 +153,21 @@ def test_an_oxygenic_class_eats_light():
         assert row.light and row.metabolism == "oxygenic", row.id
 
 
-def test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none(worlds):
-    """GEN.873: the air follows the life's age. A world whose photosynthesis is older than the delay holds the oxygen; one younger holds what
-    its air had before (none made by life)."""
+def test_an_oxygenic_world_past_its_rise_holds_oxygen_and_one_before_it_holds_none(worlds):
+    """GEN.873, GEN.1213: the air follows the age the oxygen of all the world's classes rises (`life_air.oxygen_state`): a world whose star is older than the rise holds the oxygen, one whose
+    oxygen never rises, or rises after its star's age, holds what its air had before (none made by life). TEST.664: the test compared the star's age less the photosynthesis age with the delay of
+    the headline class alone (`biogenic_oxygen.profile_of(world)`), which GEN.1213 replaced: the rise also counts the methane the earlier classes made (it takes oxygen to burn) and the producers' shares,
+    so four of twelve sampled worlds disagreed with it in both directions while each one's air agreed with the rise the generator decided."""
     past = before = 0
     for world in worlds:
-        if not (world.life_class_id and evolution.releases_oxygen(world.life_class_id)):
+        if not (world.life_class_id and evolution.releases_oxygen(world.life_class_id)) or id(world) not in DECISIONS:
             continue
-        profile = bo.profile_of(world)
-        age = world.star.age - world.life_age_photosynthesis_gyr
-        if profile.delay_gyr is None:
-            continue
+        rise, took = DECISIONS[id(world)]
         o2 = atmosphere.partial_kpa(world, "o2")
-        if age >= profile.delay_gyr:
-            if o2 <= 0.5 and len(getattr(world, life_classes.LIVING_FIELD, None) or ()) > 1:
-                continue                # several classes share the food and the methane of the earlier ones fills the store: the rise comes later (`life_air.oxygen_rise_gyr`, GEN.1213, tested there)
-            assert o2 > 0.5, (world.name, o2, age, profile.delay_gyr)
+        if rise is not None and rise <= world.star.age:
+            assert took and o2 > 0.5, (world.name, o2, rise, world.star.age)
             past += 1
         else:
-            assert o2 < 0.2, (world.name, o2, age, profile.delay_gyr)
+            assert not took and o2 < 0.2, (world.name, o2, rise, world.star.age)
             before += 1
     assert past + before >= 1

@@ -18,8 +18,8 @@
 # schemas -- see docs/reference/database-schema.md) enables one timer instance per
 # database rather than this unit trying to iterate them itself.
 #
-# Install with examples/maintenance/install-maintenance-timer.sh, which
-# also sets up the credentials file this unit reads.
+# Installed by install.sh and update.sh (and by examples/maintenance/install-maintenance-timer.sh, which
+# also sets up the credentials file this unit reads), rendered for the real checkout and virtual environment.
 
 [Unit]
 Description=planetGen orbital motion update (%i database)
@@ -40,7 +40,7 @@ After=planetgen-update.service
 Type=oneshot
 # Matches the deployment layout examples/apache/planetgen.conf.example
 # documents (DocumentRoot at /var/lib/planetGen/src/html, i.e. this repo
-# checked out at /var/lib/planetGen) -- change if deployed elsewhere.
+# checked out at /var/lib/planetGen). The installers put the real checkout path here.
 WorkingDirectory=/var/lib/planetGen/src
 # Optional: host/port/user/password shared by every instance. Must be a
 # read-write account (like sectorGen.py/systemGen.py use), not

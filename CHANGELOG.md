@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3529] - 2026-11-07
+
+**Headline:** Correction to the GEN.753 planets sweep: the ground gamma dose of an Earth-like body is not 100 times too low.
+
+### Changed
+- GEN.753: the sweep's earlier release note said an Earth-like ground reads 100 times too little gamma dose. That was wrong. The dose already uses the surface rock (`surface_composition.land_rock_ppm`): over felsic crust at 4.567 Gyr it gives the Earth's 0.35 mSv/yr gamma (0.53 with radon), and the low values in the sample were old basaltic class E bodies. The sweep's report line now says so. Nothing the generator makes changes.
+
+## [8.0.3528] - 2026-11-07
+
+**Headline:** Six checks that were red on main pass again: a bash 4 expansion in the deploy script that macOS's bash 3.2 cannot run, three test harnesses that missed the log library, seven item codes in text users see, and a variable the settings check did not know.
+
+### Changed
+
+- `scripts/deploy-common.sh` (TEST.661): the cache warm-up's skip key was compared with `${WARM_SKIP_KEY^^}`, a bash 4 expansion; the script says it runs under macOS's bash 3.2 (no `mapfile`, no associative arrays), so a Mac would have stopped at the line. The upper case spelling is a second constant, `WARM_SKIP_KEY_UPPER`. This was a real portability bug; the `^^}` check of `test_install_python_deps.py` was right.
+- `src/tests/test_install_python_deps.py`: the harnesses that run one function of `install-python-deps.sh` (`install_checkout`, `install_venv`) source `scripts/logrecord.sh` first. OPS.98 made the script print through `log_info`, which the extracted function calls and the harness did not define, so three tests ended with `log_info: command not found` (127). The code was right; the tests were behind it.
+- `src/tests/test_no_todo_codes_shown.py` found item codes in text a user sees: the HYG dataset's `replaces` and `fill` (shown as `hyg_stars (VIEW.30) is missing`), the sheet audit's excuse for the cloud composition columns, the charting log line, a debug line of the life bar, the circular speed check's note and the `sky_limit` setting (and so `docs/reference/config.md` and `config.schema.json`, regenerated). Each is now plain words; `test_datasets_readers.py` names the new `fill`.
+- `src/tests/test_settings.py`: `PLANETGEN_SYSTEMD_UNIT_DIR` (SEC.43's Update button, read in `admin/webupdate.py`, set by its tests) joins the variables that are not options, with its reason. It was red on main with the other six.
+- The plain-words document test passed on main when run alone (69 passed with `test_no_todo_codes_shown.py`), so nothing is changed for it; the failure the Train Manager saw is not reproduced.
+
+generation-output: unchanged
+
+## [8.0.3527] - 2026-11-07
+
+**Headline:** `update.sh` no longer stops with `KeyError: 'stages'` when Redis holds a run record that has no stages; the update guard reads such a record as a run with none, and one unreadable record is skipped with a warning instead of aborting the update.
+
+### Changed
+
+- `src/planetgen/queue/runrecord.py` (`read_run`): a run hash missing `stages` (or `title`, `who`, `database`, `state`, `error`, `current`) is read with empty or zero defaults instead of raising.
+- `src/planetgen/admin/updateguard.py` (`RunRecordSource.items`): a run record that still fails to read is logged and skipped.
+- `src/tests/test_update_guard_yes.py`: a partial hash and a legacy live run with no stages.
+
+generation-output: unchanged
+
+## [8.0.3526] - 2026-11-07
+
+**Headline:** `install.sh` and `update.sh` now install every maintenance timer and the Update button's units with the real checkout and virtual environment paths (the unattended update timer is installed but left off), and `install-maintenance-timer.sh` is a thin caller of the same code.
+
+### Changed
+
+- `scripts/deploy-common.sh` (OPS.110): one function, `install_maintenance_units`, renders the monthly orbit update, the unattended update timer, the Update button's path unit, the nightly tile rebuild and (with `--with-smoke-timer`) the smoke run for the checkout the script sits in and the virtual environment (`PLANETGEN_VENV`, default `/usr/local/planetgen/venv`), writes them to `/etc/systemd/system`, reloads systemd and enables the timers except the unattended update timer, which is installed and left off: every deploy says, while it is off, that `sudo systemctl enable --now planetgen-update.timer` turns on the monthly update of whatever is on the tracked branch with no review. It replaces `ensure_update_request_units`. A path with a space or a special character is refused and nothing is written. A unit already installed that differs from the rendering is replaced and the log says so; a deploy enables only a unit it installs for the first time, so a timer an operator disabled stays disabled.
+- `install.sh`, `update.sh`: call it on every run on a systemd host. A failure only warns.
+- `examples/maintenance/install-maintenance-timer.sh`: calls the same function (no copy of the rendering), keeps its options, and still writes the credentials file; it enables every timer it was asked for.
+- The gunicorn unit stays a manual copy. `examples/systemd/planetgen-gunicorn.service`, `docs/deployment/nginx.md` and `docs/deployment/caddy.md` now say which two paths to edit: the checkout and the virtual environment.
+- `INSTALL.md`, `docs/reference/database-schema.md` and the unit file headers describe the automatic install.
+- `src/tests/test_systemd_units_installer.py` (new) renders every unit under a temporary checkout and finds no `/var/lib/planetGen` or `/usr/local/planetgen` in the installed copies.
+
+generation-output: unchanged
+
 ## [8.0.3525] - 2026-11-07
 
 **Headline:** A queue worker now runs only the functions the program queues, so a process that can write to Redis cannot get a worker to call an arbitrary function.

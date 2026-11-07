@@ -10,8 +10,8 @@
 # comfortably more than update.sh's own steps (git pull, dependency
 # check, planetgen.cli.migrate, permissions) take in practice.
 #
-# Installed automatically by install-maintenance-timer.sh, unless it's
-# run with `--skip-update-timer`.
+# Installed by install.sh and update.sh but left off: turn it on with `sudo systemctl enable --now planetgen-update.timer`.
+# install-maintenance-timer.sh installs and enables it, unless it's run with `--skip-update-timer`.
 
 [Unit]
 Description=Run planetGen deployment update monthly, ahead of the orbit update

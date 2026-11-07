@@ -162,7 +162,7 @@ def report(summary):
     lines.append(f"cosmic-ray dose on an airless ground at 0.7 to 1.4 times the starlight of the Earth: n {d['n']}, median {d['median']:.0f} mSv/yr (10th {d['p10']:.0f}, 90th {d['p90']:.0f})"
                  "   (published: the Moon 500 mSv/yr at solar minimum, half that at maximum; Mars 245 under its air)")
     g = summary["earthlike_ground_dose"]
-    lines.append(f"ground gamma dose of Earth-like (class E) bodies: n {g['n']}, median {g['median']:.4f} mSv/yr, 90th {g['p90']:.3f}   (published: the Earth 0.48 mSv/yr, UNSCEAR)")
+    lines.append(f"ground gamma dose of Earth-like (class E) bodies: n {g['n']}, median {g['median']:.4f} mSv/yr, 90th {g['p90']:.3f}   (the Earth's 0.48 mSv/yr is over felsic crust at 4.6 Gyr; basaltic ground at 14 Gyr reads 0.002, so a low median means old basaltic ground, not a defect)")
     for row in summary["pressure_by_starlight"]:
         lines.append(f"rocky planets (under 1.6 Earth radii) at {row['starlight_range']} times the Earth's starlight: n {row['n']}, airless {row['airless']:.2f}, "
                      f"under 1 bar {row['under_1_bar']:.2f}, over 1 bar {row['over_1_bar']:.2f}")

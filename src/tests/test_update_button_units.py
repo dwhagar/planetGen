@@ -4,7 +4,7 @@
 SEC.43, the root side of the admin pages' Update button: the web user only drops `<state folder>/update.request`; the root-owned
 `planetgen-update.path` starts `planetgen-update.service`, which removes the request and runs `update.sh`.
 
-These tests read the unit files and run `ensure_update_request_units` (scripts/deploy-common.sh) against a throwaway unit
+These tests read the unit files and run `install_maintenance_units` (scripts/deploy-common.sh, OPS.110) against a throwaway unit
 folder with a fake `systemctl`; no systemd is needed.
 """
 
@@ -78,7 +78,7 @@ def _run(deployed, state, checkout_name=None):
     if checkout_name is not None and not (script_dir / "examples").exists():
         (script_dir / "examples").symlink_to(os.path.join(REPO_DIR, "examples"))
     script = (f'SCRIPT_DIR="{script_dir}"; PYTHON=/nonexistent; source "{REPO_DIR}/scripts/deploy-common.sh"; '
-              f'is_macos() {{ return 1; }}; ensure_update_request_units "{state}"')
+              f'is_macos() {{ return 1; }}; UNIT_STATE_DIR="{state}" install_maintenance_units')
     env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", SYSTEMD_UNIT_DIR=str(units))
     return subprocess.run(["bash", "-c", script], capture_output=True, text=True, env=env, timeout=60)
 
@@ -86,7 +86,7 @@ def _run(deployed, state, checkout_name=None):
 def test_a_path_with_a_space_is_refused_not_written(deployed):
     checkout, _, log, units = deployed  # the checkout's folder name has a space
     result = _run(deployed, "/srv/state")
-    assert result.returncode == 0
+    assert result.returncode == 1                       # refused, and it says why
     assert "special character" in result.stdout + result.stderr
     assert not list(units.iterdir())
     assert not log.exists()
@@ -117,13 +117,13 @@ def test_a_second_run_changes_nothing_and_does_not_reload(deployed):
     log.unlink()
     _run(deployed, "/srv/planetgen/state", checkout_name="deployed")
     assert {p.name: p.read_text() for p in units.iterdir()} == before
-    assert "daemon-reload" not in log.read_text().splitlines()
+    assert not any(call.startswith(("enable", "daemon-reload")) for call in log.read_text().splitlines()) if log.exists() else True
 
 
 def test_the_deploy_scripts_set_the_units_up_and_the_maintenance_installer_has_the_opt_out():
     for name in ("install.sh", "update.sh"):
         with open(os.path.join(REPO_DIR, name), encoding="utf-8") as f:
-            assert re.search(r"^ensure_update_request_units$", f.read(), re.M), name
+            assert re.search(r"^install_maintenance_units( \|\|.*)?$", f.read(), re.M), name
     with open(os.path.join(MAINT, "install-maintenance-timer.sh"), encoding="utf-8") as f:
         text = f.read()
     assert "--skip-update-button" in text and "planetgen-update.path" in text
