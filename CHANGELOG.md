@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3531] - 2026-11-07
+
+**Headline:** A new galaxy no longer fails at stage 3 because the compiled kernels could not be cached.
+
+### Fixed
+- **OPS.112: the galaxy job failed at stages 3 to 14 with "cannot cache function: no locator available".** Since SEC.37 the code tree is read-only to the service user, so numba could not write its cache beside the source. `planetgen` now points `NUMBA_CACHE_DIR` at `/var/cache/planetgen/numba` (made by `create-cache-dir.sh`, so by `./update.sh`), or at a private per-user temporary folder when that is missing, before any kernel loads.
+
 ## [8.0.3530] - 2026-11-07
 
 **Headline:** The references registry gained Elkins-Tanton and Seager 2008b (super-Earth outgassing), no generator output changes.
