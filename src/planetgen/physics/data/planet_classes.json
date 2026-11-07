@@ -3,8 +3,7 @@
   "version": 2,
   "status": "the conditions of every class are its row of physics/data/planet_class_fit.json (GEN.1207: the best-fit classifier); a row here gives only the name, the sentence and the basis of a class. Every number marked design is a planetGen default refitted by the class sweep, not a measured constant",
   "reserve": [
-    "Q",
-    "W"
+    "Q"
   ],
   "reserve_note": "Letters no class uses. Boss (6:26 PM EDT 2026-10-23): a letter is never retired without asking him, and free letters are kept for new designations that make more sense; use none of them for anything else. Q was retired by Boss (6:07 PM EDT 2026-10-30, GEN.1135): a class that was only an orbit; the swing of the starlight is the stored flux_variation and an At a glance flag. The old wet reducing E was retired by Boss (6:57 PM EDT 2026-10-30, GEN.1142; it was F with steam and got no body) and the letter E now names the deep-frozen world (7:06 PM EDT).",
   "quantities": {
@@ -51,6 +50,16 @@
       "label": "<gas> share of the air",
       "percent": true,
       "note": "a stored gas's partial pressure over the surface pressure (o2, co2, co, n2, ar, h2, h2o, ch4, h2s, so2)"
+    },
+    "o2_partial_pa": {
+      "label": "oxygen pressure",
+      "unit": "Pa",
+      "note": "the oxygen's partial pressure; the classes judge oxygen by pressure, not share (GEN.1321): 3 kPa, 16 kPa and 35.5 kPa are 3, 16 and 35 percent of an Earth atmosphere"
+    },
+    "co2_partial_pa": {
+      "label": "carbon dioxide pressure",
+      "unit": "Pa",
+      "note": "the carbon dioxide's partial pressure; the oxygen-water classes judge it by pressure, not share (GEN.1321): 1 kPa is 1 percent of an Earth atmosphere"
     },
     "reducing_share": {
       "label": "methane and hydrogen share of the air",
@@ -191,8 +200,8 @@
       "letter": "K",
       "name": "Thin-air world",
       "kind": "t",
-      "sentence": "An adaptable world with a thin atmosphere: air under 3 kPa with little oxygen, a mean surface from freezing to about 320 K.",
-      "basis": "design stand-in (GEN.1142, registry CL4): 3 kPa, 273.15 to 320 K and under 10 percent oxygen; the cold part goes to P"
+      "sentence": "An adaptable world with a thin atmosphere: air under 3 kPa, whatever the oxygen (under 6.3 kPa nothing is breathable), a mean surface from freezing to about 320 K.",
+      "basis": "design stand-in (GEN.1142, registry CL4; GEN.1306, registry AW4): 3 kPa and 273.15 to 320 K; the cold part goes to P; no oxygen cap"
     },
     {
       "letter": "E",
@@ -207,6 +216,13 @@
       "kind": "t",
       "sentence": "A glaciated world, the oxygen-water world too cold: a mean surface of 240 to 270 K whose hottest region still melts in season, with poles under 245 K.",
       "basis": "design stand-in (GEN.1142, registry CL5, CL7): freezing (273.15 K) at the top, up from 210 K, and -40 C (233.15 K) at the bottom, below which a body is class E"
+    },
+    {
+      "letter": "W",
+      "name": "Frozen world",
+      "kind": "t",
+      "sentence": "A frozen world: an air world with a mean surface from -40 C (233.15 K) to freezing (273.15 K) that is not Earth-like enough to be class P. Colder it is class E, the deep-frozen world.",
+      "basis": "design stand-in (GEN.1306, registry AW8): the gap between class P and class E, on the lines of E and P; Boss 11-06"
     },
     {
       "letter": "B",
@@ -226,7 +242,7 @@
       "letter": "G",
       "name": "Carbon dioxide world",
       "kind": "t",
-      "sentence": "A rocky world with a carbon dioxide air (20 percent or more), warm (under 400 K), and 0.5 to 2 g.",
+      "sentence": "A rocky world with a carbon dioxide air (20 percent or more, whatever the oxygen), warm (under 400 K), and 0.5 to 2 g.",
       "basis": "design"
     },
     {

@@ -9602,9 +9602,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.878",
-            "a curve per metabolism and the energy source per class (pigment band times the star's spectrum) replace the one log scale and the shares"
+            "no data",
+            "-",
+            "the energy source per class (pigment band times the star's spectrum) is built (GEN.878), but every class still reads the one log scale; a curve per metabolism needs measured growth yields, none in hand"
           ],
           "fields": [
             [
@@ -9625,7 +9625,7 @@
             ],
             [
               "What replaces it",
-              "a curve per metabolism (GEN.878)"
+              "a curve per metabolism from measured growth yields (no source in hand; the energy source per class, the pigment band times the star's spectrum, was built by GEN.878 and feeds this same scale)"
             ],
             [
               "Evidence",
@@ -9743,7 +9743,7 @@
             ],
             [
               "What replaces it",
-              "traits that move the threshold (GEN.875)"
+              "the microbe threshold and the radiation trait (GEN.876, LF66)"
             ],
             [
               "Evidence",
@@ -10454,6 +10454,300 @@
           "burn_down": [
             "no data",
             "-",
+            "no chronic-dose growth curve for a microbe is in hand (the best known is recalled, not opened); one per life class would replace the threshold and the factors"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "habitability.MICROBE_DOSE_THRESH_GY 1000, habitability.MICROBE_SIGMA_DOSE_GY 1000, adaptation_traits.MICROBE_FACTOR (radiation: tolerant 10, extreme 100)"
+            ],
+            [
+              "The range it moves in",
+              "threshold 100 to 10000 Gy/yr, fall-off 500 to 2000, factors 3 to 30 and 30 to 300"
+            ],
+            [
+              "Where it holds",
+              "the dose where microbial life starts to fall (animals keep 10 Gy/yr, LF20), and how far a radiation trait moves a microbe's line"
+            ],
+            [
+              "What would show it wrong",
+              "a chronic-dose growth curve for a microbe (Deinococcus is recalled as growing under about 5e5 Gy/yr, not opened here)"
+            ],
+            [
+              "What replaces it",
+              "a growth-versus-dose curve per life class"
+            ],
+            [
+              "Evidence",
+              "between an ordinary microbe and the best known; the design's number (docs/design/habitability/adaptation-traits.md 4.2), recalled and not opened"
+            ]
+          ],
+          "id": "LF66",
+          "key": "6.18:LF66",
+          "kind": "P",
+          "slug": "6-18-lf66",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "habitability.MICROBE_DOSE_THRESH_GY 1000, habitability.MICROBE_SIGMA_DOSE_GY 1000, adaptation_traits.MICROBE_FACTOR (radiation: tolerant 10, extreme 100)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measured animal limit for the three stresses is in hand; the numbers are chosen under the microbes'"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation_traits.ANIMAL_FACTOR (radiation: tolerant 10, extreme 10; sulfide: 10, 100; carbon dioxide: 2, 5)"
+            ],
+            [
+              "The range it moves in",
+              "each factor 0.5 to 2 times"
+            ],
+            [
+              "Where it holds",
+              "how far a trait moves the limit an animal meets: capped below a microbe's"
+            ],
+            [
+              "What would show it wrong",
+              "a hypercapnia, sulfide or dose limit measured for the most tolerant animal"
+            ],
+            [
+              "What replaces it",
+              "measured animal limits (the vent tubeworm, the cave molly, the bdelloid rotifer)"
+            ],
+            [
+              "Evidence",
+              "the mechanisms are real (design 3); the numbers are planetGen's, chosen so the census shows animals on moderately stressed worlds only, and none was opened in a source"
+            ]
+          ],
+          "id": "LF67",
+          "key": "6.18:LF67",
+          "kind": "P",
+          "slug": "6-18-lf67",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation_traits.ANIMAL_FACTOR (radiation: tolerant 10, extreme 10; sulfide: 10, 100; carbon dioxide: 2, 5)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the chance and share of an adapted life have no survey to fit; they are the draw's shape"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation_traits.P_CAP 0.8, adaptation_traits.GRADE3_SHARE 0.5"
+            ],
+            [
+              "The range it moves in",
+              "P_CAP 0.5 to 0.95, share 0.25 to 0.75"
+            ],
+            [
+              "Where it holds",
+              "the chance that a stressed world's life carries a trait (the stress score times the cap) and the share of them extreme (the share times the square of the stress score)"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of how often life on a stressed world is adapted"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "planetGen's choice (design 5.2 and 5.3)"
+            ]
+          ],
+          "id": "LF68",
+          "key": "6.18:LF68",
+          "kind": "P",
+          "slug": "6-18-lf68",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation_traits.P_CAP 0.8, adaptation_traits.GRADE3_SHARE 0.5"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the onset and full stress of each trait are read off the limits it moves and have no tolerance-range survey behind them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation_draw.ONSET (dose 10 Gy/yr, hydrogen sulfide 0.002 kPa, carbon dioxide 2 kPa) and adaptation_draw.FULL (dose 1e5 Gy/yr, hydrogen sulfide 0.2 kPa, carbon dioxide 20 kPa)"
+            ],
+            [
+              "The range it moves in",
+              "each 0.3 to 3 times"
+            ],
+            [
+              "Where it holds",
+              "the stress at which a trait becomes possible (the ordinary limit starts to cost the life something) and the stress at which the extreme grade is needed"
+            ],
+            [
+              "What would show it wrong",
+              "none"
+            ],
+            [
+              "What replaces it",
+              "a stress score per limit from measured tolerance ranges"
+            ],
+            [
+              "Evidence",
+              "read off the limits it moves (LF20, LF22) and their grade-3 factors; the shape is the design's (5.1)"
+            ]
+          ],
+          "id": "LF69",
+          "key": "6.18:LF69",
+          "kind": "P",
+          "slug": "6-18-lf69",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation_draw.ONSET (dose 10 Gy/yr, hydrogen sulfide 0.002 kPa, carbon dioxide 2 kPa) and adaptation_draw.FULL (dose 1e5 Gy/yr, hydrogen sulfide 0.2 kPa, carbon dioxide 20 kPa)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "five stresses of the design have no limit in the life scores to move, so no trait is drawn for them until a class rule reads the stress"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation traits not built: brine (habitability.WATER_ACTIVITY_CRIT), heat and cold, ultraviolet, acid and alkali, low oxygen (habitability.METAZOA_O2_LOW_KPA) (design 3, rows 2, 4, 5, 6 and 8)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the stresses the design lists that have no limit in the life scores to move: water activity is one floor for all life, the class windows are the life's own temperature bands, no class term reads ultraviolet or pH, and the life builds its own oxygen (GEN.877 sets the floors by class)"
+            ],
+            [
+              "What would show it wrong",
+              "a class term that reads one of them"
+            ],
+            [
+              "What replaces it",
+              "a class rule that reads the stress, then its trait"
+            ],
+            [
+              "Evidence",
+              "physics: nothing to widen, so a trait drawn for it would change no score"
+            ]
+          ],
+          "id": "LF70",
+          "key": "6.18:LF70",
+          "kind": "P",
+          "slug": "6-18-lf70",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation traits not built: brine (habitability.WATER_ACTIVITY_CRIT), heat and cold, ultraviolet, acid and alkali, low oxygen (habitability.METAZOA_O2_LOW_KPA) (design 3, rows 2, 4, 5, 6 and 8)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the carbon monoxide and sulfur dioxide toxins are scored for animals only; a microbe toxin term would give the trait something to move"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation traits not built: habitability.CO_TOX_KPA and habitability.SO2_TOX_KPA, the carbon monoxide and sulfur dioxide toxins"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "only animals are scored against these two (habitability.CO_TOX_KPA, habitability.SO2_TOX_KPA) and the design makes the trait microbe-only, so no limit exists to move"
+            ],
+            [
+              "What would show it wrong",
+              "a microbe limit on either gas"
+            ],
+            [
+              "What replaces it",
+              "a microbe toxin term in the class scoring"
+            ],
+            [
+              "Evidence",
+              "physics: no microbe limit on either gas exists in the life scores"
+            ]
+          ],
+          "id": "LF71",
+          "key": "6.18:LF71",
+          "kind": "P",
+          "slug": "6-18-lf71",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation traits not built: habitability.CO_TOX_KPA and habitability.SO2_TOX_KPA, the carbon monoxide and sulfur dioxide toxins"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of the share of the sunlit ocean's energy that retinal pigments supply is in hand; the share and the band are the order of the recalled literature"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "life_classes.RETINAL_SHARE 0.05, life_classes.RETINAL_BAND_NM (480, 580)"
+            ],
+            [
+              "The range it moves in",
+              "share 0.02 to 0.2, band edges 20 nm"
+            ],
+            [
+              "Where it holds",
+              "the light a retinal-pigment supplement turns to energy for a chemical class that fixes carbon in sunlit water: the share of the usable light in the blue-green band"
+            ],
+            [
+              "What would show it wrong",
+              "a measured share of the sunlit ocean's energy budget that proteorhodopsin phototrophy supplies"
+            ],
+            [
+              "What replaces it",
+              "the retinal share of Earth's surface ocean energy budget, read from a survey"
+            ],
+            [
+              "Evidence",
+              "planetGen's choice of the order of a few percent (recalled from the proteorhodopsin literature, not opened); the band is the blue-green absorption of the proteorhodopsins, peaks recalled at 490 to 530 nm"
+            ]
+          ],
+          "id": "LF72",
+          "key": "6.18:LF72",
+          "kind": "P",
+          "slug": "6-18-lf72",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "life_classes.RETINAL_SHARE 0.05, life_classes.RETINAL_BAND_NM (480, 580)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
             "fitted to the first census (TEST.430) by design: the prevalence targets are the only calibration, so the rows stay L3 until a measured fraction of worlds with each rung exists"
           ],
           "fields": [
@@ -10715,7 +11009,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 2: solvent water factor 1; energy light 800 to 1050 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; gate share_o2 lt 0.03; window temperature_k 255 to 370 (sigma 15, 15); supply donor_supply placeholder 1; life anoxygenic breathing none"
+              "life_classes.json Class 2: solvent water factor 1; energy light 800 to 1050 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; gate o2_partial_pa lt 3000; window temperature_k 255 to 370 (sigma 15, 15); supply donor_supply placeholder 1; life anoxygenic breathing none"
             ],
             [
               "The range it moves in",
@@ -10746,7 +11040,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "life_classes.json Class 2: solvent water factor 1; energy light 800 to 1050 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; gate share_o2 lt 0.03; window temperature_k 255 to 370 (sigma 15, 15); supply donor_supply placeholder 1; life anoxygenic breathing none"
+          "what": "life_classes.json Class 2: solvent water factor 1; energy light 800 to 1050 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; gate o2_partial_pa lt 3000; window temperature_k 255 to 370 (sigma 15, 15); supply donor_supply placeholder 1; life anoxygenic breathing none"
         },
         {
           "burn_down": [
@@ -10841,7 +11135,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 4a: solvent water factor 1; energy chemical; gate share_o2 min 0.001; window habitat_temperature_k 255 to 395 (sigma 15, 15); supply donor_supply placeholder 1; life chemolithotroph breathing o2"
+              "life_classes.json Class 4a: solvent water factor 1; energy chemical; gate o2_partial_pa min 100; window habitat_temperature_k 255 to 395 (sigma 15, 15); supply donor_supply placeholder 1; life chemolithotroph breathing o2"
             ],
             [
               "The range it moves in",
@@ -10872,7 +11166,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "life_classes.json Class 4a: solvent water factor 1; energy chemical; gate share_o2 min 0.001; window habitat_temperature_k 255 to 395 (sigma 15, 15); supply donor_supply placeholder 1; life chemolithotroph breathing o2"
+          "what": "life_classes.json Class 4a: solvent water factor 1; energy chemical; gate o2_partial_pa min 100; window habitat_temperature_k 255 to 395 (sigma 15, 15); supply donor_supply placeholder 1; life chemolithotroph breathing o2"
         },
         {
           "burn_down": [
@@ -20026,32 +20320,32 @@
           "burn_down": [
             "no data",
             "-",
-            "no survey measures the dust of the disks this generator builds; the cut stands where the K, G and F dwarfs together hold a disk as often as the surveys find, and goes when the outer disk's mass and width come from a planetesimal-formation model (filed as GEN.1278)"
+            "no survey measures the dust of the disks this generator builds; the limit at the Sun's temperature stands where the A, F, G and K dwarfs hold a disk as often as the surveys find (GEN.1278 made it fall with the cube of the star's temperature and summed the dust of a wide belt's rings), and goes when the outer disk's mass and width come from a planetesimal-formation model or each survey's own flux limit is used"
           ],
           "fields": [
             [
               "What it is",
-              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
+              "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 5e-5: the dust, over the star's light, a survey finds around a star of the Sun's temperature, at which the generator's outer disks are as common as the surveys' (the survey limit itself is near 1e-5); it falls as the cube of the star's temperature (DU5)"
             ],
             [
               "The range it moves in",
-              "8e-5 to 3e-4 (G disk share 33 to 2 percent)"
+              "3e-5 to 7e-5"
             ],
             [
               "Where it holds",
-              "the generator's outer disks, which are heavy, old and mostly at their steady-state dust"
+              "the generator's outer disks, which are heavy, old and mostly mass-limited"
             ],
             [
               "What would show it wrong",
-              "the K, G and F dwarfs together holding a disk outside 12 to 22 percent in a sweep of the generator, or a survey that finds the generator's A and F stars short"
+              "disks held by 100 stars each of A1V, F5V, G2V and K3V outside the surveys' ranges (A 20 to 33, F 19 to 29, G 10 to 19, K 9 to 17 percent)"
             ],
             [
               "What replaces it",
-              "a cut from the survey's own sensitivity, once the outer disk's mass and width come from a planetesimal-formation model"
+              "a cut from the survey's own sensitivity per star (the instrument's flux limit at the wavelength)"
             ],
             [
               "Evidence",
-              "tuned against a sweep of 70 to 160 systems each of K3V, G2V, F5V and A2V (A stars then hold none, F about half the survey's share)"
+              "GEN.1278 sweep of 100 systems each, 11-07: A1V 17, F5V 20, G2V 17, K3V 18 percent hold a disk (the single-ring dust and the Sun's limit 3e-5 gave 0, 8, 20 and 27 percent; A and F were short, G and K over)"
             ]
           ],
           "id": "DU1",
@@ -20062,7 +20356,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 1.5e-4: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk)"
+          "what": "debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 5e-5: the dust, over the star's light, a survey finds around a star of the Sun's temperature, at which the generator's outer disks are as common as the surveys' (the survey limit itself is near 1e-5); it falls as the cube of the star's temperature (DU5)"
         },
         {
           "burn_down": null,
@@ -20139,6 +20433,82 @@
           "tweak": "L1",
           "unread": null,
           "what": "debris_dust.CASCADE_MAX_KM 2000: the largest body the dust cascade is reckoned for, whatever the belt's own largest body"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "debris_dust.ANNULI 32 and belt_fractional_luminosity: the dust of a belt is the sum of 32 log-spaced rings that share the belt's present mass by the solids they held (the minimum-mass nebula of planet_mass), each with the belt's own eccentricity; the old rule put the whole mass at the middle radius"
+            ],
+            [
+              "The range it moves in",
+              "16 to 64 rings (the sum converges by about 16)"
+            ],
+            [
+              "Where it holds",
+              "outer-disk belts of any width"
+            ],
+            [
+              "What would show it wrong",
+              "a resolved debris disk whose measured dust is below the sum of its rings, or one whose mass lies in a ring far from the inner edge"
+            ],
+            [
+              "What replaces it",
+              "a belt whose rings each have their own collisional evolution and mass (the ledger of belts in rings)"
+            ],
+            [
+              "Evidence",
+              "the law of [R4785] is for a narrow ring; the ring's eccentricity is the belt's because a thin ring has none of its own (Xc would pass 1 and the cascade never start); a wide belt's dust then comes from its inner rings (f goes as M r^-2), 3 to 5 times the middle-radius rule for A and F stars"
+            ]
+          ],
+          "id": "DU4",
+          "key": "6.53:DU4",
+          "kind": "P",
+          "slug": "6-53-du4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "debris_dust.ANNULI 32 and belt_fractional_luminosity: the dust of a belt is the sum of 32 log-spaced rings that share the belt's present mass by the solids they held (the minimum-mass nebula of planet_mass), each with the belt's own eccentricity; the old rule put the whole mass at the middle radius"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "debris_dust.DETECTION_TEMPERATURE_EXPONENT 3 and REFERENCE_TEMPERATURE_K 5772: the fractional luminosity a survey can tell from the star goes as the star's temperature to the minus 3 (the dust against the photosphere at a long wavelength goes as f T^3: Rayleigh-Jeans flux R^2 T over luminosity R^2 T^4)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 3"
+            ],
+            [
+              "Where it holds",
+              "surveys at a long wavelength on the Rayleigh-Jeans tail of the star (70 to 160 micrometres)"
+            ],
+            [
+              "What would show it wrong",
+              "a survey whose limit in f is the same for A and K stars"
+            ],
+            [
+              "What replaces it",
+              "the survey's flux limit and each star's spectrum"
+            ],
+            [
+              "Evidence",
+              "derived from the Rayleigh-Jeans law, not read from a survey; a hot A star at 9,200 K shows a disk a quarter of the Sun's fractional luminosity (1.2e-5 against 5e-5), a K3 star at 4,800 K needs 1.7 times"
+            ]
+          ],
+          "id": "DU5",
+          "key": "6.53:DU5",
+          "kind": "P",
+          "slug": "6-53-du5",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L1",
+          "unread": null,
+          "what": "debris_dust.DETECTION_TEMPERATURE_EXPONENT 3 and REFERENCE_TEMPERATURE_K 5772: the fractional luminosity a survey can tell from the star goes as the star's temperature to the minus 3 (the dust against the photosphere at a long wavelength goes as f T^3: Rayleigh-Jeans flux R^2 T over luminosity R^2 T^4)"
         }
       ],
       "slug": "6-53-stand-ins-of-the-debris-disks",
@@ -38775,10 +39145,330 @@
           "tweak": "L0",
           "unread": null,
           "what": "irregular_moons.take_from_disks: what the planets hold now (stored bodies and remainder, after their own grinding) leaves the disks' present mass, shared by the disks' primordial mass and never more than a disk's remainder; the grinding the captured bodies and the disk each suffered separately is not told apart"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "irregular_moons.ENCOUNTER_REACH_AU 3.0 AU at a planet with Jupiter's Hill radius (scaled by the planet's Hill radius over irregular_population.REFERENCE_HILL_AU): an inner belt is a reservoir of the planet when the gap between the planet's orbit and the belt's nearest edge is no more than this"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5 AU"
+            ],
+            [
+              "Where it holds",
+              "planets of a star with a belt inside the reach, from Jupiter-mass giants"
+            ],
+            [
+              "What would show it wrong",
+              "a population of irregular moons of Jupiter or Saturn with no member of a belt inside the reach, or belt bodies caught from a belt far outside it"
+            ],
+            [
+              "What replaces it",
+              "the encounter sphere of a close approach computed for the belt's own orbits (its eccentricity and inclination)"
+            ],
+            [
+              "Evidence",
+              "NDD14's 3 AU encounter sphere (f_3AU), the sphere that gives irregular_population.ENCOUNTER_YIELD (docs/design/systems/captured-asteroid-moons.md section 4.1)"
+            ]
+          ],
+          "id": "CD2",
+          "key": "6.194:CD2",
+          "kind": "P",
+          "slug": "6-194-cd2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "irregular_moons.ENCOUNTER_REACH_AU 3.0 AU at a planet with Jupiter's Hill radius (scaled by the planet's Hill radius over irregular_population.REFERENCE_HILL_AU): an inner belt is a reservoir of the planet when the gap between the planet's orbit and the belt's nearest edge is no more than this"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "irregular_moons.for_planet: an inner belt gives its planet the encounter window only (no gas disk is left), and the yield per particle and the size law are the outer disk's, scaled by the belt's primordial mass over irregular_population.REFERENCE_DISK_MASS_EARTH; a body at least as heavy as the belt's lightest stored member is the stored member nearest to it in mass that no earlier planet of the star caught, and keeps its mass, makeup and place as the belt shows them (no ice is lost), a lighter one is composed from the belt's stretch"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "inner belts of 1e-4 Earth masses or more"
+            ],
+            [
+              "What would show it wrong",
+              "the ratio of belt to outer-disk captures of the Solar System's giants, with the main belt and the Trojans"
+            ],
+            [
+              "What replaces it",
+              "a size law and a yield measured for belts"
+            ],
+            [
+              "Evidence",
+              "the belt-origin share of the design (mass of the belts inside the encounter region over the total reservoir mass, docs/design/systems/captured-asteroid-moons.md section 4.5)"
+            ]
+          ],
+          "id": "CD3",
+          "key": "6.194:CD3",
+          "kind": "B",
+          "slug": "6-194-cd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "irregular_moons.for_planet: an inner belt gives its planet the encounter window only (no gas disk is left), and the yield per particle and the size law are the outer disk's, scaled by the belt's primordial mass over irregular_population.REFERENCE_DISK_MASS_EARTH; a body at least as heavy as the belt's lightest stored member is the stored member nearest to it in mass that no earlier planet of the star caught, and keeps its mass, makeup and place as the belt shows them (no ice is lost), a lighter one is composed from the belt's stretch"
         }
       ],
-      "slug": "6-194-stand-in-of-the-mass-the-planets-take-from-an-outer-disk",
-      "title": "Stand-in of the mass the planets take from an outer disk"
+      "slug": "6-194-stand-ins-of-the-mass-the-planets-take-from-the-disks-and-belts-they-caught-it-from",
+      "title": "Stand-ins of the mass the planets take from the disks and belts they caught it from"
+    },
+    {
+      "key": "6.198",
+      "number": "6.198",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class M, H, O, P and R gravity edge 2 g (planet_class_fit.json, gravity_g lt 2.0; 1.25 g before): the edge class V starts at, so a heavy oxygen world of 1.25 to 2 g is a temperate class and the rest is V"
+            ],
+            [
+              "The range it moves in",
+              "none (the edge of V, GEN.1136)"
+            ],
+            [
+              "Where it holds",
+              "oxygen worlds with air at 0.75 to 2 g"
+            ],
+            [
+              "What would show it wrong",
+              "a heavy oxygen world whose air or ocean no temperate class describes"
+            ],
+            [
+              "What replaces it",
+              "the gravity edge of V once the heavy-world physics of GEN.1136 is refit"
+            ],
+            [
+              "Evidence",
+              "the V row of the same file; GEN.1136"
+            ]
+          ],
+          "id": "AW3",
+          "key": "6.198:AW3",
+          "kind": "P",
+          "slug": "6-198-aw3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class M, H, O, P and R gravity edge 2 g (planet_class_fit.json, gravity_g lt 2.0; 1.25 g before): the edge class V starts at, so a heavy oxygen world of 1.25 to 2 g is a temperate class and the rest is V"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class K no oxygen cap (share_o2 lt 0.1 removed): under 3 kPa even pure oxygen is under the 6.3 kPa Armstrong line, so a thin air is K whatever its oxygen share"
+            ],
+            [
+              "The range it moves in",
+              "none (the edge of the breathing line)"
+            ],
+            [
+              "Where it holds",
+              "worlds with air under 3 kPa at 273 to 320 K"
+            ],
+            [
+              "What would show it wrong",
+              "a breathable air under 3 kPa (none exists)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "the Armstrong limit of 6.3 kPa (docs/design/habitability/survival-equipment-fields.md: inspired oxygen is the O2 fraction times (P minus 6.3 kPa), zero under 6.3 kPa); the K row of the same file"
+            ]
+          ],
+          "id": "AW4",
+          "key": "6.198:AW4",
+          "kind": "P",
+          "slug": "6-198-aw4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class K no oxygen cap (share_o2 lt 0.1 removed): under 3 kPa even pure oxygen is under the 6.3 kPa Armstrong line, so a thin air is K whatever its oxygen share"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class G no oxygen cap (share_o2 lt 0.16 removed): carbon dioxide at 20 percent or more is G whatever the oxygen, since the carbon dioxide alone makes it unbreathable"
+            ],
+            [
+              "The range it moves in",
+              "none (the edge of G)"
+            ],
+            [
+              "Where it holds",
+              "worlds with air, carbon dioxide 20 percent or more, 273 to 400 K"
+            ],
+            [
+              "What would show it wrong",
+              "a carbon dioxide air with free oxygen that is better read as L"
+            ],
+            [
+              "What replaces it",
+              "the carbon dioxide edge of L once the greenhouse classes are fitted"
+            ],
+            [
+              "Evidence",
+              "the G and L rows of the same file; GEN.1281"
+            ]
+          ],
+          "id": "AW5",
+          "key": "6.198:AW5",
+          "kind": "P",
+          "slug": "6-198-aw5",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class G no oxygen cap (share_o2 lt 0.16 removed): carbon dioxide at 20 percent or more is G whatever the oxygen, since the carbon dioxide alone makes it unbreathable"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the class Z gravity floor 0.5 g was chosen from a sweep of 2,212 bodies (GEN.1306); it goes when the gravity edges of Z are fixed from heavy-world physics (GEN.1136)"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "class Z gravity floor 0.5 g (planet_class_fit.json, Z gravity_g min 0.5; 1.4 g before): the floor of F and G, so a hot thin air at 340 K or more is Z under 1.4 g too, and a warm anoxic or carbon dioxide air under 400 K stays F or G (they hold more conditions, so they win a tie)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1.4 g"
+            ],
+            [
+              "Where it holds",
+              "hot worlds with air of 1 to 10 kPa and no ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep where the floor moves bodies of class F or G (4 of F and 5 of G changed letter, all of them at 400 K or more or at 10 kPa with no class before)"
+            ],
+            [
+              "What replaces it",
+              "the gravity edges of Z once the hot thin-air worlds are fitted"
+            ],
+            [
+              "Evidence",
+              "GEN.1306 class sweep, 2212 bodies from four seeds of 150 systems"
+            ]
+          ],
+          "id": "AW6",
+          "key": "6.198:AW6",
+          "kind": "P",
+          "slug": "6-198-aw6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "class Z gravity floor 0.5 g (planet_class_fit.json, Z gravity_g min 0.5; 1.4 g before): the floor of F and G, so a hot thin air at 340 K or more is Z under 1.4 g too, and a warm anoxic or carbon dioxide air under 400 K stays F or G (they hold more conditions, so they win a tie)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the class Z temperature top 1500 K was chosen from the same sweep; it goes when the top is fixed from the temperature at which a thin air is lost (the retention fit)"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "class Z temperature top 1500 K (temperature_k lt 1500; 1100 K before)"
+            ],
+            [
+              "The range it moves in",
+              "1100 to 1700 K"
+            ],
+            [
+              "Where it holds",
+              "worlds of 1 to 10 kPa with no ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep where the top moves a body of another class into Z"
+            ],
+            [
+              "What replaces it",
+              "the top of Z from the temperature at which a thin air is lost (the retention fit)"
+            ],
+            [
+              "Evidence",
+              "the same sweep (one carbon dioxide body at 1297 K)"
+            ]
+          ],
+          "id": "AW7",
+          "key": "6.198:AW7",
+          "kind": "P",
+          "slug": "6-198-aw7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "class Z temperature top 1500 K (temperature_k lt 1500; 1100 K before)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class W, the Frozen world (planet_class_fit.json, W: temperature_k min 233.15 and lt 273.15, gravity under 2 g, hydrogen under 30 percent, sulfur dioxide under 3 percent): -40 C and freezing, the lines of GEN.1142 classes E and P, so a cold air world that class P does not hold has a class; P (240 to 270 K, oxygen, near-standard air, a melting region) wins a full tie by holding more conditions, E keeps everything under 233.15 K"
+            ],
+            [
+              "The range it moves in",
+              "none (the freezing point of water and -40 C)"
+            ],
+            [
+              "Where it holds",
+              "air worlds of 233 to 273 K"
+            ],
+            [
+              "What would show it wrong",
+              "a cold air world that reads better as class P or E"
+            ],
+            [
+              "What replaces it",
+              "a class of the cold anoxic or dense worlds if Boss asks for one"
+            ],
+            [
+              "Evidence",
+              "the P and E rows of the same file; GEN.1142 CL5, CL7; Boss 11-06"
+            ]
+          ],
+          "id": "AW8",
+          "key": "6.198:AW8",
+          "kind": "P",
+          "slug": "6-198-aw8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class W, the Frozen world (planet_class_fit.json, W: temperature_k min 233.15 and lt 273.15, gravity under 2 g, hydrogen under 30 percent, sulfur dioxide under 3 percent): -40 C and freezing, the lines of GEN.1142 classes E and P, so a cold air world that class P does not hold has a class; P (240 to 270 K, oxygen, near-standard air, a melting region) wins a full tie by holding more conditions, E keeps everything under 233.15 K"
+        }
+      ],
+      "slug": "6-198-stand-ins-of-the-heavy-oxygen-worlds-and-the-thin-oxygen-worlds",
+      "title": "Stand-ins of the heavy oxygen worlds and the thin oxygen worlds"
     },
     {
       "key": "6.192",
@@ -39149,6 +39839,468 @@
       ],
       "slug": "6-196-stand-ins-of-the-melting-curves-and-the-sourced-rheology-constants-of-water-ice-and-rock",
       "title": "Stand-ins of the melting curves and the sourced rheology constants of water ice and rock"
+    },
+    {
+      "key": "6.199",
+      "number": "6.199",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cloud_albedo.CLOUD_FEEDBACK_W_M2_PER_K 0.42 and REFERENCE_SOLAR_CONSTANT_W_M2 1361, so BETA_PER_K 1.2e-3 (the albedo a world loses per kelvin: the cloud feedback of the Earth at 288 K is the assessment's central +0.42 W/m2 per K, IPCC AR6 2021 table 7.10, from memory)"
+            ],
+            [
+              "The range it moves in",
+              "feedback -0.10 to +0.94 W/m2 per K"
+            ],
+            [
+              "Where it holds",
+              "wet bodies with an ocean near 288 K"
+            ],
+            [
+              "What would show it wrong",
+              "test_cloud_albedo::test_the_cloud_feedback_of_the_earth_at_288_k_is_the_assessments_central_value; a measured cloud feedback outside -0.10 to +0.94"
+            ],
+            [
+              "What replaces it",
+              "a cloud-resolving or two-layer cloud model on the fixed point"
+            ],
+            [
+              "Evidence",
+              "test_climate_sweep::test_the_response_to_the_flux_is_not_below_the_published_climate_sensitivity"
+            ]
+          ],
+          "id": "CA1",
+          "key": "6.199:CA1",
+          "kind": "P",
+          "slug": "6-199-ca1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "cloud_albedo.CLOUD_FEEDBACK_W_M2_PER_K 0.42 and REFERENCE_SOLAR_CONSTANT_W_M2 1361, so BETA_PER_K 1.2e-3 (the albedo a world loses per kelvin: the cloud feedback of the Earth at 288 K is the assessment's central +0.42 W/m2 per K, IPCC AR6 2021 table 7.10, from memory)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cloud_albedo.REFERENCE_TEMPERATURE_K 288 and DELTA_MAX 0.12 (the temperature at which a wet body keeps the albedo it drew, centred on the wet range's 0.30, and the most the amount moves it: the Earth's shortwave cloud effect, 47 W/m2 over 340 from memory, less the share that cannot thin)"
+            ],
+            [
+              "The range it moves in",
+              "T_REF 280 to 295 K; bound 0.06 to 0.15"
+            ],
+            [
+              "Where it holds",
+              "wet bodies with an ocean"
+            ],
+            [
+              "What would show it wrong",
+              "test_cloud_albedo::test_a_body_at_the_reference_temperature_keeps_the_albedo_it_drew; test_the_amount_falls_as_the_world_warms_and_is_bounded"
+            ],
+            [
+              "What replaces it",
+              "the same"
+            ],
+            [
+              "Evidence",
+              "test_climate_sweep::test_the_cloud_thins_as_the_twin_warms"
+            ]
+          ],
+          "id": "CA2",
+          "key": "6.199:CA2",
+          "kind": "P",
+          "slug": "6-199-ca2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cloud_albedo.REFERENCE_TEMPERATURE_K 288 and DELTA_MAX 0.12 (the temperature at which a wet body keeps the albedo it drew, centred on the wet range's 0.30, and the most the amount moves it: the Earth's shortwave cloud effect, 47 W/m2 over 340 from memory, less the share that cannot thin)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cloud_albedo.DECK_GAMMA_PER_W_M2 9.2e-5, DECK_REFERENCE_W_M2 1000 and DECK_DELTA_MAX 0.12 (the substellar deck of an ocean planet locked 1:1: albedo 0.42 at 1,000 W/m2 and 0.53 at 2,200, an M-star spectrum, one model, [R0914] table 1)"
+            ],
+            [
+              "The range it moves in",
+              "gamma 5e-5 to 1.5e-4; the fast rotators of the same paper have no deck"
+            ],
+            [
+              "Where it holds",
+              "locked ocean bodies in 1,000 to 2,200 W/m2 and more"
+            ],
+            [
+              "What would show it wrong",
+              "test_cloud_albedo::test_the_deck_reproduces_the_albedos_of_the_locked_ocean_planet_at_its_two_ends"
+            ],
+            [
+              "What replaces it",
+              "the circulation (a 3D model, or its published scalings with rotation and flux)"
+            ],
+            [
+              "Evidence",
+              "[R0914] table 1 (opened)"
+            ]
+          ],
+          "id": "CA3",
+          "key": "6.199:CA3",
+          "kind": "P",
+          "slug": "6-199-ca3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cloud_albedo.DECK_GAMMA_PER_W_M2 9.2e-5, DECK_REFERENCE_W_M2 1000 and DECK_DELTA_MAX 0.12 (the substellar deck of an ocean planet locked 1:1: albedo 0.42 at 1,000 W/m2 and 0.53 at 2,200, an M-star spectrum, one model, [R0914] table 1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the cloud acts only with a liquid ocean at the step (CloudLaw.shift(ocean=False) is 0) and the amount only with a world that has surface water (the ice law's gate)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "every body with surface water"
+            ],
+            [
+              "What would show it wrong",
+              "test_cloud_albedo::test_only_a_locked_body_has_a_deck_and_only_with_an_ocean"
+            ],
+            [
+              "What replaces it",
+              "an amount from the condensate depth of aerosols.cloud_depth_limit"
+            ],
+            [
+              "Evidence",
+              "the design note"
+            ]
+          ],
+          "id": "CA4",
+          "key": "6.199:CA4",
+          "kind": "P",
+          "slug": "6-199-ca4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the cloud acts only with a liquid ocean at the step (CloudLaw.shift(ocean=False) is 0) and the amount only with a world that has surface water (the ice law's gate)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cloud_albedo.LOCK_Q_OVER_K2 333 (Q 100, k2 0.3), LOCK_BIRTH_SPIN_HOURS 10 and MOMENT_FACTOR 0.4 (the estimate that a planet is locked 1:1 by the age of its star, the standard simplified despin time; a moon is taken as locked)"
+            ],
+            [
+              "The range it moves in",
+              "Q over k2 100 to 1,000"
+            ],
+            [
+              "Where it holds",
+              "rocky planets; the spin is drawn after the air, so the air cannot read the state it will end in"
+            ],
+            [
+              "What would show it wrong",
+              "test_cloud_albedo::test_the_lock_estimate_follows_the_tide (the Earth under the Moon takes 5e10 years by this form)"
+            ],
+            [
+              "What replaces it",
+              "the spin history of the body (body_spin.evolve) run before the air, or the air solved after it"
+            ],
+            [
+              "Evidence",
+              "Gladman and others 1996, the simplified form, from memory"
+            ]
+          ],
+          "id": "CA5",
+          "key": "6.199:CA5",
+          "kind": "P",
+          "slug": "6-199-ca5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cloud_albedo.LOCK_Q_OVER_K2 333 (Q 100, k2 0.3), LOCK_BIRTH_SPIN_HOURS 10 and MOMENT_FACTOR 0.4 (the estimate that a planet is locked 1:1 by the age of its star, the standard simplified despin time; a moon is taken as locked)"
+        }
+      ],
+      "slug": "6-199-stand-ins-of-the-cloud-albedo-of-a-world-with-an-ocean",
+      "title": "Stand-ins of the cloud albedo of a world with an ocean"
+    },
+    {
+      "key": "6.200",
+      "number": "6.200",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA 0.35 * 101325 Pa: the most oxygen pressure of a living world's air, 35 percent of one Earth atmosphere (the Phanerozoic peak of 30 to 35 percent at one atmosphere, where fires spread so easily that plants would struggle); the share is held to ABIOTIC_O2_MAX (0.95) as well"
+            ],
+            [
+              "The range it moves in",
+              "25 to 45 kPa"
+            ],
+            [
+              "Where it holds",
+              "any living world; at Earth's air it is the old 35 percent"
+            ],
+            [
+              "What would show it wrong",
+              "a flammability measurement of plant fuel against oxygen pressure at low total pressure that puts the limit at a share and not a pressure"
+            ],
+            [
+              "What replaces it",
+              "a burn-rate law of fuel against oxygen pressure and the air's heat capacity"
+            ],
+            [
+              "Evidence",
+              "life-timeline-and-oxygen.md; reports/gen1309-oxygen-chain-2026-11-07.md"
+            ]
+          ],
+          "id": "OX1",
+          "key": "6.200:OX1",
+          "kind": "P",
+          "slug": "6-200-ox1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA 0.35 * 101325 Pa: the most oxygen pressure of a living world's air, 35 percent of one Earth atmosphere (the Phanerozoic peak of 30 to 35 percent at one atmosphere, where fires spread so easily that plants would struggle); the share is held to ABIOTIC_O2_MAX (0.95) as well"
+        }
+      ],
+      "slug": "6-200-stand-in-of-the-fire-limit-of-a-living-world-s-air",
+      "title": "Stand-in of the fire limit of a living world's air"
+    },
+    {
+      "key": "6.201",
+      "number": "6.201",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json oxygen edges as pressures: 3 kPa (class F anoxic below, class L from), 16 kPa (class L below, classes M, H, O, P, R from) and 35.5 kPa (classes M, H, O, P, R below; the fire limit of GEN.1320, 35 percent of an atmosphere); the carbon dioxide edge of the oxygen-water classes as a pressure, 1 kPa (class L from, classes M, H, O, P, R below; 1 percent of an atmosphere); life_classes.json class 2 gate below 3 kPa and class 4 gate from 100 Pa. Class F and G keep the carbon dioxide share (20 percent)"
+            ],
+            [
+              "The range it moves in",
+              "each edge 0.7 to 1.3 times"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a measured tolerance of the organisms the classes stand for to oxygen pressure that is not near these figures (hypoxia sets in near 16 kPa, 3 kPa is the Armstrong-like line of GEN.1306 AW4)"
+            ],
+            [
+              "What replaces it",
+              "a tolerance table of life classes against oxygen pressure from the life model"
+            ],
+            [
+              "Evidence",
+              "the old share edges (0.03, 0.16, 0.35, 0.001) at one atmosphere"
+            ]
+          ],
+          "id": "OP1",
+          "key": "6.201:OP1",
+          "kind": "P",
+          "slug": "6-201-op1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "planet_class_fit.json oxygen edges as pressures: 3 kPa (class F anoxic below, class L from), 16 kPa (class L below, classes M, H, O, P, R from) and 35.5 kPa (classes M, H, O, P, R below; the fire limit of GEN.1320, 35 percent of an atmosphere); the carbon dioxide edge of the oxygen-water classes as a pressure, 1 kPa (class L from, classes M, H, O, P, R below; 1 percent of an atmosphere); life_classes.json class 2 gate below 3 kPa and class 4 gate from 100 Pa. Class F and G keep the carbon dioxide share (20 percent)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the oxygen and carbon dioxide pressure shoulders (0.25 of the edge, floors of 500 Pa and 200 Pa) were carried over from the shares and not fitted; they go when the toxicity and equipment lines of the habitability index are fixed from physiology"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders for oxygen pressure and carbon dioxide pressure: 0.25 of the edge with a floor of 500 Pa and 200 Pa (the shares' 0.25 and 0.005 and 0.002 of an atmosphere)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5 of the edge"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "none known"
+            ],
+            [
+              "What replaces it",
+              "the toxicity and equipment lines of the habitability index"
+            ],
+            [
+              "Evidence",
+              "CF7 carried over from the share"
+            ]
+          ],
+          "id": "OP2",
+          "key": "6.201:OP2",
+          "kind": "P",
+          "slug": "6-201-op2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders for oxygen pressure and carbon dioxide pressure: 0.25 of the edge with a floor of 500 Pa and 200 Pa (the shares' 0.25 and 0.005 and 0.002 of an atmosphere)"
+        }
+      ],
+      "slug": "6-201-stand-ins-of-oxygen-and-carbon-dioxide-judged-by-pressure",
+      "title": "Stand-ins of oxygen and carbon dioxide judged by pressure"
+    },
+    {
+      "key": "6.202",
+      "number": "6.202",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "asteroid_field.RING_RADIUS_AU 50 and field_host.BELT_LIMITS_AU 30 to 70: the ring a hosted field starts as, and the stretch whose solids make its mass"
+            ],
+            [
+              "The range it moves in",
+              "30 to 100 AU"
+            ],
+            [
+              "Where it holds",
+              "progenitors of A to B type with a belt"
+            ],
+            [
+              "What would show it wrong",
+              "the radius of the debris belts of A and B stars in the surveys, outside this range, or a belt that is not a ring"
+            ],
+            [
+              "What replaces it",
+              "the belt chain of the progenitor itself (belt_origin) once massive stars are built through it"
+            ],
+            [
+              "Evidence",
+              "the design's 50 AU belt around 10 solar masses (docs/design/systems/interstellar-asteroid-fields.md source S2)"
+            ]
+          ],
+          "id": "HF1",
+          "key": "6.202:HF1",
+          "kind": "B",
+          "slug": "6-202-hf1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "asteroid_field.RING_RADIUS_AU 50 and field_host.BELT_LIMITS_AU 30 to 70: the ring a hosted field starts as, and the stretch whose solids make its mass"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "field_host.NEUTRON_STAR_SHARE_OF_CORES (1 less tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE, 0.85): the core of a core-collapse remnant that shows none is a neutron star by this share, else a black hole"
+            ],
+            [
+              "The range it moves in",
+              "0.7 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "core-collapse remnants with no visible core"
+            ],
+            [
+              "What would show it wrong",
+              "the share of black holes among the cores of the remnants that show none"
+            ],
+            [
+              "What replaces it",
+              "the remnant's own core drawn when the remnant is made"
+            ],
+            [
+              "Evidence",
+              "the share the visible cores follow (tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE)"
+            ]
+          ],
+          "id": "HF2",
+          "key": "6.202:HF2",
+          "kind": "P",
+          "slug": "6-202-hf2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "field_host.NEUTRON_STAR_SHARE_OF_CORES (1 less tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE, 0.85): the core of a core-collapse remnant that shows none is a neutron star by this share, else a black hole"
+        }
+      ],
+      "slug": "6-202-stand-ins-of-the-asteroid-field-a-supernova-remnant-hosts",
+      "title": "Stand-ins of the asteroid field a supernova remnant hosts"
+    },
+    {
+      "key": "6.203",
+      "number": "6.203",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.ASTEROID_FIELD_SPEED_KMS_RANGE (0.1, 15.0) km/s, log-uniform: the rms speed of the pieces of a hand-made field, from a tidally disrupted rubble body to the fastest rubble of a collision"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 15"
+            ],
+            [
+              "Where it holds",
+              "a field with no parent drawn"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of the spread of the pieces of the fields that stand, outside this range"
+            ],
+            [
+              "What replaces it",
+              "the speed of the source that made the field (rogue_collision.unbound_rms_speed_ms, field_dispersal.unbound_belt_speed_ms) once such a field is drawn by hand"
+            ],
+            [
+              "Evidence",
+              "the design's table of ages at a radius (docs/design/systems/interstellar-asteroid-fields.md section 5.2)"
+            ]
+          ],
+          "id": "AF1",
+          "key": "6.203:AF1",
+          "kind": "B",
+          "slug": "6-203-af1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.ASTEROID_FIELD_SPEED_KMS_RANGE (0.1, 15.0) km/s, log-uniform: the rms speed of the pieces of a hand-made field, from a tidally disrupted rubble body to the fastest rubble of a collision"
+        }
+      ],
+      "slug": "6-203-stand-in-of-the-speed-of-a-hand-made-asteroid-field",
+      "title": "Stand-in of the speed of a hand-made asteroid field"
     },
     {
       "key": "6.197",
@@ -40703,7 +41855,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1103",
+          "unread": null,
           "what": "field_mass.MIN_FIELD_MASS_EARTH 1e-9: a field under this mass is not a field (the belts' line, BG14)"
         },
         {
@@ -42199,7 +43351,7 @@
           "fields": [
             [
               "What it is",
-              "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, share_co2 min 0.01, share_o2 3 to 16 percent, gravity_g min 0.5"
+              "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, share_co2 min 0.01, o2_partial_pa 3 to 16 kPa (GEN.1321; was a share of 3 to 16 percent), gravity_g min 0.5"
             ],
             [
               "The range it moves in",
@@ -42230,7 +43382,7 @@
           "tier_code": "T9",
           "tweak": "L1",
           "unread": null,
-          "what": "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, share_co2 min 0.01, share_o2 3 to 16 percent, gravity_g min 0.5"
+          "what": "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, share_co2 min 0.01, o2_partial_pa 3 to 16 kPa (GEN.1321; was a share of 3 to 16 percent), gravity_g min 0.5"
         },
         {
           "burn_down": null,
@@ -42587,7 +43739,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1104",
+          "unread": null,
           "what": "field_rates.GALAXY_CORE_COLLAPSE_RATE_PER_YEAR 0.02: core-collapse supernovae in the Galaxy per year, 2 per century"
         },
         {
@@ -42625,7 +43777,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1104",
+          "unread": null,
           "what": "field_rates.TRUNCATION_FRACTION 0.3: a flyby of periastron q truncates a disc at about 0.3 q, so a belt of radius a is stripped by q under a / 0.3, with the focusing 1 + 2 G M / (q v^2) of the pair"
         },
         {
@@ -42663,7 +43815,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1104",
+          "unread": null,
           "what": "field_rates.CLUSTER_BELT_SHARE 0.32: the share of the stars of a young cluster that hold a debris belt, the overall 32 +/- 5 percent of the A-star sample of row IF9 used for stars of every mass"
         },
         {

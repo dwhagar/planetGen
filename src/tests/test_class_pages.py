@@ -284,7 +284,7 @@ def test_the_tree_without_hook_or_known_class_stays_text(app):
     assert "/classes/" not in html and "Class M" in html
     from planetgen.web.class_pages import class_url
     system = _system()
-    system["planets"] = [_planet("W")]
+    system["planets"] = [_planet("Q")]
     system["stars"][0]["star_type"] = "Unknown"
     with app.test_request_context("/system/1"):
         html = objecttree.nodes_html(_items(system), _tree_context(class_url))

@@ -98,11 +98,46 @@ def test_burning_takes_the_oxygen_the_reduced_gases_want_and_leaves_their_oxides
     assert set(burnt) == {"N2", "CO2", "O2"} and burnt["CO2"] == pytest.approx(2.0) and burnt["O2"] == 0.5
 
 
-def test_the_fire_limit_is_the_share_of_the_molecules_the_mixture_allows():
+class _Body:
+    """A bare body for the fire limit: Earth's radius and gravity unless given."""
+
+    def __init__(self, gravity=1.0, radius=6371.0):
+        self.gravity, self.radius = gravity, radius
+
+
+def _fire_limit_state(body, moles):
+    limit = bo._fire_limit_mol(body, moles)
+    air = bo.partials_pa(body, {**moles, "O2": limit})
+    return limit, air["O2"], air["O2"] / sum(air.values())
+
+
+def test_the_fire_limit_is_a_pressure_of_oxygen_on_a_thick_air():
     from planetgen.physics import mixture_oxygen
-    moles = {"N2": 100.0}
-    limit = bo._fire_limit_mol(moles)
-    assert limit / (limit + 100.0) == pytest.approx(mixture_oxygen.BIOTIC_O2_MAX)
+    body = _Body()
+    column = 1.0e6 / (9.80665 * 0.028) * bo.area_m2(body)       # about 10 bar of nitrogen over the surface, mol
+    _, pascal, share = _fire_limit_state(body, {"N2": column})
+    assert pascal == pytest.approx(mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA, rel=1e-6)
+    assert share < 0.05                                                 # a thick air holds 35 kPa as a small share
+
+
+def test_a_thin_air_may_hold_a_larger_share_than_35_percent():
+    from planetgen.physics import mixture_oxygen
+    body = _Body()
+    for kilopascal, ceiling_first in ((1.0, True), (14.0, False), (50.0, False)):
+        column = kilopascal * 1.0e3 / (9.80665 * 0.028) * bo.area_m2(body)         # nitrogen over the surface, mol
+        _, pascal, share = _fire_limit_state(body, {"N2": column})
+        if ceiling_first:                                  # 1 kPa of nitrogen: the 95 percent ceiling is reached before the pressure cap
+            assert share == pytest.approx(mixture_oxygen.ABIOTIC_O2_MAX, rel=1e-6)
+            assert pascal < mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA
+        else:
+            assert pascal == pytest.approx(mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA, rel=1e-6)
+            assert 0.35 < share < mixture_oxygen.ABIOTIC_O2_MAX
+    assert _fire_limit_state(body, {"N2": 14.0e3 / (9.80665 * 0.028) * bo.area_m2(body)})[2] > _fire_limit_state(
+        body, {"N2": 50.0e3 / (9.80665 * 0.028) * bo.area_m2(body)})[2]            # the thinner air holds the larger share
+
+
+def test_the_fire_limit_of_an_air_with_nothing_else_is_zero():
+    assert bo._fire_limit_mol(_Body(), {"O2": 5.0}) == 0.0
 
 
 def test_the_oxygen_rises_after_the_delay_and_not_before(monkeypatch):

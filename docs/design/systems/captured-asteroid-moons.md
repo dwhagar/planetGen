@@ -109,6 +109,8 @@ Breakdown by origin for a Jupiter-like row, expected values [C from sec. 2.3]: i
 ### 4.6 What is not modelled (named so the table above is honest)
 Temporary captures (flag only); capture at Trojan points (the belt doc's Trojan swarms are separate objects); regular-moon impacts that eject; captured binaries (a binary irregular is possible, the belt doc's L3 binary fraction can be given to it later); a planet that migrates after capture: **the Hill sphere shrinks with a smaller orbit and the moons beyond the new stable limit are lost** (`drop_unstable_moons` already does that for regular moons; irregulars need the same call with the new limits); a star that loses mass: `r_H` grows by `(M_formation / M_now)^(4/3)` for adiabatic widening [C], bodies that were just outside become bound candidates, a weird-world hook only.
 
+**Built, part 2 of GEN.1085 (Aux 5, 11-07).** An inner belt (any belt that is not an outer disk) within `ENCOUNTER_REACH_AU` (row CD2) of a planet gives it bodies in the encounter window, drawn like the outer disk's but scaled by the belt's primordial mass (row CD3). A body at least as heavy as the belt's lightest stored member is that member (the nearest in mass that no earlier planet of the star has caught): it keeps its rank and designation `<belt ID>.<rank hex>`, `irregular_moons.belt_order` and `belt_rank` name it, the belt's row stays with the status `moon`, and its mass leaves the belt (`take_from_belts`). A lighter body of the belt has the order but no rank. The pages of the irregular moons and the designation display wait for the item that shows the moons.
+
 ## 5. Stand-ins (register in GEN.725 when built)
 | Value | Stand-in | Tier | Tweak |
 |---|---|---|---|

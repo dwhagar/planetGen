@@ -11,17 +11,17 @@ whose response said nothing of the Earth's.) The model stands about 6.5 K under 
 (GEN.974), so the absorbed flux of the twin is set, by bisection, to the flux at which the fixed point stands at the measured 288 K: the sweep then measures
 the response of a 288 K Earth, the number the published range is about.
 
-Where the fixed point stands: it converges and warms with the light, with a response of 0.44 K per W/m2 at 288 K (0.40 before the ice-albedo law, GEN.972), under the
-published lower bound of 0.54. Of the feedbacks of IPCC AR6 (2021) table 7.10 the Planck response, the water vapor with the lapse rate and, since GEN.972, the surface
-albedo are in it (1 / (3.22 - 1.30) = 0.52 K per W/m2 by the assessment's own numbers; the fixed point's outgoing flux rises faster with the temperature, 2.5 W/m2 per
-K, a gap GEN.973 follows). The ice law gives the twin +0.34 W/m2 per K at 288 K by design, and less as the ice is gone: 0.61 K per W/m2 on the cooling half of the
-sweep, 0.41 on the warming half. The cloud (+0.42, GEN.974) feedback is still missing; with it 1 / (2.5 - 0.77) = 0.58. The lower bound is held by a strict expected
-failure that names what is missing; when GEN.973 and GEN.974 bring the response inside the range, the test passes, the expected failure fails the run, and the mark
-comes off.
+Where the fixed point stands: it converges and warms with the light. Of the feedbacks of IPCC AR6 (2021) table 7.10 the Planck response, the water vapor with the lapse
+rate, the surface albedo (GEN.972) and, since GEN.974, the cloud are in it. The ice law gives the twin +0.34 W/m2 per K at 288 K by design and the cloud +0.42 (a
+thinner low cloud, `cloud_albedo`); the response is 0.65 and 0.56 K per W/m2 above 288 K and 0.76 and 0.87 on the cool side down to 3 percent less light (it was 0.44 without the
+cloud, under the published lower bound of 0.54, which a strict expected failure held until GEN.974 landed). Below that the twin falls to a snowball: a flux 5 percent
+down, started from the airless Earth's temperature, ends at 224 K and the fixed point is bistable there (a warm start finds 276 K), the ice catastrophe of the energy
+balance models ([R0580, R4008]: a few percent of the Earth's light). The sweep therefore goes from 3 percent below the twin's light to 10 percent above, the branch
+the published sensitivity is about, and `test_a_flux_fifteen_percent_down_ends_in_a_snowball` holds the other.
 
 The twin is a test target, never an input of the code. The solve is replayed on one stream (`draw.bound`), so the sweep changes the light and nothing else;
-the albedo follows the ice law of the twin (`climate_branches.IceAlbedoLaw`, GEN.972), and the flux swept is the one it absorbs ice-free, until the cloud albedo (GEN.974)
-is in the fixed point.
+the albedo follows the ice law of the twin (`climate_branches.IceAlbedoLaw`, GEN.972) and its cloud (`cloud_albedo.CloudLaw`, GEN.974, not locked), and the flux swept is the one it
+absorbs ice-free.
 """
 
 import math
@@ -30,7 +30,7 @@ import types
 import pytest
 from scipy.optimize import brentq
 
-from planetgen.physics import atmosphere_state, climate_branches as cb, gases, mixture_draw, surface_air as sa
+from planetgen.physics import atmosphere_state, climate_branches as cb, cloud_albedo, gases, mixture_draw, surface_air as sa
 from planetgen.util import draw
 
 SENSITIVITY_K_PER_W_M2 = (2.0 / 3.7, 5.0 / 3.7)
@@ -44,14 +44,15 @@ EARTH_SURFACE_K = 288.0
 """float: The Earth's mean surface temperature, K, the temperature the absorbed flux of the twin is set to give."""
 START_K = 255.0
 """float: The temperature the first step of the fixed point starts from (the airless Earth's)."""
-FACTORS = (0.90, 0.95, 1.0, 1.05, 1.10)
-"""tuple: The sweep, as a share of the absorbed flux of the twin: a cooling half and a warming half."""
+FACTORS = (0.97, 0.985, 1.0, 1.05, 1.10)
+"""tuple: The sweep, as a share of the absorbed flux of the twin: a short cooling half (the warm branch ends 4 percent down) and a warming half."""
 
 
 def _earth_twin(flux_w_m2):
     return sa.Setting(gravity_m_s2=EARTH_GRAVITY_M_S2, radius_m=EARTH_RADIUS_M, mantle_kg=EARTH_MANTLE_KG, released_j=0.0, heat_flux_w_m2=0.087,
                       ocean_cover=EARTH_OCEAN_COVER, water_kg=EARTH_WATER_KG, absorbed_flux_w_m2=flux_w_m2, released_at_seal_j=0.0,
-                      subject_of=lambda *_: None, age_gy=4.5, starlight_w_m2=4.0 * flux_w_m2 / (1.0 - cb.ICE_FREE_ALBEDO), albedo_law=cb.IceAlbedoLaw())
+                      subject_of=lambda *_: None, age_gy=4.5, starlight_w_m2=4.0 * flux_w_m2 / (1.0 - cb.ICE_FREE_ALBEDO), albedo_law=cb.IceAlbedoLaw(),
+                      cloud_law=cloud_albedo.CloudLaw(starlight_w_m2=4.0 * flux_w_m2 / (1.0 - cb.ICE_FREE_ALBEDO), locked=False))
 
 
 def _solve(flux_w_m2):
@@ -103,10 +104,32 @@ def test_the_response_to_the_flux_is_not_above_the_published_climate_sensitivity
     assert all(0.0 < response < SENSITIVITY_K_PER_W_M2[1] for response in _responses(sweep))
 
 
-@pytest.mark.xfail(strict=True, reason="GEN.973 and GEN.974: no cloud feedback in the fixed point yet, so the response (0.44 K per W/m2 at 288 K, with the ice-albedo law of GEN.972) "
-                                       "is under the published lower bound of 0.54; with the cloud (+0.42 W/m2 per K, AR6 table 7.10) it is 0.58. GEN.1194 (the outgoing flux rising too fast with the temperature) moves it too")
 def test_the_response_to_the_flux_is_not_below_the_published_climate_sensitivity(sweep):
+    """GEN.974: with the cloud in the fixed point the response is over the published lower bound (it was 0.44 K per W/m2 without, expected to fail until the cloud landed)."""
     assert all(response > SENSITIVITY_K_PER_W_M2[0] for response in _responses(sweep))
+
+
+def test_the_cloud_thins_as_the_twin_warms(sweep):
+    """The albedo falls as the light rises, by the ice (GEN.972) and the cloud (GEN.974): from 288 K to 302 K the cloud alone takes `-BETA x 14` off it."""
+    _, airs = sweep
+    albedos = [airs[factor].albedo for factor in FACTORS]
+    assert albedos == sorted(albedos, reverse=True)
+    assert airs[1.0].albedo == pytest.approx(cb.ICE_FREE_ALBEDO, abs=0.01)                     # at the reference temperature the twin keeps the albedo it drew
+    assert airs[1.0].albedo - airs[1.10].albedo > cloud_albedo.BETA_PER_K * (airs[1.10].temperature_k - airs[1.0].temperature_k) * 0.99
+
+
+def test_a_flux_fifteen_percent_down_ends_in_a_snowball():
+    """The ice catastrophe of the energy balance models: the twin with 15 percent less light, started from the airless Earth's temperature, is under 240 K and as bright as the
+    ice makes it (the ice law's covered albedo 0.62, and the cloud adds its thickening). Since the GEN.1304 table (the temperate wet branch no longer 12 K cold) the fixed point
+    holds the freezing edge down to 12 percent less light (273 K at 10 percent, 268 K at 12) and falls to the snowball between 12 and 14 percent; with the cloud or without it the
+    threshold is the same to within 1 percent of the light (the table moved it, not GEN.974), where it was between 5 and 10 percent before the table."""
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        _hold_the_air_of_the_earth(monkeypatch)
+        flux = brentq(lambda f: _solve(f).temperature_k - EARTH_SURFACE_K, 200.0, 320.0, xtol=1.0e-3)
+        cold = _solve(0.85 * flux)
+        edge = _solve(0.90 * flux)
+    assert cold.converged and cold.temperature_k < 240.0 and cold.albedo > 0.60
+    assert edge.temperature_k > 265.0                              # 10 percent down is still the warm branch, at the freezing edge
 
 
 def test_the_vapor_of_the_ocean_is_a_feedback_in_the_fixed_point(sweep):

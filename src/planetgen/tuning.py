@@ -2184,6 +2184,10 @@ PLANET_CLASSES = {
         "composition": 'iron, iridium, tungsten, and nickel',
         "type": 't',
     },
+    'W': {
+        "composition": 'silicon, iron, magnesium, and ice',
+        "type": 't',
+    },
     'X': {
         "composition": 'silicon, iron, magnesium, water ice, and ammonia',
         "type": 't',
@@ -2237,7 +2241,7 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
 """
 list: A list of planet class codes that are considered habitable.
 """
@@ -3367,6 +3371,10 @@ COMET_CEILING_ATTEMPTS = 25
 # planetary nebula's own radius range (NEBULA_CLASSES "H"-"L", 0.1-3
 # ly) so the two remain visually/narratively distinct phenomena.
 ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
+
+ASTEROID_FIELD_SPEED_KMS_RANGE = (0.1, 15.0)
+"""tuple: The rms speed a hand-made asteroid field spreads at, km/s, log-uniform (GEN.1103): a tidally disrupted rubble body is the slow end (0.1), the fastest rubble of a collision the fast end
+(15), the design's table (docs/design/systems/interstellar-asteroid-fields.md section 5.2). Registry section 6.203, row AF1."""
 
 # NAV.54: the keep-out radii a course keeps from an object that is not a Hill sphere (docs/design/orbits/course-avoidance.md section 2).
 KEEP_OUT_STAR_FLUX_W_M2 = 50000.0

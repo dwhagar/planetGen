@@ -37,7 +37,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF28 | no data | - | the habitability index's own scale choices (Boss, GEN.215, GEN.654); there is no data to read; tier stays |
 | 6.18:LF15 | no data | - | phosphate classes of an ocean: Earth's ocean is the only measured one; the other classes are chosen |
 | 6.18:LF16 | no data | - | phosphate classes of an ocean: Earth's ocean is the only measured one; the other classes are chosen |
-| 6.18:LF17 | replace | GEN.878 | a curve per metabolism and the energy source per class (pigment band times the star's spectrum) replace the one log scale and the shares |
+| 6.18:LF17 | no data | - | the energy source per class (pigment band times the star's spectrum) is built (GEN.878), but every class still reads the one log scale; a curve per metabolism needs measured growth yields, none in hand |
 | 6.18:LF18 | replace | GEN.878 | a curve per metabolism and the energy source per class (pigment band times the star's spectrum) replace the one log scale and the shares |
 | 6.18:LF23 | no data | - | the animal oxygen floor by grade is a literature number ([R3084], recalled) for one grade; GEN.877 is closed and kept the band; the widths are chosen |
 | 6.18:LF25 | no data | - | one score per rung of Table 2 of the Exoplanetary Habitability doc; design numbers with no data |
@@ -188,7 +188,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.161:FM1 | no data | - | the line is the belts' (BG14): no survey measures the dust of a field; it goes where BG14 goes |
 | 6.161:FM2 | no data | - | no model or measurement of the size distribution of the rubble of a planet-planet collision is in hand; the rocky main-belt law stands in until the largest-fragment reading (LS12) |
 | 6.166:IHA1 | no data | - | no measured viscosity of any rocky planet's mantle other than the Earth's is in hand; the prefactor is retuned to hold the reference viscosity, not fitted to a planet |
-| 6.53:DU1 | no data | - | no survey measures the dust of the disks this generator builds; the cut stands where the K, G and F dwarfs together hold a disk as often as the surveys find, and goes when the outer disk's mass and width come from a planetesimal-formation model (filed as GEN.1278) |
+| 6.53:DU1 | no data | - | no survey measures the dust of the disks this generator builds; the limit at the Sun's temperature stands where the A, F, G and K dwarfs hold a disk as often as the surveys find (GEN.1278 made it fall with the cube of the star's temperature and summed the dust of a wide belt's rings), and goes when the outer disk's mass and width come from a planetesimal-formation model or each survey's own flux limit is used |
 | 6.185:BPO1 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the cold stirring stands until a self-stirring or capture model gives it |
 | 6.185:BPO2 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it |
 | 6.185:BPO3 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it |
@@ -246,3 +246,13 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF64 | no data | - | no rated catalogue of worlds exists to fit the least Blue share |
 | 6.18:LF65 | no data | - | no rated catalogue of worlds exists to fit the credit of a Yellow sample |
 | 6.193:AW1 | no data | - | L3, the class F gravity edge 1.4 g was chosen from a sweep of 1,448 bodies; it goes when the gravity edges of classes Z and V are fixed from heavy-world physics (GEN.1136) |
+| 6.18:LF66 | no data | - | no chronic-dose growth curve for a microbe is in hand (the best known is recalled, not opened); one per life class would replace the threshold and the factors |
+| 6.18:LF67 | no data | - | no measured animal limit for the three stresses is in hand; the numbers are chosen under the microbes' |
+| 6.18:LF68 | no data | - | the chance and share of an adapted life have no survey to fit; they are the draw's shape |
+| 6.18:LF69 | no data | - | the onset and full stress of each trait are read off the limits it moves and have no tolerance-range survey behind them |
+| 6.18:LF70 | no data | - | five stresses of the design have no limit in the life scores to move, so no trait is drawn for them until a class rule reads the stress |
+| 6.18:LF71 | no data | - | the carbon monoxide and sulfur dioxide toxins are scored for animals only; a microbe toxin term would give the trait something to move |
+| 6.18:LF72 | no data | - | no survey of the share of the sunlit ocean's energy that retinal pigments supply is in hand; the share and the band are the order of the recalled literature |
+| 6.198:AW6 | no data | - | L3, the class Z gravity floor 0.5 g was chosen from a sweep of 2,212 bodies (GEN.1306); it goes when the gravity edges of Z are fixed from heavy-world physics (GEN.1136) |
+| 6.198:AW7 | no data | - | L3, the class Z temperature top 1500 K was chosen from the same sweep; it goes when the top is fixed from the temperature at which a thin air is lost (the retention fit) |
+| 6.201:OP2 | no data | - | L3, the oxygen and carbon dioxide pressure shoulders (0.25 of the edge, floors of 500 Pa and 200 Pa) were carried over from the shares and not fitted; they go when the toxicity and equipment lines of the habitability index are fixed from physiology |

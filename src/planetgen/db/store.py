@@ -3152,7 +3152,7 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
 
 
 IRREGULAR_MOON_COLUMNS = ("moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction",
-                          "water_fraction", "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")
+                          "water_fraction", "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank")
 """tuple: The value columns of `irregular_moons`, after `planet_id`."""
 
 
@@ -3169,7 +3169,7 @@ def insert_irregular_moons(conn, planet, planet_id):
             f"INSERT INTO irregular_moons (planet_id, {', '.join(IRREGULAR_MOON_COLUMNS)}) VALUES ({', '.join('?' * (len(IRREGULAR_MOON_COLUMNS) + 1))})",
             (planet_id, d["rank"], d["window"], d["mass_kg"], d["radius_km"], d["density_kg_m3"] / 1000.0, d["taxon"], d["source_distance_au"] * _AU_KM, d["ice_loss"], d["rock"],
              d["metal"], d["water"], d["ice"], d["semi_major_axis_au"] * _AU_KM, d["eccentricity"], d["inclination_deg"], d["ascending_node_deg"], d["arg_periapsis_deg"],
-             d["mean_anomaly_deg"]))
+             d["mean_anomaly_deg"], d["belt_order"], d["belt_rank"]))
 
 
 def irregular_set_dict(summary, rows):
@@ -3180,7 +3180,7 @@ def irregular_set_dict(summary, rows):
                                   "taxon": r["taxon"], "source_distance_au": r["source_distance_km"] / _AU_KM, "ice_loss": r["ice_loss"], "rock": r["rock_fraction"],
                                   "metal": r["metal_fraction"], "water": r["water_fraction"], "ice": r["ice_fraction"], "semi_major_axis_au": r["distance_km"] / _AU_KM,
                                   "eccentricity": r["eccentricity"], "inclination_deg": r["inclination_deg"], "ascending_node_deg": r["ascending_node_deg"],
-                                  "arg_periapsis_deg": r["arg_periapsis_deg"], "mean_anomaly_deg": r["mean_anomaly_deg"]} for r in rows]}
+                                  "arg_periapsis_deg": r["arg_periapsis_deg"], "mean_anomaly_deg": r["mean_anomaly_deg"], "belt_order": r["belt_order"], "belt_rank": r["belt_rank"]} for r in rows]}
 
 
 def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -> int:
@@ -4207,6 +4207,8 @@ ASTEROID_FIELD_FIELDS = (
     object_rows.context("sector_id"), object_rows.attr("name"), object_rows.attr("field_class"),
     object_rows.attr("composition_family"), object_rows.attr("density"), object_rows.attr("radius_ly"),
     object_rows.optional("chondrite_group"),
+    object_rows.optional("rms_speed_kms"), object_rows.optional("birth_age_yr"), object_rows.optional("shape"), object_rows.optional("origin"),
+    object_rows.optional("history"), object_rows.optional("largest_body_kg"),
     object_rows.computed("composition_summary", lambda field, context: field.get_composition_summary()),
     _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: getattr(field, "mass_kg", None) or 0.0),
     _GALACTIC_ORBIT_FIELD,

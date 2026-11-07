@@ -99,6 +99,7 @@ def test_an_anchored_remnant_leaves_its_motion_and_spin_to_its_star():
 
 import pytest as _pytest
 
+from planetgen.generation import irregular_moons
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
@@ -170,15 +171,39 @@ class _Rows(list):
     def fetchall(self):
         return self
 
+    def fetchone(self):
+        return self[0] if self else None
+
+
+class _Writes:
+    """A connection that keeps what `store.insert_irregular_moons` writes, as the rows a `SELECT` of them hands back (GEN.1084)."""
+
+    def __init__(self):
+        self.sets, self.moons = [], []
+
+    def execute(self, sql, params=()):
+        if "INTO irregular_sets" in sql:
+            self.sets.append(dict(zip(("planet_id", "remainder_kg", "above_floor", "lost", "temporary"), params)))
+        elif "INTO irregular_moons" in sql:
+            self.moons.append(dict(zip(("planet_id", *store.IRREGULAR_MOON_COLUMNS), params)))
+
 
 class _SpectrumConnection:
-    def __init__(self, layers=None, gases=None, scores=None, living=None):
+    def __init__(self, layers=None, gases=None, scores=None, living=None, planet=None):
+        written = _Writes()
+        if planet is not None:
+            store.insert_irregular_moons(written, planet, 7)
+        self.irregular_set, self.irregular_moons = written.sets, written.moons
         self.living = living or []
         self.layers = layers or []
         self.gases = gases or {}
         self.scores = scores or {}
 
     def execute(self, sql, params=()):
+        if "irregular_sets" in sql:     # GEN.1084: the irregular moons of a planet are read from irregular_sets and irregular_moons
+            return _Rows(self.irregular_set)
+        if "irregular_moons" in sql:
+            return _Rows(self.irregular_moons)
         if "_interior_layers" in sql:
             return _Rows(self.layers)
         if "_gases" in sql:  # DB.71: the air is read from planet_gases or moon_gases, one row a gas
@@ -212,8 +237,10 @@ def _check_bodies(system, checked):
         if hasattr(body, "moons"):
             row = _stored(store.PLANET_FIELDS, body, context)
             row["id"] = 7
-            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None), getattr(body, life_classes.SCORES_FIELD, None), getattr(body, life_classes.LIVING_FIELD, None)), row, False)
+            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None), getattr(body, life_classes.SCORES_FIELD, None), getattr(body, life_classes.LIVING_FIELD, None), planet=body), row, False)
             original = body.to_dict()
+            if loaded.get("irregulars") is None:        # a planet with no irregular moons stores no row and reads back as the empty set (`irregular_set_dict`)
+                loaded["irregulars"] = irregular_moons.NO_IRREGULARS.to_dict()
             for key in set(loaded) - {"moons", "reflection_spectrum_visible", "reflection_spectrum_non_visible"}:
                 _same(original[key], loaded[key])
             assert loaded["reflection_spectrum_visible"] == [1.5] and loaded["moons"] == []

@@ -7,7 +7,7 @@ from tests.test_planet_classes import CASES, body
 def records():
     bodies = [(values, False) for values in CASES.values()]
     bodies.append((body(ocean_fraction=0.97), False))                  # a hole: a wet, mild world between the M and the O boxes
-    bodies.append((body(gravity_g=1.6, mass_earth=2.6), False))        # limited by its gravity: M9
+    bodies.append((body(gravity_g=0.6, mass_earth=0.3), False))        # limited by its gravity: M9 (a light world; M reaches 2 g since GEN.1306)
     return cli.score_bodies(bodies)
 
 
@@ -27,3 +27,22 @@ def test_the_report_names_the_hole_the_limited_world_and_the_temperate_ocean_tab
 
 def test_the_temperate_ocean_count_reads_the_hydrosphere():
     assert cli.temperate_surface_ocean(records())["M"] >= 1
+
+
+def test_a_table_compared_with_itself_changes_no_class_and_one_with_a_moved_edge_changes_some():
+    """GEN.1321: `--compare` counts the bodies whose class code differs under another fit table."""
+    import json
+    from planetgen.physics import class_fit
+    recs = records()
+    same = open(class_fit.DATA_FILE, encoding="utf-8").read()
+    changed, total, pairs = cli.changes_against(recs, same)
+    assert changed == 0 and total >= len(CASES) and not pairs
+    document = json.loads(same)
+    for cls in document["classes"]:
+        for condition in cls["when"]:
+            if cls["letter"] == "M" and condition["quantity"] == "o2_partial_pa" and "min" in condition:
+                condition["min"] = 1.0e9                      # M no longer fits any body: they take other classes
+    changed, total, pairs = cli.changes_against(recs, json.dumps(document))
+    assert changed >= 1 and sum(pairs.values()) == changed
+    assert class_fit.CLASSES is not None and "o2_partial_pa" in {c["quantity"] for k in class_fit.CLASSES if k.letter == "M" for c in k.when}      # the table is put back
+    assert "## Class codes against the fit table at X" in cli.format_changes("X", changed, total, pairs)
