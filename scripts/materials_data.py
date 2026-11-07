@@ -85,6 +85,37 @@ MINERAL_DENSITY = {
     "samarskite": (5.69, 5.6, 5.8, WEBMINERAL, "the listed average (samarskite-(Y))"),
     "fergusonite": (5.05, 4.3, 5.8, WEBMINERAL, "the listed average (fergusonite-(Y))"),
     "euxenite": (4.84, 4.7, 5.0, WEBMINERAL, "the listed average (euxenite-(Y))"),
+    # GEN.1356: the Handbook of Mineralogy pages of the sulfides, nitrides and carbides, read 2026-11-07.
+    "pyrite": (5.013, 5.018, 5.018, HANDBOOK, "D(calc.)"),
+    "pyrrhotite": (4.69, 4.58, 4.65, HANDBOOK, "D(calc.) of the Fe7S8 cell (a 6.865, b 11.9, c 22.72 A, 8 formula units)"),
+    "pentlandite": (4.956, 4.6, 5.0, HANDBOOK, "D(calc.) as printed; the cell (a 9.928 A, Z 4) and a 1:1 iron-nickel formula give about 5.2"),
+    "chalcopyrite": (4.283, 4.1, 4.3, HANDBOOK, "D(calc.)"),
+    "oldhamite": (2.589, 2.58, 2.58, HANDBOOK, "D(calc.)"),
+    "niningerite": (3.40, 3.21, 3.59, HANDBOOK, "middle of D(calc.) 3.21 to 3.59 (no measurement; the range is the composition range)"),
+    "alabandite": (4.053, 3.95, 4.04, HANDBOOK, "D(calc.)"),
+    "daubreelite": (3.842, 3.81, 3.81, HANDBOOK, "D(calc.)"),
+    "osbornite": (5.38, None, None, HANDBOOK, "D(calc.) printed in brackets (synthetic TiN, a 4.24173 A, Z 4); no measurement"),
+    "khamrabaevite": (4.97, None, None, HANDBOOK,
+                      "COMPUTED from the Handbook's cell (rock salt, a 4.319 A, Z 4) and analysis (metal mass 48.23 g/mol, one carbon per metal); "
+                      "the page prints D(calc.) 10.01, the same cell counted with Z 8"),
+    "sinoite": (2.84, 2.80, 2.85, HANDBOOK, "D(calc.)"),
+}
+
+# GEN.1356 and the mineral rows after it: id -> (crystal system, Mohs middle, Mohs low, Mohs high, color). The Mohs numbers are the
+# Handbook's printed hardness range (its middle is the value); None where the page prints none (n.d.). Colors in the page's words.
+MINERAL_FIELDS = {
+    "pyrite": ("cubic", 6.25, 6.0, 6.5, "pale brass-yellow, tarnishes darker and iridescent"),
+    "pyrrhotite": ("monoclinic", 4.0, 3.5, 4.5, "bronze-yellow to pinchbeck-brown"),
+    "pentlandite": ("cubic", 3.75, 3.5, 4.0, "pale bronze-yellow"),
+    "chalcopyrite": ("tetragonal", 3.75, 3.5, 4.0, "brass-yellow"),
+    "oldhamite": ("cubic", 4.0, 4.0, 4.0, "pale chestnut-brown"),
+    "niningerite": ("cubic", None, None, None, "gray in reflected light"),
+    "alabandite": ("cubic", 3.75, 3.5, 4.0, "iron-black, tarnishing brown"),
+    "daubreelite": ("cubic", 5.0, 5.0, 5.0, "black"),
+    "osbornite": ("cubic", None, None, None, "golden yellow"),
+    "khamrabaevite": ("cubic", 9.5, 9.0, 10.0, "dark gray"),
+    "sinoite": ("orthorhombic", None, None, None, "colorless in thin section, light gray in reflected light"),
+    "troilite": ("hexagonal", 4.0, 3.5, 4.5, "pale grayish brown, tarnishes rapidly"),
 }
 
 # The pure elements: density in g/cm3 at room temperature of the common form, from the CRC-based "use" row of the Wikipedia
@@ -249,4 +280,7 @@ VOCABULARY_ONLY = {
     "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
     "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
     "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+    **{row: "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)" for row in (
+        "pyrite", "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "niningerite", "alabandite", "daubreelite", "osbornite",
+        "sinoite", "khamrabaevite")},
 }

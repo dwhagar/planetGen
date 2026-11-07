@@ -125,7 +125,18 @@
   "komatiite": "rock type: no recipe or taxon names it",
   "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
   "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
-  "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping"
+  "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
+  "pyrite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "pyrrhotite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "pentlandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "chalcopyrite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "oldhamite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "niningerite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "alabandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "daubreelite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "osbornite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "sinoite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
+  "khamrabaevite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)"
  },
  "materials": [
   {
@@ -2933,6 +2944,17 @@
       4.67,
       4.79
      ]
+    },
+    "mohs": {
+     "value": 4.0,
+     "unit": "1",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "measured_range": [
+      3.5,
+      4.5
+     ],
+     "basis": "the middle of the hardness range the Handbook prints"
     }
    },
    "eos": [
@@ -2971,8 +2993,10 @@
      }
     }
    ],
-   "labels": "rho=R",
-   "note": "",
+   "labels": "rho=R;mohs=R",
+   "note": "Webmineral's page repeats pyrrhotite's density (4.61); the Handbook's D(meas.) 4.67 to 4.79 and D(calc.) 4.85 are kept.",
+   "crystal_system": "hexagonal",
+   "color": "pale grayish brown, tarnishes rapidly",
    "source": "handbook-mineralogy; hakim2018; seager2007",
    "state": "verified",
    "limit": ""
@@ -4910,6 +4934,654 @@
    "source": "handbook-mineralogy; slb2024-burnman",
    "state": "partly verified",
    "limit": "eos mgd-slb3: second-hand"
+  },
+  {
+   "id": "pyrite",
+   "name": "pyrite",
+   "family": "sulfide",
+   "formula": "FeS2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.013,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      5.018,
+      5.018
+     ]
+    },
+    "mohs": {
+     "value": 6.25,
+     "unit": "1",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "measured_range": [
+      6.0,
+      6.5
+     ],
+     "basis": "the middle of the hardness range the Handbook prints"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=R;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "pale brass-yellow, tarnishes darker and iridescent",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "pyrrhotite",
+   "name": "pyrrhotite",
+   "family": "sulfide",
+   "formula": "Fe7S8",
+   "composition": "Fe(1-x)S, x = 0 to 0.17; the formula is the Fe7S8 member, the one the Handbook's cell counts",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.69,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) of the Fe7S8 cell (a 6.865, b 11.9, c 22.72 A, 8 formula units)",
+     "measured_range": [
+      4.58,
+      4.65
+     ]
+    },
+    "mohs": {
+     "value": 4.0,
+     "unit": "1",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "measured_range": [
+      3.5,
+      4.5
+     ],
+     "basis": "the middle of the hardness range the Handbook prints"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=R;alb=N",
+   "note": "",
+   "crystal_system": "monoclinic",
+   "color": "bronze-yellow to pinchbeck-brown",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "pentlandite",
+   "name": "pentlandite",
+   "family": "sulfide",
+   "formula": "Fe5Ni4S8",
+   "composition": "(Fe,Ni)9S8; the formula takes iron and nickel about one to one",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.956,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) as printed; the cell (a 9.928 A, Z 4) and a 1:1 iron-nickel formula give about 5.2",
+     "measured_range": [
+      4.6,
+      5.0
+     ]
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "1",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "measured_range": [
+      3.5,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the Handbook prints"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=R;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "pale bronze-yellow",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "chalcopyrite",
+   "name": "chalcopyrite",
+   "family": "sulfide",
+   "formula": "CuFeS2",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.283,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      4.1,
+      4.3
+     ]
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "1",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "measured_range": [
+      3.5,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the Handbook prints"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=R;alb=N",
+   "note": "",
+   "crystal_system": "tetragonal",
+   "color": "brass-yellow",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "oldhamite",
+   "name": "oldhamite",
+   "family": "sulfide",
+   "formula": "CaS",
+   "composition": "(Ca,Mg)S; the formula is the calcium end member",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.589,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.58,
+      2.58
+     ]
+    },
+    "mohs": {
+     "value": 4.0,
+     "unit": "1",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "measured_range": [
+      4.0,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the Handbook prints"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=R;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "pale chestnut-brown",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "niningerite",
+   "name": "niningerite",
+   "family": "sulfide",
+   "formula": "MgS",
+   "composition": "(Mg,Fe,Mn)S; the formula is the magnesium end member",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.4,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "middle of D(calc.) 3.21 to 3.59 (no measurement; the range is the composition range)",
+     "measured_range": [
+      3.21,
+      3.59
+     ]
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=N;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "gray in reflected light",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "alabandite",
+   "name": "alabandite",
+   "family": "sulfide",
+   "formula": "MnS",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.053,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.95,
+      4.04
+     ]
+    },
+    "mohs": {
+     "value": 3.75,
+     "unit": "1",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "measured_range": [
+      3.5,
+      4.0
+     ],
+     "basis": "the middle of the hardness range the Handbook prints"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=R;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "iron-black, tarnishing brown",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "daubreelite",
+   "name": "daubreelite",
+   "family": "sulfide",
+   "formula": "FeCr2S4",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 3.842,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      3.81,
+      3.81
+     ]
+    },
+    "mohs": {
+     "value": 5.0,
+     "unit": "1",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "measured_range": [
+      5.0,
+      5.0
+     ],
+     "basis": "the middle of the hardness range the Handbook prints"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=R;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "black",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "osbornite",
+   "name": "osbornite",
+   "family": "nitride",
+   "formula": "TiN",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 5.38,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.) printed in brackets (synthetic TiN, a 4.24173 A, Z 4); no measurement"
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=N;alb=N",
+   "note": "",
+   "crystal_system": "cubic",
+   "color": "golden yellow",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "sinoite",
+   "name": "sinoite",
+   "family": "nitride",
+   "formula": "Si2N2O",
+   "composition": "",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 2.84,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "basis": "D(calc.)",
+     "measured_range": [
+      2.8,
+      2.85
+     ]
+    },
+    "mohs": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=R;mohs=N;alb=N",
+   "note": "",
+   "crystal_system": "orthorhombic",
+   "color": "colorless in thin section, light gray in reflected light",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "mohs: no source; alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
+  },
+  {
+   "id": "khamrabaevite",
+   "name": "khamrabaevite",
+   "family": "carbide",
+   "formula": "TiC",
+   "composition": "(Ti,V,Fe)C; the formula is the titanium end member",
+   "aliases": [],
+   "members": null,
+   "gas_formula": null,
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 4.97,
+     "unit": "g/cm3",
+     "source": "handbook-mineralogy",
+     "code": "C",
+     "basis": "COMPUTED from the Handbook's cell (rock salt, a 4.319 A, Z 4) and analysis (metal mass 48.23 g/mol, one carbon per metal); the page prints D(calc.) 10.01, the same cell counted with Z 8"
+    },
+    "mohs": {
+     "value": 9.5,
+     "unit": "1",
+     "source": "handbook-mineralogy",
+     "code": "R",
+     "measured_range": [
+      9.0,
+      10.0
+     ],
+     "basis": "the Handbook prints hardness above 9; the range is 9 to 10 and the middle is the value"
+    },
+    "alb_040_050": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_050_060": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    },
+    "alb_060_070": {
+     "value": null,
+     "unit": "1",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=C;mohs=R;alb=N",
+   "note": "The page's D(calc.) 10.01 counts the cell with Z 8; with Z 4 (rock salt) it is 4.97, which is the density kept.",
+   "crystal_system": "cubic",
+   "color": "dark gray",
+   "source": "handbook-mineralogy",
+   "state": "partly verified",
+   "limit": "alb_040_050: no source; alb_050_060: no source; alb_060_070: no source"
   },
   {
    "id": "naphthalene",

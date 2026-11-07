@@ -152,6 +152,51 @@ def test_densities_are_the_values_read_from_the_sources():
         assert materials.material(name).prop("rho_grain_g_cm3").source == "crc-density-wiki"
 
 
+SULFIDE_ROWS = ("pyrite", "pyrrhotite", "pentlandite", "chalcopyrite", "oldhamite", "niningerite", "alabandite", "daubreelite",
+                "osbornite", "khamrabaevite", "sinoite")
+
+
+def test_the_sulfides_nitrides_and_carbides_of_gen1356_are_rows_with_a_system_a_color_and_a_density():
+    for name in SULFIDE_ROWS:
+        row = materials.material(name)
+        assert row.crystal_system in materials.CRYSTAL_SYSTEMS and row.color, name
+        assert row.formula and row.molar_mass > 0.0, name
+        density = row.prop("rho_grain_g_cm3")
+        assert density.value > 0 and density.source == "handbook-mineralogy" and density.basis, name
+        for band in ("alb_040_050", "alb_050_060", "alb_060_070"):
+            assert row.prop(band).value is None and row.prop(band).code == "N", (name, band)
+    assert materials.material("pyrite").prop("rho_grain_g_cm3").value == pytest.approx(5.013)
+    assert materials.material("pyrrhotite").prop("rho_grain_g_cm3").value == pytest.approx(4.69)
+    assert materials.material("oldhamite").prop("rho_grain_g_cm3").value == pytest.approx(2.589)
+    assert materials.material("troilite").crystal_system == "hexagonal"
+    assert materials.material("troilite").prop("rho_grain_g_cm3").value == 4.85, "webmineral's repeated pyrrhotite 4.61 is not kept"
+
+
+def test_khamrabaevite_keeps_the_density_of_its_cell_not_the_page_that_counts_it_twice():
+    density = materials.material("khamrabaevite").prop("rho_grain_g_cm3")
+    assert density.code == "C" and density.value == pytest.approx(4.97)
+    tic_cell = 4.0 * materials.material("khamrabaevite").molar_mass * 1000.0 / 6.02214076e23 / (4.319e-8) ** 3   # TiC, rock salt, Z 4
+    assert density.value == pytest.approx(tic_cell, rel=0.02) and density.value < 6.0, "the page's 10.01 counts the cell twice"
+
+
+def test_mohs_is_the_middle_of_the_printed_range_and_a_missing_hardness_is_null():
+    pyrite = materials.material("pyrite").prop("mohs")
+    assert pyrite.value == pytest.approx(6.25) and pyrite.measured_range == (6.0, 6.5) and pyrite.code == "R"
+    for name in ("niningerite", "osbornite", "sinoite"):
+        assert materials.material(name).prop("mohs").value is None and materials.material(name).prop("mohs").code == "N", name
+    for row in materials.MATERIALS:
+        if "mohs" in row.props and row.props["mohs"].value is not None:
+            low, high = row.props["mohs"].measured_range
+            assert 1.0 <= low <= row.props["mohs"].value <= high <= 10.0, row.id
+
+
+def test_the_loader_refuses_an_unknown_crystal_system_and_a_hardness_off_the_scale(broken):
+    with pytest.raises(DataError, match="crystal system"):
+        broken(lambda data: _row(data, "pyrite").update(crystal_system="cubical"))()
+    with pytest.raises(DataError, match="Mohs"):
+        broken(lambda data: _row(data, "pyrite")["props"]["mohs"].update(value=11.0))()
+
+
 def test_the_gas_pointers_name_rows_of_the_gas_table():
     pointers = [row for row in materials.MATERIALS if row.gas_formula]
     assert len(pointers) >= 10
