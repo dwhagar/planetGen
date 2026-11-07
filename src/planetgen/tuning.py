@@ -3281,6 +3281,14 @@ PREVALENCE_BASE_SHARES = {
     "planets": 0.822,           # at least one planet or belt
 }
 
+# The share of systems that have the feature among those `prevalence.resolve` forces it on (GEN.1322). A belt, a large star and planets are made as asked
+# (1.0). A habitable world is only asked for (GEN.1130: the odds of the conditions are multiplied by REQUEST_ODDS and the request never forces), and the
+# test counts a planet or moon of a class that can carry life, so a forced system has one in 0.747 of cases and a run cannot reach a higher share
+# than that. Measured over 300 systems with `HABITABLE_WORLD` True (224 had one; run seeds 801 to 803, 2026-11-07), the way the base shares are; remeasure with them (tests/test_prevalence.py).
+PREVALENCE_FORCED_HIT_RATES = {
+    "habitable_world": 0.747,
+}
+
 # The usual share of each feature one draw decides (ADM.16: the Generate
 # page starts each prevalence field at its usual share), measured over
 # 10,000 systems with default options (four seeds of 2,500; 2026-10-08;
