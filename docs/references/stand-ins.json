@@ -16693,6 +16693,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ)"
+            ],
+            [
+              "The range it moves in",
+              "0.25 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "systems with an inner system"
+            ],
+            [
+              "What would show it wrong",
+              "test_planet_architecture::test_systems_differ_in_scale_and_the_planets_of_one_system_stay_alike; test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet; a share of FGK stars with a planet of 0.8 to 1.25 Earth radii inside 85 days outside 10 to 23 percent"
+            ],
+            [
+              "What replaces it",
+              "a formation model of the scale of an inner system (pebble flux and disk mass)"
+            ],
+            [
+              "Evidence",
+              "tuned to a published statistic: Fressin et al. 2013 (1301.0842): 16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii with periods up to 85 days; the FGK weights used (15, 21 and 64 percent of F, G and K) are a stand-in; GEN.1335 measured 9.9 percent with no spread between systems and 15.6 with 0.4 dex (reports/gen1335-inner-mass-function-2026-11-07.md)"
+            ]
+          ],
+          "id": "PA15",
+          "key": "6.36:PA15",
+          "kind": "P",
+          "slug": "6-36-pa15",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ)"
         }
       ],
       "slug": "6-36-stand-ins-of-the-planet-architecture",

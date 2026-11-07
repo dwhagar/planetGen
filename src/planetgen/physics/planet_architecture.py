@@ -171,6 +171,7 @@ def inner_chain(star_mass_kg, scatter, fe_h, stream=None, force=False, extra_sig
     solar_masses = _kg_to_msun(star_mass_kg)
     scale_kg = (tuning.INNER_PLANET_MASS_EARTH * solar_masses ** tuning.INNER_PLANET_MASS_STELLAR_EXPONENT
                 * scatter ** tuning.INNER_PLANET_MASS_DISK_EXPONENT * 10.0 ** (tuning.INNER_PLANET_MASS_METALLICITY_EXPONENT * fe_h)) * _EARTH_KG
+    scale_kg *= 10.0 ** (tuning.INNER_SYSTEM_SCALE_SIGMA_DEX * source.gauss(0.0, 1.0))      # GEN.1335: the system's own scale about the median
     separation = planet_mass.draw_separation(tuning.INNER_SEPARATION_MEDIAN, source)
     distance = max(period_to_au(tuning.OLIGARCH_INNER_EDGE_PERIOD_DAYS
                                 * 10.0 ** (tuning.OLIGARCH_INNER_EDGE_SIGMA_DEX * source.gauss(0.0, 1.0)), star_mass_kg), floor_au)

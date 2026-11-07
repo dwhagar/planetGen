@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1217 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1218 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 91 | 41 | 7 | 9 | 0 | 148 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 52 | 21 | 3 | 1 | 0 | 77 |
-| T6 | 121 | 87 | 24 | 60 | 0 | 292 |
+| T6 | 121 | 87 | 24 | 61 | 0 | 293 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 36 | 14 | 5 | 80 | 34 | 169 |
-| All | 677 | 249 | 58 | 188 | 45 | 1217 |
+| All | 677 | 249 | 58 | 189 | 45 | 1218 |
 
 ## How the labels were given
 
@@ -672,6 +672,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PA11 | P | T5 | L3 | tuning.PLANET_MIN_MASS_OUTER_EARTH 0.6016 and PLANET_MIN_MASS_EARTH 0.1 (the lightest oligarch that is a planet, beyond and inside the snow line) | outer 0.3 to 1.5; inner 0.05 to 0.2 | all chains | test_planet_architecture::test_a_star_gets_its_planets_in_order_with_the_masses_a_planet_has_and_a_seeded_run_repeats; a planet count beyond 2 AU outside the microlensing counts | a belt formation and size-frequency model | design (Mercury is 0.055 Earth masses); the outer floor tuned to the count of the Neptune-mass planets beyond the snow line ([R4271], READ: dN/dlog q falls as q^0.6 (+0.5, -0.4) below the break at q 1.7e-4, about 20 Earth masses for a 0.6 solar-mass host, with no cutoff down to the survey's sensitivity edge, so the survey sets no floor and the floor stays tuned) | - | no data |
 | PA12 | P | T7 | L0 | planet_occurrence.json `disc_dust_scatter` 0.7 dex and tuning.DISK_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass) | scatter 0.5 to 0.9; shares inside the bands | all hosts | test_planet_architecture::test_the_share_of_stars_with_an_inner_system_follows_the_observed_anchors | the formation model that gives the share from the disc (GEN.729 follow-up) | [R0114] ([R0114], READ: 0.7 dex); [R4898] (30 percent Sun-like); [R4812] (75 percent under 5000 K, 35 percent over 6500 K) | - | - |
 | PA14 | P | T9 | L3 | tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range) | free draws 4 to 20; range 0.05 to 1000 up to 0.01 to 3000 | slot and forced-class requests | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count; a requested class of the table that 40 draws miss at a slot where the class can exist | the class-conditioned draw of the architecture (a plan that places the requested class) | design (needed so a request is reachable; the old law made ice giants common at a cold slot, the architecture does not) | - | no data |
+| PA15 | P | T6 | L3 | tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ) | 0.25 to 0.5 | systems with an inner system | test_planet_architecture::test_systems_differ_in_scale_and_the_planets_of_one_system_stay_alike; test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet; a share of FGK stars with a planet of 0.8 to 1.25 Earth radii inside 85 days outside 10 to 23 percent | a formation model of the scale of an inner system (pebble flux and disk mass) | tuned to a published statistic: Fressin et al. 2013 (1301.0842): 16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii with periods up to 85 days; the FGK weights used (15, 21 and 64 percent of F, G and K) are a stand-in; GEN.1335 measured 9.9 percent with no spread between systems and 15.6 with 0.4 dex (reports/gen1335-inner-mass-function-2026-11-07.md) | - | - |
 
 ## 6.37 Stand-ins of the brown dwarf ceiling
 
