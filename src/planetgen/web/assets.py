@@ -89,7 +89,19 @@ def mime_of(name):
 _SVG_BAD_TAGS = {"script", "foreignobject", "iframe", "object", "embed", "audio", "video", "link", "meta", "style"}
 
 
+_SVG_ENCODING = re.compile(rb"""^\s*<\?xml[^>]*\bencoding\s*=\s*["']([^"']+)["']""", re.IGNORECASE)
+
+
 def _check_svg(data):
+    # SEC.42: the DOCTYPE and entity screen below reads raw bytes, which only means something in UTF-8 (a UTF-16 SVG would slip
+    # past it and still parse), so an SVG in any other encoding is refused instead of read.
+    declared = _SVG_ENCODING.match(data)
+    if data[:2] in (b"\xff\xfe", b"\xfe\xff") or b"\x00" in data or (declared and declared.group(1).lower() not in (b"utf-8", b"utf8")):
+        raise AssetError("The SVG is not UTF-8; save it as UTF-8 text.")
+    try:
+        data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise AssetError("The SVG is not UTF-8; save it as UTF-8 text.") from exc
     if b"<!DOCTYPE" in data.upper() or b"<!ENTITY" in data.upper():
         raise AssetError("The SVG has a DOCTYPE or entity definition; save it as plain SVG.")
     try:
