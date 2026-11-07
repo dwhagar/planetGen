@@ -291,6 +291,17 @@ def _warm_view(warm):
     }
 
 
+def _held_view(held):
+    """The held-jobs panel (PERF.248): jobs waiting for a job they require, or `None` when there are none."""
+    if not held or not held["total"]:
+        return None
+    rows = [{"id": item["id"], "queue": item["queue"].removeprefix("planetgen-"), "label": item["label"].rsplit(".", 1)[-1] or "job",
+             "waits_for": ", ".join(item["waits_for"]) or "a job that just ended",
+             "run": item["run"], "run_url": url_for("web.admin_queue_run", run_id=item["run"]) if item["run"] else None,
+             "stage": item["stage"]} for item in held["items"]]
+    return {"total": held["total"], "shown": len(rows), "rows": rows}
+
+
 def _iso(seconds):
     """A time given in seconds since the epoch as the ISO text `time_text` reads, or `None`."""
     if not seconds:
@@ -307,12 +318,16 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = None
-    workers = warm = None
+    workers = warm = held = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
         except apiclient.ApiError:
             workers = None                      # Redis down: the page says so below; the rest still loads
+        try:
+            held = _held_view(apiclient.admin_work_held(cookie_header))
+        except apiclient.ApiError:
+            held = None
         try:
             warm = apiclient.admin_work_warm(cookie_header, db_name())
         except apiclient.ApiError:
@@ -327,7 +342,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )

@@ -1031,6 +1031,9 @@ forced credential change. They back the admin stats page
   "seconds"}]}}`. `index` is the object index as its last runs recorded it (PERF.140). A phase's `state` is `waiting`, `running`, `built`, `unchanged`, `stopped`,
   `nothing`, `failed` or `interrupted` (null before any run); `auto` says whether a change starts the warm-up by itself,
   which changes it waits to warm for, and the process that holds it.
+- `GET /api/admin/work/held` — the jobs held for a job they require (PERF.247, PERF.248):
+  `{"total", "items": [{"id", "queue", "label", "waits_for", "run", "stage"}]}`, the first 100. `waits_for` lists the
+  required jobs not done yet; `run` and `stage` are set for a unit of a run. A job that requires nothing is never listed.
 - `GET /api/admin/work/workers` and `POST /api/admin/work/workers`
   `{"count": n}` or `{"ludicrous": true}` — the bulk queue's worker count
   (ADM.15, PERF.95). `{"wanted", "live", "ludicrous", "cpus"}`: the count

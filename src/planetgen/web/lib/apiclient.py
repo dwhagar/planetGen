@@ -1418,6 +1418,12 @@ def admin_work_warm(cookie_header, database):
     return body
 
 
+def admin_work_held(cookie_header):
+    """`GET /api/admin/work/held` -- the jobs held for a job they require (PERF.248): `{"total", "items"}`."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/work/held", cookie_header=cookie_header)
+    return body
+
+
 def admin_work_run(cookie_header, run_id):
     """`GET /api/admin/work/<id>` -- one run with its stages and the last events of its log (PERF.99)."""
     body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}",

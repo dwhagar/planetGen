@@ -373,6 +373,9 @@ every other, as before, so nothing that can run together is made to run one afte
   those held for them, with `required job X failed`: they leave the deferred registry for the failed registry, and a unit that is a
   dependant fails its run with the line. A job declared `optional=True` runs after its requirements end whichever way they end.
   Stop All and a canceled queue drop the held jobs with the queued ones (`requires.drop_held`).
+* **The Queue page lists them (PERF.248).** A Held jobs panel on `/admin/queue` (shown only while a job is held) lists each held job
+  with its queue, its run and stage when it is a unit, and the jobs it still waits for; it reads `GET /api/admin/work/held`
+  (`requires.held_overview`, the first 100 and the whole count).
 * **The stages of a run.** A command declares the commands it requires in `commands.REQUIRES` (the phenomena index after the
   phenomena scatter, the territories after the population pass, the neighbor link and the sector paths after the sectors are
   generated). `commands.validate_order` refuses a list of steps in which a step comes before a step it requires, so a wrong order is found
