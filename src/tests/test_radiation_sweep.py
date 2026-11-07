@@ -237,8 +237,14 @@ def test_a_missing_spectrum_under_a_lit_star_is_named(swept, monkeypatch):
     assert any("no spectrum" in text for text in transmission_problems(body))
 
 
+def _passes_some_light(body):
+    """Whether the real column lets some light through in a band the rule reads (an opaque column passes ten times nothing: the test needs a column that passes some)."""
+    spectrum = body_radiation.surface_spectrum(body)
+    return spectrum is not None and any(spectrum.band_transmission(band) > 1e-3 for band in ("uv_c", "uv_b", "uv_a", "visible"))
+
+
 def test_a_thicker_column_that_passes_more_light_is_named(swept, monkeypatch):
-    body, _ = _first(swept, lambda b, m: air_column.column_of(b) is not None and _starlight_w_m2(b) is not None and b.atmospheric_pressure > 1e3)
+    body, _ = _first(swept, lambda b, m: air_column.column_of(b) is not None and _starlight_w_m2(b) is not None and b.atmospheric_pressure > 1e3 and _passes_some_light(b))
     real = body_radiation.surface_spectrum(body)
 
     def fewer_photons_for_thin_air(candidate, *args, **kwargs):

@@ -17,7 +17,7 @@ thinner low cloud, `cloud_albedo`); the response is 0.65 and 0.56 K per W/m2 abo
 cloud, under the published lower bound of 0.54, which a strict expected failure held until GEN.974 landed). Below that the twin falls to a snowball: a flux 5 percent
 down, started from the airless Earth's temperature, ends at 224 K and the fixed point is bistable there (a warm start finds 276 K), the ice catastrophe of the energy
 balance models (Budyko 1969, Sellers 1969: a few percent of the Earth's light). The sweep therefore goes from 3 percent below the twin's light to 10 percent above, the branch
-the published sensitivity is about, and `test_a_flux_ten_percent_down_ends_in_a_snowball` holds the other.
+the published sensitivity is about, and `test_a_flux_fifteen_percent_down_ends_in_a_snowball` holds the other.
 
 The twin is a test target, never an input of the code. The solve is replayed on one stream (`draw.bound`), so the sweep changes the light and nothing else;
 the albedo follows the ice law of the twin (`climate_branches.IceAlbedoLaw`, GEN.972) and its cloud (`cloud_albedo.CloudLaw`, GEN.974, not locked), and the flux swept is the one it
@@ -118,14 +118,18 @@ def test_the_cloud_thins_as_the_twin_warms(sweep):
     assert airs[1.0].albedo - airs[1.10].albedo > cloud_albedo.BETA_PER_K * (airs[1.10].temperature_k - airs[1.0].temperature_k) * 0.99
 
 
-def test_a_flux_ten_percent_down_ends_in_a_snowball():
-    """The ice catastrophe of the energy balance models: the twin with 10 percent less light, started from the airless Earth's temperature, is under 240 K and as bright as the
-    ice makes it (the ice law's covered albedo 0.62, and the cloud adds its thickening)."""
+def test_a_flux_fifteen_percent_down_ends_in_a_snowball():
+    """The ice catastrophe of the energy balance models: the twin with 15 percent less light, started from the airless Earth's temperature, is under 240 K and as bright as the
+    ice makes it (the ice law's covered albedo 0.62, and the cloud adds its thickening). Since the GEN.1304 table (the temperate wet branch no longer 12 K cold) the fixed point
+    holds the freezing edge down to 12 percent less light (273 K at 10 percent, 268 K at 12) and falls to the snowball between 12 and 14 percent; with the cloud or without it the
+    threshold is the same to within 1 percent of the light (the table moved it, not GEN.974), where it was between 5 and 10 percent before the table."""
     with pytest.MonkeyPatch.context() as monkeypatch:
         _hold_the_air_of_the_earth(monkeypatch)
         flux = brentq(lambda f: _solve(f).temperature_k - EARTH_SURFACE_K, 200.0, 320.0, xtol=1.0e-3)
-        cold = _solve(0.90 * flux)
+        cold = _solve(0.85 * flux)
+        edge = _solve(0.90 * flux)
     assert cold.converged and cold.temperature_k < 240.0 and cold.albedo > 0.60
+    assert edge.temperature_k > 265.0                              # 10 percent down is still the warm branch, at the freezing edge
 
 
 def test_the_vapor_of_the_ocean_is_a_feedback_in_the_fixed_point(sweep):
