@@ -20,7 +20,7 @@ release is stamped.
 | PERF | PERF.249 |
 | DB | DB.116 |
 | API | API.42 |
-| ADM | ADM.139 |
+| ADM | ADM.140 |
 | SEC | SEC.47 |
 | TEST | TEST.684 |
 | USR | USR.32 |
@@ -527,6 +527,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.136 | A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug) | none | done, PR #5511 |
 | ADM.137 | Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug) | none | done, PR #4723 |
 | ADM.138 | The political step skips locked polities, nations and cities and shows the lock in the editors; releasing a lock lets the step move it again | none | dropped, folded into POP.48 |
+| ADM.139 | In the admin console, an option to look at and reset manually edited items that were generated (8.2) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
