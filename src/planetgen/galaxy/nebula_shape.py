@@ -301,16 +301,18 @@ def draw_shape(rng):
     )
 
 
-def shape_for_nebula(nebula_class, radius_ly, density_cm3, temperature_k, extinction_av, dominant_species):
+def shape_for_nebula(nebula_class, radius_ly, density_cm3, temperature_k, extinction_av):
     """
     The shape a nebula with these properties gets (GEN.75): drawn from a
     seed made of the properties themselves, never from the shared random
     state, so asking for it (at generation, or later for a row saved
     before shapes were stored) consumes no random numbers and always
-    answers the same.
+    answers the same. The seed holds only numbers and the class letter, never a text a save writes later (GEN.1332: the species text of a
+    nebula is rewritten from its composition when the row is saved, GEN.1276, which made a row with no stored shape draw another shape
+    than the generator had).
     """
     text = "|".join((str(nebula_class), repr(float(radius_ly)), repr(float(density_cm3)),
-                     repr(float(temperature_k)), repr(float(extinction_av)), str(dominant_species)))
+                     repr(float(temperature_k)), repr(float(extinction_av))))
     seed = int.from_bytes(hashlib.sha256(text.encode("utf-8")).digest()[:8], "big")
     return draw_shape(draw.Stream(seed))
 

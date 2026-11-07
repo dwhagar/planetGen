@@ -3630,9 +3630,8 @@ def nebula_shape(conn, nebula_id):
     """
     One nebula's shape (GEN.75, `planetgen.galaxy.nebula_shape`): the one
     stored with it (`nebulae.shape_*` and `nebula_shape_balls`), or, for a
-    nebula saved before v56, the one its stored properties give (drawn
-    from them, `dominant_species` included, so it is the same each time it
-    is read but not the generator's own, whose species text a save rewrites).
+    nebula saved before v56, the one a fresh save would have stored,
+    drawn from its own properties.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -3652,7 +3651,7 @@ def nebula_shape(conn, nebula_id):
     row = _with_printed_uid(row)
     if row.get("shape_scale") is None:
         return row, shapes.shape_for_nebula(row["nebula_class"], row["radius_ly"], row["density_cm3"],
-                                            row["temperature_k"], row["extinction_av"], row["dominant_species"])
+                                            row["temperature_k"], row["extinction_av"])
     balls = conn.execute(
         "SELECT ball_index, center_x, center_y, center_z, radius FROM nebula_shape_balls"
         " WHERE nebula_id = ? ORDER BY ball_index", (nebula_id,)).fetchall()
