@@ -12,7 +12,7 @@ isolated build environment with no runtime dependency installed, and
 
 import argparse
 
-__version__ = "8.0.3548"
+__version__ = "8.0.3549"
 
 REPO_URL = "https://github.com/dwhagar/planetGen"
 
