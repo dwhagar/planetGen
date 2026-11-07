@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.47 |
-| TEST | TEST.669 |
+| TEST | TEST.670 |
 | USR | USR.32 |
 | OPS | OPS.113 |
 | DOC | DOC.110 |
@@ -4165,6 +4165,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.666 | Three tests are red on main: test_db_column_round_trip (rogue surface_liquid_ammonia_wt is never written; irregular_moons is in NEVER_READ), test_object_rows (_Rows has no fetchone) and the brown dwarf case of test_rogue_habitability (temp_livable_share) (bug) | none | open |
 | TEST.667 | Four queue tests are red on clean main: test_api_jobs (test_a_quick_edit_answers_in_the_same_response, test_a_slow_edit_answers_202_with_the_job_id) and two in test_rq_time_limits (bug) | none | open |
 | TEST.668 | Two tests in test_update_database_step.py are red on clean main (bug) | none | open |
+| TEST.669 | 35 tests in test_web_sector_nav.py and test_web_pages.py are red on main: the sector page answers 404 on their fake ids (a public-ID change?) (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
@@ -4322,7 +4323,7 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.402 | Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets | none | open |
 | MAP.403 | Sector filter: charted sectors by default, with all sectors or uncharted only, on the Sectors list and in the search information | none | done, PR #5439 |
 | MAP.404 | Uncharted sector pages show only what is known to be in the sector and display the sector map | none | done, PR #5406 |
-| MAP.405 | The sector gravity page answers 502 on a galaxy that has no shape yet, because the API answers 409 "the galaxy has no shape yet": it should show "not computed yet" (bug) | none | open |
+| MAP.405 | The sector gravity page answers 502 on a galaxy that has no shape yet, because the API answers 409 "the galaxy has no shape yet": it should show "not computed yet" (bug) | none | done, PR #5482 |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 

@@ -2761,3 +2761,4 @@ Baseline: PR #1817.
 | OPS.112 | 8.1 | The headline closes |
 | TEST.661 | 8.1 | The headline closes |
 | TEST.664 | 8.1 | The headline closes |
+| MAP.405 | 8.1 | The headline closes |
