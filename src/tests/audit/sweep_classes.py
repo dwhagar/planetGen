@@ -19,7 +19,7 @@ Rules (names as `RULES` lists them):
 
 import copy
 
-from planetgen.physics import class_fit, planet_classes
+from planetgen.physics import class_fit, planet_classes, planet_type
 from tests.audit.sweep import Rule, broken_copy, seed_for
 
 REQUEST_SYSTEMS = 12
@@ -49,7 +49,9 @@ def _check_assigned(entry):
     # GEN.1142: a letter can have a row of each kind (class T is the giant "gas dwarf" and, for a rocky body whose air is mostly hydrogen, a
     # terrestrial one), so the letter fits the body when any of its rows is of the body's kind.
     kinds = sorted({cls.kind for cls in planet_classes.CLASSES if cls.letter == letter})
-    if body.body_type not in kinds:
+    # GEN.1323: a rocky body under a hydrogen-helium envelope (a sub-Neptune) is judged by the giant classes, so a giant letter fits it too.
+    under_envelope = body.body_type == "t" and (getattr(body, "envelope_mass_fraction", None) or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE
+    if body.body_type not in kinds and not (under_envelope and "g" in kinds):
         return [f"class {letter!r} is a {'/'.join(kinds)!r} class and the body is {body.body_type!r}"]
     return []
 

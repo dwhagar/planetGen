@@ -232,11 +232,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
 | function | planetgen.physics.seasonal_swing.peak_wet_bulb_c | by design | the hottest wet bulb of a series for a note; the Temperature score applies the wet bulb rule to each sample (`temperature_coverage.coverage`, GEN.1265) |
-| function | planetgen.physics.field_dispersal.age_from_unit_yr | GEN.1105 | the age a field reaches at a given share of its retirement radius; read when the field members land |
-| function | planetgen.physics.field_dispersal.column_density_kg_m2 | GEN.1105 | the column density through a field; read when the field members land |
-| function | planetgen.physics.field_dispersal.freeze_out_time_s | GEN.1105 | when a field stops colliding; read when the field members land |
-| function | planetgen.physics.field_dispersal.member_position_m | GEN.1105 | a field member's place from its parent's; read when the field members land |
-| function | planetgen.physics.field_dispersal.shear_displacement_m | GEN.1105 | the shear of a field's members; read when the field members land |
+| function | planetgen.physics.field_dispersal.age_from_unit_yr | GEN.361 | the age a field reaches at a given share of its retirement radius; read by the field render (GEN.361) |
+| function | planetgen.physics.field_dispersal.column_density_kg_m2 | GEN.361 | the column density through a field; read by the field render (GEN.361) |
+| function | planetgen.physics.field_dispersal.freeze_out_time_s | GEN.361 | when a field stops colliding; read by the field render (GEN.361) |
+| function | planetgen.physics.field_dispersal.member_position_m | GEN.361 | a field member's place from its parent's; read by the field render (GEN.361) |
+| function | planetgen.physics.field_dispersal.shear_displacement_m | GEN.361 | the shear of a field's members; read by the field render (GEN.361) |
 | function | planetgen.physics.impact_history.erosion_efficiency | by design | the readable one-diameter form of the sum `erosion_per_impactor_mass` takes inline (PERF.229 moved the arithmetic into the loop, the same numbers); `test_impact_history` checks it against the loop |
 | module | planetgen.physics.heavy_liquid_tide | by design | the exact fluid Love numbers of a core under a deep global liquid layer (GEN.1052); the tests hold the thin-sea loading factor of `ocean_tides` to its rigid-floor limit at any depth and the fluid limits to 3/2 and 5/2, and it is the path for a body with a molten core under a global liquid, which no generated body has |
 | function | planetgen.physics.nebula_sprites.chord_extinction_mag | VIEW.8 | the sky route sends the dimming through a cloud's middle and the browser takes the chord (skysprites.js darkOpacity); the per-star dust of nebulae (VIEW.8, 9.1) takes the chord for each line of sight |

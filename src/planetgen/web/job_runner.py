@@ -44,6 +44,7 @@ import sys
 import tempfile
 import time
 
+from planetgen.util import log as planetgen_log
 from planetgen.util import logrecord, memwatch
 
 CANCEL_NAME = "cancel"
@@ -394,6 +395,17 @@ def _run_estimates(job, jobs_dir):
         return nothing
 
 
+def _step_output(path, start, limit=8192):
+    """The last `limit` bytes a step wrote to the job's output file after offset `start`, as text (empty when it cannot be read)."""
+    try:
+        with open(path, "rb") as handle:
+            end = handle.seek(0, os.SEEK_END)
+            handle.seek(max(start, end - limit))
+            return handle.read().decode("utf-8", errors="replace")
+    except OSError:
+        return ""
+
+
 def _log_traceback(job_dir):
     """Appends the traceback of the exception being handled to the job's
     output log, so the page's log shows the runner's own failure in full
@@ -480,6 +492,7 @@ def run(job_dir):
                 env[STAGE_OFFSET_ENV] = str(first - 1)
                 env[STAGE_TOTAL_ENV] = str(total)
                 started = time.time()
+                output_start = os.fstat(log.fileno()).st_size
                 with memwatch.PeakTracker() as watch:
                     current["proc"] = subprocess.Popen(
                         step["argv"], stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
@@ -511,6 +524,9 @@ def run(job_dir):
                     mark(logrecord.stage_record(
                         logrecord.STAGE_FAILED, "job", first, total, seconds=took, count=count,
                         reason="canceled" if current["canceled"] else f"exited with status {code}"))
+                    if not current["canceled"]:
+                        planetgen_log.process_ended("job", f"Step {step['label']!r} of web job {job['id']}", code,
+                                                    output=_step_output(os.path.join(job_dir, "output.log"), output_start), job=job["id"])
                 state["exit_code"] = code
                 if current["canceled"]:
                     break
@@ -531,6 +547,7 @@ def run(job_dir):
         state["error"] = (f"The job ran past its time limit and RQ ended it: {exc}"
                           if type(exc).__name__ == "JobTimeoutException" else f"The job runner failed: {exc}")
         _log_traceback(job_dir)
+        planetgen_log.error("The job runner failed (job %s): %s", job["id"], exc, exc_info=True)
     finally:
         state["finished_at"] = time.time()
         _write_json(state_path, state)

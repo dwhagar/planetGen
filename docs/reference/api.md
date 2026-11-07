@@ -424,6 +424,14 @@ connectivity to that specific schema rather than the default one.
   `belt` (its `designation`, `star`, `origin` and `history` sentences, `history_text` and `individual_count`) and the `previous` (heavier) and `next` (lighter)
   designations. Every number is `{value, unit, text}`. A new route, so the API version stays. A reference that is not a belt, a rank not written as the
   designation writes it, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page yet) is a `404`.
+- `GET /api/objects/<ref>/field-members` — the bodies an interstellar asteroid field keeps individually (GEN.1105, `describe/field_member_info.py`): `field` (its
+  `designation`, `name` and `mass`), `count` and `bodies`, heaviest first, each with its `rank`, `designation` (`<field ID>.<rank hex>`), `mass`, `diameter`,
+  `density`, `composition` shares and `status` word. Every number is `{value, unit, text}`. A field with no ledger keeps none (`count` 0). A new route, so the
+  API version stays. A reference that is not an asteroid field is a `404`.
+- `GET /api/objects/<ref>/field-members/<rank>` — one body of such a field, `rank` written as the designation writes it (hex, at least four digits; 1 is the
+  heaviest): `designation`, `rank`, `member` (the entry of `bodies` above), `share` of the field's mass, `field` (its `designation`, `name`, `origin`, `history`
+  and `individual_count`) and the `previous` (heavier) and `next` (lighter) designations. A field has no star, so the body has no orbit of its own. A new route,
+  so the API version stays. A reference that is not an asteroid field, a rank not written as the designation writes it, or a body the field does not keep is a `404`.
 - `GET /api/objects/<ref>/children[?limit=&after=]` — what belongs to an
   object, one keyset page at a time (UX.169, `db/children.py`). A sector holds
   its systems, then the phenomena placed in it; a system its stars, then the

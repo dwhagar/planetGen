@@ -132,8 +132,9 @@ def test_a_moons_tide_does_not_read_its_parents_radius(host_star):
 
 # --- GEN.985: the tides of the orbit are taken again at the final age -----------------------------------------------------------------------
 
-def _close_in_planet(star, mass_kg=5.0 * constants.EARTH_MASS_TO_KG, distance=0.1, moon_count=0):
-    """A planet drawn at a star of 0.5 Gyr that kept an eccentricity of at least 0.05 and that 13.8 Gyr would wear down."""
+def _close_in_planet(star, mass_kg=0.9 * constants.EARTH_MASS_TO_KG, distance=0.1, moon_count=0):
+    """A planet drawn at a star of 0.5 Gyr that kept an eccentricity of at least 0.05 and that 13.8 Gyr would wear down. Under 1 Earth mass by default: a heavier
+    rocky planet captures an envelope (GEN.1323), whose radius makes the tide wear its orbit down at once."""
     star.age = 0.5
     for seed in range(80):
         planet = class_support.draw_planet(star, distance, seed, SystemConfig(), mass=mass_kg, zone_override="h", moon_count=moon_count)

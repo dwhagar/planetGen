@@ -64,6 +64,17 @@ sudo scripts/enable-swap.sh 8G /mnt/disk/swapfile   # another place, when the sy
 
 `swapon --show` and `free -m` show the result. `install.sh` and `update.sh` warn when the host has no swap.
 
+### Memory guards
+
+Some hosts run a memory guard (`earlyoom`, `systemd-oomd`, `nohang`) that ends the biggest process with SIGTERM when free memory runs low, before the
+kernel's own killer ends it with SIGKILL. A planetGen work unit (the warm-up, a generate run) is often the biggest process, and a unit ended this way fails
+with status 15. `install.sh` and `update.sh` say when one is running, and a warm-up that fails prints what the kernel and the guards logged
+meanwhile. Every ended work process is also written, with its signal, unit and run, to `error.log` in the log folder
+(`/var/log/planetgen/error.log`), so the cause is on record. What to do about it, in this order: keep swap on (above), because a guard acts when swap is
+nearly used up as well as memory; give the guard something to protect, for example `earlyoom` started with `--avoid '(^|/)(mysqld|redis-server|apache2|httpd)$'` so
+it picks a work unit before the database, the queue or the web server; and, if the host is small, lower `queue.max_host_workers` in `config.json` (0 sizes it from memory; see `docs/reference/config.md`) so fewer
+units run at once.
+
 On a 16 GB host that also generates, `innodb_buffer_pool_size = 4G` in `/etc/mysql/mysql.conf.d/mysqld.cnf` keeps
 MySQL near 5 GB at most and leaves the rest to the workers (about 250 MB each, up to the worker count on the
 Generate page) and the web app.

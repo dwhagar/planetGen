@@ -7277,7 +7277,7 @@
             ],
             [
               "Where it holds",
-              "every planet"
+              "every planet that is not a giant (a giant takes OE16)"
             ],
             [
               "What replaces it",
@@ -7673,34 +7673,34 @@
           "fields": [
             [
               "Evidence",
-              "design: the fall of an eccentricity under the tide the heat model gives (GEN.1351) is integrated over a log grid of 24 points four decades below the birth eccentricity (TIDE_GRID_POINTS, TIDE_GRID_DECADES), refined up to 6 times (TIDE_REFINE_PASSES) where the decay time of two neighbours differs by more than a factor of 1.5 (TIDE_JUMP_RATIO), a tide that melts the mantle switching on and off within a few percent of an eccentricity; an interval is taken at the faster of its two ends, so the tide never draws more than the orbit gives up; numerical settings, no physical value"
+              "RECALLED ([R2366]: the eccentricities of the radial-velocity planets follow a Beta law of a = 0.867 and b = 3.03, mean 0.22; the first draw of GEN.1325 gave generated giants a mean of 0.08 from the Kepler laws OE1 to OE3, a third of it); the planets of every system take it when they are giants, a single or one of several, and the tide and the periapsis cut act after it"
             ],
             [
               "What it is",
-              "orbit_elements.TIDE_GRID_POINTS"
+              "orbit_elements.GIANT_BETA_A, GIANT_BETA_B"
             ],
             [
               "The range it moves in",
-              "24 points, 4 decades, 6 passes, ratio 1.5, fixed"
+              "0.867 and 3.03, fixed"
             ],
             [
               "Where it holds",
-              "planets and captured moons"
+              "a gas or ice giant (body_type g), any period"
             ],
             [
               "What replaces it",
-              "none needed"
+              "a Beta law by period and by the number of giants in the system; direct-imaging eccentricities of wide giants"
             ]
           ],
           "id": "OE16",
           "key": "6.12:OE16",
-          "kind": "P",
+          "kind": "B",
           "slug": "6-12-oe16",
-          "tier": "T7",
-          "tier_code": "T7",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
-          "what": "orbit_elements.TIDE_GRID_POINTS"
+          "what": "orbit_elements.GIANT_BETA_A, GIANT_BETA_B"
         }
       ],
       "slug": "6-12-stand-ins-of-the-orbit-elements",
@@ -16535,11 +16535,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 (the share of runaway-capable cores that find gas, the distance beyond which it falls, and how much more a metal-rich star's cores find)"
+              "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 and GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT 1.0 (the share of runaway-capable cores that find gas, the distance beyond which it falls, how much more a metal-rich star's cores find, and the fall of the share in proportion to a lighter star's mass, GEN.1336, as [R2172] find for the giants within 2.5 AU)"
             ],
             [
               "The range it moves in",
-              "share 0.3 to 0.9; cut 5 to 20; exponent 0.3 to 0.9"
+              "share 0.3 to 0.9; cut 5 to 20; exponent 0.3 to 0.9; star-mass exponent 1.0 to 1.5"
             ],
             [
               "Where it holds",
@@ -16555,7 +16555,7 @@
             ],
             [
               "Evidence",
-              "[R2172] ([R2172], READ: the rate goes as 10 to 1.2 [Fe/H] and rises with the star's mass); [R1479]; tuned (the mass law's own PM6 and PM7 are retired into this row)"
+              "[R2172] ([R2172], READ: the rate goes as 10 to 1.2 [Fe/H] and rises with the star's mass); [R1479]; tuned (the mass law's own PM6 and PM7 are retired into this row); the star-mass exponent is [R2172]'s linear law (3.5 percent of 0.5 solar mass stars against about 7 percent of Suns) and gives the M-dwarf hot Jupiter rate of 0.32 percent over 12 seeds against [R1504]'s 0.27 percent"
             ]
           ],
           "id": "PA2",
@@ -16566,7 +16566,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 (the share of runaway-capable cores that find gas, the distance beyond which it falls, and how much more a metal-rich star's cores find)"
+          "what": "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 and GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT 1.0 (the share of runaway-capable cores that find gas, the distance beyond which it falls, how much more a metal-rich star's cores find, and the fall of the share in proportion to a lighter star's mass, GEN.1336, as [R2172] find for the giants within 2.5 AU)"
         },
         {
           "burn_down": [
@@ -17021,6 +17021,48 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the spread of 0.4 dex between inner systems was tuned to the share of K dwarfs with an Earth-size planet inside 85 days [R1459]; no survey measures the spread of the mass scale between systems"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ)"
+            ],
+            [
+              "The range it moves in",
+              "0.25 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "systems with an inner system"
+            ],
+            [
+              "What would show it wrong",
+              "test_planet_architecture::test_systems_differ_in_scale_and_the_planets_of_one_system_stay_alike; test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet; a share of FGK stars with a planet of 0.8 to 1.25 Earth radii inside 85 days outside 10 to 23 percent"
+            ],
+            [
+              "What replaces it",
+              "a formation model of the scale of an inner system (pebble flux and disk mass)"
+            ],
+            [
+              "Evidence",
+              "tuned to a published statistic: [R1459] (1301.0842): 16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii with periods up to 85 days; the FGK weights used (15, 21 and 64 percent of F, G and K) are a stand-in; GEN.1335 measured 9.9 percent with no spread between systems and 15.6 with 0.4 dex (reports/gen1335-inner-mass-function-2026-11-07.md)"
+            ]
+          ],
+          "id": "PA15",
+          "key": "6.36:PA15",
+          "kind": "P",
+          "slug": "6-36-pa15",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ)"
         }
       ],
       "slug": "6-36-stand-ins-of-the-planet-architecture",
@@ -40337,6 +40379,468 @@
       "title": "Stand-in of the speed of a hand-made asteroid field"
     },
     {
+      "key": "6.204",
+      "number": "6.204",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_air._steam_possible and MOIST_LIMIT_K 375: a body holds steam only when its effective flux (starlight over 1361 W/m2 plus 4 times its own heat flow over 1361 times one less its albedo) is past orbits.runaway_greenhouse_flux of its star's temperature and its mass (the Sun's temperature for a body with no star); under it a body with water has its surface held at 375 K or under, the surface of the radiative-convective model's saturated clear-sky air at its last solution (374.6 K at 330 W/m2, GEN.1194)"
+            ],
+            [
+              "The range it moves in",
+              "MOIST_LIMIT_K 340 to 420; the limit's own range ([R2446] runaway sets, 0.9 to 1.5 S by star and mass)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with surface water, under or near the limit"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_air_steam_limit; a rocky planet under 0.8 of the limit with a steam air of over 1e8 Pa in a generated sample"
+            ],
+            [
+              "What replaces it",
+              "a radiative-convective table that bounds the outgoing flux of a saturated air (so the fixed point has one answer, as for CC17)"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics: a hot steam air cannot radiate less than about 280 W/m2 [R1607, R3236], so a body that absorbs less than the limit cools until its water condenses; the 375 K bound is the model's own moist limit, not a source value"
+            ]
+          ],
+          "id": "SV1",
+          "key": "6.204:SV1",
+          "kind": "P",
+          "slug": "6-204-sv1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_air._steam_possible and MOIST_LIMIT_K 375: a body holds steam only when its effective flux (starlight over 1361 W/m2 plus 4 times its own heat flow over 1361 times one less its albedo) is past orbits.runaway_greenhouse_flux of its star's temperature and its mass (the Sun's temperature for a body with no star); under it a body with water has its surface held at 375 K or under, the surface of the radiative-convective model's saturated clear-sky air at its last solution (374.6 K at 330 W/m2, GEN.1194)"
+        }
+      ],
+      "slug": "6-204-stand-in-of-the-steam-limit-of-the-air-of-a-body",
+      "title": "Stand-in of the steam limit of the air of a body"
+    },
+    {
+      "key": "6.205",
+      "number": "6.205",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "all the chlorine a sealed world degasses (inventory[\"Cl\"] times the chlorine degassing share) stays in the ocean as chloride, none is lost to the crust (chlorapatite, evaporite, hydrothermal uptake)"
+            ],
+            [
+              "The range it moves in",
+              "the chlorine inventory bracket (AM92, chlorine_wt_percent) and the degassing share 0.05 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "a sealed ocean world"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sink of chloride into the altered crust of an ocean world"
+            ],
+            [
+              "What replaces it",
+              "a reaction-transport model of the early ocean and the crust"
+            ],
+            [
+              "Evidence",
+              "reports/gen1309-oxygen-chain-2026-11-07.md"
+            ]
+          ],
+          "id": "AN1",
+          "key": "6.205:AN1",
+          "kind": "P",
+          "slug": "6-205-an1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "all the chlorine a sealed world degasses (inventory[\"Cl\"] times the chlorine degassing share) stays in the ocean as chloride, none is lost to the crust (chlorapatite, evaporite, hydrothermal uptake)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the sulfate of sulfur_balance.balance is the ocean's, each mole carrying two charges; gypsum and the calcium it takes are not tracked"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a sealed ocean world with a sulfur budget"
+            ],
+            [
+              "What would show it wrong",
+              "a sealed-ocean model that precipitates anhydrite at the sulfate the budget gives"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the ocean with calcium sulfate"
+            ],
+            [
+              "Evidence",
+              "as AN1"
+            ]
+          ],
+          "id": "AN2",
+          "key": "6.205:AN2",
+          "kind": "P",
+          "slug": "6-205-an2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the sulfate of sulfur_balance.balance is the ocean's, each mole carrying two charges; gypsum and the calcium it takes are not tracked"
+        }
+      ],
+      "slug": "6-205-stand-ins-of-the-strong-acid-anions-of-a-sealed-ocean",
+      "title": "Stand-ins of the strong-acid anions of a sealed ocean"
+    },
+    {
+      "key": "6.206",
+      "number": "6.206",
+      "rows": [
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the median starting envelope 0.1 of the mass was set to the middle of the recipe bracket so that the valley targets and the sweep (45 percent above 2.0 inside 100 days) are met; no measured envelope fraction of the sub-Neptunes of that mass is in hand, and a gas-accretion model of the core replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 3.72 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured envelope fraction of the sub-Neptunes of that mass that sits outside the bracket"
+            ],
+            [
+              "What replaces it",
+              "an envelope drawn from a disk gas-accretion model of the core's mass, the disk's life and its opacity"
+            ],
+            [
+              "Evidence",
+              "both valley targets (slope -0.11, 1.84 Earth radii at 10 days) are inside 2 sigma for the whole bracket (envelope-escape-wiring.md section 1); the generator's 240-system sweep gives 45 percent above 2.0 inside 100 days (reports/gen1323-sub-neptune-envelopes-2026-11-07.md)"
+            ]
+          ],
+          "id": "EC1",
+          "key": "6.206:EC1",
+          "kind": "P",
+          "slug": "6-206-ec1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the exponent 3 below 3.72 Earth masses was chosen so that the Earth and Venus come out bare and the 2 Earth-mass planets keep thin envelopes; no source was read for it, and a gas-capture model of a core in a disk of its own mass and temperature replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+            ],
+            [
+              "The range it moves in",
+              "2 to 4"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 1 to 3.72 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a population of 1 to 2 Earth-mass planets whose radii are mostly above 1.6 (exponent too low) or of 2 to 4 Earth-mass planets that are all bare (too high)"
+            ],
+            [
+              "What replaces it",
+              "gas capture by a core in a disk of its own mass and temperature"
+            ],
+            [
+              "Evidence",
+              "no source read: a flat start gives every Earth-mass planet an envelope (median radius 3.2 in the sweep) and the Earth and Venus have none; at 3, a 1 Earth-mass planet starts with 0.2 percent and a 2 Earth-mass planet with 1.6 percent; at 4, 1 to 2 Earth-mass planets are mostly bare"
+            ]
+          ],
+          "id": "EC2",
+          "key": "6.206:EC2",
+          "kind": "P",
+          "slug": "6-206-ec2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "envelope_capture.MASS_EXPONENT 3: below 3.72 Earth masses the median start falls as (mass / 3.72) to this power"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.MIN_MASS_EARTH 1 and MAX_MASS_EARTH 20: the planets that capture an envelope are the rocky planets of the e1 and e2 rows (1 Earth mass up) and planet_kind's heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2; 15 to 30"
+            ],
+            [
+              "Where it holds",
+              "rocky planets"
+            ],
+            [
+              "What would show it wrong",
+              "an envelope found on a planet under 1 Earth mass"
+            ],
+            [
+              "What replaces it",
+              "a capture law that has no lower edge"
+            ],
+            [
+              "Evidence",
+              "the e1 and e2 rows (mass_earth 1 to 30) and planet_kind._MAX_TERRESTRIAL_EARTH"
+            ]
+          ],
+          "id": "EC3",
+          "key": "6.206:EC3",
+          "kind": "B",
+          "slug": "6-206-ec3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "envelope_capture.MIN_MASS_EARTH 1 and MAX_MASS_EARTH 20: the planets that capture an envelope are the rocky planets of the e1 and e2 rows (1 Earth mass up) and planet_kind's heaviest terrestrial body (a heavier core is a giant whose interior holds its envelope)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.settle_envelope keeps the drawn mass as the planet's total and takes the radius at the 20 mbar level of Lopez and Fortney (the level the valley survey and transit radii use)"
+            ],
+            [
+              "The range it moves in",
+              "the envelope's mass, a few percent"
+            ],
+            [
+              "Where it holds",
+              "planets with an envelope of 0.5 to 20 percent"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose measured mass is the core's alone (the total is then a few percent too light)"
+            ],
+            [
+              "What replaces it",
+              "the core mass drawn first and the envelope added on top"
+            ],
+            [
+              "Evidence",
+              "the rows pass the planet's mass as the core mass in the same way (envelope-escape-wiring.md section 3)"
+            ]
+          ],
+          "id": "EC4",
+          "key": "6.206:EC4",
+          "kind": "P",
+          "slug": "6-206-ec4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "planets.settle_envelope keeps the drawn mass as the planet's total and takes the radius at the 20 mbar level of Lopez and Fortney (the level the valley survey and transit radii use)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.MAX_START 0.2: the largest starting envelope a rocky planet draws, the top of the range the radius law of Lopez and Fortney was fitted over (the survey holds 0.5)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "rocky planets of 1 to 20 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a planet of 2 to 4 Earth masses with an envelope of more than 20 percent"
+            ],
+            [
+              "What replaces it",
+              "a radius law that holds past 20 percent, or a capture law that caps the envelope by the core's mass"
+            ],
+            [
+              "Evidence",
+              "[R2741] fit range (bulk_structure.CLOSED_FORM_RANGES); the first sweep with the survey's 0.5 gave planets of 3 Earth masses of 7 Earth radii"
+            ]
+          ],
+          "id": "EC5",
+          "key": "6.206:EC5",
+          "kind": "B",
+          "slug": "6-206-ec5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "envelope_capture.MAX_START 0.2: the largest starting envelope a rocky planet draws, the top of the range the radius law of Lopez and Fortney was fitted over (the survey holds 0.5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.ENVELOPE_SETTLE_TOLERANCE 0.02: a planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it, its air, class and spin"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "rocky planets with an envelope"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose radius or class moves visibly between the draw and the settle"
+            ],
+            [
+              "What replaces it",
+              "none (numerical: the radius moves by under a hundredth)"
+            ],
+            [
+              "Evidence",
+              "the same 2 percent as AGE_SETTLE_TOLERANCE (row OE15)"
+            ]
+          ],
+          "id": "EC6",
+          "key": "6.206:EC6",
+          "kind": "B",
+          "slug": "6-206-ec6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.ENVELOPE_SETTLE_TOLERANCE 0.02: a planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it, its air, class and spin"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, every second draw of a class request being a late core was tuned so that class V (2 g and more) is reachable; it goes when the generator draws the formation time of a core against the disk's lifetime"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLASS_REQUEST_LATE_CORE_EVERY 2: every second draw of a class request after its free attempts is a core that formed after the gas disk went (late_core, no envelope)"
+            ],
+            [
+              "The range it moves in",
+              "one in four to one in two"
+            ],
+            [
+              "Where it holds",
+              "rocky planets asked for by class (V, 2 g or more, needs a bare core)"
+            ],
+            [
+              "What would show it wrong",
+              "a forced V that no seed reaches"
+            ],
+            [
+              "What replaces it",
+              "a formation-time draw against the disk's lifetime, which the generator does not make"
+            ],
+            [
+              "Evidence",
+              "with no late cores every rocky planet of 4 Earth masses or more keeps an envelope except close in, and V (2 g) is out of reach (0 of 40 seeds); alternate draws reach it in 12 of 40"
+            ]
+          ],
+          "id": "EC7",
+          "key": "6.206:EC7",
+          "kind": "B",
+          "slug": "6-206-ec7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.CLASS_REQUEST_LATE_CORE_EVERY 2: every second draw of a class request after its free attempts is a core that formed after the gas disk went (late_core, no envelope)"
+        }
+      ],
+      "slug": "6-206-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",
+      "title": "Stand-ins of the envelope a rocky planet captures and keeps"
+    },
+    {
+      "key": "6.207",
+      "number": "6.207",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "fields with a ledger (a supernova host's)"
+            ],
+            [
+              "What would show it wrong",
+              "the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent"
+            ],
+            [
+              "What replaces it",
+              "the belt member rule (belt_member.member with the compaction taper) once a field has a taxon mix and a star-free heating"
+            ],
+            [
+              "Evidence",
+              "the belt members of GEN.1070 share the same makeup rule at one density per taxon"
+            ]
+          ],
+          "id": "FD1",
+          "key": "6.207:FD1",
+          "kind": "P",
+          "slug": "6-207-fd1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass"
+        }
+      ],
+      "slug": "6-207-stand-in-of-the-bodies-an-asteroid-field-stores",
+      "title": "Stand-in of the bodies an asteroid field stores"
+    },
+    {
       "key": "6.197",
       "number": "6.197",
       "rows": [
@@ -44065,7 +44569,7 @@
         {
           "burn_down": [
             "replace",
-            "GEN.1105",
+            "GEN.1103",
             "the size-frequency law of the collisional fields sets the largest body and the density of the pieces"
           ],
           "fields": [

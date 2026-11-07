@@ -60,6 +60,21 @@ def test_the_eccentricities_of_a_single_planet_follow_the_published_mixture():
     assert sum(values) > 2.5 * sum(multi)       # a single planet is the hotter population [R1307]
 
 
+def test_the_eccentricities_of_a_giant_follow_the_beta_law_of_the_radial_velocity_planets_in_any_system():
+    values = _draws(SAMPLES, lambda: oe.draw_planet_eccentricity(True, 0.9, giant=True))
+    assert max(values) <= oe.MAX_ECCENTRICITY
+    cut = stats.beta(oe.GIANT_BETA_A, oe.GIANT_BETA_B).cdf(0.9)
+    assert stats.kstest(values, lambda x: stats.beta(oe.GIANT_BETA_A, oe.GIANT_BETA_B).cdf(x) / cut).pvalue > 0.001
+    assert 0.18 < sum(values) / SAMPLES < 0.24            # [R2366]: mean 0.22
+    smaller = _draws(SAMPLES, lambda: oe.draw_planet_eccentricity(True, 0.9))
+    assert sum(values) > 2.0 * sum(smaller)
+
+
+def test_a_giant_keeps_the_cut_and_a_zero_cut_is_a_circle():
+    assert max(_draws(2000, lambda: oe.draw_planet_eccentricity(False, 0.12, giant=True))) <= 0.12
+    assert oe.draw_planet_eccentricity(True, 0.0, giant=True) == 0.0
+
+
 def test_a_cut_eccentricity_is_never_exceeded_and_a_cut_of_zero_is_a_circle():
     assert max(_draws(2000, lambda: oe.draw_planet_eccentricity(False, 0.12))) <= 0.12
     assert max(_draws(2000, lambda: oe.draw_planet_eccentricity(True, 0.05))) <= 0.05
@@ -176,13 +191,18 @@ def _absorbed_light_ratio(planet, base_temperature, base_albedo):
 
 def test_an_eccentric_planet_is_as_warm_as_a_circle_with_the_same_mean_light():
     planet = _airless_planet()
-    planet.eccentricity = 0.0
-    draw.set_run_seed(77)
-    planet_physics.calculate_atmospheric_conditions(planet)
-    circle, circle_albedo = planet.surface_temperature, planet.bond_albedo
-    planet.eccentricity = 0.6
-    draw.set_run_seed(77)
-    planet_physics.calculate_atmospheric_conditions(planet)
+    for seed in range(77, 277):          # the first seed that leaves the body with no air at either eccentricity (a thin air has a greenhouse that moves with the temperature)
+        planet.eccentricity = 0.0
+        draw.set_run_seed(seed)
+        planet_physics.calculate_atmospheric_conditions(planet)
+        circle, circle_albedo, circle_air = planet.surface_temperature, planet.bond_albedo, planet.atmospheric_pressure
+        planet.eccentricity = 0.6
+        draw.set_run_seed(seed)
+        planet_physics.calculate_atmospheric_conditions(planet)
+        if not circle_air and not planet.atmospheric_pressure:
+            break
+    else:
+        pytest.fail("no draw leaves the body airless at both eccentricities")
     # the light an orbit gives, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4): 1 / sqrt(1 - e^2) times a circle's (GEN.727). The albedo is not the same
     # (the warmer eccentric planet has less ice), so the light is found from the temperature and the body's own albedo.
     assert _absorbed_light_ratio(planet, circle, circle_albedo) == pytest.approx((1.0 - 0.36) ** -0.5, rel=1e-6)

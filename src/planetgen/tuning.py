@@ -115,6 +115,11 @@ PLANET_MAX_STAR_MASS_RATIO = GIANT_MAX_STAR_MASS_RATIO
 # How much more a heavier-metal star's cores find gas, as 10 to this power times [Fe/H], beside `metallicity.giant_occurrence_factor`: with the
 # solids the giants' occurrence goes as 10 to 1.2 times [Fe/H] ([R2172], read). A stand-in (tier T6, tweak L3).
 GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT = 0.6498
+# Gas also survives less in the disk of a lighter star (GEN.1336): the disk's gas mass goes with the star's mass, so the share above falls as (star mass / the Sun's) to this
+# power for a star lighter than the Sun (a heavier star is not raised: [R4897] note that the heavy stars of [R2172] are retired A stars whose masses are overestimated). Without it
+# an M dwarf had giants within 2.5 AU for 7 percent of stars (the survey: 3.5 percent at 0.5 solar masses, [R2172]) and hot Jupiters for 0.5 percent against 0.27 percent
+# [R1504], because its snow line lies close in and its cores reach the critical mass as often as a Sun-like star's. A stand-in (tier T2, tweak L0): the rate goes in proportion to the star's mass, as [R2172] find.
+GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT = 1.0
 
 # Planet architecture (GEN.728, GEN.729, GEN.730, `physics/planet_architecture.py`, docs/design/composition/planet-architecture.md):
 # how a disk builds a chain of oligarchs, how dynamical instability thins it and what is left, from the star and its disk alone.
@@ -165,6 +170,10 @@ INNER_PLANET_MASS_DISK_EXPONENT = 0.01653
 INNER_PLANET_MASS_METALLICITY_EXPONENT = 0.7565
 # Neighbours of a system are alike in mass: the spread of the log10 of a planet's mass about its system's scale, and how much heavier each next
 # planet is (the outer planet is the larger in 65 percent of pairs: [R4660], read). Stand-ins (tier T6, tweak L3).
+INNER_SYSTEM_SCALE_SIGMA_DEX = 0.4
+# The spread of the mass scale between systems: log10 of a system's scale about the median `INNER_PLANET_MASS_EARTH` gives (stellar mass, disk and [Fe/H] aside), a draw of the
+# inner chain (GEN.1335). Planets of a system are alike (`INNER_NEIGHBOUR_SIGMA_DEX`, [R4660]) but systems differ from each other: with none, every Sun-like inner system
+# came out at the same 3.6 Earth masses, and the Earth-size planets the surveys count were missing. A planetGen stand-in (registry row PA7).
 INNER_NEIGHBOUR_SIGMA_DEX = 0.15
 INNER_OUTWARD_MASS_DEX_PER_PLANET = 0.04
 # The spacing at which the inner planets start, in mutual Hill radii, before the thinning: Pu and Wu's effective 8.1 or more
@@ -216,6 +225,10 @@ GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 # (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
 CLASS_REQUEST_FREE_ATTEMPTS = 8
+CLASS_REQUEST_LATE_CORE_EVERY = 2
+"""int: After the free attempts of a class request, every this-many-th draw is a core that finished growing after the gas disk went and captured no envelope
+(GEN.1323, `Planet(late_core=True)`): a class that needs a bare dense core (V, 2 g or more) is out of reach of the envelope draw at most places. A planetGen
+stand-in (tier T9, tweak L3; registry row EC7)."""
 CLASS_REQUEST_MASS_EARTH = (0.05, 1000.0)
 """int, tuple: A request for a planet class (a slot's `planet_class`, `FORCE_CLASS`) is first left to chance for this many draws; the draws
 after it take a mass log-uniform over this range in Earth masses, so a class the disk rarely makes at that slot (an ice giant at a cold

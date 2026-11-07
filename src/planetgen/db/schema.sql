@@ -1547,7 +1547,8 @@
 -- v221 (GEN.1257): `designations.reason` takes a sixth value, `charted` (`chk_designations_reason`): the name an uncharted star's Object ID spells is kept as a retired name of its system when charting gives the star its own name. No other row or column changes.
 -- v224 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v224, nothing is backfilled.
 -- v225 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v225, nothing is backfilled.
--- v226 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
+-- v226 (GEN.1105): the table `field_members` keeps the individual bodies of an interstellar asteroid field (mass, radius, density, composition shares, status), one row each, heaviest first; `<field ID>.<rank hex>` names a body. A field made before v222 has none, and a field with no ledger (a hand-made or top-up one) has none.
+-- v227 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -3356,6 +3357,29 @@ CREATE TABLE IF NOT EXISTS belt_members (
     CONSTRAINT fk_belt_members_belt
         FOREIGN KEY (belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
     UNIQUE KEY uq_belt_members_belt_rank (belt_id, member_rank)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- field_members -- v226 (GEN.1105): the individual bodies an interstellar asteroid field stores (the belt ledger's cut rule, `physics/belt_ledger.py`), heaviest first. One row per stored
+-- body: `member_rank` 1 is the heaviest and stays its number, so `<field object ID>.<member_rank in hex>` names the body (`galaxy/object_uid.field_designation`). A field has
+-- no star, so a body has no orbit: where it is at any age follows from the field's seed and `physics/field_dispersal.member_position_m`.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS field_members (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    field_id          BIGINT UNSIGNED NOT NULL,
+    member_rank       INT NOT NULL,  -- 1 is the heaviest body of the field
+    mass_kg           DOUBLE NOT NULL,
+    radius_km         DOUBLE NOT NULL,
+    density_g_cm3     DOUBLE NOT NULL,
+    rock_fraction     DOUBLE NOT NULL,  -- the shares of the body's mass
+    metal_fraction    DOUBLE NOT NULL,
+    water_fraction    DOUBLE NOT NULL,
+    ice_fraction      DOUBLE NOT NULL,
+    status            VARCHAR(16) NOT NULL,  -- dwarf planet or minor body (`physics/body_status.py`)
+
+    CONSTRAINT fk_field_members_field
+        FOREIGN KEY (field_id) REFERENCES asteroid_fields(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_field_members_field_rank (field_id, member_rank)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

@@ -284,20 +284,32 @@ def test_the_stored_partials_add_up_to_the_pressure_and_the_state_follows_from_t
     assert bodies > 0
 
 
-def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives():
+def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives(monkeypatch):
     """GEN.423 and DB.67: the molar density, the density, the scale height and the greenhouse multiplier a body stores are the ones
     its stored partial pressures give at its surface temperature and gravity: the molar mass is `sum x_i M_i`, the density `P M / (R T)`,
     the scale height `R T / (M g)`, and the multiplier is the warming `atmosphere_state.greenhouse_warming` finds for the stored mixture
     at the starlight the body absorbs, with the sunlight its haze takes aloft (GEN.851), which is the one its stored temperature `T_e (1 + G)^(1/4)` is made
     of; the haze is read at the stored temperature, the fixed point's last step read it at the one before (under 0.1 K away; a giant's haze is the one of its single step), and a giant that radiates more than it absorbs
     (its internal flux) has a haze share of the radiated flux, which the test scales from the starlight it absorbs."""
-    bodies = 0
+    unsettled, real_solve = [], sa.solve
+
+    def recording_solve(setting, start_temperature_k):
+        result = real_solve(setting, start_temperature_k)
+        if result is not None and result.partials_pa and not result.converged:
+            unsettled.append(result.pressure_pa)         # a fixed point that has not settled in `MAX_STEPS` keeps its last step (`Air.converged`)
+        return result
+
+    monkeypatch.setattr(sa, "solve", recording_solve)
+    bodies = skipped = 0
     for body in _generated(range(10)):
         air = atmosphere.gas_partials_pa(body)
         if not air or body.atmosphere == "None":
             assert body.greenhouse_factor == 0.0 or body.greenhouse_factor is None
             continue
         bodies += 1
+        if any(body.atmospheric_pressure == pytest.approx(pressure, rel=1e-9) for pressure in unsettled):
+            skipped += 1        # the test reads the settled airs: an unsettled one (a 2-cycle between a cool air and a hot one, GEN.1323 hydrogen on a hazy methane air) is a step off its own mixture
+            continue
         gravity = body.gravity * constants.EARTH_GRAVITY
         state = atmosphere_state.air_state(air, body.surface_temperature, gravity)
         assert body.atm_molar_density == pytest.approx(state.mean_molar_mass_kg_mol, rel=1e-6)
@@ -326,6 +338,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=1e-6)
     assert bodies > 5
+    assert skipped <= max(1, bodies // 10)          # the unsettled airs are few: more would mean the fixed point stopped settling, not that the test cannot read them
 
 
 def test_a_system_replays_to_the_same_air():
@@ -352,11 +365,14 @@ def _earth_like_planet(seed=3):
 
 
 def test_a_runaway_greenhouse_stops_at_the_ceiling(monkeypatch):
+    """The ceiling is the guard of a body that can hold steam; the Earth-like body of the sample is under its runaway limit (GEN.1329 holds such a body under
+    `MOIST_LIMIT_K`), so the test declares it past the limit and asks the ceiling the same question as before."""
     import dataclasses
 
     real = sa.atmosphere_state.greenhouse_warming
     monkeypatch.setattr(sa.atmosphere_state, "greenhouse_warming",
                         lambda *args: dataclasses.replace(real(*args), surface_temperature_k=5000.0))
+    monkeypatch.setattr(sa, "_steam_possible", lambda *args: True)
     planet = _earth_like_planet()
     assert planet.atmospheric_pressure > 0.0
     assert planet.surface_temperature == pytest.approx(sa.MAX_SURFACE_TEMPERATURE_K)
@@ -477,7 +493,7 @@ def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(mo
         return real(subject, result, column_bar)
 
     monkeypatch.setattr(sa.mixture_escape, "apply", recording)
-    for seed in (3, 6, 7):                                           # (a seed whose air needs no escape step is no sample of the order)
+    for seed in (1, 3, 7):                                           # (a seed whose air needs no escape step, or that leaves no air at all, is no sample of the order; 6 was one until GEN.1323)
         columns.clear()
         planet = _earth_like_planet(seed)
         assert planet.atmospheric_pressure > 0.0, seed

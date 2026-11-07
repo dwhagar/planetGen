@@ -37,7 +37,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 from planetgen.db import search_values
 from planetgen.db import children as children_db
 from planetgen.api import gravity as gravity_api, nav_system, system_bodies, system_sky
-from planetgen.describe import belt_info, belt_member_info
+from planetgen.describe import belt_info, belt_member_info, field_member_info
 from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.lib import sensor, skypack, tilecache
 from planetgen.web.maps.systemscene import build_scene
@@ -112,7 +112,7 @@ from planetgen.db import cloudcontents, containers as containersDb, nebula_volum
 from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
 from planetgen.db import edits as dbEdits
-from planetgen.generation import bright_stars as brightStars, limits as generationLimits, stored_trees
+from planetgen.generation import bright_stars as brightStars, limits as generationLimits, sector_context, stored_trees
 from planetgen import tuning
 from planetgen.admin import maintenance
 from planetgen.population import facility_ratings, facility_suggest, facility_types
@@ -124,7 +124,6 @@ from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_
 from planetgen.util.checks import finite_float
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy import drill, gravity_field, potential as galacticPotential, spherical
 from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
 from planetgen.galaxy.window import DEFAULT_WINDOW
@@ -2077,6 +2076,38 @@ def object_belt_member_route(ref, rank):
         return jsonify({"error": str(exc)}), 404
 
 
+@bp.route("/objects/<ref>/field-members")
+def object_field_members_route(ref):
+    """
+    `GET /api/objects/<ref>/field-members` (GEN.1105) -- the bodies an interstellar asteroid field keeps individually (`describe/field_member_info.py`): `field` (its `designation`, `name` and `mass`),
+    `count` and `bodies`, heaviest first, each with its `rank`, `designation` (`<field ID>.<rank hex>`), `mass`, `diameter`, `density`, `composition` shares and `status` word. Every number is
+    `{value, unit, text}`. A field with no ledger keeps none (`count` 0). 404 for a reference that is not an asteroid field.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "asteroid_field":
+            raise ValueError(f"{ref} is not an asteroid field")
+        return jsonify(field_member_info.members_of(get_db(), object_id))
+    except ValueError as exc:  # includes ids.IdError and field_member_info.FieldMemberNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/field-members/<rank>")
+def object_field_member_route(ref, rank):
+    """
+    `GET /api/objects/<ref>/field-members/<rank>` (GEN.1105) -- one body an interstellar asteroid field keeps individually, `rank` written as the designation writes it (hex, at least four digits; 1 is
+    the heaviest): `designation`, `rank`, `member` (the entry the field's list holds), `share` of the field's mass, `field` (its designation, name, where it came from and its history) and the `previous` and
+    `next` designations. Every number is `{value, unit, text}`. 404 for a reference that is not an asteroid field, a rank that is not written canonically, or a body the field does not keep.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "asteroid_field":
+            raise ValueError(f"{ref} is not an asteroid field")
+        return jsonify(field_member_info.member_info(get_db(), object_id, object_uid.parse_rank(rank)))
+    except ValueError as exc:  # includes ids.IdError and field_member_info.FieldMemberNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
 @bp.route("/objects/<ref>/children")
 def object_children_route(ref):
     """
@@ -2605,25 +2636,12 @@ def _sector_generation_context(conn, sector_id, system_config):
     """For a galaxy-placed sector: the system's distance from the galactic
     center in light-years, after giving `system_config` the sector's
     stellar population and (once a bright-star scatter ran) its dim-star
-    cap (its own backfill level and mass, GEN.44, GEN.187), as a sector fill would
-    (`brightStars.FillContext`). `None` for a
+    cap (`generation.sector_context.apply_sector_context`). `None` for a
     sector outside the galaxy. 404 when the sector doesn't exist."""
     try:
-        placement = store.get_sector_galaxy_position(conn, sector_id)
+        return sector_context.apply_sector_context(conn, sector_id, system_config)
     except ValueError:
         raise ApiError(f"no such sector: {sector_id}", status_code=404)
-    if placement is None:
-        return None
-    skeleton = get_galaxy_shape(conn)
-    if skeleton is not None:
-        address = (placement["shell_index"], placement["band_index"], placement["wedge_index"])
-        level = store.bright_star_fill_level(conn, *address)
-        mass_limit = store.bright_star_fill_mass_limit(conn, *address)
-        center = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
-        profile = profile_at(center, skeleton.shape, skeleton.edge_pc, skeleton.expected_system_count_at_density_1,
-                             address=address)
-        brightStars.FillContext(profile, min_luminosity_sol=level, star_mass_limit_sol=mass_limit).apply(system_config)
-    return pc_to_ly(placement["galactic_radius_pc"])
 
 
 def _generate_system(system_config, galactic_center_dist_ly=None, **kwargs):

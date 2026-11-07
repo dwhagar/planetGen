@@ -1946,6 +1946,10 @@ class StarSystem:
             given = {}
             if attempt >= tuning.CLASS_REQUEST_FREE_ATTEMPTS:
                 given["mass"] = _mearth_to_kg(math.exp(draw.uniform(*(math.log(m) for m in tuning.CLASS_REQUEST_MASS_EARTH))))
+                # GEN.1323: every rocky planet of 1 to 20 Earth masses captures an envelope that only a close star strips, so a class that needs a
+                # dense bare core (V, 2 g or more) is out of reach of the envelope draw at most places; every other draw after the free ones is a
+                # core that finished growing after the gas disk went (rare in the population, so a request is its only way to it)
+                given["late_core"] = (attempt - tuning.CLASS_REQUEST_FREE_ATTEMPTS) % tuning.CLASS_REQUEST_LATE_CORE_EVERY == tuning.CLASS_REQUEST_LATE_CORE_EVERY - 1
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
             if planet.planet_class == planet_class:
                 break
@@ -2233,6 +2237,8 @@ class StarSystem:
                 for body in (obj, *obj.moons):
                     if planetPhysics.settle_orbit(body):
                         log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                if planetPhysics.settle_envelope(obj):
+                    log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km")
                 if planetPhysics.finish_orbit_oddities(obj):
                     log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbours")
                 made = planetPhysics.refinish_rocky(obj)

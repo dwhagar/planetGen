@@ -238,7 +238,9 @@ class WarmProgress:
             self.sums[name] += int(result.get(name) or 0)
         self.sums["seconds"] += float(result.get("seconds") or 0.0)
         self.noun = result.get("noun") or self.noun
-        self.biggest = max(self.biggest, int(result.get("warmed") or 0) + int(result.get("left_out") or 0))
+        # an object slice names its own size: its `left_out` is the stage's, whole listing past the cap, not part of the chunk
+        self.biggest = max(self.biggest, int(result["chunk"]) if result.get("chunk") is not None
+                           else int(result.get("warmed") or 0) + int(result.get("left_out") or 0))
         elapsed = self.clock() - self.started
         if self.progress is not None:
             stage_left = self._stage_left(elapsed)

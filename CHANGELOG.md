@@ -2,6 +2,235 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3610] - 2026-11-07
+
+**Headline:** An asteroid field that has spread past a light year no longer shows in the Phenomena list, its counts or the nearby search.
+
+### Changed
+- **A retired field leaves the lists (GEN.1073, the fields half).** GEN.1107 retired a field by radius (past 1 ly) and kept it off the maps; the Phenomena catalog and its counts, the nearby search, the contents of a nebula or remnant and the widest pass-through reach now leave it out too. The row, its Object ID, its page, its members and any facility at it stay.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1073 keeps the belts half).
+
+## [8.0.3609] - 2026-11-07
+
+**Headline:** `planetgen bring-to-epoch` now finds the wide binaries that break the stability rule and makes only those systems again from their own seeds, saying which it redid.
+
+### Added
+- **Re-roll of unstable wide binaries (GEN.229).** A wide (S-type) binary whose planets or stars' outer bodies break the stability rule GEN.228 put on new ones is drawn again as a wide binary for its sector, from a seed of its own (the galaxy seed and the system's Object ID), keeping its row, name, Object ID and place (`galaxy/wide_binary_reroll.py`). The console names each system, the bodies that broke the rule and what the re-roll made. It is a stage of `planetgen bring-to-epoch` (`--no-wide-binaries` skips it, `--dry-run` only lists). A system that hosts facilities, is built around a placed bright star, or is in an edited sector is left alone and named.
+- `generation/sector_context.py`: the stellar context of a sector, shared by the API's system routes and the re-roll.
+
+### Fixed
+- **A regenerated system kept the old orbit tree.** `store.replace_star_system_content` left `orbit_nodes` and `dark_members` of the old system in place, so a regenerated wide binary loaded with the old tree's stability limits. The tree now goes with the new stars.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.229.
+
+## [8.0.3608] - 2026-11-07
+
+**Headline:** Three tests that were red on main pass again, from the repository root and from `src`.
+
+### Changed
+- `test_set_permissions_keeps_both_config_files_when_both_exist` ran the permissions script against the machine's real default jobs folder, so a machine that already had `/var/lib/planetGen/jobs` (root's, not empty) got a warning the test forbids. The script runs now name a jobs folder under the test's own folder unless the test names one in its `config.json` (TEST.683).
+- `test_the_code_reads_no_variable_the_model_does_not_name` lists `PLANETGEN_WARM_OUTCOME_FILE` (update.sh tells the warm-up where to write that the galaxy was empty) and `PLANETGEN_QUEUE_EXTRA_FUNCTIONS` (a queue worker's own addition to the allowed functions), each with its reason.
+- `test_update_sh_reports_a_skipped_warm_up_not_a_failure` read `scripts/deploy-common.sh` relative to the current folder and failed from `src`; it reads it relative to the test file.
+
+generation-output: unchanged
+
+## [8.0.3607] - 2026-11-07
+
+**Headline:** `install.sh` and `update.sh` now say when a memory guard (earlyoom, systemd-oomd, nohang) is running, and a warm-up that fails prints what the kernel and the guards logged meanwhile; INSTALL.md says how to keep a guard from ending a work unit.
+
+### Changed
+- **A work unit of Boss's warm-up (unit 11) ended with status 15 (SIGTERM), and nothing in the program sends that to a work horse (OPS.118).** The usual sender is a memory guard on the host: earlyoom and systemd-oomd end the biggest process with SIGTERM when memory runs low, before the kernel's own killer would end it with SIGKILL, and a work unit of the warm-up is often the biggest. The cause on the test server cannot be named from the program; the next occurrence is in `error.log` (OPS.116) with its signal, unit and run.
+- `install.sh` and `update.sh` warn when `earlyoom`, `systemd-oomd` or `nohang` is active and say what a unit ended that way looks like.
+- A warm-up stage that fails now prints (and writes to `update.log` and `error.log`) the kernel and memory-guard lines about ending a process from the minutes it ran, when `journalctl` is there, so a status 15 comes with its cause.
+- INSTALL.md has a "Memory guards" section next to "Swap": keep swap on, give the guard something to protect (`earlyoom --avoid` for mysqld, redis-server, apache2, httpd), or lower `queue.max_host_workers`.
+
+generation-output: unchanged
+
+## [8.0.3606] - 2026-11-07
+
+**Headline:** Two warm-ups never run at the same time: the update's warm-up has priority and cancels any other, a change's warm-up waits, one started by hand refuses; the phase lines give the time the phase took.
+
+### Fixed
+- **update.sh's warm-up part 2 failed with `run ... is running` when the epoch's warm-up had started the moment the update ended (OPS.117).** The update's own warm-up now has priority: it cancels any other cache warm-up that holds the machine (the epoch's, the one after an orbital update, one started by hand) through the normal cancel path, waits for the canceled run's units to stop, and goes on. The canceled warm-up ends with one plain line, not as a failure.
+- **A warm-up that is not the update's never starts while another runs.** The one a change starts waits for the running one to end (nothing written to the phase record meanwhile) and then warms what is left; one started by hand says which run holds the machine and exits without starting.
+- **A canceled warm-up could write into the phase record of the run after it.** The record belongs to the run that began it; late writes from any other process are dropped, so the admin page never shows two runs at once.
+- **The `Phase N of 5` lines added up the units' own seconds** (5338 s for a phase that took 9:39 with nine chunks at once). They now give the time the phase took; the admin page keeps the worker seconds as `worker_seconds`.
+- **The phenomena line said `chunks of up to 8,543,000 phenomena`** because the first slice's share of the objects the cap leaves out was counted into the chunk size. A slice now reports its own size.
+- **A work unit whose process was ended by SIGTERM was reported as a probable out-of-memory kill.** The failure now names the signal: SIGKILL is the kernel's out-of-memory killer, SIGTERM is something asking the process to end.
+
+generation-output: unchanged
+
+## [8.0.3605] - 2026-11-07
+
+**Headline:** The bring-to-epoch end-to-end test builds one system a cell and makes three cells again, so it takes seconds instead of more than seventeen minutes.
+
+### Changed
+
+- **`test_a_sector_made_under_an_older_epoch_is_really_generated_again` bounded (TEST.679).** It was not stuck: a system takes about fifteen seconds to build on the tree of train 15, a profile-sized sector holds a dozen, the first sector throws 78 rogue planets into sectors of their own (GEN.1111), and the test marked all 79 sectors behind and made every one again, each filling with stars whose rogues landed in more cells. The hang guard killed it after 17 minutes alone. Every cell the test makes (the first and each making again) now holds one system, and the sector and two of its landing cells are behind; the rest are at the running epoch. It still deletes the sector, makes it again from its address, checks it holds the same systems and carries the running epoch, and that a second run finds nothing to do. The file runs in two minutes. Test only.
+
+generation-output: unchanged
+
+## [8.0.3604] - 2026-11-07
+
+**Headline:** One file, error.log in the log folder, now records every error and crash from everything, while each error still goes to its own log too.
+
+### Changed
+
+- `error.log` (beside `warmup.log` and the others, `logpaths.error_log_path`) holds every line of severity `error` and `critical` that any logger writes, the program's or another library's (OPS.116). A line is in the display form with the fields `log=` (the log the error also went to: `warmup.log`, `tiles.log`, `orbits.log`, `update.log`, `apache` for the web app, else `console`) and `pid=`, and a traceback follows its line. It is made on the first error, mode 0660, by the one logging module (`util/log.py`); the setup scripts make it for the web server's user, the folder's rotation rule (`*.log`) covers it, and the macOS rotation file names it.
+- Crashes: an uncaught exception in the main thread or another is written as `critical` with its traceback whether or not the debug log is on, and a fatal signal in a library (SIGSEGV and the like) leaves the interpreter's dump of every thread in the file. A Ctrl+C is not an error.
+- Killed or crashed processes are written by their parent: a detached worker (exit status or signal), a work horse the out-of-memory killer or `kill -9` ended (`units.horse_killed`, for any job, not only a run's unit), a job a dead worker left running (`reap_dead_jobs`), a web job's step that exited non-zero and a one-off command that failed, timed out or did not start, each with the last error lines the program printed. A detached worker stopped on purpose (SIGTERM, SIGINT, SIGHUP) and an update's refusal are not errors; a work horse ended by SIGTERM is written, with its signal and unit, because RQ only calls the handler for an end nobody asked for (the case of Boss's warm-up, unit 11, status 15).
+- The web app writes an unhandled exception with its route and traceback, and any other 5xx answer with its route, once; the deliberate 503 of a closed site or a cache being rebuilt is not an error.
+- `update.sh` and `install.sh` write every error they print to the file too, name the command that made them stop with its exit status and the step, and a warm-up stage that does not finish is written there though the screen only warns.
+- `docs/design/operations/logging-standard.md` has an "The error log" section, `docs/reference/logging.md` lists the file, and `log_dir`'s help names it. `src/tests/test_error_log.py` holds one test per source.
+
+generation-output: unchanged
+
+## [8.0.3603] - 2026-11-07
+
+**Headline:** The merge train's gate now always runs the tests that count what a few seeded bodies do, when a change reaches generation or physics.
+
+### Changed
+
+- **Gate file list widened (TEST.681).** `scripts/train_gate.py files` chose test files by the modules a branch changed, so tests that sample seeded bodies and count what they find (the sheet fill, the bring-to-epoch run, the radius valley sweep and others) were left out and went red only after a merge. The gate now names them and adds them whenever a file under `generation/` or `physics/` changes, and a test checks that every named file exists.
+
+## [8.0.3602] - 2026-11-07
+
+**Headline:** A very hot outgassed world no longer crashes its whole system: atomic chlorine, atomic fluorine and fluorine are now in the gas table (GEN.1337).
+
+### Changed
+
+- At a surface near 2500 K the hydrogen halides dissociate and a few thousandths of the outgassed gas is Cl, F and F2. The gas equilibrium already carried their free energies, but the gas table did not list them, so `mixture_base.finish` refused the draw (a MixtureError, "0.00143 of the gas is species the gas table lacks") and the whole StarSystem failed.
+- The three rows (Cp from the NASA Glenn fits, as for the other atoms) are in part 01 section 5 of the atmosphere research, in `scripts/build_gas_table.py` and in `gases.json`, now 115 rows. The error itself stays: a gas outside the table still stops the draw.
+- A hot surface's gas now lists Cl, F and F2 where it did not, so those mixtures change (epoch).
+
+## [8.0.3601] - 2026-11-07
+
+**Headline:** Giant planets are now rarer round lighter stars, so M-dwarf hot Jupiters come at 0.3 percent of stars and not 0.5 percent (GEN.1336).
+
+### Changed
+
+- `planet_mass.gas_outcome`: the share of runaway-capable cores that find gas is also multiplied by (star mass / the Sun's mass) for a star lighter than the Sun (`tuning.GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT` = 1.0, the survey's linear law, [R2172]; a heavier star is not raised). The disk's gas goes with the star's mass, and an M dwarf's snow line lies so close in that its cores reached the critical mass as easily as a Sun-like star's.
+- Measured: stars of 0.55 solar masses with a giant within 2.5 AU 7.2 to 4.0 percent (survey 3.5 percent at 0.5 solar masses); hot Jupiters 0.5 to 0.32 percent over 12 seeds of 2000 stars (survey 0.27 +- 0.09 percent, [R1504]). Sun-like stars are unchanged.
+- The test of the hot Jupiter rates now pools three seed blocks for the red dwarf (it passed on seed 405 only). Stand-in row PA2 of the registry gains the new constant.
+- Every giant of a star lighter than the Sun can change, so the planets of those systems change (epoch).
+
+## [8.0.3600] - 2026-11-07
+
+**Headline:** Inner planetary systems now differ from one another in how heavy their planets are, so the Earth-size planets that surveys count appear.
+
+### Changed
+- Before, every inner system of a Sun-like star started its planets at the same mass (about 3.6 Earth masses, a little spread from the star's metals), so Earth-size planets were nearly missing: the GEN.1335 measurement found 3 percent of Sun-like stars with a planet of 0.8 to 1.25 Earth radii against 16.5 percent of FGK stars in the Kepler surveys [R1459]. Each inner system now draws its own mass scale, spread by 0.4 dex about the old median (the planets of one system stay alike), so about a quarter of the inner systems of a K dwarf hold an Earth-size planet instead of a fifth. FGK-weighted, the share of stars with one goes from 9.9 to 15.6 percent.
+- The number of inner systems and their planet counts are unchanged; the median mass of an inner planet drops by about a tenth. The registry row is PA15 (section 6.36).
+
+generation-output: changed
+
+## [8.0.3599] - 2026-11-07
+
+**Headline:** A nebula's shape is drawn from its class and its numbers only, so a nebula whose shape was never stored gets back the shape the generator drew, and every nebula's shape changes once.
+
+### Changed
+
+- **The nebula shape seed no longer holds the species text (GEN.1332).** `shape_for_nebula` hashed the class letter, four numbers and `dominant_species`. Since GEN.1276 a save rewrites that species text from the nebula's composition, after the shape is stored, so a row with no stored shape (saved before shapes were kept) drew a different shape from the one a fresh save stores. The seed is now the class letter and the radius, density, temperature and extinction only (`shape_for_nebula` loses its sixth argument; the generator and `query.nebula_shape` pass five). Every nebula gets another shape, drawn the same way as before: a lock item, with the epoch and the golden digests added at the train. `test_a_nebula_saved_before_shapes_gets_the_shape_a_fresh_save_would` is back to comparing with the generator's shape and runs three nebulae; a new test holds the seed to the numbers.
+
+generation-output: changed
+
+## [8.0.3598] - 2026-11-07
+
+**Headline:** A planet that gets less starlight than the runaway-greenhouse limit no longer ends up as a 2,000 K steam world: 44 of 63 such worlds in a 450-system sample were a fixed-point accident, and Earth-mass worlds in the habitable zone stay oceans now.
+
+### Changed
+- GEN.1329: `physics/surface_air.py` gains `Setting.steam_possible` (`_steam_possible`: the body's effective flux, starlight plus its own interior and tidal heat, against `orbits.runaway_greenhouse_flux`) and `MOIST_LIMIT_K` (375 K, the surface of the radiative-convective model's saturated clear-sky air at its last solution before the runaway). A body with water that gets less than the limit has its surface held under 375 K in every step of the fixed point; above the limit nothing changes. Before, a dense hydrogen-rich first step could carry any wet planet past 647 K, where `freeze_out` put the whole ocean in the air (1e10 to 1e11 Pa, held at the 2,000 K guard): 63 of 1,339 rocky planets in 450 generated systems, 44 of them under the limit (median 0.44 of it, the lowest 0.008, 2 W/m2 absorbed), and 8 of 14 Earth-mass bodies in the habitable zone of a Sun-like star (now 191 to 375 K and under 5 bar in all 14). A hot steam air radiates about 280 W/m2 whatever it absorbs [R3236], so such a state does not stand. Generator output changes for those worlds, so it rides a train with an epoch.
+- GEN.1329: `test_a_runaway_greenhouse_stops_at_the_ceiling` declares its Earth-like body past the runaway limit (the 2,000 K ceiling is the guard of a body that can hold steam) and asks the ceiling the same question as before.
+- GEN.1329: the escape efficiency of the water-loss history (`tuning.ENERGY_LIMITED_EFFICIENCY`, 0.01, Boss's design of 10-23) is not changed here. It takes 12 percent of the water of a K-star planet at 21 times starlight over 13.8 Gyr; at the atmosphere model's 0.15 it would take all of it (the GEN.974 follow-up question).
+
+## [8.0.3597] - 2026-11-07
+
+**Headline:** Giant planets now draw their eccentricity from the Beta law fitted to the radial-velocity giants (mean 0.22) instead of the Kepler small-planet laws, so generated giants average 0.18 to 0.20 and not 0.08 (GEN.1325).
+
+### Changed
+
+- `orbit_elements.draw_planet_eccentricity(multiple, e_max, giant=False)`: a giant (`body_type` `g`), alone or with other planets, takes Beta(0.867, 3.03) cut at its periapsis limit; every other planet keeps the laws of OE1 to OE3. `planets.generate_orbit_shape` passes the flag. Stand-in OE16 in section 6.12.
+- Measured on 900 systems (94 giants): mean eccentricity 0.18 (median 0.10, 90th percentile 0.44), 0.20 beyond 1 AU; before, 0.064 over 300 systems (50 giants). The tides still circularise the close giants and the placer still keeps the orbits apart.
+- The orbit of every giant changes, so the planets laid out after it change too (epoch).
+
+## [8.0.3596] - 2026-11-07
+
+**Headline:** Rocky planets of 1 to 20 Earth masses now capture a hydrogen-helium envelope and keep it unless their star strips it, so sub-Neptunes and the radius valley appear.
+
+### Changed
+- Before, every rocky planet came out bare: no planet of 1 to 4 Earth radii inside 100 days was larger than 2.0 Earth radii, where real ones are about half. Each rocky planet of 1 to 20 Earth masses now draws the envelope it started with (median a tenth of its mass for 3.72 Earth masses and up, falling steeply for lighter planets so Earth-mass planets stay rocky) and the loss to its star's X-rays and heat, tuned in GEN.822, decides what is left.
+- A planet that keeps an envelope has a larger radius and a lower density and gravity, its solid fractions give way to the envelope, its air, class and spin are made again, and moons that no longer fit are dropped. A planet that loses it all is exactly as before.
+- In a sweep of 240 G2V systems, inside 100 days 45 percent of the planets of 1 to 4 Earth radii are now above 2.0. Planets of 4 Earth masses and more beyond 100 days are mostly sub-Neptunes of 2 to 4 Earth radii, including in the habitable zone; planets of 1 to 2 Earth masses are mostly rocky. Rogue planets, which have no star to strip them, keep the whole envelope they started with. The new stand-ins are rows EC1 to EC6 of the registry (section 6.196).
+- A rocky planet with an envelope of 0.5 percent of its mass or more is now classed as a gas dwarf (T) or an ice giant (I) rather than a hot or small rocky world. A class that needs a bare dense core (V) is asked for as a core that formed after the gas disk went, so a forced V still comes out. A small hydrogen air's share no longer makes the five fractions add to more than 1.
+
+generation-output: changed
+
+## [8.0.3595] - 2026-11-07
+
+**Headline:** A sealed ocean now holds the chloride and sulfate its volcanoes gave it, so its charge balance is no longer sodium and calcium against hydroxide alone; the pH of such oceans comes down (the carbon dioxide in the air does not change for any measured world) (GEN.1319).
+
+### Changed
+
+- `waterworld_carbon.ocean_pco2` takes `anion_charge_mol_m2` (chloride once, sulfate twice) into the charge balance; with no anions it gives the old result.
+- `surface_air._shares` passes the chloride the volcanoes degassed (which the air still loses to the ocean) and the sulfate of `sulfur_balance` to it (stand-ins AN1 and AN2, section 6.205).
+- Measured on 100 habitable-zone G2V and 100 K3V stars (304 paired sealed-ocean worlds): no world gains 5 Pa of carbon dioxide; the median sealed-ocean pH falls from 11.0 to 10.7 (G2V) and stays near 12 (K3V), because the chloride the volcanoes give is a median 2 percent of the leached sodium. Even a chloride equal to the sodium would give back only 5 of 153 K3V worlds: the leached calcium, not the missing anions, locks most of the carbon in calcite.
+
+## [8.0.3594] - 2026-11-07
+
+**Headline:** The greenhouse table is fitted again on 6,012 hot dense airs and 8,644 hazy airs the radiative-convective model solved, so hazy worlds and warm thick-air worlds (300 to 500 K at the ground) read closer to the physics.
+
+### Changed
+- GEN.1310: `physics/data/greenhouse_table.json` is fitted again, starting from the GEN.1304 file, with the model's own answers for 6,012 airs of today's generator that the old file put at 300 to 520 K (hot and dense) and 8,644 hazy ones, added to the GEN.1304 training set, the temperate wet airs, the hard airs and the held anchors. Airs the model could not solve in the time allowed are left out of the fit, not held at the old (cold) answer. On the validation set (1,081 model airs from seeds 5000 to 5100, never fitted): all airs 90th percentile error 12.6 % to 9.3 % and mean bias 13.4 K to 8.3 K; 300 to 500 K median 3.9 % to 2.3 % and 90th percentile 42 % to 31 %; cool hazy airs 90th percentile 9.0 % to 5.5 %; cool airs with other infrared gases 5.2 % to 2.6 %. The 500 to 1000 K airs are about as accurate as before (median 4.7 % to 3.9 %, 90th percentile 23 % to 27 %). Every generated body with a hazy or thick warm air can move, so this is a generator-output change and rides a train with an epoch.
+- GEN.1310: the three-seed ensemble that GEN.1189 asks for was not built (it needs members fitted from scratch, not from the shipped file); this item ships one longer fit. The hot-and-hazy corner (steam-rich airs over 500 K) is still the weakest part of the table.
+
+## [8.0.3593] - 2026-11-07
+
+**Headline:** A methane, ethane or nitrogen sea is made mostly of the liquid it is named for: the liquid the ice supplies is the bulk of the sea and the air's other gases dissolve in it.
+
+### Changed
+
+- **A hydrocarbon sea's label and its stored makeup agree (GEN.1249).** The sea was named for the ice that supplies it, but its stored mole fractions came from Raoult's law with the air and ethane as the rest, so about 7 of 24 hydrocarbon seas in a 150-system sample held under a tenth of their own labelled liquid (a "methane sea" that was mostly ethane). The supplied liquid is now the bulk of the sea and the solvent, and the air's other condensable gases dissolve in it by Raoult's law with nitrogen's reduced solubility. A Titan-like body stores methane 0.92 and nitrogen 0.08 (it was methane 0.32, ethane 0.60, nitrogen 0.08); ethane is in a sea only when ethane is the supplied liquid. Where the dissolved gases outweigh the supplied liquid (a dense, cold nitrogen air) the sea takes the name of the gas that makes most of it, so a sea's label always holds at least half of its stored mix (`LABEL_FLOOR`, a rule and not a fitted number). Stored values change for every methane, ethane and nitrogen sea (the three mole-fraction columns, and the label, cover and depth of the few that are renamed).
+
+generation-output: changed
+
+## [8.0.3592] - 2026-11-07
+
+**Headline:** The bodies an interstellar asteroid field keeps are now listed on the field's page, and each has a page of its own under its designation.
+
+### Added
+- **The field's bodies on its page and in the API (GEN.1105, part 2).** A field that keeps members lists them on its page under "The bodies it keeps" (designation, mass, diameter and shape, heaviest first), and each designation opens `/object/asteroid_field:<ID>/field-member/<rank>`: the body's shape, mass, diameter, density and makeup, its share of the field's mass, the history of the field it belongs to and a link to the heavier and the lighter body. The data is two new routes, `GET /api/objects/<ref>/field-members` and `GET /api/objects/<ref>/field-members/<rank>` (`describe/field_member_info.py`). Both are new routes, so the API version stays at 13. A free body has no star, so its page has no orbit.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1105 (with part 1: the members, their storage and designation, the pages and the API).
+
+## [8.0.3591] - 2026-11-07
+
+**Headline:** An interstellar asteroid field made from a supernova's belt now keeps its heaviest bodies as individual members, each with a stable name made of the field's ID and its rank.
+
+### Added
+- **The stored members of a field (GEN.1105, part 1).** A field whose mass was solved with a ledger (the supernova host rule's) keeps the bodies the ledger stores, by the belt cut rule (every body over 1e19 kg and more of the next heaviest until 90 percent of the mass is held, at most 300), heaviest first, in the new table `field_members` (schema 222): rank, mass, radius, density, the four composition shares and the status word (`dwarf planet` where it is round, else `minor body`). A body takes the field's makeup and bulk density. `<field ID>.<rank hex>` names it (`object_uid.field_designation` and `parse_field_designation`, which refuse a belt's ID). A hand-made field and a Rogues top-up field keep none (the top-up field's largest body is under the cut). The field page, the member page and the API line (part 2) are not built yet.
+
+generation-output: changed
+
+TODO items resolved: none (GEN.1105 part 1 of 2: the members, their storage and their designation; the pages and the API version bump follow).
+
+## [8.0.3590] - 2026-11-07
+
+**Headline:** An asteroid field now ages with the in-universe clock: its radius grows as its pieces spread, and one that passes a light year is retired from the maps.
+
+### Added
+- **Bring-to-epoch for asteroid fields (GEN.1107).** The orbit update that moves a field through the galaxy now adds the years it advanced to the field's age (`birth_age_yr`), and the radius and the size digit of the class follow from the age by the formula that made them (`asteroid_field.aged`, `radius_ly_at`). A field whose radius passes one light year is retired, as Boss decided: the row stays, with its Object ID, members and any facility, and the map reads and the widest-radius reads leave it out. Retired is a formula of the row (`radius_ly > 1`), so no column was added and there is no schema change.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1107.
+
 ## [8.0.3589] - 2026-11-07
 
 **Headline:** The test of update.sh's dirty-tree check names the git command it now runs.

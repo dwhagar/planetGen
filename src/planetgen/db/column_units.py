@@ -187,6 +187,14 @@ TABLES = {
         "frac": ("rock_fraction", "metal_fraction", "water_fraction", "ice_fraction"),
         "soter-mu": ("soter_mu",),
     },
+    "field_members": {
+        "id": ("id", "field_id"),
+        "index": ("member_rank",),
+        "kg": ("mass_kg",),
+        "km": ("radius_km",),
+        "g_cm3": ("density_g_cm3",),
+        "frac": ("rock_fraction", "metal_fraction", "water_fraction", "ice_fraction"),
+    },
     "irregular_sets": {
         "id": ("id", "planet_id"),
         "kg": ("remainder_kg",),

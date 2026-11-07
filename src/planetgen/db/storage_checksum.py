@@ -69,6 +69,7 @@ VOLATILE_COLUMNS = {
     **{table: ("sector_id", "modified_at") + _GALACTIC + _CLOCKS for table in (
         "black_holes", "neutron_stars", "nebulae", "supernova_remnants", "quasars", "rogue_planets", "interstellar_comets",
         "asteroid_fields")},
+    "asteroid_fields": ("sector_id", "modified_at", "radius_ly", "birth_age_yr", "field_class") + _GALACTIC + _CLOCKS,
 }
 """dict: Per table, the columns the checksum leaves out: what the orbit update rewrites (the design's section 5.2 table, found by
 `tests/test_storage_checksum.py` against the real update), a refiled object's `sector_id`, and the columns that cannot describe themselves.

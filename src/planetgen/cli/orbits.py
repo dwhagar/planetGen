@@ -172,6 +172,7 @@ TABLE_LABELS = {
     "rogue_planets": "rogue planet(s)",
     "interstellar_comets": "interstellar comet(s)",
     "asteroid_fields": "asteroid field(s)",
+    "retired_asteroid_fields": "asteroid field(s) retired past a light year",
     "space_facilities": "stand-alone facilit(ies)",
     "bright_stars": "unbuilt bright star(s)",
     "phenomenon_scatter": "unbuilt scattered phenomen(a)",

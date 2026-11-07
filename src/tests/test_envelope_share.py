@@ -62,6 +62,19 @@ def test_filling_twice_does_not_compound_and_restore_puts_the_drawn_fractions_ba
     assert body.envelope_mass_fraction == 0.0 and body.rock_mass_fraction == pytest.approx(0.65)
 
 
+def test_the_fractions_add_to_one_when_the_body_was_drawn_with_an_envelope_and_has_a_hydrogen_air_too():
+    """The air's share comes out of the solids, which already hold only 1 less the envelope drawn: a body of 1.1 Earth masses with 0.1 percent drawn and a share of 7e-6
+    summed to 1 + 8.6e-9, over the 1e-9 the bulk fractions are held to."""
+    body = Body(mass_earth=1.1, radius_km=6600.0, pressure_pa=5.0e4, air=None)
+    setattr(body, atmosphere.GAS_FIELD, _hydrogen_air(5.0e4))
+    body.metal_mass_fraction, body.rock_mass_fraction, body.water_mass_fraction, body.ice_mass_fraction = 0.27 * 0.9988, 0.656 * 0.9988, 0.0617 * 0.9988, 0.011 * 0.9988
+    body.envelope_mass_fraction = 1.0 - (body.metal_mass_fraction + body.rock_mass_fraction + body.water_mass_fraction + body.ice_mass_fraction)
+    envelope_share.fill(body)
+    assert envelope_share.air_share(body) > 0.0
+    total = sum(getattr(body, name) for name in (*envelope_share.SOLIDS, "envelope_mass_fraction"))
+    assert total == pytest.approx(1.0, abs=1e-12)
+
+
 def test_an_air_with_little_hydrogen_is_secondary_and_has_no_envelope():
     body = Body(pressure_pa=1.0e7)
     setattr(body, atmosphere.GAS_FIELD, {gases.stored("h2").formula: 0.1 * 1.0e7, gases.stored("co2").formula: 0.9 * 1.0e7})

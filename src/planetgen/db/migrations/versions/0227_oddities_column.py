@@ -1,8 +1,8 @@
 """The oddities a body has (GEN.1047).
 
-Schema v226. `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), nullable): the ids of the rows of the oddity table
+Schema v227. `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), nullable): the ids of the rows of the oddity table
 (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated. NULL for no oddity and for a row made before
-v226, which gets it when the galaxy is regenerated (a migration does not draw). A column already there is skipped, so a stopped run can be started again.
+v227, which gets it when the galaxy is regenerated (a migration does not draw). A column already there is skipped, so a stopped run can be started again.
 """
 
 import sqlalchemy as sa
@@ -10,8 +10,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0226"
-down_revision = "0225"
+revision = "0227"
+down_revision = "0226"
 branch_labels = None
 depends_on = None
 

@@ -1536,7 +1536,8 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
         conn.close()
     # A rogue planet lands in a cell that may not be charted (GEN.1111) and that cell gets a row of its own, so the rows are the charted
     # cells and the cells the rogues landed in.
-    assert len([row for row in sectors if _address(row) in charted]) == expected_sector_count
+    placed = {_address(row) for row in sectors if _address(row) in charted}
+    assert len(placed) == expected_sector_count, sorted({cell for shell, band in _BOUNDS_TEST_BANDS for cell in _band_cells(shell, band)} - charted)
 
     contexts = _sector_cell_contexts(mysql_config)
     assert len(contexts) == len(sectors) >= expected_sector_count

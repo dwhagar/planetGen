@@ -2863,3 +2863,21 @@ Baseline: PR #1817.
 | TEST.678 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | GEN.1345 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | GEN.1348 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.676 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1249 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1310 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1319 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1323 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1325 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1329 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1332 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1335 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1336 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1337 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.681 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| OPS.116 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.679 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| OPS.117 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.683 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| PERF.227 | 8.1 | Queue, caches and performance |
+| GEN.229 | 8.1 | Generate page and directives |

@@ -522,6 +522,9 @@ def reap_dead_jobs(connection=None):
                 continue
             with connection.pipeline() as pipeline:
                 pipeline.zrem(registry.key, *keys)
+                log.get("queue").error(f"Worker {owner} was gone (killed or restarted) before job {job_id} on queue {name} ended; "
+                                       + ("the job is queued again." if job.retries_left and job.retries_left > 0 else "the job failed."),
+                                       worker=owner)
                 if job.retries_left and job.retries_left > 0:
                     job.retry(queue, pipeline)
                 else:

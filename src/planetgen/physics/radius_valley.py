@@ -39,7 +39,7 @@ The simulated survey stands for the generator's planets only in its statistics; 
 import math
 from typing import NamedTuple
 
-from planetgen.physics import bulk_structure, envelope_escape, kepler_recovery
+from planetgen.physics import bulk_structure, envelope_capture, envelope_escape, kepler_recovery
 from planetgen.physics import constants as physical_constants
 from planetgen.util import draw
 
@@ -48,14 +48,14 @@ PLANETS = 4000
 WIDE_SURVEY_PLANETS = 12000
 """int: Planets per survey of the stellar-mass slopes (eighteen cells of them, so three times as many)."""
 
-CORE_MASS_MEDIAN_EARTH = 3.72
-"""float: Median core mass, Earth masses (the peak of [R3797], 3.72 +0.45 -0.33)."""
+CORE_MASS_MEDIAN_EARTH = envelope_capture.REFERENCE_MASS_EARTH
+"""float: Median core mass, Earth masses (the peak of [R3797], 3.72 +0.45 -0.33; `envelope_capture` holds it, the generator's starting envelope is centered on the same mass)."""
 
 CORE_MASS_SIGMA = 0.25
 """float: Log-normal width of the core mass, in ln (a stand-in: no published width is read; narrowed from 0.4 with the onset age of the loss, GEN.822, registry row RV2)."""
 
-ENVELOPE_SIGMA = 0.6
-"""float: Log-normal width of the starting envelope fraction (a stand-in)."""
+ENVELOPE_SIGMA = envelope_capture.START_SPREAD
+"""float: Log-normal width of the starting envelope fraction (a stand-in; `envelope_capture` holds it, the generator draws the same width)."""
 
 PERIOD_RANGE_D = (2.0, 100.0)
 HOST_MASS_RANGE_SOLAR = (0.8, 1.3)

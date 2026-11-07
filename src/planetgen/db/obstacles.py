@@ -22,6 +22,7 @@ Only placed, generated objects count; nothing is generated here. Parsecs, galaxy
 import math
 
 from planetgen.db import corridor
+from planetgen.generation.phenomena.asteroid_field import RETIRED_FIELD_SQL
 from planetgen.galaxy import avoid, keepout, unresolved_crossings
 from planetgen.physics import constants
 from planetgen.physics.units import ly_to_pc, pc_to_ly
@@ -65,7 +66,7 @@ def widest_reach_pc(conn, kind):
         binary = _scalar(conn, "SELECT MAX(binary_system_perimeter_km) AS v FROM star_systems")
         return max(stars, binary) / KM_PER_PC
     if kind == "asteroid_field":
-        return ly_to_pc(_scalar(conn, "SELECT MAX(radius_ly) AS v FROM asteroid_fields WHERE center_x_pc IS NOT NULL"))
+        return ly_to_pc(_scalar(conn, f"SELECT MAX(radius_ly) AS v FROM asteroid_fields WHERE center_x_pc IS NOT NULL AND NOT ({RETIRED_FIELD_SQL})"))
     if kind == "quasar":
         if not conn.execute("SELECT 1 FROM quasars WHERE center_x_pc IS NOT NULL LIMIT 1").fetchone():
             return 0.0
@@ -190,7 +191,8 @@ def passed_through_along_segment(conn, start_pc, end_pc):
     found = []
     for kind in PASS_THROUGH_KINDS:
         table = _PASS_THROUGH_TABLES[kind]
-        widest = ly_to_pc(_scalar(conn, f"SELECT MAX(radius_ly) AS v FROM {table} WHERE center_x_pc IS NOT NULL"))
+        live = f" AND NOT ({RETIRED_FIELD_SQL})" if table == "asteroid_fields" else ""      # a retired field is no longer a field (GEN.1073)
+        widest = ly_to_pc(_scalar(conn, f"SELECT MAX(radius_ly) AS v FROM {table} WHERE center_x_pc IS NOT NULL{live}"))
         if widest <= 0.0:
             continue
         density = "density_cm3" if kind == "nebula" else "NULL"

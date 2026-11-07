@@ -17,7 +17,7 @@ it reads no class, writes none and draws only from the stream it is given.
    pair of the chain gets an instability time drawn from that law; the earliest to go collides (the two merge, keeping their angular
    momentum), the new neighbours get new times, and the chain is thinned until no pair fails inside `SCULPT_AGE_YR`. What is left is
    the observed pattern: spacings clustered near 12 to 20 mutual Hill radii, fewer and heavier planets than the oligarchs.
-4. **The gas.** A core of `GIANT_CORE_CRITICAL_MASS_EARTH` or more beyond the snow line may find gas (`planet_mass.gas_outcome`).
+4. **The gas.** A core of `GIANT_CORE_CRITICAL_MASS_EARTH` or more beyond the snow line may find gas (`planet_mass.gas_outcome`; the share that does falls in proportion to the star's mass below the Sun's, GEN.1336).
    A giant may then migrate in to a hot Jupiter orbit (`GIANT_MIGRATION_SHARE`, rising with [Fe/H] faster than giants do); the chain inside
    its new orbit is gone, which is why hot Jupiters rarely have companions [R4897].
 
@@ -171,6 +171,7 @@ def inner_chain(star_mass_kg, scatter, fe_h, stream=None, force=False, extra_sig
     solar_masses = _kg_to_msun(star_mass_kg)
     scale_kg = (tuning.INNER_PLANET_MASS_EARTH * solar_masses ** tuning.INNER_PLANET_MASS_STELLAR_EXPONENT
                 * scatter ** tuning.INNER_PLANET_MASS_DISK_EXPONENT * 10.0 ** (tuning.INNER_PLANET_MASS_METALLICITY_EXPONENT * fe_h)) * _EARTH_KG
+    scale_kg *= 10.0 ** (tuning.INNER_SYSTEM_SCALE_SIGMA_DEX * source.gauss(0.0, 1.0))      # GEN.1335: the system's own scale about the median
     separation = planet_mass.draw_separation(tuning.INNER_SEPARATION_MEDIAN, source)
     distance = max(period_to_au(tuning.OLIGARCH_INNER_EDGE_PERIOD_DAYS
                                 * 10.0 ** (tuning.OLIGARCH_INNER_EDGE_SIGMA_DEX * source.gauss(0.0, 1.0)), star_mass_kg), floor_au)

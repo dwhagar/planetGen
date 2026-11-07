@@ -130,6 +130,39 @@ def test_a_heavier_disk_builds_heavier_inner_planets():
     assert median_mass(5.0) > median_mass(1.0) > median_mass(0.2)
 
 
+def test_systems_differ_in_scale_and_the_planets_of_one_system_stay_alike():
+    """GEN.1335: with no spread between systems every Sun-like inner system started at the same 3.6 Earth masses and the Earth-size planets the surveys count were missing.
+    The mean of a system's log mass now spreads by about `INNER_SYSTEM_SCALE_SIGMA_DEX`, and the planets of one system stay within the neighbour spread."""
+    draw.set_run_seed(31)
+    means, within = [], []
+    for _ in range(400):
+        chain = pa.inner_chain(SUN, 1.0, 0.0, None, force=True)
+        logs = [math.log10(m / EARTH) for _a, m in chain]
+        if len(chain) >= 3:
+            means.append(sum(logs) / len(logs))
+            within.append(max(logs) - min(logs))
+    spread = (sum((x - sum(means) / len(means)) ** 2 for x in means) / len(means)) ** 0.5
+    assert len(means) > 200
+    assert tuning.INNER_SYSTEM_SCALE_SIGMA_DEX * 0.8 < spread < math.hypot(tuning.INNER_SYSTEM_SCALE_SIGMA_DEX, tuning.INNER_NEIGHBOUR_SIGMA_DEX) * 1.3, spread
+    assert sorted(within)[len(within) // 2] < 6 * tuning.INNER_NEIGHBOUR_SIGMA_DEX
+    assert sum(means) / len(means) == pytest.approx(math.log10(tuning.INNER_PLANET_MASS_EARTH), abs=0.08)       # the median of the scale is unchanged
+
+
+def test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet():
+    """GEN.1335 against [R1459] (16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii inside 85 days): of the inner systems of a K dwarf
+    about a quarter hold a bare core of that size (0.19 with every system at the same scale)."""
+    mass_solar, hosts, earth = 0.7, 0, 0
+    draw.set_run_seed(78)
+    for _ in range(600):
+        z = 0.2 * draw.gauss(0.0, 1.0)
+        arch = pa.build(mass_solar * SUN, 1.2, 10.0 ** z, z, 30.0, inner=True)
+        short = [x for x in arch.planets if not x.runaway and period_d(mass_solar * SUN, x.distance_au) < 85.0]
+        hosts += bool(short)
+        earth += any(0.8 <= _radius_earth(x.mass_kg / EARTH) <= 1.25 for x in short)
+    assert hosts > 500
+    assert 0.23 <= earth / hosts <= 0.40, earth / hosts       # 0.19 with no spread between systems
+
+
 # --- giants ----------------------------------------------------------------------------------------------------------------
 
 
@@ -244,6 +277,17 @@ def test_giants_rise_with_the_mass_of_the_star_and_with_its_metallicity():
     assert giants(1.0, -0.4, 3) * 2.0 < giants(1.0, 0.4, 3)
 
 
+def test_an_m_dwarf_has_giants_within_2_5_au_as_often_as_the_survey_finds():
+    # GEN.1336 / [R2172]: 3.5 percent of 0.5 solar mass stars at solar metallicity, in proportion to the star's mass; the model's snow line lies close in round
+    # an M dwarf, so before the gas of a lighter star's disk fell with its mass the rate was about 7 percent.
+    _mass, _snow, sky = _sky(0.5, 0.0, 3000, 808)
+    share = sum(1 for a in sky if any(s.runaway and s.distance_au < 2.5 for s in a.planets)) / len(sky)
+    assert 0.02 < share < 0.055, share
+    _mass, _snow, sky = _sky(1.0, 0.0, 3000, 809)
+    sun = sum(1 for a in sky if any(s.runaway and s.distance_au < 2.5 for s in a.planets)) / len(sky)
+    assert share < sun, (share, sun)
+
+
 def test_cold_giants_of_a_sun_like_star_are_as_common_as_the_survey_finds_them():
     mass_kg, _snow, sky = _sky(1.0, 0.0, 2500, 303)
     share = sum(1 for a in sky if any(s.runaway and 2.0 <= s.distance_au <= 8.0 for s in a.planets)) / len(sky)
@@ -255,7 +299,8 @@ def test_hot_jupiters_are_rare_and_rarer_round_a_red_dwarf():
         _mass, _snow, sky = _sky(mass_solar, -0.03, n, seed, spread=0.2)
         return sum(1 for a in sky if any(s.migrated and s.distance_au < tuning.GIANT_HOT_ORBIT_AU for s in a.planets)) / len(sky)
 
-    sun, red = rate(1.0, 6000, 404), rate(0.55, 6000, 405)
+    # GEN.1336: the red dwarf's rate is the pool of three seed blocks (it passed on seed 405 alone before the gas of a lighter star's disk fell with its mass)
+    sun, red = rate(1.0, 6000, 404), sum(rate(0.55, 2000, seed) for seed in (405, 406, 407)) / 3.0
     assert po.compare(sun, po.BANDS["hot_jupiter_rate.G"], po.share_sigma(sun, 6000)).ok or \
         po.compare(sun, po.BANDS["hot_jupiter_rate.G.rv"], po.share_sigma(sun, 6000)).ok, sun
     assert po.compare(red, po.BANDS["hot_jupiter_rate.M"], po.share_sigma(red, 6000)).ok, red

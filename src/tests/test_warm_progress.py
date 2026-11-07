@@ -171,3 +171,16 @@ def test_the_time_left_uses_the_parts_of_the_chunks_that_have_reported():
         progress.unit_progress(0, unit, 50, 100)         # ten chunks half done: five chunks' worth in 100 s
     assert progress._stage_left(100.0) == 100.0 / 5.0 * 15.0
     assert progress.overall_left() == 100.0 * 75.0 / 25.0
+
+
+def test_the_first_object_slice_s_left_out_is_not_part_of_the_chunk_size():
+    """The first slice of an object family carries the whole listing's left-out count; the summary's 'chunks of up to' is the slice's own size."""
+    lines, now = [], [0.0]
+    progress = warm_progress.WarmProgress(["phenomena"], lines.append, show=True, clock=lambda: now[0])
+    progress.plan(0, {"units": 2, "cost": 2.0})
+    now[0] += 1.0
+    progress.result({"warmed": 250, "built": 250, "cached": 0, "left_out": 8_542_750, "chunk": 250, "noun": "phenomena", "seconds": 1.0})
+    now[0] += 1.0
+    progress.result({"warmed": 250, "built": 250, "cached": 0, "left_out": 0, "chunk": 250, "noun": "phenomena", "seconds": 1.0})
+    summary = progress.summary("phenomena", 2.0)
+    assert "chunks of up to 250 phenomena" in summary and "8,542,750 left out" in summary

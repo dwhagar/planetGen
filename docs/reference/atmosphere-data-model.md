@@ -52,7 +52,7 @@ A column that a row made before its version does not have is `NULL`, and the pag
 
 ## 3. The gas table
 
-`physics/gases.py` is the one constants table of the gases and volatile compounds the chain reads: 112 rows, loaded from
+`physics/gases.py` is the one constants table of the gases and volatile compounds the chain reads: 115 rows, loaded from
 `physics/data/gases.json`, which `scripts/build_gas_table.py` builds from the tables of the research parts
 ([atmosphere-composition-parts](../design/composition/atmosphere-composition-parts/), parts 01 to 03). A row holds the
 formula (the key everything cites), name, CAS number, molar mass (kg/mol, summed from the element table; the research's own figure

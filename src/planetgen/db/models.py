@@ -1028,6 +1028,25 @@ interstellar_comets = sa.Table(
 )
 
 
+field_members = sa.Table(
+    'field_members', metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('field_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('member_rank', mysql.INTEGER(), nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), nullable=False),
+    sa.Column('radius_km', mysql.DOUBLE(), nullable=False),
+    sa.Column('density_g_cm3', mysql.DOUBLE(), nullable=False),
+    sa.Column('rock_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('metal_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('water_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('ice_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('status', mysql.VARCHAR(16), nullable=False),
+    sa.Index('uq_field_members_field_rank', 'field_id', 'member_rank', unique=True),
+    sa.ForeignKeyConstraint(['field_id'], ['asteroid_fields.id'], name='fk_field_members_field', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 irregular_moons = sa.Table(
     'irregular_moons',
     metadata,

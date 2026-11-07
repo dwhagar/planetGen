@@ -82,7 +82,10 @@ class PhaseTally:
         families (list[str]): The families of the run, in the order they run.
     """
 
-    def __init__(self, families):
+    def __init__(self, families, clock=time.monotonic):
+        self._clock = clock
+        self._began = {}
+        self._wall = {}
         self.families = [family for family in FAMILIES if family in families]
         self.totals = {family: {"built": 0, "cached": 0, "warmed": 0, "left_out": 0, "seconds": 0.0}
                        for family in self.families}
@@ -112,7 +115,8 @@ class PhaseTally:
             state = "unchanged"
         else:
             state = "stopped" if left_out else "built"
-        return {"state": state, "built": built, "cached": cached, "left_out": left_out, "seconds": round(seconds, 1),
+        return {"state": state, "built": built, "cached": cached, "left_out": left_out,
+                "seconds": round(self._wall.get(name, seconds), 1), "worker_seconds": round(seconds, 1),
                 "line": self.line(name)}
 
     def line(self, name):
@@ -124,6 +128,7 @@ class PhaseTally:
         built, cached, warmed, left_out, seconds = (
             sum(self.totals[family][key] for family in families) for key in ("built", "cached", "warmed", "left_out", "seconds"))
         head = f"{logrecord.counting_text('Phase', number, len(PHASES))}, {name}"
+        seconds = self._wall.get(name, seconds)         # the time the phase took, not its units' own seconds added up
         if not warmed and not left_out:
             return f"{head}: nothing to warm."
         if not built and not left_out:
@@ -137,6 +142,8 @@ class PhaseTally:
             ours = [family for family in self.totals if phase_of(family) == name]
             if ours and name not in self._reported and all(family in self._done for family in ours):
                 self._reported.add(name)
+                if name in self._began:
+                    self._wall[name] = self._clock() - self._began[name]
                 lines.append(self.line(name))
                 ended.append(name)
         self.ended = ended
@@ -145,6 +152,7 @@ class PhaseTally:
     def start(self, step_key):
         """A step is starting: every family before it is done. Returns the lines of the phases that ended."""
         if step_key in self.totals:
+            self._began.setdefault(phase_of(step_key), self._clock())
             self._done.update(self.families[:self.families.index(step_key)])
         else:
             self._done.update(self.families)
@@ -443,7 +451,7 @@ def _warm_objects(visitor, cap, fetch, pages, noun, window=None):
         if cache is not None and rows and len(visitor.failed) == failed:
             cache.save_slice(visitor.db, name, recorded)
     left_out = max(0, visitor.total - len(rows)) if window is None else window["left_out"]
-    return {"warmed": len(rows), "noun": noun, "left_out": left_out}
+    return {"warmed": len(rows), "noun": noun, "left_out": left_out, "chunk": len(rows)}
 
 
 def _warm_sectors(visitor, cap, window=None):
