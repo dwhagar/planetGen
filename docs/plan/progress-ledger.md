@@ -2768,3 +2768,54 @@ Baseline: PR #1817.
 | OPS.114 | 8.1 | The headline closes |
 | TEST.667 | 8.1 | The headline closes |
 | TEST.668 | 8.1 | The headline closes |
+| TEST.290 | 8.1 | Bugs and flaky tests |
+| GEN.613 | 8.1 | Admin control suite |
+| MAP.269 | 8.1 | Fly-through map |
+| MAP.171 | 8.1 | Fly-through map |
+| GEN.273 | 8.1 | Components and wanderers |
+| GEN.644 | 8.1 | Habitability system |
+| TEST.300 | 8.1 | Habitability system |
+| DOC.51 | 8.1 | Docs |
+| GEN.682 | 8.1 | Consistency |
+| GEN.681 | 8.1 | Consistency |
+| GEN.476 | 8.1 | Stand-in replacements |
+| GEN.493 | 8.1 | Weight research (atmosphere) |
+| GEN.494 | 8.1 | Weight research (atmosphere) |
+| GEN.951 | 8.1 | Physics rectification: test health, constant audits and the star mass function |
+| GEN.932 | 8.1 | Physics rectification: test health, constant audits and the star mass function |
+| GEN.918 | 8.1 | Physics rectification: test health, constant audits and the star mass function |
+| GEN.915 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| TEST.430 | 8.1 | Physics rectification: life classes, chemistries and their pages |
+| GEN.842 | 8.1 | Physics rectification: infrared opacity, tides and the class re-sweep |
+| GEN.1178 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
+| GEN.1174 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
+| GEN.1171 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
+| GEN.1130 | 8.1 | Physics rectification: strength, rings, trojans and small-body follow-ups |
+| GEN.1127 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| TEST.569 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| GEN.1253 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1252 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1217 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| DOC.99 | 8.1 | Physics rectification: citations and the gate's test health |
+| DOC.98 | 8.1 | Physics rectification: citations and the gate's test health |
+| DOC.97 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.634 | 8.1 | Physics rectification: citations and the gate's test health |
+| GEN.998 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| GEN.744 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| GEN.745 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| TEST.550 | 8.1 | Physics rectification: older physics follow-ups, units and the storage rows |
+| GEN.806 | 8.1 | Physics rectification: older physics follow-ups, units and the storage rows |
+| GEN.808 | 8.1 | Physics rectification: older physics follow-ups, units and the storage rows |
+| GEN.1271 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| PERF.236 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| VIEW.19 | 8.2 | Bookmarks |
+| PERF.72 | 8.2 | Gravity grid foundations (Boss, 5:14 PM EST on 2026-11-05) |
+| VIEW.7 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
+| GEN.285 | 8.3 | Galactic gravity |
+| GEN.340 | 8.3 | Orbital update core |
+| GEN.197 | 8.3 | Orbital update core |
+| NAV.6 | 8.5 | Steering clear of gravity wells |
+| MAP.132 | 8.8 | Clusters and satellites on the map |
+| MAP.194 | 8.8 | Zoom windows |
+| GEN.164 | later | Multiple galaxies |
+| TEST.389 | 8.1 | Physics rectification: older physics follow-ups, units and the storage rows |
