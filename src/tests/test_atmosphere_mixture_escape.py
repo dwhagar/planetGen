@@ -108,9 +108,9 @@ def test_a_lifeless_oxygen_world_is_capped_at_95_percent_with_a_nitrogen_argon_f
     assert oxygen.cap_oxygen(inside, oxygen.ABIOTIC_O2_MAX) is inside
 
 
-def test_a_living_world_is_capped_at_35_percent_and_keeps_the_ratios_of_the_other_gases():
+def test_cap_oxygen_holds_a_share_and_keeps_the_ratios_of_the_other_gases():
     from planetgen.physics import mixture_oxygen as oxygen
-    capped = oxygen.cap_oxygen({"O2": 0.6, "N2": 0.3, "CO2": 0.1}, oxygen.BIOTIC_O2_MAX)
+    capped = oxygen.cap_oxygen({"O2": 0.6, "N2": 0.3, "CO2": 0.1}, 0.35)
     assert capped["O2"] == pytest.approx(0.35)
     assert capped["N2"] / capped["CO2"] == pytest.approx(3.0)
 

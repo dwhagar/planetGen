@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1192 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1193 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -42,10 +42,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
 | T6 | 111 | 85 | 24 | 61 | 0 | 281 |
-| T7 | 33 | 13 | 7 | 13 | 0 | 66 |
+| T7 | 33 | 14 | 7 | 13 | 0 | 67 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 653 | 248 | 58 | 188 | 45 | 1192 |
+| All | 653 | 249 | 58 | 188 | 45 | 1193 |
 
 ## How the labels were given
 
@@ -1674,6 +1674,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md | - | no data |
+
+## 6.195 Stand-in of the fire limit of a living world's air
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| OX1 | P | T7 | L1 | mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA 0.35 * 101325 Pa: the most oxygen pressure of a living world's air, 35 percent of one Earth atmosphere (the Phanerozoic peak of 30 to 35 percent at one atmosphere, where fires spread so easily that plants would struggle); the share is held to `ABIOTIC_O2_MAX` (0.95) as well | 25 to 45 kPa | any living world; at Earth's air it is the old 35 percent | a flammability measurement of plant fuel against oxygen pressure at low total pressure that puts the limit at a share and not a pressure | a burn-rate law of fuel against oxygen pressure and the air's heat capacity | life-timeline-and-oxygen.md; reports/gen1309-oxygen-chain-2026-11-07.md | - | - |
 
 ## 6.182 Stand-ins of where a stored belt member lies
 

@@ -3070,3 +3070,11 @@ A rocky planet with no row in the hosting gate's `satellite-share` table holds a
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md |
+
+### 6.195 Stand-in of the fire limit of a living world's air (GEN.1320)
+
+`physics/biogenic_oxygen` holds the oxygen of a living world to a fire limit. It was 35 percent of the molecules (Boss 10-24, the Phanerozoic peak); 3 to 4 of every 5 worlds with 16 percent oxygen or more sat exactly on it (thin airs of 10 to 17 kPa whose oxygen supply was larger than the cap). Fire spreads with the oxygen's pressure, not with its share, so the cap is now a pressure (Boss, 11-06, option b).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| OX1 | P | T7 | L1 | mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA 0.35 * 101325 Pa: the most oxygen pressure of a living world's air, 35 percent of one Earth atmosphere (the Phanerozoic peak of 30 to 35 percent at one atmosphere, where fires spread so easily that plants would struggle); the share is held to `ABIOTIC_O2_MAX` (0.95) as well | 25 to 45 kPa | any living world; at Earth's air it is the old 35 percent | a flammability measurement of plant fuel against oxygen pressure at low total pressure that puts the limit at a share and not a pressure | a burn-rate law of fuel against oxygen pressure and the air's heat capacity | life-timeline-and-oxygen.md; reports/gen1309-oxygen-chain-2026-11-07.md |

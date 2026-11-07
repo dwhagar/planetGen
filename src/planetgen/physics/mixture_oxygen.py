@@ -9,13 +9,17 @@ dioxide are always there, and a living world is held near its fire limit (a Phan
 30 percent fires spread so easily that plants would struggle). An air that lost several oceans to photolysis and hydrogen escape can
 reach 90 percent or more [R2769, R4771] but is capped. `cap_oxygen` applies a cap and a
 floor of nitrogen plus argon to mole fractions; the abiotic cap is applied by `mixture_evolved` to the abiotic-oxygen family and the
-biotic one is for the life stage (`BIOTIC_O2_MAX`), which sets the oxygen a living world has.
+biotic one is for the life stage (`BIOTIC_O2_PRESSURE_MAX_PA`, a limit on the oxygen's pressure and not its share: GEN.1320), which sets the oxygen a
+living world has.
 
     cap_oxygen({"O2": 0.99, "CO2": 0.01}, ABIOTIC_O2_MAX, INERT_FLOOR)     # O2 0.945, N2 0.005, CO2 0.05
 """
 
-BIOTIC_O2_MAX = 0.35
-"""float: The most oxygen, by mole, of the air of a world with life (Boss 10-24, from the Phanerozoic peak and the fire limit)."""
+BIOTIC_O2_PRESSURE_MAX_PA = 0.35 * 101325.0
+"""float: The most oxygen pressure, Pa, of the air of a world with life: 35 percent of one Earth atmosphere (35.5 kPa), the Phanerozoic peak and the fire limit
+(Boss 10-24 set the limit at 35 percent of Earth's air; Boss 11-06 ruled it a pressure and not a share, GEN.1320). Fire spreads with the oxygen's pressure
+(the partial pressure sets how fast fuel burns), not with its share of the molecules, so a thin air may hold a larger share and a thick one a smaller. The share
+is held to `ABIOTIC_O2_MAX` all the same, since no air is pure oxygen. [Stand-in OX1, tier Confident educated guess from physics, tweak L1.]"""
 
 ABIOTIC_O2_MAX = 0.95
 """float: The most oxygen of the air of a lifeless world that lost its water (Boss 10-24)."""
