@@ -97,6 +97,33 @@
       "title": "Cache",
       "type": "object"
     },
+    "Generation": {
+      "properties": {
+        "cell_cap": {
+          "default": 5000,
+          "description": "The most systems one cell of the galaxy may expect before it is filled only with the stars at or above the fill luminosity cap (the rest is left unresolved, its count and mass shown on the sector page). A new galaxy takes this value when its plan starts and keeps it, so a change affects only galaxies planned afterwards, never cells already stored; the command line's --cell-star-ceiling sets one galaxy's own and wins over this. A lower cap fills fewer systems in a crowded cell and makes the galaxy smaller and quicker to build; a higher one fills more and takes more disk and time.",
+          "maximum": 50000,
+          "minimum": 500,
+          "title": "Cell Cap",
+          "type": "number",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "generation",
+          "x-label": "Systems a cell may hold",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many systems a crowded cell may hold before it is only partly filled; applies to galaxies planned afterwards.",
+          "x-unit": "systems"
+        }
+      },
+      "title": "Generation",
+      "type": "object"
+    },
     "Icons": {
       "properties": {
         "apple_touch_icon": {
@@ -2058,6 +2085,12 @@
       "x-secret": false,
       "x-slider": null,
       "x-summary": "Which kinds of detail debug mode writes; empty is all of them."
+    },
+    "generation": {
+      "$ref": "#/$defs/Generation",
+      "default": {
+        "cell_cap": 5000.0
+      }
     },
     "icons": {
       "$ref": "#/$defs/Icons",
