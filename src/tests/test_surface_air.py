@@ -351,11 +351,14 @@ def _earth_like_planet(seed=3):
 
 
 def test_a_runaway_greenhouse_stops_at_the_ceiling(monkeypatch):
+    """The ceiling is the guard of a body that can hold steam; the Earth-like body of the sample is under its runaway limit (GEN.1329 holds such a body under
+    `MOIST_LIMIT_K`), so the test declares it past the limit and asks the ceiling the same question as before."""
     import dataclasses
 
     real = sa.atmosphere_state.greenhouse_warming
     monkeypatch.setattr(sa.atmosphere_state, "greenhouse_warming",
                         lambda *args: dataclasses.replace(real(*args), surface_temperature_k=5000.0))
+    monkeypatch.setattr(sa, "_steam_possible", lambda *args: True)
     planet = _earth_like_planet()
     assert planet.atmospheric_pressure > 0.0
     assert planet.surface_temperature == pytest.approx(sa.MAX_SURFACE_TEMPERATURE_K)
