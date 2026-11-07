@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.285 |
+| UX | UX.286 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
 | GEN | GEN.1343 |
@@ -4325,6 +4325,7 @@ Each citation below resolves to one item by its date.
 | `test_web_facilities.py` | "TODO 36" | 2026-10-01 02:42Z | UX.5 |
 | UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched | none | open |
 | UX.284 | The admin Update page log and the queue run log scroll to the end on load and on live refresh, pausing only when the reader scrolls up | none | done, PR #5485 |
+| UX.285 | Settings option weirdness_dial: the oddity dial (default 1, 0 turns all oddities off) in the settings page and file, read through SystemConfig.WEIRDNESS_DIAL | none | open |
 
 ### Code tags `TODO(<area> #N)`
 
