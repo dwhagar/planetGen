@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3566] - 2026-11-07
+
+**Headline:** The class census is re-tagged after train 13: six tags whose range holds again are removed and the eleven flags the train raised are tagged with their reasons.
+
+### Changed
+
+- **Class census re-tag after train 13 (GEN.1327).** The three live censuses ran on the train 13 tree. The life and systems censuses raised nothing. The class census raised eleven new flags: eight shares in four moon cells with a few bodies each (A0V, F5V, K0III and K5V ecosphere, 8 to 19 moons scored), tagged TEST.656, and three planet shares just past a range that is itself a 95 percent bound (A0V and F5V ecosphere planets with an unlimited life ceiling, G2V hot planets in Class C), tagged GEN.1327 with the numbers. Six tags whose range holds again are removed (A0V ecosphere planets microbial ceiling, A0V hot moons Class D, F5V ecosphere moons ceiling none, F5V ecosphere planets Class N, K5V cold planets Class T, M2V cold planets Class J). The class census passes on the new tags. Only test data changes; the ranges stay until the re-baseline after the last 8.1 train (TEST.660).
+
+generation-output: unchanged
+
 ## [8.0.3565] - 2026-11-07
 
 **Headline:** A system page now shows the mass of the whole system, where its center of mass lies against the primary star, and how far its asteroid belts pull that star (GEN.1241).
