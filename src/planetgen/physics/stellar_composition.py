@@ -56,7 +56,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.datasets import baraffe_isochrones, fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import alpha_tracks, constants, elements, main_sequence, wolf_rayet
+from planetgen.physics import alpha_tracks, constants, elements, main_sequence, white_dwarf_layers, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
 
@@ -402,8 +402,9 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             open_items = (f"the white-dwarf sequences are missing: {white_dwarf_models.DATASET.fallback}",)
         else:
             detail["radius_solar"] = _grid_radius_solar(mass_sol, teff_k, envelope)
-            detail["layers"] = (white_dwarf_models.layer_mass_fractions(mass_sol, envelope)
-                                if detail["core"] == "carbon-oxygen" else None)
+            detail["layers"] = (white_dwarf_models.layer_mass_fractions(mass_sol, envelope) if detail["core"] == "carbon-oxygen"
+                                else white_dwarf_layers.helium_core(mass_sol, envelope) if detail["core"] == "helium"
+                                else white_dwarf_layers.oxygen_neon(mass_sol, envelope))    # GEN.743
             open_items = ("the carbon-to-oxygen split of the core (the sequences assume an even one)",
-                          "the layers and the radius of a helium-core or oxygen-neon white dwarf (the sequences are carbon-oxygen)")
+                          "the radius of a helium-core or oxygen-neon white dwarf (the sequences are carbon-oxygen)")
     return StarMakeup(kind, branch, birth, surface, draws, detail, open_items)
