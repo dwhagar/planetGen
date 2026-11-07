@@ -77,7 +77,6 @@ What reads the families.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.387 | Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo | GEN.382, GEN.383, GEN.297 | Step 6 of the galaxy types chain. |
-| GEN.635 | The cluster system has no radial profile yet, and the dwarf end of the globular cluster count uses no occupation draw (the Carlsten fits are not built in GEN.403) |  |  |
 | GEN.634 | The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline) |  |  |
 
 
@@ -115,7 +114,6 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DOC.59 | Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components | GEN.389 | Step 8 of the galaxy types chain. |
 
 ## Phase 6: The headline closes
 
@@ -125,4 +123,4 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.390 | Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules | UX.134, MAP.242, TEST.204, DOC.59 | Headline of 9.4. |
+| GEN.390 | Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules | UX.134, MAP.242, TEST.204, GEN.389 | Headline of 9.4. |

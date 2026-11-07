@@ -48,7 +48,6 @@ The approver screen, comments, the request lifecycle, limits, email notices and 
 |---|---|---|---|
 | USR.18 | Approver screen: the requester's note, the plan preview and the decision buttons | USR.17, ADM.66 |  |
 | USR.19 | Comments on a request between the requester and the approver | USR.17 |  |
-| USR.20 | "My requests" in the user interface: state of each request and withdraw | USR.16, USR.7 |  |
 
 ### Lifecycle
 
@@ -62,7 +61,6 @@ The approver screen, comments, the request lifecycle, limits, email notices and 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | USR.23 | Email notices: a request was submitted, decided or sent back | USR.17, USR.3 |  |
-| USR.24 | Audit view for roles and requests: who changed a role, who asked, who decided | USR.17, ADM.68 |  |
 
 ## Phase 4: Close-out: proof, help and the headline
 
@@ -74,7 +72,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.178 | Roles end to end: user, moderator and admin through the whole request chain | USR.18, USR.19, USR.20, USR.21, USR.22, USR.23, USR.24 |  |
+| TEST.178 | Roles end to end: user, moderator and admin through the whole request chain | USR.18, USR.19, USR.16, USR.21, USR.22, USR.23, ADM.68 |  |
 | TEST.179 | Permission matrix test: every route and page checked for every role against the catalogue | USR.14 |  |
 | DOC.55 | Help: roles, edit requests and how an approval works | TEST.178 |  |
-| USR.25 | Headline of 10.0: roles and permissions, user edit requests and moderators | USR.13, USR.14, TEST.178, TEST.179, DOC.55 | Headline; a major version needs Boss's word for the .major note |
+| USR.25 | Headline of 10.0: roles and permissions, user edit requests and moderators | USR.27, USR.14, TEST.178, TEST.179, DOC.55 | Headline; a major version needs Boss's word for the .major note |
