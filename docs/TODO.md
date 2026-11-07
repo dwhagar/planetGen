@@ -15166,25 +15166,20 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **SEC.37 Update.sh and the guards run as root from a checkout the web user owns: make the code tree root-owned**
-  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M1, Medium, report section 1): set-permissions.sh
-  chowns the whole install tree, update.sh, scripts/, src/planetgen/ and
-  .git included, to www-data, and update.sh then runs python,
-  check_redis_settings.py and git from that tree as root, so a web-user
-  compromise becomes root at the next sudo ./update.sh. Do: make code and
-  scripts root-owned and read-only to the web user and keep only state/, the
-  tile cache and the log folders web-owned; change how update.sh writes the
-  tree to match. Boss decided option 1, make the code tree root-owned (7:32 PM EST on 2026-11-06; also chosen in the audit thread). Released to the Train Manager.
-  Done: no file the web user can write is run as root. Blocks the 8.1 stamp.
-  Version 8.1. Owner: Train Manager (update.sh and the deploy scripts); SEC.43
-  (the Update button) pairs with it.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.33.
-
 - [ ] **SEC.43 An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell**
   Boss (7:20 PM EST on 2026-11-06, cited in the SEC.33 audit thread): an Update button in the admin pages so update.sh never needs a root shell, which also answers the S-M1 root problem (SEC.37). Design recommended by the audit thread: the web user only drops a fixed request file in the state folder (no arguments from the browser); a root-owned systemd .path unit starts the existing planetgen-update.service (examples/maintenance), which runs update.sh as root; the page shows status and log by reading a log file. Guards: Owner tier plus a recent-password confirm, CSRF, an activity-log row, and the update guard's cancel and queue rules apply. Do: the admin page and API route, the request-file hand-off, the .path unit and its install in examples/maintenance and the deploy scripts, the status and log view, tests for the guards (no request without Owner and a fresh password, no argument reaches root, a second request while one runs queues or is refused by the guard's rules). Pairs with SEC.37 (the checkout becomes root-owned) and SEC.38. Done: an Owner presses Update, update.sh runs as root with no shell, the page shows its progress and log, and no file the web user can write is run as root. Version 8.1. Owner: the SEC.33 audit thread builds all of it (Boss, 7:27 PM EST on 2026-11-06). Lock-free; merges on a targeted gate with the route sweeps. SEC.38 (Core 3) touches the same admin/updateguard.py, so the two coordinate on merge order.
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.37, SEC.38, SEC.33.
+
+- [ ] **SEC.44 Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes**
+  Train Manager (as the lane reported, 7:43 PM EST on 2026-11-06), left over from SEC.37 (PR #5420). After SEC.37 the code tree is root-owned, but the deploy scripts still read the Generate jobs, tile cache and log folder paths from config.json, which the Settings page (web user) can edit, and then chown those paths as root. Do: read the folder paths for root actions from a root-owned file (or validate them against a fixed list of allowed parents and refuse symlinks) instead of the web-editable config.json; add tests that a path set to a system folder or a symlink is refused. Done: no path the web user can choose is chowned or written as root. Version 8.1. Owner: the SEC.33 audit thread, after SEC.43.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.37, SEC.43, SEC.33.
+
+- [ ] **TEST.661 Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug)**
+  Train Manager (as the lane reported, 7:43 PM EST on 2026-11-06), seen on clean main while building SEC.37. Do: for each of the six, say whether the test or the code is wrong and fix it (the bash4 check on deploy-common.sh is a real portability finding if the script runs under an older bash), root-cause each one; none is skipped or quarantined. Done: all six pass on main. Version 8.1. Owner: Bug 1, after GEN.1322.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.37.
 
 - [ ] **SEC.38 World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite**
   Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M2, Medium): admin/updateguard.py:200 and
