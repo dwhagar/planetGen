@@ -163,6 +163,7 @@ def test_a_barred_class_has_no_range(expectations):
 
 
 @pytest.mark.slow
+@pytest.mark.timeout(3600)    # PERF.241: the census draws every cell as its reference did, on every core: 886 to 1,036 s on 4 vCPUs against the default 900 s
 def test_the_class_census_raises_no_new_flag(expectations):
     """Draws every cell as the reference did (same draws per cell), writes the latest-run report and fails on a flag that no
     known anomaly explains. Known anomalies are in the report; one that no longer trips is listed as stale there."""

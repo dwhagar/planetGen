@@ -11863,26 +11863,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Report: reports/ice-phase-boundaries-secondary-sources-2026-10-31.md.
   Prerequisites: none. Related: GEN.1183, GEN.725.
 
-- [ ] **GEN.1194 Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus**
-  From Air 1 (GEN.973 finding): outgoing flux rises monotonically with
-  temperature in the radiative-convective model (343 W/m2 at 330 K
-  saturated against Simpson and Nakajima's plateau near 280), and the
-  fixed point stays near 320 K at 320 W/m2 absorbed with no step through
-  350 K, so a runaway-threshold test against GEN.639 cannot pass as a
-  model-behaviour test. The fix is not new feedback code but different
-  opacity: the water window opacity, the continuum's temperature
-  dependence and the line wings, so the outgoing flux plateaus near 280
-  W/m2. The same too-steep slope explains the sweep's low sensitivity
-  (model Earth twin about 0.43 K per W/m2 against the 0.54 bound; the
-  missing ice-albedo +0.4 and cloud +0.4 W/m2 per K feedbacks close the
-  gap by the AR6 budget). Register changed stand-ins in GEN.725, then
-  add the runaway-threshold test (converges below the limit, runs away
-  above it). Output changes, an epoch with GEN.972 if the train allows.
-  Owner Air 1.
-  Prerequisites: none. Related: GEN.973, GEN.639, GEN.972, GEN.974,
-  GEN.725.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 5 takes it: the greenhouse and climate chain, one refit with GEN.1304 where it can ride (Air 1, Aux 2, Aux 7 and Bug 2 ended).
-
 - [ ] **GEN.1201 A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today**
   Finding from Aux 5's GEN.1159 build (as the lane reported, 4:46 AM EDT
   2026-10-31), filed by the TODO thread. Kind: missing input. Object:
@@ -15166,11 +15146,6 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **SEC.43 An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell**
-  Boss (7:20 PM EST on 2026-11-06, cited in the SEC.33 audit thread): an Update button in the admin pages so update.sh never needs a root shell, which also answers the S-M1 root problem (SEC.37). Design recommended by the audit thread: the web user only drops a fixed request file in the state folder (no arguments from the browser); a root-owned systemd .path unit starts the existing planetgen-update.service (examples/maintenance), which runs update.sh as root; the page shows status and log by reading a log file. Guards: Owner tier plus a recent-password confirm, CSRF, an activity-log row, and the update guard's cancel and queue rules apply. Do: the admin page and API route, the request-file hand-off, the .path unit and its install in examples/maintenance and the deploy scripts, the status and log view, tests for the guards (no request without Owner and a fresh password, no argument reaches root, a second request while one runs queues or is refused by the guard's rules). Pairs with SEC.37 (the checkout becomes root-owned) and SEC.38. Done: an Owner presses Update, update.sh runs as root with no shell, the page shows its progress and log, and no file the web user can write is run as root. Version 8.1. Owner: the SEC.33 audit thread builds all of it (Boss, 7:27 PM EST on 2026-11-06). Lock-free; merges on a targeted gate with the route sweeps. SEC.38 (Core 3) touches the same admin/updateguard.py, so the two coordinate on merge order.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.37, SEC.38, SEC.33.
-
 - [ ] **SEC.44 Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes**
   Train Manager (as the lane reported, 7:43 PM EST on 2026-11-06), left over from SEC.37 (PR #5420). After SEC.37 the code tree is root-owned, but the deploy scripts still read the Generate jobs, tile cache and log folder paths from config.json, which the Settings page (web user) can edit, and then chown those paths as root. Do: read the folder paths for root actions from a root-owned file (or validate them against a fixed list of allowed parents and refuse symlinks) instead of the web-editable config.json; add tests that a path set to a system folder or a symlink is refused. Done: no path the web user can choose is chowned or written as root. Version 8.1. Owner: the SEC.33 audit thread, after SEC.43.
   Filed by the TODO thread.
@@ -15180,20 +15155,6 @@ clears each one.
   Train Manager (as the lane reported, 7:43 PM EST on 2026-11-06), seen on clean main while building SEC.37. Do: for each of the six, say whether the test or the code is wrong and fix it (the bash4 check on deploy-common.sh is a real portability finding if the script runs under an older bash), root-cause each one; none is skipped or quarantined. Done: all six pass on main. Version 8.1. Owner: Bug 1, after GEN.1322.
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.37.
-
-- [ ] **SEC.38 World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite**
-  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M2, Medium): admin/updateguard.py:200 and
-  admin/stop_reason.py:42 make <state>/running/ and the stop-reason folder
-  mode 1777; the update guard sends SIGTERM as root to any pid named in any
-  marker there with no owner check, and stop_reason.leave opens <pid>.txt
-  for writing as root, so a local user can plant a symlink and have root
-  overwrite a file. Do: stop using world-writable folders (a per-user
-  subfolder, or check the marker owner uid against the pid owner), and write
-  with O_NOFOLLOW and O_EXCL; add tests for the forged marker and the
-  symlink. Lock-free. Done: both attacks fail in a test. Blocks the 8.1
-  stamp. Version 8.1. Owner: Core 3, after GEN.1261.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.33.
 
 - [ ] **SEC.39 A run's own queue still uses pickle and Redis has no ACL user: use ids or add an ACL**
   Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M3, Medium, confirmed): queue/redisqueue.py

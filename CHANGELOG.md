@@ -2,6 +2,57 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3509] - 2026-11-07
+
+**Headline:** The three live census tests state their own time limit (3,600 s), because on 4 vCPUs each takes 886 to 1,036 s against the default 900 s.
+
+### Changed
+
+- `src/tests/test_prevalence_census.py`, `test_prevalence_life_census.py`, `test_prevalence_systems_census.py` (PERF.241): `@pytest.mark.timeout(3600)` on the live census test of each. They draw every cell with the number of draws their reference was measured with (300 per cell, 100 systems per star type), already on every core through a process pool, so a smaller draw would change what the ranges mean. Measured on the Train Manager's 4 vCPU machine after train 12: class census 1,020 s (23 min 39 s for the file), life census 886 s (14 min 46 s for the file), systems census 1,036 s (17 min 16 s for the file). The limit is the one `tests/hang_guard.py` holds a test with its own mark to; a hang still ends the test at 3,600 s.
+
+generation-output: unchanged
+
+## [8.0.3508] - 2026-11-07
+
+**Headline:** The radiative-convective model can now be asked for the saturated clear-sky air the published runaway-greenhouse limits are worked for, and it runs away there at 300 to 315 W/m2 of outgoing flux (published 282 to 310): the missing plateau was the dry-aloft humidity profile of the Earth, not the water opacity.
+
+### Added
+- GEN.1194: `radiative_convective.solve(..., saturated=True, clear_sky=True)` holds the relative humidity at the surface's value up to the cold trap and leaves out the cloud's longwave effect (stand-in IR17). On 1 bar of nitrogen with 40 Pa of carbon dioxide the surface answers a watt with about 1 K up to 300 W/m2, with 1.3 K at 315, and with over 2 K past 320 (322 K at 300 W/m2, 343 K at 315, 375 K at 330). The Manabe and Wetherald profile that the generator keeps (IR7) gives 310 K for the same 330 W/m2, which is why the model looked as if it had no plateau.
+- Two tests on the real tables hold the elbow and the finding that it belongs to the humidity, not to the opacity.
+
+### Changed
+- Nothing the generator makes: the greenhouse table is not refitted and the defaults of `solve` are as they were. The refit of the hot dense airs (GEN.1310) is where the option's findings would reach generated worlds, if the humidity of the hot ocean worlds is changed there.
+
+## [8.0.3507] - 2026-11-07
+
+**Headline:** The admin Update button: the Owner presses Update on a page and update.sh runs as root, with no root shell.
+
+### Added
+- **SEC.43: `/admin/update`, and `GET`/`POST /api/admin/update`.** The page shows whether an update is waiting or running and the end of `update.log`, and reloads itself every ten seconds while one runs. The Owner types the password again (the same ten-minute window as the Owner's settings) and presses Update. The web process only creates the empty `update.request` file in the state folder; the root-owned `planetgen-update.path` does the rest (see the units note), so nothing the browser sends reaches the command. A press while an update runs runs after it. Not set up (no unit) the page says so.
+- The Update page is in the admin rail's search and the Overview list. The API route is documented in `docs/reference/api.md`; the route snapshot moved (additive, no version bump).
+
+## [8.0.3506] - 2026-11-07
+
+**Headline:** The server side of the admin Update button: update.sh runs as root from a request file, with no root shell.
+
+### Changed
+- **SEC.43: root-owned systemd units for the admin pages' Update button.** The web user only creates an empty `update.request` file in the state folder. New `planetgen-update.path` sees it and starts the existing `planetgen-update.service`, which removes the request and then runs `update.sh` as root. The file is never read and the command takes no argument, so nothing the web user can write is run as root.
+- **A press while an update runs waits and runs after it.** The update guard's own rules still decide whether running work is cancelled or the update refuses.
+- **`install.sh` and `update.sh` keep the units right** (`ensure_update_request_units`: the checkout path and state folder put in, the path unit enabled; Linux with systemd only, a failure only warns). `install-maintenance-timer.sh` installs the path unit too, and `--skip-update-button` leaves it out.
+- The admin page, route and status view are Core 3's part of SEC.43. Tests: `test_update_button_units.py`.
+
+## [8.0.3505] - 2026-11-07
+
+**Headline:** The update guard no longer believes what a local user leaves in the shared run and stop-reason folders.
+
+### Changed
+
+- `admin/updateguard.py` (SEC.38, audit finding S-M2): a marker in `running/` is listed and canceled only when it is a plain file named `<kind>-<pid>.json` for its own pid and owned by the user the process of that pid runs as; a marker that fails this, a link and a pipe are ignored and never opened, so a local user can no longer have the guard (root, in `update.sh`) signal another user's process. A run registers its marker on a name that does not exist yet (`O_EXCL`, `O_NOFOLLOW`, the name cleared first).
+- `admin/stop_reason.py`: a reason is written the same way, so a link planted under `<pid>.txt` is replaced and never written through; a run reads a reason only from a plain file owned by root or by itself, never through a link.
+- Tests for the forged marker, the mismatched name, the link, the pipe, and the planted link on both write paths. The folders stay mode 1777 (every user a run starts as must be able to register); nothing in them is trusted.
+
+generation-output: unchanged
+
 ## [8.0.3504] - 2026-11-07
 
 **Headline:** The code tree is root's and read-only to the web user, so nothing the web user can write ever runs as root.

@@ -1981,7 +1981,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1191 | Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate | none | done, PR #4436 |
 | GEN.1192 | Satellite gas: a gas disc longer than the stars and a longer depletion time at low density | none | done, PR #4436 |
 | GEN.1193 | Stripping rule on a satellite's distance to its host so gas follows Grcevich and Putman | none | done, PR #4436 |
-| GEN.1194 | Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus | none | open |
+| GEN.1194 | Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus | none | done, PR #5426 |
 | GEN.1195 | Cluster maximum mass of the central ring from the gas, and cloud-shock disruption of its clusters | none | done, PR #4436 |
 | GEN.1196 | Disc cluster maximum mass per ring, replacing the flat 1e6 cap | none | done, PR #4436 |
 | GEN.1197 | Faint gas-bearing dwarfs far from the host: the star formation threshold stops anything under 1e7 solar masses, so Leo T-like dwarfs are never made | none | done, research only, no change (gen1197-faint-gas-dwarfs-2026-10-31.md) |
@@ -3480,12 +3480,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.2.14.2 | SEC.18 |
 | SEC.2.14.3 | SEC.19 |
 | SEC.37 | Update.sh and the guards run as root from a checkout the web user owns: make the code tree root-owned | none | done, PR #5421 |
-| SEC.38 | World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite | none | open |
+| SEC.38 | World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite | none | done, PR #5425 |
 | SEC.39 | A run's own queue still uses pickle and Redis has no ACL user: use ids or add an ACL | none | open |
 | SEC.40 | Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740) | none | open |
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats | none | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | open |
-| SEC.43 | An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell | none | open |
+| SEC.43 | An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell | none | done, PR #5426 |
 | SEC.44 | Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes | none | open |
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |

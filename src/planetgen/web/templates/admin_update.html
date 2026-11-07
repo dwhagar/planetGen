@@ -1,0 +1,54 @@
+{#- planetgen/web/templates/admin_update.html -- /admin/update (SEC.43). -#}
+{% extends "base.html" %}
+{% block head %}
+{%- if refresh %}<meta http-equiv="refresh" content="{{ refresh }}">{% endif %}
+{% endblock %}
+{% block content %}
+{%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
+{%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+{%- if data %}
+<section class="panel" aria-labelledby="update-state-heading">
+  <h2 id="update-state-heading">State</h2>
+  {%- if data.state == 'not_installed' %}
+  <p class="error" role="alert">{{ data.reason }}</p>
+  {%- elif data.state == 'requested' %}
+  <p><strong>Requested.</strong> The update is about to start.
+    {%- if data.stale_request %} It has waited a long time: the path unit <code>planetgen-update.path</code> may not be running (<code>systemctl status planetgen-update.path</code>).{% endif %}</p>
+  {%- elif data.state == 'running' %}
+  <p><strong>Running.</strong> The site is closed to visitors while it runs. This page reloads every {{ refresh or 10 }} seconds, and may fail to load for a moment when the update restarts the web server.</p>
+  {%- else %}
+  <p>No update is waiting or running.{% if data.log_modified %} The log was last written {{ utc_time(data.log_modified) }}.{% endif %}</p>
+  {%- endif %}
+</section>
+<section class="panel" aria-labelledby="update-now-heading">
+  <h2 id="update-now-heading">Update now</h2>
+  <p>Runs <code>update.sh</code> on the server as root: it fetches the newest code, updates the libraries and databases, closes the site while it works and opens it again. It lists any running jobs first and, started this way, stops without changing anything when work is running (the update guard's rule).</p>
+  {%- if data.state == 'not_installed' %}
+  <p class="hint">Not set up on this server yet.</p>
+  {%- elif not data.can_ask and not data.needs_password %}
+  <p class="hint">Only the Owner can start an update.</p>
+  {%- elif data.needs_password %}
+  <form method="post" action="{{ url_for('web.admin_update') }}" class="settings-unlock">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="confirm-password">
+    <label for="update-password">Your password</label>
+    <input type="password" id="update-password" name="current_password" autocomplete="current-password" required>
+    <button type="submit" class="btn">Unlock for {{ data.owner_minutes }} minutes</button>
+  </form>
+  {%- else %}
+  <form method="post" action="{{ url_for('web.admin_update') }}" class="settings-confirm">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="update">
+    <button type="submit" class="btn"{% if not data.can_request %} disabled{% endif %}>Update the site</button>
+  </form>
+  {%- if not data.can_request %}<p class="hint">{{ data.reason }}</p>{% endif %}
+  {%- endif %}
+</section>
+{%- if data.log %}
+<section class="panel" aria-labelledby="update-log-heading">
+  <h2 id="update-log-heading">Log (update.log)</h2>
+  <pre class="job-log" tabindex="0">{{ data.log }}</pre>
+</section>
+{%- endif %}
+{%- endif %}
+{% endblock %}

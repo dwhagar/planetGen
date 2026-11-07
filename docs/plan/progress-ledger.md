@@ -2733,3 +2733,6 @@ Baseline: PR #1817.
 | TEST.656 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
 | TEST.600 | 8.1 | Physics rectification: citations and the gate's test health |
 | SEC.37 | 8.1 | The headline closes |
+| SEC.38 | 8.1 | The headline closes |
+| GEN.1194 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| SEC.43 | 8.1 | The headline closes |

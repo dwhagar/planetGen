@@ -24,7 +24,10 @@ migrate) changes the checkout and the databases, nothing else may run:
   maintenance state still has the cause `UPDATE_CAUSE`.
 
 A run that is not a queue job registers itself in the state folder's `running` folder (`running`), which is how
-the guard sees it. This module imports no Flask and, at import time, nothing outside the standard library and
+the guard sees it. The folder is open to every user (mode 1777: each user a run starts as registers there) and the guard
+often runs as root, so a marker is believed only when it is a plain file, named for its own pid, owned by the user the
+process of that pid runs as (SEC.38): a local user cannot make the guard signal somebody else's process, and a marker is
+written to a name that does not exist yet, never through a link. This module imports no Flask and, at import time, nothing outside the standard library and
 `admin/maintenance.py`; the sources of running work import what they need when they are asked.
 """
 
@@ -34,6 +37,7 @@ import os
 import re
 import select
 import signal
+import stat
 import sys
 import tempfile
 import time
@@ -199,9 +203,12 @@ def running(kind, title, **extra):
         with contextlib.suppress(OSError):
             os.chmod(folder, 0o1777)    # every user a run starts as may register
         path = os.path.join(folder, f"{kind}-{os.getpid()}.json")
-        with open(path, "w", encoding="utf-8") as handle:
+        with contextlib.suppress(FileNotFoundError):
+            os.unlink(path)         # a link or file planted under the name: removed itself, never followed
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            os.fchmod(handle.fileno(), 0o644)       # whatever the umask: the guard, another user, reads it
             json.dump({"kind": kind, "title": title, "pid": os.getpid(), "since": _now(), **extra}, handle)
-        os.chmod(path, 0o644)
     except OSError:
         path = None
     try:
@@ -210,6 +217,37 @@ def running(kind, title, **extra):
         if path:
             with contextlib.suppress(OSError):
                 os.unlink(path)
+
+
+def process_owner(pid):
+    """The user id the process `pid` runs as (its `/proc` folder's owner), or `None` when that cannot be told."""
+    try:
+        return os.stat(f"/proc/{int(pid)}").st_uid
+    except (OSError, ValueError, TypeError):
+        return None
+
+
+def marker_is_genuine(name, path, data):
+    """
+    Whether the marker `path` (file `name`, parsed as `data`) was left by the process it names (SEC.38): a plain file
+    (not a link) called `<kind>-<pid>.json` for that very pid, owned by the user that pid runs as. A marker anybody may
+    forge would let a local user have the guard (root, in `update.sh`) signal any process of the machine. Where the
+    owner of the process cannot be told, a guard running as root believes nothing; any other user can only signal
+    their own processes anyway.
+    """
+    pid = data.get("pid")
+    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0 or name != f"{data.get('kind')}-{pid}.json":
+        return False
+    try:
+        status = os.lstat(path)
+    except OSError:
+        return False
+    if not stat.S_ISREG(status.st_mode):
+        return False
+    owner = process_owner(pid)
+    if owner is None:
+        return os.geteuid() != 0
+    return status.st_uid == owner
 
 
 class MarkerSource:
@@ -226,7 +264,9 @@ class MarkerSource:
         for name in names:
             path = os.path.join(running_dir(), name)
             try:
-                with open(path, "r", encoding="utf-8") as handle:
+                if not stat.S_ISREG(os.lstat(path).st_mode):
+                    continue            # a link, a pipe: not a marker, and never opened (a pipe would block the guard)
+                with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), "r", encoding="utf-8") as handle:
                     data = json.load(handle)
             except (OSError, ValueError):
                 continue
@@ -234,7 +274,9 @@ class MarkerSource:
                 continue
             if not pid_alive(data.get("pid")):
                 with contextlib.suppress(OSError):
-                    os.unlink(path)
+                    os.unlink(path)         # the process is gone, so whoever wrote the marker, it names nothing to signal
+                continue
+            if not marker_is_genuine(name, path, data):
                 continue
             found.append({"source": self.name, "kind": str(data.get("kind")), "id": str(data["pid"]),
                           "title": str(data.get("title") or data.get("kind")), "started": data.get("since"),

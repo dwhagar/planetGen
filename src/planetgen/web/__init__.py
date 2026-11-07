@@ -298,6 +298,7 @@ from . import generate_page  # noqa: E402,F401 -- /admin/generate
 from . import queue_page  # noqa: E402,F401 -- /admin/queue
 from . import admin_search_page  # noqa: E402,F401 -- /admin/search, /admin/palette.json
 from . import settings_page, backups_page, images_page  # noqa: E402,F401 -- /admin/settings, /backups, /images
+from . import update_page  # noqa: E402,F401 -- /admin/update (SEC.43)
 from . import seo_pages  # noqa: E402,F401 -- robots.txt, the sitemaps, security.txt, humans.txt, the manifest, /site-assets
 from . import facility_type_pages  # noqa: E402,F401 -- /admin/facility-types
 from . import system_page  # noqa: E402,F401 -- /admin/generate/system
