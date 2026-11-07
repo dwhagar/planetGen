@@ -354,7 +354,7 @@ PART3_MINERALS = {
     'hydroxylapatite': ('Ca5(PO4)3(OH)', 'phosphate', [], '', 'hexagonal', (5.0, 5.0, 5.0), 3.08, 'the single value listed', None, 'Colorless, White, Gray, Yellow, Yellowish green', 'Apatite-(CaOH)'),
     'merrillite': ('Ca18Na2Mg2(PO4)14', 'phosphate', [], '', 'trigonal', None, 3.1, 'the specific gravity listed (the page also gives a bulk electron density of 3.07)', None, '', 'Merrillite'),
     'whitlockite': ('Ca9Mg(PO4)6(PO3OH)', 'phosphate', [], 'Ca9(Mg,Fe++)(PO4)6(PO3OH)', 'trigonal', (5.0, 5.0, 5.0), 3.13, 'the single value listed', None, 'Colorless, Gray, Gray white, Yellowish, White', 'Whitlockite'),
-    'mg_perchlorate': ('Mg(ClO4)2', 'evaporite', ['magnesium perchlorate'], '', '', None, 2.21, 'PubChem density annotation 2.21 at 68 F (USCG, 1999); the research file had a recalled 2.6', None, '', 'PubChem CID 24840'),
+    'mg_perchlorate': ('Mg(ClO4)2', 'evaporite', ['magnesium perchlorate'], '', '', None, 2.21, 'PubChem density annotation 2.21 at 68 F (a US Coast Guard record); the research file had a recalled 2.6', None, '', 'PubChem CID 24840'),
     'ca_perchlorate': ('Ca(ClO4)2', 'evaporite', ['calcium perchlorate'], '', '', None, 2.651, 'PubChem record text: density 2.651 g/cm3', None, '', 'PubChem CID 61629'),
 }
 
