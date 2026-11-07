@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1258 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1262 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 165 | 18 | 10 | 1 | 0 | 194 |
+| T1 | 165 | 18 | 11 | 1 | 0 | 195 |
 | T2 | 125 | 52 | 1 | 1 | 0 | 179 |
 | T3 | 91 | 41 | 7 | 9 | 0 | 148 |
-| T4 | 55 | 5 | 1 | 19 | 10 | 90 |
+| T4 | 56 | 5 | 1 | 19 | 10 | 91 |
 | T5 | 54 | 21 | 3 | 1 | 0 | 79 |
-| T6 | 131 | 91 | 25 | 62 | 0 | 309 |
+| T6 | 132 | 92 | 25 | 62 | 0 | 311 |
 | T7 | 33 | 15 | 7 | 17 | 0 | 72 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 16 | 5 | 88 | 34 | 181 |
-| All | 692 | 260 | 59 | 202 | 45 | 1258 |
+| All | 694 | 261 | 60 | 202 | 45 | 1262 |
 
 ## How the labels were given
 
@@ -1800,6 +1800,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
+
+## 6.208 Stand-ins of the volatility depletion of a rocky body
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| VD1 | D | T1 | L2 | volatile_depletion.SLOPE_PER_K 0.00165 and CUT_K 1316.6: the least-squares hinge to the 26 rows of `data/volatile_depletion.json` (rms 0.079 dex); the research set's line from 13 of the rows, -2.150 + 0.001623 T50, differs by under 0.013 dex from 660 to 1300 K | slope 0.0016 to 0.0017; cut 1310 to 1330 K | moderately volatile and refractory elements of a rocky body, T50 500 K and up | a bulk Earth whose Na, K or Zn sit more than 0.2 dex off the line (the table's largest residual is under 0.25 dex) | a fit that carries the Earth's mass-dependent core partitioning and the elements' host phases, not T50 alone | the table: Earth over CI for S 0.0734, Zn 0.094, F 0.142, Cl 0.145, Na 0.28, K 0.263, Cu 0.333, Mn 0.592, P 0.626, Li 0.703, refractories at 1.0 to 1.2; the test refits the hinge from the table | GEN.1362 | - |
+| VD2 | T | T6 | L0 | volatile_depletion.cut_temperature_k: the cut of a body scales with the blackbody temperature of its formation distance, `CUT_K * T(d, L) / REFERENCE_BLACKBODY_K` with T the blackbody temperature (the d^-1/2 L^1/4 law) | the exponent 0.5 to 1 on the distance | rocky bodies formed anywhere a blackbody zone of 100 K and up | a measured K/U, Na or Zn of Mercury or Mars outside the lever: Mercury's K/U 14,311 against the Earth's 9,704 [R1003] says it kept more potassium than the Earth, where the lever predicts a twentieth of the Earth law's; Mars's sodium is about twice the Earth law's (research note, not opened) against 2.6 here | a cut from the accretion temperature history of the feeding zone of the body | the direction (a colder zone keeps more) is the standard picture of volatile loss; the size is a stand-in, one test point (Mars) agrees and one (Mercury) disagrees; the Earth law (no cut passed) is the central case | - | - |
+| VD3 | D | T6 | L1 | volatile_depletion.REFERENCE_BLACKBODY_K 278.3: the blackbody temperature, K, of the zone the Earth fit is made for (the Sun's light of 3.828e26 W at 1 AU, `data/volatile_depletion.json` reference) | the zone of the bulk Earth's accretion, 0.7 to 1.3 AU | the lever of VD2 | a bulk Earth formed from a zone that was not near 1 AU | the zone read from the formation history of the body | the Earth's own orbit; a convention that makes the cut of a body at the Earth's blackbody temperature the Earth's | GEN.1362 | - |
+| VD4 | B | T4 | L0 | volatile_depletion.MIN_T50_EARTH_K 500: the law is refused under this T50 | 400 to 664 K | elements with T50 of 500 K and up (the coolest fitted element, sulfur, is 664 K; indium, iodine, thallium and bromine, 532 to 546 K, are inside) | a bulk Earth value for an element of 500 to 660 K that the line misses by more than 0.3 dex | the ice, noble gas and carbon items of N4, which give the elements under 500 K their own condensation | the research note's validity of 500 to 1324 K; no fitted point under 664 K | GEN.1362 | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 

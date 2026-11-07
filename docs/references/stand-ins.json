@@ -40841,6 +40841,166 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.208",
+      "number": "6.208",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "volatile_depletion.SLOPE_PER_K 0.00165 and CUT_K 1316.6: the least-squares hinge to the 26 rows of data/volatile_depletion.json (rms 0.079 dex); the research set's line from 13 of the rows, -2.150 + 0.001623 T50, differs by under 0.013 dex from 660 to 1300 K"
+            ],
+            [
+              "The range it moves in",
+              "slope 0.0016 to 0.0017; cut 1310 to 1330 K"
+            ],
+            [
+              "Where it holds",
+              "moderately volatile and refractory elements of a rocky body, T50 500 K and up"
+            ],
+            [
+              "What would show it wrong",
+              "a bulk Earth whose Na, K or Zn sit more than 0.2 dex off the line (the table's largest residual is under 0.25 dex)"
+            ],
+            [
+              "What replaces it",
+              "a fit that carries the Earth's mass-dependent core partitioning and the elements' host phases, not T50 alone"
+            ],
+            [
+              "Evidence",
+              "the table: Earth over CI for S 0.0734, Zn 0.094, F 0.142, Cl 0.145, Na 0.28, K 0.263, Cu 0.333, Mn 0.592, P 0.626, Li 0.703, refractories at 1.0 to 1.2; the test refits the hinge from the table"
+            ]
+          ],
+          "id": "VD1",
+          "key": "6.208:VD1",
+          "kind": "D",
+          "slug": "6-208-vd1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L2",
+          "unread": "GEN.1362",
+          "what": "volatile_depletion.SLOPE_PER_K 0.00165 and CUT_K 1316.6: the least-squares hinge to the 26 rows of data/volatile_depletion.json (rms 0.079 dex); the research set's line from 13 of the rows, -2.150 + 0.001623 T50, differs by under 0.013 dex from 660 to 1300 K"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "volatile_depletion.cut_temperature_k: the cut of a body scales with the blackbody temperature of its formation distance, CUT_K * T(d, L) / REFERENCE_BLACKBODY_K with T the blackbody temperature (the d^-1/2 L^1/4 law)"
+            ],
+            [
+              "The range it moves in",
+              "the exponent 0.5 to 1 on the distance"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies formed anywhere a blackbody zone of 100 K and up"
+            ],
+            [
+              "What would show it wrong",
+              "a measured K/U, Na or Zn of Mercury or Mars outside the lever: Mercury's K/U 14,311 against the Earth's 9,704 [R1003] says it kept more potassium than the Earth, where the lever predicts a twentieth of the Earth law's; Mars's sodium is about twice the Earth law's (research note, not opened) against 2.6 here"
+            ],
+            [
+              "What replaces it",
+              "a cut from the accretion temperature history of the feeding zone of the body"
+            ],
+            [
+              "Evidence",
+              "the direction (a colder zone keeps more) is the standard picture of volatile loss; the size is a stand-in, one test point (Mars) agrees and one (Mercury) disagrees; the Earth law (no cut passed) is the central case"
+            ]
+          ],
+          "id": "VD2",
+          "key": "6.208:VD2",
+          "kind": "T",
+          "slug": "6-208-vd2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "volatile_depletion.cut_temperature_k: the cut of a body scales with the blackbody temperature of its formation distance, CUT_K * T(d, L) / REFERENCE_BLACKBODY_K with T the blackbody temperature (the d^-1/2 L^1/4 law)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "volatile_depletion.REFERENCE_BLACKBODY_K 278.3: the blackbody temperature, K, of the zone the Earth fit is made for (the Sun's light of 3.828e26 W at 1 AU, data/volatile_depletion.json reference)"
+            ],
+            [
+              "The range it moves in",
+              "the zone of the bulk Earth's accretion, 0.7 to 1.3 AU"
+            ],
+            [
+              "Where it holds",
+              "the lever of VD2"
+            ],
+            [
+              "What would show it wrong",
+              "a bulk Earth formed from a zone that was not near 1 AU"
+            ],
+            [
+              "What replaces it",
+              "the zone read from the formation history of the body"
+            ],
+            [
+              "Evidence",
+              "the Earth's own orbit; a convention that makes the cut of a body at the Earth's blackbody temperature the Earth's"
+            ]
+          ],
+          "id": "VD3",
+          "key": "6.208:VD3",
+          "kind": "D",
+          "slug": "6-208-vd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1362",
+          "what": "volatile_depletion.REFERENCE_BLACKBODY_K 278.3: the blackbody temperature, K, of the zone the Earth fit is made for (the Sun's light of 3.828e26 W at 1 AU, data/volatile_depletion.json reference)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "volatile_depletion.MIN_T50_EARTH_K 500: the law is refused under this T50"
+            ],
+            [
+              "The range it moves in",
+              "400 to 664 K"
+            ],
+            [
+              "Where it holds",
+              "elements with T50 of 500 K and up (the coolest fitted element, sulfur, is 664 K; indium, iodine, thallium and bromine, 532 to 546 K, are inside)"
+            ],
+            [
+              "What would show it wrong",
+              "a bulk Earth value for an element of 500 to 660 K that the line misses by more than 0.3 dex"
+            ],
+            [
+              "What replaces it",
+              "the ice, noble gas and carbon items of N4, which give the elements under 500 K their own condensation"
+            ],
+            [
+              "Evidence",
+              "the research note's validity of 500 to 1324 K; no fitted point under 664 K"
+            ]
+          ],
+          "id": "VD4",
+          "key": "6.208:VD4",
+          "kind": "B",
+          "slug": "6-208-vd4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": "GEN.1362",
+          "what": "volatile_depletion.MIN_T50_EARTH_K 500: the law is refused under this T50"
+        }
+      ],
+      "slug": "6-208-stand-ins-of-the-volatility-depletion-of-a-rocky-body",
+      "title": "Stand-ins of the volatility depletion of a rocky body"
+    },
+    {
       "key": "6.197",
       "number": "6.197",
       "rows": [
