@@ -94,6 +94,8 @@ instead of a raw stdout write, which is required while that bar is live (see
 fights the bar's own redraw.
 """
 
+import copy
+import faulthandler
 import functools
 import keyword
 import linecache
@@ -101,6 +103,7 @@ import logging
 import logging.handlers
 import os
 import re
+import signal
 import sys
 import threading
 import time
@@ -515,6 +518,226 @@ def _attach_record_file(level):
     _record_handler = handler
 
 
+def _keep_last_resort(root):
+    """Adding a handler to the root logger switches off logging's built-in "last resort" stderr output for WARNING and up; keep that output
+    going (it's how library warnings reach Apache's error log today) when the handler about to be added is the first."""
+    global _root_stderr_handler
+    if not root.handlers:
+        _root_stderr_handler = logging.StreamHandler(sys.stderr)
+        _root_stderr_handler.setLevel(logging.WARNING)
+        root.addHandler(_root_stderr_handler)
+
+
+# -- The error log (OPS.116) --------------------------------------------------
+
+ERROR_FILE_MODE = 0o660
+"""int: The mode of `error.log` when it is created (the same as the activity log's)."""
+
+ERROR_ROTATE_BYTES = 100 * 1024 * 1024
+ERROR_ROTATE_COPIES = 30
+"""The program's own rotation of `error.log`, used only where the system does not rotate the folder (`logpaths.log_rotation_mode`)."""
+
+_error_handler = None
+_fault_stream = None
+
+
+class _ErrorLineFormatter(LineFormatter):
+    """A line of `error.log`: the display form (time, severity, component, message and the fields, among them `log=`, the log the error also went
+    to), then the traceback of the exception it carries, if any."""
+
+    def __init__(self):
+        super().__init__("display")
+
+    def format(self, log_record):
+        text = super().format(log_record)
+        extra = log_record.exc_text or (self.formatException(log_record.exc_info) if log_record.exc_info else "")
+        if log_record.stack_info:
+            extra = f"{extra}\n{log_record.stack_info}" if extra else log_record.stack_info
+        return f"{text}\n{extra}" if extra else text
+
+
+class _ErrorLogHandler(logging.Handler):
+    """
+    Writes every record of ERROR severity and above to `error.log` (OPS.116), whichever logger made it: it sits on the program's logger and on the
+    root logger, so another library's errors come too. The file is opened on the first error (a process that never has one leaves no empty file) and
+    a file that cannot be opened (a user the folder does not admit) is skipped, never an error of its own.
+    """
+
+    def __init__(self, path, rotate):
+        super().__init__(logging.ERROR)
+        self.path, self.rotate = path, rotate
+        self.inner = None
+        self.unwritable = False
+
+    def _file(self):
+        if self.inner is None and not self.unwritable:
+            try:
+                os.makedirs(os.path.dirname(self.path), mode=0o770, exist_ok=True)
+                existed = os.path.exists(self.path)
+                inner = file_handler(self.path, "display", level=logging.ERROR, create_mode=ERROR_FILE_MODE, rotate=self.rotate)
+                inner.setFormatter(_ErrorLineFormatter())
+                self.inner = inner
+                if not existed:
+                    try:
+                        os.chmod(self.path, ERROR_FILE_MODE)        # the umask took the group's write; Apache's user and an admin both append
+                    except OSError:
+                        pass
+            except OSError:
+                self.unwritable = True
+        return self.inner
+
+    def emit(self, record):
+        try:
+            inner = self._file()
+            if inner is None:
+                return
+            traced = copy.copy(record)
+            fields = dict(getattr(record, "fields", None) or {})
+            component = logrecord.component_of(record.name, getattr(record, "pathname", ""))
+            fields.setdefault("log", logrecord.origin_log(component))
+            fields.setdefault("pid", record.process)
+            traced.fields = fields
+            inner.handle(traced)
+        except Exception:  # noqa: BLE001 -- the error log never stops the program it records
+            pass
+
+    def close(self):
+        if self.inner is not None:
+            self.inner.close()
+            self.inner = None
+        super().close()
+
+
+def _attach_error_log():
+    """Attaches `error.log`'s handler to the program's logger and the root logger (and, once, the hooks for what no logger sees: an uncaught
+    exception, a fatal signal). Never raises: with a folder `config.json` does not give, nothing is attached."""
+    global _error_handler
+    try:
+        config = logpaths.read_config_file()
+        path = logpaths.error_log_path(config)
+        rotate = (ERROR_ROTATE_BYTES, ERROR_ROTATE_COPIES) if logpaths.log_rotation_mode(config) == "app" else None
+    except Exception:  # noqa: BLE001 -- logging must never stop the program
+        path = rotate = None
+    handler = _error_handler
+    if handler is not None and (path is None or handler.path != path or handler.rotate != rotate):
+        _detach_error_log()
+        handler = None
+    if path is None:
+        return
+    if handler is None:
+        handler = _error_handler = _ErrorLogHandler(path, rotate)
+        root = logging.getLogger()
+        _keep_last_resort(root)
+        root.addHandler(handler)
+        _install_excepthooks()
+        _enable_faulthandler(path)
+    _logger.addHandler(handler)
+
+
+def _detach_error_log():
+    global _error_handler, _fault_stream
+    handler = _error_handler
+    if handler is None:
+        return
+    _logger.removeHandler(handler)
+    logging.getLogger().removeHandler(handler)
+    if _fault_stream is not None:
+        faulthandler.disable()
+        _fault_stream.close()
+        _fault_stream = None
+    handler.close()
+    _error_handler = None
+
+
+def _enable_faulthandler(path):
+    """A fatal signal (a crash in a library: SIGSEGV, SIGFPE, SIGABRT, SIGBUS, SIGILL) leaves a traceback of every thread in `error.log`, in the
+    interpreter's own words: no Python code runs after one. Only into a file that is already there and writable (the setup scripts make it), and
+    never over a faulthandler somebody else turned on."""
+    global _fault_stream
+    if faulthandler.is_enabled() or not os.access(path, os.W_OK):
+        return
+    try:
+        stream = open(path, "a", encoding="utf-8")
+        faulthandler.enable(file=stream)
+    except (OSError, ValueError, RuntimeError):
+        return
+    _fault_stream = stream
+
+
+def _crash_component():
+    return "queue" if _component == "worker" else "command"
+
+
+def _report_crash(message, exc_info, *args):
+    """Records an exception nothing caught as CRITICAL: through the program's logger while it is tracing (the console and the debug log show it
+    too), else to `error.log` alone, because the interpreter prints the traceback itself."""
+    record = logging.LogRecord(f"planetgen.{_crash_component()}", logging.CRITICAL, "", 0, message, args, exc_info)
+    if _tracing:
+        _logger.handle(record)
+    elif _error_handler is not None:
+        _error_handler.handle(record)
+
+
+def record_error(component, message, exc_info=None, **fields):
+    """Writes an ERROR line to `error.log` alone, for a place that writes its own log without going through a logger (a job's log, `JobLog`):
+    the line is already in that log, and this makes it appear in the error log too (`fields` as for `get`). Does nothing before `configure`."""
+    handler = _error_handler
+    if handler is None:
+        return
+    record = logging.LogRecord(f"planetgen.{component}", logging.ERROR, "", 0, message, None, exc_info)
+    record.fields = fields
+    handler.handle(record)
+
+
+_ERROR_LINE = re.compile(r"^(?:\d{4}-\d\d-\d\d \d\d:\d\d:\d\d \S+ )?(?:ERROR|CRITICAL)\b|^(?:error|critical|fatal)\b|^Traceback \(most recent call last\)"
+                         r"|^\S*(?:Error|Exception)\b[:(]", re.IGNORECASE)
+
+DELIBERATE_SIGNALS = ("SIGTERM", "SIGINT", "SIGHUP")
+"""tuple: The signals a process is sent to stop it on purpose (Cancel, a shutdown, Ctrl+C); the end they cause is not an error."""
+
+
+def error_lines(text, limit=3):
+    """The last `limit` lines of `text` (what a program printed) that say an error: `ERROR` or `CRITICAL` (the logging layer's display form), `error:`,
+    `fatal`, `Traceback`, an exception's name and message (`ValueError: ...`). Each is cut to 300 characters."""
+    found = [line.strip()[:300] for line in str(text or "").splitlines() if _ERROR_LINE.match(line.strip())]
+    return found[-limit:]
+
+
+def decode_wait_status(raw):
+    """What `Popen.wait()` would return for the raw status of `os.waitpid` / `os.wait4` (what RQ gives its horse-killed handler): the exit status,
+    or the negative of the signal."""
+    if os.WIFSIGNALED(raw):
+        return -os.WTERMSIG(raw)
+    if os.WIFEXITED(raw):
+        return os.WEXITSTATUS(raw)
+    return raw
+
+
+def process_ended(component, what, status, output="", ignore=(0,), **fields):
+    """
+    Logs, as an error, a child process that did not end well, from the parent that started it (a killed or crashed worker, a failed step): `what`
+    is who it was and `status` the number `Popen.wait()` returned, which is negative for a signal. The last lines of its `output` that say an error
+    are added. Nothing is logged for a status in `ignore`, nor for a signal in `DELIBERATE_SIGNALS`. Returns the words (`exited with status 3`,
+    `was killed by SIGKILL`), or `None` when nothing was logged.
+    """
+    if status in ignore:
+        return None
+    if status < 0:
+        try:
+            name = signal.Signals(-status).name
+        except ValueError:
+            name = f"signal {-status}"
+        if name in DELIBERATE_SIGNALS:
+            return None
+        words = f"was killed by {name}"
+    else:
+        words = f"exited with status {status}"
+    lines = error_lines(output)
+    detail = f"; its last error lines: {' | '.join(lines)}" if lines else ""
+    get(component).error(f"{what} {words}{detail}", status=status, **fields)
+    return words
+
+
 def times_on_console(to_stderr=False):
     """
     Whether the console's lines carry the time (OPS.98): on a terminal they are plain, and when the output goes to a pipe or a file (a log, `tee`,
@@ -563,7 +786,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
     for handler in list(_logger.handlers):
         _logger.removeHandler(handler)
         if (handler is not _console_handler and handler is not _debug_log_handler
-                and handler is not _relay_handler):
+                and handler is not _relay_handler and handler is not _error_handler):
             handler.close()
 
     set_areas(areas if areas is not None else _configured_areas())
@@ -600,6 +823,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
     if _relay_handler is not None:
         _logger.addHandler(_relay_handler)
     _attach_record_file(console_level)
+    _attach_error_log()
     was_active = _debug_log_handler is not None
     debug_log = _configure_debug_log()
     _logger.setLevel(logging.DEBUG if (debug_log or _relay_handler is not None) else console_level)
@@ -790,16 +1014,8 @@ def _configure_debug_log():
 def _attach_extras(handler):
     """Routes other libraries' logging, uncaught exceptions and warnings to
     the debug log."""
-    global _root_stderr_handler
     root = logging.getLogger()
-    if not root.handlers:
-        # Adding a handler to the root logger switches off logging's
-        # built-in "last resort" stderr output for WARNING and up; keep
-        # that output going (it's how library warnings reach Apache's
-        # error log today).
-        _root_stderr_handler = logging.StreamHandler(sys.stderr)
-        _root_stderr_handler.setLevel(logging.WARNING)
-        root.addHandler(_root_stderr_handler)
+    _keep_last_resort(root)
     root.addHandler(handler)
     root.setLevel(logging.DEBUG)
     logging.captureWarnings(True)
@@ -814,7 +1030,7 @@ def _detach_debug_log():
     _logger.removeHandler(handler)
     root = logging.getLogger()
     root.removeHandler(handler)
-    if _root_stderr_handler is not None:
+    if _root_stderr_handler is not None and _error_handler is None:
         root.removeHandler(_root_stderr_handler)
         _root_stderr_handler = None
     root.setLevel(logging.WARNING)
@@ -856,17 +1072,16 @@ _previous_threading_excepthook = None
 
 
 def _install_excepthooks():
-    """Logs uncaught exceptions (main thread and other threads) to the
-    debug log, then hands them to whatever hook was there before, so the
-    usual traceback still reaches stderr."""
+    """Records uncaught exceptions (main thread and other threads) as CRITICAL (`_report_crash`: in `error.log` always, and in the debug log
+    while tracing), then hands them to whatever hook was there before, so the usual traceback still reaches stderr."""
     global _previous_excepthook, _previous_threading_excepthook
     if _previous_excepthook is not None:
         return
     _previous_excepthook = sys.excepthook
 
     def _excepthook(exc_type, exc, tb):
-        if _tracing and not issubclass(exc_type, KeyboardInterrupt):
-            _logger.critical("Uncaught exception", exc_info=(exc_type, exc, tb))
+        if not issubclass(exc_type, KeyboardInterrupt):
+            _report_crash("Uncaught exception", (exc_type, exc, tb))
         _previous_excepthook(exc_type, exc, tb)
 
     sys.excepthook = _excepthook
@@ -875,10 +1090,9 @@ def _install_excepthooks():
         _previous_threading_excepthook = threading.excepthook
 
         def _threading_excepthook(hook_args):
-            if _tracing:
-                _logger.critical("Uncaught exception in thread %s",
-                                 getattr(hook_args.thread, "name", "?"),
-                                 exc_info=(hook_args.exc_type, hook_args.exc_value, hook_args.exc_traceback))
+            if not issubclass(hook_args.exc_type, KeyboardInterrupt):
+                _report_crash("Uncaught exception in thread %s", (hook_args.exc_type, hook_args.exc_value, hook_args.exc_traceback),
+                              getattr(hook_args.thread, "name", "?"))
             _previous_threading_excepthook(hook_args)
 
         threading.excepthook = _threading_excepthook

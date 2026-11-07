@@ -139,6 +139,8 @@ export LOG_COMPONENT=update
 source "$SCRIPT_DIR/scripts/logrecord.sh"
 log_summary_begin
 log_file_begin
+log_error_file_begin update.log     # every error of the run is also written to error.log (OPS.116), naming update.log
+log_track_failures                  # ... and a command that stops the script is named in the error it ends with
 
 ANSWER_YES=()
 RESET_JOBS=0
@@ -234,6 +236,7 @@ log_stage 2 9 "Checking the Python libraries"
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
 use_site_python
 start_update_log
+start_error_log
 ensure_update_guard required
 # OPS.86: the address the update asks whether the site answers is config.json's api_base_url; missing, it stops here
 # (before the database is touched) and says so, instead of falling back to a loopback address.

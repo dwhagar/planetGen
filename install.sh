@@ -93,7 +93,15 @@ export LOG_COMPONENT=install
 # shellcheck source=scripts/logrecord.sh
 source "$SCRIPT_DIR/scripts/logrecord.sh"
 log_summary_begin
-trap log_summary_forget EXIT
+log_error_file_begin console        # every error of the run is also written to error.log (OPS.116)
+log_track_failures                  # ... and a command that stops the script is named in the error it ends with
+
+finish_install() {
+    local status=$?
+    log_exit_failure "The install" "$status"
+    log_summary_forget
+}
+trap finish_install EXIT
 
 SKIP_DATABASE=0
 case "${1:-}" in
@@ -129,6 +137,7 @@ log_stage 1 8 "Installing the Python package and its libraries"
 # details. PYTHON is the interpreter it is made from.
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh"
 use_site_python
+start_error_log
 
 log_stage 2 8 "Migrating the configured MySQL database to the current schema"
 if (( SKIP_DATABASE )); then
