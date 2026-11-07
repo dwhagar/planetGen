@@ -10072,23 +10072,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1068. Related: GEN.1072, GEN.1068, GEN.725.
   Folded in (2026-11-07, Boss approved the TODO plan): GEN.1203 Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants.
 
-- [ ] **GEN.1241 Wire the system body view: the ledger and barycentre function read the typed tables for the system page**
-  From Planets 1's GEN.1066 (merged as #4754, 7:11 AM EST on
-  2026-11-04), filed by the TODO thread. The pure ledger and barycentre
-  module (physics/system_bodies.py, design note
-  docs/design/systems/system-bodies-ledger.md) is on main and tested,
-  but nothing calls it: the view over the typed tables (stars, planets,
-  moons, belts, comets) that gives a system its body ledger and
-  barycentre is a view with no new storage, and it needs the belt member
-  rows of GEN.1069. Do: add the view (read-side only) and wire it to the
-  system page and the API, listing every body with its mass and its
-  barycentre offset, and remove the wiring-register line for the module.
-  Done: a system page shows its barycentre and the belt wobble, with
-  units, from the stored rows; a test pins it. Lock-free if no stored
-  value changes. Owner: Planets 1.
-  Prerequisites: GEN.1069.
-  Prerequisites: none.
-
 - [ ] **GEN.1249 A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree**
   Found by Tides 1 in its GEN.1218b build, about 2:30 PM EST on
   2026-11-04 (as the lane reported); notes in
@@ -13727,6 +13710,10 @@ clears each one.
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.
   Filed by the TODO thread.
   Prerequisites: GEN.1321. Related: GEN.1321, GEN.1314, GEN.1312, GEN.1313, GEN.725.
+
+- [ ] **TEST.675 test_api_version is red on main: routes were added without the API snapshot line (/api/admin/work/held GET, and an uncharted-systems generate POST was reported earlier) (bug)**
+  Planets 1 (as the lane reported 2:30 AM EST on 2026-11-07) and the TODO thread's own run on main: `test_api_version` fails because the live routes include `/api/admin/work/held GET` that the snapshot does not list (the lane also saw `/api/uncharted-systems/<id>/generate POST`). Do: for each route missing from the snapshot, say which item added it, bump API_VERSION and add the docs/reference/api.md line only if the change is breaking, rewrite the snapshot, and add the route's owner item to the note so the next lane that adds a route runs this test. Done: `test_api_version` passes on main. Lock-free. Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.673.
 
 - [ ] **TEST.660 The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train**
   Bug 1 (as the lane reported, 7:40 PM EST on 2026-11-06), from the TEST.656 verdicts: the census moon cells now hold 1 to 78 bodies against 500 to 700 in the reference ranges, because captured moons became irregulars (GEN.1082 to 1084) and the class census does not read them (K5V ecosphere moon unlimited 1 of 8, M2V cold moon 7 of 78). Do: let the class census read the irregular moons so a cell has enough bodies, then re-measure and re-baseline the moon class ranges (TEST.430 rows) after the last 8.1 train, so the sampling-width flags clear. Done: the moon cells hold hundreds of bodies and the census has no flag from sampling width. Version 8.1. Owner: Bug 1, after the last 8.1 train merges.
