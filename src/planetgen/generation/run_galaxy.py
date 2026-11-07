@@ -359,9 +359,10 @@ def _fill_context(args, address):
         # GEN.315: a row with members is built from the tree it stored
         member_trees = scatter_systems.read_stored_trees(conn, "bright_stars", [r["id"] for r in rows if r.get("member_count")])
         orbit_epoch_unix = store.get_orbit_epoch_unix(conn)
+        clusters = {each.id: each for each in store.get_galaxy_components(conn, kind="cluster", ids=[r["cluster_id"] for r in rows if r.get("cluster_id")])}
     finally:
         conn.close()
-    return brightStars.FillContext(profile, rows, min_luminosity_sol=level,
+    return brightStars.FillContext(profile, rows, min_luminosity_sol=level, clusters=clusters,
                                    phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit,
                                    resolution=resolution, emission_hosts=emission_hosts, member_trees=member_trees,
                                    orbit_epoch_unix=orbit_epoch_unix, residents=residents)
@@ -710,7 +711,7 @@ class BackfillFollower(followed.Follower):
             log.normal(f"Nothing to backfill: {plan['detail']['skip']}.")
             return
         if plan["detail"].get("sky_cells"):
-            log.normal(f"Drawing the sky tiers of {plan['detail']['sky_cells']} observer cell(s) after the sectors' backfill (VIEW.25).")
+            log.normal(f"Drawing the sky tiers of {plan['detail']['sky_cells']} observer cell(s) after the sectors' backfill.")
         log.normal("Backfilling the bright stars out from the edge of the run...")
         self.bar = self.hold(steps.Step("Bright-star backfill (sectors)", "backfill", 1, args=self.args,
                                         progress=self.progress, workers=self.workers))

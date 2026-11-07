@@ -56,10 +56,10 @@ def _rows(page):
 def test_the_list_names_labels_and_places_the_placeholders_and_counts_them_apart(browser, axe_source, sectors, server, viewport, scheme):
     context, page, problems, base_url = _page(browser, server, viewport, scheme)
     try:
-        assert page.goto(base_url + "/sectors", wait_until="load").status == 200
+        assert page.goto(base_url + "/sectors?coverage=all&empty=1", wait_until="load").status == 200
         page.wait_for_selector("#sectors table tbody tr")
         badges = page.locator(".page-subhead .badge, .badges .badge").all_inner_texts()
-        assert "2 sectors" in badges and "3 uncharted" in badges, badges
+        assert "2 sectors" in badges and "3 empty" in badges, badges     # nothing is detected in these three cells
         rows = _rows(page)
         names = {naming_key.uncharted_sector_name(address, KEY): address for address in UNCHARTED}
         shown = {row[0]: row for row in rows}
@@ -82,7 +82,7 @@ def test_the_page_of_a_placeholder_says_it_is_uncharted_and_in_which_region(brow
     context, page, problems, base_url = _page(browser, server)
     try:
         name = naming_key.uncharted_sector_name(UNCHARTED[0], KEY)
-        page.goto(base_url + "/sectors", wait_until="load")
+        page.goto(base_url + "/sectors?coverage=all&empty=1", wait_until="load")
         page.wait_for_selector("#sectors table tbody tr")
         page.get_by_role("link", name=name).click()
         page.wait_for_selector("h1")
@@ -102,7 +102,7 @@ def test_the_page_of_a_placeholder_has_a_what_is_placed_here_panel_that_fits_and
     context, page, problems, base_url = _page(browser, server, viewport, scheme)
     try:
         name = naming_key.uncharted_sector_name(UNCHARTED[0], KEY)
-        page.goto(base_url + "/sectors", wait_until="load")
+        page.goto(base_url + "/sectors?coverage=all&empty=1", wait_until="load")
         page.wait_for_selector("#sectors table tbody tr")
         page.get_by_role("link", name=name).click()
         page.wait_for_selector("#uncharted-contents")
@@ -120,7 +120,7 @@ def test_the_page_of_a_placeholder_shows_the_sector_map_locked_to_its_cell(brows
     context, page, problems, base_url = _page(browser, server)
     try:
         name = naming_key.uncharted_sector_name(UNCHARTED[0], KEY)
-        page.goto(base_url + "/sectors", wait_until="load")
+        page.goto(base_url + "/sectors?coverage=all&empty=1", wait_until="load")
         page.wait_for_selector("#sectors table tbody tr")
         page.get_by_role("link", name=name).click()
         page.wait_for_selector("#map canvas")

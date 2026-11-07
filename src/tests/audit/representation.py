@@ -38,9 +38,10 @@ SYSTEMS_PER_SECTOR = 2
 """int: Systems in each audit sector. A cube holds about seven before the Hill spheres leave no room, and a kind that
 adds a system of its own (a planetary nebula, a brown dwarf) needs the room."""
 
-PER_STAR_KINDS = ("rogue-planet", "comet", "brown-dwarf", "molecular-cloud", "supernova-remnant", "planetary-nebula",
+PER_STAR_KINDS = ("comet", "brown-dwarf", "molecular-cloud", "supernova-remnant", "planetary-nebula",
                   "neutron-star")
-"""tuple: The kinds a fill rolls per star that the audit follows."""
+"""tuple: The kinds a fill rolls per star that the audit follows. Not the rogue planet: since GEN.1111 part 8 it has no rate, it comes from the systems that threw it out and from the Rogues level's top-up
+(`tuning.PHENOMENON_RATE_SCALE`), so a fill that rolls kinds per star never makes one."""
 
 PLACEMENT_LIMITED = frozenset({"brown-dwarf", "planetary-nebula", "neutron-star", "black-hole"})
 """frozenset: The kinds that need a free spot of their own, audited from above only (module docstring)."""
@@ -182,7 +183,9 @@ def run(monkeypatch, names=None, sectors=SECTORS):
     names = tuple(names or REGION_POINTS)
     boosted_rates(monkeypatch)
     fill = Fill(monkeypatch)
-    census = audit.run_census(region_cases(names, sectors), fill=fill)
+    args = audit.default_args()
+    args.planets = False     # PERF.241: the audit counts kinds, and the planets of its two systems a sector took most of a run of 2,620 s (170 s without them)
+    census = audit.run_census(region_cases(names, sectors), fill=fill, args=args)
     return census, fill, names
 
 

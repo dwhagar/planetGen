@@ -27,10 +27,12 @@ EARTH = constants.EARTH_MASS_TO_KG
 
 
 @pytest.mark.parametrize("bottom_k, pressure_mpa", [
-    (251.2, 210.0), (256.2, 350.0), (272.1, 620.0), (286.8, 800.0), (300.4, 1000.0), (327.0, 1500.0), (353.8, 2200.0),
+    (251.165, 208.566), (256.164, 350.1), (273.31, 632.4), (355.0, 2216.0),     # the four triple points of the liquid with the high-pressure ices
+    (254.0, 268.685), (265.0, 479.640), (320.0, 1356.76), (550.0, 6308.71),     # the check values of the IAPWS release R14-08 (ice III, V, VI and VII)
 ])
-def test_the_liquidus_follows_the_recomputed_melting_curves(bottom_k, pressure_mpa):
-    assert wl.liquidus_pressure_pa(bottom_k) == pytest.approx(pressure_mpa * 1e6, rel=1e-9)
+def test_the_liquidus_follows_the_iapws_melting_curves(bottom_k, pressure_mpa):
+    """GEN.1190: the liquidus is the IAPWS R14-08 melting pressure of ice III, V, VI and VII [R4585]; the release prints these values to 5 figures."""
+    assert wl.liquidus_pressure_pa(bottom_k) == pytest.approx(pressure_mpa * 1e6, rel=1e-5)
 
 
 def test_the_deepest_liquid_at_earth_gravity_is_about_seventy_kilometres():
@@ -262,7 +264,7 @@ def test_gen1222_a_thick_cold_lid_does_not_melt_its_own_base_under_the_surface_t
     for flux in (1e-6, 1e-5, 1e-4, 1e-3):
         shell = hy.pressure_melted_shell_km(flux, 25.0, gravity)
         assert shell > 0.0
-        assert shell >= hy.ice_shell_thickness_km(flux, 25.0, 251.2)
+        assert shell >= hy.ice_shell_thickness_km(flux, 25.0, wl.ICE_IH_III_TRIPLE_K)
     # the Earth-like case stays where it was: a warm top under a thin lid is untouched by the floor
     assert hy.pressure_melted_shell_km(0.06, 273.0 - 1.0, 9.8) == pytest.approx(hy.ice_shell_thickness_km(0.06, 272.0, hy.WATER_MELTING_K), rel=0.2)
 

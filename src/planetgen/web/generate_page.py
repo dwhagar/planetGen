@@ -720,6 +720,12 @@ its feature's usual share (Boss, 2026-10-08: "the page needs to have
 meaningful information at all times")."""
 
 
+PREVALENCE_LIMITS = {f"prevalence_{feature}": f"{prevalence.reachable_share(feature) * 100:.3g}"
+                     for feature in prevalence.FEATURES if feature not in STAR_MIX_FEATURES and prevalence.reachable_share(feature) < 1.0}
+"""dict: The most a prevalence field can give, in percent, for a feature a run only asks for (GEN.1322: a habitable world); the page says so beside the
+field. A feature made as asked has no entry."""
+
+
 STAR_MIX_LABELS = {
     "single": "Single stars (% of systems)",
     "close_pair": "Close binaries (% of systems)",
@@ -1393,6 +1399,7 @@ def page_context(admin, form=None, error=None, status=200):
         halo_min_stellar_mass=mass_chain.HALO_MIN_STELLAR_MASS_SOLAR,
         full_structure_min_mass=dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR,
         prevalence_fields=PREVALENCE_FIELDS,
+        prevalence_limits=PREVALENCE_LIMITS,
         max_stars_label=MAX_STARS_LABEL,
         max_stars_default=tuning.MAX_STARS_DEFAULT,
         max_stars_ceiling=tuning.MAX_STARS_CEILING,

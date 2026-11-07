@@ -1,12 +1,12 @@
 # Alpha-enhanced stars and the age-metallicity relation (GEN.744, lock-free step)
 
-Status: the age-metallicity relation is wired (age follows the star's [Fe/H] inside the disc's populations); the alpha-enhanced track shift is built and not yet read by any track lookup. Code: `physics/alpha_tracks.py`, `physics/age_metallicity.py`. Tests: `tests/test_alpha_and_age_metallicity.py`. Registry 6.34 (AL1, AR1 to AR4).
+Status: built and wired. Age follows the star's [Fe/H] inside the disc's populations; every track lookup reads the alpha-enhanced equivalent [Fe/H] of the star's branch (GEN.1024); the thick disc spans 8 to 13 Gyr (GEN.1025). Code: `physics/alpha_tracks.py`, `physics/age_metallicity.py`. Tests: `tests/test_alpha_and_age_metallicity.py`. Registry 6.34 (AL1, AR1 to AR4).
 
 ## Alpha-enhanced tracks
 
 The MIST grid is solar-scaled. A star of the high-alpha branch (`stellar_abundances.BRANCH_HIGH_ALPHA`) behaves like a solar-scaled star of higher [Fe/H] [R3878]: `[M/H] = [Fe/H] + log10(0.638 f + 0.362)`, `f = 10 ** [alpha/Fe]`. `alpha_tracks.equivalent_fe_h(fe_h, branch)` gives the [Fe/H] the isochrone lookup takes: +0.27 dex for a high-alpha star at [Fe/H] -0.8, about 0.02 for a thin-disc star at solar. The star's [alpha/Fe] is the mean of its branch's [O/Fe], [Mg/Fe], [Si/Fe] and [Ca/Fe] (the hinge fits `composition` already uses), so the track and the composition of one star agree.
 
-Wiring: the lookup needs the branch before the track is read, and the branch is today decided after [Fe/H] and age in the composition step (`stellar_abundances.branch_from_uniform`); the wiring moves the branch draw ahead of `evolve_star` and passes the equivalent [Fe/H] to `isochrones.main_sequence_point` and the lifetime. Both belong to Bug 1's and Star 1's star-epoch files (`stellar_evolution.py`), so the wiring is coordinated with them through TODO.
+Wiring (as built, GEN.1024): the branch is a star's own uniform number (`stellar_abundances.branch_of`, from its [Fe/H] and age), so the track (`alpha_tracks.track_fe_h`), the composition and the radiogenic offsets agree. `evolve_star`, `post_main_sequence.timeline`, `ms_lifetime` and the scatter's windows (`alpha_tracks.track_segments`, `possible_segments`) read the equivalent [Fe/H]. Halo, bulge and cluster stars are older than the thick-disc gate, so their branch is the logistic in [Fe/H]: a metal-poor halo star reads the high-alpha track.
 
 ## Age-metallicity relation
 
@@ -18,10 +18,10 @@ Wiring (as built): the order of the draws is kept, [Fe/H] first and the age afte
 
 It changes the age of every disc star, so it needs `--affects population` and `fill` and a census re-baseline (ages shift inside each window, the counts by mass do not).
 
-Not done here, and why: the 10 to 13 Gyr thick-disc window (GEN.944 part 1). The old population is 3 to 10 Gyr in the galaxy's density, scale-height and age-law tables (`galaxy.density.population_densities`, `disk_history`), so moving its end is a galaxy-model change that belongs with GEN.405.
+The 10 to 13 Gyr thick-disc window (GEN.944 part 1) was built as GEN.1025: the thin disc's own history ends at 10 Gyr (`tuning.THIN_DISK_OLD_WINDOW_GY`) and the old population reaches 13 (`galaxy.thick_ages`).
 
 ## Not here
 
 - Variable-star flags (Cepheids, Mira, carbon and S stars) of GEN.944: they need Star 1's post-main-sequence phases (GEN.935).
-- The alpha shift in the tracks: `evolve_star` and the scatter's tables (`star_population._bright_windows` and its bounds) mirror one another, and the branch is decided by a star's age, so the tables need the shift in their age windows before `evolve_star` may use it. A separate piece of work.
+- The alpha shift in the tracks was built as GEN.1024 (see Wiring above).
 - Alpha-enhanced tracks themselves (Dartmouth, BaSTI-alpha) as a download: the Salaris shift is the accepted secondary-source stand-in until the equivalence is shown to fail.

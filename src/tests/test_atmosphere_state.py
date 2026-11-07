@@ -151,9 +151,9 @@ def _at_the_fixed_point_of_its_own_vapor(flux, co2=40.0, n2_pa=1.0e5, gravity=G_
 
 def test_an_earth_twin_at_its_own_fixed_point_lands_within_two_kelvin_of_the_measured_288():
     """GEN.812: 1 bar N2, 400 ppm CO2, 239 W/m2 absorbed, vapor at 0.77 of saturation at the answer's own temperature (it was 319 K
-    with the vapor well mixed up the whole column). The model puts the twin at 287.9 K; the table reads the model to a few percent (its file says by how much) and puts it
-    at 283 K, within the six kelvin the table's accuracy on temperate airs allows."""
-    assert _at_the_fixed_point_of_its_own_vapor(239.0) == pytest.approx(288.0, abs=6.0)
+    with the vapor well mixed up the whole column). The model puts the twin at 288.0 K and the table, fitted with temperate wet airs (GEN.1304), at 287.7 K; the
+    GEN.852 table sat 12 K cold (276.0 K) on this branch, under the vapor feedback, which is why this holds to two kelvin and not to the six the old table needed."""
+    assert _at_the_fixed_point_of_its_own_vapor(239.0) == pytest.approx(288.0, abs=2.0)
 
 
 def test_the_water_runaway_starts_between_the_earths_flux_and_the_published_limits():

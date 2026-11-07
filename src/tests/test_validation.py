@@ -198,3 +198,49 @@ def test_stabilizing_an_untouched_system_moves_nothing():
             continue
         report = validation.stabilize_star_system(system)
         assert report.moved == [] and report.reclassified == []
+
+
+def test_a_planet_built_with_its_climate_deferred_has_no_air_or_moons_until_it_is_finished(star):
+    """GEN.1282: the spacing of the orbits is settled before any air is worked out, so a planet that is pushed is built once."""
+    mass = EARTH * constants.EARTH_MASS_TO_KG
+    planet = Planet(star.system_config, star, star.habitable_zone, star.habitable_zone[0] * 1.1, mass=mass, moon_count=2, defer_climate=True)
+    assert not planet.moons and not planet.planet_class
+    before = planet.distance
+    planet.distance = before * 1.2
+    validation.reconcile_moved_planet(planet)
+    assert not planet.moons and not planet.planet_class
+    assert planet.period == pytest.approx(planetPhysics.calculate_orbital_period_years(planet.distance, star.mass))
+    planet.finish_climate()
+    assert planet.planet_class and len(planet.moons) == 2
+    assert validation.check_planet(planet) == []
+    moons = planet.moons
+    planet.finish_climate()          # a planet that is finished does nothing
+    assert planet.moons is moons
+
+
+def test_a_system_makes_fewer_airs_when_the_climate_waits_for_the_spacing(monkeypatch):
+    """GEN.1282: before it, a planet pushed out by `space_orbits` had its air, class and moons made again for each push."""
+    real = planetPhysics.calculate_atmospheric_conditions
+    real_init = Planet.__init__
+
+    def total(deferred):
+        calls = []
+
+        def counted(body, *args, **kwargs):
+            if not getattr(body, "is_moon", False):
+                calls.append(id(body))
+            return real(body, *args, **kwargs)
+
+        def init(self, *args, **kwargs):
+            kwargs["defer_climate"] = kwargs.get("defer_climate", False) and deferred
+            real_init(self, *args, **kwargs)
+
+        monkeypatch.setattr(planetPhysics, "calculate_atmospheric_conditions", counted)
+        monkeypatch.setattr(Planet, "__init__", init)
+        for seed in range(6):
+            draw.set_run_seed(seed)
+            make_system("G2V", PLANETS=True)
+        monkeypatch.undo()
+        return len(calls)
+
+    assert total(True) < total(False)

@@ -556,6 +556,10 @@ class BackupRestore(Body):
     expect_hash: Optional[StrictStr] = None
 
 
+class UpdateRequest(Body):
+    """`POST /api/admin/update`: an empty object; nothing in the request reaches the command that runs."""
+
+
 class SettingsImport(Body):
     """`POST /api/admin/settings/import`: an export's `settings` object, checked only with `check_only`."""
 

@@ -87,6 +87,12 @@ def test_a_cell_with_no_bodies_is_flagged():
     assert [f.kind for f in findings] == ["missing"]
 
 
+def test_a_cell_with_no_bodies_can_carry_a_known_anomaly():
+    spec = _spec({"C": (0.0, 1.0)})
+    spec["cells"]["G2V/ecosphere/planet"]["anomaly"] = "TEST.656"
+    assert [(f.kind, f.known) for f in census.compare({}, spec)] == [("missing", "TEST.656")]
+
+
 def test_a_known_anomaly_is_named_in_the_finding_and_the_report():
     spec = _spec({"M": (0.1, 0.3)})
     spec["cells"]["G2V/ecosphere/planet"]["classes"]["M"]["anomaly"] = "GEN.855"
@@ -142,6 +148,12 @@ def test_the_reference_records_which_commit_and_seeds_it_was_measured_on(expecta
     assert reference["seeds"] and reference["kind"].startswith("stand-in")
 
 
+def test_a_cell_anomaly_names_an_item_with_a_reason(expectations):
+    for key, spec in expectations["cells"].items():
+        if "anomaly" in spec:
+            assert ITEM.match(spec["anomaly"]) and spec["anomaly"] in expectations["anomalies"], key
+
+
 def test_a_barred_class_has_no_range(expectations):
     for key, spec in expectations["cells"].items():
         assert not set(spec["barred"]) & set(spec["classes"]), key
@@ -151,6 +163,7 @@ def test_a_barred_class_has_no_range(expectations):
 
 
 @pytest.mark.slow
+@pytest.mark.timeout(3600)    # PERF.241: the census draws every cell as its reference did, on every core: 886 to 1,036 s on 4 vCPUs against the default 900 s
 def test_the_class_census_raises_no_new_flag(expectations):
     """Draws every cell as the reference did (same draws per cell), writes the latest-run report and fails on a flag that no
     known anomaly explains. Known anomalies are in the report; one that no longer trips is listed as stale there."""

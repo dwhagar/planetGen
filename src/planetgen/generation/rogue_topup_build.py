@@ -52,7 +52,7 @@ def _event(index, rogue, donor, formation_au, scatter_au, uid_text):
     delay_gy = max(origin.age_gy - origin.since_ejection_gy, 0.0)
     return ejection_events.EjectionEvent(
         None, index, mass_kg, mass_kg, formation_au, formation_au, scatter_au, jupiter_kg, loss.ice_rich, delay_gy, origin.age_gy, origin.since_ejection_gy,
-        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), limit)
+        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), limit, "thrown")
 
 
 def _along(vector, axes):

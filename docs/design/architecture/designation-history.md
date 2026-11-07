@@ -38,7 +38,7 @@ Invariants (each becomes a test):
 3. A retired ID never comes back, not even to the object that held it (a revert issues a new one). A retired name may return to its object, which keeps its row, so the history shows every change in order.
 4. A change of ID cascades: every body whose ID embeds the changed one gets a retired row and a new ID in the same transaction, children after the parent, and `object_index` is rewritten from the same data.
 5. A belt member's or captured body's designation is derived from the parent's current ID and never stored. An old `<old belt ID>.<rank>` resolves by splitting at the point, resolving the parent through `designations`, and keeping the rank.
-6. Reasons are a closed list: `collision bump`, `rename`, `regeneration`, `parent change`, `admin renumber`. A moved rogue is not among them (birth ID fixed).
+6. Reasons are a closed list: `collision bump`, `rename`, `regeneration`, `parent change`, `admin renumber`, `charted` (an uncharted star's name from its Object ID, kept when charting gives the star its own name, GEN.1257). A moved rogue is not among them (birth ID fixed).
 7. A deleted object keeps its retired IDs and gets a tombstone row (`gone_epoch`); a link to it answers 410 with the history, never 404 and never another object. The current ID of a deleted object is retired at the same time, so it is never reissued.
 8. Sector IDs never change (an address); a sector's name can.
 9. Fingerprints (GEN.58, GEN.1129) digest current designations only; the history digest is separate, so a rename does not read as a different object.

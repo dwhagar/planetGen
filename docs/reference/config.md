@@ -51,16 +51,20 @@ its now-removed predecessor (`webconfig.json`) only ever reserved for
 them.
 
 It also has to be unreadable by other local users. `install.sh` and
-`update.sh` (through `examples/apache/set-permissions.sh`) set it to
-`<apache user>:<apache group>`, mode `640`, whenever it exists (the whole
-checkout belongs to that account): the web app (`www-data` for Apache and
-the gunicorn unit alike) can read it, root can too, nobody else can. The macOS
+`update.sh` (through `examples/apache/set-permissions.sh`) keep it in the
+state folder (`/var/lib/planetGen/state/config.json`), owned by
+`<apache user>:<apache group>`, mode `640` (the code tree is root's since
+SEC.37, so only the state folder can be written by the web app); the file in
+the checkout, `/var/lib/planetGen/config.json`, is a root-owned link to it,
+and an old plain `config.json` is moved there by the next `install.sh` or
+`update.sh`. The web app (`www-data` for Apache and
+the gunicorn unit alike) can read and replace it, root can read it, nobody else can. The macOS
 guide sets the same rule by hand. A login user who runs the
 generator or the maintenance scripts from a shell without `sudo` needs to
 be in Apache's group (`sudo usermod -aG www-data <user>`, then log in
 again) to read it. After creating or copying a new `config.json`, re-run
 `sudo examples/apache/set-permissions.sh` (or `sudo ./update.sh`), or set
-it by hand: `sudo chown www-data:www-data config.json && sudo chmod 640 config.json`.
+it by hand: `sudo mv config.json state/config.json && sudo ln -s state/config.json config.json && sudo chown www-data:www-data state/config.json && sudo chmod 640 state/config.json` (from `/var/lib/planetGen`).
 
 ## Precedence
 
@@ -93,8 +97,8 @@ now, `config.json`).
 
 The writer (`planetgen.util.settings_writer`) is the only thing that writes
 `config.json`; the command line and the Admin settings page (`/admin/settings`,
-below) both use it. The file must belong to the web server's user (`update.sh`
-and `set-permissions.sh` see to that) so the page can replace it; when it doesn't,
+below) both use it. The file lives in the state folder, which must belong to the web server's user (`update.sh`
+and `set-permissions.sh` see to that), so the page can replace it; when it doesn't,
 the page lists the options and says so instead of offering a Save button.
 
 - **Who may change what.** The web (an admin) changes the options the table marks
@@ -320,7 +324,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `queue.max_host_workers` | Most workers on this host | whole number (workers) | 0 | at once | any admin | none | The most worker processes planetgen may run on this host at once, every queue and command together: a start that would pass it is refused and said in the log. 0 sizes it from the host: 60 percent of its memory in workers of 300 MB each, no more than four per core, and never fewer than the cores plus four. It stops a burst of requests, or several commands starting workers together, from filling the memory and getting MySQL killed. |
 | `queue.long_workers` | Workers for long jobs | whole number (workers) | 1 | at once | any admin | none | How many workers run the jobs expected to take longer than the long job limit (a neighbourhood or a large settle, which can run for hours). They have a lane of their own so a long job can never hold the workers kept for short ones. |
 | `queue.long_job_seconds` | Long job limit | number (seconds) | 60 | at once | any admin | none | A job expected to take longer than this goes to the long lane. A job with no estimate counts as short. |
-| `queue.sky_limit` | Sky limit built by charting | number (magnitude) | 7.5 | at once | any admin | `PLANETGEN_SKY_LIMIT` | The limiting magnitude of the sky charting builds for each system's neighbourhood (VIEW.25): when a run charts sectors, the stars a system's sky shows to this magnitude are drawn over the 50 parsec cells the new sectors lie in, after the bright-star backfill, so a visitor never waits for them. A cell already drawn costs nothing. Fainter limits draw more stars and take longer: 7.5 is a dust-free naked-eye sky, about half an hour a cell on one worker. 0 turns it off; otherwise 2 to 9. The command line's --sky-limit overrides it for a run. |
+| `queue.sky_limit` | Sky limit built by charting | number (magnitude) | 7.5 | at once | any admin | `PLANETGEN_SKY_LIMIT` | The limiting magnitude of the sky charting builds for each system's neighbourhood: when a run charts sectors, the stars a system's sky shows to this magnitude are drawn over the 50 parsec cells the new sectors lie in, after the bright-star backfill, so a visitor never waits for them. A cell already drawn costs nothing. Fainter limits draw more stars and take longer: 7.5 is a dust-free naked-eye sky, about half an hour a cell on one worker. 0 turns it off; otherwise 2 to 9. The command line's --sky-limit overrides it for a run. |
 | `queue.unit_ceiling_seconds` | Unit length ceiling | number (seconds) | 300 | at once | any admin | none | The longest a unit of a generation stage is expected to run. A stage is cut into units no longer than this at the default galaxy size; a unit that runs longer is written to the run's log, naming the stage. A stage that is one unit by nature is not held to it. A unit this long is also the most a worker waits to hand its place to a lane that needs it. |
 | `queue.wait_minutes` | Longest wait for a run | number (minutes) | 60 | at once | any admin | none | How long a generation run, or an API job that generates sectors, waits in line when another generation run holds the machine, before it fails naming that run (0 does not wait). |
 | `queue.max_waiting` | Waiting list length | whole number (entries) | 8 | at once | any admin | none | How many entries the one waiting list holds: generation runs and API jobs that wait for the machine, and Generate page jobs that wait for the running job. One more than this is refused, naming the list. |

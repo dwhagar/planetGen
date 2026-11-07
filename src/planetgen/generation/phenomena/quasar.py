@@ -83,7 +83,7 @@ class Quasar(LazySaladName):
         """
         self.system_config = system_config
         self._init_salad_name(name)  # drawn on first read (PERF.43)
-        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
+        self.name_given = bool(name)  # a given name is kept over an Object ID name (GEN.1256)
 
         self.black_hole_mass_solar = black_hole_mass_solar or shapeDraw.random_nucleus_mass_solar()
         mass_kg = _msun_to_kg(self.black_hole_mass_solar)

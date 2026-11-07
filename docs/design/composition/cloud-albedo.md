@@ -1,6 +1,6 @@
 # Cloud albedo on the surface-air fixed point (GEN.974)
 
-Status: built (GEN.974, Core 5, 2026-11-06). `physics/cloud_albedo.py` is the pure module (the amount and deck terms, `CloudLaw`, the lock estimate); `surface_air.Setting` carries `cloud_law`, `albedo_at` and `absorbed_flux_at` take the step's ocean, and `surface_air.cloud_law_of` builds the law for a body that has the ice law. Generated output changes (the albedo of every wet body away from 288 K), so it rides a train with an epoch. Stand-in rows CA1 to CA5 are in `gap-filling-plan.md` section 6.193 (the design's CL1 to CL4 clash with the planet-class rows of that name, and a fifth row, the lock estimate, was needed).
+Status: built (GEN.974, Core 5, 2026-11-06). `physics/cloud_albedo.py` is the pure module (the amount and deck terms, `CloudLaw`, the lock estimate); `surface_air.Setting` carries `cloud_law`, `albedo_at` and `absorbed_flux_at` take the step's ocean, and `surface_air.cloud_law_of` builds the law for a body that has the ice law. Generated output changes (the albedo of every wet body away from 288 K), so it rides a train with an epoch. Stand-in rows CA1 to CA5 are in `gap-filling-plan.md` section 6.198 (the design's CL1 to CL4 clash with the planet-class rows of that name, and a fifth row, the lock estimate, was needed).
 
 ## What the build found
 

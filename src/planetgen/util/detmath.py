@@ -72,7 +72,7 @@ _ACCUMULATE_FROM = 6
 the loop over the inner index is cheaper than the larger array."""
 
 _ACCUMULATE_LIMIT = 4_000_000
-"""int: The most products `matmul` forms at once; a larger product goes through the loop."""
+"""int: The most products `matmul` forms at once; a larger product is added one output at a time (PERF.246) or goes through the loop."""
 
 
 def dot(a, b):
@@ -98,6 +98,20 @@ def matmul(a, b):
     inner = b.shape[0]
     if inner >= _ACCUMULATE_FROM and a.size * b.shape[1] <= _ACCUMULATE_LIMIT:
         return np.add.accumulate(a[..., :, None] * b, axis=-2)[..., -1, :]
+    rows = a.size // inner if inner else 0
+    if inner >= _ACCUMULATE_FROM and rows * b.shape[1] <= inner:
+        # PERF.246: a product too large to form at once, with fewer outputs than inner terms (a Gram matrix of 6 series of 190,080 values in the seasonal swing), adds each
+        # output's terms alone: its products in one buffer and `numpy.add.accumulate` over it, left to right as the loop does, so the bits are the loop's; the loop
+        # below is `inner` array operations and took 0.26 s a call, this is rows * columns of them on long contiguous vectors and takes 0.05 s.
+        flat, columns = a.reshape(rows, inner), np.ascontiguousarray(b.T)
+        out = np.empty((rows, b.shape[1]))
+        buffer = np.empty(inner)
+        for row in range(rows):
+            for column in range(b.shape[1]):
+                np.multiply(flat[row], columns[column], out=buffer)
+                np.add.accumulate(buffer, out=buffer)
+                out[row, column] = buffer[-1]
+        return out.reshape(a.shape[:-1] + (b.shape[1],))
     total = a[..., 0:1] * b[0]
     for k in range(1, inner):
         total = total + a[..., k:k + 1] * b[k]

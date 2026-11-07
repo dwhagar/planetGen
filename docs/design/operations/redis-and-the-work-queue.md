@@ -80,7 +80,7 @@ So Redis carries tasks one hop to a worker and results one hop back. Everything 
 
 **F7. The server is configured by default.** `update.sh` installs and starts `redis-server` and only checks that `PING` answers (`scripts/deploy-common.sh` `ensure_redis`). The distribution's `redis.conf` has `appendonly no` and, with the save lines commented out, Redis's built-in save points `3600 1 300 100 60 10000` [C, `CONFIG GET save`]. There is no memory limit (so no eviction, which is right for a queue, but also no guard), no password (it binds loopback and is in protected mode, which is adequate for a single-user host), and nothing documents any of this: DOC.44 notes that no install guide lists Redis.
 
-**F8. Pickle on an unauthenticated store.** RQ jobs and the `Channel` use `pickle`. RQ's own documentation warns that its pickle default is not secure and that RQ should only run against a Redis you trust [S]. On loopback with one user it is acceptable; on a shared host any local user can queue code that a worker runs.
+**F8. Pickle on an unauthenticated store.** (Closed by SEC.39 on 2026-11-07: every queue carries JSON, `redisqueue.serializer_for` returns the JSON serializer for any name, and `examples/redis/planetgen-acl.conf` ships a Redis user with a password that update.sh asks for. A job still names the function a worker calls, so the password is what keeps another local user from queuing one.) RQ jobs and the `Channel` used `pickle`. RQ's own documentation warns that its pickle default is not secure and that RQ should only run against a Redis you trust [S]. On loopback with one user it is acceptable; on a shared host any local user can queue code that a worker runs.
 
 **F9. Client settings are ad hoc.** `redisqueue.connect()` builds a new client (a new pool) on every call and sets no timeouts, so a hung Redis hangs the calling web thread; `countcache` and `singleflight` each build their own client with 0.5 s timeouts; `api_jobs.wait` polls `status` every 50 ms with a fresh fetch and, for a queued job, a worker check ([S]). RQ itself raises a worker connection's `socket_timeout` above its blocking time when needed [S, `rq/worker/base.py` lines 430 to 440], so timeouts belong on the web-side clients, not the workers'.
 
@@ -352,6 +352,37 @@ What the old command structure becomes (Boss, 2026-10-17, 8:06 PM EDT: the rewor
 | The Generate page, API jobs and one-off pages starting their own runs | build a step list and call the wrapper | PERF.119 |
 | The Generate page, Queue page and job log reading the old tables; the `work_*` tables | read the run record in Redis; deleted with their migration | PERF.99, PERF.100 |
 | `update.sh` and migrations starting while jobs run | refuse while the run record shows a live run (done) | DB.29 |
+
+### 5.13 A job can require another job (PERF.247, Boss 6:45 PM EST on 2026-11-06)
+
+PERF.245 lets a worker of several queues take a job from each in turn. A job that cannot run until another is done must not be taken
+early, so a job can declare what it requires. Only a declared requirement holds a job: a job with none is queued at once and runs beside
+every other, as before, so nothing that can run together is made to run one after another.
+
+* **How a job declares it.** `requires.enqueue(queue, function, *args, requires=[job or job id, ...], optional=False, **rq_options)`
+  (`queue/requires.py`), on RQ's own dependency support (`depends_on`). A job that is not ready is not put in any queue: RQ keeps it
+  in the queue's deferred registry, so no worker, and no round robin, can pick it. The worker that ends the last required job queues
+  it, with no polling. A requirement that is already done, or done and deleted (a job with `result_ttl=0` is deleted when it ends),
+  holds nothing. Both jobs must use one serializer (the queues of a lane do); `requires.check_serializers` refuses the rest.
+* **Held, released, dropped.** Each is one line: `held: job X waits for Y` when the job is not ready, `released: job X was waiting for
+  job Y, which finished` as the last required job ends, and `dropped: job X will not run: required job Y failed (error)` when it
+  will not run. The lines go to the log and, for a unit of a run, to the run's own log (`runrecord.log`, kinds `job.held`,
+  `job.released`, `job.dropped`).
+* **A failed or stopped requirement.** RQ would leave the dependant deferred for ever. Every job the queue makes gets the on-failure
+  callback `requires.job_failed` (a unit's own `units.unit_failed` calls it), which fails each job still held for the failed one, and
+  those held for them, with `required job X failed`: they leave the deferred registry for the failed registry, and a unit that is a
+  dependant fails its run with the line. A job declared `optional=True` runs after its requirements end whichever way they end.
+  Stop All and a canceled queue drop the held jobs with the queued ones (`requires.drop_held`).
+* **The Queue page lists them (PERF.248).** A Held jobs panel on `/admin/queue` (shown only while a job is held) lists each held job
+  with its queue, its run and stage when it is a unit, and the jobs it still waits for; it reads `GET /api/admin/work/held`
+  (`requires.held_overview`, the first 100 and the whole count).
+* **The stages of a run.** A command declares the commands it requires in `commands.REQUIRES` (the phenomena index after the
+  phenomena scatter, the territories after the population pass, the neighbor link and the sector paths after the sectors are
+  generated). `commands.validate_order` refuses a list of steps in which a step comes before a step it requires, so a wrong order is found
+  where the list is made; a stage that requires another logs `released: stage X opens ...` when it opens; a run that fails or is
+  canceled logs `dropped: stage X did not run, the stage(s) it requires (...) did not finish` for each stage it left undone. The
+  stages of a run still run one after another (the barrier of 5.12) and the units of a stage still run together; making two stages run together is a
+  later step that needs each pair shown not to touch the other's data.
 
 ## 6. Decisions for Boss
 

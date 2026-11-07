@@ -155,6 +155,47 @@ def test_the_queue_page_shows_workers_load_and_runs(admin_client, conn):
     assert "The run that owns the machine is" in html
 
 
+@pytest.fixture
+def held_pair(conn):
+    """A queued job and a job held for it, on the check queue where no worker runs them (PERF.248)."""
+    from planetgen.queue import requires
+    queue = redisqueue.queue(redisqueue.CHECK_QUEUE, conn)
+    queue.empty()
+    requires.drop_held(conn, redisqueue.CHECK_QUEUE)
+    first = requires.enqueue(queue, "tests.requires_jobs.mark", "first", job_id="held-test-first", job_timeout=60)
+    second = requires.enqueue(queue, "tests.requires_jobs.mark", "second", requires=[first], job_id="held-test-second", job_timeout=60)
+    yield first, second
+    requires.drop_held(conn, redisqueue.CHECK_QUEUE)
+    queue.empty()
+    for job in (first, second):
+        conn.delete(f"rq:job:{job.id}", f"rq:job:{job.id}:dependents")
+
+
+def test_the_api_lists_the_jobs_held_for_a_job_they_require_and_not_the_queued_one(admin_client, held_pair):
+    first, second = held_pair
+    body = admin_client.get("/api/admin/work/held").get_json()
+    assert body["total"] == 1
+    item = body["items"][0]
+    assert item["id"] == second.id and item["waits_for"] == [first.id] and item["queue"] == redisqueue.CHECK_QUEUE
+    assert item["label"].endswith("mark") and item["run"] is None and item["stage"] is None
+
+
+def test_the_held_jobs_need_an_admin(web_app):
+    assert web_app.test_client().get("/api/admin/work/held").status_code == 401
+
+
+def test_the_queue_page_has_a_held_jobs_panel_only_when_a_job_is_held(admin_client, conn):
+    from planetgen.queue import requires
+    requires.drop_held(conn, redisqueue.CHECK_QUEUE)
+    assert "Held jobs" not in admin_client.get("/admin/queue").get_data(as_text=True)
+
+
+def test_the_queue_page_names_the_held_job_and_what_it_waits_for(admin_client, held_pair):
+    first, second = held_pair
+    html = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert "Held jobs" in html and "1 job is held" in html and second.id in html and first.id in html and "check" in html
+
+
 def test_the_page_says_when_redis_is_not_answering(admin_client, monkeypatch):
     from planetgen.api import workqueue
     monkeypatch.setattr(workqueue, "_connection", lambda: None)

@@ -199,6 +199,9 @@ class Planet(PlanetaryObject):
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
+    _deferred_climate = None
+    """tuple or None: `(moon_count, distance_override)` of a body built with `defer_climate` whose air and moons `finish_climate` still owes (GEN.1282)."""
+
     SERIALIZABLE_FIELDS = [
         "is_moon", "zone", "atm_molar_density", "gravity",
         "atm_density", "surface_temperature", "density", "atmospheric_pressure",
@@ -285,7 +288,7 @@ class Planet(PlanetaryObject):
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
-                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None):
+                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -337,6 +340,11 @@ class Planet(PlanetaryObject):
                                                  parent's orbit).
             moon_disk_system (DiskSystem, optional): For a disk moon, its giant parent's circumplanetary disk
                                                      (`moon_composition.draw_disk_system`), shared by that parent's moons.
+            defer_climate (bool, optional): Builds the body and its orbit's shape only (GEN.1282); the air, the class, the motion and the moons
+                                            come with `finish_climate`, which `StarSystem.validate_system` calls once the spacing has
+                                            settled the distance, so a planet the spacing pushes outward is not made twice. Ignored where
+                                            `HABITABLE_WORLD` is False (that body is drawn again until its conditions are not a habitable
+                                            request's).
         """
         self.system_config = system_config # Store SystemConfig
         self.is_moon = is_moon
@@ -423,23 +431,50 @@ class Planet(PlanetaryObject):
         # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds from its ecosphere
         # (`HABITABLE_WORLD` False) draws the body again where the finished body would have the conditions a habitable request asks for (GEN.916).
         given_mass, given_radius = self.mass, self.radius
+        self._deferred_climate = None
+        if defer_climate and system_config.HABITABLE_WORLD is not False:
+            self.mass, self.radius = given_mass, given_radius
+            self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
+            self._deferred_climate = (moon_count, distance_override)
+            return
         for _attempt in range(tuning.BARRED_CLASS_MAX_ATTEMPTS):
             self.mass, self.radius = given_mass, given_radius
-            planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
-            self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
-            planetPhysics.calculate_surface_gravity(self)
-            # GEN.727: the eccentricity first, since the light a planet gets goes by its orbit's mean flux
-            planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
+            self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
             planetPhysics.calculate_atmospheric_conditions(self, distance_override)
             planetPhysics.apply_class(self)
             if not (system_config.HABITABLE_WORLD is False and (habitable_request.meets(self) or planetPhysics.is_life_class(self))):
                 break
             draw.redrawn("planet.barred_world")
+        self._finish_motion_and_moons(primary_mass_kg, moon_count)
+
+    def _draw_body(self, zone_override, primary_mass_kg, planned_objects, distance_override):
+        """The body itself and the shape of its orbit, before any climate (what `__init__` does ahead of the air)."""
+        planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
+        self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
+        planetPhysics.calculate_surface_gravity(self)
+        # GEN.727: the eccentricity first, since the light a planet gets goes by its orbit's mean flux
+        planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
+
+    def _finish_motion_and_moons(self, primary_mass_kg, moon_count):
+        """What `__init__` does after the air and the class: the motion, the age the body was made at and the moons."""
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
-        self._age_drawn = star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
+        self._age_drawn = self.star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
 
         if moon_count != DEFER_MOONS:
             self.add_moons(moon_count)
+
+    def finish_climate(self):
+        """
+        Makes the air, the class, the motion and the moons of a body built with `defer_climate` (GEN.1282), at the distance it has now.
+        Called by `StarSystem.validate_system` once the spacing has settled the orbits; a body that is not deferred does nothing.
+        """
+        if self._deferred_climate is None:
+            return
+        moon_count, distance_override = self._deferred_climate
+        self._deferred_climate = None
+        planetPhysics.calculate_atmospheric_conditions(self, distance_override)
+        planetPhysics.apply_class(self)
+        self._finish_motion_and_moons(self.primary_mass_kg, moon_count)
 
     def add_moons(self, moon_count=None):
         """

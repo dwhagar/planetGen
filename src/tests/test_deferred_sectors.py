@@ -13,7 +13,7 @@ from planetgen.generation import run_common, run_galaxy, stages
 from planetgen.queue import wrapper
 from planetgen.util import draw
 from tests.bughunt_support import mysql_argv
-from tests.test_galaxy_gen import EDGE_PC, WIDE_GALAXY_HIGH_BAND, _address, _all_sectors, _plan_wide_galaxy
+from tests.test_galaxy_gen import EDGE_PC, WIDE_GALAXY_HIGH_BAND, _address, _charted_sectors, _plan_wide_galaxy
 
 pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans")]
 
@@ -144,7 +144,7 @@ def _main(monkeypatch, mysql_config, *argv):
 
 
 def _addresses(mysql_config):
-    return sorted(_address(row) for row in _all_sectors(mysql_config))
+    return sorted(_address(row) for row in _charted_sectors(mysql_config))
 
 
 def test_a_shell_run_planned_when_its_stage_opens_saves_the_sectors_the_starters_plan_does(
@@ -165,7 +165,7 @@ def test_a_random_start_planned_when_its_stage_opens_is_a_start_and_the_sectors_
     _plan_wide_galaxy(mysql_config)
     radius_pc = 8.0
     _main(monkeypatch, mysql_config, "sectors", "--max-shell", "1", "--radius-pc", str(radius_pc), "--num-systems", "1")
-    sectors = _all_sectors(mysql_config)
+    sectors = _charted_sectors(mysql_config)
     assert len(sectors) > 1
     start = min(sectors, key=lambda row: row["id"])
     center = (start["center_x_pc"], start["center_y_pc"], start["center_z_pc"])

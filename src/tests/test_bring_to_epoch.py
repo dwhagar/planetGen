@@ -296,6 +296,8 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
     try:
         before = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (first["sector_id"],)).fetchone()["n"]
         others = conn.execute("SELECT id FROM sectors WHERE id != ?", (first["sector_id"],)).fetchall()
+        held = {(row["shell_index"], row["band_index"], row["wedge_index"])
+                for row in conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors").fetchall()}
         _history(monkeypatch, ["fill"])
         with conn:
             conn.execute("UPDATE galaxy_shape SET generator_epoch = 1 WHERE id = 1")
@@ -308,7 +310,9 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
     # made under the old epoch too, so every sector the galaxy holds is made again, not one.
     assert result["redone"] == len(others) + 1 and not result["failed"], said
     sectors = _all_sectors(mysql_config)
-    assert len(sectors) == len(others) + 1
+    # Making a rogue planet's landing cell again fills it with stars of its own, and their rogues land in cells that held nothing before, so the
+    # galaxy holds every sector it held and may hold more.
+    assert held <= {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in sectors}
     [sector] = [row for row in sectors if (row["shell_index"], row["band_index"], row["wedge_index"]) == (0, 0, 0)]
     assert sector["id"] != first["sector_id"]
     conn = store.get_connection(mysql_config)

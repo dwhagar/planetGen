@@ -90,7 +90,14 @@ def test_the_tally_says_what_each_phase_did():
     assert tally.result("deep-nodes")["line"].endswith("stopped at the cache budget.")
 
 
-def test_the_warm_up_records_its_phases_as_it_goes(script, database, monkeypatch):
+@pytest.fixture
+def a_galaxy(monkeypatch):
+    """OPS.114: a warm-up of a database with no galaxy says so and warms nothing. These runs are about the phases of a warm-up, and their
+    stand-in database is only a name Redis keys the phases by, so they run as if it held a galaxy."""
+    monkeypatch.setattr(warm_cli, "galaxy_is_empty", lambda _database: False)
+
+
+def test_the_warm_up_records_its_phases_as_it_goes(a_galaxy, script, database, monkeypatch):
     args = _args()
     args.database = database
     monkeypatch.setattr(warm_cli, "_site_database", lambda: database)
@@ -101,7 +108,7 @@ def test_the_warm_up_records_its_phases_as_it_goes(script, database, monkeypatch
     assert all(row["line"].startswith("Phase ") for row in state["phases"])
 
 
-def test_a_failing_family_fails_its_phase_and_the_run(script, database, monkeypatch):
+def test_a_failing_family_fails_its_phase_and_the_run(a_galaxy, script, database, monkeypatch):
     script.failing = {"sectors": "2 of 9 pages did not answer"}
     monkeypatch.setattr(warm_cli, "_site_database", lambda: database)
     with pytest.raises(SystemExit):

@@ -123,6 +123,11 @@ connectivity to that specific schema rather than the default one.
   (`sector_system_counts`) by index, with the sectors that have no galaxy position last, and
   sectors that tie follow the sort's direction by id; a sector made since the last refresh of
   those figures follows the others. An `after` that is not a sector ID is a 400.
+  MAP.403: `coverage=charted|all|uncharted` picks which sectors are listed (default `charted`, the generated sectors; `uncharted` lists the placeholder rows
+  a rogue planet, a waiting bright star or a scattered phenomenon made in a cell nothing was generated in) and `empty=1` keeps the uncharted sectors nothing is
+  known to be in (no rogue planet filed in them, no waiting star, no unbuilt scattered phenomenon), which are left out by default; it has no effect on `charted`.
+  `total` counts the sectors listed and `charted_total`, `uncharted_total` and `empty_total` count each kind whatever is listed; the answer echoes `coverage` and
+  `show_empty`. Another `coverage` is a 400. Changed: the default listing no longer includes the uncharted placeholders.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
@@ -704,6 +709,8 @@ connectivity to that specific schema rather than the default one.
   detail page of its own, only a hover tooltip on the Sector/Galaxy Map),
   now including a to-scale AU diagram (`../src/planetgen/web/maps/phenomenonmap.py`).
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
+  (MAP.403: the Sectors panel lists charted sectors only; `sector_coverage=all|uncharted` adds the uncharted placeholders, `sector_empty=1` the
+  uncharted ones nothing is known to be in, and another coverage is a 400.)
   the faceted search behind the `/search` page: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
   type, supported life chemistry, the equipment a human needs
@@ -841,6 +848,18 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/systems/<id>/habitable-species` — the same for every rocky
   planet and moon of a system that some species could live on: `bodies` of
   `{kind, id, name, unaided, equipped}`.
+- `GET /api/systems/<id>/bodies` — the body ledger of a system and the barycenter that
+  includes its belts (GEN.1241), built from the typed tables with no new storage: `bodies`
+  (every star, planet, moon, ring, comet, belt, belt body and the belt's remainder, each with
+  `kind`, `name`, `mass_kg`, `radius_km`, `density_kg_m3`, `a_au`, `e`, `i_deg`, `status`, `tier`
+  (`typed`, `L1` for a stored belt body, `L3` for the remainder), `parent`, `position_au` from
+  the parent's center and `distance_from_barycenter_au`; a typed body has its `ref` and `id`, a
+  belt body its `belt` and `rank`), `total_mass_kg`, `barycenter_au` (the primary star's center
+  at the origin), `central_offset_au` and `central_offset_km` (where the primary sits against
+  the barycenter), `belt_wobble_au` and `belt_wobble_km` (how far the belts move it),
+  `central_radius_km` and `belts` (`{belt, name, mass_kg, members, stored_members_kg,
+  extended_kg, residual}`; `residual` is the rows against the stored mass, 0 when they add up).
+  A belt body is placed at the mean anomaly it was drawn with. `404` for an unknown system.
 - `GET /api/species/<id>/habitable-worlds/systems/<system>` and
   `.../sectors/<sector>` — the other way round: the rocky planets and moons of
   one system, or of every system of one sector (at most 2,000 bodies; `truncated`
@@ -1024,6 +1043,9 @@ forced credential change. They back the admin stats page
   "seconds"}]}}`. `index` is the object index as its last runs recorded it (PERF.140). A phase's `state` is `waiting`, `running`, `built`, `unchanged`, `stopped`,
   `nothing`, `failed` or `interrupted` (null before any run); `auto` says whether a change starts the warm-up by itself,
   which changes it waits to warm for, and the process that holds it.
+- `GET /api/admin/work/held` — the jobs held for a job they require (PERF.247, PERF.248):
+  `{"total", "items": [{"id", "queue", "label", "waits_for", "run", "stage"}]}`, the first 100. `waits_for` lists the
+  required jobs not done yet; `run` and `stage` are set for a unit of a run. A job that requires nothing is never listed.
 - `GET /api/admin/work/workers` and `POST /api/admin/work/workers`
   `{"count": n}` or `{"ludicrous": true}` — the bulk queue's worker count
   (ADM.15, PERF.95). `{"wanted", "live", "ludicrous", "cpus"}`: the count
@@ -1119,6 +1141,17 @@ forced credential change. They back the admin stats page
   settings writer, so it is backed up and audited as `config.update`.
   `DELETE /api/admin/images/<kind>` resets the setting and removes the
   file when no other setting names it. At most 1 MiB a picture.
+- `GET /api/admin/update` — the admin Update button (SEC.43): `{"state", "installed", "can_request", "reason", "log",
+  "log_modified", "stale_request", "outcome", "outcome_detail", "can_ask", "needs_password", "owner_minutes"}`. `state` is `not_installed` (the
+  root-owned `planetgen-update.path` is missing), `idle`, `requested` (the request file waits) or `running` (the update
+  guard's lock is held, or the site is still closed by an update); `log` is the end of `update.log`. With no update waiting
+  or running, `outcome` is `failed` (the service is in `failed`, or the log's last run ended in an error line), `done`
+  (the log's last run reached its closing line) or `null`, and `outcome_detail` says why (UX.284). A signed-in session
+  only (an API key gets 403). `POST /api/admin/update` `{}` asks root to run `update.sh`: it creates the empty file
+  `update.request` in the state folder and nothing else, so no value from the request reaches the command. Only the
+  Owner whose password was typed within `owner_minutes` may (403 with `needs_password`; `POST /api/auth/confirm-password`
+  opens the window); a press while an update runs is accepted and runs after it, a second while a request waits is a
+  409; answers 202 with the state. Audited as `update.request`; 6 requests an hour.
 - `GET /api/admin/lockouts` — every address and username locked right
   now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
   "level"}], "proxy_warning"}`. `proxy_warning` is true when the site

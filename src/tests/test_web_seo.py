@@ -411,6 +411,13 @@ def test_icons_appear_in_the_head(site, config):
     ("favicon_svg", b'<svg xmlns="http://www.w3.org/2000/svg"><image href="http://evil/x.png"/></svg>', "outside"),
     ("favicon_svg", b'<!DOCTYPE svg [<!ENTITY a "b">]><svg xmlns="http://www.w3.org/2000/svg"/>', "DOCTYPE"),
     ("favicon_svg", b"<html></html>", "not an SVG"),
+    # SEC.42: the DOCTYPE screen reads bytes, so an SVG in another encoding (UTF-16 would slip past it) is refused.
+    pytest.param("favicon_svg", '<!DOCTYPE svg [<!ENTITY a "b">]><svg xmlns="http://www.w3.org/2000/svg"/>'.encode("utf-16-le"),
+                 "not UTF-8", id="utf16-without-bom"),
+    pytest.param("favicon_svg", '<?xml version="1.0" encoding="ISO-8859-1"?><svg xmlns="http://www.w3.org/2000/svg"/>'.encode("latin-1"),
+                 "not UTF-8", id="declared-latin1"),
+    pytest.param("favicon_svg", b'<svg xmlns="http://www.w3.org/2000/svg"><title>\xff\xfe</title></svg>', "not UTF-8", id="invalid-utf8"),
+    pytest.param("favicon_svg", '<svg xmlns="http://www.w3.org/2000/svg"/>'.encode("utf-16"), "must be an SVG", id="utf16-with-bom"),
     ("favicon_svg", b'<svg xmlns="http://www.w3.org/2000/svg"' + b" " * 1_100_000 + b"/>", "most allowed"),
 ])
 def test_a_picture_that_cannot_be_used_is_refused_with_the_reason(site, config, kind, data, why):

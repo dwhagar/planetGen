@@ -46,6 +46,17 @@ Run after the planet architecture (GEN.728) has the final chain and giant histor
 
 Stand-ins this section adds: survival factors, the disc edge, the stirring factor (all T2 or T3, L0 to L1 until read).
 
+### 3.2 What a belt may hold: the cold-disk loss and the isolation cap (GEN.1261)
+
+Two limits on the solids a stretch starts with, both before the giants act (`belt_origin._trace`):
+
+- **Cold-disk loss.** Past the snow line only a share of the disk's solids grew into planetesimals; the pebbles of the rest drifted in. Pebbles become planetesimals at `PEBBLE_CONVERSION_PER_ORBIT` (0.01) of their mass an orbit and fall in over `1 / (1.1 Z Omega)`, with `Z = 0.01` times the star's metal ratio; the two compete, so the share that becomes planetesimals is `zeta / (zeta + 1.1 Z)`, about one half for a solar disk and the same at every radius (both rates scale with the orbital frequency). The share multiplies the solids past the snow line of every belt; inside it the planetesimals formed in place. Stand-ins BG17 to BG19.
+- **Isolation cap on a gap.** A stretch that held more solids than the isolation mass at its centre ([R2430], `formation.isolation_mass_kg` with `OLIGARCH_SEPARATION_MEDIAN` spacing and the disk's own density) would have grown the planet, so the chain would not have the gap. A gap belt's solids are the lesser of the disk's solids in it and that mass.
+
+The belts are made of the disk the planets grew in: `belt_birth.build` takes the architecture's `disc_scatter` (0.7 dex, [R0114]), where it used the median disk.
+
+Measured (240 F5, G2 and K2 main-sequence systems, 80 each, `reports/gen1261-belt-shares-2026-11-05.md`): the loss step cut the median present mass of an outer disk from 10 to 2 Earth masses and the isolation cap cut the largest gap belt from 3.2 to 0.6; the share of systems with a belt did not move (inner 11 percent, cold 70 percent), and the share with a cold belt of 0.1 Earth masses or more (detectable) went from 69 to 67 percent. The loss step alone does not bring the cold share to the observed 14 to 20 percent: what is left is the streaming-instability threshold, which lets only some disks make planetesimals at all.
+
 ## 4. Counting Sol, so we know what to compare to
 
 [R] unless marked. Orders of magnitude; the lane reads the surveys.

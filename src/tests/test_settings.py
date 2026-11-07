@@ -226,6 +226,8 @@ NON_OPTION_VARIABLES = {
                                          "told to the run so it can say the limit ended it (the warm command's stop reason)",
     "PLANETGEN_WARM_STARTED_BY": "set by update.sh for each warm-up stage: what started the run, for the line that opens its record in "
                                  "warmup.log (OPS.96)",
+    "PLANETGEN_SYSTEMD_UNIT_DIR": "where the admin Update button looks for the planetgen-update path and service units (SEC.43; unset, /etc/systemd/system, which is "
+                                  "where install.sh puts them; the test suite points it at a temporary folder)",
     "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209; a test-run switch: the "
                                       "test suite sets it, nothing else does)",
 }

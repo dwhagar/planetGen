@@ -204,6 +204,7 @@ def test_a_broken_band_trips_the_live_flag(expectations):
 
 
 @pytest.mark.slow
+@pytest.mark.timeout(3600)    # PERF.241: the census draws every cell as its reference did, on every core: 886 to 1,036 s on 4 vCPUs against the default 900 s
 def test_the_life_census_raises_no_new_flag(expectations):
     """Generates the seeded systems, writes the latest-run report and fails on a flag that no known anomaly explains."""
     result = life.run()

@@ -24,8 +24,8 @@ DATASET = fetch.Dataset(
     source="HYG database v4.1 (Hipparcos, Yale Bright Star and Gliese catalogs), CC BY-SA 4.0, astronexus",
     pieces=(fetch.Piece(FILE, "https://raw.githubusercontent.com/astronexus/HYG-Database/master/hyg/CURRENT/hygdata_v41.csv",
                         "d9f69fd86bbf90a4e4d52b4c5c53eacfa6dfc0bfdef85bfd94f095e0bebe4ebd", 33932548),),
-    replaces="nothing: the real sky the generated sky is checked against in a test (VIEW.30)",
-    fill="VIEW.30",
+    replaces="nothing: the real sky the generated sky is checked against in a test",
+    fill="the generated-sky check",
     required=False,
 )
 

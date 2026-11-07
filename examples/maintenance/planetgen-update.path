@@ -1,0 +1,25 @@
+# examples/maintenance/planetgen-update.path
+#
+# SEC.43: the admin pages' Update button. The web server's user never runs update.sh and never gets a root shell. It only creates
+# one empty file, update.request, in the state folder; this root-owned unit sees the file and starts planetgen-update.service
+# (see that file), which deletes the request and runs update.sh as root.
+#
+# What keeps this safe:
+#   - The file's contents are never read. The unit has no way to pass anything from the file to root, so the browser cannot
+#     choose an argument, a path or a command: the only thing a request can do is run the update the service already runs.
+#   - A request made while an update is running waits and runs after it (the path is checked again when the service ends). The
+#     update guard's own rules (OPS.41, OPS.53) still decide whether work that is running is cancelled or refuses the update.
+#   - The unit and the service are root's, in /etc/systemd/system. Nothing the web user can write is ever run.
+#
+# install.sh, update.sh and install-maintenance-timer.sh install and enable it, putting the real state folder in the line below
+# (`PLANETGEN_STATE_DIR`, else <checkout>/state; the default layout is /var/lib/planetGen/state). Linux (systemd) only.
+
+[Unit]
+Description=Run the planetGen update when the admin Update button asks for it
+
+[Path]
+PathExists=/var/lib/planetGen/state/update.request
+Unit=planetgen-update.service
+
+[Install]
+WantedBy=multi-user.target
