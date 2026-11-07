@@ -19,7 +19,7 @@ Quantities (all derived here from the stored columns, named as `db.models` names
 * `mass_earth`, `gravity_g`, `temperature_k`, `pressure_pa` (0 for no air), `ocean_fraction`, `water_mass_fraction`,
   `hydrosphere`, `flux_variation` (no class reads it since GEN.1135; the At a glance flag does), `ocean_ph` (`None` without an ocean; no class reads it, the
   pigments of life do);
-* `share_o2` ... `share_so2`: a stored gas's partial pressure over the surface pressure; `o2_partial_pa`: the oxygen's own partial pressure, Pa (GEN.1321: the classes judge oxygen by pressure);
+* `share_o2` ... `share_so2`: a stored gas's partial pressure over the surface pressure; `o2_partial_pa`, `co2_partial_pa`: the oxygen's and carbon dioxide's own partial pressures, Pa (GEN.1321: the oxygen-water classes judge both by pressure; class F, class G and the other gases keep the share);
 * `reducing_share`: the methane and hydrogen shares together.
 
 Letters no class uses are the `RESERVE`: a letter is never retired without asking Boss, and free letters are kept for new
@@ -113,6 +113,7 @@ def quantities(values):
         found[f"share_{gas}"] = min(1.0, partial_pa / pressure) if pressure > 0.0 else 0.0
     found["reducing_share"] = found["share_ch4"] + found["share_h2"]
     found["o2_partial_pa"] = atmosphere.partial_kpa(values, "o2") * 1000.0       # GEN.1321: breathable oxygen is a pressure, not a share
+    found["co2_partial_pa"] = atmosphere.partial_kpa(values, "co2") * 1000.0     # GEN.1321: so is the carbon dioxide of the oxygen-water classes
     return found
 
 

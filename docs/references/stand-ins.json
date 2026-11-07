@@ -38587,7 +38587,7 @@
           "fields": [
             [
               "What it is",
-              "planet_class_fit.json oxygen edges as pressures: 3 kPa (class F anoxic below, class L from), 16 kPa (class L below, classes M, H, O, P, R from) and 35.5 kPa (classes M, H, O, P, R below; the fire limit of GEN.1320, 35 percent of an atmosphere); life_classes.json class 2 gate below 3 kPa and class 4 gate from 100 Pa"
+              "planet_class_fit.json oxygen edges as pressures: 3 kPa (class F anoxic below, class L from), 16 kPa (class L below, classes M, H, O, P, R from) and 35.5 kPa (classes M, H, O, P, R below; the fire limit of GEN.1320, 35 percent of an atmosphere); the carbon dioxide edge of the oxygen-water classes as a pressure, 1 kPa (class L from, classes M, H, O, P, R below; 1 percent of an atmosphere); life_classes.json class 2 gate below 3 kPa and class 4 gate from 100 Pa. Class F and G keep the carbon dioxide share (20 percent)"
             ],
             [
               "The range it moves in",
@@ -38618,14 +38618,14 @@
           "tier_code": "T7",
           "tweak": "L1",
           "unread": null,
-          "what": "planet_class_fit.json oxygen edges as pressures: 3 kPa (class F anoxic below, class L from), 16 kPa (class L below, classes M, H, O, P, R from) and 35.5 kPa (classes M, H, O, P, R below; the fire limit of GEN.1320, 35 percent of an atmosphere); life_classes.json class 2 gate below 3 kPa and class 4 gate from 100 Pa"
+          "what": "planet_class_fit.json oxygen edges as pressures: 3 kPa (class F anoxic below, class L from), 16 kPa (class L below, classes M, H, O, P, R from) and 35.5 kPa (classes M, H, O, P, R below; the fire limit of GEN.1320, 35 percent of an atmosphere); the carbon dioxide edge of the oxygen-water classes as a pressure, 1 kPa (class L from, classes M, H, O, P, R below; 1 percent of an atmosphere); life_classes.json class 2 gate below 3 kPa and class 4 gate from 100 Pa. Class F and G keep the carbon dioxide share (20 percent)"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planet_class_fit.json shoulder for oxygen pressure: 0.25 of the edge with a floor of 500 Pa (the share's 0.25 and 0.005 of an atmosphere)"
+              "planet_class_fit.json shoulders for oxygen pressure and carbon dioxide pressure: 0.25 of the edge with a floor of 500 Pa and 200 Pa (the shares' 0.25 and 0.005 and 0.002 of an atmosphere)"
             ],
             [
               "The range it moves in",
@@ -38656,11 +38656,11 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "planet_class_fit.json shoulder for oxygen pressure: 0.25 of the edge with a floor of 500 Pa (the share's 0.25 and 0.005 of an atmosphere)"
+          "what": "planet_class_fit.json shoulders for oxygen pressure and carbon dioxide pressure: 0.25 of the edge with a floor of 500 Pa and 200 Pa (the shares' 0.25 and 0.005 and 0.002 of an atmosphere)"
         }
       ],
-      "slug": "6-196-stand-ins-of-oxygen-judged-by-pressure",
-      "title": "Stand-ins of oxygen judged by pressure"
+      "slug": "6-196-stand-ins-of-oxygen-and-carbon-dioxide-judged-by-pressure",
+      "title": "Stand-ins of oxygen and carbon dioxide judged by pressure"
     },
     {
       "key": "6.194",

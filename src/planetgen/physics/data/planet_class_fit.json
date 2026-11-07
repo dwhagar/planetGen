@@ -34,6 +34,11 @@
       "floor": 500.0,
       "basis": "CF7"
     },
+    "co2_partial_pa": {
+      "relative": 0.25,
+      "floor": 200.0,
+      "basis": "CF7"
+    },
     "share_co2": {
       "relative": 0.25,
       "floor": 0.002,
@@ -271,8 +276,8 @@
           "lt": 320.0
         },
         {
-          "quantity": "share_co2",
-          "min": 0.01
+          "quantity": "co2_partial_pa",
+          "min": 1000.0
         },
         {
           "quantity": "o2_partial_pa",
@@ -299,7 +304,7 @@
           "lt": 0.03
         }
       ],
-      "note": "Earth-like but hard to breathe: 3 to 16 kPa of oxygen (GEN.1321: judged by oxygen pressure), carbon dioxide 1 percent or more; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+      "note": "Earth-like but hard to breathe: 3 to 16 kPa of oxygen (GEN.1321: judged by oxygen pressure), carbon dioxide 1 kPa or more (a pressure, GEN.1321); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
     },
     {
       "letter": "K",
@@ -374,8 +379,8 @@
           "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -583,8 +588,8 @@
           "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -664,8 +669,8 @@
           "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -745,8 +750,8 @@
           "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
@@ -830,8 +835,8 @@
           "lt": 35500.0
         },
         {
-          "quantity": "share_co2",
-          "lt": 0.01
+          "quantity": "co2_partial_pa",
+          "lt": 1000.0
         },
         {
           "quantity": "reducing_share",
