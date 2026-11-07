@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.47 |
-| TEST | TEST.683 |
+| TEST | TEST.684 |
 | USR | USR.32 |
 | OPS | OPS.119 |
 | DOC | DOC.110 |
@@ -2734,7 +2734,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.113 | update.sh fails when started by systemd (the Update button and the monthly timer) while warm-up or other jobs run: a systemd-started update cancels everything except generation and refuses only while generation runs (bug) | none | done, PR #5485 |
 | OPS.114 | Warm-ups (update.sh, on-change, the nightly whole-map tiles build) exit cleanly with success and "galaxy is empty, nothing to warm up" when the database holds no galaxy, and update.sh says skipped, not failed (bug) | none | done, PR #5492 |
 | OPS.115 | update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug) | none | open |
-| OPS.116 | One error.log in the log folder that records every error and crash from everything (every logger, subprocess, killed worker, update.sh and warm-up stage, web and API error, uncaught exception), while each error still goes to its own log too | none | open |
+| OPS.116 | One error.log in the log folder that records every error and crash from everything (every logger, subprocess, killed worker, update.sh and warm-up stage, web and API error, uncaught exception), while each error still goes to its own log too | none | done, PR #5579 |
 | OPS.117 | update.sh's warm-up part 2 failed with "run ... is running" because the epoch's warm-up had started the moment the update ended, and the phase lines gave the workers' seconds added up (5338 s for 9:39), a wrong chunk size and an out-of-memory guess for a SIGTERM (bug) | none | open |
 | OPS.118 | Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
@@ -4214,6 +4214,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.680 | test_web_a11y.py: 20 cases fail axe link-in-text-block (link colour contrast 2.49 to 1) on the help index, the references pages and the account page (bug) | none | open |
 | TEST.681 | The train gate's file selection (scripts/train_gate.py files) misses tests/test_sheet_fill.py and tests/test_bring_to_epoch.py, which generation changes affect: widen the selection and add a test that holds it | none | done, PR #5574 |
 | TEST.682 | test_cache_warmup.py::test_a_tiered_pass_travels_as_json_and_comes_back_equal fails on main (bug) | none | open |
+| TEST.683 | Three tests fail on main or in the wrong folder: test_deploy_scripts::test_set_permissions_keeps_both_config_files_when_both_exist, test_settings::test_the_code_reads_no_variable_the_model_does_not_name (names PLANETGEN_QUEUE_EXTRA_FUNCTIONS and PLANETGEN_WARM_OUTCOME_FILE), and test_warm_empty_galaxy (fails only when run from src, a relative path) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
