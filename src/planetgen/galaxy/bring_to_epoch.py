@@ -31,7 +31,7 @@ import argparse
 import pymysql
 
 from planetgen.db import kind_tables, store
-from planetgen.galaxy import epoch_record, uid as sector_uid
+from planetgen.galaxy import epoch_record, uid as sector_uid, wide_binary_reroll
 from planetgen.population import model as population
 from planetgen.util import generator_epoch, log
 
@@ -345,7 +345,15 @@ def _redo_species(conn, epochs):
     return count
 
 
-def run(config, control_config=None, dry_run=False, say=log.normal):
+def _reroll_wide_binaries(config, conn, control_conn, dry_run, say, result):
+    """The wide-binary stage (GEN.229): the wide binaries that break the stability rule are made again from their seeds
+    (`wide_binary_reroll.run`), except in a sector an admin edited. Adds `wide` (its result) to `result` and its failures to `failed`."""
+    wide = wide_binary_reroll.run(config, set(edited_sectors(conn, control_conn)), dry_run=dry_run, say=say)
+    result["wide"] = wide
+    result["failed"].extend(wide["failed"])
+
+
+def run(config, control_config=None, dry_run=False, say=log.normal, wide_binaries=True):
     """
     Brings the stored galaxy to the running epoch (see the module's text), saying each step with `say`.
 
@@ -354,10 +362,14 @@ def run(config, control_config=None, dry_run=False, say=log.normal):
         control_config (MySQLConfig, optional): The control database, whose audit log names the edited sectors.
         dry_run (bool): Say what would be done and change nothing.
         say (callable): Takes one line.
+        wide_binaries (bool): Also read the wide binaries and make again those that break the stability rule, from
+            their seeds, in the sectors the run does not generate again (GEN.229); this runs even when the galaxy is at the
+            running epoch.
 
     Returns:
         dict: `refused` (bool), `redone` (sectors generated again), `skipped` (sectors left alone), `failed` (sectors
-        that raised, with the reason), `species` (made again).
+        that raised, with the reason, and wide binaries whose re-roll failed), `species` (made again), `wide`
+        (`wide_binary_reroll.run`'s result; absent when the stage did not run).
     """
     from planetgen.queue import api_jobs
     result = {"refused": False, "redone": 0, "skipped": 0, "failed": [], "species": 0}
@@ -381,6 +393,8 @@ def run(config, control_config=None, dry_run=False, say=log.normal):
             result["refused"] = True
             return result
         if dry_run or _nothing_to_do(found):
+            if wide_binaries:
+                _reroll_wide_binaries(config, conn, control_conn, dry_run, say, result)
             return result
         emptied = {}
         if found["redraw"]:
@@ -416,6 +430,8 @@ def run(config, control_config=None, dry_run=False, say=log.normal):
             say(f"Population: {counts['new_species']:,} new species; {counts['species']:,} in all.")
             owned = population.run_territories(conn)
             say(f"Population: {owned['polities']:,} polities own {owned['owned_systems']:,} systems.")
+        if wide_binaries:
+            _reroll_wide_binaries(config, conn, control_conn, dry_run, say, result)
         say(f"Done: {result['redone']} sector(s) generated again, {result['skipped']} left alone"
             + (f", {len(result['failed'])} failed (run it again to retry them)." if result["failed"] else "."))
         return result

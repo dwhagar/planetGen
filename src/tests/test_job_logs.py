@@ -28,7 +28,7 @@ def _lines(path):
 
 
 def test_every_job_has_its_own_log_in_the_log_folder_and_the_rule_for_log_files_covers_it(folder):
-    names = {"warmup.log", "tiles.log", "orbits.log", "update.log"}
+    names = {"warmup.log", "tiles.log", "orbits.log", "update.log", "error.log"}
     assert set(logpaths.JOB_LOG_NAMES) == names
     for name in names:
         assert logpaths.job_log_path(name) == str(folder / name) and name.endswith(".log")

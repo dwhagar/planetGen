@@ -284,12 +284,29 @@ def test_the_species_of_an_older_population_epoch_are_made_again_but_not_the_edi
 
 @pytest.mark.db
 @pytest.mark.usefixtures("unit_density_plans")
+def _nothing_but_the_wide_binaries_read(lines):
+    """A run with nothing to bring up says so and, when the galaxy holds wide binaries, how many it read and that none breaks the stability rule (GEN.229)."""
+    assert lines[0] == "The galaxy is at epoch 2: nothing to bring up."
+    assert all(line.startswith("Wide binaries: ") and ", 0 break the stability rule." in line for line in lines[1:]) and len(lines) <= 2
+
+
 def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_config, redis_server, monkeypatch):
     """The whole path with nothing replaced: the sector is deleted and made again from its address, records the running
     epoch, holds the same systems (the code did not change), and a second run finds nothing to do."""
     from planetgen.generation import run_galaxy
     from tests.test_galaxy_gen import _all_sectors, _seed_skeleton, _shells
     _seed_skeleton(mysql_config, shells=_shells(2, 1))
+    # A system takes about fifteen seconds to build on the tree of train 15 and a profile-sized sector holds a dozen, so the test made and
+    # re-made it for more than ten minutes (TEST.679). Each cell holds one system here, in the first making and in every making again.
+    cell_to_generate = run_galaxy._cell_to_generate
+
+    def one_system_cell(address, config, link=True):
+        early, args, *rest = cell_to_generate(address, config, link)
+        if early is None:
+            args.num_systems, args.density = 1, None
+        return (early, args, *rest)
+
+    monkeypatch.setattr(run_galaxy, "_cell_to_generate", one_system_cell)
     first = make_sector(0, 0, 0, config=mysql_config, backfill=False, settle=False)
     assert first["created"]
     conn = store.get_connection(mysql_config)
@@ -299,16 +316,21 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
         held = {(row["shell_index"], row["band_index"], row["wedge_index"])
                 for row in conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors").fetchall()}
         _history(monkeypatch, ["fill"])
+        # The sector is not alone: rogue planets its saved stars threw out land in sectors of their own (GEN.1111), and a galaxy of
+        # this size lands dozens of them (78 on the tree of train 15). Making every one of those cells again fills each with stars whose
+        # rogues land in cells that held nothing before, so a test that made them all took more than 17 minutes (TEST.679). The sector
+        # and two of the landing cells are behind; the rest are at the running epoch.
+        behind = [first["sector_id"]] + [row["id"] for row in others][:2]
+        marks = ", ".join("?" for _ in behind)
         with conn:
             conn.execute("UPDATE galaxy_shape SET generator_epoch = 1 WHERE id = 1")
-            conn.execute("UPDATE sectors SET generator_epoch = 1")
+            conn.execute("UPDATE sectors SET generator_epoch = 2")
+            conn.execute(f"UPDATE sectors SET generator_epoch = 1 WHERE id IN ({marks})", behind)
     finally:
         conn.close()
     said = []
     result = bring_to_epoch.run(mysql_config, None, say=said.append)
-    # The sector is not alone: rogue planets its saved stars threw out land in sectors of their own (GEN.1111), each a sector
-    # made under the old epoch too, so every sector the galaxy holds is made again, not one.
-    assert result["redone"] == len(others) + 1 and not result["failed"], said
+    assert result["redone"] == len(behind) and not result["failed"], said
     sectors = _all_sectors(mysql_config)
     # Making a rogue planet's landing cell again fills it with stars of its own, and their rogues land in cells that held nothing before, so the
     # galaxy holds every sector it held and may hold more.
@@ -323,7 +345,7 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
         conn.close()
     again = []
     assert bring_to_epoch.run(mysql_config, None, say=again.append)["redone"] == 0
-    assert again == ["The galaxy is at epoch 2: nothing to bring up."]
+    _nothing_but_the_wide_binaries_read(again)
 
 
 def test_the_command_passes_the_options_and_exits_1_on_a_refusal(monkeypatch):
@@ -334,9 +356,9 @@ def test_the_command_passes_the_options_and_exits_1_on_a_refusal(monkeypatch):
     assert generate._COMMAND_HANDLERS["bring-to-epoch"] is generate.run_bring_to_epoch
     calls = []
     answer = {"refused": False, "failed": []}
-    monkeypatch.setattr(bring_to_epoch, "run", lambda config, control, dry_run: calls.append(dry_run) or answer)
+    monkeypatch.setattr(bring_to_epoch, "run", lambda config, control, dry_run, wide_binaries: calls.append((dry_run, wide_binaries)) or answer)
     generate.run_bring_to_epoch(args)
-    assert calls == [True]
+    assert calls == [(True, True)]                                      # the wide-binary stage is on unless --no-wide-binaries
     answer["refused"] = True
     with pytest.raises(SystemExit) as stopped:
         generate.run_bring_to_epoch(args)
@@ -392,4 +414,4 @@ def test_every_scatter_behind_is_really_drawn_again_with_the_same_settings(galax
         {key: before[key] for key in ("stars", "phenomena", "field", "settings")}
     again = []
     assert bring_to_epoch.run(mysql_config, None, say=again.append)["redone"] == 0
-    assert again == ["The galaxy is at epoch 2: nothing to bring up."]
+    _nothing_but_the_wide_binaries_read(again)

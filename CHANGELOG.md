@@ -2,6 +2,104 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3611] - 2026-11-07
+
+**Headline:** A work-unit test that waited for ever when Redis or MySQL was missing now skips like the tests beside it.
+
+### Changed
+
+- **`test_a_unit_runs_with_the_switch_its_run_was_started_with` asks for the Redis fixture (TEST.682).** It started a run through the queue wrapper but, unlike every test beside it, did not take the `conn` fixture, so with no test Redis configured the inline queue was not in place, no worker took the units and the test waited in `follow_stage` for ever (both parameters; the hang guard fails it after the time limit). A run of `test_cache_warmup.py`, `test_warm_phases.py`, `test_warm_progress.py` and `test_work_units.py` with Redis only reproduced it. It takes `conn` now: it skips without Redis and passes with it. The test named in the report, `test_a_tiered_pass_travels_as_json_and_comes_back_equal`, passes in every combination. Test only.
+
+generation-output: unchanged
+
+## [8.0.3610] - 2026-11-07
+
+**Headline:** An asteroid field that has spread past a light year no longer shows in the Phenomena list, its counts or the nearby search.
+
+### Changed
+- **A retired field leaves the lists (GEN.1073, the fields half).** GEN.1107 retired a field by radius (past 1 ly) and kept it off the maps; the Phenomena catalog and its counts, the nearby search, the contents of a nebula or remnant and the widest pass-through reach now leave it out too. The row, its Object ID, its page, its members and any facility at it stay.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1073 keeps the belts half).
+
+## [8.0.3609] - 2026-11-07
+
+**Headline:** `planetgen bring-to-epoch` now finds the wide binaries that break the stability rule and makes only those systems again from their own seeds, saying which it redid.
+
+### Added
+- **Re-roll of unstable wide binaries (GEN.229).** A wide (S-type) binary whose planets or stars' outer bodies break the stability rule GEN.228 put on new ones is drawn again as a wide binary for its sector, from a seed of its own (the galaxy seed and the system's Object ID), keeping its row, name, Object ID and place (`galaxy/wide_binary_reroll.py`). The console names each system, the bodies that broke the rule and what the re-roll made. It is a stage of `planetgen bring-to-epoch` (`--no-wide-binaries` skips it, `--dry-run` only lists). A system that hosts facilities, is built around a placed bright star, or is in an edited sector is left alone and named.
+- `generation/sector_context.py`: the stellar context of a sector, shared by the API's system routes and the re-roll.
+
+### Fixed
+- **A regenerated system kept the old orbit tree.** `store.replace_star_system_content` left `orbit_nodes` and `dark_members` of the old system in place, so a regenerated wide binary loaded with the old tree's stability limits. The tree now goes with the new stars.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.229.
+
+## [8.0.3608] - 2026-11-07
+
+**Headline:** Three tests that were red on main pass again, from the repository root and from `src`.
+
+### Changed
+- `test_set_permissions_keeps_both_config_files_when_both_exist` ran the permissions script against the machine's real default jobs folder, so a machine that already had `/var/lib/planetGen/jobs` (root's, not empty) got a warning the test forbids. The script runs now name a jobs folder under the test's own folder unless the test names one in its `config.json` (TEST.683).
+- `test_the_code_reads_no_variable_the_model_does_not_name` lists `PLANETGEN_WARM_OUTCOME_FILE` (update.sh tells the warm-up where to write that the galaxy was empty) and `PLANETGEN_QUEUE_EXTRA_FUNCTIONS` (a queue worker's own addition to the allowed functions), each with its reason.
+- `test_update_sh_reports_a_skipped_warm_up_not_a_failure` read `scripts/deploy-common.sh` relative to the current folder and failed from `src`; it reads it relative to the test file.
+
+generation-output: unchanged
+
+## [8.0.3607] - 2026-11-07
+
+**Headline:** `install.sh` and `update.sh` now say when a memory guard (earlyoom, systemd-oomd, nohang) is running, and a warm-up that fails prints what the kernel and the guards logged meanwhile; INSTALL.md says how to keep a guard from ending a work unit.
+
+### Changed
+- **A work unit of Boss's warm-up (unit 11) ended with status 15 (SIGTERM), and nothing in the program sends that to a work horse (OPS.118).** The usual sender is a memory guard on the host: earlyoom and systemd-oomd end the biggest process with SIGTERM when memory runs low, before the kernel's own killer would end it with SIGKILL, and a work unit of the warm-up is often the biggest. The cause on the test server cannot be named from the program; the next occurrence is in `error.log` (OPS.116) with its signal, unit and run.
+- `install.sh` and `update.sh` warn when `earlyoom`, `systemd-oomd` or `nohang` is active and say what a unit ended that way looks like.
+- A warm-up stage that fails now prints (and writes to `update.log` and `error.log`) the kernel and memory-guard lines about ending a process from the minutes it ran, when `journalctl` is there, so a status 15 comes with its cause.
+- INSTALL.md has a "Memory guards" section next to "Swap": keep swap on, give the guard something to protect (`earlyoom --avoid` for mysqld, redis-server, apache2, httpd), or lower `queue.max_host_workers`.
+
+generation-output: unchanged
+
+## [8.0.3606] - 2026-11-07
+
+**Headline:** Two warm-ups never run at the same time: the update's warm-up has priority and cancels any other, a change's warm-up waits, one started by hand refuses; the phase lines give the time the phase took.
+
+### Fixed
+- **update.sh's warm-up part 2 failed with `run ... is running` when the epoch's warm-up had started the moment the update ended (OPS.117).** The update's own warm-up now has priority: it cancels any other cache warm-up that holds the machine (the epoch's, the one after an orbital update, one started by hand) through the normal cancel path, waits for the canceled run's units to stop, and goes on. The canceled warm-up ends with one plain line, not as a failure.
+- **A warm-up that is not the update's never starts while another runs.** The one a change starts waits for the running one to end (nothing written to the phase record meanwhile) and then warms what is left; one started by hand says which run holds the machine and exits without starting.
+- **A canceled warm-up could write into the phase record of the run after it.** The record belongs to the run that began it; late writes from any other process are dropped, so the admin page never shows two runs at once.
+- **The `Phase N of 5` lines added up the units' own seconds** (5338 s for a phase that took 9:39 with nine chunks at once). They now give the time the phase took; the admin page keeps the worker seconds as `worker_seconds`.
+- **The phenomena line said `chunks of up to 8,543,000 phenomena`** because the first slice's share of the objects the cap leaves out was counted into the chunk size. A slice now reports its own size.
+- **A work unit whose process was ended by SIGTERM was reported as a probable out-of-memory kill.** The failure now names the signal: SIGKILL is the kernel's out-of-memory killer, SIGTERM is something asking the process to end.
+
+generation-output: unchanged
+
+## [8.0.3605] - 2026-11-07
+
+**Headline:** The bring-to-epoch end-to-end test builds one system a cell and makes three cells again, so it takes seconds instead of more than seventeen minutes.
+
+### Changed
+
+- **`test_a_sector_made_under_an_older_epoch_is_really_generated_again` bounded (TEST.679).** It was not stuck: a system takes about fifteen seconds to build on the tree of train 15, a profile-sized sector holds a dozen, the first sector throws 78 rogue planets into sectors of their own (GEN.1111), and the test marked all 79 sectors behind and made every one again, each filling with stars whose rogues landed in more cells. The hang guard killed it after 17 minutes alone. Every cell the test makes (the first and each making again) now holds one system, and the sector and two of its landing cells are behind; the rest are at the running epoch. It still deletes the sector, makes it again from its address, checks it holds the same systems and carries the running epoch, and that a second run finds nothing to do. The file runs in two minutes. Test only.
+
+generation-output: unchanged
+
+## [8.0.3604] - 2026-11-07
+
+**Headline:** One file, error.log in the log folder, now records every error and crash from everything, while each error still goes to its own log too.
+
+### Changed
+
+- `error.log` (beside `warmup.log` and the others, `logpaths.error_log_path`) holds every line of severity `error` and `critical` that any logger writes, the program's or another library's (OPS.116). A line is in the display form with the fields `log=` (the log the error also went to: `warmup.log`, `tiles.log`, `orbits.log`, `update.log`, `apache` for the web app, else `console`) and `pid=`, and a traceback follows its line. It is made on the first error, mode 0660, by the one logging module (`util/log.py`); the setup scripts make it for the web server's user, the folder's rotation rule (`*.log`) covers it, and the macOS rotation file names it.
+- Crashes: an uncaught exception in the main thread or another is written as `critical` with its traceback whether or not the debug log is on, and a fatal signal in a library (SIGSEGV and the like) leaves the interpreter's dump of every thread in the file. A Ctrl+C is not an error.
+- Killed or crashed processes are written by their parent: a detached worker (exit status or signal), a work horse the out-of-memory killer or `kill -9` ended (`units.horse_killed`, for any job, not only a run's unit), a job a dead worker left running (`reap_dead_jobs`), a web job's step that exited non-zero and a one-off command that failed, timed out or did not start, each with the last error lines the program printed. A detached worker stopped on purpose (SIGTERM, SIGINT, SIGHUP) and an update's refusal are not errors; a work horse ended by SIGTERM is written, with its signal and unit, because RQ only calls the handler for an end nobody asked for (the case of Boss's warm-up, unit 11, status 15).
+- The web app writes an unhandled exception with its route and traceback, and any other 5xx answer with its route, once; the deliberate 503 of a closed site or a cache being rebuilt is not an error.
+- `update.sh` and `install.sh` write every error they print to the file too, name the command that made them stop with its exit status and the step, and a warm-up stage that does not finish is written there though the screen only warns.
+- `docs/design/operations/logging-standard.md` has an "The error log" section, `docs/reference/logging.md` lists the file, and `log_dir`'s help names it. `src/tests/test_error_log.py` holds one test per source.
+
+generation-output: unchanged
+
 ## [8.0.3603] - 2026-11-07
 
 **Headline:** The merge train's gate now always runs the tests that count what a few seeded bodies do, when a change reaches generation or physics.

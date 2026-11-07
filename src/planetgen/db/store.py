@@ -8184,6 +8184,9 @@ placement), which `replace_star_system_content` swaps."""
 _SYSTEM_CONTENT_TABLES = ("stars", "planets", "moons", "asteroid_belts", "comets")
 """tuple: The tables holding a system's bodies, keyed by `star_system_id`."""
 
+_SYSTEM_TREE_TABLES = ("orbit_nodes", "dark_members")
+"""tuple: The tables holding a system's orbit tree, keyed by `star_system_id`; they go with the stars, not with the system's row."""
+
 
 def system_content_blockers(conn, star_system_id):
     """
@@ -8290,6 +8293,9 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     for table in ("moons", "planets", "asteroid_belts", "comets", "stars"):
         conn.execute(f"DELETE FROM {table} WHERE star_system_id = ?", (star_system_id,))
     for table in _SYSTEM_CONTENT_TABLES:
+        conn.execute(f"UPDATE {table} SET star_system_id = ? WHERE star_system_id = ?", (star_system_id, temp_id))
+    for table in _SYSTEM_TREE_TABLES:      # the orbit tree and its dark members are the new system's too (GEN.229: the old tree kept in place gave the new stars the old stability limits)
+        conn.execute(f"DELETE FROM {table} WHERE star_system_id = ?", (star_system_id,))
         conn.execute(f"UPDATE {table} SET star_system_id = ? WHERE star_system_id = ?", (star_system_id, temp_id))
     assignments = ", ".join(f"kept.{column} = made.{column}" for column in _SYSTEM_CONTENT_COLUMNS)
     conn.execute(

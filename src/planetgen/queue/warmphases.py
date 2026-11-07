@@ -77,6 +77,16 @@ def _read_field(database, name):
         return None
 
 
+def _mine(database):
+    """
+    Whether this process's run is the one the record shows (OPS.117): a run canceled by the update's warm-up goes on for a moment, and what it
+    writes after the next run has begun must not land in that run's record, which two runs at once would be. A record with no run in it (or
+    one a test wrote without `begin`) is anybody's.
+    """
+    run = _read_field(database, RUN_FIELD) or {}
+    return run.get("pid") in (None, os.getpid())
+
+
 def begin(database, phases, reason=None):
     """A run starts: `phases` (names) wait, and the run is `running`."""
     now = time.time()
@@ -89,13 +99,15 @@ def begin(database, phases, reason=None):
 def start_phase(database, name):
     """Phase `name` has its first command running."""
     current = _read_field(database, name) or {}
-    if current.get("state") == RUNNING:
+    if current.get("state") == RUNNING or not _mine(database):
         return
     _write(database, **{name: {"state": RUNNING, "started_at": time.time()}})
 
 
 def finish_phase(database, name, result):
     """Phase `name` ended with `result` (`warmup.PhaseTally.result`: state, built, cached, left_out, seconds, line)."""
+    if not _mine(database):
+        return
     current = _read_field(database, name) or {}
     _write(database, **{name: {**result, "started_at": current.get("started_at"), "finished_at": time.time()}})
 
@@ -104,6 +116,8 @@ def end(database, error=None):
     """The run ended. With `error` (a message) the phase that was running is `failed` and the phases still waiting are
     left waiting no more: they go back to what they were, `not run`."""
     run = _read_field(database, RUN_FIELD) or {}
+    if run.get("pid") not in (None, os.getpid()):
+        return
     fields = {RUN_FIELD: {**run, "state": FAILED if error else DONE, "finished_at": time.time(), "error": error}}
     if error:
         for name in run.get("phases", []):

@@ -206,8 +206,11 @@ ORBITS_LOG_NAME = "orbits.log"
 UPDATE_LOG_NAME = "update.log"
 """str: Every line `update.sh` prints, appended, inside `log_dir_path()` (OPS.101)."""
 
-JOB_LOG_NAMES = (WARMUP_LOG_NAME, TILES_LOG_NAME, ORBITS_LOG_NAME, UPDATE_LOG_NAME)
-"""tuple[str, ...]: The named logs of the long jobs; each is a `*.log` of the folder, so the folder's one rotation rule covers it."""
+ERROR_LOG_NAME = "error.log"
+"""str: The one log every error and crash is also written to, inside `log_dir_path()` (OPS.116), whatever raised it."""
+
+JOB_LOG_NAMES = (WARMUP_LOG_NAME, TILES_LOG_NAME, ORBITS_LOG_NAME, UPDATE_LOG_NAME, ERROR_LOG_NAME)
+"""tuple[str, ...]: The named logs of the folder (the long jobs', and `error.log`); each is a `*.log`, so the folder's one rotation rule covers it."""
 
 
 def job_log_path(name, config=None):
@@ -220,6 +223,11 @@ def job_log_path(name, config=None):
     if config is None:
         config = read_config_file()
     return os.path.join(os.path.abspath(log_dir_path(config)), name)
+
+
+def error_log_path(config=None):
+    """The error log, `error.log` (`job_log_path`, OPS.116)."""
+    return job_log_path(ERROR_LOG_NAME, config)
 
 
 def warmup_log_path(config=None):

@@ -82,6 +82,9 @@ that default.
   more information, is flagged so in the item (a "Status" line) and in a comment headed with the item ID and the words "Could not reproduce"
   or "Needs information", giving the date and time in EDT, what was run (the number of runs, the load, the inputs), the result, and the
   failure text needed next time. The comment is the history; the item says only the latest status.
+- A goal issue with an item that waits on information (a Boss answer, a research request, a new sighting) carries the yellow `Needs Information`
+  label and a comment that says what is needed and why (Boss, 2026-11-07, 1:44 PM EST). The TODO thread keeps it current: the label comes off
+  when the last such item on that issue is answered or closed.
 
 ### Links
 
@@ -2947,48 +2950,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT): code built for a pending feature stays.
   Prerequisites: GEN.340. Related: GEN.105, PERF.88.
   Design: [docs/design/architecture/math-and-library-efficiency.md](design/architecture/math-and-library-efficiency.md)
-
-- [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
-  GEN.228 (PR #1610) makes new wide binaries stable and adds `planetgen
-  check-db --deep --wide-binaries`, which counts the existing unstable
-  ones. Boss (2026-10-15 07:44Z) saw two in his last galaxy whose
-  orbital paths overlap and would end in planetary collisions. Run the
-  count and report how many break the rule; the repair or re-roll itself
-  needs Boss's word before anything is changed. Owner: Core. Source:
-  Boss's report 2026-10-15 07:44Z.
-  Decided (Boss, 2026-10-16, 3:00 PM EDT, decision card): run the count
-  and report it first; the repair or re-roll needs Boss's word. Owner:
-  Core 1, in its bug phase.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Core 5 (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's
-  three small lane reorderings?", tapped "Apply all three", relayed in
-  words; Core 1 confirmed at 10:41 AM EDT as the lane reported that it
-  has not started it): it sits beside PERF.99, GEN.310 and GEN.231,
-  whose files it shares (the Generate page, cli/generate.py,
-  run_plan.py). This replaces any earlier owner line on this item.
-  Research (2026-10-09, Update): Update 1:27 AM EDT 2026-10-24 (as Core
-  1 reported): Core 1 has not started it and releases it to the pool;
-  Core 5 may take it, but the repair or re-roll needs Boss's word before
-  anything is changed.
-  Research (2026-10-09, Decided): Decided (Boss, 8:37 AM EDT 2026-10-24,
-  message cmsg_01RuNTFUNB92A8cm5CbojQAiUosXZByEG3UuFyLRYt2W5N, relayed
-  by the coordinator), option 3: re-roll only the affected systems from
-  their seeds (not a repair in place, not leaving them). While the
-  migration (or the re-roll step) runs, it prints to the console which
-  systems it redid, with details: the system id, the two stars or orbits
-  that broke the stability rule, and what the re-roll produced. Do: run
-  the wide-binary count first and report it, then build the re-roll with
-  that console report. Owner: none (pool); Core 5 may take it if nobody
-  started it.
-  Research (2026-10-09, Core 5 report): Core 5 releases this (10:59 PM
-  EDT 2026-10-24 as the lane reported): the count has to run on Boss's
-  own database and re-rolling single systems has no per-system
-  regenerate today (only whole sectors), so it overlaps the GEN.764
-  revise job. Owner: Aux 5 (re-homed 2026-11-07 from Core 1, whose queue is the oddity chain), built on the bring-to-epoch run (GEN.764 is done), after GEN.1107.
-  Decided (Boss, 10:55 AM EST on 2026-11-07, option 2): build the per-system re-roll (only the unstable wide-binary systems, from their seeds), on the bring-to-epoch run (GEN.764, done). Owner: Aux 5, after GEN.1107.
-  Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
   Step 10 of the whole-sphere train. High-velocity clouds are the one
@@ -9338,6 +9299,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.1006 chain, GEN.1017 on train 5), train 7 after the GEN.1006
   chain has merged.
   Progress (11:40 AM EST on 2026-11-07, as Aux 5 reported): the fields half (GEN.1107, now folded here) is merged in PR 5568: the orbit update ages each asteroid field, its radius and class size follow, and a field past 1 ly is retired by marking (row, Object ID, members and facilities stay). Left here: the belts half, and dropping retired fields from the Phenomena catalog and the route and corridor reads.
+ Progress (PR 5591 merged 2026-11-07, 2:14 PM EST, as Aux 5 reported): a retired asteroid field now leaves the Phenomena catalog (every sort and the by-sector walk) and its counts, the nearby search, a cloud's contents and the widest pass-through reach; row, Object ID, page, members and facilities stay. Left: the belts half only. Decision (TODO thread, 2:14 PM EST on 2026-11-07, on the wiring rule that built code needs a caller): hold the belts half until the star rebuild path of the GEN.1006 chain exists, because nothing changes a stored star's age today; then build one pure function that re-solves a belt for a new age and keeps the bodies above the grinding scale, called from that path, with a before and after epoch test. Note for that build: the ledger scales every body by the belt mass, so "top bodies do not change" is a new rule, not what solve_belt does now.
   Prerequisites: GEN.1069, GEN.1006.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
   Folded in (2026-11-07, Boss approved the TODO plan): GEN.1107 Bring-to-epoch for fields: age advances, radius follows, retirement past 1 ly marks or deletes the row (Boss to pick; default retire). Its Done line: tests with a before and after epoch.
@@ -10352,48 +10314,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage goes over), and the 1,700 MB scatter and 2,600 MB sector workers
   can still be made leaner.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
-
-- [ ] **PERF.227 Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug)**
-  Boss (2026-10-31, 7:38 PM EDT, as the coordinator relayed): "On a
-  fresh download, I tried to create a new scatter on a plan, testing the
-  individual parts... But it's not working...." The Apache error log on
-  hal shows, at 6:23:48 PM EDT and again at 7:35:49 PM EDT, five lines
-  each of `Truncated or oversized response headers received from daemon
-  process 'planetgen-api': /var/lib/planetGen/src/html/wsgi.py` (five
-  requests cut off at the same second, so the daemon died or was killed,
-  not one slow request). The browser showed a generic error 500; after a
-  refresh the console had no log and said "The job stopped without
-  finishing (the server may have restarted)." Do: (1) reproduce: a fresh
-  checkout, plan a galaxy, start one scatter part (a single stage) from
-  the Generate console, and watch the daemon, the web request and the
-  worker; (2) find why the daemon dies: the request limit (the same 60 s
-  ending as PERF.225, which now builds the cluster field ahead and
-  refuses a visitor's build), memory (PERF.226 caps the stage workers;
-  check whether the start request itself builds a big table in the
-  daemon), or a crash in the start path; Apache's own error log lines
-  before the first Truncated line and the kernel log say which; (3) fix
-  at the cause so the start request answers in a second and the work
-  runs in the queue, not in the daemon; (4) make a stopped job say why
-  in one plain line (killed by memory, restarted, daemon limit), not
-  only "may have restarted". Done: starting each single scatter part
-  from the console on a fresh plan answers at once, the job runs and
-  finishes or fails with a plain reason, and a test holds the start path
-  to a small fixed time. Owner: the investigating thread (named by the
-  coordinator); it checks the overlap with PERF.225 and PERF.226 first.
-  Lock-free unless the cause needs a migration. Version 8.1.
-  Fix merged (#4667), kept open for the gate (2026-10-31 8:50 PM EDT): A
-  stage whose workers read the galaxy shape now makes the cluster field
-  file once before the stage is cut (queue/wrapper._expand to
-  galaxy/field_job.ensure_file), instead of each worker building it
-  (hal: 10 workers, 7 GB, the run crawled). No epoch, generation output
-  unchanged. The gate was partial: field, queue, wrapper and guard tests
-  151 passed, and the full changed-files set stopped at 622 passed with
-  2 failures not identified, because the lane machine was too slow.
-  Retire this item when the full-suite thread or a lane names the 2
-  failures and they are not this change's. hal needs ./update.sh (it ran
-  8.0.3021) for this, PERF.225 and PERF.226, and Boss must cancel and
-  clear the stuck run.
-  Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
 
 - [ ] **PERF.240 A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug)**
   Bug 1 (as the lane reported, 10:33 PM EST on 2026-11-04), found
@@ -13316,14 +13236,6 @@ clears each one.
   Core 1 (as the lane reported 11:23 AM EST on 2026-11-07), found while building the oddity chain (the giant tilt itself is drawn in GEN.1165): moon_history treats a moon's stored inclination as measured from the parent's equator, but the moon is placed in the system frame, so the moons of a strongly tipped giant (Uranus type) orbit in the system plane instead of the tipped equatorial plane. Do: place the moon with its inclination measured from the parent's equator (rotate by the parent's stored obliquity and spin axis), keep the irregular moons' own frame as it is, and test with a giant tipped by 98 degrees. Done: a moon system of a tipped giant lies in its equatorial plane, the test passes, and no untipped giant's moons change. Lock item (epoch). Goal issue #4117. Version 8.1 (a defect in generated positions). Owner: Tides 1, after GEN.1351. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1165, GEN.1047, GEN.1349.
 
-- [ ] **OPS.116 One error.log in the log folder that records every error and crash from everything (every logger, subprocess, killed worker, update.sh and warm-up stage, web and API error, uncaught exception), while each error still goes to its own log too**
-  Boss (1:21 PM EST on 2026-11-07): "ask logging to make a dedicated error.log file that records every single error, including crashes, etc, no matter what causes the error, errors still go in their own logs as well". Do: a single error.log beside the other logs (logpaths.log_dir_path()), written by util/log.py's one logging module: an ERROR-and-above handler on the root logger and every named logger; the uncaught-exception hooks (sys.excepthook, threading.excepthook, asyncio and the queue worker's own handler) log a crash with its traceback; a killed or crashed worker (non-zero exit, signal, out of memory kill) is logged by its parent with the exit code and the job; update.sh, install.sh and the warm-up stages append their own failures (a failing command with its exit code and last lines, and the closing summary's errors); web and API 5xx responses and unhandled route errors are logged with the route; subprocess stderr that carries an error line is copied. Every line has the usual time, component and the originating log's name so the line can be traced back; the file rotates like the others and is created with the same permissions; errors still go to the log they went to before. Done: a test per source (logger, uncaught exception in main and in a thread, a killed worker, a failing shell step, a 500 from the web app), a check that nothing at ERROR or above is missing from error.log, and a short entry in the logging design note and the help. Lock-free, no migration, no epoch. Goal issue #5433. Version 8.1 (Boss wants it soon). Owner: Aux 2 (built the logging chain OPS.98 to OPS.103). Filed by the TODO thread.
-  Prerequisites: none. Related: OPS.104, OPS.105, OPS.101, OPS.103.
-
-- [ ] **TEST.679 test_bring_to_epoch.py::test_a_sector_made_under_an_older_epoch_is_really_generated_again hangs on main: the hang guard kills it after 17 minutes alone (bug)**
-  Train Manager (as the lane reported 12:19 PM EST on 2026-11-07), found while gating train 15: the test hangs on main f439ca972 (hang guard exit 70, 17 minutes alone), so it is not from the train. Do: find what the test waits on (a lock, a fixture, a stage that no longer finishes), fix the cause, and keep the test strict (no skip, no raised timeout unless the work is really longer). Done: the test passes on main in its normal time, and the cause is named in the note. Lock-free. Goal issue #1694. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.764, GEN.1107.
-
 - [ ] **TEST.680 test_web_a11y.py: 20 cases fail axe link-in-text-block (link colour contrast 2.49 to 1) on the help index, the references pages and the account page (bug)**
   Train Manager (as the lane reported 12:19 PM EST on 2026-11-07), found while gating train 15, red on main and not from the train: help_index, references_method, references_papers, references_stand_in, references_data and account fail the axe rule link-in-text-block because the link colour against the text colour is 2.49 to 1. Do: give links in running text a distinction that passes (an underline or a colour difference of at least 3 to 1 with the text, in the cockpit, chart and phosphor looks and in light and dark themes), through the shared style, not per page. Done: the 20 cases pass and no page loses its look. Lock-free. Goal issue #1694. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
   Prerequisites: none. Related: UX.265.
@@ -13331,6 +13243,14 @@ clears each one.
 - [ ] **GEN.1353 Class and life census re-tag after train 15 (epoch 137): re-measure the census shares and re-baseline the class and life ranges the train moved**
   Train Manager (as the lane reported 12:19 PM EST on 2026-11-07), as after trains 13 and 14 (GEN.1327, GEN.1338): train 15 moved rocky planet envelopes, the steam limit, sealed-ocean anions, field members and the nebula seed. Do: run the class and life census on the new epoch, re-tag the flags and re-baseline the TEST.430 ranges that moved, and report the shares against the researched ranges. Done: the census flags are current for epoch 137 and the report names what moved. Lock-free. Goal issue #1674. Version 8.1. Owner: Bug 1. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1338, GEN.1327, TEST.430.
+
+- [ ] **OPS.118 Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug)**
+  PR 5575 found no code that sends SIGTERM to a work horse in that sequence (only stop-all and the update guard's cancel do, and neither ran), and now names the signal. Do: on the test server look at what killed it (earlyoom or another memory guard, systemd-oomd, a manual stop; journal and kernel log around the time), and if a guard on the machine ends the horses, make the run fit (smaller chunks, fewer workers at once, or a documented guard setting in the install notes). OPS.116's error.log will carry the next one with its signal and unit. Done: the cause is named, and either fixed in the program or written into the install and update notes. Lock-free. Goal issue #5433. Version 8.1. Owner: Aux 2. Progress (PRs 5583 and 5578 merged 2026-11-07, 1:31 PM EST): the guard warning in install.sh and update.sh, the kernel and guard kill report after a failed warm-up, and the INSTALL.md Memory guards section are on main; the sender of the status 15 is still unnamed, and stays open until error.log catches the next kill with its signal and unit.
+  Prerequisites: none (runs after OPS.117 merges). Related: OPS.116, PERF.235.
+
+- [ ] **GEN.1354 bring_to_epoch on a galaxy this size: the rogue planets a remade sector throws out land in sectors of their own, and remaking those fills each with stars whose rogues land in more cells; check that it ends, how many cells it touches, and what it costs**
+  Bug 1 (as the lane reported 1:22 PM EST on 2026-11-07), found while bounding TEST.679: the first sector throws 78 rogue planets into sectors of their own (GEN.1111); remaking all of them filled each with stars (a system takes about 15 s now) and landed more rogues, and the run grew past 120 sectors untrimmed. Do: measure the cascade on a real-sized galaxy (cells touched, systems built, hours), say whether it is bounded and why, and decide with Boss's rule that physics drives and nothing is forced: if landing cells must be filled by the same generator, make the cascade end by design (a landing cell holds only what the generator puts in it, with no second round of rogues thrown into cells that were empty, or the rogues of a remade cell stay with the cell) and keep the stored result equal to a first making. Done: a measured note, a rule that bounds the work, and a test that holds it. Lock item if the output changes, else lock-free. Goal issue #1674. Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: GEN.764, GEN.1111, TEST.679.
 
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.
@@ -15160,6 +15080,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   count equals N; the run reports what came out (natural, N met, or
   asked N and got M); a user who wants a different count repeats the run
   with another seed. The held-back and met_forced states are dropped.
+  Spacing ruling (2026-11-07, 1:58 PM EST, read from Boss's decision G1 of 5:44 PM EST on 2026-11-05 that no civilization physics allowed is cancelled, and from his rule that a civilization is never forced): the homeworld spacing only lowers the odds of a new space-faring homeworld near an existing one and never removes a natural civilization; a hard minimum distance is not used.
   Prerequisites: POP.25, DB.104, GEN.774. Related: GEN.180, POP.17.
 
 - [ ] **POP.27 Territories of several worlds and sectors: every government's homeworld is inside its territory, a government that really reaches only its own system holds one system and the page says why, and the check is a test**

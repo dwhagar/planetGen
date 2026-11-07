@@ -10,6 +10,7 @@ calls, to show nothing is rebuilt. The wrapper's list of the commands runs on th
 tests' workers run the units here), with the families themselves faked where only the list is under test.
 """
 
+import threading
 import time
 import types
 import uuid
@@ -20,7 +21,7 @@ from planetgen.admin import maintenance
 from planetgen.api.config import Config
 from planetgen.cli import generate as generate_cli
 from planetgen.cli import warm as warm_cli
-from planetgen.cli import warm_progress
+from planetgen.cli import warm_log, warm_progress
 from planetgen.db import block_stats, dataversion, store
 from planetgen.galaxy import spherical
 from planetgen.galaxy.sector import SpaceSector
@@ -579,17 +580,23 @@ def test_a_phase_name_stands_for_all_its_families_in_the_order_of_the_run():
 
 
 def test_a_phase_that_built_nothing_says_unchanged_and_one_cut_short_says_how_many_were_left_out():
-    tally = warmup.PhaseTally(["galaxy-map", "lists", "galaxy-nodes", "galaxy-deep-nodes", "search"])
+    now = [0.0]
+    tally = warmup.PhaseTally(["galaxy-map", "lists", "galaxy-nodes", "galaxy-deep-nodes", "search"], clock=lambda: now[0])
+    tally.start("galaxy-map")
+    now[0] = 12.0
     tally.add("galaxy-map", {"built": 0, "cached": 4, "warmed": 4, "seconds": 0.5})
     tally.add("lists", {"built": 0, "cached": 20, "warmed": 20, "seconds": 1.0})
     assert tally.start("lists") == []
-    assert tally.start("galaxy-nodes") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 1.5 s."]
+    assert tally.start("galaxy-nodes") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 12.0 s."]
+    now[0] = 14.0
     tally.add("galaxy-nodes", {"built": 3, "cached": 125, "warmed": 128, "seconds": 2.0})
     tally.add("galaxy-deep-nodes", {"built": 0, "cached": 0, "warmed": 0, "left_out": 128, "seconds": 0.0})
-    assert tally.start("galaxy-deep-nodes") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 2.0 s."]
+    now[0] = 15.0
+    assert tally.start("galaxy-deep-nodes") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 3.0 s."]
     tally.add("search", {"built": 0, "cached": 1, "warmed": 1, "seconds": 0.1})
     assert tally.start("search") == [
         "Phase 3 of 5, deep-nodes: 0 built, 0 already stored, 128 left out in 0.0 s; stopped at the cache budget."]
+    now[0] = 15.1
     assert tally.finish() == ["Phase 5 of 5, search: unchanged, nothing built (1 already stored) in 0.1 s."]
     assert tally.finish() == [], "each phase is reported once"
 
@@ -950,6 +957,161 @@ def test_the_script_waits_for_an_update_and_gives_up_after_the_wait(monkeypatch)
     monkeypatch.setattr(warm_cli, "UPDATE_WAIT_SECONDS", -1)
     with pytest.raises(warm_cli.Failed, match="still running"):
         warm_cli._wait_for_update()
+
+
+def _holder(redis_server, title=None, argv=None, who=None):
+    """A maintenance run that holds the machine, followed by another process that is alive."""
+    conn = redisqueue.connect(redis_server)
+    run_id = runrecord.start_run(conn, title or warm_cli.RUN_TITLE, [runrecord.Stage("lists", "Lists", units=1)],
+                                 kind=runrecord.MAINTENANCE, argv=argv, who=who)
+    conn.hset(runrecord.run_key(run_id), "owner", "elsewhere:1")
+    return conn, run_id
+
+
+def test_the_kind_of_a_warm_up_comes_from_its_reason_and_what_started_it():
+    assert warm_log.origin("positions, epoch", {}) == warm_log.AUTOMATIC
+    assert warm_log.origin(None, {warm_log.STARTED_BY_ENV: "update.sh, part 2 of 2, the full warm-up"}) == warm_log.UPDATE
+    assert warm_log.origin("positions", {warm_log.STARTED_BY_ENV: "update.sh, part 2 of 2"}) == warm_log.AUTOMATIC, \
+        "a warm-up a stage of the update started because it changed data is the change's, not the update's"
+    assert warm_log.origin(None, {}) == warm_log.HAND
+
+
+def test_a_warm_up_by_hand_does_not_start_while_another_run_holds_the_machine(script, redis_server):
+    conn, first = _holder(redis_server)
+    with pytest.raises(SystemExit) as exit_info:
+        warm_cli.run_warm(_args("lists"))
+    assert exit_info.value.code == 1 and script.ran == []
+    assert runrecord.read_run(conn, first)["state"] == "running", "the run it found is left alone"
+    runrecord.finish_run(conn, first, "done")
+
+
+def test_a_warm_up_by_hand_says_which_run_holds_the_machine(script, redis_server, caplog):
+    conn, first = _holder(redis_server)
+    with pytest.raises(warm_cli.Failed) as failed:
+        warm_cli._settle_with_other_runs(warm_log.HAND)
+    assert f"run {first} is running" in str(failed.value) and "planetgen warm --follow" in str(failed.value)
+    runrecord.finish_run(conn, first, "done")
+
+
+def test_the_warm_up_a_change_started_waits_for_the_one_that_holds_the_machine_and_then_runs(script, redis_server, monkeypatch, capsys):
+    """The epoch's warm-up and the update's part 2 used to collide: the second failed at once with 'run ... is running'. A change's warm-up
+    never starts while another runs; it waits for it to end, then goes on."""
+    conn, first = _holder(redis_server)
+    monkeypatch.setattr(warm_cli, "OTHER_WARM_POLL_SECONDS", 0.05)
+    threading.Timer(0.4, runrecord.finish_run, args=(conn, first, "done")).start()
+    warm_cli._warm_once(_args("lists"), reason="positions")
+    out = capsys.readouterr().out
+    assert f"run {first} is running" in out and "waiting for it to end" in out
+    assert [family for family, _cap, _db in script.ran] == ["lists"], "it ran once the first had ended"
+
+
+def test_the_warm_up_a_change_started_gives_up_waiting_after_the_wait(script, redis_server, monkeypatch):
+    conn, first = _holder(redis_server)
+    monkeypatch.setattr(warm_cli, "OTHER_WARM_POLL_SECONDS", 0.01)
+    monkeypatch.setattr(warm_cli, "OTHER_WARM_WAIT_SECONDS", 0.05)
+    with pytest.raises(warm_cli.Failed, match="still after"):
+        warm_cli._warm_once(_args("lists"), reason="epoch")
+    assert script.ran == []
+    runrecord.finish_run(conn, first, "done")
+
+
+@pytest.mark.parametrize("title, argv, who", [
+    ("Cache warm-up", ["warm", "--on-change", "x"], "the epoch's warm-up"),
+    ("Cache warm-up", ["warm", "--on-change", "x"], "the maintenance warm-up after the orbital update"),
+    ("Cache warm-up", ["warm", "lists"], "a warm-up started by hand"),
+])
+def test_the_update_warm_up_cancels_any_other_warm_up_and_runs(script, redis_server, monkeypatch, capsys, title, argv, who):
+    conn, first = _holder(redis_server, title=title, argv=argv, who=who)
+    monkeypatch.setenv(warm_log.STARTED_BY_ENV, "update.sh, part 2 of 2, the full warm-up")
+    warm_cli.run_warm(_args("lists"))
+    run = runrecord.read_run(conn, first)
+    assert run["state"] == "canceled" and run["error"] == f"canceled by {warm_cli.SUPERSEDED_BY}", "the normal cancel path"
+    assert "has priority over every other warm-up" in capsys.readouterr().out
+    assert [family for family, _cap, _db in script.ran] == ["lists"], "the update's own run went on"
+    assert runrecord.active_run(conn, runrecord.MAINTENANCE) is None
+
+
+def test_the_update_warm_up_waits_for_a_maintenance_run_that_is_no_warm_up(script, redis_server, monkeypatch):
+    conn, first = _holder(redis_server, title="Rebuild the object index")
+    monkeypatch.setenv(warm_log.STARTED_BY_ENV, "update.sh, part 2 of 2")
+    monkeypatch.setattr(warm_cli, "OTHER_WARM_POLL_SECONDS", 0.05)
+    threading.Timer(0.3, runrecord.finish_run, args=(conn, first, "done")).start()
+    warm_cli.run_warm(_args("lists"))
+    assert runrecord.read_run(conn, first)["state"] == "done", "it was not canceled"
+    assert [family for family, _cap, _db in script.ran] == ["lists"]
+
+
+def test_the_update_warm_up_waits_for_the_units_of_the_one_it_canceled_to_stop(script, redis_server, monkeypatch):
+    conn, first = _holder(redis_server)
+    from planetgen.queue import runcontrol
+    still = [["a-unit"], ["a-unit"], []]
+    monkeypatch.setattr(runcontrol, "started_units", lambda _conn, _run: still.pop(0) if still else [])
+    slept = []
+    warm_cli._cancel_other_warm_up(conn, first, sleep=slept.append, clock=time.monotonic)
+    assert len(slept) == 2 and runrecord.read_run(conn, first)["state"] == "canceled"
+
+
+def test_the_update_warm_up_goes_on_when_the_canceled_units_do_not_stop(script, redis_server, monkeypatch, caplog):
+    conn, first = _holder(redis_server)
+    from planetgen.queue import runcontrol
+    monkeypatch.setattr(runcontrol, "started_units", lambda _conn, _run: ["a-unit"])
+    now = [0.0]
+
+    def sleep(seconds):
+        now[0] += seconds * 50
+    warm_cli._cancel_other_warm_up(conn, first, sleep=sleep, clock=lambda: now[0])       # returns instead of waiting for ever
+    assert runrecord.read_run(conn, first)["state"] == "canceled"
+
+
+def test_the_update_warm_up_cancels_what_took_the_machine_between_the_look_and_the_start(script, redis_server, monkeypatch):
+    conn = redisqueue.connect(redis_server)
+    calls = []
+    real = wrapper.run
+
+    def run(*args, **kwargs):
+        if not calls:
+            calls.append("busy")
+            holder = _holder(redis_server)[1]
+            calls.append(holder)
+            raise runrecord.Busy(f"run {holder} is running")
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(wrapper, "run", run)
+    monkeypatch.setenv(warm_log.STARTED_BY_ENV, "update.sh, part 2 of 2")
+    warm_cli.run_warm(_args("lists"))
+    assert runrecord.read_run(conn, calls[1])["state"] == "canceled"
+    assert [family for family, _cap, _db in script.ran] == ["lists"]
+
+
+def test_a_warm_up_by_hand_that_meets_a_busy_machine_at_the_start_fails_as_before(script, redis_server, monkeypatch):
+    def run(*_args, **_kwargs):
+        raise runrecord.Busy("run 1 is running")
+    monkeypatch.setattr(wrapper, "run", run)
+    with pytest.raises(SystemExit) as exit_info:
+        warm_cli.run_warm(_args("lists"))
+    assert exit_info.value.code == 1
+
+
+def test_a_warm_up_the_update_canceled_ends_quietly_and_leaves_the_phase_record_to_the_update(script, redis_server, monkeypatch, capsys):
+    """It is the update's doing, not a failure: no error line, and nothing it writes while it winds down lands in the record of the run that
+    came after it."""
+    def run(*_args, **_kwargs):
+        raise units.RunStopped(f"canceled by {warm_cli.SUPERSEDED_BY}")
+    monkeypatch.setattr(wrapper, "run", run)
+    with pytest.raises(warm_cli.Superseded):
+        warm_cli._warm_once(_args("lists"), reason="positions")
+    monkeypatch.setattr(warm_cli, "_warm_once", lambda args, reason=None: (_ for _ in ()).throw(warm_cli.Superseded("x")))
+    args = _args("--on-change", "x")
+    monkeypatch.setattr(warm_cli.warmstart, "drain", lambda database, runner, **kw: runner(["positions"]))
+    warm_cli._warm_on_change(args)                  # returns: no SystemExit, no error
+    assert "has priority over every other warm-up" in capsys.readouterr().out
+
+
+def test_a_warm_up_by_hand_that_the_update_canceled_says_so_and_exits_1(script, monkeypatch, capsys):
+    monkeypatch.setattr(warm_cli, "_warm_once", lambda args, reason=None: (_ for _ in ()).throw(warm_cli.Superseded("x")))
+    with pytest.raises(SystemExit) as exit_info:
+        warm_cli.run_warm(_args("lists"))
+    assert exit_info.value.code == 1 and "canceled by the update's cache warm-up" in capsys.readouterr().out
 
 
 def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):

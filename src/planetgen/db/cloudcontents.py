@@ -5,13 +5,15 @@ What a nebula or supernova remnant contains (UX.144): every row whose `inside_ne
 across the tables that carry those columns. The reverse of `store.surrounding_cloud`, which finds the cloud a row is in.
 """
 
+from planetgen.generation.phenomena.asteroid_field import RETIRED_FIELD_SQL
+
 CONTAINER_COLUMNS = {"nebula": "inside_nebula_id", "supernova_remnant": "inside_remnant_id"}
 """dict: The kinds that can contain something, and the column that names them."""
 
 CONTENT_TABLES = (
     ("system", "star_systems", ""),
     ("nebula", "nebulae", ""),
-    ("asteroid_field", "asteroid_fields", ""),
+    ("asteroid_field", "asteroid_fields", f" AND NOT ({RETIRED_FIELD_SQL})"),         # a retired field is no longer a field (GEN.1073)
     ("rogue_planet", "rogue_planets", ""),
     ("interstellar_comet", "interstellar_comets", ""),
     # A system's own compact remnant is part of that system, not a free-standing object.
