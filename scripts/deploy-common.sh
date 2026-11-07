@@ -875,6 +875,7 @@ WARM_STAGE_DEFAULT_SECONDS=14400
 # The key that skips the cache warm-up while it runs (only with a terminal), and whether it was pressed: a skip ends the stage
 # that runs and leaves out the stages after it.
 WARM_SKIP_KEY="s"
+WARM_SKIP_KEY_UPPER="S"    # both cases are spelled out: upper-casing by expansion is bash 4 only, and this script runs under macOS's 3.2
 WARM_SKIPPED=0
 
 # Sends SIGTERM to process $1 and all of its descendants (the warm-up runs under runuser, env and timeout).
@@ -940,7 +941,7 @@ run_warm_stage() {
             read_status=0
             read -rsn1 -t 1 key || read_status=$?
             if (( read_status == 0 )); then
-                if [[ "$key" == "$WARM_SKIP_KEY" || "$key" == "${WARM_SKIP_KEY^^}" ]]; then
+                if [[ "$key" == "$WARM_SKIP_KEY" || "$key" == "$WARM_SKIP_KEY_UPPER" ]]; then
                     WARM_SKIPPED=1
                     kill_process_tree "$pid"
                     break

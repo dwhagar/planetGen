@@ -2271,7 +2271,7 @@ class StarSystem:
                         planet.moons.remove(moon)
                         dropped += 1
         if dropped:
-            log.debug(f"{dropped} bodies of a class that can carry life left a system that bars them (GEN.1275)")
+            log.debug(f"{dropped} bodies of a class that can carry life left a system that bars them")
         return dropped > 0
 
     def count_habitable_class_worlds(self, planets=None):
