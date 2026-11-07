@@ -261,3 +261,35 @@ def held_jobs(connection, queue_name):
         if job is not None:
             held.append((job_id, list(job.dependency_ids)))
     return held
+
+
+HELD_SHOWN = 100
+"""int: Most held jobs the Queue page lists (the count it gives is the whole count)."""
+
+
+def held_overview(connection, limit=HELD_SHOWN):
+    """
+    The jobs held in any queue, for the Queue page (PERF.248): what each waits for, and which run and stage it belongs to when it is a unit.
+
+    Returns:
+        dict: `{"total": how many are held, "items": [{"id", "queue", "label", "waits_for": [job ids still not done], "run", "stage"}]}`,
+        the first `limit` ones, queue by queue.
+    """
+    from planetgen.queue import redisqueue
+    items = []
+    total = 0
+    for name in redisqueue.QUEUES:
+        registry = DeferredJobRegistry(name, connection=connection, serializer=redisqueue.serializer_for(name))
+        ids = registry.get_job_ids()
+        total += len(ids)
+        for job_id in ids:
+            if len(items) >= limit:
+                break
+            job = redisqueue.fetch_job(job_id, connection, redisqueue.serializer_for(name))
+            if job is None:
+                continue
+            run = _run_of(job)
+            items.append({"id": job_id, "queue": name, "label": getattr(job, "func_name", None) or "",
+                          "waits_for": [other for other in job.dependency_ids if connection.exists(f"rq:job:{other}")],
+                          "run": run[0] if run else None, "stage": run[1] if run else None})
+    return {"total": total, "items": items}
