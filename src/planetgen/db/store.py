@@ -4100,6 +4100,7 @@ def _name_rogues_by_uid(conn, rogue_ids):
             continue
         printed = objectUid.format_id(objectUid.from_bytes(row["uid"]))
         conn.execute("UPDATE rogue_planets SET name = ?, modified_at = modified_at WHERE id = ?", (printed, rogue_id))
+        storage_checksum.mark_rows(conn, "rogue_planets", [rogue_id])       # the sector's storage checksum covers the name
         for moon in conn.execute("SELECT id, name, orbital_index FROM moons WHERE rogue_planet_id = ?", (rogue_id,)).fetchall():
             if moon["name"] == moon_letters(moon["orbital_index"]):
                 conn.execute("UPDATE moons SET name = ? WHERE id = ?", (printed + moon["name"], moon["id"]))

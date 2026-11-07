@@ -281,6 +281,7 @@ WRITERS = {
     ("db/storage_checksum.py", "seal"): DERIVED,
     ("db/storage_checksum.py", "_mark"): MARKS,
     ("db/store.py", "_rename_comets"): PARENT,
+    ("db/store.py", "_name_rogues_by_uid"): MARKS + " (the rogue row, which is covered; GEN.1256)",
     ("db/store.py", "_rename_bodies_with_prefix"): SET_NAME,
     ("db/store.py", "rename_body"): SET_NAME,
     ("db/store.py", "rename_phenomenon"): SET_NAME,
