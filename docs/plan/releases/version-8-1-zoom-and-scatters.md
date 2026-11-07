@@ -64,8 +64,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.113 | The generate run stops at stage 7 (Scatter the massive stars) on a MySQL deadlock (error 1213) in unit 11, with 15 workers (bug) |  |  |
-| DB.114 | The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113) | DB.113 |  |
+| DB.114 | The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113) |  |  |
 | TEST.344 | Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory |  |  |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
@@ -493,8 +492,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders | GEN.1085 |  |
 | TEST.656 | Class census after train 12: moon class shares sit outside the prevalence ranges at A0V, G2V, K5V and M2V cells (GEN.1082 to 1084 moved captured moons to irregulars), and the habitable_world-50 share reads 0.62 against 0.876 |  |  |
 | PERF.246 | A planet draw takes more than 45 seconds at A0V hot and K0III hot cells in the class census (machine speed or a slow draw) |  |  |
-| PERF.245 | The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types |  |  |
-| PERF.247 | Job queue: a job can declare that it requires another job, so the round robin never picks one that cannot run yet; jobs with no declared dependency still run together | PERF.245 |  |
+| PERF.247 | Job queue: a job can declare that it requires another job, so the round robin never picks one that cannot run yet; jobs with no declared dependency still run together |  |  |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | GEN.1069, GEN.1006 |  |
 | GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | GEN.1068 |  |
 | GEN.1203 | Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants | GEN.1068, GEN.1072 |  |
