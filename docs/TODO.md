@@ -15037,7 +15037,7 @@ clears each one.
   Prerequisites: none. Related: TEST.661, TEST.666, SEC.45.
 
 - [ ] **TEST.668 Two tests in test_update_database_step.py are red on clean main (bug)**
-  Core 3 (as the lane reported, 9:17 PM EST on 2026-11-06), seen on clean main while checking OPS.110 (the other reds there are TEST.661). Do: for each of the two, say whether the test or the code is wrong and fix it with the reason in the commit; if update.sh's database step changed (SEC.37, SEC.43, DB.113), the test follows the code. Done: both pass and the targeted tests pass. Lock-free. Version 8.1. Owner: Train Manager with TEST.661 (the same deploy files), or Bug 1 if the Train Manager is busy. Filed by the TODO thread.
+  Core 3 (as the lane reported, 9:17 PM EST on 2026-11-06), seen on clean main while checking OPS.110 (the other reds there are TEST.661). A known cause on lane machines is the database GRANT already recorded on TEST.284 and OPS.62, so check that first. Do: for each of the two, say whether the test or the code is wrong and fix it with the reason in the commit; if update.sh's database step changed (SEC.37, SEC.43, DB.113), the test follows the code. Done: both pass and the targeted tests pass. Lock-free. Version 8.1. Owner: Train Manager with TEST.661 (the same deploy files), or Bug 1 if the Train Manager is busy. Filed by the TODO thread.
   Prerequisites: none. Related: TEST.661.
 
 - [ ] **MAP.405 The sector gravity page answers 502 on a galaxy that has no shape yet, because the API answers 409 "the galaxy has no shape yet": it should show "not computed yet" (bug)**
