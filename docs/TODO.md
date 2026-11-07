@@ -12196,8 +12196,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: the rule, a test of a gap with too little mass (no belt) and one
   with enough (a belt), and the measured shares in the note. Generation
   output changes (an epoch), so a lock item for the next train it is
-  ready for; it cannot reach train 10 (its list is frozen). Proposed
-  owner: Core 3 after GEN.1246. Filed by the TODO thread.
+  ready for; it cannot reach train 10 (its list is frozen). Owner:
+  Aux 5 (belts), after GEN.1085 part 2 (reassigned from Core 3, 8:25 PM EST
+  on 2026-11-06). Filed by the TODO thread.
   Prerequisites: none. Related: TEST.579, GEN.725.
 
 - [ ] **GEN.1261 Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken**
@@ -15042,11 +15043,6 @@ clears each one.
   Train Manager (as the lane reported, 7:43 PM EST on 2026-11-06), seen on clean main while building SEC.37. Do: for each of the six, say whether the test or the code is wrong and fix it (the bash4 check on deploy-common.sh is a real portability finding if the script runs under an older bash), root-cause each one; none is skipped or quarantined. Done: all six pass on main. Version 8.1. Owner: Bug 1, after GEN.1322.
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.37.
-
-- [ ] **TEST.662 test_api_link_ids::test_every_get_endpoint_is_audited is red on main: api.object_belt_member_route (GEN.1070) is neither audited nor given a reason (bug)**
-  Core 1 (as the lane reported, 8:08 PM EST on 2026-11-06), seen on main while merging MAP.403. The GET route for a belt member (GEN.1070) was added without an entry in the audit list of link ids and without a stated reason, so test_every_get_endpoint_is_audited fails on main. Do: audit the route (its ids link to the object pages) or give the reason it is exempt, in the same form the other routes use. Done: the test is green on main. Lock-free. Version 8.1. Owner: Aux 5 (belts).
-  Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1070, TEST.661.
 
 - [ ] **TEST.664 test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug)**
   Planets 1 (as the lane reported, 8:15 PM EST on 2026-11-06), seen on plain main while building GEN.1320. Do: find out whether the test or the life timeline is wrong (the delay before an oxygenic world holds oxygen), fix it, and cut its 8-minute run if a smaller draw proves the same thing. Done: green on main and under 2 minutes, or a stated reason it cannot be. Lock-free. Version 8.1. Owner: Bug 1.
