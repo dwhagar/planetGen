@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3534] - 2026-11-07
+
+**Headline:** An update started by the Update button or the monthly timer now stops the running jobs and goes on, instead of refusing.
+
+### Changed
+- **OPS.113: a systemd-started update failed whenever the warm-up or another job was running.** Started by systemd, `update.sh` now cancels everything it lists (the warm-up, queued jobs, tile and orbit work) without `--yes`, leaving each command-line run a stop reason that says an update started by systemd needed the machine. The one thing it never cancels is generation (a Generate job, a generation run, a job on the generation queue): with that running it changes nothing and the next firing or press tries again. Runs by hand and from cron keep the question and `--yes` rules.
+
 ## [8.0.3533] - 2026-11-07
 
 **Headline:** The sector map's gravity layer now says "not computed yet" when the galaxy has no shape, instead of failing with a "data unavailable" error, and a page whose data call is refused with a conflict now shows what the refusal said.
