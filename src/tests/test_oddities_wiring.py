@@ -524,3 +524,30 @@ def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_f
 def test_a_world_with_no_second_branch_is_not_named_for_one():
     hot = _planet_at("G2V", 0.4, "w20-hot", force=("W20",))
     assert "W20" not in hot.oddities
+
+
+# --- GEN.1047 isolation: the dial at 0 changes no other draw ---------------------------------------------------------------------
+
+def _bodies_of(system):
+    return [body for planet in system.planets for body in (planet, *getattr(planet, "moons", ()))]
+
+
+def test_the_dial_at_zero_gives_the_same_system_as_the_dial_at_one_wherever_nothing_was_rolled():
+    """Every oddity draws from a stream of its own, so a system in which no row rolled in is the same system whatever the dial; one with an oddity differs only where the oddity acts."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+
+    compared = 0
+    for number in range(12):
+        made = {}
+        for dial in (0.0, 1.0):
+            with draw.bound(f"isolation:{number}"):
+                config = SystemConfig()
+                config.STAR_TYPE, config.WEIRDNESS_DIAL = "G2V", dial
+                made[dial] = StarSystem(system_config=config)
+        assert not any(getattr(body, "oddities", ()) for body in _bodies_of(made[0.0])), "the dial at 0 rolls nothing"
+        if not any(getattr(body, "oddities", ()) for body in _bodies_of(made[1.0])):
+            assert json.dumps(made[0.0].to_dict(), sort_keys=True, default=str) == json.dumps(made[1.0].to_dict(), sort_keys=True, default=str), number
+            compared += 1
+    assert compared >= 4, "too few systems without an oddity to compare"
