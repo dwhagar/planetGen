@@ -8425,8 +8425,11 @@ def compute_phenomenon_placement(conn, sector_id):
 
 def get_occupied_addresses(conn, shell_indices):
     """
-    Returns every already-occupied `(shell_index, band_index,
-    wedge_index)` address among the given shells -- used by
+    Returns every already-charted `(shell_index, band_index,
+    wedge_index)` address among the given shells (a cell that only holds a
+    rogue planet that landed there, or a waiting bright star, has a `sectors`
+    row but is not charted, so a run that charts it must not skip it, GEN.1111)
+    -- used by
     `planetgen galaxy`'s batch and neighborhood modes to skip addresses a
     sector already exists at, in one query rather than one per candidate.
 
@@ -8435,7 +8438,7 @@ def get_occupied_addresses(conn, shell_indices):
         shell_indices (iterable): Shell indices to check.
 
     Returns:
-        set: Address tuples already present in `sectors`. Empty if
+        set: Address tuples already charted (`chart_ledger`). Empty if
             `shell_indices` is empty.
     """
     shell_indices = sorted(set(shell_indices))
@@ -8444,8 +8447,9 @@ def get_occupied_addresses(conn, shell_indices):
 
     placeholders = ", ".join("?" for _ in shell_indices)
     rows = conn.execute(
-        f"SELECT shell_index, band_index, wedge_index FROM sectors "
-        f"WHERE shell_index IN ({placeholders}) AND wedge_index IS NOT NULL",
+        f"SELECT s.shell_index, s.band_index, s.wedge_index FROM sectors s"
+        f" JOIN chart_ledger c ON c.shell_index = s.shell_index AND c.band_index = s.band_index AND c.wedge_index = s.wedge_index"
+        f" WHERE s.shell_index IN ({placeholders}) AND s.wedge_index IS NOT NULL",
         tuple(shell_indices),
     ).fetchall()
     return {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in rows}
