@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3514] - 2026-11-07
+
+**Headline:** The planets, atmospheres, radiation and heat of a generated population are now checked against published statistics by a script, which found that close-in planets of 4 to 40 Earth masses carry no hydrogen envelope (no sub-Neptunes, no radius valley) and that an Earth-like ground reads 100 times too little gamma dose.
+
+### Added
+- GEN.753: `scripts/validation_sweep_planets.py` draws a population and prints the eccentricity, spacing in mutual Hill radii, radius histogram near FGK stars, mass-radius, heat flow, cosmic-ray and ground dose and the shares of surface pressure by starlight next to the published figures, with its statistics held by `tests/test_validation_sweep_planets.py`. The report (`reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md`) lists the verdict per area and four items to file. Nothing the generator makes changes.
+
 ## [8.0.3513] - 2026-11-07
 
 **Headline:** A planet draw that took 71 s (a tiny body at 0.9 AU of an A0V star, 0.00047 Earth masses with its moons) takes 16 s, because the sum behind the seasonal swing's Anderson mixing is added faster with the same bits.

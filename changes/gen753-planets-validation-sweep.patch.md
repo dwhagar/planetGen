@@ -1,4 +1,0 @@
-**Headline:** The planets, atmospheres, radiation and heat of a generated population are now checked against published statistics by a script, which found that close-in planets of 4 to 40 Earth masses carry no hydrogen envelope (no sub-Neptunes, no radius valley) and that an Earth-like ground reads 100 times too little gamma dose.
-
-### Added
-- GEN.753: `scripts/validation_sweep_planets.py` draws a population and prints the eccentricity, spacing in mutual Hill radii, radius histogram near FGK stars, mass-radius, heat flow, cosmic-ray and ground dose and the shares of surface pressure by starlight next to the published figures, with its statistics held by `tests/test_validation_sweep_planets.py`. The report (`reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md`) lists the verdict per area and four items to file. Nothing the generator makes changes.
