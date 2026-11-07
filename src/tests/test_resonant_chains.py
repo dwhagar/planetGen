@@ -123,11 +123,12 @@ def test_the_forced_orbits_of_trappist_1_do_not_cross_and_keep_the_planets_insid
 
 
 def test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon():
-    # Io's observed forced eccentricity through the box's melt-limited tide (`interior_heat.heat_flow`, GEN.955) gives the 1e13 to 5e13 W the model holds to
-    # (Io's observed 1e14 W lies a factor of 2 to 3 above it, tests/test_tidal_heating.py)
+    # Io's observed forced eccentricity through the box's melt-limited tide (`interior_heat.heat_flow`, GEN.955) gives the 1e13 to 9e13 W the model holds to: 6e13 W, under
+    # Io's observed 0.9 to 1.5e14 W (2.24 W/m2 over its surface), which the tide of a melt-limited box should not exceed (tests/test_tidal_heating.py). It was 1e13 to 5e13
+    # until GEN.1190 took the melt coefficient of diffusion creep from its source (30, it was 26), which softens a partly molten mantle and raises the tide a little.
     from tests.test_tidal_heating import _heat, _rock
     io = rc.forcing(JUPITER, GALILEAN_PERIODS[0], GALILEAN_MASSES[0], 0.0041)
-    assert 1.0e13 < _heat(GALILEAN_MASSES[0], 1821.6, _rock(0.8, 0.2), io).tidal_w < 5.0e13
+    assert 1.0e13 < _heat(GALILEAN_MASSES[0], 1821.6, _rock(0.8, 0.2), io).tidal_w < 0.9e14
     # TRAPPIST-1 d: a solid rocky planet (k2 of a rigid sphere, Q of 100), tide from the forced eccentricity, a modest fraction of Io's flux
     e = rc.forced_eccentricities(TRAPPIST_PERIODS, TRAPPIST_MASSES, TRAPPIST_STAR)
     d = rc.forcing(TRAPPIST_STAR, TRAPPIST_PERIODS[2], TRAPPIST_MASSES[2], e[2])
