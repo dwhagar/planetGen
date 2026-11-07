@@ -17,7 +17,7 @@ stream of the remnant's own key, so the same remnant has the same field:
 4. The field: an `AsteroidField` whose columns are the rule's (`rms_speed_kms`, `birth_age_yr` the remnant's age, `shape` annulus, `origin` unbound belt, `history` the sentence of where the mass
    came from, `largest_body_kg` the ledger's heaviest body) and whose radius follows from them (`asteroid_field.radius_ly_at`).
 
-A Type Ia remnant leaves no core and no belt: it hosts nothing. Stand-ins are HF1 and HF2 of `docs/design/research/gap-filling-plan.md` section 6.195.
+A Type Ia remnant leaves no core and no belt: it hosts nothing. Stand-ins are HF1 and HF2 of `docs/design/research/gap-filling-plan.md` section 6.201.
 
     hosted = hosted_field(remnant, config, "sector-key:3")      # a HostedField, or None
 """
