@@ -213,7 +213,59 @@ warning, with the exact line to add, for the append-only file, the memory
 policy and limit, and the bind address; copy the lines from
 [`examples/redis/planetgen.conf`](examples/redis/planetgen.conf) into your
 Redis config and restart Redis (it never edits that file; see
-[deployment](docs/deployment/README.md)).
+[deployment](docs/deployment/README.md)). It also warns while Redis lets
+anyone on the machine in without a password; the next section is the fix.
+
+### Give Redis a user and a password (new and existing installs)
+
+A job on the work queue names a function that a planetGen worker runs, so
+any user on the machine who can reach a passwordless Redis can make a worker
+run planetGen code with arguments of their choosing. `redis.url` should
+therefore name a Redis user with a password, and the passwordless `default`
+user should be off. [`examples/redis/planetgen-acl.conf`](examples/redis/planetgen-acl.conf)
+has the two lines; the installer cannot do this for you (it never edits your
+Redis config, and the password is yours to choose). Until it is done,
+`install.sh` and `update.sh` print "any user on this machine can use Redis
+without a password" with these same lines, and carry on.
+
+Do it in this order, on a new install after `install.sh` has finished and on
+an existing install when nothing you care about is running (the restart in
+step 4 stops the runs and workers using Redis; queued jobs are kept because
+of the append-only file):
+
+1. Choose a password: `openssl rand -hex 24` prints a good one.
+2. Copy the example next to your Redis config and put your password in place
+   of `A-LONG-RANDOM-PASSWORD` in the `user planetgen` line (only there).
+   Redis alone must read it:
+   `sudo cp examples/redis/planetgen-acl.conf /etc/redis/planetgen-acl.conf`,
+   then `sudo chown redis:redis /etc/redis/planetgen-acl.conf` and
+   `sudo chmod 600 /etc/redis/planetgen-acl.conf`.
+3. End `/etc/redis/redis.conf` with the line
+   `include /etc/redis/planetgen-acl.conf` (after the `include` of
+   `planetgen.conf`, if you added one: later lines win). This is the file
+   that switches the `default` user off.
+4. Put the same password in the URL planetGen uses, in `config.json`:
+   `"redis": {"url": "redis://planetgen:YOUR-PASSWORD@127.0.0.1:6379/0"}`
+   (or set `PLANETGEN_REDIS_URL`; a password with characters such as `@` or
+   `/` must be percent-encoded, which is why a hex password is the easy
+   choice). `config.json` lives in the state folder with mode 640 (the web user and
+   its group), so other users cannot read the password, as with the
+   database password it already holds; edit the linked file with `sudo`.
+5. Restart Redis and the web server:
+   `sudo systemctl restart redis-server && sudo systemctl restart apache2`.
+6. Check it: `redis-cli ping` now answers `NOAUTH Authentication required.`
+   (the passwordless user is off), and
+   `redis-cli --user planetgen --pass YOUR-PASSWORD ping` answers `PONG`.
+   Then `sudo ./update.sh` prints "Redis: answering at ..." and no longer
+   warns about the password; any other line it prints about Redis is one of
+   the settings of `planetgen.conf` and has the line to add.
+
+To go back, remove the `include` line from `redis.conf`, put the plain
+`redis://127.0.0.1:6379/0` URL back and restart both services.
+`update.sh` keeps printing the warning until this is done; it does not stop
+the update. The user may do everything planetGen does and none of the
+dangerous commands (`FLUSHALL`, `KEYS`, `CONFIG SET`, `SHUTDOWN`, `ACL` and
+the like): for those, edit the Redis config and restart Redis, as above.
 
 `sudo ./install.sh --skip-database` leaves out step 2 and the population
 question when the database
@@ -260,7 +312,7 @@ Where the examples live:
 | [`examples/caddy/`](examples/caddy/) | Caddyfile | [caddy.md](docs/deployment/caddy.md) |
 | [`examples/systemd/`](examples/systemd/) | gunicorn service for nginx or Caddy | [nginx.md](docs/deployment/nginx.md) |
 | [`examples/macos/`](examples/macos/) | nginx config and launchd plists (gunicorn, orbit update, `update.sh`) | [macos.md](docs/deployment/macos.md) |
-| [`examples/redis/`](examples/redis/) | Redis settings (append-only file, noeviction, memory guard, loopback) | [deployment](docs/deployment/README.md) |
+| [`examples/redis/`](examples/redis/) | Redis settings (append-only file, noeviction, memory guard, loopback) and the `planetgen` user with a password | [deployment](docs/deployment/README.md) |
 | [`examples/maintenance/`](examples/maintenance/) | Monthly maintenance: systemd timers or launchd daemons (`install-maintenance-timer.sh`) | [below](#scheduled-maintenance) |
 | [`examples/systems/`](examples/systems/) | Example system files for `planetgen system --system-file` | [system-file-format.md](docs/reference/system-file-format.md) |
 
