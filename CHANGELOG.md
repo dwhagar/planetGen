@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3621] - 2026-11-07
+
+**Headline:** Links inside running text on the References and Help pages are now underlined, and long source-file names wrap on a phone.
+
+### Changed
+- **Links in text stand out without colour alone (TEST.680).** A link inside a paragraph, a description, a lead line or a paper's entry on the References pages, and the child lists on the Help index, now carry an underline, so they pass the 3 to 1 contrast rule for a link set in a block of text in both the light and dark themes. A line or heading that names a source file path now wraps at any point, so the Data page no longer scrolls sideways on a phone. Navigation, breadcrumbs, buttons and tables keep their look.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.680.
+
 ## [8.0.3620] - 2026-11-07
 
 **Headline:** The magnesium perchlorate density note no longer names a source outside the references registry.
