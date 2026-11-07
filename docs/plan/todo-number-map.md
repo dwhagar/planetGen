@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.284 |
 | MAP | MAP.405 |
 | NAV | NAV.78 |
-| GEN | GEN.1323 |
+| GEN | GEN.1327 |
 | PERF | PERF.249 |
 | DB | DB.115 |
 | API | API.42 |
@@ -1540,7 +1540,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.750 | Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics) | none | done, PR #3663 |
 | GEN.751 | Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list | none | done, PR #3222 |
 | GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | none | open |
-| GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | none | open |
+| GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | none | done, PR #5441 |
 | GEN.754 | Wiring guard: the stand-in registry says what the generator reads, and a test fails for a table or module nothing reads | none | done, PR #3808 |
 | GEN.755 | Check whether the downloaded MIST grid holds post-main-sequence phases; if not, add a setup fetch under GEN.741 | none | done, absorbed by GEN.935 (the MIST grid holds the post-main-sequence rows; datasets/isochrones.py keeps only the main sequence) |
 | GEN.756 | Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py) | none | done, PR #3129 |
@@ -2110,6 +2110,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1320 | Fire limit by oxygen pressure: the 35 percent oxygen cap becomes a limit on oxygen pressure, so thin-air worlds no longer pile up at exactly 35 percent (bug) | none | open |
 | GEN.1321 | Oxygen classes judged by oxygen pressure, not share: classes M, H, L, O, P and R and the thick-air worlds that dilute oxygen under 10 percent | none | open |
 | GEN.1322 | Prevalence with +habitable_world 50 reads 0.62 to 0.66 against 0.876: prevalence.resolve still assumes a forced system gets the world, but GEN.1130 made the request raise odds only (bug) | none | open |
+| GEN.1323 | Close-in planets of 4 to 40 Earth masses carry no hydrogen envelope, so there are no sub-Neptunes and no radius valley: the envelope recipes of GEN.509 and GEN.722 are not read by the generator (bug) | none | open |
+| GEN.1324 | Ground gamma dose of an Earth-like body is 0.003 mSv/yr against 0.48 measured, because it uses the primitive mantle's uranium, thorium and potassium and not a crust (bug) | none | open |
+| GEN.1325 | Giant planet eccentricity averages 0.08 against 0.22 published for the observed giants | none | open |
+| GEN.1326 | Measure the hot class N planets: at the 2,000 K cap they hold 1,000 to 17,000 bar of air with almost no water, against JWST bare-rock results | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
