@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.47 |
-| TEST | TEST.675 |
+| TEST | TEST.676 |
 | USR | USR.32 |
 | OPS | OPS.115 |
 | DOC | DOC.110 |
@@ -2028,7 +2028,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1238 | A Venus twin (Venus mass at 0.72 AU, G2V) reaches 3,100 bar and 1,279 K against Venus's 92 bar and 737 K, with a tenth of the CO2 mass the pressure implies (bug) | none | done, PR #5389 |
 | GEN.1239 | The dry-class carbon bracket gives a log middle of 153 ppm C against the bulk silicate Earth's 99 ppm (bug) | none | dropped (already settled (Aux 3, 2026-11-04): the red test read main before #4701; GEN.1005 replaced the Earth-tuned bracket with a source-derived one and the test holds the middle to the source range; all 8 tests pass on main) |
 | GEN.1240 | The greenhouse table is held at 1000 bar, so steam airs of 1e4 to 1e5 bar show 700 to 1300 K, too cool (bug) | none | done, PR #5389 |
-| GEN.1241 | Wire the system body view: the ledger and barycentre function read the typed tables for the system page | none | open |
+| GEN.1241 | Wire the system body view: the ledger and barycentre function read the typed tables for the system page | none | done, PR #5523 |
 | GEN.1242 | The reference galaxy forms stars at 4.0 solar masses a year against the test's 1 to 3 (the Milky Way is about 1.7) (bug) | none | done, PR #4886 |
 | GEN.1243 | The white dwarf share of the census reads 8.2 percent against 4.1 to 7.5 (RECONS 5.6) (bug) | none | done, PR #4767 |
 | GEN.1244 | Regular moons of giant planets form 46 to 130 giant radii out where the regular moons of the Solar System giants sit at 6 to 26: derive the regular-moon zone of a giant from its circumplanetary disc (bug) | none | done, PR #5096 |
@@ -4176,6 +4176,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.672 | test_nebula_shape fails on main and differs by a different item each run (flaky, bug) | none | done, PR #5521 |
 | TEST.674 | test_js_unit fails on main: tests/js/bodymarkers.test.mjs 'a letter that is not a class has no symbol' gets class-R, because R is now a class letter (bug) | none | done, PR #5521 |
 | TEST.673 | test_unit_registry_js fails on main (bug) | none | done, PR #5517 |
+| TEST.675 | test_api_version is red on main: routes were added without the API snapshot line (/api/admin/work/held GET, and an uncharted-systems generate POST was reported earlier) (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |

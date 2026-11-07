@@ -2837,3 +2837,4 @@ Baseline: PR #1817.
 | TEST.670 | 8.1 | Bugs and flaky tests |
 | TEST.672 | 8.1 | Bugs and flaky tests |
 | TEST.674 | 8.1 | Bugs and flaky tests |
+| GEN.1241 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
