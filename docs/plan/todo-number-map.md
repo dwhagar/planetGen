@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.140 |
 | SEC | SEC.47 |
-| TEST | TEST.684 |
+| TEST | TEST.685 |
 | USR | USR.32 |
 | OPS | OPS.119 |
 | DOC | DOC.110 |
@@ -1091,7 +1091,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | none | dropped, folded into GEN.349 |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | none | open |
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | none | open |
-| GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | none | open |
+| GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | none | done, PR #5598 |
 | GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests | none | done, PR #2578 |
 | GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | none | done, PR #2617 |
 | GEN.306 | Population seeds keyed on the object, not on row ids | none | done, PR #1942 |
@@ -4217,6 +4217,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.681 | The train gate's file selection (scripts/train_gate.py files) misses tests/test_sheet_fill.py and tests/test_bring_to_epoch.py, which generation changes affect: widen the selection and add a test that holds it | none | done, PR #5574 |
 | TEST.682 | test_cache_warmup.py::test_a_tiered_pass_travels_as_json_and_comes_back_equal fails on main (bug) | none | done, PR #5594 |
 | TEST.683 | Three tests fail on main or in the wrong folder: test_deploy_scripts::test_set_permissions_keeps_both_config_files_when_both_exist, test_settings::test_the_code_reads_no_variable_the_model_does_not_name (names PLANETGEN_QUEUE_EXTRA_FUNCTIONS and PLANETGEN_WARM_OUTCOME_FILE), and test_warm_empty_galaxy (fails only when run from src, a relative path) (bug) | none | done, PR #5586 |
+| TEST.684 | Three tests fail on main: a fuzz tuning case and two no-todo-code strings tests (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

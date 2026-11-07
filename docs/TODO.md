@@ -3583,34 +3583,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: ADM.57, NAV.60.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
-- [ ] **GEN.303 Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000**
-  Boss (2026-10-16, 1:47 PM EDT, in the GEN.280 thread): "cell cap
-  should be a configuration option." The per-cell cap of systems
-  (GEN.281, the adaptive cap that GEN.364 builds) becomes one named
-  option `generation.cell_cap` in the ADM.42 model: default 5,000,
-  lowest 500, highest 50,000, with help text that says what it limits
-  and that changing it affects only later fills, not stored cells. The
-  fill code reads it at the start of a run instead of a constant, and
-  the settings page of ADM.84 lists it with no extra screen. Core 3
-  keeps the cap in one named setting so this item only wires it. The
-  bounds are defaults for Boss to change. Done: the option, the read at
-  run start, a test that a run with a lower cap stores fewer systems per
-  cell, and the entry in docs/reference/config.md.
-  Stored in the user's `config.json` like every option (one
-  configuration file, ADM.96).
-  The cap it wires is the adaptive one of GEN.364 (Boss, 2026-10-16,
-  1:46 PM EDT); the option sets that cap and nothing else. It waits on
-  ADM.84 for the settings page and needs no new migration.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): GEN.364 is the
-  builder of the adaptive per-cell cap (GEN.280 is the core density);
-  the "that GEN.280 builds" wording is replaced.
-  Decided (Boss, 2:21 PM EST on 2026-11-07, option 2 of the plain-words question): add the global setting `generation.cell_cap` in config.json as described, document it in docs/reference/config.md and its help text, and keep the recommended value (5,000) as the default, so a galaxy without the setting generates as before. The per-galaxy setting stays as it is. Owner: Core 3 (released from Core 1; lock-free, no migration, no epoch at the default).
-  Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
-
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
   Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). GEN.62 names a primary and one
@@ -13256,6 +13228,10 @@ clears each one.
 - [ ] **ADM.139 In the admin console, an option to look at and reset manually edited items that were generated (8.2)**
   Boss (2:21 PM EST on 2026-11-07, as the coordinator relayed), while answering GEN.229, where a re-roll leaves systems in admin-edited sectors alone and names them: "in the admin console for 8.2 lets have an option to look at and reset manually edited items that were generated". Do: an admin page that lists every generated item (sector, system, star, planet, moon, phenomenon) an admin has edited by hand, from the edit record the edit tools keep, showing what was edited and the generated value it replaced, with a reset for one item or a chosen set that restores the generated value by drawing it again from the item's own seed (the way the GEN.229 re-roll does) and records who reset it and when. A reset never touches facilities or a placed bright star without naming them first. Done: the page lists edited items with their original and edited values, a reset restores the generated value and clears the edit mark, a test covers a reset of one item and of a set, and the edit record keeps the history. Lock-free. Goal issue #2350. Version 8.2. Owner: none yet (a waiting lane takes it when 8.2 opens, confirmed with TODO). Filed by the TODO thread.
   Prerequisites: none (runs after GEN.229, merged). Related: GEN.229, ADM.43.
+
+- [ ] **TEST.684 Three tests fail on main: a fuzz tuning case and two no-todo-code strings tests (bug)**
+  Core 3 (as the lane reported 2:51 PM EST on 2026-11-07), found while gating GEN.303, red on main and not from it. Do: run the three on main, name each by its test id in this item's note, find what changed (the strings tests read source text and may be catching new text from the OPS.116 to OPS.118 or GEN.229 merges; the fuzz tuning case may be a threshold that moved with train 15), fix the cause, and keep each test strict. Done: all three pass on main. Lock-free. Goal issue #1694. Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.683, OPS.116.
 
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.
