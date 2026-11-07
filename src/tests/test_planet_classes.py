@@ -149,17 +149,19 @@ def test_the_air_gate_is_an_edge_and_every_other_edge_is_a_shoulder_that_lowers_
     assert pc.classify(body(atmospheric_pressure_pa=9.99, p_o2_kpa=0, p_n2_kpa=0, p_ar_kpa=0, p_co2_kpa=0,
                             hydrosphere="dry", ocean_fraction=0.0, surface_temperature_k=300.0)) == "C"
     assert pc.classify_detail(body(ocean_fraction=0.8)).match == pytest.approx(1.0)
-    soft = pc.classify_detail(body(ocean_fraction=0.85))
-    assert soft.letter == "M" and 0.0 < soft.match < 1.0                      # past the water edge the match falls, it does not drop to another class
+    soft = pc.classify_detail(body(surface_temperature_k=305.0, ocean_fraction=0.5))
+    assert soft.letter == "M" and 0.0 < soft.match < 1.0                      # past the temperature edge the match falls, it does not drop to another class
+    assert pc.classify(body(ocean_fraction=0.85)) == "O"                      # GEN.1342: past the water edge the world is O, at any temperature from M's floor
     assert pc.classify_detail(body(surface_temperature_k=274.0)).match > pc.classify_detail(body(surface_temperature_k=275.0)).match - 1e-9 or True
     assert 0.0 < pc.classify_detail(body(surface_temperature_k=274.0)).match < 1.0
 
 
 def test_a_best_class_always_exists_and_a_body_that_fits_none_gets_its_nearest_with_a_match_of_zero():
-    # GEN.1207: the last row no longer takes the rest. A wet, mild world between the M and the O boxes fits none of them.
-    hole = pc.classify_detail(body(ocean_fraction=0.97))
+    # GEN.1207: the last row no longer takes the rest. A half-ocean world of 310 K is past the M box (305 K and its shoulder) and below the R box's
+    # wet bulb, and it has too little water for O: it fits none of them (GEN.1342 closed the wet, mild gap between M and O).
+    hole = pc.classify_detail(body(surface_temperature_k=310.0, ocean_fraction=0.5))
     assert hole.letter in "MROHPFG" and hole.match == 0.0 and hole.digit == 0
-    assert pc.classify(body(ocean_fraction=0.97)) == hole.letter
+    assert pc.classify(body(surface_temperature_k=310.0, ocean_fraction=0.5)) == hole.letter
     # A body inside a core box keeps its old letter at 100 percent.
     for letter in "HPOMICDN":
         assert pc.classify_detail(CASES[letter]).match == pytest.approx(1.0)
