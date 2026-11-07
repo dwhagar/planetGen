@@ -98,6 +98,17 @@ def test_a_planet_is_made_with_the_envelope_it_kept_its_radius_density_gravity_a
     assert planet_type.planet_type(planet) == expected
 
 
+def test_the_fractions_add_to_one_whatever_the_drawn_planet_already_held(sun):
+    """The solids as drawn may already have made room for a small hydrogen air's share; the envelope takes its share of the whole, not of what was left."""
+    checked = 0
+    for seed in range(40):
+        planet = _planet(sun, 1.2, 2.0 + 0.4 * (seed % 8), seed)
+        total = sum(getattr(planet, name) or 0.0 for name in (*envelope_share.SOLIDS, "envelope_mass_fraction"))
+        assert total == pytest.approx(1.0, abs=1e-9), (seed, total)
+        checked += bool(planet._captured_envelope)
+    assert checked >= 3
+
+
 def _stripped_by_age(star):
     """A planet close in whose envelope the star's X-rays thin as it ages: drawn at 0.8 Gyr (before the loss starts), settled at 6."""
     star.age = 0.8

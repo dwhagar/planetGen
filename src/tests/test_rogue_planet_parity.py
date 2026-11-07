@@ -18,6 +18,7 @@ Since GEN.1111 a rogue planet IS a `Planet`, built by the planet code against a 
 import pytest
 
 from planetgen import tuning
+from planetgen.physics import planet_type
 from planetgen.db import models, store
 from planetgen.generation.planet import Planet
 from planetgen.generation.phenomena import starless_host
@@ -117,6 +118,10 @@ ENVELOPE_GAS_FIELDS = frozenset({"envelope_helium_fraction", "envelope_z_fractio
 """The helium and heavy-element shares of an envelope (GEN.1323): filled where the body has an envelope, which the air it holds with its own heat and the light it
 gets decides (a hydrogen air is an envelope, `envelope_share`), so one draw of a matched pair can have one and the other not."""
 
+ENVELOPE_SHELTER_FIELDS = frozenset({"shelter_column_g_cm2"})
+"""The shielding a shelter needs (GEN.1323): a planet under a deep envelope has a thick column over its ground, so its yearly dose sits near the edge where a shelter becomes
+necessary, and the starlight that one of a matched pair gets and the other does not decides which side of the edge it falls on."""
+
 SOLID_ONLY_FIELDS = frozenset({"roundness_ratio", "yield_strength_pa", "shelter_column_g_cm2"})
 """The stored quantities only a solid body has (a giant has none): they differ only where the two draws fall in different classes."""
 
@@ -213,6 +218,8 @@ def test_a_rogue_and_a_bound_planet_fill_the_same_stored_fields_and_differ_only_
             continue
         one_sided = {name for name, a, b in zip(names, kept, lit) if (a is None) != (b is None)}
         allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS
+        if (bound.envelope_mass_fraction or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
+            allowed |= ENVELOPE_SHELTER_FIELDS
         if rogue.planet_class != bound.planet_class:
             allowed |= SOLID_ONLY_FIELDS
         assert one_sided <= allowed, sorted(one_sided - allowed)

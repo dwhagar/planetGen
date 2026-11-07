@@ -441,7 +441,8 @@ def apply_envelope(planet):
         envelope_share.restore(planet)  # the drawn fractions, before the envelope takes its share
         fraction, radius_earth = result
         planet._bare_core = {"radius": planet.radius, "fractions": {name: getattr(planet, name) for name in (*envelope_share.SOLIDS, "envelope_mass_fraction")}}
-        keep = 1.0 - fraction
+        solids = sum(getattr(planet, name, None) or 0.0 for name in envelope_share.SOLIDS)
+        keep = (1.0 - fraction) / solids if solids > 0.0 else 1.0       # the solids as drawn may already have made room for a hydrogen air's share: they give the envelope its share of the whole
         for name in envelope_share.SOLIDS:
             value = getattr(planet, name, None)
             if value is not None:

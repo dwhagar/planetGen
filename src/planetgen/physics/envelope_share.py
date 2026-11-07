@@ -93,7 +93,8 @@ def fill(body):
     share = air_share(body)
     body.envelope_mass_fraction = formed["envelope_mass_fraction"] + share
     set_gas_detail(body)
-    keep = 1.0 - share
+    solids = sum(formed[name] or 0.0 for name in SOLIDS)
+    keep = 1.0 - share / solids if solids > 0.0 else 1.0       # the air's share comes out of the solids, which are what is left of the whole after the envelope the body was drawn with
     for name in SOLIDS:
         if formed[name] is not None:
             setattr(body, name, formed[name] * keep)
