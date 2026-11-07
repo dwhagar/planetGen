@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.47 |
-| TEST | TEST.678 |
+| TEST | TEST.679 |
 | USR | USR.32 |
 | OPS | OPS.115 |
 | DOC | DOC.110 |
@@ -4199,6 +4199,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
 | TEST.631 | test_density_components::test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main (6 cases) (bug) | none | done, PR #5239 |
+| TEST.678 | Test failure on main: the forced-eccentricity tide test gives Io a tidal power of 6.1e13 W against its 5e13 W ceiling (test_resonant_chains.py, test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
