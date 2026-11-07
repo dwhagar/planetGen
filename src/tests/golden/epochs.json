@@ -810,8 +810,7 @@
     },
     {
       "epoch": 136,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.3571",
       "reason": "Train 14: heavy and thin oxygen worlds, the Frozen world class and a wider class Z (GEN.1306), oxygen and carbon dioxide judged by pressure (GEN.1321, GEN.1320), the cloud albedo of a wet world (GEN.974), debris disks of hot stars and the dust of a wide belt (GEN.1261, GEN.1278), adaptation traits of life (GEN.876, GEN.881), inner belts give planets irregular moons (GEN.1085), asteroid fields have an age, a speed and a host (GEN.1103, GEN.1104), the gas metallicity of a Cloud nebula (GEN.1273), the rogue planet saved form of a brown dwarf (TEST.666)",
       "affects": ["plan", "scatter", "fill", "population"]
     }
