@@ -6,6 +6,7 @@ A warm-up or a whole-map build of a database that holds no galaxy, e.g. right af
 galaxy exists.
 """
 
+import pathlib
 import sys
 from types import SimpleNamespace
 
@@ -98,6 +99,6 @@ def test_the_whole_map_build_of_an_empty_galaxy_does_nothing_and_succeeds(monkey
 
 
 def test_update_sh_reports_a_skipped_warm_up_not_a_failure():
-    text = open("scripts/deploy-common.sh", encoding="utf-8").read()
+    text = (pathlib.Path(__file__).resolve().parents[2] / "scripts" / "deploy-common.sh").read_text(encoding="utf-8")   # from any folder
     assert "PLANETGEN_WARM_OUTCOME_FILE=$outcome_file" in text
     assert "the galaxy is empty" in text and "skipped, the galaxy is empty" in text
