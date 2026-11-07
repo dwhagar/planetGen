@@ -83,6 +83,9 @@ if os.environ.get("PLANETGEN_TEST_REDIS_URL"):
 # install (SEC.30). Tests count in memory, per process, so parallel workers
 # and neighbouring tests can't see each other's counts; the tests of the
 # Redis counting take `redis_server` and set their own storage and prefix.
+# SEC.45: a worker runs only the functions the program queues (`planetgen.queue.allowlist`). The queue tests also run plain functions
+# (math.pow, time.sleep) and ones defined in the test module itself; the worker processes they start inherit this.
+os.environ.setdefault("PLANETGEN_QUEUE_EXTRA_FUNCTIONS", "math:*,time:*,tests.test_api_jobs:*,tests.test_fair_lanes:*,tests.test_queue_lanes:*,tests.requires_jobs:*")
 os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 
 # The admin Generate page's jobs run on Redis too (PERF.24 step 3), so a
