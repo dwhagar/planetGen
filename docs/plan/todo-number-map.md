@@ -4152,7 +4152,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.659 | Train tooling part 2: train.py renumber and golden conflict handling (Train Manager) | none | done, PR #5401 |
 | TEST.660 | The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train | none | open |
 | TEST.661 | Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug) | none | open |
-| TEST.662 | test_api_link_ids::test_every_get_endpoint_is_audited is red on main: api.object_belt_member_route (GEN.1070) is neither audited nor given a reason (bug) | none | open |
+| TEST.662 | test_api_link_ids::test_every_get_endpoint_is_audited is red on main: api.object_belt_member_route (GEN.1070) is neither audited nor given a reason (bug) | none | done, PR #5450 |
 | TEST.663 | test_reproducible_draws::test_no_version_or_library_dependent_maths_in_the_package is red on main: stellar_table.py uses the matrix operator @ and the sky files use math.dist, both outside the deterministic maths (bug) | none | done, PR #5447 |
 | TEST.664 | test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
