@@ -126,3 +126,44 @@ def test_a_field_with_no_age_stored_is_not_aged(mysql_config):
     finally:
         conn.close()
     assert after["radius_ly"] == before["radius_ly"] and after["birth_age_yr"] is None
+
+
+def _two_fields(conn):
+    """A standing field and a retired one (past a light year), both placed, near each other."""
+    limit = field_dispersal.retirement_age_yr(SPEED_KMS * 1000.0)
+    with conn:
+        old_id = store.insert_asteroid_field(conn, _field(limit * 1.5), placement=dict(PLACE))
+        young_id = store.insert_asteroid_field(conn, _field(1_000.0), placement=dict(PLACE, center_x_pc=3001.0))
+    return old_id, young_id
+
+
+def test_a_retired_field_leaves_the_phenomena_catalog_and_its_counts(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        old_id, young_id = _two_fields(conn)
+        assert asteroid_field.is_retired_radius(_row(conn, old_id)["radius_ly"])
+        for sort in ("name", "type", "radius", "sector"):
+            listed = query.list_phenomena(conn, types=("asteroid_field",), sort=sort)
+            ids = {item["id"] for item in (listed["items"] if isinstance(listed, dict) else listed)}
+            assert ids == {young_id}, sort
+        assert query.count_phenomena(conn, types=("asteroid_field",)) == 1
+        kept = {row["id"] for row in conn.execute("SELECT id FROM asteroid_fields").fetchall()}
+    finally:
+        conn.close()
+    assert kept == {old_id, young_id}                                                    # the row stays
+
+
+def test_a_retired_field_is_not_found_nearby_nor_inside_a_cloud_nor_in_the_widest_reach(mysql_config):
+    from planetgen.db import cloudcontents, near, obstacles
+    conn = store.get_connection(mysql_config)
+    try:
+        old_id, young_id = _two_fields(conn)
+        center = (PLACE["center_x_pc"], PLACE["center_y_pc"], PLACE["center_z_pc"])
+        found = {entry[2] for entry in near._phenomena(conn, center, 50.0, {"asteroid_field"})}
+        assert found == {young_id}
+        young_radius = _row(conn, young_id)["radius_ly"]
+        assert obstacles.widest_reach_pc(conn, "asteroid_field") == pytest.approx(young_radius * 0.3066013937, rel=1e-3)
+        assert obstacles.passed_through_along_segment(conn, (2999.0, 4000.0, 10.0), (3003.0, 4000.0, 10.0)) is not None
+    finally:
+        conn.close()
+    assert ("asteroid_field", "asteroid_fields", f" AND NOT ({asteroid_field.RETIRED_FIELD_SQL})") in cloudcontents.CONTENT_TABLES

@@ -76,6 +76,24 @@ takes its component from this table and from nowhere else; `Record` refuses a na
 source file belongs to, and `src/tests/test_no_own_log_formatting.py` fails on a literal that is not here."""
 
 
+COMPONENT_LOGS = {
+    "warm": "warmup.log",
+    "tiles": "tiles.log",
+    "orbits": "orbits.log",
+    "update": "update.log",
+    "install": "console",
+    "web": "apache",
+    "activity": "planetgen.log",
+}
+"""dict: The log a component's lines are also written to (OPS.116): `error.log` names it on each error (`log=warmup.log`) so the line can be
+traced back. A component not here is a command that prints to its terminal (`console`); the web app's stderr is the web server's (`apache`)."""
+
+
+def origin_log(component):
+    """The name of the log (or `console`, or `apache`) a `component`'s lines also go to; see `COMPONENT_LOGS`."""
+    return COMPONENT_LOGS.get(component, "console")
+
+
 FIELD_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,31}$")
 
 COUNTING_WORDS = ("Stage", "Part", "Phase")
@@ -378,6 +396,8 @@ def component_of(logger_name, pathname=""):
     The component of a `logging` record (OPS.103): the logger's name after `planetgen.` when that is a component (`planetgen.queue`,
     `planetgen.activity`); else the one the source file belongs to (`_COMPONENT_OF_PATH`); another library's logger is `lib`.
     """
+    if logger_name == "planetgen_app":
+        return "web"            # Flask's own logger for the web app (`web/app.py`), outside the program's logger tree
     if logger_name != "planetgen" and not logger_name.startswith("planetgen."):
         return "lib"
     name = logger_name.removeprefix("planetgen.").lower().split(".")[0]      # `planetgen.queue.units` is the queue's

@@ -430,6 +430,11 @@ def _run_permissions(repo, tmp_path, *args):
     envvars.write_text("export APACHE_RUN_USER=www-data\nexport APACHE_RUN_GROUP=www-data\n")
     env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
     env["APACHE_ENVVARS"] = str(envvars)
+    # The jobs folder is the operator's choice (rootpaths.py trusts it), so a machine that already has the default /var/lib/planetGen/jobs, root's and not
+    # empty as on a lane that ran an update, does not put a warning into a run that has nothing to do with it (TEST.683).
+    config = pathlib.Path(repo) / "config.json"
+    if '"jobs"' not in (config.read_text() if config.is_file() and not config.is_symlink() else ""):      # a test that names its own jobs folder keeps it
+        env["PLANETGEN_JOBS_DIR"] = str(tmp_path / "jobs-folder")
     return subprocess.run([os.path.join(APACHE_DIR, "set-permissions.sh"), str(repo), *args],
                           env=env, capture_output=True, text=True, check=False)
 

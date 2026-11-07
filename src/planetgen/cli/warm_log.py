@@ -57,6 +57,22 @@ def started_by(reason=None, environ=None):
     return f"{who}; time limit {_words(limit)}" if limit > 0 and not reason else who
 
 
+UPDATE, AUTOMATIC, HAND = "update", "automatic", "hand"
+"""str: The three kinds of warm-up (OPS.117): the update's own stages, the one a change starts, and one a person starts."""
+
+
+def origin(reason=None, environ=None):
+    """
+    Which kind of warm-up this run is: `UPDATE` when update.sh started it (`STARTED_BY_ENV` names update.sh), `AUTOMATIC` when a change
+    started it (`reason`: the epoch's or an orbital update's), else `HAND`. A change's reason wins over the environment, since a stage of the
+    update that changes data starts a background warm-up that inherits the stage's environment.
+    """
+    environ = os.environ if environ is None else environ
+    if reason:
+        return AUTOMATIC
+    return UPDATE if (environ.get(STARTED_BY_ENV) or "").strip().startswith("update.sh") else HAND
+
+
 class RunLog(joblog.JobLog):
     """
     The record of one warm-up in `warmup.log` (`joblog.JobLog`, titled "Cache warm-up"): the line that opens the run says what started it
@@ -69,11 +85,13 @@ class RunLog(joblog.JobLog):
         self.reason = reason
         self.environ = environ
         self.families = 0
+        self.superseded = None      # who canceled the run on purpose (OPS.117), said as the run's end instead of a count of families
 
     def __enter__(self):
         self.started_by = started_by(self.reason, self.environ)
         return super().__enter__()
 
     def __exit__(self, exc_type, exc, tb):
-        self.detail = f"{self.families} famil{'y' if self.families == 1 else 'ies'}"
+        self.detail = (f"canceled by {self.superseded}" if self.superseded
+                       else f"{self.families} famil{'y' if self.families == 1 else 'ies'}")
         return super().__exit__(exc_type, exc, tb)

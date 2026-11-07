@@ -79,6 +79,20 @@ def test_a_job_whose_worker_process_is_gone_is_failed_and_leaves_the_started_reg
     assert workers.reap_dead_jobs(connection) == []
 
 
+def test_a_job_cleared_because_its_worker_is_gone_is_an_error_in_the_error_log(queue_of_its_own, tmp_path, monkeypatch):
+    """OPS.116: the parent that finds the worker dead writes it down; the worker itself could not."""
+    from planetgen.util import log
+    monkeypatch.setenv("PLANETGEN_LOG_DIR", str(tmp_path))
+    log.configure(log.NORMAL, console=False)
+    queue, connection = queue_of_its_own
+    gone = f"gone-{uuid.uuid4().hex[:8]}"
+    register_worker(queue, connection, gone, dead_pid())
+    job = running_job(queue, connection, gone)
+    workers.reap_dead_jobs(connection)
+    lines = (tmp_path / "error.log").read_text().splitlines()
+    assert len(lines) == 1 and f"Worker {gone} was gone" in lines[0] and job.id in lines[0] and "the job failed." in lines[0]
+
+
 def test_a_job_whose_worker_key_has_expired_is_cleared_too(queue_of_its_own):
     queue, connection = queue_of_its_own
     job = running_job(queue, connection, "never-registered")

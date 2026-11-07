@@ -341,8 +341,9 @@ def _phenomena(conn, center, distance, kinds):
     for table, type_label, _descriptor, _radius in query._PHENOMENON_TABLES:
         if type_label not in kinds:
             continue
+        live = query._LIVE_CLAUSE.get(table, "").replace("t.", "p.")        # a retired asteroid field is no longer a field (GEN.1073)
         sql, runs = region.region_statement(
-            table, "p.id, p.name, p.center_x_pc, p.center_y_pc, p.center_z_pc", position, center, distance, runs=runs)
+            table, "p.id, p.name, p.center_x_pc, p.center_y_pc, p.center_z_pc", position, center, distance, where=live, runs=runs)
         for row in conn.execute(sql).fetchall():
             point = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
             away = detmath.dist(center, point)

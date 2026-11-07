@@ -226,6 +226,10 @@ NON_OPTION_VARIABLES = {
                                          "told to the run so it can say the limit ended it (the warm command's stop reason)",
     "PLANETGEN_WARM_STARTED_BY": "set by update.sh for each warm-up stage: what started the run, for the line that opens its record in "
                                  "warmup.log (OPS.96)",
+    "PLANETGEN_WARM_OUTCOME_FILE": "a file update.sh names for each warm-up stage; the warm-up writes `empty` into it when the database holds "
+                                   "no galaxy, so the update can say the warm-up was skipped and not failed (OPS.114)",
+    "PLANETGEN_QUEUE_EXTRA_FUNCTIONS": "a queue worker's own variable that adds `module:name` entries to the functions it may run (queue/allowlist.py); "
+                                       "unset in production, the test suite sets it for the plain functions its queue tests run",
     "PLANETGEN_SYSTEMD_UNIT_DIR": "where the admin Update button looks for the planetgen-update path and service units (SEC.43; unset, /etc/systemd/system, which is "
                                   "where install.sh puts them; the test suite points it at a temporary folder)",
     "PLANETGEN_BATTERY_DIGEST_CACHE": "the folder the generator battery's digest is kept in (PERF.209; a test-run switch: the "

@@ -17,6 +17,9 @@
 #     log_stage FIRST TOTAL LABEL     the divider of a stage
 #     log_lines [SEVERITY]            every non-empty line read from stdin, as a record (a heredoc of instructions)
 #     log_tail PREFIX                 the lines a command wrote to stdout, as records (OPS.98)
+#     log_error_file_begin ORIGIN     every error is also written to error.log (OPS.116): ORIGIN is the log it also went to
+#     log_error_file_to PATH          ... once the log folder is known; log_error_only MSG writes to it alone
+#     log_track_failures              remember the command that stops a `set -e` script; log_exit_failure TITLE STATUS names it
 #     log_summary_note SEVERITY MSG   a line for the closing summary, and what log_summary repeats (OPS.100)
 #     log_summary HEADLINE            the closing block of a script
 #
@@ -52,7 +55,21 @@ log_record() {
         if [[ -n "${LOG_TEE:-}" ]]; then
             printf '%s\n' "$record" >> "$LOG_TEE" 2>/dev/null || true
         fi
+        # An error or a critical goes to the error log too (OPS.116), with the log it also went to.
+        if [[ -n "${LOG_ERROR_TEE:-}" && " error critical " == *" $severity "* ]]; then
+            printf '%s (log=%s pid=%s)\n' "$record" "${LOG_ERROR_ORIGIN:-console}" "$$" >> "$LOG_ERROR_TEE" 2>/dev/null || true
+        fi
     done <<< "$message"
+}
+
+# One record for the error log alone (OPS.116), for a failure the script only warns about on the screen (a warm-up stage that did not finish):
+# `log_error_only MESSAGE [SEVERITY]`, severity error by default.
+log_error_only() {
+    local severity="${2:-error}" upper
+    [[ -n "${LOG_ERROR_TEE:-}" ]] || return 0
+    upper="$(printf '%s' "$severity" | tr '[:lower:]' '[:upper:]')"
+    printf '%s %-8s %s: %s (log=%s pid=%s)\n' "$(date '+%Y-%m-%d %H:%M:%S %Z')" "$upper" "${LOG_COMPONENT:-update}" "$1" \
+        "${LOG_ERROR_ORIGIN:-console}" "$$" >> "$LOG_ERROR_TEE" 2>/dev/null || true
 }
 
 log_info() { log_record info "$1"; }
@@ -100,6 +117,7 @@ log_summary_begin() {
 log_summary_forget() {
     [[ -n "${LOG_WARNING_TMP:-}" ]] && rm -f "$LOG_WARNING_TMP"
     [[ -n "${LOG_TEE_BUFFER:-}" ]] && rm -f "$LOG_TEE_BUFFER"
+    [[ -n "${LOG_ERROR_BUFFER:-}" ]] && rm -f "$LOG_ERROR_BUFFER"
     LOG_WARNING_FILE=""
     LOG_WARNING_TMP=""
 }
@@ -152,4 +170,42 @@ log_file_to() {
         rm -f "$LOG_TEE_BUFFER"
         LOG_TEE_BUFFER=""
     fi
+}
+
+# The error log (OPS.116), the one file every error of every program is also written to. Like the script's own log it cannot be opened
+# until the log folder is known: `log_error_file_begin ORIGIN` keeps the error records of the script in a temporary file (ORIGIN is the
+# log the script also writes, `update.log`, or `console`); `log_error_file_to PATH` appends what was kept to PATH and from then on records
+# go there directly. The variables are exported, so the scripts this one starts add to the same file.
+log_error_file_begin() {
+    LOG_ERROR_ORIGIN="${1:-console}"
+    LOG_ERROR_BUFFER="$(mktemp "${TMPDIR:-/tmp}/planetgen-errors.XXXXXX")"
+    LOG_ERROR_TEE="$LOG_ERROR_BUFFER"
+    export LOG_ERROR_ORIGIN LOG_ERROR_TEE
+}
+
+log_error_file_to() {
+    local path="$1"
+    [[ -n "${LOG_ERROR_BUFFER:-}" && -n "$path" ]] || return 0
+    mkdir -p "$(dirname "$path")" 2>/dev/null || return 0
+    if cat "$LOG_ERROR_BUFFER" >> "$path" 2>/dev/null; then
+        LOG_ERROR_TEE="$path"
+        export LOG_ERROR_TEE
+        rm -f "$LOG_ERROR_BUFFER"
+        LOG_ERROR_BUFFER=""
+    fi
+}
+
+# Remembers the command that made a script with `set -e` stop and its exit status, for `log_exit_failure`: call it right after `set -euo pipefail`.
+log_track_failures() {
+    set -E
+    trap 'LOG_FAILED_STATUS=$?; LOG_FAILED_COMMAND=$BASH_COMMAND' ERR
+}
+
+# The script's EXIT trap calls it first, with the exit status: a script that stopped on a failing command says which step it was in, the
+# command and its exit status, as an error (the screen, its log and the error log all get it). `log_exit_failure TITLE STATUS`.
+log_exit_failure() {
+    local title="$1" status="$2" detail=""
+    (( status != 0 )) || return 0
+    [[ -n "${LOG_FAILED_COMMAND:-}" ]] && detail=" The command was: ${LOG_FAILED_COMMAND}."
+    log_error "$title failed with exit status $status during ${UPDATE_STEP:-its start}.$detail"
 }

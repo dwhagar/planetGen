@@ -24,7 +24,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 |---|---|---|---|
 | GEN.40 | Weed out sectors by star density before the bright-star backfill |  | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands |  | Research: ledger size at full galaxy. |
-| PERF.227 | Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug) |  | Boss bug, scatter start kills the daemon. |
 | PERF.226 | Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory |  | Boss run OOM, hal. |
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds |  | Boss, 8:46 PM EDT 2026-10-21 (relayed). |
 
@@ -58,7 +57,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched |  |  |
 | UX.285 | Settings option weirdness_dial: the oddity dial (default 1, 0 turns all oddities off) in the settings page and file, read through SystemConfig.WEIRDNESS_DIAL |  |  |
 | MAP.402 | Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets |  |  |
-| GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 
 ### Bugs and flaky tests
 
@@ -566,11 +564,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1349 | Sealed-ocean calcium: the model leaches all of the crust's 8.5 weight percent calcium to solution as a free cation, which sets lime-buffered pH 12 to 14 in 60 percent of sealed oceans; find what share a leached basalt gives up as free calcium against what stays in carbonate and silicate minerals |  |  |
 | GEN.1351 | A planet's tidal heating is kept for the whole age with no cap from the orbit's energy: a 0.0013 Earth-mass planet at 0.0134 AU round a 0.09 solar-mass star at e=0.068 spends 2.4e31 J over 1.8 Gyr against an orbital energy of 2.3e31 J (bug) |  |  |
 | GEN.1352 | Moons of a tipped giant: a moon's stored inclination is read by moon_history as against the parent's equator but placed in the system frame, so Uranus-type moons do not follow the tipped equator (bug) |  |  |
-| OPS.116 | One error.log in the log folder that records every error and crash from everything (every logger, subprocess, killed worker, update.sh and warm-up stage, web and API error, uncaught exception), while each error still goes to its own log too |  |  |
-| TEST.679 | test_bring_to_epoch.py::test_a_sector_made_under_an_older_epoch_is_really_generated_again hangs on main: the hang guard kills it after 17 minutes alone (bug) |  |  |
 | TEST.680 | test_web_a11y.py: 20 cases fail axe link-in-text-block (link colour contrast 2.49 to 1) on the help index, the references pages and the account page (bug) |  |  |
 | GEN.1353 | Class and life census re-tag after train 15 (epoch 137): re-measure the census shares and re-baseline the class and life ranges the train moved |  |  |
-| OPS.117 | update.sh's warm-up part 2 failed with "run ... is running" because the epoch's warm-up had started the moment the update ended, and the phase lines gave the workers' seconds added up (5338 s for 9:39), a wrong chunk size and an out-of-memory guess for a SIGTERM (bug) |  |  |
+| GEN.1354 | bring_to_epoch on a galaxy this size: the rogue planets a remade sector throws out land in sectors of their own, and remaking those fills each with stars whose rogues land in more cells; check that it ends, how many cells it touches, and what it costs |  |  |
 | OPS.118 | Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug) |  |  |
 | TEST.682 | test_cache_warmup.py::test_a_tiered_pass_travels_as_json_and_comes_back_equal fails on main (bug) |  |  |
 | GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values |  |  |
