@@ -24,7 +24,7 @@ import types
 import pymysql
 
 from planetgen.queue import commands, progress_rate, units, wrapper
-from planetgen.db import block_lights, block_stats, containers as containersDb, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store
+from planetgen.db import uncharted_index, block_lights, block_stats, containers as containersDb, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import generator_battery as generatorBattery
@@ -340,6 +340,7 @@ def plan_skeleton_unit(params, report):
             store.clear_nebula_field(conn)
             block_lights.clear(conn)
             conn.commit()
+            uncharted_index.clear_unoccupied(conn, on_phase=log.normal)       # MAP.402: the rows made for the cells those scatters filled
         # The seed is settled first: the shape (GEN.401), the globular clusters (GEN.159, GEN.160) and the satellites
         # (GEN.237) all come from it, and the components go in the outline's bound, so they are placed before the
         # outline is walked.
@@ -2546,6 +2547,7 @@ def refresh_block_lights(mysql_config, args=None):
                                 log.normal(f"Making the block light totals: unit {done:,} of {total:,}.")
 
                         written = block_lights.rebuild(conn, on_progress=on_progress, on_phase=log.normal)
+                    uncharted_index.index(conn, on_phase=log.normal)       # MAP.402
                 finally:
                     log.reset_console()
         finally:
@@ -2576,9 +2578,10 @@ def fill_block_totals(args):
             + ", ".join("-".join(str(part) for part in address) for address in addresses)))
         conn.commit()
         lights = block_lights.rebuild(conn, on_progress=lambda done, total: log.debug(f"units {done}/{total}"))
+        uncharted = uncharted_index.index(conn, on_phase=log.normal)      # MAP.402
     finally:
         conn.close()
-    log.normal(f"Made {stats:,} generated block totals and {lights:,} block light totals.")
+    log.normal(f"Made {stats:,} generated block totals, {lights:,} block light totals and {uncharted:,} uncharted sector rows.")
     return stats + lights
 
 
@@ -2768,6 +2771,7 @@ def refresh_block_lights_unit(params, report):
     conn = store.get_connection(_mysql_config_of(params))
     try:
         written = block_lights.rebuild(conn, on_progress=report, on_phase=lines.append)
+        uncharted_index.index(conn, on_phase=lines.append)      # MAP.402: a sector row for every cell the scatter left something in
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
         return {"written": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}"}
     finally:

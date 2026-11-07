@@ -486,7 +486,8 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
     try:
         far_center = sector_position_pc(*far, EDGE_PC)
         conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index,"
-                     " center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     " center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                     " ON DUPLICATE KEY UPDATE name = VALUES(name)",      # the scatter may already have made the cell's placeholder row (MAP.402)
                      ("Filled", EDGE_PC * 1000, *far, *far_center, math.hypot(far_center[0], far_center[1])))
         conn.commit()
         stars_there = _cell_stars(conn, far)
