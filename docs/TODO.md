@@ -15013,16 +15013,6 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.661 Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug)**
-  Train Manager (as the lane reported, 7:43 PM EST on 2026-11-06), seen on clean main while building SEC.37. Do: for each of the six, say whether the test or the code is wrong and fix it (the bash4 check on deploy-common.sh is a real portability finding if the script runs under an older bash), root-cause each one; none is skipped or quarantined. Done: all six pass on main. Version 8.1. Owner: Bug 1, after GEN.1322.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.37.
-
-- [ ] **TEST.664 test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug)**
-  Planets 1 (as the lane reported, 8:15 PM EST on 2026-11-06), seen on plain main while building GEN.1320. Do: find out whether the test or the life timeline is wrong (the delay before an oxygenic world holds oxygen), fix it, and cut its 8-minute run if a smaller draw proves the same thing. Done: green on main and under 2 minutes, or a stated reason it cannot be. Lock-free. Version 8.1. Owner: Bug 1.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.661, GEN.1320.
-
 - [ ] **TEST.665 test_class_sample.py::test_a_forced_rare_class_is_in_the_system[P] is red on main: no system with a forced class P world in 24 tries (bug)**
   Core 4 (as the lane reported, 8:32 PM EST on 2026-11-06), seen on the GEN.1281 head and not caused by GEN.1306. Do: find out whether the forcing of class P no longer reaches the system (a class judged from the finished body, epoch 121, can lose a forced class) or the test's 24 tries are too few for it, and fix the code or the test with the reason written in the commit. Done: the test passes on main, or is replaced by one that checks what forcing really promises, and the targeted tests pass. Lock-free unless the forcing code changes the generator. Version 8.1. Owner: Core 4, with GEN.1323.
   Filed by the TODO thread.
