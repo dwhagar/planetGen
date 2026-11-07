@@ -548,6 +548,16 @@ class SettingsChanges(Body):
     expect_hash: Optional[StrictStr] = None
 
 
+class SettingsUpdate(Body):
+    """`POST /api/admin/settings/update/plan` and `POST /api/admin/settings/update` (ADM.140): `remove` lists the stale keys
+    (dotted paths) to take out of config.json and `apply` the recommended options to write with their recommended value.
+    `expect_hash` is the `file_hash` the page was drawn from."""
+
+    remove: List[StrictStr] = []
+    apply: List[StrictStr] = []
+    expect_hash: Optional[StrictStr] = None
+
+
 class BackupRestore(Body):
     """`POST /api/admin/backups/<name>/restore`: the parts to restore (all when `null`) and the settings file's
     `file_hash` the page was drawn from."""

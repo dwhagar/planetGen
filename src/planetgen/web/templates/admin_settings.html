@@ -183,7 +183,7 @@
       {%- endfor %}
     </ul>
   </nav>
-  <p class="inline-links"><a href="{{ page_url('admin_backups') }}">Backups, restore, export, and import</a> · <a href="{{ page_url('admin_images') }}">Images (icons and link preview picture)</a></p>
+  <p class="inline-links"><a href="{{ page_url('admin_settings_update') }}">Update config.json</a> · <a href="{{ page_url('admin_backups') }}">Backups, restore, export, and import</a> · <a href="{{ page_url('admin_images') }}">Images (icons and link preview picture)</a></p>
 </section>
 <form method="post" action="{{ url_for('web.admin_settings') }}{{ '?show=fixed' if show_fixed else '' }}" class="settings-form" autocomplete="off">
   {{ csrf_field() }}
