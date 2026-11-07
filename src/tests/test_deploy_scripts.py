@@ -919,6 +919,13 @@ def test_no_deploy_script_reaches_the_api_on_a_literal_loopback_address():
     assert "site_health_target" not in common and "--resolve" not in common and "PLANETGEN_HEALTH_URL:-http" not in common
 
 
+def test_update_sh_pull_step_does_not_warn_about_untracked_files():
+    """Untracked files always exist and `git reset --hard` never overwrites them, so the pull step's warning lists tracked edits only."""
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    status = [l for l in update.splitlines() if "status --porcelain" in l and "dirty=" in l]
+    assert len(status) == 1 and "--untracked-files=no" in status[0]
+
+
 def test_update_sh_opens_the_site_when_only_the_health_probe_failed():
     update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
     branch = update.split("elif (( reload_status == 3 ))", 1)[1].split("else", 1)[0]
