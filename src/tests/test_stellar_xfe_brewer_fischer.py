@@ -39,7 +39,7 @@ def generated(entry, element, seed=456):
         fe_h = rng.uniform(entry["fe_h_low"], entry["fe_h_high"])
         age = THICK_AGE_GY if rng.random() < entry["older_than_thick_start"] else THIN_AGE_GY
         branch = sa.branch_from_uniform(fe_h, age, rng.random())
-        values.append(sa.abundance_offsets(fe_h, branch, list(rng.standard_normal(5)))[element])
+        values.append(sa.abundance_offsets(fe_h, branch, list(rng.standard_normal(len(sa.RESIDUAL_ELEMENTS))))[element])
     return np.asarray(values)
 
 
@@ -48,7 +48,7 @@ def test_the_table_is_reduced_to_bins_with_enough_stars():
     assert DOCUMENT["thick_start_gy"] == sa.tuning.STELLAR_THICK_START_GY
 
 
-@pytest.mark.parametrize("element", ["C", "O", "Mg", "Si", "Ca"])
+@pytest.mark.parametrize("element", ["C", "O", "Mg", "Si", "Ca", "Ti", "V", "Cr", "Mn"])
 def test_the_generated_median_is_within_a_tenth_of_a_dex_of_the_table_in_every_bin(element):
     for entry in BINS:
         shift = float(np.median(generated(entry, element))) - entry[element]["median"]
@@ -84,8 +84,26 @@ def test_the_magnesium_to_silicon_ratio_stays_on_the_tables_scale():
 
 def test_calcium_sulfur_and_argon_move_together_and_calcium_is_correlated_with_the_others():
     rng = np.random.default_rng(988)
-    draws = [sa.abundance_offsets(0.0, sa.BRANCH_THIN, list(rng.standard_normal(5))) for _ in range(DRAWS)]
+    draws = [sa.abundance_offsets(0.0, sa.BRANCH_THIN, list(rng.standard_normal(len(sa.RESIDUAL_ELEMENTS)))) for _ in range(DRAWS)]
     calcium, sulfur, argon = (np.array([d[element] for d in draws]) for element in ("Ca", "S", "Ar"))
     assert np.array_equal(calcium, sulfur) and np.array_equal(calcium, argon)
     magnesium = np.array([d["Mg"] for d in draws])
     assert abs(np.corrcoef(calcium, magnesium)[0, 1] - sa.tuning.STELLAR_XFE_CORRELATION[4][2]) < 0.05
+
+
+@pytest.mark.parametrize("element", ["Ti", "V", "Cr", "Mn"])
+def test_titanium_vanadium_chromium_and_manganese_medians_are_within_a_twentieth_of_a_dex_of_the_table(element):
+    """GEN.1360: fitted to the table by the branch of the repository (`scripts/fit_stellar_xfe_iron_peak.py`), so the bins agree closely."""
+    for entry in BINS:
+        shift = float(np.median(generated(entry, element))) - entry[element]["median"]
+        assert abs(shift) <= 0.05, f"[{element}/Fe] at [Fe/H] {entry['fe_h_low']} to {entry['fe_h_high']}: {shift:+.3f} dex"
+
+
+@pytest.mark.parametrize("element", ["Ti", "V", "Cr", "Mn"])
+def test_titanium_vanadium_chromium_and_manganese_scatter_is_within_a_factor_of_two_of_the_tables_robust_scatter(element):
+    """GEN.1360: one scatter per branch, the table's robust spread over the branch, where the table's own spread changes by up to 1.6 between its
+    bins (Ti is 0.62 of the table's in the [Fe/H] -0.4 to -0.2 bin and 1.62 in the 0.2 to 0.4 one): a heteroscedastic residual is open (GEN.725)."""
+    for entry in BINS:
+        table = (entry[element]["p84"] - entry[element]["p16"]) / 2.0
+        ratio = float(np.std(generated(entry, element))) / table
+        assert 0.5 <= ratio <= 2.0, f"[{element}/Fe] at [Fe/H] {entry['fe_h_low']} to {entry['fe_h_high']}: generated scatter is {ratio:.2f} of the table's"

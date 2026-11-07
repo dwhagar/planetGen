@@ -47,7 +47,7 @@ def test_the_third_dredge_up_mixes_the_intershell_into_the_lost_envelope_by_mass
     mass = 2.0
     e = pn.ejecta_of(pn.H, mass, 0.0)
     fe_h = e.birth_fe_h
-    envelope = pn.sa.after_first_dredge_up(pn.sa.composition(fe_h, pn.sa.abundance_offsets(fe_h, pn.sa.BRANCH_THIN, (0.0,) * 5)), mass).elements
+    envelope = pn.sa.after_first_dredge_up(pn.sa.composition(fe_h, pn.sa.abundance_offsets(fe_h, pn.sa.BRANCH_THIN, (0.0,) * len(pn.sa.RESIDUAL_ELEMENTS))), mass).elements
     pulses = int(agb_carbon.pulses_in_branch(mass))
     assert e.pulses == pulses and e.dredged_mass_sol == pytest.approx(agb_carbon.dredged_core_mass_sol(mass, pulses))
     share = e.dredged_mass_sol / (mass - pn.RGB_MASS_LOSS_SOL - e.white_dwarf_mass_sol)
@@ -97,7 +97,7 @@ def test_neon_sulfur_argon_and_iron_follow_the_birth_composition():
     e = pn.ejecta_of(pn.H, 1.0, 0.0)             # no dredge-up reaches the surface of a one solar mass star in this model beyond the first
     for symbol in ("S", "Ar", "Fe", "Mg", "Si"):
         assert e.composition.elements[symbol] == pytest.approx(
-            pn.sa.composition(e.birth_fe_h, pn.sa.abundance_offsets(e.birth_fe_h, pn.sa.BRANCH_THIN, (0.0,) * 5)).elements[symbol])
+            pn.sa.composition(e.birth_fe_h, pn.sa.abundance_offsets(e.birth_fe_h, pn.sa.BRANCH_THIN, (0.0,) * len(pn.sa.RESIDUAL_ELEMENTS))).elements[symbol])
 
 
 def test_an_older_progenitor_formed_from_poorer_gas():

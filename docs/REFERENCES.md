@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5019 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5020 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -316,6 +316,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r0282"></a>**R0282** Bates, D. 1984, Rayleigh scattering by air, P&SS, 32, 785, doi:10.1016/0032-0633(84)90102-8. [paper](https://doi.org/10.1016/0032-0633(84)90102-8) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/0032-0633(84)90102-8/abstract)
 - <a id="paper-r0283"></a>**R0283** Bates, D. R. 1959, Discussion of paper by F. D. Stacey, “The possible occurrence of negative nitrogen ions in the atmosphere”, JGR, 64, 2469, doi:10.1029/jz064i012p02469. [paper](https://doi.org/10.1029/jz064i012p02469) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/jz064i012p02469/abstract)
 - <a id="paper-r0284"></a>**R0284** Bates, R. G. 1960, Treatise on Analytical Chemistry . vol. 1, part 1, Theory and Practice. I. M. Kolthoff and Philip J. Elving, Eds. Interscience, New York, 1959. xxvi + 809 pp. Illus. $17.50., Science, 131, 1213, doi:10.1126/science.131.3408.1213.b. [paper](https://doi.org/10.1126/science.131.3408.1213.b) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1126/science.131.3408.1213.b/abstract)
+- <a id="paper-r5138"></a>**R5138** Battistini, C. & Bensby, T. 2015, The origin and evolution of the odd-Z iron-peak elements Sc, V, Mn, and Co in the Milky Way stellar disk, A&A, 577, A9, doi:10.1051/0004-6361/201425327. [paper](https://doi.org/10.1051/0004-6361/201425327) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/201425327/abstract)
 - <a id="paper-r0285"></a>**R0285** Battistini, C. & Bensby, T. 2016, The origin and evolution of r - and s -process elements in the Milky Way stellar disk, A&A, 586, A49, doi:10.1051/0004-6361/201527385. [paper](https://doi.org/10.1051/0004-6361/201527385) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/201527385/abstract)
 - <a id="paper-r0286"></a>**R0286** Batygin, K. & Morbidelli, A. 2020, Formation of Giant Planet Satellites, ApJ, 894, 143, doi:10.3847/1538-4357/ab8937. [paper](https://doi.org/10.3847/1538-4357/ab8937) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-4357/ab8937/abstract)
 - <a id="paper-r0287"></a>**R0287** Bauer, F. L. & Fike, C. T. 1960, Norms and exclusion theorems, Numer. Math., 2, 137, doi:10.1007/bf01386217. [paper](https://doi.org/10.1007/bf01386217) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1007/bf01386217/abstract)

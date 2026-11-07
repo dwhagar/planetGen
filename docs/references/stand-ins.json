@@ -40841,6 +40841,280 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.208",
+      "number": "6.208",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_SIGMA Ti 0.038/0.075, V 0.066/0.066, Cr 0.024/0.022, Mn 0.055/0.053 (thin/high-alpha, dex): the robust spread (p84 less p16, halved) of the residuals about the branch line, weighted by the branch's probability"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "dwarfs of [Fe/H] -0.9 to +0.5 (thin) and -1.6 to +0.1 (high-alpha)"
+            ],
+            [
+              "What would show it wrong",
+              "a spread of a sample with smaller measurement error that is under half or over twice this"
+            ],
+            [
+              "What replaces it",
+              "the table's measurement error is in the spread, and the spread changes by up to 1.6 between its [Fe/H] bins (Ti is 0.62 of the table's at -0.4 to -0.2 and 1.62 at 0.2 to 0.4): a spread that depends on [Fe/H] replaces the constant"
+            ],
+            [
+              "Evidence",
+              "the generated scatter is within a factor of two of the table's in every bin (test_stellar_xfe_brewer_fischer.py); the high-alpha lines rest on 40 stars' weight"
+            ]
+          ],
+          "id": "XE1",
+          "key": "6.208:XE1",
+          "kind": "P",
+          "slug": "6-208-xe1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_SIGMA Ti 0.038/0.075, V 0.066/0.066, Cr 0.024/0.022, Mn 0.055/0.053 (thin/high-alpha, dex): the robust spread (p84 less p16, halved) of the residuals about the branch line, weighted by the branch's probability"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS P (\"linear\", 0.03, -0.35) over [Fe/H] -0.5 to +0.3 for both branches, with scatter 0.10 dex"
+            ],
+            [
+              "The range it moves in",
+              "the P bins [P/Fe] +0.18, +0.14, +0.03, -0.01 at [Fe/H] -0.5, -0.3, 0 and +0.3; scatter 0.06 to 0.13"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs of [Fe/H] -0.5 to +0.3"
+            ],
+            [
+              "What would show it wrong",
+              "a phosphorus sample that departs from the line by more than the scatter, or a thick-disk offset"
+            ],
+            [
+              "What replaces it",
+              "a phosphorus sample with the two branches told apart"
+            ],
+            [
+              "Evidence",
+              "the bins are read by the research lane from Table 4 of [R2785] (the research note calls its source a 2017 paper; the repository lists the Hyades and Galactic disk paper under 2019, not checked to be the same table) and the line is derived from them; the paper was not opened again here"
+            ]
+          ],
+          "id": "XE2",
+          "key": "6.208:XE2",
+          "kind": "P",
+          "slug": "6-208-xe2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS P (\"linear\", 0.03, -0.35) over [Fe/H] -0.5 to +0.3 for both branches, with scatter 0.10 dex"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS Zn (\"linear\", 0.0, -0.10) over [Fe/H] -1 to 0 for both branches, with scatter 0.08 dex"
+            ],
+            [
+              "The range it moves in",
+              "+0.1 at [Fe/H] -1 and below, 0 at and above 0 [R0349]"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs of [Fe/H] -1 to +0.5"
+            ],
+            [
+              "What would show it wrong",
+              "a zinc sample whose [Zn/Fe] differs from the line by more than the scatter"
+            ],
+            [
+              "What replaces it",
+              "the thick-disk offset (visible in the paper, not tabulated) and a read scatter"
+            ],
+            [
+              "Evidence",
+              "the trend is read by the research lane from the text of [R0349]; the scatter 0.08 is the size of the paper's abundance error and not a measured spread"
+            ]
+          ],
+          "id": "XE3",
+          "key": "6.208:XE3",
+          "kind": "P",
+          "slug": "6-208-xe3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS Zn (\"linear\", 0.0, -0.10) over [Fe/H] -1 to 0 for both branches, with scatter 0.08 dex"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS Co (\"linear\", 0.0, 0.0) with scatter 0.07 dex"
+            ],
+            [
+              "The range it moves in",
+              "scatter 0.07 (the paper's mean abundance error, Table 3) up to 0.2"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a [Co/Fe] trend with a printed size: [R5138] (A&A 577, A9) say it is flat above [Fe/H] -0.4 and rises below, thin and thick indistinguishable, and print no number (the curve is in their Fig. 4)"
+            ],
+            [
+              "What replaces it",
+              "the figure's running median or a table of [Co/Fe] against [Fe/H]"
+            ],
+            [
+              "Evidence",
+              "the paper was opened for this item (the ar5iv text): no value is printed, so the rise below -0.4 is not modelled and Co is solar-scaled"
+            ]
+          ],
+          "id": "XE4",
+          "key": "6.208:XE4",
+          "kind": "P",
+          "slug": "6-208-xe4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS Co (\"linear\", 0.0, 0.0) with scatter 0.07 dex"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS Cu (\"linear\", 0.0, 0.0) with scatter 0.10 dex"
+            ],
+            [
+              "The range it moves in",
+              "scatter 0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a [Cu/Fe] trend with a printed size: [R1062] say the thick disk is higher than the thin between [Fe/H] -0.5 and -0.2, the thin disk rises slightly to +0.1 and steeply above, and print no value (Figs. 10 and 11)"
+            ],
+            [
+              "What replaces it",
+              "the figures' bin means"
+            ],
+            [
+              "Evidence",
+              "the paper was opened for this item: no value is printed, so Cu is solar-scaled; the scatter 0.10 is above the paper's error of 0.05 to 0.08"
+            ]
+          ],
+          "id": "XE5",
+          "key": "6.208:XE5",
+          "kind": "P",
+          "slug": "6-208-xe5",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS Cu (\"linear\", 0.0, 0.0) with scatter 0.10 dex"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_FITS Li (\"linear\", 0.0, 0.0) with scatter 0.20 dex, the birth value 3.25 from the CI chondrites"
+            ],
+            [
+              "The range it moves in",
+              "scatter 0.1 to 0.4"
+            ],
+            [
+              "Where it holds",
+              "stars at birth"
+            ],
+            [
+              "What would show it wrong",
+              "a birth lithium that rises with [Fe/H] by more than the scatter (the observed rise from the big-bang value is not modelled)"
+            ],
+            [
+              "What replaces it",
+              "a Galactic chemical evolution of lithium"
+            ],
+            [
+              "Evidence",
+              "the research note recalls a thin-disk rise with [Fe/H] and a depletion in old stars that scatters over 0.3 dex; neither is opened, so Li follows iron with 0.2 dex"
+            ]
+          ],
+          "id": "XE6",
+          "key": "6.208:XE6",
+          "kind": "P",
+          "slug": "6-208-xe6",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_FITS Li (\"linear\", 0.0, 0.0) with scatter 0.20 dex, the birth value 3.25 from the CI chondrites"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STELLAR_XFE_CORRELATION: P, Zn, Co, Cu and Li residuals independent of the others and of each other"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the five elements"
+            ],
+            [
+              "What would show it wrong",
+              "a sample in which P, Zn, Co or Cu correlates with Mg or Si"
+            ],
+            [
+              "What replaces it",
+              "the correlation of a sample with those elements"
+            ],
+            [
+              "Evidence",
+              "the table (R0535) carries none of the five; Ti, V, Cr and Mn correlate with C, O, Mg, Si and Ca as the table gives (0.17 to 0.57, Mn negative with O)"
+            ]
+          ],
+          "id": "XE7",
+          "key": "6.208:XE7",
+          "kind": "P",
+          "slug": "6-208-xe7",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STELLAR_XFE_CORRELATION: P, Zn, Co, Cu and Li residuals independent of the others and of each other"
+        }
+      ],
+      "slug": "6-208-stand-ins-of-the-nine-added-star-elements",
+      "title": "Stand-ins of the nine added star elements"
+    },
+    {
       "key": "6.197",
       "number": "6.197",
       "rows": [

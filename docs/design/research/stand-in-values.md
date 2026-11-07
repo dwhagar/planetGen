@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1258 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1265 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 165 | 18 | 10 | 1 | 0 | 194 |
+| T1 | 166 | 18 | 10 | 1 | 0 | 195 |
 | T2 | 125 | 52 | 1 | 1 | 0 | 179 |
-| T3 | 91 | 41 | 7 | 9 | 0 | 148 |
-| T4 | 55 | 5 | 1 | 19 | 10 | 90 |
+| T3 | 93 | 41 | 7 | 9 | 0 | 150 |
+| T4 | 56 | 7 | 2 | 19 | 10 | 94 |
 | T5 | 54 | 21 | 3 | 1 | 0 | 79 |
 | T6 | 131 | 91 | 25 | 62 | 0 | 309 |
 | T7 | 33 | 15 | 7 | 17 | 0 | 72 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 16 | 5 | 88 | 34 | 181 |
-| All | 692 | 260 | 59 | 202 | 45 | 1258 |
+| All | 696 | 262 | 60 | 202 | 45 | 1265 |
 
 ## How the labels were given
 
@@ -1800,6 +1800,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
+
+## 6.208 Stand-ins of the nine added star elements
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| XE1 | P | T1 | L0 | tuning.STELLAR_XFE_SIGMA Ti 0.038/0.075, V 0.066/0.066, Cr 0.024/0.022, Mn 0.055/0.053 (thin/high-alpha, dex): the robust spread (p84 less p16, halved) of the residuals about the branch line, weighted by the branch's probability | none | dwarfs of [Fe/H] -0.9 to +0.5 (thin) and -1.6 to +0.1 (high-alpha) | a spread of a sample with smaller measurement error that is under half or over twice this | the table's measurement error is in the spread, and the spread changes by up to 1.6 between its [Fe/H] bins (Ti is 0.62 of the table's at -0.4 to -0.2 and 1.62 at 0.2 to 0.4): a spread that depends on [Fe/H] replaces the constant | the generated scatter is within a factor of two of the table's in every bin (`test_stellar_xfe_brewer_fischer.py`); the high-alpha lines rest on 40 stars' weight | - | - |
+| XE2 | P | T3 | L0 | tuning.STELLAR_XFE_FITS P ("linear", 0.03, -0.35) over [Fe/H] -0.5 to +0.3 for both branches, with scatter 0.10 dex | the P bins [P/Fe] +0.18, +0.14, +0.03, -0.01 at [Fe/H] -0.5, -0.3, 0 and +0.3; scatter 0.06 to 0.13 | disk dwarfs of [Fe/H] -0.5 to +0.3 | a phosphorus sample that departs from the line by more than the scatter, or a thick-disk offset | a phosphorus sample with the two branches told apart | the bins are read by the research lane from Table 4 of [R2785] (the research note calls its source a 2017 paper; the repository lists the Hyades and Galactic disk paper under 2019, not checked to be the same table) and the line is derived from them; the paper was not opened again here | - | - |
+| XE3 | P | T3 | L0 | tuning.STELLAR_XFE_FITS Zn ("linear", 0.0, -0.10) over [Fe/H] -1 to 0 for both branches, with scatter 0.08 dex | +0.1 at [Fe/H] -1 and below, 0 at and above 0 [R0349] | disk dwarfs of [Fe/H] -1 to +0.5 | a zinc sample whose [Zn/Fe] differs from the line by more than the scatter | the thick-disk offset (visible in the paper, not tabulated) and a read scatter | the trend is read by the research lane from the text of [R0349]; the scatter 0.08 is the size of the paper's abundance error and not a measured spread | - | - |
+| XE4 | P | T4 | L1 | tuning.STELLAR_XFE_FITS Co ("linear", 0.0, 0.0) with scatter 0.07 dex | scatter 0.07 (the paper's mean abundance error, Table 3) up to 0.2 | disk dwarfs | a [Co/Fe] trend with a printed size: [R5138] (A&A 577, A9) say it is flat above [Fe/H] -0.4 and rises below, thin and thick indistinguishable, and print no number (the curve is in their Fig. 4) | the figure's running median or a table of [Co/Fe] against [Fe/H] | the paper was opened for this item (the ar5iv text): no value is printed, so the rise below -0.4 is not modelled and Co is solar-scaled | - | - |
+| XE5 | P | T4 | L1 | tuning.STELLAR_XFE_FITS Cu ("linear", 0.0, 0.0) with scatter 0.10 dex | scatter 0.05 to 0.2 | disk dwarfs | a [Cu/Fe] trend with a printed size: [R1062] say the thick disk is higher than the thin between [Fe/H] -0.5 and -0.2, the thin disk rises slightly to +0.1 and steeply above, and print no value (Figs. 10 and 11) | the figures' bin means | the paper was opened for this item: no value is printed, so Cu is solar-scaled; the scatter 0.10 is above the paper's error of 0.05 to 0.08 | - | - |
+| XE6 | P | T4 | L2 | tuning.STELLAR_XFE_FITS Li ("linear", 0.0, 0.0) with scatter 0.20 dex, the birth value 3.25 from the CI chondrites | scatter 0.1 to 0.4 | stars at birth | a birth lithium that rises with [Fe/H] by more than the scatter (the observed rise from the big-bang value is not modelled) | a Galactic chemical evolution of lithium | the research note recalls a thin-disk rise with [Fe/H] and a depletion in old stars that scatters over 0.3 dex; neither is opened, so Li follows iron with 0.2 dex | - | - |
+| XE7 | P | T4 | L0 | tuning.STELLAR_XFE_CORRELATION: P, Zn, Co, Cu and Li residuals independent of the others and of each other | none | the five elements | a sample in which P, Zn, Co or Cu correlates with Mg or Si | the correlation of a sample with those elements | the table (R0535) carries none of the five; Ti, V, Cr and Mn correlate with C, O, Mg, Si and Ca as the table gives (0.17 to 0.57, Mn negative with O) | - | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 

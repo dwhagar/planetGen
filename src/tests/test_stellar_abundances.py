@@ -10,6 +10,7 @@ scale. The expected numbers are those the design note computed and checked again
 import math
 import random
 
+import numpy as np
 import pytest
 
 from planetgen import tuning
@@ -21,7 +22,8 @@ SUN = {"x": 0.7121, "y": 0.2725, "z": 0.0154}
 """dict: The proto-solar X, Y and Z of [R0168] (a test target, section 11)."""
 
 ZERO = {symbol: 0.0 for symbol in sa.METAL_SYMBOLS}
-NORMALS_ZERO = [0.0, 0.0, 0.0, 0.0, 0.0]
+NORMALS_ZERO = [0.0] * len(sa.RESIDUAL_ELEMENTS)
+PAD = [0.0] * (len(sa.RESIDUAL_ELEMENTS) - 5)
 
 
 def mean_composition(fe_h, branch, neon="O"):
@@ -47,8 +49,47 @@ def test_the_mass_fractions_follow_from_the_log_eps_and_the_atomic_weights():
               "Fe": 1.3184e-3, "Ca": 6.5459e-5}
     for symbol, expected in part_a.items():
         assert sa.PROTO_MASS_FRACTION[symbol] == pytest.approx(expected, rel=2e-3), symbol
-    assert sa.UNLISTED_METAL_FRACTION == pytest.approx(4.9e-5, rel=0.05)
-    assert sa.UNLISTED_METAL_FRACTION / sa.PROTO_Z < 0.004, "the 14 metals are 99.7 percent of Z"
+    nine = ("Li", "P", "Ti", "V", "Cr", "Mn", "Co", "Cu", "Zn")
+    assert sa.UNLISTED_METAL_FRACTION + sum(sa.PROTO_MASS_FRACTION[symbol] for symbol in nine) == pytest.approx(4.9e-5, rel=0.05), \
+        "the nine of GEN.1360 were the unlisted fraction before: they moved out of it and Z did not change"
+    assert sa.UNLISTED_METAL_FRACTION / sa.PROTO_Z < 1e-3, "the 23 metals are 99.9 percent of Z"
+    assert sa.PROTO_MASS_FRACTION["Ti"] == pytest.approx(3.66e-6, rel=0.01) and sa.PROTO_MASS_FRACTION["Cr"] == pytest.approx(1.77e-5, rel=0.01)
+
+
+def test_lithium_is_the_chondrite_value_and_takes_no_diffusion_offset():
+    """Li is 3.25 from the CI chondrites, which are proto-solar already; the others are photospheric and take the +0.064 dex."""
+    assert sa.tuning.STELLAR_SOLAR_LOG_EPS["Li"] == 3.25 and sa.tuning.STELLAR_PROTO_NO_OFFSET == ("Li",)
+    weight = elements.element("Li").atomic_weight / elements.element("H").atomic_weight
+    assert sa.PROTO_MASS_FRACTION["Li"] == pytest.approx(sa.PROTO_X * 10.0 ** (3.25 - 12.0) * weight, rel=1e-9)
+    weight = elements.element("Ti").atomic_weight / elements.element("H").atomic_weight
+    assert sa.PROTO_MASS_FRACTION["Ti"] == pytest.approx(sa.PROTO_X * 10.0 ** (4.97 + 0.064 - 12.0) * weight, rel=1e-9)
+
+
+@pytest.mark.parametrize("fe_h, branch, expected", [
+    (0.0, "thin", {"Ti": 0.011, "V": -0.032, "Cr": -0.016, "Mn": -0.050, "P": 0.03, "Zn": 0.0, "Co": 0.0, "Cu": 0.0, "Li": 0.0}),
+    (-0.7, "high-alpha", {"Ti": 0.036 + 0.347 * 0.7, "V": 0.016 + 0.228 * 0.7, "Mn": -0.026 - 0.387 * 0.7, "P": 0.03 + 0.35 * 0.5, "Zn": 0.07})])
+def test_the_new_elements_follow_their_fitted_branch_means(fe_h, branch, expected):
+    """GEN.1360: Ti is raised on the thick-disk branch (the alpha-element behaviour), Mn falls with [Fe/H], P and Zn are held at the edge of the bins they were read over."""
+    offsets = sa.abundance_offsets(fe_h, branch, NORMALS_ZERO)
+    for symbol, value in expected.items():
+        assert offsets[symbol] == pytest.approx(value, abs=1e-9), symbol
+
+
+def test_titanium_is_higher_on_the_high_alpha_branch_by_the_fitted_amount():
+    """The Brewer and Fischer split gives +0.14 dex at the thick disk's [Fe/H] of -0.7; the branch of the repository gives the same to a few hundredths."""
+    gap = sa.mean_xfe("Ti", -0.7, "high-alpha") - sa.mean_xfe("Ti", -0.7, "thin")
+    assert gap == pytest.approx(0.14, abs=0.04)
+
+
+def test_the_new_residuals_are_independent_or_correlated_as_the_table_gives():
+    generator = random.Random(1360)
+    draws = [sa.residual_offsets("thin", [generator.gauss(0, 1) for _ in sa.RESIDUAL_ELEMENTS]) for _ in range(20000)]
+    column = lambda symbol: np.array([d[symbol] for d in draws])
+    assert np.corrcoef(column("Ti"), column("Mg"))[0, 1] == pytest.approx(0.56, abs=0.04)
+    assert np.corrcoef(column("Mn"), column("O"))[0, 1] == pytest.approx(-0.41, abs=0.04)
+    assert abs(np.corrcoef(column("P"), column("Mg"))[0, 1]) < 0.04 and abs(np.corrcoef(column("Zn"), column("Cu"))[0, 1]) < 0.04
+    for symbol in ("Ti", "V", "Cr", "Mn", "P", "Zn", "Co", "Cu", "Li"):
+        assert column(symbol).std() == pytest.approx(sa.tuning.STELLAR_XFE_SIGMA["thin"][symbol], rel=0.05), symbol
 
 
 def test_the_thin_branch_at_solar_metallicity_gives_the_sun_within_three_percent():
@@ -101,7 +142,7 @@ def test_the_scale_keeps_helium_from_primordial_up_to_the_helium_per_metal_line(
 
 def test_example_a_a_thin_main_sequence_star():
     fe_h = -0.20
-    offsets = sa.abundance_offsets(fe_h, "thin", [-0.15, 1.30, 0.005, 0.42, 0.0])
+    offsets = sa.abundance_offsets(fe_h, "thin", [-0.15, 1.30, 0.005, 0.42, 0.0] + PAD)
     assert (offsets["C"], offsets["O"], offsets["Mg"], offsets["Si"]) == pytest.approx((-0.012, 0.194, 0.003, 0.017), abs=1e-3)
     assert offsets["Ca"] == pytest.approx(0.072, abs=1e-3) and offsets["Ne"] == offsets["O"]
     star = sa.composition(fe_h, offsets)
@@ -189,7 +230,7 @@ def test_the_means_hold_at_the_edge_of_the_fitted_range():
 
 def test_the_residuals_have_the_stated_scatter_and_correlation():
     generator = random.Random(439)
-    draws = [sa.residual_offsets("thin", [generator.gauss(0, 1) for _ in range(5)]) for _ in range(40000)]
+    draws = [sa.residual_offsets("thin", [generator.gauss(0, 1) for _ in sa.RESIDUAL_ELEMENTS]) for _ in range(40000)]
     sd = {symbol: math.sqrt(sum(d[symbol] ** 2 for d in draws) / len(draws)) for symbol in sa.RESIDUAL_ELEMENTS}
     for symbol, expected in tuning.STELLAR_XFE_SIGMA["thin"].items():
         if symbol in sd:
@@ -205,7 +246,7 @@ def test_the_residuals_have_the_stated_scatter_and_correlation():
 def test_the_residual_transformation_is_the_cholesky_factor_of_the_correlation():
     for i, row in enumerate(tuning.STELLAR_XFE_CORRELATION):
         for j, value in enumerate(row):
-            assert sum(sa._CHOLESKY[i][k] * sa._CHOLESKY[j][k] for k in range(5)) == pytest.approx(value, abs=1e-12)
+            assert sum(sa._CHOLESKY[i][k] * sa._CHOLESKY[j][k] for k in range(len(sa.RESIDUAL_ELEMENTS))) == pytest.approx(value, abs=1e-12)
 
 
 def test_carbon_enhanced_metal_poor_stars():
@@ -222,18 +263,18 @@ def test_carbon_enhanced_metal_poor_stars():
 
 
 def test_the_other_elements_follow_the_stated_ones():
-    offsets = sa.abundance_offsets(-0.3, "thin", [0.3, -0.2, 0.1, 0.4, 0.0])
+    offsets = sa.abundance_offsets(-0.3, "thin", [0.3, -0.2, 0.1, 0.4, 0.0] + PAD)
     assert offsets["S"] == offsets["Ar"] == offsets["Ca"] != sa.mean_xfe("Ca", -0.3, "thin"), "they carry calcium's residual (GEN.988)"
     assert offsets["Ne"] == offsets["O"]
-    assert sa.abundance_offsets(-0.3, "thin", [0.3, -0.2, 0.1, 0.4, 0.0], neon_follows="Mg")["Ne"] == offsets["Mg"]
+    assert sa.abundance_offsets(-0.3, "thin", [0.3, -0.2, 0.1, 0.4, 0.0] + PAD, neon_follows="Mg")["Ne"] == offsets["Mg"]
     assert all(offsets[symbol] == 0.0 for symbol in ("N", "Na", "Al", "K", "Fe", "Ni"))
     with pytest.raises(sa.StellarAbundanceError):
         sa.abundance_offsets(0.0, "thin", NORMALS_ZERO, neon_follows="C")
 
 
 def test_the_same_inputs_give_the_same_composition():
-    one = sa.composition(-0.7, sa.abundance_offsets(-0.7, "high-alpha", [0.1, 0.2, -0.3, 0.4, 0.0]))
-    two = sa.composition(-0.7, sa.abundance_offsets(-0.7, "high-alpha", [0.1, 0.2, -0.3, 0.4, 0.0]))
+    one = sa.composition(-0.7, sa.abundance_offsets(-0.7, "high-alpha", [0.1, 0.2, -0.3, 0.4, 0.0] + PAD))
+    two = sa.composition(-0.7, sa.abundance_offsets(-0.7, "high-alpha", [0.1, 0.2, -0.3, 0.4, 0.0] + PAD))
     assert one == two
 
 
@@ -243,7 +284,7 @@ def test_a_random_sweep_of_stars_always_adds_up():
         fe_h = generator.uniform(-3.5, 0.6)
         age = generator.uniform(0.0, 13.0)
         branch = sa.branch_from_uniform(fe_h, age, generator.random())
-        offsets = sa.abundance_offsets(fe_h, branch, [generator.gauss(0, 1) for _ in range(5)], generator.random(),
+        offsets = sa.abundance_offsets(fe_h, branch, [generator.gauss(0, 1) for _ in range(len(sa.RESIDUAL_ELEMENTS))], generator.random(),
                                        generator.random())
         star = sa.composition(fe_h, offsets)
         assert math.fsum(star.elements.values()) == pytest.approx(1.0, abs=1e-12)
@@ -257,7 +298,7 @@ def test_the_solar_neighbourhood_mix_reproduces_the_research_ranges():
         fe_h = min(max(generator.gauss(-0.10, 0.22), -3.5), 0.6)
         branch = sa.branch_from_uniform(fe_h, 11.0, generator.random()) if generator.random() < 1.0 else "thin"
         high += branch == sa.BRANCH_HIGH_ALPHA
-        star = sa.composition(fe_h, sa.abundance_offsets(fe_h, branch, [generator.gauss(0, 1) for _ in range(5)]))
+        star = sa.composition(fe_h, sa.abundance_offsets(fe_h, branch, [generator.gauss(0, 1) for _ in range(len(sa.RESIDUAL_ELEMENTS))]))
         fe_si.append(sa.mass_ratio(star, "Fe", "Si"))
         mg_si.append(sa.mass_ratio(star, "Mg", "Si"))
         c_o.append(sa.mass_ratio(star, "C", "O"))
@@ -404,7 +445,7 @@ def test_alpha_enhancement_is_the_mean_of_the_four_alpha_offsets_and_the_high_al
     offsets = {symbol: 0.0 for symbol in sa.METAL_SYMBOLS}
     offsets.update(O=0.1, Mg=0.3, Si=0.2, Ca=0.0, Fe=0.5)    # iron and the others do not count
     assert sa.alpha_enhancement(offsets) == pytest.approx(0.15)
-    thin = sa.composition(-0.8, sa.abundance_offsets(-0.8, sa.BRANCH_THIN, (0.0,) * 5))
-    high = sa.composition(-0.8, sa.abundance_offsets(-0.8, sa.BRANCH_HIGH_ALPHA, (0.0,) * 5))
+    thin = sa.composition(-0.8, sa.abundance_offsets(-0.8, sa.BRANCH_THIN, (0.0,) * len(sa.RESIDUAL_ELEMENTS)))
+    high = sa.composition(-0.8, sa.abundance_offsets(-0.8, sa.BRANCH_HIGH_ALPHA, (0.0,) * len(sa.RESIDUAL_ELEMENTS)))
     assert sa.alpha_enhancement(thin) == sa.alpha_enhancement(thin.offsets)
     assert 0.0 < sa.alpha_enhancement(thin) < 0.25 < sa.alpha_enhancement(high) < 0.45
