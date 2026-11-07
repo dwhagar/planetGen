@@ -40841,8 +40841,8 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
-      "key": "6.208",
-      "number": "6.208",
+      "key": "6.209",
+      "number": "6.209",
       "rows": [
         {
           "burn_down": null,
@@ -40873,9 +40873,9 @@
             ]
           ],
           "id": "XE1",
-          "key": "6.208:XE1",
+          "key": "6.209:XE1",
           "kind": "P",
-          "slug": "6-208-xe1",
+          "slug": "6-209-xe1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -40911,9 +40911,9 @@
             ]
           ],
           "id": "XE2",
-          "key": "6.208:XE2",
+          "key": "6.209:XE2",
           "kind": "P",
-          "slug": "6-208-xe2",
+          "slug": "6-209-xe2",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -40949,9 +40949,9 @@
             ]
           ],
           "id": "XE3",
-          "key": "6.208:XE3",
+          "key": "6.209:XE3",
           "kind": "P",
-          "slug": "6-208-xe3",
+          "slug": "6-209-xe3",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -40987,9 +40987,9 @@
             ]
           ],
           "id": "XE4",
-          "key": "6.208:XE4",
+          "key": "6.209:XE4",
           "kind": "P",
-          "slug": "6-208-xe4",
+          "slug": "6-209-xe4",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L1",
@@ -41025,9 +41025,9 @@
             ]
           ],
           "id": "XE5",
-          "key": "6.208:XE5",
+          "key": "6.209:XE5",
           "kind": "P",
-          "slug": "6-208-xe5",
+          "slug": "6-209-xe5",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L1",
@@ -41063,9 +41063,9 @@
             ]
           ],
           "id": "XE6",
-          "key": "6.208:XE6",
+          "key": "6.209:XE6",
           "kind": "P",
-          "slug": "6-208-xe6",
+          "slug": "6-209-xe6",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L2",
@@ -41101,9 +41101,9 @@
             ]
           ],
           "id": "XE7",
-          "key": "6.208:XE7",
+          "key": "6.209:XE7",
           "kind": "P",
-          "slug": "6-208-xe7",
+          "slug": "6-209-xe7",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
@@ -41111,7 +41111,7 @@
           "what": "tuning.STELLAR_XFE_CORRELATION: P, Zn, Co, Cu and Li residuals independent of the others and of each other"
         }
       ],
-      "slug": "6-208-stand-ins-of-the-nine-added-star-elements",
+      "slug": "6-209-stand-ins-of-the-nine-added-star-elements",
       "title": "Stand-ins of the nine added star elements"
     },
     {
