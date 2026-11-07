@@ -245,3 +245,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF63 | no data | - | the edges of the Temperature score are chosen (the Blue cut by Boss, the others proposed) and no rated catalogue of worlds exists to fit them |
 | 6.18:LF64 | no data | - | no rated catalogue of worlds exists to fit the least Blue share |
 | 6.18:LF65 | no data | - | no rated catalogue of worlds exists to fit the credit of a Yellow sample |
+| 6.193:AW1 | no data | - | L3, the class F gravity edge 1.4 g was chosen from a sweep of 1,448 bodies; it goes when the gravity edges of classes Z and V are fixed from heavy-world physics (GEN.1136) |
