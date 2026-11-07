@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.285 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1332 |
+| GEN | GEN.1333 |
 | PERF | PERF.249 |
 | DB | DB.115 |
 | API | API.42 |
@@ -2119,6 +2119,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1329 | Three of 20 hot rocky planets hold 1e5 bar steam airs of 3 to 7 percent of the planet's mass on K hosts: check whether the water inventory and the loss are right (bug) | none | open |
 | GEN.1330 | Life gates read oxygen pressure: life_classes.json and age_needs.json judge oxygen by partial pressure, not share | GEN.1321 | dropped, covered by GEN.1321 |
 | GEN.1331 | Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide) | GEN.1321, GEN.1330 | open |
+| GEN.1332 | A nebula's stored shape cannot be reproduced from its stored row: the shape seed includes the dominant-species text, which store_composition rewrites afterwards (TEST.672) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -4170,10 +4171,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.667 | Four queue tests are red on clean main: test_api_jobs (test_a_quick_edit_answers_in_the_same_response, test_a_slow_edit_answers_202_with_the_job_id) and two in test_rq_time_limits (bug) | none | done, PR #5497 |
 | TEST.668 | Two tests in test_update_database_step.py are red on clean main (bug) | none | done, PR #5497 |
 | TEST.669 | 35 tests in test_web_sector_nav.py and test_web_pages.py are red on main: the sector page answers 404 on their fake ids (a public-ID change?) (bug) | none | done, PR #5490 |
-| TEST.670 | test_parent_link fails on main: the delete-sector test hits the rogue planet foreign key, which is RESTRICT (bug) | none | open |
+| TEST.670 | test_parent_link fails on main: the delete-sector test hits the rogue planet foreign key, which is RESTRICT (bug) | none | done, PR #5521 |
 | TEST.671 | test_citations_outside_the_registry fails on main: two sources are cited by name outside the registry (bug) | none | done, PR #5517 |
-| TEST.672 | test_nebula_shape fails on main and differs by a different item each run (flaky, bug) | none | open |
-| TEST.674 | test_js_unit fails on main: tests/js/bodymarkers.test.mjs 'a letter that is not a class has no symbol' gets class-R, because R is now a class letter (bug) | none | open |
+| TEST.672 | test_nebula_shape fails on main and differs by a different item each run (flaky, bug) | none | done, PR #5521 |
+| TEST.674 | test_js_unit fails on main: tests/js/bodymarkers.test.mjs 'a letter that is not a class has no symbol' gets class-R, because R is now a class letter (bug) | none | done, PR #5521 |
 | TEST.673 | test_unit_registry_js fails on main (bug) | none | done, PR #5517 |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
