@@ -42,7 +42,7 @@ Use:
 
 import math
 
-from planetgen.physics import condensate_shares, constants as physical_constants, moon_composition, unit_registry as units
+from planetgen.physics import condensate_shares, constants as physical_constants, moon_composition, oddities, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -249,3 +249,10 @@ def _store(body, ring):
         for name, value in ring.values().items():
             setattr(body, name, value)
     return ring
+
+
+@oddities.register("ring_from_moon")
+def ring_from_moon(body, row):
+    """The effect of oddity W9 (GEN.1050): a moon that the tide pulled inside the Roche limit became the ring (`ring_origin` "disrupted_moon", GEN.1057). The ring is already the body's;
+    the row only names it for the page."""
+    return None

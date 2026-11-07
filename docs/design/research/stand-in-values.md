@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1250 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1252 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 124 | 52 | 1 | 1 | 0 | 178 |
 | T3 | 91 | 41 | 7 | 9 | 0 | 148 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
-| T5 | 56 | 21 | 3 | 1 | 0 | 81 |
+| T5 | 58 | 21 | 3 | 1 | 0 | 83 |
 | T6 | 127 | 89 | 25 | 62 | 0 | 303 |
 | T7 | 33 | 15 | 7 | 16 | 0 | 71 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 15 | 5 | 86 | 34 | 178 |
-| All | 689 | 258 | 59 | 199 | 45 | 1250 |
+| All | 691 | 258 | 59 | 199 | 45 | 1252 |
 
 ## How the labels were given
 
@@ -1057,6 +1057,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RO16 | P | T6 | L3 | ring_origin.DUST_YIELD 10, the dust kept in orbit per unit of meteoroid mass that strikes a feeding moon | 1 to 100 | feeding moons of 5 to 100 km | an impact-ejecta measurement whose kept share is under 1 or over 100 | the ejecta yield and speed distribution of a hypervelocity impact on a small moon's surface (the escape fraction) | puts Jupiter's four inner moons at 2.4e7 kg, inside the 1e7 to 1e9 kg of its ring | - | no data |
 | RO17 | P | T6 | L1 | ring_origin.DUST_LIFETIME_YR 1e4, the life of the dust of a faint ring against drag and the shadow | 1e3 to 1e5 | micron grains round a giant | a measured grain lifetime outside 1e3 to 1e5 years | the Poynting-Robertson, plasma and Lorentz drag of each grain size at the planet | 1e3 to 1e5 years for micron grains round Jupiter, [R5114], recalled | - | - |
 | RO18 | P | T6 | L1 | ring_origin.FEEDER_RADIUS_KM_RANGE 5 to 100 (log-uniform) and FEEDER_DISTANCE_RADII_RANGE 1.5 to 3 (uniform): the size and place of a drawn moonlet | one factor | giants | an inner moonlet found outside 3 to 150 km or 1.2 to 4 radii | the size distribution of the moonlets from the ring-moon cycle | Metis 22, Adrastea 8, Pan 14, Cordelia 20, Galatea 79 km; between 1.7 and 3 radii | - | - |
+| RO19 | P | T5 | L0 | oddity W9 gate rate 1: a planet whose ring origin is a disrupted moon (`ring_origin` "disrupted_moon", GEN.1057) is named for it; no extra draw | none | planets and giants with a ring | a ring census whose share of moon-origin rings differs from the history's by more than a factor of 3 | the Cassini end-of-mission ring age and mass | design note W9; the origin is the history's own (RO1 to RO8) | - | - |
 
 ## 6.71 Stand-ins of the resonance rings of small bodies
 
@@ -1078,11 +1079,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| DP1 | D | T2 | L0 | disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7 | olivine or pyroxene (60 m_H, 9.61e10, 3.13e11); iron is 50 times higher at 2145 K | a dayside of 1800 to 2400 K | a measured vapour pressure of the planet's real crust | the surface composition of the planet read from its stored bulk | [R3487], eq. 7 and section 2.1 (read) | GEN.1050 | - |
-| DP2 | D | T2 | L0 | disintegrating_planet.VAPOR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius | gamma 1.0 halves the mass that survives 10 Gyr | silicate vapour | the paper's wind with its own radiative transfer | the vapour of the planet's own mixture | [R3487], eq. 8 (read); the radius is the repository's own small-body relation | GEN.1050 | - |
-| DP3 | T | T3 | L0 | disintegrating_planet.NON_ISOTHERMAL_FACTOR 1/40 and SOLID_ANGLE_SR 1: the full model's maximum rate over the isothermal one, and the wind's solid angle (eq. 27) | 1/40 (section 3.2: "about 40 times lower"); the factor depends on mass in the paper | planets of 0.01 to 0.1 Earth mass | the paper's own non-isothermal solution at other masses | a wind with radiative cooling | [R3487], sections 3.2 and 4 (read) | GEN.1050 | - |
-| DP4 | P | T3 | L0 | disintegrating_planet.DUTY_CYCLE 0.5: the share of the time the planet loses mass at its maximum rate | 0.5 | KIC 12557548 b | a measured duty cycle | the cycle of the dust tail's transits | [R3487], section 3.3 (read) | GEN.1050 | - |
-| DP5 | B | T3 | L0 | disintegrating_planet.DIVIDING_MASS_EARTH 0.11, MIN_DAYSIDE_TEMPERATURE_K 2000 and MAX_PERIOD_D 1.0: the gate of the oddity | 0.1 to 0.11 Earth mass; the full model's divide is about 0.08 | rocky bodies | a disintegrating planet over 0.11 Earth mass or under 2000 K | the module's own lifetime (a body whose lifetime is under its age) | the abstract and section 3.3 (read); the period gate is the design note's | GEN.1050 | - |
+| DP1 | D | T2 | L0 | disintegrating_planet.OLIVINE_MOLECULAR_MASS_H 169, OLIVINE_SUBLIMATION_ERG_G 3.21e10, OLIVINE_VAPOR_CONSTANT_DYNE_CM2 6.72e14: the olivine vapour pressure of eq. 7 | olivine or pyroxene (60 m_H, 9.61e10, 3.13e11); iron is 50 times higher at 2145 K | a dayside of 1800 to 2400 K | a measured vapour pressure of the planet's real crust | the surface composition of the planet read from its stored bulk | [R3487], eq. 7 and section 2.1 (read) | - | - |
+| DP2 | D | T2 | L0 | disintegrating_planet.VAPOR_MEAN_MASS_H 30 and ADIABATIC_INDEX 1.3: the vapour's mean mass and index (eq. 8); CORE_MASS_FRACTION 0.32 for the radius | gamma 1.0 halves the mass that survives 10 Gyr | silicate vapour | the paper's wind with its own radiative transfer | the vapour of the planet's own mixture | [R3487], eq. 8 (read); the radius is the repository's own small-body relation | - | - |
+| DP3 | T | T3 | L0 | disintegrating_planet.NON_ISOTHERMAL_FACTOR 1/40 and SOLID_ANGLE_SR 1: the full model's maximum rate over the isothermal one, and the wind's solid angle (eq. 27) | 1/40 (section 3.2: "about 40 times lower"); the factor depends on mass in the paper | planets of 0.01 to 0.1 Earth mass | the paper's own non-isothermal solution at other masses | a wind with radiative cooling | [R3487], sections 3.2 and 4 (read) | - | - |
+| DP4 | P | T3 | L0 | disintegrating_planet.DUTY_CYCLE 0.5: the share of the time the planet loses mass at its maximum rate | 0.5 | KIC 12557548 b | a measured duty cycle | the cycle of the dust tail's transits | [R3487], section 3.3 (read) | - | - |
+| DP5 | B | T3 | L0 | disintegrating_planet.DIVIDING_MASS_EARTH 0.11, MIN_DAYSIDE_TEMPERATURE_K 2000 and MAX_PERIOD_D 1.0: the gate of the oddity | 0.1 to 0.11 Earth mass; the full model's divide is about 0.08 | rocky bodies | a disintegrating planet over 0.11 Earth mass or under 2000 K | the module's own lifetime (a body whose lifetime is under its age) | the abstract and section 3.3 (read); the period gate is the design note's | - | - |
+| DP6 | P | T5 | L0 | oddity W14 gate rate 1: every rocky planet with a mass under 0.11 Earth, a period under a day and a dayside over 2,000 K has the wind and is named; one that the wind would already have used up over the star's age (rate times age at least its mass) is declined | 0.01 to 1 | ultra-short-period rocky planets | a count of ultra-short-period planets under 0.11 Earth mass with a dayside over 2,000 K whose disintegrating share is far from the generator's (WR5: about 1 in 1,000) | the share of those planets that show a tail in a Kepler and K2 sample | the module's gate (DP5) and design note W14 | - | - |
 
 ## 6.74 Stand-ins of atmosphere retention
 

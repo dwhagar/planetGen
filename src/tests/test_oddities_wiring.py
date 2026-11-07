@@ -416,3 +416,32 @@ def test_a_planet_held_on_a_forced_eccentricity_is_flexed_by_its_star():
         planet.oddity_quantities = {"forced_eccentricity": 0.02}
         assert planets.finish_orbit_oddities(planet) is True
         assert planet.oddities == ("W5",) and abs(planet.eccentricity - 0.02) < 1e-12 and planet.tidal_flux_w_m2 > before
+
+
+# --- GEN.1050: W14 (a disintegrating planet) and W9 (a ring from a fallen moon) ------------------------------------------------------
+
+def _hot_rock(mass_earth=0.05, age=4.5, teff=3800.0, radius_km=4.2e5, distance=0.0097):
+    star = types.SimpleNamespace(mass=0.6 * 1.98847e30, luminosity=1.0e25, age=age, temperature=teff, radius=radius_km)
+    period = (distance ** 3 / 0.6) ** 0.5
+    return _body(mass_kg=mass_earth * 5.972e24, radius=3000.0, distance=distance, eccentricity=0.0, star=star, period=period, moons=[])
+
+
+def test_a_small_rock_with_a_dayside_over_two_thousand_kelvin_and_a_day_long_orbit_is_named_for_its_wind():
+    body = _hot_rock()
+    body.system_config.FORCE_ODDITIES = None
+    assert oddities.quantities_of(body)["dayside_temperature_k"] > 2000.0
+    assert oddities.apply(body, levers=("L5",), dial=1.0) == ["W14"]
+
+
+def test_a_planet_that_the_wind_would_have_used_up_or_that_is_too_cool_or_too_heavy_is_not_named():
+    for body in (_hot_rock(teff=5000.0), _hot_rock(distance=0.5), _hot_rock(mass_earth=0.5), _hot_rock(age=4.5, mass_earth=0.02, teff=3800.0)):
+        body.system_config.FORCE_ODDITIES = ("W14",)
+        assert oddities.apply(body, levers=("L5",)) == [], oddities.quantities_of(body)
+
+
+def test_a_planet_whose_ring_came_from_a_moon_the_tide_pulled_in_is_named_and_one_from_a_comet_is_not():
+    for origin, expected in (("disrupted_moon", ["W9"]), ("captured_body", []), ("moon_erosion", []), (None, [])):
+        body = _body(ring_origin=origin)
+        assert oddities.apply(body, levers=("L6",), dial=1.0) == expected, origin
+    giant = _body(body_type="g", ring_origin="disrupted_moon")
+    assert oddities.apply(giant, levers=("L6",), dial=1.0) == ["W91"]

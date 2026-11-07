@@ -763,13 +763,21 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
 
 def apply_orbit_oddities(planet):
     """
-    Rolls the rows of the orbit lever (L2: W3 a highly eccentric orbit, W4 a polar orbit, W5 a resonant chain's forced eccentricity, GEN.1049) again on the planet as it is
+    Rolls the rows of the orbit and history levers (L2: W3 a highly eccentric orbit, W4 a polar orbit, W5 a resonant chain's forced eccentricity, GEN.1049; L5: W14 a disintegrating planet, GEN.1050) again on the planet as it is
     now, taking off the ones it had: a row whose gate still holds is given again from its own stream, so the ids always match the orbit the planet has.
     """
-    if planet.is_moon or planet.body_type not in ("t", "g"):
+    if planet.body_type not in ("t", "g") or planet.is_moon:
         return
-    oddities.drop(planet, ("L2",))
-    oddities.apply(planet, levers=("L2",))
+    oddities.drop(planet, ("L2", "L5"))
+    oddities.apply(planet, levers=("L2", "L5"))
+
+
+def apply_ring_oddities(planet):
+    """Rolls the rows of the ring lever (L6: W9 a ring from a fallen moon, GEN.1050) on a planet whose ring (`rings.apply`) is made, taking off the ones it had."""
+    if planet.body_type not in ("t", "g") or planet.is_moon:
+        return
+    oddities.drop(planet, ("L6",))
+    oddities.apply(planet, levers=("L6",))
 
 
 def finish_orbit_oddities(planet):

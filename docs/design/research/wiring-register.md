@@ -17,6 +17,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.clearance | by design | the independent overlap verifier (TEST.477); the tests and the redraw audit read it, the generator never does, so the proof cannot share a bug with the code it checks |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.physics.venus_spin.retrograde_possible | by design | whether a thick-air planet has a retrograde state at all (the closed-form test of the paper); the tests read it, the W2 effect reads the end state itself |
+| function | planetgen.physics.disintegrating_planet.remaining_mass_earth | by design | the mass a body has left after an age of the wind, for a page note of how long the planet has left; the tests read it, the W14 effect reads the loss rate over the age |
 | function | planetgen.physics.mantle_stripping.contact_speed_ms | by design | the impact speed from the speed at infinity and the escape speed, for a caller that draws an impact from a population (read by the tests; the W10 effect draws the energy ratio, MT8) |
 | function | planetgen.physics.mantle_stripping.speed_for_core_fraction | by design | the impact speed that leaves a given iron share, for the tests and for a check of the energy-ratio range of MT8 against Mercury's iron |
 | function | planetgen.physics.mantle_stripping.strip_probability | by design | the share of random impacts inside the head-on angle (MT7); the W10 rate (WR4) is already a rate on the merged population, so the effect does not apply it again |
@@ -61,12 +62,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | quadruple_stability_2p2_weights.json | GEN.1016 | the 8,301 numbers of the authors' 2+2 network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it |
 | module | planetgen.physics.hierarchy_stability | GEN.1016 | the stability of a tree of stars level by level (triple levels, the 3+1 quadruple with its margin, 2+2 by nested triples); read by tests/test_hierarchy_stability.py now and by the `multistar` limits once the wiring merges on its train |
-| module | planetgen.physics.disintegrating_planet | GEN.1050 | the wind, lifetime and gate of a disintegrating rocky planet (W14); the oddity row reads it when its wiring step lands |
-| row | 6.73:DP1 | GEN.1050 | the olivine vapour constants, not read until the oddity row is wired |
-| row | 6.73:DP2 | GEN.1050 | the vapour mean mass and index, not read until the oddity row is wired |
-| row | 6.73:DP3 | GEN.1050 | the full model's factor and the solid angle, not read until the oddity row is wired |
-| row | 6.73:DP4 | GEN.1050 | the duty cycle, not read until the oddity row is wired |
-| row | 6.73:DP5 | GEN.1050 | the gate, not read until the oddity row is wired |
 | module | planetgen.physics.atmosphere_retention | GEN.1047 | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note; the pressure stage reads the logistic of rows d until the envelope-survival rule (GEN.963) reads the module and the pressure stage takes its cap from it |
 | row | 6.74:SH1 | GEN.1047 | `atmosphere_retention.SHORELINE_K`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH2 | GEN.1047 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |

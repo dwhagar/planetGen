@@ -238,7 +238,8 @@ KIND_OF_BODY = {"t": "planet", "g": "giant"}
 
 
 EFFECT_MODULES = ("planetgen.physics.mantle_stripping", "planetgen.physics.venus_spin", "planetgen.physics.seasonal_swing",
-                  "planetgen.physics.resonant_chains", "planetgen.physics.orbit_oddities")
+                  "planetgen.physics.resonant_chains", "planetgen.physics.orbit_oddities",
+                  "planetgen.physics.disintegrating_planet", "planetgen.physics.rings")
 """tuple: The modules that register an effect (`register`), imported the first time `apply` has a row to run; a module that implements a row's effect is listed here."""
 
 
@@ -309,6 +310,11 @@ def quantities_of(body):
     put("host_teff_k", getattr(star, "temperature", None))
     star_mass = getattr(star, "mass", None)
     put("host_mass_sun", None if star_mass is None else star_mass / constants.SOLAR_MASS_TO_KG)
+    star_teff, star_radius_km, distance = getattr(star, "temperature", None), getattr(star, "radius", None), getattr(body, "distance", None)
+    if star_teff and star_radius_km and distance and not getattr(body, "is_moon", False):
+        put("dayside_temperature_k", star_teff * (star_radius_km * 1000.0 / (distance * constants.AU_M)) ** 0.5)     # `disintegrating_planet.dayside_temperature_k`
+    if hasattr(body, "ring_origin"):
+        put("ring_from_fallen_moon", 1 if body.ring_origin == "disrupted_moon" else 0)
     put("surface_pressure_pa", getattr(body, "atmospheric_pressure", None))
     put("obliquity_deg", getattr(body, "axial_tilt_deg", None))
     hours = getattr(body, "rotation_period_hours", None)

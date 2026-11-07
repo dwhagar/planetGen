@@ -553,6 +553,7 @@ class StarSystem:
         with log.timed_phase("ring pass"):
             for obj in self.all_planets:
                 rings.apply(obj)  # GEN.732, GEN.1057: after the moons and the snow line are final
+                planetPhysics.apply_ring_oddities(obj)  # GEN.1050: W9 names a ring that came from a fallen moon
                 for moon in getattr(obj, "moons", ()):  # a belt has none
                     rings.apply(moon, obj)  # GEN.836
 
