@@ -54,7 +54,6 @@ Showing courses on the maps and bending them around keep-out spheres.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy |  | Research: decides the overlap policy. |
-| NAV.6 | Courses that steer clear of gravity wells |  | Parent; closes with its subitems. |
 
 ### Gravity layers on the Sector and System Maps (Boss, 5:14 PM EST on 2026-11-05)
 
@@ -90,7 +89,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
+| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
 
 ## Phase 4: Trade routes
 
