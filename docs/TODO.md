@@ -13139,6 +13139,10 @@ clears each one.
   GEN.1085. Filed by the TODO thread from Aux 5.
   Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
 
+- [ ] **UX.285 Settings option weirdness_dial: the oddity dial (default 1, 0 turns all oddities off) in the settings page and file, read through SystemConfig.WEIRDNESS_DIAL**
+  Core 1 (as the lane reported 8:17 AM EST on 2026-11-07), split out of GEN.1047 (branch core1/oddities, head c74a2aa7a): the run-level dial and `tuning.WEIRDNESS_DIAL` already work, but a settings option needs a new settings group (every option must name a group in `settings_view.GROUPS`, plus the schema and the docs). Do: add the `weirdness_dial` option with its group, schema entry and help text, default 1, 0 turns every oddity off, read through `SystemConfig.WEIRDNESS_DIAL`. Done: the option shows on the settings page, changing it changes the dial in a run, and the settings, schema and docs tests pass. Lock-free (the default 1 leaves generation unchanged). Version 8.1. Owner: Core 1 (with GEN.1047; ships after it). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1047.
+
 - [ ] **UX.283 Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched**
   Boss, 6:40 PM EST on 2026-11-06 (relayed by the coordinator): he uses the
   individual system generation interface now and again and it has not
