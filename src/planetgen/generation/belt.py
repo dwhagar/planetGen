@@ -143,6 +143,12 @@ class AsteroidBelt:
     scatter_fates = None
     scatter_giant_au = None
     captured_mass_kg = 0.0
+    swept_kg = None
+    """dict or None: Where the mass an outer disk lost went (GEN.1308, `physics/swept_hand_on.hand_on`: `ejected`, `implanted`, `captured`, `other`, kilograms); set by `belt_birth.hand_on`. Not stored."""
+    scatter_giant_kg = None
+    scatter_giant_radius_km = None
+    implanted_kg = 0.0
+    """float: The mass an outer disk's giant implanted in this inner belt (GEN.1308), kg; part of the mass and the primordial mass it has. Not stored."""
     largest_body_km = None
     """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,
@@ -221,6 +227,23 @@ class AsteroidBelt:
                 "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
                 "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag})
         return rows
+
+    def receive(self, mass_kg, sentence=None):
+        """
+        Adds `mass_kg` of bodies a giant implanted from an outer disk (GEN.1308) to this belt: its primordial mass and so the mass it has after the star's age grow by it, the members are drawn again for the
+        larger belt on next use, and `sentence` (if any) is added to what the belt says of its origin. Returns False, and changes nothing, for a belt that was not made in this run.
+        """
+        star = _STARS.get(self)
+        if star is None or self.origin is None or not mass_kg > 0.0:
+            return False
+        self.primordial_mass_earth += units.convert(mass_kg, "kg", "Mearth")
+        self.implanted_kg += mass_kg
+        self._members = None
+        left_earth = self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
+        self.largest_body_km, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, self.upper_limit, left_earth)
+        if sentence:
+            self.origin_sentence = f"{self.origin_sentence} {sentence}"
+        return True
 
     def shorten_to(self, upper_limit):
         """

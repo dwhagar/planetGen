@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1245 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1247 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 127 | 89 | 25 | 61 | 0 | 302 |
 | T7 | 33 | 15 | 7 | 16 | 0 | 71 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
-| T9 | 38 | 15 | 5 | 86 | 34 | 178 |
-| All | 686 | 257 | 59 | 198 | 45 | 1245 |
+| T9 | 40 | 15 | 5 | 86 | 34 | 180 |
+| All | 688 | 257 | 59 | 198 | 45 | 1247 |
 
 ## How the labels were given
 
@@ -1767,6 +1767,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | AF1 | B | T6 | L0 | tuning.ASTEROID_FIELD_SPEED_KMS_RANGE (0.1, 15.0) km/s, log-uniform: the rms speed of the pieces of a hand-made field, from a tidally disrupted rubble body to the fastest rubble of a collision | 0.1 to 15 | a field with no parent drawn | a survey of the spread of the pieces of the fields that stand, outside this range | the speed of the source that made the field (`rogue_collision.unbound_rms_speed_ms`, `field_dispersal.unbound_belt_speed_ms`) once such a field is drawn by hand | the design's table of ages at a radius (docs/design/systems/interstellar-asteroid-fields.md section 5.2) | - | - |
+
+## 6.204 Stand-ins of where the mass an outer disk lost goes
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SH1 | P | T9 | L0 | belt_birth.hand_on: the implanted share goes whole to the one inner belt nearest the disk's inner edge, as primordial mass that is ground down with the rest of that belt (`AsteroidBelt.receive`); a disk with no inner belt to receive it loses it to the star's inner system | the nearest or all inner belts | systems with an outer disk swept by a giant and an inner belt | an inner belt whose mass shows no sign of the implant | a split among the inner belts by the width of the gap between them and the giant | the scatter step's implanted share (SX5) | - | - |
+| SH2 | P | T9 | L0 | irregular_moons.take_from_disks: the planets are caught from the captured share of the disks they were swept from first, and the disk's own mass falls only for what they hold above it | none | systems whose planets hold irregular moons from an outer disk | irregular moons that hold more mass than the disk lost | the capture model of GEN.1082 (the encounter windows) drawn against the share | the scatter step's captured share (SX5) | - | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 

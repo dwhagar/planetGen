@@ -140,13 +140,21 @@ def take_from_disks(disks, sets):
     hold), so the members it keeps are never short. The mass taken is added to the disk's `captured_mass_kg`, which is not stored: the planets' own sets say what they hold.
 
     Returns:
-        float: The mass taken, kg.
+        float: The mass taken out of the disks' own mass, kg (not the part caught from the shares the scatter step handed on, GEN.1308).
     """
     caught = (sum(moon.mass_kg for held in sets for moon in held.moons if moon.belt_order is None)
               + sum(held.remainder_kg - sum(kg for _order, kg in held.belt_remainders) for held in sets))
     total = sum(disk.primordial_mass_earth for disk in disks)
     if not caught > 0.0 or not total > 0.0:
         return 0.0
+    # GEN.1308: the share of a disk the scatter step says the planets caught (`swept_kg["captured"]`) is mass the disk had already lost, so the planets are caught from it first and the disk's own mass
+    # does not fall for it; what they hold above those shares comes out of the disks' mass as before.
+    budget = {id(disk): (disk.swept_kg or {}).get("captured", 0.0) for disk in disks}
+    from_shares = min(caught, sum(budget.values()))
+    if from_shares > 0.0:
+        for disk in disks:
+            disk.captured_mass_kg = disk.captured_mass_kg + from_shares * budget[id(disk)] / sum(budget.values())
+    caught -= from_shares
     taken = 0.0
     for disk in disks:
         room = max(disk.mass_kg - sum(member["mass_kg"] for member in disk.members), 0.0)

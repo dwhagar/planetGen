@@ -36,7 +36,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones
@@ -1329,6 +1329,7 @@ class StarSystem:
         bodies[:] = sorted([*bodies, *belts], key=lambda body: body.distance)
         self.validate_system(bodies)
         self._trim_to_orbit_ceiling(bodies, orbit_ceiling_au)
+        belt_birth.hand_on(bodies, star)         # GEN.1308: where the mass the outer disks lost went (the inner belt it was implanted in, the moons, the rogues)
         self._set_debris_disk(bodies, star)
 
     def _set_debris_disk(self, bodies, star):
@@ -1363,11 +1364,7 @@ class StarSystem:
         Gives every planet that orbits a star its irregular moons (GEN.1083, `generation/irregular_moons.py`): the small bodies it caught from the outer disk of its star's bodies and from its own feeding zone. It runs once the
         planets, belts and ages are final, so the outer disk, the instabilities of the architecture (`capture_windows`) and the regular moons are all known; a planet of a star with no outer disk has none. Nothing is stored yet.
         """
-        hosts = [(self.planets, self.star)]
-        if self.binary_type == "wide":
-            hosts.append((self.secondary_planets, self.secondary_star))
-        hosts += [(bodies, star) for star, bodies in self.member_hosts()]
-        for bodies, star in hosts:
+        for bodies, star in self._belt_hosts():
             source = irregular_moons.source_of(bodies, star, self.capture_windows(star), star_al26_ratio(self.system_config, star))
             sets = []
             for body in bodies:
@@ -2332,7 +2329,16 @@ class StarSystem:
         found = []
         for star, architecture in getattr(self, "architectures", ()):
             found.extend((star, loss) for loss in planet_architecture.losses(architecture) if loss.kind in ("thrown", "stripped", "sub_minimum") and loss.ejected > 0.0)
+        for bodies, star in self._belt_hosts():
+            found.extend((star, loss) for loss in disk_ejection.disk_losses(bodies, star))     # GEN.1308: the bodies of rogue mass an outer disk's giant threw out
         return found
+
+    def _belt_hosts(self):
+        """`[(bodies, star)]` for each star that holds bodies of its own: the primary's planets, a wide binary's secondary and the member stars' planets (the bodies a belt is among)."""
+        hosts = [(self.planets, self.star)]
+        if self.binary_type == "wide":
+            hosts.append((self.secondary_planets, self.secondary_star))
+        return hosts + [(bodies, star) for star, bodies in self.member_hosts()]
 
     def _strip_by_cluster(self, star, architecture):
         """
