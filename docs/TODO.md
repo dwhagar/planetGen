@@ -4183,7 +4183,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, GEN.743, GEN.744, GEN.745, GEN.752, GEN.753.
+  Prerequisites: SEC.33, TEST.261, GEN.743, GEN.744, GEN.745, GEN.752.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -9704,43 +9704,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Catalog sections 1 and 2.
   Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
   coordinator at 3:21 PM EDT; owner is now Aux 2.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 5 takes it: the greenhouse and climate chain, one refit with GEN.1304 where it can ride (Air 1, Aux 2, Aux 7 and Bug 2 ended).
-
-- [ ] **GEN.753 Validation sweep for each physics area: compare generated populations with published statistics**
-  Generate large populations and compare each with the published
-  statistic: stars (mass function, age spread, luminosity function),
-  planets (mass-radius and period-radius relations, eccentricity
-  distribution, count and spacing), atmospheres (surface pressure
-  distribution), radiation (dose by body class) and heat. The report
-  lists, per area, the statistic, the source, the tolerance and whether
-  the generator passes. This is the acceptance test for every area the
-  physics fix plan rates 'high'; it extends the Kepler harness of
-  GEN.503 and GEN.504. A failing area files a tuning item whose tweak
-  level (L0 to L4) is recorded in the registry (GEN.725). Found by the
-  physics fix plan thread. Owner: pool (first free lane after 8.1
-  closes, unless Boss lets 8.4 start earlier).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Rescoped (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): the 'after 8.1' and 'pool' wording is revoked; this is
-  built in 8.1. Secondary sources are accepted; where the source is not
-  reachable use a second-hand value (for GEN.794 the second-hand Huebner
-  rates, or compute from the [R0767] cross section).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Bug 2. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Kepler DR25 recovery,
-  mass-radius sample, JWST selection fits are in the repo as harness
-  JSONs (kepler_recovery.json, mass_radius_sample.json,
-  jwst_selection.json); the 2,000-system class distribution check and
-  its data are in reports/data/planet-class-distribution; the Bern
-  synthesis binned fit is ngpps_formation_water.json. No occurrence
-  dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
-  Prerequisites: GEN.503, GEN.504. Related: GEN.725, GEN.711.
   Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 5 takes it: the greenhouse and climate chain, one refit with GEN.1304 where it can ride (Air 1, Aux 2, Aux 7 and Bug 2 ended).
 
 - [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
@@ -16815,6 +16778,26 @@ clears each one.
   Found by Planets 1 in the GEN.1309 oxygen chain (/mnt/project-files/reports/gen1309-oxygen-chain-2026-11-07.md, 12:25 AM EST on 2026-11-07, as the lane reported). The dissolved-carbon gate for sunlit-sea life was measured on 79 sunlit-sea worlds and recovers none: the air is all or nothing (5 Pa or more of CO2, or none). Of the zero-CO2 airs, most are physics (no carbon degassed, methane carbon on hydrogen-rich sealed airs, weathering balances), but the sealed-ocean law (waterworld_carbon) is a real gap: leached sodium and calcium with no chloride or sulfate to balance them, where Earth's sodium is balanced by chloride, so the sea comes out at pH 11 to 14 and locks all carbon into calcite (5 of 19 G2V worlds sit at the 1e-12 bar floor). Do: give the sealed ocean its anions (chloride from the halogen budget, sulfate from sulfur outgassing) so the charge balances, re-solve pH and carbon, register every new value as a stand-in with tier and tweak level, and measure how many sealed worlds regain CO2 and carbon-gated life. Lock item (generation output changes, large effect on sealed worlds; epoch and goldens at the train). Done: a sealed ocean is charge balanced, pH lands in a physical range, the sweep shows the count of worlds that regain 5 Pa of CO2. Version 8.1. Owner: Planets 1, after GEN.1278. Feeds GEN.1318 (fudge revisit).
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1309, GEN.1318.
+
+- [ ] **GEN.1323 Close-in planets of 4 to 40 Earth masses carry no hydrogen envelope, so there are no sub-Neptunes and no radius valley: the envelope recipes of GEN.509 and GEN.722 are not read by the generator (bug)**
+  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: of 79 planets of 1 to 4 Earth radii inside 100 days of F, G and K stars none is above 2.0 Earth radii (published: about half) and 71 percent sit in the 1.5 to 2.0 gap; envelope_mass_fraction is 0 for every close-in planet of 4 to 40 Earth masses. Do: read the envelope recipes (nebula capture, then photoevaporation and core-powered loss) when the planet is built so close-in planets of 4 to 40 Earth masses keep a hydrogen and helium envelope that shrinks with age and irradiation, giving sub-Neptunes and the radius valley; register every new value as a stand-in with tier and tweak level; check the radius histogram against the published one. Large lock item (epoch and goldens, class census re-tag). Done: the sweep shows sub-Neptunes above 2 Earth radii and a valley near 1.5 to 2, in the report. Version 8.1. Owner: Core 4 (composition), after GEN.1306 part 6.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.509, GEN.722, GEN.753.
+
+- [ ] **GEN.1324 Ground gamma dose of an Earth-like body is 0.003 mSv/yr against 0.48 measured, because it uses the primitive mantle's uranium, thorium and potassium and not a crust (bug)**
+  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: the ground gamma dose reads the mantle's primitive U, Th and K. Earth's measured ground dose (0.48 mSv/yr) comes from the crust, which holds most of those elements. Do: give a differentiated rocky body a crust with enriched U, Th and K (continental crust figures as the anchor, scaled by how much of the body has differentiated, registered stand-ins) and read the dose from the crust. Lock item (output of the dose columns changes). Done: an Earth twin reads 0.4 to 0.6 mSv/yr in the sweep. Version 8.1. Owner: Core 5, first after GEN.1310.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.753.
+
+- [ ] **GEN.1325 Giant planet eccentricity averages 0.08 against 0.22 published for the observed giants**
+  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: mean eccentricity of generated giants is 0.08, the published mean of observed giants is 0.22 (Doppler surveys). Do: look at how giant eccentricity is drawn (scattering and secular excitation, the Rayleigh or Beta fit to the surveys), find why it is low, and fix it with sourced values or registered stand-ins; keep the inner-disc planets' low values. Lock item. Done: the sweep mean and the distribution of giant eccentricity match the survey within its spread. Version 8.1. Owner: Planets 1, after GEN.1278.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.753.
+
+- [ ] **GEN.1326 Measure the hot class N planets: at the 2,000 K cap they hold 1,000 to 17,000 bar of air with almost no water, against JWST bare-rock results**
+  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: 10 of 32 hot planets at 16 times the Earth's starlight or more hold 1,000 to 17,000 bar of air with almost no water; JWST observations of hot rocky planets mostly show bare rock or thin air. Do: run the measurement (how the air is outgassed against how it is lost at those temperatures), say whether the generator or the observations are right, and file or build the fix with sources. Done: a short report with numbers and a verdict, and a follow-up item if the generator is wrong. Version 8.1. Owner: Core 5, after GEN.1324.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.753, GEN.1310.
 
 - [ ] **GEN.1320 Fire limit by oxygen pressure: the 35 percent oxygen cap becomes a limit on oxygen pressure, so thin-air worlds no longer pile up at exactly 35 percent (bug)**
   Boss (7:36 PM EST on 2026-11-06): option b for both oxygen findings of the GEN.1309 chain (/mnt/project-files/reports/gen1309-oxygen-chain-2026-11-07.md; plain-word write-up in the Planets 1 thread). Finding: some thin-air worlds (10 to 17 kPa) with oxygen-making life hit the 35 percent share cap, which stands in for the fire limit, and 3 of 5 (natural galaxy), 4 of 5 (sun-like stars with a habitable world) and 1 of 2 (orange stars) of the worlds with 16 percent oxygen or more sit at exactly 35.0 percent. Fire depends on oxygen pressure, not share (35 percent of 14 kPa is 5 kPa, a quarter of Earth's). Do: set the fire limit by oxygen pressure (stand-in value, registered with tier and tweak level; Earth's present air is the anchor and sources for burn limits are to be found first), so a thin air can carry a larger share and the pile-up spreads; measure the same three samples before and after. Lock item (generation output changes; epoch and goldens at the train). Done: no pile-up at one value in the three samples, the registry rows exist, the sweep shows the new spread. Version 8.1. Owner: Planets 1, before GEN.1278 (Boss asked for it and it is small). Feeds GEN.1318.
