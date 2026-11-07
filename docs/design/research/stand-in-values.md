@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1195 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1197 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 161 | 17 | 10 | 1 | 0 | 189 |
+| T1 | 161 | 18 | 10 | 1 | 0 | 190 |
 | T2 | 124 | 50 | 1 | 1 | 0 | 176 |
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 112 | 85 | 24 | 61 | 0 | 282 |
+| T6 | 112 | 86 | 24 | 61 | 0 | 283 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 656 | 248 | 58 | 188 | 45 | 1195 |
+| All | 656 | 250 | 58 | 188 | 45 | 1197 |
 
 ## How the labels were given
 
@@ -841,9 +841,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DD1 | B | T1 | L0 | test_gen_debris_disk.SURVEY_SHARE_BY_MASS (0.022, 0.130, 0.143, 0.239, 0.24): the share of stars of each mass band that hold a cold disk, the benchmark the cut DU1 is tuned to | M 0.5 to 6 percent, K 9 to 17, G 10 to 19, F 19 to 29, A 20 to 33 (the published errors; Su et al. 2006 give 33 percent for A) | detected disks, so the count of a survey with a median sensitivity of 2e-5 in fractional luminosity | a completeness-corrected incidence (27.7 percent of FGK stars) | the survey's volume-limited incidence by type | READ ([R4081] section 3 and Table 2) | - | - |
-| DU1 | P | T9 | L3 | debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 3e-5: the dust, over the star's light, at which the generator's outer disks are as rare as the surveys' (the survey limit itself is near 1e-5; with it about half the K, G and F stars would have a disk) | 3e-5 to 5e-5 (K, G and F dwarfs together 18 to 8 percent) | the generator's outer disks, which are heavy, old and mostly at their steady-state dust | the K, G and F dwarfs together holding a disk outside 12 to 22 percent in a sweep of the generator, or a survey that finds the generator's A and F stars short | a cut from the survey's own sensitivity, once the outer disk's mass and width come from a planetesimal-formation model | tuned against a sweep of 300 systems each of K2V, G2V and F5V after the cold-belt loss of GEN.1261 (11-07): the cut 1.5e-4 gave 1.3, 3.3 and 1.7 percent of G, K and F stars a disk (7.3, 34 and 4.3 before the loss), 3e-5 gives 14.7, 31 and 7: the K, G and F dwarfs together 17.7 percent against the survey's 17 (before: 70 to 160 systems each of K3V, G2V, F5V and A2V, A stars then holding none, F about half the survey's share) | - | no data |
+| DU1 | P | T9 | L3 | debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY 5e-5: the dust, over the star's light, a survey finds around a star of the Sun's temperature, at which the generator's outer disks are as common as the surveys' (the survey limit itself is near 1e-5); it falls as the cube of the star's temperature (DU5) | 3e-5 to 7e-5 | the generator's outer disks, which are heavy, old and mostly mass-limited | disks held by 100 stars each of A1V, F5V, G2V and K3V outside the surveys' ranges (A 20 to 33, F 19 to 29, G 10 to 19, K 9 to 17 percent) | a cut from the survey's own sensitivity per star (the instrument's flux limit at the wavelength) | GEN.1278 sweep of 100 systems each, 11-07: A1V 17, F5V 20, G2V 17, K3V 18 percent hold a disk (the single-ring dust and the Sun's limit 3e-5 gave 0, 8, 20 and 27 percent; A and F were short, G and K over) | - | no data |
 | DU2 | P | T1 | L0 | debris_dust.F_MAX_COEFFICIENT 0.004: the steady-state fractional luminosity `0.004 r^1.5 (dr/r) Dc^0.5 L^-0.5 / (t G(Xc))`, r in AU, Dc in km, t in Myr | none (the paper's own) | size law q = 11/6, e equal to I, density 2700 kg/m^3 | a debris disk measured at its steady state with f outside a factor of 3 of this | the paper's Eq. 16 with the blow-out size of the star | [R4785: Eq. 18], checked against its Eq. 21 (1.5e-4 / t at r = 1 AU for its nominal belt) | - | - |
 | DU3 | P | T1 | L1 | debris_dust.CASCADE_MAX_KM 2000: the largest body the dust cascade is reckoned for, whatever the belt's own largest body | 1000 to 3000 | an outer disk whose largest body is protoplanet-size | a belt whose dust is the sum of cascades of bodies over 2000 km | a ledger that settles the cascade's Dc apart from the largest body | the nominal Dc of [R4785] (Fig. 2 and Eq. 21) | - | - |
+| DU4 | P | T6 | L1 | debris_dust.ANNULI 32 and belt_fractional_luminosity: the dust of a belt is the sum of 32 log-spaced rings that share the belt's present mass by the solids they held (the minimum-mass nebula of `planet_mass`), each with the belt's own eccentricity; the old rule put the whole mass at the middle radius | 16 to 64 rings (the sum converges by about 16) | outer-disk belts of any width | a resolved debris disk whose measured dust is below the sum of its rings, or one whose mass lies in a ring far from the inner edge | a belt whose rings each have their own collisional evolution and mass (the ledger of belts in rings) | the law of [R4785] is for a narrow ring; the ring's eccentricity is the belt's because a thin ring has none of its own (Xc would pass 1 and the cascade never start); a wide belt's dust then comes from its inner rings (f goes as M r^-2), 3 to 5 times the middle-radius rule for A and F stars | - | - |
+| DU5 | P | T1 | L1 | debris_dust.DETECTION_TEMPERATURE_EXPONENT 3 and REFERENCE_TEMPERATURE_K 5772: the fractional luminosity a survey can tell from the star goes as the star's temperature to the minus 3 (the dust against the photosphere at a long wavelength goes as f T^3: Rayleigh-Jeans flux R^2 T over luminosity R^2 T^4) | 2 to 3 | surveys at a long wavelength on the Rayleigh-Jeans tail of the star (70 to 160 micrometres) | a survey whose limit in f is the same for A and K stars | the survey's flux limit and each star's spectrum | derived from the Rayleigh-Jeans law, not read from a survey; a hot A star at 9,200 K shows a disk a quarter of the Sun's fractional luminosity (1.2e-5 against 5e-5), a K3 star at 4,800 K needs 1.7 times | - | - |
 
 ## 6.60 Stand-ins of the multiple-star limits and the white-dwarf planets
 

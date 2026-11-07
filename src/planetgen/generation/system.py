@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, debris_dust, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, debris_dust, planet_architecture, planet_mass, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -1341,13 +1341,18 @@ class StarSystem:
         if any(member.yerkes_class not in debris_dust.DEBRIS_CLASSES for member in getattr(star, "stars", [star])):
             return
         age_myr, mass_sol = star.age * 1.0e3, _kg_to_msun(remnant_orbits.formation_mass_kg(star))
+        formation_kg, snow_line_au = remnant_orbits.formation_mass_kg(star), star.snow_line_au
+
+        def solids(distance_au):                     # the disk's solids the dust rings share the belt's mass by: the nebula of the belt's own origin (`belt_mass.primordial_mass_earth`)
+            return planet_mass.solids_surface_density_gcm2(distance_au, formation_kg, snow_line_au)
+
         brightest = None
         for belt in bodies:
             if belt.body_type != 'a' or belt.origin != "outer-disk" or not belt.mass_kg > 0.0:
                 continue
-            fractional = debris_dust.fractional_luminosity(belt.lower_limit, belt.upper_limit, star.luminosity / constants.SOLAR_LUMINOSITY, age_myr, belt.largest_body_km,
-                                                           _kg_to_mearth(belt.mass_kg), mass_sol)
-            if debris_dust.is_detectable(fractional) and (brightest is None or fractional > brightest[0]):
+            fractional = debris_dust.belt_fractional_luminosity(belt.lower_limit, belt.upper_limit, star.luminosity / constants.SOLAR_LUMINOSITY, age_myr, belt.largest_body_km,
+                                                                _kg_to_mearth(belt.mass_kg), mass_sol, solids)
+            if debris_dust.is_detectable(fractional, star.temperature) and (brightest is None or fractional > brightest[0]):
                 brightest = (fractional, belt)
         if brightest is not None:
             belt = brightest[1]
