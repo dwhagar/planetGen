@@ -22,8 +22,8 @@ not, does not. The oxygen a world holds is the balance of a source and its sinks
 
 `dN/dt = S - R - k N` once the store is spent, so the air settles to `N* = (S - R) / k` in a few million years, a time short beside the
 Gyr the schedule runs in, and the world holds `N*` (as the partial pressure `p = N M g / A`) when its photosynthesis is older than the
-delay and nothing before. A world with `S <= R` never holds any. The most the air can hold is `mixture_oxygen.BIOTIC_O2_MAX` of it (the
-fire limit).
+delay and nothing before. A world with `S <= R` never holds any. The most the air can hold is the oxygen pressure `mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA`, the
+fire limit (GEN.1320: a pressure, so a thin air can reach a larger share than a thick one; never more than `mixture_oxygen.ABIOTIC_O2_MAX` of the molecules).
 
 The numbers are those of the one world we know (`EARTH_*`, round figures from the literature of the oxygen cycle: [R0689, R1980], from memory), used as the test point and the scale and not as a preset: a world
 with another light, water, heat, redox and gravity gets another oxygen. Every constant is a stand-in in section 6.21 of
@@ -213,11 +213,25 @@ def burn(moles):
     return result, used
 
 
-def _fire_limit_mol(moles):
-    """The most oxygen, mol, the other gases of `moles` leave room for under `mixture_oxygen.BIOTIC_O2_MAX` of the molecules."""
+def _fire_limit_mol(body, moles):
+    """
+    The most oxygen, mol, that the other gases of `moles` leave room for on `body` under the fire limit (GEN.1320): the oxygen's partial pressure may reach
+    `mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA` and its share of the molecules `mixture_oxygen.ABIOTIC_O2_MAX`, whichever is lower.
+
+    With `n` mol of oxygen among `rest` mol of other gases of weight `weight` kg, the partial pressure is `n / (n + rest)` of `(weight + n m) g / A`, which the cap
+    `c` equals where `m n^2 + (weight - c A / g) n - c A rest / g = 0`.
+    """
     rest = sum(amount for formula, amount in moles.items() if formula != "O2")
-    share = mixture_oxygen.BIOTIC_O2_MAX
-    return share / (1.0 - share) * rest
+    if rest <= 0.0:
+        return 0.0
+    share = mixture_oxygen.ABIOTIC_O2_MAX
+    by_share = share / (1.0 - share) * rest
+    weight = sum(amount * gases.gas(formula).molar_mass for formula, amount in moles.items() if formula != "O2")
+    molar = gases.gas("O2").molar_mass
+    cap = mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA * area_m2(body) / (body.gravity * constants.EARTH_GRAVITY)       # kg of column weight the cap equals
+    b = weight - cap
+    by_pressure = (-b + math.sqrt(b * b + 4.0 * molar * cap * rest)) / (2.0 * molar)
+    return min(by_share, by_pressure)
 
 
 def partials_pa(body, moles):
@@ -245,7 +259,7 @@ def profile_of(body, share=1.0, extra_store_mol=0.0):
     surplus = source - reductant
     if surplus <= 0.0 or not burnt:
         return Profile(source, reductant, store, 0.0, 0.0, None)
-    steady = min(surplus / WEATHERING_PER_YR, _fire_limit_mol(burnt))
+    steady = min(surplus / WEATHERING_PER_YR, _fire_limit_mol(body, burnt))
     pascal = partials_pa(body, {**burnt, "O2": steady}).get("O2", 0.0)
     if pascal < MINIMUM_PA:
         return Profile(source, reductant, store, 0.0, 0.0, None)
@@ -294,7 +308,7 @@ def apply(body, target_mol):
         return False
     burnt, taken = burn(moles)
     have = burnt.get("O2", 0.0)
-    wanted = max(have, min(target_mol, _fire_limit_mol(burnt)))
+    wanted = max(have, min(target_mol, _fire_limit_mol(body, burnt)))
     if taken <= 0.0 and wanted <= have * APPLY_RISE:
         return False
     burnt["O2"] = wanted
