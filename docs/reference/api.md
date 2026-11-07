@@ -1119,6 +1119,15 @@ forced credential change. They back the admin stats page
   settings writer, so it is backed up and audited as `config.update`.
   `DELETE /api/admin/images/<kind>` resets the setting and removes the
   file when no other setting names it. At most 1 MiB a picture.
+- `GET /api/admin/update` — the admin Update button (SEC.43): `{"state", "installed", "can_request", "reason", "log",
+  "log_modified", "stale_request", "can_ask", "needs_password", "owner_minutes"}`. `state` is `not_installed` (the
+  root-owned `planetgen-update.path` is missing), `idle`, `requested` (the request file waits) or `running` (the update
+  guard's lock is held, or the site is still closed by an update); `log` is the end of `update.log`. A signed-in session
+  only (an API key gets 403). `POST /api/admin/update` `{}` asks root to run `update.sh`: it creates the empty file
+  `update.request` in the state folder and nothing else, so no value from the request reaches the command. Only the
+  Owner whose password was typed within `owner_minutes` may (403 with `needs_password`; `POST /api/auth/confirm-password`
+  opens the window); a press while an update runs is accepted and runs after it, a second while a request waits is a
+  409; answers 202 with the state. Audited as `update.request`; 6 requests an hour.
 - `GET /api/admin/lockouts` — every address and username locked right
   now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
   "level"}], "proxy_warning"}`. `proxy_warning` is true when the site
