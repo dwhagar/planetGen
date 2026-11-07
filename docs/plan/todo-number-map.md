@@ -3894,7 +3894,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.386 | First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp | none | open |
 | TEST.387 | test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug) | none | done, PR #4788 |
 | TEST.388 | test_reproducible_draws fails on math.hypot in physics/impact_history.py:140 and physics/iron_branch_tuning.py:79 (bug) | none | done, PR #3665 |
-| TEST.389 | test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug) | none | open |
+| TEST.389 | test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug) | none | done, PR #5505 |
 | TEST.390 | More tests red on a clean copy of main: runner self-tests (on_child), admin queue log route 403, cache warm-up, test_stages, test_web_fresh_after_cli, test_workers killed worker, phenomenon diagram zoom tests, test_web_browser_tables life scores (bug) | none | done, PR #3293 |
 | TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) | none | done, PR #4788 |
 | TEST.392 | test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug) | none | done, PR #3528 |

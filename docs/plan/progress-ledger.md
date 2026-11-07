@@ -2818,3 +2818,4 @@ Baseline: PR #1817.
 | MAP.132 | 8.8 | Clusters and satellites on the map |
 | MAP.194 | 8.8 | Zoom windows |
 | GEN.164 | later | Multiple galaxies |
+| TEST.389 | 8.1 | Physics rectification: older physics follow-ups, units and the storage rows |

@@ -13558,18 +13558,6 @@ clears each one.
   nothing in 8.1.
   Prerequisites: MAP.312, UX.223. Related: TEST.380, TEST.381, TEST.382.
 
-- [ ] **TEST.389 test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug)**
-  Aux 8 (Lane L, 11:54 PM EDT 2026-10-24 as the lane reported): in the
-  gate of GEN.818 (nothing of that change is in generation)
-  test_golden_seed's one-versus-four-workers check reports a
-  sector-structure difference; on clean main alone it timed out at 900
-  s, so it is unconfirmed. Check against epoch 101 (GEN.512, #3250) and
-  epoch 102 (GEN.761, #3258): run it on main and on the commit before
-  #3250. If a worker-count difference is real, the draw order of the new
-  tables is the first suspect. Done: confirmed or cleared with the
-  commit named; if real, fixed with a test. Owner: Bug 1.
-  Prerequisites: none. Related: TEST.384, GEN.512, GEN.761.
-
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
   From Aux 16's planet class distribution check (2:09 AM EDT 2026-10-25;
   report
