@@ -529,7 +529,7 @@ def test_a_world_with_no_second_branch_is_not_named_for_one():
 # --- GEN.1047 isolation: the dial at 0 changes no other draw ---------------------------------------------------------------------
 
 def _bodies_of(system):
-    return [body for planet in system.planets for body in (planet, *getattr(planet, "moons", ()))]
+    return [body for planet in system.all_planets if planet.body_type != "a" for body in (planet, *getattr(planet, "moons", ()))]
 
 
 def test_the_dial_at_zero_gives_the_same_system_as_the_dial_at_one_wherever_nothing_was_rolled():
