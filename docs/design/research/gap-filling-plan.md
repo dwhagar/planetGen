@@ -3071,3 +3071,12 @@ A rocky planet with no row in the hosting gate's `satellite-share` table holds a
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md |
+
+### 6.197 Stand-ins of the strong-acid anions of a sealed ocean (GEN.1319)
+
+`waterworld_carbon.ocean_pco2` balanced the leached sodium and calcium with hydroxide, bicarbonate and carbonate alone, so a sealed ocean came out at pH 11 to 14 and locked its carbon in calcite. The ocean now also holds the chloride the volcanoes gave it (the degassed share of the mantle's chlorine, which `surface_air` zeroes for the air of any ocean world) and the sulfate of `sulfur_balance`, charge-weighted (chloride once, sulfate twice), and the charge balance is solved with them.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| AN1 | P | T6 | L0 | all the chlorine a sealed world degasses (`inventory["Cl"]` times the chlorine degassing share) stays in the ocean as chloride, none is lost to the crust (chlorapatite, evaporite, hydrothermal uptake) | the chlorine inventory bracket (AM92, `chlorine_wt_percent`) and the degassing share 0.05 to 0.5 | a sealed ocean world | a measured sink of chloride into the altered crust of an ocean world | a reaction-transport model of the early ocean and the crust | reports/gen1309-oxygen-chain-2026-11-07.md |
+| AN2 | P | T6 | L0 | the sulfate of `sulfur_balance.balance` is the ocean's, each mole carrying two charges; gypsum and the calcium it takes are not tracked | none | a sealed ocean world with a sulfur budget | a sealed-ocean model that precipitates anhydrite at the sulfate the budget gives | a speciation of the ocean with calcium sulfate | as AN1 |

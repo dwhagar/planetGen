@@ -111,6 +111,30 @@ def test_calcite_holds_the_dissolved_carbon_of_a_calcium_rich_ocean_below_a_mole
         assert result.dissolved_mol_m2 / SEALED_OCEAN_KG_M2 < 1.0
 
 
+def test_chloride_and_sulfate_balance_the_cations_first_so_a_sealed_ocean_is_not_a_soda_lake():
+    """GEN.1319: sodium with nothing to balance it but hydroxide gives a pH of 12 to 14 and puts all the carbon in calcite; with the chloride the volcanoes gave it
+    (Earth: 0.55 mol/kg of chloride against 0.47 of sodium) the same ocean sits near neutral and keeps carbon in the water and the air."""
+    column = SEALED_OCEAN_KG_M2
+    sodium, calcium = wc.leached_cations_mol_m2(25.0)
+    carbon = 0.02 * column
+    bare = wc.ocean_pco2(carbon, 288.15, column, G, sodium_mol_m2=sodium, calcium_mol_m2=calcium)
+    salted = wc.ocean_pco2(carbon, 288.15, column, G, sodium_mol_m2=sodium, calcium_mol_m2=calcium, anion_charge_mol_m2=sodium + 2.0 * calcium)
+    assert bare.ph > 11.0 and salted.ph < 9.0
+    assert salted.pco2_bar > bare.pco2_bar and salted.dissolved_mol_m2 > bare.dissolved_mol_m2
+    assert salted.atmosphere_mol_m2 + salted.dissolved_mol_m2 + salted.precipitated_mol_m2 == pytest.approx(carbon, rel=1e-9)
+
+
+def test_an_anion_surplus_acidifies_the_ocean_and_a_zero_anion_charge_changes_nothing():
+    column = SEALED_OCEAN_KG_M2
+    sodium, calcium = wc.leached_cations_mol_m2(10.0)
+    carbon = 0.02 * column
+    zero = wc.ocean_pco2(carbon, 288.15, column, G, sodium_mol_m2=sodium, calcium_mol_m2=calcium, anion_charge_mol_m2=0.0)
+    same = wc.ocean_pco2(carbon, 288.15, column, G, sodium_mol_m2=sodium, calcium_mol_m2=calcium)
+    assert zero == same
+    acid = wc.ocean_pco2(carbon, 288.15, column, G, sodium_mol_m2=sodium, calcium_mol_m2=calcium, anion_charge_mol_m2=2.0 * (sodium + 2.0 * calcium))
+    assert acid.ph < 5.0 and acid.precipitated_mol_m2 == 0.0 and acid.pco2_bar > zero.pco2_bar
+
+
 def test_the_ocean_takes_almost_all_the_carbon_a_bare_atmosphere_would_hold():
     """Without the ocean the carbon of a ratio of 0.03 would be a pressure of 600 bar; with it, a few bar."""
     result = _pco2(0.03)

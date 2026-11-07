@@ -486,6 +486,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
 
     def shares(inventory):
         shares_ = {element: base * efficiency for element, efficiency in efficiencies.items()}
+        chloride_mol_m2 = inventory.get("Cl", 0.0) * shares_.get("Cl", 0.0) * moles_per_100_g / setting.area_m2       # GEN.1319: the chloride the volcanoes gave the ocean
+        sulfate_mol_m2 = 0.0
         if ocean:   # GEN.524 part 2: hydrogen chloride and fluoride are so soluble that an ocean takes all the volcanoes give (the air keeps none)
             shares_["Cl"] = shares_["F"] = 0.0
         degassed_sulfur = inventory.get("S", 0.0) * shares_.get("S", 0.0) * moles_per_100_g
@@ -494,6 +496,7 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             kept = sulfur_balance.balance(degassed_sulfur / setting.area_m2, age_s=age_s, ocean_present=ocean, oxidized_share=oxidized_share,
                                           crust_kg_m2=crust_kg_m2, lifetimes=lifetimes)
             shares_["S"] *= kept.air_mol_m2 * setting.area_m2 / degassed_sulfur
+            sulfate_mol_m2 = kept.sulfate_mol_m2
         degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g
         if degassed_hydrogen > mantle_hydrogen_mol:  # GEN.837: volcanoes bring up no more hydrogen than MANTLE_OUTGAS_SHARE of the mantle's water holds
             shares_["H"] *= mantle_hydrogen_mol / degassed_hydrogen
@@ -513,7 +516,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             else:
                 sodium, calcium = waterworld_carbon.leached_cations_mol_m2(water_world.draws.altered_km)
                 kept_bar = waterworld_carbon.ocean_pco2(carbon / setting.area_m2, temperature_k, setting.water_kg / setting.area_m2,
-                                                        setting.gravity_m_s2, sodium_mol_m2=sodium, calcium_mol_m2=calcium).pco2_bar
+                                                        setting.gravity_m_s2, sodium_mol_m2=sodium, calcium_mol_m2=calcium,
+                                                        anion_charge_mol_m2=chloride_mol_m2 + 2.0 * sulfate_mol_m2).pco2_bar
             shares_["C"] *= min(1.0, kept_bar / supply_bar)
         return shares_
 

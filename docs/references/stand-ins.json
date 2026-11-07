@@ -38545,6 +38545,90 @@
       "title": "Stand-in of how far apart random placement keeps two systems"
     },
     {
+      "key": "6.197",
+      "number": "6.197",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "all the chlorine a sealed world degasses (inventory[\"Cl\"] times the chlorine degassing share) stays in the ocean as chloride, none is lost to the crust (chlorapatite, evaporite, hydrothermal uptake)"
+            ],
+            [
+              "The range it moves in",
+              "the chlorine inventory bracket (AM92, chlorine_wt_percent) and the degassing share 0.05 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "a sealed ocean world"
+            ],
+            [
+              "What would show it wrong",
+              "a measured sink of chloride into the altered crust of an ocean world"
+            ],
+            [
+              "What replaces it",
+              "a reaction-transport model of the early ocean and the crust"
+            ],
+            [
+              "Evidence",
+              "reports/gen1309-oxygen-chain-2026-11-07.md"
+            ]
+          ],
+          "id": "AN1",
+          "key": "6.197:AN1",
+          "kind": "P",
+          "slug": "6-197-an1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "all the chlorine a sealed world degasses (inventory[\"Cl\"] times the chlorine degassing share) stays in the ocean as chloride, none is lost to the crust (chlorapatite, evaporite, hydrothermal uptake)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the sulfate of sulfur_balance.balance is the ocean's, each mole carrying two charges; gypsum and the calcium it takes are not tracked"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a sealed ocean world with a sulfur budget"
+            ],
+            [
+              "What would show it wrong",
+              "a sealed-ocean model that precipitates anhydrite at the sulfate the budget gives"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the ocean with calcium sulfate"
+            ],
+            [
+              "Evidence",
+              "as AN1"
+            ]
+          ],
+          "id": "AN2",
+          "key": "6.197:AN2",
+          "kind": "P",
+          "slug": "6-197-an2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the sulfate of sulfur_balance.balance is the ocean's, each mole carrying two charges; gypsum and the calcium it takes are not tracked"
+        }
+      ],
+      "slug": "6-197-stand-ins-of-the-strong-acid-anions-of-a-sealed-ocean",
+      "title": "Stand-ins of the strong-acid anions of a sealed ocean"
+    },
+    {
       "key": "6.182",
       "number": "6.182",
       "rows": [

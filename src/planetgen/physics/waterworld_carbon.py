@@ -185,8 +185,9 @@ class OceanCarbon:
     saturated: bool
 
 
-def _chemistry(pco2_bar, constants_, sodium, calcium):
-    """The ocean at a given pCO2: `(H, co2, hco3, co3, calcium dissolved)`, mol per kg of water, by bisection on the charge balance."""
+def _chemistry(pco2_bar, constants_, sodium, calcium, anions=0.0):
+    """The ocean at a given pCO2: `(H, co2, hco3, co3, calcium dissolved)`, mol per kg of water, by bisection on the charge balance. `anions` is the charge of the strong-acid anions
+    (chloride, and sulfate twice) in mol per kg of water: the cations are balanced by them first (GEN.1319)."""
     log_k0, log_k1, log_k2, log_ksp, log_kw = constants_
     co2 = 10.0 ** log_k0 * pco2_bar
     k1, k2, ksp, kw = 10.0 ** log_k1, 10.0 ** log_k2, 10.0 ** log_ksp, 10.0 ** log_kw
@@ -200,7 +201,7 @@ def _chemistry(pco2_bar, constants_, sodium, calcium):
 
     def residual(ph):
         h, hco3, co3, dissolved = state(ph)
-        return sodium + 2.0 * dissolved + h - kw / h - hco3 - 2.0 * co3
+        return sodium + 2.0 * dissolved + h - kw / h - hco3 - 2.0 * co3 - anions
 
     low, high = -2.0, 16.0
     for _ in range(100):
@@ -214,7 +215,7 @@ def _chemistry(pco2_bar, constants_, sodium, calcium):
     return h, co2, hco3, co3, dissolved
 
 
-def ocean_pco2(carbon_mol_m2, temperature_k, ocean_column_kg_m2, gravity_m_s2, *, sodium_mol_m2, calcium_mol_m2,
+def ocean_pco2(carbon_mol_m2, temperature_k, ocean_column_kg_m2, gravity_m_s2, *, sodium_mol_m2, calcium_mol_m2, anion_charge_mol_m2=0.0,
                air_molar_mass_kg_mol=0.04401):
     """
     The carbon dioxide pressure of a closed atmosphere, ocean and crust that holds `carbon_mol_m2` of carbon in all.
@@ -225,6 +226,7 @@ def ocean_pco2(carbon_mol_m2, temperature_k, ocean_column_kg_m2, gravity_m_s2, *
         ocean_column_kg_m2 (float): The ocean's mass per square metre.
         gravity_m_s2 (float): The surface gravity (the air's weight per mole follows from it).
         sodium_mol_m2, calcium_mol_m2 (float): The leached cations (`leached_cations_mol_m2`).
+        anion_charge_mol_m2 (float): The charge of the strong-acid anions the ocean holds, mol per square metre: the chloride the volcanoes gave it and twice its sulfate (GEN.1319).
         air_molar_mass_kg_mol (float): The mean molar mass of the air, kg/mol, which sets the moles of carbon dioxide per pascal
             (`p / (g M)`); 44 g/mol for a carbon dioxide air as Kite and Ford take it.
 
@@ -239,11 +241,12 @@ def ocean_pco2(carbon_mol_m2, temperature_k, ocean_column_kg_m2, gravity_m_s2, *
     carbon = max(carbon_mol_m2, 0.0)
     ocean = ocean_column_kg_m2
     sodium, calcium = max(sodium_mol_m2, 0.0) / ocean, max(calcium_mol_m2, 0.0) / ocean
+    anions = max(anion_charge_mol_m2, 0.0) / ocean
     constants_ = _log10_constants(temperature_k)
     per_pascal = 1.0 / (gravity_m_s2 * air_molar_mass_kg_mol)            # mol of carbon dioxide above one m2 per pascal of its pressure
 
     def totals(pco2_bar):
-        h, co2, hco3, co3, dissolved = _chemistry(pco2_bar, constants_, sodium, calcium)
+        h, co2, hco3, co3, dissolved = _chemistry(pco2_bar, constants_, sodium, calcium, anions)
         atmosphere = pco2_bar * BAR_PA * per_pascal
         in_water = (co2 + hco3 + co3) * ocean
         calcite = (calcium - dissolved) * ocean

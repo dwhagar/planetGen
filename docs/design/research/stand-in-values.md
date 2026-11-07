@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1192 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1194 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 111 | 85 | 24 | 61 | 0 | 281 |
+| T6 | 113 | 85 | 24 | 61 | 0 | 283 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 653 | 248 | 58 | 188 | 45 | 1192 |
+| All | 655 | 248 | 58 | 188 | 45 | 1194 |
 
 ## How the labels were given
 
@@ -1674,6 +1674,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md | - | no data |
+
+## 6.197 Stand-ins of the strong-acid anions of a sealed ocean
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| AN1 | P | T6 | L0 | all the chlorine a sealed world degasses (`inventory["Cl"]` times the chlorine degassing share) stays in the ocean as chloride, none is lost to the crust (chlorapatite, evaporite, hydrothermal uptake) | the chlorine inventory bracket (AM92, `chlorine_wt_percent`) and the degassing share 0.05 to 0.5 | a sealed ocean world | a measured sink of chloride into the altered crust of an ocean world | a reaction-transport model of the early ocean and the crust | reports/gen1309-oxygen-chain-2026-11-07.md | - | - |
+| AN2 | P | T6 | L0 | the sulfate of `sulfur_balance.balance` is the ocean's, each mole carrying two charges; gypsum and the calcium it takes are not tracked | none | a sealed ocean world with a sulfur budget | a sealed-ocean model that precipitates anhydrite at the sulfate the budget gives | a speciation of the ocean with calcium sulfate | as AN1 | - | - |
 
 ## 6.182 Stand-ins of where a stored belt member lies
 
