@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3588] - 2026-11-07
+
+**Headline:** The update script no longer warns about files that already exist.
+
+### Changed
+- **`update.sh`'s pull step stopped listing untracked files as "uncommitted local changes that will be overwritten".** Untracked files (`config.json`, logs, caches) always exist and the reset never touches them, so only edits to tracked files are warned about now.
+- **`set-permissions.sh` prints a plain note, not a warning, when `config.json` exists in both the checkout and the state folder.** Both files are left alone, as before.
+
 ## [8.0.3587] - 2026-11-07
 
 **Headline:** The tests that hold Io's tide to its observed heat now know the tide is a little larger since the melt coefficient of a partly molten mantle was taken from its source.
