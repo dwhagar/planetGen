@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3617] - 2026-11-07
+
+**Headline:** The materials table now holds the clays, amphiboles, feldspathoids, pyroxenes and oxides the recipes and the norm name, each with its density, hardness, crystal system and color.
+
+### Added
+- **45 silicate and oxide minerals and 3 groups in the materials table (GEN.1355, part 1 of the missing minerals).** Talc, brucite, the smectites (montmorillonite, saponite, nontronite, beidellite), the chlorites (clinochlore, chamosite), the serpentine kin (antigorite, lizardite, chrysotile), illite, palygorskite, sepiolite, the amphiboles (tremolite, hornblende), epidote, nepheline, leucite, hypersthene, augite, pigeonite, jadeite, analcime, wollastonite, the CAI phases (hibonite, grossmanite, melilite, akermanite, gehlenite), the iron oxides and hydroxides (maghemite, lepidocrocite, akaganeite, ferrihydrite, schwertmannite, ulvospinel, magnesiochromite) and the silica and lime phases (cristobalite, tridymite, opal, lime, portlandite, lonsdaleite), plus the `smectite`, `chlorite` and `amphibole` groups. Each value was read from the mineral's Webmineral page on 2026-11-07; wollastonite is 2.84 g/cm3 (the research file's recalled 2.9 is replaced), hornblende reads the magnesiohornblende page, lepidocrocite 4 is confirmed. Like the GEN.1356 rows they carry Mohs hardness, crystal system and color, and explicit nulls for the visible-band albedos.
+- `amorphous` joins the crystal systems a row may name (for opal).
+- The 45 minerals and 3 groups are tagged vocabulary-only (TEST.685) except nepheline, leucite, hypersthene and wollastonite, which the CIPW norm already names; the norm module joins the reachability scan, and a crystal-system row that shares a formula with another is no longer taken for a double (maghemite and hematite are polymorphs).
+
+`generation-output: unchanged`
+`TODO items resolved: GEN.1355`
+
 ## [8.0.3616] - 2026-11-07
 
 **Headline:** A test now fails when a row of the materials table is read by no draw and has no reason for it.
