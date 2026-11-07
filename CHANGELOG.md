@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3623] - 2026-11-07
+
+**Headline:** The bring-to-epoch help no longer shows an internal item code, and two tests that were red on main are fixed.
+
+### Changed
+- **bring-to-epoch help (TEST.684).** The text for `--no-wide-binaries` named an internal item code; it now says only what the option does. The tests that keep item codes out of shown text stay strict.
+- **Tests (TEST.684).** The ordered-pair fuzz check no longer reads the white dwarf helium envelope table (each pair is a white dwarf mass and its helium mass, not a low and a high) as a range.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.684.
+
 ## [8.0.3622] - 2026-11-07
 
 **Headline:** A neutron star's page now shows its crust, layer by layer, from the nuclei at the surface to the bottom of the inner crust.
