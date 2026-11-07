@@ -48,10 +48,14 @@
 #   6. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
-#   7. Ownership/permissions (`examples/apache/set-permissions.sh`): the
-#      whole checkout and its state directory belong to Apache's user
-#      (www-data:www-data), since a pull leaves new and changed files
-#      owned by root. The virtual environment stays root's.
+#   7. Ownership/permissions (`examples/apache/set-permissions.sh`, SEC.37):
+#      the code (everything but the state and jobs folders) belongs to
+#      root and is read-only to the web user, since this script runs git
+#      and Python from it as root; only the state directory (which also
+#      holds config.json), the jobs directory, the tile cache and the logs
+#      belong to Apache's user (www-data:www-data). The bytecode is
+#      compiled first, as root, because the web user cannot write it. The
+#      virtual environment stays root's.
 #   8. The tile cache and Generate jobs directories
 #      (`examples/apache/create-cache-dir.sh`), and the debug and activity
 #      logs (`examples/apache/setup-debug-log.sh`): each one's folder,
@@ -156,12 +160,6 @@ fi
 
 cd "$SCRIPT_DIR"
 
-# The checkout belongs to Apache's user (examples/apache/set-permissions.sh),
-# not to root, and git refuses a repository owned by someone else
-# ("detected dubious ownership"). Trust this one checkout for this run only,
-# through the environment rather than any git config file.
-export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$SCRIPT_DIR"
-
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     log_error "$SCRIPT_DIR is not a git checkout -- can't pull an update here."
     exit 1
@@ -259,7 +257,10 @@ else
     ensure_apache_modules
 fi
 
-log_stage 7 9 "Setting ownership/permissions: the checkout belongs to Apache's user"
+log_stage 7 9 "Setting ownership/permissions: the code belongs to root, read-only to Apache's user"
+# The web user cannot write __pycache__ in a tree that is not its own: compile here, as root, so its requests start fast.
+"$PYTHON" -m compileall -q "$SCRIPT_DIR/src" >/dev/null 2>&1 \
+    || log_warning "compiling the bytecode failed; the web app still runs, a little slower to start."
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
 log_stage 8 9 "Checking the cache, jobs and debug log locations"

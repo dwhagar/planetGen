@@ -76,8 +76,8 @@ LOCK_SUFFIX = ".lock"
 MISSING = ("config.json does not exist. It is your own copy of config.json.example: copy the example to "
            "config.json and edit it (INSTALL.md, 'config.json'), then try again.")
 
-FIX_HINT = ("config.json and its folder must belong to the web server's user: run ./update.sh on the server "
-            "(or `sudo examples/apache/set-permissions.sh`) and try again.")
+FIX_HINT = ("config.json lives in the state folder, which must belong to the web server's user: run ./update.sh on the "
+            "server (or `sudo examples/apache/set-permissions.sh`) and try again.")
 
 _ROLES = {"admin": 1, "owner": 2, "host": 3}
 _process_lock = threading.Lock()
@@ -139,7 +139,9 @@ class Result(Plan):
 # ---------------------------------------------------------------------
 
 def config_path():
-    return logpaths.CONFIG_PATH
+    """Where config.json is really written. SEC.37: the checkout is root's, so its config.json is a link into the state folder,
+    the web user's; the file is replaced in the folder it is in, not in the link's."""
+    return os.path.realpath(logpaths.CONFIG_PATH)
 
 
 def _folder(path):

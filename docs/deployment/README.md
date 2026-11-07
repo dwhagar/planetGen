@@ -66,14 +66,20 @@ addresses that keep guessing admin passwords.
   `update.sh` create both (`examples/apache/create-cache-dir.sh`), and
   move jobs left in the old default, `/var/lib/planetgen/jobs`, into the
   new one (a running job stays until it finishes).
-- **The checkout belongs to the web user.** Everything under the
-  checkout (`/var/lib/planetGen`), including `config.json` and the
-  `state/` directory the app writes its maintenance flag to, is owned by
-  the account the app runs as (`www-data:www-data` on Debian and Ubuntu):
-  directories 750, files 640, and scripts and `*.py` files 750. Nobody
-  else can read it. A fresh `install.sh` and an `update.sh` end with the
-  same ownership because both run `set-permissions.sh` on the whole
-  checkout. The virtual environment (`/usr/local/planetgen/venv`) and the
+- **The code belongs to root; the web user owns only its own folders
+  (SEC.37).** `install.sh` and `update.sh` run git, Python and the scripts in
+  the checkout (`/var/lib/planetGen`) as root, so nothing there that the web
+  user can write may ever run as root. Everything in the checkout is root's
+  with the web user's group (`www-data` on Debian and Ubuntu), read-only to
+  the web user: directories 750, files 640, scripts and `*.py` files 750.
+  Only the `state/` directory (770: the maintenance flag, the secret key,
+  the backups and `config.json`), the Generate jobs directory and the tile
+  cache and log folders belong to the web user (`www-data:www-data`).
+  `config.json` lives in `state/` so the Settings page can replace it, and
+  `/var/lib/planetGen/config.json` is a root-owned link to it; the first
+  `update.sh` after this change moves an old plain `config.json` there. The
+  bytecode is compiled as root. A fresh `install.sh` and an `update.sh` end
+  with the same ownership because both run `set-permissions.sh`. The virtual environment (`/usr/local/planetgen/venv`) and the
   NLTK corpus stay root's, since `install.sh` and `update.sh` run their
   Python as root. The web server is kept out of the checkout by the
   directory rules in the example Apache site: nothing is served from disk

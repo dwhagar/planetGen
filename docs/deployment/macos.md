@@ -103,15 +103,22 @@ installs the monthly orbit update (and update.sh, unless
 
 6. **Permissions.** The same rules `set-permissions.sh`,
    `create-cache-dir.sh` and `setup-debug-log.sh` apply on Linux: the code
-   checkout (and its `state/` directory) belongs to the web user, with
-   nobody else allowed in; the virtual environment stays root's.
+   checkout belongs to root with the web user's group, read-only to the
+   web user (SEC.37); only the `state/` directory (which also holds
+   `config.json`), the jobs directory, the tile cache and the logs belong to
+   the web user, with nobody else allowed in; the virtual environment stays
+   root's. The set-permissions script does all of this; by hand:
 
-       sudo install -d -o _www -g _www -m 750 /var/lib/planetGen/state
-       sudo chown -R -h _www:_www /var/lib/planetGen
-       sudo find /var/lib/planetGen -type d -exec chmod 750 {} +
-       sudo find /var/lib/planetGen -type f ! -perm -u+x -exec chmod 640 {} +
-       sudo find /var/lib/planetGen -type f \( -name '*.py' -o -name '*.sh' \) -exec chmod 750 {} +
+       sudo install -d -o _www -g _www -m 770 /var/lib/planetGen/state
        sudo install -d -o _www -g _www -m 750 /var/cache/planetgen/tiles /var/lib/planetGen/jobs
+       sudo mv /var/lib/planetGen/config.json /var/lib/planetGen/state/config.json
+       sudo ln -s /var/lib/planetGen/state/config.json /var/lib/planetGen/config.json
+       sudo chown _www:_www /var/lib/planetGen/state/config.json && sudo chmod 640 /var/lib/planetGen/state/config.json
+       # then the rest of the checkout, skipping state/ and jobs/:
+       sudo find /var/lib/planetGen \( -path /var/lib/planetGen/state -o -path /var/lib/planetGen/jobs \) -prune -o -exec chown -h root:_www {} +
+       sudo find /var/lib/planetGen \( -path /var/lib/planetGen/state -o -path /var/lib/planetGen/jobs \) -prune -o -type d -exec chmod 750 {} +
+       sudo find /var/lib/planetGen \( -path /var/lib/planetGen/state -o -path /var/lib/planetGen/jobs \) -prune -o -type f ! -perm -u+x -exec chmod 640 {} +
+       sudo find /var/lib/planetGen \( -path /var/lib/planetGen/state -o -path /var/lib/planetGen/jobs \) -prune -o -type f \( -name '*.py' -o -name '*.sh' \) -exec chmod 750 {} +
        sudo touch /var/log/planetgen.log && sudo chown _www:_www /var/log/planetgen.log && sudo chmod 660 /var/log/planetgen.log
        sudo chown _www:_www /usr/local/planetgen/log
 
