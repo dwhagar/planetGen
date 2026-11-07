@@ -155,7 +155,7 @@ options=(--enable-all --credentials)
 [[ "$install_tiles_timer" -eq 1 ]] || options+=(--skip-tiles-timer)
 [[ "$install_smoke_timer" -eq 0 ]] || options+=(--with-smoke-timer)
 echo "== Installing systemd units for $REPO_DIR (virtual environment $VENV) =="
-install_maintenance_units "${options[@]}" "${databases[@]}" || { echo "error: the units were not all installed (see above)." >&2; exit 1; }
+install_maintenance_units ${options[@]+"${options[@]}"} "${databases[@]}" || { echo "error: the units were not all installed (see above)." >&2; exit 1; }
 
 echo
 echo "Done. Check scheduled runs with:"
