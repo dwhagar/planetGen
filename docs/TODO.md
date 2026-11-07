@@ -15174,12 +15174,10 @@ clears each one.
   compromise becomes root at the next sudo ./update.sh. Do: make code and
   scripts root-owned and read-only to the web user and keep only state/, the
   tile cache and the log folders web-owned; change how update.sh writes the
-  tree to match. Needs a Boss decision (it changes how update.sh writes the
-  tree): TODO will bring it as a plain-word card with the fix as option 1.
-  Done: no file the web user can write is run as root, or Boss accepts the
-  risk with his name and an EST time in the report. Blocks the 8.1 stamp
-  unless Boss accepts. Version 8.1. Owner: Train Manager (update.sh and the
-  deploy scripts), after Boss decides.
+  tree to match. Boss decided option 1, make the code tree root-owned (7:32 PM EST on 2026-11-06; also chosen in the audit thread). Released to the Train Manager.
+  Done: no file the web user can write is run as root. Blocks the 8.1 stamp.
+  Version 8.1. Owner: Train Manager (update.sh and the deploy scripts); SEC.43
+  (the Update button) pairs with it.
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.33.
 
