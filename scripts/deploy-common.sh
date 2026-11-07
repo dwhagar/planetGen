@@ -89,6 +89,64 @@ install_launchd_plist() {
     log_info "launchd: installed and loaded $target ($label)"
 }
 
+# SEC.43: the admin pages' Update button. The web user only creates <state folder>/update.request; the root-owned
+# planetgen-update.path (examples/maintenance) sees it and starts planetgen-update.service, which removes the request and runs
+# update.sh. This installs the two units into /etc/systemd/system with this checkout's path and the state folder put in, and
+# enables the path unit. Linux with systemd only; anything it cannot do only warns (the update goes on), and macOS has no button.
+# Args: the state folder (defaults to the one deploy-paths.py gives). SYSTEMD_UNIT_DIR overrides /etc/systemd/system (tests).
+UPDATE_REQUEST_NAME=update.request
+ensure_update_request_units() {
+    is_macos && return 0
+    command -v systemctl >/dev/null 2>&1 || return 0
+    local unit_dir="${SYSTEMD_UNIT_DIR:-/etc/systemd/system}" state="${1:-}" example="$SCRIPT_DIR/examples/maintenance" name
+    local rendered changed=0 line
+    if [[ -z "$state" ]]; then
+        # The third line deploy-paths.py prints; read under -I so nothing the web user planted beside it is imported.
+        state="$(cd / && "$PYTHON" -I "$SCRIPT_DIR/examples/apache/deploy-paths.py" "$SCRIPT_DIR" 2>/dev/null | sed -n 3p)" || state=""
+    fi
+    case "$state$SCRIPT_DIR" in
+        *[[:space:]\|\&\%\$]*|*'"'*)
+            log_warning "the Update button's units were not installed: the checkout or state folder path is empty or has a space or a special character."
+            return 0 ;;
+    esac
+    if [[ -z "$state" || -z "$SCRIPT_DIR" ]]; then
+        log_warning "the Update button's units were not installed: no state folder could be read from deploy-paths.py."
+        return 0
+    fi
+    if [[ ! -d "$unit_dir" ]]; then
+        log_info "no $unit_dir; the admin Update button needs systemd and is not set up."
+        return 0
+    fi
+    for name in planetgen-update.service planetgen-update.path; do
+        rendered="$(sed -e "s|/var/lib/planetGen/state|%STATE%|g" -e "s|/var/lib/planetGen|$SCRIPT_DIR|g" \
+            -e "s|%STATE%|$state|g" "$example/$name")" || continue
+        if [[ -f "$unit_dir/$name" && "$(cat "$unit_dir/$name")" == "$rendered" ]]; then
+            continue
+        fi
+        if printf '%s\n' "$rendered" > "$unit_dir/$name.new" && chmod 644 "$unit_dir/$name.new" \
+            && mv -f "$unit_dir/$name.new" "$unit_dir/$name"; then
+            log_info "systemd: installed $unit_dir/$name"
+            changed=1
+        else
+            rm -f "$unit_dir/$name.new"
+            log_warning "could not write $unit_dir/$name; the admin Update button will not work until it is installed."
+            return 0
+        fi
+    done
+    if (( changed )); then
+        systemctl daemon-reload || log_warning "systemctl daemon-reload failed; run it by hand."
+    fi
+    if ! systemctl is-enabled --quiet planetgen-update.path 2>/dev/null; then
+        if systemctl enable --now planetgen-update.path >/dev/null 2>&1; then
+            log_info "systemd: planetgen-update.path enabled (the admin Update button drops $state/$UPDATE_REQUEST_NAME)"
+        else
+            line="systemctl enable --now planetgen-update.path"
+            log_warning "could not enable the Update button's path unit; run: sudo $line"
+        fi
+    fi
+    return 0
+}
+
 # macOS's counterpart of the Apache module check: gunicorn under launchd
 # (examples/macos/org.planetgen.gunicorn.plist), serving on 127.0.0.1:8000
 # for nginx. Installed and started the first time only. Its log

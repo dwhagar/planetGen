@@ -359,6 +359,17 @@ To stop everything and keep it stopped, use `sudo planetgen queue stop-all` (or 
 Do not use a plain `git pull`: it skips the migration and can drop the
 scripts' executable bits.
 
+### The Update button (Linux)
+
+The admin pages can start `update.sh` without anyone holding a root shell (SEC.43). The web server's user only creates an empty file,
+`update.request`, in the state folder. The root-owned unit `planetgen-update.path` sees it and starts `planetgen-update.service`,
+which deletes the request and runs `update.sh` as root. The file is never read and the command has no argument, so a request can do
+nothing except run the update. A press made while an update runs waits for it and runs after it; the update guard decides whether
+running work is cancelled or the update refuses. `install.sh` and `update.sh` install and enable both units with this checkout's path
+and state folder; `install-maintenance-timer.sh` does too, and `--skip-update-button` leaves the path unit out. Progress is in
+`update.log` in the log folder and `journalctl -u planetgen-update.service`. If a request file cannot be removed, the service stops after
+ten tries in ten minutes; clear it with `sudo systemctl reset-failed planetgen-update.service`.
+
 ### Scheduled maintenance
 
 The monthly orbit update (`planetgen.cli.orbits`, at 03:30 on the 1st)
