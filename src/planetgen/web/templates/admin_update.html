@@ -47,7 +47,8 @@
 {%- if data.log %}
 <section class="panel" aria-labelledby="update-log-heading">
   <h2 id="update-log-heading">Log (update.log)</h2>
-  <pre class="job-log" tabindex="0">{{ data.log }}</pre>
+  <pre class="job-log" id="update-log" data-follow-end tabindex="0">{{ data.log }}</pre>
+  <script src="{{ static_url('logfollow.js') }}" defer></script>
 </section>
 {%- endif %}
 {%- endif %}
