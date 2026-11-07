@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3521] - 2026-11-07
+
+**Headline:** The SEC.44 folder check now accepts folders in a user's home folder, for a planetGen installed in a home folder on a shared machine.
+
+### Changed
+- **`/home` and `/Users` are allowed parents for the folders `config.json` names** (tile cache, jobs, debug log, log folder). In a home folder the folders on the way may belong to the user (not only to root), as long as the web user does not own them and the web server's group cannot write them. A name that starts with a dot (`~/.ssh`) is refused, and a whole home folder is never taken over (it is not empty and not the web user's). Every other SEC.44 rule stays: plain characters, no symbolic link, no system service's folder, an existing folder is only taken over when it is the web user's or empty. The web group test now looks at the groups the web user is really in, instead of treating every unknown group as able to write.
+
 ## [8.0.3520] - 2026-11-07
 
 **Headline:** INSTALL.md walks through giving Redis a user and a password, for a new install and for one already running without.
