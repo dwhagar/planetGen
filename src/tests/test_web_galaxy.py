@@ -768,7 +768,8 @@ def test_cloud_volume_endpoint_serves_the_packed_bytes_of_a_sphere(client, fake,
     assert "max-age" in resp.headers["Cache-Control"]
     assert calls == [(DB, 1.0, -2.5, 3.0, 4.0, "supernova-remnant")]
 
-    for query in ("", "x=1&y=2&z=3", "x=a&y=2&z=3&radius_pc=4", "x=1&y=2&z=3&radius_pc=four"):
+    for query in ("", "x=1&y=2&z=3", "x=a&y=2&z=3&radius_pc=4", "x=1&y=2&z=3&radius_pc=four", "x=nan&y=2&z=3&radius_pc=4",
+                  "x=1&y=-inf&z=3&radius_pc=4", "x=1&y=2&z=3&radius_pc=inf"):         # SEC.41: not finite is a bad query too
         resp = client.get("/galaxy/cloud-volume?" + query)
         assert resp.status_code == 400 and "error" in resp.get_json(), query
     assert len(calls) == 1, "a bad query never reaches the API"

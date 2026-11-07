@@ -2,6 +2,48 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3519] - 2026-11-07
+
+**Headline:** The locked nltk is 3.10.4, and the API refuses "nan" and "inf" in its numbers with a 400 instead of a server error.
+
+### Changed
+
+- `requirements.lock` and `requirements-server.lock` (SEC.40, audit finding S-L1): nltk 3.10.3 to 3.10.4 (advisory PYSEC-2026-3740, not reachable: nltk only reads the words corpus in `names/wordlists.py`), with the hashes of the 3.10.4 wheel and source archive; its dependencies are unchanged. `pip-audit` finds no known vulnerability in either lock, and the name tests pass on 3.10.4.
+- `util/checks.py` `finite_float` (SEC.41, finding S-L2): the one place a request's text becomes a float, refusing "nan", "inf" and "-inf" with a `ValueError`. `GET /api/galaxy/made` (`since`, `until`), `GET /api/galaxy/cloud-volume` and the web `/galaxy/cloud-volume` use it, so they answer the usual 400 where "nan" used to reach MySQL as a parameter and answer an anonymous 500 (and the web route answered 502). The other routes that read floats already refused non-finite numbers.
+
+generation-output: unchanged
+
+## [8.0.3518] - 2026-11-07
+
+**Headline:** The API link audit knows the belt member route and the site update route, so it is green again.
+
+### Changed
+
+- `src/tests/test_api_link_ids.py` (TEST.662): `api.object_belt_member_route` (GEN.1070) and `update.get_update` each get a reason in the list of endpoints the audit does not fetch (a belt member is named by the ref and rank in its path, and the update state carries no linked object).
+
+generation-output: unchanged
+
+TODO items resolved: TEST.662.
+
+## [8.0.3517] - 2026-11-07
+
+**Headline:** The check that no maths in the package depends on the library version passes again: the stellar table and the sky files use the package's own distance and matrix product.
+
+### Changed
+
+- `src/planetgen/galaxy/stellar_table.py` (TEST.663): the four `@` products (the Legendre projection of the residual and the three table products) are `detmath.matmul`, which adds left to right with no BLAS blocking.
+- `src/planetgen/db/sky_tier_ledger.py`, `src/planetgen/generation/sky_charting.py`: the three `math.dist` calls are `detmath.dist`. `test_no_version_or_library_dependent_maths_in_the_package` was red on main with these seven lines.
+- Checked: `test_reproducible_draws.py`, `test_stellar_table.py`, `test_sky_charting.py`, `test_sky_tiers.py`, `test_system_sky_route.py` and `test_golden_seed.py` pass (113 passed, 1 skipped, 12 min 36 s on 4 vCPUs).
+
+generation-output: unchanged
+
+## [8.0.3516] - 2026-11-07
+
+**Headline:** The SEC.44 folder check now accepts folders in a user's home folder, for a planetGen installed in a home folder on a shared machine.
+
+### Changed
+- **`/home` and `/Users` are allowed parents for the folders `config.json` names** (tile cache, jobs, debug log, log folder). In a home folder the folders on the way may belong to the user (not only to root), as long as the web user does not own them and the web server's group cannot write them. A name that starts with a dot (`~/.ssh`) is refused, and a whole home folder is never taken over (it is not empty and not the web user's). Every other SEC.44 rule stays: plain characters, no symbolic link, no system service's folder, an existing folder is only taken over when it is the web user's or empty. The web group test now looks at the groups the web user is really in, instead of treating every unknown group as able to write.
+
 ## [8.0.3515] - 2026-11-07
 
 **Headline:** The install and update scripts no longer let a folder named in config.json steer what root creates, re-owns or writes.

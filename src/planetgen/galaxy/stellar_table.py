@@ -32,6 +32,8 @@ import math
 import numpy as np
 from scipy.interpolate import CubicSpline
 
+from planetgen.util import detmath
+
 G = 4.30091727e-3
 """float: Overridden by `galaxy.potential.G_PC_KMS2_PER_MSUN` at build time (see `build`)."""
 LMAX = 24
@@ -174,7 +176,7 @@ def build(density_fn, analytic_density_fn, big_g):
     pz = rr * x_nodes[None, :, None] + 0.0 * px
     residual = (density_fn(px, py, pz) - analytic_density_fn(px, py, pz)).mean(axis=2)          # (RADIAL, ANGLES)
     residual = np.where(np.isfinite(residual), residual, 0.0)
-    d_l = ((residual * w[None, :]) @ p_nodes.T) * (2 * degrees + 1)                                # (RADIAL, n_degrees)
+    d_l = detmath.matmul(residual * w[None, :], p_nodes.T) * (2 * degrees + 1)                                # (RADIAL, n_degrees)
     a, b = _segment_sums(d_l * r[:, None] ** 2, du, degrees)
     coefficient = 4.0 * math.pi * big_g / (2 * degrees + 1)
     phi_l = -coefficient * (a + b)
@@ -188,10 +190,10 @@ def build(density_fn, analytic_density_fn, big_g):
     sin_grid = np.sqrt(np.maximum(1.0 - x_grid ** 2, 0.0))
     spline = CubicSpline(np.log(r), np.stack([phi_l, force_l, d_l], axis=0), axis=1)
     s_phi, s_force, _ = spline(u)                                                                 # each (TABLE_U, n_degrees)
-    potential = s_phi @ p_grid
-    radial = s_force @ p_grid
+    potential = detmath.matmul(s_phi, p_grid)
+    radial = detmath.matmul(s_force, p_grid)
     # a_theta = (sin theta / r) sum phi_l P_l'(x)
-    polar = (np.exp(-u)[:, None] * (s_phi @ dp_grid)) * sin_grid[None, :]
+    polar = (np.exp(-u)[:, None] * detmath.matmul(s_phi, dp_grid)) * sin_grid[None, :]
     # the density table is the residual itself on the grid, not the truncated series (the series cannot follow a thin disk's edge or the model's fall beyond 16 kpc)
     grid_r = np.exp(u)[:, None, None]
     grid_sin = sin_grid[None, :, None]

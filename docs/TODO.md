@@ -12196,8 +12196,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: the rule, a test of a gap with too little mass (no belt) and one
   with enough (a belt), and the measured shares in the note. Generation
   output changes (an epoch), so a lock item for the next train it is
-  ready for; it cannot reach train 10 (its list is frozen). Proposed
-  owner: Core 3 after GEN.1246. Filed by the TODO thread.
+  ready for; it cannot reach train 10 (its list is frozen). Owner:
+  Aux 5 (belts), after GEN.1085 part 2 (reassigned from Core 3, 8:25 PM EST
+  on 2026-11-06). Filed by the TODO thread.
   Prerequisites: none. Related: TEST.579, GEN.725.
 
 - [ ] **GEN.1261 Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken**
@@ -13159,53 +13160,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   identical). Lock-free if the output is identical. Version 8.1. Owner:
   Bug 1, after GEN.1275 merges. Filed by the TODO thread.
   Prerequisites: GEN.1275. Related: GEN.1275, PERF.236.
-
-- [ ] **PERF.241 A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug)**
-  The Train Manager (as the lane reported, about 3:47 PM EST on
-  2026-11-05, full-suite run on main) timed one system with every orbit
-  flag forced on: O0V 96 s, O1V 46 s, O3V 45 s, O2V 20 s, O4V 15 s, O5V
-  22 s. Tests that build about 70 of them time out alone:
-  test_fuzz_system_generation (every_star_type x9, extreme_orbit_counts,
-  forced_flag_on_together, random_valid_configs), test_prevalence
-  (feature_moves_by_percentage x8, no_binaries),
-  test_census_representation (7), test_prevalence_census,
-  test_systems_census, census_nebula_wholesphere, generation_mix giants,
-  bughunt_sector_placement, test_systems O5V, life_text_consistency,
-  generation_size_estimate. Do: profile one O0V system with all flags on
-  (cProfile, top 20 by cumulative time), say where the time goes (the
-  temperature series of PERF.238, moon or rogue builds, the stability
-  search), and cut the cost where it changes no output; where a cut
-  would change values, file it as a lock item with the epoch. In
-  parallel the tests build fewer systems where the property allows
-  (TEST.417 style). Done: no test times out at 900 s on a 4 vCPU box
-  (the line "one all-flags O0V system takes under 20 s" moved to
-  PERF.244, see below). Related: PERF.238,
-  TEST.417, TEST.571. Lock-free for the test parts. Version 8.1. Owner:
-  Bug 1. Filed by the TODO thread.
-  Profile done (Bug 1, as the lane reported) (4:38 PM EST on
-  2026-11-05): reports/perf241-all-flags-o0v-profile-2026-11-05.md. 63
-  percent of an O0V all-flags system is bodies built twice after
-  space_orbits pushes planets out (GEN.1282, lock item); the forced
-  habitable world makes the placement loop draw the whole system 8 times
-  (PERF.242, lock item); gas-equilibrium solves are 54 percent of the
-  unprofiled time and a cache gains nothing. Cuts that change no output
-  give only 10 to 20 percent. Bug 1 meanwhile cuts the system counts of
-  the timing-out tests where the property allows, in small PRs. The
-  prevalence feature_moves tests on the list are PERF.236, already in
-  train 12. PERF.241 stays open until GEN.1282 lands and the hot-star
-  tests are cut.
-  Rescoped (Bug 1, as the lane reported, about 9:36 PM EST on
-  2026-11-05, TODO accepted): with GEN.1282 an O0V all-flags system takes
-  55 s (about 380 s before) and builds 89 planets and about 186 moons;
-  75 percent of the time is moons at 0.15 s per body, and 80 percent of
-  that is surface_air.solve redrawing the outgassed mixture about 8
-  times per body (14 gas-equilibrium solves per body); an O5V all-flags
-  system takes about 80 s. Hot-star ecosphere draws do succeed (O5V 1 of
-  30, O3V 1 of 8, G2V 2 of 30), so PERF.242's premise was false and it is
-  closed. The line is now: no test over 900 s on 4 vCPU, reached by
-  cutting the trials of the hot-star tests (lock-free); the under 20 s
-  line was PERF.244, closed without a build (Bug 1 profile, 11-06: no single lever, the gas solver is 19 percent of the time).
-  Prerequisites: none. Related: PERF.238, PERF.244.
 
 ## DB: Database and schema
 
@@ -15090,41 +15044,20 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.37.
 
-- [ ] **TEST.662 test_api_link_ids::test_every_get_endpoint_is_audited is red on main: api.object_belt_member_route (GEN.1070) is neither audited nor given a reason (bug)**
-  Core 1 (as the lane reported, 8:08 PM EST on 2026-11-06), seen on main while merging MAP.403. The GET route for a belt member (GEN.1070) was added without an entry in the audit list of link ids and without a stated reason, so test_every_get_endpoint_is_audited fails on main. Do: audit the route (its ids link to the object pages) or give the reason it is exempt, in the same form the other routes use. Done: the test is green on main. Lock-free. Version 8.1. Owner: Aux 5 (belts).
-  Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1070, TEST.661.
-
-- [ ] **TEST.663 test_reproducible_draws::test_no_version_or_library_dependent_maths_in_the_package is red on main: stellar_table.py uses the matrix operator @ and the sky files use math.dist, both outside the deterministic maths (bug)**
-  Bug 1 (as the lane reported, 8:06 PM EST on 2026-11-06), seen while fixing PERF.246. The reproducibility test bans version- or library-dependent maths in the package (the matrix operator, math.dist) because the same seed must give the same bits on every machine and library version; it is red on main for stellar_table.py (@) and the sky files (math.dist). Do: replace each with the deterministic detmath form (sum and product order fixed) and check the outputs are bit-identical where they feed stored values; where a sky file only draws pictures, say so in the test's exemption list with the reason. Done: the test is green on main and the golden is unchanged. Lock-free if bit-identical. Version 8.1. Owner: Bug 1.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.661, PERF.246.
-
 - [ ] **TEST.664 test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug)**
   Planets 1 (as the lane reported, 8:15 PM EST on 2026-11-06), seen on plain main while building GEN.1320. Do: find out whether the test or the life timeline is wrong (the delay before an oxygenic world holds oxygen), fix it, and cut its 8-minute run if a smaller draw proves the same thing. Done: green on main and under 2 minutes, or a stated reason it cannot be. Lock-free. Version 8.1. Owner: Bug 1.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.661, GEN.1320.
 
-- [ ] **SEC.40 Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740)**
-  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L1, Low): GHSA-8mgp-746c-j5xp / CVE-2026-81726 is
-  fixed in 3.10.4. Not reachable (nltk only reads the words corpus in
-  names/wordlists.py), but the lock should not carry it. Do: bump the
-  version in both lock files and re-run pip-audit; if the bump breaks the
-  wordlist read, record a dated ignore with the not-reachable reason
-  instead. Lock-free. Done: pip-audit clean for nltk on both locks. Version
-  8.1. Owner: Core 3, after SEC.38.
+- [ ] **OPS.110 One installer for every systemd unit: render the maintenance, tile, smoke and gunicorn units from the checkout location and venv, and have install.sh and update.sh offer it**
+  Boss (8:29 PM EST on 2026-11-06) asked whether a script puts the right files into systemd and enables them based on the install directory. Today only planetgen-update.service and planetgen-update.path are rendered from the checkout (ensure_update_request_units in scripts/deploy-common.sh, run by install.sh and update.sh). examples/maintenance/install-maintenance-timer.sh copies the orbit, update, tile and smoke units as they are, so they still say /var/lib/planetGen and /usr/local/planetgen/venv; planetgen-gunicorn.service (nginx and Caddy hosts) is copied by hand with the same fixed paths; and neither install.sh nor update.sh offers the timer script, so a fresh install has no timers until someone runs it. Do: make install-maintenance-timer.sh render every unit with the checkout path (its own location) and the venv (PLANETGEN_VENV, as deploy-common.sh does), keep the state folder from deploy-paths.py, install planetgen-gunicorn.service when the host is not Apache (and reload it as update.sh already does), let install.sh and update.sh run it or say the one command to run (never a silent change to a host that has timers on purpose), and refuse a path with a space or special character as ensure_update_request_units does. No shim for the old copied units: a unit that differs from the rendered one is replaced and the change is logged. Done: a test renders each unit under a checkout in a temporary directory and finds no /var/lib/planetGen or /usr/local/planetgen left, the docs for nginx, Caddy and the maintenance timers match, and the docs tests pass. Lock-free. Version 8.1. Owner: Core 3, after DOC.109 (the same deploy files).
   Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.33.
+  Prerequisites: none. Related: SEC.43, DOC.109.
 
-- [ ] **SEC.41 GET /api/galaxy/made?since=nan: reject non-finite floats**
-  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L2, Low, suspected from code): api/routes.py:1148
-  takes float() with no isfinite test, so nan or inf goes to MySQL as a
-  parameter and probably gives an anonymous 500. Do: reject non-finite
-  values in the one place that parses these floats, with a test for nan, inf
-  and -inf on this route and its siblings. Lock-free. Done: the request
-  returns the usual 400 error. Version 8.1. Owner: Core 3, after SEC.38.
+- [ ] **DOC.109 Rewrite INSTALL.md to set up the Redis user and password: create the planetgen user from examples/redis/planetgen-acl.conf, turn off the passwordless default user, put the password in redis.url, and say what update.sh warns about**
+  Boss (8:23 PM EST on 2026-11-06), on SEC.39: he will reconfigure his Redis server when he can, update.sh keeps warning until then, and the install document must walk through the Redis user and password. Do: rewrite the Redis part of INSTALL.md (and the deployment README it links) so a new install creates the planetgen user from examples/redis/planetgen-acl.conf with a password the reader chooses, switches off the default user, puts the URL in the configuration, checks the connection, and states what the update.sh warning means and how it goes away; include the steps for an existing install that already runs on the passwordless default user. Done: the document has the steps in order for both a new and an existing install, and the docs tests pass. Lock-free. Version 8.1. Owner: Core 3 (wrote the ACL file in SEC.39), after SEC.40 and SEC.41.
   Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.33.
+  Prerequisites: none. Related: SEC.39.
 
 - [ ] **SEC.42 Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml**
   Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L3, S-L4, S-L5, Low): ci.yml, release-note.yml and
@@ -16784,18 +16717,13 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.509, GEN.722, GEN.753.
 
-- [ ] **GEN.1324 Ground gamma dose of an Earth-like body is 0.003 mSv/yr against 0.48 measured, because it uses the primitive mantle's uranium, thorium and potassium and not a crust (bug)**
-  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: the ground gamma dose reads the mantle's primitive U, Th and K. Earth's measured ground dose (0.48 mSv/yr) comes from the crust, which holds most of those elements. Do: give a differentiated rocky body a crust with enriched U, Th and K (continental crust figures as the anchor, scaled by how much of the body has differentiated, registered stand-ins) and read the dose from the crust. Lock item (output of the dose columns changes). Done: an Earth twin reads 0.4 to 0.6 mSv/yr in the sweep. Version 8.1. Owner: Core 5, first after GEN.1310.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.753.
-
 - [ ] **GEN.1325 Giant planet eccentricity averages 0.08 against 0.22 published for the observed giants**
   Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: mean eccentricity of generated giants is 0.08, the published mean of observed giants is 0.22 (Doppler surveys). Do: look at how giant eccentricity is drawn (scattering and secular excitation, the Rayleigh or Beta fit to the surveys), find why it is low, and fix it with sourced values or registered stand-ins; keep the inner-disc planets' low values. Lock item. Done: the sweep mean and the distribution of giant eccentricity match the survey within its spread. Version 8.1. Owner: Planets 1, after GEN.1278.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.753.
 
 - [ ] **GEN.1326 Measure the hot class N planets: at the 2,000 K cap they hold 1,000 to 17,000 bar of air with almost no water, against JWST bare-rock results**
-  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: 10 of 32 hot planets at 16 times the Earth's starlight or more hold 1,000 to 17,000 bar of air with almost no water; JWST observations of hot rocky planets mostly show bare rock or thin air. Do: run the measurement (how the air is outgassed against how it is lost at those temperatures), say whether the generator or the observations are right, and file or build the fix with sources. Done: a short report with numbers and a verdict, and a follow-up item if the generator is wrong. Version 8.1. Owner: Core 5, after GEN.1324.
+  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: 10 of 32 hot planets at 16 times the Earth's starlight or more hold 1,000 to 17,000 bar of air with almost no water; JWST observations of hot rocky planets mostly show bare rock or thin air. Do: run the measurement (how the air is outgassed against how it is lost at those temperatures), say whether the generator or the observations are right, and file or build the fix with sources. Done: a short report with numbers and a verdict, and a follow-up item if the generator is wrong. Version 8.1. Owner: Core 5, after GEN.1310.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.753, GEN.1310.
 

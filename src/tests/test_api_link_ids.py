@@ -50,7 +50,7 @@ ROW_NUMBERS_KEPT = {
 for the decision whether to print them too."""
 
 NOT_AUDITED = {
-    "admin": "administration pages carry no object", "auth": "accounts carry no object", "backups": "files, no object",
+    "admin": "administration pages carry no object", "update": "the state of the site update, no linked object", "auth": "accounts carry no object", "backups": "files, no object",
     "images": "files, no object", "settings": "settings, no object", "workqueue": "work runs, no object",
     "api.databases": "database names", "api.health": "a status", "api.job_status_route": "a job number",
     "api.page_job_status_route": "a job number", "facility_types.facility_type": "a facility type table",
@@ -60,7 +60,7 @@ NOT_AUDITED = {
     "api.system_sky_band_route": "an image of the glow, no object",
     "api.system_sky_route": "the sky of a system: packed stars and sprites, whose ids are printed IDs (tests/test_system_sky_route.py)",
     "api.nebula_shape_route": "no nebula in the fixture; routed by printed ID", "api.nebula_surroundings_route": "no nebula in the fixture",
-    "api.nebula_volume_route": "no nebula in the fixture", "api.galaxy_cloud_volume_route": "cloud bytes sampled at a sphere, no linked object", "api.object_sensor_route": "sensor readings of one object, which is the ref in the path", "api.object_belt_page_route": "the belt page of one object, which is the ref in the path", "api.sector_gravity": "gravity map numbers of a sector, no linked object", "api.galaxy_nebula_volume_route": "no nebula in the fixture",
+    "api.nebula_volume_route": "no nebula in the fixture", "api.galaxy_cloud_volume_route": "cloud bytes sampled at a sphere, no linked object", "api.object_sensor_route": "sensor readings of one object, which is the ref in the path", "api.object_belt_page_route": "the belt page of one object, which is the ref in the path", "api.object_belt_member_route": "the page of one belt member, which is the ref and rank in the path", "api.sector_gravity": "gravity map numbers of a sector, no linked object", "api.galaxy_nebula_volume_route": "no nebula in the fixture",
     "api.galaxy_bright_stars_in_cell": "scattered stars, not built systems", "api.galaxy_profile": "density profile numbers",
     "api.galaxy_uncharted_sector": "uncharted cell numbers", "api.uncharted_phenomenon": "scattered phenomenon, no built object",
     "api.uncharted_system": "scattered star, no built object",
