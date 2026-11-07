@@ -244,6 +244,17 @@ def test_giants_rise_with_the_mass_of_the_star_and_with_its_metallicity():
     assert giants(1.0, -0.4, 3) * 2.0 < giants(1.0, 0.4, 3)
 
 
+def test_an_m_dwarf_has_giants_within_2_5_au_as_often_as_the_survey_finds():
+    # GEN.1336 / [R2172]: 3.5 percent of 0.5 solar mass stars at solar metallicity, in proportion to the star's mass; the model's snow line lies close in round
+    # an M dwarf, so before the gas of a lighter star's disk fell with its mass the rate was about 7 percent.
+    _mass, _snow, sky = _sky(0.5, 0.0, 3000, 808)
+    share = sum(1 for a in sky if any(s.runaway and s.distance_au < 2.5 for s in a.planets)) / len(sky)
+    assert 0.02 < share < 0.055, share
+    _mass, _snow, sky = _sky(1.0, 0.0, 3000, 809)
+    sun = sum(1 for a in sky if any(s.runaway and s.distance_au < 2.5 for s in a.planets)) / len(sky)
+    assert share < sun, (share, sun)
+
+
 def test_cold_giants_of_a_sun_like_star_are_as_common_as_the_survey_finds_them():
     mass_kg, _snow, sky = _sky(1.0, 0.0, 2500, 303)
     share = sum(1 for a in sky if any(s.runaway and 2.0 <= s.distance_au <= 8.0 for s in a.planets)) / len(sky)
@@ -255,7 +266,8 @@ def test_hot_jupiters_are_rare_and_rarer_round_a_red_dwarf():
         _mass, _snow, sky = _sky(mass_solar, -0.03, n, seed, spread=0.2)
         return sum(1 for a in sky if any(s.migrated and s.distance_au < tuning.GIANT_HOT_ORBIT_AU for s in a.planets)) / len(sky)
 
-    sun, red = rate(1.0, 6000, 404), rate(0.55, 6000, 405)
+    # GEN.1336: the red dwarf's rate is the pool of three seed blocks (it passed on seed 405 alone before the gas of a lighter star's disk fell with its mass)
+    sun, red = rate(1.0, 6000, 404), sum(rate(0.55, 2000, seed) for seed in (405, 406, 407)) / 3.0
     assert po.compare(sun, po.BANDS["hot_jupiter_rate.G"], po.share_sigma(sun, 6000)).ok or \
         po.compare(sun, po.BANDS["hot_jupiter_rate.G.rv"], po.share_sigma(sun, 6000)).ok, sun
     assert po.compare(red, po.BANDS["hot_jupiter_rate.M"], po.share_sigma(red, 6000)).ok, red
