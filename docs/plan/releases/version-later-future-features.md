@@ -20,7 +20,7 @@ Neighbour galaxies, more than one galaxy in the database and the intergalactic f
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies |  | Research: stage 1 of GEN.9. |
+| GEN.157 | The `neighbor_galaxies` table drawn from the seed (the real Local Group list is a test reference only, no shipped content) |  | Research: stage 1 of GEN.9. |
 | GEN.1292 | The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later) | VIEW.46 |  |
 | UX.282 | Named View presets (Simple, Habitable worlds, Civilizations) as a small drop-down at the top of the View menu | UX.281 |  |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | GEN.157 | Research. |

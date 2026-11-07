@@ -182,7 +182,6 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies |  | Core 1; Boss 4:02 PM EDT: feasibility study. |
 | GEN.534 | A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young` |  | Residual of GEN.528: the system-type tables do not name satellite_young. Core 3 proposed. |
 
 ### Globular clusters
@@ -575,6 +574,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1344 | An air that cannot settle in the 60 steps of the air fixed point (about 4 percent of airs: a haze or ocean switch makes the step jump down as it warms, so there is no exact fixed point) stores the last answer, up to 75 K off the switch point; store the knee value instead |  |  |
 | GEN.1345 | Sealed-ocean crust: find a published range for the altered-crust thickness (waterworld_carbon.ALTERED_CRUST_KM, row AM54) and change it only if a source supports it |  |  |
 | GEN.1346 | Steam-air energy-limited efficiency: set ENERGY_LIMITED_EFFICIENCY to 0.1 to 0.15 instead of 0.01, with the stand-in registered and the census re-measured |  |  |
+| GEN.1347 | Tidal inflation of super-puff radius (the tidal-inflation equation in the GEN.1343 report, which needs the planet's drawn obliquity) so super-puffs stay inflated past 1 Gyr |  |  |
 | DB.115 | A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug) |  |  |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) |  |  |
 
