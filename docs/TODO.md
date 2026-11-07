@@ -14976,22 +14976,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   word. Version 8.7. Filed by the TODO thread.
   Prerequisites: DOC.58, UX.43, DOC.81.
 
-- [ ] **VIEW.45 Re-baseline the HYG calibration test (VIEW.30) for the new dust, in dust-free and default-dust modes, in the small and the Milky Way sized galaxy**
-  Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
-  recommendations, option 1 on all five questions
-  (reports/view20-realistic-dust-2026-11-05.md): dust built from the
-  galaxy's own gas, nearly clear small galaxies are accepted,
-  metallicity by galaxy mass, the gradient per scale length, and a
-  smooth disk first with the central molecular zone as a later item. Do:
-  VIEW.30's calibration test compares a dust-free count with dust-free
-  tiers (Core 3's change) and, new, the default-dust count with the
-  gas-built model, in both the small galaxy and a Milky Way sized one;
-  state the bands. The small galaxy's 586 stars beyond 217 pc against
-  2,184 dust-free was a scaling bug of the old fixed law, so the new
-  default should land close to the dust-free count. Done: the bands and
-  the test. Lock-free. Version 8.2. Owner: Core 3. Filed by the TODO
-  thread.
-  Prerequisites: VIEW.30. Related: VIEW.30.
+- [ ] **VIEW.48 dust_model.py raises a cosh overflow RuntimeWarning for stars far above the plane (the result is right, the warning is noise)**
+  Core 3 (as the lane reported 4:37 AM EST on 2026-11-07), seen in the VIEW.45 calibration: `dust_model.py` around line 155 takes a cosh of a large argument for stars far above the galactic plane and numpy warns of an overflow. Do: compute the value in a form that cannot overflow (for example from the exponential of the negative argument, or clip the argument where the dust is already nil) and say in the commit that the result is unchanged. Done: no RuntimeWarning in a run of the dust tests with warnings as errors, and the result identical to before. Lock-free. Version 8.2. Owner: Core 3. Filed by the TODO thread.
+  Prerequisites: none. Related: VIEW.46.
 
 - [ ] **VIEW.46 The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust

@@ -26,7 +26,7 @@ release is stamped.
 | USR | USR.32 |
 | OPS | OPS.115 |
 | DOC | DOC.110 |
-| VIEW | VIEW.48 |
+| VIEW | VIEW.49 |
 | POP | POP.52 |
 
 ## Why this exists
@@ -3408,9 +3408,10 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.42 | The System sky route reports built_to_pc 0.0 after a full chart because it does not read the VIEW.25 ledger (bug) | none | done, PR #5334 |
 | VIEW.43 | Dust model built from the galaxy's own gas: planetgen/physics/dust_model.py with the column and layer-thickness tables, and the stand-ins DU1 to DU5 | none | done, PR #5239 |
 | VIEW.44 | The sky reads the gas-built dust model: galaxy/sky.py, galaxy/sky_band.py and generation/sky_tiers.py take the two tables through the dust dict, and the table hash is in their cache keys | none | done, PR #5239 |
-| VIEW.45 | Re-baseline the HYG calibration test (VIEW.30) for the new dust, in dust-free and default-dust modes, in the small and the Milky Way sized galaxy | none | open |
+| VIEW.45 | Re-baseline the HYG calibration test (VIEW.30) for the new dust, in dust-free and default-dust modes, in the small and the Milky Way sized galaxy | none | done, PR #5534 |
 | VIEW.46 | The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes | none | open |
 | VIEW.47 | Sky charting runs by default: the Generate console, the API job and the setup call the sphere draws and the floor table of VIEW.25 (--sky-limit is opt-in today) | none | done, PR #5363 |
+| VIEW.48 | dust_model.py raises a cosh overflow RuntimeWarning for stars far above the plane (the result is right, the warning is noise) | none | open |
 
 ## Tree IDs to flat IDs
 
