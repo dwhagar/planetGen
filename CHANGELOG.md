@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3576] - 2026-11-07
+
+**Headline:** Cold air worlds and hot thin-air worlds that fit no class now have one: the new class W, the Frozen world, and a wider class Z.
+
+### Changed
+- A world with air between -40 C and freezing that class P (the Earth-like cold world) does not hold fit no class and took its nearest one with a match of 0. A new class W, the Frozen world, takes them: an air world with a mean surface from -40 C to freezing, under 2 g, not a hydrogen envelope and not a volcanic air. Class P is unchanged and wins a full tie, class E stays under -40 C. W is the last free class letter.
+- A hot thin air (340 K or more, 1 to 10 kPa, no ocean) under 1.4 g, or hotter than 1100 K, fit no class, since class Z started at 1.4 g. Z now covers 0.5 to 2 g and up to 1500 K. A warm anoxic or carbon dioxide air under 400 K stays class F or G.
+- The pressure edges of class Z at 1 kPa and 10 kPa already held through the soft shoulder; a test now pins them.
+- Of 2212 generated bodies, 30 fit no class before GEN.1306 and 6 after (three dense 1.8 g anoxic worlds and three oxygen-bearing airs, left for the oxygen fix). W takes 42 of them. The new rows are in the stand-in registry as section 6.198.
+
+generation-output: changed
+
 ## [8.0.3575] - 2026-11-07
 
 **Headline:** A and F stars now hold cold debris disks about as often as the surveys find them (17 and 20 percent of A1V and F5V stars, against 0 and 8 percent), because a wide belt's dust is the sum of its rings and a survey can find a fainter disk around a hotter star (GEN.1278).
