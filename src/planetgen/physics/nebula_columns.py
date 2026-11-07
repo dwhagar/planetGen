@@ -30,8 +30,9 @@ columns. The columns above hold the two together.
 **The words.** `composition` (a nebula's plain-words sentence) and `dominant_species` are written from the numbers (`composition_sentence`, `species_summary`), not
 copied from the family table: what the person reads is what is stored.
 
-Satellite galaxies: a nebula inside one has its gas read from the Milky Way gradient until GEN.367 places nebulae there (the model takes the component's [Fe/H]
-and draws inside the Magellanic range, `nebula_composition.gas_oh`).
+Satellite galaxies (GEN.1273): a nebula inside one takes the [Fe/H] of the satellite whose gas holds its place (`ComponentField.gas_fe_h`) and its gas [O/H] is drawn inside the Magellanic
+range above it (`nebula_composition.gas_oh`, `SATELLITE_GAS_OFFSETS`, registry row NBC3), so a nebula of a Cloud is more metal-poor than one at the solar circle. A remnant has no stored
+center yet and keeps the Milky Way gradient.
 """
 
 import contextlib
@@ -122,11 +123,21 @@ def row_key(table, row):
     return f"{table}:{row['name']}"
 
 
+def _component_fe_h(row):
+    """The [Fe/H] of the satellite the object lies in (GEN.1273), read from the components of the galaxy bound for the save (`galaxy.seed.current_galaxy_shape`), or `None` for an object
+    of the Milky Way, an object with no center, or a galaxy with no satellites."""
+    center = tuple(row.get(f"center_{axis}_pc") for axis in "xyz")
+    components = getattr(galaxySeed.current_galaxy_shape(), "components", None)
+    if components is None or None in center:
+        return None
+    return components.gas_fe_h(center)
+
+
 def _gas_oh(table, row, key):
     radius = row.get("galactic_radius_pc")
     if radius is None:
         radius = scales.default_galactocentric_pc()
-    return nc.gas_oh(float(radius), key)
+    return nc.gas_oh(float(radius), key, _component_fe_h(row))
 
 
 def _common(made, oh, progenitor_mass):
