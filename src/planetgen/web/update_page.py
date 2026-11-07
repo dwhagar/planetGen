@@ -35,7 +35,7 @@ def _page(data, message=None, error=None, status=200):
 @bp.route("/admin/update", methods=["GET", "POST"])
 def admin_update():
     """The update's state (GET); POST `action=confirm-password` opens the Owner window, `action=update` asks for the
-    update (`cancel_running` also lets it cancel running work)."""
+    update."""
     admin, bounce = _require_admin()
     if bounce is not None:
         return bounce
@@ -48,7 +48,7 @@ def admin_update():
                 done = apiclient.auth_confirm_password(cookie_header, request.form.get("current_password", ""))
                 return _flash(_see_other(target), message=f"Thank you. You can start an update for {done['minutes']} minutes.")
             if action == "update":
-                apiclient.admin_update_request(cookie_header, cancel_running=bool(request.form.get("cancel_running")))
+                apiclient.admin_update_request(cookie_header)
                 return _flash(_see_other(target), message="The update was requested. It starts in a moment; this page "
                                                          "follows it.")
         except apiclient.ApiError as exc:

@@ -557,9 +557,7 @@ class BackupRestore(Body):
 
 
 class UpdateRequest(Body):
-    """`POST /api/admin/update`: whether the running work may be canceled (`update.sh --yes`); nothing else is accepted."""
-
-    cancel_running: StrictBool = False
+    """`POST /api/admin/update`: an empty object; nothing in the request reaches the command that runs."""
 
 
 class SettingsImport(Body):

@@ -5,13 +5,12 @@ The Update button's API (SEC.43), under `/api/admin/update`. Both routes need a 
 credential change; an API key is not enough for the request (`session_only`), so a leaked key cannot start an update.
 
 - `GET /api/admin/update`: the state of the machinery (`planetgen.admin.webupdate.view`): `state`
-  (`not_installed`, `idle`, `requested`, `running`, `succeeded`, `failed`), `can_request` and `reason`, the start and
-  finish times, the exit status and the end of the log. `can_ask` says whether this caller may press the button and
+  (`not_installed`, `idle`, `requested`, `running`), `can_request` and `reason`, and the end of `update.log`. `can_ask` says whether this caller may press the button and
   `needs_password` whether only the typed password is missing.
-- `POST /api/admin/update` `{"cancel_running": bool}`: asks root to run `update.sh`. Only the Owner whose password
-  was typed within the last `adminAuth.RECENT_PASSWORD_MINUTES` may (403 otherwise, `POST /api/auth/confirm-password`
-  opens the window). The request is two empty files in the state folder; no value from the request body reaches the
-  command (`cancel_running` only adds `--yes`). A second request while one is waiting or running is a 409.
+- `POST /api/admin/update` `{}`: asks root to run `update.sh`. Only the Owner whose password was typed within the
+  last `adminAuth.RECENT_PASSWORD_MINUTES` may (403 otherwise; `POST /api/auth/confirm-password` opens the window). The
+  request is one empty file in the state folder; no value from the request reaches the command, and the body takes no
+  field. A press while an update runs is accepted and runs after it; a second one while a request waits is a 409.
 """
 
 from flask import Blueprint, g, jsonify
@@ -54,14 +53,14 @@ def get_update():
 @require_admin(fresh=True, session_only=True)
 def post_update():
     """`POST /api/admin/update` -- ask root to run `update.sh`; see the module docstring."""
-    body = parse_body(UpdateRequest, require_json_body())
+    parse_body(UpdateRequest, require_json_body())
     may, needs_password = _may_ask()
     if not may:
         activity_log.event("AUTHZ", "update.refused", user=g.admin_user["username"], needs_password=needs_password)
         raise ApiError(OWNER_ONLY, status_code=403, extra={"needs_password": needs_password})
     try:
-        webupdate.request(cancel_running=body.cancel_running)
+        webupdate.request()
     except webupdate.UpdateRequestError as exc:
         raise ApiError(str(exc), status_code=409) from exc
-    audit("update.request", target="site", detail="cancel running work" if body.cancel_running else None)
+    audit("update.request", target="site")
     return jsonify({**webupdate.view(), "can_ask": False, "needs_password": False}), 202
