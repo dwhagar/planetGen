@@ -2758,3 +2758,4 @@ Baseline: PR #1817.
 | SEC.45 | 8.2 | Accounts and sign-up |
 | OPS.110 | 8.1 | The headline closes |
 | OPS.111 | 8.1 | The headline closes |
+| OPS.112 | 8.1 | The headline closes |
