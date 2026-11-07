@@ -1625,6 +1625,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   closes with Z0 (MAP.333) in 8.1. The rebuild Z1 to Z5 (MAP.334 to
   MAP.338) and the preferences screen UX.236 are headline features of
   8.2.
+  Boss (2026-11-07, answering whether infinite zoom now works in one continuous space): not really, it kind of does. The item stays open as a minor item: not fixed and not a bug to defer.
+
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
   Boss live observation (8:51 PM EDT 2026-10-23, relayed by the
   coordinator, found by Bug Hunt): stars on the map should glow, with
@@ -9515,7 +9517,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Catalog sections 2 and 4.
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
   Plan (TODO) (6:20 PM EST on 2026-11-06): oxygen-air rarity is GEN.1309 (generator side, Planets 1); the heavy and thin oxygen worlds that fall outside the classes are GEN.1306 parts 2 and 3 (Core 4); the temperate oxygen-free ocean worlds go to class F, which GEN.1281 makes anoxic. Judge this item on the count of class M worlds after those.
-  Decision (Boss, 6:22 PM EST on 2026-11-06, option 1): the oxygen window stays as built: classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent. Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
+  Decision (Boss, 6:22 PM EST on 2026-11-06, option 1): the oxygen window stays as built: classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent. Read at 7:36 PM EST on 2026-11-06 (option b) the same limits are judged by oxygen pressure, not by share of the air (GEN.1320 and GEN.1321); the later ruling sets the measure. Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
@@ -13977,8 +13979,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   left by an update); (3) if it is live, say who started it and why it
   counts as a generation run. Done: a test that reproduces the holder
   state found, and a New galaxy job that starts after the stale holder
-  is cleared. Lock-free, generation output unchanged. Owner: the thread
-  that built #4675 (session on the data check). Version 8.9.
+  is cleared. Lock-free, generation output unchanged. Owner: Tides 1 (Boss, 2026-11-07: fix it now). Version 8.1 (moved from 8.9 on Boss's approval of the TODO plan, 2026-11-07, because it blocks production generation).
   Partial fix merged (#4680) (2026-10-31 9:40 PM EDT): wrapper.run now
   passes nested_guard=True to runline.start_when_free, so a run started
   inside a run that the same process follows fails at once with Busy
@@ -15409,7 +15410,7 @@ clears each one.
   here; if the cap at 35 percent is a pile-up, say so and TODO asks Boss.
   Version 8.1. Owner: Planets 1. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.854, GEN.855, GEN.867, GEN.750, GEN.1306, GEN.909.
-  Decision (Boss, 6:22 PM EST on 2026-11-06, option 1): the oxygen window stays as built: classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent. Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
+  Decision (Boss, 6:22 PM EST on 2026-11-06, option 1): the oxygen window stays as built: classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent. Read at 7:36 PM EST on 2026-11-06 (option b) the same limits are judged by oxygen pressure, not by share of the air (GEN.1320 and GEN.1321); the later ruling sets the measure. Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
   Added (Boss, 6:36 PM EST on 2026-11-06): after this item merges, rerun the fudge simulation sweep (GEN.1312's class_fit_cli sweep) to revisit the spread, because the oxygen envelope was still being fixed when the cap tiers were set. Report how the cap tiers and the share of bodies placed change.
 
 - [ ] **GEN.1310 Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent**
@@ -15481,8 +15482,7 @@ clears each one.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). The linear shoulder stays (no new code shape), its width per quantity
   comes from the table. The CF1 to CF7 and DM1 to DM8 hand shoulders are
   replaced, not kept beside it (no backward-compat shims). Generator epoch,
-  goldens and TEST.430 re-baseline; letters near edges move. Needs the
-  oxygen window as ruled (option 1, unchanged). Lock item. Done: the class
+  goldens and TEST.430 re-baseline; letters near edges move. Needs the oxygen window as ruled (6:22 PM EST option 1 for the limits; 7:36 PM EST option b: judged by oxygen pressure, GEN.1320 and GEN.1321). Lock item. Done: the class
   census passes on the re-baselined ranges and each moved letter is
   explained.
   Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
