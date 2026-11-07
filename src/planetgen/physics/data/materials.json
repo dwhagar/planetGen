@@ -126,16 +126,15 @@
   "hematite_lt10um": "a grain size of hematite (a double of the hematite row): no draw names it",
   "hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
   "frozen_hydrocarbons": "class text of the planet classes (legacy_names.class_compositions): no draw reads the mapping",
-  "pyrite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
-  "pyrrhotite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
-  "pentlandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
-  "chalcopyrite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
-  "oldhamite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
-  "alabandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
-  "daubreelite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
-  "osbornite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
-  "sinoite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)",
-  "khamrabaevite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the metal ground and the reduced-body taxa)"
+  "pyrrhotite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "pentlandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "chalcopyrite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "oldhamite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "alabandite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "daubreelite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "osbornite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "sinoite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)",
+  "khamrabaevite": "added by GEN.1356; the recipe swap of GEN.1384 reads it (the reduced-body taxa)"
  },
  "materials": [
   {
