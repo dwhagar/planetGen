@@ -743,15 +743,20 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                                          admitted=bool(os.environ.get(JOB_ENV)), nested_guard=True)
     else:
         run_id = start()
-    ensures = [stage_ensure(conn, url, kind, step.kind, workers_count) for step in steps]
-    relay = log.RelayReader(conn, runrecord.debug_key(run_id)) if debug else None
-    on_debug = relay.drain if relay else None
-    log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
-              f"{workers_count or 'the default number of'} worker(s), kind {kind}, database {database}"
-              + (f", debug areas {debug}" if debug else ""), area="queue")
-    events = runrecord.event_handler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
-    log.attach(events)
+    beat = runrecord.Heartbeat(conn, run_id)        # the run is followed from here to the end, whatever this process is busy with
+    relay = events = None
     try:
+        beat.start()
+        # ADM.136: everything after the machine is taken is inside the try, so a failure of the set-up ends the run instead of leaving it
+        # for a process that no longer follows it (a worker that lives on holds the machine for ever)
+        ensures = [stage_ensure(conn, url, kind, step.kind, workers_count) for step in steps]
+        relay = log.RelayReader(conn, runrecord.debug_key(run_id)) if debug else None
+        on_debug = relay.drain if relay else None
+        log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
+                  f"{workers_count or 'the default number of'} worker(s), kind {kind}, database {database}"
+                  + (f", debug areas {debug}" if debug else ""), area="queue")
+        events = runrecord.event_handler(conn, run_id)       # what this process logs is the run's live log (PERF.99)
+        log.attach(events)
         advance(conn, run_id, 0)
         for index in range(len(steps)):
             ensure = ensures[index]
@@ -795,7 +800,9 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
             raise RuntimeError(message) from None
         raise
     finally:
-        log.detach(events)
+        beat.stop()
+        if events is not None:
+            log.detach(events)
         from planetgen.queue import runcontrol      # it imports this file
         runcontrol.write_log(conn, run_id)
     return run_id
