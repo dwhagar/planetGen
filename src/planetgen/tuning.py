@@ -115,6 +115,11 @@ PLANET_MAX_STAR_MASS_RATIO = GIANT_MAX_STAR_MASS_RATIO
 # How much more a heavier-metal star's cores find gas, as 10 to this power times [Fe/H], beside `metallicity.giant_occurrence_factor`: with the
 # solids the giants' occurrence goes as 10 to 1.2 times [Fe/H] ([R2172], read). A stand-in (tier T6, tweak L3).
 GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT = 0.6498
+# Gas also survives less in the disk of a lighter star (GEN.1336): the disk's gas mass goes with the star's mass, so the share above falls as (star mass / the Sun's) to this
+# power for a star lighter than the Sun (a heavier star is not raised: [R4897] note that the heavy stars of [R2172] are retired A stars whose masses are overestimated). Without it
+# an M dwarf had giants within 2.5 AU for 7 percent of stars (the survey: 3.5 percent at 0.5 solar masses, [R2172]) and hot Jupiters for 0.5 percent against 0.27 percent
+# ([R1504]), because its snow line lies close in and its cores reach the critical mass as often as a Sun-like star's. A stand-in (tier T2, tweak L0): the rate goes in proportion to the star's mass, as [R2172] find.
+GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT = 1.0
 
 # Planet architecture (GEN.728, GEN.729, GEN.730, `physics/planet_architecture.py`, docs/design/composition/planet-architecture.md):
 # how a disk builds a chain of oligarchs, how dynamical instability thins it and what is left, from the star and its disk alone.

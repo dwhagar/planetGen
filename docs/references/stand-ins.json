@@ -16207,11 +16207,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 (the share of runaway-capable cores that find gas, the distance beyond which it falls, and how much more a metal-rich star's cores find)"
+              "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 and GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT 1.0 (the share of runaway-capable cores that find gas, the distance beyond which it falls, how much more a metal-rich star's cores find, and the fall of the share in proportion to a lighter star's mass, GEN.1336, as [R2172] find for the giants within 2.5 AU)"
             ],
             [
               "The range it moves in",
-              "share 0.3 to 0.9; cut 5 to 20; exponent 0.3 to 0.9"
+              "share 0.3 to 0.9; cut 5 to 20; exponent 0.3 to 0.9; star-mass exponent 1.0 to 1.5"
             ],
             [
               "Where it holds",
@@ -16227,7 +16227,7 @@
             ],
             [
               "Evidence",
-              "[R2172] ([R2172], READ: the rate goes as 10 to 1.2 [Fe/H] and rises with the star's mass); [R1479]; tuned (the mass law's own PM6 and PM7 are retired into this row)"
+              "[R2172] ([R2172], READ: the rate goes as 10 to 1.2 [Fe/H] and rises with the star's mass); [R1479]; tuned (the mass law's own PM6 and PM7 are retired into this row); the star-mass exponent is [R2172]'s linear law (3.5 percent of 0.5 solar mass stars against about 7 percent of Suns) and gives the M-dwarf hot Jupiter rate of 0.32 percent over 12 seeds against [R1504]'s 0.27 percent"
             ]
           ],
           "id": "PA2",
@@ -16238,7 +16238,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 (the share of runaway-capable cores that find gas, the distance beyond which it falls, and how much more a metal-rich star's cores find)"
+          "what": "tuning.GIANT_GAS_SURVIVAL_SHARE 0.766, GIANT_GAS_SURVIVAL_CUT_AU 9.022 and GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT 0.6498 and GIANT_GAS_SURVIVAL_STAR_MASS_EXPONENT 1.0 (the share of runaway-capable cores that find gas, the distance beyond which it falls, how much more a metal-rich star's cores find, and the fall of the share in proportion to a lighter star's mass, GEN.1336, as [R2172] find for the giants within 2.5 AU)"
         },
         {
           "burn_down": [
