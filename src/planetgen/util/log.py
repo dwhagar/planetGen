@@ -287,11 +287,12 @@ class LineFormatter(logging.Formatter):
     UTC offset, e.g. `2026-09-24T02:57:37.123-0400`, so lines from several processes (and across a DST change) still sort and compare.
     """
 
-    def __init__(self, form="display", tz=None, component=None, **parts):
+    def __init__(self, form="display", tz=None, component=None, traceback=False, **parts):
         if form not in FORMS:
             raise ValueError(f"no form {form!r}; the forms are {', '.join(FORMS)}")
         super().__init__(_DEBUG_LOG_FORMAT if form == "debug" else None)
         self.form, self.tz, self.component, self.parts = form, tz, component, parts
+        self.traceback = traceback          # the `display` form then carries the exception's traceback and the stack, as `error.log` does (OPS.116)
 
     def formatTime(self, record, datefmt=None):
         local = time.localtime(record.created)
@@ -313,7 +314,13 @@ class LineFormatter(logging.Formatter):
         if self.form == "json":
             return logrecord.json_line(record)
         if self.form == "display":
-            return logrecord.display_line(record, self.tz, **self.parts)
+            text = logrecord.display_line(record, self.tz, **self.parts)
+            if not self.traceback:
+                return text
+            extra = log_record.exc_text or (self.formatException(log_record.exc_info) if log_record.exc_info else "")
+            if log_record.stack_info:
+                extra = f"{extra}\n{log_record.stack_info}" if extra else log_record.stack_info
+            return f"{text}\n{extra}" if extra else text
         text = logrecord.plain_line(record)
         if log_record.exc_info and not log_record.exc_text:
             log_record.exc_text = self.formatException(log_record.exc_info)
@@ -541,21 +548,6 @@ _error_handler = None
 _fault_stream = None
 
 
-class _ErrorLineFormatter(LineFormatter):
-    """A line of `error.log`: the display form (time, severity, component, message and the fields, among them `log=`, the log the error also went
-    to), then the traceback of the exception it carries, if any."""
-
-    def __init__(self):
-        super().__init__("display")
-
-    def format(self, log_record):
-        text = super().format(log_record)
-        extra = log_record.exc_text or (self.formatException(log_record.exc_info) if log_record.exc_info else "")
-        if log_record.stack_info:
-            extra = f"{extra}\n{log_record.stack_info}" if extra else log_record.stack_info
-        return f"{text}\n{extra}" if extra else text
-
-
 class _ErrorLogHandler(logging.Handler):
     """
     Writes every record of ERROR severity and above to `error.log` (OPS.116), whichever logger made it: it sits on the program's logger and on the
@@ -575,7 +567,7 @@ class _ErrorLogHandler(logging.Handler):
                 os.makedirs(os.path.dirname(self.path), mode=0o770, exist_ok=True)
                 existed = os.path.exists(self.path)
                 inner = file_handler(self.path, "display", level=logging.ERROR, create_mode=ERROR_FILE_MODE, rotate=self.rotate)
-                inner.setFormatter(_ErrorLineFormatter())
+                inner.setFormatter(LineFormatter("display", traceback=True))
                 self.inner = inner
                 if not existed:
                     try:

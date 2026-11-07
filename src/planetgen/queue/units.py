@@ -354,7 +354,7 @@ def horse_killed(job, retpid, ret_val, _rusage):
     """
     status = log.decode_wait_status(ret_val) if isinstance(ret_val, int) else -1
     if job.func_name != UNIT_FUNCTION:
-        log.process_ended("queue", f"The process running job {job.id} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
+        log.process_ended("queue", f"The process running job {getattr(job, "id", None) or "?"} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
         return
     run_id, stage, unit = job.args[:3]
     log.process_ended("queue", f"The process running unit {unit} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
