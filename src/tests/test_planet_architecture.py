@@ -130,6 +130,39 @@ def test_a_heavier_disk_builds_heavier_inner_planets():
     assert median_mass(5.0) > median_mass(1.0) > median_mass(0.2)
 
 
+def test_systems_differ_in_scale_and_the_planets_of_one_system_stay_alike():
+    """GEN.1335: with no spread between systems every Sun-like inner system started at the same 3.6 Earth masses and the Earth-size planets the surveys count were missing.
+    The mean of a system's log mass now spreads by about `INNER_SYSTEM_SCALE_SIGMA_DEX`, and the planets of one system stay within the neighbour spread."""
+    draw.set_run_seed(31)
+    means, within = [], []
+    for _ in range(400):
+        chain = pa.inner_chain(SUN, 1.0, 0.0, None, force=True)
+        logs = [math.log10(m / EARTH) for _a, m in chain]
+        if len(chain) >= 3:
+            means.append(sum(logs) / len(logs))
+            within.append(max(logs) - min(logs))
+    spread = (sum((x - sum(means) / len(means)) ** 2 for x in means) / len(means)) ** 0.5
+    assert len(means) > 200
+    assert tuning.INNER_SYSTEM_SCALE_SIGMA_DEX * 0.8 < spread < math.hypot(tuning.INNER_SYSTEM_SCALE_SIGMA_DEX, tuning.INNER_NEIGHBOUR_SIGMA_DEX) * 1.3, spread
+    assert sorted(within)[len(within) // 2] < 6 * tuning.INNER_NEIGHBOUR_SIGMA_DEX
+    assert sum(means) / len(means) == pytest.approx(math.log10(tuning.INNER_PLANET_MASS_EARTH), abs=0.08)       # the median of the scale is unchanged
+
+
+def test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet():
+    """GEN.1335 against Fressin et al. 2013 (16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii inside 85 days): of the inner systems of a K dwarf
+    about a quarter hold a bare core of that size (0.19 with every system at the same scale)."""
+    mass_solar, hosts, earth = 0.7, 0, 0
+    draw.set_run_seed(78)
+    for _ in range(600):
+        z = 0.2 * draw.gauss(0.0, 1.0)
+        arch = pa.build(mass_solar * SUN, 1.2, 10.0 ** z, z, 30.0, inner=True)
+        short = [x for x in arch.planets if not x.runaway and period_d(mass_solar * SUN, x.distance_au) < 85.0]
+        hosts += bool(short)
+        earth += any(0.8 <= _radius_earth(x.mass_kg / EARTH) <= 1.25 for x in short)
+    assert hosts > 500
+    assert 0.23 <= earth / hosts <= 0.40, earth / hosts       # 0.19 with no spread between systems
+
+
 # --- giants ----------------------------------------------------------------------------------------------------------------
 
 

@@ -170,6 +170,10 @@ INNER_PLANET_MASS_DISK_EXPONENT = 0.01653
 INNER_PLANET_MASS_METALLICITY_EXPONENT = 0.7565
 # Neighbours of a system are alike in mass: the spread of the log10 of a planet's mass about its system's scale, and how much heavier each next
 # planet is (the outer planet is the larger in 65 percent of pairs: [R4660], read). Stand-ins (tier T6, tweak L3).
+INNER_SYSTEM_SCALE_SIGMA_DEX = 0.4
+# The spread of the mass scale between systems: log10 of a system's scale about the median `INNER_PLANET_MASS_EARTH` gives (stellar mass, disk and [Fe/H] aside), a draw of the
+# inner chain (GEN.1335). Planets of a system are alike (`INNER_NEIGHBOUR_SIGMA_DEX`, [R4660]) but systems differ from each other: with none, every Sun-like inner system
+# came out at the same 3.6 Earth masses, and the Earth-size planets the surveys count were missing. A planetGen stand-in (registry row PA7).
 INNER_NEIGHBOUR_SIGMA_DEX = 0.15
 INNER_OUTWARD_MASS_DEX_PER_PLANET = 0.04
 # The spacing at which the inner planets start, in mutual Hill radii, before the thinning: Pu and Wu's effective 8.1 or more
