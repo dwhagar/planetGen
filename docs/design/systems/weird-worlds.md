@@ -220,7 +220,7 @@ The ring draw is independent of the planet's history, so every giant has a ring 
 |---|---|---|---|
 | R1 | **Ring from a disrupted moon.** Saturn ([R0637]; young rings 100 to 400 Myr per Cassini mass, contested), Phobos about 30 to 50 Myr from disruption, ring-moon cycling [R1927] | moon inspiral below the Roche limit (W9) | follows from `moon_orbits`; replaces the always-a-ring rule |
 | R2 | **Ring from a captured comet.** [R1140] | comet passing inside the Roche limit | rare |
-| R3 | **Rings aligned with a tilt.** Uranus rings and moons lie in the 98 deg equator (G1) | giant-impact tilt | by construction: ring plane = equator |
+| R3 | **Rings aligned with a tilt.** Uranus rings and moons lie in the 98 deg equator (G1) | giant-impact tilt | by construction: ring plane = equator; the regular moons are set in it too (GEN.1352: their inclination is kept against the planet's equator and `planets.orient_moons` turns their orbits onto its spin axis) |
 | R4 | **Rings beyond the Roche limit.** Quaoar ring at 7.4 radii [R3155], Haumea, Chariklo, Chiron | small body with a spin-orbit resonance to a satellite or fast spin | rare, no rate; stand-in T4 |
 | R5 | **Shepherded and eccentric rings, arcs.** Uranus epsilon ring, Neptune's Adams arcs held by Galatea, Saturn's F ring | narrow ring plus an inner moon | derived flavour |
 | R6 | **Dark or bright rings.** Saturn 90 to 99 percent ice, Uranus and Neptune dark | snow line, ring age, pollution | derived from ice share and age |

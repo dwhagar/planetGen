@@ -129,7 +129,12 @@ class Planet(PlanetaryObject):
         period (float): The planet's orbital period in years.
         orbital_inclination_deg (float): The tilt of this body's orbital
                                          plane, in degrees, relative to its
-                                         primary's reference plane.
+                                         primary's reference plane: a
+                                         planet's, the star's; a moon's, the
+                                         equator of its planet (GEN.1352,
+                                         `planets.orient_moons` sets its
+                                         position and velocity in the
+                                         system's frame by it).
         orbital_ascending_node_deg (float): The longitude of the ascending
                                             node, in degrees -- together
                                             with `orbital_inclination_deg`,
