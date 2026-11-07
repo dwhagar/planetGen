@@ -1071,7 +1071,7 @@ def _says_whether_missing_data_is_disregarded(args, report):
 
 
 @pytest.mark.parametrize("told", [True, False])
-def test_a_unit_runs_with_the_switch_its_run_was_started_with(monkeypatch, told):
+def test_a_unit_runs_with_the_switch_its_run_was_started_with(monkeypatch, conn, told):
     """GEN.599: a worker is a process of its own, so the run record carries the option to every unit."""
     from planetgen.datasets import fetch
     fetch.set_disregard_missing_data(told)
