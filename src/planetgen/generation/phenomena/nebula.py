@@ -323,8 +323,7 @@ class Nebula(LazySaladName):
         shape = getattr(self, "_shape", None)
         if shape is None:
             shape = self._shape = shape_for_nebula(
-                self.nebula_class, self.radius_ly, self.density_cm3, self.temperature_k,
-                self.extinction_av, self.dominant_species)
+                self.nebula_class, self.radius_ly, self.density_cm3, self.temperature_k, self.extinction_av)
         return shape
 
     @property
