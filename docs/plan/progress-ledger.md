@@ -2749,3 +2749,4 @@ Baseline: PR #1817.
 | TEST.662 | 8.1 | The headline closes |
 | SEC.40 | 8.1 | The headline closes |
 | SEC.41 | 8.1 | The headline closes |
+| DOC.109 | 8.1 | The headline closes |
