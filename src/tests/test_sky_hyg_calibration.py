@@ -49,11 +49,12 @@ LIMIT = 6.5
 """float: The limiting magnitude of the naked-eye sky."""
 
 CASES = {
-    "small": {"pins": (), "scatter": {}, "site": "density-one", "band": (0.15, 0.40)},
+    "small": {"pins": (), "scatter": {}, "site": "density-one", "band": (0.15, 0.40), "dusty_band": (0.55, 0.85)},
     "milky-way": {"pins": ("--mass", "1.0e11", "--disk-scale-length", "2600pc"), "scatter": {"--phenomenon-min-mass": "20", "--bright-star-min-luminosity": "4000000"},
-                  "site": "reference", "band": (0.50, 0.80)},
+                  "site": "reference", "band": (0.50, 0.80), "dusty_band": (0.0, 1.0)},
 }
-"""dict: The calibrations: the plan's pins, the scatter's floors, where the observer stands and the share of the catalogue's count the dust-free sky must hold (measured 0.245 and 0.643)."""
+"""dict: The calibrations: the plan's pins, the scatter's floors, where the observer stands, the share of the catalogue's count the dust-free sky must hold (`band`, measured 0.245 and 0.643) and the share of the
+dust-free count the sky through the galaxy's own dust must keep (`dusty_band`, VIEW.45)."""
 
 WANTED = os.environ.get("PLANETGEN_SKY_CALIBRATION", "")
 
@@ -91,6 +92,7 @@ def _reference_place(shape):
     return (radius * math.cos(angle), radius * math.sin(angle), 0.0)
 
 
+@pytest.mark.timeout(timeout=28800)         # the Milky Way sized case takes about 2 hours 15 minutes on a quiet machine, twice that on a busy one; the suite's 900 seconds would end it (TEST.621)
 @pytest.mark.parametrize("name", sorted(CASES))
 def test_the_generated_naked_eye_sky_holds_the_share_of_the_real_one_that_was_measured(name, control_database):  # noqa: F811
     if WANTED not in (name, "all") and not (WANTED == "1" and name == "small"):
@@ -122,7 +124,11 @@ def test_the_generated_naked_eye_sky_holds_the_share_of_the_real_one_that_was_me
         sky_charting.chart(conn, observer_pc, LIMIT, tiers=tiers, center=center)
         observer = sky.Observer(observer_pc, 1.0e9)
         clear = sky.sky_from_database(conn, observer, 1.0e9, LIMIT, galaxy_key=SEED_HEX, dust={"av_per_kpc_at_sun": 0.0})
-        dusty = sky.sky_from_database(conn, observer, 1.0e9, LIMIT, galaxy_key=SEED_HEX)
+        dusty = sky.sky_from_database(conn, observer, 1.0e9, LIMIT, galaxy_key=SEED_HEX)             # the default: the dust of the galaxy's own gas (VIEW.43, VIEW.44)
+        profile = sky.default_dust(conn)["profile"]
+        # What the dust does to the reach of the tiers a product run would chart (the dust-free tiers above hold every star the dusty sky can show, so the dusty count is the same either way).
+        _center, dusty_tiers = sky_charting.plan(observer_pc, LIMIT, skeleton.edge_pc, limits=limits, profile=profile)
+        reach_ratio = max(t.reach_pc for t in dusty_tiers.luminosity) / max(t.reach_pc for t in tiers.luminosity) if dusty_tiers.luminosity and tiers.luminosity else 0.0
     finally:
         conn.close()
 
@@ -130,8 +136,12 @@ def test_the_generated_naked_eye_sky_holds_the_share_of_the_real_one_that_was_me
     absolute = clear.magnitude - 5.0 * np.log10(clear.distance_pc / 10.0)
     bins = [int(((absolute >= low) & (absolute < high)).sum()) for low, high in ((-12, -6), (-6, -3), (-3, 0), (0, 2), (2, 4), (4, 6), (6, 20))]
     print(f"\nsky calibration {name}: {len(clear.uid)} stars dust-free ({share:.3f} of the catalogue's {real}), {len(dusty.uid)} with the default dust;"
+          f" ({len(dusty.uid) / len(clear.uid):.3f} of the dust-free count; the widest dusty luminosity band reaches {reach_ratio:.3f} of the dust-free one);"
           f" relative density {relative:.2f}; by absolute magnitude (brighter than -6, -6 to -3, -3 to 0, 0 to 2, 2 to 4, 4 to 6, fainter) {bins}")
     low, high = case["band"]
     assert low <= share <= high, f"the dust-free sky holds {len(clear.uid)} stars at {LIMIT}, {share:.3f} of the catalogue's {real}; the band is {case['band']}"
+    low, high = case["dusty_band"]
+    kept = len(dusty.uid) / len(clear.uid)
+    assert low <= kept <= high, f"the sky through the galaxy's own dust holds {len(dusty.uid)} stars, {kept:.3f} of the dust-free {len(clear.uid)}; the band is {case['dusty_band']}"
     assert 0 < len(dusty.uid) < len(clear.uid)
     assert float(clear.magnitude.max()) <= LIMIT
