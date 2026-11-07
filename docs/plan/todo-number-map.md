@@ -21,7 +21,7 @@ release is stamped.
 | DB | DB.115 |
 | API | API.42 |
 | ADM | ADM.139 |
-| SEC | SEC.46 |
+| SEC | SEC.47 |
 | TEST | TEST.665 |
 | USR | USR.32 |
 | OPS | OPS.110 |
@@ -3491,6 +3491,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats | none | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | open |
 | SEC.45 | A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function | none | open |
+| SEC.46 | Accept /home and /Users in the config.json folder check, for installs in a home folder on a shared machine (SEC.44 follow-up, Boss) | none | done, PR #5444 |
 | SEC.43 | An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell | none | done, PR #5426 |
 | SEC.44 | Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes | none | done, PR #5442 |
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
