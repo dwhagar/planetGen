@@ -40879,6 +40879,212 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.210",
+      "number": "6.210",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_birth.hand_on: the implanted share goes whole to the one inner belt nearest the disk's inner edge, as primordial mass that is ground down with the rest of that belt (AsteroidBelt.receive); a disk with no inner belt to receive it loses it to the star's inner system"
+            ],
+            [
+              "The range it moves in",
+              "the nearest or all inner belts"
+            ],
+            [
+              "Where it holds",
+              "systems with an outer disk swept by a giant and an inner belt"
+            ],
+            [
+              "What would show it wrong",
+              "an inner belt whose mass shows no sign of the implant"
+            ],
+            [
+              "What replaces it",
+              "a split among the inner belts by the width of the gap between them and the giant"
+            ],
+            [
+              "Evidence",
+              "the scatter step's implanted share (SX5)"
+            ]
+          ],
+          "id": "SH1",
+          "key": "6.210:SH1",
+          "kind": "P",
+          "slug": "6-210-sh1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "belt_birth.hand_on: the implanted share goes whole to the one inner belt nearest the disk's inner edge, as primordial mass that is ground down with the rest of that belt (AsteroidBelt.receive); a disk with no inner belt to receive it loses it to the star's inner system"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "irregular_moons.take_from_disks: the planets are caught from the captured share of the disks they were swept from first, and the disk's own mass falls only for what they hold above it"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "systems whose planets hold irregular moons from an outer disk"
+            ],
+            [
+              "What would show it wrong",
+              "irregular moons that hold more mass than the disk lost"
+            ],
+            [
+              "What replaces it",
+              "the capture model of GEN.1082 (the encounter windows) drawn against the share"
+            ],
+            [
+              "Evidence",
+              "the scatter step's captured share (SX5)"
+            ]
+          ],
+          "id": "SH2",
+          "key": "6.210:SH2",
+          "kind": "P",
+          "slug": "6-210-sh2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "irregular_moons.take_from_disks: the planets are caught from the captured share of the disks they were swept from first, and the disk's own mass falls only for what they hold above it"
+        }
+      ],
+      "slug": "6-210-stand-ins-of-where-the-mass-an-outer-disk-lost-goes",
+      "title": "Stand-ins of where the mass an outer disk lost goes"
+    },
+    {
+      "key": "6.211",
+      "number": "6.211",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "collision_field.CHARACTERISTIC_PAIR_EARTH (1, 1): the pair whose collisions are counted and drawn is two Earths; ROGUE_SPEED_MS 40 km/s and ROGUE_DISPERSION_MS 25 km/s are the relative speed and the dispersion of rogues in the thin disk"
+            ],
+            [
+              "The range it moves in",
+              "pair 0.3 to 2 Earth masses; speed 30 to 60 km/s; dispersion 15 to 40 km/s"
+            ],
+            [
+              "Where it holds",
+              "the thin disk"
+            ],
+            [
+              "What would show it wrong",
+              "a collision rate of the rogues' mass spectrum that differs from the pair's by more than a factor of 10"
+            ],
+            [
+              "What replaces it",
+              "a sum over the rogues' mass spectrum (GEN.1287) and the speed distribution of the old disk"
+            ],
+            [
+              "Evidence",
+              "the design's inputs (docs/design/systems/interstellar-asteroid-fields.md section 2.1)"
+            ]
+          ],
+          "id": "CF1",
+          "key": "6.211:CF1",
+          "kind": "P",
+          "slug": "6-211-cf1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "collision_field.CHARACTERISTIC_PAIR_EARTH (1, 1): the pair whose collisions are counted and drawn is two Earths; ROGUE_SPEED_MS 40 km/s and ROGUE_DISPERSION_MS 25 km/s are the relative speed and the dispersion of rogues in the thin disk"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "collision_field.TERRESTRIAL_SHARE 0.857 (0.78 of 0.91 rogues per pc3): the share of the rogues that are terrestrial, and the rogue density is the Normal level's rogues per star times the stellar density of the solar neighborhood"
+            ],
+            [
+              "The range it moves in",
+              "0.7 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "the solar neighborhood"
+            ],
+            [
+              "What would show it wrong",
+              "a microlensing mass function with a different share of Earth-mass rogues"
+            ],
+            [
+              "What replaces it",
+              "the rogue mass function of GEN.1287"
+            ],
+            [
+              "Evidence",
+              "the design's figures from the microlensing work (R3191, R2178)"
+            ]
+          ],
+          "id": "CF2",
+          "key": "6.211:CF2",
+          "kind": "P",
+          "slug": "6-211-cf2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "collision_field.TERRESTRIAL_SHARE 0.857 (0.78 of 0.91 rogues per pc3): the share of the rogues that are terrestrial, and the rogue density is the Normal level's rogues per star times the stellar density of the solar neighborhood"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "collision_field.ICE_FRACTION 0.1 (the share of a rogue's mass in an ice shell) and LARGEST_FRACTION_TYPICAL 0.3 (the largest remnant of a typical collision of the rubble window, which sets how long a field stands)"
+            ],
+            [
+              "The range it moves in",
+              "ice 0 to 0.3; remnant 0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "terrestrial rogues"
+            ],
+            [
+              "What would show it wrong",
+              "a rogue with a very different ice shell"
+            ],
+            [
+              "What replaces it",
+              "the ice share of the rogue builder for the rogues of the pair"
+            ],
+            [
+              "Evidence",
+              "none (chosen)"
+            ]
+          ],
+          "id": "CF3",
+          "key": "6.211:CF3",
+          "kind": "P",
+          "slug": "6-211-cf3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "collision_field.ICE_FRACTION 0.1 (the share of a rogue's mass in an ice shell) and LARGEST_FRACTION_TYPICAL 0.3 (the largest remnant of a typical collision of the rubble window, which sets how long a field stands)"
+        }
+      ],
+      "slug": "6-211-stand-ins-of-the-asteroid-field-two-colliding-rogue-planets-leave",
+      "title": "Stand-ins of the asteroid field two colliding rogue planets leave"
+    },
+    {
       "key": "6.197",
       "number": "6.197",
       "rows": [
@@ -44475,7 +44681,7 @@
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
-          "unread": "GEN.1103",
+          "unread": null,
           "what": "field_composition.CORE_LEAK_SHARE 0: the share of the escaping mass that comes from the core while the mantle is still there; each parent gives up the same fraction of its own mass from the surface in (ice shell, then mantle, then core), so at the 11 to 14 percent that leaves, a field holds no iron"
         },
         {
@@ -44513,7 +44719,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1103",
+          "unread": null,
           "what": "field_composition.MANTLE_ROWS, CORE_ROW: the silicate mantle written as half forsterite and half enstatite (peridotite as olivine and pyroxene, the split the ring builder uses) and the core as kamacite (4 to 7 percent nickel); the ice shell as water ice"
         },
         {
