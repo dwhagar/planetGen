@@ -52,7 +52,7 @@ QUANTITY_DOMAIN = {
     "mass_earth": "structure", "gravity_g": "gravity", "temperature_k": "thermal", "pressure_pa": "air_amount",
     "ocean_fraction": "water", "water_mass_fraction": "water", "relative_humidity": "water", "groundwater_present": "water",
     "hottest_region_k": "regional", "coldest_region_k": "regional", "day_temperature_k": "day", "night_temperature_k": "night",
-    "wet_bulb_c": "wet_bulb", "reducing_share": "air_chemistry", "ammonia_water_mass_fraction": "water",
+    "wet_bulb_c": "wet_bulb", "reducing_share": "air_chemistry", "o2_partial_pa": "air_chemistry", "ammonia_water_mass_fraction": "water",
 }
 """dict: The domain of each quantity of the fit table that is not a gas share (`share_<gas>` is air chemistry, `phase_<family>` is the phase gate)."""
 
