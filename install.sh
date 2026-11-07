@@ -131,6 +131,7 @@ if [[ -z "$PYTHON" ]]; then
 fi
 
 warn_if_no_swap
+warn_if_memory_guard
 
 log_stage 1 8 "Installing the Python package and its libraries"
 # planetGen's own virtual environment (OPS.45); see that script for the

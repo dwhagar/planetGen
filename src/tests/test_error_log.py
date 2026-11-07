@@ -400,6 +400,57 @@ def test_a_warm_up_stage_that_does_not_finish_is_in_the_error_log_while_the_scre
     assert len(lines) == 1 and "the cache warm-up (part 2 of 2, the full warm-up) did not finish: it failed with status 3" in lines[0]
 
 
+def _fake_bin(tmp_path, name, body):
+    folder = tmp_path / "bin"
+    folder.mkdir(exist_ok=True)
+    path = folder / name
+    path.write_text("#!/bin/bash\n" + body + "\n")
+    path.chmod(0o755)
+    return folder
+
+
+def test_a_running_memory_guard_is_named_by_the_install_and_update(tmp_path):
+    folder = _fake_bin(tmp_path, "systemctl", '[[ "$1" == "is-active" && "$3" == "earlyoom" ]]')
+    script = f'SCRIPT_DIR="{tmp_path}"; source "{REPO}/scripts/deploy-common.sh"; warn_if_memory_guard; echo "returned $?"'
+    result = _bash(script, tmp_path, PATH=f"{folder}:{os.environ['PATH']}")
+    assert "returned 0" in result.stdout
+    assert "a memory guard is running (earlyoom)" in result.stderr and "status 15" in result.stderr and "INSTALL.md" in result.stderr
+
+
+def test_no_memory_guard_means_no_warning(tmp_path):
+    folder = _fake_bin(tmp_path, "systemctl", "exit 3")
+    script = f'SCRIPT_DIR="{tmp_path}"; source "{REPO}/scripts/deploy-common.sh"; warn_if_memory_guard'
+    result = _bash(script, tmp_path, PATH=f"{folder}:{os.environ['PATH']}")
+    assert result.returncode == 0 and "memory guard" not in result.stderr
+
+
+def test_a_failed_warm_up_reports_what_the_kernel_and_the_guards_logged_into_the_error_log(tmp_path):
+    folder = _fake_bin(tmp_path, "journalctl", 'echo "Nov 07 earlyoom[1]: sending SIGTERM to process 4242 \\"rq:horse\\""; echo "unrelated line"')
+    target = tmp_path / "error.log"
+    script = (f'SCRIPT_DIR="{tmp_path}"; source "{REPO}/scripts/deploy-common.sh"; log_error_file_begin update.log; '
+              f'log_error_file_to "{target}"; report_memory_kills 300; echo "returned $?"')
+    result = _bash(script, tmp_path, PATH=f"{folder}:{os.environ['PATH']}")
+    assert "returned 0" in result.stdout
+    lines = target.read_text().splitlines()
+    assert len(lines) == 1 and "memory guard or kernel:" in lines[0] and "sending SIGTERM to process 4242" in lines[0]
+    assert "unrelated line" not in target.read_text()
+
+
+def test_a_failed_warm_up_with_nothing_in_the_journal_adds_nothing(tmp_path):
+    folder = _fake_bin(tmp_path, "journalctl", "echo 'nothing of note'")
+    target = tmp_path / "error.log"
+    script = (f'SCRIPT_DIR="{tmp_path}"; source "{REPO}/scripts/deploy-common.sh"; log_error_file_begin update.log; '
+              f'log_error_file_to "{target}"; report_memory_kills 300')
+    result = _bash(script, tmp_path, PATH=f"{folder}:{os.environ['PATH']}")
+    assert result.returncode == 0 and (not target.exists() or target.read_text() == "")
+
+
+def test_the_install_notes_and_scripts_cover_the_memory_guard():
+    assert "warn_if_memory_guard" in (REPO / "update.sh").read_text() and "warn_if_memory_guard" in (REPO / "install.sh").read_text()
+    notes = (REPO / "INSTALL.md").read_text()
+    assert "### Memory guards" in notes and "--avoid" in notes and "error.log" in notes
+
+
 def test_update_sh_and_install_sh_start_the_error_log_and_record_what_stopped_them():
     update, install = (REPO / "update.sh").read_text(), (REPO / "install.sh").read_text()
     assert "log_error_file_begin update.log" in update and "log_track_failures" in update and "\nstart_error_log\n" in update
