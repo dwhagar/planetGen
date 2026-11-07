@@ -427,7 +427,8 @@ def _make_checkout(root):
 def _run_permissions(repo, tmp_path, *args):
     envvars = tmp_path / "envvars"
     envvars.write_text("export APACHE_RUN_USER=www-data\nexport APACHE_RUN_GROUP=www-data\n")
-    env = dict(os.environ, APACHE_ENVVARS=str(envvars))
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
+    env["APACHE_ENVVARS"] = str(envvars)
     return subprocess.run([os.path.join(APACHE_DIR, "set-permissions.sh"), str(repo), *args],
                           env=env, capture_output=True, text=True, check=False)
 
@@ -444,32 +445,77 @@ def _snapshot(repo):
 
 
 @needs_www_data
-def test_set_permissions_gives_the_whole_checkout_to_the_web_user(tmp_path):
+def test_set_permissions_makes_the_code_root_owned_and_leaves_the_web_user_only_its_folders(tmp_path):
+    """SEC.37: install.sh and update.sh run git, Python and the scripts in this tree as root, so nothing in it that the web
+    user could change may stay its."""
     uid, gid = _www_data()
     repo = _make_checkout(tmp_path)
+    (repo / "config.json").write_text(json.dumps({"jobs": {"dir": str(repo / "jobs")}}))
+    (repo / "jobs").mkdir()
+    (repo / "jobs" / "run1").mkdir()
+    (repo / "jobs" / "run1" / "state.json").write_text("{}")
     outside = tmp_path / "outside.txt"
     outside.write_text("not planetGen's")
     (repo / "link").symlink_to(outside)
     proc = _run_permissions(repo, tmp_path)
     assert proc.returncode == 0, proc.stderr
-    for rel, owner, group, mode in _snapshot(repo):
-        if rel == "link":
+    web = ("state", "jobs")
+    snapshot = _snapshot(repo)
+    for rel, owner, group, mode in snapshot:
+        if rel in ("link", "config.json"):  # symbolic links: their own mode means nothing
             continue
-        assert (owner, group) == (uid, gid), rel
         assert not mode & stat.S_IRWXO, rel
-        if rel != "state":  # the group may write the state folder, nothing else
+        if rel.split("/")[0] in web:
+            assert (owner, group) == (uid, gid), rel
+            if rel != "state":  # the group may write the state folder, nothing else
+                assert not mode & stat.S_IWGRP, rel
+        else:
+            assert (owner, group) == (0, gid), rel  # root's, the web user reads it through the group
             assert not mode & stat.S_IWGRP, rel
-    modes = {rel: mode for rel, _, _, mode in _snapshot(repo)}
+    modes = {rel: mode for rel, _, _, mode in snapshot}
     assert modes["."] == 0o750 and modes["src/html/lib"] == 0o750
     assert modes["src/html/wsgi.py"] == 0o750 and modes["scripts/tool.sh"] == 0o750
     assert modes["scripts/helper"] == 0o750  # keeps its owner execute bit, so git sees no change
     assert modes["src/html/static/style.css"] == 0o640
     assert modes[".git/HEAD"] == 0o640
-    assert modes["config.json"] == 0o640
-    # The state directory is made, and is the web user's from the start.
+    # The state directory is made, and is the web user's from the start; so is the jobs folder with what is in it.
     assert (modes["state"], (repo / "state").is_dir()) == (0o770, True)
+    assert modes["jobs"] == 0o750 and modes["jobs/run1/state.json"] == 0o640
     # A link is never followed: what it points at is not planetGen's to chown.
     assert os.stat(outside).st_uid == 0
+
+
+@needs_www_data
+def test_set_permissions_moves_config_json_into_the_state_folder_and_links_it(tmp_path):
+    uid, gid = _www_data()
+    repo = _make_checkout(tmp_path)
+    (repo / "config.json").write_text('{"debug": true}')
+    assert _run_permissions(repo, tmp_path).returncode == 0
+    link = repo / "config.json"
+    real = repo / "state" / "config.json"
+    assert link.is_symlink() and os.readlink(link) == str(real)
+    assert real.read_text() == '{"debug": true}'
+    info = os.stat(real)
+    assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o640)
+    info = os.lstat(link)
+    assert (info.st_uid, info.st_gid) == (0, gid), "the link in the root-owned folder is root's: the web user cannot repoint it"
+    # A second run leaves it as it is.
+    assert _run_permissions(repo, tmp_path).returncode == 0
+    assert os.readlink(link) == str(real) and real.read_text() == '{"debug": true}'
+
+
+@needs_www_data
+def test_set_permissions_keeps_both_config_files_when_both_exist(tmp_path):
+    repo = _make_checkout(tmp_path)
+    (repo / "state").mkdir()
+    (repo / "state" / "config.json").write_text('{"from": "state"}')
+    (repo / "config.json").write_text('{"from": "checkout"}')
+    proc = _run_permissions(repo, tmp_path)
+    assert proc.returncode == 0, proc.stderr
+    assert not (repo / "config.json").is_symlink()
+    assert (repo / "config.json").read_text() == '{"from": "checkout"}'
+    assert (repo / "state" / "config.json").read_text() == '{"from": "state"}'
+    assert "both" in proc.stdout + proc.stderr
 
 
 @needs_www_data
@@ -482,6 +528,7 @@ def test_set_permissions_takes_a_state_directory_outside_the_checkout(tmp_path):
     info = os.stat(state)
     assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o770)
     assert not (repo / "state").exists()
+    assert os.readlink(repo / "config.json") == str(state.resolve() / "config.json")
 
 
 @needs_www_data
@@ -508,6 +555,8 @@ def test_a_fresh_install_and_an_update_leave_identical_ownership(tmp_path):
     (fresh / "src" / "html" / "__pycache__").mkdir()
     (fresh / "src" / "html" / "__pycache__" / "wsgi.pyc").write_text("")
     shutil.rmtree(updated / "state")  # the install tree can lose it; the next run makes it again
+    (updated / "config.json").unlink()  # the link would dangle now
+    (updated / "config.json").write_text("{}")  # as before: back as a plain file, moved in again
     assert _run_permissions(fresh, tmp_path / "a").returncode == 0
     assert _run_permissions(updated, tmp_path / "b").returncode == 0
     assert _snapshot(fresh) == _snapshot(updated)
@@ -522,36 +571,12 @@ def test_set_permissions_refuses_a_folder_that_is_not_a_checkout(tmp_path):
     assert os.stat(tmp_path / "keep").st_uid == 0
 
 
-def test_the_update_trusts_its_own_checkout_though_the_web_user_owns_it():
-    """git refuses a repository owned by another user ("dubious ownership"),
-    and the checkout now belongs to www-data while update.sh runs as root."""
+def test_the_update_no_longer_trusts_a_checkout_for_git():
+    """The code belongs to root (SEC.37), so git needs no safe.directory exception: one would only be needed, and only be
+    dangerous, for a repository the web user could write."""
     with open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8") as f:
         text = f.read()
-    export = 'export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$SCRIPT_DIR"'
-    assert export in text
-    assert text.index(export) < text.index("git rev-parse --is-inside-work-tree")
-
-
-@needs_www_data
-def test_git_as_root_accepts_a_web_user_checkout_with_the_updates_setting(tmp_path):
-    uid, gid = _www_data()
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    subprocess.run(["git", "init", "-q", str(repo)], check=True)
-    for root, dirs, files in os.walk(repo):
-        for name in [""] + dirs + files:
-            os.chown(os.path.join(root, name), uid, gid)
-    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_CONFIG")}
-    env["HOME"] = str(tmp_path)  # no global safe.directory
-    env["GIT_CONFIG_NOSYSTEM"] = "1"
-    plain = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo, env=env,
-                           capture_output=True, text=True)
-    if plain.returncode == 0:
-        pytest.skip("this git does not check repository ownership")
-    env.update(GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="safe.directory", GIT_CONFIG_VALUE_0=str(repo))
-    trusted = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo, env=env,
-                             capture_output=True, text=True)
-    assert trusted.returncode == 0, trusted.stderr
+    assert "safe.directory" not in "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
 
 
 @needs_root

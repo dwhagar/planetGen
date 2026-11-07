@@ -51,16 +51,20 @@ its now-removed predecessor (`webconfig.json`) only ever reserved for
 them.
 
 It also has to be unreadable by other local users. `install.sh` and
-`update.sh` (through `examples/apache/set-permissions.sh`) set it to
-`<apache user>:<apache group>`, mode `640`, whenever it exists (the whole
-checkout belongs to that account): the web app (`www-data` for Apache and
-the gunicorn unit alike) can read it, root can too, nobody else can. The macOS
+`update.sh` (through `examples/apache/set-permissions.sh`) keep it in the
+state folder (`/var/lib/planetGen/state/config.json`), owned by
+`<apache user>:<apache group>`, mode `640` (the code tree is root's since
+SEC.37, so only the state folder can be written by the web app); the file in
+the checkout, `/var/lib/planetGen/config.json`, is a root-owned link to it,
+and an old plain `config.json` is moved there by the next `install.sh` or
+`update.sh`. The web app (`www-data` for Apache and
+the gunicorn unit alike) can read and replace it, root can read it, nobody else can. The macOS
 guide sets the same rule by hand. A login user who runs the
 generator or the maintenance scripts from a shell without `sudo` needs to
 be in Apache's group (`sudo usermod -aG www-data <user>`, then log in
 again) to read it. After creating or copying a new `config.json`, re-run
 `sudo examples/apache/set-permissions.sh` (or `sudo ./update.sh`), or set
-it by hand: `sudo chown www-data:www-data config.json && sudo chmod 640 config.json`.
+it by hand: `sudo mv config.json state/config.json && sudo ln -s state/config.json config.json && sudo chown www-data:www-data state/config.json && sudo chmod 640 state/config.json` (from `/var/lib/planetGen`).
 
 ## Precedence
 
@@ -93,8 +97,8 @@ now, `config.json`).
 
 The writer (`planetgen.util.settings_writer`) is the only thing that writes
 `config.json`; the command line and the Admin settings page (`/admin/settings`,
-below) both use it. The file must belong to the web server's user (`update.sh`
-and `set-permissions.sh` see to that) so the page can replace it; when it doesn't,
+below) both use it. The file lives in the state folder, which must belong to the web server's user (`update.sh`
+and `set-permissions.sh` see to that), so the page can replace it; when it doesn't,
 the page lists the options and says so instead of offering a Save button.
 
 - **Who may change what.** The web (an admin) changes the options the table marks
