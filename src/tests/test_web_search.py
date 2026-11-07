@@ -43,10 +43,10 @@ class SearchFake(FakeData):
         self.search_calls = []
         self.results = None
 
-    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
+    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None, sector_scope=None):
         self.search_calls.append({"stars": stars, "ranges": dict(ranges or {}), "db": db, "texts": dict(texts), "tags": {k: set(v) for k, v in tags.items()},
                                   "sizes": dict(sizes or {}), "limit": limit, "offsets": dict(offsets or {}),
-                                  "panels": panels, "sorts": dict(sorts or {})})
+                                  "panels": panels, "sorts": dict(sorts or {}), "sector_scope": sector_scope})
         results = self.results or {
             "sectors": _result([{"id": 5, "name": "Kepler <Reach>", "edge_mpc": 3.07}]) if texts.get("sector_q") else None,
             "systems": _result([{"id": 7, "name": "Kepler-42", "sector_id": None, "is_binary": 0,
@@ -199,7 +199,7 @@ def test_a_panel_that_times_out_says_so_and_the_others_show(client, fake, monkey
     """UX.97: each panel runs under its own limit; one that hits it is a note, not the busy page."""
     answer = fake.get_search
 
-    def one_slow(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
+    def one_slow(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None, sector_scope=None):
         if panels == ["systems"]:
             raise apiclient.ApiError("QUERY_TIMEOUT", status_code=504)
         return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts, stars=stars)
@@ -212,7 +212,7 @@ def test_a_panel_that_times_out_says_so_and_the_others_show(client, fake, monkey
     assert 'href="/search?q=Kepler"' in _panel(html, "systems")
     assert "Kepler &lt;Reach&gt;" in _panel(html, "sectors")
 
-    def broken(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
+    def broken(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None, sector_scope=None):
         if panels == ["systems"]:
             raise apiclient.ApiError("down", status_code=500)
         return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts, stars=stars)
@@ -558,3 +558,14 @@ def test_real_search_finds_a_known_binary_and_a_known_triple(db_client, mysql_co
     assert "Triple Omicron" in triple and "Pair Omicron" not in triple
     more = _panel(db_client.get("/search?stars=2%2B&q=Omicron").get_data(as_text=True), "systems")
     assert "Pair Omicron" in more and "Triple Omicron" in more and "Lone Omicron" not in more
+
+
+def test_the_sector_scope_goes_to_the_api_and_shows_as_chips(client, fake):
+    """MAP.403: the Sectors panel asks for charted sectors only unless the URL says otherwise, and a changed scope is a chip."""
+    client.get("/search?sector_q=Kepler")
+    assert fake.search_calls[-1]["sector_scope"] == ("charted", False)
+    html = client.get("/search?sector_q=Kepler&sector_coverage=uncharted&sector_empty=1").get_data(as_text=True)
+    assert fake.search_calls[-1]["sector_scope"] == ("uncharted", True)
+    assert "Sectors: uncharted sectors only" in html and "Sectors: with the empty ones" in html
+    client.get("/search?sector_q=Kepler&sector_coverage=bogus")
+    assert fake.search_calls[-1]["sector_scope"] == ("charted", False)
