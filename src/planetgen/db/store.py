@@ -76,7 +76,7 @@ from planetgen.names import naming_key as namingKey
 from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import nebula_columns as nebulaColumns
+from planetgen.physics import nebula_columns as nebulaColumns, oddities
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -2952,6 +2952,8 @@ BODY_FIELDS = (
     object_rows.each(class_code.FIELDS),
     object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),
                          lambda row: {"born_beyond_snow_line": _tristate_from_db(row["born_beyond_snow_line"])}),
+    object_rows.computed("oddities", lambda body, context: oddities.column_text(oddities.ids_of(body)),
+                         lambda row: {"oddities": oddities.from_column(row["oddities"])}),     # GEN.1047
 )
 """tuple: The `Field`s `planets` and `moons` share (`insert_planet`/`insert_moon` write them, `db.edits` updates
 them in place, `_planet_or_moon_row_to_dict` reads them back)."""

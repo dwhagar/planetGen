@@ -16,6 +16,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |
 | module | planetgen.physics.clearance | by design | the independent overlap verifier (TEST.477); the tests and the redraw audit read it, the generator never does, so the proof cannot share a bug with the code it checks |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
+| function | planetgen.physics.venus_spin.retrograde_possible | by design | whether a thick-air planet has a retrograde state at all (the closed-form test of the paper); the tests read it, the W2 effect reads the end state itself |
+| function | planetgen.physics.disintegrating_planet.remaining_mass_earth | by design | the mass a body has left after an age of the wind, for a page note of how long the planet has left; the tests read it, the W14 effect reads the loss rate over the age |
+| function | planetgen.physics.climate_branches.bistable_window | by design | the flux range where an Earth twin holds both a warm and a snowball branch, for the tests and the census check of WR7; the W20 effect finds the other branch by solving the world's own air again (`air_branches`) |
+| function | planetgen.physics.mantle_stripping.contact_speed_ms | by design | the impact speed from the speed at infinity and the escape speed, for a caller that draws an impact from a population (read by the tests; the W10 effect draws the energy ratio, MT8) |
+| function | planetgen.physics.mantle_stripping.speed_for_core_fraction | by design | the impact speed that leaves a given iron share, for the tests and for a check of the energy-ratio range of MT8 against Mercury's iron |
+| function | planetgen.physics.mantle_stripping.strip_probability | by design | the share of random impacts inside the head-on angle (MT7); the W10 rate (WR4) is already a rate on the merged population, so the effect does not apply it again |
 | function | planetgen.galaxy.nebula_density.octave_bound | by design | the most one more noise octave can move the density, which the tests of the finer levels (the coarse blobs stay put as filaments are added) and the tuning of the drawing read; the node reader asks for the density only |
 | function | planetgen.generation.remnant_orbits.pollution_rate_g_s | GEN.1231 | the white dwarf pollution flag reads the rate of its belt (the scattered mass over the delivery time) when belt birth sees the giants (GEN.1068); the census band of 25 to 50 percent reads it too |
 | function | planetgen.physics.mixture_trace.draw_trace_gases | GEN.524 | the mixture-level draw of the trace gases; `physics.trace_air` reads `draw_trace_amounts` instead, so a later part of GEN.524 deletes this or wires it |
@@ -57,38 +63,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | quadruple_stability_2p2_weights.json | GEN.1016 | the 8,301 numbers of the authors' 2+2 network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it |
 | module | planetgen.physics.hierarchy_stability | GEN.1016 | the stability of a tree of stars level by level (triple levels, the 3+1 quadruple with its margin, 2+2 by nested triples); read by tests/test_hierarchy_stability.py now and by the `multistar` limits once the wiring merges on its train |
-| module | planetgen.physics.oddities | GEN.1047 | the oddity table and its rolls (candidates, probability, roll, limit_failures); the planet and moon builds call it once GEN.1047 wires the table, with the effects the modules of GEN.1040 and its siblings define |
-| data | oddities.json | GEN.1047 | the oddity table (empty until the modules add their rows); read by physics/oddities.py, which nothing calls yet |
-| row | 6.72:OD1 | GEN.1047 | `tuning.WEIRDNESS_DIAL`, read by `oddities.probability` once the table is wired; the dial also goes in the settings page |
-| row | 6.72:OD2 | GEN.1047 | `tuning.WEIRDNESS_RATE_SCALE`, read by `oddities.probability` once the table is wired |
-| module | planetgen.physics.disintegrating_planet | GEN.1050 | the wind, lifetime and gate of a disintegrating rocky planet (W14); the oddity row reads it when its wiring step lands |
-| row | 6.73:DP1 | GEN.1050 | the olivine vapour constants, not read until the oddity row is wired |
-| row | 6.73:DP2 | GEN.1050 | the vapour mean mass and index, not read until the oddity row is wired |
-| row | 6.73:DP3 | GEN.1050 | the full model's factor and the solid angle, not read until the oddity row is wired |
-| row | 6.73:DP4 | GEN.1050 | the duty cycle, not read until the oddity row is wired |
-| row | 6.73:DP5 | GEN.1050 | the gate, not read until the oddity row is wired |
 | module | planetgen.physics.atmosphere_retention | GEN.1047 | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note; the pressure stage reads the logistic of rows d until the envelope-survival rule (GEN.963) reads the module and the pressure stage takes its cap from it |
 | row | 6.74:SH1 | GEN.1047 | `atmosphere_retention.SHORELINE_K`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH2 | GEN.1047 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH3 | GEN.1047 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH4 | GEN.1047 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |
-| module | planetgen.physics.nightside_collapse | GEN.1051 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
-| row | 6.75:NEB1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NEB3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NEB6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, [R0962]); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
-| row | 6.90:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.90:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.90:VS4 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.90:VS5 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.90:VS6 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.90:VS7 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| row | 6.90:VS8 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
-| module | planetgen.physics.resonant_chains | GEN.1049 | the resonant chains of a system's periods and the eccentricity they force; the weird-worlds wiring (W5) will give a chain planet its forced orbit and tidal heating |
-| row | 6.92:RC1 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
-| row | 6.92:RC2 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
-| row | 6.92:RC3 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
-| row | 6.92:RC4 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
 | row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
@@ -102,10 +81,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF3 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
-| module | planetgen.physics.mantle_stripping | GEN.1048 | the iron-rich core of a giant impact (Marcus and others 2010 scaling); the weirdness wiring (W10) gives a rocky planet that had a recorded merger a core fraction from the impacts the architecture recorded |
-| row | 6.93:MT4 | GEN.1048 | `mantle_stripping.Q_STAR_SCALE` of the mantle stripping module, read when its wiring step lands |
-| row | 6.93:MT6 | GEN.1048 | `mantle_stripping.MAX_CORE_MASS_FRACTION` of the mantle stripping module, read when its wiring step lands |
-| row | 6.93:MT7 | GEN.1048 | `mantle_stripping.IMPACT_ANGLE_DEG` of the mantle stripping module, read when its wiring step lands |
 | module | planetgen.physics.hycean_candidate | GEN.1047 | the Hycean box as a flag on the classes T, I and V; the oddity line names the planets it selects when the oddity wiring lands |
 | row | 6.79:HC1 | GEN.1047 | the four ranges of the Hycean box, read when its wiring step lands |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
@@ -142,7 +117,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
 | module | planetgen.physics.lagrange_geometry | MAP.354 | the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it |
-| function | planetgen.physics.climate_branches.bistable_window | GEN.1051 | the flux range where an Earth twin holds both a warm and a snowball branch; GEN.1051's history draw reads the share of the window the flux sits in |
 | row | 6.126:RN1 | GEN.1201 | `roundness.SPHERICITY_FACTOR`, not read until GEN.1201 wires the module |
 | row | 6.126:RN2 | GEN.1201 | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, not read until GEN.1201 wires the module |
 | row | 6.126:RN4 | GEN.1201 | `roundness.METAL_STRENGTH_PA`, not read until GEN.1201 wires the module |

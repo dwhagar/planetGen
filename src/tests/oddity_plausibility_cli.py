@@ -29,7 +29,8 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import constants, mantle_stripping, oddities, planet_classes, relations, rings, surface_air
+from planetgen.physics import constants, mantle_stripping, oddities, planet_classes, relations, rings, surface_air, venus_spin
+from planetgen.physics import orbit_oddities
 from planetgen.physics.oddities import Oddity, Rate
 from planetgen.physics import bulk_draw
 from planetgen.util import draw
@@ -41,6 +42,8 @@ SEED = "oddity-harness"
 """str: The seed the sample is drawn from, with the row id and the body's number, so a second run draws the same bodies."""
 MAX_ATTEMPTS = 40
 """int: How many gated draws a body gets before the sample records that the gate is never met."""
+GIVE_UP_AFTER_MISSES = 3
+"""int: `run_row` stops when this many samples in a row found no gated body and none has been found (the slow part of a run is the draws of a gate that is never met)."""
 TEMPERATURE_SLACK = 1.01
 """float: The slack on the radiative balance of an airless body (floating point and the choice of the sub-stellar flux, which is the most it gets)."""
 TIDAL_ENERGY_FRACTION = 1.0
@@ -172,8 +175,55 @@ def _strip_mantle(body, star, stream):
         body.rock_mass_fraction = max(0.0, 1.0 - remnant.core_mass_fraction - (body.water_mass_fraction or 0.0))
 
 
+def _venus_spin(body, star, stream):
+    """
+    W2 (GEN.1038, GEN.1048): the thick-air planet the tides leave turning slowly backwards (`venus_spin.spin_of` for the tilt it was born with); the rotation period and the
+    tilt are the module's end state. A body whose tides have not had the age, or whose end state is prograde, is declined (False), as the real effect declines it: `force` then has no sample.
+    """
+    result = venus_spin.spin_of(body)
+    if result is None or not result.reached or not result.retrograde:
+        return False
+    body.rotation_period_hours = result.period_days * 24.0
+    body.axial_tilt_deg = result.final_obliquity_deg
+    return None
+
+
+def _seasons_from_tilt(body, star, stream):
+    """W1 (GEN.1039, GEN.1048): the tilt is already the body's own and `temperature_series` reads it; the effect changes nothing on the body."""
+
+
+def _high_eccentricity(body, star, stream):
+    """W3 (GEN.1049): the eccentricity is the generator's own; the effect changes nothing on the body."""
+
+
+def _polar_orbit(body, star, stream):
+    """W4 (GEN.1049): the orbit's plane is turned to the polar peak of the measured angles (`orbit_oddities.POLAR_PEAK_DEG`)."""
+    low, high = orbit_oddities.POLAR_PEAK_DEG
+    body.orbital_inclination_deg = low + (high - low) * stream.random()
+
+
+def _resonance_forced(body, star, stream):
+    """W5 (GEN.1049): the orbit is held on an eccentricity of 0.001 to 0.01, the forced values of the design (the gate needs a chain, which a single drawn body is not)."""
+    body.eccentricity = max(body.eccentricity, 0.001 + 0.009 * stream.random())
+
+
+def _noop(body, star, stream):
+    """W14 and W9 (GEN.1050): the body is already what the row names (the wind's gate, the ring's origin); the effect changes nothing. W19 and W20 (GEN.1051) replace the air
+    the solver has just made, which a body drawn whole cannot be given again here: they are checked through the generator (`tests/test_oddities_wiring.py`)."""
+
+
 EFFECTS = {
     "strip_mantle": _strip_mantle,
+    "disintegrating": _noop,
+    "collapse_air": _noop,
+    "other_branch": _noop,
+    "ring_from_moon": _noop,
+    "high_eccentricity": _high_eccentricity,
+    "polar_orbit": _polar_orbit,
+    "resonance_forced": _resonance_forced,
+    "venus_spin": _venus_spin,
+    "seasons_from_tilt": _seasons_from_tilt,
+    "tipped_by_impact": _seasons_from_tilt,
     "stub_ring": _stub_ring,
     "broken_heavy_ring": _broken_heavy_ring,
     "broken_ring_beyond_roche": _broken_ring_beyond_roche,
@@ -402,9 +452,19 @@ def ring_failures(body, star, markers=()):
 
 # --- forcing a row on a sample ----------------------------------------------------------------------------------------------------
 
+HARNESS_QUANTITIES = frozenset({"body_type", "mass_earth", "radius_earth", "density_g_cm3", "semi_major_axis_au", "eccentricity", "orbital_period_days", "age_gyr",
+                                "host_teff_k", "host_mass_sun", "host_close_binary", "surface_pressure_pa", "obliquity_deg", "water_mass_fraction",
+                                "envelope_mass_fraction", "spin_period_days", "moon_mass_ratio", "collision_count", "tidally_locked", "equilibrium_temperature_k",
+                                "core_mass_fraction"})
+"""frozenset: The quantities `quantities_of` can give a single drawn body. A row whose gate reads another (a planet's place in a chain, its orbit in stellar radii) has no
+sample here: drawing 40 systems for it per body would only find that out slowly."""
+
+
 def draw_body(row, number):
     """`(body, star)` for sample number `number` of `row`: a gated body drawn by the generator, seeded from the row and the number; `None` when no
-    draw in `MAX_ATTEMPTS` meets the gate."""
+    draw in `MAX_ATTEMPTS` meets the gate (or the gate reads a quantity a single drawn body does not have, `HARNESS_QUANTITIES`)."""
+    if any(condition["quantity"] not in HARNESS_QUANTITIES for condition in row.requires):
+        return None
     for attempt in range(MAX_ATTEMPTS):
         with draw.bound(f"{SEED}:{row.id}:{number}:{attempt}"):
             star_type = draw.choice(plausibility.HOST_STAR_TYPES)
@@ -425,16 +485,21 @@ def force(row, number):
     if drawn is None:
         return None
     body, star = drawn
-    EFFECTS[row.effect](body, star, oddities.stream(row.id, f"{SEED}:{number}"))
+    if EFFECTS[row.effect](body, star, oddities.stream(row.id, f"{SEED}:{number}")) is False:       # the effect declines this body (the real one is not given it)
+        return None
     return body, star
 
 
 def run_row(row, n=SAMPLE):
     """`{"row", "n", "gated", "general": {invariant: bodies failing}, "limits": bodies failing a limit, "examples": [text]}` for `n` forced bodies of `row`."""
     general, limits, examples, gated = {}, 0, [], 0
+    misses = 0
     for number in range(n):
         forced = force(row, number)
         if forced is None:
+            misses += 1
+            if not gated and misses >= GIVE_UP_AFTER_MISSES:      # a gate that three samples of 40 draws each never met is rare or unreachable here: the census counts it
+                break
             continue
         gated += 1
         body, star = forced
