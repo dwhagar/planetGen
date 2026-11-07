@@ -16,10 +16,11 @@ Flask. `view` is what the page and the API show; `request` is what the button do
 """
 
 import os
+import subprocess
 import time
 
 from planetgen.admin import maintenance, updateguard
-from planetgen.util import logpaths
+from planetgen.util import logpaths, logrecord
 
 REQUEST_NAME = "update.request"
 """str: The file in the state folder whose existence asks for an update."""
@@ -35,6 +36,9 @@ LOG_TAIL_BYTES = 24 * 1024
 
 STALE_REQUEST_SECONDS = 120
 """int: A request this old that nothing picked up while no update runs means the path unit is not running."""
+
+SYSTEMCTL_TIMEOUT_SECONDS = 3
+"""int: How long `systemctl show` may take; a slow answer is no answer."""
 
 STATES = ("not_installed", "idle", "requested", "running")
 """tuple: What `view` calls the state."""
@@ -93,11 +97,72 @@ def _request_age():
         return None
 
 
+def service_status():
+    """
+    What systemd says about the update service, from `systemctl show` (it needs no privilege): `{"active", "result",
+    "status"}` (`ActiveState`, `Result` and `ExecMainStatus`), or `None` when systemctl is missing or does not answer.
+    A unit that failed stays `failed` (`result` `exit-code`, or `start-limit-hit` when ten starts came in ten minutes)
+    until the next start, so this is how a start that never reached `update.log` shows.
+    """
+    try:
+        done = subprocess.run(
+            ["systemctl", "show", SERVICE_UNIT, "-p", "ActiveState", "-p", "Result", "-p", "ExecMainStatus"],
+            capture_output=True, text=True, timeout=SYSTEMCTL_TIMEOUT_SECONDS, check=False)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if done.returncode != 0:
+        return None
+    values = dict(line.split("=", 1) for line in done.stdout.splitlines() if "=" in line)
+    if "ActiveState" not in values:
+        return None
+    return {"active": values["ActiveState"], "result": values.get("Result", ""), "status": values.get("ExecMainStatus", "")}
+
+
+def last_run(text):
+    """
+    `(finished, last_error)` for the last run in a log's text: whether its closing line ("=== Update done after ...")
+    came, and the last error or critical line after the previous run's closing line (`None` when there is none).
+    """
+    finished = False
+    last_error = None
+    for line in text.splitlines():
+        severity = logrecord.display_severity(line)
+        if severity == "info" and "done after" in line and line.rstrip().endswith(logrecord.DIVIDER):
+            finished = True
+            last_error = None
+        elif severity in ("error", "critical"):
+            finished = False
+            last_error = line
+    return finished, last_error
+
+
+def _outcome(text, status):
+    """`(outcome, detail)`: `"failed"` with what is known when the last update did not finish, `"done"` when it did,
+    `(None, "")` when nothing says."""
+    finished, last_error = last_run(text)
+    if status and status["active"] == "failed":
+        if status["result"] == "start-limit-hit":
+            detail = ("systemd stopped starting it after ten tries in ten minutes. Clear that with "
+                      "`systemctl reset-failed planetgen-update.service`, then press Update again.")
+        elif status["status"] == "1":
+            detail = ("It stopped with exit status 1 before it changed anything or part way through; the usual reason is "
+                      "that generation was running, which an update started this way never cancels.")
+        else:
+            detail = f"The service ended with {status['result'] or 'an error'} (exit status {status['status'] or '?'})."
+        return "failed", detail + (f" The last error in the log: {last_error}" if last_error else "")
+    if last_error:
+        return "failed", f"The last error in the log: {last_error}"
+    if finished:
+        return "done", ""
+    return None, ""
+
+
 def view():
     """
     What the Update page and `GET /api/admin/update` show: `state` (one of `STATES`), `installed`, `can_request` (whether
     a request would be accepted now) and `reason` (why not), `log` (the end of `update.log`), `log_modified` (Unix
-    seconds or `None`) and `stale_request`. `running` is the update guard's lock held by a live process, or the site
+    seconds or `None`), `stale_request` and, when no update is waiting or running, `outcome` (`failed`, `done` or
+    `None`) with `outcome_detail`: how the last one ended, from the service's state and the end of the log. `running` is the update guard's lock held by a live process, or the site
     still closed by an update.
     """
     on = installed()
@@ -121,7 +186,11 @@ def view():
     else:
         reason = maintenance.write_problem() or ""
     text, modified = log_tail() if on else ("", None)
+    outcome, outcome_detail = (None, "")
+    if on and state == "idle":
+        outcome, outcome_detail = _outcome(text, service_status())
     return {
+        "outcome": outcome, "outcome_detail": outcome_detail,
         "state": state, "installed": on, "can_request": not reason, "reason": reason, "log": text,
         "log_modified": modified, "stale_request": age is not None and not updating and age > STALE_REQUEST_SECONDS,
     }

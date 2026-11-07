@@ -351,7 +351,8 @@ def admin_queue():
 def _event_view(event):
     """The event as the logging layer's display line (`logrecord.display_line`, UX.123): the run's download holds the same
     record as a file line, so the page and the file show one event the same way."""
-    return {"line": logrecord.display_line(runrecord.event_record(event))}
+    line = logrecord.display_line(runrecord.event_record(event))
+    return {"line": line, "pair": (logrecord.display_severity(line), line)}
 
 
 def _stage_rows(run):

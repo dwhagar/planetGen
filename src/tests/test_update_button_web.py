@@ -36,6 +36,7 @@ def units(tmp_path, monkeypatch):
     monkeypatch.setenv(webupdate.UNIT_DIR_ENV, str(unit_dir))
     monkeypatch.setattr(webupdate, "log_path", lambda: str(log))
     monkeypatch.setattr(updateguard, "is_updating", lambda: False)
+    monkeypatch.setattr(webupdate, "service_status", lambda: None)
     return type("Units", (), {"state": state, "units": unit_dir, "log": log})
 
 
@@ -207,3 +208,49 @@ def test_the_page_says_when_the_button_is_not_set_up(site, units):
     (units.units / webupdate.SERVICE_UNIT).unlink()
     page = site.get("/admin/update").get_data(as_text=True)
     assert "not set up on this server" in page and "Update the site" not in page
+
+
+# --- UX.284: how the last update ended, and the log coloured by level ---------------------------------------------
+
+STAMP = "2026-11-07 10:00:00 EST"
+GUARD_STOP = (f"{STAMP} INFO     update: === Stage 1 of 9: Checking ===\n"
+              f"{STAMP} ERROR    update: Generation is running: nothing was changed.\n")
+FINISHED = f"{STAMP} INFO     update: === Update done after 4:07 ===\n{STAMP} INFO     update: No warnings.\n"
+
+
+def test_a_log_that_ends_in_an_error_is_a_failed_update_with_the_error_in_the_detail(units):
+    units.log.write_text(GUARD_STOP)
+    view = webupdate.view()
+    assert view["outcome"] == "failed" and "Generation is running" in view["outcome_detail"]
+
+
+def test_a_finished_run_after_an_old_error_is_done_not_failed(units):
+    units.log.write_text(GUARD_STOP + FINISHED)
+    assert webupdate.view()["outcome"] == "done"
+    units.log.write_text(FINISHED + GUARD_STOP)
+    assert webupdate.view()["outcome"] == "failed"
+
+
+def test_a_start_that_never_reached_the_log_is_failed_by_the_services_state(units, monkeypatch):
+    """The unit failing before `update.log` begins (a refused request file, the start limit) leaves the log silent."""
+    units.log.write_text(FINISHED)
+    monkeypatch.setattr(webupdate, "service_status", lambda: {"active": "failed", "result": "start-limit-hit", "status": "0"})
+    view = webupdate.view()
+    assert view["outcome"] == "failed" and "reset-failed" in view["outcome_detail"]
+    monkeypatch.setattr(webupdate, "service_status", lambda: {"active": "failed", "result": "exit-code", "status": "1"})
+    assert "exit status 1" in webupdate.view()["outcome_detail"]
+
+
+def test_no_log_and_no_failure_says_nothing(units):
+    assert webupdate.view()["outcome"] is None
+
+
+def test_the_page_says_the_update_failed_and_colours_the_levels(site, units):
+    _become_owner(site)
+    units.log.write_text(f"{STAMP} DEBUG    update: dbg\n{STAMP} INFO     update: inf\n{STAMP} WARNING  update: wrn\n"
+                         f"{STAMP} ERROR    update: Generation is running.\nplain output\n")
+    page = site.get("/admin/update").get_data(as_text=True)
+    assert "The last update failed." in page and 'role="alert"' in page
+    for level in ("debug", "info", "warning", "error"):
+        assert f'<span class="log-{level}">{STAMP} {level.upper()}' in page
+    assert "\nplain output\n" in page and 'data-follow-end' in page
