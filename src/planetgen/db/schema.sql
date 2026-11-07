@@ -1542,6 +1542,7 @@
 -- v214 (GEN.1276): `nebulae` and `supernova_remnants` keep their composition (`physics/nebula_columns.py`): `gas_oh_dex` ([O/H] of the gas), `mass_fraction_h`, `_he`, `_z` and `mass_fraction_c`, `_n`, `_o`, `_ne`, `_s`, `_ar`, `_fe` (gas and dust together), `abundance_c` to `abundance_fe` (12 + log(X/H) of the gas), `ionized_share`, `atomic_share`, `molecular_share` (of the hydrogen), `dust_to_gas`, `dust_to_metals`, the grain shares (`grain_silicate`, `_iron`, `_carbon`, `_pah`, `_ice`) and `progenitor_mass_sol` (planetary nebulae and remnants); a remnant adds `ejecta_mass_sol`, `swept_mass_sol` and the hydrogen, helium and metal fractions of each part. All DOUBLE, NULL for a row made before v214 that the migration did not fill (it fills every row it can); `composition` and `dominant_species` are written from them.
 -- v215 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v215. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
 -- v219 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
+-- v221 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -2527,6 +2528,7 @@ CREATE TABLE IF NOT EXISTS planets (
     class_match                 DOUBLE,  -- v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
     runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
+    oddities                    VARCHAR(40),  -- v221 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -3000,6 +3002,7 @@ CREATE TABLE IF NOT EXISTS moons (
     class_match                 DOUBLE,  -- v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
     runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
+    oddities                    VARCHAR(40),  -- v221 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -4367,6 +4370,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     class_match                   DOUBLE,  -- v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
     runner_up_class               CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match               DOUBLE,  -- v218 (GEN.1207): its match
+    oddities                      VARCHAR(40),  -- v221 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)
