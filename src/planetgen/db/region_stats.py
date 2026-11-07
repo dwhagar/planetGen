@@ -68,7 +68,7 @@ def capacity_of(cell):
 def generated_sectors(conn, cell):
     """The `(shell, band, wedge)` of the generated sectors of the region `cell`, sorted."""
     where, params = query._sectors_where(cell_sectors(cell))
-    rows = conn.execute(f"SELECT shell_index, band_index, wedge_index FROM sectors WHERE {where}", params).fetchall()
+    rows = conn.execute(f"SELECT shell_index, band_index, wedge_index FROM {query.charted_sectors_sql(where)} s", params).fetchall()
     return sorted((int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])) for r in rows)
 
 
@@ -77,7 +77,7 @@ def generated_mass_kg(conn, cell):
     sector with no figure)."""
     where, params = query._sectors_where(cell_sectors(cell))
     rows = conn.execute(
-        "SELECT st.total_mass_kg AS mass FROM (SELECT shell_index, band_index, wedge_index FROM sectors WHERE " + where + ") s"
+        "SELECT st.total_mass_kg AS mass FROM " + query.charted_sectors_sql(where) + " s"
         " LEFT JOIN sector_stats st ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
         " AND st.wedge_index = s.wedge_index", params).fetchall()
     return math.fsum(float(r["mass"] or 0.0) for r in rows)
@@ -123,14 +123,14 @@ def refresh_sectors(conn, addresses, on_progress=None):
     return written
 
 
-def rebuild(conn, on_progress=None):
+def rebuild(conn, on_progress=None, charted=True):
     """
     Makes every row again from `sectors`, a shell at a time: the table emptied, then a row for each region cell that holds a
     generated sector. A cell is written when the shells of its block have all been read (a region's block shell only ever
     grows with the sector shell). Returns the rows written.
     """
     shells = [row["shell_index"] for row in conn.execute(
-        "SELECT DISTINCT shell_index FROM sectors WHERE shell_index IS NOT NULL ORDER BY shell_index").fetchall()]
+        f"SELECT DISTINCT shell_index FROM {query.charted_sectors_sql('shell_index IS NOT NULL', charted)} s ORDER BY shell_index").fetchall()]
     conn.execute("DELETE FROM region_stats")
     edge_pc = query.galaxy_edge_pc(conn)
     cells, masses, group, written = {}, {}, None, 0
@@ -145,8 +145,8 @@ def rebuild(conn, on_progress=None):
 
     for done, shell in enumerate(shells, start=1):
         for r in conn.execute(
-                "SELECT s.shell_index, s.band_index, s.wedge_index, st.total_mass_kg FROM (SELECT * FROM sectors WHERE"
-                " shell_index = ?) s LEFT JOIN sector_stats st ON st.shell_index = s.shell_index"
+                "SELECT s.shell_index, s.band_index, s.wedge_index, st.total_mass_kg FROM "
+                + query.charted_sectors_sql("shell_index = ?", charted) + " s LEFT JOIN sector_stats st ON st.shell_index = s.shell_index"
                 " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index", (shell,)).fetchall():
             address = (int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"]))
             cell = region_cell(address)

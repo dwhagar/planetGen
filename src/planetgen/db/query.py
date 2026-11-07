@@ -171,6 +171,16 @@ _UNCHARTED_SECTOR_SQL = (
     "AND cl.band_index = sec.band_index AND cl.wedge_index = sec.wedge_index))")
 """str: SQL for an uncharted placeholder (`sector_is_uncharted`): a placed sector row whose cell the chart ledger does not hold."""
 
+def charted_sectors_sql(where="1 = 1", charted=True):
+    """
+    A derived table of the sectors matching `where` (SQL on `sectors`' own columns) that are not uncharted placeholders (MAP.402): the sectors that
+    were charted, or that predate the chart ledger. The totals that count generated sectors read their rows through it, so the placeholder rows
+    the scatters leave (`db.uncharted_index`) add nothing to a block, a region or a count of sectors. `charted=False` reads every row: for the
+    migration that runs `db.block_stats.rebuild` on a schema older than the chart ledger (0168), where no placeholder can exist.
+    """
+    return f"(SELECT sec.* FROM sectors sec WHERE ({where})" + (f" AND NOT {_UNCHARTED_SECTOR_SQL})" if charted else ")")
+
+
 _EMPTY_SECTOR_SQL = (
     "(NOT EXISTS (SELECT 1 FROM rogue_planets rp WHERE rp.sector_id = sec.id) "
     "AND NOT EXISTS (SELECT 1 FROM bright_stars bs WHERE bs.shell_index = sec.shell_index AND bs.band_index = sec.band_index "
@@ -4401,13 +4411,13 @@ def galaxy_placed_sectors(conn):
             `galactic_radius_pc`, `shell_index`, `system_count`.
     """
     rows = conn.execute(
-        """
+        f"""
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                sec.galactic_radius_pc, sec.shell_index, COALESCE(counts.n, 0) AS system_count
         FROM sectors sec
         LEFT JOIN (SELECT sector_id, COUNT(*) AS n FROM star_systems
                    WHERE sector_id IS NOT NULL GROUP BY sector_id) counts ON counts.sector_id = sec.id
-        WHERE sec.center_x_pc IS NOT NULL
+        WHERE sec.center_x_pc IS NOT NULL AND NOT {_UNCHARTED_SECTOR_SQL}
         ORDER BY sec.galactic_radius_pc
         """,
     ).fetchall()
@@ -4559,13 +4569,13 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
             given center).
     """
     rows = conn.execute(
-        """
+        f"""
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                sec.galactic_radius_pc, sec.shell_index, sec.band_index, sec.wedge_index,
                sec.edge_mpc,
                (SELECT COUNT(*) FROM star_systems ss WHERE ss.sector_id = sec.id) AS system_count
         FROM sectors sec
-        WHERE sec.center_x_pc IS NOT NULL
+        WHERE sec.center_x_pc IS NOT NULL AND NOT {_UNCHARTED_SECTOR_SQL}
           AND sec.center_x_pc BETWEEN ? AND ?
           AND sec.center_y_pc BETWEEN ? AND ?
           AND sec.center_z_pc BETWEEN ? AND ?
@@ -4648,7 +4658,7 @@ def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
             minus `distance_pc`.
     """
     rows = conn.execute(
-        """
+        f"""
         SELECT id, name, center_x_pc, center_y_pc, center_z_pc,
                galactic_radius_pc, shell_index, band_index, wedge_index, edge_mpc
         FROM (
@@ -4661,6 +4671,7 @@ def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
             WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ?
               AND sec.center_y_pc >= ? AND sec.center_y_pc < ?
               AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
+              AND NOT {_UNCHARTED_SECTOR_SQL}
         ) ranked
         WHERE MOD(row_num - 1, CEILING(row_total / ?)) = 0
         ORDER BY id
@@ -4716,8 +4727,8 @@ def galaxy_sector_count_in_box(conn, lo, hi):
         int: The count.
     """
     return int(conn.execute(
-        "SELECT COUNT(*) AS n FROM sectors WHERE center_x_pc >= ? AND center_x_pc < ? AND center_y_pc >= ? "
-        "AND center_y_pc < ? AND center_z_pc >= ? AND center_z_pc < ? AND shell_index IS NOT NULL",
+        "SELECT COUNT(*) AS n FROM sectors sec WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ? AND sec.center_y_pc >= ? "
+        f"AND sec.center_y_pc < ? AND sec.center_z_pc >= ? AND sec.center_z_pc < ? AND sec.shell_index IS NOT NULL AND NOT {_UNCHARTED_SECTOR_SQL}",
         (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2]),
     ).fetchone()["n"])
 
@@ -6330,7 +6341,7 @@ def _stage_sectors_with_stats(where, extra=""):
     return (
         f"SELECT {extra}s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
         " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds, st.total_mass_kg"
-        f" FROM (SELECT * FROM sectors WHERE {where}) s LEFT JOIN sector_stats st"
+        f" FROM {charted_sectors_sql(where)} s LEFT JOIN sector_stats st"
         " ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
         " AND st.wedge_index = s.wedge_index"
     )
