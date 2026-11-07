@@ -30,7 +30,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.physics import constants, mantle_stripping, oddities, planet_classes, relations, rings, surface_air, venus_spin
-from planetgen.physics import orbit_oddities
+from planetgen.physics import orbit_oddities, super_puff
 from planetgen.physics.oddities import Oddity, Rate
 from planetgen.physics import bulk_draw
 from planetgen.util import draw
@@ -371,6 +371,8 @@ def general_failures(body, star):
     failures += [("structure", text) for text in plausibility.check_hard_invariants(record)]
     if body.body_type == "t":
         low, high = bulk_draw.DENSITY_BOUNDS_G_CM3
+        if (getattr(body, "envelope_mass_fraction", 0.0) or 0.0) > 0.0:
+            low = min(low, super_puff.DENSITY_RANGE_G_CM3[0])      # a rocky planet that kept a hydrogen envelope (GEN.1323) is a sub-Neptune or a super-puff (GEN.1343), as light as 0.04 g/cm3
         if not low * 0.99 <= body.density <= high * 1.01:
             failures.append(("structure", f"density {body.density:.2f} g/cm3 outside {low} to {high}"))
 
