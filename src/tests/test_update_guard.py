@@ -247,7 +247,7 @@ def test_update_sh_takes_the_guard_before_its_first_change_and_requires_it_by_st
     assert text.index("export PLANETGEN_UPDATE_PID=$$") < first
     # taken again after the pull (a checkout that did not have it) and required once the venv exists
     assert text.index("git reset --hard") < text.index("\nensure_update_guard\n", first + 1) < text.index("log_stage 2 9")
-    assert text.index("use_site_python\nstart_update_log\nensure_update_guard required") < text.index("log_stage 3 9")
+    assert text.index("use_site_python\nstart_update_log\nstart_error_log\nensure_update_guard required") < text.index("log_stage 3 9")
     assert text.index("ensure_update_guard required") < text.index("\nmigrate_or_reset_db\n")
     assert "--yes" in text
 

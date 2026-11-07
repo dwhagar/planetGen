@@ -352,9 +352,12 @@ def horse_killed(job, retpid, ret_val, _rusage):
     `kill -9`). The run fails now, with the unit named, instead of when the worker's heartbeat runs out; the retry RQ
     makes finds the run no longer live and does nothing. A job that is not a unit of a run is left to RQ.
     """
+    status = log.decode_wait_status(ret_val) if isinstance(ret_val, int) else -1
     if job.func_name != UNIT_FUNCTION:
+        log.process_ended("queue", f"The process running job {getattr(job, "id", None) or "?"} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
         return
     run_id, stage, unit = job.args[:3]
+    log.process_ended("queue", f"The process running unit {unit} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(job.connection, run_id, "failed",
                          error=f"unit {unit} of stage {wrapper.stage_name(job.connection, run_id, stage)} was killed: "
