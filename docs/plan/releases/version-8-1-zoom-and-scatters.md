@@ -57,7 +57,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched |  |  |
 | UX.285 | Settings option weirdness_dial: the oddity dial (default 1, 0 turns all oddities off) in the settings page and file, read through SystemConfig.WEIRDNESS_DIAL |  |  |
 | MAP.402 | Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets |  |  |
-| GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 
 ### Bugs and flaky tests
 
