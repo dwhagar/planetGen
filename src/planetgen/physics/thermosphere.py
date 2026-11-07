@@ -96,7 +96,7 @@ DEFAULT_KINETIC_DIAMETER_PM = 360.0
 
 ENERGY_LIMITED_EFFICIENCY = 0.15
 """float: The share of the absorbed XUV that drives the escape (the grid of [R2512] takes 0.15: 0.10 to
-0.20). The water-loss history of GEN.639 keeps its own, lower DESIGN value (`tuning.ENERGY_LIMITED_EFFICIENCY`). Tier 2, tweak level 0."""
+0.20). The water-loss history of GEN.639 uses the same value (`tuning.ENERGY_LIMITED_EFFICIENCY`; Boss, 2026-11-07). Tier 2, tweak level 0."""
 
 HYDRO_BASED_LOW = {"beta": 32.0199, "alpha1": 0.4222, "alpha2": -1.7489, "alpha3": 3.7679, "zeta": -6.8618, "theta": 0.0095}
 """dict: Table 1 of [R2512], for the escape parameter below `exp(Sigma)`: boil-off, driven by the planet's heat and low gravity."""

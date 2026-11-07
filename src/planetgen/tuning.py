@@ -1049,11 +1049,12 @@ Sun's own habitable zone dry-proof (the young Sun was past the runaway limit at 
 RUNAWAY_HISTORY_STEPS = 64
 """int: Log-spaced steps of the water-loss history integral from `RUNAWAY_HISTORY_START_YR` to the star's age."""
 
-ENERGY_LIMITED_EFFICIENCY = 0.01
+ENERGY_LIMITED_EFFICIENCY = 0.15
 """float: The share of the absorbed XUV that drives hydrogen away in the energy-limited escape,
 Mdot = eps pi R^3 F_xuv / (G M) ([R2769, R4637] take 0.1, other estimates run from about 0.01 to
-0.3). 0.01, a tenth of the usual value, so that only the worst red dwarf zones lose their oceans (Boss, 7:09 PM EDT
-2026-10-23; DESIGN stand-in, GEN.639)."""
+0.3). 0.15, the value the atmosphere escape model uses (`thermosphere.ENERGY_LIMITED_EFFICIENCY`, the grid of [R2512]: 0.10 to
+0.20), so the water-loss history and the atmosphere's escape agree (Boss, 2026-11-07, replacing his 7:09 PM EDT 2026-10-23
+choice of 0.01; GEN.639)."""
 
 RUNAWAY_FLUX_REFERENCE_W_M2 = 1361.0
 """float: The Sun's flux at the Earth, W/m2: the unit `orbits.runaway_greenhouse_flux` is in (the planet's starlight over this is its effective flux)."""

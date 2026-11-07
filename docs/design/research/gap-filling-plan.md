@@ -3244,6 +3244,14 @@ An outer disk that a giant acted on lost mass in the ledger of `belt_origin` (wh
 |---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon |
 
+### 6.208 Stand-in of the energy-limited efficiency of the water-loss history (GEN.1346)
+
+`runaway_history.loss_kg` takes the hydrogen the star's XUV drives off a body past its runaway greenhouse limit as `eps pi R^3 F_xuv / (G M)` (GEN.639); `tuning.ENERGY_LIMITED_EFFICIENCY` is eps. Boss's 10-23 design value was 0.01; on 2026-11-07 he set it to the published range, 0.1 to 0.15, so the history and the atmosphere's escape (`thermosphere.ENERGY_LIMITED_EFFICIENCY`) agree.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| ER1 | P | T2 | L0 | tuning.ENERGY_LIMITED_EFFICIENCY 0.15: the share of the absorbed XUV that drives hydrogen away in the water-loss history, the value the atmosphere escape model uses | 0.1 ([R2769, R4637]) to 0.15 ([R2512]: 0.10 to 0.20); the full published spread is about 0.01 to 0.3 | rocky bodies with surface water past the runaway greenhouse limit, hydrogen-rich steam escaping at the energy limit | test_runaway_history::test_the_water_loss_efficiency_is_the_atmosphere_escape_efficiency; a measured water loss of a planet near the limit | a hydrodynamic escape model with a real efficiency by star, mass and XUV (GEN.511) | READ ([R2512], [R2769], [R4637]); Boss's choice of 2026-11-07 inside the range; replaces his 10-23 DESIGN value 0.01 |
+
 ### 6.204 Stand-in of the steam limit of the air of a body (GEN.1329)
 
 `surface_air._steam_possible` and `surface_air.MOIST_LIMIT_K` keep a body under its runaway greenhouse flux from holding its water as steam (the fixed point let a dense, hot first step carry a body past the critical temperature of water, where the whole reservoir joined the air). The limit is the one the water-loss history and the steam-branch start already read (`orbits.runaway_greenhouse_flux`, [R2447]); a body's own heat counts as the starlight that would absorb the same.
