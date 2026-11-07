@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3523] - 2026-11-07
+
+**Headline:** The Queue page lists the jobs that are waiting for a job they require.
+
+### Changed
+- A new Held jobs panel on the admin Queue page (shown only while a job is held) lists each held job with its queue, its run and stage when it is a unit of a run, and the jobs it still waits for. It reads a new `GET /api/admin/work/held`.
+
+generation-output: unchanged
+
 ## [8.0.3522] - 2026-11-07
 
 **Headline:** The low-severity points of the security audit are closed: workflow permissions, a hardened gunicorn unit, a stricter SVG upload check and three hygiene fixes.
