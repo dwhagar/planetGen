@@ -120,7 +120,7 @@ def test_the_page_of_a_placeholder_shows_the_sector_map_locked_to_its_cell(brows
     context, page, problems, base_url = _page(browser, server)
     try:
         name = naming_key.uncharted_sector_name(UNCHARTED[0], KEY)
-        page.goto(base_url + "/sectors", wait_until="load")
+        page.goto(base_url + "/sectors?coverage=all&empty=1", wait_until="load")
         page.wait_for_selector("#sectors table tbody tr")
         page.get_by_role("link", name=name).click()
         page.wait_for_selector("#map canvas")
