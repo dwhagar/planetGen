@@ -1,7 +1,0 @@
-**Headline:** The code tree is root's and read-only to the web user, so nothing the web user can write ever runs as root.
-
-### Changed
-- **SEC.37 (S-M1): `set-permissions.sh` makes the checkout root's, with the web user's group (directories 750, files 640, scripts 750).** `install.sh` and `update.sh` run git, Python and the scripts in this tree as root; until now the whole tree, `.git` and `update.sh` included, belonged to the web user, so a break-in through the website became root at the next `sudo ./update.sh`. Only `state/`, the Generate jobs folder, the tile cache and the log folders stay the web user's.
-- **`config.json` moves into the state folder, and the checkout's `config.json` becomes a root-owned link to it.** The Settings page replaces the file in the folder it is in, and a root-owned folder would not allow that. The next `install.sh` or `update.sh` moves an old plain `config.json` there once; when both already exist nothing moves and a warning says so. The settings writer follows the link (`config_path()` is the real path).
-- **The update compiles the bytecode as root** (the web user cannot write `__pycache__` any more) and no longer tells git to trust the checkout (`safe.directory`): the repository is root's, so git needs no exception.
-- Tests: `test_deploy_scripts.py` checks the new ownership, the jobs folder, the config move and its link, the two-files warning and the state folder outside the checkout.
