@@ -19,6 +19,7 @@ see `life.apply_life_data`, which `StarSystem` applies to every planet
 and moon in a system after all of them have been generated.
 """
 
+import contextlib
 import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
@@ -1007,12 +1008,31 @@ def _turn_moon(moon, axis, turn):
         moon.spin_axis_x, moon.spin_axis_y, moon.spin_axis_z = turn((moon.spin_axis_x, moon.spin_axis_y, moon.spin_axis_z), axis)
 
 
+@contextlib.contextmanager
+def _in_equator_frame(body):
+    """
+    GEN.1352: holds the position and velocity of a moon `orient_moons` has set in the system's frame in the frame of its planet's equator while the block runs
+    (its elements, which `move_orbit` and `update_orbital_position` read, are measured there) and turns them back after. A body not so set is left as it is.
+    """
+    axis = getattr(body, "_frame_axis", None)
+    if axis is None:
+        yield
+        return
+    body.set_position_au(*spin.turn_from_axis((body.position_x, body.position_y, body.position_z), axis))
+    body.set_velocity_kms(*spin.turn_from_axis((body.velocity_x_kms, body.velocity_y_kms, body.velocity_z_kms), axis))
+    try:
+        yield
+    finally:
+        body.set_position_au(*spin.turn_to_axis((body.position_x, body.position_y, body.position_z), axis))
+        body.set_velocity_kms(*spin.turn_to_axis((body.velocity_x_kms, body.velocity_y_kms, body.velocity_z_kms), axis))
+
+
 def release_moons(planet):
     """
     Writes the moons of `planet` that `orient_moons` set in the system's frame back in the frame of the planet's equator, the one their
     elements (`orbital_inclination_deg`, `orbital_ascending_node_deg`) are measured in and the history of the moons moves them in (no draws).
     """
-    for moon in planet.moons:
+    for moon in (*planet.moons, *(getattr(planet, "_born_moons", None) or ())):      # the born ones too: the history draws on them again, and one dropped since may be back
         axis = getattr(moon, "_frame_axis", None)
         if axis is not None:
             _turn_moon(moon, axis, spin.turn_from_axis)
@@ -1044,14 +1064,15 @@ def move_orbit(body, distance_au, primary_mass_kg):
     Sets the semi-major axis of a planet's or moon's orbit and what follows from it (period, Hill sphere, position and speed), keeping the
     plane, the shape and where the body is along the orbit (no draws): the move of a moon by the tide of its planet (`moon_history`, GEN.959).
     """
-    orbit = body.orbit_from_vector()
-    arg_periapsis_deg = math.degrees(orbit["arg_periapsis"])
-    phase_deg = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z),
-                                                    body.orbital_inclination_deg, body.orbital_ascending_node_deg)
-    body.distance = distance_au
-    body.period = calculate_orbital_period_years(distance_au, primary_mass_kg)
-    update_hill_sphere(body)
-    update_orbital_position(body, phase_deg, arg_periapsis_deg)
+    with _in_equator_frame(body):
+        orbit = body.orbit_from_vector()
+        arg_periapsis_deg = math.degrees(orbit["arg_periapsis"])
+        phase_deg = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z),
+                                                        body.orbital_inclination_deg, body.orbital_ascending_node_deg)
+        body.distance = distance_au
+        body.period = calculate_orbital_period_years(distance_au, primary_mass_kg)
+        update_hill_sphere(body)
+        _update_orbital_position(body, phase_deg, arg_periapsis_deg)
 
 
 def update_orbital_position(planet, phase_deg=None, arg_periapsis_deg=0.0):
@@ -1103,6 +1124,12 @@ def update_orbital_position(planet, phase_deg=None, arg_periapsis_deg=0.0):
                          the one its current state has when `phase_deg` is
                          not given.
     """
+    with _in_equator_frame(planet):
+        _update_orbital_position(planet, phase_deg, arg_periapsis_deg)
+
+
+def _update_orbital_position(planet, phase_deg, arg_periapsis_deg):
+    """`update_orbital_position` for a body whose position and velocity are in the frame its elements are measured in."""
     if phase_deg is None:
         orbit = planet.orbit_from_vector()
         arg_periapsis_deg = math.degrees(orbit["arg_periapsis"])
