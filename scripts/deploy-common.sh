@@ -63,6 +63,12 @@ default_python() {
 start_update_log() {
     local path
     path="$(cd / && PYTHONPATH="$SCRIPT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" "$VENV/bin/python" -m planetgen.util.logpaths update.log 2>/dev/null)" || return 0
+    # SEC.44: the folder is config.json's `log_dir`, a file the web user can edit, and the lines are appended to it as root
+    # (and the folder made): only where rootpaths.py allows it. A refused folder leaves the lines on the screen only.
+    if [[ -n "$path" ]] && ! (cd / && "$VENV/bin/python" -I "$SCRIPT_DIR/examples/apache/deploy-paths.py" --check log_dir "$(dirname "$path")" "$SCRIPT_DIR" >/dev/null 2>&1); then
+        log_warning "update.log was not written: log_dir in config.json is not a folder root may use; the lines stay on the screen only."
+        return 0
+    fi
     log_file_to "$path"
 }
 

@@ -129,6 +129,14 @@ WEB_OUTSIDE=()
 JOBS_P=""
 if paths="$(cd / && "${PYTHON:-python3}" -I "$(dirname "${BASH_SOURCE[0]}")/deploy-paths.py" "$INSTALL_DIR" 2>/dev/null)"; then
     JOBS_DIR="$(printf '%s\n' "$paths" | sed -n 2p)"
+    # SEC.44: config.json is the web user's file, so the folder it names is only given to the web user (chown -R) when
+    # rootpaths.py allows it; otherwise it is left as it is, and inside the checkout it stays part of root's code tree.
+    if [[ -n "$JOBS_DIR" ]] && ! why="$(cd / && "${PYTHON:-python3}" -I "$(dirname "${BASH_SOURCE[0]}")/deploy-paths.py" --check jobs "$JOBS_DIR" "$INSTALL_DIR" "$APACHE_USER" "$APACHE_GROUP" 2>&1)"; then
+        log_warning "${why#refused: }"
+        log_warning "  The jobs folder was left as it is. Name a folder under /var/lib, /var/cache, /var/log or /srv in config.json,"
+        log_warning "  or set PLANETGEN_JOBS_DIR in root's shell, then run sudo ./update.sh again."
+        JOBS_DIR=""
+    fi
     [[ -n "$JOBS_DIR" && -d "$JOBS_DIR" ]] && JOBS_P="$(canonical "$JOBS_DIR")"
 else
     log_warning "could not read the jobs directory from deploy-paths.py; the jobs folder is not touched (create-cache-dir.sh sets it up)."

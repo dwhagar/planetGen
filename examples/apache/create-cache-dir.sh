@@ -40,12 +40,12 @@ fi
 CACHE_DIR="${1:-}"
 JOBS_DIR=""
 STATE_DIR=""
+PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
+if [[ -z "$PYTHON" ]]; then
+    log_error "no python3/python found on PATH."
+    exit 1
+fi
 if [[ -z "$CACHE_DIR" ]]; then
-    PYTHON="${PYTHON:-$(command -v python3 || command -v python || true)}"
-    if [[ -z "$PYTHON" ]]; then
-        log_error "no python3/python found on PATH."
-        exit 1
-    fi
     # This runs as root, so nothing is imported from the repo (src/html is
     # readable by Apache's user, and root must never run code that user
     # could have planted): deploy-paths.py reads config.json with the
@@ -71,13 +71,30 @@ if ! read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACH
     exit 1
 fi
 
+# SEC.44: config.json is the web user's file, so a folder it names is not made, moved into or given to the web user unless
+# rootpaths.py allows it (under an allowed parent, no symbolic link, nothing of the system's). A folder from root's own
+# environment, or given as the argument, is the operator's and is not asked about.
+path_allowed() {
+    local why
+    [[ -n "${1:-}" ]] || return 0
+    if why="$(cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" --check "$1" "$2" "$REPO_DIR" "$APACHE_USER" "$APACHE_GROUP" 2>&1)"; then
+        return 0
+    fi
+    log_warning "${why#refused: }"
+    log_warning "  Nothing was created, moved or re-owned there. Name a folder under /var/lib, /var/cache, /var/log or /srv in config.json,"
+    log_warning "  or set the variable for it in root's shell, then run sudo ./update.sh again."
+    return 1
+}
+
 # Parents (e.g. /var/cache/planetgen) stay root-owned and world-traversable;
 # only the cache directory itself belongs to Apache.
 if [[ -z "$CACHE_DIR" ]]; then
     log_info "Tile cache is off (cache.max_mb is 0) -- nothing to create."
+elif ! path_allowed "$([[ -z "${1:-}" ]] && echo cache)" "$CACHE_DIR"; then
+    :
 else
     mkdir -p "$CACHE_DIR"
-    chown -R "$APACHE_USER:$APACHE_GROUP" "$CACHE_DIR"
+    chown -R -h "$APACHE_USER:$APACHE_GROUP" "$CACHE_DIR"
     chmod 750 "$CACHE_DIR"
     log_info "Tile cache: $CACHE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
 fi
@@ -88,7 +105,7 @@ fi
 # the argument, since that argument names the tile cache alone. Jobs left
 # in the old default, /var/lib/planetgen/jobs (OPS.19: it differs from the
 # checkout's folder only by case), move into the new one first.
-if [[ -z "${1:-}" ]]; then
+if [[ -z "${1:-}" ]] && path_allowed jobs "$JOBS_DIR"; then
     (cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" --move-old-jobs "$JOBS_DIR")
     # ADM.50: the galaxy settings files are gone; delete the folder older versions left here.
     (cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" --remove-galaxy-settings "$JOBS_DIR")
