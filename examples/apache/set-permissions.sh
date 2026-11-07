@@ -151,7 +151,7 @@ CONFIG="$INSTALL_DIR/config.json"
 WEB_CONFIG="$STATE_P/config.json"
 if [[ -f "$CONFIG" && ! -L "$CONFIG" ]]; then
     if [[ -e "$WEB_CONFIG" ]]; then
-        log_warning "both $CONFIG and $WEB_CONFIG exist; nothing was moved. Keep the one you want in $WEB_CONFIG and delete the other."
+        log_info "  both $CONFIG and $WEB_CONFIG exist; nothing was moved ($WEB_CONFIG is the one the site uses)."
     else
         mv "$CONFIG" "$WEB_CONFIG"
         log_info "  moved config.json into $STATE_P (the settings page writes it there)"

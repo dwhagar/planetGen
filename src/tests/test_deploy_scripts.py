@@ -518,7 +518,9 @@ def test_set_permissions_keeps_both_config_files_when_both_exist(tmp_path):
     assert not (repo / "config.json").is_symlink()
     assert (repo / "config.json").read_text() == '{"from": "checkout"}'
     assert (repo / "state" / "config.json").read_text() == '{"from": "state"}'
-    assert "both" in proc.stdout + proc.stderr
+    # An existing file is normal on every update after the first, so it is a plain note, never a warning.
+    out = proc.stdout + proc.stderr
+    assert "both" in out and "WARNING" not in out.upper()
 
 
 @needs_www_data
