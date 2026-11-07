@@ -11,6 +11,7 @@ reloads itself every ten seconds.
 
 from flask import request, url_for
 
+from planetgen.util import logrecord
 from planetgen.web.lib import apiclient
 
 from . import bp
@@ -21,10 +22,15 @@ REFRESH_SECONDS = 10
 """int: How often the page reloads itself while an update is waiting or running."""
 
 
+def log_lines(text):
+    """`[(severity or None, line), ...]` for a log's text, so the page can colour each line by its level (UX.284)."""
+    return [(logrecord.display_severity(line), line) for line in text.splitlines()]
+
+
 def _page(data, message=None, error=None, status=200):
     live = bool(data) and data["state"] in ("requested", "running")
     response = _render(
-        "admin_update.html", flashed=True, title="Update", section="admin_update", data=data, message=message,
+        "admin_update.html", flashed=True, title="Update", section="admin_update", data=data, log_lines=log_lines((data or {}).get("log") or ""), message=message,
         error=error, refresh=REFRESH_SECONDS if live else None,
         breadcrumbs=[crumb("Admin", "admin"), crumb("Update")],
         description="Run update.sh on the server from this page.")

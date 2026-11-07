@@ -1,6 +1,7 @@
 {#- planetgen/web/templates/admin_queue_run.html -- /admin/queue/<run id> (ADM.10, PERF.99). -#}
 {% extends "base.html" %}
 {% block content %}
+{% from "partials/log_lines.html" import colored_log %}
 {%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
 {%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
 <section class="panel" aria-labelledby="run-heading">
@@ -50,8 +51,7 @@
   <h2 id="log-heading">Log</h2>
   {%- if events %}
   <p class="hint">The last {{ events|length }} lines; the download has them all.</p>
-  <pre class="job-log" id="run-log" data-follow-end tabindex="0" aria-label="The last lines of the run's log">{% for event in events %}{{ event.line }}
-{% endfor %}</pre>
+  <pre class="job-log" id="run-log" data-follow-end tabindex="0" aria-label="The last lines of the run's log">{{ colored_log(events|map(attribute='pair')|list) }}</pre>
   <script src="{{ static_url('logfollow.js') }}" defer></script>
   {%- else %}
   <p class="hint">Nothing has been logged for this run.</p>
