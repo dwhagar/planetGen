@@ -8608,65 +8608,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   section 4.
   Prerequisites: none. Related: GEN.441, GEN.778, .
 
-- [ ] **GEN.854 Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug)**
-  Boss, 6:59 PM EDT 2026-10-28 (relayed by the coordinator), live
-  observation, so a bug: looking at the list of class M planets on his
-  server, most do not look habitable, only a tiny share are, and most
-  need a hardened pressure suit. Find out whether the class M assignment
-  is wrong (the class rules or the cut-over, GEN.646 / GEN.791), the
-  habitability scoring changed (epoch 115 steam-world changes #3504,
-  epoch 116 pressure and degassing recalibration #3510, the tectonic
-  regime), or the data on his server predates those epochs and only
-  needs a bring-to-epoch run. Count, on a fixture galaxy at current
-  main, how many class M planets rate Blue, Green or Yellow and what
-  pressure and temperature the rest have, and compare with the class M
-  definition. Fix the cause (changes generated output: epoch and lock
-  turn) and record any tweak in the stand-in registry with tier and
-  tweak level. Owner: Aux 1 diagnoses first (it owns the class chain,
-  GEN.646); if the fix is outside the class rules, it hands the finding
-  to Bug 1 or Core 3 before retiring.
-  Research (2026-10-09): Cause found (Bug 1, 7:12 PM EDT as the lane
-  reported): same as GEN.853, class M worlds have no free oxygen after
-  4c; fixed by GEN.855 (Core 1), not an Aux 9 class-rule problem. Owner
-  moves from Aux 9 to Core 1. Retires with GEN.855.
-  Research (2026-10-09): Update (TODO, 3:06 AM EDT 2026-10-29): GEN.855
-  merged as #3663 (epoch 119). Core 1's 80-seed G2V probe: 69 class M
-  worlds, oxygenic life on 16; those with a sunlit sea reach 17 to 54
-  kPa O2 (hot hycean worlds above 70 C make none). Oxygenic life is the
-  limit (Chlorophyll a needs a sunlit sea and is vetoed on A and M
-  stars, GEN.867), so many class M worlds stay not habitable by design.
-  This item retires after Boss regenerates and looks.
-  Research (2026-10-09): Update (Bug 2, 3:16 AM EDT 2026-10-29 as the
-  lane reported): GEN.855 alone did not clear this. After #3663, the
-  +habitable_world requests are still 12 of 12 unmet: the requested
-  class M worlds come out at 177 to 270 K around M and K dwarfs, almost
-  all with zero air (one at 2.7 atm), Melanin or no life, phi4 0.29 to
-  0.61. The letter-first draw puts class M on airless cold bodies; the
-  class-from-conditions cut-over GEN.646 is the intended cure. Life
-  prevalence is GEN.907.
-  Research (2026-10-09): Correction (Aux 1, 3:20 AM EDT 2026-10-29 as
-  the lane reported): do not read the cut-over as a sure cure for the
-  unmet habitable requests. Aux 1's branch predates GEN.855; its
-  600-system sweep has only 3 class M planets of 4915 and 209 class N
-  warm planets, and about 7 percent of M5V habitable requests stay unmet
-  because the ecosphere there cannot hold life. Aux 1 rebases onto main
-  when the lock approaches and reports the met and unmet counts as a
-  number; this item and GEN.854 judge the cure on that number.
-  Research (2026-10-09): Update (Core 4, about 4:54 AM EDT 2026-10-29 as
-  the lane reported): GEN.909 diagnosed, no fault: the outer habitable
-  zone is cold by the physics (carbonate-silicate cycle leaves 1e-4 to
-  0.1 bar CO2 at 1.2 to 1.7 AU), so the habitable requests landing on
-  cold worlds is the zone's shape. See GEN.911 (where habitable
-  requests aim, Boss decision) and GEN.910 (K5V inner third).
-  Data we hold (2026-10-29 8:55 PM EDT): proton_range.json,
-  ozone_chappuis.json, gases.json and materials.json are in the repo;
-  MPI-Mainz ozone cross sections are downloaded; the class census
-  expectations are in src/tests/data/prevalence_expectations.json.
-  Catalog sections 2 and 4.
-  Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
-  Plan (TODO) (6:20 PM EST on 2026-11-06): oxygen-air rarity is GEN.1309 (generator side, Planets 1); the heavy and thin oxygen worlds that fall outside the classes are GEN.1306 parts 2 and 3 (Core 4); the temperate oxygen-free ocean worlds go to class F, which GEN.1281 makes anoxic. Judge this item on the count of class M worlds after those.
-  Decision (Boss, 11:19 PM EST on 2026-11-06, which replaces the 6:22 PM option 1 wording "the window stays as a share" and extends the 7:36 PM option b): the oxygen window stays at the limits as built (classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent at Earth-like air), but oxygen is judged by partial pressure wherever it gates life or class (M, H, L, O, P, R, K, F and the life gates), and carbon dioxide by partial pressure on the oxygen-water classes; shares stay for hydrogen, sulfur dioxide, methane, the reducing share and class G. The Earth-like classes are designed for life like humans, who need enough oxygen pressure to flourish (GEN.1320, GEN.1321, GEN.1330, sweep GEN.1331). Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
-
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
   9.5: sentient species and their civilizations are generated from the
@@ -9436,34 +9377,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
   Folded in (2026-11-07, Boss approved the TODO plan): GEN.1107 Bring-to-epoch for fields: age advances, radius follows, retirement past 1 ly marks or deletes the row (Boss to pick; default retire). Its Done line: tests with a before and after epoch.
 
-- [ ] **GEN.1085 Belt ledger link: a captured member leaves its belt's mass total; until then captured bodies come from the outer-disc reservoir only**
-  Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
-  many moons because a lot of them are former asteroids from the belt,
-  if gravitational bodies are near a belt, they should pick up
-  asteroidal moons"; design
-  docs/design/systems/captured-asteroid-moons.md, which keeps the capture to windows (gas era, instability, binary exchange) because continuous capture gives almost none by the numbers; decided by Boss, 4:34 PM EDT 2026-10-30: keep the windows rule, and use the belt storage rule with a 1e16 kg floor for irregular moons). Shares the individual-cut rule and the
-  designation function with the belt evolution items (goal #4130).
-  Stand-ins accepted when registered in GEN.725 with tier and tweak
-  level; [R] numbers are read from the source by the lane that builds
-  it. Lock work, train 7 (with the belt storage already merged). Epoch
-  with the belt storage. Done: tests show belt mass minus captured mass
-  is conserved. Where we think it belongs (best guess, can move):
-  Sources 2, train 7.
-  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
-  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
-  objects above a mass threshold, a scatter step in the system before
-  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
-  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
-  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
-  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
-  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
-  built, train 8), GEN.1069, GEN.1070 (pages with Core 2), GEN.1071
-  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
-  Aux 5 as owner, in that order, after GEN.1014 (train 8).
-  Prerequisites: GEN.1069.
-  Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
-  Progress (1:03 AM EST on 2026-11-07, as the Train Manager reported): part 1 merged in train 13 (PR #5507, epoch 135); part 2 rides train 14.
-
 - [ ] **GEN.1086 System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space**
   Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
   many moons because a lot of them are former asteroids from the belt,
@@ -9547,6 +9460,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane guesses above.
   Prerequisites: GEN.1102.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
+  Progress (5:32 AM EST on 2026-11-07, as Aux 5 reported): part 1 merged in train 14 (age, speed, shape, origin and history columns). Left: a field's density still never leaves 0, and field_mass, field_rates and field_composition are not yet called from the field generation (the wiring register names this item for that). Owner: Aux 5.
 
 - [ ] **GEN.1105 Field members (individual bodies by the belt cut rule) with `<field ID>.<rank hex>` designations, status flags, and the sector and field pages**
   Interstellar asteroid fields from rogue-planet collisions and the
@@ -13296,6 +13210,7 @@ clears each one.
   Prerequisites: none. Related: GEN.854, GEN.855, GEN.867, GEN.750, GEN.1306, GEN.909.
   Decision (Boss, 11:19 PM EST on 2026-11-06, which replaces the 6:22 PM option 1 wording "the window stays as a share" and extends the 7:36 PM option b): the oxygen window stays at the limits as built (classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent at Earth-like air), but oxygen is judged by partial pressure wherever it gates life or class (M, H, L, O, P, R, K, F and the life gates), and carbon dioxide by partial pressure on the oxygen-water classes; shares stay for hydrogen, sulfur dioxide, methane, the reducing share and class G. The Earth-like classes are designed for life like humans, who need enough oxygen pressure to flourish (GEN.1320, GEN.1321, GEN.1330, sweep GEN.1331). Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
   Added (Boss, 6:36 PM EST on 2026-11-06): after this item merges, rerun the fudge simulation sweep (GEN.1312's class_fit_cli sweep) to revisit the spread, because the oxygen envelope was still being fixed when the cap tiers were set. Report how the cap tiers and the share of bodies placed change.
+  Progress (6:35 AM EST on 2026-11-07, as Planets 1 reported): after train 14 only 13 of 1,692 natural bodies hold 16 kPa or more oxygen; the causes are filed as GEN.1339 (CO2 draw-down) and GEN.1340 (thin air keeps its nitrogen). GEN.854 as worded is met and retired; this item stays open until those two land and the census is re-run.
 
 - [ ] **GEN.1310 Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent**
   Found by Core 5 while building GEN.1304 (6:18 PM EST on 2026-11-06 as the
@@ -13454,6 +13369,14 @@ clears each one.
 - [ ] **GEN.1338 Census re-tag for train 14: re-tag the class, life and systems censuses after train 14 and report any new flag with its reason (GEN.1306 class W, GEN.1321 oxygen pressure, GEN.1261 and GEN.1278 belts, GEN.876 traits)**
   The Train Manager (as the lane reported 5:24 AM EST on 2026-11-07), after train 14 merged (PR #5538, epoch 136). Do: run the class census, the life census and the systems census on main, retire tags that no longer apply, tag each new flag with a reason, and say which flagged shares moved because of which item. Done: the censuses pass on the new tags and the note names every share that moved by more than its band. Lock-free (tags and reports only). Version 8.1. Owner: Bug 1. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1327, TEST.660, TEST.430.
+
+- [ ] **GEN.1339 Carbon dioxide on an oxygen world is drawn down: worlds with free oxygen and a sunlit sea keep 1.5 to 17 kPa of CO2 against the oxygen classes' limit of under 1 kPa (Earth 0.04)**
+  Planets 1 (as the lane reported 6:35 AM EST on 2026-11-07), from the GEN.1309 oxygen census after train 14 (/mnt/project-files/reports/gen1309-oxygen-census-after-train14-2026-11-07.md): 8 of the 10 worlds where oxygen has risen in a sunlit sea hold 1.5 to 17 kPa of CO2, so they miss the oxygen classes M, H, L, O, P and R (limit under 1 kPa). The carbon balance leaves the CO2 in the air and nothing draws it down on a world with a living, oxygen-making biosphere. Do: find the physics that takes CO2 down on such a world (photosynthetic burial of organic carbon, silicate weathering and carbonate burial with a liquid sea, the carbonate-silicate thermostat) with sources, apply it in the carbon balance after the oxygen rise, register stand-ins in GEN.725 with tier and tweak level, and report how many oxygen worlds then reach the classes. Done: the CO2 of oxygen worlds follows the draw-down law with a test, and the census report shows the new count of M, H, L, O, P and R worlds. Lock item (epoch). Version 8.1. Owner: Planets 1. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1309, GEN.1321, GEN.1314, GEN.1331, GEN.725.
+
+- [ ] **GEN.1340 A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor**
+  Planets 1 (as the lane reported 6:35 AM EST on 2026-11-07), same census: 4 of 13 worlds with 16 kPa or more oxygen are thin airs of 23 to 45 kPa that are 75 to 95 percent oxygen, because the steady-oxygen law sits at the 35.5 kPa fire limit whatever the rest of the air is. Oxygen also piles at the 35,464 Pa cap (5 of 13). A near-pure oxygen air is odd physics. Do: find how a planet's oxygen and its inert gas (nitrogen) are set together, so a thin air keeps its nitrogen share and the oxygen partial pressure falls with the rest of the air (oxygen as a share of a total pressure set by the atmosphere's mass), with sources and stand-ins in GEN.725. Done: no oxygen world is more than a stated share oxygen unless physics puts it there, a test pins it, and the census shows the oxygen pile at the cap and the thin-air count. Lock item (epoch). Version 8.1. Owner: Planets 1 (after GEN.1339). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1339, GEN.1309, GEN.1320, GEN.1321, GEN.725.
 
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.
