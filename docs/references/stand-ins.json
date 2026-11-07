@@ -28281,7 +28281,7 @@
             ],
             [
               "What would show it wrong",
-              "a super-puff older than 1 Gyr or heavier than 10 Earth masses"
+              "a super-puff heavier than 10 Earth masses (older ones exist: [R3079] Sec. 5 gives Kepler-79 d 1.9 to 3.4 Gyr, Kepler-27 b and Kepler-31 c 4.7 Gyr, inflated by the tides the radius here does not yet carry; the generator's own planets under 0.1 g/cc are all younger than 1.3 Gyr, GEN.1343)"
             ],
             [
               "What replaces it",
@@ -28299,7 +28299,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "super_puff.MAX_AGE_GY 1, with MAX_MASS_EARTH 10, PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate"
         },
         {
@@ -28337,7 +28337,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "super_puff.PUFF_ENVELOPE (0.07, 0.45): the envelope fractions"
         },
         {
@@ -28345,27 +28345,27 @@
           "fields": [
             [
               "What it is",
-              "super_puff.OCCURRENCE_SHARE 0.005: the share of sub-Neptunes that are super-puffs"
+              "super_puff.START_SHARE 0.05 (the share of the 2 to 10 Earth-mass sub-Neptune cores inside 100 days that start as a super-puff, GEN.1343) and super_puff.OCCURRENCE_SHARE 0.005 (the share the design table gives, read by the census test): half of the tenth Lee and Chiang bound the planets over 4 Earth radii to"
             ],
             [
               "The range it moves in",
-              "under 1 percent (the design table, [R]); Lee and Chiang bound the planets over 4 Earth radii inside 50 days to under a tenth of the smaller ones, so the true share is under about 9 percent"
+              "0.01 to 0.10 (the gate passes 0.84 percent of the sub-Neptunes inside 100 days at 0.05 and at 0; 3 percent with every core started as a puff)"
             ],
             [
               "Where it holds",
-              "sub-Neptunes"
+              "sub-Neptune cores of 2 to 10 Earth masses inside 100 days"
             ],
             [
               "What would show it wrong",
-              "a survey statistic of planets under 0.1 g/cc"
+              "a survey statistic of planets under 0.1 g/cc among the sub-Neptunes, or of cores that accrete a dust-free outer-disk atmosphere"
             ],
             [
               "What replaces it",
-              "a measured occurrence from Kepler or TESS"
+              "a measured occurrence from Kepler or TESS, or a formation model of the dust-free accretion"
             ],
             [
               "Evidence",
-              "design table; [R2609: Sec. 4] (read). The [R] rate is not confirmed: no occurrence statistic was found"
+              "design table; [R2609: Sec. 4] (read). The rate is not confirmed: no occurrence statistic is in [R3079] or [R2673] (read in full 2026-11-07); [R3079] Sec. 5 finds 5 planets in 3 systems under 0.1 g/cc among the 145 TTV-measured planets of 55 systems (about 3 percent, a sample picked for its masses)"
             ]
           ],
           "id": "PF3",
@@ -28374,9 +28374,9 @@
           "slug": "6-76-pf3",
           "tier": "T8",
           "tier_code": "T8",
-          "tweak": "L1",
-          "unread": "GEN.1048",
-          "what": "super_puff.OCCURRENCE_SHARE 0.005: the share of sub-Neptunes that are super-puffs"
+          "tweak": "L3",
+          "unread": null,
+          "what": "super_puff.START_SHARE 0.05 (the share of the 2 to 10 Earth-mass sub-Neptune cores inside 100 days that start as a super-puff, GEN.1343) and super_puff.OCCURRENCE_SHARE 0.005 (the share the design table gives, read by the census test): half of the tenth Lee and Chiang bound the planets over 4 Earth radii to"
         },
         {
           "burn_down": null,
@@ -28413,7 +28413,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1048",
+          "unread": null,
           "what": "super_puff.TIDAL_MIN_FLUX_EARTH 20, TIDAL_MIN_LUMINOSITY_RATIO 1e-5, TIDAL_MAX_RATIO 2 and the fit of eq. 14: the tidal inflation"
         }
       ],
@@ -40789,6 +40789,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.CLASS_REQUEST_LATE_CORE_EVERY 2: every second draw of a class request after its free attempts is a core that formed after the gas disk went (late_core, no envelope)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is super_puff.MAX_MASS_EARTH, row PF1)"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "sub-Neptune cores inside 100 days"
+            ],
+            [
+              "What would show it wrong",
+              "a super-puff of Kepler-51 b's kind under 2 Earth masses"
+            ],
+            [
+              "What replaces it",
+              "a core mass at which the dust-free accretion works"
+            ],
+            [
+              "Evidence",
+              "[R2609: Sec. 4] (read)"
+            ]
+          ],
+          "id": "EC8",
+          "key": "6.206:EC8",
+          "kind": "B",
+          "slug": "6-206-ec8",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "envelope_capture.PUFF_MIN_MASS_EARTH 2: the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses; the top is super_puff.MAX_MASS_EARTH, row PF1)"
         }
       ],
       "slug": "6-206-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",
