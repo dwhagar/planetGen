@@ -1443,6 +1443,9 @@ def add_bring_to_epoch_arguments(parser):
     parser.add_argument('--dry-run', action='store_true',
                         help="Say what would be generated again, which sectors would be left alone and why, and "
                              "change nothing.")
+    parser.add_argument('--no-wide-binaries', action='store_true',
+                        help="Leave the wide binaries alone. By default the run also reads them and makes again, from "
+                             "their seeds, those that break the stability rule (GEN.229), saying each.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -1451,7 +1454,8 @@ def run_bring_to_epoch(args):
     """`planetgen bring-to-epoch` (GEN.764): brings the stored galaxy to the running generator epoch in part
     (`planetgen.galaxy.bring_to_epoch`); exits 1 when the run refused or a sector failed."""
     config = store.mysql_config_from_args(args)
-    result = bringToEpoch.run(config, store.control_mysql_config(config), dry_run=args.dry_run)
+    result = bringToEpoch.run(config, store.control_mysql_config(config), dry_run=args.dry_run,
+                              wide_binaries=not args.no_wide_binaries)
     if result["refused"] or result["failed"]:
         sys.exit(1)
 

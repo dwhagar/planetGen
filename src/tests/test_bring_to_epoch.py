@@ -284,6 +284,12 @@ def test_the_species_of_an_older_population_epoch_are_made_again_but_not_the_edi
 
 @pytest.mark.db
 @pytest.mark.usefixtures("unit_density_plans")
+def _nothing_but_the_wide_binaries_read(lines):
+    """A run with nothing to bring up says so and, when the galaxy holds wide binaries, how many it read and that none breaks the stability rule (GEN.229)."""
+    assert lines[0] == "The galaxy is at epoch 2: nothing to bring up."
+    assert all(line.startswith("Wide binaries: ") and ", 0 break the stability rule." in line for line in lines[1:]) and len(lines) <= 2
+
+
 def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_config, redis_server, monkeypatch):
     """The whole path with nothing replaced: the sector is deleted and made again from its address, records the running
     epoch, holds the same systems (the code did not change), and a second run finds nothing to do."""
@@ -339,7 +345,7 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
         conn.close()
     again = []
     assert bring_to_epoch.run(mysql_config, None, say=again.append)["redone"] == 0
-    assert again == ["The galaxy is at epoch 2: nothing to bring up."]
+    _nothing_but_the_wide_binaries_read(again)
 
 
 def test_the_command_passes_the_options_and_exits_1_on_a_refusal(monkeypatch):
@@ -350,9 +356,9 @@ def test_the_command_passes_the_options_and_exits_1_on_a_refusal(monkeypatch):
     assert generate._COMMAND_HANDLERS["bring-to-epoch"] is generate.run_bring_to_epoch
     calls = []
     answer = {"refused": False, "failed": []}
-    monkeypatch.setattr(bring_to_epoch, "run", lambda config, control, dry_run: calls.append(dry_run) or answer)
+    monkeypatch.setattr(bring_to_epoch, "run", lambda config, control, dry_run, wide_binaries: calls.append((dry_run, wide_binaries)) or answer)
     generate.run_bring_to_epoch(args)
-    assert calls == [True]
+    assert calls == [(True, True)]                                      # the wide-binary stage is on unless --no-wide-binaries
     answer["refused"] = True
     with pytest.raises(SystemExit) as stopped:
         generate.run_bring_to_epoch(args)
@@ -408,4 +414,4 @@ def test_every_scatter_behind_is_really_drawn_again_with_the_same_settings(galax
         {key: before[key] for key in ("stars", "phenomena", "field", "settings")}
     again = []
     assert bring_to_epoch.run(mysql_config, None, say=again.append)["redone"] == 0
-    assert again == ["The galaxy is at epoch 2: nothing to bring up."]
+    _nothing_but_the_wide_binaries_read(again)
