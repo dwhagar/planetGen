@@ -3529,7 +3529,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, GEN.743, GEN.752.
+  Prerequisites: SEC.33, TEST.261, GEN.752.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -8413,38 +8413,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unflagged white dwarfs are unchanged. Changes generated values, so it
   takes the next free generator epoch. Owner: Core 4 (proposed).
   Prerequisites: none. Related: GEN.271.
-
-- [ ] **GEN.743 Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  S4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T2. Today:
-  Neutron star radius comes from a measured band; the inner crust and
-  core need an equation of state that nothing integrates yet (21 tables
-  are on disk). Helium-core and oxygen-neon white dwarfs have no layers
-  because the sequences are carbon-oxygen. Real physics: integrate the
-  tables for radius and structure; add the other white dwarf types. Do:
-  write the TOV integration over the tables on disk and extend the white
-  dwarf layers to the other core types. Done: neutron star radius and
-  structure follow from the tables for a mass sweep, with a test against
-  NICER radii. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): proposed owner Math lane 1, after its first
-  seven items; takes it only if nobody has started it.
-  Split (2026-10-29 8:30 PM EDT): Built as GEN.968 (lock-free part) and
-  GEN.969 (wiring, rides a train); GEN.743 closes when both are done.
-  Owner: Star 2 (new lane, proposed by TODO).
-  Data we hold (2026-10-29 8:55 PM EDT): 21 neutron star equations of
-  state [R2834] and 20 outer-crust models [R4028]
-  are downloaded at setup and read by tests only
-  (datasets/neutron_star_matter.py); Bedard white dwarf sequences are
-  carbon-oxygen only. Catalog sections 1 and 2.
-  Prerequisites: none. Related: GEN.272, GEN.553, GEN.968, GEN.969.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 2 takes it: star physics wiring (Star 2 retired; lock-free halves GEN.968 and GEN.970 first, then the wiring halves as one stellar window).
 
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
   The GEN.422 fixed point of surface temperature and pressure has no
