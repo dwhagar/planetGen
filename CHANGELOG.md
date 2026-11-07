@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3530] - 2026-11-07
+
+**Headline:** The references registry gained Elkins-Tanton and Seager 2008b (super-Earth outgassing), no generator output changes.
+
+### Changed
+
+Elkins-Tanton and Seager 2008b (ranges of atmospheric mass and composition of super-Earth exoplanets, outgassing from chondritic material) is now in the references registry as R5136. The earlier paper of the same year by the same authors becomes 2008a. No generator output changes.
+
 ## [8.0.3529] - 2026-11-07
 
 **Headline:** Correction to the GEN.753 planets sweep: the ground gamma dose of an Earth-like body is not 100 times too low.
