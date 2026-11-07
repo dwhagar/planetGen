@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3498] - 2026-11-07
+
+**Headline:** A MySQL deadlock between two scatter workers no longer stops the massive-star stage.
+
+### Fixed
+- **DB.113: the massive-star scatter died with "Deadlock found when trying to get lock" (error 1213) on a run with 15 workers.** Each worker's batch of stars gives the new rows their Object IDs (`scatter_uids.assign`), which reads every row of the table that has no ID yet, so workers writing at once met on each other's uncommitted rows. A batch of the massive-star, bright-star-band and phenomenon scatters now runs at READ COMMITTED and starts over (up to 8 tries, with a short pause) after a deadlock or lock wait timeout; the retry writes the same rows with the same IDs.
+- **Retries wait longer when there is more trouble, and ask for the step to themselves at the end.** New `db/contention.py`: each retry waits a random, growing time (longer when this process has failed lately, capped at 5 s). After the 8th failed try the unit raises a need for exclusive use of the step; the system grants it with a MySQL named lock that the other writers of the same step check before each try, so they hold off, and the unit tries once more alone. Every retry (error and wait), need, grant, hold-off and release is logged.
+
 ## [8.0.3497] - 2026-11-06
 
 **Headline:** The page of an uncharted sector now shows the Sector Map locked to that sector, and its list of what is known there is worded as what long-range scans detected.
