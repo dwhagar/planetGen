@@ -66,6 +66,19 @@ addresses that keep guessing admin passwords.
   `update.sh` create both (`examples/apache/create-cache-dir.sh`), and
   move jobs left in the old default, `/var/lib/planetgen/jobs`, into the
   new one (a running job stays until it finishes).
+- **Root does not trust the folders `config.json` names (SEC.44).** The Settings
+  page can rewrite `config.json`, so `create-cache-dir.sh`, `set-permissions.sh`,
+  `setup-debug-log.sh` and the `update.log` start ask `examples/apache/rootpaths.py`
+  before they make, re-own or write into the tile cache, the jobs folder, the
+  debug log or the log folder. A path passes when it is plain (letters, digits and
+  `_ . / + @ : -`), sits under `/var/lib`, `/var/cache`, `/var/log`, `/srv`, `/opt`,
+  the checkout or a folder listed in root's `PLANETGEN_ROOT_PATH_PARENTS`, is not a
+  system service's folder, has no symbolic link on the way, has only root-owned
+  folders above it, and, if it exists, is already the web user's, left by an
+  earlier run or empty. A refused folder is skipped with a warning; the install or
+  update goes on. A folder given in root's own environment
+  (`PLANETGEN_TILE_CACHE_DIR`, `PLANETGEN_JOBS_DIR`, `PLANETGEN_LOG_FILE`,
+  `PLANETGEN_LOG_DIR`) is the operator's and is not checked.
 - **The code belongs to root; the web user owns only its own folders
   (SEC.37).** `install.sh` and `update.sh` run git, Python and the scripts in
   the checkout (`/var/lib/planetGen`) as root, so nothing there that the web
