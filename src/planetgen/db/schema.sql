@@ -1545,6 +1545,7 @@
 -- v215 (GEN.1277): `nebula_field` keeps the composition of each field cloud (`physics/nebula_columns.py`, `FIELD_COLUMNS`): the columns of `nebulae` without `progenitor_mass_sol`, FLOAT (4 bytes each, about 110 bytes a row), NULL on a row planned before v215. A cloud's composition is keyed on its cell and place (`nebula_columns.field_key`), so the `nebulae` row it becomes when a sector stores it reads the same numbers.
 -- v219 (GEN.1084): the table `irregular_moons` keeps the small bodies a planet caught (`generation/irregular_moons.py`), one row each with window, mass, radius, density, taxon, source distance, ice lost, composition shares and orbit, and the table `irregular_sets` keeps one row for a planet that has any: the expected mass of the bodies not stored, how many were above the storage floor, how many were lost and whether its zone can hold temporary captures. (They are a table because `planets` has a FULLTEXT key, which makes MySQL rebuild the table for a new column.)
 -- v221 (GEN.1257): `designations.reason` takes a sixth value, `charted` (`chk_designations_reason`): the name an uncharted star's Object ID spells is kept as a retired name of its system when charting gives the star its own name. No other row or column changes.
+-- v221 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v221, nothing is backfilled.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -3395,6 +3396,8 @@ CREATE TABLE IF NOT EXISTS irregular_moons (
     ascending_node_deg DOUBLE NOT NULL,
     arg_periapsis_deg DOUBLE NOT NULL,
     mean_anomaly_deg  DOUBLE NOT NULL,
+    belt_order        INT NULL,  -- v221 (GEN.1085): for a body caught from an inner belt, the belt's number among the belts of the planet's star, nearest first
+    belt_rank         INT NULL,  -- v221 (GEN.1085): when it was a stored member of that belt, its rank there, which it keeps in its designation
 
     CONSTRAINT fk_irregular_moons_planet
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,

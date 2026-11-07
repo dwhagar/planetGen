@@ -291,7 +291,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.193", "6.193 Stand-ins of the anoxic world",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.194", "6.194 Stand-in of the mass the planets take from an outer disk",
+    ("6.194", "6.194 Stand-ins of the mass the planets take from the disks and belts they caught it from",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.197", "6.197 Stand-ins of the heavy oxygen worlds and the thin oxygen worlds",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),

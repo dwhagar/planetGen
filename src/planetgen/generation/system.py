@@ -1373,8 +1373,10 @@ class StarSystem:
             for body in bodies:
                 if body.body_type != 'a' and not body.is_moon:
                     body.irregulars = irregular_moons.for_planet(body, source)
+                    irregular_moons.record(source, body.irregulars)
                     sets.append(body.irregulars)
             irregular_moons.take_from_disks([belt for belt in bodies if belt.body_type == 'a' and getattr(belt, "origin", None) == "outer-disk"], sets)     # GEN.1085
+            irregular_moons.take_from_belts(dict(source.belts), sets)
 
     def capture_windows(self, star):
         """

@@ -107,6 +107,7 @@ NULL_IN_THIS_GALAXY = {
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")},
     # GEN.1215: only a body whose air makes liquid sulfuric acid stores its strength and place, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt")},
+    ("rogue_planets", "surface_liquid_ammonia_wt"): CHANCE,    # the same, for a free planet
     # GEN.1218b: the makeup, salt and second liquid exist only for the liquids that have them, and whether this small galaxy has one is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in (*surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS)},
     ("planets", "moon_origin"): "a planet has no origin as a moon (DB.70)",
@@ -183,7 +184,7 @@ NULL_IN_THIS_GALAXY = {
     **{("irregular_sets", column): CHANCE for column in ("id", "planet_id", "remainder_kg", "above_floor", "lost", "temporary")},
     **{("irregular_moons", column): CHANCE for column in (
         "id", "planet_id", "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
-        "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")},
+        "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank")},
     **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
@@ -235,10 +236,10 @@ NEVER_READ = {
         ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
-    # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py); no page or API line shows them yet.
-    **{("irregular_moons", column): "stored by GEN.1084; the page and the API line for the irregular moons follow" for column in (
+    # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.
+    **{("irregular_moons", column): CHANCE for column in (
         "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
-        "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg")},
+        "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank")},
     ("irregular_sets", "id"): "child row id",
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
        for column in ("storage_checksum", "parity_dirty")},

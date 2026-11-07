@@ -1045,6 +1045,8 @@ irregular_moons = sa.Table(
     sa.Column('ascending_node_deg', mysql.DOUBLE(), nullable=False),
     sa.Column('arg_periapsis_deg', mysql.DOUBLE(), nullable=False),
     sa.Column('mean_anomaly_deg', mysql.DOUBLE(), nullable=False),
+    sa.Column('belt_order', mysql.INTEGER(), nullable=True),
+    sa.Column('belt_rank', mysql.INTEGER(), nullable=True),
     sa.Index('uq_irregular_moons_planet_rank', 'planet_id', 'moon_rank', unique=True),
     sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_irregular_moons_planet', ondelete='CASCADE'),
     mysql_engine="InnoDB",
