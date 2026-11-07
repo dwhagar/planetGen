@@ -12175,32 +12175,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1254, GEN.1255. Filed by the TODO thread.
   Prerequisites: GEN.1254.
 
-- [ ] **GEN.1259 A planetless stretch becomes a belt only if enough leftover rocky mass could survive there: check the belt rule of GEN.1068 and GEN.1156 against the physics and the observed belt rates (about two thirds of systems have a belt now, from 4 percent before train 7)**
-  Boss, 6:43 PM EST on 2026-11-04, chose option 1 (keep the physics
-  rule, check it, compare with observation, no hand-tuning). Bug 1
-  measured the share of systems with at least one asteroid belt: 0.02
-  before GEN.1068 and GEN.1156 (train 7, belts come from the finished
-  planet chain), 0.785 at train 7, 0.69 at train 9, 0.66 over 600
-  systems on main. The chain now leaves a belt wherever the planets
-  leave a stretch with no planet. Do: (1) read the rule and decide what
-  leftover rocky mass the stretch had (the solid disc mass beyond what
-  the planets took, the depletion by the neighbouring planets'
-  scattering, the time it needs to survive to the system's age); a gap
-  becomes a belt only above a physical mass and stability floor, not
-  just because it is empty; (2) compare the resulting warm
-  (asteroid-like) and cold (Kuiper-like) belt shares with the observed
-  debris-disc occurrence around Sun-like stars from the indexed sources,
-  report both without tuning to hit them, and register any stand-in in
-  GEN.725 with its tier and tweak level; (3) the base shares in TEST.579
-  are remeasured after this item and the train 10 re-tag, not before.
-  Done: the rule, a test of a gap with too little mass (no belt) and one
-  with enough (a belt), and the measured shares in the note. Generation
-  output changes (an epoch), so a lock item for the next train it is
-  ready for; it cannot reach train 10 (its list is frozen). Owner:
-  Aux 5 (belts), after GEN.1085 part 2 (reassigned from Core 3, 8:25 PM EST
-  on 2026-11-06). Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.579, GEN.725.
-
 - [ ] **GEN.1261 Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken**
   Boss, 7:23 PM EST on 2026-11-04, confirmed option 1 on the GEN.1259
   follow-up: file this, no tuning to the observed share. Core 3 measured
