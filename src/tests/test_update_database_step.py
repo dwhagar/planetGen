@@ -70,6 +70,10 @@ def _real_maintenance_file():
         return None
 
 
+ERROR_RECORD = re.compile(r"^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d \S+ ERROR +[a-z-]+: ", re.M)
+"""re.Pattern: An error line of the scripts' log (`scripts/logrecord.sh`, the display line of the logging standard): time, zone, severity, component, message."""
+
+
 def _run_step(config, control_db, **overrides):
     """Runs the shared database step in bash with stdin not a terminal,
     pointed at `config` through the same PLANETGEN_MYSQL_* variables
