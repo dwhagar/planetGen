@@ -1315,6 +1315,20 @@ def admin_image_remove(cookie_header, kind):
     return body
 
 
+def admin_update(cookie_header):
+    """`GET /api/admin/update` -- the Update button's state, log tail and whether this caller may press it (SEC.43)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/update", cookie_header=cookie_header)
+    return body
+
+
+def admin_update_request(cookie_header, cancel_running=False):
+    """`POST /api/admin/update` -- asks root to run `update.sh` (SEC.43); 403 unless the Owner typed the password
+    recently, 409 while an update is waiting or running."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/update", cookie_header=cookie_header,
+                                              json_body={"cancel_running": bool(cancel_running)})
+    return body
+
+
 def admin_backups(cookie_header):
     """`GET /api/admin/backups` -- the backup archives, newest first, with their parts (ADM.85)."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/backups", cookie_header=cookie_header)

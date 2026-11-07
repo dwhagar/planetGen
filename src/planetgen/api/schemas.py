@@ -556,6 +556,12 @@ class BackupRestore(Body):
     expect_hash: Optional[StrictStr] = None
 
 
+class UpdateRequest(Body):
+    """`POST /api/admin/update`: whether the running work may be canceled (`update.sh --yes`); nothing else is accepted."""
+
+    cancel_running: StrictBool = False
+
+
 class SettingsImport(Body):
     """`POST /api/admin/settings/import`: an export's `settings` object, checked only with `check_only`."""
 
