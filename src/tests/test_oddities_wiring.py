@@ -137,8 +137,7 @@ def test_a_planet_keeps_its_oddities_through_to_dict_and_from_dict():
 
     system = next(candidate for candidate in (make_system() for _ in range(20)) if any(p.body_type != "a" for p in candidate.planets))
     planet = next(p for p in system.planets if p.body_type != "a")
-    assert planet.oddities == ()
-    planet.oddities = ("W10",)
+    planet.oddities = ("W10",)      # (whatever it rolled for itself is replaced: the test is the round trip)
     reloaded = StarSystem.from_dict(json.loads(json.dumps(system.to_dict())))
     again = next(p for p in reloaded.planets if p.body_type != "a" and p.distance == planet.distance)
     assert again.oddities == ("W10",)
@@ -322,6 +321,45 @@ def test_a_born_tilted_venus_that_the_tides_turn_over_is_not_named_for_its_seaso
     assert ids == ["W2"] and body.axial_tilt_deg == 180.0
 
 
+# --- GEN.1058: G1 (a giant tipped by an impact) --------------------------------------------------------------------------------
+
+def _tipped_giant(tilt, mass_earth=14.5):
+    star = types.SimpleNamespace(mass=1.98847e30, luminosity=3.828e26, age=4.5, temperature=5772.0, radius=6.957e5)
+    return _body(mass_kg=mass_earth * 5.972e24, radius=25362.0, distance=19.2, eccentricity=0.047, star=star, body_type="g", moons=[], axial_tilt_deg=tilt)
+
+
+def test_an_ice_giant_the_merger_laid_on_its_side_is_named_and_nothing_on_it_changes():
+    body = _tipped_giant(97.8)
+    before = dict(body.__dict__)
+    assert oddities.apply(body, levers=("L1",), dial=1.0) == ["G1"]
+    assert body.oddities == ("G1",) and {k: v for k, v in body.__dict__.items() if k != "oddities"} == {k: v for k, v in before.items() if k != "oddities"}
+
+
+def test_the_giant_tilt_row_wants_sixty_degrees_and_a_mass_of_five_to_thirty_earths():
+    for tilt, mass in ((28.3, 17.1), (97.8, 3.0), (97.8, 95.0), (170.0, 14.5)):
+        body = _tipped_giant(tilt, mass)
+        assert oddities.apply(body, levers=("L1",), dial=1.0) == (["G1"] if (tilt, mass) == (170.0, 14.5) else []), (tilt, mass)
+
+
+def test_a_generated_ice_giant_is_read_for_the_giant_tilt_row_when_the_spin_is_made():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.planet import Planet
+    from planetgen.generation.star import Star
+    from planetgen.physics import planets
+    from planetgen.util import draw
+
+    with draw.bound("g1-generate-spin"):
+        config = SystemConfig()
+        config.STAR_TYPE, config.BINARY_SYSTEM, config.FORCE_ODDITIES = "G2V", False, ("G1",)
+        star = Star(config)
+        planet = Planet(config, star, star.habitable_zone, 19.2, moon_count=0, mass=14.5 * 5.972e24)
+        assert planet.body_type == "g"
+        planets.generate_spin(planet, star.mass, birth=(planet._birth_spin[0], 98.0, planet._birth_spin[2]))
+        assert planet.oddities == ("G1",) and 97.0 < planet.axial_tilt_deg < 99.0
+        planets.generate_spin(planet, star.mass, birth=(planet._birth_spin[0], 20.0, planet._birth_spin[2]))
+        assert planet.oddities == ()
+
+
 # --- GEN.1049: W3 (high eccentricity), W4 (polar orbit) and W5 (resonant chain) ---------------------------------------------------
 
 def _orbit_body(kind="t", eccentricity=0.0, teff=5800.0, distance=1.0, radius_km=6.957e5, mass=6.0e24):
@@ -445,3 +483,44 @@ def test_a_planet_whose_ring_came_from_a_moon_the_tide_pulled_in_is_named_and_on
         assert oddities.apply(body, levers=("L6",), dial=1.0) == expected, origin
     giant = _body(body_type="g", ring_origin="disrupted_moon")
     assert oddities.apply(giant, levers=("L6",), dial=1.0) == ["W91"]
+
+
+# --- GEN.1051: W19 (nightside collapse) and W20 (the other climate branch) ----------------------------------------------------------
+
+def _planet_at(star_type, distance_au, seed, force=(), dial=None, mass_earth=1.0):
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.planet import Planet
+    from planetgen.generation.star import Star
+    from planetgen.util import draw
+
+    with draw.bound(seed):
+        config = SystemConfig()
+        config.STAR_TYPE, config.BINARY_SYSTEM, config.FORCE_ODDITIES = star_type, False, tuple(force)
+        if dial is not None:
+            config.WEIRDNESS_DIAL = dial
+        star = Star(config)
+        return Planet(config, star, star.habitable_zone, distance_au, mass=mass_earth * 5.972e24, moon_count=0)
+
+
+def test_a_locked_planet_with_a_thin_air_loses_it_to_its_dark_side_and_is_left_airless():
+    lost = _planet_at("M3V", 0.12, "w19-M3V-1", force=("W19",))
+    assert lost.oddities == ("W19",) and lost.atmospheric_pressure == 0.0
+    kept = _planet_at("M3V", 0.12, "w19-M3V-1", dial=0.0)
+    assert kept.oddities == () and kept.atmospheric_pressure > 0.0
+
+
+def test_a_planet_that_is_not_locked_never_loses_its_air_to_a_dark_side_even_when_forced():
+    far = _planet_at("G2V", 1.0, "w19-far", force=("W19",))
+    assert "W19" not in far.oddities
+
+
+def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_first_answer():
+    other = _planet_at("G2V", 1.2, "w19-G2V-1", force=("W20",))
+    first = _planet_at("G2V", 1.2, "w19-G2V-1", dial=0.0)
+    assert "W20" in other.oddities and first.oddities == ()
+    assert abs(other.surface_temperature - first.surface_temperature) >= 20.0 and abs(other.bond_albedo - first.bond_albedo) >= 0.1
+
+
+def test_a_world_with_no_second_branch_is_not_named_for_one():
+    hot = _planet_at("G2V", 0.4, "w20-hot", force=("W20",))
+    assert "W20" not in hot.oddities

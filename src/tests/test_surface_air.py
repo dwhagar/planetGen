@@ -343,6 +343,7 @@ def _earth_like_planet(seed=3):
 
     config = SystemConfig()
     config.STAR_TYPE = "G2V"
+    config.WEIRDNESS_DIAL = 0.0      # no oddity: W20 solves the air a second time from the other start, and these tests read one solve
     with draw.bound("surface-air-star"):
         star = Star(config)
     inner, outer = star.habitable_zone

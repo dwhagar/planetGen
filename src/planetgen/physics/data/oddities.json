@@ -135,14 +135,8 @@
       "name": "Resonant chain",
       "kind": "planet",
       "requires": [
-        {
-          "quantity": "body_type",
-          "equals": "t"
-        },
-        {
-          "quantity": "forced_eccentricity",
-          "min": 0.001
-        }
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "forced_eccentricity", "min": 0.001}
       ],
       "rate": {
         "value": 0.21,
@@ -159,10 +153,7 @@
         "params": {}
       },
       "limits": [
-        {
-          "quantity": "eccentricity",
-          "min": 0.001
-        }
+        {"quantity": "eccentricity", "min": 0.001}
       ],
       "source": "[R3220] Solar System Dynamics section 8.8; Lithwick, Xie and Wu 2012 (ApJ 761:122); TRAPPIST-1, Kepler-223, TOI-178 and Io, Europa and Ganymede; the module is physics/resonant_chains.py",
       "text": "Its neighbours' pull keeps its orbit slightly eccentric, so its star's tide flexes it all the time, as Jupiter's moons flex Io."
@@ -172,14 +163,8 @@
       "name": "Highly eccentric orbit",
       "kind": "planet",
       "requires": [
-        {
-          "quantity": "body_type",
-          "equals": "t"
-        },
-        {
-          "quantity": "eccentricity",
-          "min": 0.5
-        }
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "eccentricity", "min": 0.5}
       ],
       "rate": {
         "value": 1.0,
@@ -196,10 +181,7 @@
         "params": {}
       },
       "limits": [
-        {
-          "quantity": "eccentricity",
-          "min": 0.5
-        }
+        {"quantity": "eccentricity", "min": 0.5}
       ],
       "source": "HD 80606 b (e 0.93), HD 20782 b (e 0.95), Mercury, Pluto; [R4719]; the module is physics/orbit_oddities.py",
       "text": "Its orbit is stretched so far that its year swings between a scorching close pass and a long, cold far one."
@@ -209,14 +191,8 @@
       "name": "Highly eccentric orbit",
       "kind": "giant",
       "requires": [
-        {
-          "quantity": "body_type",
-          "equals": "g"
-        },
-        {
-          "quantity": "eccentricity",
-          "min": 0.5
-        }
+        {"quantity": "body_type", "equals": "g"},
+        {"quantity": "eccentricity", "min": 0.5}
       ],
       "rate": {
         "value": 1.0,
@@ -233,10 +209,7 @@
         "params": {}
       },
       "limits": [
-        {
-          "quantity": "eccentricity",
-          "min": 0.5
-        }
+        {"quantity": "eccentricity", "min": 0.5}
       ],
       "source": "HD 80606 b (e 0.93), HD 20782 b (e 0.95), Mercury, Pluto; [R4719]; the module is physics/orbit_oddities.py",
       "text": "Its orbit is stretched so far that its year swings between a scorching close pass and a long, cold far one."
@@ -246,18 +219,9 @@
       "name": "Polar or retrograde orbit",
       "kind": "giant",
       "requires": [
-        {
-          "quantity": "body_type",
-          "equals": "g"
-        },
-        {
-          "quantity": "distance_over_host_radius",
-          "lt": 10.0
-        },
-        {
-          "quantity": "host_teff_k",
-          "lt": 6250.0
-        }
+        {"quantity": "body_type", "equals": "g"},
+        {"quantity": "distance_over_host_radius", "lt": 10.0},
+        {"quantity": "host_teff_k", "lt": 6250.0}
       ],
       "rate": {
         "value": 0.08,
@@ -274,10 +238,7 @@
         "params": {}
       },
       "limits": [
-        {
-          "quantity": "distance_over_host_radius",
-          "lt": 10.0
-        }
+        {"quantity": "distance_over_host_radius", "lt": 10.0}
       ],
       "source": "[R0061] (Winn and Fabrycky review) sections 3.1 and 3.7; [R0060]; Kepler-56, HAT-P-7 b; the module is physics/orbit_oddities.py",
       "text": "Its orbit runs over the poles of its star, or against its spin, as many close giants round hot stars do."
@@ -287,22 +248,10 @@
       "name": "Polar or retrograde orbit",
       "kind": "giant",
       "requires": [
-        {
-          "quantity": "body_type",
-          "equals": "g"
-        },
-        {
-          "quantity": "distance_over_host_radius",
-          "lt": 10.0
-        },
-        {
-          "quantity": "host_teff_k",
-          "min": 6250.0
-        },
-        {
-          "quantity": "host_teff_k",
-          "lt": 7000.0
-        }
+        {"quantity": "body_type", "equals": "g"},
+        {"quantity": "distance_over_host_radius", "lt": 10.0},
+        {"quantity": "host_teff_k", "min": 6250.0},
+        {"quantity": "host_teff_k", "lt": 7000.0}
       ],
       "rate": {
         "value": 0.63,
@@ -319,10 +268,7 @@
         "params": {}
       },
       "limits": [
-        {
-          "quantity": "distance_over_host_radius",
-          "lt": 10.0
-        }
+        {"quantity": "distance_over_host_radius", "lt": 10.0}
       ],
       "source": "[R0061] (Winn and Fabrycky review) sections 3.1 and 3.7; [R0060]; Kepler-56, HAT-P-7 b; the module is physics/orbit_oddities.py",
       "text": "Its orbit runs over the poles of its star, or against its spin, as many close giants round hot stars do."
@@ -332,18 +278,9 @@
       "name": "Polar or retrograde orbit",
       "kind": "giant",
       "requires": [
-        {
-          "quantity": "body_type",
-          "equals": "g"
-        },
-        {
-          "quantity": "distance_over_host_radius",
-          "lt": 10.0
-        },
-        {
-          "quantity": "host_teff_k",
-          "min": 7000.0
-        }
+        {"quantity": "body_type", "equals": "g"},
+        {"quantity": "distance_over_host_radius", "lt": 10.0},
+        {"quantity": "host_teff_k", "min": 7000.0}
       ],
       "rate": {
         "value": 0.8,
@@ -360,10 +297,7 @@
         "params": {}
       },
       "limits": [
-        {
-          "quantity": "distance_over_host_radius",
-          "lt": 10.0
-        }
+        {"quantity": "distance_over_host_radius", "lt": 10.0}
       ],
       "source": "[R0061] (Winn and Fabrycky review) sections 3.1 and 3.7; [R0060]; Kepler-56, HAT-P-7 b; the module is physics/orbit_oddities.py",
       "text": "Its orbit runs over the poles of its star, or against its spin, as many close giants round hot stars do."
@@ -373,22 +307,10 @@
       "name": "Disintegrating planet",
       "kind": "planet",
       "requires": [
-        {
-          "quantity": "body_type",
-          "equals": "t"
-        },
-        {
-          "quantity": "mass_earth",
-          "lt": 0.11
-        },
-        {
-          "quantity": "orbital_period_days",
-          "lt": 1.0
-        },
-        {
-          "quantity": "dayside_temperature_k",
-          "min": 2000.0
-        }
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "mass_earth", "lt": 0.11},
+        {"quantity": "orbital_period_days", "lt": 1.0},
+        {"quantity": "dayside_temperature_k", "min": 2000.0}
       ],
       "rate": {
         "value": 1.0,
@@ -405,10 +327,7 @@
         "params": {}
       },
       "limits": [
-        {
-          "quantity": "mass_earth",
-          "lt": 0.11
-        }
+        {"quantity": "mass_earth", "lt": 0.11}
       ],
       "source": "Kepler-1520 b, K2-22 b, KOI-2700 b; [R3487] (Perez-Becker and Chiang 2013); the module is physics/disintegrating_planet.py",
       "text": "Its dayside is hot enough to lift a wind of its own rock vapor that its weak gravity cannot hold, so it is losing mass and trailing dust, and it will be gone."
@@ -418,14 +337,8 @@
       "name": "Ring from a fallen moon",
       "kind": "planet",
       "requires": [
-        {
-          "quantity": "body_type",
-          "equals": "t"
-        },
-        {
-          "quantity": "ring_from_fallen_moon",
-          "equals": 1
-        }
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "ring_from_fallen_moon", "equals": 1}
       ],
       "rate": {
         "value": 1.0,
@@ -442,10 +355,7 @@
         "params": {}
       },
       "limits": [
-        {
-          "quantity": "ring_from_fallen_moon",
-          "equals": 1
-        }
+        {"quantity": "ring_from_fallen_moon", "equals": 1}
       ],
       "source": "Triton's decay, Phobos about 40 Myr from the Roche limit ([R1927] second-hand); the module is physics/moon_history.py (fallen_moons) and physics/ring_origin.py",
       "text": "A moon spiralled in until the planet's tide tore it apart, and its pieces are the ring."
@@ -455,14 +365,8 @@
       "name": "Ring from a fallen moon",
       "kind": "giant",
       "requires": [
-        {
-          "quantity": "body_type",
-          "equals": "g"
-        },
-        {
-          "quantity": "ring_from_fallen_moon",
-          "equals": 1
-        }
+        {"quantity": "body_type", "equals": "g"},
+        {"quantity": "ring_from_fallen_moon", "equals": 1}
       ],
       "rate": {
         "value": 1.0,
@@ -479,13 +383,94 @@
         "params": {}
       },
       "limits": [
-        {
-          "quantity": "ring_from_fallen_moon",
-          "equals": 1
-        }
+        {"quantity": "ring_from_fallen_moon", "equals": 1}
       ],
       "source": "Triton's decay, Phobos about 40 Myr from the Roche limit ([R1927] second-hand); the module is physics/moon_history.py (fallen_moons) and physics/ring_origin.py",
       "text": "A moon spiralled in until the planet's tide tore it apart, and its pieces are the ring."
+    },
+    {
+      "id": "W19",
+      "name": "Nightside collapse",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row NEB7: every rocky planet takes the model's answer, so there is no extra draw; the effect declines a planet that is not locked, has no air, or keeps half of its gas",
+        "label": "RECALLED",
+        "tier": "T5",
+        "tweak": "L0",
+        "registry": "NEB7"
+      },
+      "apply": {
+        "lever": "L7",
+        "input": "air_branch",
+        "effect": "collapse_air",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "body_type", "equals": "t"}
+      ],
+      "source": "[R4767] (Wordsworth and others, the critical pressure fit); [R2201]; the module is physics/nightside_collapse.py and docs/design/composition/nightside-collapse-model.md",
+      "text": "Its star's tide holds one face to the star for ever, and its thin air has frozen out onto the dark side, leaving the day side bare."
+    },
+    {
+      "id": "W20",
+      "name": "Other climate branch",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"}
+      ],
+      "rate": {
+        "value": 0.5,
+        "source": "registry row NEB8: no survey says which branch a world in the window ended in, so half of the worlds that hold two stable climates sit on the one the airless start does not find; the second solve is made only for a rolled world whose first answer is cool enough to be near the window (WR7 gives the window's width, 0.10 to 0.15 of the flux, which the solver finds for itself)",
+        "label": "RECALLED",
+        "tier": "T6",
+        "tweak": "L0",
+        "registry": "NEB8"
+      },
+      "apply": {
+        "lever": "L7",
+        "input": "air_branch",
+        "effect": "other_branch",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "body_type", "equals": "t"}
+      ],
+      "source": "[R0580], [R4008] (the ice-albedo feedback); WR7; the module is physics/climate_branches.py and physics/air_branches.py",
+      "text": "Its light is in the band where a world can be either warm or frozen over, and history put it on the other one."
+    },
+    {
+      "id": "G1",
+      "name": "Giant tipped by an impact",
+      "kind": "giant",
+      "requires": [
+        {"quantity": "body_type", "equals": "g"},
+        {"quantity": "mass_earth", "min": 5.0},
+        {"quantity": "mass_earth", "lt": 30.0000001},
+        {"quantity": "obliquity_deg", "min": 60.0}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row GT4: the tilt is already drawn (giant_tilt.tilt_after_merger_deg, the merger share GT3 and the turn of one impact); the row names the giants of 5 to 30 Earth masses the draw left tipped 60 degrees or more, so there is no extra draw",
+        "label": "READ",
+        "tier": "T4",
+        "tweak": "L0",
+        "registry": "GT4"
+      },
+      "apply": {
+        "lever": "L1",
+        "input": "obliquity_deg",
+        "effect": "tipped_by_impact",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "obliquity_deg", "min": 60.0}
+      ],
+      "source": "[R3149] and [R2300] (Uranus at 98 degrees by a giant impact); the module is physics/giant_tilt.py",
+      "text": "A giant impact knocked it over, and it turns on its side, its poles taking turns facing the star; its rings lie in the same tipped plane."
     }
   ]
 }

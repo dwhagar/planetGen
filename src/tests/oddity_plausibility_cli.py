@@ -208,18 +208,22 @@ def _resonance_forced(body, star, stream):
 
 
 def _noop(body, star, stream):
-    """W14 and W9 (GEN.1050): the body is already what the row names (the wind's gate, the ring's origin); the effect changes nothing."""
+    """W14 and W9 (GEN.1050): the body is already what the row names (the wind's gate, the ring's origin); the effect changes nothing. W19 and W20 (GEN.1051) replace the air
+    the solver has just made, which a body drawn whole cannot be given again here: they are checked through the generator (`tests/test_oddities_wiring.py`)."""
 
 
 EFFECTS = {
     "strip_mantle": _strip_mantle,
     "disintegrating": _noop,
+    "collapse_air": _noop,
+    "other_branch": _noop,
     "ring_from_moon": _noop,
     "high_eccentricity": _high_eccentricity,
     "polar_orbit": _polar_orbit,
     "resonance_forced": _resonance_forced,
     "venus_spin": _venus_spin,
     "seasons_from_tilt": _seasons_from_tilt,
+    "tipped_by_impact": _seasons_from_tilt,
     "stub_ring": _stub_ring,
     "broken_heavy_ring": _broken_heavy_ring,
     "broken_ring_beyond_roche": _broken_ring_beyond_roche,

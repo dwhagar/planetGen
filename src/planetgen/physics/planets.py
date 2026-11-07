@@ -22,7 +22,7 @@ and moon in a system after all of them have been generated.
 import math
 
 from planetgen.physics import moon_history, body_state, oddities, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, venus_spin
+from planetgen.physics import aerosols, air_branches, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, venus_spin
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -564,6 +564,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     if _past_runaway_with_water(planet, solar_output_at_orbit, surface_w):
         start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `_past_runaway_with_water`)
     air = surface_air.solve(setting, start_k)
+    air = _air_oddities(planet, setting, air, start_k, solar_output_at_orbit, distance, albedo, giant)
     if air is None or not air.partials_pa:
         if setting.albedo_law is not None:
             # GEN.972: with no air the ice the cold leaves is the only feedback; the temperature and the albedo that keep each other
@@ -603,6 +604,24 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     aerosols.generate_aerosols(planet)
     # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
     envelope_share.fill(planet)
+
+
+def _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant):
+    """
+    The rows of the air lever (L7, GEN.1051: W19 the nightside collapse of a locked planet's air, W20 the other branch of a bistable climate) on the air just solved: they may replace it
+    with the airless state (`None`) or with the air of the other branch (`physics/air_branches.py`). The rows are rolled again each time the air is made, from their own streams.
+    """
+    air_branches.clear(planet)
+    if giant or planet.is_moon or air is None:
+        return air
+    planet._air_context = air_branches.Context(setting, air, start_k, starlight_w_m2, distance_au, albedo)
+    oddities.drop(planet, ("L7",))
+    oddities.apply(planet, levers=("L7",))
+    choice = getattr(planet, air_branches.CHOICE_ATTRIBUTE, None)
+    air_branches.clear(planet)
+    if choice == "lost":
+        return None
+    return air if choice is None else choice
 
 
 def _past_runaway_with_water(planet, starlight_w_m2, surface_w):
@@ -860,7 +879,7 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     # GEN.1048 (oddity W2): the rows of the spin lever are rolled again on the body as it is now (its air, its moons and the age change between calls) and a
     # thick-air planet the tides leave turning slowly backwards takes the Venus-type state in place of the tide history's
     planet._venus_spin = None
-    if planet.body_type == "t" and not planet.is_moon:
+    if planet.body_type in ("t", "g") and not planet.is_moon:
         planet.axial_tilt_deg = tilt             # the rows read the tilt the planet is about to have (set below)
         oddities.drop(planet, ("L1",))
         oddities.apply(planet, levers=("L1",))

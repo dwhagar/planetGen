@@ -18,6 +18,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.physics.venus_spin.retrograde_possible | by design | whether a thick-air planet has a retrograde state at all (the closed-form test of the paper); the tests read it, the W2 effect reads the end state itself |
 | function | planetgen.physics.disintegrating_planet.remaining_mass_earth | by design | the mass a body has left after an age of the wind, for a page note of how long the planet has left; the tests read it, the W14 effect reads the loss rate over the age |
+| function | planetgen.physics.climate_branches.bistable_window | by design | the flux range where an Earth twin holds both a warm and a snowball branch, for the tests and the census check of WR7; the W20 effect finds the other branch by solving the world's own air again (`air_branches`) |
 | function | planetgen.physics.mantle_stripping.contact_speed_ms | by design | the impact speed from the speed at infinity and the escape speed, for a caller that draws an impact from a population (read by the tests; the W10 effect draws the energy ratio, MT8) |
 | function | planetgen.physics.mantle_stripping.speed_for_core_fraction | by design | the impact speed that leaves a given iron share, for the tests and for a check of the energy-ratio range of MT8 against Mercury's iron |
 | function | planetgen.physics.mantle_stripping.strip_probability | by design | the share of random impacts inside the head-on angle (MT7); the W10 rate (WR4) is already a rate on the merged population, so the effect does not apply it again |
@@ -67,10 +68,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.74:SH2 | GEN.1047 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH3 | GEN.1047 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH4 | GEN.1047 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |
-| module | planetgen.physics.nightside_collapse | GEN.1051 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
-| row | 6.75:NEB1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NEB3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NEB6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
 | row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
@@ -132,7 +129,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
 | module | planetgen.physics.lagrange_geometry | MAP.354 | the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it |
-| function | planetgen.physics.climate_branches.bistable_window | GEN.1051 | the flux range where an Earth twin holds both a warm and a snowball branch; GEN.1051's history draw reads the share of the window the flux sits in |
 | row | 6.126:RN1 | GEN.1201 | `roundness.SPHERICITY_FACTOR`, not read until GEN.1201 wires the module |
 | row | 6.126:RN2 | GEN.1201 | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, not read until GEN.1201 wires the module |
 | row | 6.126:RN4 | GEN.1201 | `roundness.METAL_STRENGTH_PA`, not read until GEN.1201 wires the module |
