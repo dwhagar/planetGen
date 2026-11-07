@@ -2,6 +2,132 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3542] - 2026-11-07
+
+**Headline:** The tests of the warm-up pass again after it learned to skip an empty galaxy, and the update guard writes its one warning through the program's own logger.
+
+### Changed
+
+- `src/tests/test_warm_phases.py`, `test_warm_log.py`, `test_cache_warmup.py`, `test_maintenance.py` (found while checking OPS.114): the warm-up now asks the database whether it holds a galaxy before it warms anything and, when it holds none, says so and exits 0. Ten tests ran the warm-up against a stand-in database that is only a name (`x`, or a Redis key prefix), or against arguments with no database at all, and so failed with "Unknown database" or a missing `database`. They now run as if the database held a galaxy; `test_warm_empty_galaxy.py` still holds the empty case. The warm-up itself is unchanged.
+- `src/planetgen/admin/updateguard.py`: the update guard made its own standard-library logger (`logging.getLogger`), which `test_no_own_log_formatting.py` refuses (every line goes through `planetgen.util.log`). Its one warning, about a run record it cannot read, now goes through `log.warning`. Same text, same level; it appears in the program's log format.
+
+generation-output: unchanged
+
+## [8.0.3541] - 2026-11-07
+
+**Headline:** The two update-step tests that checked for a bare "error:" on stderr now read the scripts' log line, so they pass again.
+
+### Changed
+
+- **`test_update_database_step` reads the log line the scripts print (TEST.668).** Since the scripts write every message as a log record (`scripts/logrecord.sh`, for example `2026-11-07 03:32:27 UTC ERROR    command: ...`), an unreachable server and a refused migration no longer print a line that starts with `error:`. `test_an_unreachable_server_stops_the_step` and `test_a_failed_migration_stops_the_step_and_keeps_the_version` now look for that line (time, zone, `ERROR`, component, message). Only the tests change.
+
+generation-output: unchanged
+
+## [8.0.3540] - 2026-11-07
+
+**Headline:** The two queue time-limit tests that were red on main pass again: `requires.enqueue` names the job limit as a keyword, and the over-limit test builds its worker the way the real one is built.
+
+### Changed
+
+- **`requires.enqueue` takes `job_timeout` as a required keyword (TEST.667).** The guard `test_every_call_that_queues_a_job_names_its_limit` reads the source for a `job_timeout` at each queuing call and could not see one behind `**options` in `queue/requires.py`. The limit is now a named keyword and is passed on by name; a call without one fails with a plain `TypeError` before it reaches the queue (which refuses a job without a limit already). No caller in the program changes: they all name it.
+- **The over-limit test reads the queue's JSON jobs (TEST.667).** `test_a_job_over_its_limit_is_ended_and_reported_failed` ran a worker with RQ's default pickle serializer and plain job class against a queue that holds JSON jobs, so the worker could not read the job (`DeserializationError`) and never reached the limit. The worker now has the JSON serializer and the guarded job class, as `cli/worker.py` builds one, and `time.sleep` is added to its list of functions the way the suite does.
+
+generation-output: unchanged
+
+## [8.0.3539] - 2026-11-07
+
+**Headline:** The tests of update.sh's database step pass again: they now look for the failure line as the update scripts write it, with its time and severity.
+
+### Changed
+
+- `src/tests/test_update_database_step.py` (TEST.668): `test_an_unreachable_server_stops_the_step` and `test_a_failed_migration_stops_the_step_and_keeps_the_version` expected the failure to begin with `error:`. The database step was not wrong: since OPS.98 and OPS.100 every line a command writes to a pipe carries its time and severity, and the `error:` its message began with is the severity (`2026-11-07 03:25:40 UTC ERROR    command: (2003, "Can't connect to MySQL server ...")`). The step still stops with a non-zero exit, no traceback, the schema version unchanged, and the server's own reason on stderr. The two tests now look for that line (a time, a zone, `ERROR`, the component) and for the reason. They ran into no GRANT problem on a machine with a normal MySQL.
+
+generation-output: unchanged
+
+## [8.0.3538] - 2026-11-07
+
+**Headline:** The cache warm-up and the nightly whole-map build now skip an empty galaxy cleanly instead of trying to work.
+
+### Changed
+- **OPS.114: a warm-up run right after a New galaxy wipe tried every task.** `planetgen warm` (from update.sh, after a change, or by hand) and the whole-map build (`planetgen.cli.tiles`, the nightly timer) now check first whether the database holds any galaxy (no sector and no galaxy plan row, or no tables yet). If not, each prints `galaxy is empty, nothing to warm up`, does nothing and exits 0. update.sh reports that step as skipped because the galaxy is empty, not as failed, so the Update button and the maintenance timers do not report a failure. Once a galaxy exists the warm-up runs as before.
+
+## [8.0.3537] - 2026-11-07
+
+**Headline:** The tests of the sector page and the section pages pass again: their stand-ins for the web layer's data calls had fallen behind two calls the pages learned.
+
+### Changed
+
+- `src/tests/test_web_sector_nav.py` and `src/tests/test_web_pages.py` (TEST.669): 35 tests answered a 404 page ("No such database: 'planetgen_web_test'") or a TypeError on main. Neither was a route or an ID-format regression. MAP.381 made the sector page ask for the globular clusters (`apiclient.get_containers`) to draw the ones that reach into the sector, and the sector test's fake data never stubbed that call, so it went through the in-process transport to the real API, which found no such database. MAP.403 gave `get_sectors` the `coverage` and `show_empty` keywords, and the section pages' fake `get_sectors` did not accept them. The sector test's fake now answers `get_containers` with no clusters and the other fake's `get_sectors` takes both keywords. The pages and routes are unchanged.
+
+generation-output: unchanged
+
+## [8.0.3536] - 2026-11-07
+
+**Headline:** The admin Update page says plainly when the last update failed, and the update log and a queue run's log are colored by level (errors red, warnings amber, info blue, debug green).
+
+### Changed
+
+- `src/planetgen/admin/webupdate.py` (UX.284): when no update is waiting or running, the view now has `outcome` (`failed`, `done` or none) and `outcome_detail`. It is `failed` when systemd holds `planetgen-update.service` in `failed` (read with an unprivileged `systemctl show`: exit status 1 from the update guard, or the start limit of ten tries in ten minutes, which needs `systemctl reset-failed planetgen-update.service`), or when the last run in `update.log` ends in an error line. It is `done` when the last run reached its closing "Update done" line. A start that dies before `update.log` begins now shows too.
+- `src/planetgen/web/templates/admin_update.html`: a red "The last update failed." alert under State, with the detail and the last error line of the log.
+- `src/html/static/style.css`, `partials/log_lines.html`, `logrecord.display_severity`: each line of the Update page log and the queue run log is in its level's color (error and critical red, warning and notice amber, info blue, debug green), 4.5:1 or better on the box in the light and the dark theme. The level word stays in every line, so color is never the only cue.
+- `docs/reference/api.md`: `GET /api/admin/update` also returns `outcome` and `outcome_detail`.
+
+generation-output: unchanged
+
+## [8.0.3535] - 2026-11-07
+
+**Headline:** The log on the admin Update page and the log of a queue run now open scrolled to the last line and stay there as the log grows.
+
+### Changed
+
+- `src/html/static/logfollow.js` (UX.284): a log box marked `data-follow-end` is scrolled to its end when the page loads and whenever its text changes. A reader who scrolls up pauses the following, so the lines they are reading do not move; scrolling back to the end resumes it. The Update page reloads itself every few seconds while an update runs, so the pause and the place being read are kept in the browser's session storage across the reload (blocked storage means it follows the end). `/admin/update` and `/admin/queue/<run>` use it; the Generate job output already followed its end. Without script the box shows the log from its top, as before.
+- `src/tests/test_logfollow_browser.py` tests the script in Chromium on a bare page.
+
+generation-output: unchanged
+
+## [8.0.3534] - 2026-11-07
+
+**Headline:** An update started by the Update button or the monthly timer now stops the running jobs and goes on, instead of refusing.
+
+### Changed
+- **OPS.113: a systemd-started update failed whenever the warm-up or another job was running.** Started by systemd, `update.sh` now cancels everything it lists (the warm-up, queued jobs, tile and orbit work) without `--yes`, leaving each command-line run a stop reason that says an update started by systemd needed the machine. The one thing it never cancels is generation (a Generate job, a generation run, a job on the generation queue): with that running it changes nothing and the next firing or press tries again. Runs by hand and from cron keep the question and `--yes` rules.
+
+## [8.0.3533] - 2026-11-07
+
+**Headline:** The sector map's gravity layer now says "not computed yet" when the galaxy has no shape, instead of failing with a "data unavailable" error, and a page whose data call is refused with a conflict now shows what the refusal said.
+
+### Changed
+- **MAP.405.** `GET /sector/<id>/gravity` answers 409 with a JSON message ("The gravity layer is not computed yet: the galaxy has no shape yet.") when the API says the galaxy has no shape, in place of a 502.
+- An API conflict (409) that no page catches itself now shows a "Not possible now" page with the message the API gave (it was a 502 "Data unavailable" page).
+
+TODO items advanced: MAP.405.
+
+## [8.0.3532] - 2026-11-07
+
+**Headline:** The test that an oxygenic world holds oxygen once its oxygen has risen now checks the rise the generator decided, so it passes again, and its sample is a third smaller.
+
+### Changed
+
+- `src/tests/test_biogenic_oxygen.py` (TEST.664): `test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none` compared the star's age less the photosynthesis age with `biogenic_oxygen.profile_of(world).delay_gyr`, the delay of the headline class alone. GEN.1213 replaced that with the age the oxygen of all the classes together rises (`life_air.oxygen_rise_gyr`: the producers' shares, and the oxygen the methane of the earlier classes burns). Four of twelve sampled worlds disagreed with the old oracle in both directions (Elleodras IV held 11.4 kPa before its old delay; Allandelas V, Alcaila Lleyzax XII and Asethor VII held none after it), and for each of the four the stored air agreed with the rise the generator decided (`rise` `None`, so no oxygen; or a rise before the star's age, so oxygen). The code was right and the test was behind it. The test now records what `generation.life._build_oxygen` decided while the sample is generated and checks that the final air follows it: oxygen above 0.5 kPa when the rise is at or before the star's age, below 0.2 kPa when it never comes or comes after.
+- The sample stops at the first world whose life built oxygen into the air (it asked for three worlds of oxygenic life, and ran to seed 60). The file takes 410 s on 4 vCPUs instead of 600 s with the same 11 tests. It cannot be under 2 minutes by drawing systems: a G2V system with a request for a habitable world costs 8 to 18 s and about one in 25 holds such a world, and a seed list fixed in the test would stop meaning anything at the next epoch.
+
+generation-output: unchanged
+
+## [8.0.3531] - 2026-11-07
+
+**Headline:** A new galaxy no longer fails at stage 3 because the compiled kernels could not be cached.
+
+### Fixed
+- **OPS.112: the galaxy job failed at stages 3 to 14 with "cannot cache function: no locator available".** Since SEC.37 the code tree is read-only to the service user, so numba could not write its cache beside the source. `planetgen` now points `NUMBA_CACHE_DIR` at `/var/cache/planetgen/numba` (made by `create-cache-dir.sh`, so by `./update.sh`), or at a private per-user temporary folder when that is missing, before any kernel loads.
+
+## [8.0.3530] - 2026-11-07
+
+**Headline:** The references registry gained Elkins-Tanton and Seager 2008b (super-Earth outgassing), no generator output changes.
+
+### Changed
+
+Elkins-Tanton and Seager 2008b (ranges of atmospheric mass and composition of super-Earth exoplanets, outgassing from chondritic material) is now in the references registry as R5136. The earlier paper of the same year by the same authors becomes 2008a. No generator output changes.
+
 ## [8.0.3529] - 2026-11-07
 
 **Headline:** Correction to the GEN.753 planets sweep: the ground gamma dose of an Earth-like body is not 100 times too low.

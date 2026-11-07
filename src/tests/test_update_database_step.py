@@ -20,6 +20,7 @@ A stopped step stops update.sh and install.sh (`set -e`); the CI job
 """
 
 import os
+import re
 import subprocess
 import sys
 import uuid
@@ -67,6 +68,10 @@ def _real_maintenance_file():
             return handle.read()
     except FileNotFoundError:
         return None
+
+
+ERROR_RECORD = re.compile(r"^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d \S+ ERROR +[a-z-]+: ", re.M)
+"""re.Pattern: An error line of the scripts' log (`scripts/logrecord.sh`, the display line of the logging standard): time, zone, severity, component, message."""
 
 
 def _run_step(config, control_db, **overrides):
@@ -182,10 +187,15 @@ def test_a_database_newer_than_the_code_is_refused_untouched(mysql_config, contr
     assert _version(mysql_config) == newer
 
 
+# OPS.98: a command's lines carry the time and the severity when its output is piped (and the "error:" its message began with is the severity
+# now), so a failure reads `2026-11-06 22:21:18 EST ERROR    command: <what went wrong>`.
+ERROR_LINE = re.compile(r"^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d \S+ ERROR +\S+: ", re.MULTILINE)
+
+
 def test_an_unreachable_server_stops_the_step(mysql_config, control_db):
     result = _run_step(mysql_config, control_db, PLANETGEN_MYSQL_PORT="1")
     assert result.returncode != 0
-    assert result.stderr.startswith("error:")
+    assert ERROR_LINE.match(result.stderr)
     assert "Traceback" not in result.stderr
 
 
@@ -201,5 +211,5 @@ def test_a_failed_migration_stops_the_step_and_keeps_the_version(mysql_config, c
         _admin(f"DROP USER IF EXISTS '{user}'@'%'")
     assert f"is at schema v{store.SCHEMA_VERSION}" in result.stdout
     assert result.returncode != 0
-    assert "error:" in result.stderr and "denied" in result.stderr
+    assert ERROR_LINE.search(result.stderr) and "denied" in result.stderr
     assert _version(mysql_config) == store.SCHEMA_VERSION

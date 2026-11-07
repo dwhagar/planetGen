@@ -74,10 +74,11 @@ def dependency(requires, optional=False):
     return Dependency(jobs=ids, allow_failure=bool(optional)) if ids else None
 
 
-def enqueue(queue, function, *args, requires=(), optional=False, **options):
+def enqueue(queue, function, *args, job_timeout, requires=(), optional=False, **options):
     """
     Queues `function(*args)` on `queue` (a `redisqueue.queue`) held until the jobs `requires` (RQ jobs or ids) are done, or at once
-    when there is none; `options` are RQ's (`job_timeout`, `job_id`, `result_ttl`, ...).
+    when there is none. The limit `job_timeout` (seconds) is named at the call, as for any queued job (`test_rq_time_limits` reads it
+    from the source); the other `options` are RQ's (`job_id`, `result_ttl`, ...).
 
     Returns:
         rq.job.Job: The job; its status is `deferred` while it is held.
@@ -88,7 +89,7 @@ def enqueue(queue, function, *args, requires=(), optional=False, **options):
     wanted = dependency(requires, optional)
     if wanted is not None:
         options["depends_on"] = wanted
-    return queue.enqueue(function, *args, **options)
+    return queue.enqueue(function, *args, job_timeout=job_timeout, **options)
 
 
 def check_serializers(connection, ids, serializer, own_id=None):

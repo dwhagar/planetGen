@@ -61,7 +61,7 @@ class FakeData:
         self.asked_ranges = []
         self.admin = None
 
-    def get_sectors(self, db, limit=None, offset=None, sort=None, descending=False, after=None):
+    def get_sectors(self, db, limit=None, offset=None, sort=None, descending=False, after=None, coverage=None, show_empty=False):
         self.calls.append(("get_sectors", db, limit, offset))
         self.asked.append(("sectors", sort, descending))
         body = {"items": self.sectors[offset:offset + limit], "total": len(self.sectors),

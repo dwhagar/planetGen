@@ -231,6 +231,11 @@ class FakeData:
         self.calls.append(("auth_me", cookie_header))
         return self.admin
 
+    def get_containers(self, db, kind=None):
+        """The globular clusters (MAP.381 asks for them to draw the ones that reach into a sector): none in these fixtures."""
+        self.calls.append(("get_containers", db, kind))
+        return []
+
     estimate = {"sectors": 4, "summary": "About 280 KB and 3 s for 4 sectors.", "refused": False, "refusal": None}
 
     def generate_sector_neighborhood(self, cookie_header, sector_id, radius_ly=None, estimate_only=False):
@@ -243,7 +248,7 @@ class FakeData:
 
 
 _FAKED = ("get_sector", "get_galaxy_shape", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_object", "get_phenomenon", "get_nav", "get_nav_chart",
-          "auth_me", "generate_sector_neighborhood")
+          "auth_me", "generate_sector_neighborhood", "get_containers")
 
 
 @pytest.fixture
