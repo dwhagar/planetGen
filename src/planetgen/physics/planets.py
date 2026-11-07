@@ -980,6 +980,9 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
             tilt = venus_tilt
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
+    frame = getattr(planet, "_frame_axis", None) if planet.is_moon else None
+    if frame is not None:      # GEN.1352: a moon already set in the system's frame has its new axis turned the way its position was
+        planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z = spin.turn_to_axis((planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z), frame)
     if not planet.is_moon and getattr(planet, "moons", None):
         orient_moons(planet)      # GEN.1352: its moons lie in the equator this axis gives
     # GEN.767: the day and night shares follow the rotation and tilt just set (a planet's; a moon's need its parent's axis, `refinish_rocky`)
