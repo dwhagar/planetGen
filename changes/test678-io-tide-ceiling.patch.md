@@ -1,7 +1,0 @@
-**Headline:** The tests that hold Io's tide to its observed heat now know the tide is a little larger since the melt coefficient of a partly molten mantle was taken from its source.
-
-### Changed
-
-- `src/tests/test_resonant_chains.py` and `src/tests/test_tidal_heating.py` (TEST.678): `test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon` was red on main, Io's tidal power 6.1e13 W against a ceiling of 5e13 W. GEN.1190 moved it: it took the melt coefficient `B` of a partly molten rocky mantle's viscosity, `exp(-B phi)`, from its source (30 for diffusion creep, [R1956: Table 1]; it was 26), so a mantle at a given melt share is softer and the melt-limited tide at Io's observed forced eccentricity (0.0041) is 6.1e13 W; across the corners of the drawn viscosity range the tide is 9e12 to 8.5e13 W (it was 9e12 to 5e13). The code is right and the ceiling was behind it: 5e13 was only where the old coefficient put the top of that range. Io's observed heat is 0.9 to 1.5e14 W (2.24 W/m2), and the tide of a melt-limited box should stay under it, so the ceiling is now Io's observed lower figure, 0.9e14 W, and the range test also holds the top corner under the observed top, 1.5e14 W. The model now lies a factor of 1.1 to 1.8 under Io's observed heat (it was 2 to 3), nearer the published figure. No constant changed (the coefficient is registered in GEN.725 under GEN.1190); no generated output changes.
-
-generation-output: unchanged
