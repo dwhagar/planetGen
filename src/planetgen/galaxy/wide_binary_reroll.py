@@ -167,6 +167,8 @@ def run(config, edited_sector_ids=(), dry_run=False, say=print):
     try:
         scan = unstable(conn, say)
         result["scanned"], result["unstable"] = scan["scanned"], len(scan["found"])
+        if not scan["scanned"]:
+            return result
         say(f"Wide binaries: {scan['scanned']:,} read, {len(scan['found']):,} break the stability rule.")
         for item in scan["found"]:
             why = f"could not be read ({item['unreadable']})" if item["unreadable"] else None
@@ -192,7 +194,8 @@ def run(config, edited_sector_ids=(), dry_run=False, say=print):
             else:
                 result["failed"].append((_label(item), "; ".join(done["problems"])))
                 say(f"star system {_label(item)}: broke the rule ({broke}); the re-roll still breaks it ({'; '.join(done['problems'])}), left as it was.")
-        say(f"Wide binaries: {result['redone']} re-rolled, {len(result['left'])} left alone, {len(result['failed'])} failed.")
+        if scan["found"]:
+            say(f"Wide binaries: {result['redone']} re-rolled, {len(result['left'])} left alone, {len(result['failed'])} failed.")
         return result
     finally:
         conn.close()
