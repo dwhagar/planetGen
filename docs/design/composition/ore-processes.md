@@ -26,7 +26,7 @@ What the generator stores (checked in the code on 2026-11-07), what it will stor
 | Bulk and mantle oxides | `rock_mass_fraction`, `metal_mass_fraction`, FeO and Al2O3; Cr2O3, TiO2, P2O5, Na2O, K2O, MnO, NiO (N5) | partly; N5 completes it | magmatic, pegmatite, carbonatite, phosphorite |
 | Star element set | Ti, V, Cr, Mn, Co, Cu, Zn, P, Li (N1); REE, PGE, Au, Pb and the siderophile split (N2) | planned | every grade ceiling |
 | Mantle carbon and water | carbonates, diamond or graphite by redox, hydrous phases (N7) | planned | carbonatite, kimberlite |
-| Salt sequence | evaporite sequence from the brine (N9) | planned | evaporite |
+| Salt sequence | evaporite sequence from the brine (N9) | built (GEN.1366, `physics/evaporite_sequence.py`) | evaporite |
 | **Crust thickness** | `crust_thickness_km` | **new, derived** (section 4.1) | porphyry, orogenic, pegmatite, craton |
 | **Craton** | `craton_fraction` (share of the crust that is thick, old and cold) | **new, derived** (section 4.2) | kimberlite, unconformity U, orogenic |
 | **Sulfur supply** | `crust_sulfur_index` (0 to 1) | **new, derived** (section 4.3) | magmatic sulfide, VMS, SEDEX |

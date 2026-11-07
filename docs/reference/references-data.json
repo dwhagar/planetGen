@@ -279936,7 +279936,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5138,
+ "id_next": 5139,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286300,6 +286300,7 @@
   "setup:https://zenodo.org/": "R4962",
   "web:http://casual-effects.blogspot.com/2014/03/weighted-blended-order-independent.html": "R5055",
   "web:http://endavid.com/index.php?entry=76": "R5047",
+  "web:http://www.minsocam.org/ammin/am52/am52_171.pdf": "R5138",
   "web:https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/": "R5036",
   "web:https://alextardif.com/taa.html": "R5061",
   "web:https://bartwronski.com/page/3/": "R5063",
@@ -286848,6 +286849,15 @@
    "provider": "Gaia Sky project, Heidelberg University",
    "url": "https://gaia.ari.uni-heidelberg.de/gaiasky/docs/3.5.3/LOD-catalogs.html",
    "year": ""
+  },
+  {
+   "checked": "2026-11-07",
+   "identifier": "",
+   "kind": "web page",
+   "name": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)",
+   "provider": "Mineralogical Society of America",
+   "url": "http://www.minsocam.org/ammin/AM52/AM52_171.pdf",
+   "year": "1967"
   }
  ]
 }

@@ -435,7 +435,7 @@ def test_the_norms_minerals_are_rows():
 
 def test_the_carbonates_salts_and_phosphates_of_gen1357_are_read_from_their_pages():
     minerals = _builder().data.PART3_MINERALS
-    assert len(minerals) == 35
+    assert len(minerals) == 37                      # 35 of GEN.1357 and the two salts GEN.1366 reads (natron, antarcticite)
     for row_id, entry in minerals.items():
         row = materials.material(row_id)
         density = row.prop("rho_grain_g_cm3")
@@ -461,3 +461,11 @@ def test_the_values_the_research_file_had_recalled_are_the_values_the_pages_list
 def test_the_apatite_family_is_a_group():
     assert {row.id for row in materials.expand("apatite")} == {"fluorapatite", "chlorapatite", "hydroxylapatite"}
     assert materials.material("aragonite").formula == materials.material("calcite").formula, "aragonite is calcite's polymorph, a row of its own"
+
+
+def test_the_two_salts_of_gen1366_are_read_from_their_pages():
+    natron, antarcticite = materials.material("natron"), materials.material("antarcticite")
+    assert natron.formula == "Na2CO3.10H2O" and natron.crystal_system == "monoclinic"
+    assert natron.prop("rho_grain_g_cm3").value == 1.44 and natron.prop("mohs").value == 1.0
+    assert antarcticite.formula == "CaCl2.6H2O" and antarcticite.crystal_system == "trigonal"
+    assert antarcticite.prop("rho_grain_g_cm3").value == 1.71 and antarcticite.prop("mohs").measured_range == (2.0, 3.0)

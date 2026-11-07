@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1258 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1269 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 165 | 18 | 10 | 1 | 0 | 194 |
-| T2 | 125 | 52 | 1 | 1 | 0 | 179 |
-| T3 | 91 | 41 | 7 | 9 | 0 | 148 |
-| T4 | 55 | 5 | 1 | 19 | 10 | 90 |
+| T2 | 128 | 52 | 1 | 1 | 0 | 182 |
+| T3 | 94 | 41 | 7 | 9 | 0 | 151 |
+| T4 | 58 | 5 | 1 | 19 | 10 | 93 |
 | T5 | 54 | 21 | 3 | 1 | 0 | 79 |
-| T6 | 131 | 91 | 25 | 62 | 0 | 309 |
+| T6 | 133 | 91 | 25 | 62 | 0 | 311 |
 | T7 | 33 | 15 | 7 | 17 | 0 | 72 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 16 | 5 | 88 | 34 | 181 |
-| All | 692 | 260 | 59 | 202 | 45 | 1258 |
+| All | 703 | 260 | 59 | 202 | 45 | 1269 |
 
 ## How the labels were given
 
@@ -1800,6 +1800,22 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FD1 | P | T9 | L1 | field_members.bulk_density_kg_m3: every stored body of a field has the field's bulk density (the makeup's, or its grains' with the porosity taken out) and its composition shares, whatever its mass | none | fields with a ledger (a supernova host's) | the density of a stored body of a field, or of a belt body over 1e19 kg, measured to differ from the mean of the bodies by tens of percent | the belt member rule (`belt_member.member` with the compaction taper) once a field has a taxon mix and a star-free heating | the belt members of GEN.1070 share the same makeup rule at one density per taxon | - | - |
+
+## 6.208 Stand-ins of the evaporite sequence
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| EV1 | P | T2 | L0 | evaporite_sequence.MOBILITY: the relative mobility of the cations in weathering, Ca 3.0, Na 2.4, Mg 1.3, K 1.25 (Polynov's series) | each within a factor of 2 | silicate crusts weathered by liquid water | a measured river or lake cation ratio of a basaltic terrain that differs from the series by more than a factor of 3 | a leaching model with mineral dissolution rates and the pH of the water | recalled from the series as Perel'man tabulates it; not opened | - | - |
+| EV2 | P | T6 | L0 | evaporite_sequence.ANION_PARAMS: carbonate per calcium and the chloride share of the rest of the anion charge for each ocean class (neutral 1.0 and 0.85, soda 1.5 and 0.60, chloride brine 0.10 and 0.95, acid sulfate 0 and 0.20) | carbonate per calcium 0.5 to 2 for neutral and soda | the four open-water ocean classes | a speciated brine of an ocean class whose calcium is not taken by carbonate (neutral) or whose carbonate does not outlast calcium (soda) | a speciation of the early ocean from its carbon, sulfur and chlorine inventories (GEN.1319 inventories) | the class definitions of `hydrosphere.ocean_class` (SO2 share, CO2 pressure, reduced mantle) fix the direction; the sizes are chosen | - | - |
+| EV3 | P | T6 | L0 | evaporite_sequence.GYPSUM_STAGE_AW 0.94: the activity of water at which calcium sulfate first precipitates, used where no halite forms | 0.92 to 0.96 | brines that dry without reaching halite | a brine whose gypsum precipitates at an activity of water above 0.96 or below 0.9 | the activity of water along a computed evaporation | the order of a seawater evaporation (calcium carbonate, then gypsum well before halite at 0.75), argued, not opened | - | - |
+| EV4 | P | T2 | L0 | evaporite_sequence.SODIUM_SULFATE_K 305.55: below it mirabilite, above it thenardite (32.4 degrees C) | 305 to 306 | sodium sulfate in contact with water | a measured transition more than 1 K from it | the sodium sulfate phase diagram from a source | the Glauber's salt transition, recalled; not opened | - | - |
+| EV5 | P | T3 | L0 | evaporite_sequence.MAGNESIUM_SULFATE_K (321.15, 341.15): epsomite below, hexahydrite between, kieserite above (48 and 68 degrees C) | each within 5 K | magnesium sulfate in contact with water | a measured boundary more than 10 K from either | a source for the hexahydrite and kieserite stability fields | recalled, paywalled from here; the Handbook of Mineralogy pages of the three say only that epsomite dehydrates readily in dry air | - | - |
+| EV6 | P | T3 | L0 | evaporite_sequence.SODIUM_CARBONATE_K (305.65, 382.15): natron below, thermonatrite between, natrite above (32.5 and 109 degrees C) | each within 5 K | sodium carbonate in contact with water | a measured boundary more than 10 K away | the sodium carbonate and bicarbonate phase diagram from a source | recalled; the Handbook page of natron says it dehydrates rapidly in air to thermonatrite | - | - |
+| EV7 | P | T4 | L0 | evaporite_sequence.NAHCOLITE_MIN_PCO2_PA 5e4: above it the sodium left with carbonate dries as nahcolite, below as trona | 1e3 to 1e5 Pa | the alkaline path | a trona deposit in an air of more than 0.5 bar of carbon dioxide or nahcolite in an air of less than 0.01 bar | the trona and nahcolite boundary of Eugster as a function of carbon dioxide and temperature | no source: the direction (more carbon dioxide, more bicarbonate) is chemistry, the size is chosen | - | - |
+| EV8 | P | T3 | L0 | evaporite_sequence.MAGNESITE_MIN_K 333.15: below it the magnesium carbonate that dries is hydromagnesite, above it magnesite (60 degrees C) | 313 to 373 K | the alkaline path | magnesite found in a surface deposit below 40 degrees C that formed without microbes | a kinetic model of magnesite precipitation | recalled: magnesite does not precipitate at low temperature in the laboratory | - | - |
+| EV9 | P | T4 | L0 | evaporite_sequence.PERCHLORATE_SHARE 0.01 and PERCHLORATE_MIN_PA 1: the share of the chloride charge oxidised to perchlorate where the air supplies oxidants and holds no ozone shield | 0.001 to 0.05 | bodies with air and chloride and under 100 Pa of free oxygen | a measured perchlorate share of an arid chloride crust above 10 percent or below 0.1 percent | a photochemical and atmospheric oxidation rate of chloride | no source opened: perchlorate in arid surface salts is observed in the recalled literature; the share is chosen | - | - |
+| EV10 | P | T4 | L0 | evaporite_sequence.JAROSITE_SHARE 0.5: the share of an acid water's potassium that jarosite takes, alunite the rest | 0.2 to 0.8 | acid sulfate waters | a measured jarosite to alunite ratio of an acid deposit outside 0.2 to 4 | a speciation of the acid water with its iron and aluminium | no source: the share is chosen | - | - |
+| EV11 | P | T2 | L0 | surface_composition.weathered_oxides puts back the sodium of `waterworld_carbon.CRUST_SODIUM_WT` and the potassium of the basaltic reservoir, because the stored rock carries no alkalis | sodium within 50 percent | silicate crusts | a crust whose measured alkali content differs from them by a factor of 3 | a stored alkali content of the rock (a later bulk-composition item) | [R1494] through [R2381] for sodium (read, tier 1, GEN.1319) and N-MORB [R1494] for the potassium | - | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 

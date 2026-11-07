@@ -40841,6 +40841,432 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
+      "key": "6.208",
+      "number": "6.208",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.MOBILITY: the relative mobility of the cations in weathering, Ca 3.0, Na 2.4, Mg 1.3, K 1.25 (Polynov's series)"
+            ],
+            [
+              "The range it moves in",
+              "each within a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "silicate crusts weathered by liquid water"
+            ],
+            [
+              "What would show it wrong",
+              "a measured river or lake cation ratio of a basaltic terrain that differs from the series by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "a leaching model with mineral dissolution rates and the pH of the water"
+            ],
+            [
+              "Evidence",
+              "recalled from the series as Perel'man tabulates it; not opened"
+            ]
+          ],
+          "id": "EV1",
+          "key": "6.208:EV1",
+          "kind": "P",
+          "slug": "6-208-ev1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.MOBILITY: the relative mobility of the cations in weathering, Ca 3.0, Na 2.4, Mg 1.3, K 1.25 (Polynov's series)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.ANION_PARAMS: carbonate per calcium and the chloride share of the rest of the anion charge for each ocean class (neutral 1.0 and 0.85, soda 1.5 and 0.60, chloride brine 0.10 and 0.95, acid sulfate 0 and 0.20)"
+            ],
+            [
+              "The range it moves in",
+              "carbonate per calcium 0.5 to 2 for neutral and soda"
+            ],
+            [
+              "Where it holds",
+              "the four open-water ocean classes"
+            ],
+            [
+              "What would show it wrong",
+              "a speciated brine of an ocean class whose calcium is not taken by carbonate (neutral) or whose carbonate does not outlast calcium (soda)"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the early ocean from its carbon, sulfur and chlorine inventories (GEN.1319 inventories)"
+            ],
+            [
+              "Evidence",
+              "the class definitions of hydrosphere.ocean_class (SO2 share, CO2 pressure, reduced mantle) fix the direction; the sizes are chosen"
+            ]
+          ],
+          "id": "EV2",
+          "key": "6.208:EV2",
+          "kind": "P",
+          "slug": "6-208-ev2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.ANION_PARAMS: carbonate per calcium and the chloride share of the rest of the anion charge for each ocean class (neutral 1.0 and 0.85, soda 1.5 and 0.60, chloride brine 0.10 and 0.95, acid sulfate 0 and 0.20)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.GYPSUM_STAGE_AW 0.94: the activity of water at which calcium sulfate first precipitates, used where no halite forms"
+            ],
+            [
+              "The range it moves in",
+              "0.92 to 0.96"
+            ],
+            [
+              "Where it holds",
+              "brines that dry without reaching halite"
+            ],
+            [
+              "What would show it wrong",
+              "a brine whose gypsum precipitates at an activity of water above 0.96 or below 0.9"
+            ],
+            [
+              "What replaces it",
+              "the activity of water along a computed evaporation"
+            ],
+            [
+              "Evidence",
+              "the order of a seawater evaporation (calcium carbonate, then gypsum well before halite at 0.75), argued, not opened"
+            ]
+          ],
+          "id": "EV3",
+          "key": "6.208:EV3",
+          "kind": "P",
+          "slug": "6-208-ev3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.GYPSUM_STAGE_AW 0.94: the activity of water at which calcium sulfate first precipitates, used where no halite forms"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.SODIUM_SULFATE_K 305.55: below it mirabilite, above it thenardite (32.4 degrees C)"
+            ],
+            [
+              "The range it moves in",
+              "305 to 306"
+            ],
+            [
+              "Where it holds",
+              "sodium sulfate in contact with water"
+            ],
+            [
+              "What would show it wrong",
+              "a measured transition more than 1 K from it"
+            ],
+            [
+              "What replaces it",
+              "the sodium sulfate phase diagram from a source"
+            ],
+            [
+              "Evidence",
+              "the Glauber's salt transition, recalled; not opened"
+            ]
+          ],
+          "id": "EV4",
+          "key": "6.208:EV4",
+          "kind": "P",
+          "slug": "6-208-ev4",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.SODIUM_SULFATE_K 305.55: below it mirabilite, above it thenardite (32.4 degrees C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.MAGNESIUM_SULFATE_K (321.15, 341.15): epsomite below, hexahydrite between, kieserite above (48 and 68 degrees C)"
+            ],
+            [
+              "The range it moves in",
+              "each within 5 K"
+            ],
+            [
+              "Where it holds",
+              "magnesium sulfate in contact with water"
+            ],
+            [
+              "What would show it wrong",
+              "a measured boundary more than 10 K from either"
+            ],
+            [
+              "What replaces it",
+              "a source for the hexahydrite and kieserite stability fields"
+            ],
+            [
+              "Evidence",
+              "recalled, paywalled from here; the Handbook of Mineralogy pages of the three say only that epsomite dehydrates readily in dry air"
+            ]
+          ],
+          "id": "EV5",
+          "key": "6.208:EV5",
+          "kind": "P",
+          "slug": "6-208-ev5",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.MAGNESIUM_SULFATE_K (321.15, 341.15): epsomite below, hexahydrite between, kieserite above (48 and 68 degrees C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.SODIUM_CARBONATE_K (305.65, 382.15): natron below, thermonatrite between, natrite above (32.5 and 109 degrees C)"
+            ],
+            [
+              "The range it moves in",
+              "each within 5 K"
+            ],
+            [
+              "Where it holds",
+              "sodium carbonate in contact with water"
+            ],
+            [
+              "What would show it wrong",
+              "a measured boundary more than 10 K away"
+            ],
+            [
+              "What replaces it",
+              "the sodium carbonate and bicarbonate phase diagram from a source"
+            ],
+            [
+              "Evidence",
+              "recalled; the Handbook page of natron says it dehydrates rapidly in air to thermonatrite"
+            ]
+          ],
+          "id": "EV6",
+          "key": "6.208:EV6",
+          "kind": "P",
+          "slug": "6-208-ev6",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.SODIUM_CARBONATE_K (305.65, 382.15): natron below, thermonatrite between, natrite above (32.5 and 109 degrees C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.NAHCOLITE_MIN_PCO2_PA 5e4: above it the sodium left with carbonate dries as nahcolite, below as trona"
+            ],
+            [
+              "The range it moves in",
+              "1e3 to 1e5 Pa"
+            ],
+            [
+              "Where it holds",
+              "the alkaline path"
+            ],
+            [
+              "What would show it wrong",
+              "a trona deposit in an air of more than 0.5 bar of carbon dioxide or nahcolite in an air of less than 0.01 bar"
+            ],
+            [
+              "What replaces it",
+              "the trona and nahcolite boundary of Eugster as a function of carbon dioxide and temperature"
+            ],
+            [
+              "Evidence",
+              "no source: the direction (more carbon dioxide, more bicarbonate) is chemistry, the size is chosen"
+            ]
+          ],
+          "id": "EV7",
+          "key": "6.208:EV7",
+          "kind": "P",
+          "slug": "6-208-ev7",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.NAHCOLITE_MIN_PCO2_PA 5e4: above it the sodium left with carbonate dries as nahcolite, below as trona"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.MAGNESITE_MIN_K 333.15: below it the magnesium carbonate that dries is hydromagnesite, above it magnesite (60 degrees C)"
+            ],
+            [
+              "The range it moves in",
+              "313 to 373 K"
+            ],
+            [
+              "Where it holds",
+              "the alkaline path"
+            ],
+            [
+              "What would show it wrong",
+              "magnesite found in a surface deposit below 40 degrees C that formed without microbes"
+            ],
+            [
+              "What replaces it",
+              "a kinetic model of magnesite precipitation"
+            ],
+            [
+              "Evidence",
+              "recalled: magnesite does not precipitate at low temperature in the laboratory"
+            ]
+          ],
+          "id": "EV8",
+          "key": "6.208:EV8",
+          "kind": "P",
+          "slug": "6-208-ev8",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.MAGNESITE_MIN_K 333.15: below it the magnesium carbonate that dries is hydromagnesite, above it magnesite (60 degrees C)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.PERCHLORATE_SHARE 0.01 and PERCHLORATE_MIN_PA 1: the share of the chloride charge oxidised to perchlorate where the air supplies oxidants and holds no ozone shield"
+            ],
+            [
+              "The range it moves in",
+              "0.001 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "bodies with air and chloride and under 100 Pa of free oxygen"
+            ],
+            [
+              "What would show it wrong",
+              "a measured perchlorate share of an arid chloride crust above 10 percent or below 0.1 percent"
+            ],
+            [
+              "What replaces it",
+              "a photochemical and atmospheric oxidation rate of chloride"
+            ],
+            [
+              "Evidence",
+              "no source opened: perchlorate in arid surface salts is observed in the recalled literature; the share is chosen"
+            ]
+          ],
+          "id": "EV9",
+          "key": "6.208:EV9",
+          "kind": "P",
+          "slug": "6-208-ev9",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.PERCHLORATE_SHARE 0.01 and PERCHLORATE_MIN_PA 1: the share of the chloride charge oxidised to perchlorate where the air supplies oxidants and holds no ozone shield"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "evaporite_sequence.JAROSITE_SHARE 0.5: the share of an acid water's potassium that jarosite takes, alunite the rest"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "acid sulfate waters"
+            ],
+            [
+              "What would show it wrong",
+              "a measured jarosite to alunite ratio of an acid deposit outside 0.2 to 4"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the acid water with its iron and aluminium"
+            ],
+            [
+              "Evidence",
+              "no source: the share is chosen"
+            ]
+          ],
+          "id": "EV10",
+          "key": "6.208:EV10",
+          "kind": "P",
+          "slug": "6-208-ev10",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "evaporite_sequence.JAROSITE_SHARE 0.5: the share of an acid water's potassium that jarosite takes, alunite the rest"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_composition.weathered_oxides puts back the sodium of waterworld_carbon.CRUST_SODIUM_WT and the potassium of the basaltic reservoir, because the stored rock carries no alkalis"
+            ],
+            [
+              "The range it moves in",
+              "sodium within 50 percent"
+            ],
+            [
+              "Where it holds",
+              "silicate crusts"
+            ],
+            [
+              "What would show it wrong",
+              "a crust whose measured alkali content differs from them by a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "a stored alkali content of the rock (a later bulk-composition item)"
+            ],
+            [
+              "Evidence",
+              "[R1494] through [R2381] for sodium (read, tier 1, GEN.1319) and N-MORB [R1494] for the potassium"
+            ]
+          ],
+          "id": "EV11",
+          "key": "6.208:EV11",
+          "kind": "P",
+          "slug": "6-208-ev11",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_composition.weathered_oxides puts back the sodium of waterworld_carbon.CRUST_SODIUM_WT and the potassium of the basaltic reservoir, because the stored rock carries no alkalis"
+        }
+      ],
+      "slug": "6-208-stand-ins-of-the-evaporite-sequence",
+      "title": "Stand-ins of the evaporite sequence"
+    },
+    {
       "key": "6.197",
       "number": "6.197",
       "rows": [
