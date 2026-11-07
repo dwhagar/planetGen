@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3594] - 2026-11-07
+
+**Headline:** The greenhouse table is fitted again on 6,012 hot dense airs and 8,644 hazy airs the radiative-convective model solved, so hazy worlds and warm thick-air worlds (300 to 500 K at the ground) read closer to the physics.
+
+### Changed
+- GEN.1310: `physics/data/greenhouse_table.json` is fitted again, starting from the GEN.1304 file, with the model's own answers for 6,012 airs of today's generator that the old file put at 300 to 520 K (hot and dense) and 8,644 hazy ones, added to the GEN.1304 training set, the temperate wet airs, the hard airs and the held anchors. Airs the model could not solve in the time allowed are left out of the fit, not held at the old (cold) answer. On the validation set (1,081 model airs from seeds 5000 to 5100, never fitted): all airs 90th percentile error 12.6 % to 9.3 % and mean bias 13.4 K to 8.3 K; 300 to 500 K median 3.9 % to 2.3 % and 90th percentile 42 % to 31 %; cool hazy airs 90th percentile 9.0 % to 5.5 %; cool airs with other infrared gases 5.2 % to 2.6 %. The 500 to 1000 K airs are about as accurate as before (median 4.7 % to 3.9 %, 90th percentile 23 % to 27 %). Every generated body with a hazy or thick warm air can move, so this is a generator-output change and rides a train with an epoch.
+- GEN.1310: the three-seed ensemble that GEN.1189 asks for was not built (it needs members fitted from scratch, not from the shipped file); this item ships one longer fit. The hot-and-hazy corner (steam-rich airs over 500 K) is still the weakest part of the table.
+
 ## [8.0.3593] - 2026-11-07
 
 **Headline:** A methane, ethane or nitrogen sea is made mostly of the liquid it is named for: the liquid the ice supplies is the bulk of the sea and the air's other gases dissolve in it.
