@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3625] - 2026-11-07
+
+**Headline:** The three newest planet class texts (U, X, Y) now map to material rows.
+
+### Changed
+- **Class composition texts are all mapped (TEST.687).** The planet class texts of classes U, X and Y (silicon, iron, magnesium with ice and hydrocarbons, with water ice and ammonia, and with sulfur) had no entry in the materials table's class-text mapping, so the audit test failed. They are mapped to their material rows and the audit now expects all 14 texts.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.687.
+
 ## [8.0.3624] - 2026-11-07
 
 **Headline:** The admin Settings page has an "Update config.json" button that adds the settings this version has and your file lacks, lists the ones a site should set, and flags stale keys, keeping every value you have set.
