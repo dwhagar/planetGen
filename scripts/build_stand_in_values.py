@@ -289,6 +289,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.184", "6.184 Stand-ins of the binary-stripped Wolf-Rayet channel",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.195", "6.195 Stand-ins of the asteroid field a supernova remnant hosts",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.194", "6.194 Stand-in of the speed of a hand-made asteroid field",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.192", "6.192 Stand-in of how far apart random placement keeps two systems",

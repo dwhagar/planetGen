@@ -3071,6 +3071,15 @@ A rocky planet with no row in the hosting gate's `satellite-share` table holds a
 |---|---|---|---|---|---|---|---|---|---|
 | SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md |
 
+### 6.195 Stand-ins of the asteroid field a supernova remnant hosts (GEN.1104)
+
+`generation/field_host.hosted_field` gives a core-collapse supernova remnant the field the belt of its progenitor left (`physics/field_rates.hosted_belt`, `physics/field_mass.unbound_belt_field`). It needs where the progenitor's belt lay and what core a remnant that shows none has; the belt's share, the unbinding, the retirement and the grinding are the physical modules of sections 6.106 and 6.161.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| HF1 | B | T6 | L1 | asteroid_field.RING_RADIUS_AU 50 and field_host.BELT_LIMITS_AU 30 to 70: the ring a hosted field starts as, and the stretch whose solids make its mass | 30 to 100 AU | progenitors of A to B type with a belt | the radius of the debris belts of A and B stars in the surveys, outside this range, or a belt that is not a ring | the belt chain of the progenitor itself (`belt_origin`) once massive stars are built through it | the design's 50 AU belt around 10 solar masses (docs/design/systems/interstellar-asteroid-fields.md source S2) |
+| HF2 | P | T9 | L1 | field_host.NEUTRON_STAR_SHARE_OF_CORES (1 less `tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE`, 0.85): the core of a core-collapse remnant that shows none is a neutron star by this share, else a black hole | 0.7 to 0.95 | core-collapse remnants with no visible core | the share of black holes among the cores of the remnants that show none | the remnant's own core drawn when the remnant is made | the share the visible cores follow (`tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE`) |
+
 ### 6.194 Stand-in of the speed of a hand-made asteroid field (GEN.1103)
 
 `AsteroidField` (`generation/phenomena/asteroid_field.py`) gives a field that is made by hand, with no physical source behind it, an rms speed of its pieces and an age, and its radius is a result of the two (`field_dispersal.rms_radius_m`). Fields from the Rogues top-up bring their own speed and age (`physics/topup_field`, section 6.108).

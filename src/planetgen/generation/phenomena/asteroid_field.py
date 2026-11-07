@@ -39,10 +39,15 @@ AU_PER_LY = _ly_to_au(1.0)
 the size digit."""
 
 
-def radius_ly_at(age_yr, rms_speed_kms):
-    """The rms radius of a field `age_yr` after it was made, light-years: the field spreads from a point at the rms speed of its pieces (`field_dispersal.rms_radius_m`), so a field's radius is a result of its
-    age (GEN.1103) and bring-to-epoch advances it by the same formula."""
-    return field_dispersal.rms_radius_m(age_yr, rms_speed_kms * 1000.0) / constants.LIGHTYEAR_M
+RING_RADIUS_AU = 50.0
+"""float: The radius, AU, of the ring an `annulus` field was made as (the belt of the star that exploded, the design's 50 AU belt); a `ball` starts from a point. [Stand-in HF1, tier T6, tweak level L1.]"""
+
+
+def radius_ly_at(age_yr, rms_speed_kms, shape="ball"):
+    """The rms radius of a field `age_yr` after it was made, light-years: the field spreads from a point (a `ball`) or from a ring of `RING_RADIUS_AU` (an `annulus`) at the rms speed of its pieces
+    (`field_dispersal.rms_radius_m`), so a field's radius is a result of its age (GEN.1103) and bring-to-epoch advances it by the same formula."""
+    ring_m = RING_RADIUS_AU * constants.AU_M if shape == "annulus" else 0.0
+    return field_dispersal.rms_radius_m(age_yr, rms_speed_kms * 1000.0, ring_m) / constants.LIGHTYEAR_M
 
 
 def asteroid_field_size_digit(radius_ly):

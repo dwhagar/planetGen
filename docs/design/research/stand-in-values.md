@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1193 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1195 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 112 | 85 | 24 | 61 | 0 | 282 |
+| T6 | 112 | 86 | 24 | 61 | 0 | 283 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
-| T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 654 | 248 | 58 | 188 | 45 | 1193 |
+| T9 | 35 | 15 | 5 | 79 | 34 | 168 |
+| All | 654 | 250 | 58 | 188 | 45 | 1195 |
 
 ## How the labels were given
 
@@ -1669,6 +1669,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | WB1 | P | T1 | L0 | tuning.WR_BINARY_MIN_RATIO 0.72: the least initial mass at which a companion can strip a star into a Wolf-Rayet star, as a share of the single-star threshold (18 against 25 solar masses at the Sun's metallicity, carried up by the same metallicity law as the threshold) | 0.6 to 0.85 | primaries of 15 to 40 solar masses with a close companion, at the Galaxy's metallicity; at lower metallicity the law is the single-star threshold's own | a spectroscopic survey of Wolf-Rayet stars in binaries whose primaries began below 18 solar masses, or the 18 / 24 / 37 solar mass trend of the Galaxy, LMC and SMC failing to follow Z to the minus one half | the stripped-star mass from a binary evolution grid by metallicity, period and mass ratio (the MESA grid of the source) | [R4051: Table 1] and section 3.2: the least initial mass 18 solar masses for the Galaxy, from the 7.5 solar mass least stripped helium star of a Wolf-Rayet spectrum | - | - |
 | WB2 | P | T2 | L0 | tuning.WR_STRIPPING_FRACTION 0.33: the share of stars between the binary and the single-star threshold that a companion strips into a Wolf-Rayet star | 0.2 to 0.5 | the same band, near solar metallicity | an observed binary-stripped to single-star Wolf-Rayet ratio far from 0.25 to 0.4 in the Galaxy, or a population synthesis of interacting binaries giving another stripped share | a stripping chance from the period and mass-ratio law of the member trees (the share of close binaries that transfer mass in a way that strips the envelope) | [R4051] section 5, below its Eq. 4: the stripping efficiency 0.33 it takes from the observed interacting fraction (read, quoted by the paper, not re-derived) | - | - |
 
+## 6.195 Stand-ins of the asteroid field a supernova remnant hosts
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HF1 | B | T6 | L1 | asteroid_field.RING_RADIUS_AU 50 and field_host.BELT_LIMITS_AU 30 to 70: the ring a hosted field starts as, and the stretch whose solids make its mass | 30 to 100 AU | progenitors of A to B type with a belt | the radius of the debris belts of A and B stars in the surveys, outside this range, or a belt that is not a ring | the belt chain of the progenitor itself (`belt_origin`) once massive stars are built through it | the design's 50 AU belt around 10 solar masses (docs/design/systems/interstellar-asteroid-fields.md source S2) | - | - |
+| HF2 | P | T9 | L1 | field_host.NEUTRON_STAR_SHARE_OF_CORES (1 less `tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE`, 0.85): the core of a core-collapse remnant that shows none is a neutron star by this share, else a black hole | 0.7 to 0.95 | core-collapse remnants with no visible core | the share of black holes among the cores of the remnants that show none | the remnant's own core drawn when the remnant is made | the share the visible cores follow (`tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE`) | - | - |
+
 ## 6.194 Stand-in of the speed of a hand-made asteroid field
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1750,7 +1757,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| FM1 | P | T9 | L3 | field_mass.MIN_FIELD_MASS_EARTH 1e-9: a field under this mass is not a field (the belts' line, BG14) | 1e-10 to 1e-8 Earth masses | any field | a survey of warm dust around remnants that finds fields below the line, or none above it | the same replacement as BG14 | Boss, 2026-10-31: the belt minimum of 1e-9 Earth masses stands, the same rule for fields | GEN.1103 | no data |
+| FM1 | P | T9 | L3 | field_mass.MIN_FIELD_MASS_EARTH 1e-9: a field under this mass is not a field (the belts' line, BG14) | 1e-10 to 1e-8 Earth masses | any field | a survey of warm dust around remnants that finds fields below the line, or none above it | the same replacement as BG14 | Boss, 2026-10-31: the belt minimum of 1e-9 Earth masses stands, the same rule for fields | - | no data |
 | FM2 | P | T9 | L4 | field_mass.COLLISION_LAW: the rubble of a rogue collision follows the rocky main-belt size law (`belt_ledger.ROCKY_LAW`) | the law's breaks and exponents | the stored bodies of a collision field | a measured or modelled largest-fragment mass of a planetary collision that differs from the law's by more than a factor 3 | the largest-fragment reading (LS12) | a stand-in with no source for the rubble of a planet-planet collision | - | no data |
 
 ## 6.160 Stand-ins of the lumpy mesh of a small body
@@ -1861,9 +1868,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| IF19 | D | T2 | L0 | field_rates.GALAXY_CORE_COLLAPSE_RATE_PER_YEAR 0.02: core-collapse supernovae in the Galaxy per year, 2 per century | 1 to 3 per century | the present Galaxy; scaled by the star formation history for other epochs | a supernova rate measured outside 1 to 3 per century | the rate from the star formation history of the galaxy model (`galaxy/disk_history.py`) | [R1108, R1109] (26Al, 1.9 +/- 1.1 per century; recalled, not opened) | GEN.1104 | - |
-| IF20 | P | T2 | L1 | field_rates.TRUNCATION_FRACTION 0.3: a flyby of periastron q truncates a disc at about 0.3 q, so a belt of radius a is stripped by q under a / 0.3, with the focusing 1 + 2 G M / (q v^2) of the pair | 0.28 to 0.35, mass ratio dependence ignored | equal-mass stellar flybys, coplanar and prograde worst case | an N-body flyby that truncates a disc at under 0.2 q or over 0.4 q | the fit of [R0527] with its mass-ratio term | [R0527, R1990] (recalled, not opened) | GEN.1104 | - |
-| IF21 | D | T3 | L1 | field_rates.CLUSTER_BELT_SHARE 0.32: the share of the stars of a young cluster that hold a debris belt, the overall 32 +/- 5 percent of the A-star sample of row IF9 used for stars of every mass | 0.2 to 0.4 | A stars used as stand-ins for solar-type stars | a Herschel or Spitzer sample of solar-type stars of a young cluster outside 0.2 to 0.4 | the debris fractions of solar-type stars by age (Herschel DEBRIS) | Su et al. 2006 (READ, see IF9) | GEN.1104 | - |
+| IF19 | D | T2 | L0 | field_rates.GALAXY_CORE_COLLAPSE_RATE_PER_YEAR 0.02: core-collapse supernovae in the Galaxy per year, 2 per century | 1 to 3 per century | the present Galaxy; scaled by the star formation history for other epochs | a supernova rate measured outside 1 to 3 per century | the rate from the star formation history of the galaxy model (`galaxy/disk_history.py`) | [R1108, R1109] (26Al, 1.9 +/- 1.1 per century; recalled, not opened) | - | - |
+| IF20 | P | T2 | L1 | field_rates.TRUNCATION_FRACTION 0.3: a flyby of periastron q truncates a disc at about 0.3 q, so a belt of radius a is stripped by q under a / 0.3, with the focusing 1 + 2 G M / (q v^2) of the pair | 0.28 to 0.35, mass ratio dependence ignored | equal-mass stellar flybys, coplanar and prograde worst case | an N-body flyby that truncates a disc at under 0.2 q or over 0.4 q | the fit of [R0527] with its mass-ratio term | [R0527, R1990] (recalled, not opened) | - | - |
+| IF21 | D | T3 | L1 | field_rates.CLUSTER_BELT_SHARE 0.32: the share of the stars of a young cluster that hold a debris belt, the overall 32 +/- 5 percent of the A-star sample of row IF9 used for stars of every mass | 0.2 to 0.4 | A stars used as stand-ins for solar-type stars | a Herschel or Spitzer sample of solar-type stars of a young cluster outside 0.2 to 0.4 | the debris fractions of solar-type stars by age (Herschel DEBRIS) | Su et al. 2006 (READ, see IF9) | - | - |
 | IF22 | P | T6 | L1 | a stripped swarm spreads at the orbital speed sqrt(G M / a) it had round its star (4.2 km/s for 50 AU round the Sun-mass star) from the belt radius, so it is a field for the time it needs to pass the retirement radius (70 kyr); the stripping rate is n pi q^2 (1 + focusing) v and the standing swarms are the stripping rate times that life | none | belts on circular orbits, stripped whole | an N-body flyby of a belt whose bodies disperse at under half or over twice the orbital speed | an N-body flyby run | derived here ([R0527] give the truncation, not the bodies' velocities) | - | - |
 
 ## 6.107 Stand-ins of the field composition

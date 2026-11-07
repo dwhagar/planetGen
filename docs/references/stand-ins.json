@@ -38495,6 +38495,90 @@
       "title": "Stand-ins of the binary-stripped Wolf-Rayet channel"
     },
     {
+      "key": "6.195",
+      "number": "6.195",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "asteroid_field.RING_RADIUS_AU 50 and field_host.BELT_LIMITS_AU 30 to 70: the ring a hosted field starts as, and the stretch whose solids make its mass"
+            ],
+            [
+              "The range it moves in",
+              "30 to 100 AU"
+            ],
+            [
+              "Where it holds",
+              "progenitors of A to B type with a belt"
+            ],
+            [
+              "What would show it wrong",
+              "the radius of the debris belts of A and B stars in the surveys, outside this range, or a belt that is not a ring"
+            ],
+            [
+              "What replaces it",
+              "the belt chain of the progenitor itself (belt_origin) once massive stars are built through it"
+            ],
+            [
+              "Evidence",
+              "the design's 50 AU belt around 10 solar masses (docs/design/systems/interstellar-asteroid-fields.md source S2)"
+            ]
+          ],
+          "id": "HF1",
+          "key": "6.195:HF1",
+          "kind": "B",
+          "slug": "6-195-hf1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "asteroid_field.RING_RADIUS_AU 50 and field_host.BELT_LIMITS_AU 30 to 70: the ring a hosted field starts as, and the stretch whose solids make its mass"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "field_host.NEUTRON_STAR_SHARE_OF_CORES (1 less tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE, 0.85): the core of a core-collapse remnant that shows none is a neutron star by this share, else a black hole"
+            ],
+            [
+              "The range it moves in",
+              "0.7 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "core-collapse remnants with no visible core"
+            ],
+            [
+              "What would show it wrong",
+              "the share of black holes among the cores of the remnants that show none"
+            ],
+            [
+              "What replaces it",
+              "the remnant's own core drawn when the remnant is made"
+            ],
+            [
+              "Evidence",
+              "the share the visible cores follow (tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE)"
+            ]
+          ],
+          "id": "HF2",
+          "key": "6.195:HF2",
+          "kind": "P",
+          "slug": "6-195-hf2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "field_host.NEUTRON_STAR_SHARE_OF_CORES (1 less tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE, 0.85): the core of a core-collapse remnant that shows none is a neutron star by this share, else a black hole"
+        }
+      ],
+      "slug": "6-195-stand-ins-of-the-asteroid-field-a-supernova-remnant-hosts",
+      "title": "Stand-ins of the asteroid field a supernova remnant hosts"
+    },
+    {
       "key": "6.194",
       "number": "6.194",
       "rows": [
@@ -39869,7 +39953,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L3",
-          "unread": "GEN.1103",
+          "unread": null,
           "what": "field_mass.MIN_FIELD_MASS_EARTH 1e-9: a field under this mass is not a field (the belts' line, BG14)"
         },
         {
@@ -41757,7 +41841,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1104",
+          "unread": null,
           "what": "field_rates.GALAXY_CORE_COLLAPSE_RATE_PER_YEAR 0.02: core-collapse supernovae in the Galaxy per year, 2 per century"
         },
         {
@@ -41795,7 +41879,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1104",
+          "unread": null,
           "what": "field_rates.TRUNCATION_FRACTION 0.3: a flyby of periastron q truncates a disc at about 0.3 q, so a belt of radius a is stripped by q under a / 0.3, with the focusing 1 + 2 G M / (q v^2) of the pair"
         },
         {
@@ -41833,7 +41917,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1104",
+          "unread": null,
           "what": "field_rates.CLUSTER_BELT_SHARE 0.32: the share of the stars of a young cluster that hold a debris belt, the overall 32 +/- 5 percent of the A-star sample of row IF9 used for stars of every mass"
         },
         {
