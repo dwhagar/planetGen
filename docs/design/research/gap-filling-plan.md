@@ -3227,6 +3227,15 @@ An outer disk that a giant acted on lost mass in the ledger of `belt_origin` (wh
 | WL6 | P | T5 | L0 | tuning.WD_THIN_HYDROGEN_FRACTION 1e-10: the hydrogen of a helium-atmosphere white dwarf of either kind | none | non-DA white dwarfs | none: the same case as the downloaded sequences' thin envelope | none | datasets/white_dwarf_models thin case |
 | WL7 | P | T6 | L0 | stellar_composition._grid_radius_solar: a helium-core white dwarf reads the lightest carbon-oxygen sequence and an oxygen-neon one the 1.30 sequence, both scaled by the zero-temperature mass-radius ratio, so a helium-core star has the radius of a thin-envelope carbon-oxygen one | up to 20 percent for the lightest helium-core stars | white dwarfs under 0.20 or over 1.30 solar masses, and helium-core stars at any mass | a helium-core cooling sequence whose radius at 0.2 solar masses and 10,000 K differs from the scaled one by more than 5 percent | helium-core and oxygen-neon cooling sequences | educated guess; the thicker hydrogen envelope of a helium-core star makes it larger than the scaling gives |
 
+### 6.209 Stand-in of the knee of an air that does not settle (GEN.1344)
+
+`surface_air.sliding_temperature` stores the mean of the answers of the last twelve steps for an air whose fixed point chatters across a jump of its map, in place of the last answer. 4 to 5 percent of airs do not settle (93 of 1,841 on main, 71 of 1,614 on train 15); the traced cause is a haze or ocean switch that makes the step jump down as the temperature rises, so no exact fixed point exists.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SL1 | P | T5 | L0 | surface_air.SLIDING_WINDOW 12, SLIDING_MIN_SWING_K 1.0 and SLIDING_ITERATE_SHARE 0.5: an unsettled fixed point whose last twelve answers swing by over 1 K while its iterate moves by under half that swing stores the mean of the answers (the time average of a switch), with the greenhouse factor taken from it | window 6 to 24 steps (whole cycles of 2, 3, 4, 6); swing 0.5 to 5 K; share 0.3 to 0.7 | unsettled airs of rocky bodies and moons | test_surface_air_knee; an unsettled air whose stored temperature is further from a fine scan's balance than its swing | a fixed point that keeps the haze or ocean switch as a state (partial cover) and so has a fixed point | educated guess from physics: the Filippov value of a switch, the time average of the two states, is the state the physical system keeps at a jump of its map; not fitted |
+
+
 ### 6.207 Stand-in of the bodies an asteroid field stores (GEN.1105)
 
 `generation/field_members.member_rows` gives each stored body of a field with a ledger the field's makeup shares and one bulk density.
