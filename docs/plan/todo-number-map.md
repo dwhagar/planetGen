@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.285 |
+| UX | UX.286 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1339 |
+| GEN | GEN.1344 |
 | PERF | PERF.249 |
 | DB | DB.115 |
 | API | API.42 |
@@ -1641,7 +1641,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.851 | Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today) | none | done, PR #4105 |
 | GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) | none | done, PR #5282 |
 | GEN.853 | No generated system reaches a technological civilization any more: tests/test_population.py cannot build one after 200 tries (bug) | none | done, PR #3663 |
-| GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) | none | open |
+| GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) | none | done, PR #5543 |
 | GEN.855 | Biogenic oxygen: photosynthesis releases free oxygen into the air as the life timeline passes it, so habitable worlds can reach multicellular life (bug) | none | done, PR #3663 |
 | GEN.856 | interior_heat._flux_w_m2 raises ZeroDivisionError and fails the albedo and tidal migration tests on clean main (bug) | none | done, PR #3665 |
 | GEN.857 | Biogenic gases for non-oxygenic worlds: methane and haze from anoxygenic and chemoautotroph communities, donor drawdown, and registry entries for each stand-in | none | done, PR #3783 |
@@ -1835,7 +1835,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1045 | W16 audit: does envelope_escape fractionate helium (hydrogen escapes first, leaving a helium-dominated air; Hu 2015, [R2840])? Add the fractionation if not | none | done, PR #4146 |
 | GEN.1046 | W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches | none | done, PR #4290 |
 | GEN.1047 | Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off) | none | open |
-| GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin), W10 (iron-rich cores) and W15 (super-puffs) into the bulk, spin and climate inputs | none | open |
+| GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin) and W10 (iron-rich cores) into the bulk, spin and climate inputs | none | open |
 | GEN.1049 | Wire W5 resonance heating and the W3 high-eccentricity and W4 misaligned-orbit tails in planet_architecture | none | open |
 | GEN.1050 | Wire W14 (the dying-planet flag) and W9 (rings from decayed moons) | none | open |
 | GEN.1051 | Wire the W19 nightside collapse and the W20 bistable branches (the history draw between branches) | none | open |
@@ -2125,7 +2125,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1335 | Inner planets (inside 100 days) are 5 to 8 Earth masses against the 3.72 median of the Kepler survey, so the rocky peak of the radius valley sits at 1.5 to 1.75 Earth radii instead of 1.3 to 1.4: compare the generated inner mass function with the published masses | none | open |
 | GEN.1336 | Hot Jupiters round red dwarfs are about twice as common as the researched band (0.5 percent against 0.27): test_hot_jupiters_are_rare_and_rarer_round_a_red_dwarf passes only on a lucky seed | none | open |
 | GEN.1337 | A rocky planet's outgassing can fail with a MixtureError (0.00143 of the gas is Cl, F and F2, species the gas table lacks) and crash the whole StarSystem (bug) | none | open |
-| GEN.1338 | Census re-tag for train 14: re-tag the class, life and systems censuses after train 14 and report any new flag with its reason (GEN.1306 class W, GEN.1321 oxygen pressure, GEN.1261 and GEN.1278 belts, GEN.876 traits) | none | open |
+| GEN.1338 | Census re-tag for train 14: re-tag the class, life and systems censuses after train 14 and report any new flag with its reason (GEN.1306 class W, GEN.1321 oxygen pressure, GEN.1261 and GEN.1278 belts, GEN.876 traits) | none | done, PR #5545 |
+| GEN.1339 | Sea worlds are almost all global oceans: 55 of 59 worlds with a liquid sunlit sea are 95 to 100 percent ocean and only 3 are in the 20 to 80 percent range class M asks for; find why (delivered water against relief) | none | done, PR #5548 |
+| GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor | none | open |
+| GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number | none | open |
+| GEN.1342 | A temperate (275 to 298 K) global ocean with oxygen has no hard class: class O needs 298 to 312 K and class M needs 20 to 80 percent ocean cover, so these worlds are placed only by soft shoulders (Boss decides the class) | none | open |
+| GEN.1343 | Super-puff planets (W15): an envelope-bearing sub-Neptune branch through the air solver, class and radius, so the super_puff module has a body to inflate | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -4185,7 +4190,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.673 | test_unit_registry_js fails on main (bug) | none | done, PR #5517 |
 | TEST.675 | test_api_version is red on main: routes were added without the API snapshot line (/api/admin/work/held GET, and an uncharted-systems generate POST was reported earlier) (bug) | none | done, PR #5530 |
 | TEST.676 | Radius valley and rogue-envelope tests: a measured gate on the 1.5 to 2.0 Earth radii gap against the published valley, and a check that starless planets of 1 to 20 Earth masses keep the whole envelope and are classed like bound ones (GEN.1323 parts C and D) | none | open |
-| TEST.677 | test_habitability_end_to_end_browser fails on main after train 14: the moon list shows one body rated Red (bug) | none | open |
+| TEST.677 | test_habitability_end_to_end_browser fails on main after train 14: the moon list shows one body rated Red (bug) | none | done, PR #5545 |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
@@ -4321,6 +4326,7 @@ Each citation below resolves to one item by its date.
 | `test_web_facilities.py` | "TODO 36" | 2026-10-01 02:42Z | UX.5 |
 | UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched | none | open |
 | UX.284 | The admin Update page log and the queue run log scroll to the end on load and on live refresh, pausing only when the reader scrolls up | none | done, PR #5485 |
+| UX.285 | Settings option weirdness_dial: the oddity dial (default 1, 0 turns all oddities off) in the settings page and file, read through SystemConfig.WEIRDNESS_DIAL | none | open |
 
 ### Code tags `TODO(<area> #N)`
 
