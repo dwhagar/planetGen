@@ -138,6 +138,28 @@ def test_height_follows_sech_squared(milky_way):
     assert arrays.shape == (2,)
 
 
+def test_far_above_the_plane_the_layer_is_nil_without_an_overflow_warning(milky_way, small):
+    """VIEW.48: `cosh(z / h) ** 2` is beyond the float range for z / h above about 355.6; the layer is 0 there, as before, and numpy says nothing."""
+    import warnings
+    z = np.array([0.0, 50.0, 5000.0, 4.0e4, 1.0e5, 1.0e12, -1.0e12, 1.0e15])
+    for profile in (milky_way, small):
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            value = profile.av_per_pc(np.full(z.shape, SUN_PC / 2), np.zeros(z.shape), z)
+            fixed = sky.dust_av_per_pc(np.full(z.shape, SUN_PC), np.zeros(z.shape), z)
+        assert value[0] > 0.0 and fixed[0] > 0.0
+        assert value[-3:].tolist() == [0.0, 0.0, 0.0] and fixed[-3:].tolist() == [0.0, 0.0, 0.0]
+        assert np.all(np.diff(np.abs(z[:5])) > 0) and np.all(value[:5] >= 0.0)
+
+
+def test_cosh_squared_is_the_numpy_value_wherever_it_is_finite_and_inf_beyond():
+    x = np.concatenate([np.linspace(-355.0, 355.0, 20001), [355.5, -355.5, 355.6, 400.0, -400.0, 1.0e6, np.inf, -np.inf, np.nan]])
+    with np.errstate(all="ignore"):
+        old = np.cosh(x) ** 2
+    assert np.array_equal(sky.cosh_squared(x), old, equal_nan=True)
+    assert isinstance(sky.cosh_squared(2.0), np.floating)
+
+
 # --- the profile as a value ------------------------------------------------------------------------------------------------
 
 def test_a_profile_is_a_value_with_a_key(milky_way):
