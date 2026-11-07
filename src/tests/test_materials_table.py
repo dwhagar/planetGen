@@ -429,3 +429,35 @@ def test_the_norms_minerals_are_rows():
     """The CIPW norm (`rock_types.py`) names these; each is a row now."""
     for name in ("nepheline", "leucite", "hypersthene", "wollastonite", "periclase", "diopside", "albite", "orthoclase", "anorthite"):
         assert materials.has(name), name
+
+
+# --- GEN.1357: the carbonates, salts and phosphates ----------------------------------------------------------------
+
+def test_the_carbonates_salts_and_phosphates_of_gen1357_are_read_from_their_pages():
+    minerals = _builder().data.PART3_MINERALS
+    assert len(minerals) == 35
+    for row_id, entry in minerals.items():
+        row = materials.material(row_id)
+        density = row.prop("rho_grain_g_cm3")
+        assert density.source in ("webmineral", "pubchem") and 1.0 < density.value < 4.0, row_id
+        assert row.family in ("carbonate", "evaporite", "phosphate"), row_id
+        assert row.formula and row.molar_mass > 0.0 or row_id in ("ankerite",), row_id
+        for band in ("alb_040_050", "alb_050_060", "alb_060_070"):
+            assert row.prop(band).value is None and row.prop(band).code == "N", (row_id, band)
+        mohs = row.prop("mohs")
+        if mohs.value is not None:
+            assert mohs.measured_range[0] <= mohs.value <= mohs.measured_range[1], row_id
+
+
+def test_the_values_the_research_file_had_recalled_are_the_values_the_pages_list():
+    value = lambda name: materials.material(name).prop("rho_grain_g_cm3").value        # noqa: E731
+    assert value("chlorapatite") == pytest.approx(3.15) and value("hydroxylapatite") == pytest.approx(3.08)
+    assert value("sylvite") == pytest.approx(1.99) and value("langbeinite") == pytest.approx(2.83) and value("rhodochrosite") == pytest.approx(3.69)
+    assert value("mg_perchlorate") == pytest.approx(2.21) and value("ca_perchlorate") == pytest.approx(2.651)
+    assert materials.material("mg_perchlorate").prop("rho_grain_g_cm3").source == "pubchem"
+    assert materials.material("rhodochrosite").prop("mohs").value == pytest.approx(3.0)
+
+
+def test_the_apatite_family_is_a_group():
+    assert {row.id for row in materials.expand("apatite")} == {"fluorapatite", "chlorapatite", "hydroxylapatite"}
+    assert materials.material("aragonite").formula == materials.material("calcite").formula, "aragonite is calcite's polymorph, a row of its own"

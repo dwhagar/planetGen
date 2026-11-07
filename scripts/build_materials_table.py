@@ -429,10 +429,13 @@ def main():
 
     # --- GEN.1355: the silicates and oxides the recipes and the norm name (Webmineral pages read 2026-11-07); like GEN.1356, no band albedo was reached
     # for them, so the three bands are explicit nulls (code N)
-    for row_id, (formula, family, aliases_here, page_formula, crystal, mohs, density, basis, measured, color, page) in data.PART1_MINERALS.items():
+    # --- GEN.1357: the carbonates, salts and phosphates, the same way (a page named PubChem is read from the PubChem record)
+    for row_id, (formula, family, aliases_here, page_formula, crystal, mohs, density, basis, measured, color, page) in {
+            **data.PART1_MINERALS, **data.PART3_MINERALS}.items():
+        source = "pubchem" if page.startswith("PubChem") else "webmineral"
         row = new_row(row_id, row_id, family, formula, aliases_here, composition=page_formula if page_formula != formula else "")
         extra = {"measured_range": list(measured)} if measured else {}
-        row["props"]["rho_grain_g_cm3"] = prop(density, "H", "webmineral", "g/cm3", basis=f"{basis}; page {page}", **extra)
+        row["props"]["rho_grain_g_cm3"] = prop(density, "R" if source == "pubchem" else "H", source, "g/cm3", basis=f"{basis}; page {page}", **extra)
         if mohs is not None:
             row["props"]["mohs"] = prop(mohs[0], "H", "webmineral", "1", measured_range=[mohs[1], mohs[2]],
                                         basis=f"the middle of the hardness range the page prints; page {page}")
@@ -440,9 +443,12 @@ def main():
             row["props"]["mohs"] = null_prop("mohs")
         for band in ("alb_040_050", "alb_050_060", "alb_060_070"):
             row["props"][band] = null_prop(band)
-        row["crystal_system"], row["color"] = crystal, color
+        if crystal:
+            row["crystal_system"] = crystal
+        if color:
+            row["color"] = color
         rows[row_id] = row
-    for row_id, (name, members) in data.PART1_GROUPS.items():
+    for row_id, (name, members) in {**data.PART1_GROUPS, **data.PART3_GROUPS}.items():
         rows[row_id] = new_row(row_id, name, "mineral group", None, [name], members=list(members))
 
     # --- hydrogen and helium
