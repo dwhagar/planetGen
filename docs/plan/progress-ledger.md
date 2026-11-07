@@ -2744,3 +2744,5 @@ Baseline: PR #1817.
 | GEN.753 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
 | SEC.44 | 8.1 | The headline closes |
 | SEC.46 | 8.1 | The headline closes |
+| PERF.241 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.663 | 8.1 | The headline closes |
