@@ -279,6 +279,9 @@ log_info "Checking the Redis server (config.json's redis.url):"
 ensure_redis
 check_redis_settings
 
+# SEC.43: the admin Update button's request file starts update.sh through these root-owned units (Linux, systemd).
+ensure_update_request_units
+
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     log_warning "the math check failed (step 4): charted data may be wrong until it is fixed."

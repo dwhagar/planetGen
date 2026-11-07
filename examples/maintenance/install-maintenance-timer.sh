@@ -10,7 +10,7 @@
 # logging) instead of hand-added crontab lines and logfiles.
 #
 # Usage:
-#   sudo examples/maintenance/install-maintenance-timer.sh [--skip-update-timer] [--skip-tiles-timer] [database ...]
+#   sudo examples/maintenance/install-maintenance-timer.sh [--skip-update-timer] [--skip-update-button] [--skip-tiles-timer] [database ...]
 #
 # Each remaining argument is a database name to enable a monthly orbit
 # update timer for (a deployment with more than one game database -- see
@@ -24,6 +24,11 @@
 # -- see planetgen-update.service's own header comment for what
 # unattended updates mean (whatever's on the tracked branch gets pulled
 # and deployed automatically, with no human review in between).
+#
+# --skip-update-button: do not install planetgen-update.path (SEC.43), the root-owned unit that runs update.sh when the admin
+# pages' Update button drops <state folder>/update.request. The button never gets a root shell: the web user only creates that
+# empty file, and the unit starts planetgen-update.service, whose command takes nothing from the file. install.sh and update.sh
+# keep the unit's paths right; this installs it for a host that only ran this script (Linux (systemd) only).
 #
 # --skip-tiles-timer: do not install planetgen-tiles@.service/.timer (PERF.233), the nightly rebuild of the whole Galaxy Map
 # tile cache at 05:00, after the orbit update (`planetgen.cli.tiles`; Linux only). It needs room on the cache's disk for the new
@@ -59,12 +64,15 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 install_update_timer=1
+install_update_button=1
 install_smoke_timer=0
 install_tiles_timer=1
 args=()
 for arg in "$@"; do
     if [[ "$arg" == "--skip-update-timer" ]]; then
         install_update_timer=0
+    elif [[ "$arg" == "--skip-update-button" ]]; then
+        install_update_button=0
     elif [[ "$arg" == "--skip-tiles-timer" ]]; then
         install_tiles_timer=0
     elif [[ "$arg" == "--with-smoke-timer" ]]; then
@@ -128,12 +136,21 @@ echo "== 1/3: Installing systemd unit files =="
 install -m 644 "$SCRIPT_DIR/planetgen-orbits@.service" /etc/systemd/system/planetgen-orbits@.service
 install -m 644 "$SCRIPT_DIR/planetgen-orbits@.timer" /etc/systemd/system/planetgen-orbits@.timer
 echo "  installed planetgen-orbits@.service and planetgen-orbits@.timer"
-if [[ "$install_update_timer" -eq 1 ]]; then
+if [[ "$install_update_timer" -eq 1 || "$install_update_button" -eq 1 ]]; then
     install -m 644 "$SCRIPT_DIR/planetgen-update.service" /etc/systemd/system/planetgen-update.service
+    echo "  installed planetgen-update.service"
+fi
+if [[ "$install_update_timer" -eq 1 ]]; then
     install -m 644 "$SCRIPT_DIR/planetgen-update.timer" /etc/systemd/system/planetgen-update.timer
-    echo "  installed planetgen-update.service and planetgen-update.timer"
+    echo "  installed planetgen-update.timer"
 else
-    echo "  --skip-update-timer given -- not installing planetgen-update.service/.timer"
+    echo "  --skip-update-timer given -- not installing planetgen-update.timer"
+fi
+if [[ "$install_update_button" -eq 1 ]]; then
+    install -m 644 "$SCRIPT_DIR/planetgen-update.path" /etc/systemd/system/planetgen-update.path
+    echo "  installed planetgen-update.path (the admin Update button)"
+else
+    echo "  --skip-update-button given -- not installing planetgen-update.path"
 fi
 
 if [[ "$install_tiles_timer" -eq 1 ]]; then
@@ -168,6 +185,10 @@ systemctl daemon-reload
 if [[ "$install_update_timer" -eq 1 ]]; then
     systemctl enable --now planetgen-update.timer
     echo "  enabled planetgen-update.timer (fires 03:00 on the 1st of each month)"
+fi
+if [[ "$install_update_button" -eq 1 ]]; then
+    systemctl enable --now planetgen-update.path
+    echo "  enabled planetgen-update.path (starts planetgen-update.service when the admin Update button drops update.request)"
 fi
 for db in "${databases[@]}"; do
     systemctl enable --now "planetgen-orbits@${db}.timer"

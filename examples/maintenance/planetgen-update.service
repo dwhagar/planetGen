@@ -26,6 +26,10 @@
 # deployment's branch should only ever be updated by a human running
 # `sudo ./update.sh` deliberately.
 #
+# SEC.43: planetgen-update.path also starts this unit, when the admin Update button drops the request file
+# (<state folder>/update.request). ExecStartPre removes the request before update.sh runs, so one press is one run; a press made
+# while the update runs waits for it and runs after. The file's contents are never read, and ExecStart takes no argument from it.
+#
 # Install with examples/maintenance/install-maintenance-timer.sh, which
 # also sets up the credentials file this unit reads (needed for
 # install.sh's `planetgen.cli.migrate` step).
@@ -34,6 +38,10 @@
 Description=planetGen deployment update (git pull + dependency check)
 After=network-online.target
 Wants=network-online.target
+# A request file that cannot be removed fails ExecStartPre at once and would start this again over and over; ten starts in ten
+# minutes stop that loop (`systemctl reset-failed planetgen-update.service` clears it).
+StartLimitIntervalSec=600
+StartLimitBurst=10
 
 [Service]
 Type=oneshot
@@ -51,5 +59,6 @@ EnvironmentFile=-/etc/planetgen/maintenance.env
 # With work running (a Generate job, a queued run, an orbital update) and no
 # terminal to ask on, update.sh refuses and changes nothing (OPS.53), so this
 # unit fails that month and the next firing tries again. To cancel the work
-# instead, add `--yes`: ExecStart=/var/lib/planetGen/update.sh --yes
+# instead, add `--yes`: ExecStart=/var/lib/planetGen/update.sh --yes (that also applies to the Update button's runs)
+ExecStartPre=/bin/rm -f -- /var/lib/planetGen/state/update.request
 ExecStart=/var/lib/planetGen/update.sh
