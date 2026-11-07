@@ -18,7 +18,7 @@ planet and moon classes only, which is where the high-pressure silicate phases, 
 and the hydrogen-helium envelopes sit), a source and a source state. The licence of the data is not a column: it is recorded in `DATA-LICENSE.md`
 at the repository root (Boss, 2026-10-22). The rows are
 registered as the table `materials` (`TABLE`, `generation.possibility_table.SHARED_COMPONENTS`), so the fractions of any other
-table refer to them and `REGISTRY.validate` checks it. Its weights are 1 and unused: nothing is drawn from this table.
+table refer to them and `REGISTRY.validate` checks it. Its weights are 1 and unused: nothing is drawn from this table. Every row is read by a draw, or listed in `VOCABULARY_ONLY` with why not (TEST.685).
 
 The data are `physics/data/materials.json`, built by `scripts/build_materials_table.py` from part E's materials table, part B's
 SLB phases and iron rows, part C's ice phases and the values in `scripts/materials_data.py` ([R3992: Tables 1 to 3],
@@ -375,6 +375,11 @@ def _load():
         for member in row.members or ():
             if member not in ids:
                 raise DataError(f"materials.json: the group {row.id} names {member!r}, which is not a row")
+    for row_id, reason in (data.get("vocabulary_only") or {}).items():
+        if row_id not in ids:
+            raise DataError(f"materials.json: vocabulary_only names {row_id!r}, which is not a row")
+        if not str(reason).strip():
+            raise DataError(f"materials.json: vocabulary_only gives no reason for {row_id!r}")
     return data, tuple(rows), names
 
 
@@ -383,6 +388,8 @@ _DATA, MATERIALS, _NAMES = _load()
 SOURCES = _DATA["sources"]
 """dict: The source keys and their citations."""
 _BY_ID = {row.id: row for row in MATERIALS}
+VOCABULARY_ONLY = dict(_DATA.get("vocabulary_only") or {})
+"""dict: Row id -> why, for the rows no draw reads (TEST.685): vocabulary a later item may wire. `tests/test_materials_reachability.py` fails a row that is neither reached nor listed here, and a listed row that is reached."""
 
 
 def material(name):
