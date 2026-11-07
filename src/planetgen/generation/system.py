@@ -1937,7 +1937,7 @@ class StarSystem:
                 # GEN.1323: every rocky planet of 1 to 20 Earth masses captures an envelope that only a close star strips, so a class that needs a
                 # dense bare core (V, 2 g or more) is out of reach of the envelope draw at most places; every other draw after the free ones is a
                 # core that finished growing after the gas disk went (rare in the population, so a request is its only way to it)
-                given["late_core"] = (attempt - tuning.CLASS_REQUEST_FREE_ATTEMPTS) % 2 == 1
+                given["late_core"] = (attempt - tuning.CLASS_REQUEST_FREE_ATTEMPTS) % tuning.CLASS_REQUEST_LATE_CORE_EVERY == tuning.CLASS_REQUEST_LATE_CORE_EVERY - 1
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
             if planet.planet_class == planet_class:
                 break

@@ -216,6 +216,10 @@ GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 # (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
 CLASS_REQUEST_FREE_ATTEMPTS = 8
+CLASS_REQUEST_LATE_CORE_EVERY = 2
+"""int: After the free attempts of a class request, every this-many-th draw is a core that finished growing after the gas disk went and captured no envelope
+(GEN.1323, `Planet(late_core=True)`): a class that needs a bare dense core (V, 2 g or more) is out of reach of the envelope draw at most places. A planetGen
+stand-in (tier T9, tweak L3; registry row EC7)."""
 CLASS_REQUEST_MASS_EARTH = (0.05, 1000.0)
 """int, tuple: A request for a planet class (a slot's `planet_class`, `FORCE_CLASS`) is first left to chance for this many draws; the draws
 after it take a mass log-uniform over this range in Earth masses, so a class the disk rarely makes at that slot (an ice giant at a cold

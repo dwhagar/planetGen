@@ -39,8 +39,8 @@ from planetgen import tuning
 from planetgen.physics import (air_column, atmosphere, body_radiation, climate_draws, constants, gases, radiation as rad, surface_air)
 from tests.class_sweep_cli import sample_bodies
 
-SYSTEMS = 14
-"""int: Systems generated for the sweep (about 90 s; 160 or so bodies of 15 classes)."""
+SYSTEMS = 20
+"""int: Systems generated for the sweep (about 2 minutes; 60 or so bodies of 9 classes: GEN.1323 turned the sub-Neptunes into gas dwarfs, so fewer systems no longer reach 8 classes)."""
 SEED = 15
 HABITABLE_SHARE = 0.5
 RELATIVE_TOLERANCE = 1e-6

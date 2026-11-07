@@ -38775,6 +38775,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "planets.ENVELOPE_SETTLE_TOLERANCE 0.02: a planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it, its air, class and spin"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLASS_REQUEST_LATE_CORE_EVERY 2: every second draw of a class request after its free attempts is a core that formed after the gas disk went (late_core, no envelope)"
+            ],
+            [
+              "The range it moves in",
+              "one in four to one in two"
+            ],
+            [
+              "Where it holds",
+              "rocky planets asked for by class (V, 2 g or more, needs a bare core)"
+            ],
+            [
+              "What would show it wrong",
+              "a forced V that no seed reaches"
+            ],
+            [
+              "What replaces it",
+              "a formation-time draw against the disk's lifetime, which the generator does not make"
+            ],
+            [
+              "Evidence",
+              "with no late cores every rocky planet of 4 Earth masses or more keeps an envelope except close in, and V (2 g) is out of reach (0 of 40 seeds); alternate draws reach it in 12 of 40"
+            ]
+          ],
+          "id": "EC7",
+          "key": "6.196:EC7",
+          "kind": "B",
+          "slug": "6-196-ec7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.CLASS_REQUEST_LATE_CORE_EVERY 2: every second draw of a class request after its free attempts is a core that formed after the gas disk went (late_core, no envelope)"
         }
       ],
       "slug": "6-196-stand-ins-of-the-envelope-a-rocky-planet-captures-and-keeps",
