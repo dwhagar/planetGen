@@ -24,6 +24,7 @@ from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
 from planetgen.web.maps.starmap import uncharted_scene_data
 from planetgen.web.warmup import opening_request
 from planetgen.util import log
+from planetgen.util.checks import finite_float
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc
 from planetgen.web.lib import tilepack
@@ -571,8 +572,8 @@ def galaxy_cloud_volume():
     both as `{"error": ...}` JSON.
     """
     try:
-        center = [float(request.args.get(axis, "")) for axis in "xyz"]
-        radius = float(request.args.get("radius_pc", ""))
+        center = [finite_float(request.args.get(axis, "")) for axis in "xyz"]
+        radius = finite_float(request.args.get("radius_pc", ""))
     except ValueError:
         return _json_error("x, y, z and radius_pc must be numbers.", 400)
     try:

@@ -118,6 +118,7 @@ from planetgen.galaxy.profile import sector_profile
 from planetgen.galaxy.profile_report import profile_report
 from planetgen.galaxy.resolution import cell_resolution
 from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
+from planetgen.util.checks import finite_float
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.profile import profile_at
@@ -1154,8 +1155,8 @@ def galaxy_made():
     (`db.query.sectors_made`; at most `MADE_SECTOR_LIMIT` items).
     """
     try:
-        since = float(request.args.get("since", ""))
-        until = float(request.args["until"]) if request.args.get("until") else None
+        since = finite_float(request.args.get("since", ""))
+        until = finite_float(request.args["until"]) if request.args.get("until") else None
     except ValueError:
         return jsonify({"error": "since and until must be numbers (Unix seconds)."}), 400
     return jsonify(sectors_made(get_db(), since, until))
@@ -1451,8 +1452,8 @@ def galaxy_cloud_volume_route():
     the sphere. Nothing is stored. A bad number, a family that does not exist or a radius over `nebula_volumes.MAX_SPHERE_RADIUS_PC` is a 400.
     """
     try:
-        center = tuple(float(request.args.get(axis, "")) for axis in "xyz")
-        radius = float(request.args.get("radius_pc", ""))
+        center = tuple(finite_float(request.args.get(axis, "")) for axis in "xyz")
+        radius = finite_float(request.args.get("radius_pc", ""))
         packed = nebula_volumes.sphere_volume(get_db(), center, radius, request.args.get("family") or "")
     except ValueError as exc:
         raise ApiError(str(exc))
