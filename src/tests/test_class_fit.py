@@ -142,3 +142,32 @@ def test_a_carbon_dioxide_air_is_g_whatever_its_oxygen_and_a_thin_air_is_k_whate
     assert cf.best_class(rich)[:2] == ("G", 1.0)
     thin = body(surface_temperature_k=290.0, atmospheric_pressure_pa=1000.0, share_co2=0.01, share_o2=0.63, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=1.3)
     assert cf.best_class(thin)[:2] == ("K", 1.0)
+
+
+def test_a_hot_thin_air_is_z_under_1_4_g_too_and_at_the_clamp_edges_of_1_and_10_kpa():
+    # GEN.1306 parts 1 and 5 (registry AW6, AW7): Z reaches down to 0.5 g and up to 1500 K; the pressure edges hold through the shoulder
+    for pressure in (989.0, 1000.0, 10000.0):
+        hot = body(surface_temperature_k=626.0, atmospheric_pressure_pa=pressure, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=1.14, share_o2=0.0)
+        letter, fit, _runner, _fit2 = cf.best_class(hot)
+        assert letter == "Z" and fit > 0.99
+    very_hot = body(surface_temperature_k=1298.0, atmospheric_pressure_pa=10000.0, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=1.59, share_o2=0.0, share_co2=0.88)
+    assert cf.best_class(very_hot)[:2] == ("Z", 1.0)
+    warm = body(surface_temperature_k=350.0, atmospheric_pressure_pa=5000.0, ocean_fraction=0.0, hydrosphere="vapor", gravity_g=1.0, share_o2=0.0)
+    assert cf.best_class(warm)[0] == "F"       # F holds more conditions than Z, so the warm anoxic air stays F
+
+
+def test_a_cold_air_world_between_minus_40_c_and_freezing_is_class_w_unless_class_p_fits_and_a_colder_one_is_e():
+    # GEN.1306 part 4 (registry AW8, Boss 11-06): W is the frozen world, P the Earth-like cold world, E the deep-frozen one
+    cold = body(surface_temperature_k=250.0, atmospheric_pressure_pa=10000.0, share_o2=0.0, ocean_fraction=0.1, hydrosphere="ice", gravity_g=0.83)
+    assert cf.best_class(cold)[:2] == ("W", 1.0)
+    assert cf.best_class(dict(cold, surface_temperature_k=220.0))[:2] == ("E", 1.0)
+    assert cf.best_class(dict(cold, surface_temperature_k=274.0))[0] != "W"
+    earthlike = body(surface_temperature_k=250.0, hydrosphere="ice", ocean_fraction=0.4, band1_mean_k=235.0, band4_mean_k=276.0)
+    letter, fit, runner, _fit2 = cf.best_class(earthlike)
+    assert letter == "P" and fit == pytest.approx(1.0) and runner == "W"      # both fit fully; P holds more conditions, so P wins the tie
+
+
+def test_a_fifth_carbon_dioxide_is_g_whatever_the_oxygen():
+    # GEN.1306 (registry AW5), with L (Boss's low-oxygen mask world) unchanged: 1 to 20 percent carbon dioxide with 3 to 16 percent oxygen
+    assert cf.best_class(body(share_co2=0.3, share_o2=0.2))[0] == "G"
+    assert cf.best_class(body(share_co2=0.05, share_o2=0.1))[0] == "L"

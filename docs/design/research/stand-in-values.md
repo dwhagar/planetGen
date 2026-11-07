@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1197 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1200 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 52 | 21 | 3 | 1 | 0 | 77 |
-| T6 | 111 | 85 | 24 | 61 | 0 | 281 |
+| T6 | 112 | 85 | 24 | 61 | 0 | 282 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
-| T9 | 38 | 14 | 5 | 80 | 34 | 171 |
-| All | 657 | 248 | 58 | 189 | 45 | 1197 |
+| T9 | 38 | 14 | 5 | 82 | 34 | 173 |
+| All | 658 | 248 | 58 | 191 | 45 | 1200 |
 
 ## How the labels were given
 
@@ -1683,6 +1683,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AW3 | P | T9 | L0 | class M, H, O, P and R gravity edge 2 g (`planet_class_fit.json`, `gravity_g lt 2.0`; 1.25 g before): the edge class V starts at, so a heavy oxygen world of 1.25 to 2 g is a temperate class and the rest is V | none (the edge of V, GEN.1136) | oxygen worlds with air at 0.75 to 2 g | a heavy oxygen world whose air or ocean no temperate class describes | the gravity edge of V once the heavy-world physics of GEN.1136 is refit | the V row of the same file; GEN.1136 | - | - |
 | AW4 | P | T5 | L0 | class K no oxygen cap (`share_o2 lt 0.1` removed): under 3 kPa even pure oxygen is under the 6.3 kPa Armstrong line, so a thin air is K whatever its oxygen share | none (the edge of the breathing line) | worlds with air under 3 kPa at 273 to 320 K | a breathable air under 3 kPa (none exists) | none | the Armstrong limit of 6.3 kPa (`docs/design/habitability/survival-equipment-fields.md`: inspired oxygen is the O2 fraction times (P minus 6.3 kPa), zero under 6.3 kPa); the K row of the same file | - | - |
 | AW5 | P | T9 | L0 | class G no oxygen cap (`share_o2 lt 0.16` removed): carbon dioxide at 20 percent or more is G whatever the oxygen, since the carbon dioxide alone makes it unbreathable | none (the edge of G) | worlds with air, carbon dioxide 20 percent or more, 273 to 400 K | a carbon dioxide air with free oxygen that is better read as L | the carbon dioxide edge of L once the greenhouse classes are fitted | the G and L rows of the same file; GEN.1281 | - | - |
+| AW6 | P | T9 | L3 | class Z gravity floor 0.5 g (`planet_class_fit.json`, Z `gravity_g min 0.5`; 1.4 g before): the floor of F and G, so a hot thin air at 340 K or more is Z under 1.4 g too, and a warm anoxic or carbon dioxide air under 400 K stays F or G (they hold more conditions, so they win a tie) | 0.5 to 1.4 g | hot worlds with air of 1 to 10 kPa and no ocean | a sweep where the floor moves bodies of class F or G (4 of F and 5 of G changed letter, all of them at 400 K or more or at 10 kPa with no class before) | the gravity edges of Z once the hot thin-air worlds are fitted | GEN.1306 class sweep, 2212 bodies from four seeds of 150 systems | - | - |
+| AW7 | P | T9 | L3 | class Z temperature top 1500 K (`temperature_k lt 1500`; 1100 K before) | 1100 to 1700 K | worlds of 1 to 10 kPa with no ocean | a sweep where the top moves a body of another class into Z | the top of Z from the temperature at which a thin air is lost (the retention fit) | the same sweep (one carbon dioxide body at 1297 K) | - | - |
+| AW8 | P | T6 | L0 | class W, the Frozen world (`planet_class_fit.json`, W: `temperature_k min 233.15` and `lt 273.15`, gravity under 2 g, hydrogen under 30 percent, sulfur dioxide under 3 percent): -40 C and freezing, the lines of GEN.1142 classes E and P, so a cold air world that class P does not hold has a class; P (240 to 270 K, oxygen, near-standard air, a melting region) wins a full tie by holding more conditions, E keeps everything under 233.15 K | none (the freezing point of water and -40 C) | air worlds of 233 to 273 K | a cold air world that reads better as class P or E | a class of the cold anoxic or dense worlds if Boss asks for one | the P and E rows of the same file; GEN.1142 CL5, CL7; Boss 11-06 | - | - |
 
 ## 6.192 Stand-in of how far apart random placement keeps two systems
 

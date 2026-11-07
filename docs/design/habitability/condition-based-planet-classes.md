@@ -31,7 +31,9 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | L | Marginal thick-air world | pressure 30 kPa to 3 bar, 273.15 to 320 K, carbon dioxide 1 percent or more, oxygen 3 to 16 percent, gravity 0.5 g or more (GEN.1142) |
 | K | Thin-air world | pressure under 3 kPa, 273.15 to 320 K, any oxygen share (GEN.1142; the under-10-percent oxygen cap removed in GEN.1306, registry AW4) |
 | E | Deep-frozen world | air, mean surface under 233.15 K (-40 C) (GEN.1142; the letter of the old wet reducing world) |
-| P | Glaciated world | mean surface 233.15 K to freezing (273.15 K) (GEN.1142) |
+| P | Glaciated world | the Earth-like cold world: mean surface 240 to 270 K with a melting region in season, near-standard air with oxygen (GEN.1142, GEN.1221; the temperate family's too-cold member) |
+| W | Frozen world | air, mean surface 233.15 K (-40 C) to freezing (273.15 K), under 2 g, not a hydrogen envelope and not a volcanic air; the cold air world class P does not hold (GEN.1306 part 4, registry AW8, Boss 11-06). P wins a tie, E is colder |
+| Z | Hot thin-air world | no ocean, 0.5 to 2 g, 340 to 1500 K, air 1 to 10 kPa (GEN.1211; 1.4 g and 1100 K before GEN.1306, registry AW6 and AW7); the 1 and 10 kPa edges are the retention caps of the air |
 | B | Small hot world | gravity under 0.5 g |
 | F | Anoxic world | oxygen under 3 percent and carbon dioxide under 20 percent, 0.5 to 1.4 g (GEN.1281; the reducing world before, which needed methane and hydrogen 5 percent or more) |
 | G | Carbon dioxide world | carbon dioxide 20 percent of the air or more, any oxygen share (GEN.1306, registry AW5) |

@@ -97,6 +97,7 @@ CASES = {
                    share_ch4=0.05, p_n2_kpa=140.0, p_ar_kpa=0.0),
     "Y": no_oxygen(surface_temperature_k=320.0, atmospheric_pressure_pa=20000.0, hydrosphere="dry", ocean_fraction=0.0, share_so2=0.05, p_n2_kpa=5.0,
                    p_ar_kpa=0.0),
+    "W": body(surface_temperature_k=250.0),      # GEN.1306: a cold air world with no melting region is the frozen world, not the glaciated P
     "X": dict(body(atmospheric_pressure_pa=0.0, surface_temperature_k=210.0, gravity_g=0.3, mass_earth=0.03, ocean_fraction=0.5,
                    hydrosphere="ice-covered ocean", surface_liquid_ammonia_wt=20.0), **{atmosphere.GAS_FIELD: {}}),
 }
@@ -216,8 +217,10 @@ def test_a_body_without_what_the_rules_read_is_refused():
 def test_a_class_follows_its_conditions():
     values = body()
     assert pc.classify(values) == "M"
-    values["surface_temperature_k"] = 250.0
-    assert pc.classify(values) == "P"
+    values.update(surface_temperature_k=250.0, hydrosphere="ice", ocean_fraction=0.4, band1_mean_k=235.0, band4_mean_k=276.0)
+    assert pc.classify(values) == "P"      # a seasonal melt and oxygen: the glaciated world
+    assert pc.classify(body(surface_temperature_k=250.0)) == "W"        # GEN.1306: the same cold with no melting region is the frozen world
+    assert pc.classify(body(surface_temperature_k=225.0)) == "E"
     values.update(atmospheric_pressure_pa=0.0, **{atmosphere.GAS_FIELD: {}})
     assert pc.classify(values) == "C"
 

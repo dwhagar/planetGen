@@ -2167,6 +2167,10 @@ PLANET_CLASSES = {
         "composition": 'iron, iridium, tungsten, and nickel',
         "type": 't',
     },
+    'W': {
+        "composition": 'silicon, iron, magnesium, and ice',
+        "type": 't',
+    },
     'X': {
         "composition": 'silicon, iron, magnesium, water ice, and ammonia',
         "type": 't',
@@ -2220,7 +2224,7 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
 """
 list: A list of planet class codes that are considered habitable.
 """

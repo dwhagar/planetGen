@@ -3,8 +3,7 @@
   "version": 2,
   "status": "the conditions of every class are its row of physics/data/planet_class_fit.json (GEN.1207: the best-fit classifier); a row here gives only the name, the sentence and the basis of a class. Every number marked design is a planetGen default refitted by the class sweep, not a measured constant",
   "reserve": [
-    "Q",
-    "W"
+    "Q"
   ],
   "reserve_note": "Letters no class uses. Boss (6:26 PM EDT 2026-10-23): a letter is never retired without asking him, and free letters are kept for new designations that make more sense; use none of them for anything else. Q was retired by Boss (6:07 PM EDT 2026-10-30, GEN.1135): a class that was only an orbit; the swing of the starlight is the stored flux_variation and an At a glance flag. The old wet reducing E was retired by Boss (6:57 PM EDT 2026-10-30, GEN.1142; it was F with steam and got no body) and the letter E now names the deep-frozen world (7:06 PM EDT).",
   "quantities": {
@@ -207,6 +206,13 @@
       "kind": "t",
       "sentence": "A glaciated world, the oxygen-water world too cold: a mean surface of 240 to 270 K whose hottest region still melts in season, with poles under 245 K.",
       "basis": "design stand-in (GEN.1142, registry CL5, CL7): freezing (273.15 K) at the top, up from 210 K, and -40 C (233.15 K) at the bottom, below which a body is class E"
+    },
+    {
+      "letter": "W",
+      "name": "Frozen world",
+      "kind": "t",
+      "sentence": "A frozen world: an air world with a mean surface from -40 C (233.15 K) to freezing (273.15 K) that is not Earth-like enough to be class P; colder it is class E, the deep-frozen world.",
+      "basis": "design stand-in (GEN.1306, registry AW8): the gap between class P and class E, on the lines of E and P; Boss 11-06"
     },
     {
       "letter": "B",

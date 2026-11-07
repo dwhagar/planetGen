@@ -38695,6 +38695,120 @@
           "tweak": "L0",
           "unread": null,
           "what": "class G no oxygen cap (share_o2 lt 0.16 removed): carbon dioxide at 20 percent or more is G whatever the oxygen, since the carbon dioxide alone makes it unbreathable"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class Z gravity floor 0.5 g (planet_class_fit.json, Z gravity_g min 0.5; 1.4 g before): the floor of F and G, so a hot thin air at 340 K or more is Z under 1.4 g too, and a warm anoxic or carbon dioxide air under 400 K stays F or G (they hold more conditions, so they win a tie)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1.4 g"
+            ],
+            [
+              "Where it holds",
+              "hot worlds with air of 1 to 10 kPa and no ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep where the floor moves bodies of class F or G (4 of F and 5 of G changed letter, all of them at 400 K or more or at 10 kPa with no class before)"
+            ],
+            [
+              "What replaces it",
+              "the gravity edges of Z once the hot thin-air worlds are fitted"
+            ],
+            [
+              "Evidence",
+              "GEN.1306 class sweep, 2212 bodies from four seeds of 150 systems"
+            ]
+          ],
+          "id": "AW6",
+          "key": "6.194:AW6",
+          "kind": "P",
+          "slug": "6-194-aw6",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "class Z gravity floor 0.5 g (planet_class_fit.json, Z gravity_g min 0.5; 1.4 g before): the floor of F and G, so a hot thin air at 340 K or more is Z under 1.4 g too, and a warm anoxic or carbon dioxide air under 400 K stays F or G (they hold more conditions, so they win a tie)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class Z temperature top 1500 K (temperature_k lt 1500; 1100 K before)"
+            ],
+            [
+              "The range it moves in",
+              "1100 to 1700 K"
+            ],
+            [
+              "Where it holds",
+              "worlds of 1 to 10 kPa with no ocean"
+            ],
+            [
+              "What would show it wrong",
+              "a sweep where the top moves a body of another class into Z"
+            ],
+            [
+              "What replaces it",
+              "the top of Z from the temperature at which a thin air is lost (the retention fit)"
+            ],
+            [
+              "Evidence",
+              "the same sweep (one carbon dioxide body at 1297 K)"
+            ]
+          ],
+          "id": "AW7",
+          "key": "6.194:AW7",
+          "kind": "P",
+          "slug": "6-194-aw7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "class Z temperature top 1500 K (temperature_k lt 1500; 1100 K before)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "class W, the Frozen world (planet_class_fit.json, W: temperature_k min 233.15 and lt 273.15, gravity under 2 g, hydrogen under 30 percent, sulfur dioxide under 3 percent): -40 C and freezing, the lines of GEN.1142 classes E and P, so a cold air world that class P does not hold has a class; P (240 to 270 K, oxygen, near-standard air, a melting region) wins a full tie by holding more conditions, E keeps everything under 233.15 K"
+            ],
+            [
+              "The range it moves in",
+              "none (the freezing point of water and -40 C)"
+            ],
+            [
+              "Where it holds",
+              "air worlds of 233 to 273 K"
+            ],
+            [
+              "What would show it wrong",
+              "a cold air world that reads better as class P or E"
+            ],
+            [
+              "What replaces it",
+              "a class of the cold anoxic or dense worlds if Boss asks for one"
+            ],
+            [
+              "Evidence",
+              "the P and E rows of the same file; GEN.1142 CL5, CL7; Boss 11-06"
+            ]
+          ],
+          "id": "AW8",
+          "key": "6.194:AW8",
+          "kind": "P",
+          "slug": "6-194-aw8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "class W, the Frozen world (planet_class_fit.json, W: temperature_k min 233.15 and lt 273.15, gravity under 2 g, hydrogen under 30 percent, sulfur dioxide under 3 percent): -40 C and freezing, the lines of GEN.1142 classes E and P, so a cold air world that class P does not hold has a class; P (240 to 270 K, oxygen, near-standard air, a melting region) wins a full tie by holding more conditions, E keeps everything under 233.15 K"
         }
       ],
       "slug": "6-194-stand-ins-of-the-heavy-oxygen-worlds-and-the-thin-oxygen-worlds",

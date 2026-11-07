@@ -429,6 +429,35 @@
       "note": "M's too cold (GEN.1221): mean 240 to 270 K, the hottest region melts in season (270 K or more), poles under 245 K, wet bulb under 15 C; no phase gate, its liquid is under ice or seasonal; up to 2 g (GEN.1306, registry AW3)"
     },
     {
+      "letter": "W",
+      "name": "Frozen world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "temperature_k",
+          "min": 233.15
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 273.15
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        }
+      ],
+      "note": "GEN.1306 part 4, registry AW8 (Boss, 11-06): a cold air world between class E (under -40 C) and freezing that class P (the Earth-like world about -40 C, with near-standard air) does not hold: any air, under 2 g, not a hydrogen envelope and not a volcanic air. P holds more conditions, so a body that fits both fully is P"
+    },
+    {
       "letter": "B",
       "name": "Small hot world",
       "kind": "t",
@@ -867,7 +896,7 @@
       "when": [
         {
           "quantity": "gravity_g",
-          "min": 1.4
+          "min": 0.5
         },
         {
           "quantity": "gravity_g",
@@ -879,7 +908,7 @@
         },
         {
           "quantity": "temperature_k",
-          "lt": 1100.0
+          "lt": 1500.0
         },
         {
           "quantity": "pressure_pa",
@@ -894,7 +923,7 @@
           "lt": 0.01
         }
       ],
-      "note": "the hot thin-air gap (GEN.1211, Boss confirmed Z): 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean"
+      "note": "the hot thin-air world (GEN.1211, Boss confirmed Z; GEN.1306 parts 1 and 5, registry AW6 and AW7): 0.5 to 2 g, 340 to 1500 K, 1 to 10 kPa, no ocean. A warm anoxic or carbon dioxide air under 400 K and under 1.4 g stays F or G (they hold more conditions, so they win the tie)"
     },
     {
       "letter": "U",
