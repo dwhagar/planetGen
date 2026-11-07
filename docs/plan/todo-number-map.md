@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.288 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1351 |
+| GEN | GEN.1353 |
 | PERF | PERF.249 |
 | DB | DB.116 |
 | API | API.42 |
@@ -2137,6 +2137,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1347 | Tidal inflation of super-puff radius (the tidal-inflation equation in the GEN.1343 report, which needs the planet's drawn obliquity) so super-puffs stay inflated past 1 Gyr | none | open |
 | GEN.1348 | Sealed-ocean anion supply: find the published chloride and sulfate that leached basalt gives up with its sodium, so sealed-ocean pH is no longer bimodal at 12 to 14 for two thirds of sealed oceans | none | done, PR #5565 |
 | GEN.1349 | Sealed-ocean calcium: the model leaches all of the crust's 8.5 weight percent calcium to solution as a free cation, which sets lime-buffered pH 12 to 14 in 60 percent of sealed oceans; find what share a leached basalt gives up as free calcium against what stays in carbonate and silicate minerals | none | open |
+| GEN.1351 | A planet's tidal heating is kept for the whole age with no cap from the orbit's energy: a 0.0013 Earth-mass planet at 0.0134 AU round a 0.09 solar-mass star at e=0.068 spends 2.4e31 J over 1.8 Gyr against an orbital energy of 2.3e31 J (bug) | none | open |
+| GEN.1352 | Moons of a tipped giant: a moon's stored inclination is read by moon_history as against the parent's equator but placed in the system frame, so Uranus-type moons do not follow the tipped equator (bug) | none | open |
 | GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
