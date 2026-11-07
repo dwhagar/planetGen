@@ -115,15 +115,25 @@ def test_dose_tiers_are_blue_to_20_msv_green_to_100_msv_yellow_to_1_sv():
 
 
 def test_l_rad_reads_absorbed_dose_in_gy_not_effective_dose_in_sv():
-    """Mars's surface is 0.236 Sv/yr in 0.077 Gy/yr, 130 times under the 10 Gy/yr line (B8)."""
+    """Mars's surface is 0.236 Sv/yr in 0.077 Gy/yr, 130 times under the 10 Gy/yr line (B8); a microbe's line is 1,000 Gy/yr (GEN.876)."""
     mars = World(0.6, -60, {"CO2": 0.95}, gravity_ms2=3.71, surface_dose_sv_yr=0.236)
     assert mars.habitat_dose_gy_yr == pytest.approx(0.077, abs=1e-3)
-    assert hab.l_rad(mars) == 1.0
-    # 31 Sv/yr is 10 Gy/yr: the threshold is in Gy, and a dose in Sv reaches it 3 times later.
+    assert hab.l_rad(mars) == 1.0 and hab.l_rad_animal(mars) == 1.0
+    # 31 Sv/yr is 10 Gy/yr: the animal threshold is in Gy, and a dose in Sv reaches it 3 times later.
     edge = World(0.6, -60, {}, surface_dose_sv_yr=10.0 * hab.SV_PER_GY)
-    assert hab.l_rad(edge) == 1.0
-    assert hab.l_rad(World(0.6, -60, {}, surface_dose_sv_yr=(10.0 + 100.0) * hab.SV_PER_GY)) == pytest.approx(
-        math.exp(-0.5), abs=1e-6)
+    assert hab.l_rad_animal(edge) == 1.0 and hab.l_rad(edge) == 1.0
+    assert hab.l_rad_animal(World(0.6, -60, {}, surface_dose_sv_yr=(10.0 + 100.0) * hab.SV_PER_GY)) == pytest.approx(math.exp(-0.5), abs=1e-6)
+    microbe_edge = hab.MICROBE_DOSE_THRESH_GY + hab.MICROBE_SIGMA_DOSE_GY
+    assert hab.l_rad(World(0.6, -60, {}, surface_dose_sv_yr=microbe_edge * hab.SV_PER_GY)) == pytest.approx(math.exp(-0.5), abs=1e-6)
+
+
+def test_a_dose_that_an_animal_cannot_stand_leaves_microbes_and_costs_complex_life():
+    """GEN.876: 300 Gy/yr is 2.9 sigma past an animal's line and nothing to a microbe's; PHI_cpx is PHI_bio times the animal's dose term over the microbe's."""
+    world = World(101.3, 15, {"O2": 0.21}, surface_dose_sv_yr=300.0 * hab.SV_PER_GY)
+    assert hab.l_rad(world) == 1.0 and hab.l_rad_animal(world) < 0.02
+    assert hab.animal_dose_share(world) == pytest.approx(hab.l_rad_animal(world))
+    assert hab.phi_cpx(world) == pytest.approx(hab.phi_bio(world) * hab.animal_dose_share(world) * hab.t_metazoa(world))
+    assert hab.phi_bio(world) > 0.5 > hab.phi_cpx(world)
 
 
 def test_phi_bio_is_the_liebig_blend_of_the_four_likelihoods():

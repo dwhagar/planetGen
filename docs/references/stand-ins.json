@@ -9602,9 +9602,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.878",
-            "a curve per metabolism and the energy source per class (pigment band times the star's spectrum) replace the one log scale and the shares"
+            "no data",
+            "-",
+            "the energy source per class (pigment band times the star's spectrum) is built (GEN.878), but every class still reads the one log scale; a curve per metabolism needs measured growth yields, none in hand"
           ],
           "fields": [
             [
@@ -9625,7 +9625,7 @@
             ],
             [
               "What replaces it",
-              "a curve per metabolism (GEN.878)"
+              "a curve per metabolism from measured growth yields (no source in hand; the energy source per class, the pigment band times the star's spectrum, was built by GEN.878 and feeds this same scale)"
             ],
             [
               "Evidence",
@@ -9743,7 +9743,7 @@
             ],
             [
               "What replaces it",
-              "traits that move the threshold (GEN.875)"
+              "the microbe threshold and the radiation trait (GEN.876, LF66)"
             ],
             [
               "Evidence",
@@ -10449,6 +10449,300 @@
           "tweak": "L3",
           "unread": null,
           "what": "habitability.YELLOW_CREDIT 0.15: how much of a livable sample a Yellow-band sample (a suit or cooling garments make it livable) counts for in the livable share"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no chronic-dose growth curve for a microbe is in hand (the best known is recalled, not opened); one per life class would replace the threshold and the factors"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "habitability.MICROBE_DOSE_THRESH_GY 1000, habitability.MICROBE_SIGMA_DOSE_GY 1000, adaptation_traits.MICROBE_FACTOR (radiation: tolerant 10, extreme 100)"
+            ],
+            [
+              "The range it moves in",
+              "threshold 100 to 10000 Gy/yr, fall-off 500 to 2000, factors 3 to 30 and 30 to 300"
+            ],
+            [
+              "Where it holds",
+              "the dose where microbial life starts to fall (animals keep 10 Gy/yr, LF20), and how far a radiation trait moves a microbe's line"
+            ],
+            [
+              "What would show it wrong",
+              "a chronic-dose growth curve for a microbe (Deinococcus is recalled as growing under about 5e5 Gy/yr, not opened here)"
+            ],
+            [
+              "What replaces it",
+              "a growth-versus-dose curve per life class"
+            ],
+            [
+              "Evidence",
+              "between an ordinary microbe and the best known; the design's number (docs/design/habitability/adaptation-traits.md 4.2), recalled and not opened"
+            ]
+          ],
+          "id": "LF66",
+          "key": "6.18:LF66",
+          "kind": "P",
+          "slug": "6-18-lf66",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "habitability.MICROBE_DOSE_THRESH_GY 1000, habitability.MICROBE_SIGMA_DOSE_GY 1000, adaptation_traits.MICROBE_FACTOR (radiation: tolerant 10, extreme 100)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measured animal limit for the three stresses is in hand; the numbers are chosen under the microbes'"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation_traits.ANIMAL_FACTOR (radiation: tolerant 10, extreme 10; sulfide: 10, 100; carbon dioxide: 2, 5)"
+            ],
+            [
+              "The range it moves in",
+              "each factor 0.5 to 2 times"
+            ],
+            [
+              "Where it holds",
+              "how far a trait moves the limit an animal meets: capped below a microbe's"
+            ],
+            [
+              "What would show it wrong",
+              "a hypercapnia, sulfide or dose limit measured for the most tolerant animal"
+            ],
+            [
+              "What replaces it",
+              "measured animal limits (the vent tubeworm, the cave molly, the bdelloid rotifer)"
+            ],
+            [
+              "Evidence",
+              "the mechanisms are real (design 3); the numbers are planetGen's, chosen so the census shows animals on moderately stressed worlds only, and none was opened in a source"
+            ]
+          ],
+          "id": "LF67",
+          "key": "6.18:LF67",
+          "kind": "P",
+          "slug": "6-18-lf67",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation_traits.ANIMAL_FACTOR (radiation: tolerant 10, extreme 10; sulfide: 10, 100; carbon dioxide: 2, 5)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the chance and share of an adapted life have no survey to fit; they are the draw's shape"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation_traits.P_CAP 0.8, adaptation_traits.GRADE3_SHARE 0.5"
+            ],
+            [
+              "The range it moves in",
+              "P_CAP 0.5 to 0.95, share 0.25 to 0.75"
+            ],
+            [
+              "Where it holds",
+              "the chance that a stressed world's life carries a trait (the stress score times the cap) and the share of them extreme (the share times the square of the stress score)"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of how often life on a stressed world is adapted"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "planetGen's choice (design 5.2 and 5.3)"
+            ]
+          ],
+          "id": "LF68",
+          "key": "6.18:LF68",
+          "kind": "P",
+          "slug": "6-18-lf68",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation_traits.P_CAP 0.8, adaptation_traits.GRADE3_SHARE 0.5"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the onset and full stress of each trait are read off the limits it moves and have no tolerance-range survey behind them"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation_draw.ONSET (dose 10 Gy/yr, hydrogen sulfide 0.002 kPa, carbon dioxide 2 kPa) and adaptation_draw.FULL (dose 1e5 Gy/yr, hydrogen sulfide 0.2 kPa, carbon dioxide 20 kPa)"
+            ],
+            [
+              "The range it moves in",
+              "each 0.3 to 3 times"
+            ],
+            [
+              "Where it holds",
+              "the stress at which a trait becomes possible (the ordinary limit starts to cost the life something) and the stress at which the extreme grade is needed"
+            ],
+            [
+              "What would show it wrong",
+              "none"
+            ],
+            [
+              "What replaces it",
+              "a stress score per limit from measured tolerance ranges"
+            ],
+            [
+              "Evidence",
+              "read off the limits it moves (LF20, LF22) and their grade-3 factors; the shape is the design's (5.1)"
+            ]
+          ],
+          "id": "LF69",
+          "key": "6.18:LF69",
+          "kind": "P",
+          "slug": "6-18-lf69",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation_draw.ONSET (dose 10 Gy/yr, hydrogen sulfide 0.002 kPa, carbon dioxide 2 kPa) and adaptation_draw.FULL (dose 1e5 Gy/yr, hydrogen sulfide 0.2 kPa, carbon dioxide 20 kPa)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "five stresses of the design have no limit in the life scores to move, so no trait is drawn for them until a class rule reads the stress"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation traits not built: brine (habitability.WATER_ACTIVITY_CRIT), heat and cold, ultraviolet, acid and alkali, low oxygen (habitability.METAZOA_O2_LOW_KPA) (design 3, rows 2, 4, 5, 6 and 8)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the stresses the design lists that have no limit in the life scores to move: water activity is one floor for all life, the class windows are the life's own temperature bands, no class term reads ultraviolet or pH, and the life builds its own oxygen (GEN.877 sets the floors by class)"
+            ],
+            [
+              "What would show it wrong",
+              "a class term that reads one of them"
+            ],
+            [
+              "What replaces it",
+              "a class rule that reads the stress, then its trait"
+            ],
+            [
+              "Evidence",
+              "physics: nothing to widen, so a trait drawn for it would change no score"
+            ]
+          ],
+          "id": "LF70",
+          "key": "6.18:LF70",
+          "kind": "P",
+          "slug": "6-18-lf70",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation traits not built: brine (habitability.WATER_ACTIVITY_CRIT), heat and cold, ultraviolet, acid and alkali, low oxygen (habitability.METAZOA_O2_LOW_KPA) (design 3, rows 2, 4, 5, 6 and 8)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the carbon monoxide and sulfur dioxide toxins are scored for animals only; a microbe toxin term would give the trait something to move"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "adaptation traits not built: habitability.CO_TOX_KPA and habitability.SO2_TOX_KPA, the carbon monoxide and sulfur dioxide toxins"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "only animals are scored against these two (habitability.CO_TOX_KPA, habitability.SO2_TOX_KPA) and the design makes the trait microbe-only, so no limit exists to move"
+            ],
+            [
+              "What would show it wrong",
+              "a microbe limit on either gas"
+            ],
+            [
+              "What replaces it",
+              "a microbe toxin term in the class scoring"
+            ],
+            [
+              "Evidence",
+              "physics: no microbe limit on either gas exists in the life scores"
+            ]
+          ],
+          "id": "LF71",
+          "key": "6.18:LF71",
+          "kind": "P",
+          "slug": "6-18-lf71",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "adaptation traits not built: habitability.CO_TOX_KPA and habitability.SO2_TOX_KPA, the carbon monoxide and sulfur dioxide toxins"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey of the share of the sunlit ocean's energy that retinal pigments supply is in hand; the share and the band are the order of the recalled literature"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "life_classes.RETINAL_SHARE 0.05, life_classes.RETINAL_BAND_NM (480, 580)"
+            ],
+            [
+              "The range it moves in",
+              "share 0.02 to 0.2, band edges 20 nm"
+            ],
+            [
+              "Where it holds",
+              "the light a retinal-pigment supplement turns to energy for a chemical class that fixes carbon in sunlit water: the share of the usable light in the blue-green band"
+            ],
+            [
+              "What would show it wrong",
+              "a measured share of the sunlit ocean's energy budget that proteorhodopsin phototrophy supplies"
+            ],
+            [
+              "What replaces it",
+              "the retinal share of Earth's surface ocean energy budget, read from a survey"
+            ],
+            [
+              "Evidence",
+              "planetGen's choice of the order of a few percent (recalled from the proteorhodopsin literature, not opened); the band is the blue-green absorption of the proteorhodopsins, peaks recalled at 490 to 530 nm"
+            ]
+          ],
+          "id": "LF72",
+          "key": "6.18:LF72",
+          "kind": "P",
+          "slug": "6-18-lf72",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "life_classes.RETINAL_SHARE 0.05, life_classes.RETINAL_BAND_NM (480, 580)"
         },
         {
           "burn_down": [

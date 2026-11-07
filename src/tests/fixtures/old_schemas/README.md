@@ -105,3 +105,4 @@ Commit each file came from:
 - v219: train 12 after GEN.1084's migration 0219 (irregular moons), before TEST.602 sector content leaf (0220)
 - v220: train 12 after TEST.602's migration 0220 (sector content leaf), before GEN.1256 Object ID names (0221)
 - v221: train 13 after GEN.1256's migration 0221 (Object ID names, no column change), before GEN.1257 charted reason (0222)
+- v222: train 14 after GEN.1257 charted reason (0222), before GEN.876 adaptation traits (0223)
