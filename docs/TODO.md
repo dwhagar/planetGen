@@ -15085,11 +15085,6 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **SEC.44 Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes**
-  Train Manager (as the lane reported, 7:43 PM EST on 2026-11-06), left over from SEC.37 (PR #5420). After SEC.37 the code tree is root-owned, but the deploy scripts still read the Generate jobs, tile cache and log folder paths from config.json, which the Settings page (web user) can edit, and then chown those paths as root. Do: read the folder paths for root actions from a root-owned file (or validate them against a fixed list of allowed parents and refuse symlinks) instead of the web-editable config.json; add tests that a path set to a system folder or a symlink is refused. Done: no path the web user can choose is chowned or written as root. Version 8.1. Owner: the SEC.33 audit thread, after SEC.43.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.37, SEC.43, SEC.33.
-
 - [ ] **TEST.661 Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug)**
   Train Manager (as the lane reported, 7:43 PM EST on 2026-11-06), seen on clean main while building SEC.37. Do: for each of the six, say whether the test or the code is wrong and fix it (the bash4 check on deploy-common.sh is a real portability finding if the script runs under an older bash), root-cause each one; none is skipped or quarantined. Done: all six pass on main. Version 8.1. Owner: Bug 1, after GEN.1322.
   Filed by the TODO thread.
@@ -15104,6 +15099,11 @@ clears each one.
   Bug 1 (as the lane reported, 8:06 PM EST on 2026-11-06), seen while fixing PERF.246. The reproducibility test bans version- or library-dependent maths in the package (the matrix operator, math.dist) because the same seed must give the same bits on every machine and library version; it is red on main for stellar_table.py (@) and the sky files (math.dist). Do: replace each with the deterministic detmath form (sum and product order fixed) and check the outputs are bit-identical where they feed stored values; where a sky file only draws pictures, say so in the test's exemption list with the reason. Done: the test is green on main and the golden is unchanged. Lock-free if bit-identical. Version 8.1. Owner: Bug 1.
   Filed by the TODO thread.
   Prerequisites: none. Related: TEST.661, PERF.246.
+
+- [ ] **TEST.664 test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug)**
+  Planets 1 (as the lane reported, 8:15 PM EST on 2026-11-06), seen on plain main while building GEN.1320. Do: find out whether the test or the life timeline is wrong (the delay before an oxygenic world holds oxygen), fix it, and cut its 8-minute run if a smaller draw proves the same thing. Done: green on main and under 2 minutes, or a stated reason it cannot be. Lock-free. Version 8.1. Owner: Bug 1.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: TEST.661, GEN.1320.
 
 - [ ] **SEC.40 Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740)**
   Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-L1, Low): GHSA-8mgp-746c-j5xp / CVE-2026-81726 is
@@ -15138,12 +15138,12 @@ clears each one.
   S-I8 in the report ride along (parameterise search_values._gas,
   usedforsecurity=False on the two SHA-1 cache fingerprints, delete vm.err
   from the repo root). Do: all of the above. Lock-free. Done: each point
-  fixed or noted with a reason. Version 8.2. Owner: none yet (after 8.1).
+  fixed or noted with a reason. Version 8.2. Owner: the SEC.33 audit thread (it is free after SEC.44).
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.33.
 
 - [ ] **SEC.45 A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function**
-  Core 3 (as the lane reported, 8:08 PM EST on 2026-11-06), left over from SEC.39: with pickle gone and a Redis user with a password shipped, a queued job still names the function a worker runs, so the password alone keeps another local user from queuing a job. Do: the worker refuses any job whose function is not on a fixed list of the functions the program queues (one registry, tested against every enqueue call site), and logs and fails a refused job. Done: a job naming a function off the list is refused in a test, and every real enqueue is on the list. Lock-free. Version 8.2. Owner: Core 3 (after SEC.41).
+  Core 3 (as the lane reported, 8:08 PM EST on 2026-11-06), left over from SEC.39: with pickle gone and a Redis user with a password shipped, a queued job still names the function a worker runs, so the password alone keeps another local user from queuing a job. Do: the worker refuses any job whose function is not on a fixed list of the functions the program queues (one registry, tested against every enqueue call site), and logs and fails a refused job. Done: a job naming a function off the list is refused in a test, and every real enqueue is on the list. Lock-free. Version 8.2. Owner: the SEC.33 audit thread (Core 3 is busy with SEC.40 and SEC.41).
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.39, SEC.33.
 

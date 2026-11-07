@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.46 |
-| TEST | TEST.664 |
+| TEST | TEST.665 |
 | USR | USR.32 |
 | OPS | OPS.110 |
 | DOC | DOC.109 |
@@ -3492,7 +3492,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | open |
 | SEC.45 | A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function | none | open |
 | SEC.43 | An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell | none | done, PR #5426 |
-| SEC.44 | Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes | none | open |
+| SEC.44 | Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes | none | done, PR #5442 |
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |
 | TEST.3 | MariaDB in CI | none | done, PR #251 (CI legs MySQL 8.0, MySQL 8.4, MariaDB 11.4; 10.11 covered by local runs) |
@@ -4152,6 +4152,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.661 | Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug) | none | open |
 | TEST.662 | test_api_link_ids::test_every_get_endpoint_is_audited is red on main: api.object_belt_member_route (GEN.1070) is neither audited nor given a reason (bug) | none | open |
 | TEST.663 | test_reproducible_draws::test_no_version_or_library_dependent_maths_in_the_package is red on main: stellar_table.py uses the matrix operator @ and the sky files use math.dist, both outside the deterministic maths (bug) | none | open |
+| TEST.664 | test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |

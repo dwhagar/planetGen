@@ -707,10 +707,10 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
 | TEST.380 | First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp |  |  |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
-| SEC.44 | Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes |  |  |
 | TEST.661 | Six tests are red on clean main in the deploy and document checks: test_no_todo_codes_shown, the plain-words document test, three in test_install_python_deps and the bash4 ^^} check on deploy-common.sh (bug) |  |  |
 | TEST.662 | test_api_link_ids::test_every_get_endpoint_is_audited is red on main: api.object_belt_member_route (GEN.1070) is neither audited nor given a reason (bug) |  |  |
 | TEST.663 | test_reproducible_draws::test_no_version_or_library_dependent_maths_in_the_package is red on main: stellar_table.py uses the matrix operator @ and the sky files use math.dist, both outside the deterministic maths (bug) |  |  |
+| TEST.664 | test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug) |  |  |
 | SEC.40 | Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740) |  |  |
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats |  |  |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, TEST.300, GEN.743, GEN.744, GEN.745, GEN.752 |  |
