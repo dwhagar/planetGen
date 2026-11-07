@@ -53,7 +53,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.388 | Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon | GEN.209, MAP.207, MAP.232, GEN.1273, GEN.239, GEN.248, GEN.296, GEN.246, GEN.249, GEN.255, GEN.256, GEN.257 |  |
+| MAP.388 | Headline of 8.8: deep sky objects, shown on the maps and reachable by flight: clusters, satellites, nebula windows and every rare star and phenomenon | GEN.209, MAP.207, MAP.232, GEN.239, GEN.248, GEN.296, GEN.246, GEN.249, GEN.255, GEN.256, GEN.257 |  |
 
 ### Pages for every kind of item (moved from 8.2)
 
