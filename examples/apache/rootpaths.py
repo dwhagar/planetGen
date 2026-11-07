@@ -15,8 +15,9 @@ read from config.json must pass first:
   checkout, and anything the operator lists in `PLANETGEN_ROOT_PATH_PARENTS`, which only root's own environment can set),
   and strictly below it, not in one of the system folders under them (`PROTECTED`);
 - no symbolic link on the way, and none at the end;
-- every existing folder between the allowed parent and the path is root's and not writable by the web user (so the
-  web user cannot swap a link in after the check);
+- every existing folder between the allowed parent and the path is root's (under /home and /Users: anyone's but the web
+  user's, since a user may install in a home folder) and not writable by the web user (so the web user cannot swap a
+  link in after the check); no name on the way starts with a dot (`~/.ssh`);
 - an existing path is only taken over when it is already the web user's, or root's with the web group (what an earlier run
   left), or empty. /var/lib/mysql is none of those, so it is never re-owned.
 
@@ -33,8 +34,12 @@ import pwd
 import re
 import stat
 
+HOME_PARENTS = ("/home", "/Users")
+"""tuple: Where users' home folders are (Linux, macOS). A planetGen installed in a home folder on a shared machine keeps its
+folders there; the folders on the way are the user's, not root's, so they only have to be closed to the web user."""
+
 ALLOWED_PARENTS = ("/var/lib", "/var/cache", "/var/log", "/srv", "/opt", "/usr/local/var",
-                   "/Library/Logs", "/Library/Caches", "/Library/Application Support")
+                   "/Library/Logs", "/Library/Caches", "/Library/Application Support") + HOME_PARENTS
 """tuple: The folders a path from config.json may sit under (the checkout is allowed too)."""
 
 PARENTS_ENV = "PLANETGEN_ROOT_PATH_PARENTS"
@@ -46,9 +51,6 @@ PROTECTED = frozenset({
     "auth.log", "syslog", "wtmp", "btmp", "lastlog", "kern.log", "messages", "secure", "dmesg",
 })
 """frozenset: A name that must not be the first one under an allowed parent (a system service's folder or log)."""
-
-SAFE_GROUPS = frozenset({"root", "wheel", "adm", "syslog", "admin", "staff"})
-"""frozenset: Groups whose write access to a folder on the way does not matter (the web user is not in them)."""
 
 PLAIN = re.compile(r"[A-Za-z0-9_./+@:\-]+")
 
@@ -83,22 +85,24 @@ def _parents(extra):
     return [p.rstrip("/") or "/" for p in found]
 
 
-def _web_can_write(info, gid):
-    """Whether the web server's group, or anyone, can write a folder root owns (its owner is root already)."""
-    mode = stat.S_IMODE(info.st_mode)
-    if mode & 0o002:
-        return True
-    return bool(mode & 0o020 and (gid is not None and info.st_gid == gid or info.st_gid not in _safe_gids()))
-
-
-def _safe_gids():
-    found = set()
-    for name in SAFE_GROUPS:
-        try:
-            found.add(grp.getgrnam(name).gr_gid)
-        except KeyError:
-            pass
+def _web_gids(uid, gid):
+    """Every group id the web server's user acts with: its main group, the one named, and any group that lists it."""
+    found = {gid} if gid is not None else set()
+    if uid is None:
+        return found
+    try:
+        entry = pwd.getpwuid(uid)
+    except KeyError:
+        return found
+    found.add(entry.pw_gid)
+    found.update(g.gr_gid for g in grp.getgrall() if entry.pw_name in g.gr_mem)
     return found
+
+
+def _web_can_write(info, uid, gid):
+    """Whether the web server's user can write a folder: anyone can, or its group can."""
+    mode = stat.S_IMODE(info.st_mode)
+    return bool(mode & 0o002 or (mode & 0o020 and info.st_gid in _web_gids(uid, gid)))
 
 
 def _is_empty(path):
@@ -133,6 +137,9 @@ def check(path, label, uid=None, gid=None, extra_parents=()):
                          f", the checkout, or those in {PARENTS_ENV}); put it there, or set the {ENV_OF.get(label, '')} "
                          f"environment variable in root's shell")
     relative = path[len(parent.rstrip("/")) + 1:]
+    if any(part.startswith(".") for part in relative.split("/")):
+        raise UnsafePath(f"{label}: {path} has a hidden folder or file name (one that starts with a dot)")
+    home = parent in HOME_PARENTS
     if relative.split("/")[0] in PROTECTED:
         raise UnsafePath(f"{label}: {path} is a system service's folder or log")
     real_parent = os.path.realpath(parent)
@@ -145,8 +152,10 @@ def check(path, label, uid=None, gid=None, extra_parents=()):
             info = os.lstat(walk)
         except FileNotFoundError:
             break
-        if not stat.S_ISDIR(info.st_mode) or info.st_uid != TRUSTED_UID or _web_can_write(info, gid):
-            raise UnsafePath(f"{label}: {walk}, on the way to {path}, is not a folder that only root can change")
+        theirs = info.st_uid == TRUSTED_UID or (home and (uid is None or info.st_uid != uid))
+        if not stat.S_ISDIR(info.st_mode) or not theirs or _web_can_write(info, uid, gid):
+            raise UnsafePath(f"{label}: {walk}, on the way to {path}, is not a folder that only "
+                             f"{'its owner and root' if home else 'root'} can change")
     try:
         info = os.lstat(path)
     except FileNotFoundError:

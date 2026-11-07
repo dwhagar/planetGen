@@ -71,10 +71,13 @@ addresses that keep guessing admin passwords.
   `setup-debug-log.sh` and the `update.log` start ask `examples/apache/rootpaths.py`
   before they make, re-own or write into the tile cache, the jobs folder, the
   debug log or the log folder. A path passes when it is plain (letters, digits and
-  `_ . / + @ : -`), sits under `/var/lib`, `/var/cache`, `/var/log`, `/srv`, `/opt`,
-  the checkout or a folder listed in root's `PLANETGEN_ROOT_PATH_PARENTS`, is not a
-  system service's folder, has no symbolic link on the way, has only root-owned
-  folders above it, and, if it exists, is already the web user's, left by an
+  `_ . / + @ : -`), sits under `/var/lib`, `/var/cache`, `/var/log`, `/srv`, `/opt`, a home
+  folder (`/home`, `/Users`: a user may install there on a shared machine, so
+  the folders on the way may be the user's, never the web user's, and none may
+  start with a dot), the checkout or a folder listed in root's
+  `PLANETGEN_ROOT_PATH_PARENTS`, is not a system service's folder, has no
+  symbolic link on the way, has no folder above it that the web user can
+  change (root-owned elsewhere), and, if it exists, is already the web user's, left by an
   earlier run or empty. A refused folder is skipped with a warning; the install or
   update goes on. A folder given in root's own environment
   (`PLANETGEN_TILE_CACHE_DIR`, `PLANETGEN_JOBS_DIR`, `PLANETGEN_LOG_FILE`,
