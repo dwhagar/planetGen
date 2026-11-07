@@ -12,11 +12,16 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 
-from tests.test_irregular_moons import JUPITER_KG, _planet, _source
+from tests.test_irregular_moons import JUPITER_KG, _belt_source, _inner_belt, _planet, _source
 
 
 def _jupiter_set():
     return irregular_moons.for_planet(_planet(5.2, JUPITER_KG, 69911.0), _source())
+
+
+def _belt_caught_set():
+    """GEN.1085 part 2: a Jupiter next to an inner belt with stored members; some of its bodies are members of the belt."""
+    return irregular_moons.for_planet(_planet(5.2, JUPITER_KG, 69911.0), _belt_source(_inner_belt(members=(3.0e20, 1.0e19, 4.0e17))))
 
 
 def _approx_dict(value):
@@ -25,6 +30,12 @@ def _approx_dict(value):
     if isinstance(value, list):
         return [_approx_dict(item) for item in value]
     return pytest.approx(value) if isinstance(value, float) else value
+
+
+def test_a_set_caught_from_a_belt_round_trips_through_a_dict():
+    held = _belt_caught_set()
+    assert any(moon.belt_order == 0 for moon in held.moons) and any(moon.belt_rank is not None for moon in held.moons)
+    assert irregular_moons.IrregularSet.from_dict(held.to_dict()).moons == held.moons
 
 
 def test_a_set_round_trips_through_a_dict():
@@ -44,9 +55,10 @@ def _config():
     return cfg
 
 
-def test_a_saved_planet_reads_back_its_irregular_moons(mysql_config):
+@pytest.mark.parametrize("make", [_jupiter_set, _belt_caught_set])
+def test_a_saved_planet_reads_back_its_irregular_moons(mysql_config, make):
     config = _config()
-    held = _jupiter_set()
+    held = make()
     for seed in range(1, 30):
         draw.set_run_seed(seed)
         system = StarSystem(system_config=config)

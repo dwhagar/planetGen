@@ -38535,10 +38535,86 @@
           "tweak": "L0",
           "unread": null,
           "what": "irregular_moons.take_from_disks: what the planets hold now (stored bodies and remainder, after their own grinding) leaves the disks' present mass, shared by the disks' primordial mass and never more than a disk's remainder; the grinding the captured bodies and the disk each suffered separately is not told apart"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "irregular_moons.ENCOUNTER_REACH_AU 3.0 AU at a planet with Jupiter's Hill radius (scaled by the planet's Hill radius over irregular_population.REFERENCE_HILL_AU): an inner belt is a reservoir of the planet when the gap between the planet's orbit and the belt's nearest edge is no more than this"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5 AU"
+            ],
+            [
+              "Where it holds",
+              "planets of a star with a belt inside the reach, from Jupiter-mass giants"
+            ],
+            [
+              "What would show it wrong",
+              "a population of irregular moons of Jupiter or Saturn with no member of a belt inside the reach, or belt bodies caught from a belt far outside it"
+            ],
+            [
+              "What replaces it",
+              "the encounter sphere of a close approach computed for the belt's own orbits (its eccentricity and inclination)"
+            ],
+            [
+              "Evidence",
+              "NDD14's 3 AU encounter sphere (f_3AU), the sphere that gives irregular_population.ENCOUNTER_YIELD (docs/design/systems/captured-asteroid-moons.md section 4.1)"
+            ]
+          ],
+          "id": "CD2",
+          "key": "6.193:CD2",
+          "kind": "P",
+          "slug": "6-193-cd2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "irregular_moons.ENCOUNTER_REACH_AU 3.0 AU at a planet with Jupiter's Hill radius (scaled by the planet's Hill radius over irregular_population.REFERENCE_HILL_AU): an inner belt is a reservoir of the planet when the gap between the planet's orbit and the belt's nearest edge is no more than this"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "irregular_moons.for_planet: an inner belt gives its planet the encounter window only (no gas disk is left), and the yield per particle and the size law are the outer disk's, scaled by the belt's primordial mass over irregular_population.REFERENCE_DISK_MASS_EARTH; a body at least as heavy as the belt's lightest stored member is the stored member nearest to it in mass that no earlier planet of the star caught, and keeps its mass, makeup and place as the belt shows them (no ice is lost), a lighter one is composed from the belt's stretch"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "inner belts of 1e-4 Earth masses or more"
+            ],
+            [
+              "What would show it wrong",
+              "the ratio of belt to outer-disk captures of the Solar System's giants, with the main belt and the Trojans"
+            ],
+            [
+              "What replaces it",
+              "a size law and a yield measured for belts"
+            ],
+            [
+              "Evidence",
+              "the belt-origin share of the design (mass of the belts inside the encounter region over the total reservoir mass, docs/design/systems/captured-asteroid-moons.md section 4.5)"
+            ]
+          ],
+          "id": "CD3",
+          "key": "6.193:CD3",
+          "kind": "B",
+          "slug": "6-193-cd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "irregular_moons.for_planet: an inner belt gives its planet the encounter window only (no gas disk is left), and the yield per particle and the size law are the outer disk's, scaled by the belt's primordial mass over irregular_population.REFERENCE_DISK_MASS_EARTH; a body at least as heavy as the belt's lightest stored member is the stored member nearest to it in mass that no earlier planet of the star caught, and keeps its mass, makeup and place as the belt shows them (no ice is lost), a lighter one is composed from the belt's stretch"
         }
       ],
-      "slug": "6-193-stand-in-of-the-mass-the-planets-take-from-an-outer-disk",
-      "title": "Stand-in of the mass the planets take from an outer disk"
+      "slug": "6-193-stand-ins-of-the-mass-the-planets-take-from-the-disks-and-belts-they-caught-it-from",
+      "title": "Stand-ins of the mass the planets take from the disks and belts they caught it from"
     },
     {
       "key": "6.192",

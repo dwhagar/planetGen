@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1193 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1195 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 161 | 17 | 10 | 1 | 0 | 189 |
-| T2 | 122 | 50 | 1 | 1 | 0 | 174 |
+| T2 | 122 | 51 | 1 | 1 | 0 | 175 |
 | T3 | 85 | 42 | 7 | 9 | 0 | 143 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 51 | 21 | 3 | 1 | 0 | 76 |
-| T6 | 112 | 85 | 24 | 61 | 0 | 282 |
+| T6 | 113 | 85 | 24 | 61 | 0 | 283 |
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 35 | 14 | 5 | 79 | 34 | 167 |
-| All | 654 | 248 | 58 | 188 | 45 | 1193 |
+| All | 655 | 249 | 58 | 188 | 45 | 1195 |
 
 ## How the labels were given
 
@@ -1669,11 +1669,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | WB1 | P | T1 | L0 | tuning.WR_BINARY_MIN_RATIO 0.72: the least initial mass at which a companion can strip a star into a Wolf-Rayet star, as a share of the single-star threshold (18 against 25 solar masses at the Sun's metallicity, carried up by the same metallicity law as the threshold) | 0.6 to 0.85 | primaries of 15 to 40 solar masses with a close companion, at the Galaxy's metallicity; at lower metallicity the law is the single-star threshold's own | a spectroscopic survey of Wolf-Rayet stars in binaries whose primaries began below 18 solar masses, or the 18 / 24 / 37 solar mass trend of the Galaxy, LMC and SMC failing to follow Z to the minus one half | the stripped-star mass from a binary evolution grid by metallicity, period and mass ratio (the MESA grid of the source) | [R4051: Table 1] and section 3.2: the least initial mass 18 solar masses for the Galaxy, from the 7.5 solar mass least stripped helium star of a Wolf-Rayet spectrum | - | - |
 | WB2 | P | T2 | L0 | tuning.WR_STRIPPING_FRACTION 0.33: the share of stars between the binary and the single-star threshold that a companion strips into a Wolf-Rayet star | 0.2 to 0.5 | the same band, near solar metallicity | an observed binary-stripped to single-star Wolf-Rayet ratio far from 0.25 to 0.4 in the Galaxy, or a population synthesis of interacting binaries giving another stripped share | a stripping chance from the period and mass-ratio law of the member trees (the share of close binaries that transfer mass in a way that strips the envelope) | [R4051] section 5, below its Eq. 4: the stripping efficiency 0.33 it takes from the observed interacting fraction (read, quoted by the paper, not re-derived) | - | - |
 
-## 6.193 Stand-in of the mass the planets take from an outer disk
+## 6.193 Stand-ins of the mass the planets take from the disks and belts they caught it from
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | CD1 | D | T6 | L0 | irregular_moons.take_from_disks: what the planets hold now (stored bodies and remainder, after their own grinding) leaves the disks' present mass, shared by the disks' primordial mass and never more than a disk's remainder; the grinding the captured bodies and the disk each suffered separately is not told apart | the share of the disk is under 1e-6 for a Jupiter | outer disks with one or more giants | a captured population that is a tenth of its disk's present mass | the capture taken from the disk at the window and both ground down apart | conservation of mass: the design asks that "belt mass minus captured mass is conserved" (docs/design/systems/captured-asteroid-moons.md section 4.4) | - | - |
+| CD2 | P | T2 | L1 | irregular_moons.ENCOUNTER_REACH_AU 3.0 AU at a planet with Jupiter's Hill radius (scaled by the planet's Hill radius over `irregular_population.REFERENCE_HILL_AU`): an inner belt is a reservoir of the planet when the gap between the planet's orbit and the belt's nearest edge is no more than this | 2 to 5 AU | planets of a star with a belt inside the reach, from Jupiter-mass giants | a population of irregular moons of Jupiter or Saturn with no member of a belt inside the reach, or belt bodies caught from a belt far outside it | the encounter sphere of a close approach computed for the belt's own orbits (its eccentricity and inclination) | NDD14's 3 AU encounter sphere (`f_3AU`), the sphere that gives `irregular_population.ENCOUNTER_YIELD` (docs/design/systems/captured-asteroid-moons.md section 4.1) | - | - |
+| CD3 | B | T6 | L0 | irregular_moons.for_planet: an inner belt gives its planet the encounter window only (no gas disk is left), and the yield per particle and the size law are the outer disk's, scaled by the belt's primordial mass over `irregular_population.REFERENCE_DISK_MASS_EARTH`; a body at least as heavy as the belt's lightest stored member is the stored member nearest to it in mass that no earlier planet of the star caught, and keeps its mass, makeup and place as the belt shows them (no ice is lost), a lighter one is composed from the belt's stretch | none | inner belts of 1e-4 Earth masses or more | the ratio of belt to outer-disk captures of the Solar System's giants, with the main belt and the Trojans | a size law and a yield measured for belts | the belt-origin share of the design (mass of the belts inside the encounter region over the total reservoir mass, docs/design/systems/captured-asteroid-moons.md section 4.5) | - | - |
 
 ## 6.192 Stand-in of how far apart random placement keeps two systems
 

@@ -289,7 +289,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.184", "6.184 Stand-ins of the binary-stripped Wolf-Rayet channel",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.193", "6.193 Stand-in of the mass the planets take from an outer disk",
+    ("6.193", "6.193 Stand-ins of the mass the planets take from the disks and belts they caught it from",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.192", "6.192 Stand-in of how far apart random placement keeps two systems",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
