@@ -42,6 +42,8 @@ SEED = "oddity-harness"
 """str: The seed the sample is drawn from, with the row id and the body's number, so a second run draws the same bodies."""
 MAX_ATTEMPTS = 40
 """int: How many gated draws a body gets before the sample records that the gate is never met."""
+GIVE_UP_AFTER_MISSES = 3
+"""int: `run_row` stops when this many samples in a row found no gated body and none has been found (the slow part of a run is the draws of a gate that is never met)."""
 TEMPERATURE_SLACK = 1.01
 """float: The slack on the radiative balance of an airless body (floating point and the choice of the sub-stellar flux, which is the most it gets)."""
 TIDAL_ENERGY_FRACTION = 1.0
@@ -440,9 +442,19 @@ def ring_failures(body, star, markers=()):
 
 # --- forcing a row on a sample ----------------------------------------------------------------------------------------------------
 
+HARNESS_QUANTITIES = frozenset({"body_type", "mass_earth", "radius_earth", "density_g_cm3", "semi_major_axis_au", "eccentricity", "orbital_period_days", "age_gyr",
+                                "host_teff_k", "host_mass_sun", "host_close_binary", "surface_pressure_pa", "obliquity_deg", "water_mass_fraction",
+                                "envelope_mass_fraction", "spin_period_days", "moon_mass_ratio", "collision_count", "tidally_locked", "equilibrium_temperature_k",
+                                "core_mass_fraction"})
+"""frozenset: The quantities `quantities_of` can give a single drawn body. A row whose gate reads another (a planet's place in a chain, its orbit in stellar radii) has no
+sample here: drawing 40 systems for it per body would only find that out slowly."""
+
+
 def draw_body(row, number):
     """`(body, star)` for sample number `number` of `row`: a gated body drawn by the generator, seeded from the row and the number; `None` when no
-    draw in `MAX_ATTEMPTS` meets the gate."""
+    draw in `MAX_ATTEMPTS` meets the gate (or the gate reads a quantity a single drawn body does not have, `HARNESS_QUANTITIES`)."""
+    if any(condition["quantity"] not in HARNESS_QUANTITIES for condition in row.requires):
+        return None
     for attempt in range(MAX_ATTEMPTS):
         with draw.bound(f"{SEED}:{row.id}:{number}:{attempt}"):
             star_type = draw.choice(plausibility.HOST_STAR_TYPES)
@@ -471,9 +483,13 @@ def force(row, number):
 def run_row(row, n=SAMPLE):
     """`{"row", "n", "gated", "general": {invariant: bodies failing}, "limits": bodies failing a limit, "examples": [text]}` for `n` forced bodies of `row`."""
     general, limits, examples, gated = {}, 0, [], 0
+    misses = 0
     for number in range(n):
         forced = force(row, number)
         if forced is None:
+            misses += 1
+            if not gated and misses >= GIVE_UP_AFTER_MISSES:      # a gate that three samples of 40 draws each never met is rare or unreachable here: the census counts it
+                break
             continue
         gated += 1
         body, star = forced
