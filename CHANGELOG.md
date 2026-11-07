@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3603] - 2026-11-07
+
+**Headline:** The merge train's gate now always runs the tests that count what a few seeded bodies do, when a change reaches generation or physics.
+
+### Changed
+
+- **Gate file list widened (TEST.681).** `scripts/train_gate.py files` chose test files by the modules a branch changed, so tests that sample seeded bodies and count what they find (the sheet fill, the bring-to-epoch run, the radius valley sweep and others) were left out and went red only after a merge. The gate now names them and adds them whenever a file under `generation/` or `physics/` changes, and a test checks that every named file exists.
+
 ## [8.0.3602] - 2026-11-07
 
 **Headline:** A very hot outgassed world no longer crashes its whole system: atomic chlorine, atomic fluorine and fluorine are now in the gas table (GEN.1337).

@@ -460,7 +460,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1086 | System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space |  |  |
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders |  |  |
 | TEST.660 | The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train |  |  |
-| TEST.676 | Radius valley and rogue-envelope tests: a measured gate on the 1.5 to 2.0 Earth radii gap against the published valley, and a check that starless planets of 1 to 20 Earth masses keep the whole envelope and are classed like bound ones (GEN.1323 parts C and D) |  |  |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | GEN.1069, GEN.1006 |  |
 | GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | GEN.1068 |  |
 | GEN.1070 | Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump | GEN.1069 |  |
@@ -534,7 +533,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.1249 | A sea labelled methane because ice supplies it can store a mix that is mostly ethane: make the label and the mix agree |  |  |
 
 ### Physics rectification: citations and the gate's test health
 
@@ -547,7 +545,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 |---|---|---|---|
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages |  |  |
 | GEN.1309 | Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug) |  |  |
-| GEN.1310 | Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent |  |  |
 | GEN.1311 | Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves |  |  |
 | GEN.1312 | Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix | GEN.1311 |  |
 | GEN.1313 | Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths | GEN.1312 |  |
@@ -556,17 +553,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1316 | Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge | GEN.1313 |  |
 | GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 |  |
 | GEN.1318 | Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers | GEN.1309, GEN.1312, GEN.1313 |  |
-| GEN.1319 | Sealed-ocean chemistry: leached sodium and calcium with no chloride or sulfate to balance them give oceans of pH 11 to 14 that lock all carbon into calcite (bug) |  |  |
-| GEN.1323 | Close-in planets of 4 to 40 Earth masses carry no hydrogen envelope, so there are no sub-Neptunes and no radius valley: the envelope recipes of GEN.509 and GEN.722 are not read by the generator (bug) |  |  |
-| GEN.1325 | Giant planet eccentricity averages 0.08 against 0.22 published for the observed giants |  |  |
-| GEN.1329 | Three of 20 hot rocky planets hold 1e5 bar steam airs of 3 to 7 percent of the planet's mass on K hosts: check whether the water inventory and the loss are right (bug) |  |  |
 | GEN.1331 | Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide) |  |  |
-| GEN.1332 | A nebula's stored shape cannot be reproduced from its stored row: the shape seed includes the dominant-species text, which store_composition rewrites afterwards (TEST.672) |  |  |
-| GEN.1333 | A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers | GEN.1323 |  |
-| GEN.1334 | A planet with a hydrogen-helium envelope has no ground: no surface dose, land fraction or rocky air solve beneath it; its air, moons and rings follow the envelope (GEN.1323 part B) | GEN.1323 |  |
-| GEN.1335 | Inner planets (inside 100 days) are 5 to 8 Earth masses against the 3.72 median of the Kepler survey, so the rocky peak of the radius valley sits at 1.5 to 1.75 Earth radii instead of 1.3 to 1.4: compare the generated inner mass function with the published masses |  |  |
-| GEN.1336 | Hot Jupiters round red dwarfs are about twice as common as the researched band (0.5 percent against 0.27): test_hot_jupiters_are_rare_and_rarer_round_a_red_dwarf passes only on a lucky seed |  |  |
-| GEN.1337 | A rocky planet's outgassing can fail with a MixtureError (0.00143 of the gas is Cl, F and F2, species the gas table lacks) and crash the whole StarSystem (bug) |  |  |
+| GEN.1333 | A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers |  |  |
+| GEN.1334 | A planet with a hydrogen-helium envelope has no ground: no surface dose, land fraction or rocky air solve beneath it; its air, moons and rings follow the envelope (GEN.1323 part B) |  |  |
 | GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor |  |  |
 | GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number |  |  |
 | GEN.1342 | Class O takes any world with more than 80 percent surface water within the habitable range, 275 to 312 K (M's floor up to O's current ceiling), so a temperate global ocean with oxygen has a hard class (Boss, option 2: no new letter) |  |  |
@@ -577,6 +566,13 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1349 | Sealed-ocean calcium: the model leaches all of the crust's 8.5 weight percent calcium to solution as a free cation, which sets lime-buffered pH 12 to 14 in 60 percent of sealed oceans; find what share a leached basalt gives up as free calcium against what stays in carbonate and silicate minerals |  |  |
 | GEN.1351 | A planet's tidal heating is kept for the whole age with no cap from the orbit's energy: a 0.0013 Earth-mass planet at 0.0134 AU round a 0.09 solar-mass star at e=0.068 spends 2.4e31 J over 1.8 Gyr against an orbital energy of 2.3e31 J (bug) |  |  |
 | GEN.1352 | Moons of a tipped giant: a moon's stored inclination is read by moon_history as against the parent's equator but placed in the system frame, so Uranus-type moons do not follow the tipped equator (bug) |  |  |
+| OPS.116 | One error.log in the log folder that records every error and crash from everything (every logger, subprocess, killed worker, update.sh and warm-up stage, web and API error, uncaught exception), while each error still goes to its own log too |  |  |
+| TEST.679 | test_bring_to_epoch.py::test_a_sector_made_under_an_older_epoch_is_really_generated_again hangs on main: the hang guard kills it after 17 minutes alone (bug) |  |  |
+| TEST.680 | test_web_a11y.py: 20 cases fail axe link-in-text-block (link colour contrast 2.49 to 1) on the help index, the references pages and the account page (bug) |  |  |
+| GEN.1353 | Class and life census re-tag after train 15 (epoch 137): re-measure the census shares and re-baseline the class and life ranges the train moved |  |  |
+| OPS.117 | update.sh's warm-up part 2 failed with "run ... is running" because the epoch's warm-up had started the moment the update ended, and the phase lines gave the workers' seconds added up (5338 s for 9:39), a wrong chunk size and an out-of-memory guess for a SIGTERM (bug) |  |  |
+| OPS.118 | Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug) |  |  |
+| TEST.682 | test_cache_warmup.py::test_a_tiered_pass_travels_as_json_and_comes_back_equal fails on main (bug) |  |  |
 | GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values |  |  |
 | OPS.115 | update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug) |  |  |
 | DB.115 | A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug) |  |  |
