@@ -34,6 +34,7 @@ from planetgen.galaxy import sky_band
 from planetgen.galaxy.density import relative_density
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars, scatter_companions, sky_tiers
+from planetgen.util import detmath
 
 CELL_PAD_PC = sky_band.CELL_PC * math.sqrt(3.0) / 2.0
 """float: What every radius is padded by: the half diagonal of the observer's cell, so a system anywhere in it is inside the sphere (stand-in SKT7 in 6.176)."""
@@ -313,7 +314,7 @@ def built_to_pc(conn, observer_pc):
     if scatter is None or not ledger:
         return 0.0
     observer = tuple(float(c) for c in observer_pc)
-    holding = sky_tier_ledger.Ledger(d for d in ledger.draws if math.dist(d.center, observer) < d.radius_pc)
+    holding = sky_tier_ledger.Ledger(d for d in ledger.draws if detmath.dist(d.center, observer) < d.radius_pc)
     if not holding:
         return 0.0
     if holding.sphere_reached(sky_tier_ledger.LUMINOSITY, observer, 0.0, float(scatter[0])) > sky_tiers.RING_TOP_SOL + sky_tier_ledger.EDGE_TOLERANCE:
@@ -321,7 +322,7 @@ def built_to_pc(conn, observer_pc):
     mass_limit = store.bright_star_mass_limit(conn)
     if mass_limit is not None and holding.sphere_reached(sky_tier_ledger.MASS, observer, 0.0, mass_limit) > min(sky_tiers.ring_edges()) + sky_tier_ledger.EDGE_TOLERANCE:
         return 0.0
-    return max(d.radius_pc - math.dist(d.center, observer) for d in holding.draws)
+    return max(d.radius_pc - detmath.dist(d.center, observer) for d in holding.draws)
 
 
 def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, tiers=None, center=None):
