@@ -50,6 +50,31 @@ def radius_ly_at(age_yr, rms_speed_kms, shape="ball"):
     return field_dispersal.rms_radius_m(age_yr, rms_speed_kms * 1000.0, ring_m) / constants.LIGHTYEAR_M
 
 
+RETIREMENT_RADIUS_LY = field_dispersal.RETIREMENT_RADIUS_M / constants.LIGHTYEAR_M
+"""float: The rms radius, light-years, past which a field is retired (`field_dispersal.RETIREMENT_RADIUS_M`, one light-year): spread that thin it is no longer a field but part of the interstellar background (GEN.1107)."""
+
+
+RETIRED_FIELD_SQL = f"radius_ly > {RETIREMENT_RADIUS_LY!r}"
+"""str: The SQL test of a retired field (GEN.1107), the same as `is_retired_radius`. The map reads (`db.query._placed_phenomenon_rows`) and the widest-radius reads (`query`, `obstacles`) leave such a row out; the row, its Object
+ID, its page, its place in the Phenomena catalog, its members and any facility at it stay."""
+
+
+def is_retired_radius(radius_ly):
+    """Whether a field of this stored rms radius is retired (GEN.1107). A retired field is not deleted (its Object ID, its members and any facility at it stay); it is no longer listed or drawn, and the stored radius keeps
+    following its age. The state is a formula of the row, so no column holds it (`RETIRED_FIELD_SQL` is the same test in SQL)."""
+    return radius_ly > RETIREMENT_RADIUS_LY
+
+
+def aged(birth_age_yr, rms_speed_kms, shape, composition_family, density, elapsed_yr):
+    """
+    A field after `elapsed_yr` more years (GEN.1107, the bring-to-epoch step): `(age, radius_ly, field_class)`. The age advances by the elapsed time and the radius, and the size digit of the class, follow
+    from it by the same formula that made them (`radius_ly_at`).
+    """
+    age = birth_age_yr + elapsed_yr
+    radius = radius_ly_at(age, rms_speed_kms, shape)
+    return age, radius, asteroid_field_class(composition_family, density, radius)
+
+
 def asteroid_field_size_digit(radius_ly):
     """The size digit of a field's class: floor(log10(radius in AU)),
     clamped to `ASTEROID_FIELD_SIZE_DIGIT_RANGE` (1-4)."""
