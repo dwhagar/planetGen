@@ -1,3 +1,5 @@
+**Headline:** The references registry gained Elkins-Tanton and Seager 2008b (super-Earth outgassing), no generator output changes.
+
 ### Changed
 
 # Source added for the hot rocky planet air work (GEN.1328)
