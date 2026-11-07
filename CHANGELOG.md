@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3568] - 2026-11-07
+
+**Headline:** The API route snapshot lists the Queue page's held-jobs route, so the API version test passes again.
+
+### Changed
+
+- **API snapshot gains `/api/admin/work/held GET` (TEST.675).** The Queue page listing of the jobs held for a job they require (PERF.248) added the route without rewriting `tests/fixtures/api_routes.json`, so `test_api_version` failed on main. The route is new and nothing existing changed, so it is not a breaking change: `API_VERSION` stays 13 and `docs/reference/api.md` gets no line. `/api/uncharted-systems/<id>/generate POST` is already in the snapshot. Test fixture only.
+
+generation-output: unchanged
+
 ## [8.0.3567] - 2026-11-07
 
 **Headline:** The life sweep's letter floor stays at 8 with its reason measured: the drop from 12 to 9 letters after train 13 is sampling on single-body letters, not lost life-capable bodies.
