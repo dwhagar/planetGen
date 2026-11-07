@@ -234,6 +234,12 @@ def test_a_unit_whose_horse_was_killed_is_logged_and_fails_its_run(folder, monke
     assert "unit 7 of run run-9, pid 4243, was killed by SIGKILL" in "\n".join(_lines(folder))
 
 
+def test_a_work_horse_ended_by_sigterm_is_logged_because_rq_only_calls_the_handler_for_an_end_nobody_asked_for(folder):
+    """OPS.118: a unit's horse ended with status 15 on Boss's test server; the next one names its signal, its unit and its run in the error log."""
+    units.horse_killed(_Job(), 4244, signal.SIGTERM, None)
+    assert "was killed by SIGTERM" in "\n".join(_lines(folder))
+
+
 def test_a_decoded_wait_status_is_the_exit_status_or_minus_the_signal():
     assert log.decode_wait_status(signal.SIGKILL) == -9
     assert log.decode_wait_status(3 << 8) == 3

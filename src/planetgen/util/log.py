@@ -713,12 +713,13 @@ def decode_wait_status(raw):
     return raw
 
 
-def process_ended(component, what, status, output="", ignore=(0,), **fields):
+def process_ended(component, what, status, output="", ignore=(0,), deliberate=None, **fields):
     """
     Logs, as an error, a child process that did not end well, from the parent that started it (a killed or crashed worker, a failed step): `what`
     is who it was and `status` the number `Popen.wait()` returned, which is negative for a signal. The last lines of its `output` that say an error
-    are added. Nothing is logged for a status in `ignore`, nor for a signal in `DELIBERATE_SIGNALS`. Returns the words (`exited with status 3`,
-    `was killed by SIGKILL`), or `None` when nothing was logged.
+    are added. Nothing is logged for a status in `ignore`, nor for a signal in `deliberate` (`DELIBERATE_SIGNALS` by default: a stop on purpose
+    is no error; a caller that is told only of unexpected ends passes `()`). Returns the words (`exited with status 3`, `was killed by SIGKILL`),
+    or `None` when nothing was logged.
     """
     if status in ignore:
         return None
@@ -727,7 +728,7 @@ def process_ended(component, what, status, output="", ignore=(0,), **fields):
             name = signal.Signals(-status).name
         except ValueError:
             name = f"signal {-status}"
-        if name in DELIBERATE_SIGNALS:
+        if name in (DELIBERATE_SIGNALS if deliberate is None else deliberate):
             return None
         words = f"was killed by {name}"
     else:
