@@ -21,7 +21,7 @@ release is stamped.
 | DB | DB.115 |
 | API | API.42 |
 | ADM | ADM.139 |
-| SEC | SEC.43 |
+| SEC | SEC.44 |
 | TEST | TEST.660 |
 | USR | USR.32 |
 | OPS | OPS.110 |
@@ -3481,6 +3481,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.40 | Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740) | none | open |
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats | none | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | open |
+| SEC.43 | An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell | none | open |
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |
 | TEST.3 | MariaDB in CI | none | done, PR #251 (CI legs MySQL 8.0, MySQL 8.4, MariaDB 11.4; 10.11 covered by local runs) |

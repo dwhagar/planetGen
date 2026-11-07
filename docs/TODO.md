@@ -15183,6 +15183,11 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.33.
 
+- [ ] **SEC.43 An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell**
+  Boss (7:20 PM EST on 2026-11-06, cited in the SEC.33 audit thread): an Update button in the admin pages so update.sh never needs a root shell, which also answers the S-M1 root problem (SEC.37). Design recommended by the audit thread: the web user only drops a fixed request file in the state folder (no arguments from the browser); a root-owned systemd .path unit starts the existing planetgen-update.service (examples/maintenance), which runs update.sh as root; the page shows status and log by reading a log file. Guards: Owner tier plus a recent-password confirm, CSRF, an activity-log row, and the update guard's cancel and queue rules apply. Do: the admin page and API route, the request-file hand-off, the .path unit and its install in examples/maintenance and the deploy scripts, the status and log view, tests for the guards (no request without Owner and a fresh password, no argument reaches root, a second request while one runs queues or is refused by the guard's rules). Pairs with SEC.37 (the checkout becomes root-owned) and SEC.38. Done: an Owner presses Update, update.sh runs as root with no shell, the page shows its progress and log, and no file the web user can write is run as root. Version 8.1. Owner: Core 3 for the page, route and tests (after SEC.41); the Train Manager for the .path unit and deploy scripts.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: SEC.37, SEC.38, SEC.33.
+
 - [ ] **SEC.38 World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite**
   Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M2, Medium): admin/updateguard.py:200 and
   admin/stop_reason.py:42 make <state>/running/ and the stop-reason folder
