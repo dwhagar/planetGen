@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3614] - 2026-11-07
+
+**Headline:** The materials table now holds the sulfide, nitride and carbide minerals of reduced and ore-bearing rock, each with its crystal system, hardness and color.
+
+### Changed
+- GEN.1356: eleven new rows in the shared materials table (`pyrite`, `pyrrhotite`, `pentlandite`, `chalcopyrite`, `oldhamite`, `niningerite`, `alabandite`, `daubreelite`, `osbornite`, `khamrabaevite`, `sinoite`), each read from its Handbook of Mineralogy page: formula, grain density, Mohs hardness (the middle of the printed range, the range kept), crystal system and color. No band albedo was reached for them, so the three band columns are explicit nulls. The table gains the `mohs` column and the `crystal_system` and `color` row fields; troilite gets them too. Khamrabaevite keeps a computed density of 4.97 g/cm3, because the Handbook's printed 10.01 counts its rock-salt cell with eight formula units instead of four; troilite keeps the Handbook's 4.85, not the 4.61 that webmineral repeats from pyrrhotite. No generated value changes: nothing draws from these rows yet, the recipes that will (reduced-body worlds, ores) are later items.
+
 ## [8.0.3613] - 2026-11-07
 
 **Headline:** A test now fails when a row of the materials table is read by no draw and has no reason for it.
