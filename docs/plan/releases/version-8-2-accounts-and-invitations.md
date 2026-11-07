@@ -131,6 +131,10 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 | VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | VIEW.11 | Split from VIEW.2. |
 | VIEW.13 | Galactic band: the glow of the unresolved stars and dust along each line of sight | VIEW.11, VIEW.8 | Split from VIEW.2. |
 
+### Slated, not numbered: the rare and fictional materials (Boss, 5:26 PM EST on 2026-11-07)
+
+Boss deferred the fictional materials and crystals (Kyber, Solar, Aurora, Tritanium, Dilithium, Pergium, Topaline, Kelbonite and Neutronium; Duranium, Trellium and Protomatter are out of scope) until 8.2 is ready to start, to be revisited after 8.1 is done. Nothing is numbered or scheduled. The plan is /mnt/project-files/research/materials-8-2-plan-2026-11-07.md (provisional parts MAT-1 to MAT-12, with 7 and 10 removed, and five open questions for Boss in its section 9). When 8.2 opens, the TODO thread assigns item numbers and places the parts as their own generator-side phase. They read the real rows the 8.1 real-material set builds (GEN.1355 to GEN.1383), and the Solar Crystal's carbon-13 and carbon-14 choices read the isotope record GEN.1377.
+
 ## Phase 3: Settlements foundation
 
 The design, storage and draw streams for nation-states, cities and ports on a planet with a technological civilization (Boss, 9:27 PM EDT 2026-10-24: earliest foundation in 8.2, nothing in 8.1). The generation is in 8.4, the editors in 8.6, the dynamic version in 9.2.
