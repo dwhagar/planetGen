@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3551] - 2026-11-07
+
+**Headline:** A world's life class no longer survives the loss of the liquid it lives in: when the air a class makes leaves it no solvent, the world is made again without that class.
+
+### Changed
+
+- **A class that froze its own sea is dropped (GEN.1298).** `life.apply_life_data` worked out the air a class makes (the hydrogen and methane it draws down) and kept the dominant class whatever the air then scored it, because a class that had used up a donor still lives on what is left (TEST.486). That is wrong when the class lost its solvent: a class 8 world at 180 K held an ammonia-water sea (32 wt% ammonia, just above the 176 K eutectic), the class drew down the greenhouse gas, the world fell to 166 K, the sea froze and the stored ammonia share was 0.035 against the 0.1 the class needs, yet class 8 was stored as the life there (`test_no_class_lives_on_a_solvent_it_does_not_allow`, 1 generated body in 250). The scoring after the air now tells a lost solvent from a used-up donor (`ClassScore.failed` holds `"solvent"`): when the dominant class's solvent is gone, the body is restored to what it was before the life, that class is barred, and the life is settled again, so the next supported class lives there or the world is lifeless. A class that merely used up its donor is kept as before.
+- **The edit test checks the run's stream.** `test_an_edit_keeps_the_class_and_the_pace_while_they_still_fit` refused every draw, but an edit draws the trace gases and an ice-giant heat share from streams of the body's own (`apply_life_data` says so). It now checks that the run's stream does not move and that the class, pace and schedule are unchanged.
+
+generation-output: changed
+
 ## [8.0.3550] - 2026-11-07
 
 **Headline:** The planets a star's birth cluster pulls off their orbits now leave the system and become rogue planets that say their birth cluster unbound them.
