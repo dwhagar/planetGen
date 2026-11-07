@@ -5,7 +5,8 @@ HTML error pages for the Flask-served pages, with these safety rules:
 
 - an `apiclient.NotFoundError` (a bad id, no such database) is a 404; an ID an object gave up is a 301 to the page under its current ID
   (`MovedError`) and the ID of a deleted object a 410 (`GoneError`, GEN.1139),
-- an `apiclient.ApiError` (the API failed) is a 502,
+- an `apiclient.ApiError` the API answered with a conflict (409: the galaxy has no shape yet, an update is running) is a 409 page that says what the API said
+  (MAP.405); any other (the API failed) is a 502,
 - anything else is a 500 whose page says only "An unexpected error
   occurred." The traceback goes to the log (and the debug log, when
   debug is on), never into the page.
@@ -31,6 +32,7 @@ _TITLES = {
     403: "Forbidden",
     404: "Not found",
     405: "Method not allowed",
+    409: "Not possible now",
     410: "Gone",
     413: "Too large",
     429: "Too many requests",
@@ -126,6 +128,9 @@ def register(bp):
         if exc.status_code == 504:
             log.debug(f"Query time limit on {request.path}: {exc}")
             return timeout_page()
+        if exc.status_code == 409 and str(exc):
+            log.debug(f"Conflict on {request.path}: {exc}")
+            return render_error(409, str(exc))
         current_app.logger.error(f"API error while building {request.path}: {exc}")
         log.exception(f"API error while building the page: {exc}")
         return render_error(502, "The data for this page could not be loaded. Please try again shortly.")
