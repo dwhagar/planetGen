@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3518] - 2026-11-07
+
+**Headline:** The API link audit knows the belt member route and the site update route, so it is green again.
+
+### Changed
+
+- `src/tests/test_api_link_ids.py` (TEST.662): `api.object_belt_member_route` (GEN.1070) and `update.get_update` each get a reason in the list of endpoints the audit does not fetch (a belt member is named by the ref and rank in its path, and the update state carries no linked object).
+
+generation-output: unchanged
+
+TODO items resolved: TEST.662.
+
 ## [8.0.3517] - 2026-11-07
 
 **Headline:** The check that no maths in the package depends on the library version passes again: the stellar table and the sky files use the package's own distance and matrix product.
