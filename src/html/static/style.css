@@ -195,6 +195,24 @@ a:visited {
   text-decoration: underline;
 }
 
+/* TEST.680: the same holds for a link set in any sentence of a page, a description (`dd`), a lead line, a citation or a paper's entry: the link
+   colour is 2.49:1 (light) and 1.91:1 (dark) against the words around it, below the 3:1 that axe's link-in-text-block asks for, so
+   it is underlined (WCAG 1.4.1). Navigation, breadcrumbs, buttons and tables keep their own look. */
+.app-main p a:not(.btn),
+.app-main dd a:not(.btn),
+.app-main dt a:not(.btn),
+.app-main .lead a,
+.app-main a.citation,
+.app-main [id^="paper-"] > a {
+  text-decoration: underline;
+}
+
+/* TEST.680: a line or heading that names a source file path has no space to break at, so on a phone it ran past the edge. */
+.references-mode li,
+.references-mode h3 {
+  overflow-wrap: anywhere;
+}
+
 a:focus-visible,
 button:focus-visible,
 textarea:focus-visible {
