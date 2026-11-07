@@ -29,7 +29,7 @@ REFERENCE_SOLAR_CONSTANT_W_M2 = 1361.0
 BETA_PER_K = CLOUD_FEEDBACK_W_M2_PER_K * 4.0 / REFERENCE_SOLAR_CONSTANT_W_M2
 """float: The albedo lost per kelvin of warming, 1.2e-3 per K: the feedback of `CLOUD_FEEDBACK_W_M2_PER_K` is `-BETA x S / 4`. Row CA1."""
 REFERENCE_TEMPERATURE_K = 288.0
-"""float: The mean surface temperature at which a wet body keeps the albedo it drew (the Earth's; the wet albedo range is centred on the Earth's 0.30). Row CA2."""
+"""float: The mean surface temperature at which a wet body keeps the albedo it drew (the Earth's; the wet albedo range is centered on the Earth's 0.30). Row CA2."""
 DELTA_MAX = 0.12
 """float: The most the amount term moves the albedo either way (the Earth's shortwave cloud effect, about 47 W/m2 over 340, less the share that cannot thin). Row CA2."""
 DECK_GAMMA_PER_W_M2 = (0.53 - 0.42) / (2200.0 - 1000.0)
