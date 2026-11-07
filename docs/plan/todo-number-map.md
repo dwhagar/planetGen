@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.286 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1344 |
+| GEN | GEN.1345 |
 | PERF | PERF.249 |
 | DB | DB.115 |
 | API | API.42 |
@@ -2131,6 +2131,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number | none | open |
 | GEN.1342 | A temperate (275 to 298 K) global ocean with oxygen has no hard class: class O needs 298 to 312 K and class M needs 20 to 80 percent ocean cover, so these worlds are placed only by soft shoulders (Boss decides the class) | none | open |
 | GEN.1343 | Super-puff planets (W15): an envelope-bearing sub-Neptune branch through the air solver, class and radius, so the super_puff module has a body to inflate | none | open |
+| GEN.1344 | A bistable air does not settle in the 60 steps of the air fixed point: a two-cycle between a cool thin air and a hot dense one leaves a stored temperature a step off the mixture's own warming | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
