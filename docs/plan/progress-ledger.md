@@ -2874,3 +2874,4 @@ Baseline: PR #1817.
 | GEN.1335 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | GEN.1336 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | GEN.1337 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| TEST.681 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
