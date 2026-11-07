@@ -2570,7 +2570,7 @@ def refresh_block_lights(mysql_config, args=None):
                                 log.normal(f"Making the block light totals: unit {done:,} of {total:,}.")
 
                         written = block_lights.rebuild(conn, on_progress=on_progress, on_phase=log.normal)
-                    uncharted_index.index(conn, on_phase=log.normal)       # MAP.402
+                    uncharted_index.index(conn, on_phase=log.normal, run_id=getattr(args, "generation_run_id", None))       # MAP.402
                 finally:
                     log.reset_console()
         finally:
@@ -2601,7 +2601,7 @@ def fill_block_totals(args):
             + ", ".join("-".join(str(part) for part in address) for address in addresses)))
         conn.commit()
         lights = block_lights.rebuild(conn, on_progress=lambda done, total: log.debug(f"units {done}/{total}"))
-        uncharted = uncharted_index.index(conn, on_phase=log.normal)      # MAP.402
+        uncharted = uncharted_index.index(conn, on_phase=log.normal, run_id=getattr(args, "generation_run_id", None))      # MAP.402
     finally:
         conn.close()
     log.normal(f"Made {stats:,} generated block totals, {lights:,} block light totals and {uncharted:,} uncharted sector rows.")
@@ -2794,7 +2794,7 @@ def refresh_block_lights_unit(params, report):
     conn = store.get_connection(_mysql_config_of(params))
     try:
         written = block_lights.rebuild(conn, on_progress=report, on_phase=lines.append)
-        uncharted_index.index(conn, on_phase=lines.append)      # MAP.402: a sector row for every cell the scatter left something in
+        uncharted_index.index(conn, on_phase=lines.append, run_id=params.get("run_id"))      # MAP.402: a sector row for every cell the scatter left something in
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
         return {"written": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}"}
     finally:
