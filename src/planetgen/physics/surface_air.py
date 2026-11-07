@@ -72,6 +72,15 @@ one's (the solution has been overshot) has its share halved, down to `MIN_DAMPIN
 
 MIN_DAMPING = 0.05
 
+SLIDING_WINDOW = 12
+"""int: The last steps of an unsettled fixed point read for a chatter (GEN.1344): twelve steps hold whole cycles of two, three, four and six."""
+
+SLIDING_MIN_SWING_K = 10.0 * 0.1
+"""float: The swing of the answers, K, over the window above which an unsettled fixed point is chattering (ten times `TOLERANCE_K`)."""
+
+SLIDING_ITERATE_SHARE = 0.5
+"""float: A chatter is an iterate that stays put (its range under this share of the answers' swing) while the answers swing across it."""
+
 MAX_OCEAN_FLIPS = 4
 """int: How many times the ocean may freeze and thaw during the fixed point before the body is taken to cycle between the two. A world
 on the edge of its liquid range has no state that is both (an ocean weathers the CO2 away and freezes; the ice leaves the CO2 to
@@ -276,6 +285,7 @@ class Air:
         converged (bool): The pressure and the temperature settled to `TOLERANCE_LN_P` and `TOLERANCE_K`.
         ocean_present (bool): The last step's ocean flag.
         constants (dict): The design constants drawn (the efficiencies, the cycle's draws, the sulfur lifetimes, the skin of ice).
+        knee (bool): The air did not settle and `temperature_k` is the knee its answers chatter across (`sliding_temperature`, GEN.1344), not the last answer.
     """
 
     mixture: object
@@ -291,6 +301,7 @@ class Air:
     constants: dict = field(default_factory=dict)
     haze: object = aerosols.NO_HAZE
     albedo: object = None
+    knee: bool = False
 
     @property
     def greenhouse_factor(self):
@@ -466,6 +477,28 @@ def _step(damping, residual, history):
     return plain * min(MAX_GAIN, 1.0 / (1.0 - q))
 
 
+def sliding_temperature(window, last_k):
+    """
+    The temperature of an unsettled fixed point (GEN.1344) and whether it is the knee its answers chatter across (else the last answer).
+
+    Where the step from a temperature `x` finds a temperature `f(x)` that jumps down as `x` rises (a haze or an ocean that switches on at a
+    temperature: the hotter air is the cooler answer), the map has no fixed point, and the damped iterate stays at the jump while its answers
+    swing to either side of it. The state such a system keeps is the time average of the two answers (the Filippov value of a switch), the
+    mean of the answers over the last cycles; a last answer would be off by the swing, up to 75 K in the airs traced.
+
+    Args:
+        window (list): `(temperature a step started from, temperature it found)` of the last `SLIDING_WINDOW` steps.
+        last_k (float): The last step's answer, which stands when the answers do not chatter (a slow creep, noise).
+    """
+    if len(window) < SLIDING_WINDOW:
+        return last_k, False
+    started, found = zip(*window)
+    swing = max(found) - min(found)
+    if swing <= SLIDING_MIN_SWING_K or max(started) - min(started) >= SLIDING_ITERATE_SHARE * swing:
+        return last_k, False
+    return math.fsum(found) / len(found), True
+
+
 def long_lived_geology(heat_flux_w_m2):
     """Whether a body's interior is still carrying `LONG_LIVED_FLUX_FRACTION` of the Earth twin's heat flow out."""
     return heat_flux_w_m2 >= LONG_LIVED_FLUX_FRACTION * surface_pressure.HEAT_FLUX_EARTH_W_M2
@@ -624,6 +657,7 @@ def solve(setting, start_temperature_k):
     history = [[], []]
     flips, last_ocean, cycling = 0, False, False
     stalls = 0
+    window = []             # (temperature the step started from, temperature it found) of the last steps, for the chatter of an unsettled fixed point (GEN.1344)
     held_cool = water_moles > 0.0 and not setting.steam_possible and not setting.giant        # GEN.1329: no steam under the runaway limit
     escape_bar = None       # the pressure the light-gas escape compares its loss to: set once the air has settled without it
     for step in range(1, MAX_STEPS + 1):
@@ -712,6 +746,8 @@ def solve(setting, start_temperature_k):
             new_temperature = min(new_temperature, MOIST_LIMIT_K)
         change_p = abs(math.log(new_pressure) - ln_pressure)
         change_t = abs(new_temperature - temperature)
+        window.append((temperature, new_temperature))
+        del window[:-SLIDING_WINDOW]
         last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze, albedo_of_step)
         if setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K):
             if setting.giant or escape_bar is not None or family not in mixture_escape.FAMILIES:
@@ -737,10 +773,13 @@ def solve(setting, start_temperature_k):
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
     mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean, haze, albedo_of_step = last
-    state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     converged = setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K)
+    knee = False
+    if not converged:
+        temperature_k, knee = sliding_temperature(window, temperature_k)
+    state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     return Air(mixture=mixture, partials_pa=partials, pressure_pa=pressure, temperature_k=temperature_k, warming=warming, state=state,
-               condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step)
+               condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step, knee=knee)
 
 
 def _retention_cap_pa(mixture, subject):

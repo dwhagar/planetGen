@@ -668,7 +668,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         # not converge far above it), but the warming it keeps is the uncapped one, so a body at the cap kept a greenhouse factor that gave 2370 K
         # or 2600 K; its stored G is taken from the stored temperature too, so the three numbers agree.
         capped = air.warming is not None and air.warming.surface_temperature_k > air.temperature_k * (1.0 + CAP_TOLERANCE)
-        if giant or capped:
+        if giant or capped or air.knee:        # (GEN.1344: the knee of an unsettled air is not the temperature its last step found)
             # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
             # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
             factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo_kept, solar_output_at_orbit)
