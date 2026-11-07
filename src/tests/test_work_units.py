@@ -1102,3 +1102,12 @@ def test_the_shells_of_a_scatter_are_weighed_in_processes_to_the_same_weights_as
         monkeypatch.setattr(run_plan.os, "cpu_count", lambda: 4)
         assert run_plan._shell_weights(skeleton, shells, 1.0, {}, estimates) == loop
     assert run_plan._weighing is None
+
+
+def test_a_killed_unit_says_which_signal_ended_its_worker_process():
+    """SIGKILL is the kernel's out-of-memory killer; SIGTERM is something asking the process to end, which the message no longer calls an OOM."""
+    assert "SIGKILL: the machine may be out of memory" in units._ended_with(9)
+    assert "SIGKILL" in units._ended_with(-9)
+    sigterm = units._ended_with(15)
+    assert "SIGTERM" in sigterm and "may be out of memory" not in sigterm
+    assert units._ended_with(256) == "status 256", "an exit code is no signal"

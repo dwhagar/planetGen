@@ -125,6 +125,43 @@ def _wait_for_update():
         time.sleep(2.0)
 
 
+OTHER_WARM_POLL_SECONDS = 5.0
+"""float: How often a warm-up waiting for another one looks at whether it has ended."""
+
+OTHER_WARM_WAIT_SECONDS = 4 * 3600
+"""int: The longest a warm-up waits for another one to end (update.sh's own time limit for a stage, `WARM_STAGE_DEFAULT_SECONDS`)."""
+
+
+def _wait_for_other_warm(sleep=time.sleep, clock=time.monotonic):
+    """
+    Waits while another maintenance run (a warm-up the epoch started, update.sh's other part, one started by hand) holds the machine: two
+    warm-ups never run at once, and the second used to fail at once with `run ... is running`, which cut update.sh's part 2 off the
+    warm-up it was started for. Once the first has ended, this one goes on and finds what the first stored already stored. Nothing is
+    written to the phase record while waiting, so the running warm-up's phases stay as they are.
+
+    Raises:
+        Failed: The other warm-up was still running after `OTHER_WARM_WAIT_SECONDS`.
+    """
+    try:
+        conn = redisqueue.connect()
+        conn.ping()
+    except Exception:       # noqa: BLE001 -- the run itself says that no Redis answers
+        return
+    holder = runrecord.active_run(conn, runrecord.MAINTENANCE)
+    if holder is None or runrecord.holder_is_dead(conn, holder) or runrecord.followed_here(conn, holder):
+        return
+    log.normal(f"{runrecord.busy_message(conn, holder)}: waiting for it to end before starting this warm-up.")
+    deadline = clock() + OTHER_WARM_WAIT_SECONDS
+    while True:
+        holder = runrecord.active_run(conn, runrecord.MAINTENANCE)
+        if holder is None or runrecord.holder_is_dead(conn, holder):
+            log.normal("The other run has ended: starting this warm-up.")
+            return
+        if clock() > deadline:
+            raise Failed(f"{runrecord.busy_message(conn, holder)} still after {OTHER_WARM_WAIT_SECONDS} s")
+        sleep(OTHER_WARM_POLL_SECONDS)
+
+
 def _site_database():
     """The database the site shows (`web.helpers.db_name`), which only an app context can say."""
     from planetgen.web import warmup
@@ -249,6 +286,7 @@ def _warm_run(args, reason, record):
     with updateguard.running("warm-map", "Site cache warm-up", refuse=reason is None):
         try:
             _wait_for_update()
+            _wait_for_other_warm()
             tally = warmup.PhaseTally([step.key for step in steps])
             phases = [name for name, _text, families in warmup.PHASES if any(step.key in families for step in steps)]
             warmphases.begin(args.database, phases, reason)

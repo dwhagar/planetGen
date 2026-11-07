@@ -161,3 +161,16 @@ def test_the_queue_page_shows_the_object_index_by_kind_with_its_size(admin_clien
     assert state["size_bytes"] == 3 * 1024 * 1024 and [row["kind"] for row in state["kinds"]] == ["system", "hypervelocity_star"]   # MAP.400: a kind only uncharted objects have is listed after the index's
     assert 'id="warm-index"' in html and "12,345" in html and "refresh" in html
     assert "Object index (3.0 MB)" in html or "Object index (3 MB)" in html
+
+
+def test_a_phase_line_gives_the_time_the_phase_took_not_its_units_seconds_added_up():
+    """Nine chunks run at once, so their own seconds added up (5338 s) are far more than the 9:39 the phase took."""
+    now = [0.0]
+    tally = warmup.PhaseTally(["galaxy-nodes", "galaxy-deep-nodes"], clock=lambda: now[0])
+    tally.start("galaxy-nodes")
+    for _ in range(1986):
+        tally.add("galaxy-nodes", {"built": 0, "cached": 64, "warmed": 64, "left_out": 0, "seconds": 2.69})
+    now[0] = 579.0
+    lines = tally.start("galaxy-deep-nodes")
+    assert lines == ["Phase 2 of 5, built-levels: unchanged, nothing built (127,104 already stored) in 579.0 s."]
+    assert tally.result("built-levels")["seconds"] == 579.0 and tally.result("built-levels")["worker_seconds"] > 5000

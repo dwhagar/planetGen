@@ -10,6 +10,7 @@ calls, to show nothing is rebuilt. The wrapper's list of the commands runs on th
 tests' workers run the units here), with the families themselves faked where only the list is under test.
 """
 
+import threading
 import time
 import types
 import uuid
@@ -579,17 +580,23 @@ def test_a_phase_name_stands_for_all_its_families_in_the_order_of_the_run():
 
 
 def test_a_phase_that_built_nothing_says_unchanged_and_one_cut_short_says_how_many_were_left_out():
-    tally = warmup.PhaseTally(["galaxy-map", "lists", "galaxy-nodes", "galaxy-deep-nodes", "search"])
+    now = [0.0]
+    tally = warmup.PhaseTally(["galaxy-map", "lists", "galaxy-nodes", "galaxy-deep-nodes", "search"], clock=lambda: now[0])
+    tally.start("galaxy-map")
+    now[0] = 12.0
     tally.add("galaxy-map", {"built": 0, "cached": 4, "warmed": 4, "seconds": 0.5})
     tally.add("lists", {"built": 0, "cached": 20, "warmed": 20, "seconds": 1.0})
     assert tally.start("lists") == []
-    assert tally.start("galaxy-nodes") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 1.5 s."]
+    assert tally.start("galaxy-nodes") == ["Phase 1 of 5, opening: unchanged, nothing built (24 already stored) in 12.0 s."]
+    now[0] = 14.0
     tally.add("galaxy-nodes", {"built": 3, "cached": 125, "warmed": 128, "seconds": 2.0})
     tally.add("galaxy-deep-nodes", {"built": 0, "cached": 0, "warmed": 0, "left_out": 128, "seconds": 0.0})
-    assert tally.start("galaxy-deep-nodes") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 2.0 s."]
+    now[0] = 15.0
+    assert tally.start("galaxy-deep-nodes") == ["Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 3.0 s."]
     tally.add("search", {"built": 0, "cached": 1, "warmed": 1, "seconds": 0.1})
     assert tally.start("search") == [
         "Phase 3 of 5, deep-nodes: 0 built, 0 already stored, 128 left out in 0.0 s; stopped at the cache budget."]
+    now[0] = 15.1
     assert tally.finish() == ["Phase 5 of 5, search: unchanged, nothing built (1 already stored) in 0.1 s."]
     assert tally.finish() == [], "each phase is reported once"
 
@@ -950,6 +957,32 @@ def test_the_script_waits_for_an_update_and_gives_up_after_the_wait(monkeypatch)
     monkeypatch.setattr(warm_cli, "UPDATE_WAIT_SECONDS", -1)
     with pytest.raises(warm_cli.Failed, match="still running"):
         warm_cli._wait_for_update()
+
+
+def test_a_second_warm_up_waits_for_the_one_that_holds_the_machine_instead_of_failing(script, redis_server, monkeypatch, capsys):
+    """The epoch's warm-up started when the update ended; update.sh's part 2 then failed at once with 'run ... is running' and the
+    warm-up it was started for never ran. It waits for the first to end, then runs."""
+    conn = redisqueue.connect(redis_server)
+    first = runrecord.start_run(conn, warm_cli.RUN_TITLE, [runrecord.Stage("lists", "Lists", units=1)], kind=runrecord.MAINTENANCE)
+    conn.hset(runrecord.run_key(first), "owner", "elsewhere:1")            # followed by another process, which is alive
+    monkeypatch.setattr(warm_cli, "OTHER_WARM_POLL_SECONDS", 0.05)
+    threading.Timer(0.4, runrecord.finish_run, args=(conn, first, "done")).start()
+    warm_cli.run_warm(_args("lists"))
+    out = capsys.readouterr().out
+    assert f"run {first} is running" in out and "waiting for it to end" in out
+    assert [family for family, _cap, _db in script.ran] == ["lists"], "it ran once the first had ended"
+
+
+def test_a_warm_up_gives_up_waiting_for_another_after_the_wait(script, redis_server, monkeypatch):
+    conn = redisqueue.connect(redis_server)
+    first = runrecord.start_run(conn, warm_cli.RUN_TITLE, [runrecord.Stage("lists", "Lists", units=1)], kind=runrecord.MAINTENANCE)
+    conn.hset(runrecord.run_key(first), "owner", "elsewhere:1")
+    monkeypatch.setattr(warm_cli, "OTHER_WARM_POLL_SECONDS", 0.01)
+    monkeypatch.setattr(warm_cli, "OTHER_WARM_WAIT_SECONDS", 0.05)
+    with pytest.raises(SystemExit) as exit_info:
+        warm_cli.run_warm(_args("lists"))
+    assert exit_info.value.code == 1 and script.ran == []
+    runrecord.finish_run(conn, first, "done")
 
 
 def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):
