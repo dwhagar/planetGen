@@ -2,6 +2,6 @@
 
 ### Changed
 
-- **Citation guard green (TEST.671).** The validation sweep's printed reference lines name their sources by ID only ([R1307], [R5137], [R1478]), and two lines of the rogue-planet review no longer wrap an ID in brackets or write a dated refresh in author-year form. Only text changes.
+- **Citation guard green (TEST.671).** The validation sweep's printed reference lines name their sources by registry number alone, and two lines of the rogue-planet review no longer read like an author and a year. Only text changes.
 
 generation-output: unchanged
