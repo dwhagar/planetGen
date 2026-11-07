@@ -224,10 +224,37 @@ def _main_liquid(body):
     if not seas:
         return
     liquid_id, mass_per_m2 = seas[0]
+    liquid_id = _named_by_its_bulk(body, liquid_id, temperature, pressure)
     found = _cover(liquid_id, mass_per_m2, temperature, (body.gravity or 0.0) * constants.EARTH_GRAVITY)
     if found is not None:
         body.surface_liquid, body.surface_liquid_fraction = liquid_id, found[0]
         body.surface_liquid_depth_km = found[1]
+
+
+LABEL_FLOOR = 0.5
+"""float: The least mole fraction a hydrocarbon sea's label holds in its stored mix (GEN.1249). The supplied liquid is the bulk of the sea, so this holds unless the gases dissolved in it
+outweigh it (a dense, cold nitrogen air), and then the sea is named for the gas that makes most of it. A rule, not a fitted number (the label is the majority of the sea)."""
+
+
+def _named_by_its_bulk(body, liquid_id, temperature_k, pressure_pa):
+    """
+    The name of a methane, ethane or nitrogen sea (GEN.1249): the liquid the supply gives, which is the bulk of the sea and the solvent the air's gases dissolve in (`_mix`). When the
+    dissolved gases outweigh it (it holds under `LABEL_FLOOR` of the sea) the sea is named for the stable liquid that makes most of it, so the label always holds the majority of the stored mix.
+    """
+    for _ in HYDROCARBON_SEAS:
+        if liquid_id not in HYDROCARBON_SEAS:
+            return liquid_id
+        fractions = surface_liquids.ideal_sea(temperature_k, mixture.partial_pressures_pa(body), solvent=HYDROCARBON_SEAS[liquid_id])
+        own = fractions.get(HYDROCARBON_SEAS[liquid_id], 0.0)
+        if own >= LABEL_FLOOR or own <= 0.0:
+            return liquid_id            # the bulk, or a sea of its own liquid alone (`_mix`)
+        by_formula = {formula: name for name, formula in HYDROCARBON_SEAS.items()}
+        larger = [name for formula, name in by_formula.items()
+                  if fractions.get(formula, 0.0) > own and surface_liquids.is_stable(name, temperature_k, pressure_pa)]
+        if not larger:
+            return liquid_id
+        liquid_id = max(larger, key=lambda name: fractions[HYDROCARBON_SEAS[name]])
+    return liquid_id
 
 
 def _second_liquid(body):
@@ -250,14 +277,19 @@ def _second_liquid(body):
 
 
 def _mix(body):
-    """Sets `MIX_FIELDS` for a methane, ethane or nitrogen sea: Raoult's mole fractions of the air over it, the ethane the involatile rest (`surface_liquids.ideal_sea`);
-    a sea whose own liquid is not among them (it is supplied by ice, not condensed from the air) is taken as that liquid alone."""
+    """
+    Sets `MIX_FIELDS` for a methane, ethane or nitrogen sea (GEN.1249): the liquid the supply gives is the bulk of the sea, and the other gases of the air dissolve in it by Raoult's
+    law (`surface_liquids.ideal_sea` with that liquid as the solvent: each volatile `x = p / P_sat`, nitrogen's reduced solubility included, the supplied liquid the rest). The label
+    and the mix agree: the labelled liquid is at least what the dissolved gases leave of the sea, whatever the air holds of its own gas. Ethane is in a sea only when it is the supplied
+    liquid (nothing in the generator makes it from methane's photolysis). A sea whose dissolved gases overfill it, or that has no gas of the air to dissolve, is taken as that liquid alone.
+    """
     main = getattr(body, "surface_liquid", None)
     if main not in HYDROCARBON_SEAS:
         return
-    fractions = surface_liquids.ideal_sea(body.surface_temperature, mixture.partial_pressures_pa(body))
-    if fractions.get(HYDROCARBON_SEAS[main], 0.0) <= 0.0:
-        fractions = {HYDROCARBON_SEAS[main]: 1.0}
+    solvent = HYDROCARBON_SEAS[main]
+    fractions = surface_liquids.ideal_sea(body.surface_temperature, mixture.partial_pressures_pa(body), solvent=solvent)
+    if fractions.get(solvent, 0.0) <= 0.0:
+        fractions = {solvent: 1.0}
     for field, formula in zip(MIX_FIELDS, HYDROCARBON_SEAS.values()):
         setattr(body, field, fractions.get(formula, 0.0))
 
