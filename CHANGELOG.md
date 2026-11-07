@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3624] - 2026-11-07
+
+**Headline:** The admin Settings page has an "Update config.json" button that adds the settings this version has and your file lacks, lists the ones a site should set, and flags stale keys, keeping every value you have set.
+
+### Changed
+
+- ADM.140: **Update config.json** (`/admin/settings/update`, any admin, a link on the Settings page and an entry in the admin search). It previews first and writes nothing until its button is pressed: the settings to add (each with the default it is written with, the database section included, never altered otherwise; a secret is added with its default and never shown), the options **recommended, not set** with the reason (a ticked one with a recommended value is written with it; `base_url` is listed with its reason and no value because only the site can fill it), and the **stale keys** the model no longer knows (names only, left in place unless ticked). Every existing value and the order of the keys are kept. The write is the settings page's own: a settings-only backup archive first, an atomic replace, one audit row per key (`config.update_file`), a refusal when the file changed after the page was drawn, and the old file when a write fails.
+- `settings.opt(...)` takes `should_set` (the reason a site should have the option in its file) and `recommended` (the value to write when ticked). `base_url` is the first option marked. API: `POST /api/admin/settings/update/plan` and `POST /api/admin/settings/update`.
+- `docs/reference/config.md` has a new "Update config.json" section, `config.schema.json` carries the new `x-should-set` key, and `src/tests/test_settings_update.py` (new) holds the tests: a file missing keys gets exactly those with their defaults and keeps every old value, a recommended setting that is absent is listed and written when ticked and left alone when the site has any value, a stale key survives unless ticked, a failed write leaves the old file, a stale page is refused, and the API needs an admin.
+
+generation-output: unchanged
+
 ## [8.0.3623] - 2026-11-07
 
 **Headline:** The bring-to-epoch help no longer shows an internal item code, and two tests that were red on main are fixed.
