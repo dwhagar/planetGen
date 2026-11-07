@@ -13365,10 +13365,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: GEN.1321. Related: GEN.1321, GEN.1314, GEN.1312, GEN.1313, GEN.725.
 
-- [ ] **TEST.678 Test failure on main: the forced-eccentricity tide test gives Io a tidal power of 6.1e13 W against its 5e13 W ceiling (test_resonant_chains.py, test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon) (bug)**
-  Core 1 (as the lane reported 11:01 AM EST on 2026-11-07): tests/test_resonant_chains.py::test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon fails on current main; the lane touched no tide or rheology module, so it looks like a side effect of the GEN.1190 rheology constants. Do: find which change moved Io's tidal power, decide whether the code or the 5e13 W ceiling (the published Io heat flow) is wrong by physics, fix that, and register any changed constant in GEN.725. Done: the test passes on main with the ceiling kept unless a source supports a different one. Lock-free if only the test or a constant outside generated output changes, otherwise a lock item. Goal issue #1694. Version 8.1. Owner: Tides 1. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1190, GEN.842.
-
 - [ ] **TEST.676 Radius valley and rogue-envelope tests: a measured gate on the 1.5 to 2.0 Earth radii gap against the published valley, and a check that starless planets of 1 to 20 Earth masses keep the whole envelope and are classed like bound ones (GEN.1323 parts C and D)**
   Core 4 (as the lane reported 2:50 AM EST on 2026-11-07), parts C and D of GEN.1323. Do: (C) make the existing slow radius-valley test a measured gate with a report: gap depth in 1.5 to 2.0, planets per mass bin, against the published valley [R1478]; fail only when the shares leave the researched range. (D) a rogue-planet test that starless planets of 1 to 20 Earth masses keep the whole start envelope and are typed and classed like bound ones, with a short note. Done: both pass on main with the numbers in the note. Lock-free, no generation change. Version 8.1. Owner: Core 4 (after GEN.1323). Filed by the TODO thread.
   Prerequisites: none (runs after GEN.1323 merges). Related: GEN.1323, TEST.436.
