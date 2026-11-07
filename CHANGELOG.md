@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3515] - 2026-11-07
+
+**Headline:** The install and update scripts no longer let a folder named in config.json steer what root creates, re-owns or writes.
+
+### Changed
+- **SEC.44: root only uses the folders from `config.json` that pass a check.** `config.json` is the file the Settings page (the web user) rewrites, and `create-cache-dir.sh`, `set-permissions.sh`, `setup-debug-log.sh` and the `update.log` start made those folders, gave them to the web user (`chown -R`) and wrote their names into `/etc/logrotate.d` as root. A web-user compromise could have named `/etc` or a log of the system's. The new `examples/apache/rootpaths.py` (standard library only, run under `python3 -I`) allows a path from `tile_cache.dir`, `jobs.dir`, `log_file` or `log_dir` only when it is made of plain characters (no space, quote, brace or newline), is absolute and normal, sits under `/var/lib`, `/var/cache`, `/var/log`, `/srv`, `/opt`, the checkout or a folder in root's `PLANETGEN_ROOT_PATH_PARENTS`, is not a system service's folder or log, has no symbolic link on the way or at the end, has only root-owned folders above it that the web user cannot change, and, if it already exists, is already the web user's, left by an earlier run, or empty. A refused folder is skipped with a plain warning that says why and what to change; the rest of the install or update carries on. A folder given by root's own environment (`PLANETGEN_TILE_CACHE_DIR`, `PLANETGEN_JOBS_DIR`, `PLANETGEN_LOG_FILE`, `PLANETGEN_LOG_DIR`) or as the script's argument is the operator's and is not asked about. `chown -R` on the tile cache no longer follows links (`-h`).
+- **For an existing install:** the usual folders (`/var/cache/planetgen/tiles`, `/var/lib/planetGen/jobs`, `/var/log/planetgen`, `/var/log/planetgen.log`) pass untouched. A custom folder outside those parents is skipped until it is moved under one, or named in root's environment.
+
 ## [8.0.3514] - 2026-11-07
 
 **Headline:** The planets, atmospheres, radiation and heat of a generated population are now checked against published statistics by a script, which found that close-in planets of 4 to 40 Earth masses carry no hydrogen envelope (no sub-Neptunes, no radius valley) and that an Earth-like ground reads 100 times too little gamma dose.
