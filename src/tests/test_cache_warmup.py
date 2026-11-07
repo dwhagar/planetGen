@@ -27,7 +27,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.physics.units import ly_to_pc
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util.settings import get_settings
-from planetgen.queue import commands, redisclient, redisqueue, runrecord, units, wrapper
+from planetgen.queue import allowlist, commands, redisclient, redisqueue, runrecord, units, wrapper
 from planetgen.web import warmup
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient, tilecache
@@ -667,7 +667,7 @@ def _run_queued(prefetch):
     import rq
     connection = redisqueue.connect()
     done = rq.SimpleWorker([redisqueue.queue(redisqueue.NODES_QUEUE, connection)], connection=connection,
-                           serializer=redisqueue.JsonSerializer)
+                           serializer=redisqueue.JsonSerializer, job_class=allowlist.GuardedJob)
     done.work(burst=True, logging_level="WARNING")
 
 

@@ -118,7 +118,8 @@ def execute(reference, args):
     function that raises one has imported `planetgen.api.common` already,
     and importing it here would cost every job 2 s (PERF.39).
     """
-    module, _, name = reference.partition(":")
+    from planetgen.queue import allowlist
+    module, _, name = allowlist.check_reference(reference).partition(":")      # SEC.45: only the API's own functions
     function = getattr(importlib.import_module(module), name)
     try:
         return {"result": function(*[decode_argument(arg) for arg in args])}
