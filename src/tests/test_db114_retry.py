@@ -122,6 +122,46 @@ def test_a_sky_tier_batch_after_a_deadlock_writes_the_stars_of_an_undisturbed_dr
     assert conn.execute("SELECT complete, stars FROM sky_tier_draws").fetchone() == {"complete": 1, "stars": done.stars}
 
 
+@pytest.mark.fresh_database
+def test_the_special_phenomena_after_a_deadlock_are_the_rows_of_an_undisturbed_write(mysql_config, monkeypatch):
+    """`finish_phenomena_unit` writes the nucleus and the hypervelocity stars as one retried transaction: a deadlock after the rows
+    (and their Object IDs) are written takes them all back and the second try writes each exactly once."""
+    from planetgen.queue import wrapper
+    monkeypatch.setattr(contention.time, "sleep", lambda seconds: None)
+    _seed_galaxy(mysql_config, e_value=SMALL_E_VALUE)
+    params = {"database": wrapper.database_args(mysql_config), "seed": 7, "min_mass_solar": 20.0}
+    conn = store.get_connection(mysql_config)
+    columns = ", ".join(store.PHENOMENON_SCATTER_COLUMNS)
+
+    def stored():
+        return sorted(tuple(row.values()) for row in conn.execute(f"SELECT {columns} FROM phenomenon_scatter").fetchall())
+
+    try:
+        store.clear_phenomenon_scatter(conn)
+        conn.commit()
+        run_plan.finish_phenomena_unit(params, lambda done, total: None)
+        clean = stored()
+        assert clean, "the toy galaxy should hold at least the nucleus"
+        store.clear_phenomenon_scatter(conn)
+        conn.commit()
+        real, calls = store.insert_phenomenon_scatter, []
+
+        def deadlocked(c, rows, *args, **kwargs):
+            calls.append(len(rows))
+            written = real(c, rows, *args, **kwargs)
+            if len(calls) <= 2 and rows:
+                raise pymysql.err.OperationalError(1213, "Deadlock found when trying to get lock; try restarting transaction")
+            return written
+
+        monkeypatch.setattr(store, "insert_phenomenon_scatter", deadlocked)
+        run_plan.finish_phenomena_unit(params, lambda done, total: None)
+        assert len(calls) == 3, "the writer should have been killed twice and then landed"
+        assert stored() == clean
+        assert conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE uid IS NULL").fetchone()["n"] == 0
+    finally:
+        conn.close()
+
+
 def test_the_tick_helper_gives_each_sector_one_tick_whatever_the_number_of_tries():
     ticks, ticked = [], [0]
     for _try in range(3):
