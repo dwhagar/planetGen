@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.286 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1343 |
+| GEN | GEN.1347 |
 | PERF | PERF.249 |
 | DB | DB.115 |
 | API | API.42 |
@@ -1835,7 +1835,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1045 | W16 audit: does envelope_escape fractionate helium (hydrogen escapes first, leaving a helium-dominated air; Hu 2015, [R2840])? Add the fractionation if not | none | done, PR #4146 |
 | GEN.1046 | W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches | none | done, PR #4290 |
 | GEN.1047 | Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off) | none | open |
-| GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin), W10 (iron-rich cores) and W15 (super-puffs) into the bulk, spin and climate inputs | none | open |
+| GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin) and W10 (iron-rich cores) into the bulk, spin and climate inputs | none | open |
 | GEN.1049 | Wire W5 resonance heating and the W3 high-eccentricity and W4 misaligned-orbit tails in planet_architecture | none | open |
 | GEN.1050 | Wire W14 (the dying-planet flag) and W9 (rings from decayed moons) | none | open |
 | GEN.1051 | Wire the W19 nightside collapse and the W20 bistable branches (the history draw between branches) | none | open |
@@ -2129,7 +2129,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1339 | Sea worlds are almost all global oceans: 55 of 59 worlds with a liquid sunlit sea are 95 to 100 percent ocean and only 3 are in the 20 to 80 percent range class M asks for; find why (delivered water against relief) | none | done, PR #5548 |
 | GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor | none | open |
 | GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number | none | open |
-| GEN.1342 | A temperate (275 to 298 K) global ocean with oxygen has no hard class: class O needs 298 to 312 K and class M needs 20 to 80 percent ocean cover, so these worlds are placed only by soft shoulders (Boss decides the class) | none | open |
+| GEN.1342 | Class O takes any world with more than 80 percent surface water within the habitable range, 275 to 312 K (M's floor up to O's current ceiling), so a temperate global ocean with oxygen has a hard class (Boss, option 2: no new letter) | none | open |
+| GEN.1343 | Super-puff planets (W15): an envelope-bearing sub-Neptune branch through the air solver, class and radius, so the super_puff module has a body to inflate | none | open |
+| GEN.1344 | An air that cannot settle in the 60 steps of the air fixed point (about 4 percent of airs: a haze or ocean switch makes the step jump down as it warms, so there is no exact fixed point) stores the last answer, up to 75 K off the switch point; store the knee value instead | none | open |
+| GEN.1345 | Sealed-ocean crust: find a published range for the altered-crust thickness (waterworld_carbon.ALTERED_CRUST_KM, row AM54) and change it only if a source supports it | none | open |
+| GEN.1346 | Steam-air energy-limited efficiency: set ENERGY_LIMITED_EFFICIENCY to 0.1 to 0.15 instead of 0.01, with the stand-in registered and the census re-measured | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
