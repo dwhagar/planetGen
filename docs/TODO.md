@@ -82,6 +82,9 @@ that default.
   more information, is flagged so in the item (a "Status" line) and in a comment headed with the item ID and the words "Could not reproduce"
   or "Needs information", giving the date and time in EDT, what was run (the number of runs, the load, the inputs), the result, and the
   failure text needed next time. The comment is the history; the item says only the latest status.
+- A goal issue with an item that waits on information (a Boss answer, a research request, a new sighting) carries the yellow `Needs Information`
+  label and a comment that says what is needed and why (Boss, 2026-11-07, 1:44 PM EST). The TODO thread keeps it current: the label comes off
+  when the last such item on that issue is answered or closed.
 
 ### Links
 
