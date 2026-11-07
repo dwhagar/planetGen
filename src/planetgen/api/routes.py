@@ -37,7 +37,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 from planetgen.db import search_values
 from planetgen.db import children as children_db
 from planetgen.api import gravity as gravity_api, nav_system, system_sky
-from planetgen.describe import belt_info, belt_member_info
+from planetgen.describe import belt_info, belt_member_info, field_member_info
 from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.lib import sensor, skypack, tilecache
 from planetgen.web.maps.systemscene import build_scene
@@ -1989,6 +1989,38 @@ def object_belt_member_route(ref, rank):
             raise ValueError(f"{ref} is not an asteroid belt")
         return jsonify(belt_member_info.member_info(get_db(), object_id, object_uid.parse_rank(rank)))
     except ValueError as exc:  # includes ids.IdError and belt_member_info.BeltMemberNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/field-members")
+def object_field_members_route(ref):
+    """
+    `GET /api/objects/<ref>/field-members` (GEN.1105) -- the bodies an interstellar asteroid field keeps individually (`describe/field_member_info.py`): `field` (its `designation`, `name` and `mass`),
+    `count` and `bodies`, heaviest first, each with its `rank`, `designation` (`<field ID>.<rank hex>`), `mass`, `diameter`, `density`, `composition` shares and `status` word. Every number is
+    `{value, unit, text}`. A field with no ledger keeps none (`count` 0). 404 for a reference that is not an asteroid field.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "asteroid_field":
+            raise ValueError(f"{ref} is not an asteroid field")
+        return jsonify(field_member_info.members_of(get_db(), object_id))
+    except ValueError as exc:  # includes ids.IdError and field_member_info.FieldMemberNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/field-members/<rank>")
+def object_field_member_route(ref, rank):
+    """
+    `GET /api/objects/<ref>/field-members/<rank>` (GEN.1105) -- one body an interstellar asteroid field keeps individually, `rank` written as the designation writes it (hex, at least four digits; 1 is
+    the heaviest): `designation`, `rank`, `member` (the entry the field's list holds), `share` of the field's mass, `field` (its designation, name, where it came from and its history) and the `previous` and
+    `next` designations. Every number is `{value, unit, text}`. 404 for a reference that is not an asteroid field, a rank that is not written canonically, or a body the field does not keep.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "asteroid_field":
+            raise ValueError(f"{ref} is not an asteroid field")
+        return jsonify(field_member_info.member_info(get_db(), object_id, object_uid.parse_rank(rank)))
+    except ValueError as exc:  # includes ids.IdError and field_member_info.FieldMemberNotFound
         return jsonify({"error": str(exc)}), 404
 
 

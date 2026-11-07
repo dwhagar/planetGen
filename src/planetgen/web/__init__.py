@@ -294,6 +294,7 @@ from . import admin_pages  # noqa: E402,F401 -- /login, /logout, /account, /admi
 from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/nodes
 from . import nav_page, nearby_page, sector_page  # noqa: E402,F401 -- /nav, /nearby, /sector/<id>
 from . import belt_info_page, belt_member_page  # noqa: E402,F401 -- /object/<ref>/belt, /object/<ref>/member/<rank>
+from . import field_member_page  # noqa: E402,F401 -- /object/<ref>/field-member/<rank>
 from . import generate_page  # noqa: E402,F401 -- /admin/generate
 from . import queue_page  # noqa: E402,F401 -- /admin/queue
 from . import admin_search_page  # noqa: E402,F401 -- /admin/search, /admin/palette.json

@@ -997,6 +997,19 @@ def get_belt_member(db, ref, rank):
     return _request(f"/objects/{ref}/belt-members/{rank}", {"db": db})
 
 
+def get_field_members(db, ref):
+    """Returns `GET /api/objects/<ref>/field-members`'s dict (`field`, `count`, `bodies`), the bodies an interstellar asteroid field keeps individually -- see `describe/field_member_info.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/field-members", {"db": db})
+
+
+def get_field_member(db, ref, rank):
+    """Returns `GET /api/objects/<ref>/field-members/<rank>`'s dict (`member`, `share`, `field`, `previous`, `next`), the page data of one body of an interstellar asteroid field -- see
+    `describe/field_member_info.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/field-members/{rank}", {"db": db})
+
+
 def get_object_children(db, ref, limit=None, after=None):
     """Returns `GET /api/objects/<ref>/children`'s dict (`ref`, `kind`, `total`, `items`, `next`), one keyset page of what
     belongs to an object -- see `db/children.py`."""

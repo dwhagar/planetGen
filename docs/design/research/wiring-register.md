@@ -178,8 +178,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.object_uid.captured_member | GEN.1070 | the designation and parent link of a belt member a planet has captured; the irregular-moon wiring prints it |
 | function | planetgen.galaxy.object_uid.outside_reservoir_member | GEN.1070 | the designation of a captured body from a reservoir that is not a belt; the irregular-moon wiring prints it |
 | function | planetgen.galaxy.object_uid.parse_captured | GEN.1070 | reads a captured body's designation and link back; the irregular-moon wiring and the designation cascade (GEN.1141) use it |
-| function | planetgen.galaxy.object_uid.field_designation | GEN.1105 | the text a field member prints (`<field ID>.<rank hex>`); the field page and the member page (GEN.1105 part 2) print it |
-| function | planetgen.galaxy.object_uid.parse_field_designation | GEN.1105 | reads a field member's text back; the member page route (GEN.1105 part 2) reads it |
 | function | planetgen.galaxy.region_run.next_units | GEN.1128 | the barrier of the region run (stages 0 to 2 for every unit, then the top-up); the command wires it when the top-up stage exists |
 | function | planetgen.galaxy.spherical.shell_cells | by design | every cell of one shell in order, the independent reference the grid tests count, sum volumes and compare neighbours against; the generator reaches cells by band ranges and never walks a whole shell |
 | function | planetgen.galaxy.star_formation.star_formation_rate_profile | by design | the present star-formation rate against radius that `test_star_formation_profile` compares with the observed profile; the generator reads `recent_factor`, never the profile |
@@ -261,11 +259,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
 | function | planetgen.physics.seasonal_swing.peak_wet_bulb_c | by design | the hottest wet bulb of a series for a note; the Temperature score applies the wet bulb rule to each sample (`temperature_coverage.coverage`, GEN.1265) |
-| function | planetgen.physics.field_dispersal.age_from_unit_yr | GEN.1105 | the age a field reaches at a given share of its retirement radius; read when the field members land |
-| function | planetgen.physics.field_dispersal.column_density_kg_m2 | GEN.1105 | the column density through a field; read when the field members land |
-| function | planetgen.physics.field_dispersal.freeze_out_time_s | GEN.1105 | when a field stops colliding; read when the field members land |
-| function | planetgen.physics.field_dispersal.member_position_m | GEN.1105 | a field member's place from its parent's; read when the field members land |
-| function | planetgen.physics.field_dispersal.shear_displacement_m | GEN.1105 | the shear of a field's members; read when the field members land |
+| function | planetgen.physics.field_dispersal.age_from_unit_yr | GEN.1106 | the age a field reaches at a given share of its retirement radius; read by the field render (GEN.1106) |
+| function | planetgen.physics.field_dispersal.column_density_kg_m2 | GEN.1106 | the column density through a field; read by the field render (GEN.1106) |
+| function | planetgen.physics.field_dispersal.freeze_out_time_s | GEN.1106 | when a field stops colliding; read by the field render (GEN.1106) |
+| function | planetgen.physics.field_dispersal.member_position_m | GEN.1106 | a field member's place from its parent's; read by the field render (GEN.1106) |
+| function | planetgen.physics.field_dispersal.shear_displacement_m | GEN.1106 | the shear of a field's members; read by the field render (GEN.1106) |
 | function | planetgen.physics.impact_history.erosion_efficiency | by design | the readable one-diameter form of the sum `erosion_per_impactor_mass` takes inline (PERF.229 moved the arithmetic into the loop, the same numbers); `test_impact_history` checks it against the loop |
 | module | planetgen.physics.system_bodies | GEN.1241 | the system body ledger (rows, tree checks, mass sums, the barycentre that includes the belts, the belt wobble); lock-free pure part of GEN.1066, the view over the typed tables reads it when the wiring lands |
 | module | planetgen.physics.heavy_liquid_tide | by design | the exact fluid Love numbers of a core under a deep global liquid layer (GEN.1052); the tests hold the thin-sea loading factor of `ocean_tides` to its rigid-floor limit at any depth and the fluid limits to 3/2 and 5/2, and it is the path for a body with a molten core under a global liquid, which no generated body has |

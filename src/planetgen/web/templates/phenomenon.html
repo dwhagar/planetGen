@@ -68,6 +68,20 @@
 </div></div>
 {%- endif %}
 {% include "partials/location.html" %}
+{%- if field_members %}
+<section class="panel" id="field-members" aria-labelledby="field-members-heading">
+  <div class="panel-header"><h2 id="field-members-heading">The bodies it keeps</h2></div>
+  <p>This field keeps its {{ field_members.count }} heaviest bodies one by one; the rest is dust and small pieces counted as a total.</p>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <thead><tr><th scope="col">Designation</th><th scope="col">Mass</th><th scope="col">Diameter</th><th scope="col">Shape</th></tr></thead>
+    <tbody>
+      {%- for row in field_members.rows %}
+      <tr><th scope="row"><a href="{{ row.url }}"><code>{{ row.designation }}</code></a></th><td>{{ row.mass }}</td><td>{{ row.diameter }}</td><td>{{ row.status }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {%- if previous or following %}
 <nav class="item-neighbours" aria-label="Neighboring {{ type_label|lower }}s">
   {%- if previous %}<a class="item-previous" rel="prev" href="{{ previous.url }}"><span aria-hidden="true">&larr;</span> {{ previous.name }}</a>{% endif %}
