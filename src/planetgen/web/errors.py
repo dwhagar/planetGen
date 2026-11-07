@@ -77,6 +77,7 @@ def rebuilding_page():
     from flask import g
     from planetgen.admin import cachebuild
     g.retry_after_fixed = True
+    g.expected_unavailable = True
     html, status = render_page("error.html", title="Rebuilding", message=cachebuild.MESSAGE, status=503,
                                retry_after=cachebuild.RETRY_AFTER_SECONDS)
     return html, status, {"Retry-After": str(cachebuild.RETRY_AFTER_SECONDS), "Cache-Control": "no-store"}

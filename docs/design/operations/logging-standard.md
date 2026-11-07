@@ -61,6 +61,23 @@ Every line `update.sh`, `install.sh` and the scripts they run print is a display
 
 A job that runs unattended appends each run to a log of its own in the log folder (`log_dir`, `/var/log/planetgen`), all of them `*.log` files covered by the folder's one rotation rule: `warmup.log` (`planetgen warm`, OPS.96), `tiles.log` (the nightly whole-map build) and `orbits.log` (the nightly orbit update) (OPS.101). They are written by Python (`util/joblog.py`, `logpaths.job_log_path`), not by a redirect: a start line that says what started the run (`by hand`, `systemd timer`), the lines the run printed in the display form, and an end line that says how it ended (`finished after 17:44`, `ended with exit status 75`, `ended by Ctrl+C`, `failed: ...`). `update.log` holds every record `update.sh` prints, appended, so a hand run can be read again; the shell keeps the records in a temporary file until the Python environment says where the folder is (`log_file_begin`, `log_file_to`). `smoke` keeps its JSON output file. A log that cannot be written is said once and never stops the job.
 
+## The error log
+
+`error.log`, in the same folder, records every error and crash of every planetGen program, whatever caused it, while each error still goes to the log it went to before (OPS.116). It holds the lines of severity `error` and `critical` in the display form, each with the fields `log=` (the log the error also went to: `warmup.log`, `tiles.log`, `orbits.log`, `update.log`, `apache` for the web app, else `console`) and `pid=`, so a line can be traced back; a traceback follows its line. It is made by `util/log.py`'s one module, not by a handler of its own in another place, from these sources:
+
+| Source | How it reaches the file |
+|---|---|
+| Every logger | A handler on the program's logger and on the root logger takes every record at ERROR and above, so another library's errors (Flask, RQ, urllib3) come too. `log.error`, `log.get(...).error`, `log.exception`. |
+| An uncaught exception | `sys.excepthook` and `threading.excepthook` write it as `critical`, with its traceback, whether or not a debug log is on; the usual traceback still reaches stderr. A Ctrl+C is not an error. |
+| A fatal signal | A crash in a library (SIGSEGV, SIGFPE, SIGABRT, SIGBUS, SIGILL) leaves the interpreter's own dump of every thread's traceback, through `faulthandler`, in a file that is already there. |
+| A job's own log | The closing line of a failed run (`JobLog`) is also written here. |
+| A killed or crashed worker | The parent writes it: the thread that waits for a detached worker (`redisqueue.start_detached`), RQ's work-horse handler (`units.horse_killed`) and `workers.reap_dead_jobs` say which process, its exit status or signal. A stop on purpose (SIGTERM, SIGINT, SIGHUP, the refusal during an update) is not an error. |
+| A failed step or command | A web job's step that ended with a non-zero status, and a one-off command (`api_jobs.run_command`) that failed, timed out or did not start, are written by the process that started it, with the last error lines the program printed. |
+| The web app | An unhandled exception in a route (with its route and traceback), and any 5xx answer without one (`web/app.py`, the route in `route=`). The deliberate 503 of a closed site or a cache being rebuilt is not an error. |
+| `update.sh` and `install.sh` | Every `log_error` of the script goes to the file as well (`scripts/logrecord.sh`, `log_error_file_begin`, `log_error_file_to`); a command that makes the script stop is named with its exit status and the step (`log_track_failures`, `log_exit_failure`); a warm-up stage that does not finish is written there though the screen only warns (`log_error_only`). |
+
+The file is made by the setup scripts for the web server's user and group, mode 0660 (`examples/apache/log-locations.py`), is created on the first error otherwise, and is rotated by the folder's one rule (`*.log`; the macOS file names it; where the system does not rotate, the program does, 100 MB and 30 kept). A folder the process cannot write is skipped without a word: the error is still in the log it went to. `src/tests/test_error_log.py` holds one test for each source.
+
 ## Stages
 
 One marker, one divider, one wording for each end of a stage. The marker is the one UX.98 built (`util/stagemark.py`): `Stage 4 of 12` for one stage and `Stages 4 to 12 of 12` for a run of them. A stage has these records, all with the field `event` and the numbers `stage` (the first), `stages` (how many there are in all), `count` (when more than one) and `seconds`:

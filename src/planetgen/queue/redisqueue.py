@@ -14,6 +14,7 @@ import datetime
 import decimal
 import json
 import math
+import os
 import subprocess
 import sys
 import threading
@@ -22,6 +23,7 @@ import redis
 import rq
 
 from planetgen.queue import allowlist, redisclient
+from planetgen.util import log
 from planetgen.util.settings import get_settings
 
 GENERATION_QUEUE = "planetgen-generation"
@@ -237,8 +239,19 @@ def start_detached(argv, cwd):
         argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
         cwd=cwd, close_fds=True, start_new_session=True,
     )
-    threading.Thread(target=proc.wait, name=f"planetgen-worker-{proc.pid}", daemon=True).start()
+    threading.Thread(target=_reap, args=(proc, argv), name=f"planetgen-worker-{proc.pid}", daemon=True).start()
     return proc
+
+
+def _reap(proc, argv):
+    """Waits for a detached worker and, as its parent, writes down how it ended when that was badly (`log.process_ended`: a crash, a kill by
+    the out-of-memory killer or `kill -9`): its own stderr goes nowhere, so nobody else would. A refusal during an update (`EX_TEMPFAIL`) is not one."""
+    status = proc.wait()
+    try:
+        log.process_ended("queue", f"Worker process {proc.pid} ({' '.join(argv[3:]) if len(argv) > 3 else 'worker'})", status,
+                          ignore=(0, os.EX_TEMPFAIL), pid=proc.pid)
+    except Exception:  # noqa: BLE001 -- a log line is never a reason to lose the reaper thread
+        pass
 
 
 class Unavailable(Exception):

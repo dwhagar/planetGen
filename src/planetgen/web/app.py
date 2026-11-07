@@ -194,6 +194,15 @@ def _register_request_logging(app):
                   f"(credential: {credential}, user agent {request.headers.get('User-Agent', '?')!r}){body}")
 
     @app.after_request
+    def _log_server_error(response):
+        """OPS.116: a 5xx answer is an error for `error.log` with its route, unless the exception that made it was logged with its traceback
+        already, or it is the deliberate 503 of a closed site or a cache being rebuilt."""
+        if response.status_code >= 500 and not g.get("error_logged") and not g.get("expected_unavailable"):
+            log.get("web").error(f"{response.status_code} on {request.method} {request.path}", status=response.status_code,
+                                 route=request.endpoint or "-")
+        return response
+
+    @app.after_request
     def _log_request_end(response):
         if log.debug_log_active():
             started = g.get("log_request_started")
@@ -354,10 +363,11 @@ def _register_error_handlers(app):
         # The real detail still reaches Flask's own logger.
         # With the debug log on, this also lands there (app.logger
         # propagates to the root logger, which the debug log listens on).
+        g.error_logged = True
         if _is_api_request():
-            app.logger.exception("Unhandled exception in API request")
+            app.logger.exception("Unhandled exception in API request: %s %s (route %s)", request.method, request.path, request.endpoint or "-")
             return jsonify({"error": "internal server error"}), 500
-        app.logger.exception("Unhandled exception while building a page")
+        app.logger.exception("Unhandled exception while building a page: %s %s (route %s)", request.method, request.path, request.endpoint or "-")
         log.exception(f"Unhandled exception while building {request.path}")
         return render_error(500, unexpected_error_message())
 

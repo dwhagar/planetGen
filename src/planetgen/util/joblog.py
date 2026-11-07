@@ -90,6 +90,8 @@ class JobLog:
             self.handler.handle(logging.LogRecord(f"planetgen.{self.component}", level, "", 0, message, None, None))
         except Exception:  # noqa: BLE001 -- a log that cannot be written never stops the run
             pass
+        if level >= logging.ERROR:
+            log.record_error(self.component, message, log=self.name)       # the run's own failure line is an error for error.log too (OPS.116)
 
     def __exit__(self, exc_type, exc, _tb):
         if self.handler is None:

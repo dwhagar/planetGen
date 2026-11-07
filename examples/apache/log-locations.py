@@ -289,6 +289,26 @@ class LogSetup:
                   f"file {self.user}:{self.group} 0660)")
 
 
+    def error_log(self, path):
+        """OPS.116: `error.log` beside the activity log, made here (as Apache's user and group, 0660) because the first error may come from
+        root's update or from the web server, and a file root makes first must not shut the web server out."""
+        problems = self._identity_problems()
+        if not os.path.exists(path):
+            self._try(problems, _touch, path)
+        if os.path.isfile(path):
+            if self._owner(path, self.uid, self.gid, problems):
+                self._try(problems, os.chmod, path, 0o660)
+        elif os.path.exists(path):
+            problems.append(f"{path} exists but isn't a file")
+        if not problems:
+            self._check_access(path, problems)
+        if problems:
+            commands = [f"sudo touch {_quote(path)}", f"sudo chown {self.user}:{self.group} {_quote(path)}", f"sudo chmod 0660 {_quote(path)}"]
+            self.warn(f"the error log {path}", problems, commands, '"log_dir" in config.json (or PLANETGEN_LOG_DIR)')
+        else:
+            print(f"Error log: {path} (every error and crash of every planetGen program; file {self.user}:{self.group} 0660)")
+
+
 def _touch(path):
     with open(path, "a", encoding="utf-8"):
         pass
@@ -336,6 +356,7 @@ def main(argv):
         setup.debug_log(log_file, source_of("PLANETGEN_LOG_FILE", config, "log_file", logpaths.DEFAULTS), debug_on)
     if allowed["log_dir"]:
         setup.activity_log(activity, source_of("PLANETGEN_LOG_DIR", config, "log_dir", logpaths.DEFAULTS))
+        setup.error_log(os.path.join(os.path.dirname(os.path.abspath(activity)), logpaths.ERROR_LOG_NAME))
     return 0
 
 
