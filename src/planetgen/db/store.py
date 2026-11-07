@@ -83,6 +83,7 @@ from planetgen.util import fingerprint_encoding as fingerprintEncoding, generato
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import cloud as cloudContext, multistar, rogue_landing, rogue_yield, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation.phenomena import asteroid_field
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.population import facilities as facility_rules, facility_attrs
@@ -476,6 +477,17 @@ def _session_sql_mode():
     return mode
 
 
+LOST_CONNECTION_ERRORS = (2006, 2013, 2055)
+"""tuple: The MySQL client errors for a connection that is gone: the server has gone away, lost the connection during a query, lost the connection to the server."""
+
+
+def is_lost_connection(exc):
+    """Whether `exc` says the connection itself is gone (a lost-connection client error, or a command on a connection already closed), not a statement that failed."""
+    if isinstance(exc, pymysql.err.InterfaceError):
+        return True
+    return isinstance(exc, pymysql.err.OperationalError) and bool(exc.args) and exc.args[0] in LOST_CONNECTION_ERRORS
+
+
 def _get_pool(config, statement_timeout_s=None, lock_wait_s=None):
     key = config._key() if not (statement_timeout_s or lock_wait_s) else (
         config._key(), float(statement_timeout_s or 0), float(lock_wait_s or 0))
@@ -610,7 +622,7 @@ still answers as before."""
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
-    "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons",
+    "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
@@ -1270,6 +1282,14 @@ class Connection:
         self._parity_touched = set()
         try:
             self._conn.rollback()
+        except pymysql.err.InterfaceError:
+            # A connection the server dropped (or that was already closed) has nothing left to roll back: the server ended its
+            # transaction with it. Raising here would hide the error that is being cleaned up after, in every `except: rollback(); raise`.
+            log.normal("Rollback skipped: the connection to MySQL was already closed.")
+        except pymysql.err.OperationalError as exc:
+            if not exc.args or exc.args[0] not in LOST_CONNECTION_ERRORS:
+                raise
+            log.normal(f"Rollback skipped: the connection to MySQL was lost (error {exc.args[0]}).")
         finally:
             self._release_txn_locks()
 
@@ -4255,6 +4275,14 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
             (field_id, position, component, concentration),
         )
 
+    for member in field.members:
+        conn.execute(
+            "INSERT INTO field_members (field_id, member_rank, mass_kg, radius_km, density_g_cm3, rock_fraction, metal_fraction, water_fraction, ice_fraction, status)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (field_id, member["rank"], member["mass_kg"], member["radius_km"], member["density_g_cm3"], member["rock_fraction"], member["metal_fraction"],
+             member["water_fraction"], member["ice_fraction"], member["status"]),
+        )
+
     return field_id
 
 
@@ -6042,7 +6070,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
             counts, `sectors` -- the ids of every sector something moved
             in or out of -- `step_capped` (objects that needed more steps than the stepper allows), and `counts`, `{name: rows_moved}`:
             `"star_systems"`, `"binary_galactic_orbits"`, each orbiting
-            phenomenon table and `"space_facilities"`.
+            phenomenon table, `"space_facilities"` and `"retired_asteroid_fields"` (the fields that passed a light year in this run, GEN.1107).
     """
     index = _SectorIndex(conn)
     moved = refiled = 0
@@ -6143,7 +6171,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         # An anchored black hole or neutron star moves with its system's star row.
         anchored = " AND star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""
         scheduled, clocks, updates, refile_updates = [], [], [], []
-        stepping, finished = [], []
+        stepping, finished, aging = [], [], []
         for row in conn.execute(
             f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_period_gy,"
             f" velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix, next_update_due FROM {table}"
@@ -6156,6 +6184,8 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
                 continue
             elapsed_years = (clock.end_unix - epoch) / seconds_per_year
             clocks.append((elapsed_years, clock.end_unix, clock.end_unix + interval, row["id"]))
+            if table == "asteroid_fields":
+                aging.append((row["id"], elapsed_years))
             # A black hole or neutron star with a velocity and no galactic orbit is one the galaxy ejected (GEN.238):
             # a straight line, like a hypervelocity star's (GEN.137). The galaxy's own black hole has no velocity.
             ballistic = (table in ("black_holes", "neutron_stars") and not row["galactic_orbital_period_gy"]
@@ -6202,6 +6232,8 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
                 f" galactic_radius_pc = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
                 refile_updates)
             _refile_nearest_rows(conn, table, [(update[0], update[-1]) for update in refile_updates])
+        if table == "asteroid_fields":
+            counts["retired_asteroid_fields"] = _age_asteroid_fields(conn, aging) if aging else 0
         counts[table] = len(clocks)
         _report(on_progress, table, done, steps)
 
@@ -8417,8 +8449,11 @@ def compute_phenomenon_placement(conn, sector_id):
 
 def get_occupied_addresses(conn, shell_indices):
     """
-    Returns every already-occupied `(shell_index, band_index,
-    wedge_index)` address among the given shells -- used by
+    Returns every already-charted `(shell_index, band_index,
+    wedge_index)` address among the given shells (a cell that only holds a
+    rogue planet that landed there, or a waiting bright star, has a `sectors`
+    row but is not charted, so a run that charts it must not skip it, GEN.1111)
+    -- used by
     `planetgen galaxy`'s batch and neighborhood modes to skip addresses a
     sector already exists at, in one query rather than one per candidate.
 
@@ -8427,7 +8462,7 @@ def get_occupied_addresses(conn, shell_indices):
         shell_indices (iterable): Shell indices to check.
 
     Returns:
-        set: Address tuples already present in `sectors`. Empty if
+        set: Address tuples already charted (`chart_ledger`). Empty if
             `shell_indices` is empty.
     """
     shell_indices = sorted(set(shell_indices))
@@ -8436,8 +8471,9 @@ def get_occupied_addresses(conn, shell_indices):
 
     placeholders = ", ".join("?" for _ in shell_indices)
     rows = conn.execute(
-        f"SELECT shell_index, band_index, wedge_index FROM sectors "
-        f"WHERE shell_index IN ({placeholders}) AND wedge_index IS NOT NULL",
+        f"SELECT s.shell_index, s.band_index, s.wedge_index FROM sectors s"
+        f" JOIN chart_ledger c ON c.shell_index = s.shell_index AND c.band_index = s.band_index AND c.wedge_index = s.wedge_index"
+        f" WHERE s.shell_index IN ({placeholders}) AND s.wedge_index IS NOT NULL",
         tuple(shell_indices),
     ).fetchall()
     return {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in rows}
@@ -10494,6 +10530,39 @@ def _phase_turn_sql(period_column, prefix=""):
     (GEN.108): a step many orbits long wraps exactly, where elapsed / period
     would leave few digits for the fraction."""
     return f"(MOD({_elapsed_years_sql(prefix)}, {period_column}) / {period_column} * 360)"
+
+
+FIELD_AGING_BATCH = 1_000
+"""int: How many due asteroid fields `_age_asteroid_fields` reads and writes at a time."""
+
+
+def _age_asteroid_fields(conn, aging):
+    """
+    The bring-to-epoch step of asteroid fields (GEN.1107): each due field `(id, elapsed_years)` gets older by the years since its epoch, and its radius and the size digit of its class follow from the age
+    (`asteroid_field.aged`, the formula that made them). A field that has spread past a light year is retired (`asteroid_field.is_retired_radius`): its row stays, with its Object ID, members and
+    facilities, and the readers of the map and the lists leave it out (`asteroid_field.RETIRED_FIELD_SQL`); its radius keeps following its age. A field with no age or speed stored (saved before GEN.1103) is not aged.
+
+    Returns:
+        int: How many of the fields passed a light year in this step (not those that were retired already).
+    """
+    retired = 0
+    for start in range(0, len(aging), FIELD_AGING_BATCH):
+        batch = dict(aging[start:start + FIELD_AGING_BATCH])
+        marks = ", ".join("?" * len(batch))
+        updates = []
+        for row in conn.execute(
+            f"SELECT id, radius_ly, birth_age_yr, rms_speed_kms, shape, composition_family, density FROM asteroid_fields WHERE id IN ({marks})"
+            f" AND birth_age_yr IS NOT NULL AND rms_speed_kms > 0", tuple(batch)
+        ).fetchall():
+            if batch[row["id"]] <= 0:
+                continue
+            age, radius, field_class = asteroid_field.aged(
+                row["birth_age_yr"], row["rms_speed_kms"], row["shape"] or "ball", row["composition_family"], row["density"], batch[row["id"]])
+            updates.append((age, radius, field_class, row["id"]))
+            retired += asteroid_field.is_retired_radius(radius) and not asteroid_field.is_retired_radius(row["radius_ly"])
+        if updates:
+            conn.executemany("UPDATE asteroid_fields SET birth_age_yr = ?, radius_ly = ?, field_class = ?, modified_at = modified_at WHERE id = ?", updates)
+    return retired
 
 
 def _due_interval_s(row, clock, speed_kms, scale, prefix=""):

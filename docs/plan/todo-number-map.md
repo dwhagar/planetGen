@@ -13,18 +13,18 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.286 |
+| UX | UX.288 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1345 |
+| GEN | GEN.1353 |
 | PERF | PERF.249 |
-| DB | DB.115 |
+| DB | DB.116 |
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.47 |
-| TEST | TEST.678 |
+| TEST | TEST.679 |
 | USR | USR.32 |
-| OPS | OPS.115 |
+| OPS | OPS.116 |
 | DOC | DOC.110 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -944,7 +944,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.154 | Show the Einstein radius on compact-object pages | none | done, PR #1799 |
 | GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) | none | dropped (not built; decision note, PR #1716) |
 | GEN.156 | Pin astropy to [R4361] and IAU 2015 constants before its first import (GEN.66 follow-up) | none | done, PR #1310 |
-| GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies | none | open |
+| GEN.157 | The `neighbor_galaxies` table drawn from the seed (the real Local Group list is a test reference only, no shipped content) | none | open |
 | GEN.158 | Add a metallicity value to stars | none | done, PR #1789 |
 | GEN.159 | Globular clusters: cluster table, King tables and the Milky Way catalogue | none | done, PR #1810 |
 | GEN.160 | Cluster density in the sector gate, with a "cluster" population | none | done, PR #1817 |
@@ -1158,7 +1158,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed | none | done, PR #1960 |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | none | done, PR #2638 |
 | GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | none | done, PR #2460 |
-| GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | none | open |
+| GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | none | done, PR #5558 |
 | GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation | none | done, PR #1959 |
 | GEN.373 | Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise | none | dropped (Boss, 2026-10-17, 10:07 AM EDT, his card answer as Core 4 reported it) |
 | GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree | none | done, PR #2473 |
@@ -2129,9 +2129,17 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1339 | Sea worlds are almost all global oceans: 55 of 59 worlds with a liquid sunlit sea are 95 to 100 percent ocean and only 3 are in the 20 to 80 percent range class M asks for; find why (delivered water against relief) | none | done, PR #5548 |
 | GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor | none | open |
 | GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number | none | open |
-| GEN.1342 | A temperate (275 to 298 K) global ocean with oxygen has no hard class: class O needs 298 to 312 K and class M needs 20 to 80 percent ocean cover, so these worlds are placed only by soft shoulders (Boss decides the class) | none | open |
+| GEN.1342 | Class O takes any world with more than 80 percent surface water within the habitable range, 275 to 312 K (M's floor up to O's current ceiling), so a temperate global ocean with oxygen has a hard class (Boss, option 2: no new letter) | none | open |
 | GEN.1343 | Super-puff planets (W15): an envelope-bearing sub-Neptune branch through the air solver, class and radius, so the super_puff module has a body to inflate | none | open |
-| GEN.1344 | A bistable air does not settle in the 60 steps of the air fixed point: a two-cycle between a cool thin air and a hot dense one leaves a stored temperature a step off the mixture's own warming | none | open |
+| GEN.1344 | An air that cannot settle in the 60 steps of the air fixed point (about 4 percent of airs: a haze or ocean switch makes the step jump down as it warms, so there is no exact fixed point) stores the last answer, up to 75 K off the switch point; store the knee value instead | none | open |
+| GEN.1345 | Sealed-ocean crust: find a published range for the altered-crust thickness (waterworld_carbon.ALTERED_CRUST_KM, row AM54) and change it only if a source supports it | none | done, PR #5563 |
+| GEN.1346 | Steam-air energy-limited efficiency: set ENERGY_LIMITED_EFFICIENCY to 0.1 to 0.15 instead of 0.01, with the stand-in registered and the census re-measured | none | open |
+| GEN.1347 | Tidal inflation of super-puff radius (the tidal-inflation equation in the GEN.1343 report, which needs the planet's drawn obliquity) so super-puffs stay inflated past 1 Gyr | none | open |
+| GEN.1348 | Sealed-ocean anion supply: find the published chloride and sulfate that leached basalt gives up with its sodium, so sealed-ocean pH is no longer bimodal at 12 to 14 for two thirds of sealed oceans | none | done, PR #5565 |
+| GEN.1349 | Sealed-ocean calcium: the model leaches all of the crust's 8.5 weight percent calcium to solution as a free cation, which sets lime-buffered pH 12 to 14 in 60 percent of sealed oceans; find what share a leached basalt gives up as free calcium against what stays in carbonate and silicate minerals | none | open |
+| GEN.1351 | A planet's tidal heating is kept for the whole age with no cap from the orbit's energy: a 0.0013 Earth-mass planet at 0.0134 AU round a 0.09 solar-mass star at e=0.068 spends 2.4e31 J over 1.8 Gyr against an orbital energy of 2.3e31 J (bug) | none | open |
+| GEN.1352 | Moons of a tipped giant: a moon's stored inclination is read by moon_history as against the parent's equator but placed in the system frame, so Uranus-type moons do not follow the tipped equator (bug) | none | open |
+| GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2724,6 +2732,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.112 | New galaxy jobs fail at stages 3 to 14 with numba "cannot cache function bright_ranges: no locator available" because the code tree is read-only to the service user since SEC.37 (bug) | none | done, PR #5477 |
 | OPS.113 | update.sh fails when started by systemd (the Update button and the monthly timer) while warm-up or other jobs run: a systemd-started update cancels everything except generation and refuses only while generation runs (bug) | none | done, PR #5485 |
 | OPS.114 | Warm-ups (update.sh, on-change, the nightly whole-map tiles build) exit cleanly with success and "galaxy is empty, nothing to warm up" when the database holds no galaxy, and update.sh says skipped, not failed (bug) | none | done, PR #5492 |
+| OPS.115 | update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -2927,7 +2936,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.201 | The neighborhood job test (test_api_job_runs, a_neighborhood_job_runs_its_sectors_through_the_wrapper) takes over 150 s because generation physics is slow on main: find the slow step and speed it up with identical values (bug) | none | done, PR #3633 |
 | PERF.202 | Move each generating verb's starter handlers and start-time checks into the step units, so a verb is expressible as units in one run | none | done, PR #3857 |
 | PERF.203 | The Generate page and job_runner follow one wrapper run: one command list, one run, with the page's progress, state and log files kept | none | done, PR #4100 |
-| PERF.204 | An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2) | none | open |
+| PERF.204 | An admin setting (off by default, never automatic) lets an admin's visit to an uncharted cell queue a one-sector generation run, and the page says queued (the later option 2 of PERF.149 rule 2) | none | open |
 | PERF.205 | Keyset paging for the species list and the built phenomena list (slice 2 of the PERF.137 OFFSET audit) | none | done, PR #3916 |
 | PERF.206 | Keyset walk for the octant and binary system group queries (slice 3 of the PERF.137 OFFSET audit) | none | done, PR #3929 |
 | PERF.207 | planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit) | none | done, PR #3935 |
@@ -4196,6 +4205,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |
 | TEST.631 | test_density_components::test_the_spiral_written_as_components_gives_the_density_it_gave_before fails on main (6 cases) (bug) | none | done, PR #5239 |
+| TEST.678 | Test failure on main: the forced-eccentricity tide test gives Io a tidal power of 6.1e13 W against its 5e13 W ceiling (test_resonant_chains.py, test_the_forced_eccentricity_feeds_the_tide_as_it_does_for_a_moon) (bug) | none | done, PR #5561 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
@@ -4267,6 +4277,7 @@ Each citation below resolves to one item by its date.
 | TODO 35 (PR #152) | 2026-10-01 02:22Z | DB.1 |
 | DB.113 | The generate run stops at stage 7 (Scatter the massive stars) on a MySQL deadlock (error 1213) in unit 11, with 15 workers (bug) | none | done, PR #5408 |
 | DB.114 | The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113) | DB.113 | done, PR #5508 |
+| DB.115 | A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug) | none | open |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
@@ -4328,6 +4339,8 @@ Each citation below resolves to one item by its date.
 | UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched | none | open |
 | UX.284 | The admin Update page log and the queue run log scroll to the end on load and on live refresh, pausing only when the reader scrolls up | none | done, PR #5485 |
 | UX.285 | Settings option weirdness_dial: the oddity dial (default 1, 0 turns all oddities off) in the settings page and file, read through SystemConfig.WEIRDNESS_DIAL | none | open |
+| UX.286 | Sensor view: a dotted line through the middle of a planet, moon or star along its axis of rotation, read from the stored spin axis and axial tilt | none | open |
+| UX.287 | Sensor view: magnetic field lines drawn for a planet, moon, star or neutron star from its stored field strength and dipole orientation, when it has a field | none | open |
 
 ### Code tags `TODO(<area> #N)`
 

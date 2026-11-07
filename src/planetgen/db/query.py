@@ -51,6 +51,7 @@ from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types, tech
 from planetgen.generation import cloud as cloudContext
 from planetgen.generation.star import compressed_heliosphere_radius
+from planetgen.generation.phenomena import asteroid_field
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
 from planetgen.util import generator_epoch
@@ -2591,6 +2592,10 @@ def rogue_planet_gravity_g(mass_kg, radius_km):
     return relations.surface_gravity(mass_kg, radius_km * 1000.0) / constants.EARTH_GRAVITY
 
 
+_LIVE_ONLY = {"asteroid_fields": f"AND NOT ({asteroid_field.RETIRED_FIELD_SQL})"}
+"""dict: A phenomenon table -> the extra `WHERE` test that leaves its retired rows out of the maps and lists."""
+
+
 def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     """
     Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
@@ -2657,7 +2662,7 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
                    {"age_years" if table == "supernova_remnants" else "NULL"} AS age_years
             FROM {table}
             WHERE center_x_pc IS NOT NULL
-            {where_bbox}
+            {where_bbox} {_LIVE_ONLY.get(table, "")}
             """,
             bbox_params,
         ).fetchall()
@@ -2702,7 +2707,7 @@ def _widest_placed_phenomenon_radius_ly(conn):
     widest = 0.0
     for table in _RADIUS_PHENOMENON_TABLES:
         row = conn.execute(
-            f"SELECT MAX(radius_ly) AS widest FROM {table} WHERE center_x_pc IS NOT NULL"
+            f"SELECT MAX(radius_ly) AS widest FROM {table} WHERE center_x_pc IS NOT NULL {_LIVE_ONLY.get(table, '')}"
         ).fetchone()
         if row and row["widest"] is not None:
             widest = max(widest, row["widest"])
@@ -3630,9 +3635,8 @@ def nebula_shape(conn, nebula_id):
     """
     One nebula's shape (GEN.75, `planetgen.galaxy.nebula_shape`): the one
     stored with it (`nebulae.shape_*` and `nebula_shape_balls`), or, for a
-    nebula saved before v56, the one its stored properties give (drawn
-    from them, `dominant_species` included, so it is the same each time it
-    is read but not the generator's own, whose species text a save rewrites).
+    nebula saved before v56, the one a fresh save would have stored,
+    drawn from its own properties.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -3652,7 +3656,7 @@ def nebula_shape(conn, nebula_id):
     row = _with_printed_uid(row)
     if row.get("shape_scale") is None:
         return row, shapes.shape_for_nebula(row["nebula_class"], row["radius_ly"], row["density_cm3"],
-                                            row["temperature_k"], row["extinction_av"], row["dominant_species"])
+                                            row["temperature_k"], row["extinction_av"])
     balls = conn.execute(
         "SELECT ball_index, center_x, center_y, center_z, radius FROM nebula_shape_balls"
         " WHERE nebula_id = ? ORDER BY ball_index", (nebula_id,)).fetchall()

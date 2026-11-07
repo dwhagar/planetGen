@@ -141,7 +141,8 @@ _RUNTIME_ONLY = {
              "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
              "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw", "_age_drawn",
              "_surface_w", "_belt_exposure_msv_yr", "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au",
-             "_formation_fractions", "irregulars", "_deferred_climate"},    # `irregulars` is written by `to_dict` as its own entry (GEN.1083); the solid fractions drawn before the envelope took its share (GEN.1226); the stored fractions are the ones after; `_deferred_climate` is the climate step held until the moons are known (GEN.1282), None once it ran    # kept so the moon history can run again (GEN.959); the ring it builds is stored
+             "_formation_fractions", "irregulars", "_deferred_climate",
+             "_bare_core", "_captured_envelope", "_late_core"},    # the core the envelope was captured onto, the envelope it kept and the late-core request, which only the draw reads (GEN.1323); the stored columns hold their result; `irregulars` is written by `to_dict` as its own entry (GEN.1083); the solid fractions drawn before the envelope took its share (GEN.1226); the stored fractions are the ones after; `_deferred_climate` is the climate step held until the moons are known (GEN.1282), None once it ran    # kept so the moon history can run again (GEN.959); the ring it builds is stored
     AsteroidBelt: {"system_config", "composition", "makeup", "_members", "scatter_giant_au", "captured_mass_kg"},    # the giant's distance the members of an outer disk are drawn with (GEN.1092); the stored members hold what it gave; the mass the planets caught (GEN.1085), already out of `mass_kg`
 }
 

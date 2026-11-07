@@ -190,7 +190,8 @@ log_stage 1 9 "Pulling the latest changes"
 # Mode changes are not local edits: set-permissions.sh makes scripts and
 # *.py files executable, which git (with core.fileMode on) would list.
 # The state/ folder (the maintenance switch, the update lock) is the update's own, never a local edit (OPS.76).
-dirty="$(git -c core.fileMode=false status --porcelain -- . ':(exclude)state')"
+# Untracked files are skipped: `reset --hard` never touches them, and there are always some (config.json, logs, caches).
+dirty="$(git -c core.fileMode=false status --porcelain --untracked-files=no -- . ':(exclude)state')"
 if [[ -n "$dirty" ]]; then
     log_warning "uncommitted local changes in $SCRIPT_DIR -- these will be overwritten:"
     log_warning "$dirty"

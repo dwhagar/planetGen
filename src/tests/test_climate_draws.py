@@ -115,7 +115,8 @@ def test_a_body_held_at_the_surface_temperature_cap_stores_the_greenhouse_that_g
     monkeypatch.setattr(surface_air.atmosphere_state, "greenhouse_warming",
                         lambda *args: dataclasses.replace(real(*args), surface_temperature_k=5000.0, factor=300.0))
     with draw.bound(3):
-        planet = Planet(SystemConfig(), host_star, host_star.habitable_zone, 0.5 * sum(host_star.habitable_zone),
+        # inside the runaway flux, so the steam limit of GEN.1329 (`MOIST_LIMIT_K`) does not hold the surface down
+        planet = Planet(SystemConfig(), host_star, host_star.habitable_zone, 0.4 * host_star.habitable_zone[0],
                         mass=constants.EARTH_MASS_TO_KG, moon_count=0)
     assert planet.atmospheric_pressure > 0.0
     assert planet.surface_temperature == pytest.approx(surface_air.MAX_SURFACE_TEMPERATURE_K)

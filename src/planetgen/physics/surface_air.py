@@ -40,7 +40,7 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen.physics import (
-    aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw,
+    aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw, orbits,
     mixture_escape, mixture_rocky,
     mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
@@ -53,6 +53,12 @@ from planetgen.util import draw
 _kg_to_mearth = unit_registry.converter("kg", "Mearth")
 
 # --- numerical ----------------------------------------------------------------------------------------------------------------
+
+MOIST_LIMIT_K = 375.0
+"""float: The hottest surface of a body with water that gets less than its runaway greenhouse flux (GEN.1329), K: the surface of the radiative-convective model's
+saturated clear-sky air at its last solution before the runaway (374.6 K at 330 W/m2, GEN.1194, stand-in SV1). Past it a steam air radiates more than such a body
+absorbs, so the fixed point does not hold the state; it is the guard that keeps the transient steps of the fixed point (a dense, hydrogen-rich first mixture the
+table warms to 1,000 K) from carrying the ocean past the critical point of water, where `freeze_out` puts all of it in the air."""
 
 MAX_STEPS = 60
 """int: The most steps of the fixed point. A body that has not settled by then keeps its last step and says so (`Air.converged`)."""
@@ -200,6 +206,9 @@ class Setting:
             albedo in `absorbed_flux_w_m2`, as a dry body, a giant and a setting built by hand do.
         orbital_speed_ms (float or None): The speed of the body round its star, m/s, which sets how hard the leftover planetesimals hit
             (`impact_history.impact_speed_ms`); `None` for a body with no star, which takes no late accretion (GEN.819).
+        steam_possible (bool): Whether the body can hold its water as steam: its effective flux (the starlight and its own heat) is past the runaway
+            greenhouse limit (`orbits.runaway_greenhouse_flux`, GEN.1329). Under the limit a hot steam air radiates the steam limit of about 280 W/m2, more
+            than the body absorbs, and cools, so a body with water is held under `MOIST_LIMIT_K`. True for a setting built by hand, as it was before GEN.1329.
     """
 
     gravity_m_s2: float
@@ -224,6 +233,7 @@ class Setting:
     albedo_law: object = None
     orbital_speed_ms: object = None
     cloud_law: object = None
+    steam_possible: bool = True
 
     def albedo_at(self, temperature_k, ocean=True):
         """The Bond albedo of the step at `temperature_k`: the ice law's (GEN.972) plus the cloud's (`cloud_albedo`, GEN.974, nil with no liquid ocean at the step), held under
@@ -532,6 +542,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
 
     def shares(inventory):
         shares_ = {element: base * efficiency for element, efficiency in efficiencies.items()}
+        chloride_mol_m2 = inventory.get("Cl", 0.0) * shares_.get("Cl", 0.0) * moles_per_100_g / setting.area_m2       # GEN.1319: the chloride the volcanoes gave the ocean
+        sulfate_mol_m2 = 0.0
         if ocean:   # GEN.524 part 2: hydrogen chloride and fluoride are so soluble that an ocean takes all the volcanoes give (the air keeps none)
             shares_["Cl"] = shares_["F"] = 0.0
         degassed_sulfur = inventory.get("S", 0.0) * shares_.get("S", 0.0) * moles_per_100_g
@@ -540,6 +552,7 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             kept = sulfur_balance.balance(degassed_sulfur / setting.area_m2, age_s=age_s, ocean_present=ocean, oxidized_share=oxidized_share,
                                           crust_kg_m2=crust_kg_m2, lifetimes=lifetimes)
             shares_["S"] *= kept.air_mol_m2 * setting.area_m2 / degassed_sulfur
+            sulfate_mol_m2 = kept.sulfate_mol_m2
         degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g
         if degassed_hydrogen > mantle_hydrogen_mol:  # GEN.837: volcanoes bring up no more hydrogen than MANTLE_OUTGAS_SHARE of the mantle's water holds
             shares_["H"] *= mantle_hydrogen_mol / degassed_hydrogen
@@ -559,7 +572,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             else:
                 sodium, calcium = waterworld_carbon.leached_cations_mol_m2(water_world.draws.altered_km)
                 kept_bar = waterworld_carbon.ocean_pco2(carbon / setting.area_m2, temperature_k, setting.water_kg / setting.area_m2,
-                                                        setting.gravity_m_s2, sodium_mol_m2=sodium, calcium_mol_m2=calcium).pco2_bar
+                                                        setting.gravity_m_s2, sodium_mol_m2=sodium, calcium_mol_m2=calcium,
+                                                        anion_charge_mol_m2=chloride_mol_m2 + 2.0 * sulfate_mol_m2).pco2_bar
             shares_["C"] *= min(1.0, kept_bar / supply_bar)
         return shares_
 
@@ -644,6 +658,7 @@ def solve(setting, start_temperature_k):
     flips, last_ocean, cycling = 0, False, False
     stalls = 0
     window = []             # (temperature the step started from, temperature it found) of the last steps, for the chatter of an unsettled fixed point (GEN.1344)
+    held_cool = water_moles > 0.0 and not setting.steam_possible and not setting.giant        # GEN.1329: no steam under the runaway limit
     escape_bar = None       # the pressure the light-gas escape compares its loss to: set once the air has settled without it
     for step in range(1, MAX_STEPS + 1):
         pressure = math.exp(ln_pressure)
@@ -727,6 +742,8 @@ def solve(setting, start_temperature_k):
         aloft_share = haze.absorbed_share * absorbed_w_m2 / radiated_w_m2
         warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, radiated_w_m2, aloft_share, haze.pressure_pa)
         new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), MAX_SURFACE_TEMPERATURE_K)
+        if held_cool:
+            new_temperature = min(new_temperature, MOIST_LIMIT_K)
         change_p = abs(math.log(new_pressure) - ln_pressure)
         change_t = abs(new_temperature - temperature)
         window.append((temperature, new_temperature))
@@ -832,6 +849,27 @@ def airless_state(law, starlight_w_m2, start_temperature_k):
     return climate_draws.equilibrium_temperature_k(branch.albedo, starlight_w_m2), branch.albedo     # the pair GEN.412 stores reproduces the temperature exactly
 
 
+SUN_TEMPERATURE_K = 5772.0
+"""float: The temperature the runaway limit is taken at for a body whose star has none (an ejected body): the Sun's (IAU 2015 nominal)."""
+
+
+def _steam_possible(body, albedo, starlight_w_m2):
+    """
+    Whether the body can hold its water as steam (GEN.1329): its effective flux, the starlight in the Sun's at the Earth plus its own heat flow (the
+    interior's and the tide's) as the starlight that would absorb the same, is past `orbits.runaway_greenhouse_flux` of its star and mass (the limit the
+    water-loss history and the steam-branch start already use). A hot steam air radiates about 280 W/m2 [R3236] whatever it
+    absorbs, so under the limit it cools and the water returns to the surface; a body with no star (an ejected one) is held to the Sun's limit. No draw.
+    """
+    own_w_m2 = (getattr(body, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(body, "tidal_flux_w_m2", None) or 0.0)
+    star = getattr(body, "star", None)
+    temperature = getattr(star, "temperature", None) or SUN_TEMPERATURE_K
+    if not body.mass:
+        return True
+    reference = tuning.RUNAWAY_FLUX_REFERENCE_W_M2
+    effective = starlight_w_m2 / reference + 4.0 * own_w_m2 / (reference * max(1.0 - albedo, 0.05))
+    return effective > orbits.runaway_greenhouse_flux(temperature, _kg_to_mearth(body.mass))
+
+
 def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_w, water_lost):
     """
     The `Setting` of a planet or moon whose class has an air: from its mass, radius, gravity and bulk composition, the heat its
@@ -855,6 +893,7 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
 
     ice_law = ice_albedo_law(body, albedo, surface_w)
     return Setting(
+        steam_possible=giant or _steam_possible(body, albedo, starlight_w_m2),
         gravity_m_s2=gravity, radius_m=body.radius * 1000.0, mantle_kg=0.0 if giant else rock.silicate * body.mass,
         released_j=0.0 if heat is None else heat.released_j, heat_flux_w_m2=flux,
         ocean_cover=0.0 if giant else hydrosphere.ocean_cover(body, surface_w), water_kg=0.0 if giant else surface_w * body.mass,

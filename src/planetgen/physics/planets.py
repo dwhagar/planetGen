@@ -21,7 +21,7 @@ and moon in a system after all of them have been generated.
 
 import math
 
-from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
+from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.generation import irregular_moons
@@ -259,6 +259,8 @@ def generate_planet_properties(planet, zone_override=None):
     # The air is made later, with the temperature it gives (`calculate_atmospheric_conditions`, GEN.411 and GEN.422): whether the
     # body holds one is the solver's call. Clear what a previous draw left behind -- `reconcile_zone` regenerates a body
     # in place -- and the class, which is derived once the body is finished (`apply_class`).
+    planet._bare_core = None             # a new draw has no envelope yet (`apply_envelope`, GEN.1323)
+    planet._captured_envelope = 0.0
     planet.atmosphere = None
     planet.atm_density = None
     planet.atm_molar_density = None
@@ -385,6 +387,94 @@ def refinish_rocky(planet):
         for moon in planet.moons:
             ocean_tides.generate(moon, planet)
     return made
+
+
+ENVELOPE_SETTLE_TOLERANCE = 0.02
+"""float: A planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it and its air, class and
+spin (`settle_envelope`); the radius moves by less than a hundredth. A stand-in, registry row EC6."""
+
+
+def apply_envelope(planet):
+    """
+    Gives a rocky planet the hydrogen-helium envelope it captured and kept (GEN.1323, `envelope_capture`), from the star's age and the planet's
+    orbit as they are now: it draws the envelope the planet started with from a stream of its own (the run's stream does not move; the key is
+    the planet's mass, formation distance and star, not the age or the orbit, so every pass draws the same start), works out what the loss to
+    the star's X-rays and heat leaves, and when something is, stores the envelope as a fraction of the mass (the solid fractions give way to
+    it), sets the radius of the core under the envelope (the law of Lopez and Fortney, as the valley survey does) and the volume, density and
+    gravity that follow, and drops the moons that no longer fit. A planet that lost it all, a planet out of the mass range, a moon and a giant
+    are left as they were. Called again it starts from the planet as it was drawn (`_bare_core`), so it never compounds, and a planet whose
+    envelope is within `ENVELOPE_SETTLE_TOLERANCE` of the one it has is left. It does not make the air, class or spin again: the caller does
+    (`Planet`, before the air is made the first time; `settle_envelope`, after).
+
+    Returns:
+        bool: Whether the planet's envelope (and so its radius) changed.
+    """
+    if planet.body_type != "t" or planet.is_moon:
+        return False
+    mass_earth = _kg_to_mearth(planet.mass)
+    if not envelope_capture.in_range(mass_earth):
+        return False
+    if getattr(planet, "_late_core", False):
+        start = 0.0                     # a core that finished after the gas disk went captured nothing
+    else:
+        stream = draw.Stream(f"envelope-start:{float(planet.mass)!r}:{float(formation_distance_au(planet))!r}:{float(planet.star.mass)!r}")
+        with draw.bound(stream):
+            start = envelope_capture.draw_start(mass_earth)
+    result = envelope_capture.kept(planet, start)
+    held = getattr(planet, "_captured_envelope", 0.0)
+    if result is None and not held:
+        return False                    # a bare core, as drawn: nothing is touched
+    if result is not None and held and abs(result[0] - held) <= ENVELOPE_SETTLE_TOLERANCE * held:
+        return False
+    bare = getattr(planet, "_bare_core", None)
+    if bare is not None:                # it had an envelope: back to the drawn core first
+        for name, value in bare["fractions"].items():
+            setattr(planet, name, value)
+        planet.radius = bare["radius"]
+        planet._bare_core = None
+        planet._captured_envelope = 0.0
+        if hasattr(planet, "_formation_fractions"):
+            del planet._formation_fractions
+    if result is None:                  # it kept an envelope before and keeps none now: the drawn core again
+        planet.envelope_helium_fraction = planet.envelope_z_fraction = None
+    else:
+        envelope_share.restore(planet)  # the drawn fractions, before the envelope takes its share
+        fraction, radius_earth = result
+        planet._bare_core = {"radius": planet.radius, "fractions": {name: getattr(planet, name) for name in (*envelope_share.SOLIDS, "envelope_mass_fraction")}}
+        solids = sum(getattr(planet, name, None) or 0.0 for name in envelope_share.SOLIDS)
+        keep = (1.0 - fraction) / solids if solids > 0.0 else 1.0       # the solids as drawn may already have made room for a hydrogen air's share: they give the envelope its share of the whole
+        for name in envelope_share.SOLIDS:
+            value = getattr(planet, name, None)
+            if value is not None:
+                setattr(planet, name, value * keep)
+        planet.envelope_mass_fraction = fraction
+        planet._captured_envelope = fraction
+        envelope_share.set_gas_detail(planet)       # the captured gas is the disk's: the star's helium and heavy elements
+        planet.radius = radius_earth * constants.EARTH_RADIUS_KM
+    planet.volume = (4 / 3) * math.pi * planet.radius ** 3
+    planet.density = planet.mass / (planet.volume * 1.0e9) / 1000.0     # g/cm3: kg per km3 over 1e9 m3 per km3, then to g/cm3
+    calculate_surface_gravity(planet)
+    planet.composition = composition_text.text(planet)
+    if getattr(planet, "moons", None) and drop_unstable_moons(planet):
+        planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
+            planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])
+    return True
+
+
+def settle_envelope(planet):
+    """
+    The envelope of a rocky planet once the star's age and the planet's orbit are final (GEN.1323; the loss needs both, so the planet was given
+    the one the provisional age and orbit leave when it was drawn, `apply_envelope`). When the final one differs, the radius, density and
+    gravity follow and the air, class and spin are made again (the gravity and radius changed), like a giant's settled radius (`settle_giant`).
+
+    Returns:
+        bool: Whether the planet's envelope changed.
+    """
+    if not apply_envelope(planet):
+        return False
+    remake_end_stages(planet, planet)
+    planet._age_drawn = planet.star.age
+    return True
 
 
 def settle_giant(planet):
@@ -680,7 +770,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
         birth = orbit_elements.draw_moon_eccentricity(planet.moon_origin, e_max)
     else:
         e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
-        birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max)
+        birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max, giant=planet.body_type == 'g')
     if planet.is_moon and planet.moon_origin != "captured":
         planet.eccentricity = birth
         return

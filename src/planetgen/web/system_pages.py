@@ -51,7 +51,7 @@ from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 from planetgen.util import chem
 
 from . import bp, habitability_symbol_row, tables
-from . import edit_actions, glance, item_pages, system_facilities, system_ledger, system_species
+from . import edit_actions, field_member_page, glance, item_pages, system_facilities, system_ledger, system_species
 from .class_pages import class_url
 from .helpers import (
     bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
@@ -997,6 +997,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         location=item_pages.sector_location(detail.get("sector_id"), detail.get("sector_name"),
                                             _phenomenon_inside_cloud(detail)),
         contents=_phenomenon_contents(phenomenon_type, detail["id"]),
+        field_members=field_member_page.field_members_panel(f"asteroid_field:{detail['id']}") if phenomenon_type == "asteroid_field" else None,
         nav_links=phenomenon_nav[0],
         nearby_url=nearby_url(endpoint(phenomenon_type, phenomenon_id)),
         pick=phenomenon_nav[1],

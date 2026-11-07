@@ -800,6 +800,7 @@ with `clamp()`.
   (VIEW.19 to VIEW.40) and the 9.0 sky chart (VIEW.15). Done: decided
   when it is scheduled. Not scheduled, no owner. Goal #3241. Filed by
   the TODO thread.
+  Deferred to later versions (Boss, 11:08 AM EST on 2026-11-07, from the defer list): out of 8.1 and its phase, kept in the plan, nothing deleted.
   Prerequisites: none.
 
 - [ ] **UX.265 Look and theme preference: a look (cockpit, chart, phosphor) times a theme (system, light, dark), stored on the account and in the browser, chosen in Preferences and the gear menu**
@@ -912,6 +913,18 @@ with `clamp()`.
   Done: the page, the route, the units on every number, and the page
   tests.
   Prerequisites: POP.50, POP.51. Related: POP.24.
+
+- [ ] **UX.286 Sensor view: a dotted line through the middle of a planet, moon or star along its axis of rotation, read from the stored spin axis and axial tilt**
+  Boss (11:19 AM EST on 2026-11-07), on the Sensor (Rendered) view: "use a dotted line through the middle of the object to show its axis of rotation". Do: in the Sensor view of a planet, moon or star, draw a dotted line through the centre along the stored spin axis (spin_axis_x, y, z, with axial_tilt_deg for the tilt against the orbit), extended a little past the poles; a body with no stored axis shows no line and no invented one; the readout line says "axis from the stored spin". Done: the line is on every body kind that stores an axis, the direction matches the stored values (test with a tilted and a retrograde body), and a body without an axis shows none. Lock-free, no migration, no epoch. Goal issue #5430. Version 8.2. Owner: none yet (a waiting lane takes it, confirmed with TODO; Core 3's sky and view work is the natural fit). Filed by the TODO thread.
+  Prerequisites: none. Related: UX.273, MAP.395, GEN.1350.
+
+- [ ] **GEN.1350 Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values**
+  Boss (11:19 AM EST on 2026-11-07), on the Sensor view: "add a rendered magnetic field lines display ... matching the strength and orientation of its magnetic field, if one exists". Stored today: magnetic_moment_a_m2 on planets, moons and rogue planets, dipole_class on moons, magnetic_field_gauss on neutron stars, and the spin axis; NOT stored: any tilt or offset of the dipole from the spin axis, and any surface field of ordinary stars. Do: draw a dipole tilt (and offset class where the sources give one) for every body with a field, from the sourced distributions (the planets of this system differ: Earth about 11 degrees, Uranus about 59, Neptune about 47), store it in new columns with units (db/column_units.py), give stars a surface dipole field from rotation and activity where the sources support it (Ap stars from their stored peculiarity), register every stand-in in GEN.725 with tier and tweak level, all drawn through draw.py from the object seed. Done: columns, migration, a census of tilt and star fields against the published ranges, tests, and a plain-words note for the object page. Lock item (migration, epoch, golden). Goal issue #3242. Version 8.1 (Boss, 1:17 PM EST on 2026-11-07: "Do GEN.1350 in 8.1 please"; the Sensor view items UX.286 and UX.287 stay in 8.2). Owner: Tides 1. Filed by the TODO thread.
+  Prerequisites: none. Related: UX.287, UX.286, GEN.804, GEN.805.
+
+- [ ] **UX.287 Sensor view: magnetic field lines drawn for a planet, moon, star or neutron star from its stored field strength and dipole orientation, when it has a field**
+  Boss (11:19 AM EST on 2026-11-07), on the Sensor (Rendered) view: "add a rendered magnetic field lines display for the planet, star, or other object, matching the strength and orientation of its magnetic field, if one exists". Do: draw dipole field lines (the standard dipole line shape, a few lines in each of several longitudes, thickness or opacity by strength) around the object, oriented by the stored dipole tilt against the stored spin axis and scaled by the stored moment or field (a log scale, with the readout line stating the stored value and its unit); a body with no stored field shows no lines and no invented ones, and a body with a field but no stored orientation shows lines along the spin axis labelled "orientation not stored" until GEN.1350 lands. Done: the lines appear for every body kind that stores a field, their scale and tilt follow the stored values (tests with a strong, a weak and a tilted case), and none for a body without a field. Lock-free, no migration, no epoch. Goal issue #5430. Version 8.2. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: none (runs after GEN.1350 for the tilt). Related: UX.273, UX.286, GEN.1350.
 
 - [ ] **UX.273 Sensor (Rendered) view for every item: a rendered picture of the selected item, painted from its stored properties and Object ID seed**
   Boss asked for it with the Chart View fixes (PR 5208, 6:40 PM EST on
@@ -1168,6 +1181,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the galaxy's smooth potential (GEN.115) and the per-region mass
   aggregates (MAP.151), so the spiral arms, bulge and halo show as
   wells; only if the cost study (PERF.72) says it is cheap enough.
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 1): keep it, coarse and optional.
   Prerequisites: none. Related: MAP.167.
 
 - [ ] **MAP.183 Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc**
@@ -2045,6 +2059,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   distances close to true for the neighbourhood. Done: decided when he
   has seen parts 1 to 5. Not started until then. Goal #1679. Filed by
   the TODO thread.
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 2): build it.
   Prerequisites: NAV.68.
 
 - [ ] **NAV.71 Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3)**
@@ -2067,6 +2082,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   POP.33's design (trade_routes, trade_route_hops), so none is proposed
   here. Done: decided when it is scheduled. Goal #1679. Filed by the
   TODO thread.
+  Deferred to later versions (Boss, 11:08 AM EST on 2026-11-07, from the defer list): out of 8.1 and its phase, kept in the plan, nothing deleted.
   Prerequisites: POP.33, POP.34, DB.105.
 
 - [ ] **NAV.77 vessel_position(vessel, t): the position of a vessel at any galaxy time from its stored course, departure time and speed, agreeing with the course planner's travel times to the second**
@@ -2162,6 +2178,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 2): keep working on it. Do: weed out sectors by star density before the backfill so it visits and records fewer sectors, without over-filtering (bright stars in odd places stay), measured against the 20 times speedup already in; report the sector counts before and after.
   Prerequisites: TEST.182.
 
 - [ ] **GEN.91 Classes like S and V in the hot and cold zones**
@@ -2705,7 +2722,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: GEN.312, GEN.313.
 
-- [ ] **GEN.157 The `neighbor_galaxies` table and a verified data file of about 25 real galaxies**
+- [ ] **GEN.157 The `neighbor_galaxies` table drawn from the seed (the real Local Group list is a test reference only, no shipped content)**
   One Alembic revision, no change to existing tables, and the data file
   checked against [R2972] (VizieR J/AJ/144/4) and NED. Hold
   absolute magnitude and distance, never a hand-keyed apparent magnitude
@@ -2726,6 +2743,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "Apply all 29", as the coordinator reported it): the 76-bit figure is
   the position part of the 96-bit object ID, not a separate ID; the
   object ID is 96 bits.
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 1): rewrite as the seed-drawn neighbour table; the list of about 25 real galaxies lives only in a test file, never as shipped data. The data-file wording above is replaced.
   Prerequisites: none.
   Design: [docs/design/galaxy/multiple-galaxies.md](design/galaxy/multiple-galaxies.md)
 
@@ -2968,7 +2986,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT 2026-10-24 as the lane reported): the count has to run on Boss's
   own database and re-rolling single systems has no per-system
   regenerate today (only whole sectors), so it overlaps the GEN.764
-  revise job. Owner: Core 1, built inside GEN.764.
+  revise job. Owner: Aux 5 (re-homed 2026-11-07 from Core 1, whose queue is the oddity chain), built on the bring-to-epoch run (GEN.764 is done), after GEN.1107.
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 2): build the per-system re-roll (only the unstable wide-binary systems, from their seeds), on the bring-to-epoch run (GEN.764, done). Owner: Aux 5, after GEN.1107.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
@@ -4082,62 +4101,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the Python solver for a few bodies.
   Prerequisites: GEN.362. Related: GEN.112, GEN.105.
   Design: [docs/design/systems/nebula-and-asteroid-field-classes.md](design/systems/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
-  Boss (2026-10-16, 4:02 PM EDT, in the Core 1 thread): "we'll need a
-  feasibility study. I would like to generate them in the scatter if
-  possible, even if we just generate the region that they are in." Done:
-  a written study (a section beside 5.5 of
-  docs/design/galaxy/intergalactic-and-halo-contents.md) that answers whether a
-  drawn satellite can be made by the same scatters as the rest of the
-  sphere, so its stars, gas and clusters come from the one rule set and
-  a profile, and what it costs when only the cells the satellite
-  occupies are generated. It covers the profile a satellite cell needs
-  (its density law, [Fe/H], age and star-formation history), how the
-  cell key and the 96-bit ID address a satellite's cells, how many cells
-  and systems a dwarf, the Clouds and a Sagittarius-sized stream make at
-  the default cell size, the run time per satellite by the measured cost
-  per cell, how the component pass GEN.324 and the cluster chain feed
-  it, and a recommendation with the work it needs as new items. No build
-  in this item. Owner: Core 1, with GEN.368, after the global top 5
-  blockers unless Boss moves it up.
-  Boss (2026-10-16, 4:04 PM EDT, in the Core 1 thread): "we don't need
-  them to be the exact distances. What we need is for that to be
-  calculated or derived or generated, preferably calculated and derived
-  using real science." The study also reports which of a satellite's
-  properties can be calculated rather than drawn from the halo mass and
-  the galaxy's history, and what the scatter needs to make its region
-  from those.
-  The study follows the same chain: the galaxy's halo mass from its own
-  mass model -> virial radius -> subhalo count from the subhalo mass
-  function (dN/dM roughly M^-1.9, from the Aquarius and Via Lactea
-  simulations) -> radial placement from a subhalo profile (less
-  concentrated than the dark matter) -> stellar mass from the
-  stellar-to-halo mass relation (abundance matching) with a low-mass
-  cutoff for reionization -> size from the size-mass relation -> [Fe/H]
-  from the mass-metallicity relation [R2368] -> age and profile
-  from the mass and gas fraction, with tidal stripping near the disk.
-  Each link names its source in the doc and the code. The real Milky Way
-  rows serve only as a check that the derived population looks
-  plausible.
-  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
-  reiterate that the idea is that we generate a scientifically accurate
-  galaxy as best we can. We generate the sectors of that, again as
-  accurately as we can, with what we can actually do processing-wise and
-  what we actually know. Astrophysics-wise that can be implemented I
-  don't want any fixed content. Everything should be procedurally
-  generated based on the random seeds that we already use. Random
-  numbers are used where we can. Things are derived everywhere we can or
-  calculated everywhere we can. If needed you should ask me to do
-  research if there are pieces missing that you can't look up yourself."
-  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
-  the coordinator): Core 1 does it right after GEN.369 (order: GEN.368,
-  GEN.369, GEN.371, GEN.366). Owner: Core 1.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 13: GEN.369 no
-  longer waits on this study.
-  Prerequisites: none. Related: GEN.368, GEN.369, GEN.324, GEN.237.
-  Design: [docs/design/galaxy/intergalactic-and-halo-contents.md](design/galaxy/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.376 Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py`**
   From the GEN.372 precision audit (Core 1,
@@ -9117,6 +9080,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   comet composition output, so it rides a train with a new epoch.
   Lock-free research and module first. Owner: Sources 1 (after
   GEN.1021).
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 1): build the brackets first (GEN.1021), then the one latent ice temperature, in 8.1.
   Prerequisites: GEN.1021. Related: GEN.1021, GEN.1005, GEN.725.
 
 - [ ] **GEN.1047 Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off)**
@@ -9373,6 +9337,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ranks. Where we think it belongs (best guess, can move): Bug 1
   (GEN.1006 chain, GEN.1017 on train 5), train 7 after the GEN.1006
   chain has merged.
+  Progress (11:40 AM EST on 2026-11-07, as Aux 5 reported): the fields half (GEN.1107, now folded here) is merged in PR 5568: the orbit update ages each asteroid field, its radius and class size follow, and a field past 1 ly is retired by marking (row, Object ID, members and facilities stay). Left here: the belts half, and dropping retired fields from the Phenomena catalog and the route and corridor reads.
   Prerequisites: GEN.1069, GEN.1006.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
   Folded in (2026-11-07, Boss approved the TODO plan): GEN.1107 Bring-to-epoch for fields: age advances, radius follows, retirement past 1 ly marks or deletes the row (Boss to pick; default retire). Its Done line: tests with a before and after epoch.
@@ -9507,6 +9472,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   BW1 to BW6). This item stays open for the storage half: store the band
   winds (columns in db/column_units.py, migration, API) after the
   seven-band climate item GEN.1108. Owner of storage: Aux 2.
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 1): the band winds are stored and shown in 8.1.
   Prerequisites: GEN.1108. Related: GEN.1108.
 
 - [ ] **GEN.1128 Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger**
@@ -9618,6 +9584,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   architecture oligarch chain (solids in the 1:1 zone of a growing
   planet), which does not model it yet. Brown dwarf and star secondaries
   are allowed when the secondary is under 4 percent of the primary.
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 1): build after the swarm trojans (GEN.1150), in that order.
   Prerequisites: GEN.1150.
 
 - [ ] **GEN.1152 Mass literals that differ from constants.py (changing them changes output): moon_composition JUPITER_MASS_KG 1.89813e27, ring_origin star_mass_kg 1.989e30, giant_interior 317.8 and EARTH_MASS_JUPITER 317.83, stellar_abundances JUPITER_MASS_SOL, tuning 317.8; use the constants.py values with an epoch**
@@ -10313,7 +10280,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shims; keep the benchmark limits as the guard.
   Prerequisites: none. Related: MAP.249, MAP.267.
 
-- [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
+- [ ] **PERF.204 An admin setting (off by default, never automatic) lets an admin's visit to an uncharted cell queue a one-sector generation run, and the page says queued (the later option 2 of PERF.149 rule 2)**
   Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
   uncharted sector should do: "Just 1 with the option for 2": do
   option 1 now (PERF.149: tests that a visit
@@ -10334,6 +10301,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for foundations spread back and no version doing all the work, 5:48 PM
   EST on 2026-11-05): not a foundation of anything; it fits generating
   anywhere and takes load off 8.2.
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 1 with a condition): after production starts, and it is an admin setting that is off by default and never automatic.
   Prerequisites: none. Related: PERF.149.
 
 - [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
@@ -10927,6 +10895,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   gone from the schema and the models, the filter code deleted, and the
   number guard and old-schema tests pass.
   Prerequisites: UX.272. Related: PERF.208.
+
+- [ ] **DB.115 A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug)**
+  Boss live observation, relayed by a lane (as the lane reported 10:52 AM EST on 2026-11-07): job-20261107-032338-3037 stage 13 failed with InterfaceError (0, '') in a sky-tier unit after about 30 minutes; the rollback on the dead connection masked the real error. Fixed and merged in PR 5556 (the rollback skips dead connections; the sky unit retries on a new connection up to 3 times; test src/tests/test_lost_connection.py). Do: read the next failure's log (it now shows the real error), find why MySQL dropped the connection (idle timeout, packet size, a lock wait, the server restarting) and fix the cause; if it never recurs after the next two long runs, close with the log noted. Done: the cause is named and fixed, or the item is closed with two clean long runs. Lock-free. Goal issue #2350. Version 8.1. Owner: none yet. Filed by the TODO thread.
+  Prerequisites: none. Related: PERF.86.
 
 ## API: The JSON API
 
@@ -12283,6 +12255,7 @@ clears each one.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Decided (Boss, 10:55 AM EST on 2026-11-07, option 1): stays in 8.1 and runs last, after generation is nailed down.
   Prerequisite: UX.115. Related: TEST.163, TEST.156, TEST.169.
 
 - [ ] **TEST.169 Admin page browser tests: every admin page and task works end to end after the streamline**
@@ -12355,7 +12328,8 @@ clears each one.
   the Owner tier": User, Moderator and Admin are the roles, and the
   Owner is an account tier above Admin (ADM.86, USR.2), not a fourth
   role.
-  Prerequisites: USR.18, USR.19, USR.16, USR.21, USR.22, USR.23, ADM.68.
+  USR.23 (email notices) was deferred to a later version (Boss, 11:08 AM EST on 2026-11-07), so this test no longer needs it and skips the notices.
+  Prerequisites: USR.18, USR.19, USR.16, USR.21, USR.22, ADM.68.
   Related: USR.25.
   Design: [docs/design/interface/roles-and-requests.md](design/interface/roles-and-requests.md)
 
@@ -13378,17 +13352,37 @@ clears each one.
   Planets 1 (as the lane reported 6:41 AM EST on 2026-11-07), GEN.1247 re-measure on main after train 14 (/mnt/project-files/reports/gen1247-outer-belt-mass-2026-11-07.md, same 600 seeds): 48 outer belts (10 AU and out) have a median 1.75 Earth masses, 28 over 1, maximum 303; the 33 that are 6 Gy or older have a median of 1.05 and a maximum of 32 (a Kuiper-like belt is 0.03). Present mass over primordial mass is 1.000 for all 48 and cleared and scattered mass are 0: no loss acts on the cold disc beyond the last planet (the Wyatt grind never bites out there, M_max grows as r^3.5). This is the same gap as the 70 percent cold share against 14 to 24 percent observed. Do: add a dynamical loss for the belt beyond the outermost planet from the Safronov number the architecture already computes (the same physics as the embryo scattering of GEN.1299), with sources found and any stand-in registered in GEN.725 with tier and tweak level, without tuning to the observed share; report the new outer belt masses and the cold share. Done: the outer belt mass and the cold share are reported against the observed values, with a test of a belt past the last planet that loses mass by the law. Lock item (epoch). Version 8.1. Owner: Planets 1 (after GEN.1339). Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1261, GEN.1247, GEN.1299, GEN.725.
 
-- [ ] **GEN.1342 A temperate (275 to 298 K) global ocean with oxygen has no hard class: class O needs 298 to 312 K and class M needs 20 to 80 percent ocean cover, so these worlds are placed only by soft shoulders (Boss decides the class)**
-  Planets 1 (as the lane reported 7:52 AM EST on 2026-11-07), from GEN.1339's finding (/mnt/project-files/reports/gen1339-ocean-cover-of-sea-worlds-2026-11-07.md): 93 percent of worlds with a sunlit sea are global oceans, and that is what the sources give (a few times Earth's ocean depth drowns the land; Earth-like 20 to 80 percent cover is uncommon), so the generator is not retuned. What is left is a class-table gap: a temperate global ocean with oxygen has no hard class (one census world is stored as M at cover 1.0). Boss decision (plain words, option 1 recommended, sent 7:55 AM EST on 2026-11-07): 1 = give these worlds their own class (a new letter, the ocean-world sibling of M, no land for the life of the land classes); 2 = widen M to take global oxygen oceans; 3 = leave them to the soft shoulders. Do: build the chosen option with the class table, the class cards and the census tags. Done: a temperate global oxygen ocean is placed by a hard rule, with a test and the census flags re-tagged. Lock item (epoch). Version 8.1. Owner: Core 4 (class matrix), after Boss's answer. Filed by the TODO thread.
+- [ ] **GEN.1342 Class O takes any world with more than 80 percent surface water within the habitable range, 275 to 312 K (M's floor up to O's current ceiling), so a temperate global ocean with oxygen has a hard class (Boss, option 2: no new letter)**
+  Planets 1 (as the lane reported 7:52 AM EST on 2026-11-07), from GEN.1339's finding (/mnt/project-files/reports/gen1339-ocean-cover-of-sea-worlds-2026-11-07.md): 93 percent of worlds with a sunlit sea are global oceans, and that is what the sources give (a few times Earth's ocean depth drowns the land; Earth-like 20 to 80 percent cover is uncommon), so the generator is not retuned. What is left is a class-table gap: a temperate global ocean with oxygen has no hard class (one census world is stored as M at cover 1.0). Boss decided (10:41 AM EST on 2026-11-07): "expand O to include any world with more than 80% surface water where temperatures are within the habitable range (so same floor as M, ceiling at current O)". No new letter. Boss added (10:42 AM EST): "Class H should have a similar function, any world within M floor to its current ceiling with 20% or less surface water is Class H" (then adjusted, see below). Do: class O takes any world with more than 80 percent surface water between M's temperature floor (275 K) and O's current ceiling (312 K); class H takes any world between M's floor and H's current ceiling with some surface water (more than zero, up to 20 percent; Boss, 10:43 AM EST: "it must have SOME water"); keep the oxygen partial-pressure gate (GEN.1321); update the class table, the class cards, the plain-words text and the census tags; check class M's 20 to 80 percent cover rule, H and O leave no gap or overlap on the cover axis. Done: a temperate global oxygen ocean is placed by a hard rule in O, with a test and the census flags re-tagged. Lock item (epoch). Version 8.1. Owner: Core 4 (class matrix), building. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1339, GEN.1309, GEN.1306, GEN.1321.
 
 - [ ] **GEN.1343 Super-puff planets (W15): an envelope-bearing sub-Neptune branch through the air solver, class and radius, so the super_puff module has a body to inflate**
-  Core 1 (as the lane reported 10:34 AM EST on 2026-11-07), split out of GEN.1048: the super_puff module exists (radius, fade and gate) but the generator has no sub-Neptune with a primordial envelope to inflate. Giants start at 10 Earth masses (0 of 17 sampled giants were under 10), and a rocky planet's radius comes from its solids while its stored envelope share is rewritten from the solved air. Do: add an envelope-bearing terrestrial branch (low-mass, low-density, hydrogen and helium envelope kept) through the air solver, class and radius steps by physics, then wire the super_puff radius, fade and gate onto it, with the rate confirmed from the research and any stand-in registered in GEN.725 with tier and tweak level. Done: a census shows super-puffs at the researched rate, the radius valley test still passes, the wiring-register line for W15 is retired, and tests cover the branch. Lock item (epoch). Goal issue #4117. Version 8.1. Owner: Planets 1 (the lane is free), after GEN.1047 and GEN.1323 are on main. Filed by the TODO thread.
-  Prerequisites: none (runs after GEN.1047 and GEN.1323 merge). Related: GEN.1048, GEN.1323, TEST.676.
+  Core 1 (as the lane reported 10:34 AM EST on 2026-11-07), split out of GEN.1048: the super_puff module exists (radius, fade and gate) but the generator has no sub-Neptune with a primordial envelope to inflate. Giants start at 10 Earth masses (0 of 17 sampled giants were under 10), and a rocky planet's radius comes from its solids while its stored envelope share is rewritten from the solved air. Do: add an envelope-bearing terrestrial branch (low-mass, low-density, hydrogen and helium envelope kept) through the air solver, class and radius steps by physics, then wire the super_puff radius, fade and gate onto it, with the rate confirmed from the research and any stand-in registered in GEN.725 with tier and tweak level. Done: a census shows super-puffs at the researched rate, the radius valley test still passes, the wiring-register line for W15 is retired, and tests cover the branch. Lock item (epoch). Goal issue #4117. Version 8.1. Owner: Planets 1 (the lane is free), after GEN.1323 is on main (GEN.1323 already gives rocky planets of 1 to 20 Earth masses a start envelope; the heavier start, low density, young age and tidal inflation are what is missing). Filed by the TODO thread.
+  Prerequisites: none (runs after GEN.1323 merges; it does not need GEN.1047). Related: GEN.1048, GEN.1323, TEST.676.
 
-- [ ] **GEN.1344 A bistable air does not settle in the 60 steps of the air fixed point: a two-cycle between a cool thin air and a hot dense one leaves a stored temperature a step off the mixture's own warming**
-  Core 5 (as the lane reported 10:42 AM EST on 2026-11-07), a finding on train 15: surface_air.solve can fail to settle in its 60 steps when the air is bistable. Example: a class T body (205 K, hazy methane air with hydrogen from the GEN.1323 envelope, 27 W/m2 absorbed) alternates each step between a 1.9 bar cool air and a 10 bar 350 K air, residual about 75 K either way, damping stuck at its 0.05 floor; the stored temperature ends a step off the mixture's own warming (stored greenhouse factor differs by 3 percent). The air reports it did not converge but the body does not store that. Do: add a proper step for a two-cycle (average the two states, or bisect between them), measure how many bodies are unsettled before and after on a census, store a converged flag if the census needs it, and register any tolerance as a stand-in in GEN.725. Done: the example body settles or is flagged, the unsettled share is measured and falls, and tests cover the two-cycle. Lock item (epoch), because it moves every unsettled body. Goal issue #1674. Version 8.1. Owner: Core 5 (Core 4 if Core 5 is busy). Filed by the TODO thread.
+- [ ] **GEN.1344 An air that cannot settle in the 60 steps of the air fixed point (about 4 percent of airs: a haze or ocean switch makes the step jump down as it warms, so there is no exact fixed point) stores the last answer, up to 75 K off the switch point; store the knee value instead**
+  Core 5 (as the lane reported 10:42 AM EST on 2026-11-07), a finding on train 15: surface_air.solve can fail to settle in its 60 steps when the air is bistable. Example: a class T body (205 K, hazy methane air with hydrogen from the GEN.1323 envelope, 27 W/m2 absorbed) alternates each step between a 1.9 bar cool air and a 10 bar 350 K air, residual about 75 K either way, damping stuck at its 0.05 floor; the stored temperature ends a step off the mixture's own warming (stored greenhouse factor differs by 3 percent). The air reports it did not converge but the body does not store that. Census (Core 5, 3 x 100 systems on train 15): 60 of 1,507 airs unsettled (4.0 percent); no step rule can settle them, so the air stays flagged. Do: for an air that did not settle, when the last 12 answers swing by over 1 K while the iterate stays put, store the mean of the answers (the knee) and take the greenhouse factor from that temperature; register the rule (window 12, swing 1 K, iterate share 0.5) as a stand-in in GEN.725 (SL1, section 6.200, tier T5, tweak L0). Done: the stored error falls from the swing size to about the step size, the unsettled share is reported and not expected to fall, and tests cover the knee. Built: PR 5552, branch claude/core5-gen1344, head 8f84de627. Lock item (epoch), because it moves every unsettled body. Goal issue #1674. Version 8.1. Owner: Core 5 (Core 4 if Core 5 is busy). Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1323, GEN.1329, GEN.1309.
+
+- [ ] **GEN.1346 Steam-air energy-limited efficiency: set ENERGY_LIMITED_EFFICIENCY to 0.1 to 0.15 instead of 0.01, with the stand-in registered and the census re-measured**
+  Boss (10:47 AM EST on 2026-11-07, option 2): the efficiency of the energy-limited loss is about 0.1 to 0.15, not 0.01. Core 5 held the value unchanged in GEN.1329 until he ruled. Do: set the efficiency to a value in 0.1 to 0.15 chosen from the published range, register it in GEN.725 (tier and tweak level), re-measure the census of steam airs and atmosphere retention, and re-baseline the TEST.430 ranges that move. Done: the constant, the stand-in row, the census before and after, and tests. Lock item (epoch). Version 8.1. Owner: Core 5. Filed by the TODO thread.
+  Prerequisites: none (runs after GEN.1329 merges). Related: GEN.1329, GEN.974, GEN.725.
+
+- [ ] **GEN.1347 Tidal inflation of super-puff radius (the tidal-inflation equation in the GEN.1343 report, which needs the planet's drawn obliquity) so super-puffs stay inflated past 1 Gyr**
+  Planets 1 (as the lane reported 10:56 AM EST on 2026-11-07), from GEN.1343 part 1 (a few sub-Neptune cores of 2 to 10 Earth masses inside 100 days start as super-puffs with 7 to 45 percent envelope; report reports/gen1343-super-puffs-2026-11-07.md). Do: add the tidal heating that keeps a super-puff inflated after its first Gyr (Kepler-79 d and Kepler-27 b are the examples), using the planet's drawn obliquity; wire tidal_inflation_ratio and tidal_luminosity_ratio (the wiring-register lines now naming GEN.1343 are re-pointed here) and register any stand-in in GEN.725. Done: super-puffs older than 1 Gyr stay inflated at a rate the sources support, tests, census. Lock item (epoch). Goal issue #4117. Version 8.1. Owner: Planets 1, after GEN.1343 part 1 merges. Filed by the TODO thread.
+  Prerequisites: none (runs after GEN.1343 part 1 merges). Related: GEN.1343.
+
+- [ ] **GEN.1349 Sealed-ocean calcium: the model leaches all of the crust's 8.5 weight percent calcium to solution as a free cation, which sets lime-buffered pH 12 to 14 in 60 percent of sealed oceans; find what share a leached basalt gives up as free calcium against what stays in carbonate and silicate minerals**
+  Planets 1 (as the lane reported 11:17 AM EST on 2026-11-07), a finding under GEN.1348: more chloride and sulfate barely moves the high-pH mode (61 percent of the 2,034 sealed oceans over pH 11.5 as generated; 58 percent with 10 times the anions; 27 percent only at 1,000 times). What sets the mode is carbon against the leached calcium: in the high-pH worlds the carbon is 0.14 of the leached calcium (median), calcite takes all of it, and the leftover sodium and calcium charge sits as hydroxide (pH 12.5 is about where lime buffers). With 3 times the carbon the share falls to 46 percent, with 10 times to 30 percent. The crust's published thickness range [R2381] counts carbonate capacity, not free calcium. Also from GEN.1348: CRUST_SODIUM_WT 0.028 equals MORB Na2O, not Na (2.07 wt percent); a small effect (61 to 60 percent over pH 11.5) to fix in the same pass. Do: source search for the share of a weathered basalt's calcium that goes to solution as a free cation (the rest stays in secondary minerals), register the value in GEN.725 with tier and tweak level, re-measure the sealed-ocean pH, and report whether the 12 to 14 mode falls. Done: a report with the sources by registry number and the sealed-ocean pH before and after. Lock-free if the report only confirms the leach, otherwise a lock item (epoch). Goal issue #3242. Version 8.1. Owner: Planets 1, after GEN.1348. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1348 (done, a finding), GEN.1319, GEN.1309.
+
+- [ ] **GEN.1351 A planet's tidal heating is kept for the whole age with no cap from the orbit's energy: a 0.0013 Earth-mass planet at 0.0134 AU round a 0.09 solar-mass star at e=0.068 spends 2.4e31 J over 1.8 Gyr against an orbital energy of 2.3e31 J (bug)**
+  Core 1 (as the lane reported 11:23 AM EST on 2026-11-07), found by the W19 plausibility sample 15 of the oddity chain: the generator holds a tidal flux of 57 W/m2 for the whole age with no cap from the orbit's energy, so the heat spent (2.4e31 J) is as large as the whole orbital energy (2.3e31 J), while circularising the orbit would release only about 1e29 J. It is a natural body, not the oddity; Core 1's plausibility test stays red on it until the tide is capped or the eccentricity decays. Do: make the tidal heat budget physical (the energy the tide can draw is the orbit's tidal energy loss, bounded by the energy released as the eccentricity decays and by the spin energy, and the eccentricity decays as the tide runs), or cap the flux when the spent energy would pass that budget; register any tolerance in GEN.725 with tier and tweak level. Done: no body spends more tidal energy than its orbit and spin can supply, the sample-15 body passes, the census of tidal heat flux is re-measured, and tests cover the budget. Lock item (epoch). Goal issue #3242. Version 8.1 (a regression-class gap in generated heat). Owner: Tides 1, before Core 1's lock window for the oddity chain. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1190, GEN.842, GEN.1051.
+
+- [ ] **GEN.1352 Moons of a tipped giant: a moon's stored inclination is read by moon_history as against the parent's equator but placed in the system frame, so Uranus-type moons do not follow the tipped equator (bug)**
+  Core 1 (as the lane reported 11:23 AM EST on 2026-11-07), found while building the oddity chain (the giant tilt itself is drawn in GEN.1165): moon_history treats a moon's stored inclination as measured from the parent's equator, but the moon is placed in the system frame, so the moons of a strongly tipped giant (Uranus type) orbit in the system plane instead of the tipped equatorial plane. Do: place the moon with its inclination measured from the parent's equator (rotate by the parent's stored obliquity and spin axis), keep the irregular moons' own frame as it is, and test with a giant tipped by 98 degrees. Done: a moon system of a tipped giant lies in its equatorial plane, the test passes, and no untipped giant's moons change. Lock item (epoch). Goal issue #4117. Version 8.1 (a defect in generated positions). Owner: Tides 1, after GEN.1351. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1165, GEN.1047, GEN.1349.
 
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.
@@ -13704,6 +13698,7 @@ clears each one.
   of USR.2; "delete my account" is the delete-by-self rule USR.2 sets,
   and the data export reads each account list through the saved-list
   store so saved courses join it when NAV.19 lands (2026-10-16 review).
+  Deferred to later versions (Boss, 11:08 AM EST on 2026-11-07, from the defer list): out of 8.1 and its phase, kept in the plan, nothing deleted.
   Prerequisites: USR.26.
   Design: [docs/design/interface/settings-seo-and-accounts.md](design/interface/settings-seo-and-accounts.md)
 
@@ -13883,6 +13878,7 @@ clears each one.
   USR.3; each account chooses on or off. Done: the notices as queue
   jobs, the setting on the account page, and a test with a captured
   mailbox.
+  Deferred to later versions (Boss, 11:08 AM EST on 2026-11-07, from the defer list): out of 8.1 and its phase, kept in the plan, nothing deleted.
   Prerequisites: USR.17. Related: USR.25, USR.3.
   Design: [docs/design/interface/roles-and-requests.md](design/interface/roles-and-requests.md)
 
@@ -14043,6 +14039,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
+
+- [ ] **OPS.115 update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug)**
+  Boss live observation, relayed by a lane (as the lane reported 11:13 AM EST on 2026-11-07): the pull step of update.sh lists untracked files in its "uncommitted local changes will be overwritten" warning, and set-permissions.sh logs a WARNING when config.json exists in both places. Do: the pull warning ignores untracked files; the both-exist line is an INFO note; nothing is moved or deleted; the deploy-script test asserts no WARNING is printed. Built: PR 5562 (branch claude/project-thread-om7xej, touches update.sh, examples/apache/set-permissions.sh, src/tests/test_deploy_scripts.py), waiting for the changed-tests gate on a lane machine. Done: PR 5562 merged. Lock-free. Goal issue #5433. Version 8.1. Owner: none (the PR is built). Filed by the TODO thread.
+  Prerequisites: none.
 
 ## DOC: Documentation
 

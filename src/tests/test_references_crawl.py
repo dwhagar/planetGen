@@ -277,6 +277,7 @@ NEEDS_DATA = {
     "web.account": "behind the sign-in",
     "web.belt_info_page": "needs the database",
     "web.belt_member_page": "needs the database",
+    "web.field_member_page": "needs the database",
     "web.galaxy": "needs the galaxy",
     "web.index": "needs the database",
     "web.lists": "needs the database",
