@@ -2881,3 +2881,4 @@ Baseline: PR #1817.
 | TEST.683 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | PERF.227 | 8.1 | Queue, caches and performance |
 | GEN.229 | 8.1 | Generate page and directives |
+| TEST.682 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |

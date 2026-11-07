@@ -568,7 +568,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1353 | Class and life census re-tag after train 15 (epoch 137): re-measure the census shares and re-baseline the class and life ranges the train moved |  |  |
 | GEN.1354 | bring_to_epoch on a galaxy this size: the rogue planets a remade sector throws out land in sectors of their own, and remaking those fills each with stars whose rogues land in more cells; check that it ends, how many cells it touches, and what it costs |  |  |
 | OPS.118 | Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug) |  |  |
-| TEST.682 | test_cache_warmup.py::test_a_tiered_pass_travels_as_json_and_comes_back_equal fails on main (bug) |  |  |
 | GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values |  |  |
 | OPS.115 | update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug) |  |  |
 | DB.115 | A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug) |  |  |
