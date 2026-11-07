@@ -16513,11 +16513,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
 
-- [ ] **PERF.248 Queue page: show the jobs held by a declared requirement (held, since when, waiting on which job), from requires.held_jobs**
-  Core 4 (as the lane reported, 8:08 PM EST on 2026-11-06), the part of PERF.247 left on purpose: held jobs are in no queue, so the Queue page does not show them. Do: list them on the Queue page with what each waits on and since when, and show a failed wait as failed. Done: a held job is visible on the Queue page and in the API. Lock-free. Version 8.1. Owner: Core 4.
-  Filed by the TODO thread.
-  Prerequisites: PERF.247. Related: PERF.245.
-
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
   oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md
