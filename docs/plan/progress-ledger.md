@@ -2747,3 +2747,5 @@ Baseline: PR #1817.
 | PERF.241 | 8.1 | Physics rectification: citations and the gate's test health |
 | TEST.663 | 8.1 | The headline closes |
 | TEST.662 | 8.1 | The headline closes |
+| SEC.40 | 8.1 | The headline closes |
+| SEC.41 | 8.1 | The headline closes |
