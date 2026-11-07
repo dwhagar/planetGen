@@ -237,6 +237,17 @@ KIND_OF_BODY = {"t": "planet", "g": "giant"}
 """dict: The row `kind` a body is asked about, by its `body_type`; a moon is asked as a moon, a rogue planet as a rogue."""
 
 
+EFFECT_MODULES = ("planetgen.physics.mantle_stripping",)
+"""tuple: The modules that register an effect (`register`), imported the first time `apply` has a row to run; a module that implements a row's effect is listed here."""
+
+
+def _import_effects():
+    import importlib
+
+    for name in EFFECT_MODULES:
+        importlib.import_module(name)
+
+
 def register(effect):
     """Decorator: `@register("strip_mantle")` makes the function the effect of every row that names it."""
     def wrap(function):
@@ -335,6 +346,7 @@ def apply(body, levers=None, rows=None, dial=None, scale=None):
     table = ROWS if rows is None else tuple(rows)
     if not table:
         return []
+    _import_effects()
     if dial is None:
         dial = getattr(getattr(body, "system_config", None), "WEIRDNESS_DIAL", None)       # a run's own dial; the tuning's when it has none
     found = quantities_of(body)

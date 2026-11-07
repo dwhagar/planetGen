@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1245 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1246 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 91 | 41 | 7 | 9 | 0 | 148 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 53 | 21 | 3 | 1 | 0 | 78 |
-| T6 | 127 | 89 | 25 | 61 | 0 | 302 |
+| T6 | 127 | 89 | 25 | 62 | 0 | 303 |
 | T7 | 33 | 15 | 7 | 16 | 0 | 71 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 15 | 5 | 86 | 34 | 178 |
-| All | 686 | 257 | 59 | 198 | 45 | 1245 |
+| All | 686 | 257 | 59 | 199 | 45 | 1246 |
 
 ## How the labels were given
 
@@ -1071,8 +1071,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| OD1 | P | T6 | L0 | tuning.WEIRDNESS_DIAL 1.0, the multiplier on every oddity rate (0 turns every oddity off) | 0 to 3 | every oddity row | Boss finds the default sky too plain or too strange | Boss's setting in the settings page (GEN.1047) | design: Boss asked for a dial (4:15 PM EDT 2026-10-30), design section 4.4; 1 gives the literature rates of each row | GEN.1047 | - |
-| OD2 | P | T6 | L0 | tuning.WEIRDNESS_RATE_SCALE {}, a multiplier per oddity id (1.0 for any id not named) | 0 to 10 | one oddity row | a row whose census share is outside its literature range at the default | the census re-baseline item (rates re-fitted, not scaled) | design section 4.4; empty by default so no row is moved | GEN.1047 | - |
+| OD1 | P | T6 | L0 | tuning.WEIRDNESS_DIAL 1.0, the multiplier on every oddity rate (0 turns every oddity off) | 0 to 3 | every oddity row | Boss finds the default sky too plain or too strange | Boss's setting in the settings page (GEN.1047) | design: Boss asked for a dial (4:15 PM EDT 2026-10-30), design section 4.4; 1 gives the literature rates of each row | - | - |
+| OD2 | P | T6 | L0 | tuning.WEIRDNESS_RATE_SCALE {}, a multiplier per oddity id (1.0 for any id not named) | 0 to 10 | one oddity row | a row whose census share is outside its literature range at the default | the census re-baseline item (rates re-fitted, not scaled) | design section 4.4; empty by default so no row is moved | - | - |
 
 ## 6.73 Stand-ins of the disintegrating rocky planet
 
@@ -1225,10 +1225,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MT1 | D | T1 | L0 | the disruption threshold `Q*_RD = 1e-4 R_C1^1.2 V^0.8` erg/g (cm, cm/s), `R_C1` the radius of the total mass at 1 g/cm3 | none | head-on impacts of 1e23 to 1e26 kg in the gravity regime | an SPH run of a super-Earth impact whose catastrophic threshold differs from it by more than a factor of 3 | the [R2633] threshold (`collision_outcome`) once it carries an iron fraction | [R2866] equation 4 (read), their runs fall short of it by under a factor of 2 | - | - |
 | MT2 | D | T1 | L0 | the largest remnant `M_lr / M_tot = 1 - x/2` for `x` from 0 to 2 | none | the same | a remnant mass more than 25 percent from it at the same `x` | none | [R2866] equation 2 (read), af[R4225] | - | - |
 | MT3 | D | T1 | L0 | the iron fraction of the remnant `0.33 + 0.25 x^1.65` for bodies that began a third iron | none | `x` from 0 to about 1.8 (the rock is gone beyond it) | an SPH run of two Earth-like bodies whose remnant iron differs by more than 0.1 at the same `x` | none | [R2866] equation 3 (read); [R0456: Fig. 3] run gives 0.64 where it gives 0.64 at x of 1.21 | - | - |
-| MT4 | P | T1 | L2 | mantle_stripping.Q_STAR_SCALE 0.6, the factor on the threshold of MS1 for planet-sized bodies | 0.5 to 1 | head-on impacts of 1e24 to 1e26 kg | an SPH run whose remnant mass differs by more than 25 percent from the module at the same speed | a threshold fitted to more runs (Marcus and others, in preparation, not found) | [R2866] section 3.1 (read): the data "fall short of the prediction from Equation 4 by less than a factor of 2"; [R0456: Fig. 3] (read): two 10.5 Earth masses at 62.5 km/s leave 8.2 Earth masses and 64 percent iron, which 0.6 reproduces (8.28 and 0.642); tuned to that one point | GEN.1048 | - |
+| MT4 | P | T1 | L2 | mantle_stripping.Q_STAR_SCALE 0.6, the factor on the threshold of MS1 for planet-sized bodies | 0.5 to 1 | head-on impacts of 1e24 to 1e26 kg | an SPH run whose remnant mass differs by more than 25 percent from the module at the same speed | a threshold fitted to more runs (Marcus and others, in preparation, not found) | [R2866] section 3.1 (read): the data "fall short of the prediction from Equation 4 by less than a factor of 2"; [R0456: Fig. 3] (read): two 10.5 Earth masses at 62.5 km/s leave 8.2 Earth masses and 64 percent iron, which 0.6 reproduces (8.28 and 0.642); tuned to that one point | - | - |
 | MT5 | P | T6 | L0 | the retention law for another starting core fraction: the iron and the rock kept are equation 3 and the remnant mass read as shares of a third-iron body, iron held to all the body had | none | core fractions 0.1 to 0.6 | an SPH run of a body that began at 0.15 or 0.5 iron whose remnant iron differs by more than 0.1 from the module | an SPH grid over starting core fractions | the form is derived from equations 2 and 3, equal to equation 3 at a third | - | - |
-| MT6 | P | T1 | L1 | mantle_stripping.MAX_CORE_MASS_FRACTION 0.85, the core fraction no remnant passes (held to the float under it) | 0.8 to 0.9 | rocky planets | a rocky planet measured above 0.85 | the iron-rich limit of a larger sample | [R3545] ([R3545], abstract read): the most iron enrichment rocky planets reach is a core fraction of about 0.8; the design's limit is 0.85, nudged inside the printed "about" | GEN.1048 | - |
-| MT7 | P | T1 | L0 | mantle_stripping.IMPACT_ANGLE_DEG 30, the angle from head-on beyond which an impact is a hit-and-run and strips nothing | 30 to 45 | similar-sized bodies | an SPH run of a 40 degree impact between embryos that strips more than a tenth of the mantle | the angle at which the disruption energy doubles, by mass ratio | [R2866] section 3 (read): the onset of hit-and-run is at 30 to 45 degrees; all their 45 degree cases were merging or hit-and-run; the share of impacts inside it is `sin^2` | GEN.1048 | - |
+| MT6 | P | T1 | L1 | mantle_stripping.MAX_CORE_MASS_FRACTION 0.85, the core fraction no remnant passes (held to the float under it) | 0.8 to 0.9 | rocky planets | a rocky planet measured above 0.85 | the iron-rich limit of a larger sample | [R3545] ([R3545], abstract read): the most iron enrichment rocky planets reach is a core fraction of about 0.8; the design's limit is 0.85, nudged inside the printed "about" | - | - |
+| MT7 | P | T1 | L0 | mantle_stripping.IMPACT_ANGLE_DEG 30, the angle from head-on beyond which an impact is a hit-and-run and strips nothing | 30 to 45 | similar-sized bodies | an SPH run of a 40 degree impact between embryos that strips more than a tenth of the mantle | the angle at which the disruption energy doubles, by mass ratio | [R2866] section 3 (read): the onset of hit-and-run is at 30 to 45 degrees; all their 45 degree cases were merging or hit-and-run; the share of impacts inside it is `sin^2` | - | - |
+| MT8 | P | T6 | L3 | mantle_stripping.IMPACT_ENERGY_RATIO_RANGE 0.5 to 1.5, uniform: the energy ratio `x = Q_R / Q*_RD` of the stripping impact that oddity W10 draws for a rocky planet that had a recorded merger | 0.3 to 1.8 | rocky planets under 10 Earth masses | iron-rich planets whose iron share implies an energy ratio outside the range, or a distribution of impact speeds and mass ratios from an N-body run that puts most strippings outside it | the distribution of `x` over the impacts of a published pebble-accretion or oligarchic N-body population, through the retention law of MT2 and MT3 | design (source tier 6, tweak level 3; below 0.5 the remnant keeps under 0.41 iron, an Earth-like planet barely changed, and at 1.5 it keeps 0.83, just under MT6) | - | no data |
 
 ## 6.79 Stand-ins of the Hycean box
 

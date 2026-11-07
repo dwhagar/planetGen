@@ -183,3 +183,46 @@ def test_the_ids_are_saved_with_a_planet_and_a_moon_and_the_api_names_them(mysql
             assert conn.execute("SELECT COUNT(*) AS n FROM moons WHERE oddities = 'W10'").fetchone()["n"] == 1
     finally:
         conn.close()
+
+
+# --- W10 wired: the iron-rich core of a planet that had a recorded merger (GEN.1048) -----------------------------------------------------------
+
+def _systems_with_a_merged_rocky_planet(force):
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+
+    found = []
+    for _ in range(60):
+        config = SystemConfig()
+        config.STAR_TYPE, config.BINARY_SYSTEM, config.FORCE_ODDITIES = "G2V", False, force
+        system = StarSystem(system_config=config)
+        found.extend(p for p in system.planets if p.body_type == "t" and p.collision_count >= 1 and p.mass < 10 * 5.972e24)
+        if len(found) >= 4:
+            break
+    assert found, "no rocky planet with a recorded merger came out in 60 systems"
+    return found
+
+
+def test_a_forced_iron_rich_core_keeps_the_mass_raises_the_iron_and_takes_the_water_with_the_mantle():
+    for planet in _systems_with_a_merged_rocky_planet(("W10",)):
+        assert planet.oddities == ("W10",)
+        assert planet.water_mass_fraction == 0.0 and planet.ice_mass_fraction == 0.0
+        assert 0.0 < planet.metal_mass_fraction < 0.85 and abs(planet.metal_mass_fraction + planet.rock_mass_fraction - 1.0) < 1e-9
+        assert oddities.limit_failures(oddities.BY_ID["W10"], oddities.quantities_of(planet)) == []
+
+
+def test_a_planet_with_no_recorded_merger_never_gets_the_iron_rich_core_even_when_it_is_forced():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+
+    config = SystemConfig()
+    config.STAR_TYPE, config.BINARY_SYSTEM, config.FORCE_ODDITIES = "G2V", False, ("W10",)
+    for _ in range(10):
+        for planet in StarSystem(system_config=config).planets:
+            if planet.body_type == "t" and planet.collision_count == 0:
+                assert "W10" not in planet.oddities
+
+
+def test_without_forcing_the_iron_rich_core_is_rare_among_merged_planets():
+    planets = _systems_with_a_merged_rocky_planet(None)
+    assert sum("W10" in p.oddities for p in planets) <= len(planets) // 2 + 1

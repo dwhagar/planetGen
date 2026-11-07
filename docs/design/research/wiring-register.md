@@ -17,6 +17,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.clearance | by design | the independent overlap verifier (TEST.477); the tests and the redraw audit read it, the generator never does, so the proof cannot share a bug with the code it checks |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.physics.oddities.limit_failures | by design | the limits a body must still meet after an oddity's effect; the plausibility harness (tests/test_oddity_plausibility.py) reads it for every body an oddity is given, and the effect modules' tests read it |
+| function | planetgen.physics.mantle_stripping.contact_speed_ms | by design | the impact speed from the speed at infinity and the escape speed, for a caller that draws an impact from a population (read by the tests; the W10 effect draws the energy ratio, MT8) |
+| function | planetgen.physics.mantle_stripping.speed_for_core_fraction | by design | the impact speed that leaves a given iron share, for the tests and for a check of the energy-ratio range of MT8 against Mercury's iron |
+| function | planetgen.physics.mantle_stripping.strip_probability | by design | the share of random impacts inside the head-on angle (MT7); the W10 rate (WR4) is already a rate on the merged population, so the effect does not apply it again |
 | function | planetgen.galaxy.nebula_density.octave_bound | by design | the most one more noise octave can move the density, which the tests of the finer levels (the coarse blobs stay put as filaments are added) and the tuning of the drawing read; the node reader asks for the density only |
 | function | planetgen.generation.remnant_orbits.pollution_rate_g_s | GEN.1231 | the white dwarf pollution flag reads the rate of its belt (the scattered mass over the delivery time) when belt birth sees the giants (GEN.1068); the census band of 25 to 50 percent reads it too |
 | function | planetgen.physics.mixture_trace.draw_trace_gases | GEN.524 | the mixture-level draw of the trace gases; `physics.trace_air` reads `draw_trace_amounts` instead, so a later part of GEN.524 deletes this or wires it |
@@ -102,10 +105,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF3 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
-| module | planetgen.physics.mantle_stripping | GEN.1048 | the iron-rich core of a giant impact (Marcus and others 2010 scaling); the weirdness wiring (W10) gives a rocky planet that had a recorded merger a core fraction from the impacts the architecture recorded |
-| row | 6.93:MT4 | GEN.1048 | `mantle_stripping.Q_STAR_SCALE` of the mantle stripping module, read when its wiring step lands |
-| row | 6.93:MT6 | GEN.1048 | `mantle_stripping.MAX_CORE_MASS_FRACTION` of the mantle stripping module, read when its wiring step lands |
-| row | 6.93:MT7 | GEN.1048 | `mantle_stripping.IMPACT_ANGLE_DEG` of the mantle stripping module, read when its wiring step lands |
 | module | planetgen.physics.hycean_candidate | GEN.1047 | the Hycean box as a flag on the classes T, I and V; the oddity line names the planets it selects when the oddity wiring lands |
 | row | 6.79:HC1 | GEN.1047 | the four ranges of the Hycean box, read when its wiring step lands |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |

@@ -1293,7 +1293,7 @@ class StarSystem:
                         break
                     continue
 
-                given = dict(planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au)
+                given = dict(planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au, collision_count=max(int(seed.merged) - 1, 0))
                 if apply_guarantees and hz and self.system_config.HABITABLE_WORLD is True:
                     planet = self._planet_in_ecosphere(star, habitable_zone, estimated_distance, **given)
                 else:

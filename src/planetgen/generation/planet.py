@@ -240,7 +240,7 @@ class Planet(PlanetaryObject):
         *body_strength.FIELDS,
         *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line", "host_eccentricity", "oddities",
+        "born_beyond_snow_line", "host_eccentricity", "oddities", "collision_count",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -270,6 +270,9 @@ class Planet(PlanetaryObject):
     orbit it is on now is whatever its state vector says (`orbit_from_vector`). A moon's `host_eccentricity` is its parent's, which the light
     it gets goes by. A circle by default: a body made without them is on one."""
 
+    collision_count = 0
+    """int: The mergers the planet architecture recorded for this planet (see `__init__`); 0 for a body made without them."""
+
     oddities = ()
     """tuple[str]: The ids of the oddities the body has (`physics/oddities.py`, GEN.1047), in table order; empty for none. Stored as comma separated text."""
 
@@ -291,7 +294,7 @@ class Planet(PlanetaryObject):
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
-                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False):
+                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False, collision_count=0):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -334,6 +337,9 @@ class Planet(PlanetaryObject):
             formation_distance_au (float, optional): Where the planet formed, AU, when that is not where it orbits (a pulsar's disk planet
                                          formed in the volatile-poor debris of a disrupted star, so inside any snow line); it sets
                                          whether the planet is ice-rich or dry (`bulk_draw.origin_of`). Defaults to the distance.
+            collision_count (int, optional): How many mergers the planet architecture recorded in making this planet (the oligarchs
+                                         that collided into it, `planet_architecture.Seed.merged` less its own); the gate of the
+                                         impact oddities (`physics/oddities.py`, W10). Defaults to none.
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
                                          `generate_moons`: the orbit's inclination follows from it (GEN.714). A moon built
                                          without one keeps the old regular orbit.
@@ -367,6 +373,7 @@ class Planet(PlanetaryObject):
         # (a moon takes its planet's), and it stays None for a planet whose host has no snow line to compare.
         self.born_beyond_snow_line = None
         self.oddities = ()      # the oddities the body is given (`oddities.apply`, GEN.1047)
+        self.collision_count = collision_count
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None

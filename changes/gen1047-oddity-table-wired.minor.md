@@ -5,6 +5,7 @@
 - `SystemConfig.FORCE_ODDITIES` forces rows whose gate holds (a body still cannot be given what its conditions forbid) and `SystemConfig.WEIRDNESS_DIAL` sets a run's own dial; the tuning dial applies when a run has none, and 0 turns every oddity off.
 - `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), comma separated ids, NULL for none): schema v226, migration 0226 (number provisional), stored and loaded with the body.
 - `GET /api/objects/<ref>` carries `oddities` (`[{id, name, text}]`) and the object page shows an "Odd" row in At a glance for each, name and then the sentence that says why.
+- Oddity W10 (GEN.1048, iron-rich core) is wired: the planet architecture's merger count reaches the planet (`collision_count`), and a rocky planet under 10 Earth masses with a merger can have lost much of its mantle to a giant impact (about 1 in 20): it keeps its mass, its iron share rises (`physics/mantle_stripping.py`, `strip_mantle`), its water goes with the mantle, and its radius and density follow. The energy ratio of the impact is a new stand-in (MT8, tweak L3, burn-down line added).
 - Not in this item: the dial in the settings page (it needs its own settings group), which follows as its own item.
 
 generation-output: changed
