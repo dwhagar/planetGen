@@ -15181,20 +15181,6 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: SEC.37.
 
-- [ ] **SEC.38 World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite**
-  Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M2, Medium): admin/updateguard.py:200 and
-  admin/stop_reason.py:42 make <state>/running/ and the stop-reason folder
-  mode 1777; the update guard sends SIGTERM as root to any pid named in any
-  marker there with no owner check, and stop_reason.leave opens <pid>.txt
-  for writing as root, so a local user can plant a symlink and have root
-  overwrite a file. Do: stop using world-writable folders (a per-user
-  subfolder, or check the marker owner uid against the pid owner), and write
-  with O_NOFOLLOW and O_EXCL; add tests for the forged marker and the
-  symlink. Lock-free. Done: both attacks fail in a test. Blocks the 8.1
-  stamp. Version 8.1. Owner: Core 3, after GEN.1261.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: SEC.33.
-
 - [ ] **SEC.39 A run's own queue still uses pickle and Redis has no ACL user: use ids or add an ACL**
   Found by the SEC.33 first pass (/mnt/project-files/reports/release-audit-security-8.1.md, commit d371f13e1, 6:00 PM EST on 2026-11-06). Finding (S-M3, Medium, confirmed): queue/redisqueue.py
   serializer_for makes the web queues JSON but a run's own queue still uses

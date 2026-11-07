@@ -3480,7 +3480,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.2.14.2 | SEC.18 |
 | SEC.2.14.3 | SEC.19 |
 | SEC.37 | Update.sh and the guards run as root from a checkout the web user owns: make the code tree root-owned | none | done, PR #5421 |
-| SEC.38 | World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite | none | open |
+| SEC.38 | World-writable running/ and stop-reason folders that root trusts: forged pid marker and symlink overwrite | none | done, PR #5425 |
 | SEC.39 | A run's own queue still uses pickle and Redis has no ACL user: use ids or add an ACL | none | open |
 | SEC.40 | Bump nltk from 3.10.3 to 3.10.4 in both lock files (advisory PYSEC-2026-3740) | none | open |
 | SEC.41 | GET /api/galaxy/made?since=nan: reject non-finite floats | none | open |
