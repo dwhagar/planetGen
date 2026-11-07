@@ -3583,34 +3583,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: ADM.57, NAV.60.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
-- [ ] **GEN.303 Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000**
-  Boss (2026-10-16, 1:47 PM EDT, in the GEN.280 thread): "cell cap
-  should be a configuration option." The per-cell cap of systems
-  (GEN.281, the adaptive cap that GEN.364 builds) becomes one named
-  option `generation.cell_cap` in the ADM.42 model: default 5,000,
-  lowest 500, highest 50,000, with help text that says what it limits
-  and that changing it affects only later fills, not stored cells. The
-  fill code reads it at the start of a run instead of a constant, and
-  the settings page of ADM.84 lists it with no extra screen. Core 3
-  keeps the cap in one named setting so this item only wires it. The
-  bounds are defaults for Boss to change. Done: the option, the read at
-  run start, a test that a run with a lower cap stores fewer systems per
-  cell, and the entry in docs/reference/config.md.
-  Stored in the user's `config.json` like every option (one
-  configuration file, ADM.96).
-  The cap it wires is the adaptive one of GEN.364 (Boss, 2026-10-16,
-  1:46 PM EDT); the option sets that cap and nothing else. It waits on
-  ADM.84 for the settings page and needs no new migration.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): GEN.364 is the
-  builder of the adaptive per-cell cap (GEN.280 is the core density);
-  the "that GEN.280 builds" wording is replaced.
-  Decided (Boss, 2:21 PM EST on 2026-11-07, option 2 of the plain-words question): add the global setting `generation.cell_cap` in config.json as described, document it in docs/reference/config.md and its help text, and keep the recommended value (5,000) as the default, so a galaxy without the setting generates as before. The per-galaxy setting stays as it is. Owner: Core 3 (released from Core 1; lock-free, no migration, no epoch at the default).
-  Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
-
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
   Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). GEN.62 names a primary and one
@@ -5195,8 +5167,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replaced or the reason one stays is written down, and the test of the
   possibility tables (TEST.214) no longer lists the rows as stand-ins.
   Owner: unowned (research; Boss or a read-only research lane).
-  Prerequisites: GEN.441. Related: GEN.441, GEN.459, GEN.428, GEN.472,
-  TEST.214.
+  Remaining parts (real-material gaps, 2026-11-07, filed by TODO at 5:40 PM EST):
+  the mantle oxides Na2O, K2O, TiO2, Cr2O3, MnO, NiO and P2O5
+  (GEN.1362) and the minerals the ground recipes and the norm already
+  name but the table lacks (GEN.1355 to GEN.1357). The item does not
+  close until they land.
+  Prerequisites: GEN.441, GEN.1362, GEN.1355, GEN.1356, GEN.1357. Related:
+  GEN.441, GEN.459, GEN.428, GEN.472, TEST.214.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
@@ -8412,7 +8389,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: GEN.477. Related: GEN.477, GEN.473, GEN.725, MAP.305.
+    Widened (Boss, 5:20 PM EST on 2026-11-07, as the coordinator relayed, real-material
+  gaps ruling 1: yes): the scope also covers rocky planet and moon crusts,
+  with the ore-forming processes of GEN.1379 (the 8.1 design that
+  names the deposit fields 8.1 stores) and the host minerals of GEN.1355
+  to GEN.1357. Still 8.2 for the build.
+  Prerequisites: GEN.477. Related: GEN.477, GEN.473, GEN.725, MAP.305, GEN.1380.
 
 - [ ] **GEN.799 Resource scan: compute the grade, mass and score of every resource for belts, fields, giants and icy bodies from their stored composition, as its own command and galaxy stage**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
@@ -13256,6 +13238,884 @@ clears each one.
 - [ ] **ADM.139 In the admin console, an option to look at and reset manually edited items that were generated (8.2)**
   Boss (2:21 PM EST on 2026-11-07, as the coordinator relayed), while answering GEN.229, where a re-roll leaves systems in admin-edited sectors alone and names them: "in the admin console for 8.2 lets have an option to look at and reset manually edited items that were generated". Do: an admin page that lists every generated item (sector, system, star, planet, moon, phenomenon) an admin has edited by hand, from the edit record the edit tools keep, showing what was edited and the generated value it replaced, with a reset for one item or a chosen set that restores the generated value by drawing it again from the item's own seed (the way the GEN.229 re-roll does) and records who reset it and when. A reset never touches facilities or a placed bright star without naming them first. Done: the page lists edited items with their original and edited values, a reset restores the generated value and clears the edit mark, a test covers a reset of one item and of a set, and the edit record keeps the history. Lock-free. Goal issue #2350. Version 8.2. Owner: none yet (a waiting lane takes it when 8.2 opens, confirmed with TODO). Filed by the TODO thread.
   Prerequisites: none (runs after GEN.229, merged). Related: GEN.229, ADM.43.
+
+- [ ] **TEST.684 Three tests fail on main: a fuzz tuning case and two no-todo-code strings tests (bug)**
+  Core 3 (as the lane reported 2:51 PM EST on 2026-11-07), found while gating GEN.303, red on main and not from it. Do: run the three on main, name each by its test id in this item's note, find what changed (the strings tests read source text and may be catching new text from the OPS.116 to OPS.118 or GEN.229 merges; the fuzz tuning case may be a threshold that moved with train 15), fix the cause, and keep each test strict. Done: all three pass on main. Lock-free. Goal issue #1694. Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.683, OPS.116.
+
+- [ ] **ADM.140 A button on the admin Config page that updates config.json to every property the current version needs, keeping the site's existing values**
+  Boss (3:56 PM EST on 2026-11-07, as the coordinator relayed): "Add a button in config in admin to update config.json to all the current properties it needs w/o losing the site settings it needs". Do: an admin-only button on the Config page, "Update config.json", that reads the settings model (ADM.42, the one list of properties with their defaults, as GEN.303's generation.cell_cap is now) and the file; shows a preview of what it would change (new keys with their defaults, keys the file has that the model no longer knows, shown as stale and left in place unless the admin ticks them for removal); on confirmation writes the file through the same atomic write the settings page uses, with a dated backup copy beside it. It also adds the recommended settings that are not present and need to be set (Boss, 3:57 PM EST on 2026-11-07): the settings model carries, beside each property's default, a recommended value and a flag for the properties a site should set (for example a setting a feature needs to work, such as a mail server for accounts), and the preview lists those under their own heading, "recommended, not set", each with its value and the reason; a ticked one is written with the recommended value. Every existing value is kept exactly, secrets are never shown or changed, and a key the admin cannot edit on the web (the database section) is added with its default but never altered. The old file's order and comments, if any, are kept where the format allows. Done: the button, the preview, the write with backup, tests (a recommended setting that is absent is listed and written when ticked, and left alone when the site already has any value; a file missing three keys gets them with defaults and keeps every old value; a stale key is flagged and survives; a failed write leaves the old file; a non-admin gets 403), the docs/reference/config.md and help entries, and a change note. Lock-free, no migration, no epoch. Goal issue #2350. Version 8.1 (it makes each new setting such as generation.cell_cap reach an existing site's file). Owner: Core 3 (settings page lane). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.303, ADM.42, ADM.84.
+
+- [ ] **GEN.1355 Missing minerals the ground recipes and the norm already name, part 1, silicates and oxides: smectite, chlorite, talc, brucite, amphibole, epidote, nepheline, leucite, hypersthene, augite, pigeonite, hibonite and the oxides in the list**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N8 part 1 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; free (data). Target: wave 0, merges ahead of train 17. About
+  129 minerals that recipes name are missing from the table. Do: add the
+  rows of this part through scripts/materials_data.py with formula,
+  crystal system, Mohs, density, colour, source and state, and a band
+  albedo or an explicit flag; the density errors the data files record
+  are corrected in the part that holds the row. Data:
+  /mnt/project-files/research/real-material-data/minerals_missing_from_table.csv
+  (112 verified, 17 recalled);
+  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
+  section 1. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Aux 5.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: none. Related: GEN.474, GEN.1356, GEN.1357, TEST.685.
+
+- [ ] **GEN.1356 Missing minerals, part 2, sulfides, nitrides and carbides: pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite, khamrabaevite, sinoite**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N8 part 2 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; free (data). Target: wave 0, merges ahead of train 17.
+  Reduced-body worlds (Mercury-like, enstatite, carbon-rich) get
+  troilite and kamacite as stand-ins because these rows are missing. Do:
+  add them as in GEN.1355, correcting the khamrabaevite and troilite
+  densities, the repeated pyrrhotite value and adding the TiN data for
+  osbornite that the data files flag. Data:
+  /mnt/project-files/research/real-material-data/minerals_missing_from_table.csv;
+  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
+  section 1. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Core 5.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: none. Related: GEN.474, GEN.1355, GEN.1357, TEST.685.
+
+- [ ] **GEN.1357 Missing minerals, part 3, carbonates and salts: magnesite, dolomite, siderite, aragonite, anhydrite, epsomite, kieserite, sylvite, carnallite, natrite, jarosite, perchlorates and the apatite family**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N8 part 3 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; free (data). Target: wave 0, merges ahead of train 17. No
+  dolomite, magnesite, siderite, aragonite, anhydrite or the other salts
+  exist, and the evaporite recipe is a placeholder (halite 0.4, gypsum
+  0.3, calcite 0.3). Do: add the rows as in GEN.1355 with the 20 salt
+  and carbonate densities of the data files; GEN.1366 then draws them.
+  Data:
+  /mnt/project-files/research/real-material-data/minerals_missing_from_table.csv;
+  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
+  sections 1 and 2. Owner (proposed by TODO, 2026-11-07, confirm with
+  TODO before taking; one lock-free item at a time while waiting):
+  Planets 1. Rules: open the primary or an accepted secondary source of
+  every recalled value before it enters GEN.725; draws through draw.py;
+  every stand-in gets a GEN.725 row with tier and tweak level; every
+  number has a unit or scale and a column_units entry; a change to drawn
+  output carries tests.golden_update --reason ... --affects fill and the
+  next epoch; tests are scripts/test.py changed --resume; no fixed
+  content from the Milky Way or the Solar System; built code needs a
+  caller.
+  Prerequisites: none. Related: GEN.474, GEN.1355, GEN.1356, GEN.1366, TEST.685.
+
+- [ ] **GEN.1358 Neutron star crust nuclide table: the outer crust sequence (15 nuclei with densities), neutron drip and the inner-crust pasta cells, with one reader on the neutron star page**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N17 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size S; free. Target: wave 0, merges ahead of train 17. Neutron-star
+  crust has no nuclide data. Do: load the tables (read, not recalled)
+  and give the neutron star page one reader that shows the crust
+  sequence by density. Data:
+  /mnt/project-files/research/real-material-data/neutron_star_outer_crust.csv,
+  neutron_star_inner_crust_cells.csv;
+  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
+  section 6. Pulsar-planet composition stays with GEN.593. Owner
+  (proposed by TODO, 2026-11-07, confirm with TODO before taking; one
+  lock-free item at a time while waiting): Core 3. Rules: open the
+  primary or an accepted secondary source of every recalled value before
+  it enters GEN.725; draws through draw.py; every stand-in gets a
+  GEN.725 row with tier and tweak level; every number has a unit or
+  scale and a column_units entry; a change to drawn output carries
+  tests.golden_update --reason ... --affects fill and the next epoch;
+  tests are scripts/test.py changed --resume; no fixed content from the
+  Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: none. Related: GEN.593.
+
+- [ ] **GEN.1359 Ice species and organics rows: tholin, H2S, CH3OH, C2H6, C2H2, O2, Ar/Kr/Xe, ammonium salts, ammonia and sulfuric-acid hydrates, ice Ic and further phases, and the lumped complex organics split**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N13 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; free (rows); the stored species columns ride GEN.1363. Target:
+  wave 0, merges ahead of train 17. Organics are one lumped row and the
+  ice species list stops at H2O, NH3 and CH4 (the comet inventory has 25
+  species). Do: add the rows with formula, density, source and state,
+  and split the lumped organics; no drawn output changes, the draws
+  start when GEN.1363 lands the budget. Data:
+  /mnt/project-files/research/real-material-data/comet_67P_ice_inventory.csv;
+  /mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
+  section 3.3. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Core 4.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: none. Related: GEN.1363, GEN.1022, GEN.471.
+
+- [ ] **GEN.1360 Extend the star element set: Ti, V, Cr, Mn, Co, Cu, Zn, P and Li, with the solar values and fits of [X/Fe] against [Fe/H] by disc branch with their scatter (Ti as an alpha element)**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N1 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 1, train 17 if ready. The star element set
+  stops at 14 metals plus Eu, Th and U; Ti is about 0.14 dex higher on
+  the high-alpha branch, so a solar-scaled Ti is wrong for every
+  thick-disc star. Do: add the nine elements through the one
+  stellar-composition path (Boss's ruling: the star-sample fits are
+  accepted as the source; the P and Li trends and the Co and Cu fits are
+  recalled and must be opened before they rise above Marginal
+  Unverified). Keep the Cl and F rows as they are: the data files show
+  they match the solar table, so they are not stand-ins to replace.
+  Data:
+  /mnt/project-files/research/real-material-data/stellar_element_set_N1.csv,
+  asplund2021_solar_abundances.csv, lodders2003_condensation_T50.csv;
+  /mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
+  section 1. Done: every star draws the elements with unit and
+  column_units entries, and GEN.945 and TEST.455 see no unregistered
+  constant. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Planets 1.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: none. Related: GEN.945, TEST.455, GEN.725, GEN.1268.
+
+- [ ] **GEN.1361 Volatility depletion law for the moderately volatile elements by 50 percent condensation temperature and formation distance**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N3 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 1, train 17 with GEN.1360 if ready. The
+  bulk chain has no law for how much of Na, K, Zn, Cu, P, S or Pb a
+  rocky body keeps. The fit in the data files, log10 f = -2.150 +
+  0.001623 T50 for 500 < T50 < 1324 K and f = 1 above, reproduces the
+  Earth's alkalis within a factor of 1.4 untuned (residual 0.086 dex);
+  Mars keeps about twice the Earth law's sodium, so formation
+  temperature, not size, is the lever. Do: a pure function with the
+  25-element table, read by the mantle step of GEN.1362, and its fit
+  registered in GEN.725. Data:
+  /mnt/project-files/research/real-material-data/bulk_earth_pm_core_and_depletion.csv,
+  lodders2003_condensation_T50.csv;
+  /mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
+  section 2. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Planets 1.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1360. Related: GEN.492.
+
+- [ ] **GEN.1362 Mantle oxides complete: Na2O, K2O, TiO2, Cr2O3, MnO, NiO and P2O5 in rock_oxides and the stored mantle, so the norm has albite, orthoclase, ilmenite, apatite and chromite and the alkali-silica bands use the alkalis (the blocker for GEN.474)**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N5 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 2, train 18. Only SiO2, MgO, CaO, Al2O3 and
+  FeO are stored; the other seven are zero, so the CIPW norm has no
+  albite or orthoclase and the felsic recipe (40 percent orthoclase)
+  cannot come from the derived chain. GEN.474 cannot close honestly
+  without this. Do: store the seven oxides for mantle and crust, fed
+  from GEN.1360, GEN.1361 and the 12-oxide tables for CI, bulk silicate
+  Earth, Mars, Mercury, crust, komatiite, eucrite, diogenite and Moon as
+  calibration targets (the crust, komatiite, HED and Moon rows are
+  recalled), then add the norm minerals and the band alkalis; a
+  migration and an epoch carry it. Data:
+  /mnt/project-files/research/real-material-data/oxide_fractions_by_body_type.csv;
+  /mnt/project-files/research/real-material-data-2-planet-interiors-and-phosphorus-2026-11-07.md
+  section 1. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Planets 1.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1360, GEN.1361, GEN.1355. Related: GEN.474.
+
+- [ ] **GEN.1363 Disc condensation with CO, CO2, N2, H2S, Ar/Kr/Xe clathrate and ammonium salts, and the carbon split between refractory, CO, CO2 and CH4, feeding ice shares and giant C/O**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N4 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size L; lock. Target: wave 2, train 19 (after GEN.1022 lands its
+  brackets). The sequence has three ices and puts all carbon in methane;
+  CO, CO2, N2, H2S, the noble-gas clathrates and ammonium salts are
+  absent from the disc budget, which drives ice-rich body composition
+  and giant C/O. Do: add the snow lines (CO about 20 K, N2 about 20 K,
+  CH4 30 K, Ar/Kr/Xe clathrate 48/53/69 K, CO2 47 K or 70 K, NH3 131 K,
+  H2O 135 to 182 K, H2S about 50 to 90 K, H2S recalled), split carbon
+  (about half refractory), keep an O and C budget per H, store the
+  species columns GEN.1359 prepares, and feed the ice shares and the
+  giants' C/O. Data:
+  /mnt/project-files/research/real-material-data/ice_and_snowline_temperatures.csv;
+  /mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
+  section 3. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Core 4.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1359, GEN.1022. Related: GEN.471.
+
+- [ ] **GEN.1364 Core composition split: Fe-Ni, S, Si, O, C and H with a redox and pressure tie, eutectic melting, inner-core growth and the compositional dynamo input**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N6 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size L; lock. Target: wave 2, train 18 or 19. The core is one number
+  (the light elements as a lump), so there is no eutectic, inner-core
+  growth or compositional dynamo. Do: split the light-element total by
+  oxidation state and pressure, add the Fe-FeS eutectic (recalled) and
+  inner-core freezing, and hand the dynamo the compositional term;
+  GEN.993 widened the total and GEN.820 holds the iron branch residuals,
+  so build on both. Data:
+  /mnt/project-files/research/real-material-data/core_compositions.csv;
+  /mnt/project-files/research/real-material-data-2-planet-interiors-and-phosphorus-2026-11-07.md
+  section 2. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Tides 1.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1360, GEN.1361. Related: GEN.993, GEN.820, GEN.1048, GEN.842.
+
+- [ ] **GEN.1365 Mantle water and carbon reservoirs: hydrous wadsleyite and ringwoodite, brucite, phase A, carbonates, and diamond or graphite by redox**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N7 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 2, train 19. The mantle water store is not
+  modelled (Earth's mantle holds about 974 ppm water, about 2.8 oceans).
+  Do: store the reservoirs with the water capacity of olivine,
+  wadsleyite, ringwoodite and bridgmanite (recalled) and feed
+  outgassing. Data:
+  /mnt/project-files/research/real-material-data-2-planet-interiors-and-phosphorus-2026-11-07.md
+  section 3. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Tides 1.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1362, GEN.1355. Related: GEN.725.
+
+- [ ] **GEN.1366 Evaporite and salt sequence from the GEN.1319 brine: calcite, gypsum and anhydrite, halite, sylvite, carnallite, epsomite, kieserite, perchlorate and natrite, replacing the placeholder recipe**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N9 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 2, train 19. GEN.1319 made the ocean
+  chemistry real but the solids it precipitates are a placeholder. Do:
+  precipitate the 20 salt and carbonate solids in evaporation order from
+  the brine, with Mars, Ceres and Europa settings (sequence and settings
+  recalled). Data:
+  /mnt/project-files/research/real-material-data/minerals_missing_from_table.csv;
+  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
+  section 2. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Core 5.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1357. Related: GEN.1319, GEN.471.
+
+- [ ] **GEN.1367 Phosphorus budget: stellar P to crustal apatite, schreibersite and merrillite to ocean phosphate by weathering and redox, replacing the high, limited and starved label**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N18 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 3, train 20. Phosphorus is a label drawn
+  from the ocean kind and life scoring reads it. The core takes 94
+  percent of Earth's phosphorus and Mars' mantle is nearly ten times
+  richer in P, so a reduced planet's ocean is starved by construction.
+  Do: carry P from the star through the core partition and the crust's
+  P2O5 to apatite, and through the salts and weathering to the ocean
+  phosphate the life scores read (the crust, ocean and kinetic links are
+  recalled). Data:
+  /mnt/project-files/research/real-material-data-2-planet-interiors-and-phosphorus-2026-11-07.md
+  section 4. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Planets 1.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1360, GEN.1362, GEN.1366. Related: GEN.1319.
+
+- [ ] **GEN.1368 Accessory minerals in the asteroid taxon mixes: chromite, spinel, phosphates, CAI phases, Fe-Ni sulfides, carbonates, sulfates, phyllosilicates, nanodiamond and presolar grains, weights from the bulk**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N11 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 3, train 20. The taxon mixes carry about 15
+  major minerals and the 84-name vocabulary is never drawn. Do: add the
+  accessory phases per chondrite group and differentiated class with
+  weights taken from the drawn bulk; GEN.473, GEN.475 and GEN.477 are
+  open and overlap, so confirm with their owner before taking. Data:
+  /mnt/project-files/research/real-material-data/chondrite_groups_modal_and_minerals.csv,
+  differentiated_meteorite_minerals.csv;
+  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
+  section 3. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Aux 5.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1362, GEN.1355. Related: GEN.475, GEN.477, GEN.473.
+
+- [ ] **GEN.1369 Vocabulary reconciliation: each of the 84 asteroid component names is drawable (a speciation step names its host mineral) or tagged vocabulary-only, and a test enforces it**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N12 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size S; lock. Target: wave 3, train 20. The key and alias pairs
+  (water_ice and water ice, complex_organics and complex organic
+  compounds) work by alias and are fragile. Do: give each name a host
+  mineral per element group (PGE, REE, U, Th, Ti, Li, Cr, C) or the tag,
+  with a guard in the style of the earlier vocabulary guard. Data:
+  /mnt/project-files/research/real-material-data-3-minerals-meteorites-ores-and-exotics-2026-11-07.md
+  section 4. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Aux 5.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1368. Related: GEN.477.
+
+- [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N16 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 3, train 20. A white dwarf has no core C/O
+  or 22Ne and GEN.1231 flags pollution without saying what fell in. Do:
+  set the central oxygen fraction (0.61 to 0.84 from asteroseismology)
+  and X(22Ne) = 0.0137 for solar-metallicity progenitors by progenitor
+  mass and metallicity, and output the pollutant's element ratios and
+  class from the belt body's stored composition. Data:
+  /mnt/project-files/research/real-material-data-2-planet-interiors-and-phosphorus-2026-11-07.md
+  section 5. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Core 1.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1362, GEN.1368. Related: GEN.1231.
+
+- [ ] **GEN.1371 Heavy elements: the s- and r-process split from [Ba/Fe] and [Eu/Fe], REE, PGE, Au and Pb, and the highly siderophile partitioning between core and mantle**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N2 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 3, train 20. The solar table gives the
+  heavy elements; the s/r split is recalled. Do: add the split and the
+  heavy elements to the star element set and partition the siderophiles
+  between core and mantle with GEN.1364. Data:
+  /mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
+  section 4. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Tides 1.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1360, GEN.1364. Related: GEN.1268.
+
+- [ ] **GEN.1372 Giant planet heavy-element species: C, N, O, S, P and the noble gases enriched element by element, not one Z share**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N19 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 3, train 20. A giant's heavy-element share
+  is one number. Do: enrich C, N, O, S, P and the noble gases separately
+  from the star and the disc budget. Owner (proposed by TODO,
+  2026-11-07, confirm with TODO before taking; one lock-free item at a
+  time while waiting): Core 4. Rules: open the primary or an accepted
+  secondary source of every recalled value before it enters GEN.725;
+  draws through draw.py; every stand-in gets a GEN.725 row with tier and
+  tweak level; every number has a unit or scale and a column_units
+  entry; a change to drawn output carries tests.golden_update --reason
+  ... --affects fill and the next epoch; tests are scripts/test.py
+  changed --resume; no fixed content from the Milky Way or the Solar
+  System; built code needs a caller.
+  Prerequisites: GEN.1360, GEN.1363. Related: GEN.1268.
+
+- [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N20 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 4, train 21. The giant interior has no
+  ice-giant materials. Do: build them on the species split of GEN.1372.
+  Owner (proposed by TODO, 2026-11-07, confirm with TODO before taking;
+  one lock-free item at a time while waiting): Core 4. Rules: open the
+  primary or an accepted secondary source of every recalled value before
+  it enters GEN.725; draws through draw.py; every stand-in gets a
+  GEN.725 row with tier and tweak level; every number has a unit or
+  scale and a column_units entry; a change to drawn output carries
+  tests.golden_update --reason ... --affects fill and the next epoch;
+  tests are scripts/test.py changed --resume; no fixed content from the
+  Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1372. Related: GEN.1372.
+
+- [ ] **GEN.1374 Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N21 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size S; lock. Target: wave 2, train 19. Brown dwarf spectra miss the
+  lithium test, alkali wings and the oxide-to-hydride transition. Do:
+  add them from the star element set. Owner (proposed by TODO,
+  2026-11-07, confirm with TODO before taking; one lock-free item at a
+  time while waiting): Core 5. Rules: open the primary or an accepted
+  secondary source of every recalled value before it enters GEN.725;
+  draws through draw.py; every stand-in gets a GEN.725 row with tier and
+  tweak level; every number has a unit or scale and a column_units
+  entry; a change to drawn output carries tests.golden_update --reason
+  ... --affects fill and the next epoch; tests are scripts/test.py
+  changed --resume; no fixed content from the Milky Way or the Solar
+  System; built code needs a caller.
+  Prerequisites: GEN.1360. Related: GEN.1360.
+
+- [ ] **GEN.1375 Hot-atmosphere condensates and trace gases: Zn, Cr, Mn, Rb and Cs host-scaled, and GeH4, AsH3, H2Se, MgH, CaH, NaH, LiCl, LiF, AlCl, PN and HCP**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N22 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 3, train 20. The hot-atmosphere recipes
+  lack these condensates and gases. Do: add them scaled by host
+  abundance. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Core 5.
+  Rules: open the primary or an accepted secondary source of every
+  recalled value before it enters GEN.725; draws through draw.py; every
+  stand-in gets a GEN.725 row with tier and tweak level; every number
+  has a unit or scale and a column_units entry; a change to drawn output
+  carries tests.golden_update --reason ... --affects fill and the next
+  epoch; tests are scripts/test.py changed --resume; no fixed content
+  from the Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1360. Related: GEN.1360.
+
+- [ ] **GEN.1376 Nebula and ISM dust species: amorphous silicates, graphite, amorphous carbon, PAHs, SiC, Fe and ice mantles**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N23 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 3, train 20. Nebula composition carries gas
+  and dust fractions but no dust species. Do: add the species on the
+  GEN.1268 parts d and e path (a nebula composition owner is already in
+  that item; confirm with it). Owner (proposed by TODO, 2026-11-07,
+  confirm with TODO before taking; one lock-free item at a time while
+  waiting): Core 4. Rules: open the primary or an accepted secondary
+  source of every recalled value before it enters GEN.725; draws through
+  draw.py; every stand-in gets a GEN.725 row with tier and tweak level;
+  every number has a unit or scale and a column_units entry; a change to
+  drawn output carries tests.golden_update --reason ... --affects fill
+  and the next epoch; tests are scripts/test.py changed --resume; no
+  fixed content from the Milky Way or the Solar System; built code needs
+  a caller.
+  Prerequisites: GEN.1359. Related: GEN.1268.
+
+- [ ] **GEN.1377 Per-body isotope record, non-fictional part: D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon isotopes and the short-lived Fe-60, Mn-53, I-129 and Pu-244**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N24 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 3, train 20. No body carries an isotope
+  record. The Solar Crystal's 13C and 14C choices stay in 8.2 and read
+  this record. Do: store the ratios from the disc budget and the star.
+  Data:
+  /mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
+  section 5 (anchors recalled). Owner (proposed by TODO, 2026-11-07,
+  confirm with TODO before taking; one lock-free item at a time while
+  waiting): Materials 1 (new lane, proposed). Rules: open the primary or
+  an accepted secondary source of every recalled value before it enters
+  GEN.725; draws through draw.py; every stand-in gets a GEN.725 row with
+  tier and tweak level; every number has a unit or scale and a
+  column_units entry; a change to drawn output carries
+  tests.golden_update --reason ... --affects fill and the next epoch;
+  tests are scripts/test.py changed --resume; no fixed content from the
+  Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1363. Related: GEN.1371.
+
+- [ ] **GEN.1378 Sedimentary and biogenic deposits: banded iron formation (needs the oxygen rise), phosphorites, limestone, chert, coal and kerogen**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N25 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 4, train 21. Deposits that need the life
+  timeline are not generated. Do: build them from the salt sequence, the
+  phosphorus budget and the life timeline. Owner (proposed by TODO,
+  2026-11-07, confirm with TODO before taking; one lock-free item at a
+  time while waiting): Materials 1 (new lane, proposed). Rules: open the
+  primary or an accepted secondary source of every recalled value before
+  it enters GEN.725; draws through draw.py; every stand-in gets a
+  GEN.725 row with tier and tweak level; every number has a unit or
+  scale and a column_units entry; a change to drawn output carries
+  tests.golden_update --reason ... --affects fill and the next epoch;
+  tests are scripts/test.py changed --resume; no fixed content from the
+  Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1366, GEN.1367. Related: GEN.1379.
+
+- [ ] **GEN.1380 Ore processes build, magmatic deposits: chromite, PGE sulfides and Fe-Ti oxides, stored per body**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N10 part 2 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 4, train 21. First mechanism slice, needs
+  only the oxides and the minerals. Do: store the deposit fields from
+  the design. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Materials
+  1 (new lane, proposed). Rules: open the primary or an accepted
+  secondary source of every recalled value before it enters GEN.725;
+  draws through draw.py; every stand-in gets a GEN.725 row with tier and
+  tweak level; every number has a unit or scale and a column_units
+  entry; a change to drawn output carries tests.golden_update --reason
+  ... --affects fill and the next epoch; tests are scripts/test.py
+  changed --resume; no fixed content from the Milky Way or the Solar
+  System; built code needs a caller.
+  Prerequisites: GEN.1362, GEN.1355. Related: GEN.798.
+
+- [ ] **GEN.1381 Ore processes build, hydrothermal and sedimentary-hosted deposits**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N10 part 3 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 4, train 21. Second slice. Do: store the
+  deposit fields from the design. Owner (proposed by TODO, 2026-11-07,
+  confirm with TODO before taking; one lock-free item at a time while
+  waiting): Materials 1 (new lane, proposed). Rules: open the primary or
+  an accepted secondary source of every recalled value before it enters
+  GEN.725; draws through draw.py; every stand-in gets a GEN.725 row with
+  tier and tweak level; every number has a unit or scale and a
+  column_units entry; a change to drawn output carries
+  tests.golden_update --reason ... --affects fill and the next epoch;
+  tests are scripts/test.py changed --resume; no fixed content from the
+  Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1380, GEN.1378. Related: GEN.798.
+
+- [ ] **GEN.1382 Ore processes build, weathering and pegmatite deposits (bauxite and laterite, REE and Li pegmatites)**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N10 part 4 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 4, train 21. Third slice. Do: store the
+  deposit fields from the design. Owner (proposed by TODO, 2026-11-07,
+  confirm with TODO before taking; one lock-free item at a time while
+  waiting): Materials 1 (new lane, proposed). Rules: open the primary or
+  an accepted secondary source of every recalled value before it enters
+  GEN.725; draws through draw.py; every stand-in gets a GEN.725 row with
+  tier and tweak level; every number has a unit or scale and a
+  column_units entry; a change to drawn output carries
+  tests.golden_update --reason ... --affects fill and the next epoch;
+  tests are scripts/test.py changed --resume; no fixed content from the
+  Milky Way or the Solar System; built code needs a caller.
+  Prerequisites: GEN.1380, GEN.1371. Related: GEN.798.
+
+- [ ] **GEN.1383 Ore processes build, carbonatite, kimberlite and unconformity uranium deposits**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N10 part 5 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; lock. Target: wave 4, train 21. Fourth slice, needs the mantle
+  reservoirs for kimberlite. Do: store the deposit fields from the
+  design. Owner (proposed by TODO, 2026-11-07, confirm with TODO before
+  taking; one lock-free item at a time while waiting): Materials 1 (new
+  lane, proposed). Rules: open the primary or an accepted secondary
+  source of every recalled value before it enters GEN.725; draws through
+  draw.py; every stand-in gets a GEN.725 row with tier and tweak level;
+  every number has a unit or scale and a column_units entry; a change to
+  drawn output carries tests.golden_update --reason ... --affects fill
+  and the next epoch; tests are scripts/test.py changed --resume; no
+  fixed content from the Milky Way or the Solar System; built code needs
+  a caller.
+  Prerequisites: GEN.1382, GEN.1365. Related: GEN.798.
+
+- [ ] **TEST.686 Real-material closing gate: a composition census over a generated sample (each new element and mineral appears where physics says and nowhere it should not) and a check that every stand-in the set added has its GEN.725 row**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1, the Solar Crystal and fictional
+  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
+  rocky crusts, accept the star-sample fits). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
+  (this item is N26 there); gaps report:
+  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
+  data index:
+  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
+  Size M; free. Target: after the last wave, feeds SEC.33 and TEST.261.
+  The end-of-version gate for this set. Do: run the census, check the
+  registry rows and report where any element or mineral appears against
+  the physics. Owner (proposed by TODO, 2026-11-07, confirm with TODO
+  before taking; one lock-free item at a time while waiting): Materials
+  1 (new lane, proposed). Rules: open the primary or an accepted
+  secondary source of every recalled value before it enters GEN.725;
+  draws through draw.py; every stand-in gets a GEN.725 row with tier and
+  tweak level; every number has a unit or scale and a column_units
+  entry; a change to drawn output carries tests.golden_update --reason
+  ... --affects fill and the next epoch; tests are scripts/test.py
+  changed --resume; no fixed content from the Milky Way or the Solar
+  System; built code needs a caller.
+  Prerequisites: GEN.1383, GEN.1377, GEN.1376, GEN.1375, GEN.1374, GEN.1370, GEN.1369. Related: TEST.261, GEN.725.
+
+- [ ] **TEST.687 test_materials_table.py::test_every_class_composition_text_is_mapped_to_rows fails on main: the table has 14 class texts and the test expects 11 (bug)**
+  Aux 5 (as the lane reported 5:43 PM EST on 2026-11-07), found while
+  building TEST.685, red on main before that change and not from it. Do:
+  run the test on main, find which three class texts were added to the
+  class table (the best-fit class changes of GEN.1160 and the DOC.103
+  spelling pass are the likely sources), decide whether the test's count
+  or the mapping is stale, fix the cause so every class text maps to
+  rows, and keep the vocabulary-only tags of TEST.685 true. Owner
+  (proposed by TODO): Bug 1. Rules: tests are scripts/test.py changed
+  --resume; built code needs a caller.
+  Prerequisites: none. Related: TEST.685, GEN.1160, DOC.103.
+
+- [ ] **GEN.1384 Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins**
+  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
+  2026-11-07, as the coordinator relayed: all non-fictional generation
+  from the report is built in 8.1). Build plan:
+  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md.
+  Core 5 (as the lane reported 5:50 PM EST on 2026-11-07), found while
+  building GEN.1356: the rows exist and are tagged vocabulary-only, but
+  the metal ground still names troilite and kamacite as its stand-ins
+  for pyrite and the reduced-body taxa name troilite alone. Do: swap the
+  recipes to name the new rows by the redox and sulfur state of the body
+  (the reduced-body setting of the real-material report: oldhamite,
+  niningerite, alabandite and daubreelite on enstatite-like and
+  Mercury-like bodies), remove the vocabulary-only tags the swap makes
+  stale (TEST.685), and register the stand-ins. Size S. Lock item,
+  target train 18. Owner (proposed by TODO): Core 5. Rules: draws
+  through draw.py; every stand-in gets a GEN.725 row with tier and tweak
+  level; a change to drawn output carries tests.golden_update --reason
+  ... --affects fill and the next epoch; tests are scripts/test.py
+  changed --resume; no fixed content from the Milky Way or the Solar
+  System; built code needs a caller.
+  Prerequisites: none (runs after GEN.1356 merges). Related: GEN.1356, GEN.475, GEN.477, TEST.685.
+
+- [ ] **GEN.1385 test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug)**
+  Core 5 (as the lane reported 5:50 PM EST on 2026-11-07), found while
+  gating GEN.1356, red on unmodified main and not from it. Do: run the
+  test on main, find the generated body (about 408 K with ice cover),
+  decide whether the ground or the ice-cover step is wrong (an ice cover
+  at 408 K cannot be water ice at the body's pressure unless a
+  high-pressure phase or a cold trap is named), fix the cause, and keep
+  the test. Owner (proposed by TODO): Bug 1. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: GEN.1356, TEST.687.
 
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Core 4 (the class matrix lane), after GEN.1321.

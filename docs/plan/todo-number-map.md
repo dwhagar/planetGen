@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.288 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1355 |
+| GEN | GEN.1386 |
 | PERF | PERF.249 |
 | DB | DB.116 |
 | API | API.42 |
-| ADM | ADM.140 |
+| ADM | ADM.141 |
 | SEC | SEC.47 |
-| TEST | TEST.684 |
+| TEST | TEST.688 |
 | USR | USR.32 |
 | OPS | OPS.119 |
 | DOC | DOC.110 |
@@ -528,6 +528,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.137 | Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug) | none | done, PR #4723 |
 | ADM.138 | The political step skips locked polities, nations and cities and shows the lock in the editors; releasing a lock lets the step move it again | none | dropped, folded into POP.48 |
 | ADM.139 | In the admin console, an option to look at and reset manually edited items that were generated (8.2) | none | open |
+| ADM.140 | A button on the admin Config page that updates config.json to every property the current version needs, keeping the site's existing values | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -1091,7 +1092,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.300 | Every quantity in the code moves onto the Quantity class, and hand conversions are removed | none | dropped, folded into GEN.349 |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | none | open |
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | none | open |
-| GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | none | open |
+| GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | none | done, PR #5598 |
 | GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests | none | done, PR #2578 |
 | GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | none | done, PR #2617 |
 | GEN.306 | Population seeds keyed on the object, not on row ids | none | done, PR #1942 |
@@ -2143,6 +2144,37 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values | none | open |
 | GEN.1353 | Class and life census re-tag after train 15 (epoch 137): re-measure the census shares and re-baseline the class and life ranges the train moved | none | open |
 | GEN.1354 | bring_to_epoch on a galaxy this size: the rogue planets a remade sector throws out land in sectors of their own, and remaking those fills each with stars whose rogues land in more cells; check that it ends, how many cells it touches, and what it costs | none | open |
+| GEN.1355 | Missing minerals the ground recipes and the norm already name, part 1, silicates and oxides: smectite, chlorite, talc, brucite, amphibole, epidote, nepheline, leucite, hypersthene, augite, pigeonite, hibonite and the oxides in the list | none | open |
+| GEN.1356 | Missing minerals, part 2, sulfides, nitrides and carbides: pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite, khamrabaevite, sinoite | none | open |
+| GEN.1357 | Missing minerals, part 3, carbonates and salts: magnesite, dolomite, siderite, aragonite, anhydrite, epsomite, kieserite, sylvite, carnallite, natrite, jarosite, perchlorates and the apatite family | none | open |
+| GEN.1358 | Neutron star crust nuclide table: the outer crust sequence (15 nuclei with densities), neutron drip and the inner-crust pasta cells, with one reader on the neutron star page | none | open |
+| GEN.1359 | Ice species and organics rows: tholin, H2S, CH3OH, C2H6, C2H2, O2, Ar/Kr/Xe, ammonium salts, ammonia and sulfuric-acid hydrates, ice Ic and further phases, and the lumped complex organics split | none | open |
+| GEN.1360 | Extend the star element set: Ti, V, Cr, Mn, Co, Cu, Zn, P and Li, with the solar values and fits of [X/Fe] against [Fe/H] by disc branch with their scatter (Ti as an alpha element) | none | open |
+| GEN.1361 | Volatility depletion law for the moderately volatile elements by 50 percent condensation temperature and formation distance | GEN.1360 | open |
+| GEN.1362 | Mantle oxides complete: Na2O, K2O, TiO2, Cr2O3, MnO, NiO and P2O5 in rock_oxides and the stored mantle, so the norm has albite, orthoclase, ilmenite, apatite and chromite and the alkali-silica bands use the alkalis (the blocker for GEN.474) | GEN.1360, GEN.1361, GEN.1355 | open |
+| GEN.1363 | Disc condensation with CO, CO2, N2, H2S, Ar/Kr/Xe clathrate and ammonium salts, and the carbon split between refractory, CO, CO2 and CH4, feeding ice shares and giant C/O | GEN.1359, GEN.1022 | open |
+| GEN.1364 | Core composition split: Fe-Ni, S, Si, O, C and H with a redox and pressure tie, eutectic melting, inner-core growth and the compositional dynamo input | GEN.1360, GEN.1361 | open |
+| GEN.1365 | Mantle water and carbon reservoirs: hydrous wadsleyite and ringwoodite, brucite, phase A, carbonates, and diamond or graphite by redox | GEN.1362, GEN.1355 | open |
+| GEN.1366 | Evaporite and salt sequence from the GEN.1319 brine: calcite, gypsum and anhydrite, halite, sylvite, carnallite, epsomite, kieserite, perchlorate and natrite, replacing the placeholder recipe | GEN.1357 | open |
+| GEN.1367 | Phosphorus budget: stellar P to crustal apatite, schreibersite and merrillite to ocean phosphate by weathering and redox, replacing the high, limited and starved label | GEN.1360, GEN.1362, GEN.1366 | open |
+| GEN.1368 | Accessory minerals in the asteroid taxon mixes: chromite, spinel, phosphates, CAI phases, Fe-Ni sulfides, carbonates, sulfates, phyllosilicates, nanodiamond and presolar grains, weights from the bulk | GEN.1362, GEN.1355 | open |
+| GEN.1369 | Vocabulary reconciliation: each of the 84 asteroid component names is drawable (a speciation step names its host mineral) or tagged vocabulary-only, and a test enforces it | GEN.1368, TEST.685 | open |
+| GEN.1370 | White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in | GEN.1362, GEN.1368 | open |
+| GEN.1371 | Heavy elements: the s- and r-process split from [Ba/Fe] and [Eu/Fe], REE, PGE, Au and Pb, and the highly siderophile partitioning between core and mantle | GEN.1360, GEN.1364 | open |
+| GEN.1372 | Giant planet heavy-element species: C, N, O, S, P and the noble gases enriched element by element, not one Z share | GEN.1360, GEN.1363 | open |
+| GEN.1373 | Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase | GEN.1372 | open |
+| GEN.1374 | Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition | GEN.1360 | open |
+| GEN.1375 | Hot-atmosphere condensates and trace gases: Zn, Cr, Mn, Rb and Cs host-scaled, and GeH4, AsH3, H2Se, MgH, CaH, NaH, LiCl, LiF, AlCl, PN and HCP | GEN.1360 | open |
+| GEN.1376 | Nebula and ISM dust species: amorphous silicates, graphite, amorphous carbon, PAHs, SiC, Fe and ice mantles | GEN.1359 | open |
+| GEN.1377 | Per-body isotope record, non-fictional part: D/H, 15N/14N, 13C/12C, 18O/16O, 36Ar/38Ar, xenon isotopes and the short-lived Fe-60, Mn-53, I-129 and Pu-244 | GEN.1363 | open |
+| GEN.1378 | Sedimentary and biogenic deposits: banded iron formation (needs the oxygen rise), phosphorites, limestone, chert, coal and kerogen | GEN.1366, GEN.1367 | open |
+| GEN.1379 | Design: ore-forming processes for rocky planet and moon crusts (magmatic, hydrothermal, sedimentary, weathering, pegmatite, carbonatite, kimberlite, unconformity uranium) and the deposit-level fields 8.1 stores for the 8.2 resource scan | none | done, PR #5603 |
+| GEN.1380 | Ore processes build, magmatic deposits: chromite, PGE sulfides and Fe-Ti oxides, stored per body | GEN.1379, GEN.1362, GEN.1355 | open |
+| GEN.1381 | Ore processes build, hydrothermal and sedimentary-hosted deposits | GEN.1380, GEN.1378 | open |
+| GEN.1382 | Ore processes build, weathering and pegmatite deposits (bauxite and laterite, REE and Li pegmatites) | GEN.1380, GEN.1371 | open |
+| GEN.1383 | Ore processes build, carbonatite, kimberlite and unconformity uranium deposits | GEN.1382, GEN.1365 | open |
+| GEN.1384 | Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins | none | open |
+| GEN.1385 | test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -4217,6 +4249,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.681 | The train gate's file selection (scripts/train_gate.py files) misses tests/test_sheet_fill.py and tests/test_bring_to_epoch.py, which generation changes affect: widen the selection and add a test that holds it | none | done, PR #5574 |
 | TEST.682 | test_cache_warmup.py::test_a_tiered_pass_travels_as_json_and_comes_back_equal fails on main (bug) | none | done, PR #5594 |
 | TEST.683 | Three tests fail on main or in the wrong folder: test_deploy_scripts::test_set_permissions_keeps_both_config_files_when_both_exist, test_settings::test_the_code_reads_no_variable_the_model_does_not_name (names PLANETGEN_QUEUE_EXTRA_FUNCTIONS and PLANETGEN_WARM_OUTCOME_FILE), and test_warm_empty_galaxy (fails only when run from src, a relative path) (bug) | none | done, PR #5586 |
+| TEST.684 | Three tests fail on main: a fuzz tuning case and two no-todo-code strings tests (bug) | none | open |
+| TEST.685 | Materials reachability test: every row of the materials table is drawn by some path or tagged vocabulary-only, and an unreferenced row fails the gate | none | done, PR #5603 |
+| TEST.686 | Real-material closing gate: a composition census over a generated sample (each new element and mineral appears where physics says and nowhere it should not) and a check that every stand-in the set added has its GEN.725 row | GEN.1383, GEN.1377, GEN.1376, GEN.1375, GEN.1374, GEN.1370, GEN.1369 | open |
+| TEST.687 | test_materials_table.py::test_every_class_composition_text_is_mapped_to_rows fails on main: the table has 14 class texts and the test expects 11 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

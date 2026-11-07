@@ -2,6 +2,74 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3618] - 2026-11-07
+
+**Headline:** The materials table now holds the carbonates, evaporite salts, perchlorates and phosphate minerals, each with its density, hardness, crystal system and color.
+
+### Added
+- **35 carbonate, salt and phosphate minerals and the apatite group in the materials table (GEN.1357, part 3 of the missing minerals).** Dolomite, magnesite, siderite, aragonite, ankerite, rhodochrosite, hydromagnesite, nesquehonite, anhydrite, bassanite, epsomite, hexahydrite, kieserite, mirabilite, thenardite, glauberite, polyhalite, kainite, langbeinite, carnallite, bischofite, sylvite, jarosite, alunite, burkeite, natrite, thermonatrite, nahcolite, trona, chlorapatite, hydroxylapatite, merrillite, whitlockite and the magnesium and calcium perchlorates, plus the `apatite` group (with fluorapatite). Each value was read from the mineral's Webmineral page on 2026-11-07 (the perchlorates from PubChem). The research file's recalled values were opened: sylvite, langbeinite, rhodochrosite density and calcium perchlorate stand, and four changed: chlorapatite 3.15 g/cm3 (was 3.17), hydroxylapatite 3.08 (was 3.16), magnesium perchlorate 2.21 (was 2.6), rhodochrosite Mohs 3 (was 4). Like the GEN.1355 and GEN.1356 rows they carry Mohs hardness, crystal system and color, and explicit nulls for the visible-band albedos.
+- The new rows are tagged vocabulary-only (TEST.685) except apatite and its two new members, which the CIPW norm already names.
+
+`generation-output: unchanged`
+`TODO items resolved: GEN.1357`
+
+## [8.0.3617] - 2026-11-07
+
+**Headline:** The materials table now holds the clays, amphiboles, feldspathoids, pyroxenes and oxides the recipes and the norm name, each with its density, hardness, crystal system and color.
+
+### Added
+- **45 silicate and oxide minerals and 3 groups in the materials table (GEN.1355, part 1 of the missing minerals).** Talc, brucite, the smectites (montmorillonite, saponite, nontronite, beidellite), the chlorites (clinochlore, chamosite), the serpentine kin (antigorite, lizardite, chrysotile), illite, palygorskite, sepiolite, the amphiboles (tremolite, hornblende), epidote, nepheline, leucite, hypersthene, augite, pigeonite, jadeite, analcime, wollastonite, the CAI phases (hibonite, grossmanite, melilite, akermanite, gehlenite), the iron oxides and hydroxides (maghemite, lepidocrocite, akaganeite, ferrihydrite, schwertmannite, ulvospinel, magnesiochromite) and the silica and lime phases (cristobalite, tridymite, opal, lime, portlandite, lonsdaleite), plus the `smectite`, `chlorite` and `amphibole` groups. Each value was read from the mineral's Webmineral page on 2026-11-07; wollastonite is 2.84 g/cm3 (the research file's recalled 2.9 is replaced), hornblende reads the magnesiohornblende page, lepidocrocite 4 is confirmed. Like the GEN.1356 rows they carry Mohs hardness, crystal system and color, and explicit nulls for the visible-band albedos.
+- `amorphous` joins the crystal systems a row may name (for opal).
+- The 45 minerals and 3 groups are tagged vocabulary-only (TEST.685) except nepheline, leucite, hypersthene and wollastonite, which the CIPW norm already names; the norm module joins the reachability scan, and a crystal-system row that shares a formula with another is no longer taken for a double (maghemite and hematite are polymorphs).
+
+`generation-output: unchanged`
+`TODO items resolved: GEN.1355`
+
+## [8.0.3616] - 2026-11-07
+
+**Headline:** A test now fails when a row of the materials table is read by no draw and has no reason for it.
+
+### Added
+- **Materials reachability test (TEST.685).** `tests/test_materials_reachability.py` walks the materials table against the modules that use it (the ground recipes, the small-body components, the compaction and bulk-structure readers and `tuning.py`) and fails on a row that no draw names and that is not tagged vocabulary-only, on a tag that a draw has since made stale, and on a new double (the same formula as a powder or grain-size variant). The 36 rows nothing reads today (the high-pressure silicate phases, three ice phases, the envelope and element rows and a few minerals) are tagged with why in `VOCABULARY_ONLY` (`scripts/materials_data.py`, carried in `materials.json` and `materials.VOCABULARY_ONLY`); the loader refuses a tag that names no row or gives no reason.
+
+`generation-output: unchanged`
+`TODO items resolved: TEST.685`
+
+## [8.0.3615] - 2026-11-07
+
+**Headline:** The metal-rich ground of a stripped-mantle world is now Hu's pyrite sample as the source gives it, no longer troilite and kamacite standing in.
+
+### Changed
+- GEN.1384 (part 1): the `metal` ground type of `surface_composition.GROUND_TYPES` is `{pyrite: 1.0}`, Hu et al. 2012 Table 2 as printed, now that the materials table has the pyrite row (GEN.1356). The row is verified, no longer partly verified with a stand-in limit. The mass shares of a ground are not stored (only the ground type, grain and areal fractions are), so no generated value changes and no epoch is taken. The `pyrite` row leaves the vocabulary-only list because the ground now reads it.
+
+## [8.0.3614] - 2026-11-07
+
+**Headline:** The materials table now holds the sulfide, nitride and carbide minerals of reduced and ore-bearing rock, each with its crystal system, hardness and color.
+
+### Changed
+- GEN.1356: eleven new rows in the shared materials table (`pyrite`, `pyrrhotite`, `pentlandite`, `chalcopyrite`, `oldhamite`, `niningerite`, `alabandite`, `daubreelite`, `osbornite`, `khamrabaevite`, `sinoite`), each read from its Handbook of Mineralogy page: formula, grain density, Mohs hardness (the middle of the printed range, the range kept), crystal system and color. No band albedo was reached for them, so the three band columns are explicit nulls. The table gains the `mohs` column and the `crystal_system` and `color` row fields; troilite gets them too. Khamrabaevite keeps a computed density of 4.97 g/cm3, because the Handbook's printed 10.01 counts its rock-salt cell with eight formula units instead of four; troilite keeps the Handbook's 4.85, not the 4.61 that webmineral repeats from pyrrhotite. No generated value changes: nothing draws from these rows yet, the recipes that will (reduced-body worlds, ores) are later items.
+
+## [8.0.3613] - 2026-11-07
+
+**Headline:** A test now fails when a row of the materials table is read by no draw and has no reason for it.
+
+### Added
+- **Materials reachability test (TEST.685).** `tests/test_materials_reachability.py` walks the materials table against the modules that use it (the ground recipes, the small-body components, the compaction and bulk-structure readers and `tuning.py`) and fails on a row that no draw names and that is not tagged vocabulary-only, on a tag that a draw has since made stale, and on a new double (the same formula as a powder or grain-size variant). The 36 rows nothing reads today (the high-pressure silicate phases, three ice phases, the envelope and element rows and a few minerals) are tagged with why in `VOCABULARY_ONLY` (`scripts/materials_data.py`, carried in `materials.json` and `materials.VOCABULARY_ONLY`); the loader refuses a tag that names no row or gives no reason.
+
+`generation-output: unchanged`
+`TODO items resolved: TEST.685`
+
+## [8.0.3612] - 2026-11-07
+
+**Headline:** A new setting, `generation.cell_cap` in config.json, sets how many systems a crowded cell may hold before it is only partly filled (5,000 unless changed).
+
+### Changed
+
+- `generation.cell_cap` (GEN.303, Boss ruled 2:21 PM EST on 2026-11-07): the deployment's cell star ceiling, from 500 to 50,000, default 5,000. A plan reads it when the run starts (`run_plan.skeleton_params`) and stores it with the galaxy as that galaxy's own `cell_star_ceiling`; `--cell-star-ceiling` still sets one galaxy's value and wins over it. At the default a galaxy generates exactly as before, with no migration and no epoch. A change applies only to galaxies planned afterwards, never to cells or galaxies already stored. It is on the settings page under "Galaxy generation" and in `docs/reference/config.md`, `config.json.example` and `config.schema.json`; the `--cell-star-ceiling` help names it.
+- `src/tests/test_gen_cell_cap.py` (new): the bounds and default, the plan taking the setting and the command line winning, a lower cap leaving fewer systems resolved in a crowded cell, and the option in the example file, the docs table and the help.
+
+generation-output: unchanged
+
 ## [8.0.3611] - 2026-11-07
 
 **Headline:** A work-unit test that waited for ever when Redis or MySQL was missing now skips like the tests beside it.
