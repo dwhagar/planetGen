@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3595] - 2026-11-07
+
+**Headline:** A sealed ocean now holds the chloride and sulfate its volcanoes gave it, so its charge balance is no longer sodium and calcium against hydroxide alone; the pH of such oceans comes down (the carbon dioxide in the air does not change for any measured world) (GEN.1319).
+
+### Changed
+
+- `waterworld_carbon.ocean_pco2` takes `anion_charge_mol_m2` (chloride once, sulfate twice) into the charge balance; with no anions it gives the old result.
+- `surface_air._shares` passes the chloride the volcanoes degassed (which the air still loses to the ocean) and the sulfate of `sulfur_balance` to it (stand-ins AN1 and AN2, section 6.205).
+- Measured on 100 habitable-zone G2V and 100 K3V stars (304 paired sealed-ocean worlds): no world gains 5 Pa of carbon dioxide; the median sealed-ocean pH falls from 11.0 to 10.7 (G2V) and stays near 12 (K3V), because the chloride the volcanoes give is a median 2 percent of the leached sodium. Even a chloride equal to the sodium would give back only 5 of 153 K3V worlds: the leached calcium, not the missing anions, locks most of the carbon in calcite.
+
 ## [8.0.3594] - 2026-11-07
 
 **Headline:** The greenhouse table is fitted again on 6,012 hot dense airs and 8,644 hazy airs the radiative-convective model solved, so hazy worlds and warm thick-air worlds (300 to 500 K at the ground) read closer to the physics.
