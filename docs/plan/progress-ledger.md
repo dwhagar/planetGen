@@ -2766,3 +2766,5 @@ Baseline: PR #1817.
 | UX.284 | 8.1 | The headline closes |
 | TEST.669 | 8.1 | The headline closes |
 | OPS.114 | 8.1 | The headline closes |
+| TEST.667 | 8.1 | The headline closes |
+| TEST.668 | 8.1 | The headline closes |
