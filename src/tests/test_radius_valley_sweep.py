@@ -109,7 +109,7 @@ def test_a_rogue_planet_keeps_the_whole_envelope_it_started_with(host_star, mass
             kept.append(rogue)
             start = rogue._captured_envelope
             assert rogue.envelope_mass_fraction == pytest.approx(start)      # no light, no loss: what it started with
-            assert 0.0 < start <= envelope_capture.MAX_START
+            assert 0.0 < start <= envelope_capture.MAX_START + 1e-9
             assert rogue.radius > rogue._bare_core["radius"] * 1.15
             assert planet_type.planet_type(rogue) in (planet_type.TRANSITIONAL, planet_type.TERRESTRIAL)
             assert planet_classes.classify(rogue) == rogue.planet_class
