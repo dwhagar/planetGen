@@ -2,6 +2,26 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3561] - 2026-11-07
+
+**Headline:** The browser's sky and day counter read the parsec, the year and the hour from the unit registry instead of writing the numbers themselves.
+
+### Changed
+
+- **Unit factors read from the registry in the browser (TEST.673).** `skysphere.js` took the parsec in kilometers and the year in seconds as numbers written in the file, and `daycounter.js` wrote 3600 in its clock text. Both now get them from `unitregistry.js` (`convert`), which is what `test_no_browser_script_declares_a_unit_factor` requires; the values are the same, so the sky and the clock do not change.
+
+generation-output: unchanged
+
+## [8.0.3560] - 2026-11-07
+
+**Headline:** The citation guard passes on main: three leftover places that wrote a source's name or a bracket-wrapped ID now use the bare registry ID.
+
+### Changed
+
+- **Citation guard green (TEST.671).** The validation sweep's printed reference lines name their sources by ID only ([R1307], [R5137], [R1478]), and two lines of the rogue-planet review no longer wrap an ID in brackets or write a dated refresh in author-year form. Only text changes.
+
+generation-output: unchanged
+
 ## [8.0.3559] - 2026-11-07
 
 **Headline:** The rogue planet review now states, row by row, which of its sixteen quantities are built, deleted or still a registered stand-in.
