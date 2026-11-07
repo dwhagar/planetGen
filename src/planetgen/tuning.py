@@ -3646,10 +3646,10 @@ PHENOMENON_DENSITY_PC3 = {
     # 0.05 per star). The real population of comets and planetesimals,
     # INTERSTELLAR_DEBRIS_DENSITY_PC3, is a computed sector figure.
     "comet": 0.007,
-    # Free asteroid fields disperse in 1e6-1e7 years (Raymond et al.
-    # 2020, ApJL 894:L22), so none are generated; the type stays for
-    # hand-made fields and facilities.
-    "asteroid-field": 0.0,
+    # Free asteroid fields spread past a light year in some tens of thousands of years (`field_dispersal`), so the only ones that stand are those a physical source puts
+    # there (GEN.1103; Boss, 4:54 PM EDT 2026-10-30: no game rate). This is the fields two colliding rogue planets leave, `collision_field.standing_density_pc3()`
+    # (tests/test_collision_field.py holds the literal to it); the fields of supernova remnants are hosted by their remnants (`field_host`), not rolled.
+    "asteroid-field": 6.6e-21,
 }
 """dict: Local number density per pc^3 at REFERENCE_STELLAR_DENSITY_PC3,
 the research value for each kind (see the design doc's table)."""

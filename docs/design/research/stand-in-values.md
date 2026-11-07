@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1245 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1248 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 165 | 18 | 10 | 1 | 0 | 194 |
 | T2 | 124 | 52 | 1 | 1 | 0 | 178 |
-| T3 | 91 | 41 | 7 | 9 | 0 | 148 |
+| T3 | 91 | 42 | 7 | 9 | 0 | 149 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 53 | 21 | 3 | 1 | 0 | 78 |
-| T6 | 127 | 89 | 25 | 61 | 0 | 302 |
+| T6 | 127 | 90 | 25 | 61 | 0 | 303 |
 | T7 | 33 | 15 | 7 | 16 | 0 | 71 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
-| T9 | 38 | 15 | 5 | 86 | 34 | 178 |
-| All | 686 | 257 | 59 | 198 | 45 | 1245 |
+| T9 | 39 | 15 | 5 | 86 | 34 | 179 |
+| All | 687 | 259 | 59 | 198 | 45 | 1248 |
 
 ## How the labels were given
 
@@ -1768,6 +1768,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | AF1 | B | T6 | L0 | tuning.ASTEROID_FIELD_SPEED_KMS_RANGE (0.1, 15.0) km/s, log-uniform: the rms speed of the pieces of a hand-made field, from a tidally disrupted rubble body to the fastest rubble of a collision | 0.1 to 15 | a field with no parent drawn | a survey of the spread of the pieces of the fields that stand, outside this range | the speed of the source that made the field (`rogue_collision.unbound_rms_speed_ms`, `field_dispersal.unbound_belt_speed_ms`) once such a field is drawn by hand | the design's table of ages at a radius (docs/design/systems/interstellar-asteroid-fields.md section 5.2) | - | - |
 
+## 6.205 Stand-ins of the asteroid field two colliding rogue planets leave
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CF1 | P | T6 | L1 | collision_field.CHARACTERISTIC_PAIR_EARTH (1, 1): the pair whose collisions are counted and drawn is two Earths; ROGUE_SPEED_MS 40 km/s and ROGUE_DISPERSION_MS 25 km/s are the relative speed and the dispersion of rogues in the thin disk | pair 0.3 to 2 Earth masses; speed 30 to 60 km/s; dispersion 15 to 40 km/s | the thin disk | a collision rate of the rogues' mass spectrum that differs from the pair's by more than a factor of 10 | a sum over the rogues' mass spectrum (GEN.1287) and the speed distribution of the old disk | the design's inputs (docs/design/systems/interstellar-asteroid-fields.md section 2.1) | - | - |
+| CF2 | P | T3 | L1 | collision_field.TERRESTRIAL_SHARE 0.857 (0.78 of 0.91 rogues per pc3): the share of the rogues that are terrestrial, and the rogue density is the `Normal` level's rogues per star times the stellar density of the solar neighborhood | 0.7 to 0.95 | the solar neighborhood | a microlensing mass function with a different share of Earth-mass rogues | the rogue mass function of GEN.1287 | the design's figures from the microlensing work (R3191, R2178) | - | - |
+| CF3 | P | T9 | L0 | collision_field.ICE_FRACTION 0.1 (the share of a rogue's mass in an ice shell) and LARGEST_FRACTION_TYPICAL 0.3 (the largest remnant of a typical collision of the rubble window, which sets how long a field stands) | ice 0 to 0.3; remnant 0.1 to 0.5 | terrestrial rogues | a rogue with a very different ice shell | the ice share of the rogue builder for the rogues of the pair | none (chosen) | - | - |
+
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1969,8 +1977,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| IF23 | P | T5 | L0 | field_composition.CORE_LEAK_SHARE 0: the share of the escaping mass that comes from the core while the mantle is still there; each parent gives up the same fraction of its own mass from the surface in (ice shell, then mantle, then core), so at the 11 to 14 percent that leaves, a field holds no iron | 0 to 0.1 | differentiated parents whose cores sit under two thirds of the mass | a hydrocode run of a pair at 25 to 40 km/s whose escaping mass holds more than 30 percent iron | the [R2866] hydrocode set for the pair | derived here from the order in which layers leave (surface first); [R4226] sec. 2 say the fragments come mostly from the mantles (READ, see IF8) | GEN.1103 | - |
-| IF24 | P | T6 | L1 | field_composition.MANTLE_ROWS, CORE_ROW: the silicate mantle written as half forsterite and half enstatite (peridotite as olivine and pyroxene, the split the ring builder uses) and the core as kamacite (4 to 7 percent nickel); the ice shell as water ice | forsterite share 0.4 to 0.7 | rocky differentiated parents, no crust layer | a measured mantle xenolith mix outside 0.4 to 0.7 olivine | the mantle of the parent from its own composition (GEN.553) | the ring builder of `small_body_composition.draw_ring` (precedent), recalled peridotite modal mineralogy | GEN.1103 | - |
+| IF23 | P | T5 | L0 | field_composition.CORE_LEAK_SHARE 0: the share of the escaping mass that comes from the core while the mantle is still there; each parent gives up the same fraction of its own mass from the surface in (ice shell, then mantle, then core), so at the 11 to 14 percent that leaves, a field holds no iron | 0 to 0.1 | differentiated parents whose cores sit under two thirds of the mass | a hydrocode run of a pair at 25 to 40 km/s whose escaping mass holds more than 30 percent iron | the [R2866] hydrocode set for the pair | derived here from the order in which layers leave (surface first); [R4226] sec. 2 say the fragments come mostly from the mantles (READ, see IF8) | - | - |
+| IF24 | P | T6 | L1 | field_composition.MANTLE_ROWS, CORE_ROW: the silicate mantle written as half forsterite and half enstatite (peridotite as olivine and pyroxene, the split the ring builder uses) and the core as kamacite (4 to 7 percent nickel); the ice shell as water ice | forsterite share 0.4 to 0.7 | rocky differentiated parents, no crust layer | a measured mantle xenolith mix outside 0.4 to 0.7 olivine | the mantle of the parent from its own composition (GEN.553) | the ring builder of `small_body_composition.draw_ring` (precedent), recalled peridotite modal mineralogy | - | - |
 | IF25 | P | T5 | L1 | the largest remnant keeps the cores by the average of two idealised models (the cores all merge into it as far as it holds them; it keeps them in the proportion of the pair) and a field is made only when the largest remnant keeps under half of the mass (catastrophic and super-catastrophic regimes) | none | the energy ratio of the law of `rogue_collision` | a hydrocode run whose remnant core fraction is outside the two models | [R2866] hydrocode set | [R4226] sec. 2 (READ; the second model is read as proportional, since the text of the second model was not reached) | - | - |
 
 ## 6.108 Stand-ins of the light top-up field
