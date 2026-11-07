@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3589] - 2026-11-07
+
+**Headline:** The test of update.sh's dirty-tree check names the git command it now runs.
+
+### Changed
+
+- `src/tests/test_deploy_scripts.py` (OPS.115 follow-up): `test_the_dirty_tree_warning_leaves_out_the_state_folder_the_update_owns` looked for the old text of the check, `status --porcelain -- . ':(exclude)state'`. OPS.115 (PR 5562) added `--untracked-files=no` to that command, so the test went red on main; it now looks for the new text. The check itself is unchanged.
+
+generation-output: unchanged
+
 ## [8.0.3588] - 2026-11-07
 
 **Headline:** The update script no longer warns about files that already exist.
