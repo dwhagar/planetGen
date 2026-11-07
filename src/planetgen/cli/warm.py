@@ -5,7 +5,8 @@
 opening view, every list, every sector, system and phenomenon page, and the search, so the first visit after a release
 (or after a cache was cleared) isn't the one who waits for it. update.sh runs it in two stages (`planetgen warm opening --progress` before the Apache
 reload, so the reload and the health check find what the site opens with, then `planetgen warm --progress` after the
-health check, which update.sh waits for); run it by hand after clearing a cache. Run it as the web server's user so the files it writes are readable by Apache.
+health check, which update.sh waits for); run it by hand after clearing a cache. Two warm-ups never run at once: the update's cancels any other, the one a
+change starts waits for the one that runs, and one by hand refuses (`_settle_with_other_runs`, OPS.117). Run it as the web server's user so the files it writes are readable by Apache.
 
     planetgen warm [FAMILY|PHASE ...] [--cap N]
 
@@ -125,6 +126,106 @@ def _wait_for_update():
         time.sleep(2.0)
 
 
+OTHER_WARM_POLL_SECONDS = 5.0
+"""float: How often a warm-up waiting for another run looks at whether it has ended."""
+
+OTHER_WARM_WAIT_SECONDS = 4 * 3600
+"""int: The longest a warm-up waits for another run to end (update.sh's own time limit for a stage, `WARM_STAGE_DEFAULT_SECONDS`)."""
+
+CANCEL_WAIT_SECONDS = 60.0
+"""float: The longest the update's warm-up waits for the units of the warm-up it canceled to stop before it goes on."""
+
+SUPERSEDED_BY = "the update's cache warm-up, which has priority over every other warm-up"
+"""str: Who a warm-up that the update's warm-up canceled is told it was canceled by (`Superseded` is made of it)."""
+
+
+class Superseded(Exception):
+    """The warm-up was canceled because the update's own warm-up has priority (OPS.117). Not a failure: the update's warm-up warms the whole
+    list, so what this one would have warmed is built by it."""
+
+
+def _holder_is_warm_up(conn, holder):
+    """Whether the maintenance run `holder` is a cache warm-up (`RUN_TITLE`)."""
+    run = runrecord.read_run(conn, holder)
+    return run is not None and run.get("title") == RUN_TITLE
+
+
+def _cancel_other_warm_up(conn, holder, sleep, clock):
+    """
+    The update's warm-up takes the machine from the warm-up that holds it: cancels it through the normal path (`runcontrol.cancel_run`: the run
+    ends as canceled, its waiting units leave the queue and the started ones are stopped), then waits, for `CANCEL_WAIT_SECONDS` at most, until
+    no unit of it is still running, so the two never work at once. What the canceled run stored is kept; the update's run finds it.
+    """
+    from planetgen.queue import runcontrol
+    run = runrecord.read_run(conn, holder)
+    log.normal(f"{runrecord.busy_message(conn, holder)}: the update's warm-up has priority over every other warm-up, so it cancels that one.")
+    runcontrol.cancel_run(conn, holder, who=SUPERSEDED_BY)
+    deadline = clock() + CANCEL_WAIT_SECONDS
+    while run is not None and runcontrol.started_units(conn, run):
+        if clock() > deadline:
+            log.warning(f"{len(runcontrol.started_units(conn, run))} unit(s) of the canceled warm-up {holder} were still running "
+                        f"after {CANCEL_WAIT_SECONDS:g} s; going on.")
+            return
+        sleep(1.0)
+
+
+def _settle_with_other_runs(origin, sleep=time.sleep, clock=time.monotonic):
+    """
+    Two warm-ups never run at the same time (OPS.117, Boss's ruling). When another maintenance run holds the machine:
+
+    - the update's own warm-up (`warm_log.UPDATE`) cancels it, if it is a warm-up (the one an epoch or an orbital update started, or one by
+      hand), and goes on; any other maintenance run it waits for;
+    - the warm-up a change started (`warm_log.AUTOMATIC`) waits for it to end, for `OTHER_WARM_WAIT_SECONDS` at most, and then warms what
+      is left;
+    - one started by hand (`warm_log.HAND`) does not start: it says which run holds the machine and how to watch it.
+
+    Nothing is written to the phase record meanwhile, so the running warm-up's phases stay as they are.
+
+    Raises:
+        Failed: A warm-up by hand found another run, or the wait for it ran out.
+    """
+    try:
+        conn = redisqueue.connect()
+        conn.ping()
+    except Exception:       # noqa: BLE001 -- the run itself says that no Redis answers
+        return
+    holder = runrecord.active_run(conn, runrecord.MAINTENANCE)
+    if holder is None or runrecord.holder_is_dead(conn, holder) or runrecord.followed_here(conn, holder):
+        return
+    if origin == warm_log.UPDATE and _holder_is_warm_up(conn, holder):
+        _cancel_other_warm_up(conn, holder, sleep, clock)
+        return
+    if origin == warm_log.HAND:
+        raise Failed(f"{runrecord.busy_message(conn, holder)}. A warm-up does not start while another run holds the machine: "
+                     f"`planetgen warm --follow` watches it, and this can be run again when it has ended")
+    log.normal(f"{runrecord.busy_message(conn, holder)}: waiting for it to end before starting this warm-up.")
+    deadline = clock() + OTHER_WARM_WAIT_SECONDS
+    while True:
+        holder = runrecord.active_run(conn, runrecord.MAINTENANCE)
+        if holder is None or runrecord.holder_is_dead(conn, holder):
+            log.normal("The other run has ended: starting this warm-up.")
+            return
+        if clock() > deadline:
+            raise Failed(f"{runrecord.busy_message(conn, holder)} still after {OTHER_WARM_WAIT_SECONDS} s")
+        sleep(OTHER_WARM_POLL_SECONDS)
+
+
+def _make_room_after_busy(origin, sleep=time.sleep, clock=time.monotonic):
+    """The machine was taken between the look and the start (`runrecord.Busy`): the update's warm-up looks again and cancels what took it.
+    Returns whether it did something, so the start is tried again."""
+    if origin != warm_log.UPDATE:
+        return False
+    try:
+        conn = redisqueue.connect()
+        holder = runrecord.active_run(conn, runrecord.MAINTENANCE)
+        if holder is None or not _holder_is_warm_up(conn, holder):
+            return False
+        _cancel_other_warm_up(conn, holder, sleep, clock)
+    except Exception:       # noqa: BLE001 -- no Redis: the start says so
+        return False
+    return True
+
+
 def _site_database():
     """The database the site shows (`web.helpers.db_name`), which only an app context can say."""
     from planetgen.web import warmup
@@ -226,13 +327,21 @@ def _warm_once(args, reason=None):
 
     Raises:
         Failed: A command failed, Redis did not answer or another warm-up runs.
+        Superseded: The update's warm-up canceled this one (OPS.117).
         SystemExit: The arguments name no such family or phase.
     """
+    superseded = None
     with warm_log.RunLog(reason) as record:
         if galaxy_is_empty(args.database):       # OPS.114: nothing to warm, and not a failure
             say_galaxy_is_empty()
             return
-        _warm_run(args, reason, record)
+        try:
+            _warm_run(args, reason, record)
+        except Superseded as exc:       # not an error: the run is recorded as canceled, said once, and the exception goes on afterwards
+            record.superseded = SUPERSEDED_BY
+            superseded = exc
+    if superseded is not None:
+        raise superseded
 
 
 def _warm_run(args, reason, record):
@@ -249,6 +358,8 @@ def _warm_run(args, reason, record):
     with updateguard.running("warm-map", "Site cache warm-up", refuse=reason is None):
         try:
             _wait_for_update()
+            origin = warm_log.origin(reason)
+            _settle_with_other_runs(origin)
             tally = warmup.PhaseTally([step.key for step in steps])
             phases = [name for name, _text, families in warmup.PHASES if any(step.key in families for step in steps)]
             warmphases.begin(args.database, phases, reason)
@@ -274,14 +385,22 @@ def _warm_run(args, reason, record):
                 bars.result(result, unit)
 
             with bars:
-                wrapper.run(RUN_TITLE, steps, on_plan, on_result, bars.unit_progress, database=args.database,
-                            argv=sys.argv[1:], kind=runrecord.MAINTENANCE)
+                for attempt in range(3):
+                    try:
+                        wrapper.run(RUN_TITLE, steps, on_plan, on_result, bars.unit_progress, database=args.database,
+                                    argv=sys.argv[1:], kind=runrecord.MAINTENANCE)
+                        break
+                    except runrecord.Busy:
+                        if attempt == 2 or not _make_room_after_busy(origin):
+                            raise
                 for line in tally.finish():
                     bars.say(line)
             report_ended()
             warmphases.end(args.database)
         except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
             warmphases.end(args.database, error=str(exc))
+            if isinstance(exc, units.RunStopped) and str(exc) == f"canceled by {SUPERSEDED_BY}":
+                raise Superseded(str(exc)) from exc
             raise Failed(str(exc)) from exc
         except BaseException as exc:
             warmphases.end(args.database, error=f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__)
@@ -354,6 +473,9 @@ def _warm_on_change(args):
 
     try:
         rounds = warmstart.drain(args.on_change, run)
+    except Superseded:
+        log.normal(f"This warm-up was canceled by {SUPERSEDED_BY}; the update's run warms everything this one would have.")
+        return
     except Failed as exc:
         log.error(f"error: the cache warm-up after a change stopped: {exc}")
         raise SystemExit(1)
@@ -385,6 +507,9 @@ def run_warm(args):
             return
         try:
             _warm_once(args)
+        except Superseded:
+            log.warning(f"The cache warm-up was canceled by {SUPERSEDED_BY}. What it stored is kept.")
+            raise SystemExit(1)
         except Failed as exc:
             log.error(f"error: the cache warm-up stopped: {exc}")
             raise SystemExit(1)

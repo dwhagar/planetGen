@@ -31,6 +31,7 @@ the next (`wrapper.advance`).
 import json
 import os
 import resource
+import signal
 import time
 
 import rq
@@ -361,8 +362,32 @@ def horse_killed(job, retpid, ret_val, _rusage):
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(job.connection, run_id, "failed",
                          error=f"unit {unit} of stage {wrapper.stage_name(job.connection, run_id, stage)} was killed: "
-                               f"its worker process {retpid} ended with "
-                               f"status {ret_val} (the machine may be out of memory)")
+                               f"its worker process {retpid} ended with {_ended_with(ret_val)}")
+
+
+def _ended_with(status):
+    """
+    What a work horse's wait status says: the signal that ended it, by name, and what that usually means. SIGKILL is what the
+    out-of-memory killer sends; SIGTERM is a request to end, sent by something that stopped it on purpose (a stop-all, a cancel, a
+    memory guard such as earlyoom), which is not the kernel's out-of-memory killer. A status that is no signal is the exit code.
+    """
+    try:
+        number = int(status)
+    except (TypeError, ValueError):
+        return f"status {status}"
+    number = -number if number < 0 else number & 0x7f      # a negative one is a signal already; a raw wait status: the low bits are the signal that ended the process, 0 when it exited
+    if not number:
+        return f"status {status}"
+    try:
+        name = signal.Signals(number).name
+    except ValueError:
+        return f"status {status}"
+    if number == signal.SIGKILL:
+        return f"status {status} ({name}: the machine may be out of memory)"
+    if number == signal.SIGTERM:
+        return (f"status {status} ({name}: something asked it to end, a stop-all, a cancel or a memory guard on the machine; "
+                f"the kernel's out-of-memory killer sends SIGKILL)")
+    return f"status {status} ({name})"
 
 
 def _progress(conn, run_id, stage):

@@ -43,6 +43,13 @@ def _unfinished_units(conn, run):
     return found
 
 
+def started_units(conn, run):
+    """The ids of the units of `run` (`runrecord.read_run`'s dict) that a worker has started and not ended: what a cancel is still waiting for."""
+    queue = redisqueue.queue(wrapper.queue_of(run["kind"]), conn)
+    ids = {units.job_id(run["id"], stage, unit) for stage, unit in _unfinished_units(conn, run)}
+    return ids & set(queue.started_job_registry.get_job_ids(cleanup=False))
+
+
 def stop_units(conn, run):
     """
     Takes the units of `run` (`runrecord.read_run`'s dict) that are still waiting off the queue and sends the stop
