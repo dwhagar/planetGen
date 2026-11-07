@@ -231,6 +231,7 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 warn_if_no_swap
+warn_if_memory_guard
 
 log_stage 2 9 "Checking the Python libraries"
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check

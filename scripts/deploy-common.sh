@@ -39,6 +39,41 @@ warn_if_no_swap() {
     return 0
 }
 
+# OPS.118: a memory guard (earlyoom, systemd-oomd, nohang) ends the biggest process with SIGTERM when memory runs low, before the kernel's own
+# killer would with SIGKILL, and a work unit of the warm-up or a generate run is often the biggest. Says so when one is running, so a unit
+# that ends with status 15 is not a mystery. `GUARD_UNITS` replaces the names looked for (the tests).
+warn_if_memory_guard() {
+    is_macos && return 0
+    command -v systemctl >/dev/null 2>&1 || return 0
+    local unit found=""
+    for unit in ${GUARD_UNITS:-earlyoom systemd-oomd nohang}; do
+        systemctl is-active --quiet "$unit" 2>/dev/null && found="${found:+$found, }$unit"
+    done
+    [[ -n "$found" ]] || return 0
+    log_warning "a memory guard is running ($found). When memory runs low it asks the biggest process to end (SIGTERM), and a planetGen work unit"
+    log_warning "  often is the biggest: the unit then fails with status 15 and error.log in the log folder names it. Keep swap on (scripts/enable-swap.sh),"
+    log_warning "  or tell the guard to leave MySQL, Redis and the web server alone (INSTALL.md, Swap and memory guards)."
+    return 0
+}
+
+# After a failed warm-up stage (OPS.118): what the kernel and the memory guards logged in the last `$1` seconds about ending a process, so the
+# cause of a unit that ended by a signal is on the screen, in update.log and in error.log. Needs journalctl; says nothing when it finds nothing.
+report_memory_kills() {
+    local seconds="$1" unit found="" line
+    command -v journalctl >/dev/null 2>&1 || return 0
+    found="$( {
+        journalctl --no-pager -q -k --since "$seconds seconds ago" 2>/dev/null
+        for unit in ${GUARD_UNITS:-earlyoom systemd-oomd nohang}; do
+            journalctl --no-pager -q -u "$unit" --since "$seconds seconds ago" 2>/dev/null
+        done
+    } | grep -iE 'out of memory|oom-kill|oom_kill|killed process|sending sig|killing process|low memory|oomd' | awk '!seen[$0]++' | tail -n 5 || true)"
+    [[ -n "$found" ]] || return 0
+    while IFS= read -r line; do
+        log_error_only "memory guard or kernel: $line"
+        log_warning "memory guard or kernel: $line"
+    done <<< "$found"
+}
+
 # The Python the venv is made from when PYTHON isn't given: on macOS
 # Homebrew's python3 (Apple Silicon, then Intel) rather than the Command
 # Line Tools' /usr/bin/python3; elsewhere python3 on the PATH.
@@ -984,6 +1019,7 @@ run_warm_stage() {
         (( status == 124 )) && why="ran out of its time limit of $(duration_words "$seconds") (WARM_STAGE_SECONDS; 0 means none)"
         log_error_only "the cache warm-up ($name) did not finish: it $why."
         log_warning "the cache warm-up ($name) did not finish: it $why."
+        report_memory_kills $(( SECONDS - warm_started + 60 ))
         log_warning "  What it stored is kept. 'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues where it stopped, and the first visit builds what it did not."
         WARM_RESULT="cache warm-up ($name) did not finish"
     else
