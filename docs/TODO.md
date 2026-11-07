@@ -16784,18 +16784,13 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.509, GEN.722, GEN.753.
 
-- [ ] **GEN.1324 Ground gamma dose of an Earth-like body is 0.003 mSv/yr against 0.48 measured, because it uses the primitive mantle's uranium, thorium and potassium and not a crust (bug)**
-  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: the ground gamma dose reads the mantle's primitive U, Th and K. Earth's measured ground dose (0.48 mSv/yr) comes from the crust, which holds most of those elements. Do: give a differentiated rocky body a crust with enriched U, Th and K (continental crust figures as the anchor, scaled by how much of the body has differentiated, registered stand-ins) and read the dose from the crust. Lock item (output of the dose columns changes). Done: an Earth twin reads 0.4 to 0.6 mSv/yr in the sweep. Version 8.1. Owner: Core 5, first after GEN.1310.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.753.
-
 - [ ] **GEN.1325 Giant planet eccentricity averages 0.08 against 0.22 published for the observed giants**
   Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: mean eccentricity of generated giants is 0.08, the published mean of observed giants is 0.22 (Doppler surveys). Do: look at how giant eccentricity is drawn (scattering and secular excitation, the Rayleigh or Beta fit to the surveys), find why it is low, and fix it with sourced values or registered stand-ins; keep the inner-disc planets' low values. Lock item. Done: the sweep mean and the distribution of giant eccentricity match the survey within its spread. Version 8.1. Owner: Planets 1, after GEN.1278.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.753.
 
 - [ ] **GEN.1326 Measure the hot class N planets: at the 2,000 K cap they hold 1,000 to 17,000 bar of air with almost no water, against JWST bare-rock results**
-  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: 10 of 32 hot planets at 16 times the Earth's starlight or more hold 1,000 to 17,000 bar of air with almost no water; JWST observations of hot rocky planets mostly show bare rock or thin air. Do: run the measurement (how the air is outgassed against how it is lost at those temperatures), say whether the generator or the observations are right, and file or build the fix with sources. Done: a short report with numbers and a verdict, and a follow-up item if the generator is wrong. Version 8.1. Owner: Core 5, after GEN.1324.
+  Core 5 (as the lane reported, 8:13 PM EST on 2026-11-06), GEN.753 first pass for planets, air, radiation and heat (/mnt/project-files/reports/gen753-planets-atmospheres-radiation-heat-2026-11-07.md, PR 5438). Finding: 10 of 32 hot planets at 16 times the Earth's starlight or more hold 1,000 to 17,000 bar of air with almost no water; JWST observations of hot rocky planets mostly show bare rock or thin air. Do: run the measurement (how the air is outgassed against how it is lost at those temperatures), say whether the generator or the observations are right, and file or build the fix with sources. Done: a short report with numbers and a verdict, and a follow-up item if the generator is wrong. Version 8.1. Owner: Core 5, after GEN.1310.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.753, GEN.1310.
 
