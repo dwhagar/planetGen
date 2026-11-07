@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1217 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1218 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,7 +37,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 165 | 17 | 10 | 1 | 0 | 193 |
-| T2 | 124 | 50 | 1 | 1 | 0 | 176 |
+| T2 | 125 | 50 | 1 | 1 | 0 | 177 |
 | T3 | 91 | 41 | 7 | 9 | 0 | 148 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
 | T5 | 52 | 21 | 3 | 1 | 0 | 77 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 33 | 13 | 7 | 13 | 0 | 66 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 36 | 14 | 5 | 80 | 34 | 169 |
-| All | 677 | 249 | 58 | 188 | 45 | 1217 |
+| All | 678 | 249 | 58 | 188 | 45 | 1218 |
 
 ## How the labels were given
 
@@ -316,7 +316,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OE1 | B | T1 | L0 | orbit_elements.MULTI_SIGMA | 0.083, fixed | planets of systems with two or more planets | a law fitted to planets of every period and size | READ ([R1307] abstract: multi-planet systems consistent with a half-Gaussian of 0.083, +0.015 -0.020) | - | - |
 | OE2 | B | T1 | L0 | orbit_elements.SINGLE_MODERATE_FRACTION | 0.76, fixed | a system with one planet | the same | READ (the same abstract: 0.76, +0.21 -0.12, of single transiting systems have a moderate eccentricity) | - | - |
 | OE3 | B | T1 | L0 | orbit_elements.SINGLE_RAYLEIGH_MODE | 0.26, fixed | the moderate share of single planets | the same | READ (the same abstract: a Rayleigh law that peaks at 0.26, +0.04 -0.06) | - | - |
-| OE4 | T | T2 | L0 | orbit_elements.draw_planet_eccentricity | the three above | every planet | radial-velocity and direct-imaging eccentricities by period and mass | the laws of OE1 to OE3 used outside the planets they were fitted to (Kepler's, mostly under 100 days) and with the planets the generator counts, not the ones a transit survey finds | - | - |
+| OE4 | T | T2 | L0 | orbit_elements.draw_planet_eccentricity | the three above | every planet that is not a giant (a giant takes OE16) | radial-velocity and direct-imaging eccentricities by period and mass | the laws of OE1 to OE3 used outside the planets they were fitted to (Kepler's, mostly under 100 days) and with the planets the generator counts, not the ones a transit survey finds | - | - |
 | OE5 | P | T4 | L0 | orbit_elements.MAX_ECCENTRICITY | 0.9, fixed | every planet and moon | none needed | design (the laws put almost nothing beyond it; the periapsis cut comes first for a close orbit) | - | - |
 | OE6 | B | T2 | L0 | orbit_elements.MUTUAL_INCLINATION_SIGMA_DEG | 1.6 degrees, fixed | planets | a law of the plane scatter of giants and of systems beyond the Kepler range | [R1311]: Rayleigh mutual inclination of 1.0 to 2.2 degrees (read in an earlier session, not again for this item); a planet's own angle to the plane is that over the square root of two | - | - |
 | OE7 | P | T3 | L0 | orbit_elements.REGULAR_MOON_ECCENTRICITY_RANGE | 0.001 to 0.01, log | moons of disk, impact, ring or binary origin | a forced eccentricity from the resonances and neighbours of the moon system | the forced eccentricities of the regular satellites of the giants run from 0.001 to 0.03 and the Moon 0.055; the range is the one the tide of GEN.700 already drew from | - | - |
@@ -328,6 +328,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OE13 | P | T4 | L0 | giant_draw.SETTLE_TOLERANCE | 0.001, fixed | table-sized giants | none needed | design: the table radius is good to a few percent, and a giant that the final age and the mean light move by less than a tenth of a percent keeps its radius and interior, so that a system whose giants the star's age did not move is unchanged (GEN.961); measured on 138 table-sized giants, 28 percent were off by more than 1 percent before the settle | - | - |
 | OE14 | P | T4 | L0 | planets.ECCENTRICITY_SETTLE_TOLERANCE | 1e-4, fixed | planets and captured moons | none needed | design: a planet or captured moon whose eccentricity at the star's final age is within 1e-4 of the drawn one keeps its orbit; the circularisation time (OE10) is read again from the body's radius as it then is, so GEN.985 changes a body only where the age of the star rose enough to matter (measured: 134 of 327 planets move at all, 53 by more than 0.01 or 5 percent) | - | - |
 | OE15 | P | T4 | L0 | planets.AGE_SETTLE_TOLERANCE | 0.02, fixed | rocky planets and moons | none needed | design: a rocky planet or moon made when the star's age was within 2 percent of its final age keeps its air, class, spin and dose (GEN.992); above that the decay clock and the heat history it read are off by more than the 2 percent, and the body is made again from a stream of its own; measured (GEN.986): the age rises by a median 4.3 Gyr in about 63 percent of rocky planets, and the class letter moves in 8 to 12 percent of those made again | - | - |
+| OE16 | B | T2 | L0 | orbit_elements.GIANT_BETA_A, GIANT_BETA_B | 0.867 and 3.03, fixed | a gas or ice giant (`body_type` `g`), any period | a Beta law by period and by the number of giants in the system; direct-imaging eccentricities of wide giants | RECALLED ([R2366] Kipping 2013: the eccentricities of the radial-velocity planets follow a Beta law of a = 0.867 and b = 3.03, mean 0.22; the first draw of GEN.1325 gave generated giants a mean of 0.08 from the Kepler laws OE1 to OE3, a third of it); the planets of every system take it when they are giants, a single or one of several, and the tide and the periapsis cut act after it | - | - |
 
 ## 6.13 Stand-ins of the tidal heating
 

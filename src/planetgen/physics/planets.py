@@ -680,7 +680,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
         birth = orbit_elements.draw_moon_eccentricity(planet.moon_origin, e_max)
     else:
         e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
-        birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max)
+        birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max, giant=planet.body_type == 'g')
     if planet.is_moon and planet.moon_origin != "captured":
         planet.eccentricity = birth
         return

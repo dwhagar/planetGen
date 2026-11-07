@@ -59,6 +59,10 @@ SINGLE_MODERATE_FRACTION = 0.76
 """float: The share of single planets that draw from the broader Rayleigh law ([R1307], abstract; T1, L0)."""
 SINGLE_RAYLEIGH_MODE = 0.26
 """float: Where the broader Rayleigh law peaks (its dispersion; [R1307], abstract; T1, L0)."""
+GIANT_BETA_A = 0.867
+"""float: The first shape of the Beta law of a giant planet's eccentricity ([R2366], the fit to the radial-velocity planets, a = 0.867; recalled, GEN.1325; T2, L0)."""
+GIANT_BETA_B = 3.03
+"""float: The second shape of the same law, b = 3.03; its mean is a / (a + b) = 0.22 ([R2366], recalled; T2, L0)."""
 MAX_ECCENTRICITY = 0.9
 """float: No planet or moon is drawn above this (a stand-in: the laws put almost nothing there; the Roche cut comes first for a close orbit; T4, L0)."""
 ROCHE_COEFFICIENT = 2.44
@@ -85,13 +89,22 @@ def _rayleigh(sigma, e_max):
     return sigma * math.sqrt(-2.0 * math.log(1.0 - draw.random() * reach))
 
 
-def draw_planet_eccentricity(multiple, e_max):
+def _beta(a, b, e_max):
+    """A Beta law of shapes `a` and `b`, cut at `e_max`, by its inverse CDF (one draw)."""
+    reach = float(special.betainc(a, b, e_max))
+    return float(special.betaincinv(a, b, draw.random() * reach))
+
+
+def draw_planet_eccentricity(multiple, e_max, giant=False):
     """
-    The eccentricity of a planet, from the law of the system it is in.
+    The eccentricity of a planet, from the law of the system it is in, or, for a giant, from the Beta law fitted to the giants whose orbits
+    were measured by radial velocity (GEN.1325: the Kepler laws of `MULTI_SIGMA` and the single-planet Rayleigh were fitted to planets that are
+    mostly small and close, and gave the giants a mean of 0.08 against the 0.22 of [R2366]).
 
     Args:
         multiple (bool): Whether the system has two or more planets (`None`, a system whose planets are not counted, is taken as one that does).
         e_max (float): The largest eccentricity its orbit allows (`max_planet_eccentricity`); 0 gives a circle.
+        giant (bool): Whether the planet is a gas or ice giant (`body_type` `'g'`).
 
     Returns:
         float: In [0, e_max].
@@ -99,6 +112,8 @@ def draw_planet_eccentricity(multiple, e_max):
     e_max = min(max(e_max, 0.0), MAX_ECCENTRICITY)
     if e_max <= 0.0:
         return 0.0
+    if giant:
+        return _beta(GIANT_BETA_A, GIANT_BETA_B, e_max)
     if multiple is False and draw.random() < SINGLE_MODERATE_FRACTION:
         return _rayleigh(SINGLE_RAYLEIGH_MODE, e_max)
     return _half_gaussian(MULTI_SIGMA, e_max)
