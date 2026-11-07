@@ -2754,3 +2754,4 @@ Baseline: PR #1817.
 | GEN.1259 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
 | PERF.248 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
 | GEN.1326 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1322 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
