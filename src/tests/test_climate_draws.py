@@ -15,7 +15,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import albedo_color, climate_branches, climate_draws, constants, giant_draw, greenhouse, orbit_elements, surface_air
+from planetgen.physics import albedo_color, climate_branches, climate_draws, cloud_albedo, constants, giant_draw, greenhouse, orbit_elements, surface_air
 from planetgen.util import draw
 
 TOLERANCE = 1e-9
@@ -87,7 +87,8 @@ def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone)
             low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux, getattr(planet.star, "temperature", None))
             # GEN.972: the draw is the ice-free albedo; the ice raises it, to the covered value at most
             covered = albedo_color.shifted_range((climate_branches.ICE_COVERED_ALBEDO,) * 2, "frozen", getattr(planet.star, "temperature", None))[0]
-            assert low <= planet.bond_albedo <= max(high, covered)
+            # GEN.974: the cloud moves it either way by its amount term (a warm world is darker than it drew, a cold one brighter) and a locked one gains its deck
+            assert low - cloud_albedo.DELTA_MAX <= planet.bond_albedo <= min(max(high, covered) + cloud_albedo.DELTA_MAX + cloud_albedo.DECK_DELTA_MAX, cloud_albedo.MAX_ALBEDO)
 
 
 def test_a_giant_stores_the_pair_that_gives_its_temperature_with_its_own_heat_in_the_greenhouse(host_star):

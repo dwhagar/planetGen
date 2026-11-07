@@ -50,10 +50,20 @@ MIN_CLASSES = 8
 """int: The classes the sweep must reach, or it has not swept every kind of body."""
 
 
+EXTRA_SYSTEMS_MAX = 12
+"""int: The systems added, one at a time, when the sweep drew no giant (the rules and the tests that break them need one; a draw of 14 systems may hold none, which GEN.974's
+change of every wet body's albedo made of seed 15, as the habitable-world requests draw again on the new conditions)."""
+
+
 @pytest.fixture(scope="module")
 def swept():
-    """`(body, is_moon)` for every planet and moon of the sweep."""
-    return sample_bodies(SYSTEMS, SEED, HABITABLE_SHARE)
+    """`(body, is_moon)` for every planet and moon of the sweep, with systems added one by one until a giant is in it (at most `EXTRA_SYSTEMS_MAX`)."""
+    bodies = sample_bodies(SYSTEMS, SEED, HABITABLE_SHARE)
+    extra = 0
+    while not any(body.body_type == "g" for body, _ in bodies) and extra < EXTRA_SYSTEMS_MAX:
+        extra += 1
+        bodies = bodies + sample_bodies(1, SEED + 1000 + extra)
+    return bodies
 
 
 def _starlight_w_m2(body):
