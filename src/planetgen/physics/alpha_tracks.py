@@ -14,7 +14,7 @@ with 0.638 the alpha elements' share of the metals by number in the solar mixtur
 
 The star's own [alpha/Fe] is the mean of the [O/Fe], [Mg/Fe], [Si/Fe] and [Ca/Fe] of its branch at its [Fe/H]
 (`stellar_abundances.mean_xfe`, the hinge fits of [R0349, R3294] that `composition` already uses), so the track
-and the composition of one star agree. Nothing in generation calls this yet: the wiring is GEN.744's second step.
+and the composition of one star agree. `track_fe_h` is read by the star's evolution, the scatter's windows and the member records (GEN.1024).
 """
 
 import functools
