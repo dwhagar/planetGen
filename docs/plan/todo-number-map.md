@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.284 |
+| UX | UX.285 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
 | GEN | GEN.1330 |
@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.47 |
 | TEST | TEST.670 |
 | USR | USR.32 |
-| OPS | OPS.113 |
+| OPS | OPS.114 |
 | DOC | DOC.110 |
 | VIEW | VIEW.48 |
 | POP | POP.52 |
@@ -2707,6 +2707,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.110 | install.sh and update.sh render every systemd unit from the checkout location and venv and install the maintenance timers automatically; the gunicorn unit stays manual | none | done, PR #5471 |
 | OPS.111 | update.sh crashes with KeyError 'stages' in the update guard when Redis holds a run record with no stages (bug) | none | done, PR #5474 |
 | OPS.112 | New galaxy jobs fail at stages 3 to 14 with numba "cannot cache function bright_ranges: no locator available" because the code tree is read-only to the service user since SEC.37 (bug) | none | done, PR #5477 |
+| OPS.113 | update.sh fails when started by systemd (the Update button and the monthly timer) while warm-up or other jobs run: a systemd-started update cancels everything except generation and refuses only while generation runs (bug) | none | done, PR #5485 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -4300,6 +4301,7 @@ Each citation below resolves to one item by its date.
 | `test_web_sector_nav.py` | "TODO 74" | 2026-10-01 04:24Z | MAP.21 |
 | `test_web_facilities.py` | "TODO 36" | 2026-10-01 02:42Z | UX.5 |
 | UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched | none | open |
+| UX.284 | The admin Update page log and the queue run log scroll to the end on load and on live refresh, pausing only when the reader scrolls up | none | done, PR #5485 |
 
 ### Code tags `TODO(<area> #N)`
 
