@@ -56,6 +56,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.283 | Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched |  |  |
+| UX.285 | Settings option weirdness_dial: the oddity dial (default 1, 0 turns all oddities off) in the settings page and file, read through SystemConfig.WEIRDNESS_DIAL |  |  |
 | MAP.402 | Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets |  |  |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 
@@ -461,7 +462,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders |  |  |
 | TEST.660 | The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train |  |  |
 | TEST.676 | Radius valley and rogue-envelope tests: a measured gate on the 1.5 to 2.0 Earth radii gap against the published valley, and a check that starless planets of 1 to 20 Earth masses keep the whole envelope and are classed like bound ones (GEN.1323 parts C and D) |  |  |
-| TEST.677 | test_habitability_end_to_end_browser fails on main after train 14: the moon list shows one body rated Red (bug) |  |  |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | GEN.1069, GEN.1006 |  |
 | GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | GEN.1068 |  |
 | GEN.1070 | Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump | GEN.1069 |  |
@@ -492,7 +492,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.878 | Chemistry-specific energy: the pigment's absorption band times the star's spectrum is the multiplier on LIGHT_SHARE, instead of one bolometric curve for every metabolism |  | Life chemistry review; moved to 8.1 by Boss, 8:00 PM EDT 2026-10-28. |
-| GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) |  |  |
 | GEN.1307 | Class 5a life (sulfuric-acid cloud layers) has no surface-temperature window, so a 2595 K vapor world stores animals aloft (bug) |  |  |
 
 ### Physics rectification: infrared opacity, tides and the class re-sweep
@@ -569,7 +568,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1335 | Inner planets (inside 100 days) are 5 to 8 Earth masses against the 3.72 median of the Kepler survey, so the rocky peak of the radius valley sits at 1.5 to 1.75 Earth radii instead of 1.3 to 1.4: compare the generated inner mass function with the published masses |  |  |
 | GEN.1336 | Hot Jupiters round red dwarfs are about twice as common as the researched band (0.5 percent against 0.27): test_hot_jupiters_are_rare_and_rarer_round_a_red_dwarf passes only on a lucky seed |  |  |
 | GEN.1337 | A rocky planet's outgassing can fail with a MixtureError (0.00143 of the gas is Cl, F and F2, species the gas table lacks) and crash the whole StarSystem (bug) |  |  |
-| GEN.1338 | Census re-tag for train 14: re-tag the class, life and systems censuses after train 14 and report any new flag with its reason (GEN.1306 class W, GEN.1321 oxygen pressure, GEN.1261 and GEN.1278 belts, GEN.876 traits) |  |  |
+| GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor |  |  |
+| GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number |  |  |
+| GEN.1342 | A temperate (275 to 298 K) global ocean with oxygen has no hard class: class O needs 298 to 312 K and class M needs 20 to 80 percent ocean cover, so these worlds are placed only by soft shoulders (Boss decides the class) |  |  |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) |  |  |
 
 ### Physics rectification: winds and ring darkening
