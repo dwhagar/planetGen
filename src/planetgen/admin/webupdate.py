@@ -53,7 +53,7 @@ def unit_dir():
 
 
 def installed():
-    """Whether both root-owned units are in place (`ensure_update_request_units` in `scripts/deploy-common.sh`)."""
+    """Whether both root-owned units are in place (`install_maintenance_units` in `scripts/deploy-common.sh`)."""
     return all(os.path.isfile(os.path.join(unit_dir(), name)) for name in (PATH_UNIT, SERVICE_UNIT))
 
 

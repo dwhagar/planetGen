@@ -21,17 +21,17 @@
 # month, with no human review in between. update.sh itself still refuses
 # to run over uncommitted local changes or a diverged/detached HEAD (see
 # its own header comment) rather than forcing past either, but it does
-# not gate on *what* the pull brings in. Skip installing this unit (pass
-# `--skip-update-timer` to install-maintenance-timer.sh) if this
-# deployment's branch should only ever be updated by a human running
-# `sudo ./update.sh` deliberately.
+# not gate on *what* the pull brings in. install.sh and update.sh install the timer (OPS.110) and leave it off, saying at every deploy while it is off how to turn it on:
+# `sudo systemctl enable --now planetgen-update.timer` (running install-maintenance-timer.sh does the same). If this deployment's branch
+# should only ever be updated by a human running `sudo ./update.sh` deliberately, do nothing: a deploy never turns it on.
+# (install-maintenance-timer.sh --skip-update-timer leaves it out of a host that does not have it yet.)
 #
 # SEC.43: planetgen-update.path also starts this unit, when the admin Update button drops the request file
 # (<state folder>/update.request). ExecStartPre removes the request before update.sh runs, so one press is one run; a press made
 # while the update runs waits for it and runs after. The file's contents are never read, and ExecStart takes no argument from it.
 #
-# Install with examples/maintenance/install-maintenance-timer.sh, which
-# also sets up the credentials file this unit reads (needed for
+# Installed by install.sh and update.sh, rendered for the real checkout and virtual environment (and by
+# examples/maintenance/install-maintenance-timer.sh, which also sets up the credentials file this unit reads, needed for
 # install.sh's `planetgen.cli.migrate` step).
 
 [Unit]

@@ -280,8 +280,8 @@ log_info "Checking the Redis server (config.json's redis.url):"
 ensure_redis
 check_redis_settings
 
-# SEC.43: the admin Update button's request file starts update.sh through these root-owned units (Linux, systemd).
-ensure_update_request_units
+# OPS.110: the maintenance timers and (SEC.43) the admin Update button's units, rendered for this checkout and venv (Linux, systemd).
+install_maintenance_units || log_warning "the maintenance units were not all set up (see above); the deploy carries on."
 
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
