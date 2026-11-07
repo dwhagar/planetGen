@@ -8,7 +8,7 @@ with no star and scored like any planet, `generation/phenomena/starless_host.py`
 older flat-rate rogue are gone.)
 """
 
-from planetgen.physics import habitability_world, outside_hours, regional_temperature
+from planetgen.physics import habitability_world, outside_hours, regional_temperature, temperature_coverage
 
 ROGUE_FIELDS = (*(name for name in habitability_world.SCORE_FIELDS
                   if name not in (*regional_temperature.FIELDS, "outside_hours", *outside_hours.FIELDS)), "energy_flux_w_m2")
@@ -20,6 +20,8 @@ ROGUE_UNITS = {
     **{name: "index" for name in ROGUE_FIELDS if name.startswith(("tier_", "life_", "eq_"))},
     **{name: "ratio" for name in ROGUE_FIELDS if name.startswith("phi4") or name in ("l_solv", "l_chem", "l_ener", "l_rad")},
     "energy_flux_w_m2": "W_m2", "shelter_column_g_cm2": "g_cm2",
+    **{name: ("K" if name.endswith("_k") else "deg" if name.endswith("_deg") else "d" if name.endswith("_days") or name.endswith("_day") else "flag" if name == "temp_livable_belt_only" else "frac")
+       for name in temperature_coverage.FIELDS},
 }
 """dict: Each field of `ROGUE_FIELDS` and its native unit (GEN.570), as `RoguePlanet.FIELD_UNITS` carries it."""
 
