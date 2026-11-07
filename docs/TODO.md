@@ -13160,53 +13160,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bug 1, after GEN.1275 merges. Filed by the TODO thread.
   Prerequisites: GEN.1275. Related: GEN.1275, PERF.236.
 
-- [ ] **PERF.241 A system with every orbit flag forced on takes 15 to 96 seconds on main, so 19 tests time out at 900 s (bug)**
-  The Train Manager (as the lane reported, about 3:47 PM EST on
-  2026-11-05, full-suite run on main) timed one system with every orbit
-  flag forced on: O0V 96 s, O1V 46 s, O3V 45 s, O2V 20 s, O4V 15 s, O5V
-  22 s. Tests that build about 70 of them time out alone:
-  test_fuzz_system_generation (every_star_type x9, extreme_orbit_counts,
-  forced_flag_on_together, random_valid_configs), test_prevalence
-  (feature_moves_by_percentage x8, no_binaries),
-  test_census_representation (7), test_prevalence_census,
-  test_systems_census, census_nebula_wholesphere, generation_mix giants,
-  bughunt_sector_placement, test_systems O5V, life_text_consistency,
-  generation_size_estimate. Do: profile one O0V system with all flags on
-  (cProfile, top 20 by cumulative time), say where the time goes (the
-  temperature series of PERF.238, moon or rogue builds, the stability
-  search), and cut the cost where it changes no output; where a cut
-  would change values, file it as a lock item with the epoch. In
-  parallel the tests build fewer systems where the property allows
-  (TEST.417 style). Done: no test times out at 900 s on a 4 vCPU box
-  (the line "one all-flags O0V system takes under 20 s" moved to
-  PERF.244, see below). Related: PERF.238,
-  TEST.417, TEST.571. Lock-free for the test parts. Version 8.1. Owner:
-  Bug 1. Filed by the TODO thread.
-  Profile done (Bug 1, as the lane reported) (4:38 PM EST on
-  2026-11-05): reports/perf241-all-flags-o0v-profile-2026-11-05.md. 63
-  percent of an O0V all-flags system is bodies built twice after
-  space_orbits pushes planets out (GEN.1282, lock item); the forced
-  habitable world makes the placement loop draw the whole system 8 times
-  (PERF.242, lock item); gas-equilibrium solves are 54 percent of the
-  unprofiled time and a cache gains nothing. Cuts that change no output
-  give only 10 to 20 percent. Bug 1 meanwhile cuts the system counts of
-  the timing-out tests where the property allows, in small PRs. The
-  prevalence feature_moves tests on the list are PERF.236, already in
-  train 12. PERF.241 stays open until GEN.1282 lands and the hot-star
-  tests are cut.
-  Rescoped (Bug 1, as the lane reported, about 9:36 PM EST on
-  2026-11-05, TODO accepted): with GEN.1282 an O0V all-flags system takes
-  55 s (about 380 s before) and builds 89 planets and about 186 moons;
-  75 percent of the time is moons at 0.15 s per body, and 80 percent of
-  that is surface_air.solve redrawing the outgassed mixture about 8
-  times per body (14 gas-equilibrium solves per body); an O5V all-flags
-  system takes about 80 s. Hot-star ecosphere draws do succeed (O5V 1 of
-  30, O3V 1 of 8, G2V 2 of 30), so PERF.242's premise was false and it is
-  closed. The line is now: no test over 900 s on 4 vCPU, reached by
-  cutting the trials of the hot-star tests (lock-free); the under 20 s
-  line was PERF.244, closed without a build (Bug 1 profile, 11-06: no single lever, the gas solver is 19 percent of the time).
-  Prerequisites: none. Related: PERF.238, PERF.244.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -15094,11 +15047,6 @@ clears each one.
   Core 1 (as the lane reported, 8:08 PM EST on 2026-11-06), seen on main while merging MAP.403. The GET route for a belt member (GEN.1070) was added without an entry in the audit list of link ids and without a stated reason, so test_every_get_endpoint_is_audited fails on main. Do: audit the route (its ids link to the object pages) or give the reason it is exempt, in the same form the other routes use. Done: the test is green on main. Lock-free. Version 8.1. Owner: Aux 5 (belts).
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1070, TEST.661.
-
-- [ ] **TEST.663 test_reproducible_draws::test_no_version_or_library_dependent_maths_in_the_package is red on main: stellar_table.py uses the matrix operator @ and the sky files use math.dist, both outside the deterministic maths (bug)**
-  Bug 1 (as the lane reported, 8:06 PM EST on 2026-11-06), seen while fixing PERF.246. The reproducibility test bans version- or library-dependent maths in the package (the matrix operator, math.dist) because the same seed must give the same bits on every machine and library version; it is red on main for stellar_table.py (@) and the sky files (math.dist). Do: replace each with the deterministic detmath form (sum and product order fixed) and check the outputs are bit-identical where they feed stored values; where a sky file only draws pictures, say so in the test's exemption list with the reason. Done: the test is green on main and the golden is unchanged. Lock-free if bit-identical. Version 8.1. Owner: Bug 1.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: TEST.661, PERF.246.
 
 - [ ] **TEST.664 test_an_oxygenic_world_past_its_delay_holds_oxygen_and_one_before_it_holds_none is red on main and takes 8 minutes (bug)**
   Planets 1 (as the lane reported, 8:15 PM EST on 2026-11-06), seen on plain main while building GEN.1320. Do: find out whether the test or the life timeline is wrong (the delay before an oxygenic world holds oxygen), fix it, and cut its 8-minute run if a smaller draw proves the same thing. Done: green on main and under 2 minutes, or a stated reason it cannot be. Lock-free. Version 8.1. Owner: Bug 1.
