@@ -12,11 +12,15 @@ A developer-machine calibration. It is skipped when the HYG catalogue is not dow
 The HYG catalogue is the oracle (`datasets/hyg_stars.py`: 8,920 stars at V <= 6.5, nothing in the generator reads it). Each case plans a galaxy, scatters its bright stars, charts the sky tiers of a cell
 for 6.5 and counts the stars `sky_from_database` finds there, with no dust and with the default dust law. The reports are reports/system-sky-hyg-calibration-2026-11-05.md.
 
+* The default dust is the gas-built model (`physics.dust_model`, VIEW.43 and VIEW.44), which `sky_from_database` uses when it is given none. Measured 2026-11-07 (VIEW.45), with the dust-free count of the same run
+  as the base: the small galaxy keeps 1,662 of 2,398 stars (0.693; the old fixed law kept about a quarter), the Milky Way sized one 3,046 of 4,853 (0.628; 3,207 of 5,733 under the old law, 0.559). The tiers of
+  the default dust reach 0.995 (small) and 0.964 (Milky Way) of the dust-free tiers' widest luminosity band, so the dust-free tiers hold every star the dusty sky shows. Both ratios have a band (`dusty_band`).
+  Most of what the dust takes is the luminous far stars: the small galaxy's 0.14 mag per kpc over several kpc, the Milky Way's 1.1 mag per kpc over one.
 * `milky-way`: the galaxy of a Milky Way-sized disk (1e11 solar masses, a 2,600 parsec scale length, a thin disk 404 parsecs thick that is 69 percent of the stars at the Sun's place) at its reference
   radius of 3.15 scale lengths, the Sun's place, where the relative density is 0.91. The scatter places every star of 20 solar masses and 4,000,000 solar luminosities and up. Measured 2026-11-05: 5,733
-  stars with no dust, 64 percent of the catalogue's 8,920 (70 percent of it at the place's density), 3,207 (36 percent) with the default dust. By absolute magnitude, no dust, against the catalogue: brighter than -6
+  stars with no dust, 64 percent of the catalogue's 8,920 (70 percent of it at the place's density), 3,207 (36 percent) with the old fixed dust; 2026-11-07: 4,853 (54 percent) with no dust, 3,046 (34 percent) with the gas-built dust. By absolute magnitude, no dust, against the catalogue: brighter than -6
   1,548 against 10 (dust takes the real ones), -6 to -3 456 against 318, -3 to 0 2,141 against 3,363, 0 to 2 1,083 against 3,616, 2 to 4 373 against 1,164, 4 to 6 119 against 219.
-* `small`: the galaxy the default seed draws (a 480 parsec disk, 92 percent thick disk at the place where the density is 1), which is the cheap regression guard: 2,231 stars, 25.0 percent
+* `small`: the galaxy the default seed draws (a 480 parsec disk, 92 percent thick disk at the place where the density is 1), which is the cheap regression guard: 2,398 stars, 26.9 percent on 2026-11-07 (2,231 and 25.0 percent on 2026-11-05)
   (charted with dust-free tiers; 2,184 with the tiers of the default dust, so the tier reach is worth 2 percent; reports/system-sky-hyg-factor-2026-11-05.md).
   Star 2's analysis (reports/gen1279-1280-sky-counts-cause-2026-11-05.md) puts most of that shortfall on the galaxy, not the generator, so its band is only there to catch a change.
 
@@ -51,7 +55,7 @@ LIMIT = 6.5
 CASES = {
     "small": {"pins": (), "scatter": {}, "site": "density-one", "band": (0.15, 0.40), "dusty_band": (0.55, 0.85)},
     "milky-way": {"pins": ("--mass", "1.0e11", "--disk-scale-length", "2600pc"), "scatter": {"--phenomenon-min-mass": "20", "--bright-star-min-luminosity": "4000000"},
-                  "site": "reference", "band": (0.50, 0.80), "dusty_band": (0.0, 1.0)},
+                  "site": "reference", "band": (0.50, 0.80), "dusty_band": (0.50, 0.75)},
 }
 """dict: The calibrations: the plan's pins, the scatter's floors, where the observer stands, the share of the catalogue's count the dust-free sky must hold (`band`, measured 0.245 and 0.643) and the share of the
 dust-free count the sky through the galaxy's own dust must keep (`dusty_band`, VIEW.45)."""
