@@ -3529,7 +3529,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, GEN.743, GEN.752.
+  Prerequisites: SEC.33, TEST.261, GEN.752.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -8414,38 +8414,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   takes the next free generator epoch. Owner: Core 4 (proposed).
   Prerequisites: none. Related: GEN.271.
 
-- [ ] **GEN.743 Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  S4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T2. Today:
-  Neutron star radius comes from a measured band; the inner crust and
-  core need an equation of state that nothing integrates yet (21 tables
-  are on disk). Helium-core and oxygen-neon white dwarfs have no layers
-  because the sequences are carbon-oxygen. Real physics: integrate the
-  tables for radius and structure; add the other white dwarf types. Do:
-  write the TOV integration over the tables on disk and extend the white
-  dwarf layers to the other core types. Done: neutron star radius and
-  structure follow from the tables for a mass sweep, with a test against
-  NICER radii. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): proposed owner Math lane 1, after its first
-  seven items; takes it only if nobody has started it.
-  Split (2026-10-29 8:30 PM EDT): Built as GEN.968 (lock-free part) and
-  GEN.969 (wiring, rides a train); GEN.743 closes when both are done.
-  Owner: Star 2 (new lane, proposed by TODO).
-  Data we hold (2026-10-29 8:55 PM EDT): 21 neutron star equations of
-  state [R2834] and 20 outer-crust models [R4028]
-  are downloaded at setup and read by tests only
-  (datasets/neutron_star_matter.py); Bedard white dwarf sequences are
-  carbon-oxygen only. Catalog sections 1 and 2.
-  Prerequisites: none. Related: GEN.272, GEN.553, GEN.968, GEN.969.
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Core 2 takes it: star physics wiring (Star 2 retired; lock-free halves GEN.968 and GEN.970 first, then the wiring halves as one stellar window).
-
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
   The GEN.422 fixed point of surface temperature and pressure has no
   climate feedback. Add the three feedbacks that move it: ice-albedo
@@ -9607,6 +9575,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 5 as owner, in that order, after GEN.1014 (train 8).
   Prerequisites: GEN.1069.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
+  Progress (1:03 AM EST on 2026-11-07, as the Train Manager reported): part 1 merged in train 13 (PR #5507, epoch 135); part 2 rides train 14.
 
 - [ ] **GEN.1086 System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space**
   Captured asteroid moons (Boss, 4:27 PM EDT 2026-10-30: "Jupiter has so
@@ -9973,103 +9942,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, so lock-free until then.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
-- [ ] **GEN.1190 Replace unsourced rheology constants with the sourced ones: partial-melt factor, Andrade exponent and ratio, ice grain-boundary sliding and the ice melting curves**
-  From Sources 1
-  (reports/gen1187-strength-constant-sources-2026-10-31.md): sourced
-  values exist for the partial-melt factor exp(-alpha x melt) (alpha 30
-  for diffusion creep, 30 to 45 for dislocation creep, [R1956];
-  ice melt law B 22), the Andrade exponent 0.2 to 0.4
-  and the Andrade over Maxwell ratio near 1 at low stress (the repo's
-  0.3 and 1.0 stay; the rock ratio has a source conflict, record it),
-  ice grain-boundary sliding n 1.8, grain exponent 1.4, Q 49 kJ/mol (two
-  sources agree, prefactors from one secondary table), and the ice
-  melting curves for Ih, III, V, VI and VII with all coefficients (IAPWS
-  2011). Not found and still open: the ammonia dihydrate 1993 constants
-  and the solid-solid ice boundaries (Boss uploads, in order of value:
-  [R1189]:17667, [R1614]:11017, [R0777]:124506).
-  Replace the matching stand-ins in the tidal rheology and the ice-type
-  strength table (GEN.1183) with these values and update their registry
-  rows (tier and tweak level) in GEN.725. Changes tidal heating inputs,
-  so it rides a Tides 1 lock window. Owner Tides 1.
-  Boss uploads read (Sources 1) (9:38 AM EDT 2026-10-31, as Sources 1
-  reported): [R1613] (Scripta Mater. 37:1399-1406)
-  read: dislocation n 4, Q 64; grain-boundary sliding n 1.8, grain
-  exponent 1.4, Q 49; basal-limited n 2.4, Q 55 to 62. The GBS and bas[R3099] numbers are now verified; the Mitri diffusion row is not in
-  this paper. No prefactor A in the text (it is in Goldsby and Kohlstedt
-  2001, JGR 106:11017, not in hand). [R3161]
-  (Nature 600:419): N2 ice n = 2.1 ([R4806]:972,
-  confirmed; correct an earlier 2.2), Q 3.5 kJ/mol non-Newtonian or 8.6
-  kJ/mol Newtonian [R1265], viscosity 1e10
-  (non-Newtonian) to 1e16 to 1e19 Pa s (diffusion), 1e16 to 1e17 from
-  pit relaxation. Still needed: [R1189, R1614] (JGR 98:17667) and [R1190]
-  (JGR 102:16293, for ice types IT1 to IT3). The 'Rheology of Water and
-  Ammonia-Water Ices' upload is only the 1993 LPSC abstract with no
-  constants.
-  Sources 1 read [R1614] (2026-10-31 9:47 AM EDT):
-  Boss uploaded the paper; Sources 1 read Table 5 from the page image
-  (report
-  /mnt/project-files/reports/goldsby-2001-and-durham-planetary-ices-2026-10-31.md).
-  Rate = A sigma^n d^-p exp(-Q/RT), sigma in MPa, d in metres.
-  Grain-boundary-sliding-accommodated basal slip, T under 255 K: A
-  3.9e-3 MPa^-1.8 m^1.4 s^-1, n 1.8, p 1.4, Q 49 kJ/mol (T over 255 K: A
-  3.0e26, Q about 192). Basal-slip-accommodated GBS: A 5.5e7 MPa^-2.4
-  s^-1, n 2.4, Q 60. Dislocation creep, T under 258 K: A 4.0e5 MPa^-4
-  s^-1, n 4, Q 60 (T over 258 K: A 6.0e28, Q about 181). Combination:
-  diffusion + (1/basal + 1/GBS)^-1 + dislocation. Mitri's GBS and basal
-  log A match exactly, so those two are verified. The diffusion row is
-  derived (Eq. 4 volume term at about 260 K), not measured, and the
-  boundary D0 of about 6e-4 m2/s is an estimate (upper bounds 5.8e-4 to
-  8.4e-4). The paper has no melt law or melting curves. The authors
-  print only initials (D. L. Goldsby, D. L. Kohlstedt). Also read: the
-  [R1190] preprint Rheology of Planetary Ices
-  (UCRL-JC-123734); its Table 1 has the 1993 ammonia dihydrate law (log
-  A 21.55, n 5.81, E* 107.5 kJ/mol, tested 130 to 176 K). The dihydrate
-  to ice I strength ratio is 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K,
-  0.18 at 170 K and 0.14 at 176 K (1e-15 per s; Sources 1 corrected the
-  first figures, which used the preprint's ice I row below 195 K; the
-  1997 row, log A -3.8, n 6.0, E* 39, is the right one). Our IT6 point at
-  170 K (0.3) is above the law, 135 K (1.0) is below it, and 110 K (2.0)
-  is outside the tested range. Ice II, III, V and VI constants are
-  already held in [R1190: Table 2] (same as the 1996
-  preprint; [R1196]:2989 confirms V and VI);
-  [R1211] (GRL 13:693) gives ice II about 10 times ice
-  I viscosity and ice III about 0.01 times near 240 K. The high-pressure
-  ratios depend strongly on depth: at lab rate ice II, V and VI come out
-  1 to 2 times ice I and ice III 0.4 to 0.6, at 1e-15 per s ice II, V and
-  VI 3 to 7. The ice VI row above 250 K jumps 50 times across 250 K, so
-  do not use it as it stands. Not found: [R0777] and
-  the solid-solid boundary equations. Melting curves are covered by
-  [R4585]. Report: reports/ice-high-pressure-sources-held-2026-10-31.md.
-  Sources 1: solid-solid ice boundaries from a tertiary source
-  (2026-10-31 10:03 AM EDT): [R0777] cannot be had
-  (Boss cannot get it), so the boundaries below 0.7 GPa come from one
-  TERTIARY source: Martin Chaplin, Water Phase Diagram, water.lsbu.ac.uk
-  (updated 5 Nov 2021; its references are by number only and the list is
-  unreachable). Register them in GEN.725 as tier Unverified (T3), L0,
-  until a paper matches. P in MPa, T in K, d = T - 273.15: Ih-II 176.0 +
-  0.918 (T - 198.15); II-III 213 + 99.517 [(T/238.45)^19.676 - 1]; II-V
-  412.0 - 7.01 (T - 239.15); Ih-III 198.2 - 0.42 (T - 273.15) (the
-  quadratic version fails its own triple point, 166 against 209.9, do
-  not use); III-V 344.3 - 0.275 d - 0.01099 d^2; V-VI 625.9 + 0.06086 d
-  - 0.0008571 d^2. Triple points: L-Ih-III 251.165 K, 209.9 MPa; L-III-V
-  256.164 K, 350.1 MPa; L-V-VI 273.31 K, 632.4 MPa ([R4585], also
-  Journaux et al. [R2204: Table 4]); Ih-II-III 238.45 K, 212.9
-  MPa; II-III-V 248.85 K, 344.3 MPa; II-V-VI about 218 K, 620 MPa
-  (approximate; the printed II-V line gives 559 there, so do not extend
-  a line past its triple points); VI-VII-L 2216 MPa, 355 K. Sources 1
-  checked that every line meets its triple points within 1 MPa except
-  III-V at the liquid point (345.8 against 350.1). Chaplin's short Simon
-  form for ice VII melting is 10 percent off at 550 K: use the exact
-  IAPWS form already held. AQUA (A&A 2020, [R1754]) Eq. 22
-  gives a VI-VII fit; the extraction is garbled, verify before use. No
-  equation found for II-VI, VI-VII-VIII or VII-VIII. [R1425] (J.
-  Appl. Cryst. 42:846) says Choukroun and Grasset's ice Ih K0' is wrong
-  by 10 times and their ice VI density has no pressure term, so do not
-  trust their equation of state for volumes. Still missing: [R1181]
-  (Solar System Research 44:202) or Choukroun and Grasset by upload.
-  Report: reports/ice-phase-boundaries-secondary-sources-2026-10-31.md.
-  Prerequisites: none. Related: GEN.1183, GEN.725.
-
 - [ ] **GEN.1201 A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today**
   Finding from Aux 5's GEN.1159 build (as the lane reported, 4:46 AM EDT
   2026-10-31), filed by the TODO thread. Kind: missing input. Object:
@@ -10233,70 +10105,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread). Filed by the TODO thread.
   Prerequisites: GEN.1218.
 
-- [ ] **GEN.1256 One uid-derived name scheme for every ID-named object: rogues, nebulae, remnants, quasars, comets, asteroid fields and black holes stop using the position ID as a name**
-  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
-  questions of reports/id-names-without-region-prefix-2026-11-04.md
-  section 7 (research thread): (1) a name is the local part of the
-  Object ID only, two words, with the sector shown beside it, and the
-  uid stays the identity; (2) one uid-derived scheme for every ID-named
-  object, retiring the position-ID names of rogues, nebulae and the
-  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
-  old derived name is kept as a Formerly line when charting gives a
-  word-salad name. This item is question 2. Rogue planets, standalone
-  black holes and neutron stars, nebulae, remnants, quasars, comets and
-  asteroid fields store the 19-digit position ID (GEN.64) as their name
-  and show it spelled by the old codec (GEN.71). Do: audit every admin,
-  API and search path that reads the 19-digit position ID as a key; give
-  each of these objects (where it has no uid yet) an Object ID; derive
-  every ID-named object's name from its uid with the local-name function
-  of GEN.1255, with the sector beside it; stop writing the position ID
-  into name, with no alias and no shim (testing mode). Stored name
-  values change (new epoch and migration). Lock work, train 11, after
-  GEN.1254 and GEN.1255. Done: no object stores a position ID as its
-  name; a test that every uncharted object page and list row shows a
-  local name and its sector, never a word-salad name and never a
-  position-ID spelling; the audit written into the item's note. Owner
-  Planets 1 (rogues and the phenomena stores) after GEN.1111. Related:
-  GEN.64, GEN.71, GEN.1254, GEN.1255. Filed by the TODO thread.
-  Audit done (Planets 1) (11:46 PM EST on 2026-11-04): First step
-  written: reports/gen1256-position-id-audit-2026-11-05.md. Eight tables
-  carry the position ID in name and all eight already have a uid column;
-  one writer (store._claim_object_ids with its collision chain). Readers
-  needing real change: api/naming.rename_names,
-  api/lookup._holders_of_name, the name search and autocomplete in
-  db/query.py, and every list that sorts or pages on name (its order
-  stops meaning kind and distance). About eight test files pin the old
-  scheme. Two decisions left for the build: compute the name on output
-  (Planets 1 recommends it, so a naming-key change still renames at
-  once) or store it, and what order the phenomena lists take. Build
-  after GEN.1111 (train 10) and GEN.1254 land.
-  Prerequisites: GEN.1254.
-
-- [ ] **GEN.1257 Charting keeps the old ID-derived name as the first Formerly line when a word-salad name replaces it**
-  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
-  questions of reports/id-names-without-region-prefix-2026-11-04.md
-  section 7 (research thread): (1) a name is the local part of the
-  Object ID only, two words, with the sector shown beside it, and the
-  uid stays the identity; (2) one uid-derived scheme for every ID-named
-  object, retiring the position-ID names of rogues, nebulae and the
-  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
-  old derived name is kept as a Formerly line when charting gives a
-  word-salad name. This item is question 4. An ID-derived name is
-  computed, not stored, so renaming at charting leaves no history row
-  and an old link or search for the derived name stops resolving. Do:
-  when the fill gives a scatter star (or a phenomenon) its word-salad
-  name, write the derived local name as the first retired name in the
-  designations table (GEN.1138 reason 'charted'), shown on the Formerly
-  line (GEN.1140) and found by past-name search; the uid does not
-  change, so redirects are not needed. Generation output changes the
-  designations table content (lock work, train 11, with GEN.1254). Done:
-  a test that charting a scatter star leaves one Formerly row with its
-  local name and that search by the old name finds the object; the
-  Formerly line shows the date and reason 'charted'. Owner Core 1
-  (designation history). Related: GEN.1138, GEN.1140, GEN.1141,
-  GEN.1254, GEN.1255. Filed by the TODO thread.
-  Prerequisites: GEN.1254.
-
 - [ ] **GEN.1261 Cold belts are 3 to 4 times too common: add a physical loss step for solids that never formed planetesimals, and cap a gap belt by the isolation mass a planet would have taken**
   Boss, 7:23 PM EST on 2026-11-04, confirmed option 1 on the GEN.1259
   follow-up: file this, no tuning to the observed share. Core 3 measured
@@ -10331,6 +10139,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   over 300 Earth masses are flagged. Two generation-set reds are still
   being attributed; the final head follows.
   Folded in (2026-11-07, Boss approved the TODO plan): GEN.1247 Outer asteroid belts store about 4.5e25 kg (7 Earth masses) across 11 to 74 AU at 6 to 9 Gy, far above a Kuiper-belt-like 0.03 Earth masses, while inner belts hold 1e20 to 1e24 kg: check the belt mass law at large distance and old age (bug).
+  Progress (1:03 AM EST on 2026-11-07, as the Train Manager reported): the first head merged in train 13 (PR #5507, epoch 135); the DU1 re-tune and GEN.1278 ride train 14.
 
 - [ ] **GEN.1267 A generated nebula's own shape follows the same model-density contour the map now draws: bounds, containment and the stars placed inside it**
   Boss (EST on 2026-11-04, 8:29 PM, as the coordinator relayed): he
@@ -10511,40 +10320,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thread.
   Prerequisites: GEN.1071. Related: GEN.1071, GEN.1068, GEN.725.
 
-- [ ] **GEN.1281 Heavy worlds with a plain nitrogen air and no oxygen or methane (about 1.3 percent of bodies) fit no class: widen a class or add one**
-  Core 4 (as the lane reported, about 11:58 AM EST on 2026-11-05, sweep
-  in reports/class-sweep-gen1207-2026-11-05.md): of 775 bodies in 150
-  systems (seed 1000), 10 are heavy worlds (1.3 to 1.8 g) with a plain
-  nitrogen air and no oxygen or methane, at 250 to 330 K with thin air
-  (about 10 kPa) and water or an ocean. They fit no class because class
-  F needs methane or hydrogen. Do: after GEN.1207 lands, take the 10
-  bodies and say from the physics which class they belong to; either
-  widen F's gas rule or propose a class for abiotic nitrogen-air heavy
-  worlds, with its conditions, name and letter, as a plain-word card to
-  the TODO thread (all 20 class letters stay; a new letter needs Boss's
-  word). Build the chosen option in the class table with a stand-in row
-  and tier in GEN.725, and re-run the sweep to show the gap closes.
-  Generation output changes (lock item, train 13 or the next train after
-  GEN.1207). Version 8.1. Owner: Core 4. Filed by the TODO thread.
-  Prerequisites: GEN.1207.
-  Decision (Boss, 5:34 PM EST on 2026-11-06): option 1, class F becomes the Anoxic world; built by Core 4 as PR #5348 for train 13.
-
-- [ ] **GEN.1282 Settle orbit spacing before any atmosphere is solved, so a planet pushed outward by space_orbits is built once, not twice (about 60 percent of the cost of a hot O star system)**
-  Bug 1's profile of PERF.241 (as the lane reported, about 4:35 PM EST
-  on 2026-11-05; reports/perf241-all-flags-o0v-profile-2026-11-05.md):
-  63 percent of the time of an O0V system with every flag on is bodies
-  built twice: reconcile_moved_planet. space_orbits pushes nearly every
-  planet out past its inner neighbour and the planet and its moons are
-  then made again (285 times in 16 validations). Do: move the spacing
-  decision ahead of the atmosphere and moon build so each body is built
-  at its final orbit once, keeping the same physics for the same final
-  orbit. Output may change (draw order), so this is a lock item:
-  generator epoch, golden, census re-tag at the train. Done: an
-  all-flags O0V system takes under 20 s together with the next item, and
-  the all-flags tests of PERF.241 no longer time out at 900 s. Version
-  8.1. Owner: Bug 1. Filed by the TODO thread.
-  Prerequisites: none. Related: PERF.241.
-
 - [ ] **GEN.1283 The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug)**
   Core 1 (as the lane reported, about 5:16 PM EST on 2026-11-05, while
   fixing PERF.228) found two tests in tests/test_habitability_fill.py
@@ -10564,56 +10339,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.1. Owner: Core 1. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1265, PERF.228.
   Folded in (2026-11-07, Boss approved the TODO plan): TEST.591 test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug). Its Done line: both pass on plain main under the narrow gate.
-
-- [ ] **GEN.1299 The planet architecture ejects about 0.1 body per star where the observed free-floating yield is 8 to 42 per star (0.33 Earth masses and up) and 0.8 to 7.5 rocky bodies per star: decide where the yield should come from**
-  Planets 1 (as the lane reported, about 7:52 PM EST on 2026-11-05),
-  TEST.499, PR #5262, report
-  /mnt/project-files/reports/rogue-yield-calibration-2026-11-06.md. Over
-  3,000 stars of the generator's mass function the architecture ejects
-  0.11 bodies of 0.33 Earth masses or more per star against the
-  microlensing band of 8 to 42 (central 21), and 0.085 of 0.1 to 10 Earth
-  masses against the terrestrial band of 0.8 to 7.5 (2.5 central). By
-  class: M dwarfs 0.069, K 0.16, G 0.24, F and A 0.25 per star; about 11
-  Earth masses thrown out per G star. The Rogues level ceilings reach the
-  bands (Few 2.5 and Normal 4.3 sit inside the terrestrial band; only
-  Many, 10, reaches the microlensing lower edge), so the top-up
-  (GEN.1287) makes up the difference today. The cause is the earlier
-  finding that about 125 sub-minimum bodies per star are deleted from the
-  chain. The strict expected failure in
-  tests/test_rogue_yield_calibration.py starts failing the day the donors
-  alone enter the bands. Do: write a short design note on whether the
-  architecture itself should carry the yield (keep the sub-minimum
-  bodies as ejected mass or small rogues, which changes every generated
-  system and is a lock item with an epoch) or the top-up stays the
-  source (then say so in the rogue design note and turn the expected
-  failure into a plain test of the top-up). Boss's design call; no code
-  until he answers. Version 8.1. Owner: Planets 1. Filed by the TODO
-  thread.
-  Prerequisites: none. Related: TEST.499, GEN.1111, GEN.1287.
-  Decision (Boss, 5:30 PM EST on 2026-11-06, Q2 option 1): the architecture carries the free-floating yield. Keep the deleted sub-minimum bodies as ejected mass or small rogues so the donors alone enter the observed bands; the top-up (GEN.1287) then only fills any gap and the expected failure in test_rogue_yield_calibration becomes a plain test. Lock item with an epoch. Owner: Planets 1 builds it now (physics drives, no game rates; stand-ins registered).
-  Decision refined (Boss, 5:35 PM EST on 2026-11-06, GEN.1299.1): after Planets 1 measured that the donors alone reach the terrestrial band (0.8 to 7.5 per star) but not the microlensing floor (at most about 5.7 per star above 0.33 Earth masses even if every non-planet body were ejected), build the terrestrial part only: eject the embryo-class bodies the giants' reach and Safronov fates assign, count the sub-minimum and merge-lost bodies as small rogues, turn the expected failure into a plain test of the terrestrial band, and leave the microlensing band to the Rogues level top-up (GEN.1287), saying so in the rogue design note.
-
-- [ ] **GEN.1288 cluster_unbinding feeds the ejection record: the share of planets a birth cluster has unbound is added to the rogues' ejections**
-  Planets 1 (as the lane reported, about 5:41 PM EST on 2026-11-05, with
-  PR #5192): after GEN.1111's unread functions were deleted, five rogue
-  modules remain on the wiring register under GEN.1111. Version 8.1.
-  Owner: Planets 1. Filed by the TODO thread. Do:
-  planetgen.physics.cluster_unbinding computes the share of planets a
-  young cluster unbinds from their stars; nothing reads it. Feed it into
-  the ejection record the rogue rows are made from (the cluster-born
-  share of rogues), with the cluster's age and density from the stored
-  cluster, and say in the rogue note when a rogue was unbound by its
-  birth cluster. Done: the guard passes with no line for the module and
-  a cluster-born rogue says so. This changes generated rogue planets, so
-  it is a lock item (epoch).
-  Decision (the TODO thread, 7:55 PM EST on 2026-11-05, Planets 1 asked):
-  the full version. The share is of planets a cluster pulls off their
-  stars, so a stripped planet leaves its system as well as becoming a
-  rogue and nothing exists twice; the architecture drops those planets
-  for cluster stars, from the cluster's age, mass and half-mass radius
-  history. It starts once GEN.359 (stars.cluster_id filled, branch
-  claude/core2-gen359, train 12) is on main.
-  Prerequisites: GEN.359. Related: GEN.1111, GEN.209.
 
 - [ ] **GEN.1292 The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later)**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
@@ -10654,18 +10379,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same total time is batched into different nights, and the admin's
   fast-forward moves them with the orbits.
   Prerequisites: GEN.105. Related: POP.24, POP.35, POP.30.
-
-- [ ] **GEN.1298 Life class 8 lives on a solvent it does not allow: test_life_standing::test_no_class_lives_on_a_solvent_it_does_not_allow fails on main (F5V / Ec11: class 8 needs ammonia_water_mass_fraction of 0.1 or more, the body has 0.023) (bug)**
-  Bug 1 (as the lane reported, about 7:35 PM EST on 2026-11-05): a
-  generated body holds a life class whose solvent it does not allow;
-  this is a generation defect in the life pass (likely the ammonia-water
-  fraction the class check reads against the stored value, see
-  GEN.1258). Do: reproduce from the seed, find which stage assigns the
-  class, fix the stage (never the test), and check the life census. A
-  changed generated value is a lock item (epoch). Version 8.1. Owner:
-  Bug 1 after GEN.1282, or Aux 2 if it frees first. Filed by the TODO
-  thread.
-  Prerequisites: none. Related: GEN.1258, GEN.915.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -12791,6 +12504,23 @@ clears each one.
   Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1306, GEN.1323.
 
+
+- [ ] **TEST.670 test_parent_link fails on main: the delete-sector test hits the rogue planet foreign key, which is RESTRICT (bug)**
+  Train Manager (as the lane reported 1:03 AM EST on 2026-11-07), red on main and not caused by train 13: `test_parent_link` (the delete-sector test) fails because a rogue planet's foreign key to its parent is RESTRICT, so deleting a sector with a parent that holds rogue rows is refused. Do: say whether the code or the test is wrong (a sector delete must leave no row pointing at a deleted parent: either the delete order removes the rogue rows first or the key cascades or the rogue is released) and fix it with the reason in the commit, with a regression test. Done: the test passes on main and the sector delete and bring-to-epoch tests pass. Lock-free unless a migration is needed (then say so). Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1111, TEST.666.
+
+- [ ] **TEST.671 test_citations_outside_the_registry fails on main: Simpson 1928 and Hadden and Lithwick 2014 are cited by name outside the registry (bug)**
+  Train Manager (as the lane reported 1:03 AM EST on 2026-11-07), red on main: `test_citations_outside_the_registry` finds Simpson 1928 in `radiative_convective.py` and in `gap-filling-plan.md` row IR17, and Hadden and Lithwick 2014 in `validation_sweep_planets.py`. The rule is that a source appears only as its [R0123] registry number. Do: add the two papers to the registry with the add command if they are not there, replace each mention by its number, regenerate the references. Done: the test passes and the citations sweep is clean. Lock-free. Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
+  Prerequisites: none. Related: DOC.98, DOC.99.
+
+- [ ] **TEST.672 test_nebula_shape fails on main and differs by a different item each run (flaky, bug)**
+  Train Manager (as the lane reported 1:03 AM EST on 2026-11-07), fails on main and on train 13 with a different nebula each run. Do: find out whether the test or the generator is unstable. A run to run difference in a seeded draw would break seed reproducibility, so check first for an unordered set or dict, an unseeded stream, a thread race or a float tie. Done: the cause is named, the test passes 20 runs in a row alone and under load, and if the generator was unstable it is fixed with a test (and TODO is told, because that is a lock item). Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1273, TEST.344.
+
+- [ ] **TEST.673 test_unit_registry_js fails on main (bug)**
+  Train Manager (as the lane reported 1:03 AM EST on 2026-11-07), red on main and not caused by train 13, seen on both gate shards: `test_unit_registry_js` (the browser twin of the unit registry). Do: say whether the JS registry or the test is stale after the recent unit and column changes, and fix it with the reason in the commit. Done: the test passes on main and `test_quantity_js` still passes. Lock-free. Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.568, TEST.666.
+
 - [ ] **TEST.666 Three tests are red on main: test_db_column_round_trip (rogue surface_liquid_ammonia_wt is never written; irregular_moons is in NEVER_READ), test_object_rows (_Rows has no fetchone) and the brown dwarf case of test_rogue_habitability (temp_livable_share) (bug)**
   Tides 1 (as the lane reported, 8:43 PM EST on 2026-11-06), seen on plain main while building GEN.876, not caused by it. Do: for each of the three, say whether the test or the code is wrong and fix it with the reason in the commit: the rogue surface_liquid_ammonia_wt column is either written by the rogue build or is not a column; irregular_moons is either read somewhere or taken out of NEVER_READ with the reason; _Rows needs fetchone, or the code that calls it must not; the brown dwarf temp_livable_share is either the physics (then the test's expectation changes with its source) or a bug. Done: all three pass on main and the targeted tests pass. Lock-free unless a column is added or removed. Version 8.1. Owner: Bug 1 (after GEN.1327). Filed by the TODO thread.
   Prerequisites: none. Related: TEST.666, TEST.660, TEST.661.
@@ -13757,45 +13487,6 @@ clears each one.
   whenever a ships module changes.
   Prerequisites: USR.29, POP.11, MAP.391. Related: USR.10.
 
-- [ ] **GEN.1303 Ten sweep bodies (classes T and E, G2V and F5V) have envelope_helium and envelope_z None with an envelope share of 1e-6 to 2e-5: the GEN.1226 fill leaves them out (bug)**
-  Bug 1 (as the lane reported, 5:21 AM EST on 2026-11-06) found
-  test_sweep_bulk's detail-ranges check red on plain main: 10 sweep bodies
-  (class T and E, G2V and F5V) have envelope_helium and envelope_z None
-  although their envelope share is 1e-6 to 2e-5, so the GEN.1226 fill
-  that stores the envelope for every body skips them. Do: reproduce on
-  current main, find why the fill skips a share this small (a threshold, a
-  branch that returns early, or a class rule), store the envelope helium
-  and metals for every body with an envelope, and keep the stored values
-  physical for a share this small. Lock item if stored values change (new
-  epoch, golden), else lock-free. Done: no body with an envelope share
-  above zero has envelope_helium or envelope_z None, and the sweep
-  detail-ranges check passes. Version 8.1. Owner: Bug 1 after GEN.1298.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1226.
-
-- [ ] **GEN.1304 The greenhouse table under-warms a temperate wet air after the GEN.852 part 3 refit: the Earth twin sits at 276.0 K instead of 288 K (lock)**
-  Core 5 (as the lane reported, 12:07 PM EST on 2026-11-06, PR #5331)
-  traced two red tests in test_atmosphere_state to GEN.852 part 3
-  (dd63ade1b, the greenhouse table refit to eight gases): the Earth twin
-  at its own fixed point was 288.49 K before and is 276.04 K since, and
-  the runaway test moved the same way (296.1 and 311.0 K at 255 and 285
-  W/m2 absorbed before, 282.8 and 295.7 K now). With the infrared
-  k-tables fetched, the radiative-convective model gives 288.01 K for that
-  air; for the Earth-like air at 239 W/m2 the table is under the model by
-  4.8 K at 400 Pa of vapor, 8.2 K at 1200 Pa and 10.3 K at 2000 Pa, so the
-  table underweights the wet feedback of the temperate branch.
-  test_greenhouse_table passes because its anchor airs sit elsewhere. The
-  tests are right: the design note says the Earth twin stays at 288 K.
-  Do: refit the table with temperate wet anchors (scripts/fit_greenhouse_table.py;
-  the solve step is tens of thousands of model runs), keep the other
-  anchors, add anchors at the temperate wet branch to the table test, and
-  report the table against the model at 400, 1200 and 2000 Pa. Generated
-  temperatures change (new epoch, golden): a lock item. Done: the Earth
-  twin sits at 288 K within the test bound, the runaway test passes, and
-  the two test_atmosphere_state tests pass. Version 8.1. Owner: Core 5.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.852, TEST.649.
-
 - [ ] **GEN.1306 Planet class matrix edges left after GEN.1281: cold air worlds, hot anoxic worlds, the 1 kPa and 10 kPa clamp edges, heavy oxygen ocean worlds, thin-air oxygen worlds**
   Core 4 measured the class matrix on 1448 generated bodies while building
   GEN.1281 and found gaps outside that item. Do, one part each, smallest
@@ -13849,27 +13540,6 @@ clears each one.
   mass ledger sums exactly in a test. Version 8.1. Owner: Aux 5, after
   GEN.1085. Filed by the TODO thread from Aux 5.
   Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
-
-- [ ] **DB.114 The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113)**
-  Found with the DB.113 fix (coordinator, 6:27 PM EST on 2026-11-06, PR
-  #5392): the massive-star, bright-star-band and phenomenon scatter units
-  now run each batch at READ COMMITTED and start over up to 8 times after a
-  deadlock (1213) or lock wait timeout (1205), because scatter_uids.assign
-  reads every row of a table that has no ID yet and parallel writers meet
-  on each other's uncommitted rows. The backfill and the sky-charting
-  writes run the same ID step but with other writes in the same
-  transaction, so the batch-level retry does not apply as written and they
-  still stop the run on a deadlock. Do: find every caller of
-  scatter_uids.assign (and any sibling that scans a whole table for rows
-  without a value), give each a retry that rolls back and rewrites the
-  whole transaction, or move the ID step into its own short transaction,
-  and test with two or more real writers on MySQL. Lock-free. Done: no
-  caller of the ID step lacks a deadlock retry, and a two-writer test on
-  MySQL passes. Version 8.1. Owner: the DB.113 investigation thread, after
-  #5392. Filed by the TODO thread.
-  Prerequisites: DB.113. Related: DB.113.
-  Extension (Boss, 6:33 PM EST on 2026-11-06): the backfill and sky-charting writes use the same mechanism as DB.113 (dynamic retries with adaptive backoff, the needs flag, the grant after the 8th failed try, all logged), not a second copy of the retry code.
-  Plan (coordinator, 6:35 PM EST on 2026-11-06): DB.113's PR #5392 adds db/contention.py with run_with_retries (adaptive backoff, the needs flag, the grant after the 8th failed try). Here: restructure the backfill and sky-charting writes so the whole transaction is one retry attempt (every write that shares the transaction with the ID step moves inside the function that run_with_retries repeats, with no state kept between attempts), then call run_with_retries there. A real MySQL two-writer test is needed before merge.
 
 - [ ] **UX.283 Update the single-system generation interface (the individual system generator page) to match everything added since it was last touched**
   Boss, 6:40 PM EST on 2026-11-06 (relayed by the coordinator): he uses the

@@ -2819,3 +2819,15 @@ Baseline: PR #1817.
 | MAP.194 | 8.8 | Zoom windows |
 | GEN.164 | later | Multiple galaxies |
 | TEST.389 | 8.1 | Physics rectification: older physics follow-ups, units and the storage rows |
+| DB.114 | 8.1 | Bugs and flaky tests |
+| GEN.1257 | 8.1 | Physics rectification: names, designations and Object IDs |
+| GEN.1256 | 8.1 | Physics rectification: names, designations and Object IDs |
+| GEN.1190 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| GEN.1281 | 8.1 | Physics rectification: the class-by-domain matrix and stored liquids and air |
+| GEN.1282 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1298 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1303 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1304 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1299 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1288 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.743 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
