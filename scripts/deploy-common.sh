@@ -930,10 +930,11 @@ run_warm_stage() {
         limit_words="no time limit"
     fi
     log_info "Building the site's caches, $name ($limit_words; log: warmup.log in the log folder):"
-    local can_skip=0
+    local can_skip=0 outcome_file
+    outcome_file="$(mktemp 2>/dev/null || true)"     # OPS.114: the warm-up writes "empty" here when the database holds no galaxy
     [[ -t 0 && -t 1 ]] && can_skip=1
     (( can_skip )) && log_info "Press $WARM_SKIP_KEY to skip the cache warm-up (what it has stored is kept; the first visit builds the rest)."
-    (cd / && ${runner[@]+"${runner[@]}"} env "PLANETGEN_WARM_STARTED_BY=update.sh, $name" ${limit[@]+"${limit[@]}"} \
+    (cd / && ${runner[@]+"${runner[@]}"} env "PLANETGEN_WARM_STARTED_BY=update.sh, $name" "PLANETGEN_WARM_OUTCOME_FILE=$outcome_file" ${limit[@]+"${limit[@]}"} \
         "$PYTHON" -m planetgen.cli.generate warm "$@" --progress </dev/null 2>&1) &
     local pid=$! key="" read_status=0
     if (( can_skip )); then
@@ -952,6 +953,14 @@ run_warm_stage() {
         done
     fi
     wait "$pid" || status=$?
+    local galaxy_empty=0
+    [[ -n "$outcome_file" && "$(cat "$outcome_file" 2>/dev/null)" == "empty" ]] && galaxy_empty=1
+    [[ -n "$outcome_file" ]] && rm -f "$outcome_file"
+    if (( galaxy_empty && status == 0 )); then
+        log_info "The galaxy is empty, so there was nothing to warm up ($name). Generate a galaxy and the next update (or the warm-up after the generation) builds the caches."
+        WARM_RESULT="cache warm-up ($name) skipped, the galaxy is empty"
+        return 0
+    fi
     if (( WARM_SKIPPED )); then
         log_info "The cache warm-up ($name) was skipped by a keypress. What it stored is kept."
         log_info "  'planetgen warm --progress' (as the web server's user) or the next ./update.sh continues it, and the first visit builds what it did not."
