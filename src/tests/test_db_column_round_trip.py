@@ -188,6 +188,10 @@ NULL_IN_THIS_GALAXY = {
        for column in ("formed_at", "origin_event_id")},
     # GEN.1103: a field made by hand has no parent, so no origin sentence, history or largest piece; the Rogues top-up writes them (test_asteroid_field_age.py).
     **{("asteroid_fields", column): "only a top-up field has a parent to tell (GEN.1103)" for column in ("origin", "history", "largest_body_kg")},
+    # GEN.1105: only a supernova remnant hosts a field with a ledger, and only such a field keeps members (test_field_members.py writes and reads them back).
+    **{("field_members", column): CHANCE for column in (
+        "id", "field_id", "member_rank", "mass_kg", "radius_km", "density_g_cm3", "rock_fraction", "metal_fraction", "water_fraction", "ice_fraction", "status")},
+    ("moons", "runner_up_class"): CHANCE,   # a moon has a runner-up class only when two classes pass the gates
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
@@ -212,6 +216,9 @@ with why: each is set only by something this small galaxy doesn't
 contain (the cases are exercised in their own tests)."""
 
 NEVER_READ = {
+    # GEN.1105 part 1: the members of a field are stored; the field page and API list them in part 2.
+    **{("field_members", column): "listed by the field page and API in GEN.1105 part 2" for column in (
+        "density_g_cm3", "ice_fraction", "mass_kg", "member_rank", "metal_fraction", "radius_km", "rock_fraction", "status", "water_fraction")},
     # GEN.1111: the child rows of a rogue planet are written with the planet; its page and API do not load them yet.
     **{(table, column): "a rogue planet's children are not loaded yet (GEN.1111 follow-up)" for table, columns in (
         ("rogue_planet_gases", ("gas", "id", "partial_pa", "rogue_planet_id")),
