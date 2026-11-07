@@ -28679,7 +28679,11 @@
           "what": "super_puff.PUFF_ENVELOPE (0.07, 0.45): the envelope fractions"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the super-puff start share 0.05 of the 2 to 10 Earth-mass cores inside 100 days and the occurrence share 0.005 were fitted so that the gate passes the 0.84 percent of the sub-Neptunes the Kepler super-puffs make; they go when a survey of the super-puff share by core mass and period is in hand (GEN.1343)"
+          ],
           "fields": [
             [
               "What it is",
