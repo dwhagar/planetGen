@@ -35,7 +35,7 @@ stable part of its parent's Hill sphere ([R1138], `clearance_ledger.moon_max_ecc
 **Tides.** Raised in the body by what it orbits, they circularise the orbit of a planet or a captured moon (a regular moon's forced
 eccentricity is renewed by its neighbours and stays, so the tide it raises keeps heating it, GEN.737) on `circularisation_time_yr`,
 `tau_e = (2 / 21) (Q / k2) (m / M) (a / R)^5 / n` ([R1612], the standard result for a synchronously rotating body;
-`e` falls as `exp(-t / tau_e)`). Q and k2 are the body's own (`interior_heat.tidal_response`, GEN.731 and GEN.955: the Andrade k2 and Q of its mass, radius and
+`e` falls as `exp(-t / tau_e)`, or, where the tide the body feels is stronger than that cold rheology gives, at the rate its heat model's own tide takes the orbit's energy, `settled_eccentricity`, GEN.1351). Q and k2 are the body's own (`interior_heat.tidal_response`, GEN.731 and GEN.955: the Andrade k2 and Q of its mass, radius and
 mantle temperature for rock, the icy and the gas-giant values for the rest), the same that despin it (`tidal_spin`).
 
 Use:
@@ -211,3 +211,68 @@ def circularised(eccentricity, age_yr, time_yr):
     if time_yr <= 0.0:
         return 0.0
     return eccentricity * math.exp(-age_yr / time_yr)
+
+
+TIDE_GRID_POINTS = 24
+"""int: Eccentricities, log-spaced, at which `settled_eccentricity` reads the tide's power while the orbit decays."""
+TIDE_JUMP_RATIO = 1.5
+"""float: Where the decay time of two neighbouring grid points differs by more than this factor, `settled_eccentricity` reads the tide at the point between them too."""
+TIDE_REFINE_PASSES = 6
+"""int: How many times that refinement is repeated (each halves the gap, in log eccentricity, of the pairs that still jump)."""
+TIDE_GRID_DECADES = 4.0
+"""float: How far below the birth eccentricity that grid reaches, decades. Under it the decay goes on at the rate of the last point."""
+
+
+def settled_eccentricity(body, birth, age_yr, primary_mass_kg, semi_major_axis_au):
+    """
+    The eccentricity left after `age_yr` of the tide the body really feels (GEN.1351). `circularisation_time_yr` reads the body's `k2/Q` with the mantle at the temperature the
+    star's age gives it with no tide; a strong tide warms and softens the mantle (up to melting it) and dissipates far more, so the orbit decays faster, and the heat it makes is
+    drawn from the orbit's energy. A planet at 0.0134 AU round a 0.09 solar-mass star kept e = 0.068 over 1.8 Gyr while its tide spent 2.4e31 J, as much as its whole orbital
+    energy (2.3e31 J), against the about 1e29 J circularising it releases. The orbit loses `P` of power as its eccentricity falls: `E_orb d(e^2)/dt = -P` with `E_orb = G M m / (2 a)`
+    (the semi-major axis changes at a fixed angular momentum), so the decay time of the tide is `tau = 2 E_orb e^2 / P(e)` and the eccentricity falls as `d ln e / dt = -1 / tau`.
+    `P(e)` is `interior_heat.eccentricity_tide_w`, the power the heat model gives that orbit. The decay time is the shorter of that and the cold one (a weak tide changes nothing:
+    the two agree there), integrated from the birth eccentricity over the age; the energy the tide draws at the end power for the whole age then never passes
+    `E_orb (e_birth^2 - e^2)`.
+
+    Returns:
+        float: The eccentricity, never above what `circularised` gives with the cold time.
+    """
+    cold = circularisation_time_yr(body, primary_mass_kg, semi_major_axis_au)
+    settled = circularised(birth, age_yr, cold)
+    if not (birth > 0.0 and age_yr > 0.0 and cold > 0.0) or not body.mass or not primary_mass_kg:
+        return settled
+    orbital_energy_j = constants.G * primary_mass_kg * body.mass / (2.0 * semi_major_axis_au * constants.AU_TO_M)
+
+    def decay_time_yr(eccentricity):
+        power = interior_heat.eccentricity_tide_w(body, eccentricity, primary_mass_kg, semi_major_axis_au)
+        if not power > 0.0:
+            return cold
+        return min(cold, 2.0 * orbital_energy_j * eccentricity ** 2 / power / constants.SECONDS_PER_YEAR)
+
+    if decay_time_yr(birth) >= cold * (1.0 - 1e-9):
+        return settled              # the tide of the orbit is no stronger than the cold rheology says (it is strongest at the birth eccentricity)
+    eccentricities = [birth * 10.0 ** (-TIDE_GRID_DECADES * i / (TIDE_GRID_POINTS - 1)) for i in range(TIDE_GRID_POINTS)]
+    times = [decay_time_yr(e) for e in eccentricities]
+    # a tide that melts the mantle switches on and off within a few percent of an eccentricity, so the grid is refined where the decay time jumps
+    for _ in range(TIDE_REFINE_PASSES):
+        points, seen = [], False
+        for i in range(len(eccentricities) - 1):
+            points.append((eccentricities[i], times[i]))
+            ratio = max(times[i], times[i + 1]) / min(times[i], times[i + 1])
+            if ratio > TIDE_JUMP_RATIO:
+                middle = math.sqrt(eccentricities[i] * eccentricities[i + 1])
+                points.append((middle, decay_time_yr(middle)))
+                seen = True
+        points.append((eccentricities[-1], times[-1]))
+        eccentricities, times = [point[0] for point in points], [point[1] for point in points]
+        if not seen:
+            break
+    elapsed = 0.0
+    for i in range(len(eccentricities) - 1):
+        step = math.log(eccentricities[i] / eccentricities[i + 1])
+        lap = min(times[i], times[i + 1]) * step                      # years to fall from eccentricities[i] to eccentricities[i + 1], at the faster of the two ends so the tide never draws more than the orbit gives up
+        if elapsed + lap >= age_yr:
+            fraction = (age_yr - elapsed) / lap
+            return min(settled, eccentricities[i] * math.exp(-fraction * step))
+        elapsed += lap
+    return min(settled, eccentricities[-1] * math.exp(-(age_yr - elapsed) / times[-1]))

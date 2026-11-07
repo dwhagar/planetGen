@@ -70,13 +70,15 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | MAP.394, MAP.395, MAP.396 |  |
 | DOC.107 | Docs: the Sensor view (what it shows for each kind, the estimate labels, the API route) in the help and the design notes | MAP.394, MAP.395, MAP.396 |  |
 | UX.273 | Sensor (Rendered) view for every item: a rendered picture of the selected item beside the chart views | MAP.394, MAP.395, MAP.396, TEST.629, DOC.107 |  |
+| UX.286 | Sensor view: a dotted line through the middle of a planet, moon or star along its axis of rotation, read from the stored spin axis and axial tilt |  |  |
+| GEN.1350 | Store the magnetic dipole's orientation (tilt from the spin axis) for planets, moons, rogue planets and neutron stars, and a surface field strength for stars, from physics, so the Sensor view can draw field lines from stored values |  |  |
+| UX.287 | Sensor view: magnetic field lines drawn for a planet, moon, star or neutron star from its stored field strength and dipole orientation, when it has a field |  |  |
 | UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss |  | Split from UX.43. |
 | UX.131 | Console tokens, type and base template in both themes | UX.130, UX.265 | Split from UX.43. |
 | USR.27 | Admin Users page: list accounts, promote, demote, disable and delete | USR.26 | Split from USR.2. |
 | USR.2 | Accounts with roles: user, moderator, admin and Owner | USR.26, USR.27 | Control schema; no blockers, placed late by priority. |
 | USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
 | USR.8 | Every signed-in user can generate a one-off system | USR.26 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
-| USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | USR.7, USR.26 | Research suggestion; not requested. |
 | USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | MAP.189 |  |
 | USR.12 | Permission catalogue and one `can()` check: user, moderator, admin and Owner as data | USR.2 | Roles from 8.2 (USR.2 already holds the moderator value) |
 | USR.14 | Move every route, page and command from "is admin" checks to permission checks | USR.12 |  |

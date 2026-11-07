@@ -302,9 +302,8 @@ def settle_orbit(planet):
     birth = getattr(planet, "_orbit_birth", None)
     if birth is None:
         return False
-    time_yr = orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance)
     # never above what the planet has: the spacing of the orbits may have cut it (`validation`) and ages only rise
-    eccentricity = min(planet.eccentricity, orbit_elements.circularised(birth, _gyr_to_yr(planet.star.age), time_yr))
+    eccentricity = min(planet.eccentricity, orbit_elements.settled_eccentricity(planet, birth, _gyr_to_yr(planet.star.age), planet.primary_mass_kg, planet.distance))
     if planet.eccentricity - eccentricity <= ECCENTRICITY_SETTLE_TOLERANCE:
         return False
     planet.eccentricity = eccentricity
@@ -708,8 +707,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
     if planet.is_moon and planet.moon_origin != "captured":
         planet.eccentricity = birth
         return
-    time_yr = orbit_elements.circularisation_time_yr(planet, primary_mass_kg, planet.distance)
-    planet.eccentricity = orbit_elements.circularised(birth, _gyr_to_yr(planet.star.age), time_yr)
+    planet.eccentricity = orbit_elements.settled_eccentricity(planet, birth, _gyr_to_yr(planet.star.age), primary_mass_kg, planet.distance)
     planet._orbit_birth = birth  # not stored: `settle_orbit` takes the tides again once the star's age is final (GEN.985)
 
 

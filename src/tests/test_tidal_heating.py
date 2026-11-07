@@ -83,7 +83,7 @@ def test_the_moon_is_flexed_solid_and_heated_by_a_fraction_of_a_percent_of_its_o
 def test_io_is_melt_limited_and_radiates_a_watt_or_more_a_square_metre_with_no_number_fitted_to_it():
     """Io at e = 0.0041: the tide in the box (the Andrade rheology at the mantle's temperature) is far more than its own heat (4e11 W), so its melt
     erupts, it holds the temperature of the critical melt fraction and radiates the tide there. The power depends on the mantle's drawn viscosity
-    (9e12 to 5e13 W over the corners of the drawn range) and Io's observed 0.9 to 1.5e14 W (2.24 W/m2) lies a factor of 2 to 3 above the top of it."""
+    (9e12 to 8.5e13 W over the corners of the drawn range; 5e13 at the top until GEN.1190 took the melt coefficient 30 from its source) and Io's observed 0.9 to 1.5e14 W (2.24 W/m2) lies a factor of 1.1 to 1.8 above the top of it."""
     forcing = tidal_heating.Forcing(JUPITER, 4.218e8, 0.0041)
     rock = _rock(0.8, 0.2)
     pipe_k = interior_heat.mantle_of(8.93e22, 1821.6, rock).heat_pipe_k
@@ -92,7 +92,7 @@ def test_io_is_melt_limited_and_radiates_a_watt_or_more_a_square_metre_with_no_n
     assert found.own_w < 0.05 * found.tidal_w
     assert found.flux_w_m2 == pytest.approx(found.total_w / (4 * math.pi * (1821.6e3) ** 2))
     powers = [_heat(8.93e22, 1821.6, rock, forcing, corner).tidal_w for corner in CORNERS]
-    assert min(powers) < 1.0e13 < max(powers) and 0.9e14 / 4.0 < max(powers)
+    assert min(powers) < 1.0e13 < max(powers) and 0.9e14 / 4.0 < max(powers) < 1.5e14       # the top corner under Io's observed top (GEN.1190: 8.5e13)
     assert all(1.0e12 < power < 1.0e15 for power in powers)
     assert all(_heat(8.93e22, 1821.6, rock, forcing, corner).mantle_temperature_k == pytest.approx(pipe_k, rel=0.015) for corner in CORNERS)   # GEN.1185: the softest corner sat 0.7 percent under the pipe, GEN.1190 (melt factor 30) 1.1
 
