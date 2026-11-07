@@ -35,7 +35,7 @@ def sun():
     return star
 
 
-def test_the_start_is_centred_where_the_valley_was_tuned_and_falls_below_it():
+def test_the_start_is_centered_where_the_valley_was_tuned_and_falls_below_it():
     assert envelope_capture.REFERENCE_MASS_EARTH == radius_valley.CORE_MASS_MEDIAN_EARTH
     assert envelope_capture.START_SPREAD == radius_valley.ENVELOPE_SIGMA
     low, high = 0.05, 0.2           # the recipe bracket of f_env0 (scripts/atmosphere_recipes_data.py)

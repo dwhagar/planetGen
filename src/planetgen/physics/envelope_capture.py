@@ -53,7 +53,7 @@ START_SPREAD = 0.6
 """float: The log-normal width of the starting envelope, in ln (the survey's, `radius_valley.ENVELOPE_SIGMA`; a stand-in)."""
 
 REFERENCE_MASS_EARTH = 3.72
-"""float: The core mass the valley survey is centred on ([R3797], 3.72 +0.45 -0.33 Earth masses, `radius_valley.CORE_MASS_MEDIAN_EARTH`)."""
+"""float: The core mass the valley survey is centered on ([R3797], 3.72 +0.45 -0.33 Earth masses, `radius_valley.CORE_MASS_MEDIAN_EARTH`)."""
 
 MASS_EXPONENT = 3.0
 """float: STAND-IN EC2 (T7, L3, registry 6.206): below `REFERENCE_MASS_EARTH` the median start goes as (mass / reference) to this power. No source read;
