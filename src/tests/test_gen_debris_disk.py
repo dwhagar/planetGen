@@ -67,9 +67,41 @@ def test_a_bad_belt_is_refused():
 
 
 def test_the_cut_separates_a_found_disk_from_a_faint_one():
-    cut = debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY
-    assert debris_dust.is_detectable(cut) and debris_dust.is_detectable(10.0 * cut)
-    assert not debris_dust.is_detectable(0.5 * cut) and not debris_dust.is_detectable(0.0)
+    cut, sun = debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY, debris_dust.REFERENCE_TEMPERATURE_K
+    assert debris_dust.is_detectable(cut, sun) and debris_dust.is_detectable(10.0 * cut, sun)
+    assert not debris_dust.is_detectable(0.5 * cut, sun) and not debris_dust.is_detectable(0.0, sun)
+
+
+def test_a_hotter_star_shows_a_fainter_disk_as_the_cube_of_its_temperature():
+    sun = debris_dust.REFERENCE_TEMPERATURE_K
+    assert debris_dust.detectable_fractional_luminosity(sun) == pytest.approx(debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY)
+    assert debris_dust.detectable_fractional_luminosity(2.0 * sun) == pytest.approx(debris_dust.DETECTABLE_FRACTIONAL_LUMINOSITY / 8.0)
+    assert debris_dust.is_detectable(1.5e-5, 9500.0) and not debris_dust.is_detectable(1.5e-5, 5772.0)
+    with pytest.raises(ValueError):
+        debris_dust.detectable_fractional_luminosity(0.0)
+
+
+def test_a_belt_is_the_sum_of_its_rings_and_a_thin_one_is_the_ring():
+    flat = lambda r: 1.0
+    thin = (50.0, 55.0, 2.0, 300.0, 2000.0, 0.01, 1.0)
+    assert debris_dust.belt_fractional_luminosity(*thin, flat) == pytest.approx(debris_dust.fractional_luminosity(*thin), rel=0.02)
+    wide = (10.0, 100.0, 2.0, 300.0, 2000.0, 5.0, 1.0)
+    assert debris_dust.belt_fractional_luminosity(*wide, flat) > 0.0
+    assert debris_dust.belt_fractional_luminosity(10.0, 100.0, 2.0, 300.0, 2000.0, 0.0, 1.0, flat) == 0.0
+
+
+def test_a_belt_whose_mass_lies_near_its_inner_edge_shines_more_than_one_whose_mass_lies_far_out():
+    wide = (10.0, 200.0, 2.0, 300.0, 2000.0, 20.0, 1.0)
+    inner = debris_dust.belt_fractional_luminosity(*wide, lambda r: r ** -1.5)
+    outer = debris_dust.belt_fractional_luminosity(*wide, lambda r: r ** 0.5)
+    assert inner > outer > 0.0                                        # the dust goes as the mass over the radius squared
+    assert inner > debris_dust.fractional_luminosity(*wide)           # GEN.1278: the mass at the middle radius of a wide belt gives far too little
+
+
+def test_a_belt_with_no_solids_has_no_dust_and_a_bad_belt_is_refused():
+    assert debris_dust.belt_fractional_luminosity(10.0, 100.0, 2.0, 300.0, 2000.0, 5.0, 1.0, lambda r: 0.0) == 0.0
+    with pytest.raises(ValueError):
+        debris_dust.belt_fractional_luminosity(100.0, 10.0, 2.0, 300.0, 2000.0, 5.0, 1.0, lambda r: 1.0)
 
 
 def _systems(count, **overrides):
@@ -112,4 +144,11 @@ def test_the_sheet_rule_says_which_stars_have_disk_rows():
 def test_the_share_of_sun_like_stars_with_a_disk_is_near_the_surveys():
     held = sum(bool(system.star.disk_kind) for system in _systems(60))
     survey = dict((upper, share) for upper, share in SURVEY_SHARE_BY_MASS)[1.04]
-    assert 0.03 <= held / 60 <= 2.0 * survey, held         # the tuned cut (stand-in DU1) gives about 8 percent of G2V stars against the survey's 14
+    assert 0.03 <= held / 60 <= 2.0 * survey, held         # the tuned cut (stand-in DU1) gives about 15 percent of G2V stars against the survey's 14 (GEN.1261: 1.3 percent at the earlier cut 1.5e-4, once the cold belts lost their unformed share)
+
+
+def test_a_hot_young_star_holds_a_disk_as_often_as_the_surveys_find_one():
+    # GEN.1278: A stars have no debris disk at the Sun's limit (0 of 60 at 3e-5); the limit that falls with the star's temperature and the dust of the rings of a wide belt
+    # give them one in about six (stand-in DU1/DU4/DU5; the surveys find a quarter, 20 to 33 percent)
+    held = sum(bool(system.star.disk_kind) for system in _systems(40, STAR_TYPE="A1V"))
+    assert 1 <= held <= 20, held
