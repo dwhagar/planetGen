@@ -17023,7 +17023,11 @@
           "what": "tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the spread of 0.4 dex between inner systems was tuned to the share of K dwarfs with an Earth-size planet inside 85 days [R1459]; no survey measures the spread of the mass scale between systems"
+          ],
           "fields": [
             [
               "What it is",
@@ -40509,7 +40513,11 @@
       "number": "6.206",
       "rows": [
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the median starting envelope 0.1 of the mass was set to the middle of the recipe bracket so that the valley targets and the sweep (45 percent above 2.0 inside 100 days) are met; no measured envelope fraction of the sub-Neptunes of that mass is in hand, and a gas-accretion model of the core replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -40547,7 +40555,11 @@
           "what": "envelope_capture.MEDIAN_START 0.1: the median envelope a core of 3.72 Earth masses or more starts with, a fraction of its mass (the middle of the recipe bracket f_env0 0.05 to 0.2, log)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the exponent 3 below 3.72 Earth masses was chosen so that the Earth and Venus come out bare and the 2 Earth-mass planets keep thin envelopes; no source was read for it, and a gas-capture model of a core in a disk of its own mass and temperature replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -40737,7 +40749,11 @@
           "what": "planets.ENVELOPE_SETTLE_TOLERANCE 0.02: a planet whose envelope at the star's final age and its final orbit is within this share of the one it was drawn with keeps it, its air, class and spin"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, every second draw of a class request being a late core was tuned so that class V (2 g and more) is reachable; it goes when the generator draws the formation time of a core against the disk's lifetime"
+          ],
           "fields": [
             [
               "What it is",
