@@ -320,3 +320,99 @@ def test_a_born_tilted_venus_that_the_tides_turn_over_is_not_named_for_its_seaso
     body = _venus(tilt=100.0)         # born on its side, thick air: the tide balance turns it upside down (180) and its seasons are the upright ones
     ids = oddities.apply(body, levers=("L1",), dial=1.0, rows=None)
     assert ids == ["W2"] and body.axial_tilt_deg == 180.0
+
+
+# --- GEN.1049: W3 (high eccentricity), W4 (polar orbit) and W5 (resonant chain) ---------------------------------------------------
+
+def _orbit_body(kind="t", eccentricity=0.0, teff=5800.0, distance=1.0, radius_km=6.957e5, mass=6.0e24):
+    star = types.SimpleNamespace(mass=1.98847e30, luminosity=3.828e26, age=4.5, temperature=teff, radius=radius_km)
+    return _body(mass_kg=mass, radius=6371.0, distance=distance, eccentricity=eccentricity, star=star, body_type=kind, moons=[], orbital_inclination_deg=1.0)
+
+
+def test_an_orbit_of_eccentricity_half_or_more_is_named_and_nothing_on_it_moves():
+    body = _orbit_body(eccentricity=0.6)
+    body.system_config.FORCE_ODDITIES = None
+    assert oddities.apply(body, levers=("L2",), dial=1.0) == ["W3"] and body.eccentricity == 0.6
+    giant = _orbit_body(kind="g", eccentricity=0.93, mass=1.0e27)
+    assert oddities.apply(giant, levers=("L2",), dial=1.0) == ["W31"]
+    assert oddities.apply(_orbit_body(eccentricity=0.3), levers=("L2",), dial=1.0) == []
+
+
+def test_a_close_giant_round_a_hot_star_can_be_turned_to_a_polar_orbit_in_the_peak_of_the_measured_angles():
+    from planetgen.physics import orbit_oddities
+
+    giant = _orbit_body(kind="g", teff=7500.0, distance=0.03, mass=1.0e27)
+    giant.system_config.FORCE_ODDITIES = ("W43",)
+    assert oddities.apply(giant, levers=("L2",)) == ["W43"]
+    low, high = orbit_oddities.POLAR_PEAK_DEG
+    assert low <= giant.orbital_inclination_deg <= high
+    again = _orbit_body(kind="g", teff=7500.0, distance=0.03, mass=1.0e27)
+    again.system_config.FORCE_ODDITIES = ("W43",)
+    oddities.apply(again, levers=("L2",))
+    assert again.orbital_inclination_deg == giant.orbital_inclination_deg
+
+
+def test_the_host_bands_gate_the_polar_rows_and_a_far_giant_never_gets_one():
+    for teff, forced, distance in ((5000.0, "W43", 0.03), (7500.0, "W41", 0.03), (5000.0, "W41", 2.0)):
+        giant = _orbit_body(kind="g", teff=teff, distance=distance, mass=1.0e27)
+        giant.system_config.FORCE_ODDITIES = (forced,)
+        assert oddities.apply(giant, levers=("L2",), dial=0.0) == [], (teff, forced, distance)
+    assert oddities.BY_ID["W41"].rate.value < oddities.BY_ID["W42"].rate.value < oddities.BY_ID["W43"].rate.value
+
+
+def _chain(count=3):
+    """A row of planets on the Laplace chain of Io, Europa and Ganymede periods (2:1, 2:1) round a Sun, with the masses of three 10 Earth-mass planets."""
+    star_mass = 1.98847e30
+    planets = []
+    for index in range(count):
+        period_days = 3.0 * 2.0 ** index * 1.005 ** index
+        planet = _orbit_body(mass=6.0e25, distance=(period_days / 365.25) ** (2.0 / 3.0))
+        planet.period = period_days / 365.25
+        planets.append(planet)
+    return planets, star_mass
+
+
+def test_a_chain_of_three_planets_gives_each_a_forced_eccentricity_and_a_pair_gives_none():
+    from planetgen.physics import resonant_chains
+
+    planets, star_mass = _chain(3)
+    assert resonant_chains.give_forced_eccentricities(planets, star_mass) == 3
+    assert all(p.oddity_quantities["forced_eccentricity"] > 0.0 for p in planets)
+    pair, star_mass = _chain(2)
+    assert resonant_chains.give_forced_eccentricities(pair, star_mass) == 0 and "forced_eccentricity" not in pair[0].oddity_quantities
+
+
+def test_a_forced_resonance_raises_the_eccentricity_keeps_it_through_a_second_roll_and_declines_when_there_is_nothing_to_add():
+    from planetgen.physics import resonant_chains
+
+    planets, star_mass = _chain(3)
+    resonant_chains.give_forced_eccentricities(planets, star_mass)
+    body = planets[1]
+    body.system_config.FORCE_ODDITIES = ("W5",)
+    assert oddities.apply(body, levers=("L2",)) == ["W5"]
+    held = body.eccentricity
+    assert held >= 0.001 and body._orbit_birth is None
+    oddities.drop(body, ("L2",))
+    assert oddities.apply(body, levers=("L2",)) == ["W5"] and body.eccentricity == held      # the same planet again: still held, not raised twice
+    rich = planets[2]
+    rich.eccentricity = 0.5
+    rich.system_config.FORCE_ODDITIES = ("W5",)
+    assert "W5" not in oddities.apply(rich, levers=("L2",))
+
+
+def test_a_planet_held_on_a_forced_eccentricity_is_flexed_by_its_star():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.planet import Planet
+    from planetgen.generation.star import Star
+    from planetgen.physics import planets
+    from planetgen.util import draw
+
+    with draw.bound("w5try"):
+        config = SystemConfig()
+        config.STAR_TYPE, config.BINARY_SYSTEM, config.FORCE_ODDITIES = "M3V", False, ("W5",)
+        star = Star(config)
+        planet = Planet(config, star, star.habitable_zone, 0.03, moon_count=0)
+        before = planet.tidal_flux_w_m2 or 0.0
+        planet.oddity_quantities = {"forced_eccentricity": 0.02}
+        assert planets.finish_orbit_oddities(planet) is True
+        assert planet.oddities == ("W5",) and abs(planet.eccentricity - 0.02) < 1e-12 and planet.tidal_flux_w_m2 > before

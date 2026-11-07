@@ -30,6 +30,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.physics import constants, mantle_stripping, oddities, planet_classes, relations, rings, surface_air, venus_spin
+from planetgen.physics import orbit_oddities
 from planetgen.physics.oddities import Oddity, Rate
 from planetgen.physics import bulk_draw
 from planetgen.util import draw
@@ -189,8 +190,26 @@ def _seasons_from_tilt(body, star, stream):
     """W1 (GEN.1039, GEN.1048): the tilt is already the body's own and `temperature_series` reads it; the effect changes nothing on the body."""
 
 
+def _high_eccentricity(body, star, stream):
+    """W3 (GEN.1049): the eccentricity is the generator's own; the effect changes nothing on the body."""
+
+
+def _polar_orbit(body, star, stream):
+    """W4 (GEN.1049): the orbit's plane is turned to the polar peak of the measured angles (`orbit_oddities.POLAR_PEAK_DEG`)."""
+    low, high = orbit_oddities.POLAR_PEAK_DEG
+    body.orbital_inclination_deg = low + (high - low) * stream.random()
+
+
+def _resonance_forced(body, star, stream):
+    """W5 (GEN.1049): the orbit is held on an eccentricity of 0.001 to 0.01, the forced values of the design (the gate needs a chain, which a single drawn body is not)."""
+    body.eccentricity = max(body.eccentricity, 0.001 + 0.009 * stream.random())
+
+
 EFFECTS = {
     "strip_mantle": _strip_mantle,
+    "high_eccentricity": _high_eccentricity,
+    "polar_orbit": _polar_orbit,
+    "resonance_forced": _resonance_forced,
     "venus_spin": _venus_spin,
     "seasons_from_tilt": _seasons_from_tilt,
     "stub_ring": _stub_ring,

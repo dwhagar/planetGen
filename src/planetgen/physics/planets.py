@@ -250,6 +250,7 @@ def generate_planet_properties(planet, zone_override=None):
     rings.clear(planet)  # a new draw draws its ring again (GEN.732)
     planet.oddities = ()  # ... and its oddities (GEN.1047)
     planet._venus_spin = None
+    planet._resonance_e = None
 
     if uses_giant_mass_radius(planet):
         apply_giant(planet, radius_given, mass_given)
@@ -749,6 +750,8 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
         planet.orbital_inclination_deg = draw.uniform(0, constants.MOON_ORBITAL_INCLINATION_MAX_DEG)
     else:
         planet.orbital_inclination_deg = orbit_elements.draw_planet_inclination_deg()  # GEN.727: Rayleigh, as the Kepler multiples are
+    if not planet.is_moon:
+        apply_orbit_oddities(planet)      # GEN.1049: a close giant round a hot star can be given a polar orbit before the spin reads the plane
     planet.orbital_ascending_node_deg = draw.uniform(0, 360)
     arg_periapsis_deg = orbit_elements.draw_argument_of_periapsis_deg()
     mean_anomaly_rad = draw.uniform(0, _TWO_PI_RAD)
@@ -756,6 +759,42 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     generate_spin(planet, primary_mass_kg)
     true_anomaly_rad, _ = kepler.true_anomaly_and_distance_elliptical(mean_anomaly_rad, planet.eccentricity, planet.distance)
     update_orbital_position(planet, arg_periapsis_deg + math.degrees(true_anomaly_rad), arg_periapsis_deg)
+
+
+def apply_orbit_oddities(planet):
+    """
+    Rolls the rows of the orbit lever (L2: W3 a highly eccentric orbit, W4 a polar orbit, W5 a resonant chain's forced eccentricity, GEN.1049) again on the planet as it is
+    now, taking off the ones it had: a row whose gate still holds is given again from its own stream, so the ids always match the orbit the planet has.
+    """
+    if planet.is_moon or planet.body_type not in ("t", "g"):
+        return
+    oddities.drop(planet, ("L2",))
+    oddities.apply(planet, levers=("L2",))
+
+
+def finish_orbit_oddities(planet):
+    """
+    The orbit rows again once the orbit is final (after `settle_orbit`, GEN.1049): the eccentricity has worn down for the star's final age and the planets' places in a
+    chain are known (`resonant_chains.give_forced_eccentricities`). A chain planet held on a forced eccentricity has its position, its moons' host eccentricity and the light of
+    the orbit made again, and a rocky one its air, class and spin (the tide of the orbit is a heat source, `remake_end_stages`).
+
+    Returns:
+        bool: Whether the eccentricity moved.
+    """
+    before = planet.eccentricity
+    apply_orbit_oddities(planet)
+    if abs(planet.eccentricity - before) <= ECCENTRICITY_SETTLE_TOLERANCE:
+        return False
+    for moon in getattr(planet, "moons", ()):
+        moon.host_eccentricity = planet.eccentricity
+    update_orbital_position(planet)
+    light_au = orbit_elements.flux_distance_au(planet.distance, planet.eccentricity)
+    for body in (planet, *getattr(planet, "moons", ())):
+        if getattr(body, "_star_distance_au", None):
+            magnetism.update_exposure(body, light_au)
+    if planet.body_type == "t":
+        remake_end_stages(planet, planet)
+    return True
 
 
 def draw_birth_spin(planet):

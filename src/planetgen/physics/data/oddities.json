@@ -34,7 +34,9 @@
     "envelope_mass_fraction": {"label": "gas envelope share of the mass", "percent": true, "note": "hydrogen and helium over the whole body"},
     "collision_count": {"label": "recorded giant impacts", "note": "mergers the planet architecture recorded for this body"},
     "moon_mass_ratio": {"label": "largest moon over its planet", "note": "mass ratio, 0 for no moon"},
-    "neighbour_period_ratio": {"label": "closest neighbour's period ratio", "note": "outer period over inner, 0 for no neighbour"}
+    "neighbour_period_ratio": {"label": "closest neighbour's period ratio", "note": "outer period over inner, 0 for no neighbour"},
+    "forced_eccentricity": {"label": "eccentricity forced by resonant neighbours", "note": "from the planet's place in a resonant chain; left out for a planet in none"},
+    "distance_over_host_radius": {"label": "orbit in stellar radii", "note": "semi-major axis over the radius of the star the body goes round"}
   },
   "rows": [
     {
@@ -125,6 +127,244 @@
       ],
       "source": "[R2571] (Mars's chaotic tilt); [R2710] (Earth without the Moon); Uranus at 98 degrees; the module is physics/seasonal_swing.py",
       "text": "Its axis lies far over, with no large moon to steady it, so the seasons are its main weather: each pole spends a season in daylight as bright as the equator's noon and a season in the dark."
+    },
+    {
+      "id": "W5",
+      "name": "Resonant chain",
+      "kind": "planet",
+      "requires": [
+        {
+          "quantity": "body_type",
+          "equals": "t"
+        },
+        {
+          "quantity": "forced_eccentricity",
+          "min": 0.001
+        }
+      ],
+      "rate": {
+        "value": 0.21,
+        "source": "registry row WR8: 22 of 105 near-resonant first-order pairs librate (0.21), the pairs that keep a forced eccentricity; the chains themselves are found from the system's periods (module resonant_chains), so the gate already holds only a planet in a chain",
+        "label": "READ",
+        "tier": "T3",
+        "tweak": "L0",
+        "registry": "WR8"
+      },
+      "apply": {
+        "lever": "L2",
+        "input": "eccentricity",
+        "effect": "resonance_forced",
+        "params": {}
+      },
+      "limits": [
+        {
+          "quantity": "eccentricity",
+          "min": 0.001
+        }
+      ],
+      "source": "[R3220] Solar System Dynamics section 8.8; Lithwick, Xie and Wu 2012 (ApJ 761:122); TRAPPIST-1, Kepler-223, TOI-178 and Io, Europa and Ganymede; the module is physics/resonant_chains.py",
+      "text": "Its neighbours' pull keeps its orbit slightly eccentric, so its star's tide flexes it all the time, as Jupiter's moons flex Io."
+    },
+    {
+      "id": "W3",
+      "name": "Highly eccentric orbit",
+      "kind": "planet",
+      "requires": [
+        {
+          "quantity": "body_type",
+          "equals": "t"
+        },
+        {
+          "quantity": "eccentricity",
+          "min": 0.5
+        }
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row RC6: the eccentricity is the generator's own draw (orbit_elements); the row only names the orbits at 0.5 or more, so there is no extra draw and the share is whatever the law gives, which the census compares with WR1",
+        "label": "READ",
+        "tier": "T5",
+        "tweak": "L0",
+        "registry": "RC6"
+      },
+      "apply": {
+        "lever": "L2",
+        "input": "eccentricity",
+        "effect": "high_eccentricity",
+        "params": {}
+      },
+      "limits": [
+        {
+          "quantity": "eccentricity",
+          "min": 0.5
+        }
+      ],
+      "source": "HD 80606 b (e 0.93), HD 20782 b (e 0.95), Mercury, Pluto; [R4719]; the module is physics/orbit_oddities.py",
+      "text": "Its orbit is stretched so far that its year swings between a scorching close pass and a long, cold far one."
+    },
+    {
+      "id": "W31",
+      "name": "Highly eccentric orbit",
+      "kind": "giant",
+      "requires": [
+        {
+          "quantity": "body_type",
+          "equals": "g"
+        },
+        {
+          "quantity": "eccentricity",
+          "min": 0.5
+        }
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row RC6: the eccentricity is the generator's own draw (orbit_elements); the row only names the orbits at 0.5 or more, so there is no extra draw and the share is whatever the law gives, which the census compares with WR1",
+        "label": "READ",
+        "tier": "T5",
+        "tweak": "L0",
+        "registry": "RC6"
+      },
+      "apply": {
+        "lever": "L2",
+        "input": "eccentricity",
+        "effect": "high_eccentricity",
+        "params": {}
+      },
+      "limits": [
+        {
+          "quantity": "eccentricity",
+          "min": 0.5
+        }
+      ],
+      "source": "HD 80606 b (e 0.93), HD 20782 b (e 0.95), Mercury, Pluto; [R4719]; the module is physics/orbit_oddities.py",
+      "text": "Its orbit is stretched so far that its year swings between a scorching close pass and a long, cold far one."
+    },
+    {
+      "id": "W41",
+      "name": "Polar or retrograde orbit",
+      "kind": "giant",
+      "requires": [
+        {
+          "quantity": "body_type",
+          "equals": "g"
+        },
+        {
+          "quantity": "distance_over_host_radius",
+          "lt": 10.0
+        },
+        {
+          "quantity": "host_teff_k",
+          "lt": 6250.0
+        }
+      ],
+      "rate": {
+        "value": 0.08,
+        "source": "registry row WR2: 3 of 39 round cool hosts under 6,250 K; hot Jupiters (orbit under 10 stellar radii) with a stellar obliquity above 10 degrees at 3 sigma",
+        "label": "READ",
+        "tier": "T1",
+        "tweak": "L0",
+        "registry": "WR2"
+      },
+      "apply": {
+        "lever": "L2",
+        "input": "inclination_deg",
+        "effect": "polar_orbit",
+        "params": {}
+      },
+      "limits": [
+        {
+          "quantity": "distance_over_host_radius",
+          "lt": 10.0
+        }
+      ],
+      "source": "[R0061] (Winn and Fabrycky review) sections 3.1 and 3.7; [R0060]; Kepler-56, HAT-P-7 b; the module is physics/orbit_oddities.py",
+      "text": "Its orbit runs over the poles of its star, or against its spin, as many close giants round hot stars do."
+    },
+    {
+      "id": "W42",
+      "name": "Polar or retrograde orbit",
+      "kind": "giant",
+      "requires": [
+        {
+          "quantity": "body_type",
+          "equals": "g"
+        },
+        {
+          "quantity": "distance_over_host_radius",
+          "lt": 10.0
+        },
+        {
+          "quantity": "host_teff_k",
+          "min": 6250.0
+        },
+        {
+          "quantity": "host_teff_k",
+          "lt": 7000.0
+        }
+      ],
+      "rate": {
+        "value": 0.63,
+        "source": "registry row WR2: 22 of 35 round hosts of 6,250 to 7,000 K; hot Jupiters (orbit under 10 stellar radii) with a stellar obliquity above 10 degrees at 3 sigma",
+        "label": "READ",
+        "tier": "T1",
+        "tweak": "L0",
+        "registry": "WR2"
+      },
+      "apply": {
+        "lever": "L2",
+        "input": "inclination_deg",
+        "effect": "polar_orbit",
+        "params": {}
+      },
+      "limits": [
+        {
+          "quantity": "distance_over_host_radius",
+          "lt": 10.0
+        }
+      ],
+      "source": "[R0061] (Winn and Fabrycky review) sections 3.1 and 3.7; [R0060]; Kepler-56, HAT-P-7 b; the module is physics/orbit_oddities.py",
+      "text": "Its orbit runs over the poles of its star, or against its spin, as many close giants round hot stars do."
+    },
+    {
+      "id": "W43",
+      "name": "Polar or retrograde orbit",
+      "kind": "giant",
+      "requires": [
+        {
+          "quantity": "body_type",
+          "equals": "g"
+        },
+        {
+          "quantity": "distance_over_host_radius",
+          "lt": 10.0
+        },
+        {
+          "quantity": "host_teff_k",
+          "min": 7000.0
+        }
+      ],
+      "rate": {
+        "value": 0.8,
+        "source": "registry row WR2: 12 of 15 round hosts over 7,000 K; hot Jupiters (orbit under 10 stellar radii) with a stellar obliquity above 10 degrees at 3 sigma",
+        "label": "READ",
+        "tier": "T1",
+        "tweak": "L0",
+        "registry": "WR2"
+      },
+      "apply": {
+        "lever": "L2",
+        "input": "inclination_deg",
+        "effect": "polar_orbit",
+        "params": {}
+      },
+      "limits": [
+        {
+          "quantity": "distance_over_host_radius",
+          "lt": 10.0
+        }
+      ],
+      "source": "[R0061] (Winn and Fabrycky review) sections 3.1 and 3.7; [R0060]; Kepler-56, HAT-P-7 b; the module is physics/orbit_oddities.py",
+      "text": "Its orbit runs over the poles of its star, or against its spin, as many close giants round hot stars do."
     }
   ]
 }

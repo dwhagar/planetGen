@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1248 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1250 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 165 | 18 | 10 | 1 | 0 | 194 |
+| T1 | 165 | 19 | 10 | 1 | 0 | 195 |
 | T2 | 124 | 52 | 1 | 1 | 0 | 178 |
 | T3 | 91 | 41 | 7 | 9 | 0 | 148 |
 | T4 | 55 | 5 | 1 | 19 | 10 | 90 |
-| T5 | 55 | 21 | 3 | 1 | 0 | 80 |
+| T5 | 56 | 21 | 3 | 1 | 0 | 81 |
 | T6 | 127 | 89 | 25 | 62 | 0 | 303 |
 | T7 | 33 | 15 | 7 | 16 | 0 | 71 |
 | T8 | 0 | 1 | 0 | 4 | 1 | 6 |
 | T9 | 38 | 15 | 5 | 86 | 34 | 178 |
-| All | 688 | 257 | 59 | 199 | 45 | 1248 |
+| All | 689 | 258 | 59 | 199 | 45 | 1250 |
 
 ## How the labels were given
 
@@ -1178,10 +1178,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| RC1 | P | T6 | L0 | resonant_chains.TARGET_RATIOS 2:1, 3:2, 4:3, 5:3, the period ratios a pair is taken to be near | add 5:4, 5:2, 7:5 | multiplanet systems | a chain of measured planets near a ratio not in the list that forces a transit timing signal | the resonances of the observed multis ([R1311] ratio histogram) | the design note's list (`weird-worlds.md` W5) | GEN.1049 | - |
-| RC2 | P | T6 | L0 | resonant_chains.RESONANCE_TOLERANCE 0.05, how near a ratio must be to a target | 0.02 to 0.08 | the same | a population whose period-ratio excess near resonance extends past 5 percent | the observed distribution of `Delta` of resonant pairs [R1605] | the design note's 5 percent gate; the Kepler multis cluster at +0.01 to +0.02, recalled | GEN.1049 | - |
-| RC3 | P | T4 | L0 | resonant_chains.WIDTH_EXPONENT 2/3, the detuning is held at `mu ** (2/3)` or more | 0.5 to 0.8 | first-order resonances of planets | an N-body run in resonance whose eccentricity exceeds the capped value by more than a factor of two | the libration width of the resonance computed from the pendulum model | Lithwick, Xie and Wu 2012: the near-resonance formula holds for `Delta` above `mu^(2/3)`, recalled | GEN.1049 | - |
-| RC4 | P | T6 | L1 | resonant_chains.CROSSING_SHARE 0.5, the share of the orbit-crossing limit the forced eccentricity is held to | 0.3 to 0.9 | chains of heavy planets | a stable chain with forced eccentricities over half the crossing limit | a stability integration of the chain (the overlap-free systems chain) | the necessary condition for non-crossing orbits; the share is ours | GEN.1049 | - |
+| RC1 | P | T6 | L0 | resonant_chains.TARGET_RATIOS 2:1, 3:2, 4:3, 5:3, the period ratios a pair is taken to be near | add 5:4, 5:2, 7:5 | multiplanet systems | a chain of measured planets near a ratio not in the list that forces a transit timing signal | the resonances of the observed multis ([R1311] ratio histogram) | the design note's list (`weird-worlds.md` W5) | - | - |
+| RC2 | P | T6 | L0 | resonant_chains.RESONANCE_TOLERANCE 0.05, how near a ratio must be to a target | 0.02 to 0.08 | the same | a population whose period-ratio excess near resonance extends past 5 percent | the observed distribution of `Delta` of resonant pairs [R1605] | the design note's 5 percent gate; the Kepler multis cluster at +0.01 to +0.02, recalled | - | - |
+| RC3 | P | T4 | L0 | resonant_chains.WIDTH_EXPONENT 2/3, the detuning is held at `mu ** (2/3)` or more | 0.5 to 0.8 | first-order resonances of planets | an N-body run in resonance whose eccentricity exceeds the capped value by more than a factor of two | the libration width of the resonance computed from the pendulum model | Lithwick, Xie and Wu 2012: the near-resonance formula holds for `Delta` above `mu^(2/3)`, recalled | - | - |
+| RC4 | P | T6 | L1 | resonant_chains.CROSSING_SHARE 0.5, the share of the orbit-crossing limit the forced eccentricity is held to | 0.3 to 0.9 | chains of heavy planets | a stable chain with forced eccentricities over half the crossing limit | a stability integration of the chain (the overlap-free systems chain) | the necessary condition for non-crossing orbits; the share is ours | - | - |
+| RC6 | P | T5 | L0 | oddity W3 gate: an orbit of eccentricity 0.5 or more is named for the page, rate 1 (no extra draw: the eccentricity is `orbit_elements.draw_planet_eccentricity` worn by the star's tide) | 0.3 to 0.7 | planets and giants | a census whose share of giants beyond 1 AU above e 0.5 is outside 0.05 to 0.15 (WR1: about a tenth) | the eccentricity law retuned to WR1's Beta(0.867, 3.03) at the census item | design note W3; WR1 | - | - |
+| RC7 | P | T1 | L1 | orbit_oddities.POLAR_PEAK_DEG 80 to 125, the inclination range of a misaligned hot Jupiter's orbit, drawn uniformly | 70 to 135 | close giants at under 10 stellar radii | a measured set of true spin-orbit angles of misaligned hot Jupiters with more than a fifth outside the range | the measured distribution of the true angles | WR2: 18 of 19 misaligned systems with a measured true angle lie between 80 and 125 degrees | - | - |
 
 ## 6.98 Stand-ins of the band winds
 

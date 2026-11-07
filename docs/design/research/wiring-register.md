@@ -76,11 +76,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.75:NEB1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NEB3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NEB6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| module | planetgen.physics.resonant_chains | GEN.1049 | the resonant chains of a system's periods and the eccentricity they force; the weird-worlds wiring (W5) will give a chain planet its forced orbit and tidal heating |
-| row | 6.92:RC1 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
-| row | 6.92:RC2 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
-| row | 6.92:RC3 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
-| row | 6.92:RC4 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
 | row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |

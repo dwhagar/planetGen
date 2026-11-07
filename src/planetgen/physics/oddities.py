@@ -237,7 +237,8 @@ KIND_OF_BODY = {"t": "planet", "g": "giant"}
 """dict: The row `kind` a body is asked about, by its `body_type`; a moon is asked as a moon, a rogue planet as a rogue."""
 
 
-EFFECT_MODULES = ("planetgen.physics.mantle_stripping", "planetgen.physics.venus_spin", "planetgen.physics.seasonal_swing")
+EFFECT_MODULES = ("planetgen.physics.mantle_stripping", "planetgen.physics.venus_spin", "planetgen.physics.seasonal_swing",
+                  "planetgen.physics.resonant_chains", "planetgen.physics.orbit_oddities")
 """tuple: The modules that register an effect (`register`), imported the first time `apply` has a row to run; a module that implements a row's effect is listed here."""
 
 
@@ -297,6 +298,9 @@ def quantities_of(body):
     put("mass_earth", None if mass is None else mass / constants.EARTH_MASS_TO_KG)
     put("radius_earth", None if radius is None else radius / constants.EARTH_RADIUS_KM)
     put("semi_major_axis_au", getattr(body, "distance", None))
+    host_radius_km = getattr(getattr(body, "star", None), "radius", None)
+    if getattr(body, "distance", None) and host_radius_km and not getattr(body, "is_moon", False):
+        put("distance_over_host_radius", body.distance * constants.AU_TO_KM / host_radius_km)
     put("eccentricity", getattr(body, "eccentricity", None))
     period = getattr(body, "period", None)
     put("orbital_period_days", None if period is None else period * 365.25)

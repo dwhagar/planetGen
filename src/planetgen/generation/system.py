@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, resonant_chains
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -2220,6 +2220,10 @@ class StarSystem:
         habitable world, belt and class are judged, so they are judged on the finished classes.
         """
         with log.timed_phase("settle pass"):
+            # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
+            resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
+            if self.binary_type == "wide":
+                resonant_chains.give_forced_eccentricities(self.secondary_planets, self.secondary_star.mass)
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # a belt is not a body
                     continue
@@ -2228,6 +2232,8 @@ class StarSystem:
                 for body in (obj, *obj.moons):
                     if planetPhysics.settle_orbit(body):
                         log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                if planetPhysics.finish_orbit_oddities(obj):
+                    log.debug(f"{obj.name}: held on eccentricity {obj.eccentricity:.4f} by its resonant neighbours")
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
