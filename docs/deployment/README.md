@@ -113,8 +113,16 @@ addresses that keep guessing admin passwords.
   /path/to/planetgen.conf`) and restart Redis. `install.sh` and
   `update.sh` check the running server and, for each setting that is off,
   print the exact line to add; they never edit your Redis config. One
-  Redis serves everything. It needs no password while it binds loopback;
-  the example shows the ACL user to add later.
+  Redis serves everything. Give it a user with a password and switch
+  the passwordless `default` user off ([`examples/redis/planetgen-acl.conf`](../../examples/redis/planetgen-acl.conf)
+  has the lines): loopback keeps the network out, not the other users of the
+  machine, and a queued job names a function a worker runs. The steps, in
+  order, for a new and for an existing install, are in
+  [INSTALL.md](../../INSTALL.md) ("Give Redis a user and a password");
+  `redis.url` then carries the password
+  (`redis://planetgen:PASSWORD@127.0.0.1:6379/0`). `install.sh` and
+  `update.sh` warn, with those lines, while the passwordless user is on; the
+  warning goes away when the connection logs in as a user of its own.
 - **The NLTK `words` corpus** somewhere the app's account can read:
   `/usr/local/share/nltk_data` on Linux and macOS, or a folder named by
   `NLTK_DATA`.
