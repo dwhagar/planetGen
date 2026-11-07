@@ -190,14 +190,10 @@ def main(argv=None):
               f"idle exit after {args.idle_seconds} s", _version.__version__, area="queue")
     work.lower_priority(workers.niceness(args.queues))
     warm(args.queues)
-    serializers = {redisqueue.serializer_for(name) for name in args.queues}
-    if len(serializers) > 1:
-        parser.error("one worker serves queues of one kind: the web queues (JSON) or a run's own queue (pickle), "
-                     "not both.")
     connection = redisqueue.connect(args.url, blocking=True)   # RQ blocks on the server; keepalive finds it gone
     queues = [redisqueue.queue(name, connection) for name in args.queues]
     workers.reap_dead_jobs(connection)      # the jobs a killed worker left "running"
-    worker = worker_class(round_robin=len(queues) > 1)(queues, connection=connection, name=args.name, serializer=serializers.pop(),
+    worker = worker_class(round_robin=len(queues) > 1)(queues, connection=connection, name=args.name, serializer=redisqueue.JsonSerializer,
                             work_horse_killed_handler=units.horse_killed)     # PERF.106: a killed unit fails its run now
     worker.work(burst=args.burst, with_scheduler=False,
                 max_idle_time=None if args.burst else args.idle_seconds)
