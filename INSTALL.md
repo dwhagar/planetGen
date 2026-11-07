@@ -418,7 +418,7 @@ The admin pages can start `update.sh` without anyone holding a root shell (SEC.4
 which deletes the request and runs `update.sh` as root. The file is never read and the command has no argument, so a request can do
 nothing except run the update. A press made while an update runs waits for it and runs after it; the update guard decides whether
 running work is canceled or the update refuses. `install.sh` and `update.sh` install and enable both units with this checkout's path
-and state folder; `install-maintenance-timer.sh` does too, and `--skip-update-button` leaves the path unit out. The Owner presses it on the admin
+and state folder (the same step installs the maintenance timers below); `install-maintenance-timer.sh --skip-update-button` leaves the path unit out. The Owner presses it on the admin
 Update page (`/admin/update`, after typing the password again; the page shows the state and the end of `update.log` and reloads itself
 while an update runs). Progress is in
 `update.log` in the log folder and `journalctl -u planetgen-update.service`. If a request file cannot be removed, the service stops after
@@ -426,13 +426,21 @@ ten tries in ten minutes; clear it with `sudo systemctl reset-failed planetgen-u
 
 ### Scheduled maintenance
 
-The monthly orbit update (`planetgen.cli.orbits`, at 03:30 on the 1st)
-and, optionally, an unattended monthly update (at 03:00):
+On Linux with systemd, `install.sh` and `update.sh` install and enable the timers themselves (OPS.110): the monthly orbit update
+(`planetgen.cli.orbits`, at 03:30 on the 1st), the unattended monthly update (at 03:00) and the nightly tile rebuild below. Every
+unit file is rendered for the checkout the script runs from and the virtual environment (`PLANETGEN_VENV`, default
+`/usr/local/planetgen/venv`), so the installed copies name the real paths; a path with a space or a special character is refused. A
+unit that differs from the rendered one (an older copy, or another install location) is replaced, and the log says so. A deploy
+enables only a unit it installs for the first time, so a timer you disable stays disabled. Run the installer by hand to choose
+the databases or leave a timer out; on macOS it is the only way to get the launchd daemons:
 
 ```bash
 sudo examples/maintenance/install-maintenance-timer.sh                      # Linux (systemd) and macOS (launchd)
 sudo examples/maintenance/install-maintenance-timer.sh --skip-update-timer  # orbits only
 ```
+
+The gunicorn unit of an nginx or Caddy host is the exception: copy it by hand and edit its two paths (the checkout and the virtual
+environment; [nginx.md](docs/deployment/nginx.md)).
 
 An unattended update deploys whatever is on the tracked branch with no review, and
 keeps the data when a migration is pending.

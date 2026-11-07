@@ -95,62 +95,167 @@ install_launchd_plist() {
     log_info "launchd: installed and loaded $target ($label)"
 }
 
-# SEC.43: the admin pages' Update button. The web user only creates <state folder>/update.request; the root-owned
-# planetgen-update.path (examples/maintenance) sees it and starts planetgen-update.service, which removes the request and runs
-# update.sh. This installs the two units into /etc/systemd/system with this checkout's path and the state folder put in, and
-# enables the path unit. Linux with systemd only; anything it cannot do only warns (the update goes on), and macOS has no button.
-# Args: the state folder (defaults to the one deploy-paths.py gives). SYSTEMD_UNIT_DIR overrides /etc/systemd/system (tests).
+# OPS.110: every systemd unit of planetGen is an example under examples/ with the default layout in it (the checkout at
+# /var/lib/planetGen, its state folder at /var/lib/planetGen/state, the virtual environment at /usr/local/planetgen/venv). These
+# helpers render a unit for this checkout, so the file systemd reads names the real paths. Nothing here writes outside the unit
+# folder (SYSTEMD_UNIT_DIR overrides /etc/systemd/system, for tests).
+
+# The state folder of the checkout $1, as deploy-paths.py gives it (its third line), with $2 as the Python. Read under -I so nothing
+# the web user planted beside the script is imported. Prints nothing when it cannot be read.
+deploy_state_folder() {
+    (cd / && "$2" -I "$1/examples/apache/deploy-paths.py" "$1" 2>/dev/null | sed -n 3p) || true
+}
+
+# Succeeds when the checkout $1, the virtual environment $2 and the state folder $3 can be put into a unit file: not empty, no space
+# or character that sed or systemd would read as more than text.
+unit_paths_are_safe() {
+    case "$1$2$3" in
+        *[[:space:]\|\&\%\$\\]*|*'"'*) return 1 ;;
+    esac
+    [[ -n "$1" && -n "$2" && -n "$3" ]]
+}
+
+# Prints the example unit $1 as it should stand for the checkout $2, the virtual environment $3 and the state folder $4. The state
+# folder is put in first (it lies under the default checkout path), then the checkout, then the environment.
+rendered_unit() {
+    sed -e "s|/var/lib/planetGen/state|%STATE%|g" -e "s|/var/lib/planetGen|$2|g" -e "s|/usr/local/planetgen/venv|$3|g" \
+        -e "s|%STATE%|$4|g" "$1"
+}
+
+# Writes the example unit $1 rendered for the checkout $2, environment $3 and state folder $4 into the folder $5. A unit that is
+# already there and equal is left alone; one that differs (an older copy of the example, or another layout) is replaced. Sets
+# UNIT_ACTION to installed, replaced or unchanged; returns 1 (and writes nothing) when it could not write the file.
+render_systemd_unit() {
+    local source="$1" unit_dir="$5" name rendered
+    name="$(basename "$source")"
+    UNIT_ACTION=unchanged
+    rendered="$(rendered_unit "$source" "$2" "$3" "$4")" || return 1
+    if [[ -f "$unit_dir/$name" ]]; then
+        [[ "$(cat "$unit_dir/$name")" == "$rendered" ]] && return 0
+        UNIT_ACTION=replaced
+    else
+        UNIT_ACTION=installed
+    fi
+    if printf '%s\n' "$rendered" > "$unit_dir/$name.new" && chmod 644 "$unit_dir/$name.new" && mv -f "$unit_dir/$name.new" "$unit_dir/$name"; then
+        return 0
+    fi
+    rm -f "$unit_dir/$name.new"
+    return 1
+}
+
+# OPS.110, with SEC.43's Update button: installs every maintenance unit of planetGen (examples/maintenance) into /etc/systemd/system
+# (SYSTEMD_UNIT_DIR overrides it, for tests), each rendered for this checkout, its virtual environment and its state folder, and
+# enables the timers. install.sh and update.sh call it with no arguments on every deploy; examples/maintenance/install-maintenance-
+# timer.sh is a thin caller of this same function. The gunicorn unit (examples/systemd) is not part of it: it stays a manual copy.
+#
+#   the monthly orbit update       planetgen-orbits@.service/.timer (one timer instance per database)
+#   the unattended update          planetgen-update.timer (and the service it and the Update button start)
+#   the admin Update button        planetgen-update.path: the web user only creates <state folder>/update.request, this root-owned
+#                                  unit starts planetgen-update.service, which removes the request and runs update.sh
+#   the nightly map tile rebuild   planetgen-tiles@.service/.timer
+#   the nightly smoke run          planetgen-smoke.service/.timer, only with --with-smoke-timer (it needs a database account that
+#                                  may create and drop databases); once installed it is kept rendered like the others
+#
+# Options: --skip-update-timer, --skip-update-button, --skip-tiles-timer, --with-smoke-timer; --enable-all enables every requested
+# timer (a deploy enables only a unit it installs for the first time, so a timer an operator disabled stays disabled);
+# --credentials writes /etc/planetgen/maintenance.env (mode 600, MAINTENANCE_ENV_FILE overrides it) from the example when it is
+# missing; the remaining arguments are the databases to update monthly (default $PLANETGEN_MYSQL_DATABASE, then planetgen).
+# A unit already installed that differs from the rendered one (an older copy of the example, or another checkout) is replaced, and
+# the replacement is logged. A checkout, environment or state path that is empty or has a space or a special character is refused
+# (nothing is written). UNIT_STATE_DIR overrides the state folder deploy-paths.py gives. Linux with systemd only. Returns 1 when
+# something was refused or could not be done (it has said what); a deploy only warns.
 UPDATE_REQUEST_NAME=update.request
-ensure_update_request_units() {
+install_maintenance_units() {
     is_macos && return 0
     command -v systemctl >/dev/null 2>&1 || return 0
-    local unit_dir="${SYSTEMD_UNIT_DIR:-/etc/systemd/system}" state="${1:-}" example="$SCRIPT_DIR/examples/maintenance" name
-    local rendered changed=0 line
-    if [[ -z "$state" ]]; then
-        # The third line deploy-paths.py prints; read under -I so nothing the web user planted beside it is imported.
-        state="$(cd / && "$PYTHON" -I "$SCRIPT_DIR/examples/apache/deploy-paths.py" "$SCRIPT_DIR" 2>/dev/null | sed -n 3p)" || state=""
-    fi
-    case "$state$SCRIPT_DIR" in
-        *[[:space:]\|\&\%\$]*|*'"'*)
-            log_warning "the Update button's units were not installed: the checkout or state folder path is empty or has a space or a special character."
-            return 0 ;;
-    esac
-    if [[ -z "$state" || -z "$SCRIPT_DIR" ]]; then
-        log_warning "the Update button's units were not installed: no state folder could be read from deploy-paths.py."
-        return 0
+    local unit_dir="${SYSTEMD_UNIT_DIR:-/etc/systemd/system}" example="$SCRIPT_DIR/examples/maintenance"
+    local state="${UNIT_STATE_DIR:-}" update_timer=1 update_button=1 tiles_timer=1 smoke_timer=0 enable_all=0 credentials=0
+    local databases=() arg name db failed=0 changed=0 to_enable=() orbits_new=0 tiles_new=0
+    for arg in "$@"; do
+        case "$arg" in
+            --skip-update-timer) update_timer=0 ;;
+            --skip-update-button) update_button=0 ;;
+            --skip-tiles-timer) tiles_timer=0 ;;
+            --with-smoke-timer) smoke_timer=1 ;;
+            --enable-all) enable_all=1 ;;
+            --credentials) credentials=1 ;;
+            *) databases+=("$arg") ;;
+        esac
+    done
+    (( ${#databases[@]} )) || databases=("${PLANETGEN_MYSQL_DATABASE:-planetgen}")
+    [[ -n "$state" ]] || state="$(deploy_state_folder "$SCRIPT_DIR" "$PYTHON")"
+    if ! unit_paths_are_safe "$SCRIPT_DIR" "$VENV" "$state"; then
+        log_warning "the systemd units were not installed: the checkout ($SCRIPT_DIR), the virtual environment ($VENV) or the state folder ($state) is empty or has a space or a special character, which a unit file cannot hold safely."
+        return 1
     fi
     if [[ ! -d "$unit_dir" ]]; then
-        log_info "no $unit_dir; the admin Update button needs systemd and is not set up."
+        log_info "no $unit_dir; the maintenance timers and the admin Update button need systemd and are not set up."
         return 0
     fi
-    for name in planetgen-update.service planetgen-update.path; do
-        rendered="$(sed -e "s|/var/lib/planetGen/state|%STATE%|g" -e "s|/var/lib/planetGen|$SCRIPT_DIR|g" \
-            -e "s|%STATE%|$state|g" "$example/$name")" || continue
-        if [[ -f "$unit_dir/$name" && "$(cat "$unit_dir/$name")" == "$rendered" ]]; then
-            continue
-        fi
-        if printf '%s\n' "$rendered" > "$unit_dir/$name.new" && chmod 644 "$unit_dir/$name.new" \
-            && mv -f "$unit_dir/$name.new" "$unit_dir/$name"; then
-            log_info "systemd: installed $unit_dir/$name"
-            changed=1
-        else
-            rm -f "$unit_dir/$name.new"
-            log_warning "could not write $unit_dir/$name; the admin Update button will not work until it is installed."
+
+    # Renders one unit; a unit that is not wanted but is already installed is still kept right (and left as the operator has it).
+    # Sets UNIT_ACTION; a unit that is newly installed is queued for enabling.
+    place_unit() {
+        local unit="$1" wanted="$2" enable_as="${3:-}"
+        if (( ! wanted )) && [[ ! -f "$unit_dir/$unit" ]]; then
+            UNIT_ACTION=unchanged
             return 0
         fi
+        if ! render_systemd_unit "$example/$unit" "$SCRIPT_DIR" "$VENV" "$state" "$unit_dir"; then
+            log_warning "could not write $unit_dir/$unit."
+            failed=1
+            UNIT_ACTION=unchanged
+            return 0
+        fi
+        if [[ "$UNIT_ACTION" != unchanged ]]; then
+            log_info "systemd: $UNIT_ACTION $unit_dir/$unit$([[ $UNIT_ACTION == replaced ]] && echo " (it differed from the example rendered for $SCRIPT_DIR)")"
+            changed=1
+        fi
+        if (( wanted )) && [[ -n "$enable_as" ]] && { (( enable_all )) || [[ "$UNIT_ACTION" == installed ]]; }; then
+            to_enable+=("$enable_as")
+        fi
+        return 0
+    }
+
+    place_unit planetgen-orbits@.service 1
+    place_unit planetgen-orbits@.timer 1
+    [[ "$UNIT_ACTION" == installed ]] && orbits_new=1
+    place_unit planetgen-update.service $(( update_timer || update_button ))
+    place_unit planetgen-update.timer "$update_timer" planetgen-update.timer
+    place_unit planetgen-update.path "$update_button" planetgen-update.path
+    place_unit planetgen-tiles@.service "$tiles_timer"
+    place_unit planetgen-tiles@.timer "$tiles_timer"
+    [[ "$UNIT_ACTION" == installed ]] && tiles_new=1
+    place_unit planetgen-smoke.service "$smoke_timer"
+    place_unit planetgen-smoke.timer "$smoke_timer" planetgen-smoke.timer
+    for db in "${databases[@]}"; do
+        if (( enable_all || orbits_new )); then to_enable+=("planetgen-orbits@${db}.timer"); fi
+        if (( tiles_timer )) && (( enable_all || tiles_new )); then to_enable+=("planetgen-tiles@${db}.timer"); fi
     done
-    if (( changed )); then
-        systemctl daemon-reload || log_warning "systemctl daemon-reload failed; run it by hand."
-    fi
-    if ! systemctl is-enabled --quiet planetgen-update.path 2>/dev/null; then
-        if systemctl enable --now planetgen-update.path >/dev/null 2>&1; then
-            log_info "systemd: planetgen-update.path enabled (the admin Update button drops $state/$UPDATE_REQUEST_NAME)"
+
+    if (( credentials )); then
+        local env_file="${MAINTENANCE_ENV_FILE:-/etc/planetgen/maintenance.env}"
+        if [[ -f "$env_file" ]]; then
+            log_info "$env_file already exists; left alone."
+        elif mkdir -p "$(dirname "$env_file")" && install -m 600 "$example/maintenance.env.example" "$env_file"; then
+            log_info "wrote $env_file (mode 600) from maintenance.env.example: edit it with the read-write MySQL account before the first scheduled run."
         else
-            line="systemctl enable --now planetgen-update.path"
-            log_warning "could not enable the Update button's path unit; run: sudo $line"
+            log_warning "could not write $env_file."
+            failed=1
         fi
     fi
-    return 0
+    if (( changed )); then
+        systemctl daemon-reload || { log_warning "systemctl daemon-reload failed; run it by hand."; failed=1; }
+    fi
+    for name in ${to_enable[@]+"${to_enable[@]}"}; do
+        if systemctl enable --now "$name" >/dev/null 2>&1; then
+            log_info "systemd: enabled $name"
+        else
+            log_warning "could not enable $name; run: sudo systemctl enable --now $name"
+            failed=1
+        fi
+    done
+    return "$failed"
 }
 
 # macOS's counterpart of the Apache module check: gunicorn under launchd

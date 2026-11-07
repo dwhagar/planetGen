@@ -10,7 +10,7 @@ fits in one short file. gunicorn runs the app exactly as in the
 | File | Goes to |
 |---|---|
 | [`examples/caddy/Caddyfile`](../../examples/caddy/Caddyfile) | `/etc/caddy/Caddyfile` |
-| [`examples/systemd/planetgen-gunicorn.service`](../../examples/systemd/planetgen-gunicorn.service) | `/etc/systemd/system/` |
+| [`examples/systemd/planetgen-gunicorn.service`](../../examples/systemd/planetgen-gunicorn.service) | `/etc/systemd/system/`, copied by hand: edit its two paths, the checkout (`/var/lib/planetGen`) and the virtual environment (`/usr/local/planetgen/venv`), if yours differ |
 
 ## Install
 

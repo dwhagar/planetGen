@@ -10,9 +10,13 @@
 # sees the client's address and scheme, not the proxy's (docs/reference/config.md).
 # See docs/deployment/nginx.md.
 #
-# Install:
-#     sudo apt install gunicorn            # Debian/Ubuntu: uses the system python3
+# Install (by hand: install.sh, update.sh and install-maintenance-timer.sh install the maintenance units but never this one). Copy
+# it, then change the two paths that name where planetGen is installed on this host:
+#     1. the checkout: /var/lib/planetGen (WorkingDirectory= and the --pythonpath line of ExecStart=)
+#     2. the virtual environment: /usr/local/planetgen/venv (the gunicorn on the first line of ExecStart=; PLANETGEN_VENV)
+# No change is needed when the checkout is at /var/lib/planetGen and the environment at /usr/local/planetgen/venv.
 #     sudo cp examples/systemd/planetgen-gunicorn.service /etc/systemd/system/
+#     sudoedit /etc/systemd/system/planetgen-gunicorn.service      # the two paths above
 #     sudo systemctl daemon-reload
 #     sudo systemctl enable --now planetgen-gunicorn
 #
