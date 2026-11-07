@@ -4171,7 +4171,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.668 | Two tests in test_update_database_step.py are red on clean main (bug) | none | done, PR #5497 |
 | TEST.669 | 35 tests in test_web_sector_nav.py and test_web_pages.py are red on main: the sector page answers 404 on their fake ids (a public-ID change?) (bug) | none | done, PR #5490 |
 | TEST.670 | test_parent_link fails on main: the delete-sector test hits the rogue planet foreign key, which is RESTRICT (bug) | none | open |
-| TEST.671 | test_citations_outside_the_registry fails on main: Simpson 1928 and Hadden and Lithwick 2014 are cited by name outside the registry (bug) | none | open |
+| TEST.671 | test_citations_outside_the_registry fails on main: two sources are cited by name outside the registry (bug) | none | open |
 | TEST.672 | test_nebula_shape fails on main and differs by a different item each run (flaky, bug) | none | open |
 | TEST.673 | test_unit_registry_js fails on main (bug) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
