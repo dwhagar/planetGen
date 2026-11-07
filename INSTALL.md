@@ -417,7 +417,7 @@ The admin pages can start `update.sh` without anyone holding a root shell (SEC.4
 `update.request`, in the state folder. The root-owned unit `planetgen-update.path` sees it and starts `planetgen-update.service`,
 which deletes the request and runs `update.sh` as root. The file is never read and the command has no argument, so a request can do
 nothing except run the update. A press made while an update runs waits for it and runs after it; the update guard decides whether
-running work is cancelled or the update refuses. `install.sh` and `update.sh` install and enable both units with this checkout's path
+running work is canceled or the update refuses. `install.sh` and `update.sh` install and enable both units with this checkout's path
 and state folder; `install-maintenance-timer.sh` does too, and `--skip-update-button` leaves the path unit out. The Owner presses it on the admin
 Update page (`/admin/update`, after typing the password again; the page shows the state and the end of `update.log` and reloads itself
 while an update runs). Progress is in
