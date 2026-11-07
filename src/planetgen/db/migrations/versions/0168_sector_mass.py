@@ -34,7 +34,7 @@ def upgrade():
         helpers.add_column_instant(connection, table, column, definition)
     from planetgen.db import block_stats
 
-    block_stats.rebuild(helpers.StoreConnection(connection), on_skipped=_warn)
+    block_stats.rebuild(helpers.StoreConnection(connection), on_skipped=_warn, charted=False)    # no chart ledger yet (v201)
 
 
 def _warn(addresses):

@@ -8649,8 +8649,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
 
 
 def has_galaxy_sectors(conn):
-    """Whether any sector has been placed in the galaxy grid."""
-    return conn.execute("SELECT 1 FROM sectors WHERE shell_index IS NOT NULL LIMIT 1").fetchone() is not None
+    """Whether any sector has been charted in the galaxy grid: an uncharted placeholder row (MAP.399, MAP.402) does not count."""
+    return conn.execute(
+        "SELECT 1 FROM sectors sec WHERE sec.shell_index IS NOT NULL AND EXISTS (SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = sec.shell_index"
+        " AND cl.band_index = sec.band_index AND cl.wedge_index = sec.wedge_index) LIMIT 1").fetchone() is not None
 
 
 def galaxy_is_empty(conn):

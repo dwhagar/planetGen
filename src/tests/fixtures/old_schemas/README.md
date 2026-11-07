@@ -108,3 +108,4 @@ Commit each file came from:
 - v222: train 14 after GEN.1257's migration 0222 (charted reason), before GEN.876 adaptation traits (0223)
 - v223: train 14 after GEN.876's migration 0223 (adaptation traits), before GEN.1085 part 2 captured belt members (0224)
 - v224: train 14 after GEN.1085's migration 0224 (captured belt members), before GEN.1103 asteroid field age columns (0225)
+- v225: train 14 after GEN.1103's migration 0225 (asteroid field age columns), before MAP.402 uncharted sector rows (0226, no schema change)
