@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3548] - 2026-11-07
+
+**Headline:** Class F is now the Anoxic world, so a world with a plain nitrogen air and no oxygen has a class.
+
+### Changed
+- Class F, the Reducing world, needed methane or hydrogen as 5 percent of the air, so a world with a plain nitrogen air, no oxygen and no methane or hydrogen fit no class and took its nearest one with a match of 0. F is now the Anoxic world: no free oxygen, under 20 percent carbon dioxide (more is class G), under 400 K and 0.5 to 1.4 g (a heavier thin hot air is class Z, from 2 g class V). A reducing air is still F. Of 1448 generated bodies, 28 fit no class before and 16 after, and 6 changed letter. The new rows are in the stand-in registry as section 6.193.
+
+generation-output: changed
+
 ## [8.0.3547] - 2026-11-07
 
 **Headline:** Belts are smaller and more honest: the solids of the cold disk lose the share that never grew to planetesimals, a gap holds no more than the planet it would have grown, and belts are made of the disk the planets grew in.
