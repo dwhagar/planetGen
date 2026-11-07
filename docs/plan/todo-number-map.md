@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.285 |
 | MAP | MAP.406 |
 | NAV | NAV.78 |
-| GEN | GEN.1334 |
+| GEN | GEN.1335 |
 | PERF | PERF.249 |
 | DB | DB.115 |
 | API | API.42 |
 | ADM | ADM.139 |
 | SEC | SEC.47 |
-| TEST | TEST.676 |
+| TEST | TEST.677 |
 | USR | USR.32 |
 | OPS | OPS.115 |
 | DOC | DOC.110 |
@@ -2121,6 +2121,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1331 | Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide) | GEN.1321, GEN.1330 | open |
 | GEN.1332 | A nebula's stored shape cannot be reproduced from its stored row: the shape seed includes the dominant-species text, which store_composition rewrites afterwards (TEST.672) | none | open |
 | GEN.1333 | A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers | GEN.1323 | open |
+| GEN.1334 | A planet with a hydrogen-helium envelope has no ground: no surface dose, land fraction or rocky air solve beneath it; its air, moons and rings follow the envelope (GEN.1323 part B) | GEN.1323 | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -4178,6 +4179,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.674 | test_js_unit fails on main: tests/js/bodymarkers.test.mjs 'a letter that is not a class has no symbol' gets class-R, because R is now a class letter (bug) | none | done, PR #5521 |
 | TEST.673 | test_unit_registry_js fails on main (bug) | none | done, PR #5517 |
 | TEST.675 | test_api_version is red on main: routes were added without the API snapshot line (/api/admin/work/held GET, and an uncharted-systems generate POST was reported earlier) (bug) | none | open |
+| TEST.676 | Radius valley and rogue-envelope tests: a measured gate on the 1.5 to 2.0 Earth radii gap against the published valley, and a check that starless planets of 1 to 20 Earth masses keep the whole envelope and are classed like bound ones (GEN.1323 parts C and D) | none | open |
 | TEST.628 | A docs test fails when an item's Version line disagrees with the version file its row sits in | none | done, PR #5239 |
 | TEST.629 | Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored | none | open |
 | TEST.630 | Browser tests for the View menu: the existing controls keep working through the builder, search, reset, counts and keyboard use on the three maps | none | open |

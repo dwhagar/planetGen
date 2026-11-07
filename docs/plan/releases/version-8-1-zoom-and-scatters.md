@@ -463,6 +463,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders | GEN.1085 |  |
 | TEST.660 | The class census reads irregular (captured) moons, and the moon class ranges are re-baselined after the last 8.1 train |  |  |
 | TEST.675 | test_api_version is red on main: routes were added without the API snapshot line (/api/admin/work/held GET, and an uncharted-systems generate POST was reported earlier) (bug) |  |  |
+| TEST.676 | Radius valley and rogue-envelope tests: a measured gate on the 1.5 to 2.0 Earth radii gap against the published valley, and a check that starless planets of 1 to 20 Earth masses keep the whole envelope and are classed like bound ones (GEN.1323 parts C and D) |  |  |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | GEN.1069, GEN.1006 |  |
 | GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | GEN.1068 |  |
 | GEN.1278 | Outer-disc mass and width from a planetesimal-formation model, so A and F stars hold the debris disks surveys find (A stars have none against 24 percent, Sun-like 8 against 14) |  |  |
@@ -573,6 +574,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1331 | Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide) | GEN.1321 |  |
 | GEN.1332 | A nebula's stored shape cannot be reproduced from its stored row: the shape seed includes the dominant-species text, which store_composition rewrites afterwards (TEST.672) |  |  |
 | GEN.1333 | A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers | GEN.1323 |  |
+| GEN.1334 | A planet with a hydrogen-helium envelope has no ground: no surface dose, land fraction or rocky air solve beneath it; its air, moons and rings follow the envelope (GEN.1323 part B) | GEN.1323 |  |
 | GEN.1283 | The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug) |  |  |
 
 ### Physics rectification: winds and ring darkening
