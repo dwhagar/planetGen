@@ -2,6 +2,35 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3590] - 2026-11-07
+
+**Headline:** An asteroid field now ages with the in-universe clock: its radius grows as its pieces spread, and one that passes a light year is retired from the maps.
+
+### Added
+- **Bring-to-epoch for asteroid fields (GEN.1107).** The orbit update that moves a field through the galaxy now adds the years it advanced to the field's age (`birth_age_yr`), and the radius and the size digit of the class follow from the age by the formula that made them (`asteroid_field.aged`, `radius_ly_at`). A field whose radius passes one light year is retired, as Boss decided: the row stays, with its Object ID, members and any facility, and the map reads and the widest-radius reads leave it out. Retired is a formula of the row (`radius_ly > 1`), so no column was added and there is no schema change.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1107.
+
+## [8.0.3589] - 2026-11-07
+
+**Headline:** The test of update.sh's dirty-tree check names the git command it now runs.
+
+### Changed
+
+- `src/tests/test_deploy_scripts.py` (OPS.115 follow-up): `test_the_dirty_tree_warning_leaves_out_the_state_folder_the_update_owns` looked for the old text of the check, `status --porcelain -- . ':(exclude)state'`. OPS.115 (PR 5562) added `--untracked-files=no` to that command, so the test went red on main; it now looks for the new text. The check itself is unchanged.
+
+generation-output: unchanged
+
+## [8.0.3588] - 2026-11-07
+
+**Headline:** The update script no longer warns about files that already exist.
+
+### Changed
+- **`update.sh`'s pull step stopped listing untracked files as "uncommitted local changes that will be overwritten".** Untracked files (`config.json`, logs, caches) always exist and the reset never touches them, so only edits to tracked files are warned about now.
+- **`set-permissions.sh` prints a plain note, not a warning, when `config.json` exists in both the checkout and the state folder.** Both files are left alone, as before.
+
 ## [8.0.3587] - 2026-11-07
 
 **Headline:** The tests that hold Io's tide to its observed heat now know the tide is a little larger since the melt coefficient of a partly molten mantle was taken from its source.
