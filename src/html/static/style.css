@@ -4746,6 +4746,54 @@ body.app {
   overflow-wrap: anywhere;
 }
 
+/* The level of a log line (UX.284): error and critical red, warning and notice amber, info blue, debug green. The level word
+   stays in the line, so colour is never the only cue. Each pair has 4.5:1 or more on the log box's --bg-subtle, in the light
+   and the dark theme (dark tokens twice, like the tokens at the top of this file). */
+.job-log {
+  --log-error: #b3202f;
+  --log-warning: #855400;
+  --log-info: #1a56b8;
+  --log-debug: #1d6b2a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .job-log {
+    --log-error: #ff6b7a;
+    --log-warning: #e8b830;
+    --log-info: #6aa5ff;
+    --log-debug: #5fd078;
+  }
+}
+
+:root[data-theme="dark"] .job-log {
+  --log-error: #ff6b7a;
+  --log-warning: #e8b830;
+  --log-info: #6aa5ff;
+  --log-debug: #5fd078;
+}
+
+.job-log .log-error,
+.job-log .log-critical {
+  color: var(--log-error);
+}
+
+.job-log .log-critical {
+  font-weight: 700;
+}
+
+.job-log .log-warning,
+.job-log .log-notice {
+  color: var(--log-warning);
+}
+
+.job-log .log-info {
+  color: var(--log-info);
+}
+
+.job-log .log-debug {
+  color: var(--log-debug);
+}
+
 .badge.job-failed,
 .badge.job-interrupted {
   color: var(--error);

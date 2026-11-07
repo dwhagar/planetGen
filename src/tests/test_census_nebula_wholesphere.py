@@ -49,9 +49,11 @@ def planetary_nebulae():
     try:
         rep.boosted_rates(patch)
         found = []
+        args = audit.default_args()
+        args.planets = False     # PERF.241: the check reads each nebula's host star, and the planets of the sector's systems were 688 s of a 692 s file
         for case in rep.region_cases(DISK_REGIONS, sectors=60):
             for index in range(case.sectors):
-                sector = audit.fill_region_sector(case, audit.seed_for("pn-" + case.name, index))
+                sector = audit.fill_region_sector(case, audit.seed_for("pn-" + case.name, index), args)
                 found.extend((sector, entry) for entry in sector.phenomena
                              if getattr(entry.phenomenon, "nebula_type", None) == "planetary")
         yield found

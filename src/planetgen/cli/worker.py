@@ -19,10 +19,11 @@ import sys
 import time
 
 import rq
+from rq.worker import RoundRobinWorker
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import pause, progress_file, redisqueue, stopall, units, work, workers
+from planetgen.queue import allowlist, pause, progress_file, redisqueue, stopall, units, work, workers
 from planetgen.util import log
 
 WARM_MODULES = (
@@ -51,11 +52,20 @@ def warm(queues=None):
     unit that does not (`WarmWorker.prepare_execution`).
 
     Args:
-        queues (iterable, optional): The queue names served (not used now).
+        queues (iterable, optional): The queue names served; a worker of `APP_QUEUES` also builds the site's app once (PERF.245).
     """
     import importlib
     for name in WARM_MODULES:
         importlib.import_module(name)
+    if APP_QUEUES.intersection(queues or ()):
+        from planetgen.web import warmup
+        warmup.build_app()      # PERF.245: made once here and dropped; what it imports and sets up stays, so a horse's build_app takes 0.07 s, not 6.8 s
+
+
+APP_QUEUES = frozenset({*redisqueue.maintenance_lane(), redisqueue.INTERACTIVE_QUEUE, redisqueue.LONG_QUEUE})
+"""frozenset: The queues whose jobs build the site's app (`web/warmup.build_app`): a warm-up unit, a node prefetch, a slow page's answer
+(`queue/pagejobs.build_answer`). Their workers build it once before they fork a horse for a job (PERF.245); building it opens no
+connection or thread, so the horses share it safely. On a 4-core test box it cost a horse 6.8 s a job and costs a worker 75 MB."""
 
 
 def code_version_on_disk():
@@ -76,7 +86,7 @@ def stale(loaded=None, on_disk=None):
     return on_disk is not None and on_disk != (loaded or _version.__version__)
 
 
-def worker_class():
+def worker_class(round_robin=False):
     """
     RQ's worker class with PERF.42's guard: a worker that pre-imports its
     code would keep serving the old release after an update (a horse used to
@@ -94,8 +104,14 @@ def worker_class():
 
     TEST.371: when it registers, it stops counting among the workers `ensure_workers` is waiting for
     (`workers.registered`), so one killed soon after it started is replaced at once.
+
+    PERF.245: a worker of several queues (`round_robin`, the maintenance lane's `redisqueue.maintenance_lane()`) is RQ's
+    `RoundRobinWorker`: it takes one job from each queue in turn, so a cache warm-up that queued thousands of units never makes a
+    database check or a visitor's node wait behind them; with one queue it is the plain `rq.Worker`.
     """
-    class WarmWorker(rq.Worker):
+    base = RoundRobinWorker if round_robin else rq.Worker
+
+    class WarmWorker(base):
         def register_birth(self):
             super().register_birth()
             workers.registered(self.connection, self.queue_names())
@@ -174,14 +190,11 @@ def main(argv=None):
               f"idle exit after {args.idle_seconds} s", _version.__version__, area="queue")
     work.lower_priority(workers.niceness(args.queues))
     warm(args.queues)
-    serializers = {redisqueue.serializer_for(name) for name in args.queues}
-    if len(serializers) > 1:
-        parser.error("one worker serves queues of one kind: the web queues (JSON) or a run's own queue (pickle), "
-                     "not both.")
     connection = redisqueue.connect(args.url, blocking=True)   # RQ blocks on the server; keepalive finds it gone
     queues = [redisqueue.queue(name, connection) for name in args.queues]
     workers.reap_dead_jobs(connection)      # the jobs a killed worker left "running"
-    worker = worker_class()(queues, connection=connection, name=args.name, serializer=serializers.pop(),
+    worker = worker_class(round_robin=len(queues) > 1)(queues, connection=connection, name=args.name, serializer=redisqueue.JsonSerializer,
+                            job_class=allowlist.GuardedJob,       # SEC.45: a job naming a function off the list is refused, not run
                             work_horse_killed_handler=units.horse_killed)     # PERF.106: a killed unit fails its run now
     worker.work(burst=args.burst, with_scheduler=False,
                 max_idle_time=None if args.burst else args.idle_seconds)

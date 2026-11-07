@@ -1798,8 +1798,8 @@ def _scatter_shells_task(payload):
                 landed[row[0]] += 1
                 batch.append(row)
                 if len(batch) >= 10000:
-                    systems += scatterCompanions.insert_bright_stars(conn, batch, epoch).systems
-                    conn.commit()
+                    systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_bright_stars, batch, epoch,
+                                                                          label=f"{payload['key']} scatter").systems
                     batch = []
             if (payload.get("far") and shell_index == payload["far"][0]) or shell_index == COMPONENT_TASK_SHELL:
                 per_shell.extend([shell, stars] for shell, stars in sorted(landed.items()))
@@ -1807,7 +1807,8 @@ def _scatter_shells_task(payload):
                 per_shell.append([shell_index, drawn])
             before[0] += drawn
         if batch:
-            systems += scatterCompanions.insert_bright_stars(conn, batch, epoch).systems
+            systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_bright_stars, batch, epoch,
+                                                                          label=f"{payload['key']} scatter").systems
         conn.commit()
     finally:
         conn.close()
@@ -3131,13 +3132,14 @@ def _phenomenon_shells_task(payload):
                 batch.append(row)
                 if len(batch) >= 10000:
                     started = time.perf_counter()
-                    systems += scatterCompanions.insert_phenomenon_scatter(conn, batch, epoch).systems
-                    conn.commit()
+                    systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_phenomenon_scatter, batch, epoch,
+                                                                          label="Phenomenon scatter").systems
                     write_seconds += time.perf_counter() - started
                     batch = []
         started = time.perf_counter()
         if batch:
-            systems += scatterCompanions.insert_phenomenon_scatter(conn, batch, epoch).systems
+            systems += scatterCompanions.write_committed(conn, scatterCompanions.insert_phenomenon_scatter, batch, epoch,
+                                                                          label="Phenomenon scatter").systems
         conn.commit()
         write_seconds += time.perf_counter() - started
     finally:

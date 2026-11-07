@@ -44,7 +44,7 @@ def _profile(unresolved=None, seconds=3.0, superbubble=None, charted_sector_id=N
 
 def _uncharted(sector_id=None):
     return {"shell_index": 40, "band_index": 0, "wedge_index": 3, "designation": "ABC", "center_pc": [160.0, 0.0, 0.0],
-            "edge_pc": 4.0, "sector_id": sector_id, "stars": [{"id": 1}], "scattered": []}
+            "edge_pc": 4.0, "sector_id": sector_id, "stars": [{"id": 1, "star_type": "G2", "luminosity_sol": 1.0}], "scattered": []}
 
 
 @pytest.fixture
@@ -82,7 +82,7 @@ def test_an_uncharted_address_shows_its_profile_and_no_warning_for_a_light_cell(
     html = client.get("/sector/at/40/0/3").get_data(as_text=True)
     assert "Uncharted sector ABC" in html and "Nothing has been charted at shell 40, band 0, wedge 3" in html
     assert 'id="sector-profile"' in html and "about 12.5 star systems expected" in html
-    assert "1 waiting bright star" in html and 'id="heavy-cell"' not in html
+    assert "1 detected star" in html and 'id="heavy-cell"' not in html
     assert "Generate page" not in html  # only an admin is pointed at it
 
 

@@ -6238,7 +6238,7 @@
     },
     "R1248": {
       "kind": "paper",
-      "label": "Elkins‐Tanton and Seager 2008",
+      "label": "Elkins‐Tanton and Seager 2008a",
       "title": "Coreless Terrestrial Exoplanets"
     },
     "R1249": {
@@ -25665,6 +25665,11 @@
       "kind": "paper",
       "label": "Marshall et al. 2006",
       "title": "Modelling the Galactic interstellar extinction distribution in three dimensions"
+    },
+    "R5136": {
+      "kind": "paper",
+      "label": "Elkins‐Tanton and Seager 2008b",
+      "title": "Ranges of Atmospheric Mass and Composition of Super‐Earth Exoplanets"
     }
   }
 }

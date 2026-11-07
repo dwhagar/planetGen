@@ -61,6 +61,35 @@ UPDATE_WAIT_SECONDS = 1200
 """int: How long it waits for a running update to finish before it starts the run."""
 
 
+EMPTY_GALAXY_LINE = "galaxy is empty, nothing to warm up"
+"""str: The one line a warm-up or a whole-map build prints, and exits 0 with, when the database holds no galaxy (OPS.114)."""
+
+OUTCOME_FILE_ENV = "PLANETGEN_WARM_OUTCOME_FILE"
+"""str: A file update.sh names; the warm-up writes `empty` into it when it had nothing to warm, so the update can say so."""
+
+
+def galaxy_is_empty(database):
+    """Whether `database` holds no galaxy (`store.galaxy_is_empty`), e.g. right after a New galaxy wipe."""
+    from planetgen.db import store
+    conn = store.get_connection(store.MySQLConfig(database=database), ensure_schema=False)
+    try:
+        return store.galaxy_is_empty(conn)
+    finally:
+        conn.close()
+
+
+def say_galaxy_is_empty():
+    """Says `EMPTY_GALAXY_LINE` as information (not an error) and tells update.sh, when it asked."""
+    log.normal(EMPTY_GALAXY_LINE)
+    path = os.environ.get(OUTCOME_FILE_ENV)
+    if path:
+        try:
+            with open(path, "w", encoding="utf-8") as handle:
+                handle.write("empty\n")
+        except OSError:
+            pass
+
+
 class Failed(Exception):
     """The warm-up could not run or a command of it failed; the message says what."""
 
@@ -200,6 +229,9 @@ def _warm_once(args, reason=None):
         SystemExit: The arguments name no such family or phase.
     """
     with warm_log.RunLog(reason) as record:
+        if galaxy_is_empty(args.database):       # OPS.114: nothing to warm, and not a failure
+            say_galaxy_is_empty()
+            return
         _warm_run(args, reason, record)
 
 

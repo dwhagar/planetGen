@@ -276,6 +276,7 @@ def _run_log_locations(tmp_path, user=None, group=None, config=None, **env_overr
         (repo / "config.json").write_text(json.dumps(config))
     me_user, me_group = _me()
     env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
+    env["PLANETGEN_ROOT_PATH_PARENTS"] = "/tmp"      # SEC.44: the folders the tests use are allowed parents
     env.update(env_overrides)
     return subprocess.run([sys.executable, "-I", LOG_LOCATIONS, str(repo), user or me_user, group or me_group],
                           env=env, capture_output=True, text=True, check=False)
@@ -427,7 +428,8 @@ def _make_checkout(root):
 def _run_permissions(repo, tmp_path, *args):
     envvars = tmp_path / "envvars"
     envvars.write_text("export APACHE_RUN_USER=www-data\nexport APACHE_RUN_GROUP=www-data\n")
-    env = dict(os.environ, APACHE_ENVVARS=str(envvars))
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
+    env["APACHE_ENVVARS"] = str(envvars)
     return subprocess.run([os.path.join(APACHE_DIR, "set-permissions.sh"), str(repo), *args],
                           env=env, capture_output=True, text=True, check=False)
 
@@ -444,32 +446,79 @@ def _snapshot(repo):
 
 
 @needs_www_data
-def test_set_permissions_gives_the_whole_checkout_to_the_web_user(tmp_path):
+def test_set_permissions_makes_the_code_root_owned_and_leaves_the_web_user_only_its_folders(tmp_path):
+    """SEC.37: install.sh and update.sh run git, Python and the scripts in this tree as root, so nothing in it that the web
+    user could change may stay its."""
     uid, gid = _www_data()
     repo = _make_checkout(tmp_path)
+    (repo / "config.json").write_text(json.dumps({"jobs": {"dir": str(repo / "jobs")}}))
+    (repo / "jobs").mkdir()
+    (repo / "jobs" / "run1").mkdir()
+    (repo / "jobs" / "run1" / "state.json").write_text("{}")
+    for path in (repo / "jobs", repo / "jobs" / "run1", repo / "jobs" / "run1" / "state.json"):
+        os.chown(path, uid, gid)     # SEC.44: a jobs folder is only re-owned when it is already the web user's (or empty)
     outside = tmp_path / "outside.txt"
     outside.write_text("not planetGen's")
     (repo / "link").symlink_to(outside)
     proc = _run_permissions(repo, tmp_path)
     assert proc.returncode == 0, proc.stderr
-    for rel, owner, group, mode in _snapshot(repo):
-        if rel == "link":
+    web = ("state", "jobs")
+    snapshot = _snapshot(repo)
+    for rel, owner, group, mode in snapshot:
+        if rel in ("link", "config.json"):  # symbolic links: their own mode means nothing
             continue
-        assert (owner, group) == (uid, gid), rel
         assert not mode & stat.S_IRWXO, rel
-        if rel != "state":  # the group may write the state folder, nothing else
+        if rel.split("/")[0] in web:
+            assert (owner, group) == (uid, gid), rel
+            if rel != "state":  # the group may write the state folder, nothing else
+                assert not mode & stat.S_IWGRP, rel
+        else:
+            assert (owner, group) == (0, gid), rel  # root's, the web user reads it through the group
             assert not mode & stat.S_IWGRP, rel
-    modes = {rel: mode for rel, _, _, mode in _snapshot(repo)}
+    modes = {rel: mode for rel, _, _, mode in snapshot}
     assert modes["."] == 0o750 and modes["src/html/lib"] == 0o750
     assert modes["src/html/wsgi.py"] == 0o750 and modes["scripts/tool.sh"] == 0o750
     assert modes["scripts/helper"] == 0o750  # keeps its owner execute bit, so git sees no change
     assert modes["src/html/static/style.css"] == 0o640
     assert modes[".git/HEAD"] == 0o640
-    assert modes["config.json"] == 0o640
-    # The state directory is made, and is the web user's from the start.
+    # The state directory is made, and is the web user's from the start; so is the jobs folder with what is in it.
     assert (modes["state"], (repo / "state").is_dir()) == (0o770, True)
+    assert modes["jobs"] == 0o750 and modes["jobs/run1/state.json"] == 0o640
     # A link is never followed: what it points at is not planetGen's to chown.
     assert os.stat(outside).st_uid == 0
+
+
+@needs_www_data
+def test_set_permissions_moves_config_json_into_the_state_folder_and_links_it(tmp_path):
+    uid, gid = _www_data()
+    repo = _make_checkout(tmp_path)
+    (repo / "config.json").write_text('{"debug": true}')
+    assert _run_permissions(repo, tmp_path).returncode == 0
+    link = repo / "config.json"
+    real = repo / "state" / "config.json"
+    assert link.is_symlink() and os.readlink(link) == str(real)
+    assert real.read_text() == '{"debug": true}'
+    info = os.stat(real)
+    assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o640)
+    info = os.lstat(link)
+    assert (info.st_uid, info.st_gid) == (0, gid), "the link in the root-owned folder is root's: the web user cannot repoint it"
+    # A second run leaves it as it is.
+    assert _run_permissions(repo, tmp_path).returncode == 0
+    assert os.readlink(link) == str(real) and real.read_text() == '{"debug": true}'
+
+
+@needs_www_data
+def test_set_permissions_keeps_both_config_files_when_both_exist(tmp_path):
+    repo = _make_checkout(tmp_path)
+    (repo / "state").mkdir()
+    (repo / "state" / "config.json").write_text('{"from": "state"}')
+    (repo / "config.json").write_text('{"from": "checkout"}')
+    proc = _run_permissions(repo, tmp_path)
+    assert proc.returncode == 0, proc.stderr
+    assert not (repo / "config.json").is_symlink()
+    assert (repo / "config.json").read_text() == '{"from": "checkout"}'
+    assert (repo / "state" / "config.json").read_text() == '{"from": "state"}'
+    assert "both" in proc.stdout + proc.stderr
 
 
 @needs_www_data
@@ -482,6 +531,7 @@ def test_set_permissions_takes_a_state_directory_outside_the_checkout(tmp_path):
     info = os.stat(state)
     assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o770)
     assert not (repo / "state").exists()
+    assert os.readlink(repo / "config.json") == str(state.resolve() / "config.json")
 
 
 @needs_www_data
@@ -508,6 +558,8 @@ def test_a_fresh_install_and_an_update_leave_identical_ownership(tmp_path):
     (fresh / "src" / "html" / "__pycache__").mkdir()
     (fresh / "src" / "html" / "__pycache__" / "wsgi.pyc").write_text("")
     shutil.rmtree(updated / "state")  # the install tree can lose it; the next run makes it again
+    (updated / "config.json").unlink()  # the link would dangle now
+    (updated / "config.json").write_text("{}")  # as before: back as a plain file, moved in again
     assert _run_permissions(fresh, tmp_path / "a").returncode == 0
     assert _run_permissions(updated, tmp_path / "b").returncode == 0
     assert _snapshot(fresh) == _snapshot(updated)
@@ -522,36 +574,12 @@ def test_set_permissions_refuses_a_folder_that_is_not_a_checkout(tmp_path):
     assert os.stat(tmp_path / "keep").st_uid == 0
 
 
-def test_the_update_trusts_its_own_checkout_though_the_web_user_owns_it():
-    """git refuses a repository owned by another user ("dubious ownership"),
-    and the checkout now belongs to www-data while update.sh runs as root."""
+def test_the_update_no_longer_trusts_a_checkout_for_git():
+    """The code belongs to root (SEC.37), so git needs no safe.directory exception: one would only be needed, and only be
+    dangerous, for a repository the web user could write."""
     with open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8") as f:
         text = f.read()
-    export = 'export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$SCRIPT_DIR"'
-    assert export in text
-    assert text.index(export) < text.index("git rev-parse --is-inside-work-tree")
-
-
-@needs_www_data
-def test_git_as_root_accepts_a_web_user_checkout_with_the_updates_setting(tmp_path):
-    uid, gid = _www_data()
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    subprocess.run(["git", "init", "-q", str(repo)], check=True)
-    for root, dirs, files in os.walk(repo):
-        for name in [""] + dirs + files:
-            os.chown(os.path.join(root, name), uid, gid)
-    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_CONFIG")}
-    env["HOME"] = str(tmp_path)  # no global safe.directory
-    env["GIT_CONFIG_NOSYSTEM"] = "1"
-    plain = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo, env=env,
-                           capture_output=True, text=True)
-    if plain.returncode == 0:
-        pytest.skip("this git does not check repository ownership")
-    env.update(GIT_CONFIG_COUNT="1", GIT_CONFIG_KEY_0="safe.directory", GIT_CONFIG_VALUE_0=str(repo))
-    trusted = subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo, env=env,
-                             capture_output=True, text=True)
-    assert trusted.returncode == 0, trusted.stderr
+    assert "safe.directory" not in "\n".join(line for line in text.splitlines() if not line.lstrip().startswith("#"))
 
 
 @needs_root
@@ -1106,3 +1134,296 @@ def test_every_wait_in_the_update_says_what_it_waits_for_and_for_how_long():
                   "Building the site's caches, $name", "Giving the workers",
                   "asking again,", "Testing Apache's configuration, then"):
         assert words in common, words
+
+
+# --- SEC.44: root does not trust the folders config.json names ----------------------------------------------------------
+
+ROOTPATHS = os.path.join(APACHE_DIR, "rootpaths.py")
+
+
+def _rootpaths(monkeypatch):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("rootpaths_under_test", ROOTPATHS)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    monkeypatch.setattr(module, "TRUSTED_UID", os.getuid())     # the tests' own user stands in for root
+    for name in module.ENV_OF.values():
+        monkeypatch.delenv(name, raising=False)
+    return module
+
+
+@pytest.fixture
+def parent(tmp_path, monkeypatch):
+    """A folder that counts as an allowed parent, as the operator's PLANETGEN_ROOT_PATH_PARENTS would make it."""
+    base = tmp_path / "srv"
+    base.mkdir(mode=0o755)
+    monkeypatch.setenv("PLANETGEN_ROOT_PATH_PARENTS", str(base))
+    return base
+
+
+@pytest.mark.parametrize("bad", ["", "relative/dir", "/srv/a b", "/srv/a\nb", "/srv/a;b", "/srv/a{b}", "/srv/a*", "/srv/../etc",
+                                 "/srv//x", "/srv/./x", "/srv/x/", "/etc/cron.d/x", "/etc", "/", "/tmp/x", "/root/.ssh"])
+def test_a_path_with_odd_characters_or_outside_the_allowed_folders_is_refused(bad, monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    with pytest.raises(rootpaths.UnsafePath):
+        rootpaths.check(bad, "jobs")
+
+
+def test_system_service_folders_are_refused_even_under_an_allowed_parent(monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    for bad in ("/var/lib/mysql", "/var/lib/mysql/jobs", "/var/log/auth.log", "/var/lib/dpkg", "/var/log/apache2"):
+        with pytest.raises(rootpaths.UnsafePath, match="system service"):
+            rootpaths.check(bad, "log_dir")
+
+
+def test_a_plain_new_folder_under_an_allowed_parent_passes(parent, monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    assert rootpaths.check(str(parent / "jobs"), "jobs") == str(parent / "jobs")
+    assert rootpaths.check("/var/lib/planetGen/jobs", "jobs") == "/var/lib/planetGen/jobs"
+    assert rootpaths.check("/var/cache/planetgen/tiles", "cache")
+    assert rootpaths.check("/var/log/planetgen.log", "log_file")
+
+
+def test_a_symbolic_link_anywhere_on_the_way_is_refused(parent, tmp_path, monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    target = tmp_path / "elsewhere"
+    target.mkdir()
+    (parent / "link").symlink_to(target)
+    (parent / "real").mkdir()
+    (parent / "real" / "inner").symlink_to(target)
+    for bad in (parent / "link", parent / "link" / "jobs", parent / "real" / "inner", parent / "real" / "inner" / "x"):
+        with pytest.raises(rootpaths.UnsafePath, match="symbolic link"):
+            rootpaths.check(str(bad), "jobs")
+
+
+def test_a_folder_on_the_way_that_the_web_user_can_change_is_refused(parent, monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    (parent / "open").mkdir()
+    os.chmod(parent / "open", 0o777)
+    with pytest.raises(rootpaths.UnsafePath, match="only root can change"):
+        rootpaths.check(str(parent / "open" / "jobs"), "jobs")
+    (parent / "mine").mkdir()
+    os.chmod(parent / "mine", 0o755)
+    assert rootpaths.check(str(parent / "mine" / "jobs"), "jobs")
+    if os.geteuid() == 0:
+        os.chown(parent / "mine", 33, 33)       # owned by someone who is not root
+        with pytest.raises(rootpaths.UnsafePath, match="only root can change"):
+            rootpaths.check(str(parent / "mine" / "jobs"), "jobs")
+
+
+def test_an_existing_folder_that_is_not_the_web_users_is_not_taken_over_unless_empty(parent, monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    uid, gid = os.getuid(), os.getgid()
+    other = uid + 1
+    folder = parent / "data"
+    folder.mkdir()
+    (folder / "precious").write_text("x")
+    # Not the web user's (the web user is a different id), not left by an earlier run (a different group), not empty.
+    with pytest.raises(rootpaths.UnsafePath, match="not empty"):
+        rootpaths.check(str(folder), "jobs", other, gid + 1)
+    # The web user's own folder, or one an earlier run left (root's with the web group), or an empty one, is fine.
+    assert rootpaths.check(str(folder), "jobs", uid, gid + 1)
+    assert rootpaths.check(str(folder), "jobs", other, gid)
+    (folder / "precious").unlink()
+    assert rootpaths.check(str(folder), "jobs", other, gid + 1)
+
+
+def test_an_existing_log_file_that_is_not_the_web_users_and_not_empty_is_not_taken_over(parent, monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    log = parent / "auth.txt"
+    log.write_text("sshd: accepted password for root\n")
+    with pytest.raises(rootpaths.UnsafePath, match="not empty"):
+        rootpaths.check(str(log), "log_file", os.getuid() + 1, os.getgid() + 1)
+    (parent / "folder").mkdir()
+    with pytest.raises(rootpaths.UnsafePath, match="not a file"):
+        rootpaths.check(str(parent / "folder"), "log_file")
+    with pytest.raises(rootpaths.UnsafePath, match="not a folder"):
+        rootpaths.check(str(log), "jobs")
+
+
+def test_a_path_from_roots_own_environment_is_not_asked_about(tmp_path, monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    odd = str(tmp_path / "anywhere")
+    with pytest.raises(rootpaths.UnsafePath):
+        rootpaths.check(odd, "jobs")
+    monkeypatch.setenv("PLANETGEN_JOBS_DIR", odd)
+    assert rootpaths.check(odd, "jobs") == odd
+    with pytest.raises(rootpaths.UnsafePath):          # the variable does not vouch for a different path
+        rootpaths.check(odd + "2", "jobs")
+
+
+def test_the_checkout_is_an_allowed_parent_for_the_check_command(tmp_path):
+    repo = tmp_path / "planetGen"
+    repo.mkdir()
+    ok = subprocess.run([sys.executable, "-I", DEPLOY_PATHS, "--check", "jobs", str(repo / "jobs"), str(repo)],
+                        capture_output=True, text=True, check=False)
+    assert ok.returncode == 0 and ok.stderr == ""
+    refused = subprocess.run([sys.executable, "-I", DEPLOY_PATHS, "--check", "jobs", "/etc/cron.d/x", str(repo)],
+                             capture_output=True, text=True, check=False)
+    assert refused.returncode == 1 and refused.stderr.startswith("refused: jobs: /etc/cron.d/x")
+
+
+def _fake_checkout_with_scripts(tmp_path, config):
+    """A checkout holding the real scripts, so one that reads config.json reads the test's."""
+    repo = tmp_path / "planetGen"
+    shutil.copytree(APACHE_DIR, repo / "examples" / "apache", ignore=shutil.ignore_patterns("__pycache__"))
+    (repo / "scripts").mkdir()
+    shutil.copy(os.path.join(REPO_DIR, "scripts", "logrecord.sh"), repo / "scripts" / "logrecord.sh")
+    (repo / "src" / "html").mkdir(parents=True)
+    (repo / "config.json").write_text(json.dumps(config))
+    envvars = tmp_path / "envvars"
+    envvars.write_text("export APACHE_RUN_USER=www-data\nexport APACHE_RUN_GROUP=www-data\n")
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
+    env.update(APACHE_ENVVARS=str(envvars), PLANETGEN_STATE_DIR=str(repo / "state"),
+               PLANETGEN_BAND_TABLE_CACHE="")
+    return repo, env
+
+
+@needs_www_data
+def test_create_cache_dir_leaves_a_config_json_folder_outside_the_allowed_parents_alone(tmp_path):
+    victim = tmp_path / "victim"
+    victim.mkdir()
+    (victim / "keep").write_text("root's")
+    repo, env = _fake_checkout_with_scripts(tmp_path, {"jobs": {"dir": str(victim)},
+                                                       "tile_cache": {"dir": str(tmp_path / "tiles")}})
+    proc = subprocess.run([str(repo / "examples" / "apache" / "create-cache-dir.sh")], env=env, capture_output=True,
+                          text=True, check=False)
+    assert proc.returncode == 0, proc.stderr
+    assert "jobs" in proc.stderr + proc.stdout and "is not under a folder the install scripts may use" in proc.stderr + proc.stdout
+    assert os.stat(victim).st_uid == 0 and os.stat(victim / "keep").st_uid == 0     # not re-owned
+    assert not (tmp_path / "tiles").exists()                                           # not made
+    assert os.stat(repo / "state").st_uid == _www_data()[0]                            # what is allowed still ran
+
+
+@needs_www_data
+def test_create_cache_dir_does_not_follow_a_link_that_config_json_names(tmp_path):
+    target = tmp_path / "system"
+    target.mkdir()
+    base = tmp_path / "cache"
+    base.mkdir()
+    (base / "tiles").symlink_to(target)
+    repo, env = _fake_checkout_with_scripts(tmp_path, {"tile_cache": {"dir": str(base / "tiles")}})
+    env["PLANETGEN_ROOT_PATH_PARENTS"] = str(tmp_path)
+    proc = subprocess.run([str(repo / "examples" / "apache" / "create-cache-dir.sh")], env=env, capture_output=True,
+                          text=True, check=False)
+    assert proc.returncode == 0, proc.stderr
+    assert "symbolic link" in proc.stderr + proc.stdout
+    assert os.stat(target).st_uid == 0
+
+
+@needs_www_data
+def test_create_cache_dir_still_makes_a_config_json_folder_under_an_allowed_parent(tmp_path):
+    uid, gid = _www_data()
+    srv = tmp_path / "srv"
+    srv.mkdir(mode=0o755)
+    repo, env = _fake_checkout_with_scripts(tmp_path, {"jobs": {"dir": str(srv / "jobs")},
+                                                       "tile_cache": {"dir": str(srv / "tiles")}})
+    env["PLANETGEN_ROOT_PATH_PARENTS"] = str(srv)
+    proc = subprocess.run([str(repo / "examples" / "apache" / "create-cache-dir.sh")], env=env, capture_output=True,
+                          text=True, check=False)
+    assert proc.returncode == 0, proc.stderr
+    for name in ("jobs", "tiles"):
+        assert (os.stat(srv / name).st_uid, os.stat(srv / name).st_gid) == (uid, gid)
+
+
+@needs_www_data
+def test_set_permissions_does_not_chown_a_jobs_folder_config_json_points_at_a_system_folder(tmp_path):
+    victim = tmp_path / "etc-like"
+    victim.mkdir()
+    (victim / "shadow").write_text("root's")
+    repo = _make_checkout(tmp_path)
+    (repo / "config.json").write_text(json.dumps({"jobs": {"dir": str(victim)}}))
+    shutil.copytree(APACHE_DIR, repo / "examples" / "apache", dirs_exist_ok=True)
+    (repo / "scripts").mkdir(exist_ok=True)
+    shutil.copy(os.path.join(REPO_DIR, "scripts", "logrecord.sh"), repo / "scripts" / "logrecord.sh")
+    proc = subprocess.run([str(repo / "examples" / "apache" / "set-permissions.sh"), str(repo)],
+                          env={**{k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")},
+                               "APACHE_ENVVARS": str(_write_envvars(tmp_path))},
+                          capture_output=True, text=True, check=False)
+    assert proc.returncode == 0, proc.stderr
+    assert "is not under a folder the install scripts may use" in proc.stderr + proc.stdout
+    assert os.stat(victim).st_uid == 0 and os.stat(victim / "shadow").st_uid == 0 and os.stat(victim / "shadow").st_mode & 0o777 != 0o640
+
+
+def _write_envvars(tmp_path):
+    envvars = tmp_path / "envvars"
+    envvars.write_text("export APACHE_RUN_USER=www-data\nexport APACHE_RUN_GROUP=www-data\n")
+    return envvars
+
+
+def test_log_locations_makes_nothing_at_a_log_path_config_json_puts_outside_the_allowed_folders(tmp_path, open_dir):
+    elsewhere = open_dir / "etc" / "cron.d"
+    result = _run_log_locations(tmp_path, config={"log_file": str(elsewhere / "evil.log"), "log_dir": str(elsewhere / "d")},
+                                PLANETGEN_ROOT_PATH_PARENTS="/nonexistent")
+    assert result.returncode == 0
+    assert "is not under a folder the install scripts may use" in result.stderr
+    assert not elsewhere.exists()
+
+
+def test_every_root_script_asks_before_using_a_folder_from_config_json():
+    """SEC.44: create-cache-dir.sh, set-permissions.sh, setup-debug-log.sh and the update log all call the check."""
+    for name in ("create-cache-dir.sh", "set-permissions.sh", "setup-debug-log.sh"):
+        assert "deploy-paths.py\" --check" in _code_lines(name) or "deploy-paths.py\" --check" in _read(name), name
+    with open(os.path.join(REPO_DIR, "scripts", "deploy-common.sh"), encoding="utf-8") as f:
+        assert "deploy-paths.py\" --check log_dir" in f.read()
+    assert "chown -R -h" in _read("create-cache-dir.sh")
+
+
+# --- SEC.44 follow-up: a user may install in a home folder on a shared machine ------------------------------------------
+
+def test_a_home_folder_is_an_allowed_parent(monkeypatch):
+    rootpaths = _rootpaths(monkeypatch)
+    assert "/home" in rootpaths.ALLOWED_PARENTS and "/Users" in rootpaths.ALLOWED_PARENTS
+    assert rootpaths.check("/home/nobody-such-user/planetGen/jobs", "jobs")
+    assert rootpaths.check("/Users/nobody-such-user/planetGen/state/tiles", "cache")
+    with pytest.raises(rootpaths.UnsafePath):
+        rootpaths.check("/home/nobody-such-user/.ssh/jobs", "jobs")        # a hidden folder: never
+    with pytest.raises(rootpaths.UnsafePath):
+        rootpaths.check("/homework/jobs", "jobs")                          # only the folder itself, not a prefix
+
+
+@pytest.fixture
+def home(tmp_path, monkeypatch):
+    """A fake /home: allowed parent whose user folders belong to people, not root."""
+    base = tmp_path / "home"
+    base.mkdir(mode=0o755)
+    rootpaths = _rootpaths(monkeypatch)
+    monkeypatch.setattr(rootpaths, "HOME_PARENTS", (str(base),))
+    monkeypatch.setenv("PLANETGEN_ROOT_PATH_PARENTS", str(base))
+    return rootpaths, base
+
+
+@pytest.mark.skipif(os.geteuid() != 0, reason="needs root to give a folder to another user")
+def test_a_users_own_home_folder_on_the_way_is_fine_unless_it_is_the_web_users_or_the_web_group_can_write_it(home):
+    rootpaths, base = home
+    alice = base / "alice"
+    alice.mkdir(mode=0o750)
+    os.chown(alice, 4242, 4242)
+    web_uid, web_gid = 33, 33
+    assert rootpaths.check(str(alice / "planetGen" / "jobs"), "jobs", web_uid, web_gid)
+    os.chmod(alice, 0o770)                       # the user's own group may write: not the web group
+    assert rootpaths.check(str(alice / "planetGen" / "jobs"), "jobs", web_uid, web_gid)
+    os.chown(alice, 4242, web_gid)               # now the web group can: the web user could swap a link in
+    with pytest.raises(rootpaths.UnsafePath, match="only its owner and root"):
+        rootpaths.check(str(alice / "planetGen" / "jobs"), "jobs", web_uid, web_gid)
+    os.chown(alice, web_uid, 4242)               # the web user's own folder
+    os.chmod(alice, 0o755)
+    with pytest.raises(rootpaths.UnsafePath, match="only its owner and root"):
+        rootpaths.check(str(alice / "planetGen" / "jobs"), "jobs", web_uid, web_gid)
+
+
+def test_the_other_checks_still_hold_in_a_home_folder(home, tmp_path):
+    rootpaths, base = home
+    (base / "alice").mkdir()
+    (base / "alice" / "link").symlink_to(tmp_path)
+    for bad in (base / "alice" / "link", base / "alice" / "link" / "x"):
+        with pytest.raises(rootpaths.UnsafePath, match="symbolic link"):
+            rootpaths.check(str(bad), "jobs")
+    (base / "alice" / "data").mkdir()
+    (base / "alice" / "data" / "mine").write_text("x")
+    with pytest.raises(rootpaths.UnsafePath, match="not empty"):
+        rootpaths.check(str(base / "alice" / "data"), "jobs", os.getuid() + 1, os.getgid() + 1)
+    with pytest.raises(rootpaths.UnsafePath, match="not empty"):         # a whole home folder is not taken over either
+        rootpaths.check(str(base / "alice"), "jobs", os.getuid() + 1, os.getgid() + 1)
+    with pytest.raises(rootpaths.UnsafePath, match="hidden"):
+        rootpaths.check(str(base / "alice" / ".ssh" / "jobs"), "jobs")

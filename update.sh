@@ -48,10 +48,14 @@
 #   6. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
-#   7. Ownership/permissions (`examples/apache/set-permissions.sh`): the
-#      whole checkout and its state directory belong to Apache's user
-#      (www-data:www-data), since a pull leaves new and changed files
-#      owned by root. The virtual environment stays root's.
+#   7. Ownership/permissions (`examples/apache/set-permissions.sh`, SEC.37):
+#      the code (everything but the state and jobs folders) belongs to
+#      root and is read-only to the web user, since this script runs git
+#      and Python from it as root; only the state directory (which also
+#      holds config.json), the jobs directory, the tile cache and the logs
+#      belong to Apache's user (www-data:www-data). The bytecode is
+#      compiled first, as root, because the web user cannot write it. The
+#      virtual environment stays root's.
 #   8. The tile cache and Generate jobs directories
 #      (`examples/apache/create-cache-dir.sh`), and the debug and activity
 #      logs (`examples/apache/setup-debug-log.sh`): each one's folder,
@@ -86,10 +90,13 @@
 # of work (Generate jobs, runs in the run record, queued jobs, the orbital
 # update, the Galaxy Map warm-up) and stops, changing nothing, unless you
 # agree to cancel them: --yes, or a y typed at the question on the terminal.
-# Nobody to ask is a no: a run started by systemd or cron, one with no
-# terminal, and 30 seconds without an answer all stop it, with exit status 1,
-# unless --yes was given (the maintenance timer adds it when it should cancel
-# the work). Then it closes the site (maintenance mode, cause
+# Nobody to ask is a no: a run started by cron, one with no terminal, and 30
+# seconds without an answer all stop it, with exit status 1, unless --yes was
+# given. A run started by systemd (the monthly timer, the admin Update button)
+# cancels everything it lists except what is generating new content (a
+# Generate job, a generation run, a job on the generation queue), with a stop
+# reason saying why; while anything is generating it changes nothing, exits 1
+# and the next firing or press tries again. Then it closes the site (maintenance mode, cause
 # "update") and nothing else can start until the update has finished. A good
 # update opens the site again at the end; a failed one leaves it closed, says
 # which step failed and how to open it (`python3 -m planetgen.cli.maintenance
@@ -155,12 +162,6 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 cd "$SCRIPT_DIR"
-
-# The checkout belongs to Apache's user (examples/apache/set-permissions.sh),
-# not to root, and git refuses a repository owned by someone else
-# ("detected dubious ownership"). Trust this one checkout for this run only,
-# through the environment rather than any git config file.
-export GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=safe.directory GIT_CONFIG_VALUE_0="$SCRIPT_DIR"
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     log_error "$SCRIPT_DIR is not a git checkout -- can't pull an update here."
@@ -259,7 +260,10 @@ else
     ensure_apache_modules
 fi
 
-log_stage 7 9 "Setting ownership/permissions: the checkout belongs to Apache's user"
+log_stage 7 9 "Setting ownership/permissions: the code belongs to root, read-only to Apache's user"
+# The web user cannot write __pycache__ in a tree that is not its own: compile here, as root, so its requests start fast.
+"$PYTHON" -m compileall -q "$SCRIPT_DIR/src" >/dev/null 2>&1 \
+    || log_warning "compiling the bytecode failed; the web app still runs, a little slower to start."
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$SCRIPT_DIR"
 
 log_stage 8 9 "Checking the cache, jobs and debug log locations"
@@ -278,6 +282,9 @@ check_app_imports
 log_info "Checking the Redis server (config.json's redis.url):"
 ensure_redis
 check_redis_settings
+
+# OPS.110: the maintenance timers and (SEC.43) the admin Update button's units, rendered for this checkout and venv (Linux, systemd).
+install_maintenance_units || log_warning "the maintenance units were not all set up (see above); the deploy carries on."
 
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then

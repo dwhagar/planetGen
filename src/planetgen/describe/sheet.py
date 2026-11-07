@@ -570,7 +570,7 @@ def _container_not_shown():
     }
 
 
-_COMPOSITION_STORED = {table: _excuse(columns, "the stored composition of the cloud (GEN.1276, GEN.1277); its sheet rows come with the item that wires the composition text")
+_COMPOSITION_STORED = {table: _excuse(columns, "the stored composition of the cloud; its sheet rows come with the item that wires the composition text")
                        for table, columns in nebula_columns.COLUMNS.items()}
 """dict: Table -> the composition columns of a nebula or remnant, each excused until the sheet shows the composition."""
 

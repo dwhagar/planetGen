@@ -711,7 +711,7 @@ class BackfillFollower(followed.Follower):
             log.normal(f"Nothing to backfill: {plan['detail']['skip']}.")
             return
         if plan["detail"].get("sky_cells"):
-            log.normal(f"Drawing the sky tiers of {plan['detail']['sky_cells']} observer cell(s) after the sectors' backfill (VIEW.25).")
+            log.normal(f"Drawing the sky tiers of {plan['detail']['sky_cells']} observer cell(s) after the sectors' backfill.")
         log.normal("Backfilling the bright stars out from the edge of the run...")
         self.bar = self.hold(steps.Step("Bright-star backfill (sectors)", "backfill", 1, args=self.args,
                                         progress=self.progress, workers=self.workers))

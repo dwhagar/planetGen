@@ -8,10 +8,17 @@ starting, the Stats page's cancel) and stop-all all use the same signal. A cance
 about to signal in `stop-reasons` in the state folder (`leave`), and the run reads it when the signal arrives (`take`), so
 it can print one line saying what ended it instead of a traceback. A folder that cannot be written only means the run says
 less. A pid's file is removed by the run when it starts, so a pid used again does not read an old reason.
+
+The folder is open to every user (mode 1777, so each user a cancel runs as may leave a reason), and the canceller is often
+root, so nothing in it is trusted (SEC.38): a reason is written to a name that does not exist yet (`O_CREAT | O_EXCL |
+O_NOFOLLOW`, after removing what was there, so a link a local user planted under `<pid>.txt` is replaced and never followed),
+and a reason is read only from a plain file whose owner is root or the reader (a canceller can only signal a process of its
+own user or, as root, any), never through a link.
 """
 
 import contextlib
 import os
+import stat
 
 from planetgen.admin import maintenance
 
@@ -41,9 +48,12 @@ def leave(pid, reason):
         with contextlib.suppress(OSError):
             os.chmod(folder(), 0o1777)      # every user a cancel runs as may leave one, and every run may read it
         path = _path(pid)
-        with open(path, "w", encoding="utf-8") as handle:
+        with contextlib.suppress(FileNotFoundError):
+            os.unlink(path)         # a link or file left under the name: removed itself, never followed
+        descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o644)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            os.fchmod(handle.fileno(), 0o644)       # whatever the umask: the run, another user, reads it
             handle.write(text + "\n")
-        os.chmod(path, 0o644)
     except OSError:
         return False
     return True
@@ -53,8 +63,13 @@ def take(pid):
     """The reason left for process `pid`, or `None`; the file is removed."""
     path = _path(pid)
     try:
-        with open(path, "r", encoding="utf-8") as handle:
-            text = handle.readline().strip()
+        descriptor = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+        with os.fdopen(descriptor, "r", encoding="utf-8") as handle:
+            status = os.fstat(handle.fileno())
+            if not stat.S_ISREG(status.st_mode) or status.st_uid not in (0, os.getuid()):
+                text = ""       # not a reason a canceller left: ignored, and removed below
+            else:
+                text = handle.readline().strip()
     except OSError:
         return None
     with contextlib.suppress(OSError):

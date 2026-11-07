@@ -72,7 +72,6 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 |---|---|---|---|
 | ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | GEN.302 | Split from MAP.119. |
 | MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo | ADM.94, GEN.302, MAP.212 | Split from MAP.119. |
-| MAP.119 | Expected star density editable by admins on the Galaxy Map | ADM.94, MAP.218 |  |
 
 ### Admin shell
 
@@ -134,8 +133,6 @@ Regeneration to a specification for every kind of object and region, with the ke
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.77 | Regenerate a planet, moon or belt to a specification, with a keep set, rearranging the system if it must | ADM.70, ADM.69, ADM.75, ADM.66 |  |
-| ADM.78 | Regenerate a star or a whole system to a specification, with a keep set | ADM.70, ADM.69, ADM.76, ADM.66 |  |
-| ADM.79 | Regenerate a phenomenon to a specification, with a keep set | ADM.63, ADM.70, ADM.69, ADM.66 |  |
 
 ### Regenerate regions
 
@@ -147,13 +144,13 @@ Regeneration to a specification for every kind of object and region, with the ke
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.81 | Edit any stored field of any object as a plan: one generic editor driven by the aspect catalogue | ADM.63, ADM.66, ADM.69 |  |
+| ADM.81 | Edit any stored field of any object as a plan: one generic editor driven by the aspect catalogue | ADM.62, ADM.66, ADM.69 |  |
 
 ### Civilization editors
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.130 | Aspects for civilizations: species, nations, cities, ports and stations in the aspect catalogue, with keep marks and locks | POP.22, ADM.62, ADM.63, DB.104, POP.26 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
+| ADM.130 | Aspects for civilizations: species, nations, cities, ports and stations in the aspect catalogue, with keep marks and locks | POP.22, ADM.62, DB.104, POP.26 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
 | ADM.131 | Editable civilizations: edit a species, rename or split a nation, move a city, transfer a city between nations, set the dominant nation and place or remove a port, as approved plans | ADM.130, ADM.66, ADM.69 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
 
 ### Resource editors
@@ -174,10 +171,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.175 | Edit everything end to end: the headline scenarios with approval and undo | ADM.77, ADM.78, ADM.71, ADM.72, ADM.74, ADM.80, TEST.168 |  |
+| TEST.175 | Edit everything end to end: the headline scenarios with approval and undo | ADM.77, ADM.71, ADM.72, ADM.74, ADM.80, TEST.168 |  |
 | TEST.176 | Plan engine properties: any sequence of edits leaves every system valid, and undo restores every row | ADM.76, ADM.60, ADM.77 |  |
 | TEST.177 | Edited sectors survive repair, regeneration and the golden seed | ADM.61, ADM.80 |  |
 | TEST.443 | Reclassification after an edit: an edited planet or moon changes class when its conditions cross a rule, and keeps it when they do not | ADM.80 | Remainder of TEST.301 |
 | DOC.54 | Admin help: how to edit, regenerate, lock, approve and undo | TEST.175, ADM.68 |  |
-| ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | MAP.120, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81 | Closes when the regen and edit screens of phase 4 are done; MAP.120 is the map part. |
-| ADM.57 | Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan | ADM.32, ADM.35, ADM.36, ADM.52, MAP.119, MAP.120, POP.13, ADM.68, ADM.71, ADM.72, ADM.74, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81, TEST.175, TEST.176, TEST.177, DOC.54 | The headline; done when its items are |
+| ADM.57 | Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan | ADM.32, ADM.36, ADM.52, MAP.218, MAP.120, POP.13, ADM.68, ADM.71, ADM.72, ADM.74, ADM.77, ADM.80, ADM.81, TEST.175, TEST.176, TEST.177, DOC.54 | The headline; done when its items are |

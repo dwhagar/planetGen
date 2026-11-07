@@ -35,6 +35,10 @@ from planetgen.queue import api_jobs
 from planetgen import describe
 from planetgen.describe import DOCUMENT_FORMAT, html as describe_html
 from planetgen.generation.limits import MAX_NUM_ORBITS
+from planetgen.generation.run_system import ODDS_OPTIONS, max_stars_problem, stars_problem
+from planetgen.generation.star import STAR_TYPE_PATTERN
+from planetgen.db.store import SYSTEM_NAME_MAX_LENGTH
+from planetgen.tuning import MAX_STARS_CEILING, MAX_STARS_DEFAULT
 
 TRISTATE_FIELDS = (
     # (planetgen option name, label) -- the same ten, in the same order,
@@ -52,6 +56,9 @@ TRISTATE_FIELDS = (
 )
 
 TRISTATE_CHOICES = (("", "Generator decides"), ("yes", "Yes"), ("no", "No"))
+
+ODDS_CHOICES = (("", "Generator decides"), ("yes", "Raise the odds"), ("no", "No"))
+"""tuple: The choices for the options that only raise the odds (`ODDS_OPTIONS`, GEN.1130): Yes would promise what the generator does not force."""
 
 FORMATS = (("markdown", "Markdown", "md", "text/markdown"),
            ("text", "Plain text", "txt", "text/plain"))
@@ -112,9 +119,17 @@ def system_request(form):
     chance_system = _number(form, "flavor_chance_system", "System flavor chance", float, minimum=0.0, maximum=1.0)
     chance_planet = _number(form, "flavor_chance_planet", "Planet flavor chance", float, minimum=0.0, maximum=1.0)
     max_flavor = bool(form.get("max_planet_flavor"))
+    stars = _number(form, "stars", "Number of stars", int, minimum=1, maximum=MAX_STARS_CEILING)
+    max_stars = _number(form, "max_stars", "Most stars", int, minimum=1, maximum=MAX_STARS_CEILING)
 
-    if states["planets"] is False and (states["moons"] or states["max_planets"] or states["habitable_world"]):
-        raise FormError("No planets can't be combined with moons, maximum orbits, or a habitable world.")
+    if len(name) > SYSTEM_NAME_MAX_LENGTH:
+        raise FormError(f"The name is {len(name)} characters; a system name can be at most {SYSTEM_NAME_MAX_LENGTH}.")
+    if star_type and not STAR_TYPE_PATTERN.fullmatch(star_type.upper()):
+        raise FormError("The star type must be a spectral type: a class letter (OBAFGKM), a subclass digit (0-9) "
+                        "and a Yerkes class (0, IA+, IA, IAB, IB, II, III, IV, V, VI, VII or D), e.g. G2V.")
+    if states["planets"] is False and (states["moons"] or states["max_planets"] or states["habitable_world"]
+                                       or states["asteroid_belt"]):
+        raise FormError("No planets can't be combined with moons, maximum orbits, an asteroid belt, or a habitable world.")
     if star_type and states["large_star"]:
         raise FormError("A star type can't be combined with forcing a large star.")
     if states["intelligent_life"] is not None and states["habitable_world"] is False:
@@ -134,6 +149,14 @@ def system_request(form):
         if not isinstance(system_file, dict):
             raise FormError("The system file must be a JSON object ({ ... }).")
 
+    # A form value wins over the system file's, as on the command line.
+    resolved = lambda key, value: (system_file or {}).get(key) if value is None else value  # noqa: E731
+    problem = max_stars_problem(resolved("max_stars", max_stars)) or stars_problem(
+        resolved("stars", stars), resolved("max_stars", max_stars),
+        resolved("binary_system", states["binary_system"]), resolved("wide_binary", states["wide_binary"]))
+    if problem:
+        raise FormError(problem[0].upper() + problem[1:])
+
     argv = []
     for option, _label in TRISTATE_FIELDS:
         if states[option] is not None:
@@ -148,6 +171,10 @@ def system_request(form):
         argv.append(f"--age={age}")
     if num_orbits is not None:
         argv.append(f"--num-orbits={num_orbits}")
+    if stars is not None:
+        argv.append(f"--stars={stars}")
+    if max_stars is not None:
+        argv.append(f"--max-stars={max_stars}")
     if chance_system is not None:
         argv.append(f"--flavor-chance-system={chance_system}")
     if chance_planet is not None:
@@ -221,7 +248,8 @@ def _page(admin, form=None, result=None, error=None, status=200):
     return render_screen(
         "generate_system.html", admin, "One-off system", [crumb("One-off system")], form=form, error=error,
         status=status, description="Generate one star system without saving it to the database.",
-        tristate_fields=TRISTATE_FIELDS, tristate_choices=TRISTATE_CHOICES, system_file_example=SYSTEM_FILE_EXAMPLE,
+        tristate_fields=TRISTATE_FIELDS, tristate_choices=TRISTATE_CHOICES, odds_choices=ODDS_CHOICES,
+        odds_options=ODDS_OPTIONS, max_stars_ceiling=MAX_STARS_CEILING, max_stars_default=MAX_STARS_DEFAULT, system_file_example=SYSTEM_FILE_EXAMPLE,
         max_num_orbits=MAX_NUM_ORBITS, result=result)
 
 

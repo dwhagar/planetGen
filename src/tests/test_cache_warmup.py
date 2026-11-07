@@ -27,7 +27,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.physics.units import ly_to_pc
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util.settings import get_settings
-from planetgen.queue import commands, redisclient, redisqueue, runrecord, units, wrapper
+from planetgen.queue import allowlist, commands, redisclient, redisqueue, runrecord, units, wrapper
 from planetgen.web import warmup
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient, tilecache
@@ -654,7 +654,10 @@ def prefetch(galaxy, monkeypatch):
         with real(galaxy.config).test_request_context("/"):
             return tileprefetch.schedule(galaxy.config.database, keys)
     Rules.schedule = staticmethod(schedule)
+    nodes_queue = redisqueue.queue(redisqueue.NODES_QUEUE, redisqueue.connect())
+    nodes_queue.empty()                 # PERF.245: the nodes the earlier tests of the run queued are not this test's to count
     yield Rules
+    nodes_queue.empty()
     client = redisclient.client(decode_responses=True)
     for key in client.scan_iter(f"planetgen-test:{token}:*"):
         client.delete(key)
@@ -663,8 +666,8 @@ def prefetch(galaxy, monkeypatch):
 def _run_queued(prefetch):
     import rq
     connection = redisqueue.connect()
-    done = rq.SimpleWorker([redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)], connection=connection,
-                           serializer=redisqueue.JsonSerializer)
+    done = rq.SimpleWorker([redisqueue.queue(redisqueue.NODES_QUEUE, connection)], connection=connection,
+                           serializer=redisqueue.JsonSerializer, job_class=allowlist.GuardedJob)
     done.work(burst=True, logging_level="WARNING")
 
 
@@ -829,6 +832,8 @@ def script(monkeypatch, redis_server):
                 "line": f"{family}: 3 pages warmed (0 answers built, 3 already cached, 0 left out by the cap) in 0.1 s"}
 
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
+    # OPS.114: a warm-up of a database with no galaxy says so and warms nothing; "x" is only a name here, so the run goes as if it held one.
+    monkeypatch.setattr(warm_cli, "galaxy_is_empty", lambda _database: False)
     monkeypatch.setattr(warmup, "warm_family", warm_family)
     # The node commands are many units on a real galaxy; here, like the other families, each is one unit that is faked.
     monkeypatch.setattr(warmup, "expand_warm_galaxy_nodes", lambda params: commands.Expansion(

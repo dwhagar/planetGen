@@ -219,6 +219,7 @@ def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, mo
     maintenance.turn_on(by="migration", cause=maintenance.SECTOR_SWITCH)
     monkeypatch.setattr(maintenance.tempfile, "mkstemp", _denied)
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
+    monkeypatch.setattr(warm_cli, "galaxy_is_empty", lambda _database: False)       # OPS.114: "x" is only a name, the run goes as if it held a galaxy
     monkeypatch.setattr(warmup, "warm_family", lambda db, family, cap=None, app=None, config=None, window=None, report=None: {
         "family": family, "warmed": 1, "left_out": 0, "seconds": 0.0, "line": f"{family}: ok"})
     monkeypatch.setattr(warmup, "expand_warm_galaxy_nodes", lambda params: commands.Expansion(

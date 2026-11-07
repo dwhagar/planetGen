@@ -1164,7 +1164,7 @@ The older `*min_update_interval_years` floating-point guards are no longer
 read by the update.
 
 Meant to run on a schedule, not on every deploy (`install.sh`/`update.sh`
-don't call it) -- e.g. a monthly cron entry:
+don't call it; they do install its systemd timer on a systemd host, OPS.110) -- e.g. a monthly cron entry:
 
 ```
 0 3 1 * * cd /var/lib/planetGen && python3 -m planetgen.cli.orbits >> /var/log/planetgen-orbits.log 2>&1
@@ -1180,6 +1180,8 @@ update on the same monthly run:
 ```
 sudo examples/maintenance/install-maintenance-timer.sh [database ...]
 ```
+
+(`install.sh` and `update.sh` run the same installer step for the default database; run it by hand to name others.)
 
 `planetgen.cli.orbits` mutates rows, so it needs the same read-write database
 account `planetgen` and the web app use, not a `SELECT`-only one you may

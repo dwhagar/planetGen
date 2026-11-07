@@ -57,7 +57,7 @@ def client(galaxy):
 
 
 def test_the_list_marks_the_placeholders_and_counts_them_beside_the_generated_sectors(galaxy, client, keyed):
-    body = client.get("/api/sectors?limit=50").get_json()
+    body = client.get("/api/sectors?limit=50&coverage=all&empty=1").get_json()
     by_name = {item["name"]: item for item in body["items"]}
     assert body["total"] == 5 and body["uncharted_total"] == 3
     assert sorted(item["uncharted"] for item in body["items"]) == [False, False, True, True, True]
@@ -65,7 +65,7 @@ def test_the_list_marks_the_placeholders_and_counts_them_beside_the_generated_se
 
 
 def test_a_placeholder_is_named_from_its_cell_not_from_its_hex_designation_and_carries_its_region(galaxy, client, keyed):
-    items = [item for item in client.get("/api/sectors?limit=50").get_json()["items"] if item["uncharted"]]
+    items = [item for item in client.get("/api/sectors?limit=50&coverage=all&empty=1").get_json()["items"] if item["uncharted"]]
     assert len(items) == 3
     for item in items:
         address = (item["shell_index"], item["band_index"], item["wedge_index"])
@@ -76,12 +76,12 @@ def test_a_placeholder_is_named_from_its_cell_not_from_its_hex_designation_and_c
 
 
 def test_without_a_naming_key_a_placeholder_says_uncharted_with_its_designation(galaxy, client):
-    items = [item for item in client.get("/api/sectors?limit=50").get_json()["items"] if item["uncharted"]]
+    items = [item for item in client.get("/api/sectors?limit=50&coverage=all&empty=1").get_json()["items"] if item["uncharted"]]
     assert all(item["name"] == f"Uncharted sector {item['designation']}" and item["region"] is None for item in items)
 
 
 def test_the_sector_detail_of_a_placeholder_is_uncharted_and_a_generated_one_is_not(galaxy, client, keyed):
-    items = client.get("/api/sectors?limit=50").get_json()["items"]
+    items = client.get("/api/sectors?limit=50&coverage=all&empty=1").get_json()["items"]
     placeholder = next(item for item in items if item["uncharted"])
     generated = next(item for item in items if not item["uncharted"])
     detail = client.get(f"/api/sectors/{placeholder['id']}").get_json()

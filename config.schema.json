@@ -1086,7 +1086,7 @@
         },
         "sky_limit": {
           "default": 7.5,
-          "description": "The limiting magnitude of the sky charting builds for each system's neighbourhood (VIEW.25): when a run charts sectors, the stars a system's sky shows to this magnitude are drawn over the 50 parsec cells the new sectors lie in, after the bright-star backfill, so a visitor never waits for them. A cell already drawn costs nothing. Fainter limits draw more stars and take longer: 7.5 is a dust-free naked-eye sky, about half an hour a cell on one worker. 0 turns it off; otherwise 2 to 9. The command line's --sky-limit overrides it for a run.",
+          "description": "The limiting magnitude of the sky charting builds for each system's neighbourhood: when a run charts sectors, the stars a system's sky shows to this magnitude are drawn over the 50 parsec cells the new sectors lie in, after the bright-star backfill, so a visitor never waits for them. A cell already drawn costs nothing. Fainter limits draw more stars and take longer: 7.5 is a dust-free naked-eye sky, about half an hour a cell on one worker. 0 turns it off; otherwise 2 to 9. The command line's --sky-limit overrides it for a run.",
           "maximum": 9,
           "minimum": 0,
           "title": "Sky Limit",
@@ -1706,7 +1706,7 @@
       "properties": {
         "build_workers": {
           "default": 0,
-          "description": "Processes `planetgen.cli.tiles` (the whole-galaxy map build) builds nodes in at once; 0 is one per core.",
+          "description": "Processes `planetgen.cli.tiles` (the whole-galaxy map build) builds nodes in at once, at the lowered priority queue workers run at; 0 is one per core less the workers kept for short and long jobs.",
           "maximum": 64,
           "minimum": 0,
           "title": "Build Workers",
@@ -1722,7 +1722,7 @@
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many processes the nightly whole-map build uses; 0 is one per core.",
+          "x-summary": "How many processes the nightly whole-map build uses; 0 is one per core less the ones kept for short and long jobs.",
           "x-unit": "processes"
         },
         "dir": {

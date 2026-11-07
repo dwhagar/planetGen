@@ -8641,6 +8641,21 @@ def has_galaxy_sectors(conn):
     return conn.execute("SELECT 1 FROM sectors WHERE shell_index IS NOT NULL LIMIT 1").fetchone() is not None
 
 
+def galaxy_is_empty(conn):
+    """
+    Whether the database holds no galaxy at all (OPS.114): no sector row and no galaxy plan row, which is what a New galaxy wipe leaves
+    (every table stays, none holds a row), or a database whose tables are not made yet. Two indexed one-row reads.
+    """
+    for table in ("sectors", "galaxy_shape"):
+        try:
+            if conn.execute(f"SELECT 1 FROM {table} LIMIT 1").fetchone() is not None:
+                return False
+        except pymysql.err.ProgrammingError as exc:
+            if not (exc.args and exc.args[0] == 1146):      # 1146: the table does not exist
+                raise
+    return True
+
+
 GalaxyMaker = namedtuple(
     "GalaxyMaker", ["version_key", "planetgen_version", "python_version", "platform", "generator_epoch", "fp_spec",
                     "battery_digest", "battery_cases"], defaults=(None, None, None, None))

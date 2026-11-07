@@ -2694,6 +2694,7 @@ Baseline: PR #1817.
 | GEN.1305 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.580 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
 | TEST.658 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.659 | 8.1 | Physics rectification: citations and the gate's test health |
 | TEST.655 | 8.1 | Physics rectification: life classes, chemistries and their pages |
 | VIEW.47 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.654 | 8.1 | Physics rectification: life classes, chemistries and their pages |
@@ -2725,3 +2726,45 @@ Baseline: PR #1817.
 | GEN.1236 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
 | GEN.1238 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
 | GEN.1240 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| MAP.401 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| MAP.404 | 8.1 | Generate page and directives |
+| DB.113 | 8.1 | Bugs and flaky tests |
+| PERF.245 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| TEST.656 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| TEST.600 | 8.1 | Physics rectification: citations and the gate's test health |
+| SEC.37 | 8.1 | The headline closes |
+| SEC.38 | 8.1 | The headline closes |
+| GEN.1194 | 8.1 | Physics rectification: greenhouse refits, region runs and tests red on main |
+| SEC.43 | 8.1 | The headline closes |
+| MAP.403 | 8.1 | Generate page and directives |
+| PERF.247 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.807 | 8.1 | Physics rectification: older physics follow-ups, units and the storage rows |
+| SEC.39 | 8.1 | The headline closes |
+| PERF.246 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.753 | 8.1 | Physics rectification: stars, spectra and climate follow-ups |
+| SEC.44 | 8.1 | The headline closes |
+| SEC.46 | 8.1 | The headline closes |
+| PERF.241 | 8.1 | Physics rectification: citations and the gate's test health |
+| TEST.663 | 8.1 | The headline closes |
+| TEST.662 | 8.1 | The headline closes |
+| SEC.40 | 8.1 | The headline closes |
+| SEC.41 | 8.1 | The headline closes |
+| DOC.109 | 8.1 | The headline closes |
+| SEC.42 | 8.2 | Accounts and sign-up |
+| GEN.1259 | 8.1 | Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here) |
+| PERF.248 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| GEN.1326 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
+| GEN.1322 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
+| SEC.45 | 8.2 | Accounts and sign-up |
+| OPS.110 | 8.1 | The headline closes |
+| OPS.111 | 8.1 | The headline closes |
+| OPS.112 | 8.1 | The headline closes |
+| TEST.661 | 8.1 | The headline closes |
+| TEST.664 | 8.1 | The headline closes |
+| MAP.405 | 8.1 | The headline closes |
+| OPS.113 | 8.1 | The headline closes |
+| UX.284 | 8.1 | The headline closes |
+| TEST.669 | 8.1 | The headline closes |
+| OPS.114 | 8.1 | The headline closes |
+| TEST.667 | 8.1 | The headline closes |
+| TEST.668 | 8.1 | The headline closes |
