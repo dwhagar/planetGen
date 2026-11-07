@@ -16680,32 +16680,6 @@ clears each one.
   GEN.1085. Filed by the TODO thread from Aux 5.
   Prerequisites: GEN.1085. Related: GEN.1092, GEN.1083.
 
-- [ ] **DB.113 The generate run stops at stage 7 (Scatter the massive stars) on a MySQL deadlock (error 1213) in unit 11, with 15 workers (bug)**
-  Boss, 6:23 PM EST on 2026-11-06 (relayed by the coordinator), live
-  crash, top priority: a new-galaxy run (seed 85E412740CFE74538A553096CC454179,
-  PlanetGen 8.0.3486, job-20261106-223708-10bf.log) stopped at 6:12 PM EST
-  on 2026-11-06 after 2,017 s: "Stage 7 of 14 failed after 149 s: RunStopped:
-  unit 11 of stage Massive stars failed: OperationalError: (1213, 'Deadlock
-  found when trying to get lock; try restarting transaction')", 15 workers
-  running (peak 5.7 GB of workers, MySQL 1.7 GB). Units 1 to 10 had finished
-  (shells 167 to 208, 48 to 64 stars each) and the stage was at 4 percent
-  (20 of 65,536 shells). The stage unit hit a lock fight between parallel
-  writers and the run stopped at once instead of retrying. Do: (1) find
-  the statements that deadlock (the stage's unit write: scatter rows,
-  name registry rows, or the Object index rows, in sorted key order; read
-  SHOW ENGINE INNODB STATUS and the deadlock log on a run with 15 workers,
-  or reproduce on a smaller galaxy with many workers); (2) fix the cause
-  (a consistent lock order, no gap locks, smaller transactions) and also
-  make a unit that loses a deadlock (1213) or a lock wait (1205) start over
-  a few times before it fails the stage, as save_sector and the run_galaxy
-  draw already do; (3) add a test with two or more writers on the same
-  stage tables. Lock-free (no generated value changes). Done: a 15-worker
-  run passes stage 7 and a unit that loses a deadlock is retried. Version
-  8.1. Owner: the investigation thread "Fix massive-star scatter deadlock
-  crash" (Bug lane). Filed by the TODO thread.
-  Prerequisites: none. Related: DB.40, DB.41, PERF.245.
-  Extension (Boss, 6:33 PM EST on 2026-11-06, relayed by the coordinator): dynamic retries, so a deadlock does not hammer the database: the wait between tries adapts (backoff that grows with each failure and with how many writers are waiting, with jitter from the process, never a draw). A unit can also raise a needs flag to the run system (what it needs, for example the table to itself or fewer parallel writers); after the 8th failed try the run system grants it (a short exclusive window or a reduced worker count for that stage) and the unit continues. Every retry, every wait length, every flag and every grant is logged to the run log. Done adds: the retries back off with load, the 9th attempt runs with the grant, the log lines are tested.
-
 - [ ] **DB.114 The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113)**
   Found with the DB.113 fix (coordinator, 6:27 PM EST on 2026-11-06, PR
   #5392): the massive-star, bright-star-band and phenomenon scatter units
@@ -16744,6 +16718,67 @@ clears each one.
   the thread "Update single-system generation interface". Filed by the
   TODO thread.
   Prerequisites: none. Related: MAP.401.
+
+- [ ] **MAP.402 Index the uncharted sectors that scattered stars and other objects land in, during the scatter, as was done for rogue planets**
+  Boss, 6:42 PM EST on 2026-11-06 (relayed by the coordinator). MAP.399 to
+  MAP.401 named and described the placeholder sectors that drifting rogue
+  planets make; the scatter stages (massive stars, bright-star band,
+  phenomena such as black holes, neutron stars, remnants, planetary nebulae,
+  hypervelocity stars, the quasar) put objects into cells nothing was
+  generated in, and those cells are not indexed. Do: during the scatter
+  write the cell of each landing as an uncharted sector (one row per cell,
+  not per object: the 9.7 million scatter rows stay beside the index, per
+  MAP.400's finding that putting them in costs about 3 GB), with a count and
+  the kinds that landed, so the Sectors list, the sector filter (MAP.403)
+  and the uncharted page (MAP.404) can find them; name them with the Object
+  ID naming system as in MAP.399. A new table or column means a migration,
+  so this is a lock item (the Train Manager numbers the migration); the
+  write must retry on deadlock through db/contention.py (DB.113) and not
+  hold the scatter units' transactions long. Done: a scattered run lists
+  every cell holding a scattered object as an uncharted sector, with counts,
+  and the count matches the scatter tables. Version 8.1. Owner: Core 2
+  (MAP.400's author), lock, train 14 or 15.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
+
+- [ ] **MAP.403 Sector filter: charted sectors by default, with all sectors or uncharted only, on the Sectors list and in the search information**
+  Boss, 6:42 PM EST on 2026-11-06 (relayed by the coordinator). Do: a sector
+  filter with three choices (charted only, the default; all sectors;
+  uncharted only) on the Sectors list, remembered in the page's address like
+  the other filters, and the same choice in the search page's information
+  and in the API (an additive parameter, no version bump). The header counts
+  follow the filter (MAP.399 already shows generated and uncharted numbers).
+  Lock-free (web and API). Done: the Sectors list and a search obey the
+  filter, the default hides uncharted sectors, and a browser test covers the
+  three choices at every screen size. Version 8.1. Owner: Core 1
+  (MAP.399/401's author). Works on the placeholder sectors of MAP.399 at
+  once and on every scattered cell after MAP.402.
+  Filed by the TODO thread.
+  Prerequisites: none. Related: MAP.399, MAP.400, MAP.401.
+  Addition (Boss, 6:49 PM EST on 2026-11-06): truly empty uncharted sectors (nothing known to be in them) get their own option when viewing uncharted: show empty sectors or not, default not. It shows on the Sectors list and in the search information with the other sector filter choices, and in the API as an additive parameter.
+
+- [ ] **PERF.247 Job queue: a job can declare that it requires another job, so the round robin never picks one that cannot run yet; jobs with no declared dependency still run together**
+  Boss, 6:45 PM EST on 2026-11-06 (relayed by the coordinator), following
+  PERF.245's fair sharing between task types: the queue must not hand a
+  worker a job that cannot run because it depends on a previous job, and
+  this guards against running tasks in the wrong order. Do: add an
+  optional requires (one or more job ids or task-type stages) to a job's
+  declaration; the dispatcher skips a job whose requirements are not done
+  (and leaves it queued, not failed), shows it as waiting on those jobs in
+  the run record and log, and a requirement that failed or was stopped
+  fails or stops its dependants with a clear line instead of waiting
+  forever. Only declared dependencies block: jobs that can run
+  concurrently (they do not touch each other's data or read data that is
+  not there yet) stay allowed to run together, so the stages that
+  already run in parallel are not serialised. Declare the dependencies
+  that exist today (for example indexing after a stage's rows are written,
+  the sky charting after the scatter) and test for a dependant that waits,
+  a failed requirement, and two independent jobs running together.
+  Lock-free (queue only; no generated value changes). Done: a job with a
+  requirement is never started before it is done, and independent jobs
+  still overlap. Version 8.1. Owner: Core 4 (PERF.245's queue work), after
+  PERF.245. Filed by the TODO thread.
+  Prerequisites: PERF.245. Related: PERF.245, DB.113.
 
 - [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
   Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
@@ -16923,20 +16958,6 @@ clears each one.
   cost is explained. Version 8.1. Owner: Bug 1 after PERF.241. Filed by
   the TODO thread.
   Prerequisites: none. Related: PERF.241, TEST.656.
-
-- [ ] **PERF.245 The warm-up takes every worker, so indexing, searches and sector lists cannot get one: share workers round robin between task types**
-  Boss, 5:08 PM EST on 2026-11-06: the warm-up takes all workers, so
-  indexing and things like searches and sector lists fail to get a
-  worker. He suggests round robin or similar so all tasks get done. Do:
-  find where the warm-up and the whole-map build take the worker slots,
-  give each task type (warm-up, indexing, search, sector and system
-  lists) its own share or a fair queue so none starves, keep the warm-up
-  parallel with what is left, and measure a search and a sector list
-  during a warm-up before and after. Lock-free. Done: a search and a
-  sector list answer while the warm-up runs. Version 8.1. Owner: Core 2.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: MAP.400, PERF.241.
-  Addition (Boss, 5:30 PM EST on 2026-11-06, Q6 option 1): fold in keeping the app loaded in the warm-up worker (the open PERF idea from the warm-up timings); Core 4 measures first and keeps it only if it gains. Owner changed (TODO): Core 4 (Core 4 found the shared FIFO maintenance queue and the normal-priority whole-map build).
 
 - [ ] **TEST.629 Browser test: every kind in the property sheet shows a Sensor view on its page and in the map info panel, with the readout line and the estimate label where an input is not stored**
   Sensor view (Boss, 6:46 PM EST on 2026-11-05, S1 to S4 all option 1;

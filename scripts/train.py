@@ -7,6 +7,8 @@ The merge-train runner's steps as one command, the script rule 10 of the merge-t
                                                         merge each head (one `branch` per line, stacking order) into this branch
     python scripts/train.py collisions heads.txt        which migration, epoch, stand-in section and citation numbers two heads (or a head
                                                         and main) both claim, before any merge
+    python scripts/train.py renumber HEAD OLD NEW       in the lines a head added, change a stand-in section (6.193 to 6.196) or a citation
+                                                        (R5136 to R5140) to a free number, after its merge
     python scripts/train.py numbers                     renumber this branch's migrations and epochs after main's (allocate_numbers)
     python scripts/train.py rebuild                     rebuild the generated files (references, pages, stand-in values, spelling)
     python scripts/train.py golden --reason "..." [--affects plan,scatter,fill,population]
@@ -28,8 +30,8 @@ import sys
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 GENERATED = re.compile(r"^(docs/design/research/stand-in-values\.md|docs/references/.*\.json|docs/REFERENCES\.(md|html)|"
-                       r"docs/reference/references-data\.json)$")
-"""re.Pattern: The files `rebuild` writes; a merge conflict in one takes this branch's side."""
+                       r"docs/reference/references-data\.json|src/tests/golden/[^/]+)$")
+"""re.Pattern: The files `rebuild` and `golden` write; a merge conflict in one takes this branch's side."""
 
 
 def sh(*args, check=True, capture=False, cwd=ROOT):
@@ -149,6 +151,36 @@ def collisions(args):
     print("numbers on main now:", ", ".join(f"{k} {v}" for k, v in main_numbers().items()))
 
 
+def renumber(args):
+    """Changes `OLD` to `NEW` in the lines that `origin/<head>` added (against its merge base), wherever those lines are now."""
+    ref = f"origin/{args.head}"
+    base = sh("git", "merge-base", "origin/main", ref, capture=True).strip()
+    section = re.fullmatch(r"6\.\d+", args.old) and re.fullmatch(r"6\.\d+", args.new)
+    citation = re.fullmatch(r"R\d+", args.old) and re.fullmatch(r"R\d+", args.new)
+    if not (section or citation):
+        raise SystemExit("train: renumber takes two stand-in sections (6.193 6.196) or two citations (R5136 R5140)")
+    token = re.compile(rf"(?<![\w.]){re.escape(args.old)}(?![\d])")
+    names = sh("git", "diff", "--name-only", "--diff-filter=AM", base, ref, capture=True).split()
+    changed = 0
+    for name in names:
+        if GENERATED.match(name) or name.endswith((".gz", ".svg", ".png", ".pyc")):
+            continue
+        path = os.path.join(ROOT, name)
+        if not os.path.exists(path):
+            continue
+        diff = sh("git", "diff", "-U0", base, ref, "--", name, capture=True)
+        added = {line[1:] for line in diff.splitlines() if line.startswith("+") and not line.startswith("+++") and token.search(line)}
+        if not added:
+            continue
+        lines = open(path, encoding="utf-8").read().split("\n")
+        for index, line in enumerate(lines):
+            if line in added:
+                lines[index] = token.sub(args.new, line)
+                changed += 1
+        open(path, "w", encoding="utf-8").write("\n".join(lines))
+    print(f"{args.old} -> {args.new}: {changed} line(s) changed in the files {args.head} touched; check `git diff`, then `rebuild`")
+
+
 def numbers(args):
     sh(sys.executable, "scripts/allocate_numbers.py")
 
@@ -202,6 +234,11 @@ def main(argv=None):
     p = sub.add_parser("collisions")
     p.add_argument("heads")
     p.set_defaults(run=collisions)
+    p = sub.add_parser("renumber")
+    p.add_argument("head")
+    p.add_argument("old")
+    p.add_argument("new")
+    p.set_defaults(run=renumber)
     sub.add_parser("numbers").set_defaults(run=numbers)
     sub.add_parser("rebuild").set_defaults(run=rebuild)
     p = sub.add_parser("golden")

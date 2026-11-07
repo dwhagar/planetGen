@@ -1319,9 +1319,10 @@ def test_system_page_renders_every_option(site, client):
     html = client.get("/admin/generate/system").get_data(as_text=True)
     for name, _label in system_page.TRISTATE_FIELDS:
         assert f'name="{name}"' in html
-    for name in ("name", "star_type", "age", "num_orbits", "flavor_chance_system", "flavor_chance_planet",
-                 "max_planet_flavor", "system_file", "debug"):
+    for name in ("name", "star_type", "age", "num_orbits", "stars", "max_stars", "flavor_chance_system",
+                 "flavor_chance_planet", "max_planet_flavor", "system_file", "debug"):
         assert f'name="{name}"' in html
+    assert "Raise the odds" in html  # habitable world and intelligent life only raise the odds (GEN.1130)
     # Linked from the Generate page.
     assert 'href="/admin/generate/system"' in client.get("/admin/generate").get_data(as_text=True)
 
@@ -1336,12 +1337,13 @@ def test_system_options_match_generate_py():
     spec = system_page.system_request({
         "habitable_world": "yes", "comets": "no", "name": "-Odd Name", "star_type": "G2V", "age": "old",
         "num_orbits": "4", "flavor_chance_system": "0.5", "flavor_chance_planet": "1",
-        "max_planet_flavor": "1",
+        "max_planet_flavor": "1", "stars": "3", "max_stars": "5",
     })
     args = parsers["system"].parse_args(spec["argv"] + ["--output", "x"])
     assert args.habitable_world is True and args.comets is False and args.planets is None
     assert args.name == "-Odd Name" and args.star_type == "G2V" and args.age == "old"
     assert args.num_orbits == 4 and args.flavor_chance_system == 0.5 and args.flavor_chance_planet == 1.0
+    assert args.stars == 3 and args.max_stars == 5
     assert args.max_planet_flavor and args.format == "document" and args.output == "x"
 
 
@@ -1354,6 +1356,14 @@ def test_system_options_match_generate_py():
     ({"num_orbits": "501"}, "at most 500"),
     ({"flavor_chance_planet": "1.5"}, "at most 1"),
     ({"habitable_world": "yes", "asteroid_belt": "yes", "large_star": "no"}, "large star"),
+    ({"planets": "no", "asteroid_belt": "yes"}, "No planets"),
+    ({"star_type": "Q9"}, "spectral type"),
+    ({"name": "x" * 201}, "at most 200"),
+    ({"stars": "0"}, "at least 1"),
+    ({"stars": "9", "max_stars": "5"}, "tars"),
+    ({"stars": "1", "binary_system": "yes"}, "tars"),
+    ({"stars": "2", "binary_system": "no"}, "tars"),
+    ({"system_file": '{"stars": 70}'}, "tars"),
     ({"system_file": "{nope"}, "valid JSON"),
     ({"system_file": "[1]"}, "JSON object"),
 ])

@@ -14,7 +14,8 @@
 
 <section class="panel" id="system-options" aria-labelledby="system-options-heading">
   <h2 id="system-options-heading">Options</h2>
-  <p class="hint">The same options as <code>planetgen system</code>. Blank means the generator decides.
+  <p class="hint">The same options as <code>planetgen system</code>. Blank means the generator decides. Habitable world and intelligent life only raise the odds; the
+  system may come out without them and says so.
   The system is only shown here; nothing is saved to the database.</p>
   <form method="post" action="{{ url_for('web.generate_system') }}#system-result" class="search-form">
     {{ csrf_field() }}
@@ -24,6 +25,10 @@
       {{ ui_select("age", "Age", [{"value": "", "label": "Generator decides"}, {"value": "young", "label": "Young"}, {"value": "old", "label": "Old"}], form.get("age", "")) }}
       {{ field("num_orbits", "Orbital slots", kind="number", step="1", min=0, max=max_num_orbits, placeholder="random",
                hint="Planets and asteroid belts combined.") }}
+      {{ field("stars", "Number of stars", kind="number", step="1", min=1, max=max_stars_ceiling, placeholder="random",
+               hint="Exactly this many stars. One star can't be a binary; two or more can't be forbidden as one.") }}
+      {{ field("max_stars", "Most stars allowed", kind="number", step="1", min=1, max=max_stars_ceiling,
+               placeholder="default " ~ max_stars_default, hint="The cap on the star-count draw.") }}
     </div>
     <fieldset class="generate-mode">
       <legend>Force or forbid</legend>
@@ -32,7 +37,7 @@
         <fieldset class="tristate-row">
           <legend>{{ label }}</legend>
           <div class="setting-segments">
-            {%- for value, text in tristate_choices %}
+            {%- for value, text in (odds_choices if name in odds_options else tristate_choices) %}
             <label><input type="radio" name="{{ name }}" value="{{ value }}"{% if form.get(name, "") == value %} checked{% endif %}><span>{{ text }}</span></label>
             {%- endfor %}
           </div>
