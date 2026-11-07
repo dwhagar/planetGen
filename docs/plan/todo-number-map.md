@@ -3411,7 +3411,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.45 | Re-baseline the HYG calibration test (VIEW.30) for the new dust, in dust-free and default-dust modes, in the small and the Milky Way sized galaxy | none | done, PR #5534 |
 | VIEW.46 | The dust layer's thickness comes from the galaxy potential's vertical force (GEN.115) and the 40 pc floor goes | none | open |
 | VIEW.47 | Sky charting runs by default: the Generate console, the API job and the setup call the sphere draws and the floor table of VIEW.25 (--sky-limit is opt-in today) | none | done, PR #5363 |
-| VIEW.48 | dust_model.py raises a cosh overflow RuntimeWarning for stars far above the plane (the result is right, the warning is noise) | none | open |
+| VIEW.48 | dust_model.py raises a cosh overflow RuntimeWarning for stars far above the plane (the result is right, the warning is noise) | none | done, PR #5536 |
 
 ## Tree IDs to flat IDs
 

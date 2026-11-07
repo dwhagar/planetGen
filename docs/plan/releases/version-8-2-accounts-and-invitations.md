@@ -37,7 +37,6 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | UX.179 | Sitemap entries and an Open Graph image for object pages (optional, can wait) |  |  |
 | UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | UX.179 |  |
 | VIEW.40 | System sky S22 (optional): cross-fade between the Galaxy Map's stars and the sky at the system, after the continuous zoom |  |  |
-| VIEW.48 | dust_model.py raises a cosh overflow RuntimeWarning for stars far above the plane (the result is right, the warning is noise) |  |  |
 | VIEW.39 | System sky S21 (optional): aberration of the observer's motion, default off |  |  |
 | VIEW.26 | System sky S7b: a one-off command for sectors charted earlier: build the sky tiers on demand (Generate console and CLI) |  |  |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46 |  |

@@ -2841,3 +2841,4 @@ Baseline: PR #1817.
 | GEN.1327 | 8.1 | Physics rectification: best-fit classes, orbit spacing and rogue wiring |
 | TEST.675 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24): belts, fields, irregular moons, overlap-free systems and the oddity table |
 | VIEW.45 | 8.2 | Sky foundations for the view from a planet (Boss (5:44 PM EST on 2026-11-05): the view's design is approved, it lands in 9.0, so its foundations are built back to 8.2) |
+| VIEW.48 | 8.2 | Bookmarks |
