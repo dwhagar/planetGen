@@ -50,7 +50,7 @@ NULL_IN_THIS_GALAXY = {
                            "induced_moment_a_m2", "life_age_abiogenesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
                            "life_age_photosynthesis_gyr", "life_age_technological_civilization_gyr", "life_animal_grade", "life_class",
                            "life_class_best", "life_class_best_score", "life_class_variant", "life_complexity", "life_milestone_age_gyr",
-                           "life_stage", "life_system_age_gyr", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "surface_liquid",
+                           "life_stage", "life_system_age_gyr", "life_traits", "moon_origin", "outside_hours", "parent_shadow_share", "porosity", "surface_liquid",
                            "surface_liquid_2", "surface_liquid_2_fraction", "surface_liquid_acid_layer", "surface_liquid_acid_wt",
                            "surface_liquid_depth_km", "surface_liquid_ethane_mol", "surface_liquid_fraction", "surface_liquid_methane_mol",
                            "surface_liquid_nitrogen_mol", "surface_liquid_salt_wt", "uv_surface_index"))) for column in columns},
@@ -95,6 +95,7 @@ NULL_IN_THIS_GALAXY = {
     **{(table, "hp_ice_km"): CHANCE for table in ("planets", "moons", "rogue_planets")},
     # Only a heap of grains lighter than SMALL_BODY_MASS_KG has a porosity, and a planet that small is a rare draw (a moon's is set by its origin).
     ("planets", "porosity"): CHANCE,
+    **{(table, "life_traits"): CHANCE for table in ("planets", "moons")},      # GEN.876: only a world whose life drew a trait has one
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
        ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity", "tidal_flux_w_m2")},

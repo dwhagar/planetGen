@@ -103,3 +103,4 @@ Commit each file came from:
 - v217: train 12 after GEN.1265's migration 0217 (temperature coverage), before GEN.1207 best-fit classes (0218)
 - v218: train 12 after GEN.1207's migration 0218 (best-fit classes), before GEN.1084 irregular moons (0219)
 - v219: train 12 after GEN.1084's migration 0219 (irregular moons), before TEST.602 sector content leaf (0220)
+- v220: after TEST.602 migration 0220 (sector content leaf), before GEN.876 adaptation traits (0221)

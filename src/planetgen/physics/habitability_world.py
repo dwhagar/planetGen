@@ -55,7 +55,7 @@ plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma 
 import math
 
 from planetgen import tuning
-from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature, temperature_coverage
+from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature, temperature_coverage
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -200,6 +200,7 @@ def values_from_body(body):
         "life_class": getattr(body, "life_class", None),
         "life_class_variant": getattr(body, "life_class_variant", None),
         "life_animal_grade": getattr(body, "life_animal_grade", None),
+        "life_traits": getattr(body, "life_traits", None),
         "life_stage": getattr(body, "life_stage", None),
         "evolutionary_pace": getattr(body, "evolutionary_pace", None),
         "life_milestone_age_gyr": getattr(body, "life_milestone_age_gyr", None),
@@ -338,10 +339,9 @@ def world_from(values, lethal_host=None):
     `values_from_body`); `lethal_host` floors the dose it takes."""
     pressure_kpa = (values.get("atmospheric_pressure_pa") or 0.0) / 1000.0
     medium = solvent(values)
-    under_ice = values.get("hydrosphere") == "ice-covered ocean"
     underground = groundwater(values)
     surface_dose = (values.get("surface_dose_msv_yr") or 0.0) / 1000.0
-    habitat_dose = (values.get("dose_ground_msv_yr") or 0.0) / 1000.0 if under_ice or underground != "none" else surface_dose
+    habitat_dose = habitat_dose_sv_yr(values)
     if lethal_host:
         surface_dose = max(surface_dose, LETHAL_DOSE_SV_YR)
         habitat_dose = max(habitat_dose, LETHAL_HABITAT_DOSE_GY_YR * habitability.SV_PER_GY)
@@ -384,7 +384,15 @@ def world_from(values, lethal_host=None):
         dose_belt_sv_yr=(values.get("dose_belt_msv_yr") or 0.0) / 1000.0 if parts[0] is not None else None,
         cutoff_gv=cutoff_gv(values), uv_index=values.get("uv_surface_index") or 0.0,
         dust_mg_m3=aerosols.dust_loading_mg_m3(values.get("tau_dust"), values.get("scale_height_km")),
+        traits=adaptation_traits.parse(values.get("life_traits")),
     )
+
+
+def habitat_dose_sv_yr(values):
+    """The dose where the life is, Sv/yr: the ground's under an ice-covered ocean or for water held underground, the surface's otherwise."""
+    if values.get("hydrosphere") == "ice-covered ocean" or groundwater(values) != "none":
+        return (values.get("dose_ground_msv_yr") or 0.0) / 1000.0
+    return (values.get("surface_dose_msv_yr") or 0.0) / 1000.0
 
 
 def _dose_parts_sv(values):
@@ -440,6 +448,7 @@ def _class_rater(values, world):
     from planetgen.physics import life_classes, life_complexity      # life_classes reads this module
     results = life_classes.score_classes(values)
     toxin = habitability.toxin_factor(world)
+    dose_share = habitability.animal_dose_share(world)
 
     def rated(class_id, kind_stage, milestone_age, system_age, grade):
         result = results.get(class_id)
@@ -447,7 +456,7 @@ def _class_rater(values, world):
             return 0, 0, 0, 0
         row = life_classes.BY_ID[class_id]
         complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(values, "o2"), values["surface_temperature_k"])
-        complex_likelihood = result.likelihood * life_complexity.complex_factor(complexity.index) * toxin
+        complex_likelihood = result.likelihood * life_complexity.complex_factor(complexity.index) * toxin * dose_share
         return life_scores.scores(round(result.likelihood, 3), round(complex_likelihood, 3), kind_stage, milestone_age, system_age,
                                   light_producer=row.light, grade=complexity.grade if grade is None else grade)
 

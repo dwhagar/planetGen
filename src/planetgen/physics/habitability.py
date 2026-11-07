@@ -25,7 +25,7 @@ import math
 from collections import namedtuple
 from dataclasses import dataclass, field
 
-from planetgen.physics import constants, radiation
+from planetgen.physics import adaptation_traits, constants, radiation
 from planetgen.physics.protection_limits import limit
 
 # --- Physiology (human visitor) ----------------------------------------------------------
@@ -215,7 +215,17 @@ minimises the error against the Master doc's own worked table, 0.046 RMS
 
 DOSE_THRESH_GY = 10.0
 SIGMA_DOSE_GY = 100.0
-"""float: L_rad's threshold and fall-off, Gy/yr ([R0986]; the doc)."""
+"""float: L_rad's threshold and fall-off for an animal or a plant, Gy/yr ([R0986]; the doc)."""
+
+MICROBE_DOSE_THRESH_GY = 1000.0
+"""float: The same threshold for a microbe, Gy/yr (GEN.876): microbes grow under chronic doses far past an ordinary animal's, the best of them (Deinococcus)
+under about 5e5 Gy/yr, so the one threshold of 10 shut out the microbes of every world a little irradiated. The fall-off keeps the shape of the
+animal's. `l_rad` and the likelihood of microbial life read this; the complex-life terms read `DOSE_THRESH_GY`
+(`animal_dose_share`). Source tier T7, tweak level L3 (registry LF66)."""
+MICROBE_SIGMA_DOSE_GY = 1000.0
+"""float: The fall-off of a microbe's dose term past its threshold, Gy/yr: one threshold wide, so a compact object's planet at
+`habitability_world.LETHAL_HABITAT_DOSE_GY_YR` (10 kGy/yr, the D10 of the hardest microbe) keeps no life, as it did when every life read the animal's line.
+Source tier T9, tweak level L3 (registry LF66)."""
 
 SV_PER_GY = 3.06
 """float: Sv per Gy of the cosmic-ray and particle dose a surface takes:
@@ -255,7 +265,8 @@ class World:
     dose counts as cosmic rays), the dipole's `cutoff_gv`, the DNA-weighted `uv_index` and the airborne `dust_mg_m3` (`None` when unknown) are what the survival
     equipment (`physics/equipment.py`) reads beyond the score's own inputs. `series` is the temperature of every place of the world through its year
     (`temperature_coverage.series_of_values`) and `coverage` what is read off it for the human visitor (`temperature_coverage.Coverage`): the Temperature domain is scored from them (GEN.1265).
-    A world with neither has the one `temperature_c` everywhere and always."""
+    A world with neither has the one `temperature_c` everywhere and always. `traits` is the life's adaptation traits (`physics/adaptation_traits.py`,
+    `{stress: grade}`, empty for none): they widen the limits of the life scores only (`l_rad`, `toxin_factor`), never a human score."""
     pressure_kpa: float
     temperature_c: float
     gases: dict
@@ -284,6 +295,7 @@ class World:
     dust_mg_m3: float = None
     series: object = None
     coverage: object = None
+    traits: dict = field(default_factory=dict)
 
     def partial_kpa(self, gas):
         return self.gases.get(gas, 0.0) * self.pressure_kpa
@@ -713,10 +725,28 @@ def l_ener(world):
     return min(1.0, math.log10(world.energy_flux_w_m2 / ENERGY_FLUX_MIN_W_M2) / span)
 
 
+def _dose_term(dose_gy, threshold_gy, sigma_gy):
+    """The share of life that a dose leaves: 1 up to the threshold, then a half Gaussian of width `sigma_gy`."""
+    return math.exp(-0.5 * (max(0.0, dose_gy - threshold_gy) / sigma_gy) ** 2)
+
+
 def l_rad(world):
-    dose_gy = world.habitat_dose_gy_yr
-    excess = max(0.0, dose_gy - DOSE_THRESH_GY)
-    return math.exp(-0.5 * (excess / SIGMA_DOSE_GY) ** 2)
+    """The radiation likelihood of microbial life: the dose where the life is against a microbe's threshold, widened by the body's radiation trait."""
+    widen = adaptation_traits.factor(world.traits, "radiation", False)
+    return _dose_term(world.habitat_dose_gy_yr, MICROBE_DOSE_THRESH_GY * widen, MICROBE_SIGMA_DOSE_GY * widen)
+
+
+def l_rad_animal(world):
+    """The same for an animal or a plant (`DOSE_THRESH_GY`, widened by the radiation trait to the animals' cap)."""
+    widen = adaptation_traits.factor(world.traits, "radiation", True)
+    return _dose_term(world.habitat_dose_gy_yr, DOSE_THRESH_GY * widen, SIGMA_DOSE_GY * widen)
+
+
+def animal_dose_share(world):
+    """The factor that turns the likelihood of microbial life, which reads a microbe's dose threshold, into one that reads an animal's: the animal term over
+    the microbial one. 1 where no dose costs the animals anything; 0 where the microbial term is 0 (the life is not there at all)."""
+    microbial = l_rad(world)
+    return l_rad_animal(world) / microbial if microbial > 0.0 else 0.0
 
 
 def phi_bio(world):
@@ -736,8 +766,10 @@ def phi_bio(world):
 def toxin_factor(world):
     """The share of animal life that carbon monoxide, carbon dioxide, hydrogen sulfide and sulfur dioxide leave (the toxic terms of `t_metazoa`; the last two
     are the air an acid-eating life makes, GEN.1253): 1 for clean air."""
-    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("CO2") / CO2_TOX_KPA) ** 2)
-            * math.exp(-(world.partial_kpa("H2S") / H2S_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("SO2") / SO2_TOX_KPA) ** 2))
+    co2_scale = CO2_TOX_KPA * adaptation_traits.factor(world.traits, "carbon_dioxide", True)       # the traits of GEN.876 widen the two that have one
+    h2s_scale = H2S_TOX_KPA * adaptation_traits.factor(world.traits, "sulfide", True)
+    return (math.exp(-(world.partial_kpa("CO") / CO_TOX_KPA) ** 2) * math.exp(-(world.partial_kpa("CO2") / co2_scale) ** 2)
+            * math.exp(-(world.partial_kpa("H2S") / h2s_scale) ** 2) * math.exp(-(world.partial_kpa("SO2") / SO2_TOX_KPA) ** 2))
 
 
 def t_metazoa(world):
@@ -754,7 +786,7 @@ def t_metazoa(world):
 
 
 def phi_cpx(world):
-    return phi_bio(world) * t_metazoa(world)
+    return phi_bio(world) * animal_dose_share(world) * t_metazoa(world)
 
 
 def scores(world):

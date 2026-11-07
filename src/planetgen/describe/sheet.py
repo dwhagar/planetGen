@@ -27,7 +27,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, regional_temperature,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, regional_temperature,
                                life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -278,7 +278,7 @@ _BODY_GROUPS = (
            ("tier_suitability", "Suitability rating", TIER), ("tier_radiation", "Radiation rating", TIER)),
     *_rows("life", ("life_class", "Life class number", TEXT), ("life_class_variant", "Life class letter", TEXT),
            ("life_class_best", "Best-supported life class", TEXT), ("life_class_best_score", "Best-supported class score"),
-           ("life_animal_grade", "Animal grade"), ("life_complexity", "Complexity index"), ("evolutionary_pace", "Evolutionary pace", TEXT), ("life_stage", "Life stage", TEXT),
+           ("life_animal_grade", "Animal grade"), ("life_complexity", "Complexity index"), ("life_traits", "Adapted to", TEXT), ("evolutionary_pace", "Evolutionary pace", TEXT), ("life_stage", "Life stage", TEXT),
            ("life_milestone_age_gyr", "Age of that stage"), ("life_system_age_gyr", "Age of the system when it was written"),
            ("life_age_abiogenesis_gyr", "Age of abiogenesis"), ("life_age_photosynthesis_gyr", "Age of photosynthesis"),
            ("life_age_complex_cells_gyr", "Age of complex cells"), ("life_age_multicellularity_gyr", "Age of multicellularity"),
@@ -733,6 +733,8 @@ def _value(spec, table, stored):
     if stored is None:
         return [NOT_STORED]
     quantity = spec.quantity
+    if spec.stored_column() == "life_traits":
+        return [adaptation_traits.sentence(stored)]      # GEN.876: "radiation (tolerant), sulfide (extreme)"
     if quantity == TEXT:
         text = str(stored).replace("_", " ")    # a stored key such as technological_civilization reads as words
         return [text[:1].upper() + text[1:]]
@@ -838,7 +840,7 @@ _SURFACE = (
     "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
     "c_k0_ppm", "c_th0_ppm", "c_u0_ppm", "al26_ratio", "urey_ratio", "internal_heat_flux_w_m2", "mantle_eta0_pa_s",
     "mantle_activation_kj_mol", *_MEAN_SWING, *_COVERAGE_ROWS,
-    "life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
+    "life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity", "life_traits",
     "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
     "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
     "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
@@ -937,6 +939,8 @@ _BODY_RULES = [
      "an ocean tide is worked out for a sea with a free surface (water, or another liquid such as methane or ammonia-water) or one frozen over (zero); a brine seep, a deep hycean sea, a lava sea and a dry, ice, or vapor world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
+    (("life_traits",), lambda klass, row: row is None or bool(row.get("life_traits")),
+     "a trait is shown only for a world whose life drew one: its radiation, hydrogen sulfide or carbon dioxide is more than the ordinary limits of life allow"),
     (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") in _CLASSES_WITH_VARIANTS,
      "only some life classes come in variants, a letter for the pigment or habitat; the others have one form and no letter"),
     (("life_class_variant",), lambda klass, row: row is None or row.get("life_class") is None or any(

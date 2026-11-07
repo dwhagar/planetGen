@@ -37,7 +37,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF28 | no data | - | the habitability index's own scale choices (Boss, GEN.215, GEN.654); there is no data to read; tier stays |
 | 6.18:LF15 | no data | - | phosphate classes of an ocean: Earth's ocean is the only measured one; the other classes are chosen |
 | 6.18:LF16 | no data | - | phosphate classes of an ocean: Earth's ocean is the only measured one; the other classes are chosen |
-| 6.18:LF17 | replace | GEN.878 | a curve per metabolism and the energy source per class (pigment band times the star's spectrum) replace the one log scale and the shares |
+| 6.18:LF17 | no data | - | the energy source per class (pigment band times the star's spectrum) is built (GEN.878), but every class still reads the one log scale; a curve per metabolism needs measured growth yields, none in hand |
 | 6.18:LF18 | replace | GEN.878 | a curve per metabolism and the energy source per class (pigment band times the star's spectrum) replace the one log scale and the shares |
 | 6.18:LF23 | no data | - | the animal oxygen floor by grade is a literature number ([R3084], recalled) for one grade; GEN.877 is closed and kept the band; the widths are chosen |
 | 6.18:LF25 | no data | - | one score per rung of Table 2 of the Exoplanetary Habitability doc; design numbers with no data |
@@ -246,3 +246,9 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF63 | no data | - | the edges of the Temperature score are chosen (the Blue cut by Boss, the others proposed) and no rated catalogue of worlds exists to fit them |
 | 6.18:LF64 | no data | - | no rated catalogue of worlds exists to fit the least Blue share |
 | 6.18:LF65 | no data | - | no rated catalogue of worlds exists to fit the credit of a Yellow sample |
+| 6.18:LF66 | no data | - | no chronic-dose growth curve for a microbe is in hand (the best known is recalled, not opened); one per life class would replace the threshold and the factors |
+| 6.18:LF67 | no data | - | no measured animal limit for the three stresses is in hand; the numbers are chosen under the microbes' |
+| 6.18:LF68 | no data | - | the chance and share of an adapted life have no survey to fit; they are the draw's shape |
+| 6.18:LF69 | no data | - | the onset and full stress of each trait are read off the limits it moves and have no tolerance-range survey behind them |
+| 6.18:LF70 | no data | - | five stresses of the design have no limit in the life scores to move, so no trait is drawn for them until a class rule reads the stress |
+| 6.18:LF71 | no data | - | the carbon monoxide and sulfur dioxide toxins are scored for animals only; a microbe toxin term would give the trait something to move |

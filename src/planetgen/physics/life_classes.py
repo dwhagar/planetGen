@@ -77,9 +77,10 @@ CO2_DENSE_SHARE = 0.5
 """float: The share of the air that carbon dioxide must be for its phase to be the surface fluid's (the same as the Class 6 rule)."""
 
 
-BODY_FIELDS = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity")
+BODY_FIELDS = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity", "life_traits")
 """tuple: What the life pass stores on a body besides the schedule, the stage and the four scores (columns of `planets` and `moons`): the class that
-lives on it (the number and the variant letter), the best-supported class and its score, the animal grade (0 to 3) and the complexity index."""
+lives on it (the number and the variant letter), the best-supported class and its score, the animal grade (0 to 3), the complexity index and the adaptation
+traits of its life (`physics/adaptation_traits.py`, text such as `radiation:2,sulfide:3`, `None` for none)."""
 
 LIVING_FIELD = "life_living"
 """str: The body attribute holding the list of the life classes that live on it (GEN.1209; the child table `life`): the dominant class first, each a dict

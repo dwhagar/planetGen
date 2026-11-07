@@ -22,6 +22,9 @@ needs (`physics.life_timeline`); a class that splits water builds the oxygen its
 (`physics.biogenic_oxygen`); and the complexity of the class on the final air (`physics.life_complexity`) caps the milestones and gives
 the animal grade. All the draws of a body are made from a stream of its own, seeded by one draw of the run's (GEN.872), so a change in
 the life model no longer re-rolls the names and flavor text of every later body.
+
+The adaptation traits of the life (GEN.876, `physics/adaptation_traits.py`) are drawn first, from the stress the body has and on a stream of their own, because
+the class scores read them: a hard world's life is tougher, so it supports classes an easy world's would not. A world that ends up with no life stores none.
 """
 
 import copy
@@ -29,7 +32,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world, trace_air
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -74,6 +77,7 @@ class _Cand:
 
 
 def _apply(planet, keep_stored, key):
+    planet.life_traits = adaptation_traits.text_of(adaptation_draw.draw(habitability_world.values_from_body(planet), draw.Stream(f"{key}:traits")))   # GEN.876
     scores = life_classes.score_classes(planet)
     chosen, kept = _choose(planet, scores, keep_stored)
     if chosen is None:
@@ -289,7 +293,7 @@ def _lifeless(planet, scores, why):
     setattr(planet, life_classes.LIVING_FIELD, None)
     _set_schedule(planet, None, None)
     _set_evolutionary_state(planet, None)
-    planet.life_animal_grade = planet.life_complexity = None
+    planet.life_animal_grade = planet.life_complexity = planet.life_traits = None
     _trace_gases(planet)                # GEN.524: a lifeless world loses the trace gases a drawn life had given it
     habitability_world.rescore(planet)
     log.debug(f"Life class: none, {why}")

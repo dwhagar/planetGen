@@ -10,11 +10,12 @@ import re
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import habitability, habitability_world
+from planetgen.physics import adaptation_draw, adaptation_traits, habitability, habitability_world
 
 PLAN = pathlib.Path(__file__).resolve().parents[2] / "docs" / "design" / "research" / "gap-filling-plan.md"
-MODULES = {"tuning": tuning, "habitability": habitability, "habitability_world": habitability_world}
-NAME = re.compile(r"\b(tuning|habitability_world|habitability)\.([A-Z][A-Z0-9_]*)\b")
+MODULES = {"tuning": tuning, "habitability": habitability, "habitability_world": habitability_world, "adaptation_traits": adaptation_traits,
+           "adaptation_draw": adaptation_draw}
+NAME = re.compile(r"\b(tuning|habitability_world|habitability|adaptation_traits|adaptation_draw)\.([A-Z][A-Z0-9_]*)\b")
 
 TUNING_PREFIXES = ("LIFE_", "STAR_EVOLUTION", "EVOLUTIONARY_", "HABITABILITY_LIFE_")
 
@@ -42,6 +43,10 @@ NEEDS_NO_ROW = {
     "habitability.UV_BAND": "read from the human limits file",
     "habitability.SINGLE_YEAR_DOSE_SV": "read from the human limits file",
     "habitability.O2_HIGH_BAND": "built from the human limits read from the limits file",
+    "adaptation_traits.STRESSES": "the names of the three stresses in draw order: structure",
+    "adaptation_traits.GRADES": "the three grades: structure",
+    "adaptation_traits.GRADE_WORDS": "how each grade is worded: text",
+    "adaptation_traits.STRESS_WORDS": "how each stress is worded: text",
     "habitability_world.TIER_INDEX": "the colour names numbered: structure",
     "habitability_world.TIER_NAMES": "the colour names: structure",
     "habitability_world.DOMAINS": "the domain names: structure",
@@ -72,7 +77,8 @@ def _named():
 
 def _life_names():
     names = {f"tuning.{name}" for name in vars(tuning) if name.startswith(TUNING_PREFIXES)}
-    for label, module in (("habitability", habitability), ("habitability_world", habitability_world)):
+    for label, module in (("habitability", habitability), ("habitability_world", habitability_world), ("adaptation_traits", adaptation_traits),
+                          ("adaptation_draw", adaptation_draw)):
         names |= {f"{label}.{name}" for name in vars(module) if re.fullmatch(r"[A-Z][A-Z0-9_]*", name)}
     return names
 
