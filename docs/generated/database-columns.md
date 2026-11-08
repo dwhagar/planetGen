@@ -3171,7 +3171,7 @@ population_state: one row (id = 1), the highest planets.id the population pass h
 
 ## `galaxy_components`
 
-galaxy_components (v97, GEN.159): the discrete stellar components of a galaxy beyond the disk, one row each, of every kind in one table: the globular clusters, and later the satellites and streams (GEN.237). A component is a density (a profile of its mass about a center), not a list of stars; its stars come from the profile when a sector is generated. `profile` 'king' carries the King (1966) concentration `king_w0` (3 to 12) and the `tidal_radius_pc` (`Component` checks that, not the table); `planetgen/physics/king.py` turns a row into a density. `source` is 'catalogue' for a real object and 'generated' for one drawn from the galaxy seed (`planetgen/generation/clusters.py`); `planetgen plan` draws the clusters (GEN.160).
+galaxy_components (v97, GEN.159): the discrete stellar components of a galaxy beyond the disk, one row each, of every kind in one table: the globular clusters, and later the satellites and streams (GEN.237). A component is a density (a profile of its mass about a center), not a list of stars; its stars come from the profile when a sector is generated. `profile` 'king' carries the [R2359] concentration `king_w0` (3 to 12) and the `tidal_radius_pc` (`Component` checks that, not the table); `planetgen/physics/king.py` turns a row into a density. `source` is 'catalogue' for a real object and 'generated' for one drawn from the galaxy seed (`planetgen/generation/clusters.py`); `planetgen plan` draws the clusters (GEN.160).
 
 | Column | Type | Null | Meaning |
 |---|---|---|---|

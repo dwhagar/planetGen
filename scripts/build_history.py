@@ -49,6 +49,18 @@ DECISION = re.compile(r"(Boss[^.\n]{0,100}20\d\d-\d\d-\d\d|20\d\d-\d\d-\d\d[^.\n
 DATE = re.compile(r"20\d\d-\d\d-\d\d")
 
 
+def citations_by_id(name, text):
+    """`text` with every source written by name (author and year, DOI, arXiv number) replaced by its `[R0123]` ID (DOC.99:
+    a citation is written only in the registry); a name the list does not hold is dropped by `rewrite_citations`."""
+    sys.path.insert(0, os.path.join(ROOT, "scripts"))
+    import rewrite_citations as rc
+    reg = rc.Registry(all_candidates=True)
+    text = rc.rewrite_file(name, text, reg, rc.Counter(), strings=True)
+    for _key, mention in reg.unresolved:  # a source the list does not hold stays unnamed
+        text = text.replace(mention, "a source")
+    return text
+
+
 def git(*args):
     return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True, check=True).stdout
 
@@ -66,8 +78,9 @@ def commits():
 
 def write(name, lines):
     os.makedirs(OUT, exist_ok=True)
+    text = citations_by_id("docs/history/" + name, "\n".join(lines) + "\n")
     with open(os.path.join(OUT, name), "w", encoding="utf-8", newline="\n") as handle:
-        handle.write("\n".join(lines) + "\n")
+        handle.write(text)
 
 
 def esc(text):

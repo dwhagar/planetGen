@@ -1,10 +1,10 @@
 # Design notes and the work behind them
 
-For each design note, the items it names, with the dates those items were worked (git history as of `8487fa43b`) and where they stand. Use it to jump from a note to the history of its items in [items-<category>.md](README.md).
+For each design note, the items it names, with the dates those items were worked (git history as of `d02661568`) and where they stand. Use it to jump from a note to the history of its items in [items-<category>.md](README.md).
 
 ## [README.md](../design/README.md)
 
-180 items with commits, 2026-10-08 to 2026-11-08; 15 still open (GEN.510, GEN.523, GEN.531, GEN.554, GEN.944, GEN.1006, GEN.1016, GEN.1021, GEN.1129, GEN.1150, GEN.1151, GEN.1377, ...).
+185 items with commits, 2026-10-08 to 2026-11-08; 18 still open (GEN.510, GEN.523, GEN.531, GEN.554, GEN.944, GEN.1006, GEN.1016, GEN.1021, GEN.1129, GEN.1150, GEN.1151, GEN.1377, ...).
 
 ## [architecture/architecture.md](../design/architecture/architecture.md)
 
@@ -638,6 +638,10 @@ For each design note, the items it names, with the dates those items were worked
 
 31 items with commits, 2026-10-01 to 2026-11-04; 0 still open.
 
+## [operations/job-graph-and-memory-broker.md](../design/operations/job-graph-and-memory-broker.md)
+
+24 items with commits, 2026-10-01 to 2026-11-08; 8 still open (OPS.122, OPS.124, OPS.127, OPS.128, OPS.129, OPS.131, OPS.132, PERF.254).
+
 ## [operations/logging-standard.md](../design/operations/logging-standard.md)
 
 20 items with commits, 2026-10-14 to 2026-11-07; 0 still open.
@@ -660,7 +664,7 @@ For each design note, the items it names, with the dates those items were worked
 
 ## [operations/redis-and-the-work-queue.md](../design/operations/redis-and-the-work-queue.md)
 
-63 items with commits, 2026-10-01 to 2026-11-08; 2 still open (OPS.130, PERF.254).
+63 items with commits, 2026-10-01 to 2026-11-08; 1 still open (PERF.254).
 
 ## [operations/slow-page-answers.md](../design/operations/slow-page-answers.md)
 

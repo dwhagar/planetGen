@@ -1,6 +1,6 @@
 # Items: GEN, Generation and physics
 
-The life of every GEN item that a commit title names, from the git history as of `8487fa43b`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
+The life of every GEN item that a commit title names, from the git history as of `d02661568`: first and last date, whether it is open in [docs/TODO.md](../TODO.md) now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; [dropped-and-closed.md](dropped-and-closed.md) lists the closings.
 
 ## GEN.8
 
@@ -735,7 +735,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-09: Add the exotic-environments research to GEN.94, GEN.95, GEN.129 and GEN.130 (#822)
 - 2026-10-09: Cite verified stability forms in GEN.95, GEN.129 and GEN.130; retire GEN.104 (#825)
-- 2026-10-09: Put the Vynatheya et al. 2022 equation and tests in GEN.129 (#827)
+- 2026-10-09: Put the [R4574] equation and tests in GEN.129 (#827)
 - 2026-10-15: TODO: Wolf-Rayet and protostar systems (GEN.242, GEN.243), BH/NS question on GEN.129/GEN.130, file the later phenomenon group GEN.244-GEN.249 (#1644)
 
 ## GEN.130
@@ -2192,7 +2192,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-30 to 2026-10-30; 2 commits; not open.
 
-- 2026-10-30: GEN.366: check the reference satellite table against McConnachie 2012 and pin it (#4357)
+- 2026-10-30: GEN.366: check the reference satellite table against [R2972] and pin it (#4357)
 - 2026-10-30: Retire GEN.366, file TEST.507 for the missing satellite row (#4358)
 
 ## GEN.367
@@ -2860,7 +2860,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-23 to 2026-10-23; 2 commits; not open.
 
-- 2026-10-23: GEN.468: record the Lodders 2003 water-share result and how the switch counts it (#2644)
+- 2026-10-23: GEN.468: record the [R2726] water-share result and how the switch counts it (#2644)
 - 2026-10-23: Docs: merge GEN.465/GEN.468 second-pass tables as part H, retire GEN.465 and GEN.468 (#2645)
 
 ## GEN.469
@@ -3036,15 +3036,15 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-30 to 2026-10-30; 3 commits; open.
 
 - 2026-10-30: TODO: GEN.492 owner is Sources 1 (#4045)
-- 2026-10-30: GEN.492: potassium depletion by body class from Dauphas et al. 2022 Table 1 (lock-free) (#4046)
+- 2026-10-30: GEN.492: potassium depletion by body class from [R1003: Table 1] (lock-free) (#4046)
 - 2026-10-30: TODO: GEN.492 step 1 merged (#4046) (#4047)
 
 ## GEN.493
 
 2026-10-29 to 2026-10-29; 3 commits; not open.
 
-- 2026-10-29: GEN.493: X-ray saturation time by stellar mass and rotation percentile from Johnstone et al. 2021 (lock-free) (#3841)
-- 2026-10-30: GEN.493 wiring: star saturation age from mass and rotation percentile (Johnstone 2021); decay exponents retuned (registry 6.50) (train 7)
+- 2026-10-29: GEN.493: X-ray saturation time by stellar mass and rotation percentile from [R2183] (lock-free) (#3841)
+- 2026-10-30: GEN.493 wiring: star saturation age from mass and rotation percentile [R2183]; decay exponents retuned (registry 6.50) (train 7)
 - 2026-10-29: TODO: file GEN.1000, record Core 3 GEN.952 and Sources 2 GEN.493 ready (#3882)
 
 ## GEN.494
@@ -3052,7 +3052,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-17 to 2026-10-30; 4 commits; not open.
 
 - 2026-10-17: TODO: atmosphere research update merged (findings 11 to 20, weighted tables), GEN.478 to GEN.494 filed (#1976)
-- 2026-10-29: GEN.494: the hottest a brown dwarf can be at each age from the Baraffe 2015 table (lock-free) (#3838)
+- 2026-10-29: GEN.494: the hottest a brown dwarf can be at each age from the [R0254] table (lock-free) (#3838)
 - 2026-10-29: GEN.480, GEN.489 to GEN.494: rows g4 and p6 DERIVED, the brackets no source reaches registered as RA1 to RA11 (#3853)
 - 2026-10-30: GEN.494 wiring: cap brown dwarf and rogue temperature at the BHAC15 limit-mass curve by age (train 7)
 
@@ -3086,7 +3086,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-22: docs: Blocker 2 owns GEN.416, GEN.498, GEN.496 then GEN.470 and GEN.452 (#2533)
 - 2026-10-22: Docs: GEN.416 retired (#2566), GEN.498 stand-in hosts question recorded (#2567)
-- 2026-10-22: GEN.498: one oxygen-fugacity scale (Hirschmann 2021 reference, buffer and scale conversions, gas ratios) (#2583)
+- 2026-10-22: GEN.498: one oxygen-fugacity scale ([R1951] reference, buffer and scale conversions, gas ratios) (#2583)
 - 2026-10-22: Docs: DB.85 (#2582) and GEN.498 (#2583) retired; full progress documentation update (versions, tree, plans, HTML) (#2584)
 
 ## GEN.499
@@ -3254,7 +3254,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-17: Docs: retire GEN.401 (#2051); file GEN.532, GEN.533 and TEST.223 (#2053)
 - 2026-10-17: Docs: GEN.533 (the bar draw) moves into 8.1 without DB.66; Core 1's scope for GEN.532 (#2054)
-- 2026-10-17: Docs: Hart 2017 is MNRAS 472, 2263 and holds no bulge result (GEN.532 note) (#2058)
+- 2026-10-17: Docs: [R1836] is MNRAS 472, 2263 and holds no bulge result (GEN.532 note) (#2058)
 - 2026-10-17: Docs: GEN.532 and GEN.533 final scope from Core 1; file GEN.536 (molecular gas dispersion research) (#2080)
 - 2026-10-17: TODO: GEN.536 records GEN.532's molecular-gas stand-in (#2110)
 - 2026-10-18: GEN.532, GEN.533: the thick disk, bar, stellar halo and motions are drawn from the galaxy seed (#2186)
@@ -3976,7 +3976,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-22 to 2026-10-23; 3 commits; not open.
 
 - 2026-10-22: Docs: GEN.307 (#2595), GEN.495 and GEN.623 (#2596) retired; epoch 51 taken, GEN.629 filed (#2597)
-- 2026-10-23: GEN.629: comet (CO + CO2)/H2O scatter 0.2 dex from the Robinson 2024 database
+- 2026-10-23: GEN.629: comet (CO + CO2)/H2O scatter 0.2 dex from the [R3782] database
 - 2026-10-23: Docs: retire GEN.629 (#2744) and PERF.159 (#2745), file GEN.660 (#2746)
 
 ## GEN.630
@@ -4233,7 +4233,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-23: Docs: retire GEN.629 (#2744) and PERF.159 (#2745), file GEN.660 (#2746)
 - 2026-10-28: GEN.660: the complex organics density row records the source it was reconciled with (#3599)
-- 2026-10-30: GEN.660: the complex organics row records what Choukroun et al. 2020 says now that it has been read (#4310)
+- 2026-10-30: GEN.660: the complex organics row records what [R0776] says now that it has been read (#4310)
 - 2026-10-30: Retire GEN.660 (#4310) (#4312)
 
 ## GEN.661
@@ -5419,7 +5419,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-24 to 2026-11-01; 3 commits; not open.
 
 - 2026-10-24: Docs: retire GEN.813 (#3254), file GEN.821 (#3255)
-- 2026-10-31: GEN.821: nitrogen of the Titan-like air from the body's ammonia ice (Erkaev et al. 2020); drop a stray report file
+- 2026-10-31: GEN.821: nitrogen of the Titan-like air from the body's ammonia ice [R1282]; drop a stray report file
 - 2026-11-01: Retire GEN.824 and GEN.821 (merged with train 8, #4655) (#4736)
 
 ## GEN.822
@@ -5444,7 +5444,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-25 to 2026-11-01; 3 commits; not open.
 
 - 2026-10-25: Docs: retire GEN.814, file GEN.823 and GEN.824 (#3287)
-- 2026-10-31: GEN.824: the class O CO2 over H2O bracket keeps 0.2, inside Kite and Ford 2018 Sec 4.3 (30 percent of the water); AM14 says why
+- 2026-10-31: GEN.824: the class O CO2 over H2O bracket keeps 0.2, insi[R2381] Sec 4.3 (30 percent of the water); AM14 says why
 - 2026-11-01: Retire GEN.824 and GEN.821 (merged with train 8, #4655) (#4736)
 
 ## GEN.825
@@ -6294,7 +6294,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-29: Docs: retire MAP.289 (Aux 4, #3743); file GEN.945, TEST.455, GEN.946 (hand-tuned constants chain) (#3744)
 - 2026-10-29: GEN.724, GEN.754, GEN.946: wiring guard, burn-down register, accreting stand-in rows, Harris, NOAA and Baraffe setup datasets (#3808)
-- 2026-10-30: GEN.946 batch 1: solar particle tail from Usoskin and Kovaltsov 2012 (SE4), TK5 and PA11 evidence read (#4319)
+- 2026-10-30: GEN.946 batch 1: solar particle tail from [R4475] (SE4), TK5 and PA11 evidence read (#4319)
 - 2026-10-30: GEN.946 batch 2: TR10 and PA9 evidence read (registry text only) (#4320)
 - 2026-10-30: Retire GEN.946 (burn-down batches #4319, #4320; rest kept as no data) (#4322)
 
@@ -6322,7 +6322,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-29 to 2026-10-30; 9 commits; not open.
 
-- 2026-10-29: GEN.950: condensates by disk temperature and the water share of the solids from Lodders 2003 (lock-free) (#3821)
+- 2026-10-29: GEN.950: condensates by disk temperature and the water share of the solids from [R2726] (lock-free) (#3821)
 - 2026-10-29: Docs: GEN.950 lock-free step and snow line decision (#3822)
 - 2026-10-29: TODO: record GEN.950 wiring ready and move it ahead of train 4 (#3878)
 - 2026-10-30: GEN.950: wire the snow line, ice boost and icy water range to Lodders's condensation table
@@ -6640,23 +6640,23 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-29 to 2026-10-30; 3 commits; not open.
 
 - 2026-10-29: Docs: retire TEST.456; file GEN.988 to GEN.990 (#3818)
-- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to Brewer and Fischer 2016 (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
-- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to Brewer and Fischer 2016 (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
+- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to [R0535] (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
+- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to [R0535] (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
 
 ## GEN.989
 
 2026-10-30 to 2026-10-30; 2 commits; not open.
 
-- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to Brewer and Fischer 2016 (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
-- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to Brewer and Fischer 2016 (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
+- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to [R0535] (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
+- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to [R0535] (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
 
 ## GEN.990
 
 2026-10-29 to 2026-10-30; 3 commits; not open.
 
 - 2026-10-29: Docs: retire TEST.456; file GEN.988 to GEN.990 (#3818)
-- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to Brewer and Fischer 2016 (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
-- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to Brewer and Fischer 2016 (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
+- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to [R0535] (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
+- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to [R0535] (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
 
 ## GEN.991
 
@@ -6664,8 +6664,8 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-29: Docs: train 3 ready list (Sources 1, Aux 7); file GEN.991 (#3832)
 - 2026-10-29: Docs: Sources 1 GEN.991 coded (#3835)
-- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to Brewer and Fischer 2016 (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
-- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to Brewer and Fischer 2016 (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
+- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to [R0535] (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
+- 2026-10-30: GEN.988, GEN.989, GEN.990, GEN.991: stellar [X/Fe] refitted to [R0535] (calcium scatter, thin Mg, Si and O trend, C/O/Si scatter)
 
 ## GEN.992
 
@@ -6997,7 +6997,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-30 to 2026-10-30; 3 commits; not open.
 
 - 2026-10-30: TODO: assign GEN.1006 parts to lanes and trains; file the 3+1 research item (GEN.1029) (#4087)
-- 2026-10-30: GEN.1029: the 3+1 quadruple stability network of Vynatheya, Mardling and Hamers 2023 as plain numbers; rows QS1 to QS4; design note (#4098)
+- 2026-10-30: GEN.1029: the 3+1 quadruple stability network of [R4575] as plain numbers; rows QS1 to QS4; design note (#4098)
 - 2026-10-30: TODO: retire GEN.1029 (#4098), file GEN.1031, GEN.1014 part 1 merged (#4101)
 
 ## GEN.1030
@@ -7012,7 +7012,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-30 to 2026-10-30; 3 commits; not open.
 
 - 2026-10-30: TODO: retire GEN.1029 (#4098), file GEN.1031, GEN.1014 part 1 merged (#4101)
-- 2026-10-30: GEN.1031: the 2+2 quadruple stability network of Vynatheya, Mardling and Hamers 2023 as plain numbers; rows QT1 to QT4 (#4129)
+- 2026-10-30: GEN.1031: the 2+2 quadruple stability network of [R4575] as plain numbers; rows QT1 to QT4 (#4129)
 - 2026-10-30: TODO: belt page items GEN.1093 UX.240 UX.241, Kuiper sweep notes, retire GEN.1031 GEN.1036 GEN.1038 GEN.1041 GEN.1056 GEN.355, repoint ring_origin wiring rows (#4137)
 
 ## GEN.1032
@@ -7497,7 +7497,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-10-30 to 2026-10-30; 2 commits; not open.
 
-- 2026-10-30: GEN.1094: the librating share of near-resonant pairs (Goldberg and Batygin 2023); rows WR8 and WR9 (#4153)
+- 2026-10-30: GEN.1094: the librating share of near-resonant pairs [R1605]; rows WR8 and WR9 (#4153)
 - 2026-10-30: Retire GEN.1094 (librating share of near-resonant pairs) (#4227)
 
 ## GEN.1095
@@ -7990,7 +7990,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-30: Retire GEN.399 (report only); file GEN.1154 (halo mass above 3e10) (#4299)
 - 2026-10-30: Retire GEN.1028 and OPS.83; file TEST.505 and GEN.1155; fix GEN.1154 text (#4301)
-- 2026-10-31: GEN.1154: halo mass of a galaxy from the halo mass function (Tinker 2008 on Eisenstein-Hu), drawn by inverse CDF
+- 2026-10-31: GEN.1154: halo mass of a galaxy from the halo mass function ([R4367] on Eisenstein-Hu), drawn by inverse CDF
 - 2026-10-31: Merge Core 3.. Sources 2 GEN.1154 halo into train 6
 - 2026-10-31: TEST.530: the three tests red on main state the GEN.1012 and GEN.1154 decisions (#4535)
 - 2026-10-31: TEST.533: the present-rate bound states why GEN.1154's lighter halo moved the ratio past a factor of two (#4575)
@@ -8075,7 +8075,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-30 to 2026-10-31; 3 commits; not open.
 
 - 2026-10-30: File GEN.1163 to GEN.1166 from the GEN.753 tides and spin sweep (#4326)
-- 2026-10-31: GEN.1163: star spin passes smoothly across the Kraft break (Beyer and White 2024, Zorec and Royer 2012)
+- 2026-10-31: GEN.1163: star spin passes smoothly across the Kraft break [R0378, R4914]
 - 2026-10-31: Merge Sources 1 / Aux 7 GEN.1163 into train 6 (stand-in rows SP13-SP16 renumbered SP17-SP20)
 
 ## GEN.1164
@@ -8122,7 +8122,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-30 to 2026-10-31; 3 commits; not open.
 
 - 2026-10-30: Drop GEN.1166 (withdrawn); file GEN.1170 A and B star spin by mass (#4335)
-- 2026-10-31: GEN.1170: hot star spin by mass (Zorec and Royer 2012 rise, Huang, Gies and McSwain 2010 fall)
+- 2026-10-31: GEN.1170: hot star spin by mass ([R4914] rise, [R2030] fall)
 - 2026-10-31: Merge Aux 7 GEN.1170 into train 6 (stand-in row renumbered SP21)
 
 ## GEN.1171
@@ -8217,7 +8217,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-30 to 2026-10-31; 3 commits; not open.
 
 - 2026-10-30: File GEN.1183 to GEN.1187 from the strength papers review (#4356)
-- 2026-10-31: GEN.1183: the strength of ice II, III, V and VI by temperature from Durham 1997 Table 2 (#4383)
+- 2026-10-31: GEN.1183: the strength of ice II, III, V and VI by temperature from [R1190: Table 2] (#4383)
 - 2026-10-31: Retire GEN.1183 (ice phase strength tables, #4383) (#4384)
 
 ## GEN.1184
@@ -8240,7 +8240,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-10-30 to 2026-11-06; 3 commits; not open.
 
 - 2026-10-30: Registry evidence for the roundness rows RN2, RN5, RN8 (GEN.1186) (#4361)
-- 2026-10-31: GEN.1186 (TR9 part): the ice rheology stand-in states the 40 to 90 kJ/mol activation range with the Durham 1997 evidence (#4620)
+- 2026-10-31: GEN.1186 (TR9 part): the ice rheology stand-in states the 40 to 90 kJ/mol activation range with the [R1190] evidence (#4620)
 - 2026-11-06: Retire GEN.1185 and GEN.1186 (already on main: #4361, #4620, release 8.0.3189) (#5347)
 
 ## GEN.1187
@@ -8271,7 +8271,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 - 2026-10-31: Retire GEN.1188, close GEN.1187, file GEN.1190 (#4366)
 - 2026-10-31: GEN.1175, GEN.1190: Boss's uploaded papers read (#4461)
-- 2026-10-31: Retire TEST.518 (PR #4465); GEN.1190 note: Goldsby and Kohlstedt 2001 Table 5 and Durham 1996 preprint read (#4466)
+- 2026-10-31: Retire TEST.518 (PR #4465); GEN.1190 note: [R1614: Table 5] and [R1196] preprint read (#4466)
 - 2026-10-31: GEN.1190 note: dihydrate ratios corrected to the 1997 ice I row; high-pressure ice sources held (#4467)
 - 2026-10-31: GEN.1190 note: solid-solid ice boundaries from a tertiary source (#4470)
 - 2026-11-06: GEN.1190: sourced rheology constants and IAPWS melting curves (partial-melt factor 30, ice melt law 22, ice III/V/VI/VII and Ih melting curves, dihydrate strength from the 1993 law, ice phase lines), stand-in rows TR1 TR4 TR5 TR9 IT6 IT7 MC1-MC5
@@ -8655,7 +8655,7 @@ The life of every GEN item that a commit title names, from the git history as of
 - 2026-10-31: File PERF.224 (bright-table bound) and GEN.1233 (dust rings fed by moons) (#4621)
 - 2026-11-04: GEN.1233: giants keep faint dust rings fed by small inner moonlets (steady supply from the meteoroid flux, dust yield and life); build only
 - 2026-11-04: GEN.1233: rebuild the stand-in list and the reference pages
-- 2026-11-04: Merge main (train 9) into GEN.1233; Burns 1999 is R5096
+- 2026-11-04: Merge main (train 9) into GEN.1233; a source is R5096
 
 ## GEN.1234
 
@@ -9387,7 +9387,7 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-11-06 to 2026-11-06; 4 commits; not open.
 
 - 2026-11-06: Retire GEN.1326; file GEN.1328 (hot class N inventory) (#5463)
-- 2026-11-06: GEN.1328: index the super-Earth outgassing source (Elkins-Tanton and Seager 2008b, R5136) (#5475)
+- 2026-11-06: GEN.1328: index the super-Earth outgassing source ([R1248], R5136) (#5475)
 - 2026-11-06: Drop GEN.1328 (premise did not hold); file GEN.1329 (#5478)
 - 2026-11-06: Fix the GEN.1328 sources release note (Headline, no top heading) (#5489)
 
@@ -9704,9 +9704,9 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-11-08 to 2026-11-08; 5 commits; open.
 
 - 2026-11-08: GEN.1364: core composition split (S, Si, O, C, H, Ni by redox and pressure; liquidus and compositional energy in core_heat)
-- 2026-11-08: GEN.1364: sheet rule applies with metal, no size scaling of the compositional energy, Badro 2014 for the Si partition, liquidus cap, census
-- 2026-11-08: GEN.1364: Mercury and Earth anchors read in Edmund 2022 (R5147)
-- 2026-11-08: GEN.1364: sources by ID, Iizuka-Oku 2021 registered (R5148)
+- 2026-11-08: GEN.1364: sheet rule applies with metal, no size scaling of the compositional energy, a source for the Si partition, liquidus cap, census
+- 2026-11-08: GEN.1364: Mercury and Earth anchors read in a source (R5147)
+- 2026-11-08: GEN.1364: sources by ID, a source registered (R5148)
 - 2026-11-08: Boss answers: class M levers 3, 6, 7 released; GEN.1364 kept; GEN.1435 default on; retire TEST.709 (#5759)
 
 ## GEN.1365
@@ -9723,7 +9723,7 @@ The life of every GEN item that a commit title names, from the git history as of
 
 2026-11-07 to 2026-11-08; 4 commits; not open.
 
-- 2026-11-07: GEN.1366: evaporite and salt sequence from the brine (calcite to antarcticite), natron and antarcticite rows, Hardie 1967 as R5138
+- 2026-11-07: GEN.1366: evaporite and salt sequence from the brine (calcite to antarcticite), natron and antarcticite rows, a source as R5138
 - 2026-11-08: GEN.1366: merge main (train 16), stand-in section 6.212, Hardie source R5143
 - 2026-11-08: GEN.1366: drop the unread row_exists (wiring guard)
 - 2026-11-08: GEN.1366: drop the unread row_exists (wiring guard); the change note's marker lines have no backticks
@@ -10189,4 +10189,28 @@ The life of every GEN item that a commit title names, from the git history as of
 2026-11-08 to 2026-11-08; 1 commits; open.
 
 - 2026-11-08: File GEN.1463 (oxygen sink falls with body age) (#5784)
+
+## GEN.1464
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File GEN.1464 to GEN.1469, plan the gravity set for Train 21, reuse rule (#5790)
+
+## GEN.1466
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File DOC.114 to DOC.117 (docs consolidation and site) and ADM.148 to ADM.150 (admin cleanup, systems-so-far list); fix GEN.1466 path (#5793)
+
+## GEN.1469
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File GEN.1464 to GEN.1469, plan the gravity set for Train 21, reuse rule (#5790)
+
+## GEN.1470
+
+2026-11-08 to 2026-11-08; 1 commits; open.
+
+- 2026-11-08: File GEN.1470: puffed planets from obliquity-tide inflation escape the super-puff check (#5796)
 
