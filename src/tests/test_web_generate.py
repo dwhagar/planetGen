@@ -27,7 +27,7 @@ from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
-from planetgen.web.lib import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient, estimatejob  # noqa: E402
 from planetgen.queue import progress_file, redisqueue  # noqa: E402
 from planetgen.web import csrf, generate_flow, generate_page, jobs, limit_sliders  # noqa: E402
 
@@ -117,6 +117,14 @@ def _uncached_estimates(monkeypatch):
         raise OSError("estimate versions are not read in these tests")
 
     monkeypatch.setattr(generate_page, "_estimate_versions", unreadable)
+
+
+@pytest.fixture(autouse=True)
+def _estimates_run_in_the_request(monkeypatch):
+    """The Generate page's size estimate runs in the work queue (ADM.141): a request queues it and answers "working". The tests that
+    patch `generate_page.run_estimate` expect it to be called, so here nothing can queue it and it runs in the request, as it did before
+    the queue; `test_estimate_background.py` tests the queued path with its own `start`."""
+    monkeypatch.setattr(estimatejob, "start", lambda *args, **kwargs: False)
 
 
 def _token(client):

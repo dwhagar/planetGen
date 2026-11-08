@@ -120,7 +120,8 @@ from planetgen.galaxy import objectref as object_ref, object_uid, scatter_limits
 from planetgen.galaxy.profile import sector_profile
 from planetgen.galaxy.profile_report import profile_report
 from planetgen.galaxy.resolution import cell_resolution
-from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
+from planetgen.db.store import (NoGalaxyError, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases,
+                                resolve_database)
 from planetgen.util.checks import finite_float
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
@@ -198,6 +199,8 @@ def _resolve_database_param(base_config):
         return base_config
     try:
         return resolve_database(base_config, requested)
+    except NoGalaxyError as exc:
+        raise ApiError(str(exc), status_code=404, extra={"noGalaxy": True})        # MAP.407: the pages say so in words
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
     except pymysql.MySQLError as exc:
