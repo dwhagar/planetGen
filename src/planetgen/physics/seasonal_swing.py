@@ -436,6 +436,7 @@ def _anderson(step, start):
     size = updated.size
     delta_f = np.empty((ANDERSON_DEPTH, size))
     delta_g = np.empty((ANDERSON_DEPTH, size))
+    gram_of = np.empty((ANDERSON_DEPTH, ANDERSON_DEPTH))        # delta_f @ delta_f.T, kept: a pass changes one row of delta_f, so one row and column of it (PERF.249)
     count = 0
     previous_f = previous_g = None
     passes = 1
@@ -449,11 +450,16 @@ def _anderson(step, start):
             np.subtract(change, previous_f, out=delta_f[slot])
             np.subtract(current_g, previous_g, out=delta_g[slot])
             count += 1
+            # An entry of the Gram matrix is the sum of the products of two rows left to right, whichever other rows there are, and a product is the same whichever factor comes
+            # first: the row of the slot just written, taken against every row now held, is the row and the column of the matrix that changed, with the bits of the whole matrix.
+            row = detmath.matmul(delta_f[slot:slot + 1], delta_f[:min(count, ANDERSON_DEPTH)].T)[0]
+            gram_of[slot, :row.size] = row
+            gram_of[:row.size, slot] = row
         previous_f, previous_g = change, current_g
         used = min(count, ANDERSON_DEPTH)
         if used:
             matrix = delta_f[:used]
-            gram = detmath.matmul(matrix, matrix.T)
+            gram = gram_of[:used, :used]
             gamma = np.linalg.solve(gram + (1.0e-10 * np.trace(gram) + 1.0e-30) * np.eye(used), detmath.matmul(matrix, change[:, None])[:, 0])
             mixed = current_g - detmath.matmul(gamma, delta_g[:used])
         else:
