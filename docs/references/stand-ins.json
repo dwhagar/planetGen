@@ -54947,8 +54947,8 @@
       "title": "Stand-ins of the water and carbon a mantle stores"
     },
     {
-      "key": "6.233",
-      "number": "6.233",
+      "key": "6.234",
+      "number": "6.234",
       "rows": [
         {
           "burn_down": null,
@@ -54979,9 +54979,9 @@
             ]
           ],
           "id": "SI1",
-          "key": "6.233:SI1",
+          "key": "6.234:SI1",
           "kind": "T",
-          "slug": "6-233-si1",
+          "slug": "6-234-si1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -55017,9 +55017,9 @@
             ]
           ],
           "id": "SI2",
-          "key": "6.233:SI2",
+          "key": "6.234:SI2",
           "kind": "T",
-          "slug": "6-233-si2",
+          "slug": "6-234-si2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -55055,9 +55055,9 @@
             ]
           ],
           "id": "SI3",
-          "key": "6.233:SI3",
+          "key": "6.234:SI3",
           "kind": "T",
-          "slug": "6-233-si3",
+          "slug": "6-234-si3",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
@@ -55093,9 +55093,9 @@
             ]
           ],
           "id": "SI4",
-          "key": "6.233:SI4",
+          "key": "6.234:SI4",
           "kind": "T",
-          "slug": "6-233-si4",
+          "slug": "6-234-si4",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L1",
@@ -55103,7 +55103,7 @@
           "what": "superionic.FALLBACK_TEMPERATURE_K 2500.0"
         }
       ],
-      "slug": "6-233-stand-ins-of-the-superionic-boundaries-of-water-and-ammonia",
+      "slug": "6-234-stand-ins-of-the-superionic-boundaries-of-water-and-ammonia",
       "title": "Stand-ins of the superionic boundaries of water and ammonia"
     }
   ]
