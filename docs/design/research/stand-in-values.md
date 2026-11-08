@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1304 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1305 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 95 | 44 | 8 | 10 | 0 | 157 |
 | T4 | 58 | 7 | 2 | 19 | 10 | 96 |
 | T5 | 61 | 22 | 3 | 1 | 0 | 87 |
-| T6 | 137 | 95 | 25 | 63 | 0 | 320 |
+| T6 | 137 | 96 | 25 | 63 | 0 | 321 |
 | T7 | 34 | 15 | 7 | 17 | 0 | 73 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 719 | 273 | 62 | 205 | 45 | 1304 |
+| All | 719 | 274 | 62 | 205 | 45 | 1305 |
 
 ## How the labels were given
 
@@ -1207,10 +1207,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| PF1 | B | T4 | L0 | super_puff.MAX_AGE_GY 1, with MAX_MASS_EARTH 10, PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate | Lee and Chiang's class is 2 to 6 Earth masses and under 50 days; the design table is 10 Earth masses and 10 to 100 days | rocky and gas-dwarf planets with an envelope | a super-puff heavier than 10 Earth masses (older ones exist: [R3079: Sec. 5] gives Kepler-79 d 1.9 to 3.4 Gyr, Kepler-27 b and Kepler-31 c 4.7 Gyr, inflated by the tides the radius here does not yet carry; the generator's own planets under 0.1 g/cc are all younger than 1.3 Gyr, GEN.1343) | the age-dependent radius of a measured sample | the design table (weird-worlds.md W15), [R2609] Introduction and Sec. 4 (read), Kepler-51 d 0.038 g/cc (read) | - | - |
+| PF1 | B | T4 | L0 | super_puff.MAX_MASS_EARTH 10 (no age in the gate since GEN.1347), PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate | Lee and Chiang's class is 2 to 6 Earth masses and under 50 days; the design table is 10 Earth masses and 10 to 100 days | rocky and gas-dwarf planets with an envelope | a super-puff heavier than 10 Earth masses (older ones exist: [R3079: Sec. 5] gives Kepler-79 d 1.9 to 3.4 Gyr, Kepler-27 b and Kepler-31 c 4.7 Gyr, which the obliquity tide of GEN.1347 now inflates) | the age-dependent radius of a measured sample | the design table (weird-worlds.md W15), [R2609] Introduction and Sec. 4 (read), Kepler-51 d 0.038 g/cc (read) | - | - |
 | PF2 | D | T3 | L0 | super_puff.PUFF_ENVELOPE (0.07, 0.45): the envelope fractions | Kepler-51 b 0.07 to 0.28, Kepler-79 d 0.33 to 0.40 (Lee and Chiang Sec. 4, after Lopez and Fortney); the module solves 0.16 for Kepler-51 b and 0.41 for Kepler-51 d | planets of 2 to 10 Earth masses | a super-puff with an envelope outside it | the formation model of Lee and Chiang (dust-free accretion in the outer disk) | [R2609: Sec. 4] (read), [R2673] abstract (read) | - | - |
 | PF3 | P | T8 | L3 | super_puff.START_SHARE 0.05 (the share of the 2 to 10 Earth-mass sub-Neptune cores inside 100 days that start as a super-puff, GEN.1343) and super_puff.OCCURRENCE_SHARE 0.005 (the share the design table gives, read by the census test): half of the tenth Lee and Chiang bound the planets over 4 Earth radii to | 0.01 to 0.10 (the gate passes 0.84 percent of the sub-Neptunes inside 100 days at 0.05 and at 0; 3 percent with every core started as a puff) | sub-Neptune cores of 2 to 10 Earth masses inside 100 days | a survey statistic of planets under 0.1 g/cc among the sub-Neptunes, or of cores that accrete a dust-free outer-disk atmosphere | a measured occurrence from Kepler or TESS, or a formation model of the dust-free accretion | design table; [R2609: Sec. 4] (read). The rate is not confirmed: no occurrence statistic is in [R3079] or [R2673] (read in full 2026-11-07); [R3079: Sec. 5] finds 5 planets in 3 systems under 0.1 g/cc among the 145 TTV-measured planets of 55 systems (about 3 percent, a sample picked for its masses) | - | no data |
-| PF4 | T | T3 | L1 | super_puff.TIDAL_MIN_FLUX_EARTH 20, TIDAL_MIN_LUMINOSITY_RATIO 1e-5, TIDAL_MAX_RATIO 2 and the fit of eq. 14: the tidal inflation | her fit is of her own radii and its exponents are not the quotient of eqs. 12 and 13; here it multiplies the radius of Lopez and Fortney | flux over 20 Earth fluxes, planets of 1 to 30 Earth masses | a planet whose radius is measured against its obliquity | the full structure model with the tidal heat in the core | [R3079] eqs. 11, 14 and Sec. 4.1 (read) | - | - |
+| PF4 | T | T3 | L1 | super_puff.TIDAL_MIN_FLUX_EARTH 20, TIDAL_MIN_LUMINOSITY_RATIO 1e-5, TIDAL_MAX_RATIO 2 and the fit of eq. 14: the tidal inflation | her fit is of her own radii and its exponents are not the quotient of eqs. 12 and 13; here it multiplies the radius of Lopez and Fortney | flux over 20 Earth fluxes, planets of 1 to 30 Earth masses | a planet whose radius is measured against its obliquity | the full structure model with the tidal heat in the core | [R3079] eqs. 11, 14 and Sec. 4.1 (read). Since GEN.1347 the fit is applied to every planet that has an envelope, a tilt of 0.01 degrees or more and the light and tidal power the fit needs; the planet's own tilt is the spin step's, and the fit is used up to the envelope fractions the generator draws (0.45), past the few percent of her grid, where it runs into the cap of 2 | - | - |
+| PF5 | P | T6 | L1 | super_puff.TIDAL_Q_PRIME_RANGE (1e3, 1e5): the tidal quality factor Q' a planet with an envelope draws, log-uniform (GEN.1347) | 1e3 to 1e5 (Neptune 1e4 to 1e5; the planets of her tables 1e3 to 1e5) | planets of 1 to 30 Earth masses with an envelope | a measured Q' of sub-Neptunes outside the range | a Q' from the envelope's own dissipation (an interior model) | [R3079: Sec. 4.1] (read): her tables span Q' 1e3 to 1e5; Q' enters as (Q/1e5)^-0.88 | - | - |
 
 ## 6.77 Stand-ins of the helium enrichment of a thinning envelope
 

@@ -28607,7 +28607,7 @@
           "fields": [
             [
               "What it is",
-              "super_puff.MAX_AGE_GY 1, with MAX_MASS_EARTH 10, PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate"
+              "super_puff.MAX_MASS_EARTH 10 (no age in the gate since GEN.1347), PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate"
             ],
             [
               "The range it moves in",
@@ -28619,7 +28619,7 @@
             ],
             [
               "What would show it wrong",
-              "a super-puff heavier than 10 Earth masses (older ones exist: [R3079: Sec. 5] gives Kepler-79 d 1.9 to 3.4 Gyr, Kepler-27 b and Kepler-31 c 4.7 Gyr, inflated by the tides the radius here does not yet carry; the generator's own planets under 0.1 g/cc are all younger than 1.3 Gyr, GEN.1343)"
+              "a super-puff heavier than 10 Earth masses (older ones exist: [R3079: Sec. 5] gives Kepler-79 d 1.9 to 3.4 Gyr, Kepler-27 b and Kepler-31 c 4.7 Gyr, which the obliquity tide of GEN.1347 now inflates)"
             ],
             [
               "What replaces it",
@@ -28638,7 +28638,7 @@
           "tier_code": "T4",
           "tweak": "L0",
           "unread": null,
-          "what": "super_puff.MAX_AGE_GY 1, with MAX_MASS_EARTH 10, PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate"
+          "what": "super_puff.MAX_MASS_EARTH 10 (no age in the gate since GEN.1347), PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate"
         },
         {
           "burn_down": null,
@@ -28745,7 +28745,7 @@
             ],
             [
               "Evidence",
-              "[R3079] eqs. 11, 14 and Sec. 4.1 (read)"
+              "[R3079] eqs. 11, 14 and Sec. 4.1 (read). Since GEN.1347 the fit is applied to every planet that has an envelope, a tilt of 0.01 degrees or more and the light and tidal power the fit needs; the planet's own tilt is the spin step's, and the fit is used up to the envelope fractions the generator draws (0.45), past the few percent of her grid, where it runs into the cap of 2"
             ]
           ],
           "id": "PF4",
@@ -28757,6 +28757,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "super_puff.TIDAL_MIN_FLUX_EARTH 20, TIDAL_MIN_LUMINOSITY_RATIO 1e-5, TIDAL_MAX_RATIO 2 and the fit of eq. 14: the tidal inflation"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "super_puff.TIDAL_Q_PRIME_RANGE (1e3, 1e5): the tidal quality factor Q' a planet with an envelope draws, log-uniform (GEN.1347)"
+            ],
+            [
+              "The range it moves in",
+              "1e3 to 1e5 (Neptune 1e4 to 1e5; the planets of her tables 1e3 to 1e5)"
+            ],
+            [
+              "Where it holds",
+              "planets of 1 to 30 Earth masses with an envelope"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Q' of sub-Neptunes outside the range"
+            ],
+            [
+              "What replaces it",
+              "a Q' from the envelope's own dissipation (an interior model)"
+            ],
+            [
+              "Evidence",
+              "[R3079: Sec. 4.1] (read): her tables span Q' 1e3 to 1e5; Q' enters as (Q/1e5)^-0.88"
+            ]
+          ],
+          "id": "PF5",
+          "key": "6.76:PF5",
+          "kind": "P",
+          "slug": "6-76-pf5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "super_puff.TIDAL_Q_PRIME_RANGE (1e3, 1e5): the tidal quality factor Q' a planet with an envelope draws, log-uniform (GEN.1347)"
         }
       ],
       "slug": "6-76-stand-ins-of-the-super-puff-radius",
