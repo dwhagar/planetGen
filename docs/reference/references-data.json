@@ -82361,6 +82361,25 @@
    "volume": "63",
    "year": 2020
   },
+  "10.1007/s11467-020-1043-8": {
+   "authors": [
+    [
+     "Li",
+     "B. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s11467-020-1043-8",
+   "editors": [],
+   "journal": "Front. Phys.",
+   "page": "24302",
+   "publisher": "China Engineering Science Press Co. Ltd.",
+   "src": "crossref",
+   "title": "Tasting nuclear pasta made with classical molecular dynamics simulations",
+   "type": "journal-article",
+   "volume": "16",
+   "year": 2021
+  },
   "10.1007/s12036-017-9469-2": {
    "arxiv": "1709.09434",
    "authors": [
@@ -195481,6 +195500,29 @@
    "volume": "462",
    "year": 2016
   },
+  "10.1093/mnras/stw1880": {
+   "authors": [
+    [
+     "Passamonti",
+     "A."
+    ],
+    [
+     "Pons",
+     "J. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stw1880",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "1173",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Quasi-periodic oscillations in superfluid, relativistic magnetars with nuclear pasta phases",
+   "type": "journal-article",
+   "volume": "463",
+   "year": 2016
+  },
   "10.1093/mnras/stw1929": {
    "arxiv": "1608.01435",
    "authors": [
@@ -280853,7 +280895,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5167,
+ "id_next": 5170,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -281161,6 +281203,7 @@
   "10.1007/s11214-025-01243-w": "R4155",
   "10.1007/s11214-025-01264-5": "R1718",
   "10.1007/s11433-019-1541-6": "R4616",
+  "10.1007/s11467-020-1043-8": "R5165",
   "10.1007/s12036-017-9469-2": "R2849",
   "10.1007/s12036-019-9601-6": "R1675",
   "10.1007/s12036-020-09640-z": "R0380",
@@ -284103,6 +284146,7 @@
   "10.1093/mnras/stw185": "R2268",
   "10.1093/mnras/stw1861": "R3113",
   "10.1093/mnras/stw1876": "R3688",
+  "10.1093/mnras/stw1880": "R5166",
   "10.1093/mnras/stw1929": "R2679",
   "10.1093/mnras/stw2021": "R3692",
   "10.1093/mnras/stw2036": "R3328",
@@ -284890,7 +284934,7 @@
   "10.1126/science.277.5324.358": "R2578",
   "10.1126/science.278.5341.1245": "R2276",
   "10.1126/science.281.5381.1342": "R1969",
-  "10.1126/science.283.5398.44": "R5166",
+  "10.1126/science.283.5398.44": "R5169",
   "10.1126/science.284.5417.1146": "R5114",
   "10.1126/science.288.5466.658": "R0630",
   "10.1126/science.341.6150.1062-b": "R4875",
@@ -286679,7 +286723,7 @@
   "arxiv:2007.05561": "R1268",
   "arxiv:2007.05562": "R1269",
   "arxiv:2007.05563": "R3955",
-  "arxiv:2007.07715": "R5165",
+  "arxiv:2007.07715": "R5168",
   "arxiv:2007.09059": "R2965",
   "arxiv:2007.10783": "R1892",
   "arxiv:2007.11006": "R3797",
@@ -287254,6 +287298,7 @@
   "web:http://www.minsocam.org/ammin/am52/am52_171.pdf": "R5164",
   "web:https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/": "R5036",
   "web:https://alextardif.com/taa.html": "R5061",
+  "web:https://arxiv.org/abs/1109.3511": "R5167",
   "web:https://bartwronski.com/page/3/": "R5063",
   "web:https://beltoforion.de/en/dithering/": "R5039",
   "web:https://castle-engine.io/occlusion_culling": "R5040",
@@ -287809,6 +287854,15 @@
    "provider": "Mineralogical Society of America",
    "url": "http://www.minsocam.org/ammin/AM52/AM52_171.pdf",
    "year": "1967"
+  },
+  {
+   "checked": "2026-11-08",
+   "identifier": "arXiv:1109.3511",
+   "kind": "web page",
+   "name": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)",
+   "provider": "arXiv (Watanabe and Maruyama, preprint of the book chapter)",
+   "url": "https://arxiv.org/abs/1109.3511",
+   "year": "2012"
   }
  ]
 }

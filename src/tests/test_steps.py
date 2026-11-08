@@ -194,7 +194,7 @@ def test_a_step_that_runs_past_five_seconds_gets_its_counted_bar_at_that_moment(
             pass
 
         def cancel(self):
-            self.cancelled = True
+            self.canceled = True
 
     monkeypatch.setattr(steps.threading, "Timer", FakeTimer)
     with steps.Step("Neighbours", "link", 100, stats=_stats_with("link", 1, 0.0001), progress=progress) as bar:
@@ -211,16 +211,16 @@ def test_a_quick_step_leaves_no_bar_and_cancels_its_timer(progress, monkeypatch)
 
     class FakeTimer:
         def __init__(self, interval, function):
-            self.interval, self.function, self.daemon, self.cancelled = interval, function, False, False
+            self.interval, self.function, self.daemon, self.canceled = interval, function, False, False
             timers.append(self)
 
         def start(self):
             pass
 
         def cancel(self):
-            self.cancelled = True
+            self.canceled = True
 
     monkeypatch.setattr(steps.threading, "Timer", FakeTimer)
     with steps.Step("Neighbours", "link", 100, stats=_stats_with("link", 1, 0.0001), progress=progress) as bar:
         bar.update(advance=100)
-    assert not bar.shown and not progress.tasks and timers[0].cancelled
+    assert not bar.shown and not progress.tasks and timers[0].canceled

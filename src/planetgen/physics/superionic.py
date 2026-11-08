@@ -6,9 +6,9 @@ bottom; this module says whether they are there
 
 * an ice (or a molecular fluid) under the floor,
 * **superionic** between the floor and the ceiling: a solid of oxygen (or nitrogen) atoms whose hydrogen ions move freely (bcc, then fcc superionic ice,
-  [R5165]; the phase of Millot's ice XVIII, [R3081]; the superionic ammonia of [R5166]),
+  [R5168]; the phase of Millot's ice XVIII, [R3081]; the superionic ammonia of [R5169]),
 * an **ionic fluid** above the ceiling (the melt line), and
-* a **metallic fluid** above the temperature where the fluid turns metallic (7000 K for water, 5500 K for ammonia, [R5166]).
+* a **metallic fluid** above the temperature where the fluid turns metallic (7000 K for water, 5500 K for ammonia, [R5169]).
 
 The floor and the ceiling of each species are tables of `(pressure GPa, temperature K)` points in `physics/data/superionic_boundary.json`, with their sources. Between
 points the line is straight; past the last point the last temperature holds; under the first point there is no superionic phase of that species. Where the
@@ -38,17 +38,17 @@ STATES = ("solid_or_molecular", "superionic", "ionic_fluid", "metallic_fluid")
 """tuple: What `state` answers."""
 
 FALLBACK_FLOOR_BEYOND_GPA = 60.0
-"""float: STAND-IN SI1 (T6, L0): the water floor measured up to this pressure (1900 K, [R5165]) is held at all higher pressures (the table's last floor point)."""
+"""float: STAND-IN SI1 (T6, L0): the water floor measured up to this pressure (1900 K, [R5168]) is held at all higher pressures (the table's last floor point)."""
 
 CEILING_INTERPOLATION_GPA = (20.0, 105.0)
-"""tuple: STAND-IN SI2 (T6, L1): the water ceiling is the straight line between its table points at these pressures (the triple point at 20 GPa and the point at 105 GPa, [R5165])."""
+"""tuple: STAND-IN SI2 (T6, L1): the water ceiling is the straight line between its table points at these pressures (the triple point at 20 GPa and the point at 105 GPa, [R5168])."""
 
 AMMONIA_FLOOR_GPA_K = (30.0, 1500.0)
-"""tuple: STAND-IN SI3 (T7, L1): ammonia is superionic from this pressure and temperature upward (recalled, not opened: [R5166] gives the range only)."""
+"""tuple: STAND-IN SI3 (T7, L1): ammonia is superionic from this pressure and temperature upward (recalled, not opened: [R5169] gives the range only)."""
 
 FALLBACK_TEMPERATURE_K = 2500.0
 """float: STAND-IN SI4 (T7, L1): the temperature a layer is taken to have when its structure model carries none (the constant-density
-stand-in used when the hydrogen-helium tables are missing): a typical temperature of an ice giant's deep ice layer on the planetary isentrope of [R5166], 2000 to 5000 K."""
+stand-in used when the hydrogen-helium tables are missing): a typical temperature of an ice giant's deep ice layer on the planetary isentrope of [R5169], 2000 to 5000 K."""
 
 _cache = {}
 
@@ -84,7 +84,7 @@ def load(path=DATA_FILE):
     water, ammonia = table["water"], table["ammonia"]
     if (water["floor"][-1][0] != FALLBACK_FLOOR_BEYOND_GPA or (water["ceiling"][0][0], water["ceiling"][1][0]) != CEILING_INTERPOLATION_GPA
             or ammonia["floor"][0] != AMMONIA_FLOOR_GPA_K):
-        raise DataError("the stand-in points SI1 to SI3 (section 6.220) do not match the table's rows")
+        raise DataError("the stand-in points SI1 to SI3 (section 6.233) do not match the table's rows")
     return table
 
 
