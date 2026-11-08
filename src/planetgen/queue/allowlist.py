@@ -34,6 +34,8 @@ cannot."""
 FUNCTIONS = frozenset({
     "planetgen.queue.units.run_unit",                   # a run's unit of work (PERF.95)
     "planetgen.queue.units.unit_failed",                # its failure callback
+    "planetgen.queue.units.open_stage",                 # the opening (cut) of a run's next stage (PERF.254)
+    "planetgen.queue.units.open_failed",                # its failure callback
     "planetgen.queue.requires.job_failed",              # the callbacks every job gets (PERF.247)
     "planetgen.queue.requires.job_succeeded",
     "planetgen.queue.api_jobs.execute",                 # the API's long operations (dispatches through `API_FUNCTIONS`)

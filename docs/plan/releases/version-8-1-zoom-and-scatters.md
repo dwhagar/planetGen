@@ -98,6 +98,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) |  | Boss, 2026-11-08 (proposed). |
 | OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook |  | Boss, 2026-11-08 (proposed). |
 | OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site |  | Boss, 2026-11-08 (proposed). |
+| OPS.131 | Independence harness for overlapping jobs: each command declares its reads and writes, a SQL tap test fails any command that touches an undeclared table, and a pair overlaps only after a test proves it |  | Boss, 2026-11-08 (proposed). |
+| OPS.132 | Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell) |  | Boss, 2026-11-08 (proposed). |
 
 ### Nebula data foundations
 
@@ -486,17 +488,10 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 |  | Lane 15, 2026-11-08. |
 | TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor |  | Lane 15, 2026-11-08. |
 | TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold |  | Lane 15, 2026-11-08. |
-| TEST.709 | test_api_life_air test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made is flaky: it draws unseeded systems in a 40-try loop and sometimes finds no methane row |  | Lane 21, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |
 | MAP.410 | Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')" |  | Lane 03, 2026-11-08. |
-| UX.294 | Seven JS files format numbers by hand (toLocaleString, toExponential, toPrecision): move them to numberformat.js and unitladder.js |  | Lane 05, 2026-11-08. |
-| TEST.701 | The old-URL error tests have no test value for the belt route /object/<belt_ref>/belt |  | Lane 05, 2026-11-08. |
 | DB.118 | Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug) |  | Lane 05, 2026-11-08. |
 | TEST.702 | Boundary-value tests disagree with the new input checks: 1.797e308 and inf now raise ValueError for bulk_density_kg_m3 and polytrope_j |  | Lane 05, 2026-11-08. |
-| TEST.703 | Multistar stand-in registry rows MS4 and MS6 name a test that no longer exists (test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest) |  | Lane 05, 2026-11-08. |
-| DB.119 | SQL portability: a new VALUES() inside ON DUPLICATE KEY UPDATE and an unquoted reserved word |  | Lane 05, 2026-11-08. |
-| DB.120 | The table holding sky_tier_draws is on neither LAYOUTS nor NOT_BODIES in db/point_columns.py |  | Lane 05, 2026-11-08. |
-| DOC.111 | The link-neighbors command is in no document |  | Lane 05, 2026-11-08. |
 | DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out |  | Lane 05, 2026-11-08. |
 | GEN.1439 | A plan stores no container for each globular cluster |  | Lane 05, 2026-11-08. |
 | TEST.704 | test_class_sample[P] finds no class P planet in 24 tries after the class-last change |  | Lane 05, 2026-11-08. |

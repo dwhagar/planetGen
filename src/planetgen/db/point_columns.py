@@ -175,6 +175,8 @@ NOT_BODIES = {
                             "stays the source",
     "system_interests": "the index of the systems worth a mark on the Galaxy Map (a habitable world, a gas giant): a copy of the "
                         "system's own galactic point for the Galaxy Map tiles, never a source of one; the system's row stays the source",
+    "sky_tier_draws": "the ledger of the spheres of sky drawn so far (a center, a radius and a limit magnitude, `db/sky_tier_ledger.py`): "
+                      "a region and how far it is drawn, not an object in it",
 }
 """dict: Table -> why it carries a point (or a uid) and holds no object."""
 

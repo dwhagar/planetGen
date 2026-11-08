@@ -16,6 +16,7 @@
 // Imported with this module's own `?v=` query, like the map script's other siblings, so an update cannot leave a stale copy cached (systemmap.js explains).
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { MODES, MODE_NAMES, UNIT_TEXT, alphaOf, colorRange, rampColor, shade, valueText } = await import(`./gravitylayer.js${VERSION_QUERY}`);
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 export const BIG_G = 6.6743e-11;
 export const GRID = 140; // cells across the scene's frame
@@ -283,7 +284,7 @@ export function createSystemGravity(deps) {
         }
         const ring = svgElement(doc, "polygon", { class: "sysmap-hill", points: points.join(" ") });
         const title = svgElement(doc, "title", {});
-        title.textContent = "Hill sphere of " + (b.name || "this body") + ": " + Math.round(radius).toLocaleString("en-US") + " km";
+        title.textContent = "Hill sphere of " + (b.name || "this body") + ": " + formatNumber(Math.round(radius)) + " km";
         ring.appendChild(title);
         group.appendChild(ring);
       }

@@ -96,7 +96,8 @@ def test_every_function_on_the_lists_exists():
 
 
 def test_the_names_the_program_gives_its_jobs_are_on_the_list():
-    for name in (units.UNIT_FUNCTION, units.FAILURE_FUNCTION, requires.FAILED_FUNCTION, requires.SUCCEEDED_FUNCTION):
+    for name in (units.UNIT_FUNCTION, units.FAILURE_FUNCTION, units.OPEN_FUNCTION, units.OPEN_FAILURE_FUNCTION, requires.FAILED_FUNCTION,
+                 requires.SUCCEEDED_FUNCTION):
         assert name in allowlist.FUNCTIONS
     from planetgen.web.lib import tileprefetch
     assert tileprefetch.JOB in allowlist.FUNCTIONS
@@ -106,7 +107,7 @@ def test_the_names_the_program_gives_its_jobs_are_on_the_list():
 def test_every_enqueue_in_the_source_queues_a_function_on_the_list():
     """`queue.enqueue(X, ...)`, `enqueue_many([prepare_data(X, ...)])` and `requires.enqueue(queue, X, ...)`: X is a constant
     on the list, a module constant that is, `api_jobs.execute`, or a helper's own parameter."""
-    known = {"UNIT_FUNCTION": units.UNIT_FUNCTION, "JOB": "planetgen.web.lib.tileprefetch.build_nodes",
+    known = {"UNIT_FUNCTION": units.UNIT_FUNCTION, "OPEN_FUNCTION": units.OPEN_FUNCTION, "JOB": "planetgen.web.lib.tileprefetch.build_nodes",
              "execute": "planetgen.queue.api_jobs.execute"}
     checked = 0
     for module, path, tree in _trees():
