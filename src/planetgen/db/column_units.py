@@ -477,6 +477,7 @@ TABLES = {
     "moon_isotopes": {
         "id": ("id", "moon_id"),
         "frac": ("fraction",),
+        "ratio": ("initial_ratio",),
     },
     "moon_interior_layers": {
         "id": ("id", "moon_id"),
@@ -761,6 +762,7 @@ TABLES = {
     "planet_isotopes": {
         "id": ("id", "planet_id"),
         "frac": ("fraction",),
+        "ratio": ("initial_ratio",),
     },
     "planet_interior_layers": {
         "id": ("id", "planet_id"),
@@ -1184,6 +1186,7 @@ ROGUE_BODY_UNITS = {
     "rogue_planet_isotopes": {
         "id": ("id", "rogue_planet_id"),
         "frac": ("fraction",),
+        "ratio": ("initial_ratio",),
     },
     "rogue_planet_interior_layers": {
         "GPa": ("bottom_pressure_gpa", "top_pressure_gpa",),
