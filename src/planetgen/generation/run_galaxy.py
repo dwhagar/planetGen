@@ -2779,6 +2779,8 @@ def _plan_addresses(args, edge_pc, progress):
     batch_density = _BatchDensity(store.mysql_config_from_args(args))
     plan = _address_plan(args, edge_pc, batch_density)
     if plan is None:
+        if getattr(args, "estimate_only", False):       # ADM.142: nothing to generate is still an estimate (of nothing), not a run
+            run_common._check_estimate(args, [], "the sectors asked for", progress)
         return [SectorsFollower(args, "sectors", "Sectors", edge_pc, count=0)]
     what, total = plan.what, plan.total
     limit = getattr(args, "limit", None)
