@@ -51,6 +51,12 @@ def test_another_stage_keeps_the_runs_count_and_sheds_nobody(monkeypatch):
     assert calls == [("ensure", redisqueue.BULK_QUEUE, 36), ("ensure", redisqueue.BULK_QUEUE, None)]
 
 
+def test_the_block_lights_are_held_to_the_workers_the_memory_holds(monkeypatch):
+    """PERF.226: the run of 2026-11-08 had 15 workers at 15,128 MB of 15,992 MB while the block lights ran."""
+    monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
+    assert workers.stage_worker_cap("refresh-block-lights") == 11
+
+
 def test_a_maintenance_run_never_sheds_the_bulk_workers(monkeypatch):
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
     calls = _record(monkeypatch)
@@ -64,8 +70,10 @@ def test_every_command_has_a_memory_figure_or_is_one_worker_on_purpose():
     for kind, spec in commands.REGISTRY.items():
         by_nature = spec.inline or spec.whole
         measured = kind in workers.STAGE_WORKER_MEMORY_MB
-        assert measured + by_nature == 1, f"{kind}: in the table {measured}, one unit by nature {by_nature}"
-        assert (workers.stage_worker_mb(kind) is None) == by_nature, kind
+        assert measured or by_nature, f"{kind}: in the table {measured}, one unit by nature {by_nature}"
+        assert not (measured and spec.inline), f"{kind}: an inline command has no workers to size"
+        assert (workers.stage_worker_mb(kind) is None) == (not measured), kind
+    assert workers.stage_worker_mb("refresh-block-lights") == workers.LEAN_WORKER_MEMORY_MB      # whole, but cut into 90 units
     assert set(workers.STAGE_WORKER_MEMORY_MB) <= set(commands.REGISTRY)
     assert min(workers.STAGE_WORKER_MEMORY_MB.values()) > workers.WORKER_MEMORY_MB
 
