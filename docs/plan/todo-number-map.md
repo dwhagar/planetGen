@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.289 |
 | MAP | MAP.408 |
 | NAV | NAV.78 |
-| GEN | GEN.1401 |
+| GEN | GEN.1402 |
 | PERF | PERF.251 |
 | DB | DB.116 |
 | API | API.42 |
@@ -2179,6 +2179,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1398 | The final-age stream and the strength pass read the class letter: seed the final-age redraw without it, and make the strength pass use the classifier's own conditions (audit F1 and F2) | none | open |
 | GEN.1399 | The flavor-text draw list is chosen by class A: choose it by conditions (audit F6) | none | open |
 | GEN.1400 | Class-letter leftovers: m_count, the unused trojan_bodies and hycean_candidate letter code, the dead pass-throughs in bodylook and habitability_world, the stale tuning docstring (audit F7 and F8) | none | open |
+| GEN.1401 | Importing planetgen.physics.hydrosphere or bulk_draw alone fails with a circular import unless planet_type is imported first, and GEN codes show in describe/sheet.py and stellar_abundances.py text (bug) | none | open |
 | GEN.1395 | Tune a gas giant's carbon-to-oxygen ratio to observed Sun-like giants and to what physics expects | GEN.1363 | open |
 | GEN.1396 | The snow-line jump in solid density (2.17): move it from the old table to the disc's solids if that is the sounder physics | GEN.1363 | open |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) | none | open |

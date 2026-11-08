@@ -70,6 +70,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.1398 | The final-age stream and the strength pass read the class letter: seed the final-age redraw without it, and make the strength pass use the classifier's own conditions (audit F1 and F2) |  | Class-last audit, train 18. |
 | GEN.1399 | The flavor-text draw list is chosen by class A: choose it by conditions (audit F6) |  | Class-last audit, train 18. |
 | GEN.1400 | Class-letter leftovers: m_count, the unused trojan_bodies and hycean_candidate letter code, the dead pass-throughs in bodylook and habitability_world, the stale tuning docstring (audit F7 and F8) |  | Class-last audit, train 18. |
+| GEN.1401 | Importing planetgen.physics.hydrosphere or bulk_draw alone fails with a circular import unless planet_type is imported first, and GEN codes show in describe/sheet.py and stellar_abundances.py text (bug) |  | Found by Lane 15, 2026-11-08. |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) |  | Lane 04 train 17 triage. |
 | GEN.1394 | A body under a deep envelope (GEN.1334) is solved for haze at the 1 bar level and stores half the haze it was solved with (bug) |  | Lane 04 train 17 triage. |
 | TEST.688 | src/tests/test_stellar_bulk.py::test_a_terrestrial_rogue_planet_is_round_and_has_a_strength fails on main: rogue planets of 0.5 to 3 Earth masses come out class T with roundness None (bug) |  |  |
