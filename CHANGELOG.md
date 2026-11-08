@@ -2,6 +2,27 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3684] - 2026-11-08
+
+**Headline:** On a phone the Galaxy Map's info card for a star system fits in half the map again: each row's label now stands over its value instead of beside it in a column too narrow for it.
+
+### Changed
+
+- UX.291: at phone width (390 by 844) the star-system card was 338 px high against the half-window limit of 329 px, because the label column of its three rows ("Habitable worlds", "Uninhabitable worlds") broke into pieces of a few letters beside a value column only about 100 px wide. Below 40 rem the card's rows are now one column, the label over its value, so every row takes one or two lines and nothing is hidden.
+
+generation-output: unchanged
+
+## [8.0.3683] - 2026-11-08
+
+**Headline:** The architecture map test no longer depends on which methods the package happens to name.
+
+### Fixed
+- **Architecture map call test (TEST.696).** The test for "a method on an unknown value stays text" used `.enqueue`, which stopped being unknown once `queue/requires.py` gained the only function of that name, so the map resolved it as a probable call. The test now uses `connection.ping`, which no function in the package carries.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (architecture map).
+
 ## [8.0.3682] - 2026-11-08
 
 **Headline:** The settings page has a "Galaxy and world generation" group with the oddity rate, the dial that says how often generated worlds get rare oddities (1 is the natural rate, 0 turns them off).
