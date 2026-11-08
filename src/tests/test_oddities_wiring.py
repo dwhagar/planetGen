@@ -515,8 +515,9 @@ def test_a_planet_that_is_not_locked_never_loses_its_air_to_a_dark_side_even_whe
 
 
 def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_first_answer():
-    other = _planet_at("G2V", 1.2, "w20-G2V-3", force=("W20",))
-    first = _planet_at("G2V", 1.2, "w20-G2V-3", dial=0.0)
+    # a pinned seed whose planet has a second branch; the generator's draws moved at epoch 140 (GEN.1363, GEN.1374), so the seed that had one was replaced (7: 47 K and 0.29 apart)
+    other = _planet_at("G2V", 1.2, "w20-G2V-7", force=("W20",))
+    first = _planet_at("G2V", 1.2, "w20-G2V-7", dial=0.0)
     assert "W20" in other.oddities and first.oddities == ()
     assert abs(other.surface_temperature - first.surface_temperature) >= 20.0 and abs(other.bond_albedo - first.bond_albedo) >= 0.1
 
