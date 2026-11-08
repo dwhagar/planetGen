@@ -42,7 +42,7 @@ first version.
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import activity, constants, formation, neutron_star, relations, remnant_mass, spin
+from planetgen.physics import activity, constants, formation, magnetic_geometry, neutron_star, relations, remnant_mass, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -362,6 +362,7 @@ class NeutronStar(CompactRemnant):
         mass_solar (float): Mass in solar masses.
         spin_period_ms (float): Rotational period in milliseconds.
         magnetic_field_gauss (float): Surface magnetic field strength.
+        magnetic_inclination_deg (float): The angle between the magnetic and the spin axis, 0 to 90 degrees (GEN.1350, `physics.magnetic_geometry`).
         pulsar_type (str): `"young"`, `"millisecond"`, `"magnetar"` or
             `"non-pulsing"` (GEN.153).
         surface_temperature_k (float): Surface temperature in Kelvin --
@@ -370,7 +371,7 @@ class NeutronStar(CompactRemnant):
 
     FIELD_UNITS = {
         **StellarObject.FIELD_UNITS, "mass_solar": "Msun", "spin_period_ms": "ms", "magnetic_field_gauss": "G",
-        "pulsar_type": "text", "surface_temperature_k": "K",
+        "magnetic_inclination_deg": "deg", "pulsar_type": "text", "surface_temperature_k": "K",
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """See `BlackHole.SERIALIZABLE_FIELDS`'s docstring for the same
@@ -444,6 +445,11 @@ class NeutronStar(CompactRemnant):
                    f"{tuning.MAGNETAR_BIRTH_FRACTION}), young pulsar={is_young_pulsar} "
                    f"(PULSAR_ACTIVE_LIFETIME_YR={tuning.PULSAR_ACTIVE_LIFETIME_YR:g}), "
                    f"recycled={is_recycled} (PULSAR_RECYCLED_CHANCE={tuning.PULSAR_RECYCLED_CHANCE})")
+
+        # GEN.1350: the angle between the magnetic and the spin axis, from a stream of the star's own (nothing of the run's is drawn)
+        self.magnetic_inclination_deg = magnetic_geometry.neutron_star_inclination_deg(
+            self.pulsar_type, self.age * 1e9,
+            f"{self.mass_solar!r}:{self.age!r}:{self.magnetic_field_gauss!r}:{self.spin_period_ms!r}")
 
         # Blackbody thermal luminosity from the surface (Stefan-Boltzmann
         # law), the same physical relationship Star.generate_star's white-

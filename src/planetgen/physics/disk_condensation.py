@@ -1,13 +1,13 @@
-# planetgen/physics/disc_condensation.py
+# planetgen/physics/disk_condensation.py
 
 """
-What a protoplanetary disc condenses at a temperature, species by species (GEN.1363 part A; docs/design/composition/disc-condensation.md)
+What a protoplanetary disk condenses at a temperature, species by species (GEN.1363 part A; docs/design/composition/disk-condensation.md)
 ==========================================================================================================================================
 
-`condensate_shares` has three ices (water 182 K, ammonia 131 K, methane 41 K) and puts all the carbon in methane. A disc measured by its
+`condensate_shares` has three ices (water 182 K, ammonia 131 K, methane 41 K) and puts all the carbon in methane. A disk measured by its
 gas and ice is not like that [R3321, R3322]: about half of the carbon is refractory (organic and graphite-like grains that survive to about
 500 K); the rest is mostly CO and CO2, with a little CH4; most of the nitrogen is N2; sulfur is mostly in troilite with some H2S; and the noble gases
-come out as clathrates in the water ice. This module is the budget and the lines of that disc, and nothing draws from it yet (part B wires the
+come out as clathrates in the water ice. This module is the budget and the lines of that disk, and nothing draws from it yet (part B wires the
 ice shares of a body to it and part C the C/O of a giant).
 
 1. **The budget.** Per 10^4 hydrogen atoms (the unit of [R3322: Table 1]) the Sun has C 2.88, N 0.68, O 4.90, S 0.13, Ar 0.024, Kr 1.3e-5 and Xe 1.7e-6
@@ -19,13 +19,13 @@ ice shares of a body to it and part C the C/O of a giant).
 3. **The nitrogen and the sulfur.** `NITROGEN_AS_N2` of the nitrogen is N2, `NITROGEN_AS_SALTS` ammonium salts and the rest ammonia hydrate; `SULFUR_AS_H2S`
    of the sulfur is H2S ice (the rest is troilite, in the rock, from 704 K).
 4. **The lines.** Each species freezes below its line (`LINES_K`). A line is the temperature of the table the repo already uses for water, ammonia and
-   methane (the equilibrium at 10^-4 bar, [R2726: Table 10]); CO and CO2 are the disc-density values of [R3322: Table 1], N2 and H2S are recalled
+   methane (the equilibrium at 10^-4 bar, [R2726: Table 10]); CO and CO2 are the disk-density values of [R3322: Table 1], N2 and H2S are recalled
    (registered so). Noble-gas clathrate lines are [R2726: Table 8].
 5. **The C/O across a line.** The gas C/O rises outward past each snow line (water takes oxygen first, then CO2, then CO); the solids' C/O is the
    other half. A giant that gathers gas between the water and CO lines is carbon-rich, one that gathers solids is oxygen-rich [R3322].
 
 Limits. Equilibrium supply: every species freezes whole below its line. A body that formed warm and trapped a species in water ice (a comet) keeps a tiny
-share of it (`comet_ice_formation`, `comet_ice_budget.TRAPPED_FRACTION`), and that is for the body, not the disc. The lines do not move as the disc cools. The H2S and the
+share of it (`comet_ice_formation`, `comet_ice_budget.TRAPPED_FRACTION`), and that is for the body, not the disk. The lines do not move as the disk cools. The H2S and the
 ammonium-salt shares of the nitrogen and sulfur are stand-ins (registry rows DSC4 to DSC6).
 """
 
@@ -52,7 +52,7 @@ LINES_K = {
     "CO": 20.0,
 }
 """dict: The temperature (K) below which each ice freezes, warmest first. Water, ammonia and methane are the repo's equilibrium values at 10^-4 bar; the noble-gas
-clathrates are [R2726: Table 8] (Xe 69, Kr 53, Ar 48); CO 20 and CO2 47 are [R3322: Table 1] (CO2 42 to 52 K there, 70 K in other discs); N2 22 K is recalled
+clathrates are [R2726: Table 8] (Xe 69, Kr 53, Ar 48); CO 20 and CO2 47 are [R3322: Table 1] (CO2 42 to 52 K there, 70 K in other disks); N2 22 K is recalled
 ([R3321] section 1.2 puts CH4, CO and N2 near 20 to 40 K) and H2S 80 K is recalled (ice sublimates near 50 to 90 K by the matrix). [Stand-in DSC2, tier T1 for the read
 lines and T3 for N2 and H2S, tweak L0.]"""
 
@@ -61,14 +61,14 @@ REFRACTORY_LINE_K = 500.0
 
 REFRACTORY_CARBON_SHARE = 0.5
 """float: The share of the carbon that is refractory grains: about half ([R3321] section 1.2, from the interstellar medium; [R3322: Table 1] has 0.6 of 2.4 of the carbon
-they account for in the disc). [Stand-in DSC3, tier T2, tweak L1.]"""
+they account for in the disk). [Stand-in DSC3, tier T2, tweak L1.]"""
 
 CO_PER_CO2 = 1.5 / 0.3
 """float: The CO over the CO2 of the volatile carbon that is not methane ([R3322: Table 1], CO 1.5 and CO2 0.3 molecules per 10^4 hydrogen). [Stand-in DSC3, tier T2, tweak L0.]"""
 
 CH4_SHARE_OF_VOLATILE_CARBON = 0.34 / (0.34 + 3.1 + 4.7)
 """float: The methane share of the volatile carbon: comet 67P's CH4 over CH4 plus CO plus CO2, 0.34, 3.1 and 4.7 percent of the water ([R3835: Table 2]), 4.2 percent.
-One comet, taken for the disc's methane. [Stand-in DSC4, tier T3, tweak L1.]"""
+One comet, taken for the disk's methane. [Stand-in DSC4, tier T3, tweak L1.]"""
 
 NITROGEN_AS_N2 = 0.6
 NITROGEN_AS_SALTS = 0.1
@@ -105,7 +105,7 @@ def solar_per_1e4_h(element):
 @dataclasses.dataclass(frozen=True)
 class Inventory:
     """
-    The molecules per 10^4 hydrogen that a disc has to condense, by species, and the oxygen and carbon the rock and the grains hold.
+    The molecules per 10^4 hydrogen that a disk has to condense, by species, and the oxygen and carbon the rock and the grains hold.
 
     Attributes:
         moles (dict): Species (`ORDER`) to its molecules, or atoms for a noble gas, per 10^4 hydrogen.
@@ -124,7 +124,7 @@ class Inventory:
 @finite_domain()
 def inventory(carbon=1.0, oxygen=1.0, nitrogen=1.0, sulfur=1.0, noble=1.0):
     """
-    The `Inventory` of a disc whose star has these element ratios (each over the rock-forming metals, over the Sun's; 1 is the Sun).
+    The `Inventory` of a disk whose star has these element ratios (each over the rock-forming metals, over the Sun's; 1 is the Sun).
 
     The oxygen of the CO and CO2 comes out of the water; with too little oxygen the water is zero and the CO and CO2 keep their carbon (the oxygen is then short, and `oxygen_short`
     of the result is what is missing).

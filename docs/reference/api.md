@@ -1113,10 +1113,10 @@ forced credential change. They back the admin stats page
   since `expect_hash` or one that can't be written is a 409. One
   `config.update` audit row per changed option. The Owner's and the command
   line's options are refused with their reason until accounts (8.2).
-- `GET /api/admin/backups` — the backup archives (ADM.85): `{"problem",
+- `GET /api/admin/backups` — the backup archives (ADM.85; a part with `empty` true held nothing when the archive was taken, `note` says why, and it is not offered for restore): `{"problem",
   "archives": [{"name", "taken_at", "taken_by", "reason", "version", "size_bytes",
   "complete", "readable", "parts": [{"name", "label", "size_bytes", "files",
-  "known"}]}], "kept", "parts": [{"name", "label"}], "can_download",
+  "known", "empty", "note"}]}], "kept", "parts": [{"name", "label"}], "can_download",
   "file_hash"}`. `POST /api/admin/backups` (`{}`) makes one now, of every
   part (`backup.take` audit row; 409 when the folder can't be written).
   `GET /api/admin/backups/<name>` is one archive with `verified`,

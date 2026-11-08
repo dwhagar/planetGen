@@ -46,7 +46,7 @@ import os
 from collections.abc import Mapping
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world, life_supply, strange_solvents, surface_liquid_world
+from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world, life_supply, planet_type, strange_solvents, surface_liquid_world
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_classes.json")
 
@@ -537,7 +537,7 @@ def score_classes(body):
     """`{class id: ClassScore}` for a finished planet or moon (an object, or a column-named mapping of its values). A gas giant, or a
     body with no surface temperature, is scored nowhere: `{}`."""
     values = dict(body) if isinstance(body, Mapping) else values_from_body(body)
-    if values.get("body_type") == "g" or values.get("surface_temperature_k") is None:
+    if not planet_type.has_ground(values) or values.get("surface_temperature_k") is None:
         return {}
     for quantity, supplied in life_supply.supplies(values).items():
         values.setdefault(quantity, supplied)

@@ -42,7 +42,7 @@ from dataclasses import dataclass, field
 from planetgen.physics import (
     aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw, orbits,
     mixture_escape, mixture_rocky,
-    mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
+    mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
@@ -802,7 +802,7 @@ def mantle_redox_diw(body, star_distance_au, water_lost):
     The oxygen fugacity of the mantle of a body whose air is not drawn (airless by its class, or by loss), log10 units above
     iron-wuestite: the recipe's redox rows (`mixture_rocky.draw_redox`) at the body's own mass and age. `None` for a giant.
     """
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):
         return None
     subject = mixture_subject.subject_of_body(body, ts_k=body.surface_temperature, pressure_bar=AIRLESS_PRESSURE_BAR,
                                               ocean_present=False, long_lived_geology=False, water_lost=water_lost,
@@ -817,7 +817,7 @@ def ice_albedo_law(body, albedo, surface_w):
     star as the frozen range is (`albedo_color.shifted_range`, GEN.912), never under the ice-free value. `None` for a giant and for a body with no surface water:
     those keep the albedo they drew.
     """
-    if body.body_type == "g" or not surface_w or surface_w * body.mass <= 0.0:
+    if not planet_type.has_ground(body) or not surface_w or surface_w * body.mass <= 0.0:
         return None
     star_temperature = getattr(getattr(body, "star", None), "temperature", None)
     covered = albedo_color.shifted_range((climate_branches.ICE_COVERED_ALBEDO,) * 2, "frozen", star_temperature)[0]
@@ -880,7 +880,7 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
     interior has released (`interior_heat.Heat`, `None` for a body with no interior), the surface water (`hydrosphere.draw_surface_water`)
     and the starlight it absorbs.
     """
-    giant = body.body_type == "g"
+    giant = not planet_type.has_ground(body)      # GEN.1334: a planet under a deep envelope is solved at the 1 bar level as a giant is
     gravity = body.gravity * constants.EARTH_GRAVITY
     rock = radiogenic.rock_of(body)
     flux = 0.0 if heat is None else heat.flux_w_m2

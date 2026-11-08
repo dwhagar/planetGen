@@ -159,17 +159,23 @@ def test_a_circle_has_no_swing_and_the_swing_never_passes_one():
     assert oe.flux_swing(0.9) == 1.0
 
 
-def _airless_planet():
+def _airless_planets():
+    """The airless rocky planets of the systems of one seed, in the order they are made."""
     draw.set_run_seed(5)
     for _ in range(400):
         system = StarSystem(system_config=SystemConfig())
         for planet in system.planets:
             if isinstance(planet, Planet) and planet.atmosphere == "None" and planet.body_type == "t" and not planet.is_moon:
-                return planet
+                yield planet
+
+
+def _airless_planet():
+    for planet in _airless_planets():
+        return planet
     pytest.fail("no airless planet found")
 
 
-def _airless_seed(planet, first, *runs):
+def _airless_seed(planet, first, *runs, required=True):
     """The first seed from `first` whose draws leave the body with no air at all in every run (each run is the arguments of `calculate_atmospheric_conditions`):
     a thin air has a greenhouse that moves with the temperature, so the fourth-root law of the light holds only for a body with none."""
     for seed in range(first, first + 200):
@@ -180,7 +186,9 @@ def _airless_seed(planet, first, *runs):
                 break
         else:
             return seed
-    pytest.fail("no draw leaves the body airless")
+    if required:
+        pytest.fail("no draw leaves the body airless")
+    return None
 
 
 def _absorbed_light_ratio(planet, base_temperature, base_albedo):
@@ -209,11 +217,16 @@ def test_an_eccentric_planet_is_as_warm_as_a_circle_with_the_same_mean_light():
 
 
 def test_a_moon_gets_the_light_of_its_parents_orbit():
-    planet = _airless_planet()
-    planet.is_moon = True            # an airless body, its light taken from the orbit round the star the parent has
-    planet.eccentricity = 0.9        # its own orbit round its parent does not matter
-    planet.host_eccentricity = 0.0
-    seed = _airless_seed(planet, 78, (planet.distance,), (planet.distance, 0.5))
+    for planet in _airless_planets():
+        planet.is_moon = True            # an airless body, its light taken from the orbit round the star the parent has
+        planet.eccentricity = 0.9        # its own orbit round its parent does not matter
+        planet.host_eccentricity = 0.0
+        # A planet that holds its air as a moon on most draws (a heavy one under a thin envelope) is not the body this wants; the first one a draw leaves airless is.
+        seed = _airless_seed(planet, 78, (planet.distance,), (planet.distance, 0.5), required=False)
+        if seed is not None:
+            break
+    else:
+        pytest.fail("no airless planet that a draw leaves airless as a moon")
     draw.set_run_seed(seed)
     planet_physics.calculate_atmospheric_conditions(planet, planet.distance, 0.0)
     base, base_albedo = planet.surface_temperature, planet.bond_albedo
