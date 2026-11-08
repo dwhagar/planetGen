@@ -2133,7 +2133,7 @@ PLANET_SURVIVAL_HOST_MASS_SOLAR = 0.5
 # --- Planet Classification Data ---
 
 # The composition text of each class, and its kind ('t' for terrestrial, 'g' for gas giant). The words that describe a class are
-# in `physics/data/planet_class_text.json` (GEN.1212). A class is derived from a finished body's
+# in `physics/data/planet_classes.json` (the phrase of each row) (GEN.1212). A class is derived from a finished body's
 # conditions (`physics/planet_classes.py`, `physics/data/planet_classes.json`); nothing here says what a body of the class
 # looks like for generation: no radius, zone, density, albedo or probability.
 PLANET_CLASSES = {
