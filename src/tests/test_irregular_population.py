@@ -158,6 +158,16 @@ def test_temporary_captures_are_a_flag_for_planets_with_a_zone():
     assert ip.holds_temporary_captures(0.14, 7.0e4)
 
 
+def test_the_flags_of_a_set_are_plain_booleans_so_a_system_dumps_to_json(monkeypatch):
+    """GEN.1386: a numpy float in gave a numpy bool out, which the JSON dump of a system (Yerkes II and III) refuses."""
+    import json
+    import numpy as np
+    for limit, radius in ((np.float64(0.001), np.float64(6.371e3)), (np.float64(0.0001), np.float64(7.0e4))):
+        flag = ip.holds_temporary_captures(limit, radius)
+        assert type(flag) is bool
+        json.dumps({"temporary": flag})
+
+
 def test_the_draw_follows_the_rank_rule_and_is_the_same_stream_whatever_the_planet():
     distance, mass, gas = GIANTS["Jupiter"]
     _, pool, probability = _planet(distance, mass, gas)
