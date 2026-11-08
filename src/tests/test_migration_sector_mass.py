@@ -39,7 +39,7 @@ def _old_galaxy(mysql_config):
                 (shell, band, wedge)).fetchone()["id"]
             conn.execute(
                 "INSERT INTO sector_stats (shell_index, band_index, wedge_index, expected_systems, actual_systems, actual_stars,"
-                " mean_age_gy, total_luminosity_sol, bright_level_sol) VALUES (?, ?, ?, 1.5, 1, 2, 1.0, 10.0, 0)",
+                " mean_age_gy, total_luminosity_sol, bright_level_sol, filled_at) VALUES (?, ?, ?, 1.5, 1, 2, 1.0, 10.0, 0, CURRENT_TIMESTAMP(3))",    # filled: migration 0201 charts it
                 (shell, band, wedge))
         _comet(conn, ids[HOLDING], COMET_KG[0])
         _comet(conn, ids[HOLDING], COMET_KG[1])

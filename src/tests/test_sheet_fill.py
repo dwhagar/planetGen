@@ -107,7 +107,9 @@ def test_a_generated_body_stores_porosity_and_high_pressure_ice_wherever_the_she
     from planetgen.util import draw
     from tests.fuzz_support import deterministic_entropy
     seen = {"light": 0, "heavy": 0, "deep": 0}
-    for seed in range(7100, 7112):       # twelve systems: since GEN.1323 gave rocky planets envelopes, few of them keep a light body (a moon under 1e21 kg)
+    for seed in range(7100, 7140):       # twelve systems at least: since GEN.1323 gave rocky planets envelopes, few of them keep a light body (a moon under 1e21 kg), so more are drawn only while the sample holds none (an epoch moves which bodies a seed makes)
+        if seen["light"] > 0 and seen["heavy"] > 5 and seed >= 7112:
+            break
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)

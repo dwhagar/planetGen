@@ -11,6 +11,7 @@ import pytest
 
 from planetgen.api import routes
 from planetgen.db import block_stats, edits, store
+from tests.chart_support import chart_all
 
 pytestmark = pytest.mark.db
 
@@ -67,6 +68,7 @@ def galaxy(mysql_config):
             store.insert_star_system(conn, system, config, sector_id=sector_id)
             store.record_sector_stats(conn, sector_id, address, (0.0, 0.0, 0.0))
             sectors.append(sector_id)
+        chart_all(conn)
         block_stats.rebuild(conn)
     yield conn, sectors[0]
     conn.close()

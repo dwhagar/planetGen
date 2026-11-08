@@ -41,6 +41,8 @@ CONTAINMENT = ("inside_nebula_id", "inside_remnant_id")
 SECTOR_PLACEMENT = ("sector_id", "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "quadrant")
 
 NULL_IN_THIS_GALAXY = {
+    # GEN.1047: the ids of the oddities a body was given; a rare outcome of a rate on a gated population, so a small galaxy may hold none.
+    **{(table, "oddities"): CHANCE for table in ("planets", "moons", "rogue_planets")},
     # GEN.1111: the rogue planets of this small galaxy are dark, lifeless and without a surface liquid, so these are never set on them, and two
     # (GEN.1323: the rocky ones keep an envelope, which leaves the solid-only roundness and strength empty)
     # child tables hold nothing.

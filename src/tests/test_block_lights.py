@@ -264,6 +264,7 @@ def test_a_galaxy_run_brings_its_sectors_into_both_block_tables(mysql_config):
         # The sector is generated: its star became a system's (the pre-placed row is built) and its point is built.
         conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index) VALUES ('S', 4000, ?, ?, ?)",
                      address)
+        conn.execute("INSERT INTO chart_ledger (shell_index, band_index, wedge_index, generator_epoch) VALUES (?, ?, ?, 1)", address)     # a saved sector is charted
         conn.execute("INSERT INTO sector_stats (shell_index, band_index, wedge_index, expected_systems, actual_systems,"
                      " actual_stars, mean_age_gy, total_luminosity_sol, bright_level_sol) VALUES (?, ?, ?, 1.5, 1, 1, 2.0,"
                      " 100.0, 0)", address)
@@ -294,6 +295,7 @@ def test_fill_block_totals_makes_both_tables_and_can_be_run_again(lit):
     try:
         conn.execute("DELETE FROM galaxy_block_lights")
         conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index) VALUES ('S', 4000, 30, 3, 5)")
+        conn.execute("INSERT INTO chart_ledger (shell_index, band_index, wedge_index, generator_epoch) VALUES (30, 3, 5, 1)")
         conn.execute("INSERT INTO sector_stats (shell_index, band_index, wedge_index, actual_systems, actual_stars,"
                      " total_luminosity_sol, bright_level_sol) VALUES (30, 3, 5, 1, 1, 7.0, 0)")
         conn.commit()

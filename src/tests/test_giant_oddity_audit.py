@@ -107,5 +107,5 @@ def test_the_oddity_table_has_no_row_for_a_derived_giant_output():
 
 def test_the_ice_giant_heat_spread_is_left_to_gen_1033():
     giant_heat = [row.id for row in oddities.ROWS
-                  if row.kind == "giant" and getattr(row.apply, "input", None) == "internal_heat_flux"]
+                  if row.kind == "giant" and row.input == "internal_heat_flux"]
     assert giant_heat == [], "G2 (the Uranus heat anomaly) is GEN.1033's; an oddity row on a giant's internal heat would duplicate it"
