@@ -10,7 +10,7 @@ are a made-up history here, so the tests do not move when a real epoch is added.
 import pytest
 
 from planetgen import tuning
-from planetgen.db import store
+from planetgen.db import chart_ledger, store
 from planetgen.galaxy import bring_to_epoch
 from planetgen.population import model as population
 from planetgen.queue import api_jobs
@@ -45,10 +45,15 @@ class _AuditLog:
         return _Rows(self.rows)
 
 
-def _sector(conn, name, address, epoch):
+def _sector(conn, name, address, epoch, charted=True):
+    """A sector row; an addressed one is charted (its cell has a `chart_ledger` row) unless `charted` is false, which makes it the placeholder row a drifting
+    rogue planet makes in a cell nothing was generated in (`store.uncharted_sector_id`)."""
     shell, band, wedge = address if address else (None, None, None)
-    return conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index, generator_epoch) "
-                        "VALUES (?, 1000, ?, ?, ?, ?)", (name, shell, band, wedge, epoch)).lastrowid
+    sector_id = conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index, generator_epoch) "
+                             "VALUES (?, 1000, ?, ?, ?, ?)", (name, shell, band, wedge, epoch)).lastrowid
+    if address and charted:
+        chart_ledger.record(conn, address, None, epoch)
+    return sector_id
 
 
 @pytest.fixture
@@ -235,6 +240,27 @@ def test_a_run_generates_the_sectors_again_one_by_one_and_goes_on_after_a_failur
     assert said[-1].startswith("Done: 2 sector(s) generated again, 0 left alone, 1 failed")
 
 
+def test_a_placeholder_a_rogue_made_in_an_uncharted_cell_is_left_alone_and_is_not_behind(galaxy, monkeypatch):
+    """GEN.1354: the row a drifting rogue planet made in a cell nothing was generated in is not a made sector. Generating it again would chart a sector that was
+    never made, and the rogues of that new sector would land in more cells with more placeholders; so it is neither listed to be redone nor counted as behind."""
+    _history(monkeypatch, ["fill"])
+    with galaxy:
+        made = _sector(galaxy, "Made", (2, 0, 5), 1)
+        _sector(galaxy, "Placeholder", (2, 0, 6), 1, charted=False)
+        _sector(galaxy, "Placeholder too", (2, 0, 7), 1, charted=False)
+    found = bring_to_epoch.survey(galaxy)
+    assert [item["id"] for item in found["refill"]] == [made]
+    assert found["uncharted"] == 2 and found["behind"]["stale"]["fill"] == {1: 1}
+    assert any(line.startswith("2 uncharted cell(s)") for line in bring_to_epoch.report_lines(found))
+    with galaxy:
+        galaxy.execute("UPDATE sectors SET generator_epoch = 2")       # the made sector is brought up: only placeholders are left at the old epoch
+        galaxy.execute("UPDATE sectors SET generator_epoch = 1 WHERE name IN ('Placeholder', 'Placeholder too')")
+        chart_ledger.record(galaxy, (2, 0, 5), None, 2)
+    found = bring_to_epoch.survey(galaxy)
+    assert found["refill"] == [] and found["uncharted"] == 0
+    assert bring_to_epoch.report_lines(found) == ["The galaxy is at epoch 2: nothing to bring up."]
+
+
 def test_a_dry_run_and_a_refusal_change_nothing(galaxy, mysql_config, monkeypatch):
     _history(monkeypatch, ["fill"])
     with galaxy:
@@ -312,34 +338,36 @@ def test_a_sector_made_under_an_older_epoch_is_really_generated_again(mysql_conf
     conn = store.get_connection(mysql_config)
     try:
         before = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (first["sector_id"],)).fetchone()["n"]
-        others = conn.execute("SELECT id FROM sectors WHERE id != ?", (first["sector_id"],)).fetchall()
+        with conn:      # one system makes no rogue here, so a landing cell is made by hand: the row a rogue's landing makes in a cell nothing was generated in
+            _sector(conn, "Landing cell", (1, 0, 2), 1, charted=False)
+        placeholders = {row["id"] for row in conn.execute("SELECT id FROM sectors WHERE id != ?", (first["sector_id"],)).fetchall()}
         held = {(row["shell_index"], row["band_index"], row["wedge_index"])
                 for row in conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors").fetchall()}
         _history(monkeypatch, ["fill"])
-        # The sector is not alone: rogue planets its saved stars threw out land in sectors of their own (GEN.1111), and a galaxy of
-        # this size lands dozens of them (78 on the tree of train 15). Making every one of those cells again fills each with stars whose
-        # rogues land in cells that held nothing before, so a test that made them all took more than 17 minutes (TEST.679). The sector
-        # and two of the landing cells are behind; the rest are at the running epoch.
-        behind = [first["sector_id"]] + [row["id"] for row in others][:2]
-        marks = ", ".join("?" for _ in behind)
+        # The sector is not alone: rogue planets its saved stars threw out land in cells of their own (GEN.1111), and a galaxy of this size lands
+        # dozens of them (78 on the tree of train 15). Each of those rows is a placeholder of a cell nothing was generated in, and every sector is
+        # behind: the run generates the one charted sector again and leaves the placeholders alone (GEN.1354; before it made every one of them, and
+        # each made charted a sector whose rogues landed in more empty cells, more than 17 minutes in this test, TEST.679).
         with conn:
             conn.execute("UPDATE galaxy_shape SET generator_epoch = 1 WHERE id = 1")
-            conn.execute("UPDATE sectors SET generator_epoch = 2")
-            conn.execute(f"UPDATE sectors SET generator_epoch = 1 WHERE id IN ({marks})", behind)
+            conn.execute("UPDATE sectors SET generator_epoch = 1")
     finally:
         conn.close()
+    assert placeholders
     said = []
     result = bring_to_epoch.run(mysql_config, None, say=said.append)
-    assert result["redone"] == len(behind) and not result["failed"], said
+    assert result["redone"] == 1 and not result["failed"], said
+    assert any("uncharted cell(s)" in line for line in said), said
+    assert placeholders <= {row["id"] for row in _all_sectors(mysql_config)}      # a placeholder is not deleted or made again
     sectors = _all_sectors(mysql_config)
-    # Making a rogue planet's landing cell again fills it with stars of its own, and their rogues land in cells that held nothing before, so the
-    # galaxy holds every sector it held and may hold more.
+    # Making the sector again lands its rogues in cells again, so the galaxy holds every cell it held and may hold more.
     assert held <= {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in sectors}
     [sector] = [row for row in sectors if (row["shell_index"], row["band_index"], row["wedge_index"]) == (0, 0, 0)]
     assert sector["id"] != first["sector_id"]
     conn = store.get_connection(mysql_config)
     try:
-        assert {row["generator_epoch"] for row in conn.execute("SELECT generator_epoch FROM sectors").fetchall()} == {2}
+        at_running = {row["id"] for row in conn.execute("SELECT id FROM sectors WHERE generator_epoch = 2").fetchall()}
+        assert at_running == {sector["id"]}      # the one charted sector is at the running epoch; a placeholder keeps the epoch it had
         assert conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector["id"],)).fetchone()["n"] == before
     finally:
         conn.close()
