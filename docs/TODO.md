@@ -11889,12 +11889,6 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.665 test_class_sample.py::test_a_forced_rare_class_is_in_the_system[P] is red on main: no system with a forced class P world in 24 tries (bug)**
-  Lane 14 (as the lane reported, 8:32 PM EST on 2026-11-06), seen on the GEN.1281 head and not caused by GEN.1306. Do: find out whether the forcing of class P no longer reaches the system (a class judged from the finished body, epoch 121, can lose a forced class) or the test's 24 tries are too few for it, and fix the code or the test with the reason written in the commit. Done: the test passes on main, or is replaced by one that checks what forcing really promises, and the targeted tests pass. Lock-free unless the forcing code changes the generator. Version 8.1. Owner: Lane 14, with GEN.1323.
-  Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1306, GEN.1323.
-
-
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
