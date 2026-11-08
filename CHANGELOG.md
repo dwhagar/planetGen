@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3724] - 2026-11-08
+
+**Headline:** The solid material beyond a star's snow line is now set by the disk's own condensation budget (a jump of 1.97 times the rock instead of 2.17), with the gas-giant tuning moved so giants stay as common as the surveys find them.
+
+### Changed
+
+- GEN.1396: the jump of the solid surface density at the snow line, which sets the core mass of every planet beyond it (the isolation mass goes as the density to the 3/2), is `disk_condensation.SNOW_LINE_SOLID_JUMP` (1.967 for the Sun: the rock, the water, ammonia and other ices, and the refractory carbon grains standing at the middle of the water and ammonia lines, over the rock). It replaces the water-only boost of 2.17 in `condensate_shares` (`WATER_ICE_SOLID_BOOST`, `ice_over_rock` and `solid_boost` are gone). The divisor is the rock alone because the minimum-mass nebula's 7.0 g/cm^2 counts only the silicates and metal; the 1.52 that rock plus grains would give is kept in the notes (stand-ins SSJ1 and SSJ2 in section 6.233). The icy dwarf planets of the Kuiper belt hold about 0.7 rock by mass, above the 0.51 the jump leaves, which is the direction a body that loses ice and cannot gain it should differ.
+- Because the cores beyond the snow line are lighter, `GIANT_GAS_SURVIVAL_SHARE` goes from 0.766 to 0.79 and `GIANT_CORE_CRITICAL_MASS_EARTH` from 10 to 9 (inside the 5 to 20 Earth masses the core accretion papers give); over 20,000 Sun-like stars the giants at 2 to 8 AU stay at 0.1065, the hot Jupiters of Sun-like stars go from 0.0058 to 0.0067 and those of M dwarfs from 0.0032 to 0.0034 (the bands are 0.0062 and 0.0027).
+- Generated systems change: every planet beyond its star's snow line has a different core mass (about 0.86 times the old at the same draws), and a few more or fewer giants and ice giants form.
+
+generation-output: changed
+
 ## [8.0.3723] - 2026-11-08
 
 **Headline:** Every planet, moon and rogue planet now carries an isotope record: the shares of each isotope of each element it holds, with deuterium, carbon-13, nitrogen-15, argon-40 and the decaying potassium and uranium following physical laws, and the record shown on the property sheet (GEN.1377, GEN.1420 part 1).
