@@ -498,6 +498,30 @@ def stored_conclusion(conn, run_id, key):
     return None
 
 
+OPENING_FIELD = "opening"
+"""str: The field of the run's record that names the stage being opened (cut into its units), PERF.252: the process that opens a stage is
+the work horse of the last unit of the stage before it, so a kill or a failure there belongs to the stage being opened, not to the unit."""
+
+
+def begin_opening(conn, run_id, index):
+    """Marks stage `index` as being opened (cut into its units), until `end_opening`."""
+    conn.hset(run_key(run_id), OPENING_FIELD, index)
+
+
+def end_opening(conn, run_id):
+    """Clears the mark `begin_opening` set."""
+    conn.hdel(run_key(run_id), OPENING_FIELD)
+
+
+def opening(conn, run_id):
+    """The index of the stage being opened, `None` when none is (or the record cannot say)."""
+    try:
+        found = conn.hget(run_key(run_id), OPENING_FIELD)
+    except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+        return None
+    return None if found in (None, b"", "") else int(_s(found))
+
+
 def begin_stage(conn, run_id, index, now=None):
     """Marks stage `index` as started now (the clock its ETA counts from)."""
     now = _now(now)
