@@ -17,7 +17,8 @@ What a rocky body's metal core is made of (GEN.1364): Fe-Ni with sulfur, silicon
    lower the freezing point in proportion to the mole fraction they leave in the liquid, `LIQUIDUS_DEPRESSION_K`, so a core with more of them than Earth's
    freezes later (`liquidus_factor`).
 3. **The compositional energy.** Freezing inner core rejects the light elements it does not take. The energy that releases is scaled from Earth's
-   (`core_heat.GRAVITATIONAL_ENERGY_J_KG`) by the mass rejected per kilogram frozen (`rejected_per_kg`) and by the core's `G M / R` (`composition_energy_factor`).
+   (`core_heat.GRAVITATIONAL_ENERGY_J_KG`) by the mass rejected per kilogram frozen (`rejected_per_kg`, `composition_energy_factor`). It is not scaled by the core's size: the
+   constant of CC6 never was, and the census (reports/gen1364-core-split-census-2026-11-08.md) shows that scaling by `G M / R` would stop most small bodies' dynamos.
 
 A body from before GEN.1364 stored no split: its core takes the Earth's reference mix (`EARTH`), which leaves its liquidus and its energy as they were.
 
@@ -63,8 +64,9 @@ number: 0.02 is a stand-in); sulfur, carbon and hydrogen are recalled (sulfur st
 LIQUIDUS_DEPRESSION_K = 3700.0
 """float: STAND-IN CX5: K the freezing point falls at the inner core boundary (5,400 K) for a mole fraction of 1 of light elements left in the liquid;
 the Fe-FeS eutectic falls 550 K from iron's 1,811 K for 0.44 of sulfur (1,250 K per mole fraction), scaled with the temperature."""
-LIQUIDUS_FACTOR_LIMITS = (0.7, 1.3)
-"""float: STAND-IN CX5: the liquidus' factor stays inside these (a core with no light elements, or the sulfur-rich one, does not leave the model's range)."""
+LIQUIDUS_FACTOR_LIMITS = (0.7, 1.15)
+"""tuple: STAND-IN CX5: the liquidus' factor stays inside these (pure iron's liquidus at the inner core boundary is about 15 percent above the alloy's, recalled; the sulfur-rich
+end is a stand-in)."""
 ICB_TEMPERATURE_K = 5400.0
 """float: The inner core boundary the liquidus is anchored on (`core_heat.LIQUIDUS_ANCHOR`), K."""
 ENERGY_FACTOR_LIMITS = (0.0, 4.0)
@@ -242,6 +244,6 @@ def liquidus_factor(mix):
 
 def composition_energy_factor(mix):
     """The compositional energy per kilogram of inner core frozen over the Earth's, from the mass of light elements left in the liquid per kilogram frozen
-    (`Mix.rejected_per_kg`) against the Earth's. The core's `G M / R` factor is the caller's (`core_heat`)."""
+    (`Mix.rejected_per_kg`) against the Earth's."""
     low, high = ENERGY_FACTOR_LIMITS
     return min(max(mix.rejected_per_kg / EARTH.rejected_per_kg, low), high)

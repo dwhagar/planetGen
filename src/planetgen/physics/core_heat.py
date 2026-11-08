@@ -15,7 +15,7 @@ what they were, a body with no core keeps no core state).
    temperature with an activation volume (`ACTIVATION_VOLUME_M3_MOL`; the box's viscosity law is the upper mantle's, the lower mantle is stiffer).
 3. **Cooling.** `C dT_c/dt = -Q`, `C` the core's heat capacity plus, once there is an inner core, the latent heat and gravitational energy of the iron
    that freezes onto it per kelvin of cooling (`LATENT_HEAT_J_KG`, and the compositional energy of the light elements it leaves behind, `GRAVITATIONAL_ENERGY_J_KG`
-   at Earth's mix and size, scaled by the core's own: GEN.1364, `core_composition`).
+   at Earth's mix, scaled by the core's own: GEN.1364, `core_composition`).
 4. **Inner core.** The core's adiabat (`CORE_ADIABAT_K_GPA` per GPa below `T_c`) meets the iron liquidus (`T_0 sqrt(1 + P / A)`, anchored on Earth's inner
    core boundary, 5,400 K at 329 GPa, `T_0` moved by the light elements the core's liquid keeps over Earth's: `core_composition.liquidus_factor`) where the inner core stops: the center freezes first, and the inner core's radius follows `T_c`.
 5. **Dynamo.** The core conducts down its own adiabat, `Q_ad = k_c A (dT/dP)_ad rho g`; the convecting power left over, `(1 - T_b / T_c)(Q - Q_ad)`,
@@ -64,8 +64,6 @@ MIN_LIQUID_SHELL = 0.25
 """float: STAND-IN CC9: the liquid shell's thickness over the core's radius under which no dynamo runs (a thin shell cannot sustain the flow: Mars)."""
 EARTH_CORE_RADIUS_M = 3.632e6
 EARTH_CORE_DENSITY_KG_M3 = 9671.0
-EARTH_CORE_POTENTIAL_J_KG = (constants.G * EARTH_CORE_DENSITY_KG_M3 * 4.0 / 3.0 * math.pi * EARTH_CORE_RADIUS_M ** 3 / EARTH_CORE_RADIUS_M)
-"""float: `G M / R` of the model's Earth core, J/kg: the unit of the compositional energy's size scaling (`Stepper.gravitational_j_kg`)."""
 EARTH_DYNAMO_W = 2.4e12
 """float: STAND-IN CC10: Earth's core as this model makes it (the radius and density of its uniform core, and the dynamo power it ends with at
 4.568 Gy, 2.4 TW): the unit of `Core.dipole_scale`."""
@@ -149,10 +147,8 @@ class Stepper:
         self.center_gpa = self.cmb_gpa + self.core_slope_gpa_m2 * core_m ** 2
         self.liquidus_scale_gpa = LIQUIDUS_ANCHOR[0] / ((LIQUIDUS_ANCHOR[1] / LIQUIDUS_ZERO_K) ** 2 - 1.0)
         self.liquidus_zero_k = LIQUIDUS_ZERO_K * core_composition.liquidus_factor(mix)
-        # the compositional energy of the freezing: the Earth's per kilogram times the light elements the liquid keeps over the Earth's, times the core's
-        # G M / R over the Earth's (a bigger core drops the light liquid through more potential)
-        potential = constants.G * metal_kg / core_m
-        self.gravitational_j_kg = (GRAVITATIONAL_ENERGY_J_KG * core_composition.composition_energy_factor(mix) * potential / EARTH_CORE_POTENTIAL_J_KG)
+        # the compositional energy of the freezing: the Earth's per kilogram times the light mass the liquid keeps per kilogram frozen over the Earth's
+        self.gravitational_j_kg = GRAVITATIONAL_ENERGY_J_KG * core_composition.composition_energy_factor(mix)
         self.capacity = metal_kg * CORE_SPECIFIC_HEAT
         self.pressure_enthalpy_j_mol = ACTIVATION_VOLUME_M3_MOL * PRESSURE_SCALE_GPA * 1.0e9 * math.log(1.0 + self.cmb_gpa / PRESSURE_SCALE_GPA)
         self.adiabatic_w = CORE_CONDUCTIVITY * self.area * CORE_ADIABAT_K_GPA / 1.0e9 * self.density * self.gravity

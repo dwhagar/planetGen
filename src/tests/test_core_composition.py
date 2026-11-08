@@ -100,7 +100,8 @@ def test_the_stepper_with_earths_mix_is_the_stepper_it_was():
     earth = _stepper(cc.EARTH)
     assert earth.liquidus_zero_k == pytest.approx(core_heat.LIQUIDUS_ZERO_K)
     assert earth.liquidus_k(core_heat.LIQUIDUS_ANCHOR[0]) == pytest.approx(core_heat.LIQUIDUS_ANCHOR[1])
-    assert earth.gravitational_j_kg == pytest.approx(core_heat.GRAVITATIONAL_ENERGY_J_KG, rel=0.05)
+    assert earth.gravitational_j_kg == pytest.approx(core_heat.GRAVITATIONAL_ENERGY_J_KG)
+    assert _stepper(cc.MARS).gravitational_j_kg == pytest.approx(core_heat.GRAVITATIONAL_ENERGY_J_KG * cc.composition_energy_factor(cc.MARS))
 
 
 def test_a_sulfur_rich_core_lowers_the_liquidus_and_the_inner_core_is_smaller_at_the_same_temperature():
