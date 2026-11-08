@@ -1075,7 +1075,7 @@ def admin_stats():
 
 
 # ---------------------------------------------------------------------
-# /admin/generated (ADM.150)
+# /admin/generated (ADM.151)
 # ---------------------------------------------------------------------
 
 GENERATED_PAGE_SIZE = 50
@@ -1139,7 +1139,7 @@ GENERATED_HEADS = {
 @bp.route("/admin/generated")
 def admin_generated():
     """
-    Generated so far (ADM.150): the sectors, systems, planets and moons a generation run has made, newest first, from a start time
+    Generated so far (ADM.151): the sectors, systems, planets and moons a generation run has made, newest first, from a start time
     (`?since=`, Unix seconds; the start of the latest galaxy run when absent), one kind to a tab (`?kind=`) and 50 to a page (`?page=`).
     The job panel links here while a run goes, because the Galaxy Map is closed then. The list reads only the rows made since, by the key
     (`db.query.generated_since`), so it is quick and always current.

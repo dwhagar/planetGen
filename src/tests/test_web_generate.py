@@ -1590,7 +1590,7 @@ def test_the_generate_form_reports_every_bad_field_at_once():
 
 
 def test_systems_url_only_for_a_galaxy_run_that_has_started(client):
-    """ADM.150: a started galaxy run links to the systems made since it started."""
+    """ADM.151: a started galaxy run links to the systems made since it started."""
     now = time.time()
     with client.application.test_request_context("/"):
         base = {"created_at": now - 61, "steps": []}

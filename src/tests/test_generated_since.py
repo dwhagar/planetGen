@@ -1,6 +1,6 @@
 # tests/test_generated_since.py
 
-"""ADM.150: `GET /api/generated`, what a run has made since a time, and the admin Generated so far page that reads it."""
+"""ADM.151: `GET /api/generated`, what a run has made since a time, and the admin Generated so far page that reads it."""
 
 import pytest
 

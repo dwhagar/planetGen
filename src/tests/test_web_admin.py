@@ -1102,6 +1102,6 @@ def test_admin_stats_shows_the_seconds_per_object(client, fake):
 
 
 def test_the_generated_page_needs_an_admin(client, fake):
-    """ADM.150: `/admin/generated` sends a visitor to sign in."""
+    """ADM.151: `/admin/generated` sends a visitor to sign in."""
     response = client.get("/admin/generated")
     assert response.status_code == 302 and "/login" in response.headers["Location"]

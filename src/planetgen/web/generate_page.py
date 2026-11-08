@@ -1105,7 +1105,7 @@ def _edge_pc(action, form, database):
 
 
 MAKES_SYSTEMS_KINDS = ("galaxy", "new_galaxy")
-"""tuple: Job kinds whose panel links to the systems made so far (ADM.150)."""
+"""tuple: Job kinds whose panel links to the systems made so far (ADM.151)."""
 
 
 def _job_view(job):
@@ -1125,7 +1125,7 @@ def _job_view(job):
     view["created_html"] = trusted_html(utc_time_html(job.get("created_at")))
     view["elapsed_text"] = format_elapsed(job.get("elapsed_s"))
     view["rerun_url"] = generate_flow.rerun_url(job)
-    # ADM.150: the Systems list limited to what this run has made so far (the list builds as a claimed slow-page job).
+    # ADM.151: the Generated so far page, from this run's start.
     view["systems_url"] = None
     if job.get("kind") in MAKES_SYSTEMS_KINDS and job.get("started_at"):
         view["systems_url"] = url_for("web.admin_generated", kind="systems", since=int(job["started_at"]))
