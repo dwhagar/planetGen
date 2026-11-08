@@ -271,8 +271,10 @@ def gas_n15_over_n14(star):
 def _ice_temperature_k(body):
     """The temperature an ice of the body formed at, K: the disk's at its formation distance, never above the snow line's and never below `FLOOR_ICE_K`."""
     star = getattr(body, "star", None)
-    if star is None or not getattr(star, "snow_line_au", None):
-        return ICE_REFERENCE_K          # a rogue planet or a body with no host line: the snow line's ice
+    distance = getattr(body, "formation_distance_au", None)
+    distance = getattr(body, "distance", None) if distance is None else distance
+    if star is None or not getattr(star, "snow_line_au", None) or not distance or distance <= 0.0:
+        return ICE_REFERENCE_K          # a rogue planet, a body with no host line, or one with no orbit distance (a pulsar planet): the snow line's ice
     return min(max(bulk_draw.formation_temperature_k(body), FLOOR_ICE_K), ICE_REFERENCE_K)
 
 

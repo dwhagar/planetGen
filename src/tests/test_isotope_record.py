@@ -269,3 +269,11 @@ def test_a_generated_world_with_air_carries_cosmogenic_rows_inside_the_property_
     planet = _planet(sun)
     rows = [row for row in planet.isotopes if row["origin"] == ir.COSMOGENIC]
     assert {row["isotope"] for row in rows} <= {"H-3", "C-14"} and all(0.0 < row["fraction"] < 1e-9 for row in rows)
+
+
+def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_still_gets_a_record():
+    for distance in (0.0, None):
+        body = _body(distance=0.0, formation_distance_au=distance, water_mass_fraction=0.01)
+        assert ir._ice_temperature_k(body) == ir.ICE_REFERENCE_K
+        rows = {row["isotope"]: row for row in ir.record_of(body)}
+        assert rows["H-2"]["fraction"] > 0.0
