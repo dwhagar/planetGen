@@ -6,7 +6,7 @@ import pytest
 
 from planetgen.db import models, object_rows, store
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, life_classes
+from planetgen.physics import atmosphere, constants, isotope_record, life_classes, ore_deposits
 
 KIND_FIELDS = {
     "stars": store.STAR_FIELDS, "planets": store.PLANET_FIELDS, "moons": store.MOON_FIELDS, "asteroid_belts": store.BELT_FIELDS, "comets": store.COMET_FIELDS,
@@ -189,7 +189,7 @@ class _Writes:
 
 
 class _SpectrumConnection:
-    def __init__(self, layers=None, gases=None, scores=None, living=None, planet=None):
+    def __init__(self, layers=None, gases=None, scores=None, living=None, planet=None, deposits=None, isotopes=None):
         written = _Writes()
         if planet is not None:
             store.insert_irregular_moons(written, planet, 7)
@@ -198,6 +198,8 @@ class _SpectrumConnection:
         self.layers = layers or []
         self.gases = gases or {}
         self.scores = scores or {}
+        self.deposits = deposits or []
+        self.isotopes = isotopes or []
 
     def execute(self, sql, params=()):
         if "irregular_sets" in sql:     # GEN.1084: the irregular moons of a planet are read from irregular_sets and irregular_moons
@@ -206,6 +208,10 @@ class _SpectrumConnection:
             return _Rows(self.irregular_moons)
         if "_interior_layers" in sql:
             return _Rows(self.layers)
+        if "_deposit_types" in sql:        # GEN.1380: the magmatic ore types are read from planet_deposit_types or moon_deposit_types
+            return _Rows(self.deposits)
+        if "_isotopes" in sql:             # GEN.1377: the isotope record is read from planet_isotopes or moon_isotopes
+            return _Rows(self.isotopes)
         if "_gases" in sql:  # DB.71: the air is read from planet_gases or moon_gases, one row a gas
             column = "moon_id" if "moon_gases" in sql else "planet_id"
             return _Rows([{column: params[0], "gas": gas, "partial_pa": pa} for gas, pa in self.gases.items()])
@@ -237,7 +243,7 @@ def _check_bodies(system, checked):
         if hasattr(body, "moons"):
             row = _stored(store.PLANET_FIELDS, body, context)
             row["id"] = 7
-            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None), getattr(body, life_classes.SCORES_FIELD, None), getattr(body, life_classes.LIVING_FIELD, None), planet=body), row, False)
+            loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(body.interior_layers, getattr(body, atmosphere.GAS_FIELD, None), getattr(body, life_classes.SCORES_FIELD, None), getattr(body, life_classes.LIVING_FIELD, None), planet=body, deposits=getattr(body, ore_deposits.ATTRIBUTE, None), isotopes=getattr(body, isotope_record.ATTRIBUTE, None)), row, False)
             original = body.to_dict()
             if loaded.get("irregulars") is None:        # a planet with no irregular moons stores no row and reads back as the empty set (`irregular_set_dict`)
                 loaded["irregulars"] = irregular_moons.NO_IRREGULARS.to_dict()
@@ -248,7 +254,7 @@ def _check_bodies(system, checked):
             for moon in body.moons:
                 row = _stored(store.MOON_FIELDS, moon, dict(context, planet_id=7))
                 row["id"] = 8
-                loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(moon.interior_layers, getattr(moon, atmosphere.GAS_FIELD, None), getattr(moon, life_classes.SCORES_FIELD, None), getattr(moon, life_classes.LIVING_FIELD, None)), row, True)
+                loaded = store._planet_or_moon_row_to_dict(_SpectrumConnection(moon.interior_layers, getattr(moon, atmosphere.GAS_FIELD, None), getattr(moon, life_classes.SCORES_FIELD, None), getattr(moon, life_classes.LIVING_FIELD, None), deposits=getattr(moon, ore_deposits.ATTRIBUTE, None), isotopes=getattr(moon, isotope_record.ATTRIBUTE, None)), row, True)
                 assert "reflex_offset_x" not in loaded and loaded["is_moon"] is True
                 original = moon.to_dict()
                 for key in set(loaded) - {"moons", "reflection_spectrum_visible", "reflection_spectrum_non_visible",

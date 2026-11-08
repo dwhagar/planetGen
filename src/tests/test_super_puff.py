@@ -4,6 +4,8 @@
 
 import math
 
+import pytest
+
 from planetgen.physics import bulk_structure, constants, envelope_escape, super_puff
 
 SUN_L = 0.72        # Kepler-51, from 0.87 solar radii at about 5700 K
@@ -52,7 +54,7 @@ def test_wasp_107_b_leaves_the_envelope_law_for_the_giant_tables():
     radius = super_puff.radius_earth(30.5, 1.0 - 3.7 / 30.5, 70.0, 3.4)
     assert abs(radius - 0.96 * constants.JUPITER_RADIUS_KM / constants.EARTH_RADIUS_KM) < 0.05 * radius
     assert abs(super_puff.density_g_cm3(30.5, radius) - 0.134) < 0.03
-    assert not super_puff.is_super_puff(30.5, radius, 3.4, 5.7)
+    assert not super_puff.is_super_puff(30.5, radius, 5.7)
 
 
 def test_inside_the_law_the_radius_is_lopez_and_fortneys():
@@ -62,11 +64,11 @@ def test_inside_the_law_the_radius_is_lopez_and_fortneys():
 
 
 def test_the_gate_is_the_design_row():
-    assert super_puff.is_super_puff(5.6, 9.32, 0.5, 130.0) is False       # 130 d is past the period range
-    assert super_puff.is_super_puff(5.6, 9.32, 0.5, 85.0)
-    assert not super_puff.is_super_puff(5.6, 9.32, 2.0, 85.0)             # too old
-    assert not super_puff.is_super_puff(12.0, 9.32, 0.5, 45.0)            # too heavy
-    assert not super_puff.is_super_puff(5.6, 3.0, 0.5, 45.0)              # dense, a normal sub-Neptune
+    assert super_puff.is_super_puff(5.6, 9.32, 130.0) is False       # 130 d is past the period range
+    assert super_puff.is_super_puff(5.6, 9.32, 85.0)
+    assert super_puff.is_super_puff(5.6, 9.32, 85.0)                   # age is no part of the gate: the obliquity tide keeps an old one inflated (GEN.1347)
+    assert not super_puff.is_super_puff(12.0, 9.32, 45.0)            # too heavy
+    assert not super_puff.is_super_puff(5.6, 3.0, 45.0)              # dense, a normal sub-Neptune
 
 
 def test_tides_inflate_by_millholland_eq_14_only_from_20_earth_fluxes():
@@ -109,3 +111,10 @@ def test_the_rows_are_in_the_design_ranges():
     assert super_puff.PUFF_ENVELOPE[0] < super_puff.PUFF_ENVELOPE[1] <= 0.5
     assert super_puff.OCCURRENCE_SHARE < 0.01
     assert super_puff.PERIOD_RANGE_D == (10.0, 100.0)
+
+
+def test_the_obliquity_term_is_the_papers_and_an_upright_planet_has_none():
+    assert super_puff.q_term(1.0e4, 90.0) == pytest.approx(1.0e4)                  # (1 + 0) / 1
+    assert super_puff.q_term(1.0e4, 30.0) == pytest.approx(1.0e4 * (1.0 + 0.75) / 0.25)
+    assert super_puff.q_term(1.0e4, 0.0) == math.inf and super_puff.q_term(1.0e4, 0.001) == math.inf
+    assert super_puff.q_term(1.0e4, 150.0) == pytest.approx(super_puff.q_term(1.0e4, 30.0))      # the tilt past 90 degrees is the same tide

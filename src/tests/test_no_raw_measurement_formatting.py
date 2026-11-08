@@ -28,6 +28,8 @@ ALLOWED = {
     ("galaxystages.js", "toPrecision"),
     # The cut's sort keys are rounded to nine digits so the order does not follow the last bits (twin of nodecut._quantized, MAP.261).
     ("galaxynodecut.js", "toPrecision"),
+    # A constant written into a shader's source (a GLSL literal read by the graphics card), not text a reader sees.
+    ("skysphere.js", "toExponential"),
 }
 """set: `(file, method)` pairs that are not measurements."""
 

@@ -12,13 +12,6 @@ SUN_W = physical_constants.SOLAR_LUMINOSITY
 
 def test_nothing_but_rock_is_whole_above_the_water_line():
     assert shares.condensed_masses(300.0) == {"rock": 0.489}
-    assert shares.ice_over_rock(300.0) == 0.0
-
-
-def test_the_ice_over_rock_steps_up_at_each_ice_line_as_table_11_prints():
-    """[R2726: Table 11]: rock 0.489, water 0.571, ammonia 0.097, methane 0.330 (water over rock 1.17, all ices over rock 2.04)."""
-    assert shares.ice_over_rock(150.0) == pytest.approx(1.17, abs=0.005)
-    assert shares.ice_over_rock(30.0) == pytest.approx(0.998 / 0.489, abs=0.005)
 
 
 def test_a_line_belongs_to_the_colder_side():
@@ -27,17 +20,12 @@ def test_a_line_belongs_to_the_colder_side():
     assert "NH3" in shares.condensed_masses(130.0) and "NH3" not in shares.condensed_masses(131.0)
 
 
-def test_the_boost_of_the_solids_at_the_snow_line_is_the_water_over_rock_plus_one():
-    assert shares.solid_boost(150.0) == pytest.approx(1.0 + 0.571 / 0.489)
-    assert shares.solid_boost(150.0) < 30.0 / 7.0
-
-
 def test_oxygen_after_the_rock_makes_the_water():
     """22.75 percent of the Sun's oxygen is in rock; a star with that much oxygen per rock atom or less has no water ice."""
     assert shares.condensed_masses(150.0, oxygen=shares.ROCK_OXYGEN_SHARE)["H2O"] == 0.0
     assert shares.condensed_masses(150.0, oxygen=0.0)["H2O"] == 0.0
     assert shares.condensed_masses(150.0, oxygen=2.0)["H2O"] == pytest.approx(0.571 * (2.0 - 0.2275) / 0.7725)
-    assert shares.ice_over_rock(150.0, oxygen=1.5) > shares.ice_over_rock(150.0) > shares.ice_over_rock(150.0, oxygen=0.6)
+    assert shares.condensed_masses(150.0, oxygen=1.5)["H2O"] > shares.condensed_masses(150.0)["H2O"] > shares.condensed_masses(150.0, oxygen=0.6)["H2O"]
 
 
 def test_ammonia_and_methane_follow_their_own_element():

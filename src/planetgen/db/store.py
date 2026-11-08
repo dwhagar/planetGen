@@ -77,7 +77,7 @@ from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
-from planetgen.physics import ore_deposits
+from planetgen.physics import isotope_record, ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -621,7 +621,7 @@ know their parents' ids before anything is written, and `cur.lastrowid`
 still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
-    "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types",
+    "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types", "planet_isotopes", "moon_isotopes", "rogue_planet_isotopes",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
@@ -3021,6 +3021,14 @@ def body_owner(body, owner=None):
     return BODY_OWNERS[owner or ("moon" if body.is_moon else "planet")]
 
 
+def _insert_isotopes(conn, table, id_column, owner_id, rows):
+    """The isotope record of a body (GEN.1377, GEN.1420); `planet_isotopes`, `moon_isotopes` and `rogue_planet_isotopes` (this module's own literal table names)."""
+    columns = ", ".join(isotope_record.ROW_FIELDS)
+    marks = ", ".join("?" for _ in range(len(isotope_record.ROW_FIELDS) + 1))
+    for row in rows or []:
+        conn.execute(f"INSERT INTO {table} ({id_column}, {columns}) VALUES ({marks})", (owner_id, *(row[name] for name in isotope_record.ROW_FIELDS)))
+
+
 def body_child_rows(conn, body, body_id, owner=None):
     """Writes a planet's, moon's or (with `owner="rogue_planet"`) rogue planet's reflection spectrum, interior layer rows, gas rows and life class score rows (after any old ones were deleted)."""
     prefix, id_column = body_owner(body, owner)
@@ -3030,6 +3038,7 @@ def body_child_rows(conn, body, body_id, owner=None):
     )
     _insert_interior_layers(conn, f"{prefix}_interior_layers", id_column, body_id, body.interior_layers)
     _insert_deposit_types(conn, f"{prefix}_deposit_types", id_column, body_id, getattr(body, ore_deposits.ATTRIBUTE, None))
+    _insert_isotopes(conn, f"{prefix}_isotopes", id_column, body_id, getattr(body, isotope_record.ATTRIBUTE, None))
     for formula, partial_pa in sorted(atmosphere.gas_partials_pa(body).items()):
         if partial_pa > 0.0:
             conn.execute(f"INSERT INTO {prefix}_gases ({id_column}, gas, partial_pa) VALUES (?, ?, ?)",
@@ -7608,13 +7617,17 @@ def database_now(conn):
 
 def sector_centers_since(conn, since):
     """The `(x, y, z)` galaxy-frame centers, parsecs, of every galaxy
-    sector created at or after `since` (`database_now`), in address order:
-    not save order, which the worker count changes (GEN.39)."""
+    sector charted and created at or after `since` (`database_now`), in address order:
+    not save order, which the worker count changes (GEN.39). An uncharted placeholder row (MAP.399, MAP.402: no cell in the chart
+    ledger) is not a sector the run made, however new it is: on a big galaxy there are millions, and a backfill taking them for the
+    run's sectors plans its sky for all of them (PERF.252)."""
     return [
         (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
         for row in conn.execute(
-            "SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE created_at >= ?"
-            " AND shell_index IS NOT NULL ORDER BY shell_index, band_index, wedge_index", (since,)
+            "SELECT sec.center_x_pc, sec.center_y_pc, sec.center_z_pc FROM sectors sec WHERE sec.created_at >= ?"
+            " AND sec.shell_index IS NOT NULL AND EXISTS (SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = sec.shell_index"
+            " AND cl.band_index = sec.band_index AND cl.wedge_index = sec.wedge_index)"
+            " ORDER BY sec.shell_index, sec.band_index, sec.wedge_index", (since,)
         ).fetchall()
     ]
 
@@ -9826,6 +9839,11 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
         (row["id"],),
     ).fetchall()
 
+    isotope_rows = conn.execute(
+        f"SELECT {', '.join(isotope_record.ROW_FIELDS)} FROM {table_prefix}_isotopes WHERE {id_column} = ? ORDER BY id",
+        (row["id"],),
+    ).fetchall()
+
     data = object_rows.load_dict(ROGUE_BODY_FIELDS if owner == "rogue_planet" else PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
     data.update({
         atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon, owner).get(row["id"], {}),
@@ -9836,6 +9854,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
         "reflection_spectrum_non_visible": non_visible or None,
         giant_interior.LAYERS_ATTRIBUTE: [{name: layer[name] for name in INTERIOR_LAYER_COLUMNS} for layer in layer_rows] or None,
         ore_deposits.ATTRIBUTE: [{name: deposit[name] for name in ore_deposits.ROW_FIELDS} for deposit in deposit_rows] or None,
+        isotope_record.ATTRIBUTE: [{name: isotope[name] for name in isotope_record.ROW_FIELDS} for isotope in isotope_rows] or None,
         "moons": [],
     })
     if not is_moon:
