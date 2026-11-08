@@ -38,8 +38,6 @@ def test_the_mantle_norm_is_an_olivine_rock_and_an_undersaturated_basalt_has_nep
 
 def test_a_rock_that_cannot_be_allocated_is_refused_not_trimmed():
     with pytest.raises(ValueError):
-        rt.cipw_norm(dict(SiO2=50.0, Al2O3=5.0, Na2O=10.0))             # alkalis over alumina
-    with pytest.raises(ValueError):
         rt.cipw_norm(dict(SiO2=1.0, K2O=10.0, Al2O3=10.0))              # no silica to speak of
     with pytest.raises(ValueError):
         rt.cipw_norm(dict(SiO2=50.0, MgO=-1.0))
@@ -112,3 +110,41 @@ def test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degre
         fraction = 1.0 / (basalt[key] / mantle[key])             # the F whose enrichment 1 / F is the ratio, D being zero
         assert 0.025 < fraction < 0.045
         assert rt.batch_enrichment(fraction) == pytest.approx(basalt[key] / mantle[key])
+
+
+BSE = dict(SiO2=45.6, TiO2=0.196, Al2O3=4.33, Cr2O3=0.377, FeO=8.13, MnO=0.134, NiO=0.242, MgO=37.0, CaO=3.47, Na2O=0.35, K2O=0.0285, P2O5=0.0189)
+"""dict: The bulk silicate Earth, wt percent, from the 12 oxides of the [R4608] concordance (GEN.1362)."""
+
+
+def test_the_chromium_manganese_and_nickel_of_the_mantle_go_to_chromite_and_the_pyroxenes_and_the_norm_adds_up():
+    norm = rt.cipw_norm(BSE)
+    assert sum(norm.values()) == pytest.approx(sum(BSE.values()), rel=1e-9)
+    assert norm["chromite"] == pytest.approx(0.377 * 223.84 / 151.99 * 0.9999, rel=0.01), "FeO.Cr2O3 holds all the chromium"
+    assert norm["ilmenite"] > 0.0 and norm["apatite"] > 0.0 and norm["albite"] > 0.0 and norm["orthoclase"] > 0.0
+    melt, residue = rt.partial_melt(BSE, 0.1)
+    for oxide in ("MnO", "NiO", "Cr2O3"):
+        assert melt[oxide] + residue[oxide] > 0.0, oxide
+    assert sum(melt.values()) == pytest.approx(100.0) and sum(residue.values()) == pytest.approx(100.0)
+
+
+def test_chromium_beyond_the_iron_that_can_hold_it_is_eskolaite_and_nothing_is_lost():
+    rock = dict(SiO2=45.0, MgO=40.0, Cr2O3=2.0, FeO=0.5, Al2O3=3.0)
+    norm = rt.cipw_norm(rock)
+    assert norm["eskolaite"] > 0.0 and sum(norm.values()) == pytest.approx(sum(rock.values()), rel=1e-9)
+
+
+def test_an_alkali_the_alumina_cannot_take_is_allocated_as_its_metasilicate_and_the_norm_still_adds_up():
+    rock = dict(SiO2=50.0, Al2O3=5.0, Na2O=10.0, K2O=2.0, MgO=20.0, CaO=3.0)
+    norm = rt.cipw_norm(rock)
+    assert norm["sodium_metasilicate"] > 0.0 and sum(norm.values()) == pytest.approx(sum(rock.values()), rel=1e-9)
+
+
+def test_rock_oxides_takes_the_other_seven_and_stays_at_a_hundred():
+    others = dict(Na2O=0.0035, K2O=0.0003, TiO2=0.002, Cr2O3=0.004, MnO=0.0013, NiO=0.0024, P2O5=0.0002)
+    rock = rt.rock_oxides(0.081, 0.0433, 1.15, 0.067, others)
+    assert sum(rock.values()) == pytest.approx(100.0) and rock["Na2O"] == pytest.approx(0.35, abs=1e-9) and rock["FeO"] == pytest.approx(8.1)
+    assert rt.cipw_norm(rock)["orthoclase"] > 0.0
+    with pytest.raises(ValueError):
+        rt.rock_oxides(0.08, 0.045, 1.1, 0.067, dict(H2O=0.01))
+    with pytest.raises(ValueError):
+        rt.rock_oxides(0.08, 0.045, 1.1, 0.067, dict(Na2O=-0.01))

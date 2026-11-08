@@ -8,7 +8,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, gases, saturation
+from planetgen.physics import atmosphere, gases, planet_type, saturation
 
 from tests.air_support import air
 from tests.fuzz_support import deterministic_entropy
@@ -61,7 +61,7 @@ def test_generated_bodies_store_consistent_air():
     count = 0
     for body in _bodies(range(12)):
         partials = atmosphere.partial_pressures_kpa(body)
-        if body.body_type == "g":
+        if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334)
             assert body.mantle_redox is None
         else:
             assert body.mantle_redox == atmosphere.redox_class(body.mantle_delta_iw)

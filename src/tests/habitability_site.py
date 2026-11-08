@@ -18,7 +18,7 @@ import pytest
 
 from planetgen.api.config import Config
 from planetgen.api.limiter import API_LIMIT_OFF, PAGE_LIMITS_OFF
-from planetgen.db import block_stats, interests, objectindex, store
+from planetgen.db import block_stats, chart_ledger, interests, objectindex, store
 from planetgen.db.store import MySQLConfig
 from planetgen.galaxy import spherical
 from planetgen.generation.config import SystemConfig
@@ -71,8 +71,8 @@ def _config_for(site_config):
     return SiteConfig
 
 
-HABITABLE_SEED = 9
-"""int: The seed of the habitable sector's system: a G2V star with seven planets and six moons, generated in about five seconds (TEST.677: seed 6 had ten planets and five moons until train 14, one moon after it, since captured moons went to the irregular store, GEN.1082 to GEN.1084; the lists test needs more than three moons)."""
+HABITABLE_SEED = 59
+"""int: The seed of the habitable sector's system: a G2V star with fifteen planets (five of them with domain ratings) and six moons, generated in about six seconds (TEST.677: seed 6 had ten planets and five moons until train 14, one moon after it, since captured moons went to the irregular store, GEN.1082 to GEN.1084; seed 9 held seven planets and no rated planet but eleven moons after train 17; the lists test needs more than three rated planets and more than three moons)."""
 BARREN_SEED = 1
 """int: The seed of the other sector's system: three planets, no moon now (it had three before GEN.1082 to GEN.1084)."""
 BLUE, GREEN, YELLOW, RED = 1.2, 0.9, 0.5, 0.1
@@ -128,6 +128,7 @@ def _add_sector(conn, name, address, center_pc, want_habitable):
     store.assign_uids(conn, system_ids=[system_id])
     store.recount_habitable_worlds(conn, [system_id])
     store.record_sector_stats(conn, sector_id, address, center_pc)
+    chart_ledger.record(conn, address, store.sector_run_id(conn), 1)     # MAP.402: a cell the ledger does not hold is an uncharted placeholder, which no block counts
     block_stats.refresh_chain(conn, address)
     name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"]
     return sector_id, system_id, name, tuple((kind, body_id, body) for kind, body_id, body, _tier in good)

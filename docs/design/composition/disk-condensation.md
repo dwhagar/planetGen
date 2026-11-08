@@ -1,6 +1,6 @@
 # Disc condensation, species by species (GEN.1363)
 
-Item GEN.1363, Lane 14. Part A (built): `physics/disc_condensation.py`, the budget, the lines and the C/O across a line, wired to nothing. Part B (to build): the ice shares of a body follow the budget at the body's formation temperature. Part C (to build): the C/O of a giant follows the gas C/O at its formation distance.
+Item GEN.1363, Lane 14. Part A (built): `physics/disk_condensation.py`, the budget, the lines and the C/O across a line, wired to nothing. Part B (to build): the ice shares of a body follow the budget at the body's formation temperature. Part C (to build): the C/O of a giant follows the gas C/O at its formation distance.
 
 ## 1. What was missing
 

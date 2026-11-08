@@ -5,6 +5,7 @@ midplane" puts the grid at height 0 instead; a selection moves the rings to it; 
 back. Skipped without Playwright, Chromium or WebGL, like the other map browser tests.
 """
 
+import math
 import re
 
 import pytest
@@ -16,7 +17,8 @@ from tests.test_web_browser_fixture_maps import (  # noqa: E402,F401 -- fixtures
 
 CAMERA = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"
 PLANE = "() => document.querySelector('#galaxymap3d-canvas').galaxyPlane()"
-TILT_DEG = 62
+TILT_DEG = math.degrees(math.atan(math.sqrt(2)))
+"""float: The Chart View's slant, the isometric one (`ISO_TILT` in galaxystageview.js), 54.7356 degrees; the test expected 62 (TEST.696)."""
 LABEL = re.compile(r"^\d+(\.\d+)? (pc|kpc)$")
 
 
@@ -25,9 +27,16 @@ def _calm(page):
     page.wait_for_timeout(200)
 
 
+def _open_chart_menu(page):
+    """TEST.696: the Chart View controls sit in a sub-menu (`#galaxymap3d-chart`) that starts closed, so a click on one finds it not visible until it is open."""
+    page.evaluate("() => { document.querySelector('#galaxymap3d-chart').open = true; }")
+
+
 def _menu_click(page, action):
     if not page.evaluate("() => document.querySelector('#galaxymap3d-menu').open"):
         page.click("#galaxymap3d-menu > summary")
+    if action.startswith("plane-"):
+        _open_chart_menu(page)
     page.click(f'[data-action="{action}"]')
     _calm(page)
 
@@ -82,12 +91,15 @@ def test_the_grid_follows_the_focus_and_the_toggle_between_the_two_planes_works(
     assert page.evaluate(PLANE)["anchor"][2] == 0
     _menu_click(page, "plane-midplane")
     page.wait_for_function(f"() => ({PLANE})().midplane === false")
+    # TEST.696: the grid is rebuilt a moment after the switch, so wait for the plane to come back to the focus' height before comparing
+    page.wait_for_function(f"""() => {{ const p = ({PLANE})(), c = ({CAMERA})(); return !c.flying && Math.abs(p.planeZ - c.target[2]) <= 1e-3 * p.step + 1e-6; }}""")
     assert page.evaluate(PLANE)["planeZ"] == pytest.approx(page.evaluate(CAMERA)["target"][2], abs=1e-3 * page.evaluate(PLANE)["step"] + 1e-6)
 
 
 def test_the_midplane_button_is_off_until_the_plane_view_is_on(page, map_site):
     _open_galaxy(page, map_site)
     page.click("#galaxymap3d-menu > summary")
+    _open_chart_menu(page)
     assert page.is_disabled('[data-action="plane-midplane"]')
     page.click('[data-action="plane-view"]')
     _calm(page)
@@ -199,6 +211,7 @@ def test_the_stems_switch_and_the_height_stretch_work_and_the_grid_says_how_tall
     height, and the grid's note says so."""
     _open_star_field(page, map_site)
     page.click("#galaxymap3d-menu > summary")
+    _open_chart_menu(page)
     assert page.is_disabled('[data-action="plane-stems"]') and page.is_disabled("#galaxymap3d-plane-stretch")
     page.click('[data-action="plane-view"]')
     _calm(page)

@@ -2,7 +2,7 @@
 """
 Reduces the [R0535] table of 1,615 FGK dwarfs (VizieR J/ApJS/225/32, SPOCS) to the bands the generated stellar
 abundances are held to (TEST.456): per [Fe/H] bin, the number of stars, the share older than 8 Gyr (the thick-disk age of
-`tuning.STELLAR_THICK_START_GY`), and for [C/Fe], [O/Fe], [Mg/Fe], [Si/Fe] and [Ca/Fe] the median, the standard deviation and the 16th
+`tuning.STELLAR_THICK_START_GY`), and for [C/Fe], [O/Fe], [Mg/Fe], [Si/Fe], [Ca/Fe], [Ti/Fe], [V/Fe], [Cr/Fe] and [Mn/Fe] (GEN.1360) the median, the standard deviation and the 16th
 and 84th percentiles.
 
     python scripts/build_brewer_fischer_bands.py brewer2016_vizier_J_ApJS_225_32.tsv
@@ -21,7 +21,7 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "src", "tests", "data", "brewer_fischer_xfe_bands.json")
 EDGES = (-0.6, -0.4, -0.2, 0.0, 0.2, 0.4, 0.6)
-ELEMENTS = ("C", "O", "Mg", "Si", "Ca")
+ELEMENTS = ("C", "O", "Mg", "Si", "Ca", "Ti", "V", "Cr", "Mn")
 MIN_STARS = 30
 THICK_AGE_GY = 8.0
 

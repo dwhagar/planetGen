@@ -1300,8 +1300,14 @@ PLANET_OCCURRENCE_METALLICITY_EXPONENT = 1.0
 # metals and +0.070 dex for helium; it is a scale and never a preset. Verification states are in `STELLAR_RELATION_STATES`.
 STELLAR_SOLAR_LOG_EPS = {
     "C": 8.46, "N": 7.83, "O": 8.69, "Ne": 8.06, "Na": 6.22, "Mg": 7.55, "Al": 6.43, "Si": 7.51, "S": 7.12, "Ar": 6.38,
-    "K": 5.07, "Ca": 6.30, "Fe": 7.46, "Ni": 6.20, "Eu": 0.52, "Th": 0.03, "U": -0.54}
-"""dict: Element symbol to A21 photospheric log eps (H = 12); the 14 elements that make 99.7 percent of Z, and Eu, Th and U."""
+    "K": 5.07, "Ca": 6.30, "Fe": 7.46, "Ni": 6.20, "Eu": 0.52, "Th": 0.03, "U": -0.54,
+    # GEN.1360: Li (the CI-chondrite value, the photosphere's 0.96 being depleted by burning), P, Ti, V, Cr, Mn, Co, Cu, Zn (A21 Table 2, the photosphere)
+    "Li": 3.25, "P": 5.41, "Ti": 4.97, "V": 3.90, "Cr": 5.62, "Mn": 5.42, "Co": 4.94, "Cu": 4.18, "Zn": 4.56}
+"""dict: Element symbol to A21 log eps (H = 12); the 14 elements that make 99.7 percent of Z, the nine of GEN.1360 (Li, P, Ti, V, Cr, Mn, Co,
+Cu, Zn; Li is the CI-chondrite value, the others the photosphere), and Eu, Th and U."""
+STELLAR_PROTO_NO_OFFSET = ("Li",)
+"""tuple: The elements whose log eps is already proto-solar, not photospheric, so the diffusion offset (`STELLAR_PROTO_METAL_OFFSET_DEX`) is not
+added: Li, taken from the CI chondrites (meteorites hold the unmixed, undepleted material)."""
 STELLAR_PROTO_METAL_OFFSET_DEX = 0.064
 STELLAR_PROTO_X = 0.7121
 STELLAR_PROTO_Z = 0.0154
@@ -1332,28 +1338,53 @@ STELLAR_XFE_FITS = {
     "thin": {
         "Mg": ("min", -0.067, -0.284, 0.06), "Si": ("min", -0.047, -0.298, -0.07), "Ca": ("min", -0.041, -0.163, 0.42),
         "O": ("min", -0.028, -0.414, 0.07), "C": ("linear", -0.030, -0.163), "Al": ("min", 0.032, -0.029, 0.06),
-        "Eu": ("linear", 0.060, -0.404)},
+        "Eu": ("linear", 0.060, -0.404),
+        # GEN.1360: Ti, V, Cr and Mn are straight lines to the Brewer and Fischer dwarfs weighted by this branch's probability
+        # (`scripts/fit_stellar_xfe_iron_peak.py`); P and Zn are lines through the printed bins of [R0349, R2785] over the
+        # [Fe/H] range of `STELLAR_XFE_ELEMENT_RANGE`; Co, Cu and Li have no trend in hand and are solar-scaled (stand-ins, GEN.725).
+        "Ti": ("linear", 0.011, -0.223), "V": ("linear", -0.032, -0.187), "Cr": ("linear", -0.016, 0.015), "Mn": ("linear", -0.050, 0.364),
+        "P": ("linear", 0.03, -0.35), "Zn": ("linear", 0.0, -0.10),
+        "Co": ("linear", 0.0, 0.0), "Cu": ("linear", 0.0, 0.0), "Li": ("linear", 0.0, 0.0)},
     "high-alpha": {
         "Mg": ("max", 0.357, -0.373, -0.73), "Si": ("max", 0.253, -0.199, -0.99), "Ca": ("max", 0.282, -0.251, -0.99),
         "O": ("max", 0.606, -0.495, -0.91), "C": ("max", 0.191, -0.521, -0.10), "Al": ("max", 0.225, -0.298, -0.48),
-        "Eu": ("max", 0.446, -0.290, -0.93)},
+        "Eu": ("max", 0.446, -0.290, -0.93),
+        "Ti": ("linear", 0.036, -0.347), "V": ("linear", 0.016, -0.228), "Cr": ("linear", -0.007, 0.039), "Mn": ("linear", -0.026, 0.387),
+        "P": ("linear", 0.03, -0.35), "Zn": ("linear", 0.0, -0.10),
+        "Co": ("linear", 0.0, 0.0), "Cu": ("linear", 0.0, 0.0), "Li": ("linear", 0.0, 0.0)},
 }
+STELLAR_XFE_ELEMENT_RANGE = {"P": (-0.5, 0.3), "Zn": (-1.0, 0.0)}
+"""dict: For an element whose trend was read over a narrower [Fe/H] range than its branch's (`STELLAR_FE_H_FIT_RANGE`), that range: [Fe/H] is held at
+its edge outside it. P is the bins of [R2785] (-0.5 to +0.3), Zn is those of [R0349] (+0.1 below [Fe/H] -1, 0 at and above 0)."""
 STELLAR_XFE_SIGMA = {
-    "thin": {"C": 0.095, "O": 0.102, "Mg": 0.046, "Si": 0.072, "Ca": 0.032, "Eu": 0.077},
-    "high-alpha": {"C": 0.108, "O": 0.128, "Mg": 0.051, "Si": 0.126, "Ca": 0.035, "Eu": 0.084}}
+    "thin": {"C": 0.095, "O": 0.102, "Mg": 0.046, "Si": 0.072, "Ca": 0.032, "Eu": 0.077,
+             "Ti": 0.038, "V": 0.066, "Cr": 0.024, "Mn": 0.055, "P": 0.10, "Zn": 0.08, "Co": 0.07, "Cu": 0.10, "Li": 0.20},
+    "high-alpha": {"C": 0.108, "O": 0.128, "Mg": 0.051, "Si": 0.126, "Ca": 0.035, "Eu": 0.084,
+                   "Ti": 0.075, "V": 0.066, "Cr": 0.022, "Mn": 0.053, "P": 0.10, "Zn": 0.08, "Co": 0.07, "Cu": 0.10, "Li": 0.20}}
 """dict: Residual scatter (dex) of the fits above, by branch. C, O, Mg, Si and Ca are refitted to [R0535] (1,615 dwarfs,
 `scripts/fit_stellar_xfe_refit.py`, GEN.988 and GEN.990): the scale of each that puts the generated variance of every populous [Fe/H] bin
 on the table's robust one, the means and the branch mixture included; the ratio between the branches is the old one, and calcium's is
 magnesium's. Eu is [R0285]'s."""
 STELLAR_XFE_CORRELATION = (
-    (1.00, 0.47, 0.57, 0.64, 0.35),
-    (0.47, 1.00, 0.26, 0.42, 0.41),
-    (0.57, 0.26, 1.00, 0.68, 0.02),
-    (0.64, 0.42, 0.68, 1.00, 0.30),
-    (0.35, 0.41, 0.02, 0.30, 1.00))
-"""tuple: Residual correlation of C, O, Mg, Si and Ca ([R0535], 1,558 dwarfs of the full table with all five, the residual
-being [X/Fe] less its median in the 0.1 dex bin of [Fe/H]), so Mg/Si, a ratio of two correlated terms, has its narrow real scatter. The
-844-dwarf table of the first fit gave 0.56, 0.69, 0.71, 0.36, 0.37, 0.77 for the C, O, Mg, Si pairs; calcium is new (GEN.988)."""
+    (1.00, 0.47, 0.57, 0.64, 0.35, 0.31, 0.44, 0.31, 0.11, 0.00, 0.00, 0.00, 0.00, 0.00),
+    (0.47, 1.00, 0.26, 0.42, 0.41, 0.49, 0.13, 0.14, -0.41, 0.00, 0.00, 0.00, 0.00, 0.00),
+    (0.57, 0.26, 1.00, 0.68, 0.02, 0.56, 0.51, 0.33, 0.15, 0.00, 0.00, 0.00, 0.00, 0.00),
+    (0.64, 0.42, 0.68, 1.00, 0.30, 0.55, 0.57, 0.45, -0.13, 0.00, 0.00, 0.00, 0.00, 0.00),
+    (0.35, 0.41, 0.02, 0.30, 1.00, 0.27, 0.13, 0.15, -0.29, 0.00, 0.00, 0.00, 0.00, 0.00),
+    (0.31, 0.49, 0.56, 0.55, 0.27, 1.00, 0.45, 0.17, -0.29, 0.00, 0.00, 0.00, 0.00, 0.00),
+    (0.44, 0.13, 0.51, 0.57, 0.13, 0.45, 1.00, 0.31, 0.05, 0.00, 0.00, 0.00, 0.00, 0.00),
+    (0.31, 0.14, 0.33, 0.45, 0.15, 0.17, 0.31, 1.00, -0.14, 0.00, 0.00, 0.00, 0.00, 0.00),
+    (0.11, -0.41, 0.15, -0.13, -0.29, -0.29, 0.05, -0.14, 1.00, 0.00, 0.00, 0.00, 0.00, 0.00),
+    (0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00, 0.00, 0.00),
+    (0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00, 0.00),
+    (0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00, 0.00),
+    (0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00, 0.00),
+    (0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 1.00))
+"""tuple: Residual correlation of C, O, Mg, Si, Ca, Ti, V, Cr and Mn ([R0535], 1,558 dwarfs of the full table with all nine, the residual
+being [X/Fe] less its median in the 0.1 dex bin of [Fe/H]), so Mg/Si, a ratio of two correlated terms, has its narrow real scatter, and then
+P, Zn, Co, Cu and Li, which have no sample in hand and are independent (GEN.1360; stand-in). The 844-dwarf table of the first fit gave 0.56,
+0.69, 0.71, 0.36, 0.37, 0.77 for the C, O, Mg, Si pairs; calcium came with GEN.988; the first five rows and columns are unchanged by Ti, V, Cr and Mn,
+so no earlier residual moved (the Cholesky factor of a block is the block of the factor)."""
 STELLAR_CEMP = {"fe_h_below": -2.0, "probability": 0.25, "carbon_fe_min": 0.7, "carbon_fe_span": 1.3, "rich_probability_below": -4.0}
 """dict: Carbon-enhanced metal-poor stars [R1448]: below [Fe/H] -2 a fraction `probability` have [C/Fe] of
 `carbon_fe_min` plus a uniform share of `carbon_fe_span`. The literature's rise to 1 below -4 is unreachable under the stored
