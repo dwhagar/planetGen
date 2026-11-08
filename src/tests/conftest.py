@@ -201,6 +201,28 @@ def _uses_playwright(item):
     return bool(BROWSER_FIXTURES & set(getattr(item, "fixturenames", ()))) or _imports_playwright(str(item.path))
 
 
+BROWSER_START_SKIPS = ("Playwright could not start", "No Chromium for Playwright", "Chromium is not available")
+"""tuple: The start of the skip reasons the browser fixtures give when Playwright or its Chromium will not start (TEST.693)."""
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """
+    TEST.693: with `PLANETGEN_REQUIRE_BROWSER` set (the browser phase of `scripts/test.py` sets it), a browser test that skipped because Playwright or
+    its Chromium would not start is a failure, not a skip. Before this a version mismatch (every test skipped with "Executable doesn't exist") and
+    one test that left an asyncio loop behind (every later test skipped with "inside the asyncio loop") each turned about 1,500 browser tests into skips
+    while the phase still printed a pass.
+    """
+    outcome = yield
+    report = outcome.get_result()
+    if not report.skipped or not os.environ.get("PLANETGEN_REQUIRE_BROWSER"):
+        return
+    reason = report.longrepr[2] if isinstance(report.longrepr, tuple) and len(report.longrepr) == 3 else str(report.longrepr)
+    if any(marker in reason for marker in BROWSER_START_SKIPS):
+        report.outcome = "failed"
+        report.longrepr = f"the browser could not start, so the test did not run: {reason}"
+
+
 def pytest_collection_modifyitems(config, items):
     """Suite markers (registered in pytest.ini), so a run can pick a slice:
     `-m "not db"` without a database, `-m "not slow"` for a quick loop,

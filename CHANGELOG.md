@@ -2,6 +2,96 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3655] - 2026-11-08
+
+**Headline:** A database that has no galaxy yet now says so on every page, instead of "no such database".
+
+### Changed
+- **A database that holds only `migrate`'s bookkeeping (or nothing) says there is no galaxy yet (MAP.407).** Every page used to answer 404 "Not found: No such database". The API now marks that case (`noGalaxy`, still a 404) and the pages show "No galaxy yet: There is no galaxy in database ... yet. Plan one from the admin Generate page (or run 'planetgen plan') and the pages fill in." A schema that holds something else (the control database, for one) is still "No such database". The web client's new `NoGalaxyError` is a `NotFoundError`, so every page that handles a missing object handles it as before.
+- **MAP.406 needed no change.** The sector page and `/sector/<id>/gravity` with no galaxy shape were fixed by MAP.405 (the bug hunt ran on a main from before it); all of the item's red tests (the sector pages, profile, Nearby, route fuzz) pass on main.
+
+## [8.0.3654] - 2026-11-08
+
+**Headline:** The generator battery's digest is worked out once after an update and kept, so a fill, a plan or a fingerprint no longer waits half a minute or more for it.
+
+### Changed
+- **The generator battery digest is kept on the server (PERF.250).** It takes 30 to 90 seconds and every process that stores or extends a galaxy asked for it again. It is now kept in the folder of the install's kept star tables (`/var/cache/planetgen/band-tables`, which `update.sh` makes) under a key of every file of the `planetgen` package and of the downloaded datasets (name, size, modification time), the Python, numpy and scipy versions and the platform. A changed generator file, data file, library or machine makes a new key, so a changed generator is never given an old answer; copies of older code are removed after a week. A host without the folder works it out as before. `PLANETGEN_BATTERY_DIGEST_CACHE` still names another folder (set but empty, none).
+
+## [8.0.3653] - 2026-11-08
+
+**Headline:** Starting a sector fill on a planned galaxy no longer times out: the size and time are worked out in the background and shown as soon as they are ready.
+
+### Fixed
+- **The Generate page's size and time took two minutes, outlived the web server's 60 second limit and restarted it (ADM.141).** Every `planetgen sectors` run, even one that only estimates, first worked out the generator battery (30 seconds on a free machine, 90 under load) to warn about a version mismatch before a write. An estimate writes nothing, so it now skips that: the estimate of a planned galaxy takes about five seconds instead of two minutes.
+- **The size line started the estimate again on every change and every reload.** The estimate now runs in the work queue: the page answers "working out how big this would be" at once and asks again every few seconds (the size line, the Review step and the command palette), one estimate runs at a time for a galaxy, and a form changed or a page reloaded while it runs no longer starts the command again. A failure is shown on the form instead of a timeout.
+- **A region with no sector in it started a run when only its estimate was asked for (ADM.142).** `planetgen sectors --around X Y Z --estimate-only` (and any mode whose plan holds nothing) went on to start a stage that generated 0 sectors and printed no estimate; it now prints the estimate of nothing and starts nothing.
+
+## [8.0.3652] - 2026-11-08
+
+**Headline:** One browser test file that never stopped Playwright no longer breaks the 1,500 browser tests after it.
+
+### Fixed
+- **The browser phase no longer collapses after one file (TEST.696).** `test_life_text_a11y_browser.py` started Playwright for its tests and never stopped it. Playwright's event loop then stayed alive in that test worker, and the next browser file to start Playwright there failed with "Sync API inside the asyncio loop", which in a full run took about 1,550 browser tests with it. The fixture now stops Playwright, and a test checks that every file that starts Playwright stops it.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.696 (the loop; the remaining browser failures follow in their own notes).
+
+## [8.0.3651] - 2026-11-08
+
+**Headline:** A test now stops bash 4 syntax from reaching the install scripts macOS runs.
+
+### Fixed
+- **No bash 4 in the scripts macOS runs (OPS.120).** `deploy-common.sh` used `${var^^}`, which macOS's bash 3.2 cannot parse, and three install tests died on `log_info: command not found`. The line is already gone from main; a new test scans `deploy-common.sh`, `install-python-deps.sh`, `update.sh` and `install.sh` for case-change expansions, associative arrays, `mapfile`, `readarray`, `|&` and `coproc`, so it cannot return. `enable-swap.sh` keeps `${SIZE^^}`: it runs only on Linux, where it needs `numfmt` and `df --output`.
+
+generation-output: unchanged
+
+TODO items resolved: OPS.120.
+
+## [8.0.3650] - 2026-11-08
+
+**Headline:** When the setup cannot download a dataset it now prints the download address of each missing file.
+
+### Changed
+- **The setup warning names the download URL (OPS.119 follow-up).** A failed dataset download stays non-fatal, as before. The warning now lists each file that did not download with its address, so it can be fetched by hand and placed in the dataset folder.
+
+generation-output: unchanged
+
+TODO items resolved: OPS.119 (follow-up).
+
+## [8.0.3649] - 2026-11-08
+
+**Headline:** The test runner survives crashed workers, resumes across midnight, keeps its dependency map whole after a resume, leaves the tree clean and runs `full --check` on main.
+
+### Fixed
+- **Five faults in `scripts/test.py` (TEST.694).** (1) xdist replaced only four times the workers' number of crashed workers, so after memory kills the tail ran on two workers for hours; it now replaces up to 1,000. (2) A run that crossed midnight UTC lost every pass because the date was part of the environment; a run that started within 24 hours now keeps its passes (a changed file still runs its tests again). (3) After `--resume` the dependency map `.pytest-deps.json` held only the tests that ran in that invocation; the passes carried from earlier runs are now written into it too. (4) The census and sweep tests wrote `*-latest.md` into the tracked `.test-reports/`, leaving the tree dirty after a run; the runner now sends them to `.test-progress/reports`. (5) `full --check` on main refused to run; it now runs the full run without the check and says so.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.694.
+
+## [8.0.3648] - 2026-11-08
+
+**Headline:** The test machine setup now downloads the datasets it needs and says so when it cannot.
+
+### Fixed
+- **Setup fetched nothing and still ended well (OPS.119).** The cloud environment setup ran the dataset download with `python -I`, which also drops `PYTHONPATH`, so `planetgen` could not be imported, the step only warned, and setup finished as if it had worked. It now runs with `-P` (no current directory, `PYTHONPATH` kept), checks the result with `datasets status`, and ends with a SETUP INCOMPLETE line when the data is not all there. The test preflight also fetches every dataset the math check reads (isochrones, spectra, the helium-hydrogen equation of state, HYG and Mamajek, besides the white-dwarf tables), where it fetched only the white-dwarf data and the math check then stopped a fresh machine's run with 16 DataMissing failures.
+
+generation-output: unchanged
+
+TODO items resolved: OPS.119.
+
+## [8.0.3647] - 2026-11-08
+
+**Headline:** A browser that will not start now fails the test run instead of skipping 1,500 tests.
+
+### Fixed
+- **Browser tests no longer skip silently (TEST.693).** The test preflight demanded Playwright 1.56.0 whatever Chromium the machine carried, so on an image with Chromium 1243 every browser test skipped with "Executable doesn't exist" and the phase still printed a pass. The preflight now asks the installed Playwright for its own Chromium and, if it is not there, names the Playwright that matches each Chromium build on the machine; the cloud setup script picks the matching release too. In the browser phase of `scripts/test.py` a test that skips because Playwright or Chromium would not start is now a failure.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.693.
+
 ## [8.0.3646] - 2026-11-08
 
 **Headline:** Two tests that assumed asteroid fields are rolled in a sector, or stand wider than a light year, now follow the rules that retired both.
