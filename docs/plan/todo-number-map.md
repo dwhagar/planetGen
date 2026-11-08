@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.47 |
 | TEST | TEST.697 |
 | USR | USR.32 |
-| OPS | OPS.121 |
+| OPS | OPS.122 |
 | DOC | DOC.110 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2197,6 +2197,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.119 | The setup script dataset fetch fails (python -I ignores PYTHONPATH) yet exits 0; the test preflight fetches only white_dwarf_models (bug) | none | open |
 | TEST.694 | scripts/test.py: full --check refuses on main; --resume reuses nothing after UTC midnight; .pytest-deps.json is partial after a resume; xdist stops replacing OOM-killed workers; tests rewrite tracked .test-reports/*-latest.md (bug) | none | open |
 | OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) | none | open |
+| OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) | none | done, PR #5666 |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | open |
 | GEN.1387 | Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug) | none | open |
 | GEN.1388 | RoguePlanet has no temp_livable_share (test_rogue_habitability fails) (bug) | none | open |
