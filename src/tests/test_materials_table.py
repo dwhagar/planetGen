@@ -226,7 +226,7 @@ def test_every_asteroid_component_is_a_row():
 
 def test_every_class_composition_text_is_mapped_to_rows():
     texts = {data["composition"] for data in tuning.PLANET_CLASSES.values()}
-    assert len(texts) == 11
+    assert len(texts) == 14
     for text in texts:
         rows = materials.class_composition(text)
         assert rows and all(isinstance(row, materials.Material) for row in rows), text
