@@ -83,7 +83,8 @@ PHENOMENA_STAGES = (Stage("phenomena", "Scatter the phenomena"), Stage("phenomen
 nebula field."""
 
 BLOCK_LIGHTS_STAGE = Stage("block-lights", "Make the block light totals")
-"""Stage: The stage that makes the Galaxy Map's block light totals again, the last of a scatter (PERF.172)."""
+"""Stage: The stage that makes the Galaxy Map's block light totals again, the last of a scatter (PERF.172) and of a galaxy run (PERF.251: after the backfill, the population and the
+run's own block totals, so it adds up what the run left and nothing after it changes a light)."""
 
 
 def galaxy_stages(args):
@@ -93,12 +94,12 @@ def galaxy_stages(args):
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
         *PHENOMENA_STAGES,
-        BLOCK_LIGHTS_STAGE,
         Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("population", "Run the population pass"),
         Stage("territories", "Recompute the territories"),
         Stage("settle", "Save the sector paths"),
         Stage("run-blocks", "Update the map's block totals"),
+        BLOCK_LIGHTS_STAGE,
     ]
 
 

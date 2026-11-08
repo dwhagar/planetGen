@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
-from planetgen.physics import ore_deposits
+from planetgen.physics import isotope_record, ore_deposits
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -419,12 +419,17 @@ def apply_envelope(planet):
             start = envelope_capture.draw_start(mass_earth)
             puff = envelope_capture.draw_puff_start(mass_earth, envelope_capture.period_days(planet))     # GEN.1343 (W15): one sub-Neptune core in 20 starts as a super-puff
             start = puff or start
-    result = envelope_capture.kept(planet, start)
+    result = envelope_capture.kept(planet, start, tides=True)       # GEN.1347: the obliquity tide of the planet's own tilt, once it has one (the settle pass)
     held = getattr(planet, "_captured_envelope", 0.0)
     if result is None and not held:
         return False                    # a bare core, as drawn: nothing is touched
     if result is not None and held and abs(result[0] - held) <= ENVELOPE_SETTLE_TOLERANCE * held:
-        return False
+        inflated = getattr(planet, "_tidal_radius_km", None)
+        new_radius = result[1] * constants.EARTH_RADIUS_KM
+        if inflated is None and new_radius <= planet.radius * (1.0 + ENVELOPE_SETTLE_TOLERANCE):
+            return False
+        if inflated is not None and abs(new_radius - inflated) <= ENVELOPE_SETTLE_TOLERANCE * inflated:
+            return False
     bare = getattr(planet, "_bare_core", None)
     if bare is not None:                # it had an envelope: back to the drawn core first
         for name, value in bare["fractions"].items():
@@ -436,6 +441,7 @@ def apply_envelope(planet):
             del planet._formation_fractions
     if result is None:                  # it kept an envelope before and keeps none now: the drawn core again
         planet.envelope_helium_fraction = planet.envelope_z_fraction = None
+        planet._tidal_radius_km = None
     else:
         envelope_share.restore(planet)  # the drawn fractions, before the envelope takes its share
         fraction, radius_earth = result
@@ -450,6 +456,8 @@ def apply_envelope(planet):
         planet._captured_envelope = fraction
         envelope_share.set_gas_detail(planet)       # the captured gas is the disk's: the star's helium and heavy elements
         planet.radius = radius_earth * constants.EARTH_RADIUS_KM
+        plain = envelope_capture.kept(planet, start)[1] * constants.EARTH_RADIUS_KM
+        planet._tidal_radius_km = planet.radius if planet.radius > plain * (1.0 + 1e-9) else None     # the radius the obliquity tide gave it, or None for a planet it did not inflate
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     planet.density = planet.mass / (planet.volume * 1.0e9) / 1000.0     # g/cm3: kg per km3 over 1e9 m3 per km3, then to g/cm3
     calculate_surface_gravity(planet)
@@ -655,6 +663,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     air = surface_air.solve(setting, start_k)
     planet._retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
     air = _air_oddities(planet, setting, air, start_k, solar_output_at_orbit, distance, albedo, giant)
+    planet._co2_sink = None if air is None else air.co2_sink                      # GEN.1309 A: kept, not stored; the life stage balances the CO2 again at the temperature the oxygen rise leaves
     if air is None or not air.partials_pa:
         if setting.albedo_law is not None:
             # GEN.972: with no air the ice the cold leaves is the only feedback; the temperature and the albedo that keep each other
@@ -693,6 +702,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     phosphorus_budget.generate(planet)         # GEN.1367: the crust's P2O5 and hosts, the ocean's phosphate
     # GEN.1380: the crust's thickness, craton and sulfur, and the magmatic ore types the body admits (own streams, no draw of the run's)
     ore_deposits.generate(planet)
+    # GEN.1377, GEN.1420: the isotope record of the elements the body holds (own streams, no draw of the run's)
+    isotope_record.generate(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
     # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
@@ -752,6 +763,7 @@ def refresh_at_final_age(body):
         surface_composition.generate_surface(body)
         phosphorus_budget.generate(body)        # GEN.1367: the heat, the water and the ground moved
         ore_deposits.generate(body)         # GEN.1380: the heat, the water and the ground moved
+        isotope_record.generate(body)       # GEN.1377: the air and the interior moved
         if surface_composition.mix_of(body) != ground:
             radiation.update_ground_dose(body)
     envelope_share.fill(body)       # GEN.1226: the air may have changed with the water and the ground; the share follows the final air

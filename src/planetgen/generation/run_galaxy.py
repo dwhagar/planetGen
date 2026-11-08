@@ -3107,9 +3107,9 @@ def run_galaxy(args):
     def tail(since):
         stars, _book = run_plan.bright_star_followers(args)
         phenomena, _book = run_plan.phenomena_followers(args)
-        return [LinkFollower(args, since), *stars, *phenomena, run_plan.BlockLightsFollower(args),
+        return [LinkFollower(args, since), *stars, *phenomena,
                 BackfillFollower(args, since), run_population.population_follower(args),
                 run_population.territories_follower(args), SettleFollower(args, since),
-                RunBlocksFollower(args, since)]
+                RunBlocksFollower(args, since), run_plan.BlockLightsFollower(args)]       # PERF.251: the block lights are the last thing a galaxy run makes
 
     _run_stages(args, "galaxy", tail)
