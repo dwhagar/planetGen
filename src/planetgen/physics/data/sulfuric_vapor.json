@@ -1,0 +1,177 @@
+{
+ "version": 1,
+ "title": "The sulfuric acid and water vapor-pressure curve over aqueous sulfuric acid (GEN.1424)",
+ "description": "The thermodynamics of the aqueous sulfuric acid solution: Zeleznik's Gibbs-energy model (activities of acid and water against composition and temperature, 200 to 350 K), the pure sulfuric acid vapor pressure of Ayers and Kulmala and Laaksonen, and Tabazadeh's liquid water curve below the triple point. Every number carries its source tier (T1 to T9) and tweak level (L0 to L4); the coefficient blocks carry the same fields. Nothing in the generator names Venus.",
+ "zeleznik_1991": {
+  "tier": "T1",
+  "tweak": "L0",
+  "basis": "[R4877: Table 6A] the nonzero distinct parameters of -G(r)/RT = sum_i Phi(i) sum_j sum_k (mu_jki + eps_jki ln x_j) x_j x_k with Phi(1) = 1, Phi(2) = x1 x2, each as the coefficients of (1, T, T^2, 1/T, ln T) (eq. 12 and 13); x1 is the acid mole fraction. Read from the paper's pages and checked against its Table 7 (the relative Gibbs energy and potentials at 200 K and 250 K, nine points, agree to the printed four digits)",
+  "valid_from_k": 200.0,
+  "valid_to_k": 350.0,
+  "validity": "[R4877: section 5.2] 200 to 350 K, 0.1 MPa; extrapolation above 350 K is not recommended, especially for the concentrated acid",
+  "parameters": {
+   "mu_111": [
+    -23.524503387,
+    0.0406889449841,
+    -1.51369362907e-05,
+    2961.44445015,
+    0.492476973663
+   ],
+   "mu_121": [
+    1114.58541077,
+    -1.1833078936,
+    -0.00209946114412,
+    -246749.842271,
+    34.1234558134
+   ],
+   "mu_221": [
+    -80.1488100747,
+    -0.0116246143257,
+    6.06767928954e-06,
+    3092.72150882,
+    12.7601667471
+   ],
+   "mu_122": [
+    888.711613784,
+    -2.50531359687,
+    0.000605638824061,
+    -196985.296431,
+    74.550064338
+   ],
+   "eps_111": [
+    2887.31663295,
+    -3.32602457749,
+    -0.002820472833,
+    -528216.112353,
+    0.686997435643
+   ],
+   "eps_121": [
+    -370.944593249,
+    -0.690310834523,
+    0.000563455068422,
+    -3822.52997064,
+    94.2682037574
+   ],
+   "eps_211": [
+    38.3025318809,
+    -0.0295997878789,
+    1.20999746782e-05,
+    -3246.97498999,
+    -3.83566039532
+   ],
+   "eps_221": [
+    2324.76399402,
+    -0.141626921317,
+    -0.00626760562881,
+    -450590.687961,
+    -61.2339472744
+   ],
+   "eps_122": [
+    -1633.85547832,
+    -3.35344369968,
+    0.00710978119903,
+    198200.003569,
+    246.693619189
+   ],
+   "eps_212": [
+    1273.75159848,
+    1.03333898148,
+    0.00341400487633,
+    195290.667051,
+    -431.737442782
+   ]
+  }
+ },
+ "numbers": {
+  "acid_molar_mass_kg_mol": {
+   "value": 0.098079,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "H2SO4: 2 x 1.008 + 32.06 + 4 x 15.999 (the value of `sulfuric_cloud.ACID_MOLAR_MASS_KG_MOL`)"
+  },
+  "water_molar_mass_kg_mol": {
+   "value": 0.018015,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "H2O: 2 x 1.008 + 15.999"
+  },
+  "pure_acid_exponent_k": {
+   "value": 10156.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The 10156 K of the Ayers pure-acid curve as three open papers print it ([R0976: eq. 16], [R1516: eq. 4a], [R5165: eq. 11]); the primary source ([R2516], Kulmala and Laaksonen 1990, pay only) was not opened"
+  },
+  "pure_acid_reference_k": {
+   "value": 360.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The reference temperature: [R0976: eq. 16] prints 360 K (as does Boss's pasted text) and [R5165: eq. 11] 360.15 K, a 0.04 percent difference in the correction; [R1516: eq. 4a] prints 340 K, which does not give the same curve with the constant 16.259 (1.2 to 1.5 times higher at 190 to 250 K) and is not used; the primary ([R2516], pay only) was not opened"
+  },
+  "pure_acid_constant": {
+   "value": 16.259,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The constant of ln p(atm) = 16.259 - 10156/T0 at the reference temperature ([R0976: eq. 16] and [R1516: eq. 4b]); the refit of Noppel and others 2002 ([R5165: eq. 11], -11.695 where this gives -11.940) is 1.28 times higher at every temperature, the spread of this curve"
+  },
+  "pure_acid_curvature": {
+   "value": 0.38,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The 0.38 of the heat-capacity term of the Kulmala and Laaksonen (1990) correction, printed in all three papers"
+  },
+  "pure_acid_critical_k": {
+   "value": 905.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The critical temperature of the correction, 905 K in all three papers ([R5165: eq. 11] prints 0.38/545, that is 905 - 360.15 rounded)"
+  },
+  "pure_acid_alternative_constant": {
+   "value": -11.695,
+   "tier": "T3",
+   "tweak": "L1",
+   "basis": "The refit constant L of Noppel and others 2002 (ln of the pressure in atmospheres at the reference temperature) as [R5165: eq. 11] prints it, with its own reference temperature 360.15 K; the curve is a constant 1.28 times the default at every temperature. The window under it is the second end of the bracket"
+  },
+  "water_curve_a": {
+   "value": 18.452406985,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "[R4289: eq. 1] ln P(H2O, mbar) = a - 3505.1578807/T - 330918.55082/T^2 + 12725068.262/T^3, supercooled liquid water, 185 to 260 K"
+  },
+  "water_curve_b": {
+   "value": 3505.1578807,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "[R4289: eq. 1], the 1/T term"
+  },
+  "water_curve_c": {
+   "value": 330918.55082,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "[R4289: eq. 1], the 1/T^2 term"
+  },
+  "water_curve_d": {
+   "value": 12725068.262,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "[R4289: eq. 1], the 1/T^3 term"
+  },
+  "water_curve_valid_from_k": {
+   "value": 185.0,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "[R4289: eq. 1] lower end of the stated window"
+  },
+  "water_curve_valid_to_k": {
+   "value": 260.0,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "[R4289: eq. 1] upper end of the stated window; carried to the triple point (273.16 K), where it is 0.1 percent under the liquid curve of `saturation` (610.99 against 611.657 Pa), above which `saturation` is used"
+  },
+  "pure_acid_alternative_reference_k": {
+   "value": 360.15,
+   "tier": "T3",
+   "tweak": "L1",
+   "basis": "The reference temperature that goes with the refit constant: [R5165: eq. 11] prints 360.15 K with L = -11.695"
+  }
+ }
+}

@@ -271160,6 +271160,101 @@
    "volume": "15",
    "year": 2015
   },
+  "10.5194/acp-17-8923-2017": {
+   "authors": [
+    [
+     "Tsagkogeorgas",
+     "G."
+    ],
+    [
+     "Roldin",
+     "P."
+    ],
+    [
+     "Duplissy",
+     "J."
+    ],
+    [
+     "Rondo",
+     "L."
+    ],
+    [
+     "Tröstl",
+     "J."
+    ],
+    [
+     "Slowik",
+     "J. G."
+    ],
+    [
+     "Ehrhart",
+     "S."
+    ],
+    [
+     "Franchin",
+     "A."
+    ],
+    [
+     "Kürten",
+     "A."
+    ],
+    [
+     "Amorim",
+     "A."
+    ],
+    [
+     "Bianchi",
+     "F."
+    ],
+    [
+     "Kirkby",
+     "J."
+    ],
+    [
+     "Petäjä",
+     "T."
+    ],
+    [
+     "Baltensperger",
+     "U."
+    ],
+    [
+     "Boy",
+     "M."
+    ],
+    [
+     "Curtius",
+     "J."
+    ],
+    [
+     "Flagan",
+     "R. C."
+    ],
+    [
+     "Kulmala",
+     "M."
+    ],
+    [
+     "Donahue",
+     "N. M."
+    ],
+    [
+     "Stratmann",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.5194/acp-17-8923-2017",
+   "editors": [],
+   "journal": "Atmos. Chem. Phys.",
+   "page": "8923",
+   "publisher": "Copernicus GmbH",
+   "src": "crossref",
+   "title": "Evaporation of sulfate aerosols at low relative humidity",
+   "type": "journal-article",
+   "volume": "17",
+   "year": 2017
+  },
   "10.5194/acp-24-2415-2024": {
    "authors": [
     [
@@ -280784,7 +280879,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5165,
+ "id_next": 5166,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -285591,6 +285686,7 @@
   "10.5194/acp-12-2491-2012": "R4583",
   "10.5194/acp-13-11735-2013": "R4165",
   "10.5194/acp-15-4399-2015": "R3909",
+  "10.5194/acp-17-8923-2017": "R5165",
   "10.5194/acp-24-2415-2024": "R4570",
   "10.5194/acp-4-1461-2004": "R0182",
   "10.5194/acp-7-2277-2007": "R2886",
