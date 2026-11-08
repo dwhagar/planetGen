@@ -12,7 +12,7 @@ from planetgen.physics import saturation
 from planetgen.physics import sulfuric_vapor as sv
 
 
-# Zeleznik 1991 (J. Phys. Chem. Ref. Data 20, 1157) Table 7, read from the paper: (T, x acid, -G(r)/RT, -mu_acid(r)/RT, -mu_water(r)/RT).
+# [R4877: Table 7], read from the paper: (T, x acid, -G(r)/RT, -mu_acid(r)/RT, -mu_water(r)/RT).
 ZELEZNIK_TABLE_7 = (
     (200.0, 0.2, 7.0325, 22.2093, 3.2383),
     (200.0, 0.5, 8.8609, 6.4547, 11.2671),

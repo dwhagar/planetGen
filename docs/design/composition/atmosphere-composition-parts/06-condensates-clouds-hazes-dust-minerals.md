@@ -24,7 +24,7 @@ Coverage of the compounds named by the project text (where each condensed phase 
 | CO2 | ice curve and optical constants | 2.4, 2.8 | 2ND-HAND, READ |
 | H2O | liquid and ice; ice-salt eutectics NOT REACHED | 2.4, 2.5 | 2ND-HAND, DATA |
 | NH3, NH4SH, NH4Cl | ice and NH4SH fit; NH4Cl enthalpy only | 2.1, 2.4, 2.5 | READ, 2ND-HAND |
-| sulfides, H2SO4 | MnS, Na2S, ZnS (FeS suppressed); H2SO4-H2O vapour curve REACHED by GEN.1424 (`physics/sulfuric_vapor.py`, [R4877], [R4289], [R0210], [R2516]) | 2.1, 2.3, 2.8 | READ |
+| sulfides, H2SO4 | MnS, Na2S, ZnS (FeS suppressed); H2SO4-H2O vapour curve REACHED by GEN.1424 (`physics/sulfuric_vapor.py`, [R0210, R2516, R4289, R4877]) | 2.1, 2.3, 2.8 | READ |
 | Na, K | Na2S, KCl, metal vapour sets | 2.1, 2.5 | READ, DATA |
 | mineral dust, carbonates | densities and optics; decomposition equilibria NOT REACHED | 2.8, 2.12 | DATA |
 | perchlorates, NOx hydrates, HNO3 | NOT REACHED (HNO3 optics files exist, unread) | section 4 | NOT REACHED |
