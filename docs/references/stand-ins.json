@@ -35053,7 +35053,7 @@
           "fields": [
             [
               "What it is",
-              "planet_class_fit.json shoulders for gas shares (oxygen, carbon dioxide, hydrogen, sulfur dioxide, reducing gases): 0.25 of the edge with a floor of 0.002 to 0.005"
+              "planet_class_fit.json shoulders for the gas shares that stay shares (carbon dioxide of classes F and G, hydrogen, sulfur dioxide, reducing gases; oxygen and the carbon dioxide of the oxygen-water classes are pressures since GEN.1321, row OP2): 0.25 of the edge with a floor of 0.002 to 0.005"
             ],
             [
               "The range it moves in",
@@ -35084,7 +35084,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "planet_class_fit.json shoulders for gas shares (oxygen, carbon dioxide, hydrogen, sulfur dioxide, reducing gases): 0.25 of the edge with a floor of 0.002 to 0.005"
+          "what": "planet_class_fit.json shoulders for the gas shares that stay shares (carbon dioxide of classes F and G, hydrogen, sulfur dioxide, reducing gases; oxygen and the carbon dioxide of the oxygen-water classes are pressures since GEN.1321, row OP2): 0.25 of the edge with a floor of 0.002 to 0.005"
         }
       ],
       "slug": "6-150-stand-ins-of-the-shoulders-of-the-best-fit-classes",
@@ -44517,7 +44517,7 @@
           "fields": [
             [
               "What it is",
-              "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, share_co2 min 0.01, o2_partial_pa 3 to 16 kPa (GEN.1321; was a share of 3 to 16 percent), gravity_g min 0.5"
+              "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, co2_partial_pa min 1 kPa and o2_partial_pa 3 to 16 kPa (GEN.1321; were shares of 1 percent and 3 to 16 percent), gravity_g min 0.5"
             ],
             [
               "The range it moves in",
@@ -44548,18 +44548,18 @@
           "tier_code": "T9",
           "tweak": "L1",
           "unread": null,
-          "what": "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, share_co2 min 0.01, o2_partial_pa 3 to 16 kPa (GEN.1321; was a share of 3 to 16 percent), gravity_g min 0.5"
+          "what": "planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, co2_partial_pa min 1 kPa and o2_partial_pa 3 to 16 kPa (GEN.1321; were shares of 1 percent and 3 to 16 percent), gravity_g min 0.5"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, share_o2 lt 0.1 (a thin-air adaptable world; the cold part is class P)"
+              "planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, no oxygen cap (the cap share_o2 lt 0.1 was removed by AW4, GEN.1306; a thin-air adaptable world; the cold part is class P)"
             ],
             [
               "The range it moves in",
-              "2 to 5 kPa; 300 to 330 K; 0.05 to 0.2 oxygen"
+              "2 to 5 kPa; 300 to 330 K"
             ],
             [
               "Where it holds",
@@ -44586,7 +44586,7 @@
           "tier_code": "T9",
           "tweak": "L1",
           "unread": null,
-          "what": "planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, share_o2 lt 0.1 (a thin-air adaptable world; the cold part is class P)"
+          "what": "planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, no oxygen cap (the cap share_o2 lt 0.1 was removed by AW4, GEN.1306; a thin-air adaptable world; the cold part is class P)"
         },
         {
           "burn_down": null,

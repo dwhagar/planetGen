@@ -118,7 +118,7 @@ def describe_body(r):
     f = r["found"]
     parts = [f"{f['mass_earth']:.3g} Me", f"{f['gravity_g'] or 0:.2f} g", f"{f['temperature_k'] or 0:.0f} K", f"{f['pressure_pa']:.3g} Pa"]
     if f["pressure_pa"] > 0:
-        parts.append(f"O2 {f['share_o2'] * 100:.1f}%, CO2 {f['share_co2'] * 100:.1f}%, reducing {f['reducing_share'] * 100:.1f}%")
+        parts.append(f"O2 {f['o2_partial_pa'] / 1000.0:.2f} kPa ({f['share_o2'] * 100:.1f}%), CO2 {f['co2_partial_pa'] / 1000.0:.2f} kPa ({f['share_co2'] * 100:.1f}%), reducing {f['reducing_share'] * 100:.1f}%")
     parts.append(f"water {f['ocean_fraction'] * 100:.0f}% ({f['hydrosphere']})")
     return ", ".join(parts)
 
