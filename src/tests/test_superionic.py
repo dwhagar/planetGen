@@ -19,7 +19,7 @@ def test_water_is_an_ice_under_its_floor_superionic_between_and_an_ionic_fluid_o
     assert superionic.state("water", 25.0, 600.0) == "solid_or_molecular"
     assert superionic.state("water", 80.0, 3000.0) == "superionic"
     assert superionic.state("water", 50.0, 4500.0) == "ionic_fluid"
-    assert superionic.state("water", 150.0, 8000.0) == "metallic_fluid"             # [R5169]: water turns metallic over 7000 K
+    assert superionic.state("water", 150.0, 8000.0) == "metallic_fluid"             # [R5172]: water turns metallic over 7000 K
 
 
 def test_the_floor_follows_the_measured_points_and_the_widest_range_is_used():

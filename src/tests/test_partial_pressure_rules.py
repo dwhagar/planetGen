@@ -105,17 +105,22 @@ def test_the_fit_shoulders_of_the_pressures_are_pressures():
             assert shoulders[quantity].get("floor", 1.0) <= 0.01, quantity
 
 
-def test_the_class_sentences_give_the_converted_gases_in_kpa_and_not_in_percent():
+def test_the_class_pages_give_the_converted_gases_as_pressures_and_the_sentences_hold_no_number():
+    """GEN.1432: a class sentence holds no number; the page's Conditions line (read from planet_class_fit.json) gives a converted gas as a pressure, never a share."""
+    from planetgen.physics import class_fit
+
     sentences = {row["letter"]: row["sentence"] for row in _document("planet_classes.json")["rows"] if row.get("kind", "t") == "t"}
     for entry in REGISTRY["converted"]:
         if entry["file"] != "planet_class_fit.json":
             continue
         text = sentences[entry["row"]]
+        assert not re.search(r"\d", text), f"class {entry['row']}: {text}"
+        fit = next(row for row in class_fit.CLASSES if row.letter == entry["row"] and row.kind == "t")
+        words = "; ".join(class_fit.rule_words(fit))
         for quantity in entry["quantities"]:
             word = {"o2": "oxygen", "co2": "carbon dioxide"}[GAS_OF[quantity]]
-            assert not re.search(rf"percent (of )?{word}", text), f"class {entry['row']}: {text}"
-            if re.search(rf"{word}\b(?!-)", text):
-                assert "kPa" in text, f"class {entry['row']} names {word} but no pressure: {text}"
+            assert f"{word} pressure" in words, f"class {entry['row']}: {words}"
+            assert f"{word} share" not in words, f"class {entry['row']}: {words}"
 
 
 def test_the_class_pages_read_the_pressures_of_the_life_gates_as_pressures():
