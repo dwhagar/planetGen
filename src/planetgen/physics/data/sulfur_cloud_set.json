@@ -1,0 +1,191 @@
+{
+ "version": 1,
+ "title": "The sulfur-cloud chemistry set and the gates that give it to a planet (GEN.1425)",
+ "description": "The species the chain may give to an air that has the supplies for them (the Venus chemistry set of section 10 of the unseen-compounds report, V1 to V10) and the numbers of its six gates. Venus is the only calibration planet, so every gate is a physics-supported stand-in and the set is a candidate list, not a claim that a body has them. Nothing in the generator names Venus. Every number carries its source tier (T1 to T9) and tweak level (L0 to L4).",
+ "species": [
+  {
+   "id": "V1",
+   "name": "sulfuric acid water droplets",
+   "role": "main cloud and haze, the substrate of the rest",
+   "source": "chain",
+   "status": "observed in a planet (Venus)",
+   "tier": "T2",
+   "tweak": "L0",
+   "default": "on",
+   "evidence": "READ ([R0157: Table 1] cloud levels and strengths through `sulfuric_cloud.json`; [R3418] the 75 percent index; the curve of `sulfuric_vapor`, GEN.1424); Venus is the only calibration planet"
+  },
+  {
+   "id": "V2",
+   "name": "sulfur dioxide gas",
+   "role": "sulfur supply and photochemical parent",
+   "source": "air",
+   "status": "observed in a planet (Venus)",
+   "tier": "T1",
+   "tweak": "L0",
+   "default": "on",
+   "evidence": "READ (in the gas table; [R5169] fits the sulfur dioxide band, 500 ppb at the cloud top in its model)"
+  },
+  {
+   "id": "V3",
+   "name": "hydrogen chloride, hydrogen fluoride, carbonyl sulfide and carbon monoxide gases",
+   "role": "reductant and halogen supply",
+   "source": "air",
+   "status": "observed in a planet (Venus)",
+   "tier": "T1",
+   "tweak": "L0",
+   "default": "on",
+   "evidence": "READ (in the gas table and the halogen budget of `mixture_rocky`; Venus's 0.4 to 0.5 ppm of hydrogen chloride is in the Venus acid-cloud report)"
+  },
+  {
+   "id": "V4",
+   "name": "sulfur monoxide and disulfur monoxide gases (and the S2O2 dimer)",
+   "role": "lower-oxidation sulfur from sulfur dioxide photolysis with a reductant",
+   "source": "chain",
+   "status": "predicted only (sulfur monoxide observed)",
+   "tier": "T5",
+   "tweak": "L0",
+   "default": "on",
+   "evidence": "READ ([R5169: Table 3] disulfur monoxide has the lowest misfit of the candidates, 14, and the S2O2 dimer OSSO the best spectral shape, 22; the paper does not detect either)"
+  },
+  {
+   "id": "V5",
+   "name": "elemental sulfur aerosol (S8 and shorter chains)",
+   "role": "haze in a sulfur-rich photochemical air",
+   "source": "chain",
+   "status": "predicted only",
+   "tier": "T6",
+   "tweak": "L0",
+   "default": "on",
+   "evidence": "READ ([R5169: Table 3] S8 misfit 76 to 120 and S4 4e5 against 14 for S2O: a candidate that fits less well, not excluded)"
+  },
+  {
+   "id": "V6",
+   "name": "iron(III) chloride",
+   "role": "cloud-top absorber candidate, needs iron and chlorine",
+   "source": "chain",
+   "status": "predicted only",
+   "tier": "T6",
+   "tweak": "L0",
+   "default": "on",
+   "evidence": "READ ([R5169: Table 3] misfit 86; [R5170] abstract keeps it as the cloud-top iron part, preprint under review, only the abstract read)"
+  },
+  {
+   "id": "V7",
+   "name": "ferric sulfates (acid ferric sulfate and ferric hydroxy sulfates)",
+   "role": "iron host in and below the cloud",
+   "source": "chain",
+   "status": "predicted only",
+   "tier": "T6",
+   "tweak": "L0",
+   "default": "on",
+   "evidence": "READ ([R5170] abstract only; a preprint under review)"
+  },
+  {
+   "id": "V8",
+   "name": "polycyclic aromatic hydrocarbons mixed with iron compounds, from cosmic dust",
+   "role": "proposed ultraviolet and visible absorber through the whole profile",
+   "source": "chain",
+   "status": "predicted only (one preprint)",
+   "tier": "T7",
+   "tweak": "L0",
+   "default": "off",
+   "evidence": "READ ([R5170] abstract only: the carbon and iron concentrations of the cloud top need 600 and 3 thousand years of cosmic influx at the least)"
+  },
+  {
+   "id": "V9",
+   "name": "sulfur-chlorine products (SCl2, ClSSCl, SO2Cl2)",
+   "role": "absorber candidate from sulfur dioxide and carbonyl sulfide with hydrogen chloride",
+   "source": "chain",
+   "status": "predicted only",
+   "tier": "T7",
+   "tweak": "L0",
+   "default": "off",
+   "evidence": "READ ([R5169: Table 3] SCl2 misfit 57; the other products are not in the table)"
+  },
+  {
+   "id": "V10",
+   "name": "unidentified ultraviolet absorber, as a measured band",
+   "role": "what the colour code uses",
+   "source": "chain",
+   "status": "predicted only (its identity)",
+   "tier": "T9",
+   "tweak": "L3",
+   "default": "on",
+   "evidence": "READ for the band ([R5169]: centre 0.34 +/- 0.03 micron, width 0.14 +/- 0.01 micron); the strength is a stand-in (L3)"
+  }
+ ],
+ "numbers": {
+  "acid_vapor_share_of_so2": {
+   "value": 0.03,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The share of the sulfur dioxide that is sulfuric acid vapor at the cloud base, from needed output: the vapor curve of `sulfuric_vapor` (GEN.1424) puts the published Venus base (345 to 367 K at about 1 bar, [R0157: Table 1]) at 3 to 10 ppm of acid in 30 ppm of water, which is 2 to 7 percent of the 150 ppm of sulfur dioxide the Venus acid-cloud report gives below the cloud; 3 percent is inside it. One planet calibrates it, so it is hand-set (L3) until a sweep or a photochemistry model sets it"
+  },
+  "cloud_water_min_share": {
+   "value": 1e-06,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The water vapor, as a mole share of the air, below which no standing acid cloud is called: Boss's proposal of section 10.2 of the unseen-compounds report (Venus is a few parts per million at the top and 30 at the base); a floor for a gate, not a solver floor"
+  },
+  "uv_c_min_w_m2": {
+   "value": 0.5,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The least ultraviolet-C flux (100 to 280 nm, `energy_flux_w_m2` times the star's `uv_c_share`) that photolyses sulfur dioxide (190 to 220 nm, section 10.2 gate 3) in enough quantity to make the lower sulfur oxides; from needed output: a young active star at Venus's distance passes (some watts per m2) and a quiet M dwarf at its warm edge (hundredths) does not. No source gives the number"
+  },
+  "reductant_min_share": {
+   "value": 1e-07,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The carbon monoxide or carbonyl sulfide, as a mole share of the air, that gives the sulfur oxides a reductant (gate 3); Venus's lower air holds tens of ppm of carbon monoxide. A gate stand-in"
+  },
+  "sulfur_aerosol_min_so2_share": {
+   "value": 1e-05,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The sulfur dioxide share above which the photochemistry has enough sulfur to make elemental sulfur aerosol (V5) as well as the lower oxides; Venus's 150 ppm passes, a 1 ppm air does not. A gate stand-in"
+  },
+  "chlorine_min_share": {
+   "value": 1e-07,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The hydrogen chloride, as a mole share of the air, that supplies chlorine to V6 and V9 (gate 4); section 10.2 of the report gives 0.1 ppm as the stand-in floor and Venus holds 0.4 to 0.5 ppm. The host star's chlorine reaches the air through the halogen budget of `mixture_rocky`, so the gate reads the air and does not read the star twice"
+  },
+  "absorber_centre_um": {
+   "value": 0.34,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The centre of the unidentified ultraviolet absorber's band, 0.34 +/- 0.03 micron, retrieved from the MESSENGER/MASCS spectra of Venus's upper cloud ([R5169], abstract and section 4.3, read in full text)"
+  },
+  "absorber_centre_sigma_um": {
+   "value": 0.03,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The stated uncertainty of the band centre ([R5169], section 4.3)"
+  },
+  "absorber_fwhm_um": {
+   "value": 0.14,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The full width at half maximum of the band, 0.14 +/- 0.01 micron, a Gaussian shape assumed in the retrieval ([R5169], section 4.3); the paper's prior from Pollack and others 1980 was 0.33 micron and a width a little under 0.1 micron"
+  },
+  "absorber_fwhm_sigma_um": {
+   "value": 0.01,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The stated uncertainty of the band width ([R5169], section 4.3)"
+  },
+  "absorber_depth_per_cloud_depth": {
+   "value": 0.1,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The absorption optical depth of the band at its centre as a share of the acid cloud's depth at 550 nm when the air holds `absorber_so2_reference_share` of sulfur dioxide; [R5169] gives no peak strength in the text (only a figure) so the scale is from needed output (a visibly yellow-ultraviolet-dark cloud), hand-set. The identity of the absorber is not claimed"
+  },
+  "absorber_so2_reference_share": {
+   "value": 0.0001,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The sulfur dioxide share of the air at which the absorber reaches its full strength; the strength falls in proportion below it and stays at the full value above. Venus's lower air is 1.3e-4 to 1.8e-4 (the Venus acid-cloud report), a hand-set reference"
+  }
+ }
+}
