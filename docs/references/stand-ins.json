@@ -41187,8 +41187,8 @@
       "title": "Stand-in of the bodies an asteroid field stores"
     },
     {
-      "key": "6.218",
-      "number": "6.218",
+      "key": "6.220",
+      "number": "6.220",
       "rows": [
         {
           "burn_down": null,
@@ -41219,9 +41219,9 @@
             ]
           ],
           "id": "BD1",
-          "key": "6.218:BD1",
+          "key": "6.220:BD1",
           "kind": "P",
-          "slug": "6-218-bd1",
+          "slug": "6-220-bd1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -41257,9 +41257,9 @@
             ]
           ],
           "id": "BD2",
-          "key": "6.218:BD2",
+          "key": "6.220:BD2",
           "kind": "P",
-          "slug": "6-218-bd2",
+          "slug": "6-220-bd2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -41295,9 +41295,9 @@
             ]
           ],
           "id": "BD3",
-          "key": "6.218:BD3",
+          "key": "6.220:BD3",
           "kind": "P",
-          "slug": "6-218-bd3",
+          "slug": "6-220-bd3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -41329,13 +41329,13 @@
             ],
             [
               "Evidence",
-              "the fits are the polynomial that FastChem ships for the data of [R5147]; checked against the same file's FeO (JANAF) within 0.02 in ln K, and the 298 K bond energies come out 1.5 eV (FeH) and 2.0 eV (CrH) against the laboratory 1.6 and about 2.0; the polynomial was not compared with the paper's own table, which is not reachable from here"
+              "the fits are the polynomial that FastChem ships for the data of [R5162]; checked against the same file's FeO (JANAF) within 0.02 in ln K, and the 298 K bond energies come out 1.5 eV (FeH) and 2.0 eV (CrH) against the laboratory 1.6 and about 2.0; the polynomial was not compared with the paper's own table, which is not reachable from here"
             ]
           ],
           "id": "BD4",
-          "key": "6.218:BD4",
+          "key": "6.220:BD4",
           "kind": "P",
-          "slug": "6-218-bd4",
+          "slug": "6-220-bd4",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -41371,9 +41371,9 @@
             ]
           ],
           "id": "BD5",
-          "key": "6.218:BD5",
+          "key": "6.220:BD5",
           "kind": "P",
-          "slug": "6-218-bd5",
+          "slug": "6-220-bd5",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
@@ -41381,7 +41381,7 @@
           "what": "mixture_giant.NASA_CONDENSATE: lithium chloride (the NASA database's LiCl crystal and liquid against its gas) is the lithium condensate of a cool air, under about 680 K at 1 bar and solar composition"
         }
       ],
-      "slug": "6-218-stand-ins-of-the-clouds-lithium-and-hydrides-of-a-cool-giant-s-or-brown-dwarf-s-air",
+      "slug": "6-220-stand-ins-of-the-clouds-lithium-and-hydrides-of-a-cool-giant-s-or-brown-dwarf-s-air",
       "title": "Stand-ins of the clouds, lithium and hydrides of a cool giant's or brown dwarf's air"
     },
     {
