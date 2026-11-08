@@ -45,7 +45,8 @@ def test_the_carbonate_constants_hold_at_the_ends_of_their_range_and_beyond_use_
 
 def test_the_leached_cations_scale_with_the_crust_and_match_the_concentration_of_kite_and_ford():
     sodium, calcium = wc.leached_cations_mol_m2(1.0)
-    assert sodium == pytest.approx(1000.0 * 3000.0 * 0.028 / 0.02299, rel=0.01)
+    assert sodium == pytest.approx(1000.0 * 3000.0 * 0.028 * (2.0 * 22.98977 / 61.97894) / 0.02299, rel=0.01)       # 0.028 is the Na2O of the crust (GEN.1349): the sodium is 74 percent of it
+    assert wc.CRUST_SODIUM_WT == pytest.approx(0.0208, rel=0.005)
     assert calcium == pytest.approx(1000.0 * 3000.0 * 0.085 / 0.040078, rel=0.01)
     assert wc.leached_cations_mol_m2(7.0) == pytest.approx((7.0 * sodium, 7.0 * calcium))
     assert wc.leached_cations_mol_m2(0.0) == (0.0, 0.0)
