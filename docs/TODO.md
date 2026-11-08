@@ -8263,6 +8263,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.462.
 
 - [ ] **GEN.688 Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable**
+  REWORKED: GEN.1397 finishes the part still open here: no request, bar or count names a class letter (the barred-world loop, the habitable count column and the directive counts read the life classes, not a letter list). Close with GEN.1397.
   Step C13 of the condition-based classes build (design draft
   design-drafts/condition-based-classes-2026-10-23.md section 7, from
   Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
@@ -10249,6 +10250,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
 - [ ] **PERF.240 A system that bars habitable worlds costs about 12 s to draw against 3 s, because the late remakes and planet redraws that remove life-class bodies run again and again (bug)**
+  REWORKED: folded into GEN.1397. The 12 s versus 3 s cost of a barred system is the same redraw storm; GEN.1397 removes the redraw on the class letter. Done for this item: a barred system at or under about 4 s after GEN.1397 (measure and put the time in the performance guard). Close when GEN.1397 merges.
   Lane 04 (as the lane reported, 10:33 PM EST on 2026-11-04), found
   building GEN.1275: once a barred system must hold no planet or moon of
   a life-carrying class, a barred system costs about 12 s to draw
@@ -12736,6 +12738,7 @@ clears each one.
   Prerequisites: MAP.312, UX.223. Related: TEST.380, TEST.381, TEST.382.
 
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
+  REWORKED (Boss, 10:57 PM EST on 2026-11-07): GEN.1397 removes the life-bearing class list this item counts bodies by; the habitable-class bodies per star band are counted from the stored life class after GEN.1397 (train 18), so its numbers move with that epoch.
   From Aux 16's planet class distribution check (2:09 AM EDT 2026-10-25;
   report
   /mnt/project-files/reports/planet-class-distribution-check-2026-10-25.md,
@@ -13046,6 +13049,7 @@ clears each one.
   Update (Boss, 6:31 PM EST on 2026-11-06, plan section 4c, prototype /mnt/project-files/design-drafts/fudge-prototype/minfudge.py): the selection rule replaces the best geometric mean. No fudge if any class fits fully; otherwise the fewest values moved first (mean temperature with its bands, day and night counts as one value), then the smallest total move in widths of the fudge table; a class needing a move past the cap is not eligible. The body stores which values were fudged and the amount (new columns), and the match is rebuilt from the amount. Cap tiers come from the part 2 sweep (section 4d).
 
 - [ ] **GEN.1315 Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters)**
+  REWORKED: the barred-world loop it reads is rebuilt by GEN.1397 (the bar asks whether any life class scores above zero, no letter list). This item reads that new bar; it follows GEN.1397 in the same train or after it, and the habitable count by threshold uses the stored life class.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Same train as GEN.1314. Lock item. Done: the habitable count by threshold,
   the barred-world loop and the +habitable_world request read the stored
   match and the search filters offer it.
@@ -13085,10 +13089,12 @@ clears each one.
   Prerequisites: GEN.1309, GEN.1312, GEN.1313. Related: GEN.1306, GEN.1314.
 
 - [ ] **GEN.1333 A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers**
+  REWORKED: a request for class E is no longer snapped into the ecosphere once GEN.1397 removes the life list (an E request is a deep-frozen world); PR 5640 keeps its behaviour for the other classes, and GEN.1397 owns the E change.
   Lane 14 (as the lane reported 2:48 AM EST on 2026-11-07), from TEST.665: a request for a class (the forced-class draw behind `test_a_forced_rare_class_is_in_the_system`) finds P and G in about 1 of 24 forced systems on main even with three times the attempts, and with the GEN.1323 envelope step on its branch [G] fails in seeds 1 to 24. V was the same until GEN.1323 added a late-forming bare-core draw for it (V now 12 of 40 seeds, was 24). The test was not loosened. Do: find why a forced G and a forced P are rarely reachable (the physics gate that stops them, or the draw that never aims at them), then give each a physically honest route as V got (a late-forming or special-history draw, never a fixed body), or say in the commit that a class is unreachable by physics and change the request to say so. Boss decides if a class that physics makes this rare should still be requestable (the options go to him from the TODO thread when the finding is in). Done: a forced request for each class that physics allows is met in at least 18 of 24 seeds, or the test names the classes it exempts with the reason. Lock item (changes the drawn bodies for forced requests only; epoch note). Version 8.1. Owner: Lane 14 (after GEN.1323 and GEN.1331). Built as PR 5640 (Lane 14, 9:08 PM EST on 2026-11-07), held for train 17 to land. Boss, 9:25 PM EST on 2026-11-07 (answer 1): the rare classes (P, and M, H, O, R behind it) stay requestable and a request reports unmet when the draw cannot make one; nothing is forced. Filed by the TODO thread.
   Prerequisites: GEN.1323. Related: TEST.665, GEN.1323, GEN.1306.
 
 - [ ] **GEN.1334 A planet with a hydrogen-helium envelope has no ground: no surface dose, land fraction or rocky air solve beneath it; its air, moons and rings follow the envelope (GEN.1323 part B)**
+  REWORKED: the life census shift of this item and the GEN.1397 shift land in the same train 18 epoch; GEN.1353 (census re-tag) runs after both.
   Lane 14 (as the lane reported 2:50 AM EST on 2026-11-07), part B of GEN.1323. Today a sub-Neptune with an envelope still gets a surface dose, a land fraction and a rocky-style air solve beneath its envelope. Do: for bodies at or above 0.5 percent envelope, give no ground (no surface dose, no land fraction, no surface life gates), move the air to the envelope's own composition, and drop or re-form moons and rings to the new radius and Hill sphere. Sources found and any stand-in registered in GEN.725 with tier and tweak level. Done: no envelope planet carries a surface field, with a test over a generated sample, and the note reports the moon and ring changes. Lock item (output changes, an epoch). Version 8.1. Owner: Lane 14 (after GEN.1323 merges). Filed by the TODO thread.
   Prerequisites: GEN.1323. Related: GEN.1323, GEN.1306, GEN.725.
 
@@ -13109,6 +13115,7 @@ clears each one.
   Prerequisites: none. Related: GEN.1348 (done, a finding), GEN.1319, GEN.1309.
 
 - [ ] **GEN.1353 Class and life census re-tag after train 15 (epoch 137): re-measure the census shares and re-baseline the class and life ranges the train moved**
+  REWORKED: the census re-tag runs after trains 17 and 18, since GEN.1397 (train 18) changes the habitable counts and the stored habitable flag.
   Lane 02 (as the lane reported 12:19 PM EST on 2026-11-07), as after trains 13 and 14 (GEN.1327, GEN.1338): train 15 moved rocky planet envelopes, the steam limit, sealed-ocean anions, field members and the nebula seed. Do: run the class and life census on the new epoch, re-tag the flags and re-baseline the TEST.430 ranges that moved, and report the shares against the researched ranges. Done: the census flags are current for epoch 137 and the report names what moved. Lock-free. Goal issue #1674. Version 8.1. Owner: Lane 04. Filed by the TODO thread.
   Prerequisites: none. Related: GEN.1338, GEN.1327, TEST.430.
 
@@ -13909,6 +13916,7 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1387 Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug)**
+  REWORKED: folded into GEN.1397. The redraw storm comes from class E (deep-frozen, GEN.1142) and W still sitting on tuning.HABITABLE_PLANET_CLASSES; GEN.1397 deletes the list, so the storm and this item's test ceiling are fixed there. Close GEN.1387 when GEN.1397 merges and test_barred_world passes. Held for Boss's E/W question: no longer needed (the list goes).
   8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size M; lock-free unless the owner finds a generated value changes. Do: find why the redraw rate is that high (a draw that almost always fails its own check), fix the draw or the check, keep the ceiling test, and say if generated output changes (it then rides an epoch). Owner (proposed by TODO): Lane 04. Rules: tests are
   scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.237.
@@ -13933,6 +13941,7 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1390 Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug)**
+  REWORKED: the prevalence habitable_world red may move or vanish with GEN.1397 (the habitable count then reads the life classes). Lane 05: rerun prevalence habitable_world after GEN.1397 before fixing it.
   8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size L; lock-free unless the owner finds a generated value changes. Each is a red row in known-red.csv. Several are likely one cause (the class T family: TEST.688, TEST.690, TEST.692). Do: group by cause, fix each, keep the tests; the owner may split this and tell TODO the new numbers. Owner (proposed by TODO): Lane 04. Rules: tests are
   scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.237.
@@ -14002,6 +14011,10 @@ clears each one.
   scripts/test.py changed --resume.
   Prerequisites: GEN.1363. Related: GEN.1268.
   Filed by the TODO thread.
+
+- [ ] **GEN.1397 Remove the life-bearing class list: life comes from conditions, so the barred-world bar, the habitable flag, the counts, the chips and the inhabited filter read the life classes and not a letter list (bug)**
+  Boss, 10:57 PM EST on 2026-11-07 (as the coordinator relayed): remove the life-bearing class list; highest priority bug fix, in the next train (18) at all costs. Why: tuning.HABITABLE_PLANET_CLASSES and is_life_class are a leftover of the letter-first design; life is already decided by conditions through the 9 life classes (epochs 120 and 121), so the list contradicts the design. Lane 04 traced it (2026-11-07): the barred-world loop in Planet.__init__ builds the planet, picks its class and redraws the whole planet if it meets the habitable-request conditions or its letter is on the list, up to 30 times; E (deep-frozen) and W (frozen) are the common outcome for a cold planet, so nearly every draw lands on the list and fails again; after 30 misses the last draw is kept anyway, so the bar still leaks (80 of 144 events in the probe); about 23 redraws per system and the 12 s versus 3 s of PERF.240. What reads the list today: the barred loop; class requests (an E request is snapped into the ecosphere, wrong for a deep-frozen world); the habitable count column and directive counts; the database habitable_class flag, which also hides the life stage of any body whose letter is off the list; the web habitability chips; and the 'inhabited' interest filter. Do: delete the list and is_life_class. The bar tests 'does any life class score above zero on this body' (the test life already uses), so E and W keep life when conditions allow it and a cold planet no life class supports is no longer redrawn. The flag, counts, chips and filters read the stored life class instead of the letter. Absorbs GEN.1387 and PERF.240, finishes GEN.688, and may move the GEN.1390 prevalence red. Tests: test_barred_world passes at the ceiling (0.0183 per system), a barred system draws in about 4 s, the life-stage of an E or W body shows, and the inhabited filter finds E and W bodies with life. Lock (epoch with --affects fill and life; a migration only if the flag column changes). Size M. Target: train 18, highest priority; Lane 02 reserves the slot and the epoch. Owner: Lane 04, with Lane 05 helping on request. Filed by the TODO thread.
+  Prerequisites: none. Related: GEN.1387, PERF.240, GEN.688, GEN.1315, GEN.1390, GEN.1333, GEN.1353, GEN.1142.
 
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Lane 14 (the class matrix lane), after GEN.1321.
