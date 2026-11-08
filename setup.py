@@ -103,6 +103,9 @@ setup(
         # Flask-Limiter's storage (SEC.30).
         'redis>=5.0.0',
         'rq>=1.16.0',
+        # The memory and load gate of the work queue (PERF.254, planetgen/queue/memorygate.py): what is free on the
+        # host, the load on its cores and the memory each worker and its horse hold now. 7.2.2 is the release the lock resolves to.
+        'psutil>=7.2.2',
         # Two-step sign-in and its QR code (SEC.29).
         'pyotp>=2.9.0',
         'segno>=1.6.0',

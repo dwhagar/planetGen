@@ -384,6 +384,49 @@ every other, as before, so nothing that can run together is made to run one afte
   stages of a run still run one after another (the barrier of 5.12) and the units of a stage still run together; making two stages run together is a
   later step that needs each pair shown not to touch the other's data.
 
+### 5.14 One memory and load gate for every job (PERF.254, Boss 3:34 PM EST on 2026-11-08)
+
+Until PERF.254 the size of a worker was a number typed into `workers.STAGE_WORKER_MEMORY_MB` and nothing read the host while a run went:
+the runs of 2026-10-31 and 2026-11-08 were killed by the kernel (36 workers at a guess of 452 MB against 1.4 GB tables; 15 workers at 15,128 MB
+of 15,992 MB with no figure for the block lights and the cut of the next stage inside the last unit). Boss chose to keep RQ 2.12 and build the
+gate in Redis, fed by psutil (the Dask assessment and the library research are in `reports/perf254-dask-assessment-2026-11-08.md` and
+`reports/job-library-research-2026-11-08.md`). The gate is `queue/memorygate.py`; what each kind of job claims is `queue/claims.py`.
+
+* **Every job holds a claim.** `WarmWorker.prepare_execution` (`cli/worker.py`) takes the job's claim before anything else (after the check that
+  a worker holding the star tables starts over for a unit that needs none): `claims.claim_for(job)` gives `kind`, MB, cores and lane. A claim is
+  a field of the Redis hash `planetgen:gate:claims` under the worker's name with an expiry that the heartbeat renews (`maintain_heartbeats`), so a
+  worker killed with `kill -9` gives it up by itself; it is released in `execute_job`'s `finally`. No job is exempt: the kinds are
+  `unit:<command>`, `cut:<command>`, `api:<module:name>` and `fn:<function>`, and `tests/test_memory_gate.py` fails for a function on
+  `allowlist.FUNCTIONS`, an API function on `allowlist.API_FUNCTIONS` or a command with units that has none (the callbacks run inside the job they
+  follow). The figures are the measured stage table where there is one (`workers.STAGE_WORKER_MEMORY_MB`) and a first claim by nature elsewhere
+  (`claims.UNIT_BY_NATURE_MB`, `FUNCTION_CLAIMS`, `API_CLAIMS`), marked unmeasured until the gate has seen a job of the kind.
+* **The rule** (`memorygate.decide`, a pure function of the claim, the host and the claims held, so a scheduler can sit on top of it and ask
+  only "does this job fit?"): free = MemAvailable - reserve (the larger of 1,024 MB and 8 percent of the host) - the memory the reserved places of the
+  interactive and long lanes keep (700 MB a place, less what those lanes hold) - for every other claim, `max(0, claim - what its worker and horse
+  hold now)`; the claim, less what the asking worker already holds, must fit. The cores claimed stay within the host's (a quarter over for the
+  short lanes) and an ordinary job waits while the one-minute load per core is over 1.25 (2.0 for the short lanes, whose reserve is also half). A
+  job that finds no other claim is admitted whatever it claims. The cut of a stage claims the bulk lane to itself (`Claim.exclusive`).
+* **It cannot stall a run.** A job waits at most 300 s (`MAX_WAIT_SECONDS`), then is let in when fewer jobs of its kind hold claims than the
+  old table cap (`workers.stage_worker_cap`) allows, and otherwise goes on waiting for the cap. `PLANETGEN_MEMORY_GATE=0` turns the gate off. Each
+  decision is logged: an admission at debug level (`area=queue`), a wait once a minute, a late admission as a warning; a unit or an opening that
+  waited 5 s or more says so in the run's log (kind `gate.wait`).
+* **Claims are learned.** `memorygate.refresh` samples the proportional memory of the worker and every process under it at each heartbeat (every
+  5 s while a job runs) and `release` keeps the largest as the kind's size (`planetgen:gate:learned`); a claim is the table's figure or the learned
+  peak with 10 percent on top, whichever is larger, and for a kind with no figure the learned peak alone. A peak is a sample and can miss a spike;
+  the retry is for that.
+* **A job killed for memory** (`units.horse_killed`, SIGKILL) that has a retry left is queued again by RQ with a claim 1.5 times the old one
+  (or the peak seen, whichever is more; `memorygate.grow`), and the kind's size is learned; a second kill ends the run, naming the unit or the
+  opening and what it claimed and held. A kill by any other signal ends the run at once, as before.
+* **The cut of a stage is a job.** The unit that completes a stage concludes it and queues `units.open_stage(run, next stage)`
+  (`units.enqueue_open`, job id `<run>-open<n>`), which runs `wrapper.advance` in a horse of its own under the `cut:<command>` claim (1,500 MB
+  to start with, then what the gate has seen), alone on its lane. A failure or a kill is filed under the stage being opened, not under the unit
+  before it; cancel and the update guard know the job. The run's own process still opens the first stage.
+* **What it does not do.** The gate cannot make the cut smaller: a cut that wants 57 GB (the old order of the backfill on the full galaxy) is
+  refused room it does not have and waits for the table cap. Reading counts per sky cell instead of rows is the stage code's change (PERF.252, PR 5727).
+  Learned sizes are kept by kind, not by galaxy size: a table kind never claims less than its figure, a kind with no figure is
+  corrected by the retry. The output of a run does not depend on any of this: the work seed is independent of how many jobs run at once.
+* **Outside the queue** a stretch of work takes a claim with `memorygate.hold(conn, claim)`; `scripts/test.py` does so for each phase.
+
 ## 6. Decisions for Boss
 
 Each has a default; the default is what a "yes" means.

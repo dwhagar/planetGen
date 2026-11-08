@@ -60,6 +60,7 @@ MySQL or MariaDB server and Redis through the PLANETGEN_TEST_* variables.
 """
 
 import argparse
+import contextlib
 import datetime
 import json
 import os
@@ -116,6 +117,32 @@ def cap_workers(requested, available_mb, load, cores, worker_mb):
         limits.append((max(cores - round(load), 1), f"load {load:.1f} on {cores} cores"))
     workers, why = min(limits, key=lambda limit: limit[0], default=(requested, ""))
     return (workers, why) if workers < requested else (requested, "")
+
+
+@contextlib.contextmanager
+def host_gate(label, workers, per_worker_mb):
+    """
+    PERF.254: the phase's claim on the host's memory and load gate (`planetgen.queue.memorygate`), the one every job of the work queue takes:
+    `workers` test workers at `per_worker_mb` each, one core each, so a gate or a test run starts when the host has room beside a generation run
+    or a warm-up and not on top of it, and a run that starts meanwhile counts it. The wait is bounded by the gate. Without a Redis server or the
+    library the phase runs as it always did.
+    """
+    try:
+        from planetgen.queue import memorygate, redisqueue
+        conn = redisqueue.connect()
+        conn.ping()
+    except Exception as exc:  # noqa: BLE001 -- no gate to take: the phase runs on the worker cap alone
+        print(f"scripts/test.py: no memory gate ({type(exc).__name__}); the {label} phase runs on the worker cap alone", flush=True)
+        yield
+        return
+    claim = memorygate.Claim(f"test-gate:{label}", float(workers * per_worker_mb), float(workers), memorygate.LANE_OTHER)
+
+    def waiting(decision, waited):
+        if int(waited) % 60 < memorygate.POLL_SECONDS:
+            print(f"scripts/test.py: the {label} phase waits at the memory gate: {decision.reason}", flush=True)
+
+    with memorygate.hold(conn, claim, on_wait=waiting):
+        yield
 
 
 def build_phases(command, areas, workers, browser_workers):
@@ -713,15 +740,16 @@ def main(argv=None):
                 environment["PLANETGEN_REQUIRE_BROWSER"] = "1"
             else:
                 environment.pop("PLANETGEN_REQUIRE_BROWSER", None)
-            if args.no_preflight:
-                code, counts = run_phase(pytest_command(marker, workers, extra_for_pytest), environment)
-            else:
-                refused = _services().preflight(environment, browser=label == "browser", say=lambda text: print(
-                    f"scripts/test.py {key}: {text}", flush=True))   # a server that fell over between two phases
-                if refused:
-                    raise ServicesLost("; ".join(refused))
-                code, counts, found = run_watched(label, marker, workers, extra_for_pytest, environment, progress_path)
-                restarts += found
+            with host_gate(label, workers, args.browser_worker_mb if label == "browser" else args.worker_mb):
+                if args.no_preflight:
+                    code, counts = run_phase(pytest_command(marker, workers, extra_for_pytest), environment)
+                else:
+                    refused = _services().preflight(environment, browser=label == "browser", say=lambda text: print(
+                        f"scripts/test.py {key}: {text}", flush=True))   # a server that fell over between two phases
+                    if refused:
+                        raise ServicesLost("; ".join(refused))
+                    code, counts, found = run_watched(label, marker, workers, extra_for_pytest, environment, progress_path)
+                    restarts += found
             for word, number in counts.items():
                 totals[word] = totals.get(word, 0) + number
             if code not in (0, 5):  # 5: nothing collected in this phase
