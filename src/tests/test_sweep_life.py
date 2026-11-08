@@ -172,6 +172,15 @@ def test_an_index_that_reads_the_letter_is_reported(monkeypatch, capable_entry):
             result["phi_bio"] = -1.0
         return result
 
+    # GEN.1400 took the class letter out of the values the index reads, so the leak is put back the way it would come in: `values_from_body` carrying the letter
+    real_values = habitability_world.values_from_body
+
+    def values_with_the_letter(body):
+        values = dict(real_values(body))
+        values["planet_class"] = getattr(body, "planet_class", None)
+        return values
+
+    monkeypatch.setattr(habitability_world, "values_from_body", values_with_the_letter)
     monkeypatch.setattr(habitability_world, "compute", reads_the_letter)
     problems = rules._check_scores_class_blind(capable_entry)
     assert any(f"as class {letter} the habitability index differs" in problem and "phi_bio" in problem for problem in problems), problems
