@@ -2,7 +2,7 @@
 
 The design principle behind every physics item of the generator, and a register of the code paths that still count only the host star or only one pair of bodies.
 
-Informs: GEN.1441, GEN.1442, GEN.1443, GEN.1444, GEN.1445, GEN.1446, GEN.1447, GEN.1448, GEN.1449, GEN.1450, GEN.1451, GEN.1452, GEN.1453, GEN.1454, GEN.1455, GEN.1456, GEN.1457, GEN.1458, GEN.1459, GEN.1460
+Informs: GEN.1441, GEN.1442, GEN.1443, GEN.1444, GEN.1445, GEN.1446, GEN.1447, GEN.1448, GEN.1449, GEN.1450, GEN.1451, GEN.1452, GEN.1453, GEN.1454, GEN.1455, GEN.1456, GEN.1457, GEN.1458, GEN.1459, GEN.1460, GEN.1461, GEN.1462
 
 Status: plan, 2026-11-08; the principle is Boss's, the register is a first pass by reading the code (a search for host-only and pair-only effects), not a proof that nothing else is missing
 
@@ -40,7 +40,7 @@ Every body of a system (stars and other star-like objects, planets, moons, belts
 | Trojan and Lagrange stability | One planet with its star | GEN.1455 |
 | Ejection and scattering | The star's disk and a rate; no giant or companion scatterer | GEN.1456 |
 | Comet orbits | Two-body about the host | GEN.1457 |
-| Seasonal swing, eclipses and a moon's extra night | One sun's declination; a moon darkened by its planet only | GEN.1458 |
+| Seasonal swing, eclipses and a moon's extra night | One sun's declination; a moon darkened by its planet only | GEN.1458, GEN.1461, GEN.1462 |
 | Settled eccentricity | Tidal wearing-down by the host; no pumping set against it | GEN.1459 |
 | Orbit spacing and Hill checks | Circular Hill radius, the last neighbour only, the outermost planet of each star of a pair | GEN.1460 |
 

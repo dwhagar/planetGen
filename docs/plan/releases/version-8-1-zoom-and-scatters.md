@@ -478,7 +478,9 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1455 | Trojan and Lagrange stability under every giant and companion star | none | Boss, 2026-11-08. |
 | GEN.1456 | Ejection and scattering by every giant and companion: who is thrown out, to where, and what becomes of its moons | none | Boss, 2026-11-08. |
 | GEN.1457 | Comet orbits under every planet and companion: scattering by giants and the companion's tide on the orbits themselves | none | Boss, 2026-11-08. |
-| GEN.1458 | Seasons, day and eclipses with every sun and every eclipser: a second sun's declination and phase in the swing, eclipses of one star by another planet or moon | none | Boss, 2026-11-08. |
+| GEN.1458 | Seasons with every sun: a second sun's declination and phase in the seasonal swing, with a stored spin-axis azimuth | none | Boss, 2026-11-08. |
+| GEN.1461 | Day and night share with every sun: the union of the lit arcs from the suns' angular separation |  | Boss, 2026-11-08. |
+| GEN.1462 | Eclipses of a star by a body of the system: moons in a sibling's shadow, a sun crossed by a planet, mutual eclipses seen from a circumbinary planet | GEN.1458 | Boss, 2026-11-08. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | Boss, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |
