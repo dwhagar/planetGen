@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3674] - 2026-11-08
+
+**Headline:** Every body with a magnetic field now has a stored direction for it (the tilt from the spin axis and whether it is off centre), neutron stars store their magnetic inclination, and stars a polar dipole field.
+
+### Changed
+- **Where a magnetic dipole points (GEN.1350).** Planets, moons and rogue planets with a dipole store `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, folded into 0 to 90 degrees) and `dipole_offset_class` (`centred` or `offset`, the dipole's centre more than 0.15 radii from the body's). A dipole-dominated dynamo keeps its axis near the spin axis (Rayleigh, scale 6 degrees: Earth's 11, Jupiter's 9.6, Ganymede's 4 and Saturn's 0 lie inside the draw); a multipolar dynamo and an ice giant (a thin conducting shell round a stable interior, [R4196]) point any way, isotropic (Uranus 59 degrees, Neptune 47), and are `offset`, as is the iron-rich small body of the Mercury stand-in. A neutron star stores `magnetic_inclination_deg`: isotropic at birth, aligned with the spin by the dipole's torque over about 7 million years [R5143], and isotropic again for a recycled millisecond pulsar. A star stores `surface_dipole_field_gauss`, the polar field of the large-scale dipole: a cool dwarf with a convective envelope follows the trend with the Rossby number, `B ~ Ro^-1.4` [R4544, R5144], with the turnover time of [R4780]; an Ap dwarf has the polar field of its kind; any other star has none. Every number comes from a stream of the body's own (`physics/magnetic_geometry.py`), so no other draw of the run moves. The stand-ins are DP1 to DP7 of the stand-in registry (section 6.212). Schema v229 adds the columns (`planets`, `moons`, `rogue_planets`, `stars`, `neutron_stars`), with the units in `db/column_units.py`; the object pages show the tilt, the centring, the pulsar's inclination and the star's polar field with a plain-words source line. A row made before v229 has none of them until its galaxy is regenerated (generation-output changed: the new columns are part of the golden).
+
+generation-output: changed
+
 ## [8.0.3673] - 2026-11-08
 
 **Headline:** A cool world with a global oxygen ocean is now an ocean world (O), and a cool world with a little water is now a desert world (H), where before they fell between the classes.
