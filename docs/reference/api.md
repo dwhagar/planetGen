@@ -385,7 +385,7 @@ connectivity to that specific schema rather than the default one.
   sector positions; a belt is a ring with no `system_km`; a moon of a free planet (DB.94) has `rogue_planet` as its parent after the galaxy, the rogue planet's galaxy point, no `system_km`, and the planet's other moons as siblings). A bad reference
   or a missing row is a `404`. The answer carries `former_designations` (GEN.1140): the names and IDs the object used to have, newest first, each
   `{designation, kind, reason, retired_epoch, retired_on}` (`kind` is `name` or `uid`; `retired_on` is the date of the change), `[]` for an object that
-  never changed; so do the details of a sector, a system and a phenomenon. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24, NAV.54) is the object's keep-out
+  never changed; so do the details of a sector, a system and a phenomenon. The answer also carries `oddities` (GEN.1047): `[{id, name, text}]`, the rare outcomes a planet, moon or rogue planet was given (the row of the oddity table, its name, and the sentence that says why), `[]` for a body with none and for any other kind of object. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24, NAV.54) is the object's keep-out
   radius for course planning: `{radius_km, basis, note}`, `basis` one of
   `hill` (a planet or moon; a moon's is against its planet's mass), `perimeter` (a star or system: the widest
   stored `system_perimeter_km`), `galactic_hill` (a black hole, neutron
@@ -1113,10 +1113,10 @@ forced credential change. They back the admin stats page
   since `expect_hash` or one that can't be written is a 409. One
   `config.update` audit row per changed option. The Owner's and the command
   line's options are refused with their reason until accounts (8.2).
-- `GET /api/admin/backups` — the backup archives (ADM.85): `{"problem",
+- `GET /api/admin/backups` — the backup archives (ADM.85; a part with `empty` true held nothing when the archive was taken, `note` says why, and it is not offered for restore): `{"problem",
   "archives": [{"name", "taken_at", "taken_by", "reason", "version", "size_bytes",
   "complete", "readable", "parts": [{"name", "label", "size_bytes", "files",
-  "known"}]}], "kept", "parts": [{"name", "label"}], "can_download",
+  "known", "empty", "note"}]}], "kept", "parts": [{"name", "label"}], "can_download",
   "file_hash"}`. `POST /api/admin/backups` (`{}`) makes one now, of every
   part (`backup.take` audit row; 409 when the folder can't be written).
   `GET /api/admin/backups/<name>` is one archive with `verified`,

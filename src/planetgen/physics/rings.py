@@ -42,7 +42,7 @@ Use:
 
 import math
 
-from planetgen.physics import condensate_shares, constants as physical_constants, moon_composition, unit_registry as units
+from planetgen.physics import condensate_shares, constants as physical_constants, moon_composition, oddities, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -212,7 +212,7 @@ def apply(planet, host=None):
     body = ring_origin.Planet(planet.mass, planet.radius, around.distance, star_mass_kg)
     passages = ring_origin.draw_comet_passages(body, age_yr, cold)
     feeders = () if planet.is_moon else tuple(ring_origin.FeederMoon(moon.radius or 0.0, _au_to_km(moon.distance)) for moon in planet.moons)
-    if planet.body_type == "g" and not planet.is_moon:
+    if (planet.body_type == "g" or parent == moon_composition.GIANT) and not planet.is_moon:      # GEN.1334: a planet under a deep envelope has the small moons a giant has
         feeders += ring_origin.draw_feeders(body)
     history = ring_origin.ring_origin(body, age_yr, getattr(planet, "fallen_moons", ()) or (), passages, feeders)
     resonance = None
@@ -249,3 +249,10 @@ def _store(body, ring):
         for name, value in ring.values().items():
             setattr(body, name, value)
     return ring
+
+
+@oddities.register("ring_from_moon")
+def ring_from_moon(body, row):
+    """The effect of oddity W9 (GEN.1050): a moon that the tide pulled inside the Roche limit became the ring (`ring_origin` "disrupted_moon", GEN.1057). The ring is already the body's;
+    the row only names it for the page."""
+    return None

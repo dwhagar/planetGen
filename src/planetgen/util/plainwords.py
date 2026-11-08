@@ -81,7 +81,7 @@ SMALL_WORDS = {"a", "an", "and", "as", "at", "by", "for", "from", "in", "into", 
 """set: Words a label keeps in lower case wherever they stand."""
 
 PROPER_NAMES = {"Urey", "Earth", "Jupiter", "Sun", "Solar", "Saturn", "Neptune", "Uranus", "Mars", "Venus", "Mercury", "Moon", "Roche", "Hill",
-                "Kelvin", "Celsius", "Fahrenheit"}
+                "Kelvin", "Celsius", "Fahrenheit", "Kepler"}
 """set: Capitalised words a label may carry in the middle of it."""
 
 

@@ -1,0 +1,73 @@
+{#- planetgen/web/templates/admin_settings_update.html -- /admin/settings/update (ADM.140): bring config.json up to this version. -#}
+{% extends "base.html" %}
+{% block content %}
+<section class="panel" aria-labelledby="update-heading">
+  <h2 id="update-heading">Update config.json</h2>
+  {%- if error %}
+  <p class="error" role="alert">{{ error }}</p>
+  {%- endif %}
+  {%- if plan and plan.ok %}
+  <p>This adds the settings this version of planetGen has and your config.json does not. Every value you have set stays exactly as it is, and a secret is never shown. The old file is kept in a backup before it is replaced.</p>
+  {%- if not plan.added and not plan.recommended and not plan.stale %}
+  <p role="status">config.json already has every setting this version needs. There is nothing to update.</p>
+  <p><a href="{{ url_for('web.admin_settings') }}">Back to the settings</a></p>
+  {%- else %}
+  <form method="post" action="{{ url_for('web.admin_settings_update') }}" class="settings-confirm">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="save">
+    <input type="hidden" name="expect_hash" value="{{ plan.file_hash }}">
+    {%- if plan.recommended %}
+    <h3 id="recommended-heading">Recommended, not set</h3>
+    <p class="hint">Settings a site should have in its config.json. A ticked one is written with the value shown; one with no value here depends on your site, so set it on the settings page.</p>
+    <ul class="settings-update-list" aria-labelledby="recommended-heading">
+      {%- for item in plan.recommended %}
+      <li>
+        {%- if item.has_value %}
+        <label><input type="checkbox" name="apply" value="{{ item.path }}"{% if item.selected %} checked{% endif %}> <code>{{ item.path }}</code> = <code>{{ item.recommended if item.recommended != '' else '(empty)' }}</code> (default <code>{{ item.default if item.default != '' else '(empty)' }}</code>)</label>
+        {%- else %}
+        <code>{{ item.path }}</code> (written with its default <code>{{ item.default if item.default != '' else '(empty)' }}</code> until you set it)
+        {%- endif %}
+        <br><span class="hint">{{ item.why }}</span>
+      </li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+    {%- set recommended_paths = plan.recommended | map(attribute='path') | list %}
+    {%- set plain = plan.added | rejectattr('path', 'in', recommended_paths) | list %}
+    <h3 id="added-heading">Settings to add ({{ plain | length }})</h3>
+    {%- if plain %}
+    <div class="table-scroll" tabindex="0">
+    <table class="settings-diff">
+      <caption class="sr-only">Settings the file lacks, with the value each gets</caption>
+      <thead><tr><th scope="col">Setting</th><th scope="col">Written with</th></tr></thead>
+      <tbody>
+        {%- for item in plain %}
+        <tr><th scope="row"><code>{{ item.path }}</code></th><td>{% if item.secret %}<code>(set when you give it a value)</code>{% else %}<code>{{ item.new if item.new is not none and item.new != '' else '(empty)' }}</code>{% endif %}{% if item.restart %} <span class="setting-tag">applies after a restart</span>{% endif %}</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    </div>
+    {%- else %}
+    <p>None: every other setting is already in the file.</p>
+    {%- endif %}
+    {%- if plan.stale %}
+    <h3 id="stale-heading">Stale keys</h3>
+    <p class="hint">This version no longer has these keys. They are left in the file unless you tick them.</p>
+    <ul class="settings-update-list" aria-labelledby="stale-heading">
+      {%- for key in plan.stale %}
+      <li><label><input type="checkbox" name="remove" value="{{ key }}"{% if key in plan.removed %} checked{% endif %}> Take out <code>{{ key }}</code></label></li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+    <button type="submit" class="btn">Update config.json</button>
+    <a href="{{ url_for('web.admin_settings') }}">Go back without saving</a>
+  </form>
+  {%- endif %}
+  {%- elif plan %}
+  <p class="error" role="alert">{% for path, text in plan.errors.items() %}{{ path + ': ' if path }}{{ text }}{% if not loop.last %} {% endif %}{% endfor %}</p>
+  <p><a href="{{ url_for('web.admin_settings') }}">Back to the settings</a></p>
+  {%- else %}
+  <p><a href="{{ url_for('web.admin_settings') }}">Back to the settings</a></p>
+  {%- endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,35 @@
+{
+ "title": "Cloud condensation temperatures that follow the host star's elements, the trace elements of hot atmospheres and the trace gases they carry (GEN.1375)",
+ "sources": {
+  "fits": "[R3165, R4562] (READ): 10^4/T_cond = a - b log10 P_T - sum of c [X/H], P_T in bar; the Fe-scaled forms printed in the research part (06 section 2.1) are these with every [X/H] equal to [Fe/H]",
+  "kcl": "[R3165] (READ): log10 P_sat(KCl) = 7.611 - 11382/T with the gas pressure of KCl 2.55e-7 of the total pressure at solar composition (potassium limits: A21 K 5.07 against Cl 5.31)",
+  "abundances": "[R0168: Table 2] log eps on H = 12 (READ); CI-chondrite values where the photosphere has none"
+ },
+ "fits": [
+  {"species": "Cr", "a": 6.576, "b": 0.486, "terms": [["Cr", 0.486]]},
+  {"species": "MnS", "a": 7.447, "b": 0.42, "terms": [["Mn", 0.42], ["S", 0.42]]},
+  {"species": "Na2S", "a": 10.045, "b": 0.72, "terms": [["Na", 0.72], ["S", 0.36]]},
+  {"species": "ZnS", "a": 12.527, "b": 0.63, "terms": [["Zn", 0.63], ["S", 0.63]]}
+ ],
+ "kcl": {"a": 7.611, "b_k": 11382.0, "gas_per_total": 2.55e-7, "element": "K"},
+ "trace_elements": [
+  {"symbol": "Rb", "log_eps": 2.32, "basis": "photosphere"},
+  {"symbol": "Cs", "log_eps": 1.08, "basis": "CI chondrite (Si-normalised)"},
+  {"symbol": "Ge", "log_eps": 3.62, "basis": "photosphere"},
+  {"symbol": "As", "log_eps": 2.3, "basis": "CI chondrite (Si-normalised)"},
+  {"symbol": "Se", "log_eps": 3.34, "basis": "CI chondrite (Si-normalised)"}
+ ],
+ "trace_gases": [
+  {"formula": "GeH4", "name": "germane", "atoms": {"Ge": 1}, "where": "detected in the troposphere of Jupiter and Saturn"},
+  {"formula": "AsH3", "name": "arsine", "atoms": {"As": 1}, "where": "detected in the troposphere of Jupiter and Saturn"},
+  {"formula": "H2Se", "name": "hydrogen selenide", "atoms": {"Se": 1}, "where": "the hydride of selenium in a hydrogen-rich atmosphere"},
+  {"formula": "MgH", "name": "magnesium hydride", "atoms": {"Mg": 1}, "where": "a gas of hot hydrogen-rich atmospheres, above the forsterite and enstatite clouds"},
+  {"formula": "CaH", "name": "calcium hydride", "atoms": {"Ca": 1}, "where": "a gas of hot hydrogen-rich atmospheres, above the calcium-aluminium clouds"},
+  {"formula": "NaH", "name": "sodium hydride", "atoms": {"Na": 1}, "where": "a gas of hot hydrogen-rich atmospheres, with the free sodium atoms"},
+  {"formula": "LiCl", "name": "lithium chloride", "atoms": {"Li": 1, "Cl": 1}, "where": "the chloride that carries lithium in a brown dwarf or hot giant"},
+  {"formula": "LiF", "name": "lithium fluoride", "atoms": {"Li": 1, "F": 1}, "where": "the fluoride that carries lithium in a brown dwarf or hot giant"},
+  {"formula": "AlCl", "name": "aluminium monochloride", "atoms": {"Al": 1, "Cl": 1}, "where": "the chloride that carries aluminium where the aluminium oxides have not condensed"},
+  {"formula": "PN", "name": "phosphorus nitride", "atoms": {"P": 1, "N": 1}, "where": "a phosphorus gas of hot atmospheres beside phosphine"},
+  {"formula": "HCP", "name": "phosphaethyne", "atoms": {"P": 1, "C": 1}, "where": "a phosphorus gas of hot atmospheres beside phosphine"}
+ ]
+}

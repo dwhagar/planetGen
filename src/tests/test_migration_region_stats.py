@@ -22,6 +22,10 @@ def _old_galaxy(mysql_config):
         for n, (shell, band, wedge) in enumerate(SECTORS):
             conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index) VALUES (?, 4000, ?, ?, ?)",
                          (f"Sector {n}", shell, band, wedge))
+            conn.execute(       # filled: migration 0201 charts it
+                "INSERT INTO sector_stats (shell_index, band_index, wedge_index, expected_systems, actual_systems, actual_stars,"
+                " mean_age_gy, total_luminosity_sol, bright_level_sol, filled_at) VALUES (?, ?, ?, 1.5, 1, 2, 1.0, 10.0, 0, CURRENT_TIMESTAMP(3))",
+                (shell, band, wedge))
         conn.commit()
     finally:
         conn.close()

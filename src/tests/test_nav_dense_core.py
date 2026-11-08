@@ -14,12 +14,12 @@ from planetgen.generation.phenomena.compact_remnant import BlackHole
 
 SEED = bytes(range(16))
 START, END = (-60.0, 0.2, 0.0), (60.0, 0.2, 0.0)
-FIELD_CENTER = (30.0, 0.5, 0.0)
+FIELD_CENTER = (59.0, 0.25, 0.0)       # near the end, where the straight line (y 0.2) and the run the course takes round the hole's sphere (y 0.25 at x = 59) meet again
 
 
 @pytest.fixture
 def core(mysql_config):
-    """A stored galaxy with its central supermassive hole and an asteroid field 30 pc past it on the course, both made; returns their ids."""
+    """A stored galaxy with its central supermassive hole and an asteroid field near the end of the course, both made; returns their ids."""
     store.save_galaxy_shape(shape_draw.default_shape(SEED), edge_pc=float(tuning.DEFAULT_SECTOR_EDGE_PC), outer_shell_index=1500,
                             expected_system_count_at_density_1=6.0, config=mysql_config, galaxy_seed=SEED, cell_star_ceiling=500.0)
     conn = store.get_connection(mysql_config)
@@ -28,7 +28,7 @@ def core(mysql_config):
             conn, BlackHole(SystemConfig(), mass_class="supermassive", mass_solar=4.0e6),
             placement={"center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 0.0})
         field = AsteroidField(SystemConfig())
-        field.radius_ly = 8.0   # 2.45 pc: wide enough that the path round the hole's sphere (3.1 pc at 4 million solar masses) still meets it
+        field.radius_ly = 0.9   # 0.28 pc: about the widest a field stands (past a light year it has spread and is retired, GEN.1107, and a course ignores it); it lies on both
         field_id = store.insert_asteroid_field(conn, field, placement={
             "center_x_pc": FIELD_CENTER[0], "center_y_pc": FIELD_CENTER[1], "center_z_pc": FIELD_CENTER[2],
             "galactic_radius_pc": math.hypot(FIELD_CENTER[0], FIELD_CENTER[1])})

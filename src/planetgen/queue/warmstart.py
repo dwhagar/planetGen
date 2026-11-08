@@ -103,6 +103,14 @@ def acquire(database, pid=None, client=None):
     return False
 
 
+def keep(database, client=None):
+    """Keeps the lock alive for another `LOCK_SECONDS` (a warm-up that waits for a long generation run); best effort."""
+    try:
+        (client or _client()).expire(lock_key(database), LOCK_SECONDS)
+    except redis.RedisError:
+        pass
+
+
 def release(database, pid=None, client=None):
     """Lets go of the lock when it is this process's (default) or `pid`'s."""
     client = client or _client()

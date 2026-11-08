@@ -819,6 +819,18 @@
       "first_release": "8.0.3591",
       "reason": "Train 15: rocky planet envelopes and sub-Neptune classes (GEN.1323), steam limit (GEN.1329), sealed-ocean anions (GEN.1319), stored field members (GEN.1105), gas-table and M-dwarf fixes, nebula shape seed",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 138,
+      "first_release": "8.0.3627",
+      "reason": "Train 16: uncharted rows, belt and collision fields, scattering belt loss, oxygen cap, super-puffs, air knee, water-loss efficiency",
+      "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 139,
+      "first_release": "8.0.3671",
+      "reason": "Train 17: GEN.1362 mantle oxides, GEN.1350 dipole direction, GEN.1342 classes O and H, GEN.1334 no ground under envelope, GEN.1384b, GEN.1331 partial pressure, weirdness dial",
+      "affects": ["plan", "scatter", "fill", "population"]
     }
   ]
 }

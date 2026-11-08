@@ -37,6 +37,9 @@ _BODY = {
                       "normal for a locked body.",
     "magnetic_moment_a_m2": "The dipole of the dynamo that runs in the body: a rocky body's liquid core (its thermal history) or a giant's metallic or "
                             "ionic layer (the heat it radiates), by the buoyancy-flux scaling and the spin.",
+    "dipole_tilt_deg": "A dipole-dominated dynamo keeps its axis near the spin axis (Rayleigh, scale 6 degrees; Earth 11, Jupiter 10); a multipolar one or an ice giant's thin "
+                       "shell has it at any angle, isotropic (Uranus 59, Neptune 47) [R0784, R4196].",
+    "dipole_offset_class": "Offset (over 0.15 radii from the center) for an ice giant, a multipolar dynamo and the iron-rich small body; centered otherwise [R4196].",
     "ring_outer_km": "Ends at the Roche limit, 2.456 R (planet density over particle density)^(1/3), and inside the innermost large moon.",
     "ring_age_yr": "The years since the moon that fell inside the Roche limit, or the comet that passed inside it, made the ring; the ring thins by 1/e every half billion years.",
     "ring_optical_depth": "An output of the drawn mass, the extent and the particle size, 3 M / (4 density r area).",
@@ -62,6 +65,7 @@ _STAR = {
     "rotation_period_hours": "A white dwarf log-normal about a day, a giant a slow 1 to 10 km/s, a cool dwarf from "
                              "gyrochronology [R1429], a hot star from a drawn speed; a scattered star keeps its own draw.",
     "axial_tilt_deg": "Rayleigh about 15 degrees from the star's reference normal.",
+    "surface_dipole_field_gauss": "A cool dwarf follows the large-scale field against the Rossby number, B ~ Ro^-1.4 [R4544, R5144]; an Ap dwarf has the polar field of its kind.",
     "nuclear_arrival_age_gy": "The age MIST's tracks put the star on the main sequence [R0773]; the star counts as pre-main-sequence "
                               "only until its radius has settled, the earlier age BHAC15 gives [R0254].",
     "disk_kind": "A young star holds a class 0, I or II disk by its age; a main-sequence star has a cold debris disk when "
@@ -83,7 +87,12 @@ _STAR = {
 _MOON = {key: line for key, line in _BODY.items() if not key.startswith("ring_")}
 """dict: A moon's column key -> its source line (a moon holds no ring system of its own, GEN.732, and its inclination has no line)."""
 
-SOURCES = {"planet": _PLANET, "moon": _MOON, "star": _STAR}
+_NEUTRON_STAR = {
+    "magnetic_inclination_deg": "Isotropic at birth, aligned with the spin by the dipole's torque over about 7 million years [R5143]; a recycled millisecond pulsar is isotropic again.",
+}
+"""dict: A neutron star's column key -> its source line."""
+
+SOURCES = {"planet": _PLANET, "moon": _MOON, "star": _STAR, "neutron_star": _NEUTRON_STAR}
 """dict: Each kind with sources -> `{column key: one-line source}`; a kind or key not here has no source line."""
 
 

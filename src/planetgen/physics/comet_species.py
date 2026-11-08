@@ -50,6 +50,34 @@ SIGMA_DEX = 0.4
 
 SPECIES = tuple(TRAPPED_OVER_NEBULAR) + tuple(UNSCALED_OVER_H2O)
 
+# ---------------------------------------------------------------------
+# The brackets of two comets (GEN.1021; docs/design/composition/comet-species-model.md section 4)
+# ---------------------------------------------------------------------
+
+N2_OVER_CO = (0.0287, 0.09)
+"""tuple: N2 per CO of the two comets with the widest range: 67P (best measurement, Rubin and others 2020, read in the GEN.1021 report) and C/2016 R2 (Q(N2)/Q(CO) about 0.09, [R0109] Anderson and others 2022; 0.06 and 0.08 in [R0836]). [Stand-in CB1, tier T3, tweak L0.]"""
+
+AR_OVER_H2O = (5.8e-6, 8.7e-3)
+"""tuple: Ar per H2O of the two comets: 67P ([R3835] Rubin and others 2019 table) and Hale-Bopp (Ar/O 0.0058 with Q(O) = 1.5 Q(H2O), [R4215] Stern and others 2000; a coma, not a nucleus). [Stand-in CB1.]"""
+
+OCS_OVER_H2O = (5e-4, 4e-3)
+"""tuple: OCS per H2O, the range of the comets measured (0.05 to 0.40 percent; Table 7 of the 46P paper, A&A 648, A49, no comet named; the 67P value 0.07 percent lies inside). [Stand-in CB1.]"""
+
+SO2_OVER_H2O = (3e-4, 2.3e-3)
+"""tuple: SO2 per H2O, the range of the comets measured (0.03 to 0.23 percent; the same table; the 67P value 0.127 percent lies inside). [Stand-in CB1.]"""
+
+O2_OVER_H2O = (3.7e-2 - 1.7e-2, 3.8e-2 + 0.85e-2)
+"""tuple: O2 per H2O from the lower end of Halley's value (3.7 +/- 1.7 percent, [R3836] Rubin and others 2015) to the upper end of 67P's (3.80 +/- 0.85 percent, [R0386] Bieler and others 2015). [Stand-in CB1.]"""
+
+KR_OVER_AR = 0.089
+"""float: Kr per Ar of 67P ([R3834] Rubin and others 2018, 0.089 +/- 0.021), applied to the brackets of argon: krypton follows argon. Only one comet has measured it. [Stand-in CB2, tier T2, tweak L1.]"""
+
+XE_OVER_KR = 0.269
+"""float: Xe per Kr of 67P ([R3834], 0.269 +/- 0.064), applied the same way. [Stand-in CB2.]"""
+
+_HOST_RATIO = {"N2": "n_over_c", "Ar": "ar_over_c", "Kr": "ar_over_c", "Xe": "ar_over_c", "OCS": "s_over_c", "SO2": "s_over_c"}
+"""dict: Which host ratio over the proto-solar one scales a species' bracket; O2 has none."""
+
 
 def carbon_in_co_share():
     """The share of the nebula's carbon that is in CO: 1.5 per 10^4 hydrogen over the proto-solar carbon."""
@@ -78,6 +106,52 @@ def median_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
     if min(ratios) <= 0.0 or not all(math.isfinite(r) for r in ratios):
         raise ValueError(f"a host ratio over the proto-solar one is above zero, not {ratios}")
     return nebular_per_co(species, *ratios) * TRAPPED_OVER_NEBULAR[species] * CO_OVER_H2O_MEDIAN
+
+
+def _host_scale(species, n_over_c, ar_over_c, s_over_c):
+    ratios = {"n_over_c": n_over_c, "ar_over_c": ar_over_c, "s_over_c": s_over_c}
+    if min(ratios.values()) <= 0.0 or not all(math.isfinite(r) for r in ratios.values()):
+        raise ValueError(f"a host ratio over the proto-solar one is above zero, not {tuple(ratios.values())}")
+    name = _HOST_RATIO.get(species)
+    return 1.0 if name is None else ratios[name]
+
+
+def bracket_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
+    """
+    The `(low, high)` of `species` per H2O between the comets measured, round a host whose N/C, Ar/C and S/C are the given multiples of the proto-solar ones (GEN.1021).
+
+    N2 is the N2 per CO of the two comets times the nebular CO / H2O median (the chain is kept: nitrogen follows CO). Argon is per water (it follows the water ice, not the CO: Hale-Bopp's Ar per CO is 2.7 times
+    what the nebula holds), krypton and xenon are argon times the ratios of 67P. OCS and SO2 are the range of the comets, never above the sulfur the nebula holds (a share of 1). O2 has no host ratio.
+    """
+    if species not in SPECIES:
+        raise ValueError(f"{species} is none of {', '.join(SPECIES)}")
+    scale = _host_scale(species, n_over_c, ar_over_c, s_over_c)
+    if species == "N2":
+        low, high = (value * CO_OVER_H2O_MEDIAN for value in N2_OVER_CO)
+    elif species in ("Ar", "Kr", "Xe"):
+        factor = {"Ar": 1.0, "Kr": KR_OVER_AR, "Xe": KR_OVER_AR * XE_OVER_KR}[species]
+        low, high = (value * factor for value in AR_OVER_H2O)
+    elif species == "OCS":
+        low, high = OCS_OVER_H2O
+    elif species == "SO2":
+        low, high = SO2_OVER_H2O
+    else:
+        low, high = O2_OVER_H2O
+    low, high = low * scale, high * scale
+    if species in ("OCS", "SO2"):
+        whole = nebular_per_co(species, s_over_c=s_over_c) * CO_OVER_H2O_MEDIAN       # a share of 1: all the nebular sulfur of the species
+        high = min(high, whole)
+    return low, high
+
+
+def low_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
+    """The low end of `bracket_over_h2o`."""
+    return bracket_over_h2o(species, n_over_c, ar_over_c, s_over_c)[0]
+
+
+def high_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
+    """The high end of `bracket_over_h2o`."""
+    return bracket_over_h2o(species, n_over_c, ar_over_c, s_over_c)[1]
 
 
 def sigma_dex():

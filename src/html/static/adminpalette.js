@@ -120,17 +120,20 @@ function init(shell) {
 
   // ADM.126: a moment after the last key, the size the command would make is added to its row, from the same estimate
   // the Review step shows.
-  function askSize(row, mine) {
+  // The server works a big estimate out in the work queue (ADM.141) and answers "working" meanwhile: ask again.
+  function askSize(row, mine, tries = 0) {
     sizeTimer = setTimeout(() => {
       fetch(row.size_url, { credentials: "same-origin", headers: { Accept: "application/json" } })
         .then((response) => (response.ok ? response.json() : null))
         .then((body) => {
-          if (mine !== asked || !body || body.state !== "ready") return;
+          if (mine !== asked || !body) return;
+          if (body.state === "working" && tries < 400) { askSize(row, mine, tries + 1); return; }
+          if (body.state !== "ready") return;
           row.size = body.line;
           draw();
         })
         .catch(() => {});
-    }, 500);
+    }, tries ? 3000 : 500);
   }
 
   function draw() {

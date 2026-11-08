@@ -323,6 +323,19 @@ core answer, and the moment is stored as `induced_moment_a_m2`, 5e17 A m2 for a 
 The numbers it adds are small beside a dynamo, and matter for a body whose dynamo has stopped (a Mars, a Venus, a Moon) and for a moon of a giant.
 
 
+### 3.6 Where the dipole points (GEN.1350)
+
+The size of a field was stored; its direction was not. `physics/magnetic_geometry.py` draws, from a stream of the body's own (nothing of the run's stream moves), the angle between the dipole's axis and the spin axis (`dipole_tilt_deg`, folded into 0 to 90 degrees) and whether the dipole is off centre (`dipole_offset_class`, `centred` or `offset`, over 0.15 radii) for a planet, moon or rogue planet with a field:
+
+| Dynamo | Tilt | Offset | Cases |
+|---|---|---|---|
+| dipole-dominated rocky core, gas giant | Rayleigh, scale 6 degrees | centred | Earth 11, Jupiter 9.6, Ganymede 4, Saturn under 0.1 |
+| the iron-rich small body of the Mercury stand-in | Rayleigh, scale 6 degrees | offset | Mercury under 3 degrees, 0.19 radii |
+| multipolar core (the dipole under half the field) | isotropic | offset | |
+| ice giant (thin conducting shell over a stable core) [R4196] | isotropic | offset | Uranus 59 degrees and 0.3 radii, Neptune 47 and 0.55 |
+
+A neutron star stores `magnetic_inclination_deg`: isotropic at birth, then `tan(alpha)` falls as `exp(-t / 7 Myr)` [R5143]; a recycled millisecond pulsar is isotropic again. A star stores `surface_dipole_field_gauss`, the polar field of its large-scale dipole: a cool dwarf with a convective envelope (below the Kraft break, mass 0.08 to 1.3) has `B = 1.5 G (Ro / 1.76)^-1.40` with a 0.35 dex scatter, capped at 5 kG ([R4544, R5144]; `Ro = P_rot / tau_conv`, [R4780]); an Ap or Bp dwarf has the polar field `chemically_peculiar` draws for its kind; any other star has none. The stand-ins are DP1 to DP7 (registry 6.212). The Sensor view reads these columns (UX.286).
+
 ## 4. Surface radiation dose (GEN.87)
 
 ### 4.1 Anchors

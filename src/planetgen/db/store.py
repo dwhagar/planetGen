@@ -76,7 +76,7 @@ from planetgen.names import naming_key as namingKey
 from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import nebula_columns as nebulaColumns
+from planetgen.physics import nebula_columns as nebulaColumns, oddities
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -1515,20 +1515,34 @@ def list_databases(base_config=None, prefix=None, with_counts=False):
         conn.close()
 
 
-def _holds_galaxy(base_config, name):
-    """Whether schema `name` holds this project's galaxy tables (`sectors`). A schema that shares the prefix and holds
-    something else (the real `planetgen_control` on a server whose configured control schema has another name) is no
-    database to select: every route would answer 500 from its first missing table (API.32)."""
+BOOKKEEPING_TABLES = frozenset({"schema_migrations", "alembic_version"})
+"""frozenset[str]: The tables `migrate` keeps before any galaxy table exists (`schema_migrations`, `alembic_version`)."""
+
+
+class NoGalaxyError(ValueError):
+    """`resolve_database`: the schema is the galaxy's own, but has no galaxy tables yet (nothing in it, or only `migrate`'s bookkeeping): the
+    message says so in words an admin can act on (MAP.407)."""
+
+
+def _table_names(base_config, name):
+    """The names of the tables of schema `name`."""
     conn = get_connection(
         MySQLConfig(host=base_config.host, port=base_config.port,
                     user=base_config.user, password=base_config.password, database=""),
         ensure_schema=False,
     )
     try:
-        return conn.execute("SELECT 1 FROM information_schema.tables WHERE table_schema = ? AND table_name = 'sectors'"
-                            " LIMIT 1", (name,)).fetchone() is not None
+        return {row["table_name"] for row in conn.execute(
+            "SELECT table_name AS table_name FROM information_schema.tables WHERE table_schema = ?", (name,)).fetchall()}
     finally:
         conn.close()
+
+
+def _holds_galaxy(base_config, name):
+    """Whether schema `name` holds this project's galaxy tables (`sectors`). A schema that shares the prefix and holds
+    something else (the real `planetgen_control` on a server whose configured control schema has another name) is no
+    database to select: every route would answer 500 from its first missing table (API.32)."""
+    return "sectors" in _table_names(base_config, name)
 
 
 def _schema_counts(conn, name):
@@ -1566,13 +1580,18 @@ def resolve_database(base_config, name, prefix=None):
         MySQLConfig: `base_config` with `database` set to `name`.
 
     Raises:
-        ValueError: If `name` is empty, doesn't match a listed schema, or the schema holds no galaxy (API.32).
+        NoGalaxyError: The schema holds nothing but `migrate`'s bookkeeping (a `ValueError`, MAP.407).
+        ValueError: If `name` is empty, doesn't match a listed schema, or the schema holds something other than a galaxy (API.32).
     """
     if not name:
         raise ValueError("No database specified.")
     if name not in {entry["name"] for entry in list_databases(base_config, prefix=prefix)}:
         raise ValueError(f"No such database: {name!r}")
-    if not _holds_galaxy(base_config, name):
+    tables = _table_names(base_config, name)
+    if "sectors" not in tables:
+        if tables <= BOOKKEEPING_TABLES:        # MAP.407: the galaxy's own schema, before its first plan
+            raise NoGalaxyError(f"There is no galaxy in database {name!r} yet. Plan one from the admin Generate page (or run "
+                                f"'planetgen plan') and the pages fill in.")
         raise ValueError(f"No such database: {name!r}")
     return MySQLConfig(
         host=base_config.host, port=base_config.port,
@@ -2952,6 +2971,8 @@ BODY_FIELDS = (
     object_rows.each(class_code.FIELDS),
     object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),
                          lambda row: {"born_beyond_snow_line": _tristate_from_db(row["born_beyond_snow_line"])}),
+    object_rows.computed("oddities", lambda body, context: oddities.column_text(oddities.ids_of(body)),
+                         lambda row: {"oddities": oddities.from_column(row["oddities"])}),     # GEN.1047
 )
 """tuple: The `Field`s `planets` and `moons` share (`insert_planet`/`insert_moon` write them, `db.edits` updates
 them in place, `_planet_or_moon_row_to_dict` reads them back)."""
@@ -3510,7 +3531,7 @@ NEUTRON_STAR_FIELDS = (
     object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"),
     object_rows.computed(("parent_type", "parent_id"), lambda remnant, context: anchored_parent(context["star_id"])),
     object_rows.attr("mass_solar"), object_rows.attr("radius_km", "radius"), object_rows.attr("spin_period_ms"),
-    object_rows.attr("magnetic_field_gauss"), object_rows.attr("pulsar_type"),
+    object_rows.attr("magnetic_field_gauss"), object_rows.attr("magnetic_inclination_deg"), object_rows.attr("pulsar_type"),
     object_rows.attr("surface_temperature_k"), object_rows.attr("luminosity_w", "luminosity"),
     object_rows.attr("age_gy", "age"), _REMNANT_GALACTIC_FIELD, _PLACEMENT_FIELD, _REMNANT_SPIN_FIELD,
     object_rows.computed(body_strength.STELLAR_FIELDS, lambda star, context: body_strength.remnant_values(
@@ -3519,7 +3540,7 @@ NEUTRON_STAR_FIELDS = (
 """tuple: The `Field`s of a `neutron_stars` row."""
 
 _BLACK_HOLE_OWN_COLUMNS = ("mass_class", "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk")
-_NEUTRON_STAR_OWN_COLUMNS = ("mass_solar", "spin_period_ms", "magnetic_field_gauss", "pulsar_type",
+_NEUTRON_STAR_OWN_COLUMNS = ("mass_solar", "spin_period_ms", "magnetic_field_gauss", "magnetic_inclination_deg", "pulsar_type",
                              "surface_temperature_k")
 """tuple: The columns of a remnant's satellite row that are not already on its `stars` row."""
 
@@ -8691,8 +8712,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_shell_index,
 
 
 def has_galaxy_sectors(conn):
-    """Whether any sector has been placed in the galaxy grid."""
-    return conn.execute("SELECT 1 FROM sectors WHERE shell_index IS NOT NULL LIMIT 1").fetchone() is not None
+    """Whether any sector has been charted in the galaxy grid: an uncharted placeholder row (MAP.399, MAP.402) does not count."""
+    return conn.execute(
+        "SELECT 1 FROM sectors sec WHERE sec.shell_index IS NOT NULL AND EXISTS (SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = sec.shell_index"
+        " AND cl.band_index = sec.band_index AND cl.wedge_index = sec.wedge_index) LIMIT 1").fetchone() is not None
 
 
 def galaxy_is_empty(conn):

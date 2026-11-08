@@ -477,6 +477,183 @@ def save(changes, actor, role="admin", audit=None, expect_hash=None, action="con
 
 
 # ---------------------------------------------------------------------
+# Bringing the file up to the version (ADM.140)
+# ---------------------------------------------------------------------
+
+STALE_MARK = "(removed)"
+"""str: What an audit row and a preview show as the old value of a stale key taken out; the value itself is never shown."""
+
+UPDATE_ACTION = "config.update_file"
+
+
+@dataclass
+class Recommendation:
+    """An option the model says a site should set (`should_set`) and the file has no key for."""
+    path: str
+    why: str
+    default: object
+    recommended: object = None
+    has_value: bool = False
+    selected: bool = False
+    secret: bool = False
+
+
+@dataclass
+class UpdatePlan(Plan):
+    """What `update` would do: `added` (a `Change` per key the file lacks, written with its default, or with the
+    recommended value of a ticked `recommended` one), `removed` (the ticked stale keys), and the whole picture the
+    page shows: `stale` (keys the model no longer knows) and `recommended`. `changes` is `added` plus `removed`."""
+    added: list = field(default_factory=list)
+    removed: list = field(default_factory=list)
+    stale: list = field(default_factory=list)
+    recommended: list = field(default_factory=list)
+
+
+@dataclass
+class UpdateResult(UpdatePlan):
+    """An `UpdatePlan` that was carried out (`saved`), with its backup."""
+    saved: bool = False
+    backup: str = None
+    audit_errors: list = field(default_factory=list)
+
+
+def _sections(known):
+    """Every dotted path that is a section (a prefix of some option's path)."""
+    return {".".join(path.split(".")[:n]) for path in known for n in range(1, len(path.split(".")))}
+
+
+def _stale_keys(node, known, sections, prefix, found, problems):
+    """Appends to `found` the dotted path of each key under `node` that the model does not know."""
+    for key, value in node.items():
+        path = f"{prefix}{key}"
+        if path in known:
+            continue
+        if path in sections:
+            if isinstance(value, dict):
+                _stale_keys(value, known, sections, f"{path}.", found, problems)
+            else:
+                problems[path] = "is a section of options and must be an object"
+            continue
+        found.append(path)
+
+
+def plan_update(remove=(), apply=(), fields=None):
+    """
+    What bringing config.json up to this version would write, and nothing written (ADM.140).
+
+    The file is kept as it is and only four things happen: every option the model has and the file lacks is added with its
+    default (a key the admin cannot edit on the web, the database section, is added too, with its default, and never altered
+    otherwise; a secret is added with its default and never shown); the options a site should set (`should_set`) that the
+    file has no key for are listed as `recommended`, and a ticked one (`apply`) with a recommended value is written with that
+    value; keys the model no longer knows are listed as `stale` and left alone, unless ticked (`remove`).
+
+    Args:
+        remove (Iterable[str]): Stale keys (dotted paths) to take out.
+        apply (Iterable[str]): Recommended options (dotted paths) to write with their recommended value.
+        fields (dict): The model's options as `_fields()` gives them (tests pass their own).
+
+    Returns:
+        UpdatePlan: `errors` names a problem at its path (`""` for the file as a whole).
+    """
+    path = config_path()
+    result = UpdatePlan()
+    data = read_bytes(path)
+    if data is None:
+        result.errors[""] = MISSING
+        return result
+    result.file_hash = hashlib.sha256(data).hexdigest()[:16]
+    try:
+        before = _parse(data, path)
+    except SettingsWriteError as exc:
+        result.errors[""] = str(exc)
+        return result
+    result.document_before = before
+    known = _fields() if fields is None else fields
+    sections = _sections(known)
+    after = copy.deepcopy(before)
+    for option, message in _sections_problems(before, sections).items():
+        result.errors[option] = message
+    stale = []
+    _stale_keys(before, known, sections, "", stale, result.errors)
+    result.stale = stale
+    apply, remove = set(apply), set(remove)
+    for option in sorted(remove - set(stale)):
+        result.errors[option] = "is not a stale key of the file"
+    wanted = {}
+    for option, (_info, meta) in known.items():
+        if _get(before, option)[0]:
+            continue
+        default = settings.field_default(known[option][0])
+        default = list(default) if isinstance(default, list) else default
+        if meta.get("x-should-set"):
+            has_value = "x-recommended" in meta
+            item = Recommendation(option, meta["x-should-set"], default, meta.get("x-recommended"), has_value,
+                                  selected=has_value and option in apply, secret=bool(meta["x-secret"]))
+            result.recommended.append(item)
+            wanted[option] = item.recommended if item.selected else default
+        else:
+            wanted[option] = default
+    for option in sorted(apply - {item.path for item in result.recommended if item.has_value}):
+        result.errors[option] = "is not a recommended option the file lacks"
+    if result.errors:
+        return result
+    for option, value in wanted.items():
+        _put(after, option, value)
+    for option in sorted(remove):
+        _drop(after, option)
+    checked, problems = settings.field_errors(after)
+    if checked is None:
+        for option, message in problems:
+            if option in known:
+                result.errors.setdefault(option, message)
+            else:
+                result.errors.setdefault("", f"{option}: {message}" if option else message)
+        return result
+    for option, value in wanted.items():
+        _info, meta = known[option]
+        result.added.append(Change(option, None, value, secret=bool(meta["x-secret"]),
+                                   restart=bool(meta["x-restart"]) and value != settings.field_default(known[option][0])))
+    for option in sorted(remove):
+        result.removed.append(Change(option, STALE_MARK, None))
+    result.changes = result.added + result.removed
+    result.document_after = after
+    return result
+
+
+def _sections_problems(document, sections):
+    """A message for each section of the model that the file holds as something other than an object."""
+    problems = {}
+    for section in sections:
+        found, value = _get(document, section)
+        if found and not isinstance(value, dict):
+            problems[section] = "is a section of options and must be an object"
+    return problems
+
+
+def update(actor, remove=(), apply=(), audit=None, expect_hash=None, fields=None):
+    """
+    Plans (`plan_update`) and, when it is clean and there is something to do, writes the file with the new keys: a
+    settings-only backup archive first, then the atomic write, then one audit row per key added or removed.
+
+    Raises:
+        StaleSettingsError: The file changed since `expect_hash`.
+        SettingsWriteError: The file or its folder can't be written.
+    """
+    path = config_path()
+    with _Lock(path):
+        planned = plan_update(remove=remove, apply=apply, fields=fields)
+        result = UpdateResult(**planned.__dict__)
+        if expect_hash is not None and expect_hash != planned.file_hash:
+            raise StaleSettingsError("The settings were changed by someone else since this page was opened; "
+                                     "reload it and look again.")
+        if result.errors or not result.changes:
+            return result
+        _write(path, _stamp_version(result.document_after), actor, UPDATE_ACTION, result, archive=True)
+    _audit(result, actor, audit, UPDATE_ACTION)
+    return result
+
+
+# ---------------------------------------------------------------------
 # Export and import (ADM.85)
 # ---------------------------------------------------------------------
 

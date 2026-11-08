@@ -2779,6 +2779,8 @@ def _plan_addresses(args, edge_pc, progress):
     batch_density = _BatchDensity(store.mysql_config_from_args(args))
     plan = _address_plan(args, edge_pc, batch_density)
     if plan is None:
+        if getattr(args, "estimate_only", False):       # ADM.142: nothing to generate is still an estimate (of nothing), not a run
+            run_common._check_estimate(args, [], "the sectors asked for", progress)
         return [SectorsFollower(args, "sectors", "Sectors", edge_pc, count=0)]
     what, total = plan.what, plan.total
     limit = getattr(args, "limit", None)
@@ -2842,13 +2844,14 @@ def course_cells(config, from_ref, to_ref, border=False):
         conn.close()
 
 
-def _plan_check(config, edge_pc):
+def _plan_check(config, edge_pc, compute_battery=True):
     """What the stored plan says to a run of sectors: `(problem, warning)`, the words that refuse a galaxy that was never planned (at
-    the standard sector edge, with shells) or `None`, and the heads-up about extending a mixed-version galaxy (DB.7) or `None`."""
+    the standard sector edge, with shells) or `None`, and the heads-up about extending a mixed-version galaxy (DB.7) or `None`.
+    `compute_battery` is `version_check.galaxy_check`'s: the generator battery is compared too (half a minute and more, ADM.141)."""
     conn = store.get_connection(config)
     try:
         bounds = store.get_galaxy_bounds(conn)
-        warning = version_check.galaxy_warning(conn, compute_battery=True)
+        warning = version_check.galaxy_warning(conn, compute_battery=compute_battery)
     finally:
         conn.close()
     if bounds is None:
@@ -2865,8 +2868,10 @@ def _plan_check(config, edge_pc):
 
 def _check_plan(args, edge_pc):
     """Refuses a run of a galaxy that was never planned (at the standard sector edge, with shells); warns when it would
-    extend a mixed-version galaxy."""
-    problem, warning = _plan_check(store.mysql_config_from_args(args), edge_pc)
+    extend a mixed-version galaxy. A run that only estimates (`--estimate-only`, the Generate page's size line) writes nothing, so
+    it does not work out the generator battery to compare it (ADM.141: that was most of the two minutes the page waited)."""
+    problem, warning = _plan_check(store.mysql_config_from_args(args), edge_pc,
+                                   compute_battery=not getattr(args, "estimate_only", False))
     if warning:
         log.normal(f"Warning: {warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
     if problem:

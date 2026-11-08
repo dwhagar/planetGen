@@ -24,6 +24,8 @@ not, does not. The oxygen a world holds is the balance of a source and its sinks
 Gyr the schedule runs in, and the world holds `N*` (as the partial pressure `p = N M g / A`) when its photosynthesis is older than the
 delay and nothing before. A world with `S <= R` never holds any. The most the air can hold is the oxygen pressure `mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA`, the
 fire limit (GEN.1320: a pressure, so a thin air can reach a larger share than a thick one; never more than `mixture_oxygen.ABIOTIC_O2_MAX` of the molecules).
+The whole air, oxygen and all, stays under the pressure the retention regime of the air solve lets the body keep (`surface_air.Air.retention_cap_pa`, the row `d6`; GEN.1340): a body that
+holds only 1 or 10 kPa against the escape of its air does not hold 40 kPa because its life made oxygen, and the shares of its gases are kept when the cap takes the excess.
 
 The numbers are those of the one world we know (`EARTH_*`, round figures from the literature of the oxygen cycle: [R0689, R1980], from memory), used as the test point and the scale and not as a preset: a world
 with another light, water, heat, redox and gravity gets another oxygen. Every constant is a stand-in in section 6.21 of
@@ -313,6 +315,10 @@ def apply(body, target_mol):
         return False
     burnt["O2"] = wanted
     air = partials_pa(body, burnt)
+    cap = getattr(body, "_retention_cap_pa", None)
+    total = sum(air.values())
+    if cap is not None and total > cap:        # GEN.1340: the air is held to the pressure its retention regime keeps (as the pressure stage holds it), oxygen and all
+        air = {formula: pascal * cap / total for formula, pascal in air.items()}
     if "O2" not in air or air["O2"] < MINIMUM_PA:
         return False
     store_air(body, air)

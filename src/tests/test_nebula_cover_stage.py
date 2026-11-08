@@ -15,6 +15,7 @@ from planetgen.galaxy.drill import DRILL_STEP, STAGE_TOP, DrillBlock, drill_bloc
 from planetgen.web import galaxy_views
 from planetgen.web.lib import apiclient
 
+from tests.chart_support import chart_all
 from tests.test_block_stats import _addresses, galaxy  # noqa: F401 -- fixture
 from tests.test_nebula_blocks_db import _arrays, _link_to_field, _plant_field, _store_nebula
 
@@ -128,6 +129,7 @@ def test_filling_an_unfilled_cell_does_not_change_its_cover(seeded, monkeypatch)
                      (sector.shell, sector.band, sector.wedge))
         letter, radius_ly, center = next(c for c in clouds if tuple(c[2]) == tuple(_middle(unfilled)))
         _link_to_field(conn, _store_nebula(conn, letter, radius_ly, center))
+        chart_all(conn)       # a sector saved by hand is charted, or the totals skip it (MAP.402)
         block_stats.rebuild(conn)
         nebula_blocks.catch_up(conn, EDGE_PC)
         conn.commit()
