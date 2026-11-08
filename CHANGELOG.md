@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3701] - 2026-11-08
+
+**Headline:** A world whose life warms it past freezing no longer keeps a ground of ice.
+
+### Fixed
+- **The ground follows the temperature the life leaves (GEN.1385).** The air the life makes could warm a body from 240 K to 408 K after its water and ground had been drawn at the cold temperature, leaving a hot world with an ice-covered ground. When the life's air takes a body past the freezing point with ice on its ground, the water and the ground are now made again at the final temperature. A body the life does not thaw keeps what it had.
+
+generation-output: changed (only bodies whose life thaws an icy ground)
+
+TODO items resolved: GEN.1385.
+
 ## [8.0.3700] - 2026-11-08
 
 **Headline:** A rocky world with liquid water and a heat engine now also carries its hydrothermal and uranium deposits (porphyry copper, seafloor sulfide, basin zinc-lead, orogenic and epithermal gold, roll-front uranium), in the same table as its magmatic and sedimentary ore.
