@@ -16,8 +16,14 @@ uniform. [R0722: Tables 2 and 3] (READ) gives the sequence, and `data/neutron_st
   free neutrons: zirconium (Z = 40) to 1.5e12, tin (Z = 50) from 6e12 to 3.4e13, zirconium and germanium toward the bottom. The labels count the
   nucleons of the whole cell, most of them the free gas, not the cluster.
 
-The pasta phases that follow, and the core of neutrons, protons and electrons beyond, are not in the table (the review gives them in words, and
-`physics/neutron_star_structure` marks the crust-core density at 0.08 fm^-3, row NS1). There is no stable bulk neutron solid outside a star, so the
+* **The nuclear pasta** (GEN.1427), the bottom layer of the crust: where the nuclei crowd (from 0.2 of the normal nuclear density, `PASTA`) the energy of
+  the system falls by merging them into rods, slabs and the inverse shapes, so the cells of the Negele and Vautherin table above give way to gnocchi,
+  spaghetti, lasagna, then the inverses (cylindrical bubbles, then spherical bubbles of the neutron gas) down to the crust-core boundary, `neutron_star_structure.CRUST_CORE_DENSITY_FM3`
+  (0.08 fm^-3, row NS1). The layer is about 100 m thick and may hold half the mass of the crust [R5167] (READ). It is a prediction of calculations, not an
+  observation (evidence status: predicted only), so the page says so; there is one layer row, the order of the shapes is the review's, and the densities where one
+  shape gives way to the next are not given by it.
+
+The core of neutrons, protons and electrons beyond is not in the table. There is no stable bulk neutron solid outside a star, so the
 matter has no row in the materials table.
 
 The sequence is the same for every neutron star (no star-dependent draw), so the module holds data and readers only: the neutron star page shows it
@@ -28,8 +34,11 @@ import json
 import os
 from dataclasses import dataclass
 
-from planetgen.physics import elements
+from planetgen.physics import elements, neutron_star_structure
 from planetgen.physics.elements import DataError
+
+G_CM3_PER_FM3 = 1.66053906660e-24 * 1.0e39
+"""float: One baryon per fm^3 in g/cm3 (the atomic mass unit in g times the 1e39 fm^3 in a cm3), to give the pasta's densities in the table's unit."""
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "neutron_star_crust.json")
 """str: The data file."""
@@ -53,6 +62,27 @@ class OuterNucleus:
 
 
 @dataclass(frozen=True)
+class PastaShape:
+    """One shape of the nuclear pasta, `name` its nickname and `shape` what the matter looks like."""
+
+    name: str
+    shape: str
+
+
+@dataclass(frozen=True)
+class Pasta:
+    """The nuclear pasta layer (GEN.1427): `shapes` from the top of the layer down (rising density), the density range `lower_g_cm3` to `upper_g_cm3`, g/cm3, the
+    thickness `thickness_m`, m, the most of the crust's mass it may hold, `crust_mass_share_at_most`, and the evidence status."""
+
+    shapes: tuple
+    lower_g_cm3: float
+    upper_g_cm3: float
+    thickness_m: float
+    crust_mass_share_at_most: float
+    evidence: str
+
+
+@dataclass(frozen=True)
 class InnerCell:
     """A cell of the inner crust at `density_g_cm3`: a cluster of `protons` protons (the element `symbol`) in a gas of free neutrons; the nucleons
     of the whole cell are `nucleons_in_cell`, `neutrons_in_cell` of them neutrons."""
@@ -70,7 +100,7 @@ class InnerCell:
 
 
 def load(path=DATA_FILE):
-    """Reads and checks the file at `path`: `(outer crust, inner crust, neutron drip density)`; a row that does not add up is refused."""
+    """Reads and checks the file at `path`: `(outer crust, inner crust, neutron drip density, pasta)`; a row that does not add up is refused."""
     try:
         with open(path, encoding="utf-8") as handle:
             document = json.load(handle)
@@ -107,12 +137,26 @@ def load(path=DATA_FILE):
     drip = float(number(document.get("neutron_drip_g_cm3"), "the neutron drip density"))
     if drip != outer[-1].max_density_g_cm3 or inner[0].density_g_cm3 <= drip:
         raise DataError("the outer crust ends at neutron drip and the inner crust starts below it")
-    return tuple(outer), tuple(inner), drip
+    raw = document.get("pasta") or {}
+    shapes = tuple(PastaShape(str(item.get("name") or ""), str(item.get("shape") or "")) for item in raw.get("shapes") or [])
+    if len(shapes) < 3 or not all(item.name and item.shape for item in shapes):
+        raise DataError("the pasta needs its shapes, each with a name and a description")
+    saturation = float(number(raw.get("saturation_density_fm3"), "the normal nuclear density"))
+    fraction = float(number(raw.get("lower_fraction_of_saturation"), "the pasta's lower density fraction"))
+    lower = fraction * saturation * G_CM3_PER_FM3
+    if not lower < neutron_star_structure.CRUST_CORE_DENSITY_FM3 * G_CM3_PER_FM3:
+        raise DataError("the pasta starts above the crust-core boundary")
+    share = float(number(raw.get("crust_mass_share_at_most"), "the pasta's share of the crust mass"))
+    if share > 1.0:
+        raise DataError("the pasta's share of the crust mass is a fraction")
+    pasta = Pasta(shapes, lower, neutron_star_structure.CRUST_CORE_DENSITY_FM3 * G_CM3_PER_FM3, float(number(raw.get("thickness_m"), "the pasta's thickness")), share,
+                  str(raw.get("evidence") or ""))
+    return tuple(outer), tuple(inner), drip, pasta
 
 
-OUTER_CRUST, INNER_CRUST, NEUTRON_DRIP_G_CM3 = load()
-"""The nuclei of the outer crust from the surface down (`OuterNucleus`), the cells of the inner crust from the top (`InnerCell`) and the density
-of neutron drip, g/cm3."""
+OUTER_CRUST, INNER_CRUST, NEUTRON_DRIP_G_CM3, PASTA = load()
+"""The nuclei of the outer crust from the surface down (`OuterNucleus`), the cells of the inner crust from the top (`InnerCell`), the density
+of neutron drip, g/cm3, and the nuclear pasta layer at the bottom (`Pasta`, GEN.1427)."""
 
 CRUST_BOTTOM_G_CM3 = INNER_CRUST[-1].density_g_cm3
 """float: The density of the deepest tabulated cell, g/cm3 (the table stops short of the crust-core transition)."""
