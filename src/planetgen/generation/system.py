@@ -36,7 +36,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, condition_request, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, resonant_chains
@@ -385,7 +385,6 @@ class StarSystem:
         # trim can take the forced belt or habitable world that the attempts above kept. The attempts then run again
         # once, placing under the settled age, before the request is given up as unmet.
         self.build_ledger()
-        self._request_unreachable = False
         self._request_draws_left = tuning.REQUEST_PLANET_DRAW_BUDGET
         for _round in range(2):
             for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
@@ -433,9 +432,8 @@ class StarSystem:
 
                     habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
                     belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
-                    class_satisfied = self._forced_class_present()
                     habitable_stands = self._habitable_request_stands()
-                if habitable_stands and belt_satisfied and class_satisfied:
+                if habitable_stands and belt_satisfied:
                     log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
                               f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
                               f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
@@ -444,8 +442,6 @@ class StarSystem:
                 log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
                           f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
                           f"required and found: {belt_satisfied})")
-                if self._request_unreachable:
-                    break
 
             if remnant_orbits.is_post_agb_pair(self.star):
                 remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
@@ -474,17 +470,16 @@ class StarSystem:
             self._settle_to_final_age()
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
-            class_satisfied = self._forced_class_present()
             # A request for a habitable world is not drawn a second time under the settled age: it only raises odds, and a system that did
-            # not stand has had its tries.
-            if (belt_satisfied and class_satisfied) or _round or self._request_unreachable:
+            # not stand has had its tries. A request for a class or for conditions (GEN.688) never redraws the system: it is judged on the finished planets.
+            if belt_satisfied or _round:
                 break
             draw.redrawn("system.planets_regenerated_after_age")
         self.unmet_requirements = []
         if not belt_satisfied:
             self.unmet_requirements.append("an asteroid belt")
-        if not class_satisfied:
-            self.unmet_requirements.append(f"a planet of class {self.system_config.FORCE_CLASS}")
+        if not self._forced_class_present():
+            self.unmet_requirements.append(f"a planet of {self._forced_request().words()}")
         forced = self._forced_star_count()
         if forced is not None and len(self.stars) != forced and forced > 1:
             # A star under the hydrogen-burning limit has no lighter star to be its companion (GEN.631); a brown dwarf is no
@@ -575,9 +570,11 @@ class StarSystem:
                     ocean_tides.generate(moon, obj)
             # The final pass can change a class, so a forced class is judged again on the final classes: one the final pass took away is
             # unmet, one it gave is met.
-            wanted = f"a planet of class {self.system_config.FORCE_CLASS}"
+            wanted = f"a planet of {self._forced_request().words()}" if self._forced_request() is not None else None
             present = self._forced_class_present()
-            if not present and wanted not in self.unmet_requirements:
+            if wanted is None:
+                pass
+            elif not present and wanted not in self.unmet_requirements:
                 self.unmet_requirements.append(wanted)
             elif present and wanted in self.unmet_requirements:
                 self.unmet_requirements.remove(wanted)
@@ -1220,16 +1217,14 @@ class StarSystem:
         else:
             self.architectures.append((star, plan.architecture))
 
-        forced_class = self.system_config.FORCE_CLASS if apply_guarantees else None
-        if forced_class and self.system_config.SLOTS:
-            raise ValueError("FORCE_CLASS cannot be combined with SLOTS: a slot already names its class.")
-        if forced_class and forced_class not in tuning.PLANET_CLASSES:
-            raise ValueError(f"FORCE_CLASS {forced_class!r} is not a planet class.")
-        if forced_class:
+        forced = self._forced_request() if apply_guarantees else None
+        if forced is not None and self.system_config.SLOTS:
+            raise ValueError("FORCE_CLASS and FORCE_CONDITIONS cannot be combined with SLOTS: a slot already names its request.")
+        if forced is not None:
             system_objects = max(system_objects, 1)
         slots = (self.system_config.SLOTS or []) if apply_guarantees else []
-        if forced_class and not slots:
-            slots = [{"type": "planet", "planet_class": forced_class}]
+        if forced is not None and not slots:
+            slots = [{"type": "planet", **self._forced_spec()}]
         disk_edge_au = self._disk_outer_edge_au(star)
 
         if system_objects > 0:
@@ -1498,10 +1493,25 @@ class StarSystem:
         in_ecosphere = any(planet.body_type == "t" and getattr(planet, "zone", None) == "e" for planet in self.planets)
         return request_odds.keeps(in_ecosphere or habitable_request.count(self.planets) > 0)
 
+    def _forced_spec(self):
+        """The slot keys the config's `FORCE_CLASS` (a class letter, sugar) or `FORCE_CONDITIONS` stands for."""
+        if self.system_config.FORCE_CLASS is not None and self.system_config.FORCE_CONDITIONS is not None:
+            raise ValueError("FORCE_CLASS and FORCE_CONDITIONS cannot both be set: name a class or conditions.")
+        if self.system_config.FORCE_CLASS is not None:
+            return {"planet_class": self.system_config.FORCE_CLASS}
+        return {"conditions": self.system_config.FORCE_CONDITIONS}
+
+    def _forced_request(self):
+        """The `condition_request.Request` the config forces a planet of (`FORCE_CLASS` as sugar for a class's conditions, or `FORCE_CONDITIONS`); `None` when it forces none."""
+        if self.system_config.FORCE_CLASS is None and self.system_config.FORCE_CONDITIONS is None:
+            return None
+        spec = self._forced_spec()
+        return condition_request.from_spec(spec.get("planet_class"), spec.get("conditions"))
+
     def _forced_class_present(self):
-        """Whether the system holds a planet of `system_config.FORCE_CLASS` (True when none is forced)."""
-        letter = self.system_config.FORCE_CLASS
-        return not letter or any(getattr(planet, "planet_class", None) == letter for planet in self.planets)
+        """Whether the system holds a planet that meets the request the config forces (True when it forces none): judged on the finished planets' conditions, never on their letter."""
+        request = self._forced_request()
+        return request is None or any(condition_request.meets(request, planet) for planet in self.planets)
 
     def _apply_star_history(self, planets, star):
         """
@@ -1864,20 +1874,20 @@ class StarSystem:
             star: The star the slot orbits (a belt reads its stored snow line, GEN.442).
             slot_spec (dict): The slot specification, with a required "type"
                               key ("planet" or "asteroid_belt") and optional
-                              "planet_class"/"moons" keys (see `SystemConfig.SLOTS`).
+                              "planet_class" (sugar for a class's conditions), "conditions" and "moons" keys (see `SystemConfig.SLOTS`).
             estimated_distance (float): The orbital distance (in AU) computed
                                         for this slot by the generation loop.
             planets (list, optional): Objects already placed earlier in this
-                same loop, passed through to `calculate_distance_for_class`
-                so an explicit class request doesn't land inside an
+                same loop, passed through to `calculate_distance_for_request`
+                so an explicit request doesn't land inside an
                 already-placed belt (see `_distance_avoiding_belts`).
 
         Returns:
             Planet or AsteroidBelt: The generated object for this slot.
 
         Raises:
-            ValueError: If `slot_spec["type"]` is not "planet" or "asteroid_belt", or a planet slot names an unknown class or a class that
-                can carry life while `HABITABLE_WORLD` is False.
+            ValueError: If `slot_spec["type"]` is not "planet" or "asteroid_belt", or a planet slot names an unknown class or conditions that cannot be read
+                (`condition_request.RequestError`), or both a class and conditions.
         """
         slot_type = slot_spec.get("type", "planet")
 
@@ -1887,78 +1897,60 @@ class StarSystem:
             return AsteroidBelt(self.system_config, star, estimated_distance, min_distance, max_distance)
 
         if slot_type == "planet":
-            planet_class = slot_spec.get("planet_class")
-            distance = self.calculate_distance_for_class(planet_class, estimated_distance, planets=planets)
-            return self.build_planet(self.star, self.star.habitable_zone, distance, planet_class=planet_class,
-                                     moon_count=slot_spec.get("moons"))
+            request = condition_request.from_spec(slot_spec.get("planet_class"), slot_spec.get("conditions"))
+            distance = self.calculate_distance_for_request(request, estimated_distance, planets=planets)
+            return self.build_planet(self.star, self.star.habitable_zone, distance, request=request, moon_count=slot_spec.get("moons"))
 
         raise ValueError(f"Invalid slot type '{slot_type}'; expected 'planet' or 'asteroid_belt'.")
 
-    def calculate_distance_for_class(self, planet_class, estimated_distance, planets=None):
+    def calculate_distance_for_request(self, request, estimated_distance, planets=None):
         """
-        Adjusts an orbital distance for a requested `planet_class` (GEN.688). A class is derived from a finished body's conditions,
-        so no zone is named by it; the one request that has a place is a class that can carry life (`HABITABLE_PLANET_CLASSES`),
-        which only a world in the ecosphere can be, so it is snapped into the ecosphere (the same way the forced habitable world
-        is). Any other class keeps `estimated_distance`, and the body is drawn there (`build_planet`).
+        Adjusts an orbital distance for a slot's `request` (GEN.688). The one request that has a place is one that can only be met in the ecosphere, a rocky body
+        whose mean surface temperature must lie between the freezing point and `tuning.REQUEST_ECOSPHERE_TEMPERATURE_K`'s high end
+        (`condition_request.wants_ecosphere`); it is snapped into the ecosphere (the same way the forced habitable world is). Any other request keeps
+        `estimated_distance`, and the body is drawn there (`build_planet`). No class letter chooses the place.
 
         Args:
-            planet_class (str or None): The requested planet class, or None if the slot doesn't specify one.
+            request (condition_request.Request or None): The slot's request, or None if the slot names none.
             estimated_distance (float): The orbital distance (in AU) computed for this slot by the generation loop.
             planets (list, optional): Objects already placed earlier in this same loop -- passed through to
                 `_distance_within_zone_with_margin` so the adjusted distance doesn't land inside an already-placed belt.
 
         Returns:
-            float: `estimated_distance`, or a distance (in AU) in the ecosphere for a class that can carry life.
+            float: `estimated_distance`, or a distance (in AU) in the ecosphere for a request only a temperate world can meet.
         """
-        if planet_class not in tuning.HABITABLE_PLANET_CLASSES:
+        if request is None or not condition_request.wants_ecosphere(request):
             return estimated_distance
         inner, outer = self.star.habitable_zone
         if inner < estimated_distance < outer:
             return estimated_distance
         return self._distance_within_zone_with_margin(inner, outer, planets=planets)
 
-    def build_planet(self, star, habitable_zone, distance, planet_class=None, moon_count=None, planned_objects=None):
+    def build_planet(self, star, habitable_zone, distance, request=None, moon_count=None, planned_objects=None):
         """
-        A planet at `distance`, drawn again until it is the one a slot names (GEN.688): its derived class is `planet_class`. Each draw is a
-        whole planet (a new mass, make and air from the stream); after `CLASS_REQUEST_FREE_ATTEMPTS` misses the mass is drawn log-uniformly
-        over all the masses a planet has. With no class this is one `Planet`. The last draw is kept when `REQUEST_MAX_PLANET_ATTEMPTS` draws
-        miss, and the system's own retry (`MAX_SYSTEM_GENERATION_ATTEMPTS`) then judges the request. A request for a habitable world is no
-        class and is not built here: it only raises the odds (`_planet_in_ecosphere`, GEN.1130).
+        A planet at `distance`, drawn again until it meets a slot's `request` (GEN.688): each draw is a whole planet as the generator makes it
+        (a new mass, make and air from the stream, never steered, never a mass drawn for the request), judged on its finished conditions
+        (`condition_request.meets`), never on its class letter. The last draw is kept when `REQUEST_MAX_PLANET_ATTEMPTS` draws miss; the system then reports the request unmet
+        (`unmet_requirements`) and does not draw the whole system again for it. With no request
+        this is one `Planet`. A request for a habitable world is no request here: it only raises the odds (`_planet_in_ecosphere`, GEN.1130).
 
         Args:
             star (Star): The star the planet orbits.
             habitable_zone (tuple): `(inner_au, outer_au)`.
             distance (float): Its orbital distance in AU.
-            planet_class (str, optional): The class the finished planet must have.
+            request (condition_request.Request, optional): The conditions the finished planet must meet.
             moon_count (int, optional): As `Planet`'s; the moons are added to the planet that is kept, not to every draw.
 
         Returns:
             Planet: The planet.
         """
-        if planet_class is not None and planet_class not in tuning.PLANET_CLASSES:
-            raise ValueError(f"Unknown planet class {planet_class!r}; expected one of {''.join(sorted(tuning.PLANET_CLASSES))}.")
-        if planet_class in tuning.HABITABLE_PLANET_CLASSES and self.system_config.HABITABLE_WORLD is False:
-            raise ValueError(f"A slot asks for a class {planet_class} planet, which can carry life, but HABITABLE_WORLD is False.")
-        if planet_class is None:
+        if request is None:
             return Planet(self.system_config, star, habitable_zone, distance, moon_count=moon_count, planned_objects=planned_objects)
-        for attempt in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
-            # A request for a class is left to chance, and then draws a mass log-uniformly over all the masses a planet has (the
-            # architecture's disk makes few ice giants at a cold slot, so chance alone can miss that class for the whole run of draws).
-            given = {}
-            if attempt >= tuning.CLASS_REQUEST_FREE_ATTEMPTS:
-                given["mass"] = _mearth_to_kg(math.exp(draw.uniform(*(math.log(m) for m in tuning.CLASS_REQUEST_MASS_EARTH))))
-                # GEN.1323: every rocky planet of 1 to 20 Earth masses captures an envelope that only a close star strips, so a class that needs a
-                # dense bare core (V, 2 g or more) is out of reach of the envelope draw at most places; every other draw after the free ones is a
-                # core that finished growing after the gas disk went (rare in the population, so a request is its only way to it)
-                given["late_core"] = (attempt - tuning.CLASS_REQUEST_FREE_ATTEMPTS) % tuning.CLASS_REQUEST_LATE_CORE_EVERY == tuning.CLASS_REQUEST_LATE_CORE_EVERY - 1
-            planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
-            if planet.planet_class == planet_class:
+        for _attempt in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
+            planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects)
+            if condition_request.meets(request, planet):
                 break
             draw.redrawn("planet.request_missed")
-        else:
-            # No draw at this place made what was asked: drawing the whole system again at the same star would miss the same way, so the
-            # request is left unmet.
-            self._request_unreachable = True
         planet.add_moons(moon_count)
         return planet
 
@@ -2483,5 +2475,4 @@ from planetgen.generation import object_timing  # noqa: E402 -- registers the ge
 
 _kg_to_msun = units.converter("kg", "Msun")
 _kg_to_mearth = units.converter("kg", "Mearth")
-_mearth_to_kg = units.converter("Mearth", "kg")
 object_timing.track(StarSystem, "system")

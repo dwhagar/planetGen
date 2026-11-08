@@ -7,7 +7,7 @@ A sample that holds every class (GEN.791)
 Random generation hardly ever draws some classes (under 30 planets of O, P, T, V, E, K, L, N, F and G in 400 systems), so a
 check that needs a number of bodies of every class (the property sheet fill audit, `describe/sheet.py`, UX.208) cannot
 use a plain sample. `fill` tops a sample up with systems generated under `SystemConfig.FORCE_CLASS`, which gives each one at
-least one planet of the asked class, until every class has enough planets or the tries run out. A test and admin helper:
+least one planet that meets the asked class's conditions (`condition_request.from_letter`, GEN.688), until every class has enough planets or the tries run out. A test and admin helper:
 default generation never sets the switch.
 
 Use:

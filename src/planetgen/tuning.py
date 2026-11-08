@@ -221,18 +221,10 @@ GIANT_DENSITY_BOUNDS_G_CM3 = (0.05, 60.0)
 GIVEN_MASS_KG_BOUNDS = (1.0e12, 2.47e28)
 GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 
-# How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`) draws at its distance before it keeps the last
-# (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
+# How many planets a request that names conditions (a slot's `planet_class` as sugar, its `conditions`, `FORCE_CLASS`, `FORCE_CONDITIONS`) draws at its distance before it
+# keeps the last (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`). Every draw is the
+# generator's own: no mass is drawn for a request and no formation branch is added (GEN.688).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
-CLASS_REQUEST_FREE_ATTEMPTS = 8
-CLASS_REQUEST_LATE_CORE_EVERY = 2
-"""int: After the free attempts of a class request, every this-many-th draw is a core that finished growing after the gas disk went and captured no envelope
-(GEN.1323, `Planet(late_core=True)`): a class that needs a bare dense core (V, 2 g or more) is out of reach of the envelope draw at most places. A planetGen
-stand-in (tier T9, tweak L3; registry row EC7)."""
-CLASS_REQUEST_MASS_EARTH = (0.05, 1000.0)
-"""int, tuple: A request for a planet class (a slot's `planet_class`, `FORCE_CLASS`) is first left to chance for this many draws; the draws
-after it take a mass log-uniform over this range in Earth masses, so a class the disk rarely makes at that slot (an ice giant at a cold
-one) is still reached inside `REQUEST_MAX_PLANET_ATTEMPTS`. A planetGen stand-in (tier T9, tweak L3; registry row PA14)."""
 # What a request for a habitable world asks of a finished planet or moon (GEN.916, `generation/habitable_request.py`): conditions, not a
 # class letter. The surface temperature range is the liquid-water range, the pressure floor is the air a world must hold to count as having
 # any (10 kPa), and the water a surface ocean.

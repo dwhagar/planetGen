@@ -3,7 +3,7 @@ System builder internals (TODO TEST.32).
 
 Direct tests of the `StarSystem` placement helpers that the validate
 module (`planetgen/generation/validation.py`, ADM.5) wraps or sits beside:
-`generate_slot_object`, `calculate_distance_for_class`, `build_planet`,
+`generate_slot_object`, `calculate_distance_for_request`, `build_planet`,
 `_trim_to_orbit_ceiling`,
 `_reconcile_moved_planet`, `_clear_circumbinary_floor`, and the
 `from_dict` newer-schema error. Systems are built planet-less so each
@@ -11,7 +11,7 @@ helper is exercised on hand-placed bodies.
 """
 import pytest
 
-from planetgen.generation import system as systemData
+from planetgen.generation import condition_request, system as systemData
 from planetgen import tuning
 from planetgen.physics import constants, daylight, planet_classes, planets as planetPhysics
 from planetgen.physics import unit_registry as units
@@ -85,10 +85,21 @@ def test_slot_asteroid_belt_spans_from_the_estimated_distance(system):
 
 def test_slot_planet_honours_class_and_moon_count(system):
     cold = system.star.habitable_zone[1] * 4
-    obj = system.generate_slot_object(system.star, {"type": "planet", "planet_class": "I", "moons": 2}, cold)
+    obj = system.generate_slot_object(system.star, {"type": "planet", "planet_class": "J", "moons": 2}, cold)
     assert isinstance(obj, Planet)
-    assert obj.planet_class == "I" and obj.distance == cold
+    assert condition_request.meets(condition_request.from_letter("J"), obj) and obj.distance == cold       # judged on its conditions, never drawn by the letter
     assert len(obj.moons) <= 2
+
+
+def test_slot_planet_takes_conditions_and_meets_them(system):
+    cold = system.star.habitable_zone[1] * 4
+    obj = system.generate_slot_object(system.star, {"type": "planet", "conditions": {"kind": "g", "mass_earth": [35.0, None]}, "moons": 0}, cold)
+    assert obj.body_type == "g" and obj.mass > 35.0 * constants.EARTH_MASS_TO_KG and obj.moons == []
+
+
+def test_slot_planet_with_a_class_and_conditions_is_refused(system):
+    with pytest.raises(ValueError, match="not both"):
+        system.generate_slot_object(system.star, {"type": "planet", "planet_class": "J", "conditions": {"kind": "g"}}, 5.0)
 
 
 def test_slot_type_defaults_to_planet(system):
@@ -96,10 +107,9 @@ def test_slot_type_defaults_to_planet(system):
     assert isinstance(obj, Planet) and obj.body_type in ('t', 'g')
 
 
-def test_a_slot_for_a_class_that_can_carry_life_is_placed_in_the_ecosphere(system):
-    """A class that can carry life asked for in a cold-zone slot is placed in the habitable zone instead of failing."""
-    letter = sorted(tuning.HABITABLE_PLANET_CLASSES)[0]
-    distance = system.calculate_distance_for_class(letter, system.star.habitable_zone[1] * 5)
+def test_a_slot_for_a_temperate_surface_is_placed_in_the_ecosphere(system):
+    """A request only a temperate world can meet, asked for in a cold-zone slot, is placed in the habitable zone instead of failing."""
+    distance = system.calculate_distance_for_request(WARM, system.star.habitable_zone[1] * 5)
     assert zone_of(system, distance) == 'e'
 
 
@@ -109,28 +119,32 @@ def test_slot_with_an_unknown_type_raises(system, slot_type):
         system.generate_slot_object(system.star, {"type": slot_type}, 1.0)
 
 
-# --- calculate_distance_for_class -----------------------------------------
+# --- calculate_distance_for_request ---------------------------------------
 
-@pytest.mark.parametrize("planet_class", [None, "Z", "not-a-class", "J", "A", "T"])
-def test_distance_unchanged_for_no_class_or_a_class_no_zone_belongs_to(system, planet_class):
-    """A class is derived from a finished body, so only a class that can carry life has a place (GEN.688)."""
-    assert system.calculate_distance_for_class(planet_class, 7.25) == 7.25
+WARM = condition_request.from_conditions({"temperature_k": [275.0, 330.0], "pressure_pa": [10000.0, None]})
+"""Request: a rocky body with a mean surface temperature of 275 to 330 K and an air, which only the ecosphere gives."""
 
 
-def test_distance_unchanged_when_the_life_class_already_fits(system):
+@pytest.mark.parametrize("request_", [None, condition_request.from_letter("E"), condition_request.from_letter("J"), condition_request.from_letter("A"),
+                                      condition_request.from_conditions({"temperature_k": [100.0, 200.0]}), condition_request.from_conditions({"mass_earth": [1.0, 5.0]})])
+def test_distance_unchanged_for_no_request_or_one_no_zone_belongs_to(system, request_):
+    """Only a request for a surface between freezing and the hot-air limit has a place (GEN.688); a deep-frozen world, a giant or an asteroid keeps its slot's."""
+    assert system.calculate_distance_for_request(request_, 7.25) == 7.25
+
+
+def test_distance_unchanged_when_the_request_already_fits_the_zone(system):
     inner, outer = system.star.habitable_zone
     distance = (inner + outer) / 2
-    for letter in tuning.HABITABLE_PLANET_CLASSES:
-        assert system.calculate_distance_for_class(letter, distance) == distance
+    for letter in ("M", "G"):
+        assert system.calculate_distance_for_request(condition_request.from_letter(letter), distance) == distance
 
 
-def test_a_life_class_is_moved_inside_the_zone_with_margin(system):
+def test_a_temperate_request_is_moved_inside_the_zone_with_margin(system):
     inner, outer = system.star.habitable_zone
     margin = min(tuning.MIN_ASTEROID_BELT_SEPARATION, (outer - inner) / 4)
-    letter = sorted(tuning.HABITABLE_PLANET_CLASSES)[0]
     for estimated in (inner * 0.1, outer * 10):
         for _ in range(DRAWS):
-            distance = system.calculate_distance_for_class(letter, estimated)
+            distance = system.calculate_distance_for_request(WARM, estimated)
             assert inner + margin <= distance <= outer - margin
 
 
@@ -139,13 +153,13 @@ def test_ecosphere_draw_avoids_a_belt_in_the_zone(system):
     mid = (inner + outer) / 2
     placed = [belt(system, mid - 0.1, mid + 0.1)]
     for _ in range(DRAWS):
-        distance = system.calculate_distance_for_class(sorted(tuning.HABITABLE_PLANET_CLASSES)[0], outer * 5, planets=placed)
+        distance = system.calculate_distance_for_request(WARM, outer * 5, planets=placed)
         assert inner <= distance <= outer
         assert not (mid - 0.1 < distance < mid + 0.1)
 
 
 def test_distance_returned_is_a_float(system):
-    assert isinstance(system.calculate_distance_for_class(sorted(tuning.HABITABLE_PLANET_CLASSES)[0], 100.0), float)
+    assert isinstance(system.calculate_distance_for_request(WARM, 100.0), float)
 
 
 # --- _trim_to_orbit_ceiling -----------------------------------------------

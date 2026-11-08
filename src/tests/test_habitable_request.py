@@ -143,7 +143,8 @@ def test_a_request_for_a_letter_alone_does_not_move_the_orbit(system, monkeypatc
             pass
 
     monkeypatch.setattr(systemData, "Planet", Recorder)
-    system.build_planet(system.star, system.star.habitable_zone, 1.0, planet_class="D")
+    monkeypatch.setattr(systemData.condition_request, "meets", lambda request, body: True)
+    system.build_planet(system.star, system.star.habitable_zone, 1.0, request=systemData.condition_request.from_letter("D"))
     assert set(seen) == {1.0}
 
 

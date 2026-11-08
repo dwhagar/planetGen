@@ -39,12 +39,20 @@ SERIALIZABLE_FIELDS = [
 class SystemConfig:
     FORCE_CLASS = None
     """
-    str or None: A planet class letter (e.g. "O") the system must hold at least one planet of (GEN.791). A test and admin
-    option for a sample that needs every class (`generation/class_sample.py`), not a recipe field: a class attribute, so a
-    config holds it only when a caller sets it, it is not saved with the system and a default run never sets it. The first
-    orbital slot is that class, placed in a zone that allows it (`StarSystem.calculate_distance_for_class`), and a system
-    whose attempts all lost the planet reports "a planet of class X" in `StarSystem.unmet_requirements`. It cannot be
-    combined with `SLOTS` (slots already name classes). Defaults to None.
+    str or None: A planet class letter (e.g. "O") the system must hold at least one planet of (GEN.791), as sugar: the letter stands for that class's own
+    conditions in `physics/data/planet_class_fit.json` (`generation/condition_request.from_letter`), and a finished planet meets the request when every one of them
+    holds, whatever letter the classifier gives it (GEN.688). A test and admin option for a sample that needs every class (`generation/class_sample.py`), not a
+    recipe field: a class attribute, so a config holds it only when a caller sets it, it is not saved with the system and a default run never sets it. The first
+    orbital slot is that request, placed in the ecosphere only when its temperature allows nowhere else (`StarSystem.calculate_distance_for_request`), and a
+    system whose attempts all lost the planet reports "a planet of class X" in `StarSystem.unmet_requirements`. It cannot be combined with `SLOTS` (slots already
+    name their requests) or with `FORCE_CONDITIONS`. Defaults to None.
+    """
+
+    FORCE_CONDITIONS = None
+    """
+    dict or None: The conditions a planet of the system must meet, as `condition_request.from_conditions` reads them: `"kind"` (`"t"` or `"g"`), `"air"`, and a
+    `[low, high]` range for any quantity of the classes (`mass_earth`, `gravity_g`, `temperature_k`, `pressure_pa`, `o2_partial_pa`, ...) (GEN.688). Like `FORCE_CLASS`,
+    a class attribute that is not saved with the system. Defaults to None.
     """
 
     FORCE_ODDITIES = None
@@ -221,9 +229,15 @@ class SystemConfig:
         `None` (meaning that slot is left to normal random generation) or a
         dict with the keys:
             - "type": "planet" or "asteroid_belt" (required).
-            - "planet_class": a specific planet class letter (e.g. "M"),
-              only used when type is "planet". Optional; if omitted, a class
-              is chosen normally for the slot's zone.
+            - "planet_class": a planet class letter (e.g. "M"), only used when
+              type is "planet", as sugar for that class's own conditions (GEN.688):
+              the planet that is built is any planet that meets them, judged on
+              the finished body and never drawn by the letter. Optional.
+            - "conditions": instead of a letter, the conditions of the planet
+              (`generation/condition_request.from_conditions`: "kind", "air" and
+              a [low, high] range for a quantity such as "mass_earth",
+              "temperature_k" or "pressure_pa"). Not with "planet_class". If
+              neither is given, the planet is drawn normally for the slot.
             - "moons": an exact integer number of moons to generate for the
               planet (0 for none). Optional; if omitted, moon generation
               falls back to the MOONS setting/random chance.

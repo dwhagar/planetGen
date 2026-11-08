@@ -17,8 +17,15 @@ def _earth(**changes):
 def test_a_letter_is_sugar_for_the_conditions_of_its_class():
     request = cr.from_letter("G")
     cls = next(c for c in class_fit.CLASSES if c.letter == "G")
-    assert request.kind == "t" and request.air is True and request.when == cls.when and request.letter == "G"
+    (option,) = request.options
+    assert option.kind == "t" and option.air is True and option.when == cls.when and request.letter == "G"
     assert request.words() == "class G"
+
+
+def test_a_letter_two_kinds_share_is_either_of_them():
+    request = cr.from_letter("T")
+    assert {option.kind for option in request.options} == {"g", "t"}
+    assert cr.meets(request, _earth(body_type="g", mass_earth=5.0)) and not cr.meets(request, _earth(body_type="g", mass_earth=50.0))
 
 
 def test_a_letter_that_is_no_class_is_refused():
@@ -28,9 +35,10 @@ def test_a_letter_that_is_no_class_is_refused():
 
 def test_conditions_become_the_fit_tables_own_shape():
     request = cr.from_conditions({"kind": "t", "air": True, "temperature_k": [273.15, 323.15], "gravity_g": [0.5, None], "phase_water": "surface ocean"})
-    assert {"quantity": "temperature_k", "min": 273.15} in request.when and {"quantity": "temperature_k", "lt": 323.15} in request.when
-    assert {"quantity": "gravity_g", "min": 0.5} in request.when and {"quantity": "gravity_g", "lt": None} not in request.when
-    assert {"quantity": "phase_water", "equals": "surface ocean"} in request.when
+    (option,) = request.options
+    assert {"quantity": "temperature_k", "min": 273.15} in option.when and {"quantity": "temperature_k", "lt": 323.15} in option.when
+    assert {"quantity": "gravity_g", "min": 0.5} in option.when and {"quantity": "gravity_g", "lt": None} not in option.when
+    assert {"quantity": "phase_water", "equals": "surface ocean"} in option.when
     assert "temperature_k at least 273.15" in request.words()
 
 
@@ -78,6 +86,7 @@ def test_a_request_for_a_warm_but_not_hot_surface_is_placed_in_the_ecosphere_and
     assert cr.wants_ecosphere(cr.from_letter("M")) and cr.wants_ecosphere(cr.from_letter("G"))
     assert cr.wants_ecosphere(cr.from_conditions({"temperature_k": [275.0, 330.0]}))
     assert not cr.wants_ecosphere(cr.from_letter("E"))                                 # a deep-frozen world keeps its slot's place
+    assert not cr.wants_ecosphere(cr.from_letter("T"))                                 # a letter a giant class also uses keeps it too
     assert not cr.wants_ecosphere(cr.from_conditions({"temperature_k": [273.15, 500.0]}))
     assert not cr.wants_ecosphere(cr.from_conditions({"temperature_k": [200.0, 300.0]}))
     assert not cr.wants_ecosphere(cr.from_conditions({"temperature_k": [300.0, None]}))
@@ -86,12 +95,7 @@ def test_a_request_for_a_warm_but_not_hot_surface_is_placed_in_the_ecosphere_and
     assert tuning.REQUEST_ECOSPHERE_TEMPERATURE_K == (273.15, 400.0)
 
 
-def test_every_letter_of_the_table_that_one_kind_uses_expands_to_a_request():
-    letters = {c.letter for c in class_fit.CLASSES}
-    for letter in letters:
-        try:
-            request = cr.from_letter(letter)
-        except cr.RequestError:
-            assert sum(1 for c in class_fit.CLASSES if c.letter == letter) > 1       # only a letter two kinds share is refused
-            continue
-        assert request.when and request.kind in cr.KINDS
+def test_every_letter_of_the_table_expands_to_a_request():
+    for letter in {c.letter for c in class_fit.CLASSES}:
+        request = cr.from_letter(letter)
+        assert request.options and all(option.when and option.kind in cr.KINDS for option in request.options)

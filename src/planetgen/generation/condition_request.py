@@ -38,12 +38,19 @@ class RequestError(ValueError):
 
 
 @dataclasses.dataclass(frozen=True)
-class Request:
-    """The conditions a planet must meet: its `kind`, the `air` gate (`True` for an air of 10 Pa or more, `False` for none, `None` for either) and each condition in the fit table's own shape."""
+class Option:
+    """One way to meet a request: a `kind`, the `air` gate (`True` for an air of 10 Pa or more, `False` for none, `None` for either) and each condition in the fit table's own shape."""
 
     kind: str
     air: object
     when: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class Request:
+    """The conditions a planet must meet: one `Option`, or several when a class letter is shared by a rocky and a giant class (T), which a body meets by meeting any one."""
+
+    options: tuple
     letter: object = None
     """str or None: The class letter this request is the sugar of, when it came from one (it is only a name for the report; nothing judges by it)."""
 
@@ -51,7 +58,8 @@ class Request:
         """The request as a phrase, for the system's report of an unmet request."""
         if self.letter:
             return f"class {self.letter}"
-        return "these conditions: " + ", ".join(_condition_words(c) for c in self.when) if self.when else f"a body of kind {self.kind}"
+        return " or ".join(
+            ("these conditions: " + ", ".join(_condition_words(c) for c in option.when)) if option.when else f"a body of kind {option.kind}" for option in self.options)
 
 
 def _condition_words(condition):
@@ -65,18 +73,16 @@ def _condition_words(condition):
 
 def from_letter(letter):
     """
-    The request a class letter stands for: the kind, air gate and conditions of that class in the fit table.
+    The request a class letter stands for: the kind, air gate and conditions of that class in the fit table (a letter two kinds share, as T, gives both: a body meets
+    it by meeting either).
 
     Raises:
-        RequestError: The letter is no class, or two kinds of body use it.
+        RequestError: The letter is no class.
     """
     rows = [cls for cls in class_fit.CLASSES if cls.letter == letter]
     if not rows:
         raise RequestError(f"{letter!r} is not a planet class.")
-    if len(rows) > 1:
-        raise RequestError(f"class {letter!r} is used by more than one kind of body; name its conditions instead.")
-    cls = rows[0]
-    return Request(cls.kind, cls.air, cls.when, letter)
+    return Request(tuple(Option(cls.kind, cls.air, cls.when) for cls in rows), letter)
 
 
 def from_conditions(spec):
@@ -118,7 +124,7 @@ def from_conditions(spec):
             when.append({"quantity": quantity, "min": float(low)})
         if high is not None:
             when.append({"quantity": quantity, "lt": float(high)})
-    return Request(kind, air, tuple(when))
+    return Request((Option(kind, air, tuple(when)),))
 
 
 def from_spec(planet_class=None, conditions=None):
@@ -144,7 +150,7 @@ def _holds(condition, found):
 
 
 def meets(request, body):
-    """Whether the finished planet or moon `body` meets every condition of `request` (a low end is reached and a high end is not: no shoulder, a body outside by a little does not meet it)."""
+    """Whether the finished planet or moon `body` meets every condition of one of the options of `request` (a low end is reached and a high end is not: no shoulder, a body outside by a little does not meet it)."""
     body_type = body.get("body_type") if isinstance(body, Mapping) else getattr(body, "body_type", None)
     if body_type not in KINDS:
         return False
@@ -152,21 +158,27 @@ def meets(request, body):
         found = class_fit.found_quantities(body)
     except planet_classes.ClassError:
         return False
-    if found["body_type"] != request.kind:
+    return any(_option_met(option, found) for option in request.options)
+
+
+def _option_met(option, found):
+    if found["body_type"] != option.kind:
         return False
-    if request.air is not None and request.kind == planet_classes.TERRESTRIAL and (found["pressure_pa"] >= class_fit.GATE_PRESSURE_PA) != request.air:
+    if option.air is not None and option.kind == planet_classes.TERRESTRIAL and (found["pressure_pa"] >= class_fit.GATE_PRESSURE_PA) != option.air:
         return False
-    return all(_holds(condition, found) for condition in request.when)
+    return all(_holds(condition, found) for condition in option.when)
 
 
 def wants_ecosphere(request):
     """
-    Whether only a world in the ecosphere can meet `request`: a rocky body that must have a mean surface temperature of at least the freezing point and under
-    `tuning.REQUEST_ECOSPHERE_TEMPERATURE_K`'s high end. A request with no such temperature (a cold world, a hot one, a giant) keeps the place its slot has.
+    Whether only a world in the ecosphere can meet `request`: every option is a rocky body that must have a mean surface temperature of at least the freezing point and under
+    `tuning.REQUEST_ECOSPHERE_TEMPERATURE_K`'s high end. A request with no such temperature (a cold world, a hot one, a giant, a letter a giant also uses) keeps the place its slot has.
     """
-    if request.kind != planet_classes.TERRESTRIAL:
-        return False
     low_floor, high_ceiling = tuning.REQUEST_ECOSPHERE_TEMPERATURE_K
-    lows = [c["min"] for c in request.when if c["quantity"] == "temperature_k" and "min" in c]
-    highs = [c["lt"] for c in request.when if c["quantity"] == "temperature_k" and "lt" in c]
-    return bool(lows) and bool(highs) and max(lows) >= low_floor and min(highs) <= high_ceiling
+
+    def temperate(option):
+        lows = [c["min"] for c in option.when if c["quantity"] == "temperature_k" and "min" in c]
+        highs = [c["lt"] for c in option.when if c["quantity"] == "temperature_k" and "lt" in c]
+        return option.kind == planet_classes.TERRESTRIAL and bool(lows) and bool(highs) and max(lows) >= low_floor and min(highs) <= high_ceiling
+
+    return all(temperate(option) for option in request.options)
