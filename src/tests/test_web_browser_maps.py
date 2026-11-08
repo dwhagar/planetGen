@@ -981,6 +981,37 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     assert page.locator("#sysview3d").is_hidden() and page.locator("#sysmap-diagram").is_visible()
 
 
+def test_system_page_3d_view_keeps_a_picked_body_when_the_diagram_script_is_slow(page, base_url, site_app):
+    """UX.290: the diagram and the 3D view share the info panel (#sysmap-info). The diagram sets itself up after the page script, so on an
+    address with `?object=` a slow diagram script used to reset the panel to its hint after the 3D view had shown the body. The diagram
+    script is held back here for 4 s (its last import, which only the diagram uses), so it always lands after the pick; the panel keeps the body's name."""
+    import time
+
+    system_id, _scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.click(".sysview-list summary")
+    page.locator("#sysview3d-list button").nth(1).click()
+    assert page.locator("#sysmap-info h3").count() == 1
+    picked = page.locator("#sysmap-info h3").inner_text()
+    address = page.url
+    assert "object=" in address, address
+
+    def slow(route):
+        time.sleep(4)
+        route.continue_()
+
+    page.route("**/systemgravity.js*", slow)
+    page.goto(address, wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_selector("#sysmap-info h3", timeout=10000)
+    page.wait_for_timeout(6000)    # the held-back diagram script has run by now
+    assert page.locator("#sysmap-info h3").inner_text() == picked
+    page.unroute("**/systemgravity.js*")
+
+
 def test_system_page_3d_view_draws_a_nav_course_that_lies_in_the_system(page, base_url, site_app, monkeypatch):
     """NAV.22: a course asked for with `?course=` is drawn in the 3D view as a line from where it crosses the heliopause to its body, with
     a ring at each end and one where a moving destination is aimed, in both scales, and listed under the view with the way back."""
