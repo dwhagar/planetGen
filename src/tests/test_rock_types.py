@@ -113,7 +113,7 @@ def test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degre
 
 
 BSE = dict(SiO2=45.6, TiO2=0.196, Al2O3=4.33, Cr2O3=0.377, FeO=8.13, MnO=0.134, NiO=0.242, MgO=37.0, CaO=3.47, Na2O=0.35, K2O=0.0285, P2O5=0.0189)
-"""dict: The bulk silicate Earth, wt percent, from the 12 oxides of the Wang, Lineweaver and Ireland (2018) concordance (GEN.1362)."""
+"""dict: The bulk silicate Earth, wt percent, from the 12 oxides of the [R4608] concordance (GEN.1362)."""
 
 
 def test_the_chromium_manganese_and_nickel_of_the_mantle_go_to_chromite_and_the_pyroxenes_and_the_norm_adds_up():

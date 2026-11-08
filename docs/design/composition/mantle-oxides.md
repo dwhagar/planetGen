@@ -6,7 +6,7 @@ A silicate rock stores seven more oxides than SiO2, MgO, CaO, Al2O3 and FeO: Na2
 
 1. **The star.** Atoms of the element per Mg atom of the host (`HostRatios`, from GEN.1360: Na, K, Ti, Cr, Mn, P, with Ni).
 2. **The zone.** The share the zone kept against CI chondrites, `volatile_depletion.retained_fraction(T50, cut)` (GEN.1361), with the cut of the zone the body formed in (`cut_temperature_k` of its formation distance and the star's luminosity; a moon takes its parent's; a body with no star or distance takes the Earth's cut). Ti, Cr and Ni are kept whole near the Earth; Na and K a quarter; Mn and P about 0.6.
-3. **The core.** The share in the metal is `D c / (D c + 1 - c)`, c the core's share of the dry mass. D is set so the Earth's own core (c = 0.325, FeO 0.0805) has the Earth's share: Cr 0.55, Mn 0.60, Ni 0.93, P 0.94 (the concordance of Wang, Lineweaver and Ireland 2018). Ti has none; Na and K have a fixed 5 percent. D falls as the rock's FeO rises, `FeO^(-n/2)` with the valence n of the oxide (Ni, Cr and Mn 2, P 5). The core fraction itself includes the metal the elements add, so `dry_partition` iterates (three passes) from the Earth's core fraction.
+3. **The core.** The share in the metal is `D c / (D c + 1 - c)`, c the core's share of the dry mass. D is set so the Earth's own core (c = 0.325, FeO 0.0805) has the Earth's share: Cr 0.55, Mn 0.60, Ni 0.93, P 0.94 (the concordance of [R4608]). Ti has none; Na and K have a fixed 5 percent. D falls as the rock's FeO rises, `FeO^(-n/2)` with the valence n of the oxide (Ni, Cr and Mn 2, P 5). The core fraction itself includes the metal the elements add, so `dry_partition` iterates (three passes) from the Earth's core fraction.
 4. **The mantle.** What the core did not take is the rock's oxide.
 
 The Cr, Mn, P, Na and K the core took, and the Ni it took, join the metal; a carbon rock has none of the seven.
@@ -17,7 +17,7 @@ Seven columns on `planets`, `moons` and `rogue_planets` (migration 0227): `rock_
 
 ## Calibration (a test point, never an input)
 
-| Oxide | Model Earth (wt %) | Bulk silicate Earth | Model Mars | Mars (Yoshizaki and McDonough 2020) |
+| Oxide | Model Earth (wt %) | Bulk silicate Earth | Model Mars | Mars [R4833] |
 |---|---|---|---|---|
 | Na2O | 0.317 | 0.35 | 0.76 | 0.59 |
 | K2O | 0.041 | 0.0285 | 0.097 | 0.043 |
