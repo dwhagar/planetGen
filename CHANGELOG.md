@@ -2,6 +2,32 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3664] - 2026-11-08
+
+**Headline:** The Generate page's size and time estimate, which runs in the work queue since ADM.141, is on the queue's allowlist, so the worker no longer refuses it.
+
+### Changed
+- `planetgen.web.lib.estimatejob:work` is added to `allowlist.API_FUNCTIONS`. ADM.141 moved the estimate into the work queue but left the function off the list, so `api_jobs.execute` refused it and `test_every_function_the_api_queues_is_on_the_list` failed on main.
+
+## [8.0.3663] - 2026-11-08
+
+**Headline:** A run killed while it was cutting the next stage into units now says so, names that stage, and logs what the cut is doing and how much memory it holds; the starting-sector and scatter workers are sized from the full-galaxy run that went over.
+
+### Changed
+- **The opening of a stage is logged and marked (PERF.252).** The unit that completes a stage opens the next one in its own work horse, and the next stage's start line is written only after its cut into units returns, so a slow or killed cut was silent and a kill read as a unit of the stage before it. The cut now logs `Opening stage N: ...` before it starts and after the cluster field, the preparation and the cut, each with the memory the process holds, and the run record names the stage being opened until the cut ends. A kill or a failure then reads `unit 0 of stage X was killed while it was opening stage Y`.
+- **Worker sizes (PERF.252).** `SECTOR_WORKER_MEMORY_MB` 2,600 to 3,050 (the starting sector held 2,762 MB) and `BULK_WORKER_MEMORY_MB` 1,700 to 2,100 (the bright stars held 1,879 MB), each 10 percent over the measure. On a 16 GB host a scatter stage now runs 3 workers, a sector stage 2.
+
+Output unchanged.
+
+## [8.0.3662] - 2026-11-08
+
+**Headline:** The Galaxy Map's on-map Key and help dialog now have a line for globular clusters.
+
+### Fixed
+- MAP.408: the globular cluster layer drew pale-gold balls with no line in the Key, so `test_every_layer_of_the_galaxy_map_has_a_key_line_a_legend_or_a_reason` failed. The Key now has "Pale-gold balls: globular clusters, brightest where the stars crowd" with a pale-gold ball as its swatch, shown while the layer is drawn, and the help dialog's sector line names the balls.
+
+generation-output: unchanged
+
 ## [8.0.3661] - 2026-11-08
 
 **Headline:** The map menu test accepts the View menu's group names and the Gravity note as text.
