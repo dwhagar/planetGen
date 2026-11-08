@@ -20,12 +20,12 @@ release is stamped.
 | PERF | PERF.256 |
 | DB | DB.121 |
 | API | API.43 |
-| ADM | ADM.148 |
+| ADM | ADM.151 |
 | SEC | SEC.47 |
 | TEST | TEST.710 |
 | USR | USR.32 |
 | OPS | OPS.133 |
-| DOC | DOC.114 |
+| DOC | DOC.118 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
 
@@ -2306,6 +2306,9 @@ Parents marked "new parent" had no old number of their own.
 | ADM.145 | Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state | GEN.1410, DB.116, API.42 | open |
 | ADM.146 | Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit | ADM.145, GEN.1410 | open |
 | ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | open |
+| ADM.148 | Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests | none | open |
+| ADM.149 | Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS) | none | open |
+| ADM.150 | An admin-requested list of the systems made so far in a generation run, as a job on the new task system (admin may wait for it) | none | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | done, PR #5688 |
 | MAP.408 | The Galaxy Map key has no line for the globular cluster layer (bug) | none | done, PR #5688 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
@@ -3700,6 +3703,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | DOC.111 | The link-neighbors command is in no document | none | done, PR #5755 |
 | DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out | none | done, PR #5767 |
 | DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps | none | open |
+| DOC.114 | Full refresh of all documents of all types against main: READMEs, design notes, plan files, reports, change notes, generated pages and help text | none | open |
+| DOC.115 | One unified planning source: the plan files consolidated so that docs/TODO.md stays the item list and every other plan file points at it, with item numbers and links kept | DOC.114 | open |
+| DOC.116 | A script that builds HTML pages from the docs directory for GitHub Pages: scripts/build_docs_site.py writes docs/site/ | none | open |
+| DOC.117 | History sweep: read every commit, item, choice, issue and pull request, alive or dead, and add past choices, rejected paths and trends to the design documents | DOC.114 | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | done, PR #5457 |
 | SEC.45 | A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function | none | done, PR #5468 |
 | SEC.46 | Accept /home and /Users in the config.json folder check, for installs in a home folder on a shared machine (SEC.44 follow-up, Boss) | none | done, PR #5444 |
