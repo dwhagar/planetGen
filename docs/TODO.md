@@ -13348,6 +13348,11 @@ clears each one.
   Version 8.1. Prerequisites: none. Related: ADM.149, OPS.122, OPS.130, PERF.254.
   Filed by the TODO thread.
 
+- [ ] **GEN.1470 Obliquity-tide inflation (GEN.1347) makes puffed planets of 8 to 10 Earth radii at 0.04 to 0.06 g/cc that the super-puff type check does not recognise (bug)**
+  Lane 14 (as the lane reported, 6:36 PM EST on 2026-11-08), found while building GEN.1406: the radius-valley sweep test (a rocky planet is never larger than a sub-Neptune can be) failed on two puffed planets of 8 and 9.9 Earth radii at 0.04 to 0.06 g/cc that the super-puff type check misses because they sit outside 10 to 100 days or under 10 Earth masses. They come from GEN.1347's obliquity-tide inflation (with it off, no planet over 6.5 Earth radii in 60 systems), not from the lighter cores of GEN.1406. Lane 14 changed the test to treat anything under the 0.1 g/cc puff edge as a puff, with a ceiling of twice 7.5, so the branch is green. Do: decide whether the puff classifier should widen to cover inflated planets (its period and mass limits) or the inflation should be capped by physics, with the reason in the commit; then restore the test to check what the classifier promises. Reuse the existing super-puff module and the inflation of GEN.1347. Stand-ins registered in GEN.725. Done: no puffed planet escapes the classifier in a 60-system sample, the test checks the classifier again, and the change note says how many planets move. Lock item (epoch) if a stored value changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 23 (tides and spin; GEN.1347 inflation) with Lane 11 (super-puff module). Prerequisites: none. Related: GEN.1347, GEN.1406, GEN.1048.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
