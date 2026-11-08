@@ -44173,6 +44173,314 @@
           "tweak": "L0",
           "unread": null,
           "what": "isotope_record.potassium_40_argon_moles: the 40Ar of the air is 10.72 percent of the 40K that has decayed, times the interior's degassed share (surface_pressure.degassed_share), over the moles of argon in the air"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ESS_INITIAL_RATIO: 53Mn/55Mn 7e-6, 129I/127I 1.28e-4, 244Pu/238U 7e-3"
+            ],
+            [
+              "The range it moves in",
+              "the printed 2 sigma (1e-6, 0.03e-4, 1e-3)"
+            ],
+            [
+              "Where it holds",
+              "the early Solar System's first solids"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ratio outside the printed range; 60Fe is taken from the gamma-ray mean instead"
+            ],
+            [
+              "What replaces it",
+              "none (read from the review)"
+            ],
+            [
+              "Evidence",
+              "[R2768: Table 2]; 244Pu/238U of 0.0068 in an older value is within the range"
+            ]
+          ],
+          "id": "ISO10",
+          "key": "6.236:ISO10",
+          "kind": "T",
+          "slug": "6-236-iso10",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.ESS_INITIAL_RATIO: 53Mn/55Mn 7e-6, 129I/127I 1.28e-4, 244Pu/238U 7e-3"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.EXTINCT_MEAN_OVER_ESS 0.1: the mean ratio of 53Mn, 129I and 244Pu in a galaxy's gas over the early Solar System's"
+            ],
+            [
+              "The range it moves in",
+              "0.04 to 0.33 (the 26Al range of 3 to 25 times under)"
+            ],
+            [
+              "Where it holds",
+              "any galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a measured interstellar 53Mn, 129I or 244Pu; a galactic-chemical-evolution model with production ratios"
+            ],
+            [
+              "What replaces it",
+              "the steady state from nucleosynthetic yields"
+            ],
+            [
+              "Evidence",
+              "[R2768: Sec. 3.2] gives the 26Al range only; 53Mn, 129I and 244Pu have no gamma-ray line"
+            ]
+          ],
+          "id": "ISO11",
+          "key": "6.236:ISO11",
+          "kind": "T",
+          "slug": "6-236-iso11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "isotope_record.EXTINCT_MEAN_OVER_ESS 0.1: the mean ratio of 53Mn, 129I and 244Pu in a galaxy's gas over the early Solar System's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.COSMOGENIC_RATE_EARTH 14C 1.6 atoms/cm2/s"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 2.1"
+            ],
+            [
+              "Where it holds",
+              "the Earth's air at a modulation of 650 MV"
+            ],
+            [
+              "What would show it wrong",
+              "a production model of the Earth's air under 1.2 or over 2.1"
+            ],
+            [
+              "What replaces it",
+              "CRAC-type yield functions of the body's own air and flux"
+            ],
+            [
+              "Evidence",
+              "[R5203: Table 1 and Sec. 3.2] (1.47 at 802 MV from 2.36e26 atoms a year), [R5205: Sec. 2] (1.6 to 2)"
+            ]
+          ],
+          "id": "ISO12",
+          "key": "6.236:ISO12",
+          "kind": "T",
+          "slug": "6-236-iso12",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.COSMOGENIC_RATE_EARTH 14C 1.6 atoms/cm2/s"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.COSMOGENIC_RATE_EARTH 3H 0.345 atoms/cm2/s; EARTH_COLUMN_G_CM2 1033; EARTH_TARGETS_PER_G N 3.22e22, O 8.67e21; EARTH_DIPOLE_A_M2 7.8e22"
+            ],
+            [
+              "The range it moves in",
+              "tritium 0.14 to 0.8 (earlier estimates, 0.32 for [R5206])"
+            ],
+            [
+              "Where it holds",
+              "the Earth's air at 650 MV"
+            ],
+            [
+              "What would show it wrong",
+              "a measured global tritium production outside 0.14 to 0.8"
+            ],
+            [
+              "What replaces it",
+              "the same yield functions"
+            ],
+            [
+              "Evidence",
+              "[R5204: Sec. 3, Table 1, Eq. 4]; [R5203: Eq. 6 and Sec. 3.2]"
+            ]
+          ],
+          "id": "ISO13",
+          "key": "6.236:ISO13",
+          "kind": "T",
+          "slug": "6-236-iso13",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.COSMOGENIC_RATE_EARTH 3H 0.345 atoms/cm2/s; EARTH_COLUMN_G_CM2 1033; EARTH_TARGETS_PER_G N 3.22e22, O 8.67e21; EARTH_DIPOLE_A_M2 7.8e22"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ATTENUATION_G_CM2 150: the column of air catches 1 - exp(-X/150) of the cascade, over the Earth's"
+            ],
+            [
+              "The range it moves in",
+              "100 to 200 g/cm2"
+            ],
+            [
+              "Where it holds",
+              "air columns from a few to many thousand g/cm2"
+            ],
+            [
+              "What would show it wrong",
+              "a yield-function profile whose column integral differs from this law by over 30 percent for a 100 g/cm2 air"
+            ],
+            [
+              "What replaces it",
+              "the altitudinal yield functions of a thin-air model"
+            ],
+            [
+              "Evidence",
+              "the tritium maximum at about 40 g/cm2 ([R5204: Sec. 3]) bounds it; no paper in hand prints an attenuation length"
+            ]
+          ],
+          "id": "ISO14",
+          "key": "6.236:ISO14",
+          "kind": "T",
+          "slug": "6-236-iso14",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.ATTENUATION_G_CM2 150: the column of air catches 1 - exp(-X/150) of the cascade, over the Earth's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.NO_FIELD_FACTOR 0.72 / 0.345 = 2.09: a body with no dipole gets the Earth's polar rate over its global mean; the factor falls as 1/(1 + 1.09 m) with the dipole moment m in Earth's"
+            ],
+            [
+              "The range it moves in",
+              "m of 0 to 10"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a cutoff-rigidity model of a body with a dipole whose global rate differs from this law by over 30 percent"
+            ],
+            [
+              "What replaces it",
+              "the geomagnetic cutoff integrated over the body (R_c from the dipole)"
+            ],
+            [
+              "Evidence",
+              "the polar and global values of tritium ([R5204: Table 1]); the interpolation in the moment is a form chosen to hit 1 at the Earth and the polar value at none"
+            ]
+          ],
+          "id": "ISO15",
+          "key": "6.236:ISO15",
+          "kind": "T",
+          "slug": "6-236-iso15",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.NO_FIELD_FACTOR 0.72 / 0.345 = 2.09: a body with no dipole gets the Earth's polar rate over its global mean; the factor falls as 1/(1 + 1.09 m) with the dipole moment m in Earth's"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the carbon of an ocean world's air and surface ocean over the air's is the Earth's single value; the body's dissolved carbon is not stored"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.OCEAN_CARBON_OVER_AIR 54: air plus surface ocean carbon over the air's, for a body with a surface ocean"
+            ],
+            [
+              "The range it moves in",
+              "10 to 100"
+            ],
+            [
+              "Where it holds",
+              "bodies with a surface ocean"
+            ],
+            [
+              "What would show it wrong",
+              "an ocean world whose dissolved carbon is stored and differs from the air's by a factor other than 54"
+            ],
+            [
+              "What replaces it",
+              "the body's own dissolved inorganic carbon"
+            ],
+            [
+              "Evidence",
+              "the Earth's 41 000 Gt of exchangeable carbon over 760 Gt of air; one planet"
+            ]
+          ],
+          "id": "ISO16",
+          "key": "6.236:ISO16",
+          "kind": "T",
+          "slug": "6-236-iso16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "isotope_record.OCEAN_CARBON_OVER_AIR 54: air plus surface ocean carbon over the air's, for a body with a surface ocean"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point)"
+            ],
+            [
+              "The range it moves in",
+              "25 to 40 K"
+            ],
+            [
+              "Where it holds",
+              "comets of any star"
+            ],
+            [
+              "What would show it wrong",
+              "a comet whose measured D/H differs from the law at 30 K by over a factor of 2 for a star of another metallicity"
+            ],
+            [
+              "What replaces it",
+              "the comet's own formation distance and the disk model"
+            ],
+            [
+              "Evidence",
+              "comets form at one distance in units of the star's snow line, so one temperature; the anchor is comet 67P [R0088, R5174]"
+            ]
+          ],
+          "id": "ISO17",
+          "key": "6.236:ISO17",
+          "kind": "T",
+          "slug": "6-236-iso17",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point)"
         }
       ],
       "slug": "6-236-stand-ins-of-the-isotope-record-of-a-body",

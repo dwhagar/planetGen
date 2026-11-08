@@ -25995,6 +25995,31 @@
       "kind": "paper",
       "label": "Umemoto and Wentzcovitch 2021",
       "title": "Ab initio prediction of an order-disorder transition in    Mg 2  Ge  O 4    : Implication for the nature of super-Earth's mantles"
+    },
+    "R5203": {
+      "kind": "paper",
+      "label": "Poluianov et al. 2016",
+      "title": "Production of cosmogenic isotopes 7 Be, 10 Be, 14 C, 22 Na, and 36 Cl in the atmosphere: Altitudinal profiles of yield functions"
+    },
+    "R5204": {
+      "kind": "paper",
+      "label": "Poluianov et al. 2020",
+      "title": "A New Full 3‐D Model of Cosmogenic Tritium 3H Production in the Atmosphere (CRAC:3H)"
+    },
+    "R5205": {
+      "kind": "paper",
+      "label": "Pavlov et al. 2013",
+      "title": "AD 775 pulse of cosmogenic radionuclides production as imprint of a Galactic gamma-ray burst"
+    },
+    "R5206": {
+      "kind": "paper",
+      "label": "Masarik and Beer 2009",
+      "title": "An updated simulation of particle fluxes and cosmogenic nuclide production in the Earth's atmosphere"
+    },
+    "R5207": {
+      "kind": "paper",
+      "label": "Kovaltsov et al. 2012",
+      "title": "A new model of cosmogenic production of radiocarbon 14C in the atmosphere"
     }
   }
 }
