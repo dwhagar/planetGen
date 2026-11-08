@@ -107,8 +107,9 @@ STARLIGHT_FIELDS = frozenset({"magnetopause_rp", "uv_surface_index"})
 
 LIQUID_SURFACE_FIELDS = frozenset({
     "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "ocean_phosphate_umol_l", "surface_liquid_ammonia_wt", "tide_range_spring_m", "tide_range_neap_m",
-    "ocean_liquid"})
-"""The stored quantities of a liquid surface: they are filled where the surface holds liquid, which the body's own heat decides when it has no star."""
+    "ocean_liquid", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km"})
+"""The stored quantities of a liquid surface: they are filled where the surface holds liquid, which the body's own heat decides when it has no star (a rogue world
+of class T holds a sea of carbon monoxide at 76 K under its own air where the matched bound planet is an airless class C at 3 K)."""
 
 CLOUD_FIELDS = frozenset({"aerosol_draw", "atmosphere_colour", "cloud_cover", "tau_cloud", "tau_dust", "tau_haze"})
 """The stored quantities of a cloud and haze layer: whether the air holds one is decided by the temperature the body's own heat gives it."""
