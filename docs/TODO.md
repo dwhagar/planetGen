@@ -13967,6 +13967,18 @@ clears each one.
   Prerequisites: none. Related: ADM.141.
   Filed by the TODO thread.
 
+- [ ] **GEN.1391 Minor core elements: Cr, Mn, P and Cu partition between the core and the mantle, read from the star element set (GEN.1360) and the core split (GEN.1364)**
+  Lane 23 (as the lane reported 9:33 PM EST on 2026-11-07), follow-on to GEN.1364 (core composition split). Do: add Cr, Mn, P and Cu to the core make-up by their partition between metal and silicate (redox and pressure dependent), taking the totals from the star element set; store as columns with units; stand-ins in GEN.725 with tier and tweak level. Size M; lock (epoch and a migration). Target: train 19. Owner (proposed by TODO): Lane 23, after GEN.1364 and GEN.1360 have merged. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: GEN.1364, GEN.1360. Related: GEN.842.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1392 Reduced cores and the dynamo energy scale: let rock FeO reach below IW-3.3 so Mercury-like Si-rich cores occur, and re-tune the compositional dynamo energy that stopped most small-body dynamos**
+  Lane 23 (as the lane reported 9:33 PM EST on 2026-11-07), follow-on to GEN.1364 (core composition split). From GEN.1364's known limits: the rock FeO only reaches IW-3.3, so Mercury-like Si-rich cores are never drawn; and scaling the compositional energy by core size stopped most small-body dynamos, so it was left unscaled. Do: widen the redox range with a physical lower bound, check the census of dynamo on and off against the measured magnetic fields of small bodies (tier and tweak level in GEN.725), keep Earth's mix unchanged. Size M; lock. Target: train 19. Owner (proposed by TODO): Lane 23, after GEN.1364. Rules: tests are
+  scripts/test.py changed --resume.
+  Prerequisites: GEN.1364. Related: GEN.842.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Lane 14 (the class matrix lane), after GEN.1321.
   Filed by the TODO thread.
