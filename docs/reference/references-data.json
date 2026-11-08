@@ -102962,6 +102962,37 @@
    "volume": "",
    "year": 2017
   },
+  "10.1017/9781316650684.003": {
+   "authors": [
+    [
+     "Nittler",
+     "L. R."
+    ],
+    [
+     "Chabot",
+     "N. L."
+    ],
+    [
+     "Grove",
+     "T. L."
+    ],
+    [
+     "Peplowski",
+     "P. N."
+    ]
+   ],
+   "book": "Mercury",
+   "doi": "10.1017/9781316650684.003",
+   "editors": [],
+   "journal": "Mercury",
+   "page": "30",
+   "publisher": "Cambridge University Press",
+   "src": "crossref",
+   "title": "The Chemical Composition of Mercury",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2018
+  },
   "10.1017/9781316650684.019": {
    "arxiv": "1712.08234",
    "authors": [
@@ -151010,6 +151041,33 @@
    "publisher": "National Academy of Sciences",
    "src": "crossref",
    "title": "Requirements and limits for life in the context of exoplanets",
+   "type": "journal-article",
+   "volume": "111",
+   "year": 2014
+  },
+  "10.1073/pnas.1316708111": {
+   "authors": [
+    [
+     "Badro",
+     "J."
+    ],
+    [
+     "Côté",
+     "A. S."
+    ],
+    [
+     "Brodholt",
+     "J. P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1073/pnas.1316708111",
+   "editors": [],
+   "journal": "PNAS",
+   "page": "7542",
+   "publisher": "National Academy of Sciences",
+   "src": "crossref",
+   "title": "A seismologically consistent compositional model of Earth’s core",
    "type": "journal-article",
    "volume": "111",
    "year": 2014
@@ -280127,7 +280185,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5145,
+ "id_next": 5147,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -281092,6 +281150,7 @@
   "10.1016/s1464-1917(00)00041-6": "R4759",
   "10.1016/s1567-1356(03)00160-0": "R1619",
   "10.1017/9781139020558": "R0692",
+  "10.1017/9781316650684.003": "R5145",
   "10.1017/9781316650684.019": "R1207",
   "10.1017/cbo9780511581397": "R3974",
   "10.1017/cbo9780511780783": "R3519",
@@ -282253,6 +282312,7 @@
   "10.1073/pnas.0913352107": "R4057",
   "10.1073/pnas.1002443107": "R0298",
   "10.1073/pnas.1304212111": "R2997",
+  "10.1073/pnas.1316708111": "R5146",
   "10.1073/pnas.1406545111": "R2688",
   "10.1073/pnas.1500954112": "R0357",
   "10.1073/pnas.1700527114": "R2007",

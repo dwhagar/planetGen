@@ -77,7 +77,7 @@ from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities
-from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -2933,6 +2933,7 @@ BODY_FIELDS = (
     object_rows.each(radiogenic.BODY_FIELDS),
     object_rows.each((*interior_heat.BODY_FIELDS, *interior_heat.OUTPUT_FIELDS, *interior_heat.REGIME_FIELDS)),
     object_rows.each(bulk_composition.COLUMN_FIELDS),
+    object_rows.each(core_composition.BODY_FIELDS),
     object_rows.each(surface_composition.COLUMN_FIELDS),
     object_rows.each(daylight.FIELDS),
     object_rows.each(ocean_tides.FIELDS),

@@ -89,6 +89,16 @@ For the Earth at 4.568 Gy (middle rheology) the core is at 4,080 K with an inner
 
 The core is read where it is wanted (`interior_heat.core_of`), not stored: no column holds it. The field is drawn when the planet's spin is set, at the star's age then; a planet whose star is aged later (`adjust_age_for_planets`) keeps the field of that age.
 
+### 3.4 What the core is made of (GEN.1364)
+
+The metal's light elements were one lump, a drawn share of the metal (3 to 12 percent, `core_light_fraction`), and every core froze and drove its dynamo as the Earth's did. `physics/core_composition.py` splits the lump and gives `core_heat` the three things the split decides (the stand-ins are CX1 to CX7 in the gap plan section 6.213):
+
+* **The split.** Sulfur, silicon, oxygen, carbon and hydrogen shares of the lump, stored as mass fractions of the core (`core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction`, `core_h_fraction`, with `core_ni_fraction` from the star's Ni per Fe, and `core_light_fraction`; the iron is the rest). The mean shares follow the redox of the rock the core formed against, `delta_IW = 2 log10(x_FeO / x_Fe)` from the rock's FeO, interpolated between three cores: Mercury's (silicon and carbon, little sulfur), the Earth's (silicon 48, oxygen 26, sulfur 18, carbon 8 percent of the light mass, the mean of 15 models, [R4608]) and Mars' (sulfur 52, oxygen 41, hydrogen 7, no silicon, [R4833]). The pressure at the base of the mantle tilts the oxygen and silicon: both dissolve more in iron at high pressure. A Dirichlet draw from a stream keyed on the body scatters the shares about those means, so no other draw of the run moves.
+* **The liquidus.** The model's iron liquidus is the Earth's and already an alloy's. The light elements the solid inner core does not take (sulfur and oxygen stay in the liquid, silicon goes in two thirds as concentrated, [R5146]) lower the freezing point in proportion to the mole fraction they leave in the liquid, set so the Fe-FeS eutectic's fall of 550 K at one bar is matched to within a third. A core with more sulfur than the Earth's freezes later, one with less sooner; the Earth's mix leaves the liquidus as it was.
+* **The compositional energy.** The energy the freezing inner core releases as its rejected light elements rise is the Earth's (CC6) scaled by the light mass left in the liquid per kilogram frozen and by the core's `G M / R`. A sulfur-rich core has more of it, a silicon-rich one less, a small core a much smaller one: this is what the dynamo's `E_G dM/dt` reads.
+
+A body with no stored split (a row from before schema v230) takes the Earth's reference mix. The rock's FeO is drawn from 0.02 to 0.18, which reaches IW-3.3, so the strongly reduced, silicon-rich end of the scale (Mercury's IW-5.4) is reached only as far as that draw goes.
+
 ## 4. Where it is used
 
 `planets.internal_heat_flux_w_m2` (the hydrosphere's ice shell, `habitability_world`, the surface composition's volcanism gate) runs `interior_heat.update_heat` at the star's age at the time of the call and stores `urey_ratio` and `internal_heat_flux_w_m2` on the body; the mantle's two draws are stored once (`mantle_eta0_pa_s`, `mantle_activation_kj_mol`). `rogue_surface` runs the same model with a host-less content and the Earth-composition stand-in.

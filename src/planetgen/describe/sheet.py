@@ -221,6 +221,9 @@ _BODY_GROUPS = (
            ("envelope_helium_fraction", "Helium share of the envelope"), ("envelope_z_fraction", "Heavy-element share of the envelope"),
            ("rock_feo_fraction", "Iron oxide share of the rock"), ("rock_al2o3_fraction", "Alumina share of the rock"),
            ("rock_mg_si_ratio", "Magnesium to silicon ratio of the rock"), ("porosity", "Porosity"),
+           ("core_ni_fraction", "Core: nickel share"), ("core_s_fraction", "Core: sulfur share"), ("core_si_fraction", "Core: silicon share"),
+           ("core_o_fraction", "Core: oxygen share"), ("core_c_fraction", "Core: carbon share"), ("core_h_fraction", "Core: hydrogen share"),
+           ("core_light_fraction", "Core: light elements together"),
            ("carbon_rock", "Carbon-rich rock", FLAG),
            ("ground_type", "Ground type with the largest share", TEXT), ("ground_grain", "Ground grain", TEXT),
            ("ground_ocean_fraction", "Ground share: ocean"), ("ground_ice_fraction", "Ground share: ice"),
@@ -829,6 +832,8 @@ none for a heavier one."""
 AIRLESS_CLASSES = frozenset("CDS")
 """frozenset: The classes with no air (dead world, small icy body, airless super-Earth): no air column to describe."""
 
+CORE_FRACTIONS = ("core_ni_fraction", "core_s_fraction", "core_si_fraction", "core_o_fraction", "core_c_fraction", "core_h_fraction", "core_light_fraction")
+"""tuple: The core's make-up columns (GEN.1364): stored for a rocky body with metal."""
 _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa",
                "helium_depletion", "has_helium_shell", "envelope_helium_fraction", "envelope_z_fraction")
 _MEAN_SWING = ("temp_mean_swing_k",)
@@ -838,7 +843,7 @@ _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "ground_type", "ground_grain", *surface_composition.FRACTION_FIELDS,
-    "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
+    "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio", *CORE_FRACTIONS,
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
     "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
@@ -936,6 +941,8 @@ _BODY_RULES = [
                                                          and (row.get("water_base_pressure_pa") or 0.0) >= HP_ICE_MIN_BASE_PA),
      "high-pressure ice (ice VI and VII) forms only where the water's weight reaches 632 MPa: a dry body, an open ocean, a vapor world and a "
      "body whose ice or ocean is too shallow for that pressure have none"),
+    (CORE_FRACTIONS, lambda klass, row: row is None or row.get("core_light_fraction") is not None or not (row.get("metal_mass_fraction") or 0.0) > 0.0,
+     "a body with no metal has no core to make up, and a row made before v230 stores no split (its core takes the Earth's mix)"),
     (("porosity",), lambda klass, row: row is None or (row.get("mass_kg") or 0.0) < POROSITY_MAX_MASS_KG,
      "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,

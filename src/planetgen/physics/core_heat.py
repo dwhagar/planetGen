@@ -14,9 +14,10 @@ what they were, a body with no core keeps no core state).
    above the box's temperature), `delta` the layer's thickness from its critical Rayleigh number at the viscosity of the layer's mean
    temperature with an activation volume (`ACTIVATION_VOLUME_M3_MOL`; the box's viscosity law is the upper mantle's, the lower mantle is stiffer).
 3. **Cooling.** `C dT_c/dt = -Q`, `C` the core's heat capacity plus, once there is an inner core, the latent heat and gravitational energy of the iron
-   that freezes onto it per kelvin of cooling (`LATENT_HEAT_J_KG`, `GRAVITATIONAL_ENERGY_J_KG`).
+   that freezes onto it per kelvin of cooling (`LATENT_HEAT_J_KG`, and the compositional energy of the light elements it leaves behind, `GRAVITATIONAL_ENERGY_J_KG`
+   at Earth's mix and size, scaled by the core's own: GEN.1364, `core_composition`).
 4. **Inner core.** The core's adiabat (`CORE_ADIABAT_K_GPA` per GPa below `T_c`) meets the iron liquidus (`T_0 sqrt(1 + P / A)`, anchored on Earth's inner
-   core boundary, 5,400 K at 329 GPa) where the inner core stops: the center freezes first, and the inner core's radius follows `T_c`.
+   core boundary, 5,400 K at 329 GPa, `T_0` moved by the light elements the core's liquid keeps over Earth's: `core_composition.liquidus_factor`) where the inner core stops: the center freezes first, and the inner core's radius follows `T_c`.
 5. **Dynamo.** The core conducts down its own adiabat, `Q_ad = k_c A (dT/dP)_ad rho g`; the convecting power left over, `(1 - T_b / T_c)(Q - Q_ad)`,
    plus the gravitational energy of the freezing iron, drives the dynamo (`Core.dynamo_w`). The dynamo runs while that power is above zero and the
    core still has a liquid shell. `Core.dynamo_ended_gy` is the age it last stopped (`None` while it runs).
@@ -27,7 +28,7 @@ Every number that is not a published value is a stand-in in the gap registry (do
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants
+from planetgen.physics import constants, core_composition
 
 GAS_CONSTANT = 8.314462618
 """float: J/(mol K)."""
@@ -63,6 +64,8 @@ MIN_LIQUID_SHELL = 0.25
 """float: STAND-IN CC9: the liquid shell's thickness over the core's radius under which no dynamo runs (a thin shell cannot sustain the flow: Mars)."""
 EARTH_CORE_RADIUS_M = 3.632e6
 EARTH_CORE_DENSITY_KG_M3 = 9671.0
+EARTH_CORE_POTENTIAL_J_KG = (constants.G * EARTH_CORE_DENSITY_KG_M3 * 4.0 / 3.0 * math.pi * EARTH_CORE_RADIUS_M ** 3 / EARTH_CORE_RADIUS_M)
+"""float: `G M / R` of the model's Earth core, J/kg: the unit of the compositional energy's size scaling (`Stepper.gravitational_j_kg`)."""
 EARTH_DYNAMO_W = 2.4e12
 """float: STAND-IN CC10: Earth's core as this model makes it (the radius and density of its uniform core, and the dynamo power it ends with at
 4.568 Gy, 2.4 TW): the unit of `Core.dipole_scale`."""
@@ -118,10 +121,20 @@ class Core:
                 * (self.density_kg_m3 / EARTH_CORE_DENSITY_KG_M3) ** (1.0 / 6.0))
 
 
+def cmb_pressure_gpa(metal_kg, silicate_kg, core_m, dry_m):
+    """The pressure at the base of the mantle, GPa, of a body of `metal_kg` of metal in a core of `core_m` and `silicate_kg` of silicate in a mantle out to
+    `dry_m`: the two uniform shells of the module text times `PRESSURE_FACTOR`."""
+    mantle_density = silicate_kg / (4.0 / 3.0 * math.pi * (dry_m ** 3 - core_m ** 3))
+    enclosed = metal_kg - 4.0 / 3.0 * math.pi * mantle_density * core_m ** 3
+    pressure_pa = constants.G * mantle_density * (enclosed * (1.0 / core_m - 1.0 / dry_m)
+                                                  + 4.0 / 3.0 * math.pi * mantle_density * (dry_m ** 2 - core_m ** 2) / 2.0)
+    return PRESSURE_FACTOR * pressure_pa / 1.0e9
+
+
 class Stepper:
     """One body's core, advanced step by step beside the mantle box (`advance`); `start` first."""
 
-    def __init__(self, interior, metal_kg, silicate_kg, core_m, dry_m):
+    def __init__(self, interior, metal_kg, silicate_kg, core_m, dry_m, mix=core_composition.EARTH):
         self.eta0_pa_s = interior.eta0_pa_s
         self.activation_j_mol = interior.activation_kj_mol * 1000.0
         self.metal_kg, self.core_m = metal_kg, core_m
@@ -131,13 +144,15 @@ class Stepper:
         self.mantle_density = mantle_density
         self.gravity = constants.G * metal_kg / core_m ** 2
         self.area = 4.0 * math.pi * core_m ** 2
-        enclosed = metal_kg - 4.0 / 3.0 * math.pi * mantle_density * core_m ** 3
-        pressure_pa = constants.G * mantle_density * (enclosed * (1.0 / core_m - 1.0 / dry_m)
-                                                      + 4.0 / 3.0 * math.pi * mantle_density * (dry_m ** 2 - core_m ** 2) / 2.0)
-        self.cmb_gpa = PRESSURE_FACTOR * pressure_pa / 1.0e9
+        self.cmb_gpa = cmb_pressure_gpa(metal_kg, silicate_kg, core_m, dry_m)
         self.core_slope_gpa_m2 = PRESSURE_FACTOR * 2.0 * math.pi / 3.0 * constants.G * self.density ** 2 / 1.0e9
         self.center_gpa = self.cmb_gpa + self.core_slope_gpa_m2 * core_m ** 2
         self.liquidus_scale_gpa = LIQUIDUS_ANCHOR[0] / ((LIQUIDUS_ANCHOR[1] / LIQUIDUS_ZERO_K) ** 2 - 1.0)
+        self.liquidus_zero_k = LIQUIDUS_ZERO_K * core_composition.liquidus_factor(mix)
+        # the compositional energy of the freezing: the Earth's per kilogram times the light elements the liquid keeps over the Earth's, times the core's
+        # G M / R over the Earth's (a bigger core drops the light liquid through more potential)
+        potential = constants.G * metal_kg / core_m
+        self.gravitational_j_kg = (GRAVITATIONAL_ENERGY_J_KG * core_composition.composition_energy_factor(mix) * potential / EARTH_CORE_POTENTIAL_J_KG)
         self.capacity = metal_kg * CORE_SPECIFIC_HEAT
         self.pressure_enthalpy_j_mol = ACTIVATION_VOLUME_M3_MOL * PRESSURE_SCALE_GPA * 1.0e9 * math.log(1.0 + self.cmb_gpa / PRESSURE_SCALE_GPA)
         self.adiabatic_w = CORE_CONDUCTIVITY * self.area * CORE_ADIABAT_K_GPA / 1.0e9 * self.density * self.gravity
@@ -151,7 +166,7 @@ class Stepper:
 
     def liquidus_k(self, pressure_gpa):
         """The iron liquidus at `pressure_gpa`, K."""
-        return LIQUIDUS_ZERO_K * math.sqrt(1.0 + pressure_gpa / self.liquidus_scale_gpa)
+        return self.liquidus_zero_k * math.sqrt(1.0 + pressure_gpa / self.liquidus_scale_gpa)
 
     def _inner(self, temperature_k):
         """`(radius, crossing)` of the inner core when the top of the core is at `temperature_k`: the radius is 0 while the whole core is above its
@@ -167,8 +182,8 @@ class Stepper:
         # The liquidus `T0 sqrt(1 + P / s)` meets the adiabat `u + k P` (u = T - k P_cmb) where `(u + k P)^2 = T0^2 (1 + P / s)`: a quadratic in P. The gap
         # is concave, closed at one end of the core and open at the other, so exactly one root lies between them.
         u = temperature_k - k * self.cmb_gpa
-        b = 2.0 * u * k - LIQUIDUS_ZERO_K ** 2 / self.liquidus_scale_gpa
-        c = u * u - LIQUIDUS_ZERO_K ** 2
+        b = 2.0 * u * k - self.liquidus_zero_k ** 2 / self.liquidus_scale_gpa
+        c = u * u - self.liquidus_zero_k ** 2
         root = math.sqrt(max(b * b - 4.0 * k * k * c, 0.0))
         crossing = min(((-b + sign * root) / (2.0 * k * k) for sign in (1.0, -1.0)),
                        key=lambda pressure: abs(min(max(pressure, self.cmb_gpa), self.center_gpa) - pressure))
@@ -208,7 +223,7 @@ class Stepper:
         """`(dT/dt in K/s, Q, growth in kg/s)` of a core at `temperature_k` under a box at `mantle_k`."""
         heat_w = self._flux(temperature_k, mantle_k)
         growth_per_k = self._growth_per_k(temperature_k)
-        effective = self.capacity + (LATENT_HEAT_J_KG + GRAVITATIONAL_ENERGY_J_KG) * growth_per_k
+        effective = self.capacity + (LATENT_HEAT_J_KG + self.gravitational_j_kg) * growth_per_k
         rate = -heat_w / effective
         return rate, heat_w, -rate * growth_per_k
 
@@ -238,7 +253,7 @@ class Stepper:
         _, heat_w, growth_kg_s = self._cooling(temperature_k, mantle_k)
         boundary_k = self.boundary_k(mantle_k)
         efficiency = 1.0 - boundary_k / temperature_k if temperature_k > boundary_k else 0.0
-        return efficiency * (heat_w - self.adiabatic_w) + GRAVITATIONAL_ENERGY_J_KG * growth_kg_s
+        return efficiency * (heat_w - self.adiabatic_w) + self.gravitational_j_kg * growth_kg_s
 
     def state(self, mantle_k):
         """The `Core` now, under a box at `mantle_k`."""
