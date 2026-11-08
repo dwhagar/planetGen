@@ -273,3 +273,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.class_fit.best_class | by design | the public scorer of the best-fit classifier: the generator reads `fit` and the class sweep, the class-fit command line and the tests read this one-call form |
 | function | planetgen.physics.class_fit.domain_scores | by design | the per-domain scores of one class, which the class page and the class-fit command line show; the generator reads the combined `fit` |
 | function | planetgen.physics.planet_classes.classify_values | by design | the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier |
+| function | planetgen.physics.comet_species.low_over_h2o | GEN.1021 | the low end of a species' bracket for the loguniform rows of atmosphere-k:k7 (OCS, SO2, O2); the wiring swap rides a train with GEN.1022's, in one epoch |
+| function | planetgen.physics.comet_species.high_over_h2o | GEN.1021 | the high end of the same bracket; wired with it |
+| module | planetgen.physics.comet_ice_formation | GEN.1022 | the latent ice formation temperature that draws a comet's CO/H2O, N2, Ar, Kr and Xe together; the wiring swap of k5 and k7 rides a train with GEN.1021's, in one epoch |
+| row | 6.59:CY1 | GEN.1022 | the cold end of the comets (Hale-Bopp's CO/H2O) that `comet_ice_formation` reads; wired with the swap of rows k5 and k7 |
+| row | 6.59:CY2 | GEN.1022 | the residual widths of the latent species; wired with the same swap |
+| row | 6.59:CY3 | GEN.1022 | the laboratory law of formation temperature against CO/H2O; wired with the same swap |
