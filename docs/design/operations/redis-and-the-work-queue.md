@@ -427,6 +427,38 @@ gate in Redis, fed by psutil (the Dask assessment and the library research are i
   corrected by the retry. The output of a run does not depend on any of this: the work seed is independent of how many jobs run at once.
 * **Outside the queue** a stretch of work takes a claim with `memorygate.hold(conn, claim)`; `scripts/test.py` does so for each phase.
 
+### 5.15 A fair-share scheduler on the gate (OPS.130, Boss 3:44 PM EST on 2026-11-08)
+
+Boss: "we want to use a task scheduler and sharing system time so warmup or other commands do not block the site so all tasks that can run get a
+chance to run". The gate (5.14) answers whether one job fits; when several wait for the same room the gate alone gives it to whichever worker
+polls first, so a warm-up with thousands of units could take every freed megabyte from a visitor's job, and a large claim could wait for ever
+behind small ones. `queue/scheduler.py` answers which waiting job goes next, on the same view of the host and the claims (it is asked in place of
+`memorygate.decide`, under the same lock, and reads the same load and memory).
+
+* **A waiting job is a ticket** (`planetgen:gate:tickets`: the claim, when the wait began, the process), renewed at every poll (every 5 s), dropped when
+  the job goes in, when its worker stops polling (30 s) or when its process is gone. Every worker and `memorygate.hold` use the scheduler; the gate
+  with no scheduler is the old behaviour.
+* **The order** is `weight + aging x seconds waited - fair-share penalty`, highest first. Weights: the interactive lane 100, a visitor's node prefetch
+  90, the long lane 80, a run's units (bulk) 40, the maintenance lane (warm-ups, checks) and anything else 30. The fair-share penalty is up to 10,
+  for the share of the recent system time the job's kind has used (each finished job's seconds times its cores, charged to its kind and halved every
+  hour), so within a class the kind that has used less goes first and a warm-up's thousands of units cannot keep a check or the cut of a run from a turn.
+* **Aging and its bound.** Every waiting second adds `(100 - 30 + 10) / 600` to the weight, so a job that has waited **600 s** outranks a job of any class that
+  has just arrived, whatever the use: the order never keeps a job waiting longer than that behind later jobs. (How long a job waits for room is the time
+  the claims in its way take to end; after 300 s the gate's own bound lets it in by the old table cap.)
+* **A job goes when it is the highest ticket that fits.** It is held back while a higher ticket fits now and the two would not fit together; if both fit, it goes
+  (nobody is held up). Once a higher ticket has waited 120 s without room, the room that frees up is kept for it (until the 300 s bound), so a large
+  claim is not starved by a stream of small ones; before that, a lower job that fits goes ahead of a higher one that does not, so the host is not left idle.
+* **Reserved places.** Memory and now cores are kept for the interactive and long lanes' places against the other lanes: half a core a place, never more than
+  a quarter of the host's cores, less what those lanes hold (`memorygate.kept_mb`, `kept_cores`), so the site's next job always finds room, and a
+  warm-up or a bulk command is slowed (waits at the gate) when the site needs the time.
+* **What to read.** `PLANETGEN_MEMORY_GATE=0` in a worker's environment turns the gate and the scheduler off (the old table caps alone); with it on, the log says
+  what happened: `The memory gate holds <kind> (<MB>) for <worker>: <reason>` once a minute of waiting (the reason names the claim in the way, or "goes first",
+  or "room is kept for ..."), `The memory gate let <kind> in after <s> s of waiting, by the table cap` (a warning: the gate waited its 300 s), `gate admits ...` at
+  debug level (`area=queue`), and the run log's `gate.wait` line for a unit or an opening that waited 5 s or more. `memorygate.snapshot` shows the claims
+  and what was learned, and `scheduler.snapshot` the tickets in the order they would go with their priority, and the use of each kind.
+* **What it does not do.** It does not run anything by itself and does not change what a run generates (the work seed is independent of the order and
+  of how many jobs run at once). The weights are a first setting (`LANE_WEIGHT`, `FAIR_PENALTY`, `AGING_BOUND_SECONDS`): the order of the classes is the rule.
+
 ## 6. Decisions for Boss
 
 Each has a default; the default is what a "yes" means.
