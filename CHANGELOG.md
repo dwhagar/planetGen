@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3707] - 2026-11-08
+
+**Headline:** A written class code such as F2 now works in the class filters and the class page address: a letter alone still matches every digit, a letter and a digit match that one position.
+
+### Changed
+
+- GEN.1208: `class_code.parse_code` is read where a class code is typed or linked: the planet and moon class filters of the database queries and of the search page (`F` matches F, F1 to F4 as before; `F2` matches digit 2 of the family only, `M0` the ideal), and the class page address (`/classes/planet/F2` goes to the page of class F, the digit being a position of the family; an unknown code is still a 404). No stored value changes, and nothing that was matched before is matched differently.
+
+generation-output: unchanged
+
 ## [8.0.3706] - 2026-11-08
 
 **Headline:** `physics.hydrosphere`, `bulk_draw` and the other modules on the same import chain now import on their own, and two item codes that showed in text are cut (GEN.1401).
