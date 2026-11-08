@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3719] - 2026-11-08
+
+**Headline:** The life and air history API test draws the same systems every run, so it no longer fails now and then.
+
+### Changed
+- **The life and air history test is seeded (TEST.709).** Its helper drew up to forty unseeded systems to find an airy rocky planet, and about one run in five came out with a planet whose air history has no methane row. Each attempt now draws on a stream of its own, so every run reads the same planet. Only test code changes; it passed 50 runs in a row.
+
+generation-output: unchanged
+
 ## [8.0.3718] - 2026-11-08
 
 **Headline:** a script that measures how far each class quantity moves when one stand-in is moved across its registered range.
