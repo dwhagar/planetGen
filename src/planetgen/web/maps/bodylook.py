@@ -224,7 +224,7 @@ def air_colour(planet):
         return None
     body = SimpleNamespace(
         body_type=planet.get("body_type"), gravity=planet.get("gravity_g"), atmospheric_pressure=planet.get("atmospheric_pressure_pa"),
-        planet_class=planet.get("planet_class"), ozone_column_du=planet.get("ozone_column_du"), star=SimpleNamespace(temperature=temperature),
+        ozone_column_du=planet.get("ozone_column_du"), star=SimpleNamespace(temperature=temperature),
         **{atmosphere.GAS_FIELD: atmosphere.gas_partials_pa(planet)})
     if planet.get("body_type") == "g":
         return giant_colour.body_giant_colour(body)
@@ -342,7 +342,6 @@ def planet_look(planet, kind="planet"):
             look["color"], known_land = found
             look["quality"] = "composition"
             look["landKnown"] = round(known_land, 3)
-    _put(look, "cls", (planet.get("planet_class") or "").upper() or None)
     if gas:
         _put(look, "gas", giant_gas_fractions(planet))
         _put(look, "gravG", _rounded(planet.get("gravity_g"), 3))      # MAP.275: the Rossby deformation radius of its storms

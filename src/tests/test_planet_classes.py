@@ -106,7 +106,6 @@ CASES = {
 def test_class_q_is_retired_and_its_letter_reserved():
     """GEN.1135 (Boss, 6:07 PM EDT 2026-10-30): the swing of the starlight is the stored flux_variation and a flag, not a class."""
     assert "Q" not in {c.letter for c in pc.CLASSES} and "Q" not in tuning.PLANET_CLASSES and "Q" in pc.RESERVE
-    assert "Q" not in tuning.HABITABLE_PLANET_CLASSES
     assert all(rule.get("quantity") != "flux_variation" for c in cf.CLASSES for rule in c.when)
     assert pc.classify(body(flux_variation=0.9)) == "M"      # a very eccentric orbit alone makes no class
 

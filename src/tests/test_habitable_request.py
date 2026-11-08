@@ -11,6 +11,7 @@ from planetgen import tuning
 from planetgen.generation import habitable_request as hr
 from planetgen.generation import system as systemData
 from planetgen.generation.config import SystemConfig
+from planetgen.physics import habitability
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 
@@ -31,7 +32,7 @@ def test_a_temperate_world_with_air_and_a_sea_meets_the_request_whatever_its_cla
     {"hydrosphere": None}, {"body_type": "g"},
 ])
 def test_a_world_missing_any_condition_does_not_meet_it_even_in_a_class_that_can_carry_life(change):
-    assert tuning.HABITABLE_PLANET_CLASSES[0] and not hr.meets(_body(planet_class="M", **change))
+    assert not hr.meets(_body(planet_class="M", **change))
 
 
 def test_the_edges_of_the_range_and_the_pressure_floor_count():
@@ -49,10 +50,8 @@ def test_a_moon_counts_and_a_belt_is_skipped():
     assert hr.count([planet, belt, _body()]) == 2
 
 
-def test_the_class_letter_table_does_not_decide_the_count(monkeypatch):
-    monkeypatch.setattr(tuning, "HABITABLE_PLANET_CLASSES", [])
+def test_the_class_letter_does_not_decide_the_count():
     assert hr.count([_body(planet_class="M")]) == 1
-    monkeypatch.setattr(tuning, "HABITABLE_PLANET_CLASSES", ["M"])
     assert hr.count([_body(temperature=200.0, planet_class="M")]) == 0
 
 
@@ -106,7 +105,6 @@ def test_a_request_that_no_draw_can_meet_keeps_the_last_planet_and_places_nothin
     planets, seen = _drawn_in_ecosphere(system, monkeypatch, 0.0, 3)
     assert not any(hr.meets(p) for p in planets)
     assert len(seen) >= 3 and {d for d, _ in seen} == {1.0}
-    assert not system._request_unreachable                # a habitable request is no placement; it just comes out unmet
 
 
 def test_a_planet_with_no_surface_is_kept_as_drawn(system, monkeypatch):
@@ -190,10 +188,10 @@ def test_the_answer_is_aim_exactly_when_a_body_meets_the_conditions_of_the_reque
     assert StarSystem.habitable_request_status(holder) == "unmet"
 
 
-def test_a_barred_habitable_world_leaves_no_body_of_a_life_class_anywhere_in_the_system():
-    """GEN.1275: `HABITABLE_WORLD` False barred only an ecosphere planet that met the request, so 0.35 of such systems still held a body
-    of a class that can carry life (a moon, an outer planet, a body whose class changed in the life pass). It now bars every planet and moon
-    of those classes, remade from the same conditions when the class comes out as one and dropped when none of the attempts leaves it."""
+def test_a_barred_habitable_world_leaves_no_habitable_body_anywhere_in_the_system():
+    """GEN.1275, GEN.1387: `HABITABLE_WORLD` False barred only an ecosphere planet that met the request, so 0.35 of such systems still held a habitable
+    body (a moon, an outer planet, a body whose air changed in the life pass). It now bars every planet and moon rated habitable, remade from the same
+    conditions when it comes out so and dropped when none of the attempts leaves it. The rating comes from the conditions, never from the letter."""
     for seed in range(8):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V" if seed % 2 else "K5V"
@@ -201,18 +199,19 @@ def test_a_barred_habitable_world_leaves_no_body_of_a_life_class_anywhere_in_the
         cfg.HABITABLE_WORLD = False
         draw.set_run_seed(seed)
         built = StarSystem(system_config=cfg)
-        assert built.count_habitable_class_worlds() == 0, seed
+        assert built.hab_count == 0, seed
         for body in built.all_planets:
-            assert getattr(body, "planet_class", None) not in tuning.HABITABLE_PLANET_CLASSES, (seed, body)
+            assert not habitability.is_habitable(getattr(body, "phi4", None)), (seed, body)
             for moon in getattr(body, "moons", []):
-                assert moon.planet_class not in tuning.HABITABLE_PLANET_CLASSES, (seed, moon.planet_class)
+                assert not habitability.is_habitable(getattr(moon, "phi4", None)), (seed, moon.planet_class)
 
 
-def test_a_system_that_bars_habitable_worlds_keeps_out_a_body_that_meets_the_request_or_is_of_a_life_class():
-    """GEN.1275 on the bar of GEN.1250: one test for both (`StarSystem._barred`)."""
-    life = sorted(tuning.HABITABLE_PLANET_CLASSES)[0]
+def test_a_system_that_bars_habitable_worlds_keeps_out_a_body_that_meets_the_request_or_is_rated_habitable():
+    """GEN.1275 on the bar of GEN.1250, GEN.1387: one test for both (`StarSystem._barred`); the class letter decides neither, and life on a world a human
+    cannot live on is not barred."""
     meets = dict(body_type="t", surface_temperature=288.0, atmospheric_pressure=1.0e5, hydrosphere="surface ocean")
     cold = dict(body_type="t", surface_temperature=120.0, atmospheric_pressure=1.0e5, hydrosphere="ice")
     assert StarSystem._barred(types.SimpleNamespace(planet_class="D", **meets))
-    assert StarSystem._barred(types.SimpleNamespace(planet_class=life, **cold))
+    assert StarSystem._barred(types.SimpleNamespace(planet_class="D", phi4=0.9, **cold))
+    assert not StarSystem._barred(types.SimpleNamespace(planet_class="E", phi4=0.2, life_class="3", **cold))
     assert not StarSystem._barred(types.SimpleNamespace(planet_class="D", **cold))

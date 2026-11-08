@@ -70,6 +70,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.1398 | The final-age stream and the strength pass read the class letter: seed the final-age redraw without it, and make the strength pass use the classifier's own conditions (audit F1 and F2) |  | Class-last audit, train 18. |
 | GEN.1399 | The flavor-text draw list is chosen by class A: choose it by conditions (audit F6) |  | Class-last audit, train 18. |
 | GEN.1400 | Class-letter leftovers: m_count, the unused trojan_bodies and hycean_candidate letter code, the dead pass-throughs in bodylook and habitability_world, the stale tuning docstring (audit F7 and F8) |  | Class-last audit, train 18. |
+| GEN.1401 | Importing planetgen.physics.hydrosphere or bulk_draw alone fails with a circular import unless planet_type is imported first, and GEN codes show in describe/sheet.py and stellar_abundances.py text (bug) |  | Found by Lane 15, 2026-11-08. |
+| GEN.1402 | A rocky planet whose orbit eccentricity settled after its air was made keeps the air, temperature, dose and UV of the older light: remake its end stages when the eccentricity moved past a tolerance, even if the star's age did not (bug) |  | Found by Lane 05, 2026-11-08. |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) |  | Lane 04 train 17 triage. |
 | GEN.1394 | A body under a deep envelope (GEN.1334) is solved for haze at the 1 bar level and stores half the haze it was solved with (bug) |  | Lane 04 train 17 triage. |
 | TEST.688 | src/tests/test_stellar_bulk.py::test_a_terrestrial_rogue_planet_is_round_and_has_a_strength fails on main: rogue planets of 0.5 to 3 Earth masses come out class T with roundness None (bug) |  |  |
@@ -84,6 +86,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | OPS.119 | The setup script dataset fetch fails (python -I ignores PYTHONPATH) yet exits 0; the test preflight fetches only white_dwarf_models (bug) |  | Bug Hunt first pass, 2026-11-07. |
 | TEST.694 | scripts/test.py: full --check refuses on main; --resume reuses nothing after UTC midnight; .pytest-deps.json is partial after a resume; xdist stops replacing OOM-killed workers; tests rewrite tracked .test-reports/*-latest.md (bug) |  | Bug Hunt first pass, 2026-11-07. |
 | OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) |  | Bug Hunt first pass, 2026-11-07. |
+| OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) |  | Boss live observation, PR 5666. |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) |  | Bug Hunt first pass, 2026-11-07. |
 | GEN.1387 | Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug) |  | Bug Hunt first pass, 2026-11-07. |
 | GEN.1388 | RoguePlanet has no temp_livable_share (test_rogue_habitability fails) (bug) |  | Bug Hunt first pass, 2026-11-07. |
@@ -93,6 +96,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) |  | Bug Hunt first pass, 2026-11-07. |
 | ADM.141 | Starting a sector fill on a planned galaxy times out after 120 s and the web server answers with truncated headers (bug) |  | Boss live bug, 9:02 PM EST on 2026-11-07. |
 | PERF.250 | The generator battery digest grew from about 5 s to about 30 s and is paid by every real sectors run and by every queue unit process that calls running_digest (bug) |  | Found with ADM.141. |
+| PERF.251 | The block light totals bar sits at 100% while the upper-level roll-up and the uncharted-sector index run with no bar or live log; check whether the backfill leaves stale glow sums (bug) |  | Boss live observation, 2026-11-08. |
 | ADM.142 | planetgen sectors --around X Y Z --estimate-only ignores --estimate-only and runs the stage (bug) |  | Found with ADM.141. |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) |  | Bug Hunt first pass, 2026-11-07. |
 
