@@ -5164,6 +5164,28 @@ CREATE TABLE IF NOT EXISTS chart_ledger (
         FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- effect_ledger (v236, GEN.1465): for every body of a system and every effect that acts on it (`physics/effect_ledger.py` `EFFECTS`: 1 light, 2 UV, 3 tide, 4 heating, 5 Kozai and secular forcing,
+-- 6 precession, 7 eccentricity perturbation), the share of each source's contribution in the largest source's (1.0 for the largest). `body_type` and `source_type` are the kind table's code
+-- (`effect_ledger.BODY_CODES`: 1 stars, 2 planets, 3 moons, 4 asteroid_belts, 5 comets, 6 black_holes, 7 neutron_stars), `body_id` and `source_id` its row id. A source whose share is under
+-- `tuning.EFFECT_LEDGER_FLOOR` is not a row of its own: the (body, effect) has one summary row with `source_type` 0 and `source_id` 0, whose `share` is the sum of the shares under the floor, `n_below`
+-- how many they were and `largest_value` the largest source's contribution in the effect's unit. The ledger changes no result. It goes with its system (`ON DELETE CASCADE`); a body deleted on
+-- its own takes its rows through `db/edits.py`.
+CREATE TABLE IF NOT EXISTS effect_ledger (
+    star_system_id  BIGINT UNSIGNED NOT NULL,
+    body_type       TINYINT UNSIGNED NOT NULL,
+    body_id         BIGINT UNSIGNED NOT NULL,
+    effect          TINYINT UNSIGNED NOT NULL,
+    source_type     TINYINT UNSIGNED NOT NULL,
+    source_id       BIGINT UNSIGNED NOT NULL,
+    share           FLOAT NOT NULL CHECK (share >= 0),
+    n_below         INT UNSIGNED NULL,
+    largest_value   DOUBLE NULL CHECK (largest_value IS NULL OR largest_value > 0),
+
+    PRIMARY KEY (star_system_id, body_type, body_id, effect, source_type, source_id),
+    CONSTRAINT fk_effect_ledger_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 -- ---------------------------------------------------------------------
 -- sky_tier_draws (v216, VIEW.25): the spheres the sky tiers have drawn. Charting draws the stars a system's sky needs (`generation/sky_tiers.py`: luminosity bands of 50 Lsun and up,

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1468 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1469 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1442 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1443 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 181 | 20 | 11 | 1 | 0 | 213 |
 | T2 | 138 | 59 | 1 | 1 | 0 | 199 |
 | T3 | 104 | 46 | 9 | 10 | 0 | 169 |
-| T4 | 73 | 11 | 3 | 21 | 10 | 118 |
+| T4 | 74 | 11 | 3 | 21 | 10 | 119 |
 | T5 | 70 | 23 | 6 | 1 | 0 | 100 |
 | T6 | 170 | 104 | 27 | 76 | 0 | 377 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 818 | 298 | 71 | 236 | 45 | 1468 |
+| All | 819 | 298 | 71 | 236 | 45 | 1469 |
 
 ## How the labels were given
 
@@ -2581,3 +2581,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SE2 | T | T1 | L0 | MgSi2O5 dissociates to Mg2SiO4 + SiO2 (Fe2P-type) at 1.31 TPa: a watch entry, no density step | the pressure: 1.31 TPa; Clapeyron slope +6 MPa/K at 5,000 K | mantles with a central pressure over 1.31 TPa (about 8 Earth masses and more) | a second calculation outside 1.1 to 1.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1] | predicted only | - | - |
 | SE3 | T | T1 | L0 | Mg2SiO4 + SiO2 dissociates to CsCl-type MgO + SiO2 at 3.10 TPa: a watch entry, no density step | the pressure: 3.10 TPa (3 TPa at low temperature in the summary); Clapeyron slope -92 MPa/K at 5,000 K | mantles with a central pressure over 3 TPa (planets of about 15 Earth masses and more) | a second calculation outside 2.5 to 3.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1, Section 5] | predicted only | - | - |
 | SE4 | P | T4 | L0 | bulk_structure mantle table (`_MANTLE_RHO` to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is | none | rocky planets of 0.1 to 20 Earth masses | a radius of an Earth-like 5 to 10 Earth-mass planet more than 1 percent from the curve of Zeng's tables, or a measured mass and radius of such a planet that the table cannot reach | SE1 to SE3 with a density of the products | the solver against Zeng's tables: Earth-like -0.2 percent at 5 and -0.1 percent at 10 Earth masses (computed here); the tables were read from lweb.cfa.harvard.edu/~lzeng/planetmodels.html, not registered | predicted only | - | - |
+
+## 6.246 Stand-ins of the effect ledger
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| EL1 | P | T4 | L0 | tuning.EFFECT_LEDGER_FLOOR 1e-6: the share of the largest source under which a ledger source is added to its (body, effect) summary row and not stored as its own row | 1e-37 (every source stored) to 1e-2 | every body and effect of a stored system | a census that shows sources under the floor adding to over 1 percent together in many bodies (then the floor hides what matters; lower it) | a floor chosen from the first census of the stored ledger | chosen so that the stored ledger is about a third to a half of the full one (60 to 99 GB at the 200 pc default against 156 GB, `reports/gen1465-effect-ledger-design-2026-11-08.md`); no source for the value | predicted only | - | - |

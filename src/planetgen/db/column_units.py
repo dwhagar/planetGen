@@ -994,6 +994,13 @@ TABLES = {
         "index": ("generator_epoch",),
         "flag": ("complete",),
     },
+    "effect_ledger": {
+        "id": ("star_system_id", "body_id", "source_id"),
+        "key": ("body_type", "effect", "source_type"),
+        "frac": ("share",),
+        "count": ("n_below",),
+        "row-defined": ("largest_value",),
+    },
     "chart_ledger": {
         "index": ("shell_index", "band_index", "wedge_index", "generator_epoch"),
         "id": ("run_id",),

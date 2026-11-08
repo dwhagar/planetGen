@@ -123,6 +123,7 @@ SECTIONS = {
 _SECTION_OF = {table: name for name, tables in SECTIONS.items() for table in tables}
 
 LEFT_OUT_TABLES = frozenset({
+    "effect_ledger",    # the effect ledger records what the effect code computed and changes no result (GEN.1465), so a fingerprint reads the results and not the record
     "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs", "scatter_epochs",

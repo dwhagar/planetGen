@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, effect_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -330,6 +330,7 @@ class StarSystem:
         self.primary_star = self.star # For single star systems, the primary is the star
         self.placed_star = self.star
         self.planets = []
+        self.effect_ledger = effect_ledger.EffectLedger()  # GEN.1465: what each effect's code computed per body and source; written by `store.insert_star_system`, not read back
         self.architectures = []  # GEN.1111: `[(star, Architecture)]` of the plan each star's planets were built from, one per star in the order they were first planned; not stored (see `ejected_losses`). A list and not a dict keyed by `id(star)`: an address in a key made the sector differ from run to run (TEST.569)
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)

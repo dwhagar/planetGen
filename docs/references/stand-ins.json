@@ -57441,6 +57441,52 @@
       ],
       "slug": "6-245-stand-ins-of-the-dissociation-of-mgsio3-in-the-mantles-of-massive-rocky-planets",
       "title": "Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets"
+    },
+    {
+      "key": "6.246",
+      "number": "6.246",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.EFFECT_LEDGER_FLOOR 1e-6: the share of the largest source under which a ledger source is added to its (body, effect) summary row and not stored as its own row"
+            ],
+            [
+              "The range it moves in",
+              "1e-37 (every source stored) to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "every body and effect of a stored system"
+            ],
+            [
+              "What would show it wrong",
+              "a census that shows sources under the floor adding to over 1 percent together in many bodies (then the floor hides what matters; lower it)"
+            ],
+            [
+              "What replaces it",
+              "a floor chosen from the first census of the stored ledger"
+            ],
+            [
+              "Evidence",
+              "chosen so that the stored ledger is about a third to a half of the full one (60 to 99 GB at the 200 pc default against 156 GB, reports/gen1465-effect-ledger-design-2026-11-08.md); no source for the value"
+            ]
+          ],
+          "id": "EL1",
+          "key": "6.246:EL1",
+          "kind": "P",
+          "slug": "6-246-el1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.EFFECT_LEDGER_FLOOR 1e-6: the share of the largest source under which a ledger source is added to its (body, effect) summary row and not stored as its own row"
+        }
+      ],
+      "slug": "6-246-stand-ins-of-the-effect-ledger",
+      "title": "Stand-ins of the effect ledger"
     }
   ]
 }

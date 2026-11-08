@@ -19,6 +19,7 @@ Every body of a system (stars and other star-like objects, planets, moons, belts
 3. A lone star with no other body must give the numbers of before the change; a test says so.
 4. Where a term is dropped (shadowing, higher-order resonances, an unknown source), say so in the item and register the simplification in GEN.725.
 5. Every such change ships with a before and after census that shows how many bodies move (GEN.1445 for radiation, GEN.1448 for tides and secular effects).
+6. Every effect fills the effect ledger (GEN.1465): for each receiving body, it calls `system.effect_ledger.add(effect, receiver, source, value)` once for every source it computes, however small the value (the ledger stores the share of the largest source, `physics/effect_ledger.py`). A source that is dropped from the effect for a registered reason is still noted in the ledger, so the census can show when it starts to matter.
 
 ## Register of host-only and pair-only code paths (first pass)
 

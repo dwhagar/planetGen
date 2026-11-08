@@ -499,6 +499,12 @@ list: A comprehensive list of various components that can be found in asteroids.
 This is a vocabulary of names the materials table resolves (a belt's or field's composition is drawn from asteroid taxa, GEN.442 and GEN.477).
 """
 
+# --- The effect ledger (GEN.1465) ---
+# The share of the largest source, under which a source is not written as its own ledger row but added to its (body, effect)
+# summary row (every source is computed whatever this is; it limits storage only). A value under 1e-37 stores every source
+# (a FLOAT cannot hold less); Boss can change it here, and the stored galaxy keeps the floor it was made with in the summary.
+EFFECT_LEDGER_FLOOR = 1e-6
+
 # --- Space Sector Generation Parameters ---
 
 # The standard sector edge length, in whole parsecs: the galaxy grid's
