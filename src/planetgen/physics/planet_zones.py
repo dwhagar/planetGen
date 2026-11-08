@@ -231,6 +231,37 @@ def sibling_of(nodes, members, member_no):
     return parent, tree.below(tree.sibling(("member", member_no), parent))
 
 
+def companion_orbits(zone, nodes, members):
+    """
+    The other members the planets of `zone`'s host see, with the orbit each moves in against the host: `[(member_no, axis_au, eccentricity)]`, one entry
+    for every member outside the host's own subtree, taken at the node that member and the host meet at (a subtree is a point at its center of mass).
+
+    Raises:
+        ValueError: For a member that meets the host at a `group` node, which has no orbit.
+    """
+    tree = _Tree(list(nodes), list(members))
+    host = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
+    own = tree.below(host)
+    host_chain = set(tree.chain(host)) | ({zone.host_no} if zone.kind == P_TYPE else set())
+    found = []
+    for number in tree.members:
+        if number in own:
+            continue
+        meeting = next(node_no for node_no in tree.chain(("member", number)) if node_no in host_chain)
+        node = tree.nodes[meeting]
+        if node.kind == "group":
+            raise ValueError(f"member {number} meets the host at group node {meeting}, which has no orbit")
+        found.append((number, _axis_au(node), node.eccentricity))
+    return found
+
+
+def host_members(zone, nodes, members):
+    """The numbers of the members the planets of `zone` go round (the star itself for an S-type zone, a pair node's subtree for a P-type one)."""
+    tree = _Tree(list(nodes), list(members))
+    host = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
+    return sorted(tree.below(host))
+
+
 def flux_at(zone, distance_au, luminosities_sol, nodes, members):
     """
     The light on a planet that goes round `zone`'s host at `distance_au`, in units of one solar luminosity at 1 AU.
@@ -252,18 +283,7 @@ def flux_at(zone, distance_au, luminosities_sol, nodes, members):
     """
     if not distance_au > 0.0:
         raise ValueError(f"flux_at: the planet's distance must be positive, got {distance_au!r}")
-    tree = _Tree(list(nodes), list(members))
-    host = ("member", zone.host_no) if zone.kind == S_TYPE else ("node", zone.host_no)
-    own = tree.below(host)
-    host_chain = set(tree.chain(host)) | ({zone.host_no} if zone.kind == P_TYPE else set())
-    total = sum(luminosities_sol[number] for number in own) / (distance_au * distance_au)
-    for number in tree.members:
-        if number in own:
-            continue
-        meeting = next(node_no for node_no in tree.chain(("member", number)) if node_no in host_chain)
-        node = tree.nodes[meeting]
-        if node.kind == "group":
-            raise ValueError(f"member {number} meets the host at group node {meeting}, which has no orbit")
-        axis = _axis_au(node)
-        total += luminosities_sol[number] / (axis * axis * math.sqrt(1.0 - node.eccentricity ** 2))
+    total = sum(luminosities_sol[number] for number in host_members(zone, nodes, members)) / (distance_au * distance_au)
+    for number, axis, eccentricity in companion_orbits(zone, nodes, members):
+        total += luminosities_sol[number] / (axis * axis * math.sqrt(1.0 - eccentricity ** 2))
     return total

@@ -446,7 +446,7 @@ def check_planet(body, parent=None):
     if derived != body.planet_class:
         problems.append(Problem(name, f"its class is {body.planet_class} but its conditions give class {derived}"))
     distance = parent.distance if parent is not None else body.distance
-    zone = planetPhysics.zone_for(body.habitable_zone, distance)
+    zone = planetPhysics.zone_for(body.habitable_zone, distance, body.star)
     if body.zone != zone:
         problems.append(Problem(name, f"its zone is {body.zone!r} but it orbits in zone {zone!r}"))
     if body.radius is None or not body.radius > 0:

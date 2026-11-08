@@ -837,6 +837,13 @@
       "first_release": "8.0.3688",
       "reason": "Train 18: core composition split, dust species, mantle water and carbon, giant envelope species, disk condensation parts B and C, ore deposits, phosphorus budget, ground after life, no-life class list",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 141,
+      "first_release": null,
+      "pending": true,
+      "reason": "GEN.1441: every star of a system lights every planet and moon by position (the radiation field), into temperature, air and greenhouse, albedo and ice, runaway test, giants, envelope, spin, haze, energy flux and the zone letter",
+      "affects": ["plan", "scatter", "fill", "population"]
     }
   ]
 }

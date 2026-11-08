@@ -27,6 +27,7 @@ import math
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, unit_registry as units
+from planetgen.physics import radiation_field
 from planetgen.physics.mixture_base import MixtureError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -132,7 +133,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         None if quantities["is_moon"] else orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", None)))
     if not distance_au:
         return quantities
-    insolation = quantities["luminosity_solar"] / distance_au ** 2
+    insolation = quantities["luminosity_solar"] / distance_au ** 2 + radiation_field.companion_insolation_sol(star, distance_au)     # GEN.1441: the other stars' light too
     quantities["insolation"] = insolation
     quantities["runaway_ratio"] = runaway_ratio(insolation, star.temperature)
     snow_line = getattr(star, "snow_line_au", None)
@@ -148,7 +149,8 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     zone_edges = getattr(star, "habitable_zone", None)
     if zone_edges:
         inner, outer = zone_edges
-        quantities["zone"] = "h" if distance_au < inner else ("c" if distance_au > outer else "e")
+        lit_au = distance_au / math.sqrt(radiation_field.light_ratio(star, distance_au))        # GEN.1441: as far as a body of a lone star with this much light
+        quantities["zone"] = "h" if lit_au < inner else ("c" if lit_au > outer else "e")
     # GEN.806: the index `magnetism.update_exposure` stored for the distance the body sits at; the one implementation (`activity.exposure_index`) answers
     # for a distance it was not stored for (the mantle's redox is read at another)
     stored = getattr(body, "xuv_exposure_index", None)
@@ -158,7 +160,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["xuv_index"] = index
     if getattr(star, "log_lx_lbol", None) is not None:
         quantities["log_lx_lbol"] = star.log_lx_lbol
-    flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM)
+    flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM) + radiation_field.companion_light_w_m2(star, distance_au)     # GEN.1441
     albedo = getattr(body, "bond_albedo", None)
     if albedo is not None:
         teq = climate_draws.equilibrium_temperature_k(albedo, flux)

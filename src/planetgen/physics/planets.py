@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
-from planetgen.physics import ore_deposits
+from planetgen.physics import ore_deposits, radiation_field
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -213,7 +213,7 @@ def generate_planet_properties(planet, zone_override=None):
                                        calculation based on distance.
     """
     # Determine the planet's zone (hot, ecosphere, or cold)
-    zone = zone_for(planet.habitable_zone, planet.distance)
+    zone = zone_for(planet.habitable_zone, planet.distance, planet.star)
 
     if zone_override and zone_override.lower() in "hce":
         zone = zone_override.lower()
@@ -618,9 +618,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     # GEN.727: the light of an eccentric orbit, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4)
     distance = orbit_elements.flux_distance_au(distance, planet.host_eccentricity if planet.is_moon else planet.eccentricity)
     planet._air_light_au = distance     # kept, not stored: the light this air, temperature, dose and spectrum were made on (a later settled orbit moves `_star_distance_au` and leaves them)
-    orbital_radius_km = _au_to_km(distance)
-    output_area = 4 * math.pi * orbital_radius_km ** 2
-    solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
+    solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance)     # GEN.1441: the host's light and every other star's, by position
     # The range of the body's regime (a frozen or a wet world reflects more than dry rock): it reads only what the body is made of and
     # the starlight, so it can be drawn before the air it will be solved with.
     albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,
@@ -1169,16 +1167,19 @@ def reconcile_zone(planet, primary_mass_kg, distance_override=None):
         bool: True if the zone changed.
     """
     distance = distance_override if distance_override is not None else planet.distance
-    new_zone = zone_for(planet.habitable_zone, distance)
+    new_zone = zone_for(planet.habitable_zone, distance, planet.star)
     zone_changed = new_zone != planet.zone
     planet.zone = new_zone
     planet.primary_mass_kg = primary_mass_kg  # what its Hill sphere is measured against (GEN.138)
     return zone_changed
 
 
-def zone_for(habitable_zone, distance_au):
-    """The zone letter ('h' hot, 'e' ecosphere, 'c' cold) of `distance_au` against `habitable_zone` (inner, outer) in AU."""
+def zone_for(habitable_zone, distance_au, star=None):
+    """The zone letter ('h' hot, 'e' ecosphere, 'c' cold) of `distance_au` against `habitable_zone` (inner, outer) in AU. With the host `star` the other
+    stars' light counts (GEN.1441): the body is placed at the distance of a body of a lone star that gets the same total light."""
     inner_bound, outer_bound = habitable_zone
+    if star is not None:
+        distance_au = distance_au / math.sqrt(radiation_field.light_ratio(star, distance_au))
     if distance_au < inner_bound:
         return 'h'
     if distance_au > outer_bound:

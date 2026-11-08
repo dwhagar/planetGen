@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1416 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1421 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1390 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1395 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 103 | 45 | 9 | 10 | 0 | 167 |
 | T4 | 71 | 11 | 2 | 19 | 10 | 113 |
 | T5 | 64 | 22 | 4 | 1 | 0 | 91 |
-| T6 | 156 | 100 | 27 | 75 | 0 | 358 |
-| T7 | 37 | 15 | 9 | 30 | 0 | 91 |
+| T6 | 159 | 100 | 27 | 75 | 0 | 361 |
+| T7 | 38 | 16 | 9 | 30 | 0 | 93 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 91 | 34 | 187 |
-| All | 782 | 288 | 68 | 233 | 45 | 1416 |
+| All | 786 | 289 | 68 | 233 | 45 | 1421 |
 
 ## How the labels were given
 
@@ -2489,3 +2489,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | UC16 | T | T6 | L0 | a quark-matter or strange-matter core of a neutron star above about 2 to 3 times nuclear density: a watch entry, no number | none | neutron-star cores | a measured mass and radius that exclude it | none | EXISTENCE 35 percent for any exotic core, 5 percent for a pure strange-quark star, PROPERTIES 15 percent (the report's judgment). Changes no number now: at most one text line on the kind of core; there is no equation of state on offer. Recalled, not opened | predicted only | - | - |
 | UC17 | T | T4 | L0 | azotosome-type membranes (acrylonitrile vesicles) in Titan's liquid methane: a watch entry, no number | none | Titan's liquid methane | a measurement that the vesicles cannot form there | none | EXISTENCE 5 percent, PROPERTIES 5 percent (the report's judgment). Changes no number now: PlanetGen has no use for it; later energetics work cast doubt on it. Recalled, not opened | predicted only | - | - |
 | UC18 | T | T4 | L0 | superheavy nuclides near the island of stability (Z about 114 to 126, N about 184) in nature: a watch entry, no number | none | r-process ejecta and cosmic rays | a measured superheavy nuclide in nature | none | EXISTENCE 3 percent, PROPERTIES 20 percent (the report's judgment). Changes no number now: PlanetGen has no use for it. Recalled, not opened | predicted only | - | - |
+
+## 6.239 Stand-ins of the radiation field of a system
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| RF1 | T | T6 | L0 | the body's orbit round its host and the other source's orbit round the host are taken coplanar (`mean_inverse_square`); a mutual inclination only lengthens the mean separation, so this is the upper bound on the companion's part | none | bodies well inside their host's window | a stored mutual inclination of a companion's orbit that is large (tens of degrees) and a companion near the planet's orbit | the average over the mutual inclination | derived: the mean of `1 / (R^2 + d^2 - 2 R d cos(phi))` over `phi` is exactly `1 / (R^2 - d^2)` for coplanar circles | predicted only | - | - |
+| RF2 | T | T6 | L0 | a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as `planet_zones.flux_at` takes it | none | hierarchies as hierarchical as the stability test makes them | a triple with an inner pair wide enough that its members' separate positions change the mean light by over a tenth | the members' positions inside the subtree | derived: `planet_zones.companion_orbits`; the stability test keeps the inner pair well inside the outer axis | predicted only | - | - |
+| RF3 | P | T7 | L0 | the source's orbit is averaged on `ORBIT_SAMPLES` = 96 points uniform in mean anomaly | 48 to 400 points | eccentricities under 0.9 | a result that moves by over 1e-4 between 96 and 400 points | an analytic average | numerical choice; the test compares the grid with a 400 by 360 brute-force average over both orbits | predicted only | - | - |
+| RF4 | T | T6 | L0 | a body's zone letter (hot, ecosphere, cold) uses its distance over the square root of the total light over the host's own (`radiation_field.light_ratio`), against the host's habitable-zone edges | none | companions whose spectrum is like the host's | a companion of very different temperature, whose light the zone edges of the host do not describe | edges made from the combined spectrum | derived: the edges are fixed by the light a lone star gives at a distance | predicted only | - | - |
+| RF5 | P | T7 | L1 | a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no `l_xuv_w`, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them | none | any system with a remnant | a remnant whose measured XUV or disk power the stored values leave out | stand-in values per remnant kind, registered with tier and tweak | design; nothing invented here: absent stays absent | predicted only | - | - |

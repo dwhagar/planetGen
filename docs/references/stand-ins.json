@@ -55389,6 +55389,204 @@
       ],
       "slug": "6-238-known-gaps-kept-as-watch-lines",
       "title": "Known gaps kept as watch lines"
+    },
+    {
+      "key": "6.239",
+      "number": "6.239",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the body's orbit round its host and the other source's orbit round the host are taken coplanar (mean_inverse_square); a mutual inclination only lengthens the mean separation, so this is the upper bound on the companion's part"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "bodies well inside their host's window"
+            ],
+            [
+              "What would show it wrong",
+              "a stored mutual inclination of a companion's orbit that is large (tens of degrees) and a companion near the planet's orbit"
+            ],
+            [
+              "What replaces it",
+              "the average over the mutual inclination"
+            ],
+            [
+              "Evidence",
+              "derived: the mean of 1 / (R^2 + d^2 - 2 R d cos(phi)) over phi is exactly 1 / (R^2 - d^2) for coplanar circles"
+            ]
+          ],
+          "id": "RF1",
+          "key": "6.239:RF1",
+          "kind": "T",
+          "slug": "6-239-rf1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the body's orbit round its host and the other source's orbit round the host are taken coplanar (mean_inverse_square); a mutual inclination only lengthens the mean separation, so this is the upper bound on the companion's part"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.flux_at takes it"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "hierarchies as hierarchical as the stability test makes them"
+            ],
+            [
+              "What would show it wrong",
+              "a triple with an inner pair wide enough that its members' separate positions change the mean light by over a tenth"
+            ],
+            [
+              "What replaces it",
+              "the members' positions inside the subtree"
+            ],
+            [
+              "Evidence",
+              "derived: planet_zones.companion_orbits; the stability test keeps the inner pair well inside the outer axis"
+            ]
+          ],
+          "id": "RF2",
+          "key": "6.239:RF2",
+          "kind": "T",
+          "slug": "6-239-rf2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.flux_at takes it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the source's orbit is averaged on ORBIT_SAMPLES = 96 points uniform in mean anomaly"
+            ],
+            [
+              "The range it moves in",
+              "48 to 400 points"
+            ],
+            [
+              "Where it holds",
+              "eccentricities under 0.9"
+            ],
+            [
+              "What would show it wrong",
+              "a result that moves by over 1e-4 between 96 and 400 points"
+            ],
+            [
+              "What replaces it",
+              "an analytic average"
+            ],
+            [
+              "Evidence",
+              "numerical choice; the test compares the grid with a 400 by 360 brute-force average over both orbits"
+            ]
+          ],
+          "id": "RF3",
+          "key": "6.239:RF3",
+          "kind": "P",
+          "slug": "6-239-rf3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the source's orbit is averaged on ORBIT_SAMPLES = 96 points uniform in mean anomaly"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a body's zone letter (hot, ecosphere, cold) uses its distance over the square root of the total light over the host's own (radiation_field.light_ratio), against the host's habitable-zone edges"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "companions whose spectrum is like the host's"
+            ],
+            [
+              "What would show it wrong",
+              "a companion of very different temperature, whose light the zone edges of the host do not describe"
+            ],
+            [
+              "What replaces it",
+              "edges made from the combined spectrum"
+            ],
+            [
+              "Evidence",
+              "derived: the edges are fixed by the light a lone star gives at a distance"
+            ]
+          ],
+          "id": "RF4",
+          "key": "6.239:RF4",
+          "kind": "T",
+          "slug": "6-239-rf4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a body's zone letter (hot, ecosphere, cold) uses its distance over the square root of the total light over the host's own (radiation_field.light_ratio), against the host's habitable-zone edges"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no l_xuv_w, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any system with a remnant"
+            ],
+            [
+              "What would show it wrong",
+              "a remnant whose measured XUV or disk power the stored values leave out"
+            ],
+            [
+              "What replaces it",
+              "stand-in values per remnant kind, registered with tier and tweak"
+            ],
+            [
+              "Evidence",
+              "design; nothing invented here: absent stays absent"
+            ]
+          ],
+          "id": "RF5",
+          "key": "6.239:RF5",
+          "kind": "P",
+          "slug": "6-239-rf5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no l_xuv_w, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them"
+        }
+      ],
+      "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
+      "title": "Stand-ins of the radiation field of a system"
     }
   ]
 }

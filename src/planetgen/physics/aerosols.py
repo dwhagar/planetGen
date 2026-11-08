@@ -49,6 +49,7 @@ import numpy as np
 from scipy.optimize import brentq
 
 from planetgen.physics import activity, air_column, atmospheric_radiation, climate_draws, constants, gases, photolysis, planet_type, saturation, stellar_spectrum
+from planetgen.physics import radiation_field
 from planetgen.util import draw
 
 SKIN_FACTOR = 2.0 ** -0.25
@@ -648,7 +649,7 @@ def _haze_temperature_k(body, surface_temperature_k):
     albedo = getattr(body, "bond_albedo", None)
     if planet_type.has_ground(body) or star is None or not distance_au or albedo is None:
         return surface_temperature_k
-    starlight = star.luminosity / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2)
+    starlight = star.luminosity / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2) + radiation_field.companion_light_w_m2(star, distance_au)     # GEN.1441
     return climate_draws.equilibrium_temperature_k(albedo, starlight)
 
 
