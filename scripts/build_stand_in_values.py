@@ -329,7 +329,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.215", "6.215 Stand-ins of the minor oxides of a rocky body's rock",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.210", "6.210 Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases",
+    ("6.216", "6.216 Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.197", "6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),

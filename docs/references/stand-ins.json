@@ -42063,6 +42063,166 @@
       "title": "Stand-ins of the minor oxides of a rocky body's rock"
     },
     {
+      "key": "6.216",
+      "number": "6.216",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_condensates.TRACE_ELEMENTS: [X/Fe] = 0 for Rb, Cs, Ge, As and Se (they follow iron)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "disk dwarfs, where no trend of these elements with [Fe/H] has been opened"
+            ],
+            [
+              "What would show it wrong",
+              "a sample that gives a trend of Rb, Cs, Ge, As or Se with [Fe/H]"
+            ],
+            [
+              "What replaces it",
+              "the star element set (GEN.1360's way) when a sample with a trend is opened"
+            ],
+            [
+              "Evidence",
+              "the log eps are read; the follow-iron choice is the default for an element with no opened trend and was not tested against any sample"
+            ]
+          ],
+          "id": "HC1",
+          "key": "6.216:HC1",
+          "kind": "P",
+          "slug": "6-216-hc1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.994",
+          "what": "hot_condensates.TRACE_ELEMENTS: [X/Fe] = 0 for Rb, Cs, Ge, As and Se (they follow iron)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_condensates.HOT_TRACE_GASES: the most a gas can hold per hydrogen atom is its scarcest element's abundance over the atoms the molecule holds"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any atmosphere of hydrogen-rich gas"
+            ],
+            [
+              "What would show it wrong",
+              "a measured abundance above the ceiling (then the star's element is wrong)"
+            ],
+            [
+              "What replaces it",
+              "the thermochemistry of the hot-giant regimes (GEN.994), which gives the amount, not its ceiling"
+            ],
+            [
+              "Evidence",
+              "an upper bound by mass balance; no abundance of these gases is opened, so none is given (GeH4 and AsH3 on Jupiter and Saturn are named in the research as detections without values)"
+            ]
+          ],
+          "id": "HC2",
+          "key": "6.216:HC2",
+          "kind": "B",
+          "slug": "6-216-hc2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.994",
+          "what": "hot_condensates.HOT_TRACE_GASES: the most a gas can hold per hydrogen atom is its scarcest element's abundance over the atoms the molecule holds"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_condensates.FITS Cr: [Fe/H] of the printed fit taken as the host's [Cr/H], with its coefficient 0.486"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the pressures 1e-4 to 100 bar of the fit"
+            ],
+            [
+              "What would show it wrong",
+              "a fit of the chromium cloud in which the coefficient of [Cr/H] differs from that of [Fe/H]"
+            ],
+            [
+              "What replaces it",
+              "a Gibbs minimisation (FastChem, GGchem)"
+            ],
+            [
+              "Evidence",
+              "the printed fit scales chromium with iron because the Sun's ratio is fixed; the chromium cloud's condensing reaction takes the chromium gas, so the abundance of chromium is the term that belongs there; the coefficient is not checked against a computation"
+            ]
+          ],
+          "id": "HC3",
+          "key": "6.216:HC3",
+          "kind": "T",
+          "slug": "6-216-hc3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": "GEN.994",
+          "what": "hot_condensates.FITS Cr: [Fe/H] of the printed fit taken as the host's [Cr/H], with its coefficient 0.486"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_condensates.KCL: potassium alone limits KCl (the chlorine abundance is not used)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a host whose [Cl/K] is above -0.24 dex of the Sun's"
+            ],
+            [
+              "What would show it wrong",
+              "a host with a chlorine abundance below potassium's"
+            ],
+            [
+              "What replaces it",
+              "the same Gibbs minimisation"
+            ],
+            [
+              "Evidence",
+              "the Sun holds 5.07 potassium and 5.31 chlorine in log eps, so chlorine does not limit unless the host is 0.24 dex poorer in it"
+            ]
+          ],
+          "id": "HC4",
+          "key": "6.216:HC4",
+          "kind": "T",
+          "slug": "6-216-hc4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.994",
+          "what": "hot_condensates.KCL: potassium alone limits KCl (the chlorine abundance is not used)"
+        }
+      ],
+      "slug": "6-216-stand-ins-of-the-host-scaled-cloud-temperatures-and-the-hot-atmosphere-trace-gases",
+      "title": "Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases"
+    },
+    {
       "key": "6.197",
       "number": "6.197",
       "rows": [

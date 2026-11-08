@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1291 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1300 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 167 | 19 | 11 | 1 | 0 | 198 |
-| T2 | 125 | 52 | 1 | 1 | 0 | 179 |
-| T3 | 94 | 43 | 7 | 9 | 0 | 153 |
+| T2 | 125 | 54 | 1 | 1 | 0 | 181 |
+| T3 | 95 | 43 | 7 | 9 | 0 | 154 |
 | T4 | 58 | 7 | 2 | 19 | 10 | 96 |
-| T5 | 60 | 22 | 3 | 1 | 0 | 86 |
-| T6 | 134 | 94 | 25 | 63 | 0 | 316 |
+| T5 | 61 | 22 | 3 | 1 | 0 | 87 |
+| T6 | 137 | 96 | 25 | 63 | 0 | 321 |
 | T7 | 34 | 15 | 7 | 17 | 0 | 73 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 713 | 268 | 61 | 204 | 45 | 1291 |
+| All | 718 | 272 | 61 | 204 | 45 | 1300 |
 
 ## How the labels were given
 
@@ -1857,6 +1857,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MO3 | T | T5 | L1 | mantle_oxides.VALENCE Ni 2, Cr 2, Mn 2, P 5 and EARTH_ROCK_FEO 0.0805: D goes as the rock's FeO to the power -n/2 | n of Cr 2 to 3 (Cr2+ at the oxygen fugacity of core formation); Ni 2; P 5 (as P5+) | rocks of FeO 0.01 to 0.18 | a body whose mantle P or Cr does not rise with its FeO; Mars NiO: the model gives 0.5 percent where Yoshizaki and McDonough have 0.046, a miss of 11 times that the pressure, temperature and sulfur terms of the real metal would close | a pressure and temperature dependent partition of each element (the real law has three more terms) | the exchange of a metal atom for n/2 oxygen is the leading term of the metal-silicate partition, not fitted; with it the mantle P of Mars goes from 0.037 to 0.13 percent against the printed 0.17 [R4833], and the Earth is unchanged by the anchor | - | - |
 | MO4 | B | T3 | L0 | mantle_oxides.EARTH_CORE_SHARE Ti 0 and MIN_ROCK_FEO 1e-3: titanium is lithophile and the FeO of the redox law is not taken under a tenth of a percent | Ti 0 to 0.05 | any rocky body | a core with a Ti share above 0.05 | a partition of Ti at the pressure of a large body's core | Ti has no core ppm in the table of [R4608], and the model Earth TiO2 is 0.92 of the McDonough and Sun value [R5076]; the floor only keeps D finite | - | - |
 
+## 6.216 Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HC1 | P | T6 | L0 | hot_condensates.TRACE_ELEMENTS: [X/Fe] = 0 for Rb, Cs, Ge, As and Se (they follow iron) | none | disk dwarfs, where no trend of these elements with [Fe/H] has been opened | a sample that gives a trend of Rb, Cs, Ge, As or Se with [Fe/H] | the star element set (GEN.1360's way) when a sample with a trend is opened | the log eps are read; the follow-iron choice is the default for an element with no opened trend and was not tested against any sample | GEN.994 | - |
+| HC2 | B | T6 | L0 | hot_condensates.HOT_TRACE_GASES: the most a gas can hold per hydrogen atom is its scarcest element's abundance over the atoms the molecule holds | none | any atmosphere of hydrogen-rich gas | a measured abundance above the ceiling (then the star's element is wrong) | the thermochemistry of the hot-giant regimes (GEN.994), which gives the amount, not its ceiling | an upper bound by mass balance; no abundance of these gases is opened, so none is given (GeH4 and AsH3 on Jupiter and Saturn are named in the research as detections without values) | GEN.994 | - |
+| HC3 | T | T5 | L0 | hot_condensates.FITS Cr: [Fe/H] of the printed fit taken as the host's [Cr/H], with its coefficient 0.486 | none | the pressures 1e-4 to 100 bar of the fit | a fit of the chromium cloud in which the coefficient of [Cr/H] differs from that of [Fe/H] | a Gibbs minimisation (FastChem, GGchem) | the printed fit scales chromium with iron because the Sun's ratio is fixed; the chromium cloud's condensing reaction takes the chromium gas, so the abundance of chromium is the term that belongs there; the coefficient is not checked against a computation | GEN.994 | - |
+| HC4 | T | T6 | L0 | hot_condensates.KCL: potassium alone limits KCl (the chlorine abundance is not used) | none | a host whose [Cl/K] is above -0.24 dex of the Sun's | a host with a chlorine abundance below potassium's | the same Gibbs minimisation | the Sun holds 5.07 potassium and 5.31 chlorine in log eps, so chlorine does not limit unless the host is 0.24 dex poorer in it | GEN.994 | - |
+
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -2271,6 +2280,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CK4 | P | T3 | L2 | comet_species.CO_OVER_H2O_MEDIAN 10^-1.602 (the median CO/H2O of the comets of the population, row k5) | 10^-1.602 plus or minus 0.16 dex | comets at heliocentric distance up to 2.5 AU | a population median of CO/H2O outside 10^-1.76 to 10^-1.44 | the row k5 refit (GEN.520) | [R3782] database, per-comet medians of 16 comets (GEN.520, comet-composition-tuning.md); test_comet_species::test_a_host_of_solar_composition_gives_the_calibration_comet_within_two_percent | - | - |
 | CK5 | P | T7 | L3 | comet_species.UNSCALED_OVER_H2O O2 3.1e-2, Kr 4.9e-7, Xe 2.4e-7 per water (no host ratio) | each by 0.4 dex | a comet or asteroid of any formation temperature | the same species measured in a second comet that differ from 67P by more than 0.4 dex | GEN.1021 | one comet, 67P [R3835]; O2 is not tied to the oxygen budget by any source read; krypton and xenon are not in the abundance table; test_comet_species::test_o2_krypton_and_xenon_have_no_host_ratio_and_keep_one_value | - | replace (GEN.1021) |
 | CK6 | P | T6 | L1 | comet_species.SIGMA_DEX 0.4 (the width of every species, decades) | 0.33 to 0.6 | the seven species of row k7 that the chain covers | a spread of a species across comets measured outside 0.2 to 0.8 dex | GEN.1021 | Bar-Nun: the trapped gas drops six decades between 25 and 100 K (a decade per 12 K) and a comet's formation temperature is known to 5 K (48 +/- 5 K for Halley's CO); the four species a population measures scatter 0.33 to 0.39 dex; test_comet_species::test_the_width_sits_inside_the_scatter_of_the_four_species_a_population_measures_and_the_old_design_width | - | - |
+| CB1 | P | T3 | L0 | comet_species.N2_OVER_CO (0.0287, 0.09), AR_OVER_H2O (5.8e-6, 8.7e-3), OCS_OVER_H2O (5e-4, 4e-3), SO2_OVER_H2O (3e-4, 2.3e-3) and O2_OVER_H2O (0.020, 0.0465): the bracket of each species between the comets measured, scaled by the host's ratio | the ends of each by their quoted errors | comets and asteroids of any formation temperature | a comet measured outside a species' bracket | a third comet widens it (GEN.1021 later part) | the widest range between the comets (two sources in question): N2 per CO of 67P and C/2016 R2 [R0109, R0836]; Ar per water of 67P and Hale-Bopp ([R3835, R4215], a coma, not a nucleus); OCS and SO2 the range of the comets in Table 7 of the 46P paper (A&A 648, A49, no comet named; a compilation, so T3); O2 Halley [R3836] to 67P [R0386]; test_comet_species::test_a_comet_measured_falls_inside_its_species_bracket | - | - |
+| CB2 | P | T2 | L1 | comet_species.KR_OVER_AR 0.089 and XE_OVER_KR 0.269 (krypton follows argon, xenon follows krypton) | 0.089 +/- 0.021 and 0.269 +/- 0.064 | comets of any formation temperature | Kr per Ar or Xe per Kr measured in a second comet outside the errors | a second comet's noble gases | one comet, 67P [R3834]; the laboratory shifts Ar/Kr and Ar/Xe by at most 40 percent (read in the GEN.1021 report), which is the L1 slack; test_comet_species::test_krypton_and_xenon_are_argon_times_the_ratios_of_67p | - | - |
+| CY1 | P | T2 | L1 | comet_ice_formation.COLD_CO_OVER_H2O 0.2 (the CO/H2O of the cold end of the comets measured, Hale-Bopp) | 0.15 to 0.3 | comets of the population (row k5) | a comet at the cold end of its species with CO/H2O outside 0.15 to 0.3 | GEN.1022 (wiring); the value read when a source opens for Hale-Bopp's CO/H2O | Hale-Bopp's 'notably high CO' of about 0.2, recalled from the GEN.1021 report and not opened; test_comet_ice_formation::test_the_median_comet_has_the_warm_end_of_every_species_and_hale_bopp_the_cold_end | GEN.1022 | - |
+| CY2 | P | T6 | L1 | comet_ice_formation.RESIDUAL_DEX N2 0.05 and Ar 0.4, and NOBLE_TIE_DEX 0.15 (decades) | N2 0.03 to 0.1; Ar 0.2 to 0.8; ties 0.1 to 0.2 | comets of the population | the scatter of a species at fixed CO/H2O across comets measured outside the knob | GEN.1022 (wiring); a population of comets with the species measured | the range of N2 per CO in C/2016 R2 (0.06 to 0.09, 0.18 dex) and of argon in 67P over its season (1.4 decades) over the square root of 12, and the laboratory's 40 percent fractionation; test_comet_ice_formation::test_a_residual_moves_only_its_own_species_by_its_width | GEN.1022 | - |
+| CY3 | P | T6 | L1 | comet_ice_formation.K_PER_DECADE 12.5 (75 K over six decades) through the Halley anchor (3.5 percent CO at 48 K) | 10 to 15 K per decade; anchor +/- 5 K | ice formed between 25 and 100 K | a laboratory law of CO trapping against temperature that departs from log-linear by more than a factor of 3 over 38 to 50 K | GEN.1022 (wiring); the table of trapping by temperature, which cannot be read in the open text ([R0802] shows the trapping also depends on deposition rate and partial pressure) | Bar-Nun: the trapped gas falls six decades from 25 to 100 K and Halley's CO needs 48 +/- 5 K ([R0267], NTRS N90-16610); test_comet_ice_formation::test_the_laboratory_law_gives_halley_its_anchor_and_six_decades_in_75_kelvin | GEN.1022 | - |
 
 ## 6.127 Stand-ins of the architecture's losses
 
