@@ -2591,6 +2591,9 @@ CREATE TABLE IF NOT EXISTS planets (
     crust_merrillite_share      DOUBLE,  -- v230 (GEN.1367): Share in merrillite
     crust_schreibersite_share   DOUBLE,  -- v230 (GEN.1367): Share in schreibersite
     ocean_phosphate_umol_l      DOUBLE,  -- v230 (GEN.1367): The ocean's phosphate, umol/L
+    crust_thickness_km          DOUBLE,  -- v231 (GEN.1380): the mean crust thickness, km
+    craton_fraction             DOUBLE,  -- v231 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
+    crust_sulfur_index          DOUBLE,  -- v231 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
@@ -2701,6 +2704,24 @@ CREATE TABLE IF NOT EXISTS planet_reflection_spectrum (
     CONSTRAINT fk_planet_reflection_spectrum_planet
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
     KEY idx_planet_reflection_spectrum_planet_id (planet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The magmatic ore types a rocky planet was assessed for (v231, GEN.1380): one row per type, its status, endowment and grade.
+CREATE TABLE IF NOT EXISTS planet_deposit_types (
+    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id  BIGINT UNSIGNED NOT NULL,
+    deposit_type          VARCHAR(24) NOT NULL,
+    status                VARCHAR(20) NOT NULL,
+    endowment_kg          DOUBLE,
+    grade                 DOUBLE,
+    key_element           VARCHAR(8) NOT NULL,
+    age_window_gyr_start  DOUBLE,
+    age_window_gyr_end    DOUBLE,
+    capped_by_host        TINYINT NOT NULL DEFAULT 0,
+
+    UNIQUE KEY uq_planet_deposit_types (planet_id, deposit_type),
+    CONSTRAINT fk_planet_deposit_types_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- A giant's layers, outside in (DB.89, GEN.642): one row per layer of the interior drawn for the planet, in Earth masses per material.
@@ -3073,6 +3094,9 @@ CREATE TABLE IF NOT EXISTS moons (
     crust_merrillite_share      DOUBLE,  -- v230 (GEN.1367): Share in merrillite
     crust_schreibersite_share   DOUBLE,  -- v230 (GEN.1367): Share in schreibersite
     ocean_phosphate_umol_l      DOUBLE,  -- v230 (GEN.1367): The ocean's phosphate, umol/L
+    crust_thickness_km          DOUBLE,  -- v231 (GEN.1380): the mean crust thickness, km
+    craton_fraction             DOUBLE,  -- v231 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
+    crust_sulfur_index          DOUBLE,  -- v231 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
     envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
     envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
@@ -3186,6 +3210,24 @@ CREATE TABLE IF NOT EXISTS moon_reflection_spectrum (
     CONSTRAINT fk_moon_reflection_spectrum_moon
         FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
     KEY idx_moon_reflection_spectrum_moon_id (moon_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The magmatic ore types a rocky moon was assessed for (v231, GEN.1380): one row per type, its status, endowment and grade.
+CREATE TABLE IF NOT EXISTS moon_deposit_types (
+    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id  BIGINT UNSIGNED NOT NULL,
+    deposit_type          VARCHAR(24) NOT NULL,
+    status                VARCHAR(20) NOT NULL,
+    endowment_kg          DOUBLE,
+    grade                 DOUBLE,
+    key_element           VARCHAR(8) NOT NULL,
+    age_window_gyr_start  DOUBLE,
+    age_window_gyr_end    DOUBLE,
+    capped_by_host        TINYINT NOT NULL DEFAULT 0,
+
+    UNIQUE KEY uq_moon_deposit_types (moon_id, deposit_type),
+    CONSTRAINT fk_moon_deposit_types_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- A giant's layers, outside in (DB.89, GEN.642): one row per layer of the interior drawn for the moon, in Earth masses per material.
@@ -4402,6 +4444,9 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     crust_merrillite_share      DOUBLE,  -- v230 (GEN.1367): Share in merrillite
     crust_schreibersite_share   DOUBLE,  -- v230 (GEN.1367): Share in schreibersite
     ocean_phosphate_umol_l      DOUBLE,  -- v230 (GEN.1367): The ocean's phosphate, umol/L
+    crust_thickness_km          DOUBLE,  -- v231 (GEN.1380): the mean crust thickness, km
+    craton_fraction             DOUBLE,  -- v231 (GEN.1380): the share of the crust that is old thick craton, 0 to 1
+    crust_sulfur_index          DOUBLE,  -- v231 (GEN.1380): how much sulfur the crust offers a rising mafic magma, 0 to 1
     envelope_helium_fraction    DOUBLE,  -- v207 (GEN.1111)
     envelope_z_fraction         DOUBLE,  -- v207 (GEN.1111)
     porosity                    DOUBLE,  -- v207 (GEN.1111)
@@ -4527,6 +4572,24 @@ CREATE TABLE IF NOT EXISTS rogue_planet_reflection_spectrum (
     CONSTRAINT fk_rogue_planet_reflection_spectrum_rogue_planet
         FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE,
     KEY idx_rogue_planet_reflection_spectrum_rogue_planet_id (rogue_planet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The magmatic ore types a rocky rogue planet was assessed for (v231, GEN.1380): one row per type, its status, endowment and grade.
+CREATE TABLE IF NOT EXISTS rogue_planet_deposit_types (
+    id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    rogue_planet_id  BIGINT UNSIGNED NOT NULL,
+    deposit_type          VARCHAR(24) NOT NULL,
+    status                VARCHAR(20) NOT NULL,
+    endowment_kg          DOUBLE,
+    grade                 DOUBLE,
+    key_element           VARCHAR(8) NOT NULL,
+    age_window_gyr_start  DOUBLE,
+    age_window_gyr_end    DOUBLE,
+    capped_by_host        TINYINT NOT NULL DEFAULT 0,
+
+    UNIQUE KEY uq_rogue_planet_deposit_types (rogue_planet_id, deposit_type),
+    CONSTRAINT fk_rogue_planet_deposit_types_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS rogue_planet_interior_layers (

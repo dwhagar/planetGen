@@ -77,6 +77,7 @@ from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
+from planetgen.physics import ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -620,7 +621,7 @@ know their parents' ids before anything is written, and `cur.lastrowid`
 still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
-    "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
+    "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
@@ -2935,6 +2936,7 @@ BODY_FIELDS = (
     object_rows.each(bulk_composition.COLUMN_FIELDS),
     object_rows.each(surface_composition.COLUMN_FIELDS),
     object_rows.each(phosphorus_budget.COLUMN_FIELDS),
+    object_rows.each(ore_deposits.COLUMN_FIELDS),
     object_rows.each(daylight.FIELDS),
     object_rows.each(ocean_tides.FIELDS),
     object_rows.each(moon_composition.BODY_FIELDS),
@@ -2982,6 +2984,14 @@ def _insert_interior_layers(conn, table, id_column, owner_id, layers):
         )
 
 
+def _insert_deposit_types(conn, table, id_column, owner_id, rows):
+    """The magmatic ore types a rocky body was assessed for (GEN.1380); `planet_deposit_types`, `moon_deposit_types` and `rogue_planet_deposit_types` (this module's own literal table names)."""
+    columns = ", ".join(ore_deposits.ROW_FIELDS)
+    marks = ", ".join("?" for _ in range(len(ore_deposits.ROW_FIELDS) + 1))
+    for row in rows or []:
+        conn.execute(f"INSERT INTO {table} ({id_column}, {columns}) VALUES ({marks})", (owner_id, *(row[name] for name in ore_deposits.ROW_FIELDS)))
+
+
 BODY_OWNERS = {"planet": ("planet", "planet_id"), "moon": ("moon", "moon_id"), "rogue_planet": ("rogue_planet", "rogue_planet_id")}
 """dict: The owners of the per-body child tables (`<prefix>_gases` and the rest) by kind, each with its table prefix and its id column (GEN.1111: a rogue planet has its own)."""
 
@@ -2999,6 +3009,7 @@ def body_child_rows(conn, body, body_id, owner=None):
         body.reflection_spectrum_visible, body.reflection_spectrum_non_visible,
     )
     _insert_interior_layers(conn, f"{prefix}_interior_layers", id_column, body_id, body.interior_layers)
+    _insert_deposit_types(conn, f"{prefix}_deposit_types", id_column, body_id, getattr(body, ore_deposits.ATTRIBUTE, None))
     for formula, partial_pa in sorted(atmosphere.gas_partials_pa(body).items()):
         if partial_pa > 0.0:
             conn.execute(f"INSERT INTO {prefix}_gases ({id_column}, gas, partial_pa) VALUES (?, ?, ?)",
@@ -9790,6 +9801,11 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
         (row["id"],),
     ).fetchall()
 
+    deposit_rows = conn.execute(
+        f"SELECT {', '.join(ore_deposits.ROW_FIELDS)} FROM {table_prefix}_deposit_types WHERE {id_column} = ? ORDER BY id",
+        (row["id"],),
+    ).fetchall()
+
     data = object_rows.load_dict(ROGUE_BODY_FIELDS if owner == "rogue_planet" else PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
     data.update({
         atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon, owner).get(row["id"], {}),
@@ -9799,6 +9815,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon, owner=None):
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,
         giant_interior.LAYERS_ATTRIBUTE: [{name: layer[name] for name in INTERIOR_LAYER_COLUMNS} for layer in layer_rows] or None,
+        ore_deposits.ATTRIBUTE: [{name: deposit[name] for name in ore_deposits.ROW_FIELDS} for deposit in deposit_rows] or None,
         "moons": [],
     })
     if not is_moon:

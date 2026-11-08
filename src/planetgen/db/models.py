@@ -1093,6 +1093,24 @@ irregular_sets = sa.Table(
 )
 
 
+moon_deposit_types = sa.Table(
+    'moon_deposit_types',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('deposit_type', sa.String(24), nullable=False),
+    sa.Column('status', sa.String(20), nullable=False),
+    sa.Column('endowment_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.DOUBLE(), nullable=True),
+    sa.Column('key_element', sa.String(8), nullable=False),
+    sa.Column('age_window_gyr_start', mysql.DOUBLE(), nullable=True),
+    sa.Column('age_window_gyr_end', mysql.DOUBLE(), nullable=True),
+    sa.Column('capped_by_host', mysql.TINYINT(), nullable=False, server_default=sa.text("'0'")),
+    sa.Index('uq_moon_deposit_types', 'moon_id', 'deposit_type', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_deposit_types_moon', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
 moon_gases = sa.Table(
     'moon_gases',
     metadata,
@@ -1459,6 +1477,9 @@ moons = sa.Table(
     sa.Column('crust_merrillite_share', mysql.DOUBLE(), nullable=True),
     sa.Column('crust_schreibersite_share', mysql.DOUBLE(), nullable=True),
     sa.Column('ocean_phosphate_umol_l', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_thickness_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('craton_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_sulfur_index', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_helium_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_z_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('porosity', mysql.DOUBLE(), nullable=True),
@@ -2130,6 +2151,24 @@ phenomenon_scatter_classes = sa.Table(
 )
 
 
+planet_deposit_types = sa.Table(
+    'planet_deposit_types',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('deposit_type', sa.String(24), nullable=False),
+    sa.Column('status', sa.String(20), nullable=False),
+    sa.Column('endowment_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.DOUBLE(), nullable=True),
+    sa.Column('key_element', sa.String(8), nullable=False),
+    sa.Column('age_window_gyr_start', mysql.DOUBLE(), nullable=True),
+    sa.Column('age_window_gyr_end', mysql.DOUBLE(), nullable=True),
+    sa.Column('capped_by_host', mysql.TINYINT(), nullable=False, server_default=sa.text("'0'")),
+    sa.Index('uq_planet_deposit_types', 'planet_id', 'deposit_type', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_deposit_types_planet', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
 planet_gases = sa.Table(
     'planet_gases',
     metadata,
@@ -2498,6 +2537,9 @@ planets = sa.Table(
     sa.Column('crust_merrillite_share', mysql.DOUBLE(), nullable=True),
     sa.Column('crust_schreibersite_share', mysql.DOUBLE(), nullable=True),
     sa.Column('ocean_phosphate_umol_l', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_thickness_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('craton_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_sulfur_index', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_helium_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_z_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('porosity', mysql.DOUBLE(), nullable=True),
@@ -2749,6 +2791,24 @@ request_notifications = sa.Table(
     mysql_engine="InnoDB",
 )
 
+
+rogue_planet_deposit_types = sa.Table(
+    'rogue_planet_deposit_types',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('rogue_planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('deposit_type', sa.String(24), nullable=False),
+    sa.Column('status', sa.String(20), nullable=False),
+    sa.Column('endowment_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.DOUBLE(), nullable=True),
+    sa.Column('key_element', sa.String(8), nullable=False),
+    sa.Column('age_window_gyr_start', mysql.DOUBLE(), nullable=True),
+    sa.Column('age_window_gyr_end', mysql.DOUBLE(), nullable=True),
+    sa.Column('capped_by_host', mysql.TINYINT(), nullable=False, server_default=sa.text("'0'")),
+    sa.Index('uq_rogue_planet_deposit_types', 'rogue_planet_id', 'deposit_type', unique=True),
+    sa.ForeignKeyConstraint(['rogue_planet_id'], ['rogue_planets.id'], name='fk_rogue_planet_deposit_types_rogue_planet', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
 
 rogue_planet_gases = sa.Table(
     'rogue_planet_gases',
@@ -3090,6 +3150,9 @@ rogue_planets = sa.Table(
     sa.Column('crust_merrillite_share', mysql.DOUBLE(), nullable=True),
     sa.Column('crust_schreibersite_share', mysql.DOUBLE(), nullable=True),
     sa.Column('ocean_phosphate_umol_l', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_thickness_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('craton_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_sulfur_index', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_helium_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_z_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('porosity', mysql.DOUBLE(), nullable=True),

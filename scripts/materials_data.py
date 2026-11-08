@@ -424,3 +424,8 @@ _READ_BY_1366 = ("antarcticite", "natron", "hydromagnesite", "magnesite", "therm
 VOCABULARY_ONLY.update({row_id: _ADDED_BY_1357 for row_id in (*PART3_MINERALS, *PART3_GROUPS) if row_id not in _NORM_NAMED_1357 and row_id not in _READ_BY_1366})
 for _row_id in _READ_BY_1366:
     VOCABULARY_ONLY.pop(_row_id, None)
+
+# GEN.1368: the taxon mixes carry these as accessory minerals (physics/accessory_minerals.py names them), so they lose their tag
+_READ_BY_1368 = ('alabandite', 'carbon_diamond', 'carbon_graphite', 'chlorapatite', 'chromite', 'cohenite', 'cronstedtite', 'daubreelite', 'dolomite', 'epsomite', 'gypsum', 'hibonite', 'hydroxylapatite', 'ilmenite', 'magnesite', 'melilite', 'merrillite', 'moissanite', 'nepheline', 'niningerite', 'oldhamite', 'pentlandite', 'perovskite', 'pyrrhotite', 'saponite', 'sinoite', 'spinel', 'tochilinite', 'whitlockite')
+for _row_id in _READ_BY_1368:
+    VOCABULARY_ONLY.pop(_row_id, None)

@@ -266,3 +266,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.216:PB7 | no data | - | the sea-floor weathering share of a world with no land is not measured for any such world; the Earth's sea floor is a mix with its land |
 | 6.216:PB9 | no data | - | the phosphate of a sealed ocean under ice is not observed; the ceiling and floor are the old class values of the habitability term |
 | 6.216:PB10 | no data | - | the bands are a label for pages; the number drives the score, so no measurement can fix the band edges |
+| 6.215:ORE1 | replace | GEN.1383 | the crust thickness follows the crust-production model of the interior when that item builds it; the Earth, Mars and Venus values are recalled, not opened |
+| 6.215:ORE2 | replace | GEN.1383 | the craton share and age floor come from the continental growth model of that item |
+| 6.215:ORE3 | no data | - | no measured crustal sulfur budget by body exists beyond the Earth's; the index is a design sum of primordial and sedimentary parts |
+| 6.215:ORE5 | no data | - | the count of deposits per unit opportunity is the least anchored number of the ore design; only the Earth's totals exist |

@@ -41457,7 +41457,11 @@
           "what": "phosphorus_budget.MERRILLITE_FACTOR 3.0 and SCHREIBERSITE_FACTOR 0.05: how fast each weathers against apatite"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "no measured weathering supply for a stagnant-lid body exists; Mars and Venus have no rivers to measure, so the erosion ratio stays a design choice"
+          ],
           "fields": [
             [
               "What it is",
@@ -41495,7 +41499,11 @@
           "what": "phosphorus_budget.STAGNANT_EROSION 0.15: the erosion of a stagnant lid against a mobile one"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the sea-floor weathering share of a world with no land is not measured for any such world; the Earth's sea floor is a mix with its land"
+          ],
           "fields": [
             [
               "What it is",
@@ -41571,7 +41579,11 @@
           "what": "phosphorus_budget.SODA_RESIDENCE 400: a soda lake keeps its phosphate this many times longer than a neutral ocean, which puts an Earth-like supply at 920 umol/L"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the phosphate of a sealed ocean under ice is not observed; the ceiling and floor are the old class values of the habitability term"
+          ],
           "fields": [
             [
               "What it is",
@@ -41609,7 +41621,11 @@
           "what": "phosphorus_budget.CEILING_UMOL_L 1000 and FLOOR_UMOL_L 0.01: the most and the least an ocean holds; a sealed ocean (liquid between ice shell and high-pressure ice) holds the floor"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "no data",
+            "-",
+            "the bands are a label for pages; the number drives the score, so no measurement can fix the band edges"
+          ],
           "fields": [
             [
               "What it is",
@@ -42281,6 +42297,456 @@
       ],
       "slug": "6-212-stand-ins-of-the-evaporite-sequence",
       "title": "Stand-ins of the evaporite sequence"
+    },
+    {
+      "key": "6.213",
+      "number": "6.213",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.ACCESSORIES for S, V, A, E and M: chromite 0.6 percent and the phosphates 0.6 percent in the ordinary taxon, ilmenite 1 percent in the basaltic achondrite taxon, the oldhamite family 3.5 percent in the enstatite taxon, and the like"
+            ],
+            [
+              "The range it moves in",
+              "each share within a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "the ordinary, differentiated and enstatite taxa"
+            ],
+            [
+              "What would show it wrong",
+              "a modal analysis of the analogue meteorites whose accessory shares lie outside a factor of 2 of these"
+            ],
+            [
+              "What replaces it",
+              "the modal averages read from the group reviews"
+            ],
+            [
+              "Evidence",
+              "the ranges of the research file chondrite_groups_modal_and_minerals.csv (chromite 0.5 to 0.7, phosphates about 0.5 for the ordinary chondrites), recalled; not opened"
+            ]
+          ],
+          "id": "ACC1",
+          "key": "6.213:ACC1",
+          "kind": "P",
+          "slug": "6-213-acc1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.ACCESSORIES for S, V, A, E and M: chromite 0.6 percent and the phosphates 0.6 percent in the ordinary taxon, ilmenite 1 percent in the basaltic achondrite taxon, the oldhamite family 3.5 percent in the enstatite taxon, and the like"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.ACCESSORIES for C, B, K, L, P and D: the phyllosilicates, carbonates and sulfates of the altered carbonaceous taxa (cronstedtite 10 percent, saponite 4, dolomite 2, epsomite 1.5, gypsum 0.8), the inclusion phases of the CO and CV taxa (melilite 4 to 5, spinel 2, hibonite 1), nanodiamond 0.05 percent and presolar silicon carbide 1e-5"
+            ],
+            [
+              "The range it moves in",
+              "each within a factor of 2 (the nanodiamond and silicon carbide shares within a factor of 10)"
+            ],
+            [
+              "Where it holds",
+              "the carbonaceous taxa"
+            ],
+            [
+              "What would show it wrong",
+              "a modal analysis outside those ranges"
+            ],
+            [
+              "What replaces it",
+              "the modal averages of the carbonaceous groups"
+            ],
+            [
+              "Evidence",
+              "the research file's CI, CM, CO and CV lines, recalled; the nanodiamond and silicon carbide abundances are orders of magnitude from the recalled ppm of Murchison-type meteorites"
+            ]
+          ],
+          "id": "ACC2",
+          "key": "6.213:ACC2",
+          "kind": "P",
+          "slug": "6-213-acc2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.ACCESSORIES for C, B, K, L, P and D: the phyllosilicates, carbonates and sulfates of the altered carbonaceous taxa (cronstedtite 10 percent, saponite 4, dolomite 2, epsomite 1.5, gypsum 0.8), the inclusion phases of the CO and CV taxa (melilite 4 to 5, spinel 2, hibonite 1), nanodiamond 0.05 percent and presolar silicon carbide 1e-5"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.CONTROL leaves the carbonates, sulfates, phyllosilicates, organics, nanodiamond and the oldhamite family unscaled"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "belts with a host star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured dependence of the carbonate or sulfide share on the host star's bulk"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the whole bulk into the minerals (GEN.1369 and the bulk-composition items)"
+            ],
+            [
+              "Evidence",
+              "the water and the heating set the altered minerals, and sulfur and the redox state set the oldhamite family; no tracked element controls them"
+            ]
+          ],
+          "id": "ACC3",
+          "key": "6.213:ACC3",
+          "kind": "B",
+          "slug": "6-213-acc3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.CONTROL leaves the carbonates, sulfates, phyllosilicates, organics, nanodiamond and the oldhamite family unscaled"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap"
+            ],
+            [
+              "The range it moves in",
+              "the exponent 0.5 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "stars within a factor of 3 of the reference in the element"
+            ],
+            [
+              "What would show it wrong",
+              "a belt whose chromite or phosphate share does not follow its host's chromium or phosphorus"
+            ],
+            [
+              "What replaces it",
+              "a speciation of the bulk in which the mineral competes for its cations"
+            ],
+            [
+              "Evidence",
+              "the share of a mineral that holds all of an element goes with that element's abundance when the element is the limit"
+            ]
+          ],
+          "id": "ACC4",
+          "key": "6.213:ACC4",
+          "kind": "T",
+          "slug": "6-213-acc4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "accessory_minerals.scale: a mineral's share goes with its controlling element's atoms per magnesium atom over the reference ratio, linear, no cap"
+        }
+      ],
+      "slug": "6-213-stand-ins-of-the-accessory-minerals-of-the-asteroid-taxon-mixes",
+      "title": "Stand-ins of the accessory minerals of the asteroid taxon mixes"
+    },
+    {
+      "key": "6.215",
+      "number": "6.215",
+      "rows": [
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1383",
+            "the crust thickness follows the crust-production model of the interior when that item builds it; the Earth, Mars and Venus values are recalled, not opened"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.CRUST_KM_MOBILE 17 km, CRUST_KM_STAGNANT 22 km, REFERENCE_MANTLE_K 2200 K: the crust is D_lid / g * (T_ref / T_m)"
+            ],
+            [
+              "The range it moves in",
+              "each D within 30 percent; the mantle exponent 0.5 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "rocky planets and moons from 0.05 to 5 Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured crust thickness more than a factor of 1.5 from the law for a body of known gravity and mantle temperature"
+            ],
+            [
+              "What replaces it",
+              "the crust-production model of the interior (melt column against gravity and mantle temperature)"
+            ],
+            [
+              "Evidence",
+              "design file section 4.1: Earth 7 km oceanic and about 35 km continental (17 km area-weighted), Mars about 50 km, Venus about 30 km, all recalled; the law gives Mars 58 and Venus 24 km"
+            ]
+          ],
+          "id": "ORE1",
+          "key": "6.215:ORE1",
+          "kind": "T",
+          "slug": "6-215-ore1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ore_deposits.CRUST_KM_MOBILE 17 km, CRUST_KM_STAGNANT 22 km, REFERENCE_MANTLE_K 2200 K: the crust is D_lid / g * (T_ref / T_m)"
+        },
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1383",
+            "the craton share and age floor come from the continental growth model of that item"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.CRATON_SHARE 0.3, CRATON_MIN_AGE_GY 2, CRATON_AGE_FULL_GY 4.5, CRATON_SCATTER (0.5, 1.5)"
+            ],
+            [
+              "The range it moves in",
+              "the share 0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "mobile-lid bodies older than 2 Gyr with a granitoid ground share"
+            ],
+            [
+              "What would show it wrong",
+              "a craton share of an Earth-like body outside 0.1 to 0.5, or a craton on a stagnant lid"
+            ],
+            [
+              "What replaces it",
+              "the continental growth model of GEN.1383"
+            ],
+            [
+              "Evidence",
+              "design file section 4.2: 'a DESIGN fraction around 0.3 for an Earth-like body'; the 2 Gyr age floor is the design's"
+            ]
+          ],
+          "id": "ORE2",
+          "key": "6.215:ORE2",
+          "kind": "T",
+          "slug": "6-215-ore2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ore_deposits.CRATON_SHARE 0.3, CRATON_MIN_AGE_GY 2, CRATON_AGE_FULL_GY 4.5, CRATON_SCATTER (0.5, 1.5)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measured crustal sulfur budget by body exists beyond the Earth's; the index is a design sum of primordial and sedimentary parts"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.SULFUR_PRIMORDIAL 0.15, SULFUR_SEDIMENTARY 0.65, SULFUR_AGE_GY 2: crust_sulfur_index = 0.15 r + 0.65 w a"
+            ],
+            [
+              "The range it moves in",
+              "each part within a factor of 2"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies; r is the star's S/Fe over the Sun's"
+            ],
+            [
+              "What would show it wrong",
+              "a dry body that makes Ni-Cu-PGE sulfide ore on its primordial sulfur alone, or a wet old body that cannot"
+            ],
+            [
+              "What replaces it",
+              "a sulfur budget of the crust from the bulk composition and the sediment record"
+            ],
+            [
+              "Evidence",
+              "design file section 4.3: the sources of crustal sulfur are sedimentary sulfide (needs an ocean and time) and evaporite sulfate; the index adds the two to the primordial part"
+            ]
+          ],
+          "id": "ORE3",
+          "key": "6.215:ORE3",
+          "kind": "T",
+          "slug": "6-215-ore3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ore_deposits.SULFUR_PRIMORDIAL 0.15, SULFUR_SEDIMENTARY 0.65, SULFUR_AGE_GY 2: crust_sulfur_index = 0.15 r + 0.65 w a"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.MAGMA_REFERENCE_KG 1.5e24 kg, MAGMA_MIN_RATIO 0.05, SULFUR_GATE 0.3, CONCENTRATING_REDOX (reduced and intermediate for the sulfide and the chromite, any for the Fe-Ti oxide)"
+            ],
+            [
+              "The range it moves in",
+              "the reference 5e23 to 5e24 kg; the minimum 0.02 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored interior"
+            ],
+            [
+              "What would show it wrong",
+              "a Mars-mass body with no magmatic ore, or a 0.03 Earth-mass body with some"
+            ],
+            [
+              "What replaces it",
+              "a magma-volume model of the plume and impact melt"
+            ],
+            [
+              "Evidence",
+              "design file section 3 rule 1: the gate is the magma volume, not the lid; the opportunity is the mantle processed through melting (surface_pressure.degassed_share), the Earth-like body at 4.5 Gyr having processed about 0.28 of its mantle"
+            ]
+          ],
+          "id": "ORE4",
+          "key": "6.215:ORE4",
+          "kind": "T",
+          "slug": "6-215-ore4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ore_deposits.MAGMA_REFERENCE_KG 1.5e24 kg, MAGMA_MIN_RATIO 0.05, SULFUR_GATE 0.3, CONCENTRATING_REDOX (reduced and intermediate for the sulfide and the chromite, any for the Fe-Ti oxide)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the count of deposits per unit opportunity is the least anchored number of the ore design; only the Earth's totals exist"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.TYPES counts of deposits on an Earth-like body: 60 Ni-Cu-PGE, 40 chromitite, 50 Fe-Ti-V oxide; and the age windows (0.30 to 0.90, 0.15 to 0.85, 0.35 to 0.75 of the body's age)"
+            ],
+            [
+              "The range it moves in",
+              "each count within a factor of 3"
+            ],
+            [
+              "Where it holds",
+              "the three magmatic types"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like endowment more than a factor of 10 from the known total of the type"
+            ],
+            [
+              "What replaces it",
+              "the Earth's deposit counts when the data file's sources are opened"
+            ],
+            [
+              "Evidence",
+              "design file section 6 and section 10 point 3: 'the count per unit opportunity is the least anchored number'; the windows are shares of the age, not the Earth's absolute ages"
+            ]
+          ],
+          "id": "ORE5",
+          "key": "6.215:ORE5",
+          "kind": "P",
+          "slug": "6-215-ore5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "ore_deposits.TYPES counts of deposits on an Earth-like body: 60 Ni-Cu-PGE, 40 chromitite, 50 Fe-Ti-V oxide; and the age windows (0.30 to 0.90, 0.15 to 0.85, 0.35 to 0.75 of the body's age)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.TYPES median ore per deposit (3e10, 1e11, 3e11 kg) and the lognormal spread (1.5, 2.0, 1.0 in ln); the grade ranges (Ni 0.5 to 3 percent, Cr2O3 30 to 60, TiO2 10 to 35)"
+            ],
+            [
+              "The range it moves in",
+              "the median within a factor of 3; the spread 0.5 to 2.5"
+            ],
+            [
+              "Where it holds",
+              "the three magmatic types"
+            ],
+            [
+              "What would show it wrong",
+              "a per-deposit tonnage or grade outside the file's range"
+            ],
+            [
+              "What replaces it",
+              "the data file's per-deposit statistics when its sources are opened"
+            ],
+            [
+              "Evidence",
+              "the data file's ranges (Ni-Cu-PGE 1e6 to 1e9 t, chromitite 1e7 to 1e10 t, Fe-Ti-V 1e8 to 1e9 t; grades as above), recalled; the medians are the geometric middles"
+            ]
+          ],
+          "id": "ORE6",
+          "key": "6.215:ORE6",
+          "kind": "P",
+          "slug": "6-215-ore6",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ore_deposits.TYPES median ore per deposit (3e10, 1e11, 3e11 kg) and the lognormal spread (1.5, 2.0, 1.0 in ln); the grade ranges (Ni 0.5 to 3 percent, Cr2O3 30 to 60, TiO2 10 to 35)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "ore_deposits.TYPES concentration and crust-over-bulk: Ni 320 and 0.024, Cr 3300 and 0.044, Ti 45 and 3.5: the grade cap is concentration * crust_over_bulk * (the stored oxide * the element share)"
+            ],
+            [
+              "The range it moves in",
+              "each crust-over-bulk within 40 percent"
+            ],
+            [
+              "Where it holds",
+              "the three magmatic types"
+            ],
+            [
+              "What would show it wrong",
+              "an Earth-like bulk silicate whose cap falls outside its type's grade range"
+            ],
+            [
+              "What replaces it",
+              "a crust model that gives the element's crustal mean from the rock types"
+            ],
+            [
+              "Evidence",
+              "the design file's concentration factors (Ni 320, Cr 3300) recalled; the crust-over-bulk shares are the crust's recalled abundance (Ni 47 ppm, Cr 100 ppm, TiO2 0.7 percent) over the Earth's bulk silicate (Ni 1960 ppm, Cr2O3 0.38 percent, TiO2 0.2 percent), Cr set so the Earth's bulk caps the grade at the middle of the range"
+            ]
+          ],
+          "id": "ORE7",
+          "key": "6.215:ORE7",
+          "kind": "P",
+          "slug": "6-215-ore7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "ore_deposits.TYPES concentration and crust-over-bulk: Ni 320 and 0.024, Cr 3300 and 0.044, Ti 45 and 3.5: the grade cap is concentration * crust_over_bulk * (the stored oxide * the element share)"
+        }
+      ],
+      "slug": "6-215-stand-ins-of-the-crust-fields-and-the-magmatic-ore-types",
+      "title": "Stand-ins of the crust fields and the magmatic ore types"
     },
     {
       "key": "6.210 Stand-ins of the minor oxides of a rocky body's rock",
