@@ -630,6 +630,28 @@ def heat_of(body):
     return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body))
 
 
+def eccentricity_tide_w(body, eccentricity, host_mass_kg, distance_au):
+    """
+    The power, W, the eccentricity tide of an orbit of `eccentricity` dissipates in `body` (GEN.1351): the Peale power through the box for a rocky body (the mantle warmed by it, which
+    may melt, as in `heat`), the ice shell's equilibrium tide (`icy_tide.flux_from_tide`) for an icy one. The tides of its moons are left out, they draw on the moons' orbits and the
+    planet's spin, not on this orbit. 0 for a body with no stored content or interior or no tide. No draws, nothing set on the body.
+    """
+    content, interior = radiogenic.content_of(body), interior_of(body)
+    if content is None or interior is None or not eccentricity > 0.0 or not host_mass_kg or not distance_au:
+        return 0.0
+    age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
+    semi_major_axis_m = distance_au * constants.AU_TO_M
+    if tidal_heating.is_icy(body):
+        found = heat_of(body)
+        if found is None:
+            return 0.0
+        _, power = icy_tide.flux_from_tide(body.mass, body.radius * 1000.0, host_mass_kg, semi_major_axis_m, eccentricity, found.own_flux_w_m2,
+                                           icy_shell_top_k(body))
+        return power
+    forcing = tidal_heating.Forcing(host_mass_kg, semi_major_axis_m, eccentricity)
+    return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body)).tidal_w
+
+
 def core_of(body):
     """The core's own temperature, boundary heat flow, inner core and dynamo (`core_heat.Core`, GEN.838) at its star's age now; `None` for a
     body with no interior or no metal. No draws."""

@@ -266,6 +266,55 @@ def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_
     assert oe.circularisation_time_yr(_body(None, 1.0), sun, 1.0) == math.inf
 
 
+def _hot_small_planet(distance_au=0.0134, age_gy=1.8):
+    """GEN.1351: a 0.0013 Earth-mass rocky planet round a 0.09 solar-mass star, the sample-15 body of the oddity chain's plausibility run."""
+    planet = rocky(0.0013 * 5.972e24, 770.0, age_gy=age_gy)
+    planet.star = types.SimpleNamespace(age=age_gy, mass=0.09)
+    planet.distance, planet.primary_mass_kg = distance_au, 0.09 * 1.989e30
+    return planet
+
+
+def _tide_energy_and_budget_j(planet, birth, eccentricity, age_gy):
+    """`(energy the tide spends held at its end power for the whole age, energy the orbit gives up as the eccentricity falls)`, J."""
+    planet.eccentricity = eccentricity
+    found = interior_heat.heat_of(planet)
+    orbit_j = constants.G * planet.primary_mass_kg * planet.mass / (2.0 * planet.distance * constants.AU_TO_M)
+    return found.tidal_w * age_gy * 1.0e9 * constants.SECONDS_PER_YEAR, orbit_j * (birth ** 2 - eccentricity ** 2)
+
+
+def test_a_strong_tide_wears_the_orbit_down_until_it_spends_no_more_than_the_orbit_gives_up():
+    """GEN.1351: the cold rheology left e = 0.068 over 1.8 Gyr (a circularisation time of 18 Gyr) while the tide the body really feels spent 2.4e31 J, the whole orbital energy."""
+    planet = _hot_small_planet()
+    assert oe.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance) > 1.0e10
+    settled = oe.settled_eccentricity(planet, 0.068, 1.8e9, planet.primary_mass_kg, planet.distance)
+    assert 0.0 < settled < 0.03, "the tide that melts the mantle wears the orbit down fast, until the heat it makes is a small tide"
+    spent, budget = _tide_energy_and_budget_j(planet, 0.068, settled, 1.8)
+    assert spent <= budget
+    planet.eccentricity = 0.068
+    assert interior_heat.heat_of(planet).tidal_w * 1.8e9 * constants.SECONDS_PER_YEAR > 1.0e30, "the old eccentricity would have spent far more than the orbit holds"
+
+
+@pytest.mark.parametrize("birth", [0.005, 0.02, 0.068, 0.2, 0.6])
+@pytest.mark.parametrize("distance_au", [0.008, 0.0134, 0.03])
+def test_no_planet_spends_more_tidal_energy_than_its_orbit_gives_up(birth, distance_au):
+    """The census guard of GEN.1351: over birth eccentricities and orbits round a small star, the tide at the settled eccentricity spent over the whole age is within the
+    energy the orbit loses as the eccentricity falls from birth to there."""
+    planet = _hot_small_planet(distance_au)
+    settled = oe.settled_eccentricity(planet, birth, 1.8e9, planet.primary_mass_kg, planet.distance)
+    cold = oe.circularised(birth, 1.8e9, oe.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance))
+    assert 0.0 <= settled <= cold * (1.0 + 1e-9)
+    spent, budget = _tide_energy_and_budget_j(planet, birth, settled, 1.8)
+    assert spent <= budget * (1.0 + 1e-6) + 1e-3
+
+
+def test_a_weak_tide_leaves_the_eccentricity_the_cold_rheology_gives():
+    earth = rocky(5.972e24, 6371.0)
+    earth.star = types.SimpleNamespace(age=4.5, mass=1.0)
+    earth.distance, earth.primary_mass_kg = 1.0, 1.989e30
+    cold = oe.circularised(0.2, 4.5e9, oe.circularisation_time_yr(earth, earth.primary_mass_kg, earth.distance))
+    assert oe.settled_eccentricity(earth, 0.2, 4.5e9, earth.primary_mass_kg, earth.distance) == cold
+
+
 def test_a_gas_giant_dissipates_less_than_a_rock_of_its_size():
     giant = _body(1.9e27, 70_000.0, "g")
     n = 1.0e-7

@@ -480,9 +480,15 @@ def band_climate(series):
     weights = np.repeat(series.grid.row_weight / columns, columns).reshape(rows, columns)
     mean = temperature.mean(axis=2)
     if math.isfinite(series.solar_days):
-        days = max(int(round(steps * series.step_days / series.solar_days)), 1)
-        windows = [window for window in np.array_split(np.arange(steps), days) if window.size]
-        daily = np.mean([temperature[:, :, window].max(axis=2) - temperature[:, :, window].min(axis=2) for window in windows], axis=0)
+        # PERF.249: a world that turns many times per sample (a hypergiant's planet) has more solar days than samples; the windows past the last sample are empty and were
+        # dropped, so the count is held at the number of samples (it was split into hundreds of millions of empty windows) and the windows are reduced in one pass
+        days = min(max(int(round(steps * series.step_days / series.solar_days)), 1), steps)
+        size, extra = divmod(steps, days)
+        lengths = np.full(days, size)
+        lengths[:extra] += 1
+        starts = np.concatenate(([0], np.cumsum(lengths)[:-1]))
+        spans = np.maximum.reduceat(temperature, starts, axis=2) - np.minimum.reduceat(temperature, starts, axis=2)
+        daily = np.mean(np.ascontiguousarray(np.moveaxis(spans, 2, 0)), axis=0)
     out = []
     for mask in _band_masks(series):
         if not mask.any():

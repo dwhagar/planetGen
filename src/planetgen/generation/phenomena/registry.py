@@ -140,7 +140,7 @@ KINDS = (
          "Notable interstellar comets kept as rows, a design rate."),
     Kind("asteroid-field", "small-body", "built", "asteroid-field", "none", "fill", None, True,
          _P + "build_asteroid_field", "small-body", (), "asteroid-field", None, "asteroid-field",
-         "Rate 0 as a draw: a field stands only where a physical source puts one (the Rogues top-up, a collision of two rogue planets, a belt unbound by a supernova), spreads at the speed of its pieces and retires past a light year (`field_dispersal`); a hand-made one is given a speed and an age."),
+         "The rate of the one source a sector rolls, a collision of two rogue planets (about 7e-21 standing per pc^3, `collision_field`); the other physical sources are not rolled (a belt unbound by a supernova is hosted by its remnant, the Rogues top-up adds its own). A field spreads at the speed of its pieces and retires past a light year (`field_dispersal`); a hand-made one is given a speed and an age."),
     Kind("quasar", "nucleus", "built", None, "none", "scatter", "nucleus", False,
          _P + "build_quasar", None, (), None, None, "quasar",
          "One per galaxy, at the nucleus, with QUASAR_ACTIVE_NUCLEUS_CHANCE."),

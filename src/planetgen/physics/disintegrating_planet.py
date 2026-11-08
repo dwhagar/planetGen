@@ -33,7 +33,7 @@ Use:
 
 import math
 
-from planetgen.physics import bulk_structure, constants, unit_registry as units
+from planetgen.physics import bulk_structure, constants, oddities, unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 _mearth_to_kg = units.converter("Mearth", "kg")
@@ -146,3 +146,20 @@ def remaining_mass_earth(mass_earth, temperature_k, age_gy, duty_cycle=DUTY_CYCL
 def can_disintegrate(mass_earth, temperature_k, period_d):
     """Whether a body can be a disintegrating planet: rock under the dividing mass, a dayside over 2000 K and an orbit under a day."""
     return mass_earth <= DIVIDING_MASS_EARTH and temperature_k >= MIN_DAYSIDE_TEMPERATURE_K and period_d <= MAX_PERIOD_D
+
+
+@oddities.register("disintegrating")
+def disintegrating(body, row):
+    """
+    The effect of oddity W14 (GEN.1050): the dayside is hot enough to lift a wind of rock vapor that the small planet cannot hold, so it is losing mass and will die. The body is
+    not changed (its mass is what is left); the effect declines a planet that the wind would already have used up over the star's age (`mass_loss_earth_per_gy` times the age
+    at least its mass), which could not have come this far.
+    """
+    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    temperature_k = oddities.quantities_of(body).get("dayside_temperature_k")
+    age_gy = getattr(getattr(body, "star", None), "age", None)
+    if temperature_k is None or age_gy is None or not can_disintegrate(mass_earth, temperature_k, body.period * 365.25):
+        return False
+    if mass_loss_earth_per_gy(mass_earth, temperature_k) * age_gy >= mass_earth:
+        return False
+    return None

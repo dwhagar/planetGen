@@ -248,9 +248,11 @@ def test_the_w10_row_names_this_module_s_limit_and_its_gate_admits_kepler_107_c(
     assert row.params["max_fraction"] == ms.MAX_CORE_MASS_FRACTION
     assert {"quantity": "core_mass_fraction", "lt": ms.MAX_CORE_MASS_FRACTION} in list(row.limits)
     assert (row.lever, row.input, row.effect) == ("L3", "core_mass_fraction", "strip_mantle")
-    assert oddities.candidates("planet", {"body_type": "t", "mass_earth": 9.39, "collision_count": 1}) == [row]
-    assert oddities.candidates("planet", {"body_type": "t", "mass_earth": 9.39, "collision_count": 0}) == []
-    assert oddities.candidates("planet", {"body_type": "g", "mass_earth": 9.39, "collision_count": 3}) == []
+    # (the air-branch rows W19 and W20 gate on a rocky planet alone, so the question is whether W10 is among the rows the gate admits)
+    admitted = lambda kind, found: [candidate for candidate in oddities.candidates(kind, found) if candidate.id == "W10"]
+    assert admitted("planet", {"body_type": "t", "mass_earth": 9.39, "collision_count": 1}) == [row]
+    assert admitted("planet", {"body_type": "t", "mass_earth": 9.39, "collision_count": 0}) == []
+    assert admitted("planet", {"body_type": "g", "mass_earth": 9.39, "collision_count": 3}) == []
 
 
 def test_every_remnant_the_module_returns_passes_the_limits_of_the_row_it_serves():

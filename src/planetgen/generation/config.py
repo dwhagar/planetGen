@@ -47,6 +47,19 @@ class SystemConfig:
     combined with `SLOTS` (slots already name classes). Defaults to None.
     """
 
+    FORCE_ODDITIES = None
+    """
+    tuple[str] or None: Oddity ids (`physics/oddities.py`, e.g. `("W10",)`) every body whose conditions allow them is given, without the roll
+    (GEN.1047). A test and admin option like `FORCE_CLASS`: a class attribute, not saved with the system. The gate still applies: a body that
+    does not meet a row's conditions does not get it. Defaults to None.
+    """
+
+    WEIRDNESS_DIAL = None
+    """
+    float or None: This run's weirdness dial (GEN.1047), which multiplies every oddity rate (0 turns them all off, 1 is the table's own rates);
+    `None` takes `tuning.WEIRDNESS_DIAL`. A class attribute like `FORCE_CLASS`: not saved with the system. Defaults to None.
+    """
+
     def __init__(self):
         self.system_flavor_count = 0
         self.recent_flavor_texts = [] # Stores recently used flavor texts to avoid repetition

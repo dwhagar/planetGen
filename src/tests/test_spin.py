@@ -171,7 +171,10 @@ def test_every_generated_system_body_spins(seed):
         if not hasattr(planet, "moons"):
             continue  # an asteroid belt
         for body in [planet, *planet.moons]:
-            _assert_spin(body, spin.orbit_normal(body.orbital_inclination_deg, body.orbital_ascending_node_deg))
+            normal = spin.orbit_normal(body.orbital_inclination_deg, body.orbital_ascending_node_deg)
+            if getattr(body, "_frame_axis", None) is not None:      # GEN.1352: a regular moon's elements are against its planet's equator
+                normal = spin.turn_to_axis(normal, body._frame_axis)
+            _assert_spin(body, normal)
             orbit_hours = body.period * constants.SECONDS_PER_YEAR / 3600
             if body.rotation_period_hours == pytest.approx(orbit_hours):
                 assert body.axial_tilt_deg <= min(body.orbital_inclination_deg, 180.0 - body.orbital_inclination_deg) + 1e-9  # locked: Cassini state 1 (GEN.1165)

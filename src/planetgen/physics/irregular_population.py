@@ -229,7 +229,7 @@ def holds_temporary_captures(prograde_limit_au, planet_radius_km):
     """Whether the planet's irregular zone is wide enough (`TEMPORARY_MIN_PLANET_RADII` planet radii) for bodies to pass through and stay a while: a flag, no object."""
     if not prograde_limit_au > 0.0 or not planet_radius_km > 0.0:
         raise IrregularPopulationError("the limit and the radius must be positive")
-    return prograde_limit_au * constants.AU_M > TEMPORARY_MIN_PLANET_RADII * planet_radius_km * _KM
+    return bool(prograde_limit_au * constants.AU_M > TEMPORARY_MIN_PLANET_RADII * planet_radius_km * _KM)      # a numpy float in gives a numpy bool, which the JSON dump of a system refuses (GEN.1386)
 
 
 @finite_domain()
@@ -367,7 +367,7 @@ def irregulars_from(pool, probability, age_yr, exponentials, window_numbers):
         held += masses[n]
         n += 1
         left = remainder(n)
-    windows = tuple(window_numbers[k] < pool.gas_share(radii[k]) for k in range(n))
+    windows = tuple(bool(window_numbers[k] < pool.gas_share(radii[k])) for k in range(n))
     return Irregulars(tuple(radii[:n]), tuple(masses[:n]), windows, left, above)
 
 

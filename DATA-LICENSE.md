@@ -30,6 +30,11 @@ The keys are the source keys of the file.
 | `hakim2018` | Hakim et al. 2018, Icarus 313, 61, as read in part B | Published paper; values only |
 | `part-b-fit` | Part B's own fit (this repository) | The project's own work |
 | `exoplex` | ExoPlex 1.0.1a1 source distribution | Open source; read second-hand |
+| `lsbu-ice-phases` | Chaplin, Water Structure and Science, the ice phases table (water.lsbu.ac.uk) | No licence statement found; only the listed crystallographic densities are kept, with the citation |
+| `titan-haze-density` | Titan haze density compilation of the UCSC titan materials group | No licence statement found for the page; published laboratory values kept as values with the citation |
+| `sshade-solid` | SSHADE solid-phase pages (Solid Spectroscopy Hosting Architecture of Databases and Expertise) | No licence statement was checked; only the listed density values are kept |
+| `wikipedia-infobox` | Wikipedia compound and element infoboxes | CC BY-SA 4.0 for the page text; only the density values are kept |
+| `wikipedia-solid-oxygen` | Wikipedia, "Solid oxygen" | CC BY-SA 4.0 for the page text; only the molar volume was read, and the density is computed here |
 | `hp2011-burnman` | Holland and Powell (2011) data set as shipped in `burnman` | As for `burnman` |
 | `journaux2020` | Journaux et al. 2020 Gibbs splines as distributed in SeaFreeze 1.1.3, evaluated in part C | SeaFreeze is GPL-3; only the spline data were used and the evaluator is the project's own; values only |
 | `blum-bischoff` | Blum and Bischoff, arXiv:2207.12731, as read in part C | Preprint; values only |

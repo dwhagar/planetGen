@@ -19,10 +19,11 @@ see `life.apply_life_data`, which `StarSystem` applies to every planet
 and moon in a system after all of them have been generated.
 """
 
+import contextlib
 import math
 
-from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -131,7 +132,7 @@ def apply_class(planet):
     """
     planet.planet_class = None
     planet.class_variant = planet.class_match = planet.runner_up_class = planet.runner_up_match = None
-    planet_type.fill(planet)            # GEN.1219: terrestrial, transitional or gas, from the envelope share (GEN.1226)
+    planet_type.fill(planet)            # GEN.1219: terrestrial, transitional, super-puff or gas, from the envelope share (GEN.1226) and the super-puff gate (GEN.1343)
     body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
     detail = planet_classes.classify_detail(planet)
     if detail is None:
@@ -248,6 +249,9 @@ def generate_planet_properties(planet, zone_override=None):
 
     planet.body_type = "g" if kind == "giant" else "t"
     rings.clear(planet)  # a new draw draws its ring again (GEN.732)
+    planet.oddities = ()  # ... and its oddities (GEN.1047)
+    planet._venus_spin = None
+    planet._resonance_e = None
 
     if uses_giant_mass_radius(planet):
         apply_giant(planet, radius_given, mass_given)
@@ -255,6 +259,8 @@ def generate_planet_properties(planet, zone_override=None):
         # The composition comes first and the radius, density and gravity follow from it (GEN.428, GEN.429; `bulk_draw`).
         bulk_draw.draw_terrestrial(planet, radius_given, mass_given)
         giant_interior.clear(planet)
+
+    oddities.apply(planet, levers=("L3",))     # GEN.1047: the bulk inputs (core, water, envelope) are settled; a row of lever L3 acts here
 
     # The air is made later, with the temperature it gives (`calculate_atmospheric_conditions`, GEN.411 and GEN.422): whether the
     # body holds one is the solver's call. Clear what a previous draw left behind -- `reconcile_zone` regenerates a body
@@ -299,9 +305,8 @@ def settle_orbit(planet):
     birth = getattr(planet, "_orbit_birth", None)
     if birth is None:
         return False
-    time_yr = orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance)
     # never above what the planet has: the spacing of the orbits may have cut it (`validation`) and ages only rise
-    eccentricity = min(planet.eccentricity, orbit_elements.circularised(birth, _gyr_to_yr(planet.star.age), time_yr))
+    eccentricity = min(planet.eccentricity, orbit_elements.settled_eccentricity(planet, birth, _gyr_to_yr(planet.star.age), planet.primary_mass_kg, planet.distance))
     if planet.eccentricity - eccentricity <= ECCENTRICITY_SETTLE_TOLERANCE:
         return False
     planet.eccentricity = eccentricity
@@ -420,6 +425,8 @@ def apply_envelope(planet):
         stream = draw.Stream(f"envelope-start:{float(planet.mass)!r}:{float(formation_distance_au(planet))!r}:{float(planet.star.mass)!r}")
         with draw.bound(stream):
             start = envelope_capture.draw_start(mass_earth)
+            puff = envelope_capture.draw_puff_start(mass_earth, envelope_capture.period_days(planet))     # GEN.1343 (W15): one sub-Neptune core in 20 starts as a super-puff
+            start = puff or start
     result = envelope_capture.kept(planet, start)
     held = getattr(planet, "_captured_envelope", 0.0)
     if result is None and not held:
@@ -649,6 +656,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     if _past_runaway_with_water(planet, solar_output_at_orbit, surface_w):
         start_k = max(start_k, tuning.RUNAWAY_START_TEMPERATURE_K)    # GEN.1238: the steam branch, not the cool one (see `_past_runaway_with_water`)
     air = surface_air.solve(setting, start_k)
+    planet._retention_cap_pa = None if air is None else air.retention_cap_pa     # GEN.1340: kept, not stored; the life stage keeps its oxygen inside it
+    air = _air_oddities(planet, setting, air, start_k, solar_output_at_orbit, distance, albedo, giant)
     if air is None or not air.partials_pa:
         if setting.albedo_law is not None:
             # GEN.972: with no air the ice the cold leaves is the only feedback; the temperature and the albedo that keep each other
@@ -668,7 +677,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         # not converge far above it), but the warming it keeps is the uncapped one, so a body at the cap kept a greenhouse factor that gave 2370 K
         # or 2600 K; its stored G is taken from the stored temperature too, so the three numbers agree.
         capped = air.warming is not None and air.warming.surface_temperature_k > air.temperature_k * (1.0 + CAP_TOLERANCE)
-        if giant or capped:
+        if giant or capped or air.knee:        # (GEN.1344: the knee of an unsettled air is not the temperature its last step found)
             # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
             # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
             factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo_kept, solar_output_at_orbit)
@@ -688,6 +697,24 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     aerosols.generate_aerosols(planet)
     # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
     envelope_share.fill(planet)
+
+
+def _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant):
+    """
+    The rows of the air lever (L7, GEN.1051: W19 the nightside collapse of a locked planet's air, W20 the other branch of a bistable climate) on the air just solved: they may replace it
+    with the airless state (`None`) or with the air of the other branch (`physics/air_branches.py`). The rows are rolled again each time the air is made, from their own streams.
+    """
+    air_branches.clear(planet)
+    if giant or planet.is_moon or air is None:
+        return air
+    planet._air_context = air_branches.Context(setting, air, start_k, starlight_w_m2, distance_au, albedo)
+    oddities.drop(planet, ("L7",))
+    oddities.apply(planet, levers=("L7",))
+    choice = getattr(planet, air_branches.CHOICE_ATTRIBUTE, None)
+    air_branches.clear(planet)
+    if choice == "lost":
+        return None
+    return air if choice is None else choice
 
 
 def _past_runaway_with_water(planet, starlight_w_m2, surface_w):
@@ -774,8 +801,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
     if planet.is_moon and planet.moon_origin != "captured":
         planet.eccentricity = birth
         return
-    time_yr = orbit_elements.circularisation_time_yr(planet, primary_mass_kg, planet.distance)
-    planet.eccentricity = orbit_elements.circularised(birth, _gyr_to_yr(planet.star.age), time_yr)
+    planet.eccentricity = orbit_elements.settled_eccentricity(planet, birth, _gyr_to_yr(planet.star.age), primary_mass_kg, planet.distance)
     planet._orbit_birth = birth  # not stored: `settle_orbit` takes the tides again once the star's age is final (GEN.985)
 
 
@@ -835,6 +861,8 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
         planet.orbital_inclination_deg = draw.uniform(0, constants.MOON_ORBITAL_INCLINATION_MAX_DEG)
     else:
         planet.orbital_inclination_deg = orbit_elements.draw_planet_inclination_deg()  # GEN.727: Rayleigh, as the Kepler multiples are
+    if not planet.is_moon:
+        apply_orbit_oddities(planet)      # GEN.1049: a close giant round a hot star can be given a polar orbit before the spin reads the plane
     planet.orbital_ascending_node_deg = draw.uniform(0, 360)
     arg_periapsis_deg = orbit_elements.draw_argument_of_periapsis_deg()
     mean_anomaly_rad = draw.uniform(0, _TWO_PI_RAD)
@@ -842,6 +870,50 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     generate_spin(planet, primary_mass_kg)
     true_anomaly_rad, _ = kepler.true_anomaly_and_distance_elliptical(mean_anomaly_rad, planet.eccentricity, planet.distance)
     update_orbital_position(planet, arg_periapsis_deg + math.degrees(true_anomaly_rad), arg_periapsis_deg)
+
+
+def apply_orbit_oddities(planet):
+    """
+    Rolls the rows of the orbit and history levers (L2: W3 a highly eccentric orbit, W4 a polar orbit, W5 a resonant chain's forced eccentricity, GEN.1049; L5: W14 a disintegrating planet, GEN.1050) again on the planet as it is
+    now, taking off the ones it had: a row whose gate still holds is given again from its own stream, so the ids always match the orbit the planet has.
+    """
+    if planet.body_type not in ("t", "g") or planet.is_moon:
+        return
+    oddities.drop(planet, ("L2", "L5"))
+    oddities.apply(planet, levers=("L2", "L5"))
+
+
+def apply_ring_oddities(planet):
+    """Rolls the rows of the ring lever (L6: W9 a ring from a fallen moon, GEN.1050) on a planet whose ring (`rings.apply`) is made, taking off the ones it had."""
+    if planet.body_type not in ("t", "g") or planet.is_moon:
+        return
+    oddities.drop(planet, ("L6",))
+    oddities.apply(planet, levers=("L6",))
+
+
+def finish_orbit_oddities(planet):
+    """
+    The orbit rows again once the orbit is final (after `settle_orbit`, GEN.1049): the eccentricity has worn down for the star's final age and the planets' places in a
+    chain are known (`resonant_chains.give_forced_eccentricities`). A chain planet held on a forced eccentricity has its position, its moons' host eccentricity and the light of
+    the orbit made again, and a rocky one its air, class and spin (the tide of the orbit is a heat source, `remake_end_stages`).
+
+    Returns:
+        bool: Whether the eccentricity moved.
+    """
+    before = planet.eccentricity
+    apply_orbit_oddities(planet)
+    if abs(planet.eccentricity - before) <= ECCENTRICITY_SETTLE_TOLERANCE:
+        return False
+    for moon in getattr(planet, "moons", ()):
+        moon.host_eccentricity = planet.eccentricity
+    update_orbital_position(planet)
+    light_au = orbit_elements.flux_distance_au(planet.distance, planet.eccentricity)
+    for body in (planet, *getattr(planet, "moons", ())):
+        if getattr(body, "_star_distance_au", None):
+            magnetism.update_exposure(body, light_au)
+    if planet.body_type == "t":
+        remake_end_stages(planet, planet)
+    return True
 
 
 def draw_birth_spin(planet):
@@ -881,6 +953,7 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     spin_rate, birth_tilt, capture_units = birth
     if found is None:
         if not planet.is_moon and (getattr(planet, "moons", None) or getattr(planet, "_born_moons", None)):
+            release_moons(planet)      # GEN.1352: the history moves them against the equator they were drawn in
             return moon_history.apply(planet, primary_mass_kg)
         found = body_spin.evolve(planet, primary_mass_kg, _au_to_m(planet.distance), spin_rate, _yr_to_s(_gyr_to_yr(planet.star.age)),
                                  getattr(planet, "eccentricity", 0.0) or 0.0, capture_units=capture_units)
@@ -896,8 +969,23 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
             tilt = birth_tilt
             if found.rate < 0.0:
                 tilt = 180.0 - tilt
+    # GEN.1048 (oddity W2): the rows of the spin lever are rolled again on the body as it is now (its air, its moons and the age change between calls) and a
+    # thick-air planet the tides leave turning slowly backwards takes the Venus-type state in place of the tide history's
+    planet._venus_spin = None
+    if planet.body_type in ("t", "g") and not planet.is_moon:
+        planet.axial_tilt_deg = tilt             # the rows read the tilt the planet is about to have (set below)
+        oddities.drop(planet, ("L1",))
+        oddities.apply(planet, levers=("L1",))
+        venus_tilt = venus_spin.set_on(planet)
+        if venus_tilt is not None:
+            tilt = venus_tilt
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
+    frame = getattr(planet, "_frame_axis", None) if planet.is_moon else None
+    if frame is not None:      # GEN.1352: a moon already set in the system's frame has its new axis turned the way its position was
+        planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z = spin.turn_to_axis((planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z), frame)
+    if not planet.is_moon and getattr(planet, "moons", None):
+        orient_moons(planet)      # GEN.1352: its moons lie in the equator this axis gives
     # GEN.767: the day and night shares follow the rotation and tilt just set (a planet's; a moon's need its parent's axis, `refinish_rocky`)
     if not planet.is_moon:
         daylight.generate(planet)
@@ -912,19 +1000,79 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
 
 
 
+def _turn_moon(moon, axis, turn):
+    """Turns a moon's position, velocity and spin axis by `turn` (`spin.turn_to_axis` or `spin.turn_from_axis`) about the planet's pole `axis`."""
+    moon.set_position_au(*turn((moon.position_x, moon.position_y, moon.position_z), axis))
+    moon.set_velocity_kms(*turn((moon.velocity_x_kms, moon.velocity_y_kms, moon.velocity_z_kms), axis))
+    if moon.spin_axis_x is not None:
+        moon.spin_axis_x, moon.spin_axis_y, moon.spin_axis_z = turn((moon.spin_axis_x, moon.spin_axis_y, moon.spin_axis_z), axis)
+
+
+@contextlib.contextmanager
+def _in_equator_frame(body):
+    """
+    GEN.1352: holds the position and velocity of a moon `orient_moons` has set in the system's frame in the frame of its planet's equator while the block runs
+    (its elements, which `move_orbit` and `update_orbital_position` read, are measured there) and turns them back after. A body not so set is left as it is.
+    """
+    axis = getattr(body, "_frame_axis", None)
+    if axis is None:
+        yield
+        return
+    body.set_position_au(*spin.turn_from_axis((body.position_x, body.position_y, body.position_z), axis))
+    body.set_velocity_kms(*spin.turn_from_axis((body.velocity_x_kms, body.velocity_y_kms, body.velocity_z_kms), axis))
+    try:
+        yield
+    finally:
+        body.set_position_au(*spin.turn_to_axis((body.position_x, body.position_y, body.position_z), axis))
+        body.set_velocity_kms(*spin.turn_to_axis((body.velocity_x_kms, body.velocity_y_kms, body.velocity_z_kms), axis))
+
+
+def release_moons(planet):
+    """
+    Writes the moons of `planet` that `orient_moons` set in the system's frame back in the frame of the planet's equator, the one their
+    elements (`orbital_inclination_deg`, `orbital_ascending_node_deg`) are measured in and the history of the moons moves them in (no draws).
+    """
+    for moon in (*planet.moons, *(getattr(planet, "_born_moons", None) or ())):      # the born ones too: the history draws on them again, and one dropped since may be back
+        axis = getattr(moon, "_frame_axis", None)
+        if axis is not None:
+            _turn_moon(moon, axis, spin.turn_from_axis)
+            moon._frame_axis = None
+
+
+def orient_moons(planet):
+    """
+    GEN.1352: sets the moons of `planet` in the system's frame. A moon's inclination and node are drawn and kept against the equator of its planet
+    (`generate_orbital_motion_properties`, `moon_history.retrograde`), so its position, velocity and spin axis are turned from that frame onto the planet's
+    spin axis: a moon of a planet tipped by 98 degrees goes round in its tipped equator, and one of a planet with no tilt goes round in the plane of its
+    planet's orbit. A turn only, no draws; the planet's wobble from its moons (`reflex_offset_*`) follows the new positions. The irregular moons keep
+    their own frame (`generation/irregular_moons.py`).
+    """
+    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+    if any(c is None for c in axis):
+        return
+    release_moons(planet)
+    for moon in planet.moons:
+        _turn_moon(moon, axis, spin.turn_to_axis)
+        moon._frame_axis = axis
+    if planet.moons:
+        planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
+            planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])
+
+
 def move_orbit(body, distance_au, primary_mass_kg):
     """
     Sets the semi-major axis of a planet's or moon's orbit and what follows from it (period, Hill sphere, position and speed), keeping the
     plane, the shape and where the body is along the orbit (no draws): the move of a moon by the tide of its planet (`moon_history`, GEN.959).
     """
-    orbit = body.orbit_from_vector()
-    arg_periapsis_deg = math.degrees(orbit["arg_periapsis"])
-    phase_deg = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z),
-                                                    body.orbital_inclination_deg, body.orbital_ascending_node_deg)
-    body.distance = distance_au
-    body.period = calculate_orbital_period_years(distance_au, primary_mass_kg)
-    update_hill_sphere(body)
-    update_orbital_position(body, phase_deg, arg_periapsis_deg)
+    with _in_equator_frame(body):
+        orbit = body.orbit_from_vector()
+        arg_periapsis_deg = math.degrees(orbit["arg_periapsis"])
+        phase_deg = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z),
+                                                        body.orbital_inclination_deg, body.orbital_ascending_node_deg)
+        body.distance = distance_au
+        body.period = calculate_orbital_period_years(distance_au, primary_mass_kg)
+        update_hill_sphere(body)
+        _update_orbital_position(body, phase_deg, arg_periapsis_deg)
 
 
 def update_orbital_position(planet, phase_deg=None, arg_periapsis_deg=0.0):
@@ -976,6 +1124,12 @@ def update_orbital_position(planet, phase_deg=None, arg_periapsis_deg=0.0):
                          the one its current state has when `phase_deg` is
                          not given.
     """
+    with _in_equator_frame(planet):
+        _update_orbital_position(planet, phase_deg, arg_periapsis_deg)
+
+
+def _update_orbital_position(planet, phase_deg, arg_periapsis_deg):
+    """`update_orbital_position` for a body whose position and velocity are in the frame its elements are measured in."""
     if phase_deg is None:
         orbit = planet.orbit_from_vector()
         arg_periapsis_deg = math.degrees(orbit["arg_periapsis"])

@@ -167,7 +167,10 @@ def _spin_axis(body):
     return None if any(value is None for value in axis) else axis
 
 
-def _orbit_normal(body):
+def _orbit_normal(body, planet=None):
+    """The normal of the orbit of `body` in the system's frame: a moon's elements are against its `planet`'s equator (GEN.1352)."""
+    if planet is not None:
+        return spin.moon_orbit_normal(body, planet)
     return spin.orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0,
                              getattr(body, "orbital_ascending_node_deg", None) or 0.0)
 
@@ -204,7 +207,7 @@ def compute(body, parent=None):
         out["day_share_equator"] = equator_day_share(tilt, alpha)
         out["solar_day_hours"] = day
     if parent is not None:
-        mutual = spin.obliquity_between(_orbit_normal(body), _orbit_normal(parent))
+        mutual = spin.obliquity_between(_orbit_normal(body, parent), _orbit_normal(parent))
         shadow = parent_shadow_share(body.distance * constants.AU_TO_KM, getattr(parent, "radius", None), mutual)
         out["parent_shadow_share"] = shadow
         out["day_share_mean"] *= 1.0 - shadow

@@ -136,6 +136,34 @@ def test_a_thin_air_may_hold_a_larger_share_than_35_percent():
         body, {"N2": 50.0e3 / (9.80665 * 0.028) * bo.area_m2(body)})[2]            # the thinner air holds the larger share
 
 
+def _air_after_apply(monkeypatch, partials, cap, target_mol):
+    """The air `apply` stores on a bare body holding `partials` (Pa) whose retention regime keeps at most `cap` Pa (`None` for no cap)."""
+    stored = {}
+    monkeypatch.setattr(bo, "store_air", lambda body, air: stored.update(air))
+    body = _Body()
+    setattr(body, atmosphere.GAS_FIELD, dict(partials))
+    body._retention_cap_pa = cap
+    return body, stored, bo.apply(body, target_mol)
+
+
+def test_the_oxygen_goes_in_under_the_pressure_the_retention_regime_keeps(monkeypatch):
+    # GEN.1340: a moderate-regime air (10 kPa cap) of nitrogen took 22 to 35 kPa of oxygen on top, 23 to 45 kPa of air that was 75 to 95 percent oxygen
+    target = 40.0e3 / (9.80665 * 0.032) * bo.area_m2(_Body())            # the mol of 40 kPa of oxygen, far more than the air has room for
+    _body, free, took_free = _air_after_apply(monkeypatch, {"N2": 10.0e3}, None, target)
+    assert took_free and sum(free.values()) > 20.0e3                        # no cap known: the old behaviour, the oxygen piles on
+    _body, held, took = _air_after_apply(monkeypatch, {"N2": 10.0e3}, 10.0e3, target)
+    assert took and sum(held.values()) == pytest.approx(10.0e3, rel=1e-9)   # the regime's cap, the oxygen and nitrogen shares kept
+    assert held["O2"] / held["N2"] == pytest.approx(free["O2"] / free["N2"], rel=1e-9)
+    assert held["O2"] < 10.0e3
+
+
+def test_an_air_under_its_cap_is_not_touched_by_it(monkeypatch):
+    target = 5.0e3 / (9.80665 * 0.032) * bo.area_m2(_Body())
+    _body, free, _ = _air_after_apply(monkeypatch, {"N2": 80.0e3}, None, target)
+    _body, held, _ = _air_after_apply(monkeypatch, {"N2": 80.0e3}, 1.0e6, target)
+    assert held == pytest.approx(free)
+
+
 def test_the_fire_limit_of_an_air_with_nothing_else_is_zero():
     assert bo._fire_limit_mol(_Body(), {"O2": 5.0}) == 0.0
 

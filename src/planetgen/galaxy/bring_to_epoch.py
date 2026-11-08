@@ -30,7 +30,7 @@ import argparse
 
 import pymysql
 
-from planetgen.db import kind_tables, store
+from planetgen.db import chart_ledger, kind_tables, store
 from planetgen.galaxy import epoch_record, uid as sector_uid, wide_binary_reroll
 from planetgen.population import model as population
 from planetgen.util import generator_epoch, log
@@ -201,7 +201,8 @@ def survey(conn, control_conn=None, current=None):
         dict: `current`; `behind` (`epoch_record.behind`); `refuse`, the reasons a run cannot go on (lines; empty
         when it can); `refill`, the galaxy-placed sectors to generate again (dicts of `id`, `label`, `epoch`), in
         address order; `skipped`, the sectors left alone (the same with `why`); `handmade`, how many stale sectors
-        have no grid address; `species`, the stale species to make again (`redo`) and those kept as edited (`kept`);
+        have no grid address; `uncharted`, how many stale rows are the placeholders a drifting rogue made in cells nothing was generated in (GEN.1354: left alone,
+        not generated); `species`, the stale species to make again (`redo`) and those kept as edited (`kept`);
         `redraw`, the scatters to draw again (`redraw_order`) with the `settings` they are drawn with.
     """
     current = generator_epoch.generator_epoch() if current is None else current
@@ -221,7 +222,8 @@ def survey(conn, control_conn=None, current=None):
                 refuse.append(f"The {step} scatter cannot be drawn again with the settings it was drawn with ({exc}): "
                               f"draw it by hand (planetgen clear-scatter, then planetgen scatter).")
     edited = edited_sectors(conn, control_conn)
-    refill, skipped, handmade = [], [], 0
+    charted = chart_ledger.charted_addresses(conn)
+    refill, skipped, handmade, uncharted = [], [], 0, 0
     rows = conn.execute("SELECT id, shell_index, band_index, wedge_index, generator_epoch FROM sectors "
                         "ORDER BY shell_index, band_index, wedge_index, id").fetchall()
     for row in rows:
@@ -229,6 +231,9 @@ def survey(conn, control_conn=None, current=None):
             continue
         if row["shell_index"] is None:
             handmade += 1
+            continue
+        if (row["shell_index"], row["band_index"], row["wedge_index"]) not in charted:
+            uncharted += 1       # a placeholder a drifting rogue made in a cell nothing was generated in: generating it again would chart a sector that was never made (GEN.1354)
             continue
         item = {"id": row["id"], "label": _label(row), "epoch": row["generator_epoch"]}
         if row["id"] in edited:
@@ -243,7 +248,7 @@ def survey(conn, control_conn=None, current=None):
                               f"FROM species WHERE {where}", values).fetchone()
         species = {"redo": int(counts["total"]) - int(counts["kept"]), "kept": int(counts["kept"])}
     return {"current": current, "behind": found, "refuse": refuse, "refill": refill, "skipped": skipped,
-            "handmade": handmade, "species": species, "redraw": redraw, "settings": settings}
+            "handmade": handmade, "uncharted": uncharted, "species": species, "redraw": redraw, "settings": settings}
 
 
 def status(config, control_config=None):
@@ -313,6 +318,8 @@ def report_lines(found, limit=None):
         lines.append(f"... and {len(found['skipped']) - limit:,} more sector(s) left alone.")
     if found["handmade"]:
         lines.append(f"{found['handmade']} hand-made sector(s) with no grid address are not generated and are left alone.")
+    if found.get("uncharted"):
+        lines.append(f"{found['uncharted']} uncharted cell(s) a drifting rogue planet landed in hold no generated sector and are left alone.")
     species = found["species"]
     if species["redo"] or species["kept"]:
         lines.append(f"{species['redo']} species made under an older epoch to be made again"

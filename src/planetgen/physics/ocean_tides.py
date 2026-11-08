@@ -209,7 +209,10 @@ def _axis(body):
     return None if any(value is None for value in axis) else axis
 
 
-def _normal(body):
+def _normal(body, planet=None):
+    """The normal of the orbit of `body` in the system's frame: a moon's elements are against its `planet`'s equator (GEN.1352)."""
+    if planet is not None:
+        return spin.moon_orbit_normal(body, planet)
     return spin.orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0, getattr(body, "orbital_ascending_node_deg", None) or 0.0)
 
 
@@ -247,10 +250,10 @@ def compute(body, parent=None):
                          _retrograde(axis, _normal(host)))]
     if parent is not None:
         raisers.append(Raiser.of("planet", parent.mass, body.distance * constants.AU_TO_M, mass, getattr(body, "eccentricity", 0.0) or 0.0,
-                                 _retrograde(axis, _normal(body))))
+                                 _retrograde(axis, _normal(body, parent))))
     for moon in getattr(body, "moons", None) or ():
         raisers.append(Raiser.of("moon", moon.mass, moon.distance * constants.AU_TO_M, mass, getattr(moon, "eccentricity", 0.0) or 0.0,
-                                 _retrograde(axis, _normal(moon))))
+                                 _retrograde(axis, _normal(moon, body))))
     liquid = _liquid_of(body)
     try:
         tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")

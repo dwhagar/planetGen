@@ -178,14 +178,15 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
 
 
 def test_an_icy_bodys_water_tops_out_at_the_condensed_share_of_its_formation_temperature():
-    """GEN.950: the water of an icy body is at most the water share of the solids that its disk temperature condenses ([R2726: Table 11])."""
-    from planetgen.physics import condensate_shares
+    """GEN.950, GEN.1363 part B: the water of an icy body is at most the water share of the solids that its disk temperature condenses (the disc budget, carbon taken out of the water)."""
+    from planetgen.physics import disc_condensation
     near = _body(1000.0, icy=True, distance=2.7)    # just beyond the snow line of 2.7 AU: 182 K, water alone
     _, top = bulk_draw._icy_water_range(near)
-    assert top == pytest.approx(condensate_shares.water_share_of_solids(181.9), abs=1e-3) and top == pytest.approx(0.539, abs=0.002)
+    carbon, oxygen = bulk_draw.ice_forming_ratios(near.star)       # the test star is [Fe/H] 0 at 4.5 Gyr: more oxygen over its magnesium than the Sun
+    assert top == pytest.approx(disc_condensation.water_share_of_solids(181.9, carbon, oxygen), abs=1e-3) and top == pytest.approx(0.431, abs=0.002)
     far = _body(1000.0, icy=True, distance=2.7 * (182.0 / 100.0) ** 2)   # 100 K: ammonia is in as well
     _, top = bulk_draw._icy_water_range(far)
-    assert top == pytest.approx(0.494, abs=0.002)
-    farthest = _body(1000.0, icy=True, distance=2.7 * (182.0 / 30.0) ** 2)   # 30 K: methane too
+    assert top == pytest.approx(0.416, abs=0.002)
+    farthest = _body(1000.0, icy=True, distance=2.7 * (182.0 / 30.0) ** 2)   # 30 K: CO2 and methane too
     low, top = bulk_draw._icy_water_range(farthest)
-    assert top == pytest.approx(0.384, abs=0.002) and low == tuning.ICY_WATER_MASS_FRACTION_FLOOR
+    assert top == pytest.approx(0.378, abs=0.002) and low == tuning.ICY_WATER_MASS_FRACTION_FLOOR

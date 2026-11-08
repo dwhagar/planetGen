@@ -143,7 +143,7 @@ def test_the_halogen_species_are_in_the_table_and_hydrogen_chloride_leads_the_ch
 
 
 def test_the_hydrides_made_from_atoms_bind_as_the_laboratory_values_do_and_join_the_database_form():
-    # GEN.1374: FeH and CrH are not in the NASA file; they are the atoms' fits plus the equilibrium constant of M + H = MH ([R5139] as FastChem fits it).
+    # GEN.1374: FeH and CrH are not in the NASA file; they are the atoms' fits plus the equilibrium constant of M + H = MH ([R5143] as FastChem fits it).
     for name, atoms, bond_ev in (("FeH", ("Fe", "H"), 1.6), ("CrH", ("Cr", "H"), 2.0)):
         row = st.species(name)
         assert row.range_k == (300.0, 6000.0) and set(row.elements) == set(atoms)

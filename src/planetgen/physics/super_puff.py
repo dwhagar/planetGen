@@ -24,9 +24,7 @@ fading law of its own, so there is none here.
 
 Use:
 
-    envelope = envelope_for_radius(mass_earth, radius_earth, flux_earth, age_gy)
     radius = radius_earth(mass_earth, envelope, flux_earth, age_gy)
-    later = radius_at_age_earth(mass_earth, envelope, flux_earth, host_mass_solar, luminosity_solar, 5.0)
     is_super_puff(mass_earth, radius_earth_, age_gy, period_d)
 """
 
@@ -54,7 +52,13 @@ Kepler-51 d over 30 and the module's solution 41 percent (row PF2)."""
 
 OCCURRENCE_SHARE = 0.005
 """float: The share of sub-Neptunes that are super-puffs (the design table says under 1 percent; Lee and Chiang bound planets over 4 Earth radii
-to under a tenth of the smaller ones inside 50 days; row PF3, a stand-in: no survey statistic was read)."""
+to under a tenth of the smaller ones inside 50 days; row PF3, a stand-in: no survey statistic was read). The generator's census sits under it (GEN.1343: 0.84 percent of the sub-Neptunes of
+2 to 10 Earth masses inside 100 days pass `is_super_puff`)."""
+
+START_SHARE = 0.05
+"""float: The share of the sub-Neptune cores (2 to 10 Earth masses, inside 100 days) that start as a super-puff (`envelope_capture.draw_puff_start`, GEN.1343; row PF3, T8, L3): half of the
+tenth that Lee and Chiang bound the planets over 4 Earth radii to. No occurrence statistic of cores that accrete a dust-free outer-disk atmosphere was found; the census cannot set it, because the XUV loss and the
+age term strip or contract most puffs (started all, 11 percent end under 0.1 g/cc) and the young planets that pass the gate already come from the sub-Neptune start of GEN.1323."""
 
 LOPEZ_MAX_MASS_EARTH = 30.0
 """float: The heaviest planet the law of Lopez and Fortney is used for here (the range of `envelope_escape`)."""
@@ -119,38 +123,6 @@ def radius_earth(mass_earth, envelope, flux_earth, age_gy, tidal_ratio=1.0):
     if covers(mass_earth, envelope):
         return bulk_structure.envelope_radius_earth(mass_earth, envelope, flux_earth, age_gy) * tidal_ratio
     return giant_radius.radius_km(mass_earth, mass_earth * (1.0 - envelope), flux_earth, age_gy) / constants.EARTH_RADIUS_KM
-
-
-def envelope_for_radius(mass_earth, target_radius_earth, flux_earth, age_gy):
-    """The envelope fraction the law of Lopez and Fortney needs for the radius, by bisection; `None` when the radius lies outside what 0.5 of
-    the mass can give or the planet is not `covers`."""
-    low, high = 0.002, envelope_escape.MAX_ENVELOPE
-    if not covers(mass_earth, high):
-        return None
-    if not (bulk_structure.envelope_radius_earth(mass_earth, low, flux_earth, age_gy) <= target_radius_earth
-            <= bulk_structure.envelope_radius_earth(mass_earth, high, flux_earth, age_gy)):
-        return None
-    for _ in range(60):
-        middle = 0.5 * (low + high)
-        if bulk_structure.envelope_radius_earth(mass_earth, middle, flux_earth, age_gy) < target_radius_earth:
-            low = middle
-        else:
-            high = middle
-    return 0.5 * (low + high)
-
-
-def radius_at_age_earth(mass_earth, envelope, flux_earth, host_mass_solar, luminosity_solar, age_gy, tidal_ratio=1.0):
-    """
-    The radius at `age_gy` of a planet that had `envelope` of its `mass_earth` at the start, Earth radii: the envelope the XUV has left it
-    (`envelope_escape.envelope_left_earth`, none before 1 Gyr) under the age term of the envelope law. A planet that has lost its envelope
-    is its bare core.
-    """
-    core = mass_earth * (1.0 - envelope)
-    left = envelope_escape.envelope_left_earth(core, envelope, flux_earth, host_mass_solar, luminosity_solar, age_gy)
-    if left <= 0.0:
-        return bulk_structure.core_radius_earth(core)
-    mass = core + left
-    return radius_earth(mass, left / mass, flux_earth, age_gy, tidal_ratio)
 
 
 def is_super_puff(mass_earth, radius_earth_, age_gy, period_d):

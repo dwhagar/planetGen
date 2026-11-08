@@ -14,6 +14,7 @@ import pytest
 
 from tests.audit import prevalence as census
 from tests.audit import prevalence_occurrence as occurrence
+from tests.audit import prevalence_oddities as oddity_census
 from tests.audit import prevalence_systems as systems
 
 ITEM = re.compile(r"^[A-Z]+\.\d+$")
@@ -140,11 +141,17 @@ def test_the_system_and_occurrence_census_raise_no_new_flag(expectations, occurr
         gap_header += "\n\nStale anomaly tags (the rate is met now; remove the tag): " + ", ".join(stale_gaps)
     gap_path = census.write_report(occurrence.format_report(grouped, gaps, gap_header), name=occurrence.REPORT_NAME)
 
+    odd_summary = oddity_census.summarize(records)
+    odd_findings = oddity_census.compare(odd_summary)
+    odd_path = census.write_report(oddity_census.format_report(odd_summary, odd_findings), name=oddity_census.REPORT_NAME)
+
     new = [finding for finding in findings if not finding.known]
     new_gaps = [finding for finding in gaps if not finding.known]
-    assert not new and not new_gaps, (
+    new_oddities = [finding for finding in odd_findings if not finding.known]
+    assert not new and not new_gaps and not new_oddities, (
         f"new system census flags (report: {path}):\n" + "\n".join(f.line() for f in new)
-        + f"\nnew gaps against observation (report: {gap_path}):\n" + "\n".join(f.line() for f in new_gaps))
+        + f"\nnew gaps against observation (report: {gap_path}):\n" + "\n".join(f.line() for f in new_gaps)
+        + f"\nnew oddity census flags (report: {odd_path}):\n" + "\n".join(f.line() for f in new_oddities))
 
 
 def test_a_broken_range_trips_the_live_flag(expectations):

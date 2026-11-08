@@ -178,12 +178,14 @@ def reconcile_moved_planet(planet):
     planetPhysics.update_orbital_position(planet)
     planetPhysics.generate_spin(planet, planet.star.mass)
 
+    planetPhysics.release_moons(planet)      # GEN.1352: the moons are regenerated in their planet's equator, then set in the system again below
     for moon in planet.moons:
         planetPhysics.reconcile_zone(moon, planet.mass, distance_override=planet.distance)
         planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
         planetPhysics.apply_class(moon)
         # GEN.704: the moon's star distance changed, so the dose, UV and score `generate_spin` ends with are re-run as a moved planet's are.
         planetPhysics.generate_spin(moon, planet.mass)
+    planetPhysics.orient_moons(planet)
 
     # v20: planet.reflex_offset_x/y/z (this planet's own wobble from its moons -- see Planet.reflex_offset_x's docstring) depends on
     # every moon's own mass/position, any of which the reconciliation above may just have moved. Recomputed unconditionally here,
@@ -583,7 +585,9 @@ def refresh_moon_orbit(moon, planet):
     moon.primary_mass_kg = planet.mass
     planetPhysics.update_hill_sphere(moon)
     planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
+    moon._frame_axis = None      # its state is drawn again in its planet's equator
     planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
+    planetPhysics.orient_moons(planet)
 
 
 def stabilize_lunar_system(planet):

@@ -1998,6 +1998,7 @@
       "x-multiline": false,
       "x-restart": false,
       "x-secret": false,
+      "x-should-set": "Emailed links, canonical links, link previews and the sitemap are built from it, and the default is only right for a site reached on its own machine.",
       "x-slider": null,
       "x-summary": "The public address of the site, used for canonical links, previews, and the sitemap."
     },
