@@ -192,6 +192,14 @@ def test_an_icy_bodys_water_tops_out_at_the_condensed_share_of_its_formation_tem
     assert top == pytest.approx(0.378, abs=0.002) and low == tuning.ICY_WATER_MASS_FRACTION_FLOOR
 
 
+def test_an_icy_body_of_an_oxygen_poor_disk_holds_no_water_and_no_other_ice(monkeypatch):
+    """GEN.1363 part B: a disk whose carbon takes all the spare oxygen (C/O above about 1) freezes no water, so an icy body there draws none and the draw does not fail."""
+    body = _body(1000.0, icy=True, distance=2.7 * (182.0 / 30.0) ** 2)
+    monkeypatch.setattr(bulk_draw, "ice_forming_ratios", lambda star: (3.0, 0.3))
+    assert bulk_draw._icy_water_range(body)[1] == 0.0
+    assert bulk_draw._water_and_ice(body) == (0.0, 0.0, None)
+
+
 def test_the_disk_volatile_ratios_of_a_star_are_its_nitrogen_sulfur_and_argon_over_magnesium_over_the_suns():
     """GEN.1372: the ratios `disk_condensation.envelope_enrichments` splits between gas and ice."""
     star = _body(1000.0, icy=True, distance=2.7).star
