@@ -11,6 +11,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import biogenic_oxygen as bo
 from planetgen.physics import life_air
+from planetgen.util import draw
 from tests.publicids import pid
 from tests.test_api import client  # noqa: F401
 
@@ -19,12 +20,13 @@ def _living_planet_system(mysql_config, monkeypatch):
     """Saves a system whose first airy rocky planet has Class 1a life that made methane, then oxygen; returns `(system_id, planet row id)`."""
     monkeypatch.setattr(life_air, "methane_flux_mol_yr", lambda body, life_class, supplies=None: 1.0e12)
     monkeypatch.setattr(bo, "profile_of", lambda body, *args: bo.Profile(1.0, 0.0, 0.3e9, 1.0, 1.0, 0.3))
-    for _ in range(40):
+    for attempt in range(40):
         config = SystemConfig()
         config.PLANETS = True
         config.MAX_PLANETS = True
         config.BINARY_SYSTEM = False
-        system = StarSystem(system_config=config)
+        with draw.bound(f"life-air-history:{attempt}"):      # TEST.709: the same systems every run, not a fresh draw that sometimes has no methane row
+            system = StarSystem(system_config=config)
         for planet in system.planets:
             if planet.body_type == "t" and (planet.atmospheric_pressure or 0) > 20000.0 and planet.greenhouse_factor is not None:
                 bo.store_air(planet, {"N2": 70000.0, "CO2": 30000.0})
