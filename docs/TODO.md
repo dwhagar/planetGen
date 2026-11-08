@@ -13380,12 +13380,6 @@ clears each one.
   Prerequisites: none. Related: UX.291, MAP.347, TEST.696.
   Filed by the TODO thread.
 
-- [ ] **TEST.697 test_sweep_life.test_an_index_that_reads_the_letter_is_reported fails on main: the class-blind score check no longer reports an index that reads the letter (bug)**
-  Lane 02 (as the lane reported, 5:11 AM EST on 2026-11-08), from the train 18 gate: src/tests/test_sweep_life.py::test_an_index_that_reads_the_letter_is_reported fails on origin/main as well (1 failed, 2 passed), so it is not a train fault. The test patches habitability_world.compute so that a body scored as another class gets phi_bio -1.0, then expects sweep rules._check_scores_class_blind to report 'as class X the habitability index differs ... phi_bio'. Do: find whether the check stopped re-scoring the body under another letter (the class-last work moved the letter) or the test patch no longer reaches the scorer; fix the check or the test so a real letter-reading index is still caught (this guard is how class-last leaks are found), as a test or sweep-rules PR. Lock-free. If the check can no longer see a leak, say so before changing it.
-  Owner (proposed by TODO, confirm with TODO before taking): Lane 04.
-  Prerequisites: none. Related: GEN.1397, TEST.696.
-  Filed by the TODO thread.
-
 - [ ] **PERF.253 test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug)**
   Lane 05 (as the lane reported, 9:07 AM EST on 2026-11-08), from the GEN.1390 grouping: test_systems.py::test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s test timeout inside habitability_world.world_from, in temperature_coverage.series_of_values. Do: find why one forced case spends more than 900 s there (an unbounded or repeated series for a moon of a binary B2V host) and cut it without changing any value; if it is only slowness it is lock-free. Done: the case runs well inside the timeout and the profile is written down.
   Prerequisites: none. Related: GEN.1390, TEST.695.
@@ -13648,12 +13642,6 @@ clears each one.
   changed --resume; no fixed content from the Milky Way or the Solar
   System; built code needs a caller.
   Prerequisites: none (runs after GEN.1356 merges). Related: GEN.1356, GEN.475, GEN.477, TEST.685.
-
-- [ ] **TEST.689 src/tests/test_property_sheet.py fails on main: the oddities column is not on the sheet (bug)**
-  Lane 23 (as the lane reported 2026-11-08), red on main and not from its change. Do: run the test, decide whether the sheet must show the oddities column the oddity table now stores (train 16) or the test is out of date, fix the cause and keep the test. Owner (proposed by TODO): Lane 04. Rules: tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.237, GEN.1385.
-  Filed by the TODO thread.
 
 - [ ] **TEST.691 The ozone-loss radiation test fails on main (bug)**
   Lane 22 (as the lane reported 2026-11-07) holds the failing test name; the owner records it here. Do: run the test on main, decide whether the radiation law or the test is wrong, fix the cause and keep the test. Owner (proposed by TODO): Lane 22. Rules: tests are
