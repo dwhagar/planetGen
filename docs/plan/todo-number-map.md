@@ -22,7 +22,7 @@ release is stamped.
 | API | API.42 |
 | ADM | ADM.141 |
 | SEC | SEC.47 |
-| TEST | TEST.688 |
+| TEST | TEST.693 |
 | USR | USR.32 |
 | OPS | OPS.119 |
 | DOC | DOC.110 |
@@ -2175,6 +2175,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1383 | Ore processes build, carbonatite, kimberlite and unconformity uranium deposits | GEN.1382, GEN.1365 | open |
 | GEN.1384 | Reduced-body recipes read the sulfide, nitride and carbide rows: the metal ground and the reduced taxa name pyrite, pyrrhotite, pentlandite, chalcopyrite, oldhamite, niningerite, alabandite, daubreelite, osbornite and sinoite instead of troilite and kamacite stand-ins | none | open |
 | GEN.1385 | test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug) | none | open |
+| TEST.688 | src/tests/test_stellar_bulk.py::test_a_terrestrial_rogue_planet_is_round_and_has_a_strength fails on main: rogue planets of 0.5 to 3 Earth masses come out class T with roundness None (bug) | none | open |
+| TEST.689 | src/tests/test_property_sheet.py fails on main: the oddities column is not on the sheet (bug) | none | open |
+| TEST.690 | src/tests/test_pulsar_planets.py fails on main: a pulsar disk planet comes out class T (bug) | none | open |
+| TEST.691 | The ozone-loss radiation test fails on main (bug) | none | open |
+| TEST.692 | src/tests/test_planet_classes.py::test_the_class_sweep_finds_every_stored_letter_is_the_derived_one fails on main (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
