@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1371 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1374 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 170 | 19 | 11 | 1 | 0 | 201 |
 | T2 | 129 | 58 | 1 | 1 | 0 | 189 |
 | T3 | 103 | 44 | 9 | 10 | 0 | 166 |
-| T4 | 62 | 11 | 2 | 19 | 10 | 104 |
+| T4 | 63 | 11 | 3 | 19 | 10 | 106 |
 | T5 | 62 | 22 | 4 | 1 | 0 | 89 |
 | T6 | 145 | 100 | 27 | 75 | 0 | 347 |
-| T7 | 34 | 15 | 8 | 28 | 0 | 85 |
+| T7 | 34 | 15 | 8 | 29 | 0 | 86 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 746 | 285 | 67 | 228 | 45 | 1371 |
+| All | 747 | 285 | 68 | 229 | 45 | 1374 |
 
 ## How the labels were given
 
@@ -1834,6 +1834,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | GE1 | P | T6 | L0 | disk_condensation.envelope_enrichments: the troilite of the sulfur (`1 - SULFUR_AS_H2S` of it) is rock and takes the rock-forming metals' scale `enrichment`, not the ices' `sigma`; phosphorus is not split at all and keeps the rock's scale (its carriers condense above 1000 K) | none | giants formed below about 700 K (troilite stable) | a measured P/Fe or S/Fe in a giant's envelope off the rock's by more than a factor of 2 | a model of how rock and troilite reach an envelope | the Galileo S is 2.75 +/- 0.66 times solar against 3.1 here ([R5163: Table 2]); the probe has no phosphorus (PH3 only as a mass-34 interference), so P is a choice, not a fit | - | - |
 | GE2 | P | T6 | L0 | disk_condensation.envelope_enrichments: krypton and xenon take the star's argon ratio (`disk_noble`), because the star's element set has no krypton or xenon | none | stars with the Sun's ratios of the noble gases | a star with a measured krypton or xenon over argon off the Sun's by more than a factor of 2 | the star's own krypton and xenon, if the element set gains them | [R0168] gives the Sun's krypton and xenon; no star sample here measures them | - | - |
 | GE3 | P | T6 | L0 | disk_condensation.envelope_enrichments: every ice and clathrate that froze reaches the envelope with the same `sigma` (the planetesimals carry the disk's proportions of all species) | none | giants whose heavy elements came mostly as planetesimals | a giant whose nitrogen and sulfur enrichments differ from its carbon and oxygen by the ice split alone by more than a factor of 2 | a model of which ices the planetesimals shed in the envelope (volatiles are lost on the way in) | nitrogen 3.0 and sulfur 3.1 against the probe's 2.96 and 2.75 times solar at one formation temperature and four times the star's heavy elements; one giant, so not a test of the split | - | - |
+
+## 6.228 Stand-ins of the carbide deposits of a carbon-rich body
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CH1 | B | T4 | L0 | carbide_deposits.CRUST_REFERENCE_KM 35 and EARTH_CORE_MASS_FRACTION 0.325: the Earth's continental crust thickness and core mass fraction, the references the counts scale from | 30 to 40 km; 0.32 to 0.33 | all carbon-rich rocky bodies | a measured Earth value outside the range | the Earth's measured means (the references stay) | recalled textbook values, not opened | - | - |
+| CH2 | P | T4 | L2 | carbide_deposits.CARBON_SATURATED_C_WT 4.3, COHENITE_C_WT 6.69 and COHENITE_GRADE_FLOOR 0.30: the carbon in iron saturated at the iron-carbon eutectic, the carbon in Fe3C, and the lowest Fe3C share of the metal drawn | 4.2 to 4.4 percent; stoichiometry; floor by 0.1 | carbon-rich bodies with a metal core | an iron-carbon liquid saturated far from 4.3 percent carbon at the pressure of the metal | an iron-carbon phase diagram at core pressure (accepted secondary) | the eutectic from the Fe-C diagram, recalled; the carbon in Fe3C is 12.011 / 179.55 | - | - |
+| CH3 | P | T7 | L3 | carbide_deposits.MOISSANITE_DEPOSITS 40 and COHENITE_DEPOSITS 20, medians 1e12 and 1e11 kg of ore, spread 1.5, and WINDOWS (moissanite 0.0 to 1.0, cohenite 0.2 to 1.0 of the age): the deposits of an Earth-size carbon-rich body over the reference window, their size and the share of the age in which each formed | counts 0.3x to 3x; each edge by 0.2 | carbon-rich rocky bodies | a surveyed carbon-rich body whose endowment is far from the draw | a carbon-planet deposit model (none exists); the Earth's moissanite is trace | educated guess from physics (no carbon-rich body has a surveyed endowment; the numbers sit beside the other types') | - | no data |
 
 ## 6.224 Stand-ins of the hydrothermal and uranium deposits
 

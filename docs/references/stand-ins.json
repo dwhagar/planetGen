@@ -41781,6 +41781,132 @@
       "title": "Stand-ins of the nitrogen, sulfur and noble gases of a giant's envelope"
     },
     {
+      "key": "6.228",
+      "number": "6.228",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "carbide_deposits.CRUST_REFERENCE_KM 35 and EARTH_CORE_MASS_FRACTION 0.325: the Earth's continental crust thickness and core mass fraction, the references the counts scale from"
+            ],
+            [
+              "The range it moves in",
+              "30 to 40 km; 0.32 to 0.33"
+            ],
+            [
+              "Where it holds",
+              "all carbon-rich rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a measured Earth value outside the range"
+            ],
+            [
+              "What replaces it",
+              "the Earth's measured means (the references stay)"
+            ],
+            [
+              "Evidence",
+              "recalled textbook values, not opened"
+            ]
+          ],
+          "id": "CH1",
+          "key": "6.228:CH1",
+          "kind": "B",
+          "slug": "6-228-ch1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "carbide_deposits.CRUST_REFERENCE_KM 35 and EARTH_CORE_MASS_FRACTION 0.325: the Earth's continental crust thickness and core mass fraction, the references the counts scale from"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "carbide_deposits.CARBON_SATURATED_C_WT 4.3, COHENITE_C_WT 6.69 and COHENITE_GRADE_FLOOR 0.30: the carbon in iron saturated at the iron-carbon eutectic, the carbon in Fe3C, and the lowest Fe3C share of the metal drawn"
+            ],
+            [
+              "The range it moves in",
+              "4.2 to 4.4 percent; stoichiometry; floor by 0.1"
+            ],
+            [
+              "Where it holds",
+              "carbon-rich bodies with a metal core"
+            ],
+            [
+              "What would show it wrong",
+              "an iron-carbon liquid saturated far from 4.3 percent carbon at the pressure of the metal"
+            ],
+            [
+              "What replaces it",
+              "an iron-carbon phase diagram at core pressure (accepted secondary)"
+            ],
+            [
+              "Evidence",
+              "the eutectic from the Fe-C diagram, recalled; the carbon in Fe3C is 12.011 / 179.55"
+            ]
+          ],
+          "id": "CH2",
+          "key": "6.228:CH2",
+          "kind": "P",
+          "slug": "6-228-ch2",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L2",
+          "unread": null,
+          "what": "carbide_deposits.CARBON_SATURATED_C_WT 4.3, COHENITE_C_WT 6.69 and COHENITE_GRADE_FLOOR 0.30: the carbon in iron saturated at the iron-carbon eutectic, the carbon in Fe3C, and the lowest Fe3C share of the metal drawn"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the counts, sizes and windows are design choices; no carbon-rich body has a surveyed endowment"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "carbide_deposits.MOISSANITE_DEPOSITS 40 and COHENITE_DEPOSITS 20, medians 1e12 and 1e11 kg of ore, spread 1.5, and WINDOWS (moissanite 0.0 to 1.0, cohenite 0.2 to 1.0 of the age): the deposits of an Earth-size carbon-rich body over the reference window, their size and the share of the age in which each formed"
+            ],
+            [
+              "The range it moves in",
+              "counts 0.3x to 3x; each edge by 0.2"
+            ],
+            [
+              "Where it holds",
+              "carbon-rich rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a surveyed carbon-rich body whose endowment is far from the draw"
+            ],
+            [
+              "What replaces it",
+              "a carbon-planet deposit model (none exists); the Earth's moissanite is trace"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (no carbon-rich body has a surveyed endowment; the numbers sit beside the other types')"
+            ]
+          ],
+          "id": "CH3",
+          "key": "6.228:CH3",
+          "kind": "P",
+          "slug": "6-228-ch3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "carbide_deposits.MOISSANITE_DEPOSITS 40 and COHENITE_DEPOSITS 20, medians 1e12 and 1e11 kg of ore, spread 1.5, and WINDOWS (moissanite 0.0 to 1.0, cohenite 0.2 to 1.0 of the age): the deposits of an Earth-size carbon-rich body over the reference window, their size and the share of the age in which each formed"
+        }
+      ],
+      "slug": "6-228-stand-ins-of-the-carbide-deposits-of-a-carbon-rich-body",
+      "title": "Stand-ins of the carbide deposits of a carbon-rich body"
+    },
+    {
       "key": "6.224",
       "number": "6.224",
       "rows": [
