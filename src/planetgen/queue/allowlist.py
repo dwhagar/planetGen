@@ -57,6 +57,7 @@ API_FUNCTIONS = frozenset({
     "planetgen.queue.api_jobs:regenerate_sector",
     "planetgen.queue.api_jobs:run_command",
     "planetgen.queue.pagejobs:build_answer",
+    "planetgen.web.lib.estimatejob:work",               # the Generate size estimate (ADM.141)
 })
 """frozenset: The `module:name` references `api_jobs.execute` may call."""
 

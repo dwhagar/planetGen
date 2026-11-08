@@ -61,7 +61,7 @@ def test_a_stars_key_does_not_move_when_its_age_rises_after_its_planets_are_made
 def test_the_draws_are_a_function_of_the_key_alone_and_all_are_always_drawn():
     one, two = sc.key_draws("42"), sc.key_draws("42")
     assert one == two and one != sc.key_draws("43")
-    assert len(one.normals) == 5 and 0.0 <= one.u_crust_model < 1.0
+    assert len(one.normals) == len(sa.RESIDUAL_ELEMENTS) == 14 and 0.0 <= one.u_crust_model < 1.0
     # The fixed order: changing only what is drawn last cannot move what is drawn first.
     stream = draw.Stream("abundance:42")
     stream.random()      # the draw the branch used to take, kept unread so no later draw moved (GEN.1024)
@@ -71,7 +71,8 @@ def test_the_draws_are_a_function_of_the_key_alone_and_all_are_always_drawn():
     assert stream.random() == one.u_atmosphere and stream.random() == one.u_wolf_rayet
     assert stream.random() == one.u_crust_model, "the draw added before the pollution one (GEN.590) moved none before it"
     assert stream.random() == one.u_pollution, "the draw added before the calcium one (GEN.253) moved none before it"
-    assert stream.gauss(0.0, 1.0) == one.normals[4], "the calcium residual (GEN.988) is the last draw and moved none before it"
+    assert stream.gauss(0.0, 1.0) == one.normals[4], "the calcium residual (GEN.988) moved none before it"
+    assert tuple(stream.gauss(0.0, 1.0) for _ in range(9)) == one.normals[5:], "the nine of GEN.1360 are the last draws and moved none before them"
 
 
 def test_the_draws_are_a_stream_of_their_own():

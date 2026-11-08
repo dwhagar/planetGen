@@ -67,6 +67,15 @@ def test_the_taxa_are_mixes_of_the_shared_table_with_grain_densities_near_their_
     assert mid("P") == pytest.approx(1400, abs=350) and mid("D") == pytest.approx(1050, abs=350)
 
 
+def test_the_aubrite_taxon_carries_the_sulfides_of_the_aubrite_modal_ranges():
+    """GEN.1384: [R5146: Table 1] (aubrites, mod. percent): troilite 0.3 to 1.4, niningerite 0.1 to 0.6, enstatite 63 to 97, albite 0.1 to 13."""
+    fractions = sb.TAXON_DATA["E"].fractions
+    assert 0.003 <= fractions["troilite"] <= 0.014 and 0.001 <= fractions["niningerite"] <= 0.006
+    assert 0.63 <= fractions["enstatite"] <= 0.97 and 0.001 <= fractions["albite"] <= 0.13
+    assert math.fsum(fractions.values()) == pytest.approx(1.0, abs=1e-9)
+    assert sb.group_of("niningerite") == "rock"
+
+
 # --- a belt ------------------------------------------------------------------------------------------------------
 
 def test_a_belt_has_shares_that_add_up_and_a_density_that_follows_them():

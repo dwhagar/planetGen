@@ -15,7 +15,7 @@ from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
 
-EARTH_RATIOS = bulk_draw.HostRatios(fe=0.81, si=0.91, al=0.07, ca=0.06, ni=0.045, c_over_o=0.55, y_envelope=0.27, z=0.014)
+EARTH_RATIOS = bulk_draw.HostRatios(fe=0.81, si=0.91, al=0.07, ca=0.06, ni=0.045, na=0.0468, k=0.0033, ti=0.0026, cr=0.0117, mn=0.0074, p=0.0072, c_over_o=0.55, y_envelope=0.27, z=0.014)
 
 
 def _star(**extra):

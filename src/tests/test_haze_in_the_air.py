@@ -12,7 +12,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import aerosols, constants, surface_air as sa
+from planetgen.physics import aerosols, constants, planet_type, surface_air as sa
 from planetgen.util import draw
 
 
@@ -47,7 +47,7 @@ def _generate(seed):
 def hazy():
     for seed in range(60):
         planet, captured = _generate(seed)
-        if planet.tau_haze and planet.tau_haze > 0.0:
+        if planet.tau_haze and planet.tau_haze > 0.0 and planet_type.has_ground(planet):      # GEN.1334: a planet under a deep envelope is solved at its 1 bar level, as a giant is
             return planet, captured
     pytest.fail("no body of the first 60 seeds has a haze")
 

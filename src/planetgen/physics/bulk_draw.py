@@ -40,7 +40,7 @@ from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, delivered_water, disk_condensation, elements,
-                               hydrosphere, ice_species, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition)
+                               hydrosphere, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition, volatile_depletion)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 from planetgen.physics import unit_registry as units
@@ -110,6 +110,7 @@ class HostRatios:
 
     Attributes:
         fe, si, al, ca, ni (float): Atoms per Mg atom.
+        na, k, ti, cr, mn, p (float): Atoms per Mg atom of the seven-oxide set of GEN.1362 (with `ni`; `mantle_oxides`).
         c_over_o (float): Carbon atoms per oxygen atom.
         y_envelope (float): The helium share of the star's hydrogen and helium by mass.
         z (float): The star's metal mass fraction.
@@ -120,6 +121,12 @@ class HostRatios:
     al: float
     ca: float
     ni: float
+    na: float
+    k: float
+    ti: float
+    cr: float
+    mn: float
+    p: float
     c_over_o: float
     y_envelope: float
     z: float
@@ -138,7 +145,9 @@ def _ratios(fe_h, age_gy, key):
     star = _star_composition(fe_h, age_gy, key)
     ratio = stellar_abundances.number_ratio
     return HostRatios(fe=ratio(star, "Fe", "Mg"), si=ratio(star, "Si", "Mg"), al=ratio(star, "Al", "Mg"),
-                      ca=ratio(star, "Ca", "Mg"), ni=ratio(star, "Ni", "Mg"), c_over_o=ratio(star, "C", "O"),
+                      ca=ratio(star, "Ca", "Mg"), ni=ratio(star, "Ni", "Mg"), na=ratio(star, "Na", "Mg"), k=ratio(star, "K", "Mg"),
+                      ti=ratio(star, "Ti", "Mg"), cr=ratio(star, "Cr", "Mg"), mn=ratio(star, "Mn", "Mg"), p=ratio(star, "P", "Mg"),
+                      c_over_o=ratio(star, "C", "O"),
                       y_envelope=star.y / (star.x + star.y), z=star.z)
 
 
@@ -173,7 +182,13 @@ def ice_forming_ratios(star):
     return tuple(ratio(composition, element, "Mg") / ratio({}, element, "Mg") for element in ("C", "O"))
 
 
-REMNANT_DISK_RATIOS = HostRatios(fe=0.8, si=0.9, al=0.07, ca=0.06, ni=0.045, c_over_o=2.0, y_envelope=0.25, z=1.0)
+def _solar_over_mg(symbol):
+    logs = tuning.STELLAR_SOLAR_LOG_EPS
+    return 10.0 ** (logs[symbol] - logs["Mg"])
+
+
+REMNANT_DISK_RATIOS = HostRatios(fe=0.8, si=0.9, al=0.07, ca=0.06, ni=0.045, na=_solar_over_mg("Na"), k=_solar_over_mg("K"), ti=_solar_over_mg("Ti"),
+                                 cr=_solar_over_mg("Cr"), mn=_solar_over_mg("Mn"), p=_solar_over_mg("P"), c_over_o=2.0, y_envelope=0.25, z=1.0)
 """HostRatios: What the planets of a compact remnant are made of (the carbon-rich debris disk of a disrupted white dwarf, PSR B1257+12's;
 exotic-environments-planets-and-compact-binaries.md section 2.1): refractories in the proportions of the Sun's and C/O of 2, which
 makes carbon rock. A stand-in until the disk's own abundances are modelled; no star of that kind has an [Fe/H]."""
@@ -236,21 +251,21 @@ def iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite):
     if body.is_moon or origin not in IRON_BRANCH_ORIGINS:
         return ratios
     branch = IRON_BRANCH_TABLE.draw(origin, {}).name
-    return branch_ratios(ratios, branch, IRON_SCATTER_DEX, feo, light, carbon_rock, graphite)
+    return branch_ratios(ratios, branch, IRON_SCATTER_DEX, feo, light, carbon_rock, graphite, _cut_k(body))
 
 
-def branch_ratios(ratios, branch, scatter_dex, feo, light, carbon_rock, graphite):
+def branch_ratios(ratios, branch, scatter_dex, feo, light, carbon_rock, graphite, cut_k=None):
     """`ratios` as a planet of `branch` (a row of `IRON_BRANCH_TABLE`) inherits them; the draws are the scatter's normal or the target's uniform."""
     if branch == "star-matched":
         scatter = draw.gauss(0.0, 1.0) * scatter_dex
         return dataclasses.replace(ratios, fe=ratios.fe * 10.0 ** scatter)
-    target = max(draw.uniform(*RANGES["enriched_cmf"]), dry_partition(ratios, feo, light, carbon_rock, graphite).metal)
+    target = max(draw.uniform(*RANGES["enriched_cmf"]), dry_partition(ratios, feo, light, carbon_rock, graphite, cut_k).metal)
     low, high = ratios.fe, ratios.fe
-    while dry_partition(dataclasses.replace(ratios, fe=high), feo, light, carbon_rock, graphite).metal < target:
+    while dry_partition(dataclasses.replace(ratios, fe=high), feo, light, carbon_rock, graphite, cut_k).metal < target:
         high *= 2.0
     for _ in range(60):
         middle = 0.5 * (low + high)
-        if dry_partition(dataclasses.replace(ratios, fe=middle), feo, light, carbon_rock, graphite).metal < target:
+        if dry_partition(dataclasses.replace(ratios, fe=middle), feo, light, carbon_rock, graphite, cut_k).metal < target:
             low = middle
         else:
             high = middle
@@ -270,15 +285,41 @@ class DryPartition:
     rock_feo: float
     rock_al2o3: float
     rock_mg_si: float
+    oxides: dict | None = None
 
 
-def dry_partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock=0.0):
+OXIDE_FIXED_POINT_PASSES = 3
+"""int: How many times `dry_partition` recomputes the core's share of the siderophile oxides from the core fraction the previous pass gave (the share moves the core
+fraction by a few thousandths, so the second pass is within 1e-4 of the fixed point)."""
+
+
+def _minor_oxides(part):
+    """The seven minor oxides of `part` as the `BulkFractions` keywords (all None for a carbon rock, which holds none)."""
+    oxides = part.oxides or {}
+    return {f"rock_{name.lower()}": oxides.get(name) for name in mantle_oxides.OXIDE_NAMES}
+
+
+def _cut_k(body):
+    """The volatility cut of the zone `body` formed in (`volatile_depletion.cut_temperature_k`), or None (the Earth's cut) for a body with no star, distance or luminosity."""
+    star = getattr(body, "star", None)
+    distance = getattr(body, "formation_distance_au", None)
+    if distance is None:
+        distance = getattr(body, "distance", None)
+    luminosity = getattr(star, "luminosity", None)
+    if not distance or not luminosity or distance <= 0.0 or luminosity <= 0.0:
+        return None
+    return volatile_depletion.cut_temperature_k(distance, luminosity)
+
+
+def dry_partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock=0.0, cut_k=None):
     """
     The metal and rock shares of a dry body from the star's ratios, per Mg atom of the body.
 
     The rock is MgO, SiO2, CaO and Al2O3 (SiC and graphite with `carbon_rock`) plus `rock_feo` of itself as FeO; the metal is
     the Fe the mantle does not hold, with the star's Ni per Fe, and `light_elements` of the metal's mass as S, Si, O and C.
-    A mantle that would take more Fe than the star has takes all of it and the metal is zero.
+    A mantle that would take more Fe than the star has takes all of it and the metal is zero. A silicate rock also holds Na2O, K2O, TiO2, Cr2O3, MnO, NiO and P2O5
+    (`mantle_oxides`, GEN.1362): the star's ratio of each times the share its volatility keeps at `cut_k`, less what the core took, which joins the metal (Cr, Mn, P, Na, K)
+    or, for nickel, is what the mantle does not keep of the star's Ni. A carbon rock holds none (`oxides` is None).
 
     Args:
         ratios (HostRatios): The star's ratios.
@@ -286,27 +327,42 @@ def dry_partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_r
         light_elements (float): The light elements' share of the metal's mass.
         carbon_rock (bool): Silicon carbide and graphite in place of silicate.
         graphite_over_rock (float): For `carbon_rock`, the graphite mass against the rest of the rock.
+        cut_k (float or None): The volatility cut of the formation zone, K; None is the Earth's.
 
     Returns:
         DryPartition: `metal + rock` is 1.
     """
+    core_fraction = mantle_oxides.EARTH_CORE_FRACTION
+    for _ in range(1 if carbon_rock else OXIDE_FIXED_POINT_PASSES):
+        part = _partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock, cut_k, core_fraction)
+        core_fraction = part.metal
+    return part
+
+
+def _partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock, cut_k, core_fraction):
+    """One pass of `dry_partition` with the core fraction the siderophile oxides are shared at."""
     mgo = _grams("MgO")
     si_mass = ratios.si * (_grams("SiC") if carbon_rock else _grams("SiO2"))
     shell = mgo + si_mass + ratios.ca * _grams("CaO") + 0.5 * ratios.al * _grams("Al2O3")
     al2o3 = 0.5 * ratios.al * _grams("Al2O3")
     graphite = graphite_over_rock * shell if carbon_rock else 0.0
-    rock_no_feo = shell + graphite
+    if carbon_rock:
+        oxide_grams, core_grams, nickel_core = {}, {}, ratios.ni * _grams("Ni")
+    else:
+        oxide_grams, core_grams, nickel_core = mantle_oxides.oxides(ratios, cut_k, core_fraction, rock_feo)
+    rock_no_feo = shell + graphite + sum(oxide_grams.values())
     rock = rock_no_feo / (1.0 - rock_feo)
     n_feo = rock_feo * rock / _grams("FeO")
     if n_feo > ratios.fe:
         n_feo = ratios.fe
         rock = rock_no_feo + n_feo * _grams("FeO")
         rock_feo = n_feo * _grams("FeO") / rock
-    iron = (ratios.fe - n_feo) * _grams("Fe") + ratios.ni * _grams("Ni")
+    iron = (ratios.fe - n_feo) * _grams("Fe") + nickel_core + sum(core_grams.values())
     metal = iron / (1.0 - light_elements)
     total = metal + rock
+    oxides = {name: grams / rock for name, grams in oxide_grams.items()} or None
     return DryPartition(metal=metal / total, rock=rock / total, rock_feo=rock_feo, rock_al2o3=al2o3 / rock,
-                        rock_mg_si=1.0 / ratios.si)
+                        rock_mg_si=1.0 / ratios.si, oxides=oxides)
 
 
 def origin_of(body):
@@ -465,14 +521,14 @@ def draw_terrestrial(body, radius_given, mass_given):
         return
 
     ratios = iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite)
-    part = dry_partition(ratios, feo, light, carbon_rock, graphite)
+    part = dry_partition(ratios, feo, light, carbon_rock, graphite, _cut_k(body))
     if origin:
         _draw_moon(body, origin, part, mass_given)
         return
     metal, rock = _normalise(part.metal, part.rock, water, ice)
     bulk = bulk_composition.BulkFractions(
         metal=metal, rock=rock, water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo, rock_al2o3=part.rock_al2o3,
-        rock_mg_si=part.rock_mg_si, porosity=porosity, carbon_rock=carbon_rock, origin="drawn", ice_shares=ice_shares)
+        rock_mg_si=part.rock_mg_si, porosity=porosity, carbon_rock=carbon_rock, origin="drawn", ice_shares=ice_shares, **_minor_oxides(part))
     _settle(body, bulk, mass_given)
 
 
@@ -488,7 +544,7 @@ def _draw_moon(body, origin, part, mass_given):
     makeup = moon_composition.draw_moon(origin, body.distance * constants.AU_TO_KM, system)
     bulk = bulk_composition.BulkFractions(
         metal=makeup.metal, rock=makeup.rock, water=makeup.water, ice=makeup.ice, envelope=0.0, rock_feo=part.rock_feo,
-        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, carbon_rock=False, origin="drawn")
+        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, carbon_rock=False, origin="drawn", **_minor_oxides(part))
     if mass_given:
         # GEN.442: below the taper's end the radius follows from the mass by the same brittle law that gives the mass from the radius
         low, high = compaction.ROCK_FRACTION_RANGE
@@ -547,7 +603,7 @@ def _store(body, bulk):
 
 def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock, graphite):
     """A body given both a mass and a radius: the core mass fraction from the mass and the radius."""
-    part = dry_partition(ratios, feo, light, carbon_rock, graphite)
+    part = dry_partition(ratios, feo, light, carbon_rock, graphite, _cut_k(body))
     x_fe = bulk_structure.x_fe_from_feo_mass_fraction(part.rock_feo) if part.rock_feo else 0.0
     mass_earth = _kg_to_mearth(body.mass)
     radius_earth = body.radius / constants.EARTH_RADIUS_KM
@@ -558,5 +614,5 @@ def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock,
     bulk = bulk_composition.BulkFractions(
         metal=cmf * (1.0 - wet), rock=(1.0 - cmf) * (1.0 - wet), water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo,
         rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=None, carbon_rock=carbon_rock, origin="inverse",
-        ice_shares=ice_shares)
+        ice_shares=ice_shares, **_minor_oxides(part))
     _store(body, bulk)

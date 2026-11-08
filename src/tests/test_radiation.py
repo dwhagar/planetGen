@@ -16,7 +16,7 @@ from planetgen.galaxy import scales
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic, solar_particles, surface_composition
+from planetgen.physics import activity, atmosphere, constants, planet_type, proton_range, radiation as rad, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -278,7 +278,7 @@ def test_every_generated_body_has_a_consistent_dose():
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
         for body in _bodies(system):
-            if body.body_type == "g":
+            if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334)
                 seen["giant"] += 1
                 assert all(getattr(body, field) is None for field in rad.BODY_FIELDS)
                 continue
@@ -323,7 +323,7 @@ def _rocky_world_with_air():
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
-        body = next((b for b in _bodies(system) if b.body_type == "t" and (b.atmospheric_pressure or 0.0) > 0.0), None)
+        body = next((b for b in _bodies(system) if b.body_type == "t" and planet_type.has_ground(b) and (b.atmospheric_pressure or 0.0) > 0.0), None)
         if body is not None:
             return body
     raise AssertionError("no seed gave a rocky world with air")

@@ -26,7 +26,7 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, unit_registry as units
+from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, unit_registry as units
 from planetgen.physics.mixture_base import MixtureError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -189,7 +189,8 @@ def kind_of_body(body):
         MixtureError: The body has no body type of `t` or `g`.
     """
     try:
-        return KIND_OF_BODY_TYPE[getattr(body, "body_type", None)]
+        kind = KIND_OF_BODY_TYPE[getattr(body, "body_type", None)]
+        return kind if planet_type.has_ground(body) else "giant"      # GEN.1334: a planet under a deep envelope reads the giant rows
     except KeyError:
         raise MixtureError(f"the body type {getattr(body, 'body_type', None)!r} is neither 't' nor 'g', so the recipe kind cannot be built") from None
 
