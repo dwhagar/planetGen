@@ -50881,8 +50881,8 @@
       "title": "Stand-ins of the architecture's losses"
     },
     {
-      "key": "6.218",
-      "number": "6.218",
+      "key": "6.219",
+      "number": "6.219",
       "rows": [
         {
           "burn_down": null,
@@ -50909,13 +50909,13 @@
             ],
             [
               "Evidence",
-              "[R5150: Abstract] gives the held 50 to 200 ppm and [R5147: Introduction] the olivine ceiling under 0.9 wt%; the saturation of olivine at depth is not printed in the pages read"
+              "[R5159: Abstract] gives the held 50 to 200 ppm and [R5156: Introduction] the olivine ceiling under 0.9 wt%; the saturation of olivine at depth is not printed in the pages read"
             ]
           ],
           "id": "MR1",
-          "key": "6.218:MR1",
+          "key": "6.219:MR1",
           "kind": "T",
-          "slug": "6-218-mr1",
+          "slug": "6-219-mr1",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L1",
@@ -50947,13 +50947,13 @@
             ],
             [
               "Evidence",
-              "the pages read print \"up to about 3 wt%\" [R5147: Introduction], ringwoodite 1.5 to 2 wt% [R5148: Abstract], the diamond-hosted ringwoodite 1.43 wt% [R5152] and about 1.0 wt% by several lines of evidence [R5149: Introduction]; 1.5 is the low end of the ringwoodite range and no temperature dependence is printed"
+              "the pages read print \"up to about 3 wt%\" [R5156: Introduction], ringwoodite 1.5 to 2 wt% [R5157: Abstract], the diamond-hosted ringwoodite 1.43 wt% [R5161] and about 1.0 wt% by several lines of evidence [R5158: Introduction]; 1.5 is the low end of the ringwoodite range and no temperature dependence is printed"
             ]
           ],
           "id": "MR2",
-          "key": "6.218:MR2",
+          "key": "6.219:MR2",
           "kind": "T",
-          "slug": "6-218-mr2",
+          "slug": "6-219-mr2",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L1",
@@ -50985,13 +50985,13 @@
             ],
             [
               "Evidence",
-              "[R5150: Abstract] gives under 20 ppm and [R5149: Introduction] at most 0.1 wt%; an aluminous bridgmanite grown from a hydrous melt held 1020 ppm [R5151: Abstract], so the lower mantle's cap is the least certain of the three"
+              "[R5159: Abstract] gives under 20 ppm and [R5158: Introduction] at most 0.1 wt%; an aluminous bridgmanite grown from a hydrous melt held 1020 ppm [R5160: Abstract], so the lower mantle's cap is the least certain of the three"
             ]
           ],
           "id": "MR3",
-          "key": "6.218:MR3",
+          "key": "6.219:MR3",
           "kind": "T",
-          "slug": "6-218-mr3",
+          "slug": "6-219-mr3",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L1",
@@ -51027,9 +51027,9 @@
             ]
           ],
           "id": "MR4",
-          "key": "6.218:MR4",
+          "key": "6.219:MR4",
           "kind": "T",
-          "slug": "6-218-mr4",
+          "slug": "6-219-mr4",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L1",
@@ -51037,7 +51037,7 @@
           "what": "mantle_reservoirs.CARBON_REDOX_DIW 3.0 (log units over iron-wuestite)"
         }
       ],
-      "slug": "6-218-stand-ins-of-the-water-and-carbon-a-mantle-stores",
+      "slug": "6-219-stand-ins-of-the-water-and-carbon-a-mantle-stores",
       "title": "Stand-ins of the water and carbon a mantle stores"
     }
   ]
