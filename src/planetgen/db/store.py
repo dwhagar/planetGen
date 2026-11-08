@@ -7617,13 +7617,17 @@ def database_now(conn):
 
 def sector_centers_since(conn, since):
     """The `(x, y, z)` galaxy-frame centers, parsecs, of every galaxy
-    sector created at or after `since` (`database_now`), in address order:
-    not save order, which the worker count changes (GEN.39)."""
+    sector charted and created at or after `since` (`database_now`), in address order:
+    not save order, which the worker count changes (GEN.39). An uncharted placeholder row (MAP.399, MAP.402: no cell in the chart
+    ledger) is not a sector the run made, however new it is: on a big galaxy there are millions, and a backfill taking them for the
+    run's sectors plans its sky for all of them (PERF.252)."""
     return [
         (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
         for row in conn.execute(
-            "SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE created_at >= ?"
-            " AND shell_index IS NOT NULL ORDER BY shell_index, band_index, wedge_index", (since,)
+            "SELECT sec.center_x_pc, sec.center_y_pc, sec.center_z_pc FROM sectors sec WHERE sec.created_at >= ?"
+            " AND sec.shell_index IS NOT NULL AND EXISTS (SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = sec.shell_index"
+            " AND cl.band_index = sec.band_index AND cl.wedge_index = sec.wedge_index)"
+            " ORDER BY sec.shell_index, sec.band_index, sec.wedge_index", (since,)
         ).fetchall()
     ]
 
