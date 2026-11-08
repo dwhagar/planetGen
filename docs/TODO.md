@@ -13283,6 +13283,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 22 with Lane 13, after OPS.131 and OPS.127. Prerequisites: none. Related: OPS.131, OPS.127, OPS.126, OPS.128, PERF.254.
   Filed by the TODO thread.
 
+- [ ] **GEN.1463 Oxygen sink R falls with body age: heat flow and reductant supply were higher early, so the surplus S minus R is larger young**
+  Lane 21 (2026-11-08), finding of GEN.1405 (reports/gen1405-oxygen-store-delay-2026-11-08.md): on 11 generated oxygenic worlds the long waits for oxygen (1.3 to 4.7 Gyr, one 1,609 Gyr, two never rising) come from the surplus S minus R being small, not from the store; one of 11 waits past its star's age. Letting R fall with body age (heat flow and reductant supply were higher early) is the physical lever. Do: find a source for how the reductant sink falls with age (find it first, ask Boss for papers only if the sources are closed; second-hand values accepted), then let R fall with body age in the oxygen-rise calculation, register the form in GEN.725 with tier and tweak level, and report how many of the 11 worlds change. Done: a sourced R(age) in the model, a before-and-after count of oxygen worlds and delays in the change note. Mutual-effects check: R is a property of the body itself plus its star's light, no cross-body path is skipped. Lock item (epoch) if oxygen worlds change. Waits on a source; does not block 8.1 unless the source is found.
+  Version 8.1. Owner (TODO, proposed 2026-11-08, confirm with TODO before taking): Lane 21. Prerequisites: none. Related: GEN.1405, GEN.1309.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
