@@ -16,16 +16,16 @@ release is stamped.
 | UX | UX.296 |
 | MAP | MAP.412 |
 | NAV | NAV.78 |
-| GEN | GEN.1446 |
+| GEN | GEN.1461 |
 | PERF | PERF.256 |
 | DB | DB.121 |
 | API | API.43 |
 | ADM | ADM.148 |
 | SEC | SEC.47 |
-| TEST | TEST.709 |
+| TEST | TEST.710 |
 | USR | USR.32 |
-| OPS | OPS.122 |
-| DOC | DOC.113 |
+| OPS | OPS.131 |
+| DOC | DOC.114 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
 
@@ -2101,7 +2101,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1308 | Hand the scatter step's swept shares on: the implanted-inner-belt share to the inner belt's mass, the captured_moons share to the irregular-moon pool, the ejected share to the rogue builders | GEN.1085 | done, PR #5620 |
 | GEN.1309 | Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug) | none | open |
 | GEN.1310 | Refit the greenhouse table for hazy airs and hot dense airs (300 to 500 K), where the fit still misses by a median 3.9 percent and a 90th percentile of 42 percent | GEN.1304 | done, PR #5572 |
-| GEN.1311 | Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves | none | open |
+| GEN.1311 | Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves | none | done, PR #5745 |
 | GEN.1312 | Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix | GEN.1311 | open |
 | GEN.1313 | Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths | GEN.1312 | open |
 | GEN.1314 | Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored | GEN.1313 | open |
@@ -2215,6 +2215,21 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1443 | Every bright source in the sky and in the day and night text: second suns, white dwarfs, neutron stars and accretion disks as seen from a body | GEN.1441 | open |
 | GEN.1444 | Belts, asteroids and comets get the same radiation field: temperature, ice survival and surface dose from all sources | GEN.1441 | open |
 | GEN.1445 | Radiation field census and sweep: how many bodies change class, dose and temperature once every source counts | GEN.1441 | open |
+| GEN.1446 | Tides between all bodies of a system: every star, planet and moon raises tides on every other by 3D position, joining ocean tides, tidal heating, locking and spin-down | none | open |
+| GEN.1447 | Kozai and secular pumping between all bodies: a companion star, sibling planets and the host drive eccentricity and inclination of every planet and moon over the age of the system | none | open |
+| GEN.1448 | Tides and secular census: how many planets, moons and belts change tide, locking, spin, heating and orbit once every body counts | none | open |
+| GEN.1449 | Moon systems under every perturber: the Hill limit, stability, resonance and spin of moons count the star, the sibling planets, a companion and the other moons | none | open |
+| GEN.1450 | Planet chains under every body: mutual Hill spacing, resonance and Laplace-Lagrange secular exchange across all planets, with companion stars in the spacing | none | open |
+| GEN.1451 | Belts and disks under every body: companion truncation, resonance sweep and scattering by sibling planets in belt and disk edges | none | open |
+| GEN.1452 | Stellar wind, magnetopause and radiation belts from every star and from the planets for their moons | none | open |
+| GEN.1453 | Impact and comet flux from the whole system: giants shield or scatter, companions stir the cloud, belts feed the inner bodies | none | open |
+| GEN.1454 | Spin and obliquity under every body: the torques of sibling planets, a companion star and the moons on a planet's spin axis over time | none | open |
+| GEN.1455 | Trojan and Lagrange stability under every giant and companion star | none | open |
+| GEN.1456 | Ejection and scattering by every giant and companion: who is thrown out, to where, and what becomes of its moons | none | open |
+| GEN.1457 | Comet orbits under every planet and companion: scattering by giants and the companion's tide on the orbits themselves | none | open |
+| GEN.1458 | Seasons, day and eclipses with every sun and every eclipser: a second sun's declination and phase in the swing, eclipses of one star by another planet or moon | none | open |
+| GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | open |
+| GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | open |
 | GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) | GEN.1399 | open |
 | GEN.1431 | Flavor text life subtree: lines for all nine life classes at rungs 2 to 5, gated on the life's solvent medium, energy source, rung and animal grade (replaces the multicellular-only trigger) | GEN.1430 | open |
 | GEN.1432 | Planet class one-liner and page sentence reconciled into one row: a phrase, and a number-free sentence with the numbers read from planet_class_fit.json through unit-aware formatting | none | done, PR #5729 |
@@ -2243,6 +2258,15 @@ Parents marked "new parent" had no old number of their own.
 | TEST.694 | scripts/test.py: full --check refuses on main; --resume reuses nothing after UTC midnight; .pytest-deps.json is partial after a resume; xdist stops replacing OOM-killed workers; tests rewrite tracked .test-reports/*-latest.md (bug) | none | done, PR #5688 |
 | OPS.120 | deploy-common.sh uses bash-4 ${var^^} and test_install_python_deps dies on log_info: command not found (bug) | none | done, PR #5688 |
 | OPS.121 | The automatic warm-up ran during generation and logged failed warm-up requests: it now waits for a live generation run to end (bug) | none | done, PR #5666 |
+| OPS.122 | Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier | none | open |
+| OPS.123 | Stage opening (the cut), conclude and finish hooks become single-purpose commands of their own instead of running inside the last unit's horse | none | open |
+| OPS.124 | Memory broker: a per-job memory claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) | none | open |
+| OPS.125 | DROPPED (revive only if Boss asks): optional Dask distributed engine behind a switch for the generation stages (PERF.254 step 2) | none | open |
+| OPS.126 | Sector generation as single-sector jobs fed by a spawner | none | open |
+| OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today | none | open |
+| OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) | none | open |
+| OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook | none | open |
+| OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site | none | open |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | done, PR #5688 |
 | UX.289 | Any step that takes more than 5 seconds shows a progress bar from the 5-second mark: one shared mechanism for generation stages, the uncharted-sector index, the upper-level roll-up and every long step | none | open |
 | UX.290 | The System Map loses the selected body's info panel (#sysmap-info h3) after the time buttons (play, faster, now) (bug) | none | done, PR #5688 |
@@ -3664,6 +3688,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | open |
 | DOC.111 | The link-neighbors command is in no document | none | open |
 | DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out | none | open |
+| DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps | none | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | done, PR #5457 |
 | SEC.45 | A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function | none | done, PR #5468 |
 | SEC.46 | Accept /home and /Users in the config.json folder check, for installs in a home folder on a shared machine (SEC.44 follow-up, Boss) | none | done, PR #5444 |
@@ -4364,6 +4389,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 | none | open |
 | TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor | none | open |
 | TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold | none | open |
+| TEST.709 | test_api_life_air test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made is flaky: it draws unseeded systems in a 40-try loop and sometimes finds no methane row | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

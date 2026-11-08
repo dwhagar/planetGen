@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3718] - 2026-11-08
+
+**Headline:** a script that measures how far each class quantity moves when one stand-in is moved across its registered range.
+
+### Changed
+
+- `scripts/stand_in_sensitivity.py` (GEN.1311, part one of the class fudge table): reads the registry's constant and knobs cells, overrides one module constant at a time (low end, high end) on a fixed sample of systems, and records how far gravity, mean temperature, pressure, gas shares, ocean cover, the regional, day and night temperatures and the wet bulb move. `rows` lists which registry rows can be overridden and why the others cannot; `screen` runs the pass and writes a report. Nothing it does changes a generated world.
+
 ## [8.0.3717] - 2026-11-08
 
 **Headline:** The registry now keeps eighteen known gaps from the unseen-compounds report as watch lines, each with its status, its chance of existing, its chance that the predicted properties are right, and why it changes no generated number yet.

@@ -1,5 +1,7 @@
 # Version 8.1: Infinite zoom and the new generate scatters
 
+Core design principle (Boss, 2:58 PM EST on 2026-11-08): everything in a system affects everything else in the system, by 3D position, orbit-averaged. Items GEN.1441 to GEN.1454 build it; the rules and the register of host-only paths are in [system-interactions.md](../../design/generation/system-interactions.md).
+
 Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 [docs/TODO.md](../../TODO.md) is the master file: it holds each item's full text, and its "Plan: versions" section indexes every version.
 This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in [notes.md](../notes.md); the headlines and the ideas not yet filed are in [release-roadmap.md](../release-roadmap.md).
@@ -86,6 +88,16 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.252 | A full-galaxy run was killed by SIGKILL (out of memory) 45 minutes after the block light totals, with no log line and a stage label that does not match (bug) |  | Boss's full-galaxy run 20261108-020807-50fea318. |
 | PERF.253 | test_each_tristate_flag_forced[B2V-True-MOONS] runs past the 900 s timeout in habitability_world.world_from (temperature_coverage.series_of_values) (bug) |  | Lane 05, 2026-11-08. |
 | PERF.254 | Memory governor for the generation run: admit and shed workers from the live free memory, learn each stage's worker size, and measure the cut of a stage as its own step |  | Boss, 2026-11-08. |
+| DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps |  | Boss, 2026-11-08 (proposed). |
+| OPS.122 | Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier |  | Boss, 2026-11-08 (proposed). |
+| OPS.123 | Stage opening (the cut), conclude and finish hooks become single-purpose commands of their own instead of running inside the last unit's horse |  | Boss, 2026-11-08 (proposed). |
+| OPS.124 | Memory broker: a per-job memory claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) |  | Boss, 2026-11-08 (proposed). |
+| OPS.125 | DROPPED (revive only if Boss asks): optional Dask distributed engine behind a switch for the generation stages (PERF.254 step 2) |  | Boss, 2026-11-08 (proposed). |
+| OPS.126 | Sector generation as single-sector jobs fed by a spawner |  | Boss, 2026-11-08 (proposed). |
+| OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today |  | Boss, 2026-11-08 (proposed). |
+| OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) |  | Boss, 2026-11-08 (proposed). |
+| OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook |  | Boss, 2026-11-08 (proposed). |
+| OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site |  | Boss, 2026-11-08 (proposed). |
 
 ### Nebula data foundations
 
@@ -456,9 +468,25 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1443 | Every bright source in the sky and in the day and night text: second suns, white dwarfs, neutron stars and accretion disks as seen from a body | GEN.1441 | Boss, 2026-11-08. |
 | GEN.1444 | Belts, asteroids and comets get the same radiation field: temperature, ice survival and surface dose from all sources | GEN.1441 | Boss, 2026-11-08. |
 | GEN.1445 | Radiation field census and sweep: how many bodies change class, dose and temperature once every source counts | GEN.1441 | Boss, 2026-11-08. |
+| GEN.1446 | Tides between all bodies of a system: every star, planet and moon raises tides on every other by 3D position, joining ocean tides, tidal heating, locking and spin-down | none | Boss, 2026-11-08. |
+| GEN.1447 | Kozai and secular pumping between all bodies: a companion star, sibling planets and the host drive eccentricity and inclination of every planet and moon over the age of the system | none | Boss, 2026-11-08. |
+| GEN.1448 | Tides and secular census: how many planets, moons and belts change tide, locking, spin, heating and orbit once every body counts | none | Boss, 2026-11-08. |
+| GEN.1449 | Moon systems under every perturber: the Hill limit, stability, resonance and spin of moons count the star, the sibling planets, a companion and the other moons | none | Boss, 2026-11-08. |
+| GEN.1450 | Planet chains under every body: mutual Hill spacing, resonance and Laplace-Lagrange secular exchange across all planets, with companion stars in the spacing | none | Boss, 2026-11-08. |
+| GEN.1451 | Belts and disks under every body: companion truncation, resonance sweep and scattering by sibling planets in belt and disk edges | none | Boss, 2026-11-08. |
+| GEN.1452 | Stellar wind, magnetopause and radiation belts from every star and from the planets for their moons | none | Boss, 2026-11-08. |
+| GEN.1453 | Impact and comet flux from the whole system: giants shield or scatter, companions stir the cloud, belts feed the inner bodies | none | Boss, 2026-11-08. |
+| GEN.1454 | Spin and obliquity under every body: the torques of sibling planets, a companion star and the moons on a planet's spin axis over time | none | Boss, 2026-11-08. |
+| GEN.1455 | Trojan and Lagrange stability under every giant and companion star | none | Boss, 2026-11-08. |
+| GEN.1456 | Ejection and scattering by every giant and companion: who is thrown out, to where, and what becomes of its moons | none | Boss, 2026-11-08. |
+| GEN.1457 | Comet orbits under every planet and companion: scattering by giants and the companion's tide on the orbits themselves | none | Boss, 2026-11-08. |
+| GEN.1458 | Seasons, day and eclipses with every sun and every eclipser: a second sun's declination and phase in the swing, eclipses of one star by another planet or moon | none | Boss, 2026-11-08. |
+| GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
+| GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | Boss, 2026-11-08. |
 | TEST.706 | test_american_spelling fails on main: the British spelling "cancelled" in src/tests/test_steps.py lines 197, 214, 221 and 226 |  | Lane 15, 2026-11-08. |
 | TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor |  | Lane 15, 2026-11-08. |
 | TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold |  | Lane 15, 2026-11-08. |
+| TEST.709 | test_api_life_air test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made is flaky: it draws unseeded systems in a 40-try loop and sometimes finds no methane row |  | Lane 21, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |
 | MAP.410 | Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')" |  | Lane 03, 2026-11-08. |
 | UX.294 | Seven JS files format numbers by hand (toLocaleString, toExponential, toPrecision): move them to numberformat.js and unitladder.js |  | Lane 05, 2026-11-08. |
@@ -606,8 +634,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.1309 | Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug) |  |  |
-| GEN.1311 | Fudge table part 1: a sensitivity harness that moves one stand-in at a time across its registered range and records how far each class quantity moves |  |  |
-| GEN.1312 | Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix | GEN.1311 |  |
+| GEN.1312 | Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix |  |  |
 | GEN.1313 | Fudge table part 3: physics/data/fudge_table.json, its build script, its test and the registry rows for the widths | GEN.1312 |  |
 | GEN.1314 | Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored | GEN.1313 |  |
 | GEN.1315 | Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters) | GEN.1314 |  |
