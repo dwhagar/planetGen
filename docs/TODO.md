@@ -12873,41 +12873,6 @@ clears each one.
   TODO thread.
   Prerequisites: none. Related: MAP.401.
 
-- [ ] **GEN.1309 Free oxygen is rare: only 24 of 1446 worlds with air reach the 16 percent oxygen that classes M, H, L, O, P and R need, and those 24 sit outside the classes' pressure, gravity and temperature ranges (bug)**
-  Boss decided at 10:21 AM EST on 2026-11-08 (class M rarity report, lever 9): keep the carbon dioxide limit of classes M, H, O, P and R at 1 kPa; class L's edge is unchanged. Do not widen the window to raise M; the rarity comes from ocean cover, temperature and the oxygen chain.
-  SPLIT (Boss wants the oxygen fixes in train 18; Lane 21's read at 12:35 AM EST on 2026-11-08, report reports/gen1309-oxygen-census-after-train14-2026-11-07.md): of 3,544 bodies only 10 have a living sea and 16 kPa of oxygen. They miss class M because (a) CO2 over the 1 kPa limit, 8 of 10 (1.5 to 17 kPa, no CO2 draw-down is modelled for an oxygen world), (b) thin near-pure-oxygen air under 50 kPa, 4 of 10 (the steady-oxygen law adds oxygen on top of the air that exists), (c) gravity over 2 g, 4 of 13 (mass distribution, not oxygen). Lane 21 corrected itself at 12:36 AM EST: a thin-air split has no clean physics (Earth's oxygen is limited by buried carbon in rock, not by air CO2) and would not raise the class M count, since capping the oxygen share only makes low-oxygen thin airs; so no share cap is built. The real lever is the CO2. Lane 15's measure (reports/gen1309-co2-measure-2026-11-08.md) and Lane 21's decision at 2:55 AM EST on 2026-11-08: no CO2 draw-down law for oxygen worlds, because all 19 oxygen sea worlds have no land (16 seafloor, 3 sealed), so their CO2 is what the published waterworld law gives, and where land exists the weathering law already gives under 1 kPa (12 of 13); class M is rare mostly because 93 percent of sea worlds are global oceans and 10 of 15 oxygen worlds are under 275 K (the water inventory, GEN.1339 and GEN.1342). What is fixable: the air is not re-balanced after the oxygen rise burns the methane (final temperature 7 to 67 K below the solve temperature in 8 of 9 worlds; CO2 up by the burnt carbon). So GEN.1309 is now two lock steps, owner Lane 21, train 19: step A re-solves CO2 at the final temperature after the rise (store the sink inputs on the body; about a day; probably +1 or 2 class M per 3,500 bodies), then step B caps organic burial by carbon supply with recycling (medium; also trims the 35.5 kPa pile-up). Superseded plan: the CO2 draw-down (weathering and burial holding an oxygenic world's CO2 near the carbonate balance, using the law already in surface_pressure.py); Lane 15 measures how CO2 reaches 5 to 17 kPa and reports before any law is chosen. Even a perfect fix gives only about 5 to 8 more class M per 3,544 bodies; the rest of the gap is that a request for a habitable world mostly goes unmet because few temperate liquid-water worlds exist (GEN.909 diagnosed this as cold by the physics, no code change; GEN.853 is a different, finished item about civilizations, so it is not part of this).
-  Boss, 6:17 PM EST on 2026-11-06 (relayed by the coordinator): build the
-  oxygen fixes. Evidence: /mnt/project-files/reports/match-by-class-2026-11-06.md
-  (1437-world sample: no world reaches even a partial match with M, H, L,
-  O, P, R, Y or X; of 1446 worlds with air, 26 carry 3 percent or more
-  free oxygen and 24 carry 16 percent or more, and those sit at the
-  clamped 1 or 10 kPa, at 1.4 to 2.6 g, at 188 to 233 K, or exactly on
-  the 35 percent top edge). Earlier probes: oxygenic life on 16 of 69
-  class M worlds (GEN.855, Lane 11), chlorophyll a vetoed on A and M stars
-  (GEN.867), hot hycean worlds make none. GEN.909 was diagnosed as a cold
-  zone by the physics, so it is not the cause. Do, in order: (1) measure
-  the chain on a fixture sample at current main: the share of bodies with
-  oxygenic life, the oxygen each makes (GEN.855 release against the sinks:
-  crust oxidation, ferrous iron, volcanic reduced gases, the escape of
-  hydrogen), and where the oxygen ends up against the pressure and
-  temperature the world ended with; (2) say which step loses the oxygen
-  (a stand-in too low, a sink too strong, the 10 kPa clamp, the 35 percent
-  cap, life arriving too late in GEN.750's timeline, or too few worlds
-  with a sunlit sea); (3) fix it from the physics, no game rate, and
-  register any stand-in in GEN.725 with tier and tweak level; a world that
-  ends with an Earth-like air is allowed to be rare, but not nearly
-  absent where the physics allows it. Lock item if stored values change
-  (epoch, census re-baseline); step 1 and 2 are lock-free. Done: a
-  1437-body measure shows how many worlds fall in each oxygen band and
-  which cause was found or why the count stays low. The oxygen window of
-  the class table (16 to 35 percent for M, H, O, P and R) is not changed
-  here; if the cap at 35 percent is a pile-up, say so and TODO asks Boss.
-  Version 8.1. Owner: Lane 21. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.854, GEN.855, GEN.867, GEN.750, GEN.1306, GEN.909.
-  Decision (Boss, 11:19 PM EST on 2026-11-06, which replaces the 6:22 PM option 1 wording "the window stays as a share" and extends the 7:36 PM option b): the oxygen window stays at the limits as built (classes M, H, O, P and R need 16 to 35 percent oxygen and class L 3 to 16 percent at Earth-like air), but oxygen is judged by partial pressure wherever it gates life or class (M, H, L, O, P, R, K, F and the life gates), and carbon dioxide by partial pressure on the oxygen-water classes; shares stay for hydrogen, sulfur dioxide, methane, the reducing share and class G. The Earth-like classes are designed for life like humans, who need enough oxygen pressure to flourish (GEN.1320, GEN.1321, GEN.1330, sweep GEN.1331). Earth-like air needs oxygenic life, so these classes stay rare by the physics; oxygen-free temperate ocean worlds go to class F (anoxic, GEN.1281).
-  Added (Boss, 6:36 PM EST on 2026-11-06): after this item merges, rerun the fudge simulation sweep (GEN.1312's class_fit_cli sweep) to revisit the spread, because the oxygen envelope was still being fixed when the cap tiers were set. Report how the cap tiers and the share of bodies placed change.
-  Progress (6:35 AM EST on 2026-11-07, as Lane 21 reported): after train 14 only 13 of 1,692 natural bodies hold 16 kPa or more oxygen; the causes are filed as GEN.1339 (sea worlds are almost all global oceans, which leaves CO2 high) and GEN.1340 (thin air keeps its nitrogen). GEN.854 as worded is met and retired; this item stays open until those two land and the census is re-run.
-
 - [ ] **GEN.1312 Fudge table part 2: run the sensitivity harness on a lane machine (150 systems from each of 3 seeds) to build the stand-in by end-result matrix**
   RELEASED (Boss, 8:53 AM EST on 2026-11-08): the hold is lifted; build it now, aimed at Train 19, with GEN.1309 running in parallel. The sensitivity matrix and the cap sweep are rerun after GEN.1309 merges to revisit the spread (plan section 4d), so nothing built here is thrown away.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Screening pass first (low and high only, 5 systems) to drop the rows that
@@ -12989,7 +12954,7 @@ clears each one.
   the table is read (GEN.1314); if GEN.1314 is already on a train, the
   re-derived table rides it. Version 8.1. Owner: the thread "Run fudge cap
   simulation sweep". Filed by the TODO thread.
-  Prerequisites: GEN.1309, GEN.1312, GEN.1313. Related: GEN.1306, GEN.1314.
+  Prerequisites: GEN.1312, GEN.1313. Related: GEN.1306, GEN.1314.
 
 - [ ] **GEN.1333 A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers**
   REWORKED: a request for class E is no longer snapped into the ecosphere once GEN.1397 removes the life list (an E request is a deep-frozen world); PR 5640 keeps its behaviour for the other classes, and GEN.1397 owns the E change.
@@ -13004,11 +12969,6 @@ clears each one.
   Lane 21 (as the lane reported 11:17 AM EST on 2026-11-07), a finding under GEN.1348: more chloride and sulfate barely moves the high-pH mode (61 percent of the 2,034 sealed oceans over pH 11.5 as generated; 58 percent with 10 times the anions; 27 percent only at 1,000 times). What sets the mode is carbon against the leached calcium: in the high-pH worlds the carbon is 0.14 of the leached calcium (median), calcite takes all of it, and the leftover sodium and calcium charge sits as hydroxide (pH 12.5 is about where lime buffers). With 3 times the carbon the share falls to 46 percent, with 10 times to 30 percent. The crust's published thickness range [R2381] counts carbonate capacity, not free calcium. Also from GEN.1348: CRUST_SODIUM_WT 0.028 equals MORB Na2O, not Na (2.07 wt percent); a small effect (61 to 60 percent over pH 11.5) to fix in the same pass. Do: source search for the share of a weathered basalt's calcium that goes to solution as a free cation (the rest stays in secondary minerals), register the value in GEN.725 with tier and tweak level, re-measure the sealed-ocean pH, and report whether the 12 to 14 mode falls. Done: a report with the sources by registry number and the sealed-ocean pH before and after. Lock-free if the report only confirms the leach, otherwise a lock item (epoch). Goal issue #3242. Version 8.1. Owner: Lane 21, after GEN.1348. Filed by the TODO thread.
   Boss, 3:25 PM EST on 2026-11-08 (class M levers, 'take the recommended set'): lever 3 (sealed-ocean leaching) is released to build in 8.1; start now, it does not wait for the other levers.
   Prerequisites: none. Related: GEN.1348 (done, a finding), GEN.1319, GEN.1309.
-
-- [ ] **GEN.1353 Class and life census re-tag after train 15 (epoch 137): re-measure the census shares and re-baseline the class and life ranges the train moved**
-  REWORKED: the census re-tag runs after trains 17 and 18, since GEN.1397 (train 18) changes the habitable counts and the stored habitable flag.
-  Lane 02 (as the lane reported 12:19 PM EST on 2026-11-07), as after trains 13 and 14 (GEN.1327, GEN.1338): train 15 moved rocky planet envelopes, the steam limit, sealed-ocean anions, field members and the nebula seed. Do: run the class and life census on the new epoch, re-tag the flags and re-baseline the TEST.430 ranges that moved, and report the shares against the researched ranges. Done: the census flags are current for epoch 137 and the report names what moved. Lock-free. Goal issue #1674. Version 8.1. Owner: Lane 04. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1338, GEN.1327, TEST.430.
 
 - [ ] **OPS.118 Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug)**
   PR 5575 found no code that sends SIGTERM to a work horse in that sequence (only stop-all and the update guard's cancel do, and neither ran), and now names the signal. Do: on the test server look at what killed it (earlyoom or another memory guard, systemd-oomd, a manual stop; journal and kernel log around the time), and if a guard on the machine ends the horses, make the run fit (smaller chunks, fewer workers at once, or a documented guard setting in the install notes). OPS.116's error.log will carry the next one with its signal and unit. Done: the cause is named, and either fixed in the program or written into the install and update notes. Lock-free. Goal issue #5433. Version 8.1. Owner: Aux 2. Progress (PRs 5583 and 5578 merged 2026-11-07, 1:31 PM EST): the guard warning in install.sh and update.sh, the kernel and guard kill report after a failed warm-up, and the INSTALL.md Memory guards section are on main; the sender of the status 15 is still unnamed, and stays open until error.log catches the next kill with its signal and unit.
@@ -13447,6 +13407,7 @@ clears each one.
 - [ ] **GEN.1405 Oxygen store delay: source the time an oxygen world takes to fill its stores before oxygen rises (EARTH_STORE_MOL, T9, L3, tuned to a 0.7 Gyr delay) from the geochemistry**
   Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 6. The delay between oxygenic life and free oxygen is a fitted stand-in with Earth's own delay as the only data point, and it leaves worlds waiting 9 to 23 Gyr, longer than the star's age. Do: find the primary or accepted secondary sources for the sinks that must fill (reduced iron and sulfur in the crust and ocean, volcanic gas, methane and hydrogen), derive the delay from the sink size and the oxygen source on each world, replace the fitted constant (or keep it with a row that explains the scatter), register it in GEN.725 and re-measure how many worlds wait longer than their star lives. Lock item (moves the oxygen timeline and the life stage of every oxygenic world). Lane 21 area (biogenic_oxygen). Not before GEN.1309 steps A and B.
   Boss, 3:25 PM EST on 2026-11-08 (class M levers, 'take the recommended set'): lever 6 is released to build in 8.1, after GEN.1309 steps A and B; owner proposed Lane 21.
+  Finding from GEN.1309 step B (Lane 21, 2026-11-08, closed without a build): oxygen is not carbon-limited in the model. A strict stock bound would take oxygen from 3 of 15 oxygen worlds and would remove Earth's own oxygen, because carbon recycles through kerogen weathering and subduction; a stoichiometry-only form changes 0 of 2,704 bodies. The oxygen shortfall comes from the ocean-world share, temperature and the rise delay, which is this item's lever. Branch claude/gen1309b is kept unmerged.
   Version 8.1. Prerequisites: none. Related: GEN.1309, GEN.750, GEN.725.
   Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
 
