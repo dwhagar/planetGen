@@ -14075,6 +14075,16 @@ clears each one.
   Prerequisites: none.
   Filed by the TODO thread.
 
+- [ ] **MAP.408 The Galaxy Map key has no line for the globular cluster layer (bug)**
+  Found by the browser phase run (Lane 03, 2026-11-08): test_web_browser_map_key fails because the globularCluster layer in sectorscene.js (the sector scene) has no key line in the map key. Add the key line (swatch and plain-words label) wherever the other layers get theirs, and make sure the test passes without being loosened. Lock-free. Size S. Owner (proposed by TODO): Lane 11. Related: TEST.696.
+  Prerequisites: none.
+  Filed by the TODO thread.
+
+- [ ] **UX.290 The System Map loses the selected body's info panel (#sysmap-info h3) after the time buttons (play, faster, now) (bug)**
+  Found by the browser phase run (Lane 03, 2026-11-08): test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram loses `#sysmap-info h3` after the time buttons (around line 968 of that test). Decide what is right: a selected body should stay selected, and its panel stay shown, across play, faster and now, unless the body no longer exists. Fix the view if so (lock-free), or the test if the panel is meant to clear. Size S. Owner (proposed by TODO): Lane 11. Related: TEST.696.
+  Prerequisites: none.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1331 Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide)**
   Boss (11:22 PM EST on 2026-11-06): do an extra sweep to make sure all the appropriate values are changed throughout and that everything that reads the data expects the difference. Runs after GEN.1321. Do: walk every place that holds or reads an oxygen or carbon dioxide threshold and check it is converted to pressure (or deliberately stays a share: hydrogen, sulfur dioxide, methane, the reducing share, class G, class W's limits). Checklist, each by grep over `src/`, `docs/`, `tests/` and the data files: the class matrix and its JSON (`planet_class_fit.json`, `share_o2`, `o2_share`, `co2_share`, `oxygen_fraction`), `life_classes.json`, `age_needs.json`, the habitability index and `habitability.py`, `biogenic_oxygen` and `mixture_oxygen`, descriptions and plain-words text (`life_help.py`, class pages), API fields and web display units (percent against kPa or atm) on the sector, system, planet and class pages, admin pages, docs and reference tables (`docs/design`, the generated class tables), tests and golden files, the fudge table rows (GEN.1312 to GEN.1314), citations and the GEN.725 stand-in registry entries (value, unit and tweak level). Add a test that fails if a share-based oxygen or carbon dioxide threshold remains in a converted rule (the converted rules are listed in one registry beside the data, and the test reads every rule in it). Lock-free if no generated value changes (a reader fix only), otherwise a lock item; say which in the PR. Done: the checklist is in the report with the result of each grep, every converted value has a pressure unit, no reader still reads a share where a pressure now lives, and the new test passes. Version 8.1. Owner: Lane 14 (the class matrix lane), after GEN.1321.
   Filed by the TODO thread.
