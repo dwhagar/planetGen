@@ -27,7 +27,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, regional_temperature,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, regional_temperature,
                                life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -170,7 +170,8 @@ _STAR = (
            ("xuv_saturated", "X-ray output saturated", FLAG), ("xuv_fluence_j", "X-ray and ultraviolet energy emitted"),
            ("uv_c_share", "UV-C power against its blackbody's"),
            ("flare_n33_per_yr", "Large flares a year"), ("flare_alpha", "Flare size distribution slope"),
-           ("lethal_event_rate_per_gyr", "Lethal events per billion years")),
+           ("lethal_event_rate_per_gyr", "Lethal events per billion years"),
+           ("surface_dipole_field_gauss", "Polar field of the dipole")),
     *_rows("galactic", ("galactic_orbital_period_gy", "Galactic orbital period"),
            ("galactic_orbital_phase_deg", "Galactic orbital phase")),
     *_rows("disk", ("disk_kind", "Kind", TEXT), ("disk_mass_solar", "Mass"), ("disk_inner_au", "Inner edge"),
@@ -219,7 +220,11 @@ _BODY_GROUPS = (
            ("ice_other_mass_fraction", "Other ices mass fraction"), ("envelope_mass_fraction", "Gas envelope mass fraction"),
            ("envelope_helium_fraction", "Helium share of the envelope"), ("envelope_z_fraction", "Heavy-element share of the envelope"),
            ("rock_feo_fraction", "Iron oxide share of the rock"), ("rock_al2o3_fraction", "Alumina share of the rock"),
-           ("rock_mg_si_ratio", "Magnesium to silicon ratio of the rock"), ("porosity", "Porosity"),
+           ("rock_mg_si_ratio", "Magnesium to silicon ratio of the rock"),
+           ("rock_na2o_fraction", "Sodium oxide share of the rock"), ("rock_k2o_fraction", "Potassium oxide share of the rock"),
+           ("rock_tio2_fraction", "Titanium dioxide share of the rock"), ("rock_cr2o3_fraction", "Chromium oxide share of the rock"),
+           ("rock_mno_fraction", "Manganese oxide share of the rock"), ("rock_nio_fraction", "Nickel oxide share of the rock"),
+           ("rock_p2o5_fraction", "Phosphorus oxide share of the rock"), ("porosity", "Porosity"),
            ("carbon_rock", "Carbon-rich rock", FLAG),
            ("ground_type", "Ground type with the largest share", TEXT), ("ground_grain", "Ground grain", TEXT),
            ("ground_ocean_fraction", "Ground share: ocean"), ("ground_ice_fraction", "Ground share: ice"),
@@ -262,6 +267,7 @@ _BODY_GROUPS = (
            ("tidal_flux_w_m2", "Tidal heat flow"), ("aquifer_depth_km", "Depth to underground water"),
            ("aquifer_thickness_km", "Thickness of the underground water")),
     *_rows("magnetism", ("dipole_class", "Dipole field", TEXT), ("magnetic_moment_a_m2", "Magnetic moment"),
+           ("dipole_tilt_deg", "Dipole tilt from the spin axis"), ("dipole_offset_class", "Dipole centering", TEXT),
            ("induced_moment_a_m2", "Induced magnetic moment"), ("magnetopause_rp", "Magnetopause distance")),
     *_rows("radiation", ("surface_dose_msv_yr", "Surface dose"), ("dose_gcr_msv_yr", "Dose from cosmic rays"),
            ("dose_sep_msv_yr", "Dose from stellar particles"), ("dose_ground_msv_yr", "Dose from the ground"),
@@ -366,6 +372,7 @@ _BLACK_HOLE = (
 _NEUTRON_STAR = (
     *_rows("identity", ("pulsar_type", "Pulsar type", TEXT)),
     *_rows("compact", ("mass_solar", "Mass"), ("radius_km", "Radius"), ("magnetic_field_gauss", "Magnetic field"),
+           ("magnetic_inclination_deg", "Magnetic axis tilt from the spin axis"),
            ("surface_temperature_k", "Surface temperature"), ("luminosity_w", "Luminosity"), ("age_gy", "Age"),
            ("density_g_cm3", "Mean density"), ("binding_energy_j", "Binding energy")),
     *_rows("rotation", ("spin_period_ms", "Spin period"), ("axial_tilt_deg", "Axial tilt")),
@@ -541,7 +548,7 @@ _BODY_NOT_SHOWN = {
     "flavor_text_count": "how many flavor lines exist; bookkeeping",
     "flavor_key": "which flavor line the text uses; bookkeeping",
     "aerosol_draw": "the random draw behind the haze and dust depths; bookkeeping",
-    "oddities": "the ids of the oddity rows the body has; the object page prints them as its Odd line (GEN.1047)",
+    "oddities": "the ids of the oddity rows the body has; the object page prints them as its Odd line",
     "atmosphere_colour": "shown as the Atmosphere color swatch by the description builder, a color rather than a number",
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
     **_excuse(regional_temperature.BAND_COLUMNS,
@@ -835,7 +842,7 @@ _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "ground_type", "ground_grain", *surface_composition.FRACTION_FIELDS,
-    "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
+    "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio", "rock_na2o_fraction", "rock_k2o_fraction", "rock_tio2_fraction", "rock_cr2o3_fraction", "rock_mno_fraction", "rock_nio_fraction", "rock_p2o5_fraction",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
     "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
@@ -953,6 +960,8 @@ _BODY_RULES = [
      "complex cells need free oxygen, which a world has only if its air holds it or its photosynthesis builds it; a world that never does has no age for the stages from complex cells on, and its stage stops before them"),
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
      "a world with no magnetic field has no magnetopause"),
+    (("dipole_tilt_deg", "dipole_offset_class"), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
+     "a world with no magnetic field has no dipole to point or to center"),
     (_DISK_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _DISK_COLUMNS),
      "only a giant planet whose moons formed in a disk keeps that disk; a rocky body, a moon and a giant with no disk-born moons store none"),
 ]
@@ -965,6 +974,10 @@ _PLANET_RULES = [
 ]
 
 _STAR_RULES = [
+    (("surface_dipole_field_gauss",), lambda klass, row: row is None or row.get("surface_dipole_field_gauss") is not None or (
+        magnetic_geometry.covered_cool_dwarf(row.get("yerkes_class"), None if row.get("mass_kg") is None else row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
+                                              row.get("temperature_k"), row.get("rotation_period_hours"))),
+     "only a cool dwarf with a convective envelope, whose field follows its Rossby number, and an Ap or Bp dwarf have a dipole field stored; a hot star, a giant and a remnant have none"),
     (("flare_alpha", "uv_c_share", "log_lx_lbol", "lifespan_gy"), lambda klass, row: row is None or row.get("yerkes_class") != "VII",
      "a white dwarf has no corona and no flares, so no X-ray share, flare law or UV-C draw, and it does not leave the stage it is in, "
      "so its lifespan has no end"),

@@ -28,7 +28,7 @@ def test_every_row_of_the_property_sheet_is_on_exactly_one_method_page():
     listed = [(row["group"], row["label"], row["source"]) for rows in by_area.values() for row in rows]
     every = [(row["group"], row["label"], row["source"]) for row in property_help.rows()]
     assert sorted(listed) == sorted(every) and len(listed) == len(set(listed))
-    assert all(row["applies"] == "Stars" for row in by_area["stars"]) and by_area["stars"]
+    assert all(row["applies"] in ("Stars", "Neutron stars") for row in by_area["stars"]) and by_area["stars"]
 
 
 def test_every_group_of_the_property_sheet_names_an_area():

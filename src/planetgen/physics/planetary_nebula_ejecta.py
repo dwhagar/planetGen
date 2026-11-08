@@ -180,7 +180,7 @@ def mass_window_sol(nebula_class, place_fe_h):
 def ejecta_of(nebula_class, initial_mass_sol, place_fe_h):
     """The `PlanetaryNebulaEjecta` of a progenitor of a given mass (no draw): the dredge-ups of the module doc."""
     fe_h = birth_fe_h(place_fe_h, initial_mass_sol)
-    star = sa.composition(fe_h, sa.abundance_offsets(fe_h, sa.BRANCH_THIN, (0.0,) * 5))
+    star = sa.composition(fe_h, sa.abundance_offsets(fe_h, sa.BRANCH_THIN, (0.0,) * len(sa.RESIDUAL_ELEMENTS)))
     envelope = sa.after_first_dredge_up(star, initial_mass_sol)
     elements = dict(envelope.elements)
     white_dwarf = remnant_mass.white_dwarf_mass_sol(initial_mass_sol)

@@ -41,7 +41,7 @@ sections 2.1 to 2.4; every rate here is a design default good to about
 import math
 
 from planetgen.galaxy import scales
-from planetgen.physics import constants, saturation_time, spin, stellar_library, stellar_spectrum, unit_registry as units
+from planetgen.physics import constants, magnetic_geometry, saturation_time, spin, stellar_library, stellar_spectrum, unit_registry as units
 from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -56,7 +56,7 @@ _gyr_to_s = units.converter("Gyr", "s")
 
 STAR_ACTIVITY_UNITS = {
     "log_lx_lbol": "dex", "l_xuv_w": "W", "xuv_saturated": "flag", "flare_n33_per_yr": "1/yr", "flare_alpha": "ratio",
-    "xuv_fluence_j": "J", "lethal_event_rate_per_gyr": "1/Gy", "uv_c_share": "ratio",
+    "xuv_fluence_j": "J", "lethal_event_rate_per_gyr": "1/Gy", "uv_c_share": "ratio", "surface_dipole_field_gauss": "G",
 }
 """dict: What `generate_activity` sets on a star, as stored in `stars`, with each attribute's native unit."""
 
@@ -352,6 +352,10 @@ def generate_activity(star):
     age = max(star.age or 0.0, 1e-4)
     photosphere = luminosity * blackbody_fraction_above(XUV_EDGE_EV, star.temperature)
     yerkes = star.yerkes_class or ""
+    # GEN.1350: the dipole's polar field from the star's rotation (a cool dwarf) or its kind (Ap), a stream of the star's own
+    star.surface_dipole_field_gauss = magnetic_geometry.star_field_gauss(
+        yerkes, mass_sol, star.mass, getattr(star, "radius", None), getattr(star, "temperature", None), getattr(star, "age", None),
+        getattr(star, "rotation_period_hours", None))
     if yerkes == "VII":
         _set_remnant(star, photosphere, age)
         return
@@ -462,6 +466,7 @@ def _set_remnant(star, l_xuv_w, age_gy):
     star.flare_n33_per_yr = 0.0
     star.flare_alpha = None
     star.uv_c_share = None
+    star.surface_dipole_field_gauss = None
     star.l_xuv_w = l_xuv_w
     star.xuv_fluence_j = _yr_to_s(_gyr_to_yr(l_xuv_w * age_gy))
 

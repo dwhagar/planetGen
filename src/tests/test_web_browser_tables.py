@@ -162,7 +162,7 @@ def _fake_sector(db, sector_id):
     return SECTOR
 
 
-def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
+def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None, sector_scope=None):
     offsets = offsets or {}
     offset = offsets.get("sectors", 0)
     rows = [{"id": i, "name": f"Found {i:03d}", "edge_mpc": 3.07} for i in range(120)]

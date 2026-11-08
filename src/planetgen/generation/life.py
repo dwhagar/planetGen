@@ -32,7 +32,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_type, radiation, surface_liquid_world, trace_air
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -367,7 +367,7 @@ def _build_air(planet, cands):
     classes that split water (GEN.855) and the rest of their ledgers, the methane and the hydrogen drawdown (`physics.life_air`, GEN.857, GEN.858,
     GEN.859). When either changes the air, everything that reads it is made again once (`_rebuild`).
     """
-    if planet.body_type == "g":
+    if not planet_type.has_ground(planet):      # a giant, or a planet under a deep envelope (GEN.1334): no ground for life to change the air of
         return
     living = _living_of(cands)
     rose = _build_oxygen(planet, living)
@@ -398,7 +398,7 @@ def _trace_gases(planet):
     read the air, and the trace gases shift it by parts in a thousand. The same stream as `_rebuild` takes, so the draws do not move."""
     before = atmosphere.gas_partials_pa(planet)
     trace_air.apply(planet)
-    if planet.body_type != "g" and getattr(planet, "uv_surface_index", None) is not None and atmosphere.gas_partials_pa(planet) != before:
+    if planet_type.has_ground(planet) and getattr(planet, "uv_surface_index", None) is not None and atmosphere.gas_partials_pa(planet) != before:
         with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
             radiation.generate_dose(planet)
 
@@ -503,25 +503,23 @@ def decide_flavor_text(planet):
 
     # Check for habitable and multicellular/technological life
     is_habitable = planet.life_class is not None
-    # The orbital list is for a body with no ground to put a wreck on: a gas giant, or a rock whose whole surface is molten. It is judged by the stored
+    # The orbital list is for a body with no ground to put a wreck on: a gas giant or a body under a deep envelope (GEN.1334), or a rock whose whole surface is molten. It is judged by the stored
     # conditions of the body, never by its class letter (GEN.1399: the class is decided last).
-    has_no_ground = planet.body_type == "g" or getattr(planet, "surface_liquid", None) in surface_liquid_world.LAVA_IDS
+    has_no_ground = not planet_type.has_ground(planet) or getattr(planet, "surface_liquid", None) in surface_liquid_world.LAVA_IDS
     has_multicellular_life = planet.life_stage in ("multicellularity", "technological_civilization")
 
     if is_habitable and has_multicellular_life:
         selected_flavor = draw.choice(available_habitable_flavor)
         flavor_category = "habitable (multicellular/technological life present)"
         flavor_list = "habitable"
-    elif planet.body_type == "t" and not has_no_ground:
+    elif not has_no_ground:
         selected_flavor = draw.choice(available_planet_flavor)
-        flavor_category = "planet (terrestrial body with a ground)"
+        flavor_category = "planet (a ground to stand on)"
         flavor_list = "planet"
-    elif has_no_ground:
-        selected_flavor = draw.choice(available_orbital_flavor)
-        flavor_category = "orbital (gas giant or molten surface)"
-        flavor_list = "orbital"
     else:
-        flavor_category = None
+        selected_flavor = draw.choice(available_orbital_flavor)
+        flavor_category = "orbital (no ground: a gas body, a deep envelope or a molten surface)"
+        flavor_list = "orbital"
 
     if selected_flavor:
         log.choice("Planet flavor text", selected_flavor, f"category: {flavor_category}")

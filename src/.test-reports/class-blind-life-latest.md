@@ -1,14 +1,13 @@
-scores-class-blind: 0 of 271 bodies differ with the class letter
-terrestrial bodies 264; the life model gives a class to 101, by the letter each was drawn with:
-  B: 1 of 3
-  C: 16 of 31
-  D: 32 of 121
-  E: 29 of 42
-  F: 0 of 1
-  G: 3 of 4
-  N: 0 of 22
-  S: 9 of 15
-  T: 4 of 10
-  U: 5 of 5
-  V: 2 of 4
-  Z: 0 of 6
+scores-class-blind: 0 of 349 bodies differ with the class letter
+terrestrial bodies 334; the life model gives a class to 104, by the letter each was drawn with:
+  C: 30 of 46
+  D: 39 of 154
+  E: 20 of 32
+  F: 3 of 3
+  I: 0 of 14
+  N: 0 of 6
+  S: 8 of 15
+  T: 1 of 54
+  U: 1 of 1
+  V: 1 of 2
+  Z: 1 of 7
