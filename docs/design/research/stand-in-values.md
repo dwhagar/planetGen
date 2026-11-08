@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1374 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1394 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 170 | 19 | 11 | 1 | 0 | 201 |
-| T2 | 129 | 58 | 1 | 1 | 0 | 189 |
-| T3 | 103 | 44 | 9 | 10 | 0 | 166 |
+| T1 | 173 | 20 | 11 | 1 | 0 | 205 |
+| T2 | 131 | 58 | 1 | 1 | 0 | 191 |
+| T3 | 103 | 45 | 9 | 10 | 0 | 167 |
 | T4 | 63 | 11 | 3 | 19 | 10 | 106 |
-| T5 | 62 | 22 | 4 | 1 | 0 | 89 |
-| T6 | 145 | 100 | 27 | 75 | 0 | 347 |
-| T7 | 34 | 15 | 8 | 29 | 0 | 86 |
+| T5 | 63 | 22 | 4 | 1 | 0 | 90 |
+| T6 | 148 | 100 | 27 | 75 | 0 | 350 |
+| T7 | 37 | 15 | 9 | 31 | 0 | 92 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 41 | 16 | 5 | 88 | 34 | 184 |
-| All | 747 | 285 | 68 | 229 | 45 | 1374 |
+| T9 | 41 | 16 | 5 | 91 | 34 | 187 |
+| All | 759 | 287 | 69 | 234 | 45 | 1394 |
 
 ## How the labels were given
 
@@ -1835,7 +1835,37 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | GE2 | P | T6 | L0 | disk_condensation.envelope_enrichments: krypton and xenon take the star's argon ratio (`disk_noble`), because the star's element set has no krypton or xenon | none | stars with the Sun's ratios of the noble gases | a star with a measured krypton or xenon over argon off the Sun's by more than a factor of 2 | the star's own krypton and xenon, if the element set gains them | [R0168] gives the Sun's krypton and xenon; no star sample here measures them | - | - |
 | GE3 | P | T6 | L0 | disk_condensation.envelope_enrichments: every ice and clathrate that froze reaches the envelope with the same `sigma` (the planetesimals carry the disk's proportions of all species) | none | giants whose heavy elements came mostly as planetesimals | a giant whose nitrogen and sulfur enrichments differ from its carbon and oxygen by the ice split alone by more than a factor of 2 | a model of which ices the planetesimals shed in the envelope (volatiles are lost on the way in) | nitrogen 3.0 and sulfur 3.1 against the probe's 2.96 and 2.75 times solar at one formation temperature and four times the star's heavy elements; one giant, so not a test of the split | - | - |
 
-## 6.228 Stand-ins of the carbide deposits of a carbon-rich body
+## 6.228 Stand-ins of the vapor pressure over aqueous sulfuric acid and its condensation window
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SV1 | D | T1 | L0 | sulfuric_vapor.json `zeleznik_1991`: the ten parameter blocks (mu_111, mu_121, mu_221, mu_122, eps_111, eps_121, eps_211, eps_221, eps_122, eps_212) of the relative Gibbs energy of aqueous sulfuric acid | none | 200 to 350 K, 0.1 MPa, every strength (the paper says no measurement above 25 C for the concentrated acid) | a measured water or acid activity over the solution off the model by more than the paper's 0.75 percent in the Gibbs energy | a newer thermodynamic model (the Clegg and Brimblecombe model, [R4289] fits it) | READ ([R4877: Table 6], checked against [R4877: Table 7] at 200, 250 and 300 K) | - | - |
+| SV2 | B | T3 | L1 | sulfuric_vapor.json `pure_acid_*`: ln p(atm) = 16.259 - 10156/T0 + 10156 [1/T0 - 1/T + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] with T0 = 360 K and Tc = 905 K, the pure liquid acid; the refit constant -11.695 at T0 = 360.15 K of Noppel and others 2002 ([R5168: equation 11]) is 1.28 times higher at every temperature | default curve; refit curve as the other end | 190 to 445 K (never the raw Ayers line below 300 K: it is 4.5 times high at 200 K) | the pure acid vapor pressure measured off the curve by more than the 1.28 spread | the primary [R2516] or a fourth open paper | 2ND-HAND ([R0976: equation 16] and [R5168: equation 11], of [R0210, R2516]); [R1516: equation 4a] prints T0 = 340 K, which is 1.2 to 1.5 times higher at 190 to 250 K and is not used | - | - |
+| SV3 | B | T2 | L0 | the water pressure over a solution is its activity times the pure liquid's; Zeleznik's against Tabazadeh's fits to the Clegg and Brimblecombe model ([R4289: Table 1]) agree within 2 percent up to 40 percent acid and part by up to 40 percent in the water pressure at 80 percent acid (190 K) | Zeleznik's activity used everywhere in 200 to 350 K, so acid and water stay consistent | 185 to 260 K for the comparison | a measured water pressure over 60 to 80 percent acid below 260 K | the measurements of Massucci and others 1996 behind [R4289], if opened | READ ([R4877], [R4289: Table 1]) | - | - |
+| SV4 | D | T1 | L1 | the supercooled liquid water curve of [R4289: equation 1] below the triple point (185 to 260 K as printed, carried to 273.16 K where it is 0.1 percent under the liquid curve of `saturation`) | none | 185 to 273 K | a measured supercooled water pressure off it by more than 2 percent between 260 and 273 K | the Wagner supercooled curve | READ ([R4289: equation 1]); the 260 to 273 K part is carried, not printed | - | - |
+| SV5 | T | T7 | L2 | the solution model and the pure acid curve carried above 350 K to the cloud base (to about 445 K), where the paper does not recommend extrapolation; the status is `extrapolated` there | none | 350 to 445 K | a measured acid or water pressure over concentrated acid above 350 K | a model that reaches the sub-cloud region | the base of the published cloud sits at 345 to 367 K, so this part is where the Venus base is decided; the 97 to 99 percent base strengths are consistent with the published over 95 percent ([R0157: Table 1]) | - | - |
+| SV6 | T | T7 | L0 | `condenses`: the liquid forms where the acid vapor pressure of the air is above the pressure over the solution its water fixes; the mixing ratios are the caller's and are held through the window (a cloud would deplete them) | none | any air | a cloud whose base is not where this puts it for the air's own acid and water | the cloud step of GEN.1425 with the sulfur chemistry | derived from the activities above; next to no acid condenses at the dew point of the water | - | - |
+| SV7 | P | T7 | L3 | no freezing: the liquid is taken to stay liquid down to 185 K (the pure acid and its hydrates melt at 220 to 283 K, [R4877: Table 5]) | none | warm clouds; cold ones are the window's edge | a cold acid aerosol that is solid where this puts it liquid | the freezing curve of [R4877: figure 1 and section 4.3], not yet turned into a function | not read into code; [R4877] prints the solid phases | - | replace (GEN.1425) |
+| SV8 | P | T7 | L3 | no thermal decomposition: above about 400 K the vapor is partly SO3 and water, which this module does not split | none | below 400 K | a measured SO3 share of the sub-cloud vapor | a decomposition equilibrium | recalled from the Venus acid-cloud report (P8), not opened | - | no data |
+
+## 6.229 Stand-ins of the sulfur-cloud chemistry set and its gates
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CV1 | B | T2 | L0 | sulfur_cloud_set.json species V1: sulfuric acid water droplets (about 75 percent acid on Venus), given to an air whose acid vapor condenses by the curve of `sulfuric_vapor` | default on | airs with sulfur dioxide, an oxidiser, water and a cool enough level | a cloud-bearing air the curve calls clear, or a clear one it calls cloudy | the cloud step reading the window (part B of GEN.1425) | STATUS observed in a planet (Venus); READ ([R0157: Table 1] through `sulfuric_cloud.json`, [R3418], GEN.1424); Venus is the only calibration planet | - | - |
+| CV2 | D | T1 | L0 | V2: sulfur dioxide gas, read from the air (nothing added) | default on | as generated | none | none | STATUS observed in a planet (Venus); READ (the gas table; [R5169] fits the sulfur dioxide band) | - | - |
+| CV3 | D | T1 | L0 | V3: hydrogen chloride, hydrogen fluoride, carbonyl sulfide and carbon monoxide gases, read from the air (nothing added); present when one is over its floor (`chlorine_min_share`, `reductant_min_share`) | default on | as generated | none | none | STATUS observed in a planet (Venus); READ (the gas table and the halogen budget of `mixture_rocky`) | - | - |
+| CV4 | T | T5 | L0 | V4: sulfur monoxide and disulfur monoxide gases (and the S2O2 dimer) from the photolysis of sulfur dioxide with a reductant (gate 3) | default on | an air over `uv_c_min_w_m2` of ultraviolet-C flux with a reductant | a measured air with the oxides where this gives none | a photochemistry model | STATUS predicted only (sulfur monoxide observed); READ ([R5169: Table 3] disulfur monoxide has the lowest misfit, 14, the dimer the best shape, 22; neither is detected) | - | - |
+| CV5 | T | T6 | L0 | V5: elemental sulfur aerosol (S8 and shorter chains) where the sulfur dioxide is over `sulfur_aerosol_min_so2_share` as well as gate 3 | default on | a sulfur-rich photochemical air | a measured sulfur-rich air without the aerosol | a photochemistry model | STATUS predicted only; READ ([R5169: Table 3] S8 misfit 76 to 120, against 14 for S2O: fits less well, not excluded) | - | - |
+| CV6 | T | T6 | L0 | V6: iron(III) chloride where the acid cloud, hydrogen chloride and exposed iron are all present (gates 2, 4, 5) | default on | terrestrial body without a global ocean | a measured acid cloud with chlorine and iron and no trace of it | a model of where the iron goes | STATUS predicted only; READ ([R5169: Table 3] misfit 86; [R5170] abstract, a preprint under review, only the abstract read) | - | - |
+| CV7 | T | T6 | L0 | V7: ferric sulfates (acid ferric sulfate, ferric hydroxy sulfates) where the acid cloud and exposed iron are present (gates 2, 5) | default on | terrestrial body without a global ocean | as CV6 | a model of where the iron goes | STATUS predicted only; READ ([R5170] abstract only) | - | - |
+| CV8 | T | T7 | L0 | V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default and closed without a dust supply (the generator tracks dust per system, not per planet, so `carbon_dust` is the caller's) | off by default | needs the acid cloud, iron and dust | a measured acid cloud with dust and none of it | a per-planet dust influx and a second paper | STATUS predicted only (one preprint); READ ([R5170] abstract only: the cloud-top carbon and iron need 600 and 3 thousand years of influx at the least) | - | - |
+| CV9 | T | T7 | L0 | V9: sulfur-chlorine products (SCl2, ClSSCl, SO2Cl2), off by default; gates 3 and 4 | off by default | photolysed sulfur and chlorine | as CV8 | a second paper | STATUS predicted only; READ ([R5169: Table 3] SCl2 misfit 57; the others are not in the table) | - | - |
+| CV10 | P | T9 | L3 | V10: the unidentified ultraviolet absorber as a Gaussian band, centre `absorber_center_um` 0.34 and full width `absorber_fwhm_um` 0.14 micron, peak `absorber_depth_per_cloud_depth` 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to `absorber_so2_reference_share` 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it | centre 0.34 +/- 0.03, width 0.14 +/- 0.01 (read); strength hand-set | with V1 and sulfur dioxide | a measured band centre or width outside the stated ranges; a peak depth far from 0.1 | a retrieved band strength | STATUS predicted only (its identity); READ for the band ([R5169: abstract and section 4.3]); the strength is a stand-in, not in the text | - | no data |
+| CG1 | P | T9 | L3 | sulfur_cloud_set.json `acid_vapor_share_of_so2` 0.03: the acid vapor as a share of the sulfur dioxide at every level of the dry adiabat | 1 to 10 percent | airs with an acid cloud | a measured sub-cloud acid vapor off 2 to 7 percent of the sulfur dioxide | a photochemistry model of the acid vapor | from the base of the published Venus cloud: 3 to 10 ppm of acid in 30 ppm of water at about 1.3 bar puts the curve's base at 356 to 370 K (GEN.1424); one planet calibrates it | - | replace (GEN.1425) |
+| CG2 | P | T9 | L3 | `cloud_water_min_share` 1e-6, `uv_c_min_w_m2` 0.5, `reductant_min_share` 1e-7, `sulfur_aerosol_min_so2_share` 1e-5, `chlorine_min_share` 1e-7: the floors of the gates | each a decade either way | gates 2 to 4 | a sweep that moves any of them | a sweep | STATUS predicted only; the floors are those proposed in section 10.2 of the unseen-compounds report (1 ppm of water, 0.1 ppm of chlorine) and hand-set where the report gives none; not solver floors | - | no data |
+
+## 6.233 Stand-ins of the carbide deposits of a carbon-rich body
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
