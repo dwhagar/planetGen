@@ -146,11 +146,14 @@ install_python() {
     say "Static datasets (GEN.548)"
     # The package is not installed in the snapshot (planetgen-env-up installs it per session), so the
     # fetch runs from the checkout's source.
-    if PYTHONPATH="$REPO/src" "$PY" -I -m planetgen.cli.datasets fetch; then
-        PYTHONPATH="$REPO/src" "$PY" -I -m planetgen.cli.datasets status
+    # OPS.119: -P (no current directory on the path) keeps the isolation; -I also dropped PYTHONPATH, so the import of planetgen failed
+    # and the step warned and went on.
+    if PYTHONPATH="$REPO/src" "$PY" -P -m planetgen.cli.datasets fetch && PYTHONPATH="$REPO/src" "$PY" -P -m planetgen.cli.datasets status; then
+        :
     else
-        echo "warning: the datasets did not download; generation tests will raise DataMissing until" \
-             "'python3 -m planetgen.cli.datasets fetch' succeeds." >&2
+        echo "SETUP INCOMPLETE: the datasets are not all downloaded; generation tests will raise DataMissing until" \
+             "'python3 -m planetgen.cli.datasets fetch' succeeds (the test preflight fetches the ones the tests read)." >&2
+        touch /tmp/planetgen-datasets-incomplete
     fi
 }
 install_python > /tmp/planetgen-pip.log 2>&1 &
@@ -307,5 +310,10 @@ mysqld --version
 apache2 -v | head -1
 redis-server --version
 echo
+if [[ -e /tmp/planetgen-datasets-incomplete ]]; then
+    # OPS.119: said at the end, where the log is read, not only in the middle of the pip step. Not fatal: a data host that is down must not
+    # stop the environment from building (the test preflight fetches the data the tests read). To make it fatal, change this to `exit 1`.
+    echo "SETUP INCOMPLETE: the static datasets did not all download (see above)." >&2
+fi
 echo "planetGen environment ready in $(( $(date +%s) - START )) s. Start the services in each session with: planetgen-env-up"
 exit 0

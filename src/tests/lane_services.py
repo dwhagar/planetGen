@@ -50,9 +50,10 @@ HUNG_AFTER = 3
 connection counts at once, since nothing is listening."""
 START_WAIT = 90
 """int: Seconds a restarted server has to answer."""
-TEST_DATASETS = ("white_dwarf_models",)
-"""tuple: The downloaded data the tests read as it is, not through a stand-in: the white-dwarf cooling sequences (a stand-in gives other
-stars, so the same-seed and migration tests disagree with a machine that has them). `planetgen.cli.datasets fetch` is the setup step of
+TEST_DATASETS = ("white_dwarf_models", "isochrones", "stellar_spectra", "hhe_eos", "hyg_stars", "mamajek_dwarf_sequence")
+"""tuple: The downloaded data the tests and the math check read as it is, not through a stand-in: the white-dwarf cooling sequences (a stand-in
+gives other stars, so the same-seed and migration tests disagree with a machine that has them), and the isochrones, spectra, equation of state,
+HYG and Mamajek tables the math check's 16 stellar checks raise DataMissing without (OPS.119). `planetgen.cli.datasets fetch` is the setup step of
 `update.sh`; a fresh test machine has not run it (TEST.441)."""
 LOW_DISK_MB = 3000
 """int: Free space under which the MySQL binlogs are purged."""
