@@ -333,7 +333,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.213", "6.213 Stand-ins of the species the disk condenses",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.218", "6.218 Stand-ins of the request that names conditions",
+    ("6.230", "6.230 Stand-ins of the request that names conditions",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.197", "6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),

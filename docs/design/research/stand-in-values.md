@@ -1873,7 +1873,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DSC5 | P | T3 | L3 | disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate | N2 0.4 to 0.9; salts 0.05 to 0.3 | the nitrogen of a disc | measured N2 or ammonium in a disc or comet | a nitrogen chemistry model | most nitrogen is N2 and unobserved, the salts a minority (the Rosetta result cited second-hand, [R3321]); the split is recalled | GEN.1363 | no data |
 | DSC6 | P | T3 | L2 | disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock | 0.1 to 0.5 | a Sun-like disc | a comet with a different H2S over water | a sulfur chemistry model | 67P H2S 1.1 percent of water against 3.5 percent for all the sulfur over the water, [R3835: Table 2], read | GEN.1363 | - |
 
-## 6.218 Stand-ins of the request that names conditions
+## 6.230 Stand-ins of the request that names conditions
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|

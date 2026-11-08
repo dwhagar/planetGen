@@ -42303,8 +42303,8 @@
       "title": "Stand-ins of the species the disk condenses"
     },
     {
-      "key": "6.218",
-      "number": "6.218",
+      "key": "6.230",
+      "number": "6.230",
       "rows": [
         {
           "burn_down": null,
@@ -42335,9 +42335,9 @@
             ]
           ],
           "id": "CRQ1",
-          "key": "6.218:CRQ1",
+          "key": "6.230:CRQ1",
           "kind": "B",
-          "slug": "6-218-crq1",
+          "slug": "6-230-crq1",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L1",
@@ -42345,7 +42345,7 @@
           "what": "tuning.REQUEST_ECOSPHERE_TEMPERATURE_K (273.15, 400): a request whose rocky body must have a mean surface temperature of at least freezing and under 400 K is placed in the ecosphere; any other keeps the place of its slot"
         }
       ],
-      "slug": "6-218-stand-ins-of-the-request-that-names-conditions",
+      "slug": "6-230-stand-ins-of-the-request-that-names-conditions",
       "title": "Stand-ins of the request that names conditions"
     },
     {
