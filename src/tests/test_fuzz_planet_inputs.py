@@ -18,6 +18,7 @@ from hypothesis import strategies as st
 
 from planetgen.physics import planets
 from planetgen import tuning as prog_c
+from planetgen.generation import habitable_request
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
@@ -83,7 +84,7 @@ def test_pinned_planets_come_out_whole_or_raise_value_error(star, inputs):
     if mass is not None:
         assert planet.mass == mass
     if habitable is False and planet.zone == "e":
-        assert planet.planet_class not in prog_c.HABITABLE_PLANET_CLASSES
+        assert not habitable_request.meets(planet)
 
 
 def test_a_planet_class_can_no_longer_be_pinned(star):

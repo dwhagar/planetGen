@@ -74,7 +74,7 @@ is listed under Evidence notes for checking when paper access is allowed.
   [C].
 - **Stellar evolution.** `evolve_star` holds a main-sequence star at constant
   luminosity: no pre-main-sequence phase and no brightening.
-- **Life.** `HABITABLE_PLANET_CLASSES = E F G H K L M O P V`;
+- **Life.** (Historical: `HABITABLE_PLANET_CLASSES = E F G H K L M O P V`, gone with GEN.1387; life comes from the conditions.)
   `PLANET_CLASS_MAX_LIFE_STAGE` caps E (abiogenesis), F and G (photosynthesis)
   and L (multicellularity). `evolution.get_evolutionary_timeline` picks the
   latest milestone whose absolute age is below the star's age. Nothing reads
