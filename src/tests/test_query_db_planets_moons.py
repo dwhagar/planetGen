@@ -70,6 +70,26 @@ def test_list_planets_returns_every_planet_with_no_filter(mysql_config):
     assert all(r["system_name"] == system.name for r in rows)
 
 
+def test_list_planets_filters_by_a_written_class_code(mysql_config):
+    """GEN.1208: "F2" is the letter F at digit 2; the letter alone still matches every digit."""
+    system, cfg = _make_system_with_moons()
+    system_id = _insert(mysql_config, system, cfg)
+    planets = [p for p in system.planets if p.body_type != "a"]
+    letter = planets[0].planet_class
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE planets SET class_variant = 2 WHERE name = ? AND star_system_id = ?", (planets[0].name, system_id))
+        conn.commit()
+        whole = {r["name"] for r in list_planets(conn, planet_class=letter, system_id=system_id)}
+        second = {r["name"] for r in list_planets(conn, planet_class=f"{letter}2", system_id=system_id)}
+        ideal = {r["name"] for r in list_planets(conn, planet_class=f"{letter}0", system_id=system_id)}
+    finally:
+        conn.close()
+    assert second == {planets[0].name}
+    assert whole == {p.name for p in planets if p.planet_class == letter} and planets[0].name in whole
+    assert planets[0].name not in ideal and ideal == whole - second
+
+
 def test_list_planets_filters_by_class(mysql_config):
     system, cfg = _make_system_with_moons()
     system_id = _insert(mysql_config, system, cfg)

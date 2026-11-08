@@ -594,3 +594,16 @@ def test_a_missing_dataset_does_not_stop_the_site_booting(monkeypatch):
     assert classref.preload() is False
     monkeypatch.setattr(classref, "catalog", lambda: {})
     assert classref.preload() is True
+
+
+# --- A written class code (GEN.1208) ----------------------------------------------------
+
+def test_a_written_planet_class_code_resolves_to_its_letters_page(client):
+    """GEN.1208: `class_code.parse_code` reads "F2" into letter and digit; the page of the class is the letter's, the digit being a position of the family."""
+    letter = next(iter(classref.catalog()["planet"]["classes"]))
+    assert classref.class_url_parts("planet", letter) == ("planet", letter)
+    assert classref.class_url_parts("planet", f"{letter}2") == ("planet", letter)
+    assert classref.class_url_parts("planet", f"{letter}22") is None
+    resp = client.get(f"/classes/planet/{letter}2")
+    assert resp.status_code == 301 and resp.headers["Location"].endswith(f"/classes/planet/{letter}")
+    assert client.get(f"/classes/planet/{letter}22").status_code == 404
