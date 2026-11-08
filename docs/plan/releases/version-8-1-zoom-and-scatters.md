@@ -67,6 +67,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.396 | Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants |  | Lane 13 finding, 2026-10-16 10:00 PM EDT; any Core lane. |
 | GEN.1385 | test_surface_composition.py::test_every_generated_body_has_a_consistent_ground fails on main: a 408 K body carries ice cover (bug) |  |  |
 | GEN.1397 | Remove the life-bearing class list: life comes from conditions (bug) |  | Boss, highest priority, train 18. Absorbs GEN.1387 and PERF.240. |
+| GEN.1398 | The final-age stream and the strength pass read the class letter: seed the final-age redraw without it, and make the strength pass use the classifier's own conditions (audit F1 and F2) |  | Class-last audit, train 18. |
+| GEN.1399 | The flavor-text draw list is chosen by class A: choose it by conditions (audit F6) |  | Class-last audit, train 18. |
+| GEN.1400 | Class-letter leftovers: m_count, the unused trojan_bodies and hycean_candidate letter code, the dead pass-throughs in bodylook and habitability_world, the stale tuning docstring (audit F7 and F8) |  | Class-last audit, train 18. |
 | GEN.1393 | A giant whose radius stays keeps the younger-age energy flux after the star's age rises (bug) |  | Lane 04 train 17 triage. |
 | GEN.1394 | A body under a deep envelope (GEN.1334) is solved for haze at the 1 bar level and stores half the haze it was solved with (bug) |  | Lane 04 train 17 triage. |
 | TEST.688 | src/tests/test_stellar_bulk.py::test_a_terrestrial_rogue_planet_is_round_and_has_a_strength fails on main: rogue planets of 0.5 to 3 Earth masses come out class T with roundness None (bug) |  |  |
