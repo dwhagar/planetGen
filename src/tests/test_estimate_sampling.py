@@ -165,6 +165,27 @@ def test_a_streamed_shell_run_estimates_from_a_sample_and_generates_every_sector
         == [(1, 0, 0), (1, 0, 1), (1, 0, 2)]
 
 
+def test_a_run_that_only_estimates_does_not_work_out_the_generator_battery(mysql_config, monkeypatch, capsys):
+    """ADM.141: the battery (half a minute and more) is compared with the galaxy's to warn before a write; an estimate writes nothing, and
+    it was most of the two minutes the Generate page's size line waited."""
+    from planetgen.generation import generator_battery
+    _plan_wide_galaxy(mysql_config)
+    worked_out = []
+    monkeypatch.setattr(generator_battery, "running_digest", lambda *a, **k: worked_out.append(1) or pytest.fail("worked out"))
+    _run_cli(FIRST_THREE + ["--estimate-only"] + _mysql_argv(mysql_config))
+    assert worked_out == []
+    assert [m for m in capsys.readouterr().out.splitlines() if m.startswith(run_common.ESTIMATE_PREFIX)]
+
+
+def test_a_run_that_writes_still_compares_the_battery(mysql_config, monkeypatch):
+    seen = []
+    monkeypatch.setattr(run_galaxy, "_plan_check", lambda config, edge_pc, compute_battery=True: seen.append(compute_battery) or (None, None))
+    for estimating in (True, False):
+        monkeypatch.setattr(run_galaxy.store, "mysql_config_from_args", lambda args: mysql_config)
+        run_galaxy._check_plan(SimpleNamespace(estimate_only=estimating), EDGE_PC)
+    assert seen == [False, True]
+
+
 # --- The web limit -------------------------------------------------------------------------------------------------
 
 

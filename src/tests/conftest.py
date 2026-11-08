@@ -372,6 +372,16 @@ def _plain_command_lines(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _estimates_run_in_the_request(monkeypatch):
+    """The Generate page's size estimate runs in the work queue (ADM.141): a request queues it and answers "working". The
+    tests that patch `generate_page.run_estimate` expect it to be called, so here nothing can queue it and it runs in the
+    request, as it did before the queue; `test_estimate_background.py` tests the queued path with its own `start`."""
+    from planetgen.web.lib import estimatejob
+    monkeypatch.setattr(estimatejob, "start", lambda *args, **kwargs: False)
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _fast_password_hashing(request, monkeypatch):
     """Every login, credential change and seeded admin user runs Argon2id at
     19 MiB and two passes in production (`adminAuth.hash_parameters`, SEC.32),
